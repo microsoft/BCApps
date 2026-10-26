@@ -7,6 +7,7 @@ namespace Microsoft.Finance.GST.Purchase;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GST.Base;
+using Microsoft.Inventory;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
@@ -20,7 +21,6 @@ codeunit 18082 "GST Vendor Ledger Entry"
     begin
         if PurchaseHeader."GST Vendor Type" in ["GST Vendor Type"::Unregistered, "GST Vendor Type"::Import] then
             exit(true);
-
         if PurchaseHeader."GST Vendor Type" in ["GST Vendor Type"::Registered, "GST Vendor Type"::Unregistered, "GST Vendor Type"::SEZ] then begin
             PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
             PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
@@ -29,9 +29,7 @@ codeunit 18082 "GST Vendor Ledger Entry"
             PurchaseLine.SetRange("GST Reverse Charge", true);
             if PurchaseLine.Count() <> 0 then
                 exit(true);
-
         end;
-
         if PurchaseHeader."GST Vendor Type" = "GST Vendor Type"::SEZ then begin
             PurchaseLine.Reset();
             PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
@@ -119,5 +117,55 @@ codeunit 18082 "GST Vendor Ledger Entry"
                     VendorLedgerEntry."GST Reverse Charge" := true
                 else
                     VendorLedgerEntry."GST Reverse Charge" := GenJournalLine."GST Group Type" = GenJournalLine."GST Group Type"::Service;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnInitQtyToReceive2OnBeforeCalcInvDiscToInvoice, '', false, false)]
+    local procedure UpdateInvoicedQty(var PurchaseLine: Record "Purchase Line"; var xPurchaseLine: Record "Purchase Line")
+    begin
+        SetQtyToInvoiceToRecvdQty(PurchaseLine);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", OnUpdatePurchLineOnBeforePurchLineModify, '', false, false)]
+    local procedure UpdateInvoicedQtyOnUndoReceipt(var PurchLine: Record "Purchase Line")
+    begin
+        if not SetQtyToInvoiceToRecvdQty(PurchLine) then
+            exit;
+
+        PurchLine.CalcInvDiscToInvoice();
+        PurchLine.CalcPrepaymentToDeduct();
+    end;
+
+    local procedure SetQtyToInvoiceToRecvdQty(var PurchaseLine: Record "Purchase Line"): Boolean
+    var
+        PurchaseHeader: Record "Purchase Header";
+
+    begin
+        if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
+            exit(false);
+        if PurchaseLine."Qty. Rcd. Not Invoiced" <= 0 then
+            exit(false);
+        if not PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
+            exit(false);
+        if not (PurchaseHeader."GST Vendor Type" in [PurchaseHeader."GST Vendor Type"::Import, PurchaseHeader."GST Vendor Type"::SEZ]) then
+            exit(false);
+
+        PurchaseLine."Qty. to Invoice" := PurchaseLine."Qty. Rcd. Not Invoiced";
+        PurchaseLine."Qty. to Invoice (Base)" := PurchaseLine."Qty. Rcd. Not Invoiced (Base)";
+        exit(true);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeUpdatePurchLineBeforePost, '', false, false)]
+    local procedure IncludeQtyToReceiveOnReceiveAndInvoice(CommitIsSupressed: Boolean; RoundingLineInserted: Boolean; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; WhseReceive: Boolean; WhseShip: Boolean)
+    begin
+        if not (PurchaseHeader.Receive and PurchaseHeader.Invoice) then
+            exit;
+        if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
+            exit;
+        if PurchaseLine."Qty. to Receive" = 0 then
+            exit;
+        if PurchaseLine."Qty. to Invoice" <> PurchaseLine."Qty. Rcd. Not Invoiced" then
+            exit;
+
+        PurchaseLine.InitQtyToInvoice();
     end;
 }
