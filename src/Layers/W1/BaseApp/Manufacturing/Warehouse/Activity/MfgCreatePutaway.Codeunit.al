@@ -872,7 +872,7 @@ codeunit 99000893 "Mfg. Create Put-away"
         UpdateRemQtyToPutAwayBaseFromProdOrderLine(TempProdOrdLineTrackingBuff, ProdOrderLine);
 
         if CurrLocation."Directed Put-away and Pick" then begin
-            if ProdOrderLine."Qty. per Unit of Measure" > ProdOrderLine."Qty. per Unit of Measure" then
+            if ProdOrderLine."Qty. per Unit of Measure" > PutAwayItemUnitOfMeasure."Qty. per Unit of Measure" then
                 CreateBreakPackageLines(ProdOrderLine, TempProdOrdLineTrackingBuff);
 
             if RemQtyToPutAwayBase = 0 then
