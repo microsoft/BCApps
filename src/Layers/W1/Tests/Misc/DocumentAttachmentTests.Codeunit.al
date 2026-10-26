@@ -4860,6 +4860,7 @@ codeunit 134776 "Document Attachment Tests"
     var
         DocumentAttachment: Record "Document Attachment";
         PaymentTerms: Record "Payment Terms";
+        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
     begin
         // [SCENARIO 646549] Show details reports the unresolved source record instead of failing with "The record is not open".
         // Upload files and Attach from email cannot be invoked from a TestPage, but they run the same source resolution as Show details.
@@ -4868,11 +4869,16 @@ codeunit 134776 "Document Attachment Tests"
         // [GIVEN] Document Attachment that points to a table neither the FactBox nor any subscriber maps.
         CreateDocAttachForUnmappedTable(DocumentAttachment);
 
-        // [WHEN] Show details is invoked for that attachment.
-        asserterror ShowAttachmentDetails(DocumentAttachment);
+        // [GIVEN] Documents FactBox opened on that attachment.
+        DocAttachmentListFactbox.OpenView();
+        DocAttachmentListFactbox.GoToRecord(DocumentAttachment);
+
+        // [WHEN] Show details is invoked on the Documents FactBox.
+        asserterror DocAttachmentListFactbox.OpenInDetail.Invoke();
 
         // [THEN] The error states that the source record cannot be resolved and names the table.
         Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, PaymentTerms.TableCaption()));
+        DocAttachmentListFactbox.Close();
     end;
 
     [Test]
@@ -4880,6 +4886,7 @@ codeunit 134776 "Document Attachment Tests"
     var
         DocumentAttachment: Record "Document Attachment";
         SalesShipmentHeader: Record "Sales Shipment Header";
+        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
     begin
         // [SCENARIO 646549] Show details on an attachment of a Posted Sales Shipment that no longer exists must error instead of opening another shipment.
         Initialize();
@@ -4891,11 +4898,16 @@ codeunit 134776 "Document Attachment Tests"
         DocumentAttachment."File Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."File Name"));
         DocumentAttachment.Insert();
 
-        // [WHEN] Show details is invoked for that attachment.
-        asserterror ShowAttachmentDetails(DocumentAttachment);
+        // [GIVEN] Documents FactBox opened on that attachment.
+        DocAttachmentListFactbox.OpenView();
+        DocAttachmentListFactbox.GoToRecord(DocumentAttachment);
+
+        // [WHEN] Show details is invoked on the Documents FactBox.
+        asserterror DocAttachmentListFactbox.OpenInDetail.Invoke();
 
         // [THEN] The error states that the source record cannot be resolved and names the table.
         Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, SalesShipmentHeader.TableCaption()));
+        DocAttachmentListFactbox.Close();
     end;
 
     [Test]
@@ -5624,35 +5636,6 @@ codeunit 134776 "Document Attachment Tests"
         DocumentAttachment."No." := PaymentTerms.Code;
         DocumentAttachment."File Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."File Name"));
         DocumentAttachment.Insert();
-    end;
-
-    local procedure ShowAttachmentDetails(var DocumentAttachment: Record "Document Attachment")
-    var
-        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
-        DocumentAttachmentDetails: Page "Document Attachment Details";
-        RecRef: RecordRef;
-    begin
-        if DocumentAttachment."Table ID" = 0 then
-            exit;
-
-        if not DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment) then begin
-            if ResolveRecRefInSubscriber then
-                RecRef.Get(SubscriberSourceRecordId);
-            if RecRef.Number() = 0 then
-                Error(CannotResolveSourceRecordErr, GetTableCaption(DocumentAttachment."Table ID"));
-        end;
-
-        DocumentAttachmentDetails.OpenForRecRef(RecRef);
-        DocumentAttachmentDetails.RunModal();
-    end;
-
-    local procedure GetTableCaption(TableID: Integer): Text
-    var
-        TableMetadata: Record "Table Metadata";
-    begin
-        if TableMetadata.Get(TableID) then
-            exit(TableMetadata.Caption);
-        exit(Format(TableID));
     end;
 
     internal procedure SetSubscriberSourceRecord(SourceRecordId: RecordId)
