@@ -23,7 +23,7 @@ codeunit 265 "Feature Key Management"
         AutomaticAccountCodesTxt: Label 'AutomaticAccountCodes', Locked = true;
         SIEAuditFileExportTxt: Label 'SIEAuditFileExport', Locked = true;
 #if not CLEAN30
-        ReportsFRTok: Label 'ReportsFR', Locked = true;
+        ReportsFRTok: Label 'FRReports', Locked = true;
         ReportsFRAppIdTok: Label '6f93dbc5-c674-430e-b5f4-232449d55c20', Locked = true;
         ReportsFRAppNotInstalledErr: Label 'The Reports FR feature requires the Reports FR app. Install the app on the Extension Management page before enabling or using the feature.';
 #endif

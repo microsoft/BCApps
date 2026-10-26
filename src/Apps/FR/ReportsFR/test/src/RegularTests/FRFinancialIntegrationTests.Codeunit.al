@@ -381,7 +381,7 @@ codeunit 148008 "FR Financial Integration Tests"
 
         // [GIVEN] The platform feature is enabled for a company whose migration has not run.
 #if not CLEAN30
-        FeatureKey.Get('ReportsFR');
+        FeatureKey.Get('FRReports');
         FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
         FeatureKey.Modify(false);
 #endif
@@ -393,7 +393,7 @@ codeunit 148008 "FR Financial Integration Tests"
         ScheduleMgt.EnsureAvailable();
         Assert.IsTrue(Migration.IsMigrated(), 'Company initialization must complete migration.');
 #if not CLEAN30
-        Status.Get('ReportsFR', CompanyName());
+        Status.Get('FRReports', CompanyName());
         Assert.AreEqual(Status."Feature Status"::Complete, Status."Feature Status", 'A new enabled company must be ready.');
 #endif
         Assert.IsFalse(ScheduleName.Get('DEFAULT'), 'Initialization must not overwrite user definitions with a default.');
