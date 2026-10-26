@@ -51,6 +51,8 @@ codeunit 30166 "Shpfy Process Order"
             ReleaseSalesDocument.Run(SalesHeader);
 
         OrderHeader.Get(OrderHeader."Shopify Order Id");
+        OrderHeader."Processed Currency Handling" := ShopifyShop."Currency Handling";
+        OrderHeader.Modify(false);
         OrderEvents.OnAfterProcessSalesDocument(SalesHeader, OrderHeader);
 
         Rec.Get(OrderHeader."Shopify Order Id");

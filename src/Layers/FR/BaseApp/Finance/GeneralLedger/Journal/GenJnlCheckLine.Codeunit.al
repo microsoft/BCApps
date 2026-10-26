@@ -156,8 +156,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
             GenJnlLine.FieldError("Amount (LCY)", ErrorInfo.Create(StrSubstNo(Text003, GenJnlLine.FieldCaption(Amount)), true));
 
         if (GenJnlLine."Account Type" = GenJnlLine."Account Type"::"G/L Account") and
-           (GenJnlLine."Bal. Account Type" = GenJnlLine."Bal. Account Type"::"G/L Account") and
-           (not GenJnlLine."Realize VAT")
+           (GenJnlLine."Bal. Account Type" = GenJnlLine."Bal. Account Type"::"G/L Account")
         then
             CheckAppliesToDocNo(GenJnlLine);
 
@@ -1148,6 +1147,9 @@ codeunit 11 "Gen. Jnl.-Check Line"
 
     local procedure CheckAppliesToDocNo(GenJnlLine: Record "Gen. Journal Line")
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -1155,9 +1157,17 @@ codeunit 11 "Gen. Jnl.-Check Line"
         if IsHandled then
             exit;
 
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentManagementEnabled() then begin
+#pragma warning disable AL0432
+            if not GenJnlLine."Realize VAT" then
+                GenJnlLine.TestField("Applies-to Doc. No.", '', ErrorInfo.Create());
+#pragma warning restore AL0432
+            exit;
+        end;
+#endif
         GenJnlLine.TestField("Applies-to Doc. No.", '', ErrorInfo.Create());
-        if not not GenJnlLine."Realize VAT" then
-            GenJnlLine.TestField("Applies-to ID", '', ErrorInfo.Create());
+        GenJnlLine.TestField("Applies-to ID", '', ErrorInfo.Create());
     end;
 
     local procedure CheckVATDate(var GenJournalLine: Record "Gen. Journal Line")

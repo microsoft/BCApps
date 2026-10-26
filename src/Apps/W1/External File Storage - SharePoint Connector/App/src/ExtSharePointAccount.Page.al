@@ -31,6 +31,10 @@ page 4580 "Ext. SharePoint Account"
             }
             field("SharePoint Url"; Rec."SharePoint Url") { }
             field("Base Relative Folder Path"; Rec."Base Relative Folder Path") { }
+            field("REST Base Folder Path Format"; Rec."REST Base Folder Path Format")
+            {
+                Visible = Rec."Use legacy REST API";
+            }
             field("Tenant Id"; Rec."Tenant Id") { }
             field("Client Id"; Rec."Client Id") { }
             field("Authentication Type"; Rec."Authentication Type")

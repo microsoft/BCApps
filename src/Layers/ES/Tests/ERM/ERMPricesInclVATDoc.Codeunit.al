@@ -1015,6 +1015,48 @@ codeunit 134046 "ERM Prices Incl VAT Doc"
         PurchaseLine.TestField("Line Amount", LineAmount);
     end;
 
+    [Test]
+    procedure UnitPriceInclVATIsPreservedWhenVATProdPostingGroupChangesForItem()
+    var
+        NewVATPostingSetup: Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        LineAmount: Decimal;
+        UnitPrice: Decimal;
+    begin
+        // [FEATURE] [Sales] [Prices Including VAT] [Line Discount]
+        // [SCENARIO 652465] Unit Price Incl. VAT is preserved when the VAT Prod. Posting Group changes on an item line
+        Initialize();
+
+        // [GIVEN] Two VAT Posting Setups with different VAT rates
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandDecInRange(5, 10, 2));
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            NewVATPostingSetup, NewVATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandDecInRange(1, 4, 2));
+        NewVATPostingSetup.Rename(VATPostingSetup."VAT Bus. Posting Group", NewVATPostingSetup."VAT Prod. Posting Group");
+
+        // [GIVEN] A sales order with Prices Including VAT and an item line with a unit price and a line discount
+        CreateSalesHeader(
+            SalesHeader, SalesHeader."Document Type"::Order,
+            LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"), '', true);
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::Item,
+            LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), LibraryRandom.RandInt(10));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(1000, 2));
+        SalesLine.Validate("Line Discount %", LibraryRandom.RandIntInRange(3, 10));
+        SalesLine.Modify(true);
+        UnitPrice := SalesLine."Unit Price";
+        LineAmount := SalesLine."Line Amount";
+
+        // [WHEN] VAT Prod. Posting Group is changed to the setup with a different VAT rate
+        SalesLine.Validate("VAT Prod. Posting Group", NewVATPostingSetup."VAT Prod. Posting Group");
+
+        // [THEN] Unit Price Incl. VAT and Line Amount are preserved
+        SalesLine.TestField("Unit Price", UnitPrice);
+        SalesLine.TestField("Line Amount", LineAmount);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

@@ -907,11 +907,13 @@ codeunit 8060 "Create Billing Documents"
         PartnerBillingLine: Record "Billing Line";
     begin
         PartnerBillingLine.CopyFilters(BillingLine);
+        PartnerBillingLine.FilterGroup(2);
         PartnerBillingLine.SetRange(Partner, Enum::"Service Partner"::Customer);
         CustomerBillingLinesFound := not PartnerBillingLine.IsEmpty();
 
         PartnerBillingLine.SetRange(Partner, Enum::"Service Partner"::Vendor);
         VendorBillingLinesFound := not PartnerBillingLine.IsEmpty();
+        PartnerBillingLine.FilterGroup(0);
 
         if (CustomerBillingLinesFound and VendorBillingLinesFound) then begin
             DisplayOrLogUnspecificError(OnlyOneServicePartnerErr);
@@ -1343,7 +1345,7 @@ codeunit 8060 "Create Billing Documents"
         // (incl. automated/background billing) without committing inside the per-line loop.
         // When posting follows, creation and posting are kept atomic and PostCreatedDocuments
         // manages its own commit/rollback.
-        if not PostDocuments then
+        if (not PostDocuments) and (DocumentsCreatedCount > 0) then
             Commit();
     end;
 
