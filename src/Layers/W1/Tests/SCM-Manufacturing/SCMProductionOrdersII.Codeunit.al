@@ -8238,6 +8238,82 @@ codeunit 137072 "SCM Production Orders II"
             ReversingOutputQuantityErr);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandlerNoText')]
+    procedure ReverseSplitLotProductionOutputPostedInNonBaseUnitOfMeasure()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        OriginalItemLedgerEntry: Record "Item Ledger Entry";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        ReservationEntry: Record "Reservation Entry";
+        UnitOfMeasure: Record "Unit of Measure";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+        LotNo: array[2] of Code[50];
+        BaseQuantity: array[2] of Decimal;
+        QtyPerUnitOfMeasure: Decimal;
+        LotIndex: Integer;
+    begin
+        // [SCENARIO 651623] Split-lot output retains exact base quantities when reversed in a non-base unit of measure.
+        Initialize();
+        QtyPerUnitOfMeasure := 900;
+        BaseQuantity[1] := 1;
+        BaseQuantity[2] := QtyPerUnitOfMeasure - BaseQuantity[1];
+
+        // [GIVEN] A released production order for one alternate unit representing 900 base units.
+        CreateItemWithItemTrackingCode(Item, CreateItemTrackingCode());
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", UnitOfMeasure.Code, QtyPerUnitOfMeasure);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Modify(true);
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, Item."No.", 1, '', '');
+        FindProductionOrderLine(ProdOrderLine, Item."No.");
+        ProdOrderLine.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        ProdOrderLine.Modify(true);
+
+        // [GIVEN] One alternate unit is posted with tracking split into lots of 1 and 899 base units.
+        CreateOutputJournalWithExlpodeRouting(ItemJournalLine, ProductionOrder."No.");
+        ItemJournalLine.Validate("Output Quantity", 1);
+        ItemJournalLine.Modify(true);
+        for LotIndex := 1 to ArrayLen(LotNo) do begin
+            LotNo[LotIndex] := LibraryUtility.GenerateGUID();
+            LibraryItemTracking.CreateItemJournalLineItemTracking(
+                ReservationEntry, ItemJournalLine, '', LotNo[LotIndex], BaseQuantity[LotIndex]);
+        end;
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        for LotIndex := 1 to ArrayLen(LotNo) do begin
+            ItemLedgerEntry.Reset();
+            ItemLedgerEntry.SetRange("Item No.", Item."No.");
+            ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+            ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+            ItemLedgerEntry.SetRange("Lot No.", LotNo[LotIndex]);
+            ItemLedgerEntry.FindFirst();
+            ItemLedgerEntry.TestField(Quantity, BaseQuantity[LotIndex]);
+            ItemLedgerEntry.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure);
+            OriginalItemLedgerEntry := ItemLedgerEntry;
+
+            // [WHEN] Each split output entry is reversed.
+            ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
+            UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+            // [THEN] The reversing entry has the exact opposite base quantity and the same unit and lot.
+            ItemLedgerEntry.SetRange("Entry No.");
+            Assert.RecordCount(ItemLedgerEntry, 2);
+            ItemLedgerEntry.FindLast();
+            ItemLedgerEntry.TestField(Quantity, -BaseQuantity[LotIndex]);
+            ItemLedgerEntry.TestField("Unit of Measure Code", UnitOfMeasure.Code);
+            ItemLedgerEntry.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure);
+            ItemLedgerEntry.TestField("Lot No.", LotNo[LotIndex]);
+            ItemLedgerEntry.TestField("Remaining Quantity", 0);
+            OriginalItemLedgerEntry.Get(OriginalItemLedgerEntry."Entry No.");
+            OriginalItemLedgerEntry.TestField("Remaining Quantity", 0);
+        end;
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

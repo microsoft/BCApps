@@ -133,11 +133,14 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
 
         IsHandled := false;
         OnReverseOutputItemLedgerEntryOnBeforeValidateOutputQuantity(ItemJnlLine, ItemLedgerEntry, IsHandled);
-        if not IsHandled then
+        if not IsHandled then begin
             ItemJnlLine.Validate(
                 "Output Quantity", -Abs(UnitOfMeasureManagement.CalcQtyFromBase(
                     ItemLedgerEntry."Item No.", ItemLedgerEntry."Variant Code", ItemLedgerEntry."Unit of Measure Code",
                     ItemLedgerEntry.Quantity, ItemLedgerEntry."Qty. per Unit of Measure")));
+            ItemJnlLine."Output Quantity (Base)" := -Abs(ItemLedgerEntry.Quantity);
+            ItemJnlLine."Quantity (Base)" := ItemJnlLine."Output Quantity (Base)";
+        end;
 
         ItemJnlLine.Validate(Description, ItemLedgerEntry.Description);
 
