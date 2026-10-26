@@ -33,6 +33,7 @@ codeunit 10569 "GovTalk Message Management"
         MessageClassTxt: Label '%1-TIL', Comment = '%1 = message class';
         NotificationTxt: Label 'Line No. %1 Acknowledged', Comment = '%1 = response node';
         ErrorTxt: Label 'Line No. %1 failed with error: %2', Comment = '%1 = response node, %2 = status node';
+        ResponseValueTooLongErr: Label 'The GovTalk response contains a %1 value that is %2 characters long. The maximum length is %3 characters.', Comment = '%1 = XML element name, e.g. CorrelationID, %2 = actual length, %3 = maximum length';
 
 
 #if not CLEAN30
@@ -613,66 +614,87 @@ codeunit 10569 "GovTalk Message Management"
 
     local procedure ProcessGovTalkSubmission(var VATReportHeader: Record "VAT Report Header"; SubmissionEndPoint: Text; GovTalkMessageXmlElement: XmlElement; PreserveWhitespace: Boolean; LogResponse: Boolean; FlushGateway: Boolean; XMlPartId: Guid): Boolean
     var
-        GovTalkMessage: Record "GovTalk Message";
         SubmitResponseXmlElement: XmlElement;
+    begin
+        if SendHttpRequest(GovTalkMessageXmlElement, PreserveWhitespace, SubmissionEndPoint, SubmitResponseXmlElement) then begin
+            if LogResponse then
+                ArchiveXMLMessage(VATReportHeader, SubmitResponseXmlElement, false, 1, XMlPartId);
+            ProcessGovTalkResponse(VATReportHeader, SubmitResponseXmlElement, FlushGateway, XMlPartId);
+            exit(true);
+        end;
+        exit(false);
+    end;
+
+    internal procedure ProcessGovTalkResponse(var VATReportHeader: Record "VAT Report Header"; SubmitResponseXmlElement: XmlElement; FlushGateway: Boolean; XMlPartId: Guid)
+    var
+        GovTalkMessage: Record "GovTalk Message";
         ResponseQualifierXmlElement: XmlElement;
         CorrelationIDXmlElement: XmlElement;
         ResponseEndPointXmlElement: XmlElement;
         PollIntervalXmlAttribute: XmlAttribute;
         CorrelationXmlElement: XmlElement;
+        CorrelationID: Text[250];
         PollInterval: Integer;
     begin
-        if SendHttpRequest(GovTalkMessageXmlElement, PreserveWhitespace, SubmissionEndPoint, SubmitResponseXmlElement) then begin
-            if LogResponse then
-                ArchiveXMLMessage(VATReportHeader, SubmitResponseXmlElement, false, 1, XMlPartId);
-            if GovTalkXMLHelper.FindElement(
-                 SubmitResponseXmlElement, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationIDXmlElement)
-            then
-                PersistCorrelationID(VATReportHeader, XMlPartId, CopyStr(CorrelationIDXmlElement.InnerText(), 1, 250));
+        if GovTalkXMLHelper.FindElement(
+             SubmitResponseXmlElement, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationIDXmlElement)
+        then begin
+            CorrelationID := CopyStr(GetResponseValue(CorrelationIDXmlElement, MaxStrLen(CorrelationID)), 1, MaxStrLen(CorrelationID));
+            PersistCorrelationID(VATReportHeader, XMlPartId, CorrelationID);
+        end;
 
-            if GovTalkXMLHelper.FindElement(
-                 SubmitResponseXmlElement, '//x:ResponseEndPoint', 'x', GovTalkNameSpaceTxt, ResponseEndPointXmlElement)
-            then begin
-                ResponseEndPointXmlElement.Attributes().Get('PollInterval', PollIntervalXmlAttribute);
-                Evaluate(PollInterval, PollIntervalXmlAttribute.Value());
-                if GovTalkMessage.Get(VATReportHeader."VAT Report Config. Code", VATReportHeader."No.") then begin
-                    GovTalkMessage.Validate(ResponseEndPoint, CopyStr(ResponseEndPointXmlElement.InnerText(), 1, MaxStrLen(GovTalkMessage.ResponseEndPoint)));
-                    GovTalkMessage.Validate(PollInterval, PollInterval);
-                    GovTalkMessage.Modify();
-                end;
+        if GovTalkXMLHelper.FindElement(
+             SubmitResponseXmlElement, '//x:ResponseEndPoint', 'x', GovTalkNameSpaceTxt, ResponseEndPointXmlElement)
+        then begin
+            ResponseEndPointXmlElement.Attributes().Get('PollInterval', PollIntervalXmlAttribute);
+            Evaluate(PollInterval, PollIntervalXmlAttribute.Value());
+            if GovTalkMessage.Get(VATReportHeader."VAT Report Config. Code", VATReportHeader."No.") then begin
+                GovTalkMessage.Validate(ResponseEndPoint,
+                  CopyStr(GetResponseValue(ResponseEndPointXmlElement, MaxStrLen(GovTalkMessage.ResponseEndPoint)), 1, MaxStrLen(GovTalkMessage.ResponseEndPoint)));
+                GovTalkMessage.Validate(PollInterval, PollInterval);
+                GovTalkMessage.Modify();
             end;
-            if GovTalkXMLHelper.FindElement(
-                 SubmitResponseXmlElement, '//x:Qualifier', 'x', GovTalkNameSpaceTxt, ResponseQualifierXmlElement)
-            then
-                if (ResponseQualifierXmlElement.InnerText() = 'error') and
+        end;
+        if GovTalkXMLHelper.FindElement(
+             SubmitResponseXmlElement, '//x:Qualifier', 'x', GovTalkNameSpaceTxt, ResponseQualifierXmlElement)
+        then
+            if (ResponseQualifierXmlElement.InnerText() = 'error') and
+               (FlushGateway = true)
+            then begin
+                ReadGatewayErrors(VATReportHeader, SubmitResponseXmlElement);
+                SubmitGovTalkDeleteRequest(VATReportHeader, false);
+            end else
+                if (ResponseQualifierXmlElement.InnerText() = 'response') and
                    (FlushGateway = true)
                 then begin
-                    ReadGatewayErrors(VATReportHeader, SubmitResponseXmlElement);
+                    ReadSuccessResponse(VATReportHeader, SubmitResponseXmlElement);
                     SubmitGovTalkDeleteRequest(VATReportHeader, false);
                 end else
-                    if (ResponseQualifierXmlElement.InnerText() = 'response') and
-                       (FlushGateway = true)
-                    then begin
-                        ReadSuccessResponse(VATReportHeader, SubmitResponseXmlElement);
-                        SubmitGovTalkDeleteRequest(VATReportHeader, false);
-                    end else
-                        if ResponseQualifierXmlElement.InnerText() = 'acknowledgement' then begin
-                            if VATReportHeader."VAT Report Config. Code" = VATReportHeader."VAT Report Config. Code"::"EC Sales List" then begin
-                                if not GovTalkXMLHelper.FindElement(
-                                     SubmitResponseXmlElement, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationXmlElement)
-                                then
-                                    Error('');
-                                SetPartStatus(CorrelationXmlElement.InnerText(), VATReportHeader.Status::Submitted.AsInteger());
-                                UpdateVATReportStatus(VATReportHeader);
-                            end else begin
-                                VATReportHeader.Validate(Status, VATReportHeader.Status::Submitted);
-                                VATReportHeader.Modify(true);
-                            end;
-                            RegisterGovTalkPolling(VATReportHeader, XMlPartId);
+                    if ResponseQualifierXmlElement.InnerText() = 'acknowledgement' then begin
+                        if VATReportHeader."VAT Report Config. Code" = VATReportHeader."VAT Report Config. Code"::"EC Sales List" then begin
+                            if not GovTalkXMLHelper.FindElement(
+                                 SubmitResponseXmlElement, '//x:CorrelationID', 'x', GovTalkNameSpaceTxt, CorrelationXmlElement)
+                            then
+                                Error('');
+                            SetPartStatus(CorrelationXmlElement.InnerText(), VATReportHeader.Status::Submitted.AsInteger());
+                            UpdateVATReportStatus(VATReportHeader);
+                        end else begin
+                            VATReportHeader.Validate(Status, VATReportHeader.Status::Submitted);
+                            VATReportHeader.Modify(true);
                         end;
-            exit(true);
-        end;
-        exit(false);
+                        RegisterGovTalkPolling(VATReportHeader, XMlPartId);
+                    end;
+    end;
+
+    // Response values must fit the fields they are stored in; truncating them would break response matching and polling.
+    local procedure GetResponseValue(ValueXmlElement: XmlElement; MaxLength: Integer): Text
+    var
+        Value: Text;
+    begin
+        Value := ValueXmlElement.InnerText();
+        if StrLen(Value) > MaxLength then
+            Error(ResponseValueTooLongErr, ValueXmlElement.LocalName(), StrLen(Value), MaxLength);
+        exit(Value);
     end;
 
     [Scope('OnPrem')]

@@ -42,6 +42,7 @@ codeunit 144030 "GovTalkMessage Management Test"
         ECSLLineResponse2Txt: Label 'Line No. 002 failed with error: VAT Registration Number Invalid For Specified Country', Locked = true;
         ECSLLineResponse3Txt: Label 'The declaration submitted contained an excessive amount of invalid submission lines. The entire submission has been rejected. The following lines have caused one or more validation failures.', Locked = true;
         ECSLLineResponse4Txt: Label 'Line No. 11 failed with error: VAT Registration Number Invalid For Specified Country', Locked = true;
+        ResponseValueTooLongErr: Label 'The GovTalk response contains a %1 value that is %2 characters long. The maximum length is %3 characters.', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -384,6 +385,71 @@ codeunit 144030 "GovTalkMessage Management Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TestResponseValuesAtMaxLengthAreStored()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        CorrelationID: Text;
+        ResponseEndPoint: Text;
+    begin
+        // [SCENARIO] Correlation ID and response endpoint that exactly fit their fields are stored unchanged
+        Initialize();
+        CreateVATReportHeaderForVATReturn(VATReportHeader);
+        CorrelationID := LibraryUtility.GenerateRandomText(MaxStrLen(VATReportHeader."Message Id"));
+        ResponseEndPoint := LibraryUtility.GenerateRandomText(MaxStrLen(GovTalkMessage.ResponseEndPoint));
+
+        // [WHEN] The gateway response is processed
+        GovTalkMessageManagement.ProcessGovTalkResponse(
+          VATReportHeader, CreateGatewayResponse(CorrelationID, ResponseEndPoint), false, CreateGuid());
+
+        // [THEN] The values are stored in full
+        Assert.AreEqual(CorrelationID, VATReportHeader."Message Id", '');
+        GovTalkMessage.Get(VATReportHeader."VAT Report Config. Code", VATReportHeader."No.");
+        Assert.AreEqual(ResponseEndPoint, GovTalkMessage.ResponseEndPoint, '');
+        Assert.AreEqual(10, GovTalkMessage.PollInterval, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestOversizedCorrelationIDIsRejected()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        CorrelationID: Text;
+    begin
+        // [SCENARIO] A correlation ID longer than the field is rejected instead of being truncated
+        Initialize();
+        CreateVATReportHeaderForVATReturn(VATReportHeader);
+        CorrelationID := LibraryUtility.GenerateRandomText(MaxStrLen(VATReportHeader."Message Id") + 1);
+
+        // [WHEN] The gateway response is processed
+        asserterror GovTalkMessageManagement.ProcessGovTalkResponse(
+          VATReportHeader, CreateGatewayResponse(CorrelationID, 'https://localhost/poll'), false, CreateGuid());
+
+        // [THEN] An error about the correlation ID length is raised
+        Assert.ExpectedError(StrSubstNo(ResponseValueTooLongErr, 'CorrelationID', StrLen(CorrelationID), MaxStrLen(VATReportHeader."Message Id")));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestOversizedResponseEndPointIsRejected()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        ResponseEndPoint: Text;
+    begin
+        // [SCENARIO] A response endpoint longer than the field is rejected instead of being truncated
+        Initialize();
+        CreateVATReportHeaderForVATReturn(VATReportHeader);
+        ResponseEndPoint := LibraryUtility.GenerateRandomText(MaxStrLen(GovTalkMessage.ResponseEndPoint) + 1);
+
+        // [WHEN] The gateway response is processed
+        asserterror GovTalkMessageManagement.ProcessGovTalkResponse(
+          VATReportHeader, CreateGatewayResponse('ABCDEF0123456789', ResponseEndPoint), false, CreateGuid());
+
+        // [THEN] An error about the response endpoint length is raised
+        Assert.ExpectedError(StrSubstNo(ResponseValueTooLongErr, 'ResponseEndPoint', StrLen(ResponseEndPoint), MaxStrLen(GovTalkMessage.ResponseEndPoint)));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TestReleaseNotAllowed()
     var
         VATReportHeader: Record "VAT Report Header";
@@ -405,6 +471,25 @@ codeunit 144030 "GovTalkMessage Management Test"
         ErrorMessage.SetRange("Record ID", GovTalkSetup2.RecordId);
         ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Warning);
         Assert.RecordCount(ErrorMessage, 1);
+    end;
+
+    local procedure CreateGatewayResponse(CorrelationID: Text; ResponseEndPoint: Text): XmlElement
+    var
+        ResponseXmlDocument: XmlDocument;
+        MessageDetailsXmlElement: XmlElement;
+        ResponseEndPointXmlElement: XmlElement;
+        RootXmlElement: XmlElement;
+    begin
+        ResponseXmlDocument := XmlDocument.Create();
+        RootXmlElement := XmlElement.Create('GovTalkMessage', GovTalkNameSpaceTxt);
+        ResponseXmlDocument.Add(RootXmlElement);
+        MessageDetailsXmlElement := XmlElement.Create('MessageDetails', GovTalkNameSpaceTxt);
+        RootXmlElement.Add(XmlElement.Create('Header', GovTalkNameSpaceTxt, MessageDetailsXmlElement));
+        MessageDetailsXmlElement.Add(XmlElement.Create('CorrelationID', GovTalkNameSpaceTxt, CorrelationID));
+        ResponseEndPointXmlElement := XmlElement.Create('ResponseEndPoint', GovTalkNameSpaceTxt, ResponseEndPoint);
+        ResponseEndPointXmlElement.SetAttribute('PollInterval', '10');
+        MessageDetailsXmlElement.Add(ResponseEndPointXmlElement);
+        exit(RootXmlElement);
     end;
 
     local procedure Initialize()
