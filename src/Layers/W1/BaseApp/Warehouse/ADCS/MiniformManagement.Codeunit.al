@@ -80,7 +80,9 @@ codeunit 7702 "Miniform Management"
 
     [Scope('OnPrem')]
     [Obsolete('Replaced by Initialize with parameters of the native XmlDocument and XmlNode types.', '30.0')]
+#pragma warning disable AL0432
     procedure Initialize(var MiniformHeader: Record "Miniform Header"; var Rec: Record "Miniform Header"; var DOMxmlin: DotNet XmlDocument; var ReturnedNode: DotNet XmlNode; var RootNode: DotNet XmlNode; var XMLDOMMgt: Codeunit "XML DOM Management"; var ADCSCommunication: Codeunit "ADCS Communication"; var ADCSUserId: Text[250]; var CurrentCode: Text[250]; var StackCode: Text[250]; var WhseEmpId: Text[250]; var LocationFilter: Text[250])
+#pragma warning restore AL0432
     begin
         DOMxmlin := DOMxmlin.XmlDocument();
 

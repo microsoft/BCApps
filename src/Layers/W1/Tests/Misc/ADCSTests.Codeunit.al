@@ -247,6 +247,32 @@ codeunit 139010 "ADCS Tests"
         Assert.AreEqual(LoginWithCustomAttributeOutputTxt, WideIn, UnexpectedOutputErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure SaveShorterXMLinOverLongerXMLin()
+    var
+        MiniformHeader: Record "Miniform Header";
+        LongXmlDocument: XmlDocument;
+        ShortXmlDocument: XmlDocument;
+        LoadedXmlDocument: XmlDocument;
+        LoadedRootElement: XmlElement;
+        XmlWriteOptions: XmlWriteOptions;
+        LoadedText: Text;
+    begin
+        // [SCENARIO] Saving a shorter request into the XMLin BLOB that already holds a longer request leaves no trailing data behind
+        XmlDocument.ReadFrom('<ADCS><Header UseCaseCode="PICK" StackCode="MAINMENU|PICKLIST|PICKLINES" RunReturn="0"><Input>LONG VALUE</Input></Header></ADCS>', LongXmlDocument);
+        XmlDocument.ReadFrom('<ADCS><Header UseCaseCode="PICK" StackCode="" RunReturn="1" /></ADCS>', ShortXmlDocument);
+
+        MiniformHeader.SaveXMLin(LongXmlDocument);
+        MiniformHeader.SaveXMLin(ShortXmlDocument);
+        MiniformHeader.LoadXMLin(LoadedXmlDocument);
+
+        LoadedXmlDocument.GetRoot(LoadedRootElement);
+        XmlWriteOptions.PreserveWhitespace(true);
+        LoadedRootElement.WriteTo(XmlWriteOptions, LoadedText);
+        Assert.AreEqual('<ADCS><Header UseCaseCode="PICK" StackCode="" RunReturn="1" /></ADCS>', LoadedText, 'The XMLin BLOB must contain only the last saved request.');
+    end;
+
     local procedure VerifyXmlNodesAreEqual(Expected: XmlNode; Actual: XmlNode): Boolean
     var
         ExpectedChildren: XmlNodeList;

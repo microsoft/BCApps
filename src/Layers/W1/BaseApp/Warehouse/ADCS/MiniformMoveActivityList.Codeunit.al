@@ -57,7 +57,9 @@ codeunit 7710 "Miniform Move Activity List"
         TableNo: Integer;
     begin
         if RootNode.SelectSingleNode('Header/Input', ReturnedNode) then
-            TextValue := CopyStr(ReturnedNode.AsXmlElement().InnerText, 1, MaxStrLen(TextValue))
+#pragma warning disable AA0139
+            TextValue := ReturnedNode.AsXmlElement().InnerText
+#pragma warning restore AA0139
         else
             Error(NoInputNodeErr);
 

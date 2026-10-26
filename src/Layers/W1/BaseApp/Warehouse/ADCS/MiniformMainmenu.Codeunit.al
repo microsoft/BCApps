@@ -44,7 +44,9 @@ codeunit 7707 "Miniform Mainmenu"
     local procedure Process()
     begin
         if RootNode.SelectSingleNode('Header/Input', ReturnedNode) then
-            TextValue := CopyStr(ReturnedNode.AsXmlElement().InnerText, 1, MaxStrLen(TextValue))
+#pragma warning disable AA0139
+            TextValue := ReturnedNode.AsXmlElement().InnerText
+#pragma warning restore AA0139
         else
             Error(NoInputNodeErr);
 

@@ -511,7 +511,9 @@ codeunit 7701 "ADCS Communication"
         NodeAttribute: XmlAttribute;
     begin
         if CurrNode.AsXmlElement().Attributes().Get(AttributeName, NodeAttribute) then
-            AttribValue := CopyStr(NodeAttribute.Value, 1, MaxStrLen(AttribValue))
+#pragma warning disable AA0139
+            AttribValue := NodeAttribute.Value
+#pragma warning restore AA0139
         else
             AttribValue := '';
     end;

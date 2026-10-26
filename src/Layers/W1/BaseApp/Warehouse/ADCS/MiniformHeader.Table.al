@@ -123,6 +123,7 @@ table 7700 "Miniform Header"
         XmlWriteOptions: XmlWriteOptions;
         OutStrm: OutStream;
     begin
+        Clear(XMLin);
         XMLin.CreateOutStream(OutStrm);
         XmlWriteOptions.PreserveWhitespace(true);
         DOMxmlin.WriteTo(XmlWriteOptions, OutStrm);
