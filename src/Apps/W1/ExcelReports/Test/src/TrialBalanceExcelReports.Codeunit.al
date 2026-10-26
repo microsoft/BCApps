@@ -1320,15 +1320,32 @@ codeunit 139544 "Trial Balance Excel Reports"
             LibraryReportDataset.FindCurrentRowValue('Account', Variant);
             AccountNo := Format(Variant);
             LibraryReportDataset.FindCurrentRowValue('PeriodStart', Variant);
-            PeriodStart := Format(Variant);
+            PeriodStart := Format(EvaluateDatasetDate(Format(Variant)), 0, 9);
             LibraryReportDataset.FindCurrentRowValue('Dimension1Code', Variant);
             Dimension1Code := Format(Variant);
             LibraryReportDataset.FindCurrentRowValue('Dimension2Code', Variant);
             Dimension2Code := Format(Variant);
             LibraryReportDataset.FindCurrentRowValue('NetChange', Variant);
-            Evaluate(NetChange, Format(Variant, 0, 9), 9);
+            NetChange := EvaluateDatasetDecimal(Format(Variant));
             NetChangePerCombination.Add(GetCombinationKey(AccountNo, PeriodStart, Dimension1Code, Dimension2Code), NetChange);
         end;
+    end;
+
+    // The XML dataset may contain values in XML format or in the session's regional format, so both are accepted.
+    local procedure EvaluateDatasetDate(Value: Text) Result: Date
+    begin
+        if Evaluate(Result, CopyStr(Value, 1, 10), 9) then
+            exit(Result);
+        Evaluate(Result, Value);
+    end;
+
+    local procedure EvaluateDatasetDecimal(Value: Text) Result: Decimal
+    begin
+        if Value = '' then
+            exit(0);
+        if Evaluate(Result, Value, 9) then
+            exit(Result);
+        Evaluate(Result, Value);
     end;
 
     local procedure VerifyNetChangePerCombination(var NetChangePerCombination: Dictionary of [Text, Decimal]; AccountNo: Code[20]; SecondPeriodStart: Date; DimensionA1Code: Code[20]; DimensionA2Code: Code[20]; DimensionB1Code: Code[20]; DimensionB2Code: Code[20])
@@ -1343,7 +1360,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), '', DimensionB1Code, 150);
         VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), '', DimensionB2Code, -23);
         Assert.IsFalse(
-            NetChangePerCombination.ContainsKey(GetCombinationKey(AccountNo, Format(WorkDate()), DimensionA2Code, DimensionB2Code)),
+            NetChangePerCombination.ContainsKey(GetCombinationKey(AccountNo, Format(WorkDate(), 0, 9), DimensionA2Code, DimensionB2Code)),
             'Combinations without entries or balance should not be exported');
         // Second period: only the (A2, B2) entry is net change, combinations with a balance are exported with zero net change
         VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, '', '', 20);
@@ -1359,7 +1376,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     var
         CombinationKey: Text;
     begin
-        CombinationKey := GetCombinationKey(AccountNo, Format(PeriodStart), Dimension1Code, Dimension2Code);
+        CombinationKey := GetCombinationKey(AccountNo, Format(PeriodStart, 0, 9), Dimension1Code, Dimension2Code);
         Assert.IsTrue(NetChangePerCombination.ContainsKey(CombinationKey), StrSubstNo(CombinationNotExportedErr, CombinationKey));
         Assert.AreEqual(ExpectedNetChange, NetChangePerCombination.Get(CombinationKey), StrSubstNo(UnexpectedNetChangeErr, CombinationKey));
     end;
