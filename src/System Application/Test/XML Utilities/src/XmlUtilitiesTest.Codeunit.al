@@ -357,6 +357,71 @@ codeunit 130032 "XML Utilities Test"
     end;
 
     [Test]
+    procedure TryLoadXmlDocumentWithDtdDocTypeWithoutIdentifiersRoundTrips()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        XmlDocument: XmlDocument;
+        XmlText: Text;
+    begin
+        WriteText(TempBlob, '<?xml version="1.0"?><!DOCTYPE note [<!ENTITY writer "Donald Duck">]><note>&writer;</note>');
+
+        if not XmlUtilities.TryLoadXmlDocumentWithDtd(TempBlob.CreateInStream(), XmlDocument) then
+            Assert.Fail('Loading a document with a DTD must succeed. Error: ' + GetLastErrorText());
+        XmlDocument.WriteTo(XmlText);
+
+        Assert.IsTrue(StrPos(XmlText, '<!DOCTYPE note [<!ENTITY writer "Donald Duck">]>') > 0, 'The document type declaration must be written unchanged: ' + XmlText);
+        Assert.AreEqual(0, StrPos(XmlText, 'PUBLIC'), 'No PUBLIC identifier must be written: ' + XmlText);
+        Assert.AreEqual(0, StrPos(XmlText, 'SYSTEM'), 'No SYSTEM identifier must be written: ' + XmlText);
+    end;
+
+    [Test]
+    procedure TryLoadXmlDocumentWithDtdKeepsSystemIdentifierWithoutResolvingIt()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        XmlDocument: XmlDocument;
+        XmlNode: XmlNode;
+        XmlText: Text;
+    begin
+        WriteText(TempBlob, '<?xml version="1.0"?><!DOCTYPE note SYSTEM "file:///c:/nonexistent/note.dtd"><note>Daisy</note>');
+
+        if not XmlUtilities.TryLoadXmlDocumentWithDtd(TempBlob.CreateInStream(), XmlDocument) then
+            Assert.Fail('Loading a document that references an external DTD must succeed without resolving it. Error: ' + GetLastErrorText());
+        XmlDocument.WriteTo(XmlText);
+
+        Assert.IsTrue(XmlDocument.SelectSingleNode('/note', XmlNode), 'The element must exist.');
+        Assert.AreEqual('Daisy', XmlNode.AsXmlElement().InnerText(), 'Unexpected element text.');
+        Assert.IsTrue(StrPos(XmlText, 'SYSTEM "file:///c:/nonexistent/note.dtd"') > 0, 'The SYSTEM identifier must be kept: ' + XmlText);
+        Assert.AreEqual(0, StrPos(XmlText, 'PUBLIC'), 'No PUBLIC identifier must be written: ' + XmlText);
+    end;
+
+    [Test]
+    procedure TryLoadXmlDocumentWithDtdKeepsDocTypeAfterLeadingNodes()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        XmlDocument: XmlDocument;
+        XmlText: Text;
+        CommentPosition: Integer;
+        ProcessingInstructionPosition: Integer;
+        DocTypePosition: Integer;
+        RootPosition: Integer;
+    begin
+        WriteText(TempBlob, '<?xml version="1.0"?><!-- leading comment --><?leading-pi data?><!DOCTYPE note [<!ENTITY writer "Donald Duck">]><note>&writer;</note>');
+
+        if not XmlUtilities.TryLoadXmlDocumentWithDtd(TempBlob.CreateInStream(), XmlDocument) then
+            Assert.Fail('Loading a document with a DTD must succeed. Error: ' + GetLastErrorText());
+        XmlDocument.WriteTo(XmlText);
+
+        CommentPosition := StrPos(XmlText, '<!-- leading comment -->');
+        ProcessingInstructionPosition := StrPos(XmlText, '<?leading-pi data?>');
+        DocTypePosition := StrPos(XmlText, '<!DOCTYPE note');
+        RootPosition := StrPos(XmlText, '<note>');
+        Assert.IsTrue(CommentPosition > 0, 'The comment must be kept: ' + XmlText);
+        Assert.IsTrue(ProcessingInstructionPosition > CommentPosition, 'The processing instruction must follow the comment: ' + XmlText);
+        Assert.IsTrue(DocTypePosition > ProcessingInstructionPosition, 'The document type declaration must follow the leading nodes: ' + XmlText);
+        Assert.IsTrue(RootPosition > DocTypePosition, 'The root element must follow the document type declaration: ' + XmlText);
+    end;
+
+    [Test]
     procedure TryLoadXmlDocumentWithDtdEmptyStream()
     var
         TempBlob: Codeunit "Temp Blob";

@@ -272,13 +272,16 @@ codeunit 3017 "XML Utilities Impl."
     var
         DotNetXmlDocument: DotNet XmlDocument;
         DotNetXmlDocumentType: DotNet XmlDocumentType;
+        DotNetXmlNode: DotNet XmlNode;
         XmlReaderSettings: DotNet XmlReaderSettings;
         DotNetXmlReader: DotNet XmlReader;
         XmlReadOptions: XmlReadOptions;
-        DocTypeName: Text;
+        NativeXmlDocumentType: XmlDocumentType;
+        PrecedingXmlNode: XmlNode;
         DocTypePublicId: Text;
         DocTypeSystemId: Text;
         DocTypeInternalSubset: Text;
+        DocTypePosition: Integer;
         HasDocumentType: Boolean;
     begin
         if InStream.EOS then
@@ -286,22 +289,38 @@ codeunit 3017 "XML Utilities Impl."
 
         XmlReaderSettings := XmlReaderSettings.XmlReaderSettings();
         XmlReaderSettings.DtdProcessing := 2; // DtdProcessing.Parse, assigned as an integer because DtdProcessing.Parse conflicts with the Enum.Parse method.
+        // The XmlResolver is deliberately not set: AL cannot pass a null DotNet argument (set_XmlResolver fails with a type mismatch).
         // The default XmlReaderSettings never resolve external DTDs or entities and limit entity expansion to 10,000,000 characters,
-        // which protects against XXE and entity expansion attacks. Do not set an XmlResolver.
+        // which protects against XXE and entity expansion attacks. The tests for this procedure verify that behavior.
 
         DotNetXmlReader := DotNetXmlReader.Create(InStream, XmlReaderSettings);
         DotNetXmlDocument := DotNetXmlDocument.XmlDocument();
         DotNetXmlDocument.Load(DotNetXmlReader);
         DotNetXmlReader.Close();
 
-        // The native XmlDocument does not accept DTDs, so the document type declaration is removed before conversion and added back afterwards.
+        // The native XmlDocument does not accept DTDs, so the document type declaration is removed before conversion and added back afterwards
+        // at the same position among the document's child nodes. The XML declaration is not a child node in the native document.
         DotNetXmlDocumentType := DotNetXmlDocument.DocumentType;
         HasDocumentType := not IsNull(DotNetXmlDocumentType);
         if HasDocumentType then begin
-            DocTypeName := DotNetXmlDocumentType.Name;
+            NativeXmlDocumentType := XmlDocumentType.Create(DotNetXmlDocumentType.Name);
+            // Only set the identifiers and the internal subset when present, otherwise the native writer emits PUBLIC "" "" or [].
             DocTypePublicId := DotNetXmlDocumentType.PublicId;
             DocTypeSystemId := DotNetXmlDocumentType.SystemId;
             DocTypeInternalSubset := DotNetXmlDocumentType.InternalSubset;
+            if DocTypePublicId <> '' then
+                NativeXmlDocumentType.SetPublicId(DocTypePublicId);
+            if DocTypeSystemId <> '' then
+                NativeXmlDocumentType.SetSystemId(DocTypeSystemId);
+            if DocTypeInternalSubset <> '' then
+                NativeXmlDocumentType.SetInternalSubset(DocTypeInternalSubset);
+
+            DotNetXmlNode := DotNetXmlDocumentType.PreviousSibling;
+            while not IsNull(DotNetXmlNode) do begin
+                if DotNetXmlNode.Name <> 'xml' then
+                    DocTypePosition += 1;
+                DotNetXmlNode := DotNetXmlNode.PreviousSibling;
+            end;
             DotNetXmlDocument.RemoveChild(DotNetXmlDocumentType);
         end;
 
@@ -309,8 +328,14 @@ codeunit 3017 "XML Utilities Impl."
         if not XmlDocument.ReadFrom(DotNetXmlDocument.OuterXml, XmlReadOptions, XmlDoc) then
             Error(XmlCannotBeLoadedErr);
 
-        if HasDocumentType then
-            XmlDoc.AddFirst(XmlDocumentType.Create(DocTypeName, DocTypePublicId, DocTypeSystemId, DocTypeInternalSubset));
+        if not HasDocumentType then
+            exit;
+        if DocTypePosition = 0 then
+            XmlDoc.AddFirst(NativeXmlDocumentType)
+        else begin
+            XmlDoc.GetChildNodes().Get(DocTypePosition, PrecedingXmlNode);
+            PrecedingXmlNode.AddAfterSelf(NativeXmlDocumentType);
+        end;
     end;
 
     local procedure CreateXmlReaderIgnoringDtd(var XmlInStream: InStream; var XmlReader: DotNet XmlReader)
