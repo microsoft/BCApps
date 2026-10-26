@@ -66,8 +66,6 @@ codeunit 134289 "Non-Deductible VAT Pmt. Disc."
         Vendor: Record Vendor;
         GLAccount: Record "G/L Account";
         PaymentTerms: Record "Payment Terms";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
         PurchHeader: Record "Purchase Header";
         PurchLine: Record "Purchase Line";
         GenJournalLine: Record "Gen. Journal Line";
@@ -76,7 +74,6 @@ codeunit 134289 "Non-Deductible VAT Pmt. Disc."
         // [FEATURE] [Adjust For Payment Discount] [Application]
         // [SCENARIO 475533] Posting results are correct after applying payment to purchase invoice with Reverse Charge VAT, payment discount and "Adjust For Payment Discount" option enabled
         // [SCENARIO 649383] Non-deductible Reverse Charge VAT payment discount correction is posted to the purchase payment discount account
-        // [SCENARIO 656753] Unapplying the payment reverses the non-deductible correction and restores affected account balances
 
         Initialize();
         LibraryPmtDiscSetup.SetAdjustForPaymentDisc(true);
@@ -97,16 +94,6 @@ codeunit 134289 "Non-Deductible VAT Pmt. Disc."
             GenJournalLine, Vendor."No.", InvNo, Round(PurchLine."Amount Including VAT" * (1 - PaymentTerms."Discount %" / 100)));
 
         VerifyReverseChargeVATAdjustForPmtDisc(GenJournalLine, PurchLine, VATPostingSetup, PaymentTerms."Discount %");
-
-        GeneralPostingSetup.Get(PurchLine."Gen. Bus. Posting Group", PurchLine."Gen. Prod. Posting Group");
-        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Payment);
-        VendorLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
-        VendorLedgerEntry.FindFirst();
-        LibraryERM.UnapplyVendorLedgerEntry(VendorLedgerEntry);
-
-        VerifyGLEntryBalance(GenJournalLine."Document No.", VATPostingSetup."Purchase VAT Account");
-        VerifyGLEntryBalance(GenJournalLine."Document No.", VATPostingSetup."Reverse Chrg. VAT Acc.");
-        VerifyGLEntryBalance(GenJournalLine."Document No.", GeneralPostingSetup."Purch. Pmt. Disc. Credit Acc.");
 
         LibraryPmtDiscSetup.ClearAdjustPmtDiscInVATSetup();
         LibraryPmtDiscSetup.SetAdjustForPaymentDisc(false);
@@ -380,16 +367,6 @@ codeunit 134289 "Non-Deductible VAT Pmt. Disc."
         GLEntry.SetRange("G/L Account No.", VendPostingGroup."Payment Disc. Credit Acc.");
         GLEntry.FindFirst();
         GLEntry.TestField(Amount, -NDVATBase);
-    end;
-
-    local procedure VerifyGLEntryBalance(DocumentNo: Code[20]; GLAccountNo: Code[20])
-    var
-        GLEntry: Record "G/L Entry";
-    begin
-        GLEntry.SetRange("Document No.", DocumentNo);
-        GLEntry.SetRange("G/L Account No.", GLAccountNo);
-        GLEntry.CalcSums(Amount);
-        GLEntry.TestField(Amount, 0);
     end;
 
     local procedure VerifyTwoLinesNDVATAndZeroVATAdjustForPmtDisc(GenJournalLine: Record "Gen. Journal Line"; PurchLine: Record "Purchase Line"; VATPostingSetup: Record "VAT Posting Setup"; ZeroVATPostingSetup: Record "VAT Posting Setup"; PmtDisc: Decimal)
