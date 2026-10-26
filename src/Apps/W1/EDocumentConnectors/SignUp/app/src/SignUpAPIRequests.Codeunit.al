@@ -324,10 +324,10 @@ codeunit 6441 "SignUp API Requests"
 
     local procedure XmlToTxt(var TempBlob: Codeunit "Temp Blob"): Text
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        XMLUtilities: Codeunit "XML Utilities";
         Content: Text;
     begin
-        XMLDOMManagement.TryGetXMLAsText(TempBlob.CreateInStream(TextEncoding::UTF8), Content);
+        XMLUtilities.TryGetXmlAsText(TempBlob.CreateInStream(TextEncoding::UTF8), Content);
         exit(Content);
     end;
 

@@ -17,7 +17,6 @@ codeunit 6127 "E-Doc. Transfer Shpt. To XML"
     TableNo = "Transfer Shipment Header";
 
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         TransferShipmentXML: XmlDocument;
         RootNode: XmlNode;
         GeneratePDF: Boolean;
@@ -40,18 +39,19 @@ codeunit 6127 "E-Doc. Transfer Shpt. To XML"
         ChildNode: XmlNode;
     begin
         this.TransferShipmentXML := XmlDocument.Create();
-        this.XMLDOMManagement.AddRootElement(this.TransferShipmentXML, 'TransferShipment', this.RootNode);
+        this.RootNode := XmlElement.Create('TransferShipment').AsXmlNode();
+        this.TransferShipmentXML.Add(this.RootNode);
 
-        this.XMLDOMManagement.AddElement(this.RootNode, 'ID', TransferShipmentHeader."No.", '', ChildNode);
-        this.XMLDOMManagement.AddElement(this.RootNode, 'IssueDate', Format(TransferShipmentHeader."Posting Date", 0, 9), '', ChildNode);
-        this.XMLDOMManagement.AddElement(this.RootNode, 'SupplierInformation', '', '', ChildNode);
+        this.AddElement(this.RootNode, 'ID', TransferShipmentHeader."No.", '', ChildNode);
+        this.AddElement(this.RootNode, 'IssueDate', Format(TransferShipmentHeader."Posting Date", 0, 9), '', ChildNode);
+        this.AddElement(this.RootNode, 'SupplierInformation', '', '', ChildNode);
 
         if this.GeneratePDF then
             this.AddPdf(ChildNode, TransferShipmentHeader);
 
         this.AddCompanyInfoToXML(ChildNode);
 
-        this.XMLDOMManagement.AddElement(this.RootNode, 'DeliveryInformation', '', '', ChildNode);
+        this.AddElement(this.RootNode, 'DeliveryInformation', '', '', ChildNode);
         this.AddDeliveryInfoToXML(ChildNode, TransferShipmentHeader);
     end;
 
@@ -64,7 +64,7 @@ codeunit 6127 "E-Doc. Transfer Shpt. To XML"
         CompanyInformation.Get();
         this.AddNonEmptyNode(SupplierNode, 'Name', CompanyInformation.Name, '', ChildNode);
         this.AddNonEmptyNode(SupplierNode, 'VATNo', CompanyInformation."VAT Registration No.", '', ChildNode);
-        this.XMLDOMManagement.AddElement(SupplierNode, 'Address', '', '', AddressNode);
+        this.AddElement(SupplierNode, 'Address', '', '', AddressNode);
         this.AddNonEmptyNode(AddressNode, 'Street', CompanyInformation.Address, '', ChildNode);
         this.AddNonEmptyNode(AddressNode, 'City', CompanyInformation.City, '', ChildNode);
         this.AddNonEmptyNode(AddressNode, 'Country', CompanyInformation."Country/Region Code", '', ChildNode);
@@ -77,13 +77,13 @@ codeunit 6127 "E-Doc. Transfer Shpt. To XML"
         ShipmentMethodNode: XmlNode;
         ChildNode: XmlNode;
     begin
-        this.XMLDOMManagement.AddElement(DeliveryNode, 'DeliveryAddress', '', '', AddressNode);
+        this.AddElement(DeliveryNode, 'DeliveryAddress', '', '', AddressNode);
         this.AddNonEmptyNode(AddressNode, 'Street', TransferShipmentHeader."Transfer-to Address", '', ChildNode);
         this.AddNonEmptyNode(AddressNode, 'City', TransferShipmentHeader."Transfer-to City", '', ChildNode);
         this.AddNonEmptyNode(AddressNode, 'County', TransferShipmentHeader."Transfer-to County", '', ChildNode);
         this.AddNonEmptyNode(AddressNode, 'PostalCode', TransferShipmentHeader."Transfer-to Post Code", '', ChildNode);
         this.AddNonEmptyNode(AddressNode, 'Contact', TransferShipmentHeader."Transfer-from Contact", '', ChildNode);
-        this.XMLDOMManagement.AddElement(DeliveryNode, 'ShipmentMethod', '', '', ShipmentMethodNode);
+        this.AddElement(DeliveryNode, 'ShipmentMethod', '', '', ShipmentMethodNode);
         this.AddNonEmptyNode(ShipmentMethodNode, 'Code', TransferShipmentHeader."Shipment Method Code", '', ChildNode);
         this.AddNonEmptyNode(ShipmentMethodNode, 'AgentCode', TransferShipmentHeader."Shipping Agent Code", '', ChildNode);
         this.AddNonEmptyNode(ShipmentMethodNode, 'AgentService', TransferShipmentHeader."Shipping Agent Service Code", '', ChildNode);
@@ -96,9 +96,10 @@ codeunit 6127 "E-Doc. Transfer Shpt. To XML"
         ItemNode: XmlNode;
         ChildNode: XmlNode;
     begin
-        this.XMLDOMManagement.AddElement(LineNode, 'Line', '', '', LineNode);
+        // The Line element has never been attached to the document; it is kept detached to preserve the existing output.
+        LineNode := XmlElement.Create('Line').AsXmlNode();
         this.AddNonEmptyNode(LineNode, 'ID', Format(TransferShipmentLine."Line No."), '', ChildNode);
-        this.XMLDOMManagement.AddElement(LineNode, 'Item', '', '', ItemNode);
+        this.AddElement(LineNode, 'Item', '', '', ItemNode);
         this.AddNonEmptyNode(ItemNode, 'ID', TransferShipmentLine."Item No.", '', ChildNode);
         this.AddNonEmptyNode(ItemNode, 'Description', TransferShipmentLine.Description, '', ChildNode);
         this.AddNonEmptyNode(ItemNode, 'UnitOfMeasure', TransferShipmentLine."Unit of Measure Code", '', ChildNode);
@@ -109,7 +110,7 @@ codeunit 6127 "E-Doc. Transfer Shpt. To XML"
     local procedure AddNonEmptyNode(Node: XmlNode; NodeName: Text; NodeValue: Text; Namespace: Text; var ChildNode: XmlNode)
     begin
         if NodeValue <> '' then
-            this.XMLDOMManagement.AddElement(Node, NodeName, NodeValue, Namespace, ChildNode);
+            this.AddElement(Node, NodeName, NodeValue, Namespace, ChildNode);
     end;
 
     local procedure AddPdf(AttachmentNode: XmlNode; TransferShipmentHeader: Record "Transfer Shipment Header")
@@ -129,10 +130,10 @@ codeunit 6127 "E-Doc. Transfer Shpt. To XML"
         then
             exit;
 
-        this.XMLDOMManagement.AddElement(this.RootNode, 'Attachment', '', '', AttachmentNode);
-        this.XMLDOMManagement.AddElement(AttachmentNode, 'EmbeddedDocumentBinaryObject', EmbeddedDocumentBinaryObject, '', ChildNode);
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'filename', Filename);
-        this.XMLDOMManagement.AddAttribute(ChildNode, 'mimeCode', MimeCode);
+        this.AddElement(this.RootNode, 'Attachment', '', '', AttachmentNode);
+        this.AddElement(AttachmentNode, 'EmbeddedDocumentBinaryObject', EmbeddedDocumentBinaryObject, '', ChildNode);
+        this.AddAttribute(ChildNode, 'filename', Filename);
+        this.AddAttribute(ChildNode, 'mimeCode', MimeCode);
     end;
 
     local procedure GeneratePDFAttachmentAsAdditionalDocRef(
@@ -191,5 +192,16 @@ codeunit 6127 "E-Doc. Transfer Shpt. To XML"
     internal procedure SetGeneratePDF(GeneratePDFValue: Boolean)
     begin
         this.GeneratePDF := GeneratePDFValue;
+    end;
+
+    local procedure AddElement(ParentXmlNode: XmlNode; NodeName: Text; NodeText: Text; Namespace: Text; var CreatedXmlNode: XmlNode)
+    begin
+        CreatedXmlNode := XmlElement.Create(NodeName, Namespace, NodeText).AsXmlNode();
+        ParentXmlNode.AsXmlElement().Add(CreatedXmlNode);
+    end;
+
+    local procedure AddAttribute(ParentXmlNode: XmlNode; Name: Text; Value: Text)
+    begin
+        ParentXmlNode.AsXmlElement().SetAttribute(Name, Value);
     end;
 }

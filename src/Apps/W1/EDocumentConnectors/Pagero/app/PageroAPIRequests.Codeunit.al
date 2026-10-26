@@ -246,12 +246,12 @@ codeunit 6363 "Pagero API Requests"
 
     local procedure TempBlobToTxt(var TempBlob: Codeunit "Temp Blob"): Text
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        XMLUtilities: Codeunit "XML Utilities";
         InStr: InStream;
         Content: Text;
     begin
         TempBlob.CreateInStream(InStr, TextEncoding::UTF8);
-        XMLDOMManagement.TryGetXMLAsText(InStr, Content);
+        XMLUtilities.TryGetXmlAsText(InStr, Content);
         exit(Content);
     end;
 
