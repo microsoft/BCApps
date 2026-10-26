@@ -4836,7 +4836,7 @@ codeunit 136302 "Job Consumption Purchase"
         // [GIVEN] "Qty. to Invoice" = 3000 and invoice discount on the Invoicing tab of purchase order statistics changed to 100, i.e. 0.0333.. per unit
         // [WHEN] Receive and invoice the purchase order
         PostGLAccLineWithInvDiscAmountToInvoice(
-            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10000, 3000, 200, 1000000, 100, false, 0, '');
+            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10000, 3000, 200, 1000000, 100, false, 0, '', '', 0);
 
         // [THEN] G/L entry for the G/L Account has amount 200 * 3000 - 100 = 599900
         ExpectedAmount := 599900;
@@ -4849,6 +4849,77 @@ codeunit 136302 "Job Consumption Purchase"
             StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Unit Cost (LCY)"), ExpectedUnitCost));
 
         // [THEN] Project ledger entry "Total Cost (LCY)" and "Total Cost" are exactly equal to the G/L entry amount
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost (LCY)",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), GLEntry.Amount));
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost"), GLEntry.Amount));
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchaseOrderStatisticsSetInvDiscountInvoicingPageHandler')]
+    procedure JobLedgerEntryTotalCostForGLAccLineWithChangedInvDiscAmountToInvoiceFractionalPerUnitPricesInclVAT()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        ExpectedAmount: Decimal;
+    begin
+        // [FEATURE] [G/L Account] [Invoice Discount] [Rounding] [Prices Including VAT]
+        // [SCENARIO 642385] Project ledger entry total cost for a G/L Account line is equal to the invoiced amount when prices include VAT and the full line unit cost is rounded
+        Initialize();
+
+        // [GIVEN] Purchase order with "Prices Including VAT" and G/L Account line with "VAT %" = 20 linked to a project task: Quantity = 10000, "Direct Unit Cost" = 200, invoice discount = 1000000
+        // [GIVEN] "Unit Cost" of the purchase line is (200 - 100) / 1.2 = 83.33333 rounded to the unit-amount precision
+        // [GIVEN] "Qty. to Invoice" = 3000 and invoice discount on the Invoicing tab of purchase order statistics changed to 100
+        // [WHEN] Receive and invoice the purchase order
+        PostGLAccLineWithInvDiscAmountToInvoice(
+            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10000, 3000, 200, 1000000, 100, true, 0, '', '', 20);
+
+        // [THEN] G/L entry for the G/L Account has amount (200 * 3000 - 100) / 1.2 = 499916.67
+        ExpectedAmount := Round((200 * 3000 - 100) / 1.2, LibraryERM.GetAmountRoundingPrecision());
+        Assert.AreEqual(ExpectedAmount, GLEntry.Amount, StrSubstNo(ValueMustMatchErr, GLEntry.FieldCaption(Amount), ExpectedAmount));
+
+        // [THEN] Project ledger entry "Total Cost (LCY)" and "Total Cost" are exactly equal to the G/L entry amount
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost (LCY)",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), GLEntry.Amount));
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost"), GLEntry.Amount));
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchaseOrderStatisticsSetInvDiscountInvoicingPageHandler')]
+    procedure JobLedgerEntryTotalCostForGLAccLineWithChangedInvDiscAmountToInvoiceFractionalPerUnitJobFCY()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        JobCurrencyCode: Code[10];
+        ExpectedAmount: Decimal;
+    begin
+        // [FEATURE] [G/L Account] [Invoice Discount] [Rounding] [FCY]
+        // [SCENARIO 642385] Project ledger entry total cost in project currency is calculated from the invoiced amount when the project currency differs from the purchase currency
+        Initialize();
+
+        // [GIVEN] Project in foreign currency "FCY" with exchange rate 1
+        JobCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+
+        // [GIVEN] Purchase order in local currency with G/L Account line linked to a task of the project: Quantity = 10000, "Direct Unit Cost" = 200, invoice discount = 1000000
+        // [GIVEN] "Qty. to Invoice" = 3000 and invoice discount on the Invoicing tab of purchase order statistics changed to 100
+        // [WHEN] Receive and invoice the purchase order
+        PostGLAccLineWithInvDiscAmountToInvoice(
+            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10000, 3000, 200, 1000000, 100, false, 0, '', JobCurrencyCode, 0);
+
+        // [THEN] G/L entry for the G/L Account has amount 200 * 3000 - 100 = 599900
+        ExpectedAmount := 599900;
+        Assert.AreEqual(ExpectedAmount, GLEntry.Amount, StrSubstNo(ValueMustMatchErr, GLEntry.FieldCaption(Amount), ExpectedAmount));
+
+        // [THEN] Project ledger entry "Total Cost (LCY)" and "Total Cost" in "FCY" are exactly equal to the G/L entry amount
         Assert.AreEqual(
             GLEntry.Amount, JobLedgerEntry."Total Cost (LCY)",
             StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), GLEntry.Amount));
@@ -7285,17 +7356,19 @@ codeunit 136302 "Job Consumption Purchase"
 
         PostGLAccLineWithInvDiscAmountToInvoice(
             PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, Quantity, QtyToInvoice, DirectUnitCost,
-            InvDiscAmountPerUnit * Quantity, NewInvDiscAmountPerUnit * QtyToInvoice, PricesIncludingVAT, IndirectCostPct, CurrencyCode);
+            InvDiscAmountPerUnit * Quantity, NewInvDiscAmountPerUnit * QtyToInvoice, PricesIncludingVAT, IndirectCostPct, CurrencyCode, '', 0);
     end;
 
-    local procedure PostGLAccLineWithInvDiscAmountToInvoice(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var GLEntry: Record "G/L Entry"; var JobLedgerEntry: Record "Job Ledger Entry"; Quantity: Decimal; QtyToInvoice: Decimal; DirectUnitCost: Decimal; InvDiscAmount: Decimal; NewInvDiscAmountToInvoice: Decimal; PricesIncludingVAT: Boolean; IndirectCostPct: Decimal; CurrencyCode: Code[10])
+    local procedure PostGLAccLineWithInvDiscAmountToInvoice(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var GLEntry: Record "G/L Entry"; var JobLedgerEntry: Record "Job Ledger Entry"; Quantity: Decimal; QtyToInvoice: Decimal; DirectUnitCost: Decimal; InvDiscAmount: Decimal; NewInvDiscAmountToInvoice: Decimal; PricesIncludingVAT: Boolean; IndirectCostPct: Decimal; CurrencyCode: Code[10]; JobCurrencyCode: Code[10]; VATPct: Decimal)
     var
         Job: Record Job;
         JobTask: Record "Job Task";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
         PurchCalcDiscByType: Codeunit "Purch - Calc Disc. By Type";
         PurchaseOrder: TestPage "Purchase Order";
         GLAccountNo: Code[20];
+        VendorNo: Code[20];
         DocumentNo: Code[20];
         InvDiscAmountToInvoice: Decimal;
     begin
@@ -7305,9 +7378,21 @@ codeunit 136302 "Job Consumption Purchase"
         PurchasesPayablesSetup.Modify(true);
 
         LibraryJob.CreateJob(Job);
+        if JobCurrencyCode <> '' then begin
+            Job.Validate("Currency Code", JobCurrencyCode);
+            Job.Modify(true);
+        end;
         LibraryJob.CreateJobTask(Job, JobTask);
-        GLAccountNo := LibraryERM.CreateGLAccountWithPurchSetup();
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        // VATPct = 0 uses an existing VAT posting setup with any VAT %
+        if VATPct = 0 then begin
+            GLAccountNo := LibraryERM.CreateGLAccountWithPurchSetup();
+            VendorNo := LibraryPurchase.CreateVendorNo();
+        end else begin
+            LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", VATPct);
+            GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Purchase);
+            VendorNo := LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group");
+        end;
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, VendorNo);
         PurchaseHeader.Validate("Prices Including VAT", PricesIncludingVAT);
         PurchaseHeader.Validate("Currency Code", CurrencyCode);
         PurchaseHeader.Modify(true);
