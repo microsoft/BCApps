@@ -169,9 +169,6 @@ report 3367 "EDoc CFDI Carta Porte MX"
                 column(Page_Caption; PageCaptionLbl)
                 {
                 }
-                column(CurrReport_PAGENO; CurrReport.PageNo())
-                {
-                }
                 column(DocumentLine_No; "No.")
                 {
                 }
@@ -266,19 +263,29 @@ report 3367 "EDoc CFDI Carta Porte MX"
                 {
                 }
 
+                trigger OnPreDataItem()
+                var
+                    EDocCartaPortePrintBuffer: Codeunit "EDoc Carta Porte Print Buffer";
+                    TransportOperatorsEDocumentNo: Code[20];
+                begin
+                    TransportOperatorsEDocumentNo := EDocCartaPortePrintBuffer.GetTransportOperatorsEDocumentNo();
+                    if TransportOperatorsEDocumentNo = '' then
+                        exit;
+                    FilterGroup(4);
+                    SetRange("Document Table ID", Database::"E-Document");
+                    SetRange("Document No.", TransportOperatorsEDocumentNo);
+                    FilterGroup(0);
+                end;
+
                 trigger OnAfterGetRecord()
                 begin
                     Employee.Get("Operator Code");
                 end;
             }
-#pragma warning disable AL0589 // Accepted: renaming the data item or column would break the report layout.
-            dataitem(QRCode; "Integer")
-#pragma warning restore AL0589
+            dataitem(QRCodeData; "Integer")
             {
                 DataItemTableView = sorting(Number) where(Number = const(1));
-#pragma warning disable AL0589 // Accepted: renaming the data item or column would break the report layout.
                 column(QRCode; TempSalesShipmentHeader."QR Code")
-#pragma warning restore AL0589
                 {
                 }
                 column(QRCode_Number; Number)

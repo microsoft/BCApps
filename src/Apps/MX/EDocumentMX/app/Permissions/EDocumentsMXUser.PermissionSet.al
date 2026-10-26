@@ -27,6 +27,7 @@ permissionset 3352 "E-Documents MX User"
         codeunit "MX Payment Complement Mgt." = X,
         codeunit "MX Payment Response Mgt." = X,
         codeunit "MX Payment Compl. Dispatcher" = X,
+        codeunit "MX Payment Compl. Cancel" = X,
         codeunit "Digital Sign MX" = X,
         codeunit "CFDI Cancellation MX" = X,
         codeunit "CFDI Write-Back MX" = X,
@@ -51,5 +52,8 @@ permissionset 3352 "E-Documents MX User"
         tabledata "SAT Transport Type MX" = RIMD,
         table "SAT ISTMO Region MX" = X,
         tabledata "SAT ISTMO Region MX" = RIMD,
-        codeunit "Carta Porte Fields Copy MX" = X;
+        codeunit "Carta Porte Fields Copy MX" = X,
+        codeunit "EDoc CFDI Data MX" = X,
+        page "E-Doc. CFDI Data MX" = X,
+        tabledata "CFDI Transport Operator" = RIMD;
 }

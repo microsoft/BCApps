@@ -63,6 +63,51 @@ table 3354 "MX Payment Complement"
             DataClassification = CustomerContent;
             Caption = 'PAC Response XML';
         }
+        field(10; "Cancellation Status"; Enum "MX Compl. Cancel Status")
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Cancellation Status';
+        }
+        field(11; "CFDI Cancellation ID"; Text[50])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'CFDI Cancellation ID';
+        }
+        field(12; "Cancellation Reason Code"; Code[10])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Cancellation Reason Code';
+        }
+        field(13; "Substitution UUID"; Text[50])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Substitution UUID';
+        }
+        field(14; "Date/Time Canceled"; Text[50])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Date/Time Canceled';
+        }
+        field(15; "Marked as Canceled"; Boolean)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Marked as Canceled';
+        }
+        field(16; "Cancellation Error"; Text[250])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Cancellation Error';
+        }
+        field(17; "Stamped At"; DateTime)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Stamped At';
+        }
+        field(18; "Cancellation Response XML"; Blob)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Cancellation Response XML';
+        }
     }
     keys
     {

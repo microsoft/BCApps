@@ -79,8 +79,10 @@ codeunit 3366 "MX Payment Response Mgt."
                 Clear(Complement."PAC Response XML");
                 Complement."PAC Response XML".CreateOutStream(ResponseOutStream, TextEncoding::UTF8);
                 ResponseOutStream.WriteText(ResponseText);
-                if InterfacturaProcessing.TryGetStampedUUIDFromResponse(ResponseText, UUID) then
+                if InterfacturaProcessing.TryGetStampedUUIDFromResponse(ResponseText, UUID) then begin
                     Complement."Stamped UUID" := UUID;
+                    Complement."Stamped At" := CurrentDateTime();
+                end;
                 Complement.Modify();
             end;
             ClearResponse(MessageEntryNo);

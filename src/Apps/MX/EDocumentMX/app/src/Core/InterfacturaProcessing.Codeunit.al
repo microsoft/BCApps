@@ -261,31 +261,57 @@ codeunit 3355 "Interfactura Processing"
 
     internal procedure TryGetStampedUUIDFromResponse(ResponseText: Text; var UUID: Text[50]): Boolean
     var
+        StampedDateTimeTxt: Text[50];
+    begin
+        exit(TryGetStampDataFromResponse(ResponseText, UUID, StampedDateTimeTxt));
+    end;
+
+    internal procedure TryGetStampDataFromResponse(ResponseText: Text; var UUID: Text[50]; var StampedDateTimeTxt: Text[50]): Boolean
+    var
         XmlDoc: XmlDocument;
-        WrappedXmlDoc: XmlDocument;
         ResultNode: XmlNode;
-        WrappedXmlText: Text;
         NamespaceManager: XmlNamespaceManager;
         TimbreNode: XmlNode;
     begin
         UUID := '';
+        StampedDateTimeTxt := '';
         if not TryReadXml(ResponseText, XmlDoc) then
             exit(false);
         if not TryGetResultNode(XmlDoc, ResultNode) then
             exit(false);
 
-        WrappedXmlText := '<root>' + ResultNode.AsXmlElement().InnerXml() + '</root>';
-        if not TryReadXml(WrappedXmlText, WrappedXmlDoc) then
-            exit(false);
-
-        NamespaceManager.NameTable(WrappedXmlDoc.NameTable());
+        NamespaceManager.NameTable(XmlDoc.NameTable());
         NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
         NamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
-        if not WrappedXmlDoc.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', NamespaceManager, TimbreNode) then
+        if not ResultNode.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', NamespaceManager, TimbreNode) then
             exit(false);
 
         UUID := CopyStr(GetXmlAttribute(TimbreNode, 'UUID'), 1, MaxStrLen(UUID));
+        StampedDateTimeTxt := CopyStr(GetXmlAttribute(TimbreNode, 'FechaTimbrado'), 1, MaxStrLen(StampedDateTimeTxt));
         exit(UUID <> '');
+    end;
+
+    // Legacy parity: with Cancel on Time Expiration, a document stamped less than 24 hours ago is canceled without contacting the PAC
+    internal procedure CancelsOnTimeExpiration(StampedAt: DateTime): Boolean
+    begin
+        if StampedAt = 0DT then
+            exit(false);
+        if not InterfacturaSetup.Get() then
+            exit(false);
+        exit(InterfacturaSetup."Cancel on Time Expiration" and (StampedAt > CurrentDateTime() - 24 * 60 * 60 * 1000));
+    end;
+
+    internal procedure InvokeCancellationRequest(RequestTxt: Text; IsStatusRequest: Boolean; var ResponseTxt: Text; var ErrorText: Text): Boolean
+    var
+        HttpRequest: HttpRequestMessage;
+        HttpResponse: HttpResponseMessage;
+        RequestType: Option "Request Stamp",Cancel,CancelRequest;
+    begin
+        if IsStatusRequest then
+            RequestType := RequestType::CancelRequest
+        else
+            RequestType := RequestType::Cancel;
+        exit(InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText, true));
     end;
 
     internal procedure InvokeSoapRequest(var EDocument: Record "E-Document"; RequestText: Text; RequestType: Option "Request Stamp",Cancel,CancelRequest; var ErrorText: Text; var SendContext: Codeunit SendContext): Boolean
@@ -585,6 +611,10 @@ codeunit 3355 "Interfactura Processing"
         if not ConfirmCancellationReason(CancellationReasonCode, SubstitutionUUID) then begin
             Status := EDocumentServiceStatus.Status;
             exit(false);
+        end;
+        if CancelsOnTimeExpiration(EDocument."Clearance Date") then begin
+            Status := Enum::"E-Document Service Status"::Canceled;
+            exit(true);
         end;
         CancelDateTimeTxt := Format(CurrentDateTime(), 0, 9);
 

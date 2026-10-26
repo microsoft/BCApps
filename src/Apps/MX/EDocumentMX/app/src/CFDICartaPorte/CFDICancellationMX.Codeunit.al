@@ -118,7 +118,7 @@ codeunit 3359 "CFDI Cancellation MX"
         exit(ServiceStatus);
     end;
 
-    local procedure ParseCancellationResponse(ResponseXML: Text; var StatusToken: Text; var ResultText: Text; var DateTimeCancelledTxt: Text; var CancellationId: Text)
+    internal procedure ParseCancellationResponse(ResponseXML: Text; var StatusToken: Text; var ResultText: Text; var DateTimeCancelledTxt: Text; var CancellationId: Text)
     var
         XmlDoc: XmlDocument;
         ResultNode: XmlNode;

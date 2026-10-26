@@ -4155,9 +4155,6 @@ End Function
         <Field Name="Page_Caption">
           <DataField>Page_Caption</DataField>
         </Field>
-        <Field Name="CurrReport_PAGENO">
-          <DataField>CurrReport_PAGENO</DataField>
-        </Field>
         <Field Name="DocumentLine_No">
           <DataField>DocumentLine_No</DataField>
         </Field>

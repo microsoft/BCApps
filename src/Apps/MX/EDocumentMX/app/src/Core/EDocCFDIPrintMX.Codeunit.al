@@ -27,6 +27,7 @@ codeunit 3364 "EDoc CFDI Print MX"
         ReportSelections: Record "Report Selections";
         CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
         EDocCartaPortePrintBuffer: Codeunit "EDoc Carta Porte Print Buffer";
+        EDocCFDIDataMX: Codeunit "EDoc CFDI Data MX";
         EDocCartaPorteReport: Report "EDoc CFDI Carta Porte MX";
         RecordRef: RecordRef;
     begin
@@ -73,20 +74,31 @@ codeunit 3364 "EDoc CFDI Print MX"
             Database::"Sales Shipment Header":
                 begin
                     RecordRef.SetTable(SalesShipmentHeader);
+                    EDocCFDIDataMX.ApplyToDocument(EDocument, SalesShipmentHeader);
                     EDocCartaPortePrintBuffer.SetSalesShipment(SalesShipmentHeader);
+                    SetTransportOperatorsSource(EDocument, EDocCartaPortePrintBuffer);
                     EDocCartaPorteReport.RunModal();
                     EDocCartaPortePrintBuffer.Clear();
                 end;
             Database::"Transfer Shipment Header":
                 begin
                     RecordRef.SetTable(TransferShipmentHeader);
+                    EDocCFDIDataMX.ApplyToDocument(EDocument, TransferShipmentHeader);
                     EDocCartaPortePrintBuffer.SetTransferShipment(TransferShipmentHeader);
+                    SetTransportOperatorsSource(EDocument, EDocCartaPortePrintBuffer);
                     EDocCartaPorteReport.RunModal();
                     EDocCartaPortePrintBuffer.Clear();
                 end;
             else
                 Error(DocumentTypeNotSupportedErr, RecordRef.Caption());
         end;
+    end;
+
+    local procedure SetTransportOperatorsSource(EDocument: Record "E-Document"; var EDocCartaPortePrintBuffer: Codeunit "EDoc Carta Porte Print Buffer")
+    var
+        EDocCFDIDataMX: Codeunit "EDoc CFDI Data MX";
+    begin
+        EDocCartaPortePrintBuffer.SetTransportOperatorsEDocumentNo(EDocCFDIDataMX.GetTransportOperatorDocumentNo(EDocument));
     end;
 
     var

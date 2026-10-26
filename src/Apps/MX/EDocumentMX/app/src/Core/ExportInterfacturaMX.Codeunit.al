@@ -50,6 +50,7 @@ codeunit 3354 "Export Interfactura MX"
         AdvanceDescriptionTok: Label 'Anticipo bien o servicio', Locked = true;
         AdvanceReverseDescriptionTok: Label 'Aplicacion de anticipo', Locked = true;
         DefaultTransportTypeTok: Label '01', Locked = true;
+        TransportOperatorsEDocumentNo: Code[20];
 
     procedure Export(var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
     var
@@ -69,12 +70,16 @@ codeunit 3354 "Export Interfactura MX"
         SalesShipmentLine: Record "Sales Shipment Line";
         TransferLine: Record "Transfer Line";
         TransferShipmentLine: Record "Transfer Shipment Line";
+        EDocCFDIDataMX: Codeunit "EDoc CFDI Data MX";
     begin
         OnBeforeExport(SourceDocumentHeader, SourceDocumentLines, TempBlob, IsBatch);
         FeatureTelemetry.LogUsage('0000OCR', FeatureNameTok, StrSubstNo(StartEventNameTok, Format(IsBatch)));
         CompanyInformation.Get();
         if not MXConnectionSetup.Get() then
             MXConnectionSetup.Init();
+
+        if EDocCFDIDataMX.IsCartaPorte(EDocument) then
+            TransportOperatorsEDocumentNo := EDocCFDIDataMX.GetTransportOperatorDocumentNo(EDocument);
 
         case SourceDocumentHeader.Number of
             Database::"Sales Header":
@@ -88,6 +93,7 @@ codeunit 3354 "Export Interfactura MX"
             Database::"Sales Invoice Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesInvoiceHeader);
+                    EDocCFDIDataMX.ApplyToDocument(EDocument, SalesInvoiceHeader);
                     if not IsBatch then
                         SalesInvoiceHeader.SetRecFilter();
                     SourceDocumentLines.SetTable(SalesInvoiceLine);
@@ -96,6 +102,7 @@ codeunit 3354 "Export Interfactura MX"
             Database::"Sales Cr.Memo Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesCrMemoHeader);
+                    EDocCFDIDataMX.ApplyToDocument(EDocument, SalesCrMemoHeader);
                     if not IsBatch then
                         SalesCrMemoHeader.SetRecFilter();
                     SourceDocumentLines.SetTable(SalesCrMemoLine);
@@ -120,6 +127,7 @@ codeunit 3354 "Export Interfactura MX"
             Database::"Sales Shipment Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesShipmentHeader);
+                    EDocCFDIDataMX.ApplyToDocument(EDocument, SalesShipmentHeader);
                     if not IsBatch then
                         SalesShipmentHeader.SetRecFilter();
                     SourceDocumentLines.SetTable(SalesShipmentLine);
@@ -136,6 +144,7 @@ codeunit 3354 "Export Interfactura MX"
             Database::"Transfer Shipment Header":
                 begin
                     SourceDocumentHeader.SetTable(TransferShipmentHeader);
+                    EDocCFDIDataMX.ApplyToDocument(EDocument, TransferShipmentHeader);
                     if not IsBatch then
                         TransferShipmentHeader.SetRecFilter();
                     SourceDocumentLines.SetTable(TransferShipmentLine);
@@ -2132,6 +2141,10 @@ codeunit 3354 "Export Interfactura MX"
         TiposFiguraNode: XmlNode;
     begin
         CFDIXMLHelperMX.AddElementCartaPorte(ParentNode, 'FiguraTransporte', '', '', FiguraNode);
+        if TransportOperatorsEDocumentNo <> '' then begin
+            DocumentTableID := Database::"E-Document";
+            DocumentNo := TransportOperatorsEDocumentNo;
+        end;
         CFDITransportOperator.SetRange("Document Table ID", DocumentTableID);
         CFDITransportOperator.SetRange("Document No.", DocumentNo);
         if not CFDITransportOperator.FindSet() then
@@ -2785,7 +2798,11 @@ codeunit 3354 "Export Interfactura MX"
         CFDIXMLHelperMX.AddElementCCE(XMLCurrNode, 'ComercioExterior', '', CFDIComercioExteriorNamespaceTxt, ComercioExteriorNode);
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'Version', '2.0');
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'ClaveDePedimento', 'A1');
-        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'CertificadoOrigen', '0');
+        if DocumentHeader."CFDI Certificate of Origin No." <> '' then begin
+            CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'CertificadoOrigen', '1');
+            CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'NumCertificadoOrigen', DelChr(DocumentHeader."CFDI Certificate of Origin No.", '<>'));
+        end else
+            CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'CertificadoOrigen', '0');
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'Incoterm', DocumentHeader."SAT International Trade Term");
         CurrencyFactor := (1 / DocumentHeader."Currency Factor") * DocumentHeader."Exchange Rate USD";
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'TipoCambioUSD', FormatDecimal(DocumentHeader."Exchange Rate USD", 6));

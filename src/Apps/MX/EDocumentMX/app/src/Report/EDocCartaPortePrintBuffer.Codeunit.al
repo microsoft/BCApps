@@ -18,6 +18,17 @@ codeunit 3371 "EDoc Carta Porte Print Buffer"
         SourceSalesShipmentHeader: Record "Sales Shipment Header";
         SourceTransferShipmentHeader: Record "Transfer Shipment Header";
         SourceDocumentTableId: Integer;
+        TransportOperatorsEDocumentNo: Code[20];
+
+    procedure SetTransportOperatorsEDocumentNo(EDocumentNo: Code[20])
+    begin
+        TransportOperatorsEDocumentNo := EDocumentNo;
+    end;
+
+    procedure GetTransportOperatorsEDocumentNo(): Code[20]
+    begin
+        exit(TransportOperatorsEDocumentNo);
+    end;
 
     procedure SetSalesShipment(SalesShipmentHeader: Record "Sales Shipment Header")
     begin
@@ -51,5 +62,6 @@ codeunit 3371 "EDoc Carta Porte Print Buffer"
         System.Clear(SourceSalesShipmentHeader);
         System.Clear(SourceTransferShipmentHeader);
         SourceDocumentTableId := 0;
+        TransportOperatorsEDocumentNo := '';
     end;
 }
