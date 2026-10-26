@@ -59,7 +59,8 @@ codeunit 1239 "XML Buffer Reader"
 
         SaveChildElements(TempXMLBuffer, RootElement, DefaultNamespace);
 
-
+        // A blob OutStream overwrites from the start without truncating, so clear a reused blob first
+        Clear(TempBlob);
         TempBlob.CreateOutStream(OutStr);
         XmlDoc.WriteTo(OutStr);
     end;

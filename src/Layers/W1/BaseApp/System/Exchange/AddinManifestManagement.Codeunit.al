@@ -195,21 +195,28 @@ codeunit 1652 "Add-in Manifest Management"
 
     local procedure RemoveWhitespaceNodes(ManifestXmlDocument: XmlDocument)
     begin
-        RemoveWhitespaceNodes(ManifestXmlDocument.GetChildNodes());
+        RemoveWhitespaceNodes(ManifestXmlDocument.GetChildNodes(), false);
     end;
 
-    local procedure RemoveWhitespaceNodes(ParentXmlElement: XmlElement)
+    local procedure RemoveWhitespaceNodes(ParentXmlElement: XmlElement; InheritedPreserveWhitespace: Boolean)
     var
         XmlSpaceAttribute: XmlAttribute;
+        PreserveWhitespace: Boolean;
     begin
-        // Like the .NET XmlDocument with PreserveWhitespace = false, drop insignificant whitespace unless xml:space="preserve"
+        // Like the .NET XmlDocument with PreserveWhitespace = false, drop insignificant whitespace.
+        // xml:space is inherited: "preserve" keeps whitespace in the subtree until a descendant sets "default".
+        PreserveWhitespace := InheritedPreserveWhitespace;
         if ParentXmlElement.Attributes().Get('space', 'http://www.w3.org/XML/1998/namespace', XmlSpaceAttribute) then
-            if XmlSpaceAttribute.Value() = 'preserve' then
-                exit;
-        RemoveWhitespaceNodes(ParentXmlElement.GetChildNodes());
+            case XmlSpaceAttribute.Value() of
+                'preserve':
+                    PreserveWhitespace := true;
+                'default':
+                    PreserveWhitespace := false;
+            end;
+        RemoveWhitespaceNodes(ParentXmlElement.GetChildNodes(), PreserveWhitespace);
     end;
 
-    local procedure RemoveWhitespaceNodes(ChildNodes: XmlNodeList)
+    local procedure RemoveWhitespaceNodes(ChildNodes: XmlNodeList; PreserveWhitespace: Boolean)
     var
         ChildNode: XmlNode;
         Whitespace: Text;
@@ -225,11 +232,12 @@ codeunit 1652 "Add-in Manifest Management"
         for i := ChildNodes.Count() downto 1 do begin
             ChildNodes.Get(i, ChildNode);
             if ChildNode.IsXmlText() then begin
-                if DelChr(ChildNode.AsXmlText().Value(), '=', Whitespace) = '' then
-                    ChildNode.Remove();
+                if not PreserveWhitespace then
+                    if DelChr(ChildNode.AsXmlText().Value(), '=', Whitespace) = '' then
+                        ChildNode.Remove();
             end else
                 if ChildNode.IsXmlElement() then
-                    RemoveWhitespaceNodes(ChildNode.AsXmlElement());
+                    RemoveWhitespaceNodes(ChildNode.AsXmlElement(), PreserveWhitespace);
         end;
     end;
 

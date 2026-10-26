@@ -49,7 +49,7 @@ codeunit 1203 "Import XML File to Data Exch."
         DataExch."File Content".CreateInStream(XmlStream);
         XmlDocument.ReadFrom(XmlStream, XmlDoc);
         XmlDoc.GetRoot(RootElement);
-        RemoveWhitespaceNodes(RootElement);
+        RemoveWhitespaceNodes(RootElement, false);
         DataExchLineDef.ValidateNamespace(RootElement);
         AddNamespaces(XmlNamespaceManager, XmlDoc, RootElement);
 
@@ -79,34 +79,46 @@ codeunit 1203 "Import XML File to Data Exch."
                 XmlNamespaceManager.AddNamespace(XmlAttribute.LocalName(), XmlAttribute.Value());
     end;
 
-    local procedure RemoveWhitespaceNodes(ParentXmlElement: XmlElement)
+    local procedure RemoveWhitespaceNodes(ParentXmlElement: XmlElement; InheritedPreserveWhitespace: Boolean)
     var
-        ChildNodes: XmlNodeList;
-        ChildNode: XmlNode;
         XmlSpaceAttribute: XmlAttribute;
+        PreserveWhitespace: Boolean;
+    begin
+        // Like the .NET XmlDocument with PreserveWhitespace = false, drop insignificant whitespace.
+        // xml:space is inherited: "preserve" keeps whitespace in the subtree until a descendant sets "default".
+        PreserveWhitespace := InheritedPreserveWhitespace;
+        if ParentXmlElement.Attributes().Get('space', 'http://www.w3.org/XML/1998/namespace', XmlSpaceAttribute) then
+            case XmlSpaceAttribute.Value() of
+                'preserve':
+                    PreserveWhitespace := true;
+                'default':
+                    PreserveWhitespace := false;
+            end;
+        RemoveWhitespaceNodes(ParentXmlElement.GetChildNodes(), PreserveWhitespace);
+    end;
+
+    local procedure RemoveWhitespaceNodes(ChildNodes: XmlNodeList; PreserveWhitespace: Boolean)
+    var
+        ChildNode: XmlNode;
         Whitespace: Text;
         Tab: Char;
         LineFeed: Char;
         CarriageReturn: Char;
         i: Integer;
     begin
-        // Like the .NET XmlDocument with PreserveWhitespace = false, drop insignificant whitespace unless xml:space="preserve"
-        if ParentXmlElement.Attributes().Get('space', 'http://www.w3.org/XML/1998/namespace', XmlSpaceAttribute) then
-            if XmlSpaceAttribute.Value() = 'preserve' then
-                exit;
         Tab := 9;
         LineFeed := 10;
         CarriageReturn := 13;
         Whitespace := ' ' + Format(Tab) + Format(LineFeed) + Format(CarriageReturn);
-        ChildNodes := ParentXmlElement.GetChildNodes();
         for i := ChildNodes.Count() downto 1 do begin
             ChildNodes.Get(i, ChildNode);
             if ChildNode.IsXmlText() then begin
-                if DelChr(ChildNode.AsXmlText().Value(), '=', Whitespace) = '' then
-                    ChildNode.Remove();
+                if not PreserveWhitespace then
+                    if DelChr(ChildNode.AsXmlText().Value(), '=', Whitespace) = '' then
+                        ChildNode.Remove();
             end else
                 if ChildNode.IsXmlElement() then
-                    RemoveWhitespaceNodes(ChildNode.AsXmlElement());
+                    RemoveWhitespaceNodes(ChildNode.AsXmlElement(), PreserveWhitespace);
         end;
     end;
 
