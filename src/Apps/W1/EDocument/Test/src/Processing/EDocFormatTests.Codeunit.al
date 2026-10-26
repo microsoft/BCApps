@@ -14,6 +14,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
+using Microsoft.Peppol;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
@@ -51,12 +52,17 @@ codeunit 139519 "E-Doc. Format Tests"
         DocumentSendingProfile: Record "Document Sending Profile";
         ServiceHeader: Record "Service Header";
         ServiceMngmtSetup: Record "Service Mgt. Setup";
+        Peppol30Setup: Record "PEPPOL 3.0 Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         ExpectedErr: Text;
         WorkflowCode: Code[20];
     begin
         // [SCENARIO 608765] E-Documents: Check 'Your reference' not available in service documents in Belgian localisation
         Initialize(Enum::"Service Integration"::Mock);
+
+        Peppol30Setup.GetSetup();
+        Peppol30Setup."PEPPOL 3.0 Service Format" := Peppol30Setup."PEPPOL 3.0 Service Format"::"PEPPOL 3.0 - Service";
+        Peppol30Setup.Modify();
 
         // [WHEN] Team member create invoice and update company information.
         UpdateCompanyInformation();

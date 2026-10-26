@@ -2,6 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Utilities;
@@ -35,6 +36,7 @@ codeunit 139686 "Billing Correction Test"
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
@@ -180,7 +182,6 @@ codeunit 139686 "Billing Correction Test"
         i: Integer;
     begin
         Initialize();
-
         for i := 0 to 5 do begin
             PostSalesInvoiceForContract();
             SalesHeader2."Document Type" := Enum::"Sales Document Type".FromInteger(i);
@@ -199,7 +200,6 @@ codeunit 139686 "Billing Correction Test"
         i: Integer;
     begin
         Initialize();
-
         for i := 0 to 5 do begin
             PostPurchaseInvoiceForContract();
             PurchaseHeader2."Document Type" := Enum::"Purchase Document Type".FromInteger(i);
@@ -285,7 +285,6 @@ codeunit 139686 "Billing Correction Test"
     procedure TestChangeServiceStartDateAfterCorrectionCustomerContract()
     var
         ServiceCommitment: Record "Subscription Line";
-        LibraryRandom: Codeunit "Library - Random";
     begin
         Initialize();
 
@@ -301,7 +300,6 @@ codeunit 139686 "Billing Correction Test"
     procedure TestChangeServiceStartDateAfterCorrectionVendorContract()
     var
         ServiceCommitment: Record "Subscription Line";
-        LibraryRandom: Codeunit "Library - Random";
     begin
         Initialize();
 
@@ -313,6 +311,57 @@ codeunit 139686 "Billing Correction Test"
         ServiceCommitment.Validate("Subscription Line Start Date", LibraryRandom.RandDateFrom(ServiceCommitment."Subscription Line Start Date", 100));
     end;
 
+    [Test]
+    [HandlerFunctions('CreateBillingDocsCustomerPageHandler,CreateBillingDocsVendorPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure PurchaseInvoiceCreatedForVendorContractWhenCustomerContractWithSameNoHasOpenCreditMemo()
+    var
+        VendorAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 653306] Purchase invoice is created for a vendor contract when a customer contract with the same No. has an unposted corrective credit memo.
+        Initialize();
+
+        // [GIVEN] Create Customer contract with posted sales invoice and unposted corrective sales credit memo with amount higher than vendor amount.
+        VendorAmount := LibraryRandom.RandIntInRange(10, 100);
+        CreateCustomerContractWithPostedInvoiceAndCreditMemo(VendorAmount * 10);
+
+        // [GIVEN] Create Vendor contract with the same No. as Customer contract.
+        CreateVendorContractWithNo(CustomerContract."No.", VendorAmount);
+
+        // [WHEN] Create billing documents for Vendor Contract.
+        CreateBillingDocumentsForContract(Enum::"Service Partner"::Vendor, VendorContract."No.");
+
+        // [THEN] Verify that a purchase invoice is created for Vendor Contract.
+        VerifyPurchaseInvoiceCreated();
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure RecurringBillingGroupingAmountExcludesCustomerLinesWithSameContractNo()
+    var
+        TempBillingLine: Record "Billing Line" temporary;
+        BillingProposal: Codeunit "Billing Proposal";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 653307] Grouping line amount for a vendor contract includes only vendor billing lines when a customer contract has the same No.
+        Initialize();
+
+        // [GIVEN] Create Customer contract with billing lines.
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        CreateBillingProposalForContract(Enum::"Service Partner"::Customer, CustomerContract."No.");
+
+        // [GIVEN] Create Vendor contract with the same No. as Customer contract and billing lines.
+        CreateVendorContractWithNo(CustomerContract."No.", LibraryRandom.RandIntInRange(10, 100));
+        CreateBillingProposalForContract(Enum::"Service Partner"::Vendor, VendorContract."No.");
+
+        // [WHEN] Build recurring billing lines for Vendor Contract grouped by contract.
+        TempBillingLine.SetRange(Partner, Enum::"Service Partner"::Vendor);
+        BillingProposal.InitTempTable(TempBillingLine, Enum::"Contract Billing Grouping"::Contract);
+
+        // [THEN] Verify that the grouping line amount for Vendor Contract equals the sum of vendor billing lines only.
+        VerifyGroupingLineAmount(TempBillingLine, Enum::"Service Partner"::Vendor, VendorContract."No.");
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -321,7 +370,6 @@ codeunit 139686 "Billing Correction Test"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Billing Correction Test");
         ClearAll();
-
         if IsInitialized then
             exit;
 
@@ -367,6 +415,103 @@ codeunit 139686 "Billing Correction Test"
         SalesHeader.Get(SalesHeader."Document Type"::Invoice, BillingLine."Document No.");
         PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
         SalesInvoiceHeader.Get(PostedDocumentNo);
+    end;
+
+    local procedure CreateCustomerContractWithPostedInvoiceAndCreditMemo(CalculationBaseAmount: Decimal)
+    begin
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
+        SetSubscriptionLineCalculationBaseAmount(Enum::"Service Partner"::Customer, CustomerContract."No.", CalculationBaseAmount);
+        CreateBillingDocumentsForContract(Enum::"Service Partner"::Customer, CustomerContract."No.");
+        BillingLine.FindFirst();
+        SalesHeader.Get(SalesHeader."Document Type"::Invoice, BillingLine."Document No.");
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesHeader2);
+    end;
+
+    local procedure CreateVendorContractWithNo(ContractNo: Code[20]; CalculationBaseAmount: Decimal)
+    var
+        Vendor: Record Vendor;
+        VendorServiceObject: Record "Subscription Header";
+    begin
+        ContractTestLibrary.CreateVendorInLCY(Vendor);
+        VendorContract.Init();
+        VendorContract."No." := ContractNo;
+        VendorContract.Insert(true);
+        VendorContract.Validate("Buy-from Vendor No.", Vendor."No.");
+        VendorContract.Modify(true);
+        ContractTestLibrary.AssignServiceObjectForItemToVendorContract(VendorContract, VendorServiceObject, false);
+        ContractTestLibrary.DisableDeferralsForVendorContract(VendorContract, false);
+        SetSubscriptionLineCalculationBaseAmount(Enum::"Service Partner"::Vendor, VendorContract."No.", CalculationBaseAmount);
+    end;
+
+    local procedure SetSubscriptionLineCalculationBaseAmount(ServicePartner: Enum "Service Partner"; ContractNo: Code[20]; CalculationBaseAmount: Decimal)
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        SubscriptionLine.SetRange(Partner, ServicePartner);
+        SubscriptionLine.SetRange("Subscription Contract No.", ContractNo);
+        SubscriptionLine.FindFirst();
+        SubscriptionLine.Validate("Calculation Base %", 100);
+        SubscriptionLine.Validate("Calculation Base Amount", CalculationBaseAmount);
+        SubscriptionLine.Modify(true);
+    end;
+
+    local procedure CreateBillingProposalForContract(ServicePartner: Enum "Service Partner"; ContractNo: Code[20])
+    var
+        ContractBillingTemplate: Record "Billing Template";
+        FilterCustomerContract: Record "Customer Subscription Contract";
+        FilterVendorContract: Record "Vendor Subscription Contract";
+        FilterText: Text;
+    begin
+        case ServicePartner of
+            Enum::"Service Partner"::Customer:
+                begin
+                    FilterCustomerContract.SetRange("No.", ContractNo);
+                    FilterText := FilterCustomerContract.GetView();
+                end;
+            Enum::"Service Partner"::Vendor:
+                begin
+                    FilterVendorContract.SetRange("No.", ContractNo);
+                    FilterText := FilterVendorContract.GetView();
+                end;
+        end;
+        ContractTestLibrary.CreateRecurringBillingTemplate(ContractBillingTemplate, '<2M-CM>', '<8M+CM>', FilterText, ServicePartner);
+        ContractTestLibrary.CreateBillingProposal(ContractBillingTemplate, ServicePartner);
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", ContractBillingTemplate.Code);
+        BillingLine.SetRange(Partner, ServicePartner);
+        BillingLine.SetRange("Subscription Contract No.", ContractNo);
+    end;
+
+    local procedure CreateBillingDocumentsForContract(ServicePartner: Enum "Service Partner"; ContractNo: Code[20])
+    begin
+        CreateBillingProposalForContract(ServicePartner, ContractNo);
+        Codeunit.Run(Codeunit::"Create Billing Documents", BillingLine);
+    end;
+
+    local procedure VerifyPurchaseInvoiceCreated()
+    var
+        InvoicePurchaseHeader: Record "Purchase Header";
+    begin
+        BillingLine.FindFirst();
+        Assert.AreEqual(Enum::"Rec. Billing Document Type"::Invoice, BillingLine."Document Type", 'Billing line must be linked to an invoice.');
+        InvoicePurchaseHeader.SetRange("Document Type", InvoicePurchaseHeader."Document Type"::Invoice);
+        InvoicePurchaseHeader.SetRange("No.", BillingLine."Document No.");
+        Assert.RecordIsNotEmpty(InvoicePurchaseHeader);
+    end;
+
+    local procedure VerifyGroupingLineAmount(var TempBillingLine: Record "Billing Line" temporary; ServicePartner: Enum "Service Partner"; ContractNo: Code[20])
+    var
+        PartnerBillingLine: Record "Billing Line";
+    begin
+        PartnerBillingLine.SetRange(Partner, ServicePartner);
+        PartnerBillingLine.SetRange("Subscription Contract No.", ContractNo);
+        PartnerBillingLine.CalcSums(Amount);
+        TempBillingLine.SetRange(Indent, 0);
+        TempBillingLine.SetRange("Subscription Contract No.", ContractNo);
+        TempBillingLine.FindFirst();
+        Assert.AreEqual(PartnerBillingLine.Amount, TempBillingLine.Amount, 'Grouping line amount must include only billing lines of the same partner.');
     end;
 
     #endregion Procedures
