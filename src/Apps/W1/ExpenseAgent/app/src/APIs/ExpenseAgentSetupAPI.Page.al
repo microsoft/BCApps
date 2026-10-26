@@ -200,6 +200,11 @@ page 6942 "Expense Agent Setup API"
                     Caption = 'Agent Regional Format ID';
                     ToolTip = 'Specifies the regional format (locale) identifier configured for the agent user.';
                 }
+                field(companyId; CompanyID())
+                {
+                    Caption = 'Company ID';
+                    ToolTip = 'Specifies the Company ID which is a system generated guid string that is unique for each company.';
+                }
 
                 part(expenseAgentAccessControls; "Expense Agent Access Ctrl API")
                 {
