@@ -36,6 +36,7 @@
         DateTimeStampedTxt: Label '2011-11-08T07:45:56';
         FiscalInvoiceNumberPACTxt: Label '9CDBDABD-9399-4DA1-8409-D1B70C5BA4DD';
         OptionNotSupportedErr: Label 'Option not supported by test function.';
+        PACResponseValueTooLongErr: Label 'The %1 value in the response from the PAC is %2 characters long, but it can be at most %3 characters.', Comment = '%1 - name of the value in the response, %2 - actual length, %3 - maximum length.';
         ErrorCodeTxt: Label '302';
         ErrorDescriptionTxt: Label 'Sello del Emisor No Valido';
         StatusOption: Option " ","Stamp Received",Sent,Canceled,"Stamp Request Error","Cancel Error","Cancel In Progress";
@@ -68,6 +69,48 @@
     procedure SalesInvoiceRequestStamp()
     begin
         RequestStampTest(DATABASE::"Sales Invoice Header", ResponseOption::Success, ActionOption::"Request Stamp");
+    end;
+
+    [Test]
+    [HandlerFunctions('StrMenuHandler')]
+    [Scope('OnPrem')]
+    procedure SalesInvoiceRequestStampResponseUUIDTooLong()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        RecordRef: RecordRef;
+        TooLongUUID: Text;
+    begin
+        // [FEATURE] [Request Stamp]
+        // [SCENARIO 649587] A PAC response with a value that does not fit its field is rejected instead of being truncated
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice
+        SalesInvoiceHeader.Get(CreateAndPostDoc(DATABASE::"Sales Invoice Header", CreatePaymentMethodForSAT()));
+
+        // [GIVEN] The PAC returns a stamp with a UUID of 51 characters, one more than "Fiscal Invoice Number PAC" can hold
+        TooLongUUID := PadStr('', MaxStrLen(SalesInvoiceHeader."Fiscal Invoice Number PAC") + 1, 'A');
+        MockSuccessRequestStampWithUUID(TempBlob, NamespaceCFD4Txt, SchemaLocationCFD4Txt, TooLongUUID);
+        RecordRef.GetTable(SalesInvoiceHeader);
+        TempBlob.ToRecordRef(RecordRef, SalesInvoiceHeader.FieldNo("Signed Document XML"));
+        RecordRef.SetTable(SalesInvoiceHeader);
+        SalesInvoiceHeader.Modify(true);
+
+        // [WHEN] Request Stamp
+        LibraryVariableStorage.Enqueue(ActionOption::"Request Stamp");
+        asserterror SalesInvoiceHeader.RequestStampEDocument();
+
+        // [THEN] An error about the length of the UUID is shown
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError(
+          StrSubstNo(PACResponseValueTooLongErr, 'UUID', StrLen(TooLongUUID), MaxStrLen(SalesInvoiceHeader."Fiscal Invoice Number PAC")));
+
+        // [THEN] The invoice is not marked as stamped and no truncated UUID is stored
+        SalesInvoiceHeader.Find();
+        SalesInvoiceHeader.TestField("Fiscal Invoice Number PAC", '');
+        Assert.AreNotEqual(
+          SalesInvoiceHeader."Electronic Document Status"::"Stamp Received", SalesInvoiceHeader."Electronic Document Status",
+          SalesInvoiceHeader.FieldCaption("Electronic Document Status"));
     end;
 
     [Test]
@@ -8841,6 +8884,11 @@
     end;
 
     local procedure MockSuccessRequestStamp(var TempBlob: Codeunit "Temp Blob"; NamespaceCFD: Text; SchemaLocationCFD: Text)
+    begin
+        MockSuccessRequestStampWithUUID(TempBlob, NamespaceCFD, SchemaLocationCFD, '9CDBDABD-9399-4DA1-8409-D1B70C5BA4DD');
+    end;
+
+    local procedure MockSuccessRequestStampWithUUID(var TempBlob: Codeunit "Temp Blob"; NamespaceCFD: Text; SchemaLocationCFD: Text; UUID: Text)
     var
         OutStream: OutStream;
     begin
@@ -8921,7 +8969,7 @@
             StrSubstNo(
               '    <cfdi:Complemento xmlns:cfdi="%1" xmlns="">', NamespaceCFD), 1, 1024));
         OutStream.WriteText(
-          '      <tfd:TimbreFiscalDigital version="1.0" UUID="9CDBDABD-9399-4DA1-8409-D1B70C5BA4DD" ' +
+          '      <tfd:TimbreFiscalDigital version="1.0" UUID="' + UUID + '" ' +
           'FechaTimbrado="2011-11-08T07:45:56" ');
         OutStream.WriteText('selloCFD="UjFPBbIfOXXlMsVgqeayMUi4gbp291Nwd0vn1e4DRkzjz3Nw3ZXno1jJNXlTdR3');
         OutStream.WriteText(

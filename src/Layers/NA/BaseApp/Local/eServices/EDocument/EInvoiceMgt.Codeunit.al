@@ -109,6 +109,7 @@ codeunit 10145 "E-Invoice Mgt."
         NullParameterErr: Label 'The %1 cannot be empty', Locked = true;
         ProcessResponseErr: Label 'Cannot process response for document %1. %2', Locked = true;
         ResetCancellationRequestErr: Label 'Reset cancellation request for document %1.', Locked = true;
+        PACResponseValueTooLongErr: Label 'The %1 value in the response from the PAC is %2 characters long, but it can be at most %3 characters.', Comment = '%1 - name of the value in the response, %2 - actual length, %3 - maximum length.';
         SendDocMsg: Label 'Sending document: %1', Locked = true;
         SendDocSuccessMsg: Label 'Document %1 successfully sent', Locked = true;
         SendEmailErr: Label 'Cannot send email. %1', Locked = true;
@@ -1575,7 +1576,7 @@ codeunit 10145 "E-Invoice Mgt."
 
         if ResponseCode <> '1' then begin // Error encountered
             if not Reverse then begin
-                SalesInvoiceHeader."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(SalesInvoiceHeader."Error Code"));
+                SalesInvoiceHeader."Error Code" := CopyStr(CheckPACResponseValueLength('IdRespuesta', ResponseCode, MaxStrLen(SalesInvoiceHeader."Error Code")), 1, MaxStrLen(SalesInvoiceHeader."Error Code"));
                 ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
                 TelemetryError := ErrorDescription;
                 if StrLen(ErrorDescription) > 250 then
@@ -1593,7 +1594,7 @@ codeunit 10145 "E-Invoice Mgt."
                         end;
                 end;
             end else begin
-                CFDIDocuments."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(CFDIDocuments."Error Code"));
+                CFDIDocuments."Error Code" := CopyStr(CheckPACResponseValueLength('IdRespuesta', ResponseCode, MaxStrLen(CFDIDocuments."Error Code")), 1, MaxStrLen(CFDIDocuments."Error Code"));
                 ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
                 TelemetryError := ErrorDescription;
                 if StrLen(ErrorDescription) > 250 then
@@ -1645,19 +1646,19 @@ codeunit 10145 "E-Invoice Mgt."
         GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
         if not Reverse then begin
-            SalesInvoiceHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(SalesInvoiceHeader."Date/Time Stamped"));
+            SalesInvoiceHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado', MaxStrLen(SalesInvoiceHeader."Date/Time Stamped")), 1, MaxStrLen(SalesInvoiceHeader."Date/Time Stamped"));
             SalesInvoiceHeader."Date/Time Stamp Received" := ConvertStingToDateTime(SalesInvoiceHeader."Date/Time Stamped");
 
-            SalesInvoiceHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(SalesInvoiceHeader."Fiscal Invoice Number PAC"));
+            SalesInvoiceHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID', MaxStrLen(SalesInvoiceHeader."Fiscal Invoice Number PAC")), 1, MaxStrLen(SalesInvoiceHeader."Fiscal Invoice Number PAC"));
 
-            SalesInvoiceHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(SalesInvoiceHeader."Certificate Serial No."));
+            SalesInvoiceHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT', MaxStrLen(SalesInvoiceHeader."Certificate Serial No.")), 1, MaxStrLen(SalesInvoiceHeader."Certificate Serial No."));
         end else begin
-            CFDIDocuments."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(CFDIDocuments."Date/Time Stamped"));
+            CFDIDocuments."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado', MaxStrLen(CFDIDocuments."Date/Time Stamped")), 1, MaxStrLen(CFDIDocuments."Date/Time Stamped"));
             CFDIDocuments."Date/Time Stamp Received" := ConvertStingToDateTime(CFDIDocuments."Date/Time Stamped");
 
-            CFDIDocuments."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(CFDIDocuments."Fiscal Invoice Number PAC"));
+            CFDIDocuments."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID', MaxStrLen(CFDIDocuments."Fiscal Invoice Number PAC")), 1, MaxStrLen(CFDIDocuments."Fiscal Invoice Number PAC"));
 
-            CFDIDocuments."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(CFDIDocuments."Certificate Serial No."));
+            CFDIDocuments."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT', MaxStrLen(CFDIDocuments."Certificate Serial No.")), 1, MaxStrLen(CFDIDocuments."Certificate Serial No."));
         end;
 
         Clear(OutStr);
@@ -1727,7 +1728,7 @@ codeunit 10145 "E-Invoice Mgt."
         SalesCrMemoHeader."PAC Web Service Name" := PACWebService.Name;
 
         if ResponseCode <> '1' then begin
-            SalesCrMemoHeader."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(SalesCrMemoHeader."Error Code"));
+            SalesCrMemoHeader."Error Code" := CopyStr(CheckPACResponseValueLength('IdRespuesta', ResponseCode, MaxStrLen(SalesCrMemoHeader."Error Code")), 1, MaxStrLen(SalesCrMemoHeader."Error Code"));
             ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
             TelemetryError := ErrorDescription;
             if StrLen(ErrorDescription) > 250 then
@@ -1773,12 +1774,12 @@ codeunit 10145 "E-Invoice Mgt."
 
         GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
-        SalesCrMemoHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(SalesCrMemoHeader."Date/Time Stamped"));
+        SalesCrMemoHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado', MaxStrLen(SalesCrMemoHeader."Date/Time Stamped")), 1, MaxStrLen(SalesCrMemoHeader."Date/Time Stamped"));
         SalesCrMemoHeader."Date/Time Stamp Received" := ConvertStingToDateTime(SalesCrMemoHeader."Date/Time Stamped");
 
-        SalesCrMemoHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(SalesCrMemoHeader."Fiscal Invoice Number PAC"));
+        SalesCrMemoHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID', MaxStrLen(SalesCrMemoHeader."Fiscal Invoice Number PAC")), 1, MaxStrLen(SalesCrMemoHeader."Fiscal Invoice Number PAC"));
 
-        SalesCrMemoHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(SalesCrMemoHeader."Certificate Serial No."));
+        SalesCrMemoHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT', MaxStrLen(SalesCrMemoHeader."Certificate Serial No.")), 1, MaxStrLen(SalesCrMemoHeader."Certificate Serial No."));
 
         Clear(OutStr);
         SalesCrMemoHeader."Digital Stamp PAC".CreateOutStream(OutStr);
@@ -1831,7 +1832,7 @@ codeunit 10145 "E-Invoice Mgt."
         ServInvoiceHeader."PAC Web Service Name" := PACWebService.Name;
 
         if ResponseCode <> '1' then begin
-            ServInvoiceHeader."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(ServInvoiceHeader."Error Code"));
+            ServInvoiceHeader."Error Code" := CopyStr(CheckPACResponseValueLength('IdRespuesta', ResponseCode, MaxStrLen(ServInvoiceHeader."Error Code")), 1, MaxStrLen(ServInvoiceHeader."Error Code"));
             ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
             TelemetryError := ErrorDescription;
             if StrLen(ErrorDescription) > 250 then
@@ -1877,12 +1878,12 @@ codeunit 10145 "E-Invoice Mgt."
 
         GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
-        ServInvoiceHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(ServInvoiceHeader."Date/Time Stamped"));
+        ServInvoiceHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado', MaxStrLen(ServInvoiceHeader."Date/Time Stamped")), 1, MaxStrLen(ServInvoiceHeader."Date/Time Stamped"));
         ServInvoiceHeader."Date/Time Stamp Received" := ConvertStingToDateTime(ServInvoiceHeader."Date/Time Stamped");
 
-        ServInvoiceHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(ServInvoiceHeader."Fiscal Invoice Number PAC"));
+        ServInvoiceHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID', MaxStrLen(ServInvoiceHeader."Fiscal Invoice Number PAC")), 1, MaxStrLen(ServInvoiceHeader."Fiscal Invoice Number PAC"));
 
-        ServInvoiceHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(ServInvoiceHeader."Certificate Serial No."));
+        ServInvoiceHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT', MaxStrLen(ServInvoiceHeader."Certificate Serial No.")), 1, MaxStrLen(ServInvoiceHeader."Certificate Serial No."));
 
         Clear(OutStr);
         ServInvoiceHeader."Digital Stamp PAC".CreateOutStream(OutStr);
@@ -1935,7 +1936,7 @@ codeunit 10145 "E-Invoice Mgt."
         ServCrMemoHeader."PAC Web Service Name" := PACWebService.Name;
 
         if ResponseCode <> '1' then begin
-            ServCrMemoHeader."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(ServCrMemoHeader."Error Code"));
+            ServCrMemoHeader."Error Code" := CopyStr(CheckPACResponseValueLength('IdRespuesta', ResponseCode, MaxStrLen(ServCrMemoHeader."Error Code")), 1, MaxStrLen(ServCrMemoHeader."Error Code"));
             ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
             TelemetryError := ErrorDescription;
             if StrLen(ErrorDescription) > 250 then
@@ -1981,12 +1982,12 @@ codeunit 10145 "E-Invoice Mgt."
 
         GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
-        ServCrMemoHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(ServCrMemoHeader."Date/Time Stamped"));
+        ServCrMemoHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado', MaxStrLen(ServCrMemoHeader."Date/Time Stamped")), 1, MaxStrLen(ServCrMemoHeader."Date/Time Stamped"));
         ServCrMemoHeader."Date/Time Stamp Received" := ConvertStingToDateTime(ServCrMemoHeader."Date/Time Stamped");
 
-        ServCrMemoHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(ServCrMemoHeader."Fiscal Invoice Number PAC"));
+        ServCrMemoHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID', MaxStrLen(ServCrMemoHeader."Fiscal Invoice Number PAC")), 1, MaxStrLen(ServCrMemoHeader."Fiscal Invoice Number PAC"));
 
-        ServCrMemoHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(ServCrMemoHeader."Certificate Serial No."));
+        ServCrMemoHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT', MaxStrLen(ServCrMemoHeader."Certificate Serial No.")), 1, MaxStrLen(ServCrMemoHeader."Certificate Serial No."));
 
         Clear(OutStr);
         ServCrMemoHeader."Digital Stamp PAC".CreateOutStream(OutStr);
@@ -2037,7 +2038,7 @@ codeunit 10145 "E-Invoice Mgt."
         SalesShipmentHeader."PAC Web Service Name" := PACWebService.Name;
 
         if ResponseCode <> '1' then begin
-            SalesShipmentHeader."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(SalesShipmentHeader."Error Code"));
+            SalesShipmentHeader."Error Code" := CopyStr(CheckPACResponseValueLength('IdRespuesta', ResponseCode, MaxStrLen(SalesShipmentHeader."Error Code")), 1, MaxStrLen(SalesShipmentHeader."Error Code"));
             ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
             TelemetryError := ErrorDescription;
             if StrLen(ErrorDescription) > 250 then
@@ -2083,12 +2084,12 @@ codeunit 10145 "E-Invoice Mgt."
 
         GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
-        SalesShipmentHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(SalesShipmentHeader."Date/Time Stamped"));
+        SalesShipmentHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado', MaxStrLen(SalesShipmentHeader."Date/Time Stamped")), 1, MaxStrLen(SalesShipmentHeader."Date/Time Stamped"));
         SalesShipmentHeader."Date/Time Stamp Received" := ConvertStingToDateTime(SalesShipmentHeader."Date/Time Stamped");
 
-        SalesShipmentHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(SalesShipmentHeader."Fiscal Invoice Number PAC"));
+        SalesShipmentHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID', MaxStrLen(SalesShipmentHeader."Fiscal Invoice Number PAC")), 1, MaxStrLen(SalesShipmentHeader."Fiscal Invoice Number PAC"));
 
-        SalesShipmentHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(SalesShipmentHeader."Certificate Serial No."));
+        SalesShipmentHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT', MaxStrLen(SalesShipmentHeader."Certificate Serial No.")), 1, MaxStrLen(SalesShipmentHeader."Certificate Serial No."));
 
         Clear(OutStr);
         SalesShipmentHeader."Digital Stamp PAC".CreateOutStream(OutStr);
@@ -2139,7 +2140,7 @@ codeunit 10145 "E-Invoice Mgt."
         TransferShipmentHeader."PAC Web Service Name" := PACWebService.Name;
 
         if ResponseCode <> '1' then begin
-            TransferShipmentHeader."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(TransferShipmentHeader."Error Code"));
+            TransferShipmentHeader."Error Code" := CopyStr(CheckPACResponseValueLength('IdRespuesta', ResponseCode, MaxStrLen(TransferShipmentHeader."Error Code")), 1, MaxStrLen(TransferShipmentHeader."Error Code"));
             ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
             TelemetryError := ErrorDescription;
             if StrLen(ErrorDescription) > 250 then
@@ -2186,12 +2187,12 @@ codeunit 10145 "E-Invoice Mgt."
 
         GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
-        TransferShipmentHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(TransferShipmentHeader."Date/Time Stamped"));
+        TransferShipmentHeader."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado', MaxStrLen(TransferShipmentHeader."Date/Time Stamped")), 1, MaxStrLen(TransferShipmentHeader."Date/Time Stamped"));
         TransferShipmentHeader."Date/Time Stamp Received" := ConvertStingToDateTime(TransferShipmentHeader."Date/Time Stamped");
 
-        TransferShipmentHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(TransferShipmentHeader."Fiscal Invoice Number PAC"));
+        TransferShipmentHeader."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID', MaxStrLen(TransferShipmentHeader."Fiscal Invoice Number PAC")), 1, MaxStrLen(TransferShipmentHeader."Fiscal Invoice Number PAC"));
 
-        TransferShipmentHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(TransferShipmentHeader."Certificate Serial No."));
+        TransferShipmentHeader."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT', MaxStrLen(TransferShipmentHeader."Certificate Serial No.")), 1, MaxStrLen(TransferShipmentHeader."Certificate Serial No."));
 
         Clear(OutStr);
         TransferShipmentHeader."Digital Stamp PAC".CreateOutStream(OutStr);
@@ -2215,8 +2216,8 @@ codeunit 10145 "E-Invoice Mgt."
         StatusTxt: Text[10];
     begin
         DateTimeCancelled := '';
-        StatusTxt := CopyStr(GetXMLAttributeValue(ResultXMLElement, 'Estatus'), 1, MaxStrLen(StatusTxt));
-        CancelResult := CopyStr(GetXMLAttributeValue(ResultXMLElement, 'Resultado'), 1, MaxStrLen(CancelResult));
+        StatusTxt := CopyStr(GetXMLAttributeValue(ResultXMLElement, 'Estatus', MaxStrLen(StatusTxt)), 1, MaxStrLen(StatusTxt));
+        CancelResult := CopyStr(GetXMLAttributeValue(ResultXMLElement, 'Resultado', MaxStrLen(CancelResult)), 1, MaxStrLen(CancelResult));
         case StatusTxt of
             'EnProceso':
                 CancelStatus := CancelStatus::InProgress;
@@ -2228,7 +2229,7 @@ codeunit 10145 "E-Invoice Mgt."
                     CancelResult := '';
                     ResultXMLElement.SelectNodes('Evento', EventXMLNodeList);
                     EventXMLNodeList.Get(1, EventXMLNode);
-                    DateTimeCancelled := CopyStr(GetXMLAttributeValue(EventXMLNode.AsXmlElement(), 'Fecha'), 1, MaxStrLen(DateTimeCancelled));
+                    DateTimeCancelled := CopyStr(GetXMLAttributeValue(EventXMLNode.AsXmlElement(), 'Fecha', MaxStrLen(DateTimeCancelled)), 1, MaxStrLen(DateTimeCancelled));
                 end;
         end;
     end;
@@ -2249,7 +2250,7 @@ codeunit 10145 "E-Invoice Mgt."
 
     local procedure GetResponseValueCancellationID(ResultXMLElement: XmlElement) CancellationID: Text[50]
     begin
-        CancellationID := CopyStr(GetXMLAttributeValue(ResultXMLElement, 'ConsultaCancelacionId'), 1, MaxStrLen(CancellationID));
+        CancellationID := CopyStr(GetXMLAttributeValue(ResultXMLElement, 'ConsultaCancelacionId', MaxStrLen(CancellationID)), 1, MaxStrLen(CancellationID));
     end;
 
     local procedure ReadXMLDocumentFromInStream(InStr: InStream; var XMLDoc: XmlDocument)
@@ -2295,14 +2296,18 @@ codeunit 10145 "E-Invoice Mgt."
     var
         ChildXMLNode: XmlNode;
         WhitespaceChars: Text[3];
+        NodeIndex: Integer;
     begin
         WhitespaceChars[1] := 9;
         WhitespaceChars[2] := 10;
         WhitespaceChars[3] := 13;
-        foreach ChildXMLNode in ChildXMLNodeList do
+        // Iterate backwards so that removing a node never shifts the nodes that are still to be visited
+        for NodeIndex := ChildXMLNodeList.Count() downto 1 do begin
+            ChildXMLNodeList.Get(NodeIndex, ChildXMLNode);
             if ChildXMLNode.IsXmlText() then
                 if DelChr(ChildXMLNode.AsXmlText().Value(), '=', ' ' + WhitespaceChars) = '' then
                     ChildXMLNode.Remove();
+        end;
     end;
 
     local procedure SaveXMLDocument(var XMLDoc: XmlDocument; var OutStr: OutStream)
@@ -2371,6 +2376,19 @@ codeunit 10145 "E-Invoice Mgt."
     begin
         XMLElement.Attributes().Get(AttributeName, XMLAttribute);
         exit(XMLAttribute.Value());
+    end;
+
+    local procedure GetXMLAttributeValue(XMLElement: XmlElement; AttributeName: Text; MaxLength: Integer): Text
+    begin
+        exit(CheckPACResponseValueLength(AttributeName, GetXMLAttributeValue(XMLElement, AttributeName), MaxLength));
+    end;
+
+    local procedure CheckPACResponseValueLength(ValueName: Text; Value: Text; MaxLength: Integer): Text
+    begin
+        // Values from the PAC are stored in fixed-length fields. Reject a value that does not fit instead of storing a truncated UUID, serial number or status.
+        if StrLen(Value) > MaxLength then
+            Error(PACResponseValueTooLongErr, ValueName, StrLen(Value), MaxLength);
+        exit(Value);
     end;
 
     local procedure LogPACRejectionAudit(DocTypeText: Text; ErrorDescription: Text)
@@ -5261,7 +5279,7 @@ codeunit 10145 "E-Invoice Mgt."
         CustLedgerEntry."PAC Web Service Name" := PACWebService.Name;
 
         if ResponseCode <> '1' then begin
-            CustLedgerEntry."Error Code" := CopyStr(ResponseCode, 1, MaxStrLen(CustLedgerEntry."Error Code"));
+            CustLedgerEntry."Error Code" := CopyStr(CheckPACResponseValueLength('IdRespuesta', ResponseCode, MaxStrLen(CustLedgerEntry."Error Code")), 1, MaxStrLen(CustLedgerEntry."Error Code"));
             ErrorDescription := GetResponseErrorDescription(ResultXMLElement);
             TelemetryError := ErrorDescription;
             if StrLen(ErrorDescription) > 250 then
@@ -5306,12 +5324,12 @@ codeunit 10145 "E-Invoice Mgt."
         // *****Does any of this need to change for Payments?
         GetTimbreFiscalDigitalElement(ResultXMLElement, TFDXMLElement);
 
-        CustLedgerEntry."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado'), 1, MaxStrLen(CustLedgerEntry."Date/Time Stamped"));
+        CustLedgerEntry."Date/Time Stamped" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'FechaTimbrado', MaxStrLen(CustLedgerEntry."Date/Time Stamped")), 1, MaxStrLen(CustLedgerEntry."Date/Time Stamped"));
         CustLedgerEntry."Date/Time Stamp Received" := ConvertStingToDateTime(CustLedgerEntry."Date/Time Stamped");
 
-        CustLedgerEntry."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID'), 1, MaxStrLen(CustLedgerEntry."Fiscal Invoice Number PAC"));
+        CustLedgerEntry."Fiscal Invoice Number PAC" := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'UUID', MaxStrLen(CustLedgerEntry."Fiscal Invoice Number PAC")), 1, MaxStrLen(CustLedgerEntry."Fiscal Invoice Number PAC"));
 
-        CustLedgerEntry."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT'), 1, MaxStrLen(CustLedgerEntry."Certificate Serial No."));
+        CustLedgerEntry."Certificate Serial No." := CopyStr(GetXMLAttributeValue(TFDXMLElement, 'NoCertificadoSAT', MaxStrLen(CustLedgerEntry."Certificate Serial No.")), 1, MaxStrLen(CustLedgerEntry."Certificate Serial No."));
 
         Clear(OutStr);
         CustLedgerEntry."Digital Stamp PAC".CreateOutStream(OutStr);
