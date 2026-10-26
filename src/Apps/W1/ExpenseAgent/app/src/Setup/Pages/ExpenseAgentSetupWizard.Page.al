@@ -153,9 +153,13 @@ page 6991 "Expense Agent Setup Wizard"
                                 if ExpenseUsers.RunModal() = Action::LookupOK then begin
                                     ExpenseUsers.GetRecord(ExpenseUser);
                                     if ExpenseUser."No." <> Rec."Default Approver No." then begin
-                                        if not ExpenseUser."Can Approve" then begin
+                                        if (not ExpenseUser."Can Approve") or not (ExpenseUser."Unlimited Approval") then begin
                                             ExpenseUser.ReadIsolation(IsolationLevel::UpdLock);
                                             ExpenseUser.Get(ExpenseUser."No.");
+                                            if not ExpenseUser."Can Approve" then
+                                                ExpenseUser.Validate("Can Approve", true);
+                                            if not ExpenseUser."Unlimited Approval" then
+                                                ExpenseUser.Validate("Unlimited Approval", true);
                                             ExpenseUser.Validate("Can Approve", true);
                                             ExpenseUser.Modify();
                                             Commit(); // because we ask a question in the validate trigger later
@@ -963,9 +967,15 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        EAHttpClient: Codeunit "EA Http Client";
     begin
         if CloseAction = CloseAction::Cancel then
             exit(true);
+
+        if StateChanged() then
+            if EAHttpClient.IsCurrentUserGuestUser() then
+                Error(GuestUserErr);
 
         if not ValidateManagementRulesDependencies() then
             exit(false);
@@ -1046,6 +1056,7 @@ page 6991 "Expense Agent Setup Wizard"
         PrivacyNoticeNotAcceptedMsg: Label 'To use the Expense Agent, you must first accept the privacy notice. Please accept the privacy notice and try again.';
         NoExpenseUsersErr: Label 'You must first specify who can access.';
         NoSystemUsersErr: Label 'You must first specify a user in Business Central as expense user.';
+        GuestUserErr: Label 'You cannot enable or disable Expense Agent. Guest users and external administrators have currently limited access to the Expense Agent.';
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
         ApprovalWorkflowConflictErr: Label 'You must turn off "%1" in Expense Agent Setup to enable Expense Agent.', Comment = '%1 = Field Caption';
         ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';

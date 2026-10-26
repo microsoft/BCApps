@@ -108,9 +108,7 @@ codeunit 8026 "Process Usage Data Billing"
         // The remaining lines have no reason to clear. The processing status is set last, so that the filter still matches.
         UsageDataBilling.SetRange("Reason (Preview)", '');
         UsageDataBilling.SetFilter("Processing Status", '<>%1&<>%2', Enum::"Processing Status"::Error, Enum::"Processing Status"::Ok);
-        UsageDataBilling.ModifyAll("Processing Date", Today(), false);
-        UsageDataBilling.ModifyAll("Processing Time", Time(), false);
-        UsageDataBilling.ModifyAll("Processing Status", Enum::"Processing Status"::Ok, false);
+        UsageDataBilling.ModifyAll("Processing Date", Today(), "Processing Time", Time(), "Processing Status", Enum::"Processing Status"::Ok, false);
     end;
 
     local procedure CalculateCustomerUsageDataBillingPrice(var UsageDataBilling: Record "Usage Data Billing")

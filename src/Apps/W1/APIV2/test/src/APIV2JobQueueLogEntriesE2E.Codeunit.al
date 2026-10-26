@@ -1,6 +1,7 @@
 codeunit 139861 "APIV2JobQueueLogEntriesE2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -21,6 +22,8 @@ codeunit 139861 "APIV2JobQueueLogEntriesE2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Use a GET method to retrieve Job Queue Log Entries
         // [GIVEN] A new Job Queue Log Entry created 
         JobQueueLogEntry.DeleteAll();
@@ -62,5 +65,10 @@ codeunit 139861 "APIV2JobQueueLogEntriesE2E"
         JobQueueLogEntry.Validate(Status, Status);
         JobQueueLogEntry.Insert();
         exit(JobQueueLogEntry);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }
