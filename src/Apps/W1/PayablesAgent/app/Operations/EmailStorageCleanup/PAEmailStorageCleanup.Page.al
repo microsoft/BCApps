@@ -275,19 +275,6 @@ page 3325 "PA Email Storage Cleanup"
             }
         }
     }
-
-    var
-        DuplicateGroupCount: Integer;
-        RedundantRowCount: Integer;
-        SkippedRowCount: Integer;
-        LastScannedAt: DateTime;
-        AffectedStyle: Text;
-        ScheduleStatusText: Text;
-        ScheduleStyle: Text;
-        ScheduledAt: DateTime;
-        BackgroundError: Text;
-        DeletionLimitEnabled: Boolean;
-
     trigger OnAfterGetRecord()
     begin
         DeletionLimitEnabled := Rec."Limit Rows To Delete";
@@ -303,6 +290,18 @@ page 3325 "PA Email Storage Cleanup"
         DeletionLimitEnabled := Rec."Limit Rows To Delete";
         RefreshScheduleState();
     end;
+
+    var
+        DuplicateGroupCount: Integer;
+        RedundantRowCount: Integer;
+        SkippedRowCount: Integer;
+        LastScannedAt: DateTime;
+        AffectedStyle: Text;
+        ScheduleStatusText: Text;
+        ScheduleStyle: Text;
+        ScheduledAt: DateTime;
+        BackgroundError: Text;
+        DeletionLimitEnabled: Boolean;
 
     local procedure RefreshStatistics()
     var

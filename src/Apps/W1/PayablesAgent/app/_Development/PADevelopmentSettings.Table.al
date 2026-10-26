@@ -35,6 +35,12 @@ table 3309 "PA Development Settings"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the task page presents the controls and source interactions normally available to the Payables Agent. This does not create an agent session or change permissions.';
         }
+        field(4; "Evaluation Version Override"; Enum "PA Version")
+        {
+            Caption = 'Evaluation version override';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the Payables Agent version selected by the evaluation harness. Unknown means that the Enable V2 development setting applies.';
+        }
     }
 
     keys

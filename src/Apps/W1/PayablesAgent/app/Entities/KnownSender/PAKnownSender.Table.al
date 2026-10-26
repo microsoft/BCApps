@@ -56,6 +56,10 @@ table 3308 "PA Known Sender"
             LogSenderApproved();
     end;
 
+    var
+        SenderAddedAuditLbl: Label 'Added Payables Agent known sender %1.', Locked = true;
+        SenderApprovedAuditLbl: Label 'Payables Agent known sender %1 was set to Approve, allowing its emails to be processed without review.', Locked = true;
+
     internal procedure InsertIfNew(PATask: Codeunit "Payables Agent Task")
     begin
         InsertSenderIfNew(PATask.GetSenderAddress());
@@ -115,8 +119,4 @@ table 3308 "PA Known Sender"
     begin
         Session.LogSecurityAudit(Rec.TableName(), SecurityOperationResult::Success, StrSubstNo(SenderApprovedAuditLbl, Rec.Email), AuditCategory::PolicyManagement);
     end;
-
-    var
-        SenderAddedAuditLbl: Label 'Added Payables Agent known sender %1.', Locked = true;
-        SenderApprovedAuditLbl: Label 'Payables Agent known sender %1 was set to Approve, allowing its emails to be processed without review.', Locked = true;
 }

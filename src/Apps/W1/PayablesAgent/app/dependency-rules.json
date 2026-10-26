@@ -22,7 +22,7 @@
                     "reason": "Source acquisition chooses the configured version's backing representation."
                 },
                 {
-                    "from": { "paths": ["Compatibility/DraftBased/TaskIntake/PADraftBasedSubscribers.Codeunit.al"] },
+                    "from": { "paths": ["Compatibility/DraftBased/Flows/Intake/PADraftBasedSubscribers.Codeunit.al"] },
                     "reason": "Draft import subscribers must not handle v2 intake."
                 }
             ]
@@ -69,7 +69,7 @@
                     "reason": "An obsolete schema field retains its historical E-Document Service relation."
                 },
                 {
-                    "from": { "paths": ["Concerns/Security/PayablesAgAdm.Permissionset.al"] },
+                    "from": { "paths": ["Shared/Security/PayablesAgAdm.Permissionset.al"] },
                     "referenceKinds": ["permission"],
                     "reason": "Declarative administrator grants cover the v1 integration; they are not runtime access."
                 }
@@ -95,7 +95,7 @@
                     "reason": "Setup owns its backing records."
                 },
                 {
-                    "from": { "paths": ["Configuration/PASetupUpdateParameters.Codeunit.al"] },
+                    "from": { "paths": ["Flows/Configuration/PASetupUpdateParameters.Codeunit.al"] },
                     "to": { "names": ["Payables Agent Setup"] },
                     "referenceKinds": ["type"],
                     "reason": "The setup flow transports the temporary page snapshot through wrapper GetPageRecord/SetPageRecord, without using it for database access."
@@ -106,12 +106,12 @@
                     "reason": "The app-owned test cleanup facade deletes v2 task backing data while hiding its representation from test apps."
                 },
                 {
-                    "from": { "paths": ["Upgrade/PayablesAgentUpgrade.Codeunit.al"] },
+                    "from": { "paths": ["Flows/Upgrade/PayablesAgentUpgrade.Codeunit.al"] },
                     "to": { "names": ["Payables Agent Setup"] },
                     "reason": "Historical setup migrations must operate on the persisted old schema."
                 },
                 {
-                    "from": { "paths": ["Bootstrap/PayablesAgentMetadata.Codeunit.al"] },
+                    "from": { "paths": ["Flows/Registration/PayablesAgentMetadata.Codeunit.al"] },
                     "to": { "names": ["Payables Agent Setup"] },
                     "referenceKinds": ["object"],
                     "reason": "Registration supplies the table ID to data classification; it does not load a backing record."
@@ -123,12 +123,12 @@
             "description": "Entities must not depend on application flows, registration, UI, or draft service orchestration (cleanup target).",
             "severity": "warning",
             "from": { "paths": ["Entities/*"] },
-            "to": { "catalogs": ["app"], "paths": ["Bootstrap/*", "Configuration/*", "TaskIntake/*", "TaskExecution/*", "Supervision/*", "Compatibility/DraftBased/*"] },
+            "to": { "catalogs": ["app"], "paths": ["Flows/*", "Compatibility/DraftBased/*"] },
             "exceptions": [
                 {
                     "from": { "paths": ["Entities/Task/PATaskSource.Codeunit.al"] },
-                    "to": { "kinds": ["codeunit"], "names": ["PA Draft Based Setup"] },
-                    "reason": "The source factory delegates creation of the legacy e-document service to its compatibility adapter."
+                    "to": { "kinds": ["codeunit"], "names": ["PA Draft Based Task Source"] },
+                    "reason": "The logical source delegates its v1 backing representation to the compatibility entity adapter."
                 }
             ]
         },
@@ -140,7 +140,7 @@
             "to": { "kinds": ["codeunit"], "names": ["Agent Task Builder", "Agent Task Message Builder"] },
             "exceptions": [
                 {
-                    "from": { "paths": ["TaskIntake/PATaskIntake.Codeunit.al"] },
+                    "from": { "paths": ["Flows/Intake/PATaskIntake.Codeunit.al"] },
                     "reason": "Task Intake is the single app-owned entry point for runtime task construction."
                 }
             ]
@@ -157,14 +157,19 @@
                     "reason": "Draft implementation objects may collaborate within the compatibility boundary."
                 },
                 {
-                    "from": { "paths": ["Configuration/PASetupPresentation.Codeunit.al"] },
+                    "from": { "paths": ["Flows/Configuration/PASetupPresentation.Codeunit.al"] },
                     "to": { "kinds": ["codeunit"], "names": ["PA Draft Based Setup"] },
                     "reason": "Setup Presentation deliberately delegates the v1-only additional-fields dialog."
                 },
                 {
                     "from": { "paths": ["Entities/Task/PATaskSource.Codeunit.al"] },
-                    "to": { "kinds": ["codeunit"], "names": ["PA Draft Based Setup"] },
-                    "reason": "Version-neutral source acquisition delegates legacy service creation to the draft compatibility adapter."
+                    "to": { "kinds": ["codeunit"], "names": ["PA Draft Based Task Source"] },
+                    "reason": "The version-neutral source delegates v1 backing access through one compatibility entity adapter."
+                },
+                {
+                    "from": { "paths": ["Flows/Intake/PATaskIntake.Codeunit.al"] },
+                    "to": { "kinds": ["codeunit"], "names": ["PA Draft Based Source Intake"] },
+                    "reason": "Authoritative task intake invokes the v1 import processing entry point after creating its source."
                 },
                 {
                     "from": { "paths": ["TestSupport/PATestFixtures.Codeunit.al"] },
@@ -175,10 +180,10 @@
         },
         {
             "id": "PA008",
-            "description": "Capabilities and concerns should not depend on app registration or flow implementations (cleanup target; use narrow runtime helpers).",
+            "description": "Capabilities and shared mechanisms should not depend on flow implementations (cleanup target; use narrow runtime helpers).",
             "severity": "warning",
-            "from": { "paths": ["Capabilities/*", "Concerns/*"], "kinds": ["codeunit", "table"] },
-            "to": { "catalogs": ["app"], "paths": ["Bootstrap/*", "Configuration/*", "TaskIntake/*", "TaskExecution/*", "Supervision/*"] }
+            "from": { "paths": ["Capabilities/*", "Shared/*"], "kinds": ["codeunit", "table"] },
+            "to": { "catalogs": ["app"], "paths": ["Flows/*"] }
         }
     ]
 }

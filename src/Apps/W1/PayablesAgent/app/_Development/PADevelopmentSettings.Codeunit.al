@@ -12,12 +12,48 @@ codeunit 3329 "PA Development Settings"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    var
+        SetupKeyTok: Label 'SETUP', Locked = true;
+        UnknownEvaluationVersionErr: Label 'An evaluation must select version 1 or version 2 of the Payables Agent.';
+
     internal procedure IsV2Enabled(): Boolean
     var
         DevelopmentSettings: Record "PA Development Settings";
     begin
         GetSettings(DevelopmentSettings);
         exit(DevelopmentSettings."Enable V2");
+    end;
+
+    internal procedure SetEvaluationVersionOverride(Version: Enum "PA Version")
+    var
+        DevelopmentSettings: Record "PA Development Settings";
+    begin
+        if Version = Version::Unknown then
+            Error(UnknownEvaluationVersionErr);
+        GetSettings(DevelopmentSettings);
+        if DevelopmentSettings."Evaluation Version Override" = Version then
+            exit;
+        DevelopmentSettings."Evaluation Version Override" := Version;
+        DevelopmentSettings.Modify();
+    end;
+
+    internal procedure GetEvaluationVersionOverride(): Enum "PA Version"
+    var
+        DevelopmentSettings: Record "PA Development Settings";
+    begin
+        GetSettings(DevelopmentSettings);
+        exit(DevelopmentSettings."Evaluation Version Override");
+    end;
+
+    internal procedure ClearEvaluationVersionOverride()
+    var
+        DevelopmentSettings: Record "PA Development Settings";
+    begin
+        GetSettings(DevelopmentSettings);
+        if DevelopmentSettings."Evaluation Version Override" = "PA Version"::Unknown then
+            exit;
+        DevelopmentSettings."Evaluation Version Override" := "PA Version"::Unknown;
+        DevelopmentSettings.Modify();
     end;
 
     internal procedure SimulateAgentExperience(): Boolean
@@ -38,7 +74,5 @@ codeunit 3329 "PA Development Settings"
         DevelopmentSettings.Insert();
     end;
 
-    var
-        SetupKeyTok: Label 'SETUP', Locked = true;
 }
 #endif

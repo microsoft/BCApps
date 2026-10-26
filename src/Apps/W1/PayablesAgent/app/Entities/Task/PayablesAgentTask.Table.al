@@ -88,6 +88,9 @@ table 3327 "Payables Agent Task"
         }
     }
 
+    var
+        NoFileContentErr: Label 'There is no file to show.';
+
     procedure GetFileContent(var TempBlob: Codeunit "Temp Blob")
     var
         FileOutStream: OutStream;
@@ -122,7 +125,4 @@ table 3327 "Payables Agent Task"
         Rec."File Content As Text".CreateOutStream(TextOutStream, TextEncoding::UTF8);
         TextOutStream.WriteText(NewFileContentAsText);
     end;
-
-    var
-        NoFileContentErr: Label 'There is no file to show.';
 }

@@ -29,7 +29,7 @@ codeunit 3343 "PA Setup"
         PayablesAgentProfileTok: Label 'Payables Agent', Locked = true;
         PayablesAgentV2ProfileTok: Label 'Payables Agent Profile', Locked = true;
         PayablesAgentPermissionSetTok: Label 'Payables Ag. - Run', Locked = true;
-        PayablesAgentV2PermissionSetTok: Label 'Payables Ag. - RunV2', Locked = true;
+        PayablesAgentV2PermissionSetTok: Label 'Payables Agent - Run', Locked = true;
         AgentInstructionsTok: Label '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
         AgentDrivenInstructionsTok: Label '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
         AgentInstructionsV2Tok: Label 'Prompts/PayablesAgent-AgentInstructions-V2.md', Locked = true;

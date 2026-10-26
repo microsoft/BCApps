@@ -23,6 +23,22 @@ codeunit 3341 "Payables Agent Task"
     Permissions = tabledata "Agent Task" = RM, tabledata "Agent Task Message" = R,
         tabledata "E-Document" = RM, tabledata "E-Doc. Data Storage" = R, tabledata "Email Inbox" = R;
 
+    var
+        LoadedAgentTask: Record "Agent Task";
+        LoadedStoredTask: Record "Payables Agent Task";
+        LoadedEDocument: Record "E-Document";
+        LoadedVersion: Enum "PA Version";
+        TaskNotFoundErr: Label 'The task does not exist.';
+        MultipleTaskBackingsErr: Label 'Agent task %1 has more than one Payables Agent backing record.';
+        AmbiguousTaskBackingErr: Label 'Agent task %1 has both version 1 and version 2 backing records.';
+        InvalidOutcomeErr: Label 'The outcome must be an existing purchase invoice, purchase order, purchase credit memo, posted purchase invoice, or posted purchase credit memo.';
+        SourceTextNotSupportedErr: Label 'Extracted source text cannot be stored for this task.';
+        AgentEDocumentServiceTok: Label 'AGENT', Locked = true;
+        OutcomeTitleLbl: Label '%1 %2 from %3', Comment = '%1 = document kind, %2 = vendor document number, %3 = vendor name';
+        InvoiceTitleLbl: Label 'Invoice';
+        CreditMemoTitleLbl: Label 'Credit memo';
+        OrderTitleLbl: Label 'Order';
+
     internal procedure Load(AgentTaskId: BigInteger): Boolean
     var
         AgentTaskMessage: Record "Agent Task Message";
@@ -370,14 +386,17 @@ codeunit 3341 "Payables Agent Task"
     var
         EDocument: Record "E-Document";
         StoredTask: Record "Payables Agent Task";
+        OutcomeAttachment: Codeunit "PA Outcome PDF Attachment";
     begin
         RequireLoaded();
         ValidateOutcome(OutcomeRecordId);
         if LoadedVersion = "PA Version"::V2 then begin
             if not StoredTask.Get(LoadedStoredTask."Entry No.") then
                 Error(TaskNotFoundErr);
+            OutcomeAttachment.AttachSourcePdf(LoadedStoredTask, OutcomeRecordId);
             StoredTask.Outcome := OutcomeRecordId;
             StoredTask.Modify();
+            UpdateAgentTaskTitle(OutcomeRecordId);
         end else begin
             if not EDocument.Get(LoadedEDocument."Entry No") then
                 Error(TaskNotFoundErr);
@@ -391,6 +410,64 @@ codeunit 3341 "Payables Agent Task"
     begin
         RequireLoaded();
         exit(LoadedAgentTask."External ID");
+    end;
+
+    local procedure UpdateAgentTaskTitle(OutcomeRecordId: RecordId)
+    var
+        AgentTask: Record "Agent Task";
+        PurchaseHeader: Record "Purchase Header";
+        PostedInvoice: Record "Purch. Inv. Header";
+        PostedCreditMemo: Record "Purch. Cr. Memo Hdr.";
+        DocumentNo: Text;
+        VendorName: Text;
+        DocumentKind: Text;
+    begin
+        DocumentKind := InvoiceTitleLbl;
+        case OutcomeRecordId.TableNo of
+            Database::"Purchase Header":
+                begin
+                    PurchaseHeader.Get(OutcomeRecordId);
+                    VendorName := PurchaseHeader."Buy-from Vendor Name";
+                    case PurchaseHeader."Document Type" of
+                        PurchaseHeader."Document Type"::Invoice:
+                            DocumentNo := PurchaseHeader."Vendor Invoice No.";
+                        PurchaseHeader."Document Type"::"Credit Memo":
+                            begin
+                                DocumentNo := PurchaseHeader."Vendor Cr. Memo No.";
+                                DocumentKind := CreditMemoTitleLbl;
+                            end;
+                        else begin
+                            DocumentNo := PurchaseHeader."No.";
+                            DocumentKind := OrderTitleLbl;
+                        end;
+                    end;
+                end;
+            Database::"Purch. Inv. Header":
+                begin
+                    PostedInvoice.Get(OutcomeRecordId);
+                    DocumentNo := PostedInvoice."Vendor Invoice No.";
+                    VendorName := PostedInvoice."Buy-from Vendor Name";
+                end;
+            Database::"Purch. Cr. Memo Hdr.":
+                begin
+                    PostedCreditMemo.Get(OutcomeRecordId);
+                    DocumentNo := PostedCreditMemo."Vendor Cr. Memo No.";
+                    VendorName := PostedCreditMemo."Buy-from Vendor Name";
+                    DocumentKind := CreditMemoTitleLbl;
+                end;
+        end;
+        if DocumentNo = '' then
+            case OutcomeRecordId.TableNo of
+                Database::"Purchase Header":
+                    DocumentNo := PurchaseHeader."No.";
+                Database::"Purch. Inv. Header":
+                    DocumentNo := PostedInvoice."No.";
+                Database::"Purch. Cr. Memo Hdr.":
+                    DocumentNo := PostedCreditMemo."No.";
+            end;
+        AgentTask.Get(LoadedAgentTask.ID);
+        AgentTask.Title := CopyStr(StrSubstNo(OutcomeTitleLbl, DocumentKind, DocumentNo, VendorName), 1, MaxStrLen(AgentTask.Title));
+        AgentTask.Modify(true);
     end;
 
     local procedure GetDraftBasedState(): Enum "PA Task State"
@@ -456,16 +533,4 @@ codeunit 3341 "Payables Agent Task"
         Clear(LoadedEDocument);
         LoadedVersion := "PA Version"::Unknown;
     end;
-
-    var
-        LoadedAgentTask: Record "Agent Task";
-        LoadedStoredTask: Record "Payables Agent Task";
-        LoadedEDocument: Record "E-Document";
-        LoadedVersion: Enum "PA Version";
-        TaskNotFoundErr: Label 'The task does not exist.';
-        MultipleTaskBackingsErr: Label 'Agent task %1 has more than one Payables Agent backing record.';
-        AmbiguousTaskBackingErr: Label 'Agent task %1 has both version 1 and version 2 backing records.';
-        InvalidOutcomeErr: Label 'The outcome must be an existing purchase invoice, purchase order, purchase credit memo, posted purchase invoice, or posted purchase credit memo.';
-        SourceTextNotSupportedErr: Label 'Extracted source text cannot be stored for this task.';
-        AgentEDocumentServiceTok: Label 'AGENT', Locked = true;
 }

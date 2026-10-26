@@ -15,8 +15,7 @@ codeunit 3322 "PA Email Cleanup"
     Permissions = tabledata "Email Inbox" = rd;
 
     var
-        CleanupCompletedTelemetryLbl: Label 'Payables Agent email duplicate cleanup completed.', Locked = true;
-        ScanCompletedTelemetryLbl: Label 'Payables Agent email duplicate scan completed.', Locked = true;
+        PATelemetry: Codeunit "PA Telemetry";
 
     procedure BuildDuplicateGroups(var TempDuplicateBuffer: Record "PA Email Duplicate Buffer" temporary) TotalDeletable: Integer
     var
@@ -62,7 +61,7 @@ codeunit 3322 "PA Email Cleanup"
         TempDuplicateBuffer.SetCurrentKey("Redundant Count");
         TempDuplicateBuffer.Ascending(false);
 
-        LogScanTelemetry(TempDuplicateBuffer.Count(), TotalDeletable);
+        PATelemetry.LogEmailCleanupScanCompleted(TempDuplicateBuffer.Count(), TotalDeletable);
     end;
 
     procedure GetDuplicateStatistics(var GroupCount: Integer; var RedundantRowCount: Integer; var SkippedRowCount: Integer)
@@ -101,7 +100,7 @@ codeunit 3322 "PA Email Cleanup"
             Commit();
 
         RecordLastRun(DeletedCount, SkippedCount);
-        LogCleanupTelemetry(DeletedCount, SkippedCount, CommitBatchSize, DeleteLimit);
+        PATelemetry.LogEmailCleanupCompleted(DeletedCount, SkippedCount, CommitBatchSize, DeleteLimit);
     end;
 
     internal procedure DeleteRedundantRowsOfGroup(var TempDuplicateBuffer: Record "PA Email Duplicate Buffer" temporary; CommitBatchSize: Integer; DeleteLimit: Integer; var DeletedCount: Integer; var SkippedCount: Integer; var UncommittedCount: Integer)
@@ -211,23 +210,4 @@ codeunit 3322 "PA Email Cleanup"
         Setup.Modify();
     end;
 
-    local procedure LogCleanupTelemetry(DeletedCount: Integer; SkippedCount: Integer; CommitBatchSize: Integer; DeleteLimit: Integer)
-    var
-        CustomDimensions: Dictionary of [Text, Text];
-    begin
-        CustomDimensions.Add('DeletedRows', Format(DeletedCount));
-        CustomDimensions.Add('SkippedRows', Format(SkippedCount));
-        CustomDimensions.Add('CommitBatchSize', Format(CommitBatchSize));
-        CustomDimensions.Add('DeleteLimit', Format(DeleteLimit));
-        Session.LogMessage('0000VMY', CleanupCompletedTelemetryLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
-    end;
-
-    local procedure LogScanTelemetry(GroupCount: Integer; DeletableRowCount: Integer)
-    var
-        CustomDimensions: Dictionary of [Text, Text];
-    begin
-        CustomDimensions.Add('DuplicateGroups', Format(GroupCount));
-        CustomDimensions.Add('DeletableRows', Format(DeletableRowCount));
-        Session.LogMessage('0000VMZ', ScanCompletedTelemetryLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
-    end;
 }

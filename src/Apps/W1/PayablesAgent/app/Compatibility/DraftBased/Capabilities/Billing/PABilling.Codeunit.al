@@ -19,28 +19,31 @@ codeunit 3311 "PA Billing"
     EventSubscriberInstance = Manual;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Agent Task Message" = r, tabledata "E-Document Purchase Line" = r;
+    Permissions = tabledata "E-Document Purchase Line" = r;
+
+    var
+        PayablesAgentDailyCountTok: Label 'PayablesAgentDailyCount', Locked = true;
+        PayablesAgentDailyCountDateTok: Label 'date', Locked = true;
+        PayablesAgentNoLinesDocumentCountTok: Label 'documentsWithoutLines', Locked = true;
+        PayablesAgentAAChargedTok: Label 'autonomousActionsCharged', Locked = true;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Purchase Draft Utility", OnInsertedEDocumentPurchaseLines, '', false, false)]
     local procedure LogPurchaseDocumentDraftLinesProcessed(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     var
         AgentSession: Codeunit "Agent Session";
-        PayablesAgent: Codeunit "Payables Agent Metadata";
-        TelemetryDictionary: Dictionary of [Text, Text];
+        DraftBasedTelemetry: Codeunit "PA Draft Based Telemetry";
         AgentTaskID: BigInteger;
         SessionEDocumentEntryNo: Integer;
         NumberOfLines: Integer;
         NumberOfDocumentsWithoutLines: Integer;
     begin
         SessionEDocumentEntryNo := GetCurrentSessionEDocumentEntryNo();
-        TelemetryDictionary := PayablesAgent.GetCustomDimensions();
-        TelemetryDictionary.Add('EDocumentEntryNo', Format(SessionEDocumentEntryNo));
         if EDocumentPurchaseHeader.IsTemporary() then begin
-            Session.LogMessage('0000R32', 'Skipping billing log for temporary E-Document Purchase Header.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDictionary);
+            DraftBasedTelemetry.LogBillingTemporaryHeader(SessionEDocumentEntryNo);
             exit;
         end;
         if (SessionEDocumentEntryNo <> EDocument."Entry No") then begin
-            Session.LogMessage('0000R33', 'The E-Document does not match the current session E-Document. Skipping billing log.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDictionary);
+            DraftBasedTelemetry.LogBillingUnmatchedDocument(SessionEDocumentEntryNo);
             exit;
         end;
 
@@ -49,40 +52,28 @@ codeunit 3311 "PA Billing"
         if not VerifyNumberOfLinesExtracted(EDocument, NumberOfLines) then begin
             NumberOfDocumentsWithoutLines := IncrementNoLinesDocumentsDailyCount();
             if NumberOfDocumentsWithoutLines > GetAllowedNumberOfDocumentsWithoutLinesPerDay() then begin
-                TelemetryDictionary.Add(PayablesAgentNoLinesDocumentCountTok, Format(NumberOfDocumentsWithoutLines, 0, 9));
-                Session.LogMessage('0000QIN', 'Detected too many documents without lines.', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDictionary);
+                DraftBasedTelemetry.LogBillingTooManyDocumentsWithoutLines(SessionEDocumentEntryNo, NumberOfDocumentsWithoutLines);
             end;
             exit;
         end else begin
-            TelemetryDictionary := PayablesAgent.GetCustomDimensions();
-            TelemetryDictionary.Add('UpperLineRange', Format(GetLinesRange(NumberOfLines), 0, 9));
-            Session.LogMessage('0000QIO', LinesExtractedForEDocumentLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDictionary);
+            DraftBasedTelemetry.LogBillingLinesExtracted(GetLinesRange(NumberOfLines));
         end;
 
         LogPurchaseDocumentDraftCreated(EDocument, EDocumentPurchaseHeader, AgentTaskID);
         LogLinesExpense(EDocument, EDocumentPurchaseHeader, AgentTaskID, NumberOfLines);
     end;
 
-    /// <summary>
-    /// Entry number of the e-document the current Payables Agent session works on, or 0 when there is none.
-    /// </summary>
     local procedure GetCurrentSessionEDocumentEntryNo(): Integer
     var
-        Message: Record "Agent Task Message";
-        AgentSession: Codeunit "Agent Session";
-        Provider: Enum "Agent Metadata Provider";
-        DocumentNo: Integer;
+        EDocument: Record "E-Document";
+        Task: Codeunit "Payables Agent Task";
     begin
-        // Billing is an explicit v1 integration of the historical runtime-message protocol.
-        if not AgentSession.IsAgentSession(Provider) then
+        if not Task.LoadCurrentSession() then
             exit(0);
-        if Provider <> Provider::"Payables Agent" then
+        if Task.GetVersion() <> "PA Version"::V1 then
             exit(0);
-        Message.SetRange("Task ID", AgentSession.GetCurrentSessionAgentTaskId());
-        Message.SetFilter("External ID", '<>%1', '');
-        if Message.FindFirst() then
-            if Evaluate(DocumentNo, Message."External ID") then
-                exit(DocumentNo);
+        if EDocument.GetBySystemId(Task.GetSourceId()) then
+            exit(EDocument."Entry No");
         exit(0);
     end;
 
@@ -108,7 +99,7 @@ codeunit 3311 "PA Billing"
 
     local procedure LogPurchaseDocumentDraftCreated(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header"; AgentTaskID: BigInteger)
     var
-        PayablesAgent: Codeunit "Payables Agent Metadata";
+        DraftBasedTelemetry: Codeunit "PA Draft Based Telemetry";
         CreateHeaderPrice: Integer;
         DescriptionText: Text;
         ProcessedHeaderForEDocumentLbl: Label 'E-Document: %1', Comment = '%1 - Number of E-Document for example 231', Locked = true;
@@ -122,11 +113,11 @@ codeunit 3311 "PA Billing"
         if EDocumentPurchaseHeader."Sales Invoice No." <> '' then
             DescriptionText += SeparatorTok + StrSubstNo(InvoiceLbl, EDocumentPurchaseHeader."Sales Invoice No.")
         else
-            Session.LogMessage('0000QFC', 'The invoice number is empty.', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, PayablesAgent.GetCustomDimensions());
+            DraftBasedTelemetry.LogBillingMissingInvoiceNumber();
         if EDocumentPurchaseHeader."Vendor Company Name" <> '' then
             DescriptionText += CommaTok + StrSubstNo(VendorLbl, EDocumentPurchaseHeader."Vendor Company Name")
         else
-            Session.LogMessage('0000QFD', 'The vendor company name is empty.', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, PayablesAgent.GetCustomDimensions());
+            DraftBasedTelemetry.LogBillingMissingVendorName();
 
         LogPATrackingRecord(AgentTaskID, Enum::"PA Billing Operation"::"Invoice Document Processed", DescriptionText, EDocument.SystemId, Database::"E-Document", CreateHeaderPrice);
     end;
@@ -143,13 +134,13 @@ codeunit 3311 "PA Billing"
     local procedure VerifyNumberOfLinesExtracted(var EDocument: Record "E-Document"; var NumberOfLinesExtracted: Integer): Boolean
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PayablesAgent: Codeunit "Payables Agent Metadata";
+        DraftBasedTelemetry: Codeunit "PA Draft Based Telemetry";
     begin
         EDocumentPurchaseLine.ReadIsolation := IsolationLevel::ReadUncommitted;
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         NumberOfLinesExtracted := EDocumentPurchaseLine.Count();
         if NumberOfLinesExtracted = 0 then begin
-            Session.LogMessage('0000QFE', 'No lines were extracted for the E-Document.', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, PayablesAgent.GetCustomDimensions());
+            DraftBasedTelemetry.LogBillingNoLinesExtracted();
             exit(false);
         end;
 
@@ -159,16 +150,15 @@ codeunit 3311 "PA Billing"
     local procedure LogPATrackingRecord(AgentTaskID: BigInteger; Operation: Enum "PA Billing Operation"; Description: Text; RecordSystemID: Guid; RecordTable: Integer; Usage: Integer)
     var
         AgentTask: Record "Agent Task";
-        PayablesAgent: Codeunit "Payables Agent Metadata";
+        DraftBasedTelemetry: Codeunit "PA Draft Based Telemetry";
         CopilotQuota: Codeunit "Copilot Quota";
         UniqueID: Text[1024];
-        TelemetryDimensions: Dictionary of [Text, Text];
         NewUsageConsumed: Decimal;
         CopilotQuotaUsageType: Enum "Copilot Quota Usage Type";
         ExcludeFromBilling: Boolean;
     begin
         if not AgentTask.Get(AgentTaskID) then begin
-            Session.LogMessage('0000TCT', 'Agent Task not found for logging billing record.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+            DraftBasedTelemetry.LogBillingAgentTaskNotFound();
             exit;
         end;
 
@@ -176,24 +166,19 @@ codeunit 3311 "PA Billing"
         ExcludeFromBilling := AgentTask."Billing Context" = Enum::"Agent Task Billing Context"::Excluded;
 
         UniqueID := GetUniqueID(AgentTaskID, Operation, RecordSystemID, RecordTable);
-        TelemetryDimensions := PayablesAgent.GetCustomDimensions();
         if CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueID) and not ExcludeFromBilling then begin
-            Session.LogMessage('0000R34', 'Billing log already exists for this operation. Skipping duplicate log.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+            DraftBasedTelemetry.LogBillingDuplicateOperation();
             exit;
         end;
 
         CopilotQuotaUsageType := Enum::"Copilot Quota Usage Type"::"Autonomous Action";
         NewUsageConsumed := UpdateTotalAmountDailyCount(Usage);
         if (NewUsageConsumed > GetMaximumNumberOfChargeableAutonomousActionsPerDay()) and not ExcludeFromBilling then begin
-            TelemetryDimensions.Add(PayablesAgentAAChargedTok, Format(NewUsageConsumed, 0, 9));
-            Session.LogMessage('0000QIP', 'Daily credit limit reached. Billing log will not be created.', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+            DraftBasedTelemetry.LogBillingDailyLimitReached(NewUsageConsumed);
             exit;
         end;
 
-        TelemetryDimensions := PayablesAgent.GetCustomDimensions();
-        TelemetryDimensions.Add('Operation', Format(Operation, 0, 9));
-        TelemetryDimensions.Add('ExcludeFromBilling', Format(ExcludeFromBilling, 0, 9));
-        Session.LogMessage('0000PO3', CreatedPABillingOperationMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+        DraftBasedTelemetry.LogBillingOperationCreated(Format(Operation, 0, 9), ExcludeFromBilling);
 
         CopilotQuota.LogAgentUserAIConsumption(Enum::"Copilot Capability"::"Payables Agent", Usage, CopilotQuotaUsageType, AgentTaskID, Format(Operation), Description, UniqueID, ExcludeFromBilling);
     end;
@@ -273,12 +258,4 @@ codeunit 3311 "PA Billing"
     begin
         exit(StrSubstNo('{"%1":"%2","%3":%4,"%5":%6}', PayablesAgentDailyCountDateTok, GetCurrentUTCDateText(), PayablesAgentNoLinesDocumentCountTok, 0, PayablesAgentAAChargedTok, 0));
     end;
-
-    var
-        CreatedPABillingOperationMsg: Label 'Created a Payables Agent billing operation.', Locked = true;
-        PayablesAgentDailyCountTok: Label 'PayablesAgentDailyCount', Locked = true;
-        PayablesAgentDailyCountDateTok: Label 'date', Locked = true;
-        PayablesAgentNoLinesDocumentCountTok: Label 'documentsWithoutLines', Locked = true;
-        PayablesAgentAAChargedTok: Label 'autonomousActionsCharged', Locked = true;
-        LinesExtractedForEDocumentLbl: Label 'Lines extracted for the E-Document.', Locked = true;
 }

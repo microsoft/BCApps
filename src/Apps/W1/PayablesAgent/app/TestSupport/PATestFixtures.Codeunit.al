@@ -24,6 +24,21 @@ codeunit 3326 "PA Test Fixtures"
     /// Ensures the product agent is activated through its normal setup flow and hands the PDF to intake.
     /// Test-environment Copilot capability activation and waiting for the runtime remain owned by the AI test app.
     /// </summary>
+    var
+        PASetupUpdate: Codeunit "PA Setup Update";
+        PAAgentConfiguration: Codeunit "PA Agent Configuration";
+        TaskNotFoundErr: Label 'Agent task %1 does not work on a Payables Agent task.', Locked = true;
+        VendorNotFoundErr: Label 'Vendor not found for the given name %1', Locked = true;
+        AccountNotFoundErr: Label 'Account not found for the given code %1', Locked = true;
+        PurchaseInvoiceOutcomeRequiredErr: Label 'Agent task %1 must have an existing purchase invoice registered as its outcome.', Locked = true;
+        PurchaseLinesNotFoundErr: Label 'No purchase invoice lines were found for purchase invoice %1.', Locked = true;
+        UnexpectedOutcomeErr: Label 'The task outcome %1 is not an existing purchase invoice.', Locked = true;
+        UnknownEvaluationVersionErr: Label 'An evaluation must select version 1 or version 2 of the Payables Agent.';
+        EvaluationVersionUnavailableErr: Label 'Payables Agent version %1 is not available in this build.', Comment = '%1 = Payables Agent version';
+#if DEVELOPMENT
+        DevelopmentSettings: Codeunit "PA Development Settings";
+#endif
+
     internal procedure EnsureActivatedAndCreateTaskFromPdf(FileName: Text; PdfInStream: InStream; var PATask: Codeunit "Payables Agent Task"): Boolean
     var
         PATaskIntake: Codeunit "PA Task Intake";
@@ -176,15 +191,55 @@ codeunit 3326 "PA Test Fixtures"
     #region Evaluation diagnostics and cleanup
 
     /// <summary>
-    /// Deletes source/task state owned by both Payables Agent implementations. General business data remains owned by the test harness.
+    /// Selects the Payables Agent version for the evaluation run. The persisted override is visible to the agent's separate runtime sessions.
     /// </summary>
-    internal procedure DeleteAllTaskData()
+    internal procedure PrepareEvaluationVersion(Version: Enum "PA Version")
+    begin
+        if Version = Version::Unknown then
+            Error(UnknownEvaluationVersionErr);
+#if DEVELOPMENT
+        DevelopmentSettings.SetEvaluationVersionOverride(Version);
+#else
+        if Version <> Version::V1 then
+            Error(EvaluationVersionUnavailableErr, Version);
+#endif
+    end;
+
+    /// <summary>
+    /// Gets the version explicitly prepared by the evaluation harness, or Unknown when no override is active.
+    /// </summary>
+    internal procedure GetPreparedEvaluationVersion(): Enum "PA Version"
+    begin
+#if DEVELOPMENT
+        exit(DevelopmentSettings.GetEvaluationVersionOverride());
+#else
+        exit("PA Version"::Unknown);
+#endif
+    end;
+
+    /// <summary>
+    /// Clears evaluation state in the test company before configuring the next run.
+    /// This also deletes every E-Document and all E-Doc. Vendor Assign. History in that company.
+    /// </summary>
+    internal procedure ResetEvaluationState()
+    begin
+        DeleteAllTaskAndEDocumentDataForEvaluation();
+#if DEVELOPMENT
+        DevelopmentSettings.ClearEvaluationVersionOverride();
+#endif
+    end;
+
+    /// <summary>
+    /// Deletes V2 tasks, plus every E-Document and all E-Doc. Vendor Assign. History in the test company.
+    /// Use only where company-wide E-Document cleanup is intended; this is not limited to Payables Agent documents.
+    /// </summary>
+    internal procedure DeleteAllTaskAndEDocumentDataForEvaluation()
     var
         StoredTask: Record "Payables Agent Task";
         DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
     begin
         StoredTask.DeleteAll(false);
-        DraftBasedFixtures.DeleteTaskData();
+        DraftBasedFixtures.DeleteAllEDocumentDataForEvaluation();
     end;
 
     /// <summary>
@@ -504,14 +559,4 @@ codeunit 3326 "PA Test Fixtures"
     end;
 
     #endregion
-
-    var
-        PASetupUpdate: Codeunit "PA Setup Update";
-        PAAgentConfiguration: Codeunit "PA Agent Configuration";
-        TaskNotFoundErr: Label 'Agent task %1 does not work on a Payables Agent task.', Locked = true;
-        VendorNotFoundErr: Label 'Vendor not found for the given name %1', Locked = true;
-        AccountNotFoundErr: Label 'Account not found for the given code %1', Locked = true;
-        PurchaseInvoiceOutcomeRequiredErr: Label 'Agent task %1 must have an existing purchase invoice registered as its outcome.', Locked = true;
-        PurchaseLinesNotFoundErr: Label 'No purchase invoice lines were found for purchase invoice %1.', Locked = true;
-        UnexpectedOutcomeErr: Label 'The task outcome %1 is not an existing purchase invoice.', Locked = true;
 }

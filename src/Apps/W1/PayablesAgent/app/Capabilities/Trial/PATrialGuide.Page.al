@@ -73,6 +73,11 @@ page 3318 "PA Trial Guide"
             }
         }
     }
+    trigger OnInit()
+    begin
+        if MediaResourcesStandard.Get('COPILOTNOTAVAILABLE.PNG') then
+            BannerVisible := MediaResourcesStandard."Media Reference".HasValue();
+    end;
 
     var
         MediaResourcesStandard: Record "Media Resources";
@@ -80,11 +85,4 @@ page 3318 "PA Trial Guide"
         TitleMsg: Label 'Thank you for trying the Payables Agent!';
         ParagraphMsg: Label 'The Payables Agent is now running in trial mode free of charge and separate from billable AI credit consumption in Business Central. When ending trial mode, Payables Agent will start to consume billable AI credits.';
         Paragraph2Msg: Label 'The invoice will show in the agent task pane on the right-hand side, where you can track its progress.';
-
-    trigger OnInit()
-    begin
-        if MediaResourcesStandard.Get('COPILOTNOTAVAILABLE.PNG') then
-            BannerVisible := MediaResourcesStandard."Media Reference".HasValue();
-    end;
-
 }

@@ -64,7 +64,7 @@ page 3306 "Payables Agent KPI"
     end;
 
     var
-        PayablesAgentKPI: Codeunit "Payables Agent KPI";
+        PayablesAgentKPI: Record "Payables Agent KPI";
         CountKPI: Dictionary of [Enum "PA KPI Scenario", Integer];
         TimeSavedTasks, TimeSavedInvoices : Decimal;
         TimeSavedTasksFormatExpression, TimeSavedInvoicesFormatExpression : Text;
@@ -110,5 +110,4 @@ page 3306 "Payables Agent KPI"
         ControlAutoFormatExpression := StrSubstNo(AutoFormatExpressionLbl, YearsUnitLbl);
         exit(YearsSaved);
     end;
-
 }

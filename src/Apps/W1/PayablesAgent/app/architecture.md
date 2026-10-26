@@ -59,9 +59,9 @@ These are the high-level flows that can be found in this AL app:
 
 ### Capabilities
 
-Cross-cutting concerns that need to be consistent across several flows that own their own state. Their supporting tables, wrappers and views belong with the capability.
+Cohesive product responsibilities whose behavior spans flows or lifecycle stages.
 
-| Concern | Registration | Configuration | Task ingestion | Task execution | Upgrade |
+| Capability | Registration | Configuration | Task ingestion | Task execution | Upgrade |
 | --- | --- | --- | --- | --- | --- |
 | Customer feedback | - | Ask for feedback on disabling the agent. | - | Handle task thumbs feedback and v1 draft feedback. | - |
 | KPI | - | - | Count tasks handed to the agent. | Count purchase invoices inserted in a Payables Agent session. | Reclassify v1 finalized-e-document history. |
@@ -69,18 +69,18 @@ Cross-cutting concerns that need to be consistent across several flows that own 
 | Trial | - | Initializes trial if eligible | Consumes trial | - | Consumes trial if they used it previously |
 
 - Customer feedback: Collects data that users may provide as part of input for next iterations.
-- KPI: Collects rough metrics to display the work done by the agent
+- KPI: Collects rough metrics to display the work done by the agent. The KPI page and purchase-invoice subscriber belong to this capability; the record and scenario enum belong to the KPI entity.
 - Billing: Inserts records that are emitted for billing
-- Trial: Free-tier invoices the users have to try out the Payables Agent.
+- Trial: Free-tier invoices the users have to try out the Payables Agent. The guide page remains here; eligibility, state and allowance belong to the Trial entity.
 
-### Concerns
+### Shared mechanisms
 
-Other cross-cutting concerns that appear in several flows, but that don't own state
+Application-wide mechanisms support several owners without deciding a business scenario:
 
-- Telemetry: Emits telemetry with certain conventions
-- Security: end-user permissions, audit, consent
+- Telemetry: Root `PA Telemetry` emits shared flow/capability and operational events and supplies the common category dimensions. Draft-based billing and demo-email events are emitted by `PA Draft Based Telemetry` within Compatibility, reusing those shared dimensions.
+- Security: Declares agent and human permission sets, entitlements and access surfaces. Configuration owns the flow for obtaining consent and assigning access.
 
-Shared mechanisms belong with the concern; feature-specific integration, such as a feature's audit event, can remain with its owner.
+Feature-specific integration, such as a feature's audit event, can remain with its flow, entity or capability owner.
 
 ### End-user-facing UX 
 
@@ -97,11 +97,11 @@ Across the flows and cross-cutting concerns, data persistance may be required. T
 - Wrapping codeunits: Another approach is to wrap the table, and have derived state live also here as getters that read the appropriate state. This pattern is heavier, but aids in treating under the same contract entities with different backing tables as the v1-v2 change requires.
 - Wrapping temporary tables: This approach is used only to supply AL pages that are backed by such table. Useful for pages showing derived values, which we would like sort by.
 
-Entity wrappers own data access, updates and persisted invariants, hiding their backing representations. Navigation, formatting and caller-specific enrichment belong to consumers. `PA Detailed Task` is only the temporary, sortable backing of task list pages; other code consumes task/source getters directly.
+Entity wrappers own data access, updates and persisted invariants, hiding their backing representations. The Task Source wrapper owns its V2 backing directly and delegates V1 E-Document reads and source creation to the draft-based source adapter; it does not start the V1 import pipeline. Navigation, formatting and caller-specific enrichment belong to consumers. `PA Detailed Task` is only the temporary, sortable backing of task list pages; other code consumes task/source getters directly.
 
 The Setup wrapper may hold an invalid editable proposal, but applying it persists settings and configures backing monitoring together: disabling the agent also disables monitoring, and requesting monitoring on v2 fails until its importer exists. `PA Setup Update` owns consent, runtime configuration and operation order; wrappers do not commit.
 
-A received Task Source exists before admission and may be accepted or rejected. Intake evaluates external policy such as known senders, setup, trial and agent availability. Acceptance creates the Agent Framework task and binds the source exactly once. The accepted Task aggregate has one identity, the Agent Framework Task ID, and loads the framework task together with exactly one v1 or v2 source backing. Historical v1 and current v2 tasks therefore share one list without copying e-documents into the v2 table; task capabilities disable actions unsupported by a particular version. Rejected v2 sources remain visible as rejected intake rows without pretending to have an Agent Framework task.
+A received Task Source exists before admission and may be accepted or rejected. Intake evaluates external policy such as known senders, setup, trial and agent availability. For a V1 PDF upload, Intake first creates the source, then calls the draft-based intake operation to process the E-Document; its import subscriber calls the same authoritative Intake entry point to create the Agent Framework task. V2 intake creates that task directly after source creation. Acceptance binds the source exactly once. The accepted Task aggregate has one identity, the Agent Framework Task ID, and loads the framework task together with exactly one v1 or v2 source backing. Historical v1 and current v2 tasks therefore share one list without copying e-documents into the v2 table; task capabilities disable actions unsupported by a particular version. Rejected v2 sources remain visible as rejected intake rows without pretending to have an Agent Framework task.
 
 Task mutations reload current state and update only their intended fields. Outcomes must refer to existing purchase invoices, orders, credit memos, posted purchase invoices or posted purchase credit memos; the caller judges business completeness. A posting subscriber conditionally replaces invoice/credit-memo outcome references before the posting commit, ignoring preview and order posting.
 
@@ -110,56 +110,79 @@ Currently the identified entities are:
 - Task Source: Received source information before admission, backed by the active version's source records.
 - Task: An accepted Agent Framework task together with exactly one v1 or v2 source backing, runtime and outcome associations, and derived lifecycle views.
 - KnownSender: Senders that we have received tasks from in the past and their assigned handling policies.
+- KPI: Aggregate and individual KPI entries, with insertion and aggregate lookup owned by the record itself. Historical KPI migrations remain in Upgrade.
+- Trial: Eligibility and per-company trial state in isolated storage, including starting, consumption, expiration and reset. Telemetry is emitted through Shared/Telemetry rather than through Registration.
 
 
 ### File system organization
 
-The code in this applicatoin is organized via the flows identified, entities (state, invariants, views), 
+The application is organized by scenario orchestration, logical entities, product responsibilities and shared mechanisms. Placement identifies the dominant owner; a page or procedure may coordinate other owners without requiring another file.
 
 ```
-Bootstrap/
-Configuration/
-TaskIntake/
-TaskExecution/
-    AgentWorkspace/                     UX the agent user directly interacts with
-    Supporting/                         Execution-specific processing (e.g. text extraction), not entity-state access
-Supervision/                            Human-facing task monitoring, assistance and review
-Upgrade/
+Flows/
+    Registration/
+    Configuration/
+        DemoGuide/
+    Intake/
+    Execution/
+        AgentWorkspace/                 Agent profile, role center and agent-only dialog
+        Supporting/                     Execution processing (e.g. PDF text extraction)
+    Supervision/                        Human task monitoring and shared task-list presentation
+    Upgrade/
 
 Entities/
     Setup/
     Task/
     KnownSender/
+    KPI/                                KPI record, scenario enum and record operations
+    Trial/                              Trial state and lifecycle
 
 Capabilities/
-    Billing/
-    Trial/
-    KPI/
+    Trial/                              Trial guide page
+    KPI/                                Page and purchase-invoice event subscriber
     Feedback/
 
-Concerns/
-    Telemetry/
-    Security/
+Shared/
+    Telemetry/                           Shared emission and dimensions, grouped by flow and capability
+    Security/                           Shared human roles and V2 agent permission sets
+    Versioning/                         Shared V1/V2 selection and vocabulary, not V1-only behavior
 
 Compatibility/
-    DraftBased/                         Here is everything that was required for the draft based agent (e-document based) that we can't merge into a compatibility entity.
-        ...                             Same responsibility subdivisions as at the top level
+    DraftBased/                         Irreducibly V1/E-Document behavior and declarative surfaces
+        Flows/
+            Configuration/
+                DemoGuide/
+            Intake/                     V1 import operation and its admission subscriber
+            Execution/
+                AgentWorkspace/
+        Entities/
+            TaskSource/                 V1 E-Document source backing adapter
+        Capabilities/
+            Billing/
+        Shared/
+            Security/                   V1-only agent permission sets
+            Telemetry/                  V1-only billing and demo-email events
+        TestSupport/
 
 Operations/
     EmailStorageCleanup/
 
-TestSupport/                            Semantic fixture API consumed by tests without exposing backing records or version dispatch
+TestSupport/                            App-owned semantic fixture API and version dispatch for test apps
 
-_Development/                           Objects compiled only with the DEVELOPMENT preprocessor symbol
-_Obsolete/                              Lifecycle placement for obsolete objects, not a responsibility category
+_Development/                           DEVELOPMENT-only objects (underscore retained)
+_Obsolete/                              Historical schema/lifecycle objects (underscore retained)
 .resources/
 ```
+
+Setup and Task entities use the shared version selector. Keeping that selector under Shared avoids making entities depend on a registration flow; registering the agent still belongs to Flows/Registration.
+
+`Payables Agent Tasks` is one page shared by people and the agent. Its list, sortable temporary backing and presentation helper are under Supervision by dominant use; the page still hosts intake actions and an agent-only extraction workaround. `PA Register Outcome` stays in the agent workspace. V1-only profile, page customizations and agent permission sets remain in Compatibility, in a structure parallel to the populated root areas; shared human permission sets stay at the root. The V1/V2 Setup and Task wrappers retain backing access in Entities.
 
 Declarative objects directly bound to draft-based surfaces, such as profiles and page customizations, remain draft-based when their definitions cannot be shared; a shared helper does not make the containing object version-neutral.
 
 ## Other code conventions
 - All code is `internal` when possible (pages can't be), the extensibility of the agents is a separate story and not done via traditional AL customizations.
-- Tests use app-owned semantic fixture entry points. `TestSupport` hides version dispatch, while backing-specific fixture implementations stay under the corresponding compatibility boundary; test apps do not reference backing frameworks such as E-Documents directly.
+- AI tests use app-owned semantic fixture entry points. `TestSupport` hides version dispatch, while backing-specific fixture implementations stay under the corresponding compatibility boundary; the AI test app does not reference E-Document backing records directly. Some BCApps non-AI wrapper contract tests still inspect V2 backing data directly; treat those as explicit test-boundary review items, not examples for new AI tests.
 - var block location
 
 ### Dependency rules

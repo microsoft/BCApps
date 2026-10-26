@@ -7,7 +7,6 @@ namespace Microsoft.Agent.PayablesAgent;
 using System.Agents;
 using System.Environment;
 using System.Feedback;
-using System.Telemetry;
 using System.Text;
 using System.Utilities;
 
@@ -18,13 +17,20 @@ codeunit 3317 "Payables Agent OCV"
     InherentPermissions = X;
 
     var
-        Telemetry: Codeunit Telemetry;
+        PATelemetry: Codeunit "PA Telemetry";
         PayablesAgentFeedbackQst: Label 'We noticed you have processed several documents with Payables Agent. Before you turn it off, could you share what made you decide to disable it? Your feedback helps us improve the experience.', Comment = 'Payables Agent is a term, and should not be translated.';
         PayablesAgentDisableFeedbackQst: Label 'What could we have done better to keep Payables Agent enabled?', Comment = 'Payables Agent is a term, and should not be translated.';
         PayablesAgentThumbDownFeedbackQst: Label 'What happened that made you give a thumbs down?', Comment = 'Payables Agent is a term, and should not be translated.';
-        DisableAgentFeedbackTxt: Label 'Disable agent feedback triggered', Locked = true;
-        TaskThumbsFeedbackTxt: Label 'Task thumbs feedback triggered', Locked = true;
-        DraftThumbsFeedbackTxt: Label 'Draft thumbs feedback triggered', Locked = true;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OnFeedbackEvent, '', false, false)]
+    local procedure OnFeedbackEventForPayablesAgentTasks(PageId: Integer; Context: Dictionary of [Text, Text]; var Handled: Boolean)
+    begin
+        IsAgentTaskFeedbackContext(Context, Handled);
+        if Handled then
+            exit;
+        IsAgentDraftPageFeedbackContext(Context, Handled);
+    end;
+    // TODOPAV2: Adapt OCV entry points
 
     procedure TriggerDisableAgentFeedback()
     var
@@ -41,7 +47,7 @@ codeunit 3317 "Payables Agent OCV"
         Feedback.WithCustomQuestion(PayablesAgentDisableFeedbackQst, PayablesAgentDisableFeedbackQst).WithCustomQuestionType(Enum::FeedbackQuestionType::Text);
         Feedback.RequestDislikeFeedback('Disabled Payables Agent', 'PayablesAgent', 'Payables Agent');
 
-        Telemetry.LogMessage('0000QSC', DisableAgentFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
+        PATelemetry.LogDisableAgentFeedback();
     end;
 
     procedure TriggerPayablesAgentTaskThumbsFeedback(FeedbackType: Text; AgentTaskId: Text): Boolean
@@ -52,15 +58,15 @@ codeunit 3317 "Payables Agent OCV"
         InStream: InStream;
         Base64Data: Text;
         InvoiceFileName: Text;
+        FeedbackDescription: Text;
         ContextProperties, ContextFiles : Dictionary of [Text, Text];
-        CustomDimensions: Dictionary of [Text, Text];
     begin
         Feedback.SetIsAIFeedback(true);
         case FeedbackType of
             'Copilot.ThumbsUp':
                 begin
                     Feedback.RequestLikeFeedback('Payables Agent Task', 'PayablesAgent', 'Payables Agent');
-                    CustomDimensions.Add('FeedbackType', 'ThumbsUp');
+                    FeedbackDescription := 'ThumbsUp';
                 end;
             'Copilot.ThumbsDown':
                 begin
@@ -72,40 +78,40 @@ codeunit 3317 "Payables Agent OCV"
 
                     Feedback.WithCustomQuestion(PayablesAgentThumbDownFeedbackQst, PayablesAgentThumbDownFeedbackQst).WithCustomQuestionType(Enum::FeedbackQuestionType::Text);
                     Feedback.RequestDislikeFeedback('Payables Agent Task', 'PayablesAgent', 'Payables Agent', ContextFiles, ContextProperties);
-                    CustomDimensions.Add('FeedbackType', 'ThumbsDown');
+                    FeedbackDescription := 'ThumbsDown';
                 end;
             else
                 exit(false);
         end;
 
-        Telemetry.LogMessage('0000QSD', TaskThumbsFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        PATelemetry.LogTaskThumbsFeedback(FeedbackDescription);
         exit(true);
     end;
 
     procedure TriggerPayableAgentDraftThumbsFeedback(FeedbackType: Text): Boolean
     var
         Feedback: Codeunit "Microsoft User Feedback";
+        FeedbackDescription: Text;
         ContextProperties, ContextFiles : Dictionary of [Text, Text];
-        CustomDimensions: Dictionary of [Text, Text];
     begin
         Feedback.SetIsAIFeedback(true);
         case FeedbackType of
             'Copilot.ThumbsUp':
                 begin
                     Feedback.RequestLikeFeedback('Payables Agent Draft', 'PayablesAgent', 'Payables Agent');
-                    CustomDimensions.Add('FeedbackType', 'ThumbsUp');
+                    FeedbackDescription := 'ThumbsUp';
                 end;
             'Copilot.ThumbsDown':
                 begin
                     Feedback.WithCustomQuestion(PayablesAgentThumbDownFeedbackQst, PayablesAgentThumbDownFeedbackQst).WithCustomQuestionType(Enum::FeedbackQuestionType::Text);
                     Feedback.RequestDislikeFeedback('Payables Agent Draft', 'PayablesAgent', 'Payables Agent', ContextFiles, ContextProperties);
-                    CustomDimensions.Add('FeedbackType', 'ThumbsDown');
+                    FeedbackDescription := 'ThumbsDown';
                 end;
             else
                 exit(false);
         end;
 
-        Telemetry.LogMessage('0000QSE', DraftThumbsFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        PATelemetry.LogDraftThumbsFeedback(FeedbackDescription);
         exit(true);
     end;
 
@@ -140,6 +146,38 @@ codeunit 3317 "Payables Agent OCV"
         if not PATask.Load(AgentTaskIdValue) then
             exit(false);
         exit(PATask.GetSourcePdf(TempBlob, FileName));
+    end;
+
+    local procedure IsAgentDraftPageFeedbackContext(Context: Dictionary of [Text, Text]; var Handled: Boolean)
+    var
+        PayablesAgentOCV: Codeunit "Payables Agent OCV";
+        FeedbackType: Text;
+    begin
+        // Scenario: Thumbs feedback from E-Document Purchase Draft page (Infotips)
+        if not (Context.ContainsKey('FormName') and Context.ContainsKey('Copilot.Feedback.Target')) then
+            exit;
+        if Context.Get('FormName') <> 'E-Document Purchase Draft' then
+            exit;
+        if Context.ContainsKey('Feedback.Type') then
+            FeedbackType := Context.Get('Feedback.Type');
+
+        Handled := PayablesAgentOCV.TriggerPayableAgentDraftThumbsFeedback(FeedbackType);
+    end;
+
+    local procedure IsAgentTaskFeedbackContext(Context: Dictionary of [Text, Text]; var Handled: Boolean)
+    var
+        PayablesAgentOCV: Codeunit "Payables Agent OCV";
+        FeedbackType: Text;
+    begin
+        // Scenario: Thumbs feedback from Payables Agent Tasks pane
+        if not (Context.ContainsKey('Copilot.Agents.AgentTypeId') and Context.ContainsKey('Copilot.Agents.TaskId')) then
+            exit;
+        if Context.Get('Copilot.Agents.AgentTypeId') <> Format(Enum::"Agent Metadata Provider"::"Payables Agent".AsInteger()) then
+            exit;
+        if Context.ContainsKey('Feedback.Type') then
+            FeedbackType := Context.Get('Feedback.Type');
+
+        Handled := PayablesAgentOCV.TriggerPayablesAgentTaskThumbsFeedback(FeedbackType, Context.Get('Copilot.Agents.TaskId'));
     end;
 
 }

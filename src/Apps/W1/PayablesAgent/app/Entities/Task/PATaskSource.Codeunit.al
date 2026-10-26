@@ -5,9 +5,6 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Import;
-using System.Agents;
 using System.Email;
 using System.Utilities;
 
@@ -18,15 +15,23 @@ codeunit 3340 "PA Task Source"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Agent Task" = R, tabledata "E-Document" = RM,
-        tabledata "E-Doc. Data Storage" = R, tabledata "Email Inbox" = R;
+    Permissions = tabledata "Email Inbox" = R;
+
+    var
+        LoadedStoredTask: Record "Payables Agent Task";
+        DraftBasedSource: Codeunit "PA Draft Based Task Source";
+        LoadedVersion: Enum "PA Version";
+        PAV1V2Flag: Codeunit "PA V1V2 Flag";
+        SourceNotFoundErr: Label 'The task source does not exist.';
+        InvalidAgentTaskErr: Label 'A valid Agent Task ID is required.';
+        AgentTaskAlreadyBoundErr: Label 'Agent task %1 is already bound to another Payables Agent source.';
+        SourceAlreadyBoundErr: Label 'The source is already bound to agent task %1.';
+        AcceptedSourceCannotBeRejectedErr: Label 'An accepted source cannot be rejected.';
+        PdfMimeTypeTok: Label 'application/pdf', Locked = true;
 
     internal procedure CreateFromPdf(FileName: Text; PdfInStream: InStream): Boolean
     var
-        EDocument: Record "E-Document";
         StoredTask: Record "Payables Agent Task";
-        EDocImport: Codeunit "E-Doc. Import";
-        PADraftBasedSetup: Codeunit "PA Draft Based Setup";
     begin
         ClearLoaded();
         if PAV1V2Flag.GetVersion() = "PA Version"::V2 then begin
@@ -37,16 +42,14 @@ codeunit 3340 "PA Task Source"
             exit(Load(StoredTask.SystemId));
         end;
 
-        EDocImport.CreateFromType(EDocument, PADraftBasedSetup.GetOrCreateAgentEDocumentService(), "E-Doc. File Format"::PDF, FileName, PdfInStream);
-        EDocument."Source Details" := CopyStr(FileName, 1, MaxStrLen(EDocument."Source Details"));
-        EDocument.Modify();
-        EDocImport.ProcessAutomaticallyIncomingEDocument(EDocument);
-        exit(Load(EDocument.SystemId));
+        if not DraftBasedSource.CreateFromPdf(FileName, PdfInStream) then
+            exit(false);
+        LoadedVersion := "PA Version"::V1;
+        exit(true);
     end;
 
     internal procedure Load(SourceId: Guid): Boolean
     var
-        EDocument: Record "E-Document";
         StoredTask: Record "Payables Agent Task";
     begin
         ClearLoaded();
@@ -57,22 +60,17 @@ codeunit 3340 "PA Task Source"
             LoadedVersion := "PA Version"::V2;
             exit(true);
         end;
-        if EDocument.GetBySystemId(SourceId) then begin
-            LoadedEDocument := EDocument;
-            LoadedVersion := "PA Version"::V1;
-            exit(true);
-        end;
-        exit(false);
+        if not DraftBasedSource.Load(SourceId) then
+            exit(false);
+        LoadedVersion := "PA Version"::V1;
+        exit(true);
     end;
 
-    internal procedure LoadDraftBased(EDocumentEntryNo: Integer): Boolean
-    var
-        EDocument: Record "E-Document";
+    internal procedure LoadDraftBased(SourceId: Guid): Boolean
     begin
         ClearLoaded();
-        if not EDocument.Get(EDocumentEntryNo) then
+        if not DraftBasedSource.Load(SourceId) then
             exit(false);
-        LoadedEDocument := EDocument;
         LoadedVersion := "PA Version"::V1;
         exit(true);
     end;
@@ -90,7 +88,7 @@ codeunit 3340 "PA Task Source"
         RequireLoaded();
         if LoadedVersion = "PA Version"::V2 then
             exit(LoadedStoredTask.SystemId);
-        exit(LoadedEDocument.SystemId);
+        exit(DraftBasedSource.GetId());
     end;
 
     internal procedure GetVersion(): Enum "PA Version"
@@ -100,17 +98,11 @@ codeunit 3340 "PA Task Source"
     end;
 
     internal procedure GetAgentTaskId(): BigInteger
-    var
-        AgentTask: Record "Agent Task";
     begin
         RequireLoaded();
         if LoadedVersion = "PA Version"::V2 then
             exit(LoadedStoredTask."Agent Task ID");
-        AgentTask.SetRange("Company Name", CompanyName());
-        AgentTask.SetRange("External ID", GetAgentTaskExternalId());
-        if AgentTask.FindFirst() then
-            exit(AgentTask.ID);
-        exit(0);
+        exit(DraftBasedSource.GetAgentTaskId());
     end;
 
     internal procedure GetAgentTaskExternalId(): Text[2048]
@@ -118,7 +110,7 @@ codeunit 3340 "PA Task Source"
         RequireLoaded();
         if LoadedVersion = "PA Version"::V2 then
             exit(CopyStr(LowerCase(Format(LoadedStoredTask.SystemId)).Replace('{', '').Replace('}', ''), 1, 2048));
-        exit(Format(LoadedEDocument."Entry No"));
+        exit(DraftBasedSource.GetAgentTaskExternalId());
     end;
 
     internal procedure BindAgentTask(AgentTaskId: BigInteger)
@@ -192,33 +184,23 @@ codeunit 3340 "PA Task Source"
                 exit("PA Source Type"::Email);
             exit("PA Source Type"::Upload);
         end;
-        if LoadedEDocument."Outlook Mail Message Id" <> '' then
-            exit("PA Source Type"::Email);
-        exit("PA Source Type"::Upload);
+        exit(DraftBasedSource.GetSourceType());
     end;
 
     internal procedure GetFileName(): Text
-    var
-        Storage: Record "E-Doc. Data Storage";
     begin
         RequireLoaded();
         if LoadedVersion = "PA Version"::V2 then
             exit(LoadedStoredTask."File Name");
-        if Storage.Get(LoadedEDocument."Unstructured Data Entry No.") then
-            exit(Storage.Name);
-        exit('');
+        exit(DraftBasedSource.GetFileName());
     end;
 
     internal procedure HasPdf(): Boolean
-    var
-        Storage: Record "E-Doc. Data Storage";
     begin
         RequireLoaded();
         if LoadedVersion = "PA Version"::V2 then
             exit(LoadedStoredTask."File Content".HasValue());
-        if Storage.Get(LoadedEDocument."Unstructured Data Entry No.") then
-            exit(Storage."File Format" = Enum::"E-Doc. File Format"::PDF);
-        exit(false);
+        exit(DraftBasedSource.HasPdf());
     end;
 
     internal procedure GetEmailFrom(): Text
@@ -227,7 +209,7 @@ codeunit 3340 "PA Task Source"
     begin
         RequireLoaded();
         if LoadedVersion = "PA Version"::V1 then
-            exit(LoadedEDocument."Source Details");
+            exit(DraftBasedSource.GetEmailFrom());
         if EmailInbox.Get(LoadedStoredTask."Email Inbox Id") then
             exit(EmailInbox."Sender Address");
         exit('');
@@ -250,7 +232,7 @@ codeunit 3340 "PA Task Source"
     begin
         RequireLoaded();
         if LoadedVersion = "PA Version"::V1 then
-            exit(LoadedEDocument."Additional Source Details");
+            exit(DraftBasedSource.GetEmailSubject());
         if EmailInbox.Get(LoadedStoredTask."Email Inbox Id") then
             exit(EmailInbox.Description);
         exit('');
@@ -262,7 +244,7 @@ codeunit 3340 "PA Task Source"
     begin
         RequireLoaded();
         if LoadedVersion = "PA Version"::V1 then
-            exit(LoadedEDocument."Outlook Mail Message Id");
+            exit(DraftBasedSource.GetEmailExternalId());
         if EmailInbox.Get(LoadedStoredTask."Email Inbox Id") then
             exit(EmailInbox."External Message Id");
         exit('');
@@ -274,7 +256,7 @@ codeunit 3340 "PA Task Source"
     begin
         RequireLoaded();
         if LoadedVersion = "PA Version"::V1 then
-            exit(LoadedEDocument.SystemCreatedAt);
+            exit(DraftBasedSource.GetEmailReceivedAt());
         if EmailInbox.Get(LoadedStoredTask."Email Inbox Id") then
             exit(EmailInbox."Received DateTime");
         exit(0DT);
@@ -290,7 +272,7 @@ codeunit 3340 "PA Task Source"
         RequireLoaded();
         if LoadedVersion = "PA Version"::V2 then
             exit(LoadedStoredTask.SystemCreatedAt);
-        exit(LoadedEDocument.SystemCreatedAt);
+        exit(DraftBasedSource.GetCreatedAt());
     end;
 
     internal procedure GetUpdatedAt(): DateTime
@@ -298,7 +280,7 @@ codeunit 3340 "PA Task Source"
         RequireLoaded();
         if LoadedVersion = "PA Version"::V2 then
             exit(LoadedStoredTask.SystemModifiedAt);
-        exit(LoadedEDocument.SystemModifiedAt);
+        exit(DraftBasedSource.GetUpdatedAt());
     end;
 
     internal procedure GetSourceEmailBody(): Text
@@ -327,8 +309,6 @@ codeunit 3340 "PA Task Source"
     end;
 
     internal procedure GetSourcePdf(var TempBlob: Codeunit "Temp Blob"; var FileName: Text): Boolean
-    var
-        Storage: Record "E-Doc. Data Storage";
     begin
         Clear(TempBlob);
         Clear(FileName);
@@ -340,11 +320,7 @@ codeunit 3340 "PA Task Source"
             FileName := LoadedStoredTask."File Name";
             exit(true);
         end;
-        if not Storage.Get(LoadedEDocument."Unstructured Data Entry No.") then
-            exit(false);
-        TempBlob := Storage.GetTempBlob();
-        FileName := Storage.Name;
-        exit(true);
+        exit(DraftBasedSource.GetSourcePdf(TempBlob, FileName));
     end;
 
     local procedure TryGetEmailMessageId(var MessageId: Guid): Boolean
@@ -357,7 +333,7 @@ codeunit 3340 "PA Task Source"
                 exit(false);
             MessageId := EmailInbox."Message Id";
         end else
-            MessageId := LoadedEDocument."Mail Message Id";
+            exit(DraftBasedSource.TryGetEmailMessageId(MessageId));
         exit(not IsNullGuid(MessageId));
     end;
 
@@ -370,19 +346,7 @@ codeunit 3340 "PA Task Source"
     local procedure ClearLoaded()
     begin
         Clear(LoadedStoredTask);
-        Clear(LoadedEDocument);
+        Clear(DraftBasedSource);
         LoadedVersion := "PA Version"::Unknown;
     end;
-
-    var
-        LoadedStoredTask: Record "Payables Agent Task";
-        LoadedEDocument: Record "E-Document";
-        LoadedVersion: Enum "PA Version";
-        PAV1V2Flag: Codeunit "PA V1V2 Flag";
-        SourceNotFoundErr: Label 'The task source does not exist.';
-        InvalidAgentTaskErr: Label 'A valid Agent Task ID is required.';
-        AgentTaskAlreadyBoundErr: Label 'Agent task %1 is already bound to another Payables Agent source.';
-        SourceAlreadyBoundErr: Label 'The source is already bound to agent task %1.';
-        AcceptedSourceCannotBeRejectedErr: Label 'An accepted source cannot be rejected.';
-        PdfMimeTypeTok: Label 'application/pdf', Locked = true;
 }

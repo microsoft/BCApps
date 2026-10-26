@@ -6,10 +6,12 @@
 namespace System.Test.Agents.PayablesAgent;
 
 using Microsoft.Agent.PayablesAgent;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using System.Agents;
 using System.Environment;
+using System.Utilities;
 
 // Focused contract tests: no LLM, mailbox, agent user or posting setup is required.
 codeunit 133735 "PA Wrapper Contract Tests"
@@ -148,6 +150,56 @@ codeunit 133735 "PA Wrapper Contract Tests"
         Outcome := CreatePostedCreditMemo();
         Task.RegisterOutcome(Outcome);
         CheckOutcome(StoredTask."Agent Task ID", Outcome);
+    end;
+
+    [Test]
+    procedure RegistrationSetsTitleAndAttachesPdfOnlyOncePerTaskAndOutcome()
+    var
+        StoredTask: Record "Payables Agent Task";
+        AgentTask: Record "Agent Task";
+        PurchaseHeader: Record "Purchase Header";
+        PostedInvoice: Record "Purch. Inv. Header";
+        DocumentAttachment: Record "Document Attachment";
+        Task: Codeunit "Payables Agent Task";
+        Pdf: Codeunit "Temp Blob";
+        PdfOut: OutStream;
+        PdfIn: InStream;
+        OutcomeRef: RecordRef;
+    begin
+        CreateTask(StoredTask, Task);
+        Pdf.CreateOutStream(PdfOut);
+        PdfOut.WriteText('PDF fixture');
+        Pdf.CreateInStream(PdfIn);
+        StoredTask."File Content".ImportStream(PdfIn, StoredTask."File Name", 'application/pdf');
+        StoredTask.Modify();
+        Task.Refresh();
+
+        PurchaseHeader.Get(CreatePurchaseDocument("Purchase Document Type"::Invoice));
+        PurchaseHeader."Vendor Invoice No." := 'SUPPLIER-123';
+        PurchaseHeader."Buy-from Vendor Name" := 'Example Vendor';
+        PurchaseHeader.Modify();
+        Task.RegisterOutcome(PurchaseHeader.RecordId());
+        AgentTask.Get(StoredTask."Agent Task ID");
+        Check(AgentTask.Title = 'Invoice SUPPLIER-123 from Example Vendor', 'Registration must update the framework task title.');
+
+        OutcomeRef.Get(PurchaseHeader.RecordId());
+        DocumentAttachment.InitFieldsFromRecRef(OutcomeRef);
+        DocumentAttachment.SetRange("Table ID", DocumentAttachment."Table ID");
+        DocumentAttachment.SetRange("No.", DocumentAttachment."No.");
+        DocumentAttachment.SetRange("Document Type", DocumentAttachment."Document Type");
+        Check(DocumentAttachment.Count() = 1, 'The source PDF must be attached to the invoice.');
+        Task.RegisterOutcome(PurchaseHeader.RecordId());
+        Check(DocumentAttachment.Count() = 1, 'Re-registering the same outcome must not duplicate the PDF.');
+
+        PostedInvoice.Get(CreatePostedInvoice());
+        Task.RegisterOutcome(PostedInvoice.RecordId());
+        Clear(DocumentAttachment);
+        OutcomeRef.Close();
+        OutcomeRef.Get(PostedInvoice.RecordId());
+        DocumentAttachment.InitFieldsFromRecRef(OutcomeRef);
+        DocumentAttachment.SetRange("Table ID", DocumentAttachment."Table ID");
+        DocumentAttachment.SetRange("No.", DocumentAttachment."No.");
+        Check(DocumentAttachment.Count() = 1, 'The source PDF must also attach to a directly registered posted invoice.');
     end;
 
     [Test]

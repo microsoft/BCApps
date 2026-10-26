@@ -16,6 +16,11 @@ codeunit 3346 "PA Task Outcome Repository"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    var
+        EmptyPreviousOutcomeErr: Label 'An existing outcome reference is required for replacement.';
+        InvalidOutcomeErr: Label 'The outcome must be an existing purchase invoice, purchase order, purchase credit memo, posted purchase invoice, or posted purchase credit memo.';
+        AgentEDocumentServiceTok: Label 'AGENT', Locked = true;
+
     internal procedure ReplaceReferences(PreviousOutcome: RecordId; PostedOutcome: RecordId)
     var
         EDocument: Record "E-Document";
@@ -60,9 +65,4 @@ codeunit 3346 "PA Task Outcome Repository"
         end;
         Error(InvalidOutcomeErr);
     end;
-
-    var
-        EmptyPreviousOutcomeErr: Label 'An existing outcome reference is required for replacement.';
-        InvalidOutcomeErr: Label 'The outcome must be an existing purchase invoice, purchase order, purchase credit memo, posted purchase invoice, or posted purchase credit memo.';
-        AgentEDocumentServiceTok: Label 'AGENT', Locked = true;
 }

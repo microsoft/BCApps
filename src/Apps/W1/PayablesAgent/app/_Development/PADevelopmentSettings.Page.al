@@ -32,10 +32,38 @@ page 3314 "PA Development Settings"
                 {
                     ApplicationArea = All;
                 }
+                field("Evaluation Version Override"; Rec."Evaluation Version Override")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                }
                 field("Simulate Agent Experience"; Rec."Simulate Agent Experience")
                 {
                     ApplicationArea = All;
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(ClearEvaluationVersionOverride)
+            {
+                ApplicationArea = All;
+                Caption = 'Clear evaluation version override';
+                ToolTip = 'Clear the version selected by the evaluation harness and return to the Enable V2 development setting.';
+                Image = ClearFilter;
+
+                trigger OnAction()
+                var
+                    DevelopmentSettings: Codeunit "PA Development Settings";
+                begin
+                    DevelopmentSettings.ClearEvaluationVersionOverride();
+                    DevelopmentSettings.GetSettings(Rec);
+                    CurrPage.Update(false);
+                end;
             }
         }
     }

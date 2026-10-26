@@ -19,7 +19,19 @@ codeunit 3347 "PA Draft Based Test Fixtures"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    internal procedure DeleteTaskData()
+    var
+        TaskNotDraftBasedErr: Label 'Agent task %1 does not have a draft-based source.', Locked = true;
+        VendorNotFoundErr: Label 'Vendor not found for the given name %1', Locked = true;
+        AccountNotFoundErr: Label 'Account not found for the given code %1', Locked = true;
+        PurchaseLineNotFoundErr: Label 'No E-Document Purchase Lines found for E-Document Entry No. %1.', Locked = true;
+        DraftHeaderNotFoundErr: Label 'E-Document Purchase Header not found for E-Document Entry No. %1.', Locked = true;
+        DraftLinesNotFoundErr: Label 'E-Document Purchase Lines not found for E-Document Entry No. %1.', Locked = true;
+
+    /// <summary>
+    /// Deletes every E-Document and all E-Doc. Vendor Assign. History in the test company,
+    /// including records unrelated to Payables Agent. Use only for company-wide evaluation cleanup.
+    /// </summary>
+    internal procedure DeleteAllEDocumentDataForEvaluation()
     var
         EDocument: Record "E-Document";
         EDocVendorAssignHistory: Record "E-Doc. Vendor Assign. History";
@@ -298,12 +310,4 @@ codeunit 3347 "PA Draft Based Test Fixtures"
             exit(false);
         exit(EDocument.GetBySystemId(Task.GetSourceId()));
     end;
-
-    var
-        TaskNotDraftBasedErr: Label 'Agent task %1 does not have a draft-based source.', Locked = true;
-        VendorNotFoundErr: Label 'Vendor not found for the given name %1', Locked = true;
-        AccountNotFoundErr: Label 'Account not found for the given code %1', Locked = true;
-        PurchaseLineNotFoundErr: Label 'No E-Document Purchase Lines found for E-Document Entry No. %1.', Locked = true;
-        DraftHeaderNotFoundErr: Label 'E-Document Purchase Header not found for E-Document Entry No. %1.', Locked = true;
-        DraftLinesNotFoundErr: Label 'E-Document Purchase Lines not found for E-Document Entry No. %1.', Locked = true;
 }
