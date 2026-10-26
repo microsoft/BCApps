@@ -195,6 +195,8 @@ report 10718 "XML VAT Declaration"
         PrintAmtInAddCurr: Boolean;
         IntegerPrinted: Boolean;
         Text1100004: Label 'Xml Files (.xml)|*.xml|All Files|*.*''';
+        XmlnsTok: Label 'xmlns', Locked = true;
+        XmlnsPrefixTok: Label 'xmlns:', Locked = true;
         SilentMode: Boolean;
         SilentModeFileName: Text;
 
@@ -445,7 +447,7 @@ report 10718 "XML VAT Declaration"
     begin
         AEATTransFormatXML.FindFirst();
         AEATTransFormatXML.TestField("Line Type", AEATTransFormatXML."Line Type"::Element);
-        XMLNode := XmlElement.Create(AEATTransFormatXML.Description).AsXmlNode();
+        XMLNode := XmlElement.Create(GetLocalName(AEATTransFormatXML.Description)).AsXmlNode();
         AppendVATStatementLine(XMLNode, AEATTransFormatXML, true);
 
         // The document has no XML declaration, so only the root element is written
@@ -490,20 +492,90 @@ report 10718 "XML VAT Declaration"
                             until TransFormatXML.Next() = 0;
                     end;
                 TransFormatXML."Line Type"::Attribute:
-                    ParentXMLNode.AsXmlElement().SetAttribute(TransFormatXML.Description, TransFormatXML.Value);
+                    AddAttribute(ParentXMLNode, TransFormatXML.Description, TransFormatXML.Value);
             end;
     end;
 
     local procedure AddElement(var ParentXMLNode: XmlNode; NodeName: Text; NodeText: Text; var CreatedXMLNode: XmlNode)
     var
         NewXmlElement: XmlElement;
+        Namespace: Text;
     begin
+        // Child elements inherit the default namespace of their parent, as unprefixed DotNet elements did when written
+        Namespace := ParentXMLNode.AsXmlElement().NamespaceUri();
         if NodeText <> '' then
-            NewXmlElement := XmlElement.Create(NodeName, '', NodeText)
+            NewXmlElement := XmlElement.Create(GetLocalName(NodeName), Namespace, NodeText)
         else
-            NewXmlElement := XmlElement.Create(NodeName);
+            NewXmlElement := XmlElement.Create(GetLocalName(NodeName), Namespace);
         ParentXMLNode.AsXmlElement().Add(NewXmlElement);
         CreatedXMLNode := NewXmlElement.AsXmlNode();
+    end;
+
+    local procedure AddAttribute(var ParentXMLNode: XmlNode; AttributeName: Text; AttributeValue: Text)
+    begin
+        // The file must stay as DotNet XmlDocument.CreateAttribute wrote it: "xmlns:p" declares a namespace,
+        // "xmlns" sets the default namespace, and any other prefix is dropped from the attribute name.
+        if AttributeName.StartsWith(XmlnsPrefixTok) then begin
+            ParentXMLNode.AsXmlElement().Add(
+              XmlAttribute.CreateNamespaceDeclaration(CopyStr(AttributeName, StrLen(XmlnsPrefixTok) + 1), AttributeValue));
+            exit;
+        end;
+        if AttributeName = XmlnsTok then begin
+            if ParentXMLNode.AsXmlElement().NamespaceUri() <> AttributeValue then
+                MoveToNamespace(ParentXMLNode, AttributeValue);
+            ParentXMLNode.AsXmlElement().SetAttribute(XmlnsTok, AttributeValue);
+            exit;
+        end;
+        ParentXMLNode.AsXmlElement().SetAttribute(GetLocalName(AttributeName), AttributeValue);
+    end;
+
+    local procedure MoveToNamespace(var TargetXMLNode: XmlNode; Namespace: Text)
+    var
+        NewXmlElement: XmlElement;
+    begin
+        CopyToNamespace(TargetXMLNode.AsXmlElement(), Namespace, NewXmlElement);
+        TargetXMLNode.ReplaceWith(NewXmlElement.AsXmlNode());
+        TargetXMLNode := NewXmlElement.AsXmlNode();
+    end;
+
+    local procedure CopyToNamespace(SourceXmlElement: XmlElement; Namespace: Text; var NewXmlElement: XmlElement)
+    var
+        SourceXmlAttribute: XmlAttribute;
+        DefaultNamespaceXmlAttribute: XmlAttribute;
+        ChildXmlNode: XmlNode;
+        NewChildXmlElement: XmlElement;
+        XmlAttributeCollection: XmlAttributeCollection;
+        ChildNamespace: Text;
+        AttributeIndex: Integer;
+    begin
+        NewXmlElement := XmlElement.Create(SourceXmlElement.LocalName(), Namespace);
+        XmlAttributeCollection := SourceXmlElement.Attributes();
+        for AttributeIndex := 1 to XmlAttributeCollection.Count() do begin
+            XmlAttributeCollection.Get(AttributeIndex, SourceXmlAttribute);
+            if SourceXmlAttribute.IsNamespaceDeclaration() and (SourceXmlAttribute.Name() <> XmlnsTok) then
+                NewXmlElement.Add(XmlAttribute.CreateNamespaceDeclaration(SourceXmlAttribute.LocalName(), SourceXmlAttribute.Value()))
+            else
+                NewXmlElement.SetAttribute(SourceXmlAttribute.Name(), SourceXmlAttribute.Value());
+        end;
+        foreach ChildXmlNode in SourceXmlElement.GetChildNodes() do
+            if ChildXmlNode.IsXmlElement() then begin
+                ChildNamespace := Namespace;
+                if ChildXmlNode.AsXmlElement().Attributes().Get(XmlnsTok, DefaultNamespaceXmlAttribute) then
+                    ChildNamespace := DefaultNamespaceXmlAttribute.Value();
+                CopyToNamespace(ChildXmlNode.AsXmlElement(), ChildNamespace, NewChildXmlElement);
+                NewXmlElement.Add(NewChildXmlElement);
+            end else
+                NewXmlElement.Add(ChildXmlNode);
+    end;
+
+    local procedure GetLocalName(QualifiedName: Text): Text
+    var
+        ColonPosition: Integer;
+    begin
+        ColonPosition := StrPos(QualifiedName, ':');
+        if ColonPosition = 0 then
+            exit(QualifiedName);
+        exit(CopyStr(QualifiedName, ColonPosition + 1));
     end;
 
 #if not CLEAN30

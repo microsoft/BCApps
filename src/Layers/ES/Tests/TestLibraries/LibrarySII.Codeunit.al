@@ -24,6 +24,8 @@ codeunit 143006 "Library - SII"
         SoapenvUrlTok: Label 'http://schemas.xmlsoap.org/soap/envelope/';
         XPathSalesIDFacturaTok: Label '//soapenv:Body/siiRL:SuministroLRFacturasEmitidas/siiRL:RegistroLRFacturasEmitidas/siiRL:IDFactura/';
         InvalidElementValueErr: Label 'Value is invalid for element : %1', Comment = '%1 = element name', Locked = true;
+        ElementsByQualifiedNameXPathTok: Label '//*[name()=''%1'']', Locked = true;
+        DescendantsByQualifiedNameXPathTok: Label './/*[name()=''%1'']', Locked = true;
         ElementNotFoundAtPositionErr: Label 'Element %1 was not found at position %2.', Comment = '%1 = element name, %2 = position', Locked = true;
         XPathPurchIDFacturaTok: Label '//soapenv:Body/siiLR:SuministroLRFacturasRecibidas/siiLR:RegistroLRFacturasRecibidas/siiLR:IDFactura/';
 
@@ -1645,7 +1647,7 @@ codeunit 143006 "Library - SII"
         XMLNodeList: XmlNodeList;
         XMLNode: XmlNode;
     begin
-        ParentXmlNode.SelectNodes('.//' + ElementName, GetXmlNamespaceManager(ParentXmlNode), XMLNodeList);
+        ParentXmlNode.SelectNodes(StrSubstNo(DescendantsByQualifiedNameXPathTok, ElementName), XMLNodeList);
         Assert.IsTrue(XMLNodeList.Get(Position + 1, XMLNode), StrSubstNo(ElementNotFoundAtPositionErr, ElementName, Position));
         Assert.AreEqual(ExpectedValue, XMLNode.AsXmlElement().InnerText, StrSubstNo(InvalidElementValueErr, ElementName));
     end;
@@ -1653,25 +1655,8 @@ codeunit 143006 "Library - SII"
     [Scope('OnPrem')]
     procedure GetElementsByTagName(XMLDoc: XmlDocument; ElementName: Text) XMLNodeList: XmlNodeList
     begin
-        XMLDoc.SelectNodes('//' + ElementName, GetXmlNamespaceManager(XMLDoc.AsXmlNode()), XMLNodeList);
-    end;
-
-    local procedure GetXmlNamespaceManager(ContextXmlNode: XmlNode) XmlNamespaceManager: XmlNamespaceManager
-    var
-        XMLDoc: XmlDocument;
-        RootXmlElement: XmlElement;
-        NamespaceUri: Text;
-    begin
-        ContextXmlNode.GetDocument(XMLDoc);
-        XmlNamespaceManager.NameTable(XMLDoc.NameTable());
-        if not XMLDoc.GetRoot(RootXmlElement) then
-            exit;
-        if RootXmlElement.GetNamespaceOfPrefix('soapenv', NamespaceUri) then
-            XmlNamespaceManager.AddNamespace('soapenv', NamespaceUri);
-        if RootXmlElement.GetNamespaceOfPrefix('sii', NamespaceUri) then
-            XmlNamespaceManager.AddNamespace('sii', NamespaceUri);
-        if RootXmlElement.GetNamespaceOfPrefix('siiLR', NamespaceUri) then
-            XmlNamespaceManager.AddNamespace('siiLR', NamespaceUri);
+        // Matches the qualified name as written (prefix and local name), like DotNet XmlDocument.GetElementsByTagName
+        XMLDoc.SelectNodes(StrSubstNo(ElementsByQualifiedNameXPathTok, ElementName), XMLNodeList);
     end;
 
     [Scope('OnPrem')]

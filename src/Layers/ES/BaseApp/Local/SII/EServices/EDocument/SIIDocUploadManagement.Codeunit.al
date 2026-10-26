@@ -407,6 +407,7 @@ codeunit 10752 "SII Doc. Upload Management"
 
         SIIXMLCreator.SetSIIVersionNo(SIIDocUploadState."Version No.");
         SIIXMLCreator.SetIsRetryAccepted(SIIDocUploadState."Retry Accepted");
+        CopyDotNetXmlDocumentToNative(XMLDoc, SIIXmlDocument);
         case SIIDocUploadState."Document Source" of
             SIIDocUploadState."Document Source"::"Customer Ledger":
                 begin
@@ -489,13 +490,40 @@ codeunit 10752 "SII Doc. Upload Management"
         XmlWriteOptions: XmlWriteOptions;
         XmlText: Text;
     begin
-        TargetXmlDocument := TargetXmlDocument.XmlDocument();
-        if not SourceXmlDocument.GetRoot(RootXmlElement) then
-            exit;
+        if IsNull(TargetXmlDocument) or not SourceXmlDocument.GetRoot(RootXmlElement) then begin
+            TargetXmlDocument := TargetXmlDocument.XmlDocument();
+            if not SourceXmlDocument.GetRoot(RootXmlElement) then
+                exit;
+        end;
         XmlWriteOptions.PreserveWhitespace := true;
         SourceXmlDocument.WriteTo(XmlWriteOptions, XmlText);
         TargetXmlDocument.PreserveWhitespace := true;
         TargetXmlDocument.LoadXml(XmlText);
+    end;
+
+    local procedure CopyDotNetXmlDocumentToNative(SourceXmlDocument: DotNet XmlDocument; var TargetXmlDocument: XmlDocument)
+    var
+        SourceRootXmlNode: DotNet XmlNode;
+        TargetRootXmlElement: XmlElement;
+        XmlWriteOptions: XmlWriteOptions;
+        XmlReadOptions: XmlReadOptions;
+        XmlText: Text;
+    begin
+        // In batch submissions, subscribers of OnBefore/OnAfterExecutePendingRequestsPerDocument can change the shared
+        // DotNet document between documents. Load those changes so the next document is added to the changed XML.
+        if IsNull(SourceXmlDocument) then
+            exit;
+        SourceRootXmlNode := SourceXmlDocument.DocumentElement;
+        if IsNull(SourceRootXmlNode) then
+            exit;
+        if not TargetXmlDocument.GetRoot(TargetRootXmlElement) then
+            exit;
+        XmlWriteOptions.PreserveWhitespace := true;
+        TargetXmlDocument.WriteTo(XmlWriteOptions, XmlText);
+        if XmlText = SourceXmlDocument.OuterXml then
+            exit;
+        XmlReadOptions.PreserveWhitespace := true;
+        XmlDocument.ReadFrom(SourceXmlDocument.OuterXml, XmlReadOptions, TargetXmlDocument);
     end;
 
     local procedure CreateHistoryPendingBuffer(var TempSIIHistoryBuffer: Record "SII History" temporary; IsManual: Boolean)

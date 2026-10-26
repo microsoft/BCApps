@@ -19,6 +19,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 #if not CLEAN30
 using System;
+using System.Environment;
 #endif
 using System.Reflection;
 
@@ -41,6 +42,7 @@ codeunit 10750 "SII XML Creator"
         CompanyInformationMissingErr: Label 'Your company is not properly set up. Go to company information and complete your setup.';
         DataTypeManagement: Codeunit "Data Type Management";
         LastXMLNode: XmlNode;
+        LastXMLNodePath: List of [Integer];
         ErrorMsg: Text;
         DetailedLedgerEntryShouldBePaymentOrRefundErr: Label 'Expected the detailed ledger entry to have a Payment or Refund document type, but got %1 instead.', Comment = '%1 is the actual value of the Detailed Ledger Entry document type';
         RegistroDelPrimerSemestreTxt: Label 'Registro del primer semestre';
@@ -54,8 +56,15 @@ codeunit 10750 "SII XML Creator"
         SiiLRTxt: Text;
         EnvelopeTok: Label '<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:sii="%1" xmlns:siiLR="%2" xmlns:soapenv="%3" />', Locked = true;
         FragmentWrapperTok: Label '<root xmlns:sii="%1" xmlns:siiLR="%2" xmlns:soapenv="%3">%4</root>', Locked = true;
+        ChildElementXPathTok: Label '*[%1]', Locked = true;
+        ElementByNameXPathTok: Label '//*[local-name()=''%1'' and namespace-uri()=''%2'']', Locked = true;
 #if not CLEAN30
         LegacyXmlDocument: XmlDocument;
+        LegacyEventXmlDocument: DotNet XmlDocument;
+        LegacyEventNativeXmlDocument: XmlDocument;
+        LegacyEventOriginalXml: Text;
+        LegacySubscriberCache: Dictionary of [Text, Boolean];
+        LegacyXmlNodeNotInDocumentErr: Label 'A subscriber to the obsolete event %1 of codeunit SII XML Creator returned an XML node that is not an element of the SII XML document. Subscribe to %1V2 instead.', Comment = '%1 = event name';
 #endif
 
     [Scope('OnPrem')]
@@ -70,6 +79,9 @@ codeunit 10750 "SII XML Creator"
         IsHandled: Boolean;
     begin
         IsHandled := false;
+#if not CLEAN30
+        Clear(LegacySubscriberCache);
+#endif
 
         if not IsInitialized then
             XMLDocOut := XmlDocument.Create();
@@ -136,15 +148,30 @@ codeunit 10750 "SII XML Creator"
     procedure GenerateXml(LedgerEntry: Variant; var XMLDocOut: DotNet XmlDocument; UploadType: Option; IsCreditMemoRemoval: Boolean) ResultValue: Boolean
     var
         RootXmlElement: XmlElement;
+        XMLDocOutRootXmlNode: DotNet XmlNode;
+        XmlReadOptions: XmlReadOptions;
         XmlText: Text;
     begin
-        if (not IsInitialized) or IsNull(XMLDocOut) then
+        if IsNull(XMLDocOut) then
             XMLDocOut := XMLDocOut.XmlDocument();
+        if IsInitialized then begin
+            // Keep the changes the caller made to the DotNet document since the previous call
+            XMLDocOutRootXmlNode := XMLDocOut.DocumentElement;
+            if not IsNull(XMLDocOutRootXmlNode) then begin
+                LegacyXmlDocument.WriteTo(GetXmlWriteOptions(), XmlText);
+                if XmlText <> XMLDocOut.OuterXml then begin
+                    XmlReadOptions.PreserveWhitespace := true;
+                    XmlDocument.ReadFrom(XMLDocOut.OuterXml, XmlReadOptions, LegacyXmlDocument);
+                end;
+            end;
+        end;
 
         ResultValue := GenerateXml(LedgerEntry, LegacyXmlDocument, UploadType, IsCreditMemoRemoval);
 
-        if not LegacyXmlDocument.GetRoot(RootXmlElement) then
+        if not LegacyXmlDocument.GetRoot(RootXmlElement) then begin
+            XMLDocOut := XMLDocOut.XmlDocument();
             exit;
+        end;
         LegacyXmlDocument.WriteTo(GetXmlWriteOptions(), XmlText);
         XMLDocOut.PreserveWhitespace := true;
         XMLDocOut.LoadXml(XmlText);
@@ -211,6 +238,57 @@ codeunit 10750 "SII XML Creator"
             NewXmlElement := XmlElement.Create(NodeName, Namespace);
         ParentXmlNode.AsXmlElement().Add(NewXmlElement);
         CreatedXmlNode := NewXmlElement.AsXmlNode();
+    end;
+
+    local procedure GetXmlNodePath(TargetXmlNode: XmlNode; var Path: List of [Integer])
+    var
+        ParentXmlElement: XmlElement;
+        PrecedingXmlNodeList: XmlNodeList;
+        CurrentXmlNode: XmlNode;
+    begin
+        // The path holds the 1-based position of each element among its sibling elements, from the root element down
+        Clear(Path);
+        CurrentXmlNode := TargetXmlNode;
+        while CurrentXmlNode.GetParent(ParentXmlElement) do begin
+            CurrentXmlNode.SelectNodes('preceding-sibling::*', PrecedingXmlNodeList);
+            Path.Insert(1, PrecedingXmlNodeList.Count() + 1);
+            CurrentXmlNode := ParentXmlElement.AsXmlNode();
+        end;
+    end;
+
+    local procedure FindXmlNodeByPath(SourceXmlDocument: XmlDocument; Path: List of [Integer]; var FoundXmlNode: XmlNode): Boolean
+    var
+        RootXmlElement: XmlElement;
+        ChildXmlNode: XmlNode;
+        Index: Integer;
+    begin
+        if not SourceXmlDocument.GetRoot(RootXmlElement) then
+            exit(false);
+        FoundXmlNode := RootXmlElement.AsXmlNode();
+        foreach Index in Path do begin
+            if not FoundXmlNode.SelectSingleNode(StrSubstNo(ChildElementXPathTok, Index), ChildXmlNode) then
+                exit(false);
+            FoundXmlNode := ChildXmlNode;
+        end;
+        exit(true);
+    end;
+
+    local procedure FindBatchXmlNode(SourceXmlDocument: XmlDocument; var BatchXmlNode: XmlNode): Boolean
+    var
+        LastXmlElement: XmlElement;
+    begin
+        if not LastXMLNode.IsXmlElement() then
+            exit(false);
+        LastXmlElement := LastXMLNode.AsXmlElement();
+        if FindXmlNodeByPath(SourceXmlDocument, LastXMLNodePath, BatchXmlNode) then
+            if (BatchXmlNode.AsXmlElement().LocalName() = LastXmlElement.LocalName()) and
+               (BatchXmlNode.AsXmlElement().NamespaceUri() = LastXmlElement.NamespaceUri())
+            then
+                exit(true);
+        // An element was inserted before the batch node; its name is unique in the document
+        exit(
+          SourceXmlDocument.SelectSingleNode(
+            StrSubstNo(ElementByNameXPathTok, LastXmlElement.LocalName(), LastXmlElement.NamespaceUri()), BatchXmlNode));
     end;
 
     local procedure GetParentNode(var CurrentXmlNode: XmlNode)
@@ -447,6 +525,7 @@ codeunit 10750 "SII XML Creator"
           IsCreditMemoRemoval, UploadType);
 
         LastXMLNode := XMLNode;
+        GetXmlNodePath(XMLNode, LastXMLNodePath);
         exit(PopulateXMLWithSalesInvoice(XMLNode, CustLedgerEntry));
     end;
 
@@ -465,6 +544,7 @@ codeunit 10750 "SII XML Creator"
           IsCreditMemoRemoval, UploadType);
 
         LastXMLNode := XMLNode;
+        GetXmlNodePath(XMLNode, LastXMLNodePath);
         exit(PopulateXMLWithPurchInvoice(XMLNode, VendorLedgerEntry));
     end;
 
@@ -483,6 +563,7 @@ codeunit 10750 "SII XML Creator"
           false, UploadType);
 
         LastXMLNode := XMLNode;
+        GetXmlNodePath(XMLNode, LastXMLNodePath);
         exit(PopulateXMLWithCollectionInCash(XMLNode, CustLedgEntry));
     end;
 
@@ -515,7 +596,9 @@ codeunit 10750 "SII XML Creator"
         CurrentXMlNode: XmlNode;
     begin
         if IsInitialized then begin
-            XMLNode := LastXMLNode;
+            // The caller may have reloaded or changed the document since the previous call, so find the batch node again
+            if not FindBatchXmlNode(XMLDoc, XMLNode) then
+                XMLNode := LastXMLNode;
             exit;
         end;
         IsInitialized := true;
@@ -679,6 +762,9 @@ codeunit 10750 "SII XML Creator"
             if SIIDocUploadState."Issued By Third Party" then
                 AddElement(XMLNode, 'EmitidaPorTercerosODestinatario', 'S', SiiTxt, TempXMLNode);
 
+#if not CLEAN30
+            RaiseLegacyOnBeforeContraparteNode(XMLNode, CustLedgerEntry);
+#endif
             OnBeforeContraparteNodeV2(XMLNode, CustLedgerEntry);
             if IncludeContraparteNodeBySalesInvType(InvoiceType) then begin
                 AddElement(XMLNode, 'Contraparte', '', SiiTxt, XMLNode);
@@ -687,6 +773,10 @@ codeunit 10750 "SII XML Creator"
                   SIIManagement.CustomerIsIntraCommunity(Customer."No."), Customer."Not in AEAT", SIIDocUploadState.IDType, SIIDocUploadState);
             end;
             IsHandled := false;
+#if not CLEAN30
+            RaiseLegacyOnPopulateXMLWithSalesInvoiceOnAfterContraparteNode(
+                XMLNode, DesgloseFacturaXMLNode, DomesticXMLNode, DesgloseTipoOperacionXMLNode, false, DomesticCustomer, CustLedgerEntry, IsHandled);
+#endif
             OnPopulateXMLWithSalesInvoiceOnAfterContraparteNodeV2(
                 XMLNode, DesgloseFacturaXMLNode, DomesticXMLNode, DesgloseTipoOperacionXMLNode, false, DomesticCustomer, CustLedgerEntry, SiiTxt, IsHandled);
             if IsHandled then
@@ -803,6 +893,10 @@ codeunit 10750 "SII XML Creator"
             AddElement(XMLNode, 'DesgloseFactura', '', SiiTxt, XMLNode);
 
             IsHandled := false;
+#if not CLEAN30
+            RaiseLegacyOnPopulateXMLWithPurchInvoiceOnBeforeDesgloseFacturaNode(
+                XMLNode, TempVATEntryNormalCalculated, 'DesgloseIVA', RegimeCodes, VendorLedgerEntry, IsHandled, TempVATEntryNormalCalculated, TempVATEntryReverseChargeCalculated);
+#endif
             OnPopulateXMLWithPurchInvoiceOnBeforeDesgloseFacturaNodeV2(
                 XMLNode, TempVATEntryNormalCalculated, 'DesgloseIVA', RegimeCodes, VendorLedgerEntry, SiiTxt, IsHandled, TempVATEntryNormalCalculated, TempVATEntryReverseChargeCalculated);
             if not IsHandled then begin
@@ -818,6 +912,9 @@ codeunit 10750 "SII XML Creator"
               VendNo, CuotaDeducibleValue, SIIDocUploadState.IDType, RegimeCodes, ECVATEntryExists, InvoiceType,
               not TempVATEntryReverseChargeCalculated.IsEmpty(), SIIDocUploadState);
 
+#if not CLEAN30
+            RaiseLegacyOnAfterAddPurchTail(XMLNode, VendorLedgerEntry);
+#endif
             OnAfterAddPurchTailV2(XMLNode, VendorLedgerEntry);
 
             exit(true);
@@ -959,6 +1056,9 @@ codeunit 10750 "SII XML Creator"
         AddElement(XMLNode, 'RegistroLRFacturasRecibidas', '', SiiLRTxt, XMLNode);
         AddElement(XMLNode, FillDocHeaderNode(), '', SiiTxt, XMLNode);
 
+#if not CLEAN30
+        RaiseLegacyOnInitializePurchXmlBodyOnBeforeAssignExerciseAndPeriod(XMLNode, VendorLedgerEntry, IsHandled);
+#endif
         OnInitializePurchXmlBodyOnBeforeAssignExerciseAndPeriodV2(XMLNode, VendorLedgerEntry, IsHandled);
         if not IsHandled then begin
             AddElement(
@@ -1475,6 +1575,9 @@ codeunit 10750 "SII XML Creator"
         if SIIDocUploadState."Issued By Third Party" then
             AddElement(XMLNode, 'EmitidaPorTercerosODestinatario', 'S', SiiTxt, TempXMLNode);
 
+#if not CLEAN30
+        RaiseLegacyCorrectiveInvoiceSalesDifferenceOnBeforeContraparteNode(XMLNode, CustLedgerEntry);
+#endif
         CorrectiveInvoiceSalesDifferenceOnBeforeContraparteNodeV2(XMLNode, CustLedgerEntry);
         if IncludeContraparteNodeByCrMemoType(SIIDocUploadState."Sales Cr. Memo Type") then begin
             AddElement(XMLNode, 'Contraparte', '', SiiTxt, XMLNode);
@@ -1676,6 +1779,9 @@ codeunit 10750 "SII XML Creator"
                   BaseAmountDiff, VATAmountDiff, ECPercentDiff, ECAmountDiff, TempOldVATEntryPerPercent, TempVATEntryPerPercent);
 
                 // fill XML
+#if not CLEAN30
+                RaiseLegacyOnHandleReplacementPurchCorrectiveInvoiceOnBeforeAddElementDetalleIVA(XMLNode, VendorLedgerEntry);
+#endif
                 OnHandleReplacementPurchCorrectiveInvoiceOnBeforeAddElementDetalleIVAV2(XMLNode, VendorLedgerEntry);
                 AddElement(XMLNode, 'DetalleIVA', '', SiiTxt, XMLNode);
                 AddElement(
@@ -1686,6 +1792,9 @@ codeunit 10750 "SII XML Creator"
 
                 GenerateRecargoEquivalenciaNodes(XMLNode, ECPercentDiff, ECAmountDiff);
 
+#if not CLEAN30
+                RaiseLegacyOnHandleReplacementPurchCorrectiveInvoiceOnAfterGenerateRecargoEquivalenciaNodes(XMLNode, TempVATEntryPerPercent);
+#endif
                 OnHandleReplacementPurchCorrectiveInvoiceOnAfterGenerateRecargoEquivalenciaNodesV2(XMLNode, TempVATEntryPerPercent);
 
                 GetParentNode(XMLNode);
@@ -1712,6 +1821,9 @@ codeunit 10750 "SII XML Creator"
             AddElement(
               XMLNode, 'CuotaDeducible', FormatNumber(CuotaDeducibleDecValue), SiiTxt, TempXMLNode);
 
+#if not CLEAN30
+            RaiseLegacyOnHandleReplacementPurchCorrectiveInvoiceOnAfterCuotaDeducible(XMLNode, VendorLedgerEntry);
+#endif
             OnHandleReplacementPurchCorrectiveInvoiceOnAfterCuotaDeducibleV2(XMLNode, VendorLedgerEntry);
         end;
     end;
@@ -1875,6 +1987,9 @@ codeunit 10750 "SII XML Creator"
         if SIIDocUploadState."Issued By Third Party" then
             AddElement(XMLNode, 'EmitidaPorTercerosODestinatario', 'S', SiiTxt, TempXMLNode);
 
+#if not CLEAN30
+        RaiseLegacyHandleReplacementSalesCorrectiveInvoiceOnBeforeContraparteNode(XMLNode, CustLedgerEntry);
+#endif
         HandleReplacementSalesCorrectiveInvoiceOnBeforeContraparteNodeV2(XMLNode, CustLedgerEntry);
         if IncludeContraparteNodeByCrMemoType(SIIDocUploadState."Sales Cr. Memo Type") then begin
             AddElement(XMLNode, 'Contraparte', '', SiiTxt, XMLNode);
@@ -2793,6 +2908,9 @@ codeunit 10750 "SII XML Creator"
           FormatNumber(CalcTipoImpositivo(NonExemptTransactionType, RegimeCodes, Base, TempVATEntry."VAT %"));
 
         AddElement(XMLNode, 'DetalleIVA', '', SiiTxt, XMLNode);
+#if not CLEAN30
+        RaiseLegacyOnFillDetalleIVANodeOnBeforeExportTipoImpositivo(XMLNode, TempVATEntry);
+#endif
         OnFillDetalleIVANodeOnBeforeExportTipoImpositivoV2(XMLNode, TempVATEntry);
         if ExportTipoImpositivo(TempVATEntry, RegimeCodes) then
             AddElement(XMLNode, 'TipoImpositivo', VATPctText, SiiTxt, TempXmlNode);
@@ -2808,6 +2926,9 @@ codeunit 10750 "SII XML Creator"
         if (ECPercent <> 0) and FillEUServiceNodes then
             GenerateRecargoEquivalenciaNodes(XMLNode, ECPercent, ECAmount);
 
+#if not CLEAN30
+        RaiseLegacyOnFillDetalleIVANodeOnAfterGenerateRecargoEquivalenciaNodes(XMLNode, TempVATEntry);
+#endif
         OnFillDetalleIVANodeOnAfterGenerateRecargoEquivalenciaNodesV2(XMLNode, TempVATEntry);
 
         GetParentNode(XMLNode);
@@ -3075,6 +3196,381 @@ codeunit 10750 "SII XML Creator"
         exit(CopyStr(Format(SIIDocUploadState."Sales Cr. Memo Type"), 1, 2));
     end;
 
+#if not CLEAN30
+    local procedure HasLegacySubscriber(EventName: Text): Boolean
+    var
+        EventSubscription: Record "Event Subscription";
+        Found: Boolean;
+    begin
+        // Converting the document is only worth it when a subscriber listens to the obsolete DotNet event
+        if LegacySubscriberCache.Get(EventName, Found) then
+            exit(Found);
+        EventSubscription.SetRange("Publisher Object Type", EventSubscription."Publisher Object Type"::Codeunit);
+        EventSubscription.SetRange("Publisher Object ID", Codeunit::"SII XML Creator");
+        EventSubscription.SetRange("Published Function", EventName);
+        EventSubscription.SetRange(Active, true);
+        Found := not EventSubscription.IsEmpty();
+        LegacySubscriberCache.Add(EventName, Found);
+        exit(Found);
+    end;
+
+    local procedure StartLegacyEvent(ScopeXmlNode: XmlNode)
+    var
+        XmlText: Text;
+    begin
+        ScopeXmlNode.GetDocument(LegacyEventNativeXmlDocument);
+        LegacyEventNativeXmlDocument.WriteTo(GetXmlWriteOptions(), XmlText);
+        LegacyEventXmlDocument := LegacyEventXmlDocument.XmlDocument();
+        LegacyEventXmlDocument.PreserveWhitespace := true;
+        LegacyEventXmlDocument.LoadXml(XmlText);
+        LegacyEventOriginalXml := LegacyEventXmlDocument.OuterXml;
+    end;
+
+    local procedure GetLegacyXmlNode(NativeXmlNode: XmlNode; var LegacyXmlNode: DotNet XmlNode)
+    var
+        Path: List of [Integer];
+        Index: Integer;
+    begin
+        Clear(LegacyXmlNode);
+        if not NativeXmlNode.IsXmlElement() then
+            exit;
+        GetXmlNodePath(NativeXmlNode, Path);
+        LegacyXmlNode := LegacyEventXmlDocument.DocumentElement;
+        foreach Index in Path do
+            LegacyXmlNode := LegacyXmlNode.SelectSingleNode(StrSubstNo(ChildElementXPathTok, Index));
+    end;
+
+    local procedure FinishLegacyEvent()
+    var
+        RootXmlElement: XmlElement;
+        LegacyRootXmlNode: DotNet XmlNode;
+    begin
+        if LegacyEventXmlDocument.OuterXml = LegacyEventOriginalXml then
+            exit;
+        LegacyEventNativeXmlDocument.GetRoot(RootXmlElement);
+        LegacyRootXmlNode := LegacyEventXmlDocument.DocumentElement;
+        SyncNativeXmlElement(RootXmlElement, LegacyRootXmlNode);
+    end;
+
+    local procedure ResolveNativeXmlNode(EventName: Text; LegacyXmlNode: DotNet XmlNode; var NativeXmlNode: XmlNode)
+    var
+        Path: List of [Integer];
+    begin
+        // Subscribers can move the node they received, for example to a child element they added
+        Clear(NativeXmlNode);
+        if IsNull(LegacyXmlNode) then
+            exit;
+        if not GetLegacyXmlNodePath(LegacyXmlNode, Path) then
+            Error(LegacyXmlNodeNotInDocumentErr, EventName);
+        if not FindXmlNodeByPath(LegacyEventNativeXmlDocument, Path, NativeXmlNode) then
+            Error(LegacyXmlNodeNotInDocumentErr, EventName);
+    end;
+
+    local procedure GetLegacyXmlNodePath(LegacyXmlNode: DotNet XmlNode; var Path: List of [Integer]): Boolean
+    var
+        CurrentXmlNode: DotNet XmlNode;
+        LegacyRootXmlNode: DotNet XmlNode;
+    begin
+        Clear(Path);
+        CurrentXmlNode := LegacyXmlNode.SelectSingleNode('self::*');
+        if IsNull(CurrentXmlNode) then
+            exit(false);
+        while CurrentXmlNode.SelectNodes('ancestor::*').Count > 0 do begin
+            Path.Insert(1, CurrentXmlNode.SelectNodes('preceding-sibling::*').Count + 1);
+            CurrentXmlNode := CurrentXmlNode.ParentNode;
+        end;
+        LegacyRootXmlNode := LegacyEventXmlDocument.DocumentElement;
+        exit(CurrentXmlNode.Equals(LegacyRootXmlNode));
+    end;
+
+    local procedure SyncNativeXmlElement(NativeXmlElement: XmlElement; LegacyXmlNode: DotNet XmlNode)
+    var
+        NativeChildXmlNodeList: XmlNodeList;
+        NativeChildXmlNode: XmlNode;
+        LegacyChildXmlNodeList: DotNet XmlNodeList;
+        LegacyChildXmlNode: DotNet XmlNode;
+        NativeXml: Text;
+        i: Integer;
+    begin
+        // Element objects that keep their position are reused, so XmlNode variables of the callers stay valid
+        NativeXmlElement.WriteTo(GetXmlWriteOptions(), NativeXml);
+        if NativeXml = LegacyXmlNode.OuterXml then
+            exit;
+        NativeChildXmlNodeList := NativeXmlElement.GetChildNodes();
+        LegacyChildXmlNodeList := LegacyXmlNode.ChildNodes;
+        if (not HasSameAttributes(NativeXmlElement, LegacyXmlNode)) or (NativeChildXmlNodeList.Count() <> LegacyChildXmlNodeList.Count) then begin
+            ReplaceNativeXmlElementContent(NativeXmlElement, LegacyXmlNode);
+            exit;
+        end;
+        for i := 1 to NativeChildXmlNodeList.Count() do begin
+            NativeChildXmlNodeList.Get(i, NativeChildXmlNode);
+            LegacyChildXmlNode := LegacyChildXmlNodeList.Item(i - 1);
+            if not IsSameXmlNodeKind(NativeChildXmlNode, LegacyChildXmlNode) then begin
+                ReplaceNativeXmlElementContent(NativeXmlElement, LegacyXmlNode);
+                exit;
+            end;
+        end;
+        for i := 1 to NativeChildXmlNodeList.Count() do begin
+            NativeChildXmlNodeList.Get(i, NativeChildXmlNode);
+            if NativeChildXmlNode.IsXmlElement() then
+                SyncNativeXmlElement(NativeChildXmlNode.AsXmlElement(), LegacyChildXmlNodeList.Item(i - 1));
+        end;
+    end;
+
+    local procedure HasSameAttributes(NativeXmlElement: XmlElement; LegacyXmlNode: DotNet XmlNode): Boolean
+    var
+        NativeXmlAttributeCollection: XmlAttributeCollection;
+        NativeXmlAttribute: XmlAttribute;
+        LegacyXmlAttribute: DotNet XmlAttribute;
+        i: Integer;
+    begin
+        NativeXmlAttributeCollection := NativeXmlElement.Attributes();
+        if NativeXmlAttributeCollection.Count() <> LegacyXmlNode.Attributes.Count then
+            exit(false);
+        for i := 1 to NativeXmlAttributeCollection.Count() do begin
+            NativeXmlAttributeCollection.Get(i, NativeXmlAttribute);
+            LegacyXmlAttribute := LegacyXmlNode.Attributes.Item(i - 1);
+            if (NativeXmlAttribute.LocalName() <> LegacyXmlAttribute.LocalName) or
+               (NativeXmlAttribute.NamespaceUri() <> LegacyXmlAttribute.NamespaceURI) or
+               (NativeXmlAttribute.Value() <> LegacyXmlAttribute.Value)
+            then
+                exit(false);
+        end;
+        exit(true);
+    end;
+
+    local procedure IsSameXmlNodeKind(NativeXmlNode: XmlNode; LegacyXmlNode: DotNet XmlNode): Boolean
+    var
+        LegacyElementXmlNode: DotNet XmlNode;
+        LegacyTextXmlNode: DotNet XmlNode;
+    begin
+        LegacyElementXmlNode := LegacyXmlNode.SelectSingleNode('self::*');
+        if NativeXmlNode.IsXmlElement() then begin
+            if IsNull(LegacyElementXmlNode) then
+                exit(false);
+            exit(
+              (NativeXmlNode.AsXmlElement().LocalName() = LegacyXmlNode.LocalName) and
+              (NativeXmlNode.AsXmlElement().NamespaceUri() = LegacyXmlNode.NamespaceURI));
+        end;
+        if NativeXmlNode.IsXmlText() then begin
+            LegacyTextXmlNode := LegacyXmlNode.SelectSingleNode('self::text()');
+            if IsNull(LegacyTextXmlNode) then
+                exit(false);
+            exit(NativeXmlNode.AsXmlText().Value() = LegacyXmlNode.Value);
+        end;
+        exit(false);
+    end;
+
+    local procedure ReplaceNativeXmlElementContent(NativeXmlElement: XmlElement; LegacyXmlNode: DotNet XmlNode)
+    var
+        FragmentXmlDocument: XmlDocument;
+        FragmentRootXmlElement: XmlElement;
+        SourceXmlElement: XmlElement;
+        ParentXmlElement: XmlElement;
+        SourceXmlNode: XmlNode;
+        ChildXmlNode: XmlNode;
+        SourceXmlAttribute: XmlAttribute;
+        SourceXmlAttributeCollection: XmlAttributeCollection;
+        XmlReadOptions: XmlReadOptions;
+        i: Integer;
+    begin
+        XmlReadOptions.PreserveWhitespace := true;
+        XmlDocument.ReadFrom(
+          StrSubstNo(FragmentWrapperTok, SiiTxt, SiiLRTxt, SoapenvTxt, LegacyXmlNode.OuterXml), XmlReadOptions, FragmentXmlDocument);
+        FragmentXmlDocument.GetRoot(FragmentRootXmlElement);
+        FragmentRootXmlElement.SelectSingleNode('*', SourceXmlNode);
+        SourceXmlElement := SourceXmlNode.AsXmlElement();
+        if NativeXmlElement.AsXmlNode().GetParent(ParentXmlElement) then
+            RemoveEnvelopeNamespaceDeclarations(FragmentRootXmlElement)
+        else
+            RemoveEnvelopeNamespaceDeclarations(SourceXmlElement);
+
+        NativeXmlElement.RemoveAllAttributes();
+        SourceXmlAttributeCollection := SourceXmlElement.Attributes();
+        for i := 1 to SourceXmlAttributeCollection.Count() do begin
+            SourceXmlAttributeCollection.Get(i, SourceXmlAttribute);
+            if SourceXmlAttribute.Name() = 'xmlns' then
+                NativeXmlElement.SetAttribute(SourceXmlAttribute.Name(), SourceXmlAttribute.Value())
+            else
+                if SourceXmlAttribute.IsNamespaceDeclaration() then
+                    NativeXmlElement.Add(XmlAttribute.CreateNamespaceDeclaration(SourceXmlAttribute.LocalName(), SourceXmlAttribute.Value()))
+                else
+                    NativeXmlElement.Add(
+                      XmlAttribute.Create(SourceXmlAttribute.LocalName(), SourceXmlAttribute.NamespaceUri(), SourceXmlAttribute.Value()));
+        end;
+        NativeXmlElement.RemoveNodes();
+        foreach ChildXmlNode in SourceXmlElement.GetChildNodes() do
+            NativeXmlElement.Add(ChildXmlNode);
+    end;
+
+#pragma warning disable AL0432
+    local procedure RaiseLegacyOnBeforeContraparteNode(var XMLNode: XmlNode; CustLedgerEntry: Record "Cust. Ledger Entry")
+    var
+        LegacyXMLNode: DotNet XmlNode;
+    begin
+        if not HasLegacySubscriber('OnBeforeContraparteNode') then
+            exit;
+        StartLegacyEvent(XMLNode);
+        GetLegacyXmlNode(XMLNode, LegacyXMLNode);
+        OnBeforeContraparteNode(LegacyXMLNode, CustLedgerEntry);
+        FinishLegacyEvent();
+        ResolveNativeXmlNode('OnBeforeContraparteNode', LegacyXMLNode, XMLNode);
+    end;
+
+    local procedure RaiseLegacyOnFillDetalleIVANodeOnBeforeExportTipoImpositivo(var XMLNode: XmlNode; var TempVATEntry: Record "VAT Entry" temporary)
+    var
+        LegacyXMLNode: DotNet XmlNode;
+    begin
+        if not HasLegacySubscriber('OnFillDetalleIVANodeOnBeforeExportTipoImpositivo') then
+            exit;
+        StartLegacyEvent(XMLNode);
+        GetLegacyXmlNode(XMLNode, LegacyXMLNode);
+        OnFillDetalleIVANodeOnBeforeExportTipoImpositivo(LegacyXMLNode, TempVATEntry);
+        FinishLegacyEvent();
+        ResolveNativeXmlNode('OnFillDetalleIVANodeOnBeforeExportTipoImpositivo', LegacyXMLNode, XMLNode);
+    end;
+
+    local procedure RaiseLegacyOnHandleReplacementPurchCorrectiveInvoiceOnBeforeAddElementDetalleIVA(var XMLNode: XmlNode; VendorLedgerEntry: Record "Vendor Ledger Entry")
+    var
+        LegacyXMLNode: DotNet XmlNode;
+    begin
+        if not HasLegacySubscriber('OnHandleReplacementPurchCorrectiveInvoiceOnBeforeAddElementDetalleIVA') then
+            exit;
+        StartLegacyEvent(XMLNode);
+        GetLegacyXmlNode(XMLNode, LegacyXMLNode);
+        OnHandleReplacementPurchCorrectiveInvoiceOnBeforeAddElementDetalleIVA(LegacyXMLNode, VendorLedgerEntry);
+        FinishLegacyEvent();
+        ResolveNativeXmlNode('OnHandleReplacementPurchCorrectiveInvoiceOnBeforeAddElementDetalleIVA', LegacyXMLNode, XMLNode);
+    end;
+
+    local procedure RaiseLegacyOnPopulateXMLWithSalesInvoiceOnAfterContraparteNode(var TipoDesgloseXMLNode: XmlNode; var DesgloseFacturaXMLNode: XmlNode; var DomesticXMLNode: XmlNode; var DesgloseTipoOperacionXMLNode: XmlNode; IsService: Boolean; DomesticCustomer: Boolean; CustLedgerEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
+    var
+        LegacyTipoDesgloseXMLNode: DotNet XmlNode;
+        LegacyDesgloseFacturaXMLNode: DotNet XmlNode;
+        LegacyDomesticXMLNode: DotNet XmlNode;
+        LegacyDesgloseTipoOperacionXMLNode: DotNet XmlNode;
+    begin
+        if not HasLegacySubscriber('OnPopulateXMLWithSalesInvoiceOnAfterContraparteNode') then
+            exit;
+        StartLegacyEvent(TipoDesgloseXMLNode);
+        GetLegacyXmlNode(TipoDesgloseXMLNode, LegacyTipoDesgloseXMLNode);
+        GetLegacyXmlNode(DesgloseFacturaXMLNode, LegacyDesgloseFacturaXMLNode);
+        GetLegacyXmlNode(DomesticXMLNode, LegacyDomesticXMLNode);
+        GetLegacyXmlNode(DesgloseTipoOperacionXMLNode, LegacyDesgloseTipoOperacionXMLNode);
+        OnPopulateXMLWithSalesInvoiceOnAfterContraparteNode(LegacyTipoDesgloseXMLNode, LegacyDesgloseFacturaXMLNode, LegacyDomesticXMLNode, LegacyDesgloseTipoOperacionXMLNode, IsService, DomesticCustomer, CustLedgerEntry, SiiTxt, IsHandled);
+        FinishLegacyEvent();
+        ResolveNativeXmlNode('OnPopulateXMLWithSalesInvoiceOnAfterContraparteNode', LegacyTipoDesgloseXMLNode, TipoDesgloseXMLNode);
+        ResolveNativeXmlNode('OnPopulateXMLWithSalesInvoiceOnAfterContraparteNode', LegacyDesgloseFacturaXMLNode, DesgloseFacturaXMLNode);
+        ResolveNativeXmlNode('OnPopulateXMLWithSalesInvoiceOnAfterContraparteNode', LegacyDomesticXMLNode, DomesticXMLNode);
+        ResolveNativeXmlNode('OnPopulateXMLWithSalesInvoiceOnAfterContraparteNode', LegacyDesgloseTipoOperacionXMLNode, DesgloseTipoOperacionXMLNode);
+    end;
+
+    local procedure RaiseLegacyOnPopulateXMLWithPurchInvoiceOnBeforeDesgloseFacturaNode(var XMLNode: XmlNode; var TempVATEntryCalculated: Record "VAT Entry" temporary; XMLNodeName: Text; RegimeCodes: array[3] of Code[2]; VendorLedgerEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean; TempVATEntryNormalCalculated: Record "VAT Entry" temporary; TempVATEntryReverseChargeCalculated: Record "VAT Entry" temporary)
+    var
+        LegacyXMLNode: DotNet XmlNode;
+    begin
+        if not HasLegacySubscriber('OnPopulateXMLWithPurchInvoiceOnBeforeDesgloseFacturaNode') then
+            exit;
+        StartLegacyEvent(XMLNode);
+        GetLegacyXmlNode(XMLNode, LegacyXMLNode);
+        OnPopulateXMLWithPurchInvoiceOnBeforeDesgloseFacturaNode(LegacyXMLNode, TempVATEntryCalculated, XMLNodeName, RegimeCodes, VendorLedgerEntry, SiiTxt, IsHandled, TempVATEntryNormalCalculated, TempVATEntryReverseChargeCalculated);
+        FinishLegacyEvent();
+        ResolveNativeXmlNode('OnPopulateXMLWithPurchInvoiceOnBeforeDesgloseFacturaNode', LegacyXMLNode, XMLNode);
+    end;
+
+    local procedure RaiseLegacyCorrectiveInvoiceSalesDifferenceOnBeforeContraparteNode(var XMLNode: XmlNode; var CustLedgerEntry: Record "Cust. Ledger Entry")
+    var
+        LegacyXMLNode: DotNet XmlNode;
+    begin
+        if not HasLegacySubscriber('CorrectiveInvoiceSalesDifferenceOnBeforeContraparteNode') then
+            exit;
+        StartLegacyEvent(XMLNode);
+        GetLegacyXmlNode(XMLNode, LegacyXMLNode);
+        CorrectiveInvoiceSalesDifferenceOnBeforeContraparteNode(LegacyXMLNode, CustLedgerEntry);
+        FinishLegacyEvent();
+        ResolveNativeXmlNode('CorrectiveInvoiceSalesDifferenceOnBeforeContraparteNode', LegacyXMLNode, XMLNode);
+    end;
+
+    local procedure RaiseLegacyHandleReplacementSalesCorrectiveInvoiceOnBeforeContraparteNode(var XMLNode: XmlNode; var CustLedgerEntry: Record "Cust. Ledger Entry")
+    var
+        LegacyXMLNode: DotNet XmlNode;
+    begin
+        if not HasLegacySubscriber('HandleReplacementSalesCorrectiveInvoiceOnBeforeContraparteNode') then
+            exit;
+        StartLegacyEvent(XMLNode);
+        GetLegacyXmlNode(XMLNode, LegacyXMLNode);
+        HandleReplacementSalesCorrectiveInvoiceOnBeforeContraparteNode(LegacyXMLNode, CustLedgerEntry);
+        FinishLegacyEvent();
+        ResolveNativeXmlNode('HandleReplacementSalesCorrectiveInvoiceOnBeforeContraparteNode', LegacyXMLNode, XMLNode);
+    end;
+
+    local procedure RaiseLegacyOnAfterAddPurchTail(var XMLNode: XmlNode; VendorLedgerEntry: Record "Vendor Ledger Entry")
+    var
+        LegacyXMLNode: DotNet XmlNode;
+    begin
+        if not HasLegacySubscriber('OnAfterAddPurchTail') then
+            exit;
+        StartLegacyEvent(XMLNode);
+        GetLegacyXmlNode(XMLNode, LegacyXMLNode);
+        OnAfterAddPurchTail(LegacyXMLNode, VendorLedgerEntry);
+        FinishLegacyEvent();
+        ResolveNativeXmlNode('OnAfterAddPurchTail', LegacyXMLNode, XMLNode);
+    end;
+
+    local procedure RaiseLegacyOnInitializePurchXmlBodyOnBeforeAssignExerciseAndPeriod(var XMLNode: XmlNode; VendorLedgerEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean)
+    var
+        LegacyXMLNode: DotNet XmlNode;
+    begin
+        if not HasLegacySubscriber('OnInitializePurchXmlBodyOnBeforeAssignExerciseAndPeriod') then
+            exit;
+        StartLegacyEvent(XMLNode);
+        GetLegacyXmlNode(XMLNode, LegacyXMLNode);
+        OnInitializePurchXmlBodyOnBeforeAssignExerciseAndPeriod(LegacyXMLNode, VendorLedgerEntry, IsHandled);
+        FinishLegacyEvent();
+        ResolveNativeXmlNode('OnInitializePurchXmlBodyOnBeforeAssignExerciseAndPeriod', LegacyXMLNode, XMLNode);
+    end;
+
+    local procedure RaiseLegacyOnHandleReplacementPurchCorrectiveInvoiceOnAfterGenerateRecargoEquivalenciaNodes(var XMLNode: XmlNode; TempVATEntry: Record "VAT Entry")
+    var
+        LegacyXMLNode: DotNet XmlNode;
+    begin
+        if not HasLegacySubscriber('OnHandleReplacementPurchCorrectiveInvoiceOnAfterGenerateRecargoEquivalenciaNodes') then
+            exit;
+        StartLegacyEvent(XMLNode);
+        GetLegacyXmlNode(XMLNode, LegacyXMLNode);
+        OnHandleReplacementPurchCorrectiveInvoiceOnAfterGenerateRecargoEquivalenciaNodes(LegacyXMLNode, TempVATEntry);
+        FinishLegacyEvent();
+        ResolveNativeXmlNode('OnHandleReplacementPurchCorrectiveInvoiceOnAfterGenerateRecargoEquivalenciaNodes', LegacyXMLNode, XMLNode);
+    end;
+
+    local procedure RaiseLegacyOnFillDetalleIVANodeOnAfterGenerateRecargoEquivalenciaNodes(var XMLNode: XmlNode; TempVATEntry: Record "VAT Entry")
+    var
+        LegacyXMLNode: DotNet XmlNode;
+    begin
+        if not HasLegacySubscriber('OnFillDetalleIVANodeOnAfterGenerateRecargoEquivalenciaNodes') then
+            exit;
+        StartLegacyEvent(XMLNode);
+        GetLegacyXmlNode(XMLNode, LegacyXMLNode);
+        OnFillDetalleIVANodeOnAfterGenerateRecargoEquivalenciaNodes(LegacyXMLNode, TempVATEntry);
+        FinishLegacyEvent();
+        ResolveNativeXmlNode('OnFillDetalleIVANodeOnAfterGenerateRecargoEquivalenciaNodes', LegacyXMLNode, XMLNode);
+    end;
+
+    local procedure RaiseLegacyOnHandleReplacementPurchCorrectiveInvoiceOnAfterCuotaDeducible(var XMLNode: XmlNode; VendorLedgerEntry: Record "Vendor Ledger Entry")
+    var
+        LegacyXMLNode: DotNet XmlNode;
+    begin
+        if not HasLegacySubscriber('OnHandleReplacementPurchCorrectiveInvoiceOnAfterCuotaDeducible') then
+            exit;
+        StartLegacyEvent(XMLNode);
+        GetLegacyXmlNode(XMLNode, LegacyXMLNode);
+        OnHandleReplacementPurchCorrectiveInvoiceOnAfterCuotaDeducible(LegacyXMLNode, VendorLedgerEntry);
+        FinishLegacyEvent();
+        ResolveNativeXmlNode('OnHandleReplacementPurchCorrectiveInvoiceOnAfterCuotaDeducible', LegacyXMLNode, XMLNode);
+    end;
+#pragma warning restore AL0432
+#endif
+
     [Scope('OnPrem')]
     procedure Reset()
     begin
@@ -3138,7 +3634,7 @@ codeunit 10750 "SII XML Creator"
 
 #if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer raised because the SII XML is now built with the native XML types. Subscribe to OnBeforeContraparteNodeV2 instead.', '30.0')]
+    [Obsolete('Subscribe to OnBeforeContraparteNodeV2 instead, which passes the native XmlNode. This event is still raised, but every raise converts the SII XML to a DotNet XmlDocument and back.', '30.0')]
     local procedure OnBeforeContraparteNode(var XMLNode: DotNet XmlNode; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
@@ -3191,7 +3687,7 @@ codeunit 10750 "SII XML Creator"
 
 #if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer raised because the SII XML is now built with the native XML types. Subscribe to OnFillDetalleIVANodeOnBeforeExportTipoImpositivoV2 instead.', '30.0')]
+    [Obsolete('Subscribe to OnFillDetalleIVANodeOnBeforeExportTipoImpositivoV2 instead, which passes the native XmlNode. This event is still raised, but every raise converts the SII XML to a DotNet XmlDocument and back.', '30.0')]
     local procedure OnFillDetalleIVANodeOnBeforeExportTipoImpositivo(var XMLNode: DotNet XmlNode; var TempVATEntry: Record "VAT Entry" temporary)
     begin
     end;
@@ -3209,7 +3705,7 @@ codeunit 10750 "SII XML Creator"
 
 #if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer raised because the SII XML is now built with the native XML types. Subscribe to OnHandleReplacementPurchCorrectiveInvoiceOnBeforeAddElementDetalleIVAV2 instead.', '30.0')]
+    [Obsolete('Subscribe to OnHandleReplacementPurchCorrectiveInvoiceOnBeforeAddElementDetalleIVAV2 instead, which passes the native XmlNode. This event is still raised, but every raise converts the SII XML to a DotNet XmlDocument and back.', '30.0')]
     local procedure OnHandleReplacementPurchCorrectiveInvoiceOnBeforeAddElementDetalleIVA(var XMLNode: DotNet XmlNode; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
@@ -3227,7 +3723,7 @@ codeunit 10750 "SII XML Creator"
 
 #if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer raised because the SII XML is now built with the native XML types. Subscribe to OnPopulateXMLWithSalesInvoiceOnAfterContraparteNodeV2 instead.', '30.0')]
+    [Obsolete('Subscribe to OnPopulateXMLWithSalesInvoiceOnAfterContraparteNodeV2 instead, which passes the native XmlNode. This event is still raised, but every raise converts the SII XML to a DotNet XmlDocument and back.', '30.0')]
     local procedure OnPopulateXMLWithSalesInvoiceOnAfterContraparteNode(var TipoDesgloseXMLNode: DotNet XmlNode; var DesgloseFacturaXMLNode: DotNet XmlNode; var DomesticXMLNode: DotNet XmlNode; var DesgloseTipoOperacionXMLNode: DotNet XmlNode; IsService: Boolean; DomesticCustomer: Boolean; CustLedgerEntry: Record "Cust. Ledger Entry"; SiiTxt: Text; var IsHandled: Boolean)
     begin
     end;
@@ -3240,7 +3736,7 @@ codeunit 10750 "SII XML Creator"
 
 #if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer raised because the SII XML is now built with the native XML types. Subscribe to OnPopulateXMLWithPurchInvoiceOnBeforeDesgloseFacturaNodeV2 instead.', '30.0')]
+    [Obsolete('Subscribe to OnPopulateXMLWithPurchInvoiceOnBeforeDesgloseFacturaNodeV2 instead, which passes the native XmlNode. This event is still raised, but every raise converts the SII XML to a DotNet XmlDocument and back.', '30.0')]
     local procedure OnPopulateXMLWithPurchInvoiceOnBeforeDesgloseFacturaNode(var XMLNode: DotNet XmlNode; var TempVATEntryCalculated: Record "VAT Entry" temporary; XMLNodeName: Text; RegimeCodes: array[3] of Code[2]; VendorLedgerEntry: Record "Vendor Ledger Entry"; SiiTxt: Text; var IsHandled: Boolean; TempVATEntryNormalCalculated: Record "VAT Entry" temporary; TempVATEntryReverseChargeCalculated: Record "VAT Entry" temporary)
     begin
     end;
@@ -3258,7 +3754,7 @@ codeunit 10750 "SII XML Creator"
 
 #if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer raised because the SII XML is now built with the native XML types. Subscribe to CorrectiveInvoiceSalesDifferenceOnBeforeContraparteNodeV2 instead.', '30.0')]
+    [Obsolete('Subscribe to CorrectiveInvoiceSalesDifferenceOnBeforeContraparteNodeV2 instead, which passes the native XmlNode. This event is still raised, but every raise converts the SII XML to a DotNet XmlDocument and back.', '30.0')]
     local procedure CorrectiveInvoiceSalesDifferenceOnBeforeContraparteNode(var XMLNode: DotNet XmlNode; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
@@ -3271,7 +3767,7 @@ codeunit 10750 "SII XML Creator"
 
 #if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer raised because the SII XML is now built with the native XML types. Subscribe to HandleReplacementSalesCorrectiveInvoiceOnBeforeContraparteNodeV2 instead.', '30.0')]
+    [Obsolete('Subscribe to HandleReplacementSalesCorrectiveInvoiceOnBeforeContraparteNodeV2 instead, which passes the native XmlNode. This event is still raised, but every raise converts the SII XML to a DotNet XmlDocument and back.', '30.0')]
     local procedure HandleReplacementSalesCorrectiveInvoiceOnBeforeContraparteNode(var XMLNode: DotNet XmlNode; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
@@ -3284,7 +3780,7 @@ codeunit 10750 "SII XML Creator"
 
 #if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer raised because the SII XML is now built with the native XML types. Subscribe to OnAfterAddPurchTailV2 instead.', '30.0')]
+    [Obsolete('Subscribe to OnAfterAddPurchTailV2 instead, which passes the native XmlNode. This event is still raised, but every raise converts the SII XML to a DotNet XmlDocument and back.', '30.0')]
     local procedure OnAfterAddPurchTail(var XMLNode: DotNet XmlNode; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
@@ -3297,7 +3793,7 @@ codeunit 10750 "SII XML Creator"
 
 #if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer raised because the SII XML is now built with the native XML types. Subscribe to OnInitializePurchXmlBodyOnBeforeAssignExerciseAndPeriodV2 instead.', '30.0')]
+    [Obsolete('Subscribe to OnInitializePurchXmlBodyOnBeforeAssignExerciseAndPeriodV2 instead, which passes the native XmlNode. This event is still raised, but every raise converts the SII XML to a DotNet XmlDocument and back.', '30.0')]
     local procedure OnInitializePurchXmlBodyOnBeforeAssignExerciseAndPeriod(var XMLNode: DotNet XmlNode; VendorLedgerEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
@@ -3315,7 +3811,7 @@ codeunit 10750 "SII XML Creator"
 
 #if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer raised because the SII XML is now built with the native XML types. Subscribe to OnHandleReplacementPurchCorrectiveInvoiceOnAfterGenerateRecargoEquivalenciaNodesV2 instead.', '30.0')]
+    [Obsolete('Subscribe to OnHandleReplacementPurchCorrectiveInvoiceOnAfterGenerateRecargoEquivalenciaNodesV2 instead, which passes the native XmlNode. This event is still raised, but every raise converts the SII XML to a DotNet XmlDocument and back.', '30.0')]
     local procedure OnHandleReplacementPurchCorrectiveInvoiceOnAfterGenerateRecargoEquivalenciaNodes(var XMLNode: DotNet XmlNode; TempVATEntry: Record "VAT Entry")
     begin
     end;
@@ -3328,7 +3824,7 @@ codeunit 10750 "SII XML Creator"
 
 #if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer raised because the SII XML is now built with the native XML types. Subscribe to OnFillDetalleIVANodeOnAfterGenerateRecargoEquivalenciaNodesV2 instead.', '30.0')]
+    [Obsolete('Subscribe to OnFillDetalleIVANodeOnAfterGenerateRecargoEquivalenciaNodesV2 instead, which passes the native XmlNode. This event is still raised, but every raise converts the SII XML to a DotNet XmlDocument and back.', '30.0')]
     local procedure OnFillDetalleIVANodeOnAfterGenerateRecargoEquivalenciaNodes(var XMLNode: DotNet XmlNode; TempVATEntry: Record "VAT Entry")
     begin
     end;
@@ -3341,7 +3837,7 @@ codeunit 10750 "SII XML Creator"
 
 #if not CLEAN30
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer raised because the SII XML is now built with the native XML types. Subscribe to OnHandleReplacementPurchCorrectiveInvoiceOnAfterCuotaDeducibleV2 instead.', '30.0')]
+    [Obsolete('Subscribe to OnHandleReplacementPurchCorrectiveInvoiceOnAfterCuotaDeducibleV2 instead, which passes the native XmlNode. This event is still raised, but every raise converts the SII XML to a DotNet XmlDocument and back.', '30.0')]
     local procedure OnHandleReplacementPurchCorrectiveInvoiceOnAfterCuotaDeducible(var XMLNode: DotNet XmlNode; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
