@@ -3092,16 +3092,15 @@
     local procedure PostUnapplyCustLedgEntryOnDate(CustLedgerEntry: Record "Cust. Ledger Entry"; PostingDate: Date)
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        ApplyUnapplyParameters: Record "Apply Unapply Parameters";
+        TempApplyUnapplyParameters: Record "Apply Unapply Parameters";
         CustEntryApplyPostedEntries: Codeunit "CustEntry-Apply Posted Entries";
     begin
         DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
         DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
-        DetailedCustLedgEntry.SetRange(Unapplied, false);
         DetailedCustLedgEntry.FindLast();
-        ApplyUnapplyParameters."Document No." := CustLedgerEntry."Document No.";
-        ApplyUnapplyParameters."Posting Date" := PostingDate;
-        CustEntryApplyPostedEntries.PostUnApplyCustomer(DetailedCustLedgEntry, ApplyUnapplyParameters);
+        TempApplyUnapplyParameters."Document No." := CustLedgerEntry."Document No.";
+        TempApplyUnapplyParameters."Posting Date" := PostingDate;
+        CustEntryApplyPostedEntries.PostUnApplyCustomer(DetailedCustLedgEntry, TempApplyUnapplyParameters);
     end;
 
     local procedure GetCustLedgEntryRemAmtLCYOnDate(CustLedgerEntryNo: Integer; PostingDate: Date): Decimal
@@ -3545,8 +3544,11 @@
         DetailedCustLedgEntry.SetFilter("Entry No.", '>%1', LastEntryNoBeforeUnapply);
         DetailedCustLedgEntry.SetRange(
           "Entry Type", DetailedCustLedgEntry."Entry Type"::"Unrealized Loss", DetailedCustLedgEntry."Entry Type"::"Unrealized Gain");
-        DetailedCustLedgEntry.SetRange(Unapplied, false);
-        Assert.RecordIsEmpty(DetailedCustLedgEntry);
+        if DetailedCustLedgEntry.FindSet() then
+            repeat
+                Assert.IsTrue(
+                  DetailedCustLedgEntry.Unapplied, StrSubstNo(UnappliedErr, DetailedCustLedgEntry.TableCaption(), DetailedCustLedgEntry.Unapplied));
+            until DetailedCustLedgEntry.Next() = 0;
     end;
 
     local procedure VerifyGLEntries(DocumentNo: Code[20])

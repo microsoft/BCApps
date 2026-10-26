@@ -2223,16 +2223,15 @@
     local procedure PostUnapplyVendLedgEntryOnDate(VendorLedgerEntry: Record "Vendor Ledger Entry"; PostingDate: Date)
     var
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
-        ApplyUnapplyParameters: Record "Apply Unapply Parameters";
+        TempApplyUnapplyParameters: Record "Apply Unapply Parameters";
         VendEntryApplyPostedEntries: Codeunit "VendEntry-Apply Posted Entries";
     begin
         DetailedVendorLedgEntry.SetRange("Vendor Ledger Entry No.", VendorLedgerEntry."Entry No.");
         DetailedVendorLedgEntry.SetRange("Entry Type", DetailedVendorLedgEntry."Entry Type"::Application);
-        DetailedVendorLedgEntry.SetRange(Unapplied, false);
         DetailedVendorLedgEntry.FindLast();
-        ApplyUnapplyParameters."Document No." := VendorLedgerEntry."Document No.";
-        ApplyUnapplyParameters."Posting Date" := PostingDate;
-        VendEntryApplyPostedEntries.PostUnApplyVendor(DetailedVendorLedgEntry, ApplyUnapplyParameters);
+        TempApplyUnapplyParameters."Document No." := VendorLedgerEntry."Document No.";
+        TempApplyUnapplyParameters."Posting Date" := PostingDate;
+        VendEntryApplyPostedEntries.PostUnApplyVendor(DetailedVendorLedgEntry, TempApplyUnapplyParameters);
     end;
 
     local procedure GetVendLedgEntryRemAmtLCYOnDates(VendorLedgerEntryNo: Integer; PostingDate: array[3] of Date; var RemainingAmtLCY: array[3] of Decimal)
@@ -2914,8 +2913,14 @@
         DetailedVendorLedgEntry.SetFilter("Entry No.", '>%1', LastEntryNoBeforeUnapply);
         DetailedVendorLedgEntry.SetRange(
           "Entry Type", DetailedVendorLedgEntry."Entry Type"::"Unrealized Loss", DetailedVendorLedgEntry."Entry Type"::"Unrealized Gain");
-        DetailedVendorLedgEntry.SetRange(Unapplied, false);
-        Assert.RecordIsEmpty(DetailedVendorLedgEntry);
+        if DetailedVendorLedgEntry.FindSet() then
+            repeat
+                Assert.IsTrue(
+                  DetailedVendorLedgEntry.Unapplied,
+                  StrSubstNo(
+                    UnappliedErr, DetailedVendorLedgEntry.FieldCaption(Unapplied), DetailedVendorLedgEntry.Unapplied,
+                    DetailedVendorLedgEntry.TableCaption()));
+            until DetailedVendorLedgEntry.Next() = 0;
     end;
 
     [ConfirmHandler]
