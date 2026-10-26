@@ -69,6 +69,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         NextToDateBeforeFromDateErr: Label 'CalculateNextToDate returned %1 which is before FromDate %2. This would cause billing to get stuck.', Locked = true;
         NoContractLinesFoundErr: Label 'No contract lines were found that can be billed with the specified parameters.', Locked = true;
         ItemDeletedErr: Label 'Item created from catalog item should not be deleted when the billing invoice is deleted.', Locked = true;
+        UnitPriceErr: Label 'The unit price on the sales line does not match the expected value.', Locked = true;
         StrMenuHandlerStep: Integer;
 
     #region Tests
@@ -2477,6 +2478,47 @@ codeunit 139687 "Recurring Billing Docs Test"
         // [THEN] NextToDate is not before FromDate
         Assert.IsTrue(NextToDate >= FromDate,
             StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsSellToCustomerPageHandler,MessageHandler')]
+    procedure CreateSalesDocumentPerSellToCustomerUsesContractCurrency()
+    var
+        Customer: Record Customer;
+        ExpectedUnitPrice: Decimal;
+    begin
+        Initialize();
+
+        // [GIVEN] A customer in local currency with a contract and contract lines for items
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
+        Customer.Get(CustomerContract."Sell-to Customer No.");
+        Customer.Validate("Currency Code", LibraryERM.CreateCurrencyWithRandomExchRates());
+        Customer.Modify(false);
+        CustomerContract.TestField("Currency Code", '');
+
+        // [GIVEN] A billing proposal is created for the customer
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+
+        // [WHEN] Billing documents are created for the customer.
+        CreateBillingDocuments();
+
+        // [THEN] The sales document uses the contract currency
+        BillingLine.FindLast();
+        SalesHeader.Get(BillingLine.GetSalesDocumentTypeFromBillingDocumentType(), BillingLine."Document No.");
+        SalesHeader.TestField("Currency Code", CustomerContract."Currency Code");
+        SalesHeader.TestField("Currency Factor", 0);
+        FilterSalesLineOnDocumentLine(SalesHeader."Document Type", BillingLine."Document No.", BillingLine."Document Line No.");
+        SalesLine.FindFirst();
+        BillingLine.Reset();
+        BillingLine.SetRange("Document Type", BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesHeader."Document Type"));
+        BillingLine.SetRange("Document No.", SalesHeader."No.");
+        BillingLine.SetRange("Document Line No.", SalesLine."Line No.");
+        if BillingLine.FindSet() then
+            repeat
+                ExpectedUnitPrice += BillingLine."Unit Price";
+            until BillingLine.Next() = 0;
+        Assert.AreEqual(ExpectedUnitPrice, SalesLine."Unit Price", UnitPriceErr);
     end;
 
     [Test]
