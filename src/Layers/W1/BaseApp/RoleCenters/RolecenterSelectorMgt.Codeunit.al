@@ -204,7 +204,7 @@ codeunit 1485 "Rolecenter Selector Mgt."
     begin
         foreach ActionContainerXmlNode in MetadataXmlDocument.GetDescendantElements() do begin
             ActivityButtonsXmlElement := ActionContainerXmlNode.AsXmlElement();
-            if ActivityButtonsXmlElement.Name() = ActionContainerXmlElementLbl then
+            if ActivityButtonsXmlElement.LocalName() = ActionContainerXmlElementLbl then
                 if GetAttributeValue(ActionContainerXmlNode, ActionContainerTypeAttrLbl) = ActivityButtonsLbl then
                     exit(true);
         end;
