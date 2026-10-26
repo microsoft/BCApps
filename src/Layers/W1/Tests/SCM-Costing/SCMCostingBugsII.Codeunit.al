@@ -3031,6 +3031,66 @@ codeunit 137621 "SCM Costing Bugs II"
         VerifyAverageCostTransfersWithHistoricalBalance(30);
     end;
 
+    [Test]
+    procedure AverageCostTransferAdjustsWhenSameDaySalesDepleteInventory()
+    var
+        InventorySetup: Record "Inventory Setup";
+        Item: Record Item;
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        TransferHeader: Record "Transfer Header";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        InventoryAdjustment: Codeunit "Inventory Adjustment";
+    begin
+        // [FEATURE] [AI test 1.0] [Average Cost] [Transfer] [Sales]
+        // [SCENARIO 656611] Same-day sales depleting stock must not prevent a transfer from receiving the day's average cost.
+        Initialize();
+
+        // [GIVEN] Item "I" uses Item/Day averaging with automatic adjustment and cost posting disabled.
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+        LibraryInventory.SetAutomaticCostPosting(false);
+        LibraryInventory.SetAverageCostSetup(
+            InventorySetup."Average Cost Calc. Type"::Item, InventorySetup."Average Cost Period"::Day);
+        LibraryInventory.SetAverageCostSetupInAccPeriods(
+            InventorySetup."Average Cost Calc. Type"::Item, InventorySetup."Average Cost Period"::Day);
+        LibraryWarehouse.CreateTransferLocations(FromLocation, ToLocation, InTransitLocation);
+        LibraryInventory.CreateItemSimple(Item, Item."Costing Method"::Average, 10);
+
+        // [GIVEN] Receive ten units at cost 10 in "A", then transfer all ten to "B".
+        LibraryInventory.PostPositiveAdjustment(Item, FromLocation.Code, '', '', 10, WorkDate(), 10);
+        LibraryInventory.CreateAndPostTransferOrder(
+            TransferHeader, Item, FromLocation, ToLocation, InTransitLocation, '',
+            10, WorkDate(), WorkDate(), true, true);
+
+        // [GIVEN] Receive another ten units at cost 20 in "A" on the same day.
+        LibraryInventory.PostPositiveAdjustment(Item, FromLocation.Code, '', '', 10, WorkDate(), 20);
+
+        // [GIVEN] Sell and invoice ten units from each location that day, depleting stock without any earlier deficit.
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice, '', Item."No.", 10,
+            FromLocation.Code, WorkDate());
+        SalesHeader.Validate("Posting Date", WorkDate());
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 10);
+        SalesLine.Validate("Location Code", ToLocation.Code);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [WHEN] Adjust the item after all entries for the day have been posted.
+        Item.SetRecFilter();
+        InventoryAdjustment.SetProperties(false, false);
+        InventoryAdjustment.SetFilterItem(Item);
+        InventoryAdjustment.MakeMultiLevelAdjmt();
+
+        // [THEN] The transfer costs 150 and both empty locations have zero quantity and inventory value.
+        Item.Get(Item."No.");
+        Assert.IsTrue(Item."Cost is Adjusted", 'Cost adjustment must complete for the depleted item.');
+        VerifyDepletedAverageCostTransferLocation(Item."No.", FromLocation.Code, -150);
+        VerifyDepletedAverageCostTransferLocation(Item."No.", ToLocation.Code, 150);
+    end;
+
     local procedure VerifyAverageCostTransfersWithHistoricalBalance(NegativeQty: Decimal)
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -3159,6 +3219,30 @@ codeunit 137621 "SCM Costing Bugs II"
         LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Costing Bugs II");
+    end;
+
+    local procedure VerifyDepletedAverageCostTransferLocation(ItemNo: Code[20]; LocationCode: Code[10]; ExpectedTransferCost: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ValueEntry: Record "Value Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Location Code", LocationCode);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
+        ItemLedgerEntry.SetAutoCalcFields("Cost Amount (Actual)");
+        Assert.RecordCount(ItemLedgerEntry, 1);
+        ItemLedgerEntry.FindFirst();
+        Assert.AreNearlyEqual(
+            ExpectedTransferCost, ItemLedgerEntry."Cost Amount (Actual)", LibraryERM.GetAmountRoundingPrecision(),
+            'The transfer must use the same-day average cost even when later sales deplete stock.');
+
+        ValueEntry.SetRange("Item No.", ItemNo);
+        ValueEntry.SetRange("Location Code", LocationCode);
+        ValueEntry.CalcSums("Item Ledger Entry Quantity", "Cost Amount (Actual)");
+        Assert.AreEqual(0, ValueEntry."Item Ledger Entry Quantity", 'The location must have no remaining quantity.');
+        Assert.AreNearlyEqual(
+            0, ValueEntry."Cost Amount (Actual)", LibraryERM.GetAmountRoundingPrecision(),
+            'An empty location must not retain inventory value after cost adjustment.');
     end;
 
     local procedure CreateStandardCostItem(var Item: Record Item; StandardCost: Decimal; ReplenishmentSystem: Enum "Replenishment System")
