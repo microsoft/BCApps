@@ -27,6 +27,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         VendorPostingGroupMatchErr: Label 'G/L Entry Bill Account Not Matching with Purchase Invoice Vendor Posting Group Bill Account';
         VendorPostingGroupErr: Label 'Vendor Posting Group must be %1 in %2.', Comment = '%1= Value ,%2=Table Name';
         AltPostingGroupNotFilledInErr: Label 'You cannot change the value %1 to %2 because Alternative Employee Posting Group has not been filled in.', Comment = '%1 = posting group, %2 = alt. posting group';
+        GLEntryAmountErr: Label 'G/L entry amount %1 for posting group %2 is not correct', Locked = true;
+        GLEntryAddCurrAmountErr: Label 'G/L entry additional currency amount %1 for posting group %2 is not correct', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -1612,7 +1614,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
     begin
         GLEntry.SetRange("G/L Account No.", AccountNo);
         GLEntry.FindFirst();
-        Assert.AreEqual(Amount, GLEntry.Amount, StrSubstNo('G/L entry amount %1 for posting group %2 is not correct', GLEntry.Amount, AccountNo));
+        Assert.AreEqual(Amount, GLEntry.Amount, StrSubstNo(GLEntryAmountErr, GLEntry.Amount, AccountNo));
     end;
 
     local procedure VerifyGLEntryForGLAccountAndAddCurrAmount(var GLEntry: Record "G/L Entry"; AccountNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal)
@@ -1620,7 +1622,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
         VerifyGLEntryForGLAccount(GLEntry, AccountNo, Amount);
         Assert.AreEqual(
             AmountAddCurr, GLEntry."Additional-Currency Amount",
-            StrSubstNo('G/L entry additional currency amount %1 for posting group %2 is not correct', GLEntry."Additional-Currency Amount", AccountNo));
+            StrSubstNo(GLEntryAddCurrAmountErr, GLEntry."Additional-Currency Amount", AccountNo));
     end;
 
     local procedure UpdateServiceDocumentNos(DocType: Option Invoice,CreditMemo; var OldValue: Code[20]; ReturnOldValue: Boolean)
