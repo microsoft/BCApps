@@ -133,7 +133,7 @@ codeunit 4600 "SOA Document Events"
         TelemetryDimensions.Add('TaskId', Format(AgentTaskMessageAttachment."Task ID"));
         TelemetryDimensions.Add('TaskMessageId', Format(AgentTaskMessageAttachment."Message ID"));
         TelemetryDimensions.Add('FileId', Format(AgentTaskMessageAttachment."File ID", 0, 9));
-        FeatureTelemetry.LogError('', SOASetupCU.GetFeatureName(), 'Copy attachment to sales quote', Reason, '', TelemetryDimensions);
+        FeatureTelemetry.LogError('0000WB2', SOASetupCU.GetFeatureName(), 'Copy attachment to sales quote', Reason, '', TelemetryDimensions);
     end;
 
     local procedure CopyToDocument(FileInStream: InStream; SalesHeader: Record "Sales Header"; FileName: Text): Guid
