@@ -3,6 +3,7 @@ namespace Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Ledger;
 using System.AI;
 using System.Azure.KeyVault;
+using System.Config;
 using System.Environment;
 using System.Telemetry;
 using System.Upgrade;
@@ -260,11 +261,10 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
     internal procedure GetChatCompletionsDeployment(): Text
     var
         AOAIDeployments: Codeunit "AOAI Deployments";
-        AzureKeyVault: Codeunit "Azure Key Vault";
         ModelSwitchValue: Text;
     begin
-        // The model can be switched centrally through Key Vault. Blank, missing or unrecognized values fall back to GPT-4.1 latest.
-        if not AzureKeyVault.GetAzureKeyVaultSecret(ModelSwitchSecretNameTok, ModelSwitchValue) then
+        // The model can be switched per tenant through ECS feature configuration. Blank, missing or unrecognized values fall back to GPT-4.1 latest.
+        if not TryGetModelSwitchConfiguration(ModelSwitchValue) then
             ModelSwitchValue := '';
 
         case UpperCase(ModelSwitchValue.Trim()) of
@@ -277,6 +277,14 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
             else
                 exit(AOAIDeployments.GetGPT41Latest());
         end;
+    end;
+
+    [TryFunction]
+    local procedure TryGetModelSwitchConfiguration(var ModelSwitchValue: Text)
+    var
+        FeatureConfiguration: Codeunit "Feature Configuration";
+    begin
+        ModelSwitchValue := FeatureConfiguration.GetConfiguration(ModelSwitchConfigKeyTok);
     end;
 
     internal procedure GetModelTelemetryDimensions() TelemetryDimensions: Dictionary of [Text, Text]
@@ -786,7 +794,7 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
         ContentAreaCaptionTxt: label 'Reconciling %1 statement %2 for %3', Comment = '%1 - bank account code, %2 - statement number, %3 - statement date';
         TooManyOpenLedgerEntriesErr: label 'The number of open ledger entries for this bank account exceeds the capacity of data that we can send to Copilot. Open the bank account reconciliation card and use action ''Match Automatically'' to reconcile this statement. Perform the reconciliation month by month - reconciling the oldest open ledger entries first, then moving on to newer ones.';
         TooManyOpenLedgerEntriesTelemetryErr: label 'Throwing error that we are unable to build ledger entry candidate list.', Locked = true;
-        ModelSwitchSecretNameTok: Label 'BankRecWithAIModelSwitch', Locked = true;
+        ModelSwitchConfigKeyTok: Label 'BankRecWithAIModelSwitch', Locked = true;
         GPT41PreviewTok: Label 'GPT41Preview', Locked = true;
         GPT56CeresLatestTok: Label 'GPT56CeresLatest', Locked = true;
         GPT56CeresPreviewTok: Label 'GPT56CeresPreview', Locked = true;
