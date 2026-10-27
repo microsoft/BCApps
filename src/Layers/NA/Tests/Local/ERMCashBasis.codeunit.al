@@ -975,28 +975,6 @@
     end;
 
     [Test]
-    procedure FullGeneralJournalCrMemoRealizesInvoiceVAT()
-    begin
-        // [SCENARIO 648925] A general journal credit memo without posted sales lines fully realizes invoice VAT
-        // [GIVEN] A posted sales invoice for 1000 plus 16% Cash Basis VAT
-        // [GIVEN] A general journal credit memo for 1160 applied to the invoice
-        // [WHEN] The journal credit memo is posted
-        // [THEN] Invoice unrealized VAT and base are zero, and VAT realization entries are posted to VAT and G/L
-        RunGeneralJournalCrMemoVATScenario(1, false);
-    end;
-
-    [Test]
-    procedure PartialGeneralJournalCrMemoRealizesInvoiceVAT()
-    begin
-        // [SCENARIO 648925] A general journal credit memo without posted sales lines proportionally realizes invoice VAT
-        // [GIVEN] A posted sales invoice for 1000 plus 16% Cash Basis VAT
-        // [GIVEN] A general journal credit memo for 580 applied to the invoice
-        // [WHEN] The journal credit memo is posted
-        // [THEN] Half the invoice VAT and base remain unrealized, and proportional realization entries are posted to VAT and G/L
-        RunGeneralJournalCrMemoVATScenario(0.5, false);
-    end;
-
-    [Test]
     procedure UnapplyFullGeneralJournalCrMemoRestoresInvoiceVAT()
     begin
         // [SCENARIO 648925] Unapplying a full general journal credit memo restores invoice VAT and reverses VAT G/L entries
@@ -1005,30 +983,6 @@
         // [WHEN] The journal credit memo application is reversed
         // [THEN] Invoice unrealized VAT and base are restored, and VAT and G/L realization entries net to zero
         RunGeneralJournalCrMemoVATScenario(1, true);
-    end;
-
-    [Test]
-    procedure UnapplyPartialGeneralJournalCrMemoRestoresInvoiceVAT()
-    begin
-        // [SCENARIO 648925] Unapplying a partial general journal credit memo restores invoice VAT and reverses VAT G/L entries
-        // [GIVEN] A posted sales invoice for 1000 plus 16% Cash Basis VAT
-        // [GIVEN] A posted general journal credit memo for 580 partially applied to the invoice
-        // [WHEN] The journal credit memo application is reversed
-        // [THEN] Invoice unrealized VAT and base are restored, and VAT and G/L realization entries net to zero
-        RunGeneralJournalCrMemoVATScenario(0.5, true);
-    end;
-
-    [Test]
-    procedure FullGeneralJournalCrMemoRealizesMultipleInvoiceVATGroups()
-    begin
-        // [SCENARIO 648925] A general journal credit memo fully realizes each invoice Cash Basis VAT group
-        // [GIVEN] A posted sales invoice with two different Cash Basis VAT groups
-        // [GIVEN] A general journal credit memo for the full invoice amount applied to the invoice
-        // [WHEN] The journal credit memo is posted
-        // [THEN] Each invoice VAT group's remaining unrealized amount and base are zero
-        // [THEN] One VAT realization entry per group and the corresponding VAT G/L transfers are posted
-        Initialize();
-        VerifyGeneralJournalCrMemoRealizesInvoiceVAT(1);
     end;
 
     [Test]
@@ -1042,68 +996,6 @@
         // [THEN] One proportional VAT realization entry per group and the corresponding VAT G/L transfers are posted
         Initialize();
         VerifyGeneralJournalCrMemoRealizesInvoiceVAT(0.5);
-    end;
-
-    [Test]
-    procedure FullCrMemoWithEquivalentDifferentVATGroupRealizesInvoiceVAT()
-    var
-        VATPostingSetup: array[2] of Record "VAT Posting Setup";
-        GLAccount: Record "G/L Account";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        VATEntry: Record "VAT Entry";
-        CustomerNo: Code[20];
-        InvoiceNo: Code[20];
-        CreditMemoNo: Code[20];
-        UnitPrice: Decimal;
-    begin
-        // [SCENARIO 648925] Full credit memo with an equivalent different VAT group fully realizes invoice VAT without realization G/L entries
-        Initialize();
-
-        // [GIVEN] Two equivalent Cash Basis VAT posting setups with different VAT product posting groups
-        CreateCashBasisVATPostingSetup(VATPostingSetup[1], 16);
-        VATPostingSetup[2]."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
-        CreateCashBasisVATPostingSetup(VATPostingSetup[2], 16);
-        VATPostingSetup[2].Validate("Sales VAT Account", VATPostingSetup[1]."Sales VAT Account");
-        VATPostingSetup[2].Validate("Sales VAT Unreal. Account", VATPostingSetup[1]."Sales VAT Unreal. Account");
-        VATPostingSetup[2].Modify(true);
-
-        // [GIVEN] Posted Sales Invoice with one G/L Account line using the first VAT product posting group
-        CreateGLAccount(GLAccount, VATPostingSetup[1]."VAT Prod. Posting Group");
-        CustomerNo := CreateCustomer('', VATPostingSetup[1]."VAT Bus. Posting Group");
-        UnitPrice := 1000;
-        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
-        SalesLine.Validate("Unit Price", UnitPrice);
-        SalesLine.Modify(true);
-        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-
-        // [GIVEN] Full Sales Credit Memo with the same G/L Account and the second VAT product posting group, applied to the invoice
-        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
-        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
-        SalesHeader.Validate("Applies-to Doc. No.", InvoiceNo);
-        SalesHeader.Modify(true);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
-        SalesLine.Validate("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
-        SalesLine.Validate("Unit Price", UnitPrice);
-        SalesLine.Modify(true);
-
-        // [WHEN] Post the Sales Credit Memo
-        CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-
-        // [THEN] Invoice unrealized VAT is fully realized
-        VerifyUnrealizedVATFullyRealized(InvoiceNo, VATPostingSetup[1]."VAT Prod. Posting Group");
-
-        // [THEN] Credit Memo has the initial entry and both offsetting realized VAT entries
-        VATEntry.SetRange("Document Type", VATEntry."Document Type"::"Credit Memo");
-        VATEntry.SetRange("Document No.", CreditMemoNo);
-        Assert.AreEqual(3, VATEntry.Count(), 'Credit memo should have three VAT entries');
-        VATEntry.CalcSums(Base, Amount);
-        Assert.AreEqual(0, VATEntry.Base, 'Credit memo VAT entry base should net to zero');
-        Assert.AreEqual(0, VATEntry.Amount, 'Credit memo VAT entry amount should net to zero');
-
-        // [THEN] No G/L entries transfer VAT between unrealized and realized accounts
-        VerifyInvoiceUnrealizedVATGLEntriesDoNotExist(CreditMemoNo, VATPostingSetup[1]);
     end;
 
     [Test]

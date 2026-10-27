@@ -1842,7 +1842,8 @@ table 21 "Cust. Ledger Entry"
         Clear(CreditMemoVATBusPostingGroup);
         Clear(CreditMemoVATProdPostingGroup);
         SalesCrMemoLine.SetRange("Document No.", CreditMemoDocumentNo);
-        SalesCrMemoLine.SetLoadFields("Amount Including VAT", "VAT Bus. Posting Group", "VAT Prod. Posting Group");
+        SalesCrMemoLine.SetFilter(Type, '<>%1', SalesCrMemoLine.Type::" ");
+        SalesCrMemoLine.SetLoadFields(Type, "Amount Including VAT", "VAT Bus. Posting Group", "VAT Prod. Posting Group");
         if SalesCrMemoLine.FindSet() then
             repeat
                 CreditMemoAmount += SalesCrMemoLine."Amount Including VAT";
