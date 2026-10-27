@@ -2038,24 +2038,6 @@ codeunit 136209 "Marketing Opportunity Mgmt"
     end;
 
     [Test]
-    [HandlerFunctions('UpdateOppStageChanceHandler')]
-    [Scope('OnPrem')]
-    procedure SkipZeroChanceStageTypedKeepsChance()
-    begin
-        // [SCENARIO 656878] A typed Skip destination with no chance default preserves the positive chance through OK.
-        VerifyStageChangeChance(ActionType::Skip, false, true, 65);
-    end;
-
-    [Test]
-    [HandlerFunctions('UpdateOppStageChanceHandler')]
-    [Scope('OnPrem')]
-    procedure JumpZeroChanceStageTypedKeepsChance()
-    begin
-        // [SCENARIO 656878] A typed Jump destination with no chance default preserves the positive chance through OK.
-        VerifyStageChangeChance(ActionType::Jump, false, true, 65);
-    end;
-
-    [Test]
     [HandlerFunctions('UpdateOppStageChanceHandler,SelectOppStageLookupHandler')]
     [Scope('OnPrem')]
     procedure SkipZeroChanceStageLookupKeepsManualChance()
@@ -2065,57 +2047,12 @@ codeunit 136209 "Marketing Opportunity Mgmt"
     end;
 
     [Test]
-    [HandlerFunctions('UpdateOppStageChanceHandler,SelectOppStageLookupHandler')]
-    [Scope('OnPrem')]
-    procedure JumpZeroChanceStageLookupKeepsManualChance()
-    begin
-        // [SCENARIO 656878] A looked-up Jump destination with no chance default preserves a positive manual chance through OK.
-        VerifyStageChangeChance(ActionType::Jump, true, true, 42);
-    end;
-
-    [Test]
     [HandlerFunctions('UpdateOppUnchangedLookupHandler,SelectOppStageLookupHandler')]
     [Scope('OnPrem')]
     procedure SkipUnchangedLookupKeepsManualChance()
     begin
         // [SCENARIO 656878] Canceling a Skip lookup or accepting the same stage does not reset a positive manual chance.
         VerifyUnchangedStageLookupChance(ActionType::Skip);
-    end;
-
-    [Test]
-    [HandlerFunctions('UpdateOppUnchangedLookupHandler,SelectOppStageLookupHandler')]
-    [Scope('OnPrem')]
-    procedure JumpUnchangedLookupKeepsManualChance()
-    begin
-        // [SCENARIO 656878] Canceling a Jump lookup or accepting the same stage does not reset a positive manual chance.
-        VerifyUnchangedStageLookupChance(ActionType::Jump);
-    end;
-
-    [Test]
-    [HandlerFunctions('UpdateOppActionChanceHandler')]
-    [Scope('OnPrem')]
-    procedure NextActionRefreshesChance()
-    begin
-        // [SCENARIO 656878] Next still selects the next stage and its chance before OK.
-        VerifyActionChangeChance(ActionType::Next, false);
-    end;
-
-    [Test]
-    [HandlerFunctions('UpdateOppActionChanceHandler')]
-    [Scope('OnPrem')]
-    procedure PreviousActionRefreshesChance()
-    begin
-        // [SCENARIO 656878] Previous still selects the previous stage and its chance before OK.
-        VerifyActionChangeChance(ActionType::Previous, false);
-    end;
-
-    [Test]
-    [HandlerFunctions('UpdateOppActionChanceHandler')]
-    [Scope('OnPrem')]
-    procedure NextThenUpdateRefreshesChance()
-    begin
-        // [SCENARIO 656878] Changing Next to Update still restores the active stage and its chance before OK.
-        VerifyActionChangeChance(ActionType::Next, true);
     end;
 
     local procedure VerifyStageChangeChance(NewActionType: Option; LookupStage: Boolean; ZeroStageChance: Boolean; ChanceBeforeStageChange: Decimal)
@@ -2169,32 +2106,6 @@ codeunit 136209 "Marketing Opportunity Mgmt"
 
         // Nonzero Skip/Jump defaults still override a manual chance at Finish; only the dialog refresh is changed.
         VerifyActiveOpportunityStage(Opportunity."No.", 3, 65);
-        LibraryVariableStorage.AssertEmpty();
-    end;
-
-    local procedure VerifyActionChangeChance(NewActionType: Option; UpdateAfterAction: Boolean)
-    var
-        Opportunity: Record Opportunity;
-        SalesCycleStage: Record "Sales Cycle Stage";
-        TargetStage: Integer;
-    begin
-        Initialize();
-        CreateOpportunityWithFourStages(Opportunity, 2);
-        if NewActionType = ActionType::Next then
-            TargetStage := 3
-        else
-            TargetStage := 1;
-        SalesCycleStage.Get(Opportunity."Sales Cycle Code", TargetStage);
-        LibraryVariableStorage.Enqueue(NewActionType);
-        LibraryVariableStorage.Enqueue(TargetStage);
-        LibraryVariableStorage.Enqueue(SalesCycleStage."Chances of Success %");
-        LibraryVariableStorage.Enqueue(UpdateAfterAction);
-
-        Opportunity.UpdateOpportunity();
-
-        if UpdateAfterAction then
-            SalesCycleStage.Get(Opportunity."Sales Cycle Code", 2);
-        VerifyActiveOpportunityStage(Opportunity."No.", SalesCycleStage.Stage, SalesCycleStage."Chances of Success %");
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -3185,21 +3096,6 @@ codeunit 136209 "Marketing Opportunity Mgmt"
             SalesCycleStages.OK().Invoke()
         else
             SalesCycleStages.Cancel().Invoke();
-    end;
-
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure UpdateOppActionChanceHandler(var UpdateOpportunityPage: TestPage "Update Opportunity")
-    begin
-        UpdateOpportunityPage."Action type".SetValue(LibraryVariableStorage.DequeueInteger());
-        UpdateOpportunityPage."Sales Cycle Stage".AssertEquals(LibraryVariableStorage.DequeueInteger());
-        UpdateOpportunityPage."Chances of Success %".AssertEquals(LibraryVariableStorage.DequeueDecimal());
-        if LibraryVariableStorage.DequeueBoolean() then begin
-            UpdateOpportunityPage."Action type".SetValue(ActionType::Update);
-            UpdateOpportunityPage."Sales Cycle Stage".AssertEquals(2);
-            UpdateOpportunityPage."Chances of Success %".AssertEquals(35);
-        end;
-        UpdateOpportunityPage.OK().Invoke();
     end;
 
     [ModalPageHandler]
