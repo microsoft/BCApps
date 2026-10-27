@@ -2519,6 +2519,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         Customer: Record Customer;
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
+        DetailedCustLedgEntry.SetRange("Entry No.", 0, DetailedCustLedgEntry.GetLastEntryNo());
         DetailedCustLedgEntry.SetCurrentKey("Cust. Ledger Entry No.", "Posting Date");
         DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
         DetailedCustLedgEntry.SetFilter("Posting Date", '%1..', GenJournalLine."Posting Date");
@@ -2535,8 +2536,9 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 CustLedgerEntry."Currency Code",
                 GetExchRateAdjmtCurrencyFactor(DetailedCustLedgEntry."Exch. Rate Adjmt. Reg. No.", CustLedgerEntry."Adjusted Currency Factor"));
             AdjustCustomerLedgerEntry(Customer, CustLedgerEntry, DetailedCustLedgEntry."Posting Date", true);
+            HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Customer);
+            TempDtldCustLedgEntrySums.DeleteAll();
         until DetailedCustLedgEntry.Next() = 0;
-        HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Customer);
         exit(true);
     end;
 
@@ -2545,6 +2547,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         Vendor: Record Vendor;
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
     begin
+        DetailedVendorLedgEntry.SetRange("Entry No.", 0, DetailedVendorLedgEntry.GetLastEntryNo());
         DetailedVendorLedgEntry.SetCurrentKey("Vendor Ledger Entry No.", "Posting Date");
         DetailedVendorLedgEntry.SetRange("Vendor Ledger Entry No.", VendLedgerEntry."Entry No.");
         DetailedVendorLedgEntry.SetFilter("Posting Date", '%1..', GenJournalLine."Posting Date");
@@ -2561,8 +2564,9 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 VendLedgerEntry."Currency Code",
                 GetExchRateAdjmtCurrencyFactor(DetailedVendorLedgEntry."Exch. Rate Adjmt. Reg. No.", VendLedgerEntry."Adjusted Currency Factor"));
             AdjustVendorLedgerEntry(Vendor, VendLedgerEntry, DetailedVendorLedgEntry."Posting Date", true);
+            HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Vendor);
+            TempDtldVendLedgEntrySums.DeleteAll();
         until DetailedVendorLedgEntry.Next() = 0;
-        HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Vendor);
         exit(true);
     end;
 
@@ -2571,6 +2575,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         Employee: Record Employee;
         DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry";
     begin
+        DetailedEmployeeLedgerEntry.SetRange("Entry No.", 0, DetailedEmployeeLedgerEntry.GetLastEntryNo());
         DetailedEmployeeLedgerEntry.SetCurrentKey("Employee Ledger Entry No.", "Posting Date");
         DetailedEmployeeLedgerEntry.SetRange("Employee Ledger Entry No.", EmplLedgerEntry."Entry No.");
         DetailedEmployeeLedgerEntry.SetFilter("Posting Date", '%1..', GenJournalLine."Posting Date");
@@ -2587,8 +2592,9 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 EmplLedgerEntry."Currency Code",
                 GetExchRateAdjmtCurrencyFactor(DetailedEmployeeLedgerEntry."Exch. Rate Adjmt. Reg. No.", EmplLedgerEntry."Adjusted Currency Factor"));
             AdjustEmployeeLedgerEntry(Employee, EmplLedgerEntry, DetailedEmployeeLedgerEntry."Posting Date", true);
+            HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Employee);
+            TempDtldEmplLedgEntrySums.DeleteAll();
         until DetailedEmployeeLedgerEntry.Next() = 0;
-        HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Employee);
         exit(true);
     end;
 
