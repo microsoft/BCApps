@@ -860,9 +860,13 @@ page 4410 "SOA Multi Items Availability"
 
     trigger OnFindRecord(Which: Text): Boolean
     var
+        SOAPriceCalcNotification: Codeunit "SOA Price Calc. Notification";
+        PriceCalcErrorNotification: Notification;
         Found: Boolean;
         IsHandled: Boolean;
     begin
+        PriceCalcErrorNotification.Id := SOAPriceCalcNotification.GetNotificationId();
+        PriceCalcErrorNotification.Recall();
         PriceCalcNotificationSent := false;
 
         IsHandled := false;
