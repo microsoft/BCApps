@@ -279,6 +279,11 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
         end;
     end;
 
+    internal procedure GetModelTelemetryDimensions() TelemetryDimensions: Dictionary of [Text, Text]
+    begin
+        TelemetryDimensions.Add('DeploymentName', GetChatCompletionsDeployment());
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Match Bank Rec. Lines", 'OnFindBestMatches', '', false, false)]
     local procedure HandleOnFindBestMatches(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempBankAccLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; DaysTolerance: Integer; var TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; var RemovedPreviouslyAssigned: Boolean; var Handled: Boolean)
     var
@@ -492,7 +497,7 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
 
         if not TempBankAccLedgerEntryMatchingBuffer.IsEmpty() then begin
             FeatureTelemetry.LogUptake('0000LF5', FeatureName(), Enum::"Feature Uptake Status"::Used);
-            FeatureTelemetry.LogUsage('0000LF6', FeatureName(), 'Match proposals');
+            FeatureTelemetry.LogUsage('0000LF6', FeatureName(), 'Match proposals', GetModelTelemetryDimensions());
             // Initialize the counts
             CompletionTaskTxt := BuildBankRecCompletionTask(true);
             TaskPromptTokenCount := AOAIToken.GetGPT4TokenCount(CompletionTaskTxt);
