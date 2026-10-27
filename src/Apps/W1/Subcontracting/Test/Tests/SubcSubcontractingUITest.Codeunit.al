@@ -322,6 +322,98 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
+    procedure WorkCenterCardPersistsPendingChangesWhenSubcontractorIsValidated()
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 651344] Pending Work Center changes are persisted when Subcontractor No. is validated.
+        Initialize();
+
+        // [GIVEN] Work Center "WC" with time-based unit costs and subcontractor "V"
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Unit Cost Calculation", WorkCenter."Unit Cost Calculation"::Time);
+        WorkCenter.Modify(true);
+        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+
+        // [WHEN] Unit Cost Calculation is changed to Units and "V" is selected on the Work Center Card
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+        WorkCenterCard."Unit Cost Calculation".SetValue(WorkCenter."Unit Cost Calculation"::Units);
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
+
+        // [THEN] Both changes remain on the page and are persisted
+        WorkCenterCard."Unit Cost Calculation".AssertEquals(WorkCenter."Unit Cost Calculation"::Units);
+        WorkCenterCard."Subcontractor No.".AssertEquals(Vendor."No.");
+        WorkCenterCard.Close();
+        WorkCenter.Get(WorkCenter."No.");
+        Assert.AreEqual(WorkCenter."Unit Cost Calculation"::Units, WorkCenter."Unit Cost Calculation", 'Unit Cost Calculation should be persisted.');
+        Assert.AreEqual(Vendor."No.", WorkCenter."Subcontractor No.", 'Subcontractor No. should be persisted.');
+    end;
+
+    [Test]
+    procedure WorkCenterCardEnablesSubcontractingActionsAfterSettingSubcontractor()
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 637771] Subcontracting actions are enabled immediately after setting Subcontractor No.
+        Initialize();
+
+        // [GIVEN] Work Center "WC" without a subcontractor and subcontractor "V"
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+
+        // [WHEN] "V" is selected as the subcontractor
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
+
+        // [THEN] Subcontracting actions are enabled without reopening the card
+        Assert.IsTrue(WorkCenterCard."Subcontractor Prices".Enabled(), SubcontractingActionsNotEnabledErr);
+        Assert.IsTrue(WorkCenterCard."Subcontractor Dispatch List".Enabled(), SubcontractingActionsNotEnabledErr);
+        WorkCenterCard.Close();
+    end;
+
+    [Test]
+    procedure WorkCenterCardDisablesSubcontractingActionsAfterClearingSubcontractor()
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 637771] Subcontracting actions are disabled immediately after clearing Subcontractor No.
+        Initialize();
+
+        // [GIVEN] Work Center "WC" with subcontractor "V" and time-based unit costs
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Validate("Unit Cost Calculation", WorkCenter."Unit Cost Calculation"::Time);
+        WorkCenter.Modify(true);
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+
+        // [WHEN] Unit Cost Calculation is changed to Units and the subcontractor is cleared
+        WorkCenterCard."Unit Cost Calculation".SetValue(WorkCenter."Unit Cost Calculation"::Units);
+        WorkCenterCard."Subcontractor No.".SetValue('');
+
+        // [THEN] Subcontracting actions are disabled and the pending unit-cost change is persisted
+        Assert.IsFalse(WorkCenterCard."Subcontractor Prices".Enabled(), SubcontractingActionsEnabledErr);
+        Assert.IsFalse(WorkCenterCard."Subcontractor Dispatch List".Enabled(), SubcontractingActionsEnabledErr);
+        WorkCenterCard."Unit Cost Calculation".AssertEquals(WorkCenter."Unit Cost Calculation"::Units);
+        WorkCenterCard.Close();
+        WorkCenter.Get(WorkCenter."No.");
+        Assert.AreEqual(WorkCenter."Unit Cost Calculation"::Units, WorkCenter."Unit Cost Calculation", 'Unit Cost Calculation should be persisted.');
+        Assert.AreEqual('', WorkCenter."Subcontractor No.", 'Subcontractor No. should be cleared.');
+    end;
+
+    [Test]
     procedure WorkCenterListSubcontractingActionsDisabledWhenNotSubcontracting()
     var
         WorkCenter: Record "Work Center";
