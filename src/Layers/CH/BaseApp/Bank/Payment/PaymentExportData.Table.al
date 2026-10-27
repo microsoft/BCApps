@@ -745,7 +745,7 @@ table 1226 "Payment Export Data"
     procedure SetEmployeeAsRecipient(var Employee: Record Employee)
     begin
         "Recipient Name" := CopyStr(Employee.FullName(), 1, MaxStrLen("Recipient Name"));
-        "Recipient Address" := RecipientAddress(Employee.Address, Employee."Address 2");
+        "Recipient Address" := SetRecipientAddress(Employee.Address, Employee."Address 2");
         "Recipient City" := CopyStr(Employee.City, 1, 35);
         "Recipient County" := Employee.County;
         "Recipient Post Code" := Employee."Post Code";
