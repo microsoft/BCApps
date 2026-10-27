@@ -189,7 +189,7 @@ table 7000020 "Payment Order"
 
                 if ("Currency Code" <> xRec."Currency Code") and not PmtOrdIsEmpty() then
                     FieldError("Currency Code",
-                      StrSubstNo(Text1100001, TableCaption));
+                      StrSubstNo(Text1100001Lbl, TableCaption));
 
                 if "Currency Code" <> '' then begin
                     Currency.Reset();
@@ -197,7 +197,7 @@ table 7000020 "Payment Order"
                     Currency.Code := "Currency Code";
                     if not Currency.Find() then
                         Error(
-                          Text1100002,
+                          Text1100002Lbl,
                           "Currency Code");
                 end;
 
@@ -266,7 +266,7 @@ table 7000020 "Payment Order"
         Doc.SetRange(Type, Doc.Type::Payable);
         Doc.SetRange("Bill Gr./Pmt. Order No.", "No.");
         if Doc.FindFirst() then
-            Error(Text1100000);
+            Error(Text1100000Lbl);
 
         BGPOCommentLine.SetRange("BG/PO No.", "No.");
         BGPOCommentLine.DeleteAll();
@@ -298,15 +298,6 @@ table 7000020 "Payment Order"
     end;
 
     var
-        Text1100000: Label 'This Payment Order is not empty. Remove all its bills and invoices and try again.';
-        Text1100001: Label 'can only be changed when the %1 is empty';
-        Text1100002: Label 'The operation is not allowed for payment order using %1. Check your currency setup.';
-        Text1100003: Label 'This payment order has already been printed. Proceed anyway?';
-        Text1100004: Label 'The update has been interrupted by the user.';
-        Text1100005: Label 'Payment Order';
-        Text1100006: Label ' is currently in use in a Posted Payment Order.';
-        Text1100007: Label ' is currently in use in a Closed Payment Order.';
-        Text1100008: Label 'untitled';
         PmtOrd: Record "Payment Order";
         PostedPmtOrd: Record "Posted Payment Order";
         ClosedPmtOrd: Record "Closed Payment Order";
@@ -316,6 +307,15 @@ table 7000020 "Payment Order"
         BankAcc: Record "Bank Account";
         BGPOCommentLine: Record "BG/PO Comment Line";
         Currencies: Page Currencies;
+        Text1100000Lbl: Label 'This Payment Order is not empty. Remove all its bills and invoices and try again.';
+        Text1100001Lbl: Label 'can only be changed when the %1 is empty', Comment = '%1 = Table caption';
+        Text1100002Lbl: Label 'The operation is not allowed for payment order using %1. Check your currency setup.', Comment = '%1 = Currency code';
+        Text1100003Lbl: Label 'This payment order has already been printed. Proceed anyway?';
+        Text1100004Lbl: Label 'The update has been interrupted by the user.';
+        Text1100005Lbl: Label 'Payment Order';
+        Text1100006Lbl: Label ' is currently in use in a Posted Payment Order.';
+        Text1100007Lbl: Label ' is currently in use in a Closed Payment Order.';
+        Text1100008Lbl: Label 'untitled';
         ExportAgainQst: Label 'The selected payment order has already been exported. Do you want to export again?';
 
     [Scope('OnPrem')]
@@ -336,8 +336,8 @@ table 7000020 "Payment Order"
     local procedure CheckPrinted()
     begin
         if "No. Printed" <> 0 then
-            if not Confirm(Text1100003) then
-                Error(Text1100004);
+            if not Confirm(Text1100003Lbl) then
+                Error(Text1100004Lbl);
     end;
 
     [Scope('OnPrem')]
@@ -348,15 +348,15 @@ table 7000020 "Payment Order"
 
     local procedure UpdateDescription()
     begin
-        "Posting Description" := Text1100005 + ' ' + "No.";
+        "Posting Description" := Text1100005Lbl + ' ' + "No.";
     end;
 
     local procedure CheckNoNotUsed()
     begin
         if PostedPmtOrd.Get("No.") then
-            FieldError("No.", PostedPmtOrd."No." + Text1100006);
+            FieldError("No.", PostedPmtOrd."No." + Text1100006Lbl);
         if ClosedPmtOrd.Get("No.") then
-            FieldError("No.", ClosedPmtOrd."No." + Text1100007);
+            FieldError("No.", ClosedPmtOrd."No." + Text1100007Lbl);
     end;
 
     [Scope('OnPrem')]
@@ -384,7 +384,7 @@ table 7000020 "Payment Order"
     procedure Caption(): Text
     begin
         if "No." = '' then
-            exit(Text1100008);
+            exit(Text1100008Lbl);
         CalcFields("Bank Account Name");
         exit(StrSubstNo('%1 %2', "No.", "Bank Account Name"));
     end;

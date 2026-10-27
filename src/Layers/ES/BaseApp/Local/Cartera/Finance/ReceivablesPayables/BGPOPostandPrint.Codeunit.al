@@ -23,21 +23,21 @@ codeunit 7000003 "BG/PO-Post and Print"
     end;
 
     var
-        Text1100000: Label 'This Bill Group has not been printed. Do you want to continue?';
-        Text1100001: Label 'The posting process has been cancelled by the user.';
-        Text1100002: Label 'Do you want to post the Bill Group?';
-        Text1100003: Label 'This Payment Order has not been printed. Do you want to continue?';
-        Text1100004: Label 'Do you want to post the Payment Order?';
         CarteraReportSelection: Record "Cartera Report Selections";
+        Text1100000Lbl: Label 'This Bill Group has not been printed. Do you want to continue?';
+        Text1100001Lbl: Label 'The posting process has been cancelled by the user.';
+        Text1100002Lbl: Label 'Do you want to post the Bill Group?';
+        Text1100003Lbl: Label 'This Payment Order has not been printed. Do you want to continue?';
+        Text1100004Lbl: Label 'Do you want to post the Payment Order?';
 
     procedure ReceivablePostOnly(BillGr: Record "Bill Group")
     begin
         if BillGr."No. Printed" = 0 then begin
-            if not Confirm(Text1100000) then
-                Error(Text1100001);
+            if not Confirm(Text1100000Lbl) then
+                Error(Text1100001Lbl);
         end else
-            if not Confirm(Text1100002, false) then
-                Error(Text1100001);
+            if not Confirm(Text1100002Lbl, false) then
+                Error(Text1100001Lbl);
 
         BillGr.SetRecFilter();
         REPORT.RunModal(REPORT::"Post Bill Group", BillGr."Dealing Type" = BillGr."Dealing Type"::Discount, false, BillGr);
@@ -71,11 +71,11 @@ codeunit 7000003 "BG/PO-Post and Print"
         OnBeforePayablePostOnly(PmtOrd, IsHandled);
         if not IsHandled then
             if PmtOrd."No. Printed" = 0 then begin
-                if not Confirm(Text1100003) then
-                    Error(Text1100001);
+                if not Confirm(Text1100003Lbl) then
+                    Error(Text1100001Lbl);
             end else
-                if not Confirm(Text1100004, false) then
-                    Error(Text1100001);
+                if not Confirm(Text1100004Lbl, false) then
+                    Error(Text1100001Lbl);
 
         PmtOrd.SetRecFilter();
         REPORT.RunModal(REPORT::"Post Payment Order", false, false, PmtOrd);

@@ -37,7 +37,7 @@ report 7000093 "Bill group - Export N32"
 
                     Customer.Get(CustLedgEntry."Customer No.");
                     if not CustBankAcc.Get(CustLedgEntry."Customer No.", "Cust./Vendor Bank Acc. Code") then
-                        Error(Text1100007);
+                        Error(Text1100007Lbl);
 
                     Customer2 := CustBankAcc."CCC Bank No.";
                     CustCCCBankBranchNo := CustBankAcc."CCC Bank Branch No.";
@@ -47,14 +47,14 @@ report 7000093 "Bill group - Export N32"
                     if (Customer2 = '') or (CustCCCBankBranchNo = '') or
                        (CustCCCControlDigits = '') or (CustCCCAccNo = '')
                     then
-                        Error(Text1100008, CustBankAcc."Customer No.");
+                        Error(Text1100008Lbl, CustBankAcc."Customer No.");
 
                     CustAddress[1] := Customer.Name;
                     CustAddress[2] := Customer.Address;
                     CustAddress[3] := Customer.City;
                     CustAddress[4] := Customer."Post Code";
 
-                    AdditionalInfo := Text1100009 + "Document No." + '/' + "No.";
+                    AdditionalInfo := Text1100009Lbl + "Document No." + '/' + "No.";
 
                     if Accepted = Accepted::Yes then
                         IsAccepted := '1'
@@ -70,7 +70,7 @@ report 7000093 "Bill group - Export N32"
                                 DocAmount := DelStr(EuroAmount("Remaining Amt. (LCY)"), 1, 1);
                                 TotalAmount := TotalAmount + "Remaining Amt. (LCY)";
                             end else begin
-                                DocAmount := ConvertStr(Format("Remaining Amount", 9, Text1100010), ' ', '0');
+                                DocAmount := ConvertStr(Format("Remaining Amount", 9, Text1100010Lbl), ' ', '0');
                                 TotalAmount := TotalAmount + "Remaining Amount";
                             end;
                         LCY = LCY::Other:
@@ -78,7 +78,7 @@ report 7000093 "Bill group - Export N32"
                                 if IsEuro then
                                     DocAmount := DelStr(EuroAmount("Remaining Amount"), 1, 1)
                                 else
-                                    DocAmount := ConvertStr(Format("Remaining Amount", 9, Text1100010), ' ', '0');
+                                    DocAmount := ConvertStr(Format("Remaining Amount", 9, Text1100010Lbl), ' ', '0');
                                 TotalAmount := TotalAmount + "Remaining Amount";
                             end;
                     end;
@@ -114,7 +114,7 @@ report 7000093 "Bill group - Export N32"
                                 BillGrAmount := EuroAmount("Bill Group"."Amount (LCY)")
                             end else begin
                                 "Bill Group".CalcFields(Amount);
-                                BillGrAmount := ConvertStr(Format("Bill Group".Amount, 10, Text1100006), ' ', '0')
+                                BillGrAmount := ConvertStr(Format("Bill Group".Amount, 10, Text1100006Lbl), ' ', '0')
                             end;
                         LCY = LCY::Other:
                             if IsEuro then begin
@@ -122,7 +122,7 @@ report 7000093 "Bill group - Export N32"
                                 BillGrAmount := EuroAmount("Bill Group".Amount)
                             end else begin
                                 "Bill Group".CalcFields(Amount);
-                                BillGrAmount := ConvertStr(Format("Bill Group".Amount, 10, Text1100006), ' ', '0')
+                                BillGrAmount := ConvertStr(Format("Bill Group".Amount, 10, Text1100006Lbl), ' ', '0')
                             end;
                     end;
 
@@ -131,8 +131,8 @@ report 7000093 "Bill group - Export N32"
                     OutText :=
                       '71' + RegisterString + '  ' + Format(WorkDate(), 6, 5) + PadStr(BillGrNo, 4, '0') + PadStr('', 59, ' ') +
                       BillGrAmount + PadStr('', 46, ' ') +
-                      ConvertStr(Format(TotalPosted, 7, Text1100006), ' ', '0') +
-                      ConvertStr(Format(TotalDocs, 6, Text1100006), ' ', '0');
+                      ConvertStr(Format(TotalPosted, 7, Text1100006Lbl), ' ', '0') +
+                      ConvertStr(Format(TotalDocs, 6, Text1100006Lbl), ' ', '0');
                     OutFile.Write(OutText);
 
                     DiskTotalPosted := DiskTotalPosted + TotalPosted;
@@ -176,15 +176,15 @@ report 7000093 "Bill group - Export N32"
                 if IsEuro then
                     OutText :=
                       '98' + RegisterString + '  ' + PadStr('', 69, ' ') + EuroAmount(TotalAmount) +
-                      PadStr('', 41, ' ') + ConvertStr(Format(TotalBillGr, 5, Text1100006), ' ', '0') +
-                      ConvertStr(Format(DiskTotalPosted + 2, 7, Text1100006), ' ', '0') +
-                      ConvertStr(Format(DiskTotalDocs, 6, Text1100006), ' ', '0')
+                      PadStr('', 41, ' ') + ConvertStr(Format(TotalBillGr, 5, Text1100006Lbl), ' ', '0') +
+                      ConvertStr(Format(DiskTotalPosted + 2, 7, Text1100006Lbl), ' ', '0') +
+                      ConvertStr(Format(DiskTotalDocs, 6, Text1100006Lbl), ' ', '0')
                 else
                     OutText :=
-                      '98' + RegisterString + '  ' + PadStr('', 69, ' ') + ConvertStr(Format(TotalAmount, 10, Text1100006), ' ', '0') +
-                      PadStr('', 41, ' ') + ConvertStr(Format(TotalBillGr, 5, Text1100006), ' ', '0') +
-                      ConvertStr(Format(DiskTotalPosted + 2, 7, Text1100006), ' ', '0') +
-                      ConvertStr(Format(DiskTotalDocs, 6, Text1100006), ' ', '0');
+                      '98' + RegisterString + '  ' + PadStr('', 69, ' ') + ConvertStr(Format(TotalAmount, 10, Text1100006Lbl), ' ', '0') +
+                      PadStr('', 41, ' ') + ConvertStr(Format(TotalBillGr, 5, Text1100006Lbl), ' ', '0') +
+                      ConvertStr(Format(DiskTotalPosted + 2, 7, Text1100006Lbl), ' ', '0') +
+                      ConvertStr(Format(DiskTotalDocs, 6, Text1100006Lbl), ' ', '0');
 
                 OutFile.Write(OutText);
                 OutFile.Close();
@@ -192,7 +192,7 @@ report 7000093 "Bill group - Export N32"
                 if SilentMode then
                     FileMgt.CopyServerFile(ExternalFile, SilentModeFileName, true)
                 else
-                    Download(ExternalFile, '', 'C:', Text10701, ToFile);
+                    Download(ExternalFile, '', 'C:', FilterLbl, ToFile);
             end;
 
             trigger OnPreDataItem()
@@ -202,7 +202,7 @@ report 7000093 "Bill group - Export N32"
                 Find('-');
 
                 if BankSuffix = '' then
-                    Error(Text1100000);
+                    Error(Text1100000Lbl);
 
                 if BankSuffixBankAcc = '' then begin
                     Suffix.SetRange(Suffix, BankSuffix);
@@ -213,13 +213,13 @@ report 7000093 "Bill group - Export N32"
                 IsEuro := DocMisc.GetRegisterCode("Currency Code", TotalBillGr, RegisterString);
 
                 if not DocMisc.CheckBankSuffix(BankSuffixBankAcc, "Bank Account No.") then
-                    if not Confirm(Text1100002 +
-                         Text1100003,
+                    if not Confirm(Text1100002Lbl +
+                         Text1100003Lbl,
                          false,
                          FieldCaption("Bank Account No."),
                          TableCaption)
                     then
-                        Error(Text1100004);
+                        Error(Text1100004Lbl);
 
                 TotalBillGr := Count;
 
@@ -237,7 +237,7 @@ report 7000093 "Bill group - Export N32"
                 if (CCCBankNo = '') or (CCCBankBranchNo = '') or
                    (CCCControlDigits = '') or (CCCAccNo = '')
                 then
-                    Error(Text1100005, BankAcc."No.");
+                    Error(Text1100005Lbl, BankAcc."No.");
 
                 Clear(OutText);
                 OutText :=
@@ -306,7 +306,7 @@ report 7000093 "Bill group - Export N32"
         trigger OnOpenPage()
         begin
             if ExternalFile = '' then
-                ExternalFile := 'C:\' + Text10702;
+                ExternalFile := 'C:\' + Text10702Lbl;
         end;
     }
 
@@ -337,7 +337,7 @@ report 7000093 "Bill group - Export N32"
         OutFile.TextMode := true;
         OutFile.WriteMode := true;
         ExternalFile := FileMgt.ServerTempFileName('');
-        ToFile := Text10702;
+        ToFile := Text10702Lbl;
         OutFile.Create(ExternalFile);
 
         TotalAmount := 0;
@@ -346,22 +346,23 @@ report 7000093 "Bill group - Export N32"
     end;
 
     var
-        Text1100000: Label 'Bank Suffix cannot be blank.';
-        Text1100002: Label 'The Bank Suffix selected belongs to a %1  different than the %2. \';
-        Text1100003: Label 'Do you want to continue?.';
-        Text1100004: Label 'Process cancelled by request of user.';
-        Text1100005: Label 'Some data for Bank Account %1 are missing.';
-        Text1100006: Label '<integer>', Locked = true;
-        Text1100007: Label 'There is no bank account information for Customer %1.';
-        Text1100008: Label 'Some data from the Bank Account of Customer %1 are missing.';
-        Text1100009: Label 'Bill';
-        Text1100010: Label '<Integer>', Locked = true;
         CompanyInfo: Record "Company Information";
         Customer: Record Customer;
         CustLedgEntry: Record "Cust. Ledger Entry";
         BankAcc: Record "Bank Account";
         CustBankAcc: Record "Customer Bank Account";
+        Suffix: Record Suffix;
         DocMisc: Codeunit "Document-Misc";
+        Text1100000Lbl: Label 'Bank Suffix cannot be blank.';
+        Text1100002Lbl: Label 'The Bank Suffix selected belongs to a %1  different than the %2. \', Comment = '%1 = Bank Account No. field caption, %2 = Bill Group table caption';
+        Text1100003Lbl: Label 'Do you want to continue?.';
+        Text1100004Lbl: Label 'Process cancelled by request of user.';
+        Text1100005Lbl: Label 'Some data for Bank Account %1 are missing.', Comment = '%1 = Bank account number';
+        Text1100006Lbl: Label '<integer>', Locked = true;
+        Text1100007Lbl: Label 'There is no bank account information for Customer %1.', Comment = '%1 = Customer number';
+        Text1100008Lbl: Label 'Some data from the Bank Account of Customer %1 are missing.', Comment = '%1 = Customer number';
+        Text1100009Lbl: Label 'Bill';
+        Text1100010Lbl: Label '<Integer>', Locked = true;
         OutFile: File;
         ExternalFile: Text[1024];
         WithExpenses: Boolean;
@@ -398,10 +399,9 @@ report 7000093 "Bill group - Export N32"
         LCY: Option Euro,Other;
         BankSuffix: Code[3];
         BankSuffixBankAcc: Code[20];
-        Suffix: Record Suffix;
         ToFile: Text[1024];
-        Text10701: Label 'ASC Files (*.asc)|*.asc|All Files (*.*)|*.*';
-        Text10702: Label 'EFECTOS.ASC';
+        FilterLbl: Label 'ASC Files (*.asc)|*.asc|All Files (*.*)|*.*';
+        Text10702Lbl: Label 'EFECTOS.ASC';
         SilentMode: Boolean;
         SilentModeFileName: Text;
 

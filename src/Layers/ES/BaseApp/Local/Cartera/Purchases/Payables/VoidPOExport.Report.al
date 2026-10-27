@@ -62,7 +62,7 @@ report 7000061 "Void PO - Export"
                 SetRange("No.", "No.");
 
                 if not FindFirst() then
-                    Error(Text1100002);
+                    Error(Text1100002Lbl);
 
                 FirstTime := true;
             end;
@@ -102,7 +102,7 @@ report 7000061 "Void PO - Export"
 
     trigger OnPostReport()
     begin
-        Message(Text1100001, FileName);
+        Message(Text1100001Lbl, FileName);
     end;
 
     trigger OnPreReport()
@@ -110,7 +110,7 @@ report 7000061 "Void PO - Export"
         "Payment Order".Get("Payment Order"."No.");
         BankAccount.Get("Payment Order"."Bank Account No.");
         BankAccount.TestField("Currency Code", '');
-        if not Confirm(Text1100000, false, "Payment Order"."No.", BankAccount.TableCaption(), BankAccount."No.") then
+        if not Confirm(Text1100000Lbl, false, "Payment Order"."No.", BankAccount.TableCaption(), BankAccount."No.") then
             CurrReport.Quit();
     end;
 
@@ -118,7 +118,7 @@ report 7000061 "Void PO - Export"
         BankAccount: Record "Bank Account";
         FirstTime: Boolean;
         FileName: Text[250];
-        Text1100000: Label 'Are you SURE you want to Void all of the Cartera Electronic Payments in Order %1 written against %2 %3?';
-        Text1100001: Label 'The exported Electronic Payment File %1 has been voided. To post the Payment Order you must first export the Electronic Payment File again.';
-        Text1100002: Label 'There is nothing to Void.';
+        Text1100000Lbl: Label 'Are you SURE you want to Void all of the Cartera Electronic Payments in Order %1 written against %2 %3?', Comment = '%1 = Payment order number, %2 = Bank Account table caption, %3 = Bank account number';
+        Text1100001Lbl: Label 'The exported Electronic Payment File %1 has been voided. To post the Payment Order you must first export the Electronic Payment File again.', Comment = '%1 = Exported electronic payment file name';
+        Text1100002Lbl: Label 'There is nothing to Void.';
 }

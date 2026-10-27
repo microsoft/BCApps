@@ -230,13 +230,13 @@ page 7000010 "Receivable Closed Cartera Docs"
     }
 
     var
-        Text1100000: Label 'Only bills can be redrawn.';
-        Text1100001: Label 'Only receivable bills can be redrawn.';
-        Text1100002: Label 'No bills have been found that can be redrawn. \';
-        Text1100003: Label 'Please check that at least one rejected bill was selected.';
         ClosedDoc: Record "Closed Cartera Doc.";
         CustLedgEntry: Record "Cust. Ledger Entry";
         CarteraManagement: Codeunit CarteraManagement;
+        Text1100000Lbl: Label 'Only bills can be redrawn.';
+        Text1100001Lbl: Label 'Only receivable bills can be redrawn.';
+        Text1100002Lbl: Label 'No bills have been found that can be redrawn. \';
+        Text1100003Lbl: Label 'Please check that at least one rejected bill was selected.';
 
     [Scope('OnPrem')]
     procedure RedrawDocs()
@@ -248,18 +248,18 @@ page 7000010 "Receivable Closed Cartera Docs"
         ClosedDoc.SetRange("Document Type", ClosedDoc."Document Type"::Bill);
         if not ClosedDoc.Find('-') then
             Error(
-              Text1100000);
+              Text1100000Lbl);
 
         ClosedDoc.SetRange(Type, ClosedDoc.Type::Receivable);
         if not ClosedDoc.Find('-') then
             Error(
-              Text1100001);
+              Text1100001Lbl);
 
         ClosedDoc.SetRange(Status, ClosedDoc.Status::Rejected);
         if not ClosedDoc.Find('-') then
             Error(
-              Text1100002 +
-              Text1100003);
+              Text1100002Lbl +
+              Text1100003Lbl);
 
         CustLedgEntry.Reset();
         repeat

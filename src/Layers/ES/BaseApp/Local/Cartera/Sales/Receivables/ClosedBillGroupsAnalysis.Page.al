@@ -71,14 +71,18 @@ page 7000022 "Closed Bill Groups Analysis"
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Honored';
                             Editable = false;
+                            ToolTip = 'Specifies that the related payment is settled. ';
                         }
                         field(Rejected; RejectedAmt)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Rejected';
                             Editable = false;
+                            ToolTip = 'Specifies that the related payment is rejected.';
                         }
                         field(Rejected2; RedrawnAmt)
                         {

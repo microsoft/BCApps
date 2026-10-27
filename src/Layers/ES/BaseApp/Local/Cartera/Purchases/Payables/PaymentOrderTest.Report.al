@@ -273,19 +273,19 @@ report 7000009 "Payment Order - Test"
                         DocCount := DocCount + 1;
 
                         if "Collection Agent" <> "Collection Agent"::Bank then
-                            AddError(StrSubstNo(Text1100007, FieldCaption("Collection Agent"), "Collection Agent"::Bank));
+                            AddError(StrSubstNo(Text1100007Lbl, FieldCaption("Collection Agent"), "Collection Agent"::Bank));
 
                         if "Currency Code" <> PmtOrd."Currency Code" then
-                            AddError(StrSubstNo(Text1100008, FieldCaption("Currency Code"), PmtOrd."Currency Code"));
+                            AddError(StrSubstNo(Text1100008Lbl, FieldCaption("Currency Code"), PmtOrd."Currency Code"));
 
                         if "Remaining Amt. (LCY)" = 0 then
-                            AddError(StrSubstNo(Text1100009, FieldCaption("Remaining Amt. (LCY)")));
+                            AddError(StrSubstNo(Text1100009Lbl, FieldCaption("Remaining Amt. (LCY)")));
 
                         if Type <> Type::Payable then
-                            AddError(StrSubstNo(Text1100008, FieldCaption(Type), Type::Receivable));
+                            AddError(StrSubstNo(Text1100008Lbl, FieldCaption(Type), Type::Receivable));
 
                         if Accepted = Accepted::No then
-                            AddError(StrSubstNo(Text1100010, FieldCaption(Accepted), false));
+                            AddError(StrSubstNo(Text1100010Lbl, FieldCaption(Accepted), false));
 
                         VendLedgEntry.Get("Entry No.");
                         VendPostingGr.Get(VendLedgEntry."Vendor Posting Group");
@@ -293,7 +293,7 @@ report 7000009 "Payment Order - Test"
                             if VendPostingGr."Bills in Payment Order Acc." = '' then
                                 AddError(
                                   StrSubstNo(
-                                    Text1100011,
+                                    Text1100011Lbl,
                                     VendPostingGr.FieldCaption("Bills in Payment Order Acc."),
                                     VendPostingGr.TableCaption(),
                                     VendPostingGr.Code));
@@ -302,7 +302,7 @@ report 7000009 "Payment Order - Test"
                             if VendPostingGr."Invoices in  Pmt. Ord. Acc." = '' then
                                 AddError(
                                   StrSubstNo(
-                                    Text1100011,
+                                    Text1100011Lbl,
                                     VendPostingGr.FieldCaption("Invoices in  Pmt. Ord. Acc."),
                                     VendPostingGr.TableCaption(),
                                     VendPostingGr.Code));
@@ -331,7 +331,7 @@ report 7000009 "Payment Order - Test"
                         if VendPostingGr."Bills Account" = '' then
                             AddError(
                               StrSubstNo(
-                                Text1100011,
+                                Text1100011Lbl,
                                 VendPostingGr.FieldCaption("Bills Account"),
                                 VendPostingGr.TableCaption(),
                                 VendPostingGr.Code));
@@ -421,9 +421,6 @@ report 7000009 "Payment Order - Test"
 
                     trigger OnAfterGetRecord()
                     begin
-                        CalcFields("Posted Receiv. Bills Rmg. Amt.");
-                        RiskIncGr := "Posted Receiv. Bills Rmg. Amt.";
-
                         if not CalcExpenses then
                             CurrReport.Break();
                     end;
@@ -456,9 +453,6 @@ report 7000009 "Payment Order - Test"
                         if "No." = PmtOrd."Bank Account No." then
                             CurrReport.Skip();
 
-                        CalcFields("Posted Receiv. Bills Rmg. Amt.");
-                        RiskIncGr := "Posted Receiv. Bills Rmg. Amt.";
-
                         if not DocPostBuffer.Find('-') then
                             CurrReport.Skip();
 
@@ -487,7 +481,7 @@ report 7000009 "Payment Order - Test"
                     if BankAcc2."Currency Code" <> PmtOrd."Currency Code" then
                         AddError(
                           StrSubstNo(
-                            Text1100000,
+                            Text1100000Lbl,
                             BankAcc2.FieldCaption("Currency Code"),
                             PmtOrd."Currency Code",
                             BankAcc2.TableCaption,
@@ -495,7 +489,7 @@ report 7000009 "Payment Order - Test"
                     if BankAcc2."Operation Fees Code" = '' then
                         AddError(
                           StrSubstNo(
-                            Text1100001,
+                            Text1100001Lbl,
                             BankAcc2.FieldCaption("Operation Fees Code"),
                             BankAcc2.TableCaption,
                             BankAcc2."No."));
@@ -510,24 +504,24 @@ report 7000009 "Payment Order - Test"
                 end;
 
                 if "Bank Account No." = '' then
-                    AddError(StrSubstNo(Text1100002, FieldCaption("Bank Account No.")))
+                    AddError(StrSubstNo(Text1100002Lbl, FieldCaption("Bank Account No.")))
                 else
                     if PostingGroup = '' then
                         AddError(
                           StrSubstNo(
-                            Text1100003,
+                            Text1100003Lbl,
                             BankAcc2.TableCaption(),
                             "Bank Account No.",
                             BankAcc2.FieldCaption("Bank Acc. Posting Group")));
 
                 if "Posting Date" = 0D then
-                    AddError(StrSubstNo(Text1100002, FieldCaption("Posting Date")));
+                    AddError(StrSubstNo(Text1100002Lbl, FieldCaption("Posting Date")));
 
                 if "No. Printed" = 0 then
-                    AddError(Text1100004);
+                    AddError(Text1100004Lbl);
 
                 if CompanyIsBlocked then
-                    AddError(StrSubstNo(Text1100005, BankAcc2.TableCaption(), "Bank Account No."));
+                    AddError(StrSubstNo(Text1100005Lbl, BankAcc2.TableCaption(), "Bank Account No."));
 
                 Doc.Reset();
                 Doc.SetCurrentKey(Type, "Collection Agent", "Bill Gr./Pmt. Order No.");
@@ -535,7 +529,7 @@ report 7000009 "Payment Order - Test"
                 Doc.SetRange("Collection Agent", Doc."Collection Agent"::Bank);
                 Doc.SetRange("Bill Gr./Pmt. Order No.", "No.");
                 if not Doc.Find('-') then
-                    AddError(Text1100006);
+                    AddError(Text1100006Lbl);
             end;
 
             trigger OnPreDataItem()
@@ -572,18 +566,6 @@ report 7000009 "Payment Order - Test"
     end;
 
     var
-        Text1100000: Label '%1 must be %2 in %3 %4.';
-        Text1100001: Label '%1 must be specified in %2 %3.';
-        Text1100002: Label '%1 must be specified.';
-        Text1100003: Label '%1 %2 has no %3.';
-        Text1100004: Label 'The payment order has not been printed.';
-        Text1100005: Label '%1 %2 is blocked.';
-        Text1100006: Label 'The payment order is empty.';
-        Text1100007: Label '%1 should be %2.';
-        Text1100008: Label '%1 must be %2.';
-        Text1100009: Label '%1 must not be zero.';
-        Text1100010: Label '%1 cannot be %2.';
-        Text1100011: Label 'Specify %1 in %2 %3.';
         BankAcc2: Record "Bank Account";
         Vend: Record Vendor;
         VendLedgEntry: Record "Vendor Ledger Entry";
@@ -592,6 +574,18 @@ report 7000009 "Payment Order - Test"
         BGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
         FeeRange: Record "Fee Range";
         FormatAddress: Codeunit "Format Address";
+        Text1100000Lbl: Label '%1 must be %2 in %3 %4.', Comment = '%1 = Field caption, %2 = Required value, %3 = Table caption, %4 = Record number';
+        Text1100001Lbl: Label '%1 must be specified in %2 %3.', Comment = '%1 = Field caption, %2 = Table caption, %3 = Record number';
+        Text1100002Lbl: Label '%1 must be specified.', Comment = '%1 = Field caption';
+        Text1100003Lbl: Label '%1 %2 has no %3.', Comment = '%1 = Table caption, %2 = Bank account number, %3 = Bank Acc. Posting Group field caption';
+        Text1100004Lbl: Label 'The payment order has not been printed.';
+        Text1100005Lbl: Label '%1 %2 is blocked.', Comment = '%1 = Table caption, %2 = Bank account number';
+        Text1100006Lbl: Label 'The payment order is empty.';
+        Text1100007Lbl: Label '%1 should be %2.', Comment = '%1 = Field caption, %2 = Required value';
+        Text1100008Lbl: Label '%1 must be %2.', Comment = '%1 = Field caption, %2 = Required value';
+        Text1100009Lbl: Label '%1 must not be zero.', Comment = '%1 = Field caption';
+        Text1100010Lbl: Label '%1 cannot be %2.', Comment = '%1 = Field caption, %2 = Disallowed value';
+        Text1100011Lbl: Label 'Specify %1 in %2 %3.', Comment = '%1 = Field caption, %2 = Posting group table caption, %3 = Posting group code';
         PmtOrdFilter: Text[250];
         BankAccAddr: array[8] of Text[100];
         ErrorText: array[99] of Text[250];
@@ -601,7 +595,6 @@ report 7000009 "Payment Order - Test"
         DocCount: Integer;
         AccountNo: Text[20];
         BalanceAccNo: Text[20];
-        RiskIncGr: Decimal;
         CalcExpenses: Boolean;
         CheckOtherBanks: Boolean;
         NoOfDays: Integer;

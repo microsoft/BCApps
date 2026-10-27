@@ -24,12 +24,6 @@ codeunit 7000004 "Document-Move"
     end;
 
     var
-        Text1100000: Label 'You cannot delete a bank account with bill groups in preparation.';
-        Text1100001: Label 'You cannot delete a bank account with bill groups.';
-        Text1100002: Label 'You cannot delete a bank account with closed bill groups in a fiscal year that has not been closed yet.';
-        Text1100003: Label 'You cannot delete a bank account with payment orders in preparation.';
-        Text1100004: Label 'You cannot delete a bank account with payment orders.';
-        Text1100005: Label 'You cannot delete a bank account with closed payment orders in a fiscal year that has not been closed yet.';
         AccountingPeriod: Record "Accounting Period";
         BillGr: Record "Bill Group";
         BillGr2: Record "Bill Group";
@@ -44,6 +38,12 @@ codeunit 7000004 "Document-Move"
         PostedPmtOrd2: Record "Posted Payment Order";
         ClosedPmtOrd: Record "Closed Payment Order";
         ClosedPmtOrd2: Record "Closed Payment Order";
+        Text1100000Lbl: Label 'You cannot delete a bank account with bill groups in preparation.';
+        Text1100001Lbl: Label 'You cannot delete a bank account with bill groups.';
+        Text1100002Lbl: Label 'You cannot delete a bank account with closed bill groups in a fiscal year that has not been closed yet.';
+        Text1100003Lbl: Label 'You cannot delete a bank account with payment orders in preparation.';
+        Text1100004Lbl: Label 'You cannot delete a bank account with payment orders.';
+        Text1100005Lbl: Label 'You cannot delete a bank account with closed payment orders in a fiscal year that has not been closed yet.';
 
     [Scope('OnPrem')]
     procedure MoveBankAccDocs(BankAcc: Record "Bank Account")
@@ -54,7 +54,7 @@ codeunit 7000004 "Document-Move"
         BillGr.SetCurrentKey("Bank Account No.");
         BillGr.SetRange("Bank Account No.", BankAcc."No.");
         if BillGr.FindFirst() then
-            Error(Text1100000);
+            Error(Text1100000Lbl);
 
         PostedBillGr.LockTable();
         if PostedBillGr2.FindLast() then;
@@ -62,7 +62,7 @@ codeunit 7000004 "Document-Move"
         PostedBillGr.SetCurrentKey("Bank Account No.");
         PostedBillGr.SetRange("Bank Account No.", BankAcc."No.");
         if PostedBillGr.FindFirst() then
-            Error(Text1100001);
+            Error(Text1100001Lbl);
 
         ClosedBillGr.LockTable();
         if ClosedBillGr2.FindLast() then;
@@ -73,7 +73,7 @@ codeunit 7000004 "Document-Move"
         if AccountingPeriod.FindFirst() then
             ClosedBillGr.SetFilter("Closing Date", '>=%1', AccountingPeriod."Starting Date");
         if ClosedBillGr.FindFirst() then
-            Error(Text1100002);
+            Error(Text1100002Lbl);
         ClosedBillGr.SetRange("Closing Date");
         ClosedBillGr.ModifyAll("Bank Account No.", '');
 
@@ -83,7 +83,7 @@ codeunit 7000004 "Document-Move"
         PmtOrd.SetCurrentKey("Bank Account No.");
         PmtOrd.SetRange("Bank Account No.", BankAcc."No.");
         if PmtOrd.FindFirst() then
-            Error(Text1100003);
+            Error(Text1100003Lbl);
 
         PostedPmtOrd.LockTable();
         if PostedPmtOrd2.FindLast() then;
@@ -91,7 +91,7 @@ codeunit 7000004 "Document-Move"
         PostedPmtOrd.SetCurrentKey("Bank Account No.");
         PostedPmtOrd.SetRange("Bank Account No.", BankAcc."No.");
         if PostedPmtOrd.FindFirst() then
-            Error(Text1100004);
+            Error(Text1100004Lbl);
 
         ClosedPmtOrd.LockTable();
         if ClosedPmtOrd2.FindLast() then;
@@ -102,7 +102,7 @@ codeunit 7000004 "Document-Move"
         if AccountingPeriod.FindFirst() then
             ClosedPmtOrd.SetFilter("Closing Date", '>=%1', AccountingPeriod."Starting Date");
         if ClosedPmtOrd.FindFirst() then
-            Error(Text1100005);
+            Error(Text1100005Lbl);
         ClosedPmtOrd.SetRange("Closing Date");
         ClosedPmtOrd.ModifyAll("Bank Account No.", '');
     end;

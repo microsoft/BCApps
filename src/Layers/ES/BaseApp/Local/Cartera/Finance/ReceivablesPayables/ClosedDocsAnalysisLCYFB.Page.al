@@ -94,16 +94,13 @@ page 35296 "Closed Docs Analysis LCY FB"
 
     var
         ClosedDoc: Record "Closed Cartera Doc.";
-        HonoredAmt: Decimal;
-        RejectedAmt: Decimal;
-        RedrawnAmt: Decimal;
         HonoredAmtLCY: Decimal;
         RejectedAmtLCY: Decimal;
         RedrawnAmtLCY: Decimal;
         NoHonored: Integer;
         NoRejected: Integer;
         NoRedrawn: Integer;
-        CurrencyFilter: Code[250];
+        CurrencyFilter: Text;
         Show: Boolean;
         HonoredLCYVisible: Boolean;
         RejectedLCYVisible: Boolean;
@@ -115,17 +112,14 @@ page 35296 "Closed Docs Analysis LCY FB"
         ClosedDoc.SetFilter("Currency Code", CurrencyFilter);
         ClosedDoc.SetRange(Status, ClosedDoc.Status::Honored);
         ClosedDoc.SetRange(Redrawn, true);
-        Show := ClosedDoc.CalcSums("Original Amount", "Original Amount (LCY)");
-        if Show then begin
-            RedrawnAmt := ClosedDoc."Original Amount";
+        Show := ClosedDoc.CalcSums("Original Amount (LCY)");
+        if Show then
             RedrawnAmtLCY := ClosedDoc."Original Amount (LCY)";
-        end;
         NoRedrawn := ClosedDoc.Count;
 
         ClosedDoc.SetRange(Redrawn, false);
         if Show then begin
-            ClosedDoc.CalcSums("Original Amount", "Original Amount (LCY)");
-            HonoredAmt := ClosedDoc."Original Amount";
+            ClosedDoc.CalcSums("Original Amount (LCY)");
             HonoredAmtLCY := ClosedDoc."Original Amount (LCY)";
         end;
         NoHonored := ClosedDoc.Count;
@@ -133,8 +127,7 @@ page 35296 "Closed Docs Analysis LCY FB"
 
         ClosedDoc.SetRange(Status, ClosedDoc.Status::Rejected);
         if Show then begin
-            ClosedDoc.CalcSums("Original Amount", "Original Amount (LCY)");
-            RejectedAmt := ClosedDoc."Original Amount";
+            ClosedDoc.CalcSums("Original Amount (LCY)");
             RejectedAmtLCY := ClosedDoc."Original Amount (LCY)";
         end;
         NoRejected := ClosedDoc.Count;

@@ -224,16 +224,16 @@ report 10741 "Long Term Purchase Invoices"
     trigger OnPreReport()
     begin
         if Format(DueDatePeriodLength) = '' then
-            Error(Text1100000, CurrReport.ObjectId());
+            Error(Text1100000Lbl, CurrReport.ObjectId());
     end;
 
     var
         Vendor: Record Vendor;
+        DueDatePeriodLength: DateFormula;
         PaymentMethodCode: Code[10];
         PaymentTermsCode: Code[10];
         VendorName: Text[30];
-        DueDatePeriodLength: DateFormula;
-        Text1100000: Label 'Due Date Period Length should be filled in to run this %1.';
+        Text1100000Lbl: Label 'Due Date Period Length should be filled in to run this %1.', Comment = '%1 = Report object ID';
         ShowregIn: Boolean;
         ShowregBi: Boolean;
         PageNoCaptionLbl: Label 'Page';

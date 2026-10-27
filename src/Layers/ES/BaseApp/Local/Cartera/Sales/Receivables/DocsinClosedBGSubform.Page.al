@@ -165,6 +165,7 @@ page 7000008 "Docs. in Closed BG Subform"
                 {
                     ApplicationArea = Basic, Suite;
                     Image = Navigate;
+                    ToolTip = 'Find all entries and documents that exist for the document number and posting date on the selected entry or document.';
 
                     trigger OnAction()
                     begin
@@ -176,10 +177,10 @@ page 7000008 "Docs. in Closed BG Subform"
     }
 
     var
-        Text1100000: Label 'Only bills can be redrawn.';
         ClosedDoc: Record "Closed Cartera Doc.";
         CustLedgEntry: Record "Cust. Ledger Entry";
         CarteraManagement: Codeunit CarteraManagement;
+        Text1100000Lbl: Label 'Only bills can be redrawn.';
 
     [Scope('OnPrem')]
     procedure NavigateDoc()
@@ -196,7 +197,7 @@ page 7000008 "Docs. in Closed BG Subform"
 
         ClosedDoc.SetFilter("Document Type", '<>%1', ClosedDoc."Document Type"::Bill);
         if ClosedDoc.Find('-') then
-            Error(Text1100000);
+            Error(Text1100000Lbl);
         ClosedDoc.SetRange("Document Type");
 
 

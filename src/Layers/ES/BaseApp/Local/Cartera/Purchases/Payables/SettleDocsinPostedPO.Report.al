@@ -74,7 +74,7 @@ report 7000082 "Settle Docs. in Posted PO"
                               PostedDoc, GenJnlLine, VATPostingSetup, VendLedgEntry, FromJnl, ExistsNoRealVAT, PostedPmtOrd);
                             GenJnlLine.Validate("Account No.", VendLedgEntry."Vendor No.");
                             GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-                            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100001, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
+                            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100001Lbl, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
                             GenJnlLine."Document No." := PostedPmtOrd."No.";
                             GenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
                             GenJnlLine."Posting Group" := VendLedgEntry."Vendor Posting Group";
@@ -124,7 +124,7 @@ report 7000082 "Settle Docs. in Posted PO"
                             end;
 
                             GenJnlLine.Validate("Account No.", VendLedgEntry."Vendor No.");
-                            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100002, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description));
+                            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100002Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description));
                             GenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
                             GenJnlLine.Validate(Amount, PostedDoc."Remaining Amount");
                             GenJnlLine."Applies-to Doc. Type" := VendLedgEntry."Document Type";
@@ -192,9 +192,9 @@ report 7000082 "Settle Docs. in Posted PO"
             begin
                 if (DocCount = 0) or (GroupAmount = 0) then begin
                     if DueOnly then
-                        Error(Text1100003 + Text1100004);
+                        Error(Text1100003Lbl + Text1100004Lbl);
 
-                    Error(Text1100003 + Text1100005);
+                    Error(Text1100003Lbl + Text1100005Lbl);
                 end;
 
                 IsHandled := false;
@@ -216,7 +216,7 @@ report 7000082 "Settle Docs. in Posted PO"
                             GenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
                             GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::"Bank Account");
                             GenJnlLine.Validate("Account No.", BankAcc."No.");
-                            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100006, PostedPmtOrd."No."), 1, MaxStrLen(GenJnlLine.Description));
+                            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100006Lbl, PostedPmtOrd."No."), 1, MaxStrLen(GenJnlLine.Description));
                             GenJnlLine.Validate("Currency Code", PostedPmtOrd."Currency Code");
                             GenJnlLine.Validate(Amount, -BankAccPostBuffer.Amount);
                             GenJnlLine."Source Code" := SourceCode;
@@ -249,7 +249,7 @@ report 7000082 "Settle Docs. in Posted PO"
                         GenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
                         GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::"G/L Account");
                         GenJnlLine.Validate("Account No.", Acct);
-                        GenJnlLine.Description := Text1100007;
+                        GenJnlLine.Description := Text1100007Lbl;
                         GenJnlLine.Validate("Currency Code", '');
                         GenJnlLine.Validate(Amount, -SumLCYAmt);
                         GenJnlLine."Source Code" := SourceCode;
@@ -287,7 +287,7 @@ report 7000082 "Settle Docs. in Posted PO"
                 Commit();
 
                 if not HidePrintDialog then
-                    Message(Text1100008, DocCount, GroupAmount);
+                    Message(Text1100008Lbl, DocCount, GroupAmount);
             end;
 
             trigger OnPreDataItem()
@@ -303,7 +303,7 @@ report 7000082 "Settle Docs. in Posted PO"
                 ExistInvoice := false;
                 ExistVATEntry := false;
                 Window.Open(
-                  Text1100000);
+                  Text1100000Lbl);
                 Counter := Count;
                 if (Counter > 1) and GLSetup."Unrealized VAT" then begin
                     VATEntry.LockTable();
@@ -362,16 +362,6 @@ report 7000082 "Settle Docs. in Posted PO"
     end;
 
     var
-        Text1100000: Label 'Settling payable documents     #1######';
-        Text1100001: Label 'Payable document settlement %1';
-        Text1100002: Label 'Payable bill settlement %1/%2';
-        Text1100003: Label 'No payable documents have been found that can be settled.';
-        Text1100004: Label 'Please check that the selection is not empty and at least one payable document is open and due.';
-        Text1100005: Label 'Please check that the selection is not empty and at least one payable document is open.';
-        Text1100006: Label 'Payment Order settlement %1';
-        Text1100007: Label 'Residual adjust generated by rounding Amount';
-        Text1100008: Label '%1 documents totaling %2 have been settled.';
-        Text1100009: Label 'Document settlement %1/%2';
         SourceCodeSetup: Record "Source Code Setup";
         PostedPmtOrd: Record "Posted Payment Order";
         GenJnlLine: Record "Gen. Journal Line" temporary;
@@ -388,6 +378,16 @@ report 7000082 "Settle Docs. in Posted PO"
         CarteraManagement: Codeunit CarteraManagement;
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        Text1100000Lbl: Label 'Settling payable documents     #1######', Comment = '#1 = Number of documents settled';
+        Text1100001Lbl: Label 'Payable document settlement %1', Comment = '%1 = Document number';
+        Text1100002Lbl: Label 'Payable bill settlement %1/%2', Comment = '%1 = Document number, %2 = Bill number';
+        Text1100003Lbl: Label 'No payable documents have been found that can be settled.';
+        Text1100004Lbl: Label 'Please check that the selection is not empty and at least one payable document is open and due.';
+        Text1100005Lbl: Label 'Please check that the selection is not empty and at least one payable document is open.';
+        Text1100006Lbl: Label 'Payment Order settlement %1', Comment = '%1 = Payment order number';
+        Text1100007Lbl: Label 'Residual adjust generated by rounding Amount';
+        Text1100008Lbl: Label '%1 documents totaling %2 have been settled.', Comment = '%1 = Number of documents settled, %2 = Total amount settled';
+        Text1100009Lbl: Label 'Document settlement %1/%2', Comment = '%1 = Document number, %2 = Bill number';
         Window: Dialog;
         PostingDate: Date;
         DueOnly: Boolean;
@@ -424,9 +424,9 @@ report 7000082 "Settle Docs. in Posted PO"
         GenJnlLine."Account Type" := AccType;
         GenJnlLine."Account No." := AccNo;
         if PostedDoc."Document Type" = PostedDoc."Document Type"::Bill then
-            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100009, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
+            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100009Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
         else
-            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100009, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description));
+            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100009Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description));
         GenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
         GenJnlLine.Validate(Amount, -Amount2);
         GenJnlLine."Applies-to Doc. Type" := VendLedgEntry."Document Type";

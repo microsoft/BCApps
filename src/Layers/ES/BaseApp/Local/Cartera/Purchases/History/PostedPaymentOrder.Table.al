@@ -216,8 +216,8 @@ table 7000021 "Posted Payment Order"
     }
 
     var
-        Text1100000: Label 'untitled';
         PostedPmtOrd: Record "Posted Payment Order";
+        Text1100000Lbl: Label 'untitled';
 
     [Scope('OnPrem')]
     procedure PrintRecords(ShowRequestForm: Boolean)
@@ -236,7 +236,7 @@ table 7000021 "Posted Payment Order"
     procedure Caption(): Text
     begin
         if "No." = '' then
-            exit(Text1100000);
+            exit(Text1100000Lbl);
         CalcFields("Bank Account Name");
         exit(StrSubstNo('%1 %2', "No.", "Bank Account Name"));
     end;

@@ -125,10 +125,6 @@ page 35293 "Post. BG Analysis Non LCY FB"
         HonoredAmt: Decimal;
         RejectedAmt: Decimal;
         RedrawnAmt: Decimal;
-        OpenAmtLCY: Decimal;
-        HonoredAmtLCY: Decimal;
-        RejectedAmtLCY: Decimal;
-        RedrawnAmtLCY: Decimal;
         NoOpen: Integer;
         NoHonored: Integer;
         NoRejected: Integer;
@@ -145,29 +141,25 @@ page 35293 "Post. BG Analysis Non LCY FB"
         Rec.CopyFilter("Category Filter", PostedDoc."Category Code");
 
         PostedDoc.SetRange(Status, PostedDoc.Status::Open);
-        PostedDoc.CalcSums("Amount for Collection", "Amt. for Collection (LCY)");
+        PostedDoc.CalcSums("Amount for Collection");
         OpenAmt := PostedDoc."Amount for Collection";
-        OpenAmtLCY := PostedDoc."Amt. for Collection (LCY)";
         NoOpen := PostedDoc.Count;
 
         PostedDoc.SetRange(Status);
         PostedDoc.SetRange(Redrawn, true);
-        PostedDoc.CalcSums("Amount for Collection", "Amt. for Collection (LCY)");
+        PostedDoc.CalcSums("Amount for Collection");
         RedrawnAmt := PostedDoc."Amount for Collection";
-        RedrawnAmtLCY := PostedDoc."Amt. for Collection (LCY)";
         NoRedrawn := PostedDoc.Count;
         PostedDoc.SetRange(Redrawn);
 
         PostedDoc.SetRange(Status, PostedDoc.Status::Honored);
-        PostedDoc.CalcSums("Amount for Collection", "Amt. for Collection (LCY)");
+        PostedDoc.CalcSums("Amount for Collection");
         HonoredAmt := PostedDoc."Amount for Collection" - RedrawnAmt;
-        HonoredAmtLCY := PostedDoc."Amt. for Collection (LCY)" - RedrawnAmtLCY;
         NoHonored := PostedDoc.Count - NoRedrawn;
 
         PostedDoc.SetRange(Status, PostedDoc.Status::Rejected);
-        PostedDoc.CalcSums("Amount for Collection", "Amt. for Collection (LCY)");
+        PostedDoc.CalcSums("Amount for Collection");
         RejectedAmt := PostedDoc."Amount for Collection";
-        RejectedAmtLCY := PostedDoc."Amt. for Collection (LCY)";
         NoRejected := PostedDoc.Count;
     end;
 }

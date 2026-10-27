@@ -196,6 +196,7 @@ page 7000075 "Docs. in PO Subform"
                 {
                     ApplicationArea = Basic, Suite;
                     Image = Navigate;
+                    ToolTip = 'Find all entries and documents that exist for the document number and posting date on the selected entry or document.';
 
                     trigger OnAction()
                     begin

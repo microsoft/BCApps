@@ -61,7 +61,7 @@ table 7000018 Installment
     end;
 
     var
-        Text10700: Label 'The total of "% of Total" cannot be greater than 100.';
+        Text10700Lbl: Label 'The total of "% of Total" cannot be greater than 100.';
 
     [Scope('OnPrem')]
     procedure CheckTotalInstallmentPerc()
@@ -72,7 +72,7 @@ table 7000018 Installment
         Installment.SetFilter("Line No.", '<>%1', "Line No.");
         Installment.CalcSums("% of Total");
         if Installment."% of Total" + "% of Total" > 100 then
-            Error(Text10700);
+            Error(Text10700Lbl);
     end;
 }
 

@@ -16,9 +16,9 @@ codeunit 7000098 "CRT Reversal Entry"
     [EventSubscriber(ObjectType::Table, Database::"Reversal Entry", 'OnBeforeCheckGLAcc', '', true, false)]
     local procedure OnBeforeCheckGLAcc(var GLEntry: Record "G/L Entry")
     var
-        GLRegDoc: Codeunit "G/L Reg.-Docs.";
         CarteraDoc: Record "Cartera Doc.";
         CarteraSetup: Record "Cartera Setup";
+        GLRegDoc: Codeunit "G/L Reg.-Docs.";
     begin
         if not CarteraSetup.ReadPermission then
             exit;

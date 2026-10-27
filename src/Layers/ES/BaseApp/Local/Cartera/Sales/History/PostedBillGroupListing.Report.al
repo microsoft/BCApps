@@ -41,7 +41,7 @@ report 7000001 "Posted Bill Group Listing"
                     column(PostedBillGr__No__; PostedBillGr."No.")
                     {
                     }
-                    column(STRSUBSTNO_Text1100003_CopyText_; StrSubstNo(Text1100003, CopyText))
+                    column(STRSUBSTNO_Text1100003_CopyText_; StrSubstNo(Text1100003Lbl, CopyText))
                     {
                     }
                     column(CompanyAddr_1_; CompanyAddr[1])
@@ -310,7 +310,7 @@ report 7000001 "Posted Bill Group Listing"
                 trigger OnAfterGetRecord()
                 begin
                     if Number > 1 then
-                        CopyText := Text1100002;
+                        CopyText := Text1100002Lbl;
                     OutputNo := OutputNo + 1;
                 end;
 
@@ -326,9 +326,9 @@ report 7000001 "Posted Bill Group Listing"
             trigger OnAfterGetRecord()
             begin
                 if "Dealing Type" = "Dealing Type"::Discount then
-                    Operation := Text1100000
+                    Operation := Text1100000Lbl
                 else
-                    Operation := Text1100001;
+                    Operation := Text1100001Lbl;
                 FactoringType := GetFactoringType();
 
                 BankAcc.Get(PostedBillGr."Bank Account No.");
@@ -385,17 +385,17 @@ report 7000001 "Posted Bill Group Listing"
     }
 
     var
-        Text1100000: Label 'For Discount';
-        Text1100001: Label 'For Collection';
-        Text1100002: Label 'COPY';
-        Text1100003: Label 'Bill Group %1';
-        Text1100005: Label 'Risked Factoring';
-        Text1100006: Label 'Unrisked Factoring';
         CompanyInfo: Record "Company Information";
         BankAcc: Record "Bank Account";
         Customer: Record Customer;
         FormatAddress: Codeunit "Format Address";
         PrintCounter: Codeunit "BG/PO-Post and Print";
+        Text1100000Lbl: Label 'For Discount';
+        Text1100001Lbl: Label 'For Collection';
+        Text1100002Lbl: Label 'COPY';
+        Text1100003Lbl: Label 'Bill Group %1', Comment = '%1 = Copy indicator text, or blank for the original';
+        Text1100005Lbl: Label 'Risked Factoring';
+        Text1100006Lbl: Label 'Unrisked Factoring';
         BankAccAddr: array[8] of Text[100];
         CompanyAddr: array[8] of Text[100];
         Operation: Text[80];
@@ -442,9 +442,9 @@ report 7000001 "Posted Bill Group Listing"
     begin
         if PostedBillGr.Factoring <> PostedBillGr.Factoring::" " then begin
             if PostedBillGr.Factoring = PostedBillGr.Factoring::Risked then
-                exit(Text1100005);
+                exit(Text1100005Lbl);
 
-            exit(Text1100006);
+            exit(Text1100006Lbl);
         end;
     end;
 }

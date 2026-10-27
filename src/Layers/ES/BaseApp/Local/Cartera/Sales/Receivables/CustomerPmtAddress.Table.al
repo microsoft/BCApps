@@ -135,15 +135,15 @@ table 7000014 "Customer Pmt. Address"
     end;
 
     var
-        Text1100000: Label 'untitled';
         PostCode: Record "Post Code";
+        Text1100000Lbl: Label 'untitled';
 
     procedure Caption(): Text
     var
         Cust: Record Customer;
     begin
         if "Customer No." = '' then
-            exit(Text1100000);
+            exit(Text1100000Lbl);
         Cust.Get("Customer No.");
         exit(StrSubstNo('%1 %2 %3 %4', Cust."No.", Cust.Name, Code, Name));
     end;

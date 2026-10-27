@@ -39,7 +39,7 @@ report 7000010 "Payment Order Listing"
                     column(PmtOrd__No__; PmtOrd."No.")
                     {
                     }
-                    column(STRSUBSTNO_Text1100001_CopyText_; StrSubstNo(Text1100001, CopyText))
+                    column(STRSUBSTNO_Text1100001_CopyText_; StrSubstNo(Text1100001Lbl, CopyText))
                     {
                     }
                     column(CompanyAddr_1_; CompanyAddr[1])
@@ -288,7 +288,7 @@ report 7000010 "Payment Order Listing"
                 trigger OnAfterGetRecord()
                 begin
                     if Number > 1 then begin
-                        CopyText := Text1100000;
+                        CopyText := Text1100000Lbl;
                         OutputNo += 1;
                     end;
                 end;
@@ -358,13 +358,13 @@ report 7000010 "Payment Order Listing"
     }
 
     var
-        Text1100000: Label 'COPY';
-        Text1100001: Label 'Payment Order %1';
         CompanyInfo: Record "Company Information";
         BankAcc: Record "Bank Account";
         Vend: Record Vendor;
         FormatAddress: Codeunit "Format Address";
         PrintCounter: Codeunit "BG/PO-Post and Print";
+        Text1100000Lbl: Label 'COPY';
+        Text1100001Lbl: Label 'Payment Order %1', Comment = '%1 = Copy indicator text, or blank for the original';
         BankAccAddr: array[8] of Text[100];
         CompanyAddr: array[8] of Text[100];
         NoOfLoops: Integer;

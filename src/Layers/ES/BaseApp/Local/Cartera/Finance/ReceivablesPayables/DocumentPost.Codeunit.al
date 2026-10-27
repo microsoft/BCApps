@@ -58,7 +58,7 @@ codeunit 7000006 "Document-Post"
         Text1100101Err: Label ' Remove it from its bill group and try again.';
         Text1100102Err: Label '%1 cannot be unapplied, since it is included in a bill group.', Comment = '%1=Document Description';
         Text1100103Err: Label ' Remove it from its payment order and try again.';
-        Text1100104Err: Label '%1 cannot be unapplied, since it is included in a payment order.';
+        Text1100104Err: Label '%1 cannot be unapplied, since it is included in a payment order.', Comment = '%1 = Document description';
 
         CarteraDocBillGroupErr: Label 'A grouped document cannot be settled from a journal.\Remove Document %1/%2 from Group/Pmt. Order %3 and try again.', Comment = '%1=Document Number,%2=Bill number,%3=Bill Group number.';
 

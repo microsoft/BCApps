@@ -245,6 +245,7 @@ page 7000076 "Docs. in Posted PO Subform"
                 {
                     ApplicationArea = Basic, Suite;
                     Image = Navigate;
+                    ToolTip = 'Find all entries and documents that exist for the document number and posting date on the selected entry or document.';
 
                     trigger OnAction()
                     begin
@@ -262,16 +263,16 @@ page 7000076 "Docs. in Posted PO Subform"
     end;
 
     var
-        Text1100000: Label 'No documents have been found that can be settled. \';
-        Text1100001: Label 'Please check that at least one open document was selected.';
-        Text1100004: Label 'No documents have been found that can be redrawn. \';
-        Text1100005: Label 'Please check that at least one rejected or honored document was selected.';
-        Text1100006: Label 'Only bills can be redrawn.';
-        Text1100007: Label 'Please check that one open document was selected.';
-        Text1100008: Label 'Only one open document can be selected';
         PostedDoc: Record "Posted Cartera Doc.";
         VendLedgEntry: Record "Vendor Ledger Entry";
         CarteraManagement: Codeunit CarteraManagement;
+        Text1100000Lbl: Label 'No documents have been found that can be settled. \';
+        Text1100001Lbl: Label 'Please check that at least one open document was selected.';
+        Text1100004Lbl: Label 'No documents have been found that can be redrawn. \';
+        Text1100005Lbl: Label 'Please check that at least one rejected or honored document was selected.';
+        Text1100006Lbl: Label 'Only bills can be redrawn.';
+        Text1100007Lbl: Label 'Please check that one open document was selected.';
+        Text1100008Lbl: Label 'Only one open document can be selected';
 
     local procedure CategorizeDocs()
     begin
@@ -294,8 +295,8 @@ page 7000076 "Docs. in Posted PO Subform"
         PostedDoc.SetRange(Status, PostedDoc.Status::Open);
         if not PostedDoc.Find('-') then
             Error(
-              Text1100000 +
-              Text1100001);
+              Text1100000Lbl +
+              Text1100001Lbl);
 
         REPORT.RunModal(REPORT::"Settle Docs. in Posted PO", true, false, PostedDoc);
         CurrPage.Update(false);
@@ -310,12 +311,12 @@ page 7000076 "Docs. in Posted PO Subform"
         PostedDoc.SetFilter(Status, '<>%1', PostedDoc.Status::Open);
         if not PostedDoc.Find('-') then
             Error(
-              Text1100004 +
-              Text1100005);
+              Text1100004Lbl +
+              Text1100005Lbl);
 
         PostedDoc.SetFilter("Document Type", '<>%1', PostedDoc."Document Type"::Bill);
         if PostedDoc.Find('-') then
-            Error(Text1100006);
+            Error(Text1100006Lbl);
         PostedDoc.SetRange("Document Type");
 
         VendLedgEntry.Reset();
@@ -346,10 +347,10 @@ page 7000076 "Docs. in Posted PO Subform"
         PostedDoc.SetRange(Status, PostedDoc.Status::Open);
         if not PostedDoc.Find('-') then
             Error(
-              Text1100000 +
-              Text1100007);
+              Text1100000Lbl +
+              Text1100007Lbl);
         if PostedDoc.Count > 1 then
-            Error(Text1100008);
+            Error(Text1100008Lbl);
 
         Clear(PartialSettlePayable);
         VendLedgEntry2.Get(PostedDoc."Entry No.");

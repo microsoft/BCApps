@@ -47,7 +47,7 @@ report 7000090 "Payment order - Export N34"
                                 TotalAmount := TotalAmount + "Remaining Amount";
                                 RmgAmount := EuroAmount("Remaining Amount");
                             end else begin
-                                RmgAmount := Format("Remaining Amount" * 100, 12, Text1100000);
+                                RmgAmount := Format("Remaining Amount" * 100, 12, Text1100000Lbl);
                                 TotalAmount := TotalAmount + "Remaining Amount";
                             end;
                         LCY = LCY::Other:
@@ -55,7 +55,7 @@ report 7000090 "Payment order - Export N34"
                                 TotalAmount := TotalAmount + "Remaining Amount";
                                 RmgAmount := EuroAmount("Remaining Amount");
                             end else begin
-                                RmgAmount := Format("Remaining Amount" * 100, 12, Text1100000);
+                                RmgAmount := Format("Remaining Amount" * 100, 12, Text1100000Lbl);
                                 TotalAmount := TotalAmount + "Remaining Amount" * 100;
                             end;
                     end;
@@ -84,7 +84,7 @@ report 7000090 "Payment order - Export N34"
                         if (Vendor2 = '') or (VendCCCBankBranchNo = '') or
                            (VendCCCControlDigits = '') or (VendCCCAccNo = '')
                         then
-                            Error(Text1100003, VendBankAcc."Vendor No.");
+                            Error(Text1100003Lbl, VendBankAcc."Vendor No.");
                     end;
 
                     VendCCCAccNo := PadStr('', MaxStrLen(VendCCCAccNo) - StrLen(VendCCCAccNo), '0') + VendCCCAccNo;
@@ -163,10 +163,10 @@ report 7000090 "Payment order - Export N34"
                 if "Posting Date" = 0D then
                     PostDate := PadStr('', 6, '0')
                 else
-                    PostDate := Format("Posting Date", 0, Text1100002);
+                    PostDate := Format("Posting Date", 0, Text1100002Lbl);
 
                 OutText := '03' + RegisterString + VATRegNo + PadStr('', 12, ' ') + '001' +
-                  Format(DeliveryDate, 0, Text1100002) + PostDate +
+                  Format(DeliveryDate, 0, Text1100002Lbl) + PostDate +
                   CCCBankNo + CCCBankBranchNo + CCCAccNo + Relat + PadStr('', 3, ' ') + CCCControlDigits + PadStr('', 7, ' ');
                 OutFile.Write(OutText);
 
@@ -245,7 +245,7 @@ report 7000090 "Payment order - Export N34"
         trigger OnOpenPage()
         begin
             if ExternalFile = '' then
-                ExternalFile := 'C:\' + Text10702;
+                ExternalFile := 'C:\' + Text10702Lbl;
             if DeliveryDate = 0D then
                 DeliveryDate := Today;
         end;
@@ -272,12 +272,12 @@ report 7000090 "Payment order - Export N34"
                 if IsEuro then
                     DocAmount := EuroAmount(TotalAmount)
                 else
-                    DocAmount := ConvertStr(Format(TotalAmount, 12, Text1100000), ' ', '0');
+                    DocAmount := ConvertStr(Format(TotalAmount, 12, Text1100000Lbl), ' ', '0');
             LCY = LCY::Other:
                 if IsEuro then
                     DocAmount := EuroAmount(TotalAmount)
                 else
-                    DocAmount := ConvertStr(Format(TotalAmount, 12, Text1100000), ' ', '0');
+                    DocAmount := ConvertStr(Format(TotalAmount, 12, Text1100000Lbl), ' ', '0');
         end;
 
         OutText := '08' + RegisterString + VATRegNo + PadStr('', 15, ' ') +
@@ -292,7 +292,7 @@ report 7000090 "Payment order - Export N34"
         if SilentMode then
             FileMgt.CopyServerFile(ExternalFile, SilentModeFileName, true)
         else
-            Download(ExternalFile, '', 'C:', Text10701, ToFile);
+            Download(ExternalFile, '', 'C:', FilterLbl, ToFile);
     end;
 
     trigger OnPreReport()
@@ -302,14 +302,11 @@ report 7000090 "Payment order - Export N34"
         OutFile.TextMode := true;
         OutFile.WriteMode := true;
         ExternalFile := FileMgt.ServerTempFileName('');
-        ToFile := Text10702;
+        ToFile := Text10702Lbl;
         OutFile.Create(ExternalFile);
     end;
 
     var
-        Text1100000: Label '<Integer>', Locked = true;
-        Text1100002: Label '<Day,2><month,2><year>', Locked = true;
-        Text1100003: Label 'Some data from the Bank Account of Vendor %1 are missing.';
         CompanyInfo: Record "Company Information";
         Vendor: Record Vendor;
         BankAcc: Record "Bank Account";
@@ -317,6 +314,9 @@ report 7000090 "Payment order - Export N34"
         GLSetup: Record "General Ledger Setup";
         DocMisc: Codeunit "Document-Misc";
         FileMgt: Codeunit "File Management";
+        Text1100000Lbl: Label '<Integer>', Locked = true;
+        Text1100002Lbl: Label '<Day,2><month,2><year>', Locked = true;
+        Text1100003Lbl: Label 'Some data from the Bank Account of Vendor %1 are missing.', Comment = '%1 = Vendor number';
         OutFile: File;
         ExternalFile: Text[1024];
         CheckErrors: Boolean;
@@ -347,8 +347,8 @@ report 7000090 "Payment order - Export N34"
         RegisterString: Text[2];
         DocAmount: Text[12];
         ToFile: Text[1024];
-        Text10701: Label 'ASC Files (*.asc)|*.asc|All Files (*.*)|*.*';
-        Text10702: Label 'ORDENPAGO.ASC';
+        FilterLbl: Label 'ASC Files (*.asc)|*.asc|All Files (*.*)|*.*';
+        Text10702Lbl: Label 'ORDENPAGO.ASC';
         SilentMode: Boolean;
         SilentModeFileName: Text;
 

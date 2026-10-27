@@ -82,22 +82,6 @@ page 35303 "Bank Account Information FB"
     {
     }
 
-    trigger OnAfterGetRecord()
-    begin
-        RiskIncGr := Rec."Posted Receiv. Bills Rmg. Amt.";
-        if (CurrBillGr."Dealing Type" = CurrBillGr."Dealing Type"::Discount) and
-           (CurrBillGr.Factoring = CurrBillGr.Factoring::" ")
-        then
-            RiskIncGr := RiskIncGr + CurrBillGr.Amount;
-        if Rec."Credit Limit for Discount" <> 0 then
-            RiskPercIncGr := RiskIncGr / Rec."Credit Limit for Discount" * 100
-        else
-            if RiskIncGr = 0 then
-                RiskPercIncGr := 0
-            else
-                RiskPercIncGr := 100;
-    end;
-
     trigger OnInit()
     begin
         CurrPage.LookupMode := true;
@@ -113,8 +97,6 @@ page 35303 "Bank Account Information FB"
     var
         Doc: Record "Cartera Doc.";
         CurrBillGr: Record "Bill Group";
-        RiskIncGr: Decimal;
-        RiskPercIncGr: Decimal;
         CategoryFilter: Code[250];
 
     local procedure CurrBillGrAmountOnAfterValidat()

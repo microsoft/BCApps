@@ -60,10 +60,6 @@ report 7000097 "Reject Docs."
                         Discount := true
                     else
                         Discount := false;
-                    if PostedBillGr.Factoring = PostedBillGr.Factoring::" " then
-                        Factoring := false
-                    else
-                        Factoring := true;
                     BankAcc.Get(PostedDoc."Bank Account No.");
                     BankAcc.TestField("Bank Acc. Posting Group");
                     BankAccPostingGr.Get(BankAcc."Bank Acc. Posting Group");
@@ -78,12 +74,12 @@ report 7000097 "Reject Docs."
                 CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
 
                 if "Document Type" = "Document Type"::Bill then begin
-                    CurrDescription := StrSubstNo(Text1100004, "Document No.", "Bill No.");
+                    CurrDescription := StrSubstNo(Text1100004Lbl, "Document No.", "Bill No.");
                     CurrDocNo := "Document No.";
                     CurrDocNo2 := "Bill No.";
                     PrepareBillRejPosting("Remaining Amount");
                 end else begin
-                    CurrDescription := StrSubstNo(Text1100005, "Document No.");
+                    CurrDescription := StrSubstNo(Text1100005Lbl, "Document No.");
                     CurrDocNo := "Document No.";
                     CurrDocNo2 := "Bill No.";
                     PrepareInvoiceRejPosting("Remaining Amount");
@@ -146,7 +142,6 @@ report 7000097 "Reject Docs."
 
                     if NoRealVATBuffer.Find('-') then
                         repeat
-                            FindInClosedBills := true;
                             InsertGenJournalLine(
                               GenJnlLine."Account Type"::"G/L Account",
                               NoRealVATBuffer.Account,
@@ -157,14 +152,13 @@ report 7000097 "Reject Docs."
                               NoRealVATBuffer."Balance Account",
                               NoRealVATBuffer.Amount,
                               "Dimension Set ID");
-                            FindInClosedBills := false;
                         until NoRealVATBuffer.Next() = 0;
 
                     "Currency Code" := TempCurrCode;
                 end;
 
                 if IncludeExpenses and ArePostedDocs then begin
-                    CurrDescription := Text1100006;
+                    CurrDescription := Text1100006Lbl;
                     CurrDocNo := PostedBillGr."No.";
                     CurrDocNo2 := '';
                     if (FeeRange.GetTotalRejExpensesAmt() <> 0) or (UseJournal = UseJournal::AuxJournal) then begin
@@ -223,7 +217,7 @@ report 7000097 "Reject Docs."
                 SkipMessage := false;
                 OnPostDataItemCustLedgEntryOnBeforeShowCompletationMessage(DocCount, SkipMessage);
                 if not SkipMessage then
-                    Message(Text1100007, DocCount);
+                    Message(Text1100007Lbl, DocCount);
             end;
 
             trigger OnPreDataItem()
@@ -247,13 +241,13 @@ report 7000097 "Reject Docs."
                 case "Document Type" of
                     "Document Type"::Bill:
                         Window.Open(
-                          Text1100001);
+                          Text1100001Lbl);
                     "Document Type"::Invoice:
                         Window.Open(
-                          Text1100002);
+                          Text1100002Lbl);
                     else
                         Window.Open(
-                          Text1100003);
+                          Text1100003Lbl);
                 end;
 
                 DocCount := 0;
@@ -319,7 +313,7 @@ report 7000097 "Reject Docs."
                                     BatchName := ''
                                 else
                                     if UseJournal = UseJournal::Direct then
-                                        Error(Text1100008);
+                                        Error(Text1100008Lbl);
                             end;
                         }
                         field(BatchName; BatchName)
@@ -373,7 +367,7 @@ report 7000097 "Reject Docs."
 
         if UseJournal = UseJournal::AuxJournal then begin
             if not GenJnlBatch.Get(TemplName, BatchName) then
-                Error(Text1100000);
+                Error(Text1100000Lbl);
             ReasonCode := GenJnlBatch."Reason Code";
             GenJnlTemplate.Get(TemplName);
             SourceCode := GenJnlTemplate."Source Code";
@@ -381,15 +375,6 @@ report 7000097 "Reject Docs."
     end;
 
     var
-        Text1100000: Label 'Please fill in both the Template Name and the Batch Name of the Auxiliary Journal with correct values.';
-        Text1100001: Label 'Rejecting receivable bills              #1######';
-        Text1100002: Label 'Rejecting receivable invoices           #1######';
-        Text1100003: Label 'Rejecting receivable documents          #1######';
-        Text1100004: Label 'Rejected Bill %1/%2';
-        Text1100005: Label 'Rejected Document %1';
-        Text1100006: Label 'Document Rejection Expenses';
-        Text1100007: Label '%1 documents have been rejected.';
-        Text1100008: Label 'This field must be blank for Direct Posting.';
         GenJnlTemplate: Record "Gen. Journal Template";
         GenJnlBatch: Record "Gen. Journal Batch";
         PostedBillGr: Record "Posted Bill Group";
@@ -405,11 +390,23 @@ report 7000097 "Reject Docs."
         GLSetup: Record "General Ledger Setup";
         GLReg: Record "G/L Register";
         Currency: Record Currency;
+        VATPostingSetup: Record "VAT Posting Setup";
+        NoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
+        MemIntReg: Record "BG/PO Post. Buffer";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         DocPost: Codeunit "Document-Post";
         CarteraManagement: Codeunit CarteraManagement;
         GenJnlManagement: Codeunit GenJnlManagement;
         CarteraJnlForm: Page "Cartera Journal";
+        Text1100000Lbl: Label 'Please fill in both the Template Name and the Batch Name of the Auxiliary Journal with correct values.';
+        Text1100001Lbl: Label 'Rejecting receivable bills              #1######', Comment = '#1 = Number of documents rejected';
+        Text1100002Lbl: Label 'Rejecting receivable invoices           #1######', Comment = '#1 = Number of documents rejected';
+        Text1100003Lbl: Label 'Rejecting receivable documents          #1######', Comment = '#1 = Number of documents rejected';
+        Text1100004Lbl: Label 'Rejected Bill %1/%2', Comment = '%1 = Document number, %2 = Bill number';
+        Text1100005Lbl: Label 'Rejected Document %1', Comment = '%1 = Document number';
+        Text1100006Lbl: Label 'Document Rejection Expenses';
+        Text1100007Lbl: Label '%1 documents have been rejected.', Comment = '%1 = Number of documents rejected';
+        Text1100008Lbl: Label 'This field must be blank for Direct Posting.';
         Window: Dialog;
         IncludeExpenses: Boolean;
         PostingDate: Date;
@@ -428,9 +425,6 @@ report 7000097 "Reject Docs."
         BalanceAccNo: Code[20];
         ArePostedDocs: Boolean;
         ReasonCode: Code[10];
-        Factoring: Boolean;
-        VATPostingSetup: Record "VAT Posting Setup";
-        NoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
         FirstVATEntryNo: Integer;
         LastVATEntryNo: Integer;
         ExistVATEntry: Boolean;
@@ -439,10 +433,8 @@ report 7000097 "Reject Docs."
         TempCurrCode: Code[10];
         NoRegs: Integer;
         i: Integer;
-        MemIntReg: Record "BG/PO Post. Buffer";
         EntryType: Option " ","Initial Entry",Application,"Unrealized Loss","Unrealized Gain","Realized Loss","Realized Gain","Payment Discount","Payment Discount (VAT Excl.)","Payment Discount (VAT Adjustment)","Appln. Rounding","Correction of Remaining Amount",,,,,,,,,Settlement,Rejection,Redrawal,Expenses;
         ExistsNoRealVAT: Boolean;
-        FindInClosedBills: Boolean;
 
     local procedure PrepareBillRejPosting(RemainingAmt: Decimal)
     var
@@ -658,8 +650,8 @@ report 7000097 "Reject Docs."
 
     local procedure PostGenJournal()
     var
-        GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         GenJnlLine2: Record "Gen. Journal Line";
+        GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         LastLineNo: Integer;
     begin
         OnBeforePostGenJournal(GenJnlLine, CustLedgEntry);

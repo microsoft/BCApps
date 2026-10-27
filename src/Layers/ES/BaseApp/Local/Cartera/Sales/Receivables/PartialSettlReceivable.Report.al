@@ -43,7 +43,6 @@ report 7000084 "Partial Settl.- Receivable"
                     PostedBillGr.Get("Bill Gr./Pmt. Order No.");
                     BankAcc.Get(PostedBillGr."Bank Account No.");
                     BankAccPostingGr.Get(BankAcc."Bank Acc. Posting Group");
-                    Delay := BankAcc."Delay for Notices";
                 end;
 
                 RemainingAmt2 := "Remaining Amount" - AppliedAmt;
@@ -72,9 +71,9 @@ report 7000084 "Partial Settl.- Receivable"
                 OnBeforeValidateAccountNo(PostedDoc, GenJnlLine, VATPostingSetup, CustLedgEntry, FromJnl, ExistsNoRealVAT);
                 GenJnlLine.Validate("Account No.", CustLedgEntry."Customer No.");
                 if PostedDoc."Document Type" = PostedDoc."Document Type"::Bill then
-                    GenJnlLine.Description := CopyStr(StrSubstNo(Text1100001, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
+                    GenJnlLine.Description := CopyStr(StrSubstNo(Text1100001Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
                 else
-                    GenJnlLine.Description := CopyStr(StrSubstNo(Text1100002, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
+                    GenJnlLine.Description := CopyStr(StrSubstNo(Text1100002Lbl, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
                 GenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
                 GenJnlLine.Validate(Amount, -AppliedAmt);
                 GenJnlLine."Applies-to Doc. Type" := CustLedgEntry."Document Type";
@@ -139,8 +138,8 @@ report 7000084 "Partial Settl.- Receivable"
             begin
                 if DocCount = 0 then
                     Error(
-                      Text1100003 +
-                      Text1100004);
+                      Text1100003Lbl +
+                      Text1100004Lbl);
 
                 if PostedBillGr.Factoring = PostedBillGr.Factoring::" " then begin
                     if "Dealing Type" = "Dealing Type"::Discount then begin
@@ -158,9 +157,9 @@ report 7000084 "Partial Settl.- Receivable"
                         BankAccPostingGr.TestField("Liabs. for Disc. Bills Acc.");
                         GenJnlLine.Validate("Account No.", BankAccPostingGr."Liabs. for Disc. Bills Acc.");
                         if PostedDoc."Document Type" = PostedDoc."Document Type"::Bill then
-                            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100001, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
+                            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100001Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
                         else
-                            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100002, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
+                            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100002Lbl, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
                         GenJnlLine.Validate("Currency Code", PostedBillGr."Currency Code");
                         GenJnlLine.Validate(Amount, AppliedAmt);
                         GenJnlLine."Source Code" := SourceCode;
@@ -199,7 +198,7 @@ report 7000084 "Partial Settl.- Receivable"
                         GenJnlLine."Reason Code" := PostedBillGr."Reason Code";
                         GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::"G/L Account");
                         GenJnlLine.Validate("Account No.", Acct);
-                        GenJnlLine.Description := Text1100005;
+                        GenJnlLine.Description := Text1100005Lbl;
                         GenJnlLine.Validate("Currency Code", '');
                         GenJnlLine.Validate(Amount, -SumLCYAmt);
                         GenJnlLine."Source Code" := SourceCode;
@@ -252,7 +251,7 @@ report 7000084 "Partial Settl.- Receivable"
 
                 Commit();
                 Message(
-                  Text1100006,
+                  Text1100006Lbl,
                   DocCount, RemainingAmt, PostedBillGr."No.", AppliedAmt);
             end;
 
@@ -269,7 +268,7 @@ report 7000084 "Partial Settl.- Receivable"
                 GenJnlLineNextNo := 0;
                 ExistVATEntry := false;
                 Window.Open(
-                  Text1100000);
+                  Text1100000Lbl);
             end;
         }
     }
@@ -338,7 +337,7 @@ report 7000084 "Partial Settl.- Receivable"
                         trigger OnValidate()
                         begin
                             if AppliedAmt > RemainingAmt then
-                                Error(Text1100007, RemainingAmt);
+                                Error(Text1100007Lbl, RemainingAmt);
                         end;
                     }
                 }
@@ -368,17 +367,6 @@ report 7000084 "Partial Settl.- Receivable"
     end;
 
     var
-        Text1100000: Label ' Partially settling receivable documents      #1######';
-        Text1100001: Label 'Partial Bill settlement %1/%2';
-        Text1100002: Label 'Partial Document settlement %1';
-        Text1100003: Label 'No receivable documents have been found that can be settled. \';
-        Text1100004: Label 'Please check that the selection is not empty and at least one receivable document is open.';
-        Text1100005: Label 'Residual adjust generated by rounding Amount';
-        Text1100006: Label '%1 receivable documents totaling %2 have been partially settled in Bill Group %3 by an amount of %4.';
-        Text1100007: Label 'The maximum permitted value is %1';
-        Text1100008: Label 'Partial Document settlement %1 Customer No. %2';
-        Text1100009: Label 'Partial receivable document settlement %1/%2';
-        Text1100010: Label 'Partial receivable document settlement %1';
         SourceCodeSetup: Record "Source Code Setup";
         PostedBillGr: Record "Posted Bill Group";
         GenJnlLine: Record "Gen. Journal Line" temporary;
@@ -394,9 +382,19 @@ report 7000084 "Partial Settl.- Receivable"
         DocPost: Codeunit "Document-Post";
         CarteraManagement: Codeunit CarteraManagement;
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+        Text1100000Lbl: Label ' Partially settling receivable documents      #1######', Comment = '#1 = Number of documents partially settled';
+        Text1100001Lbl: Label 'Partial Bill settlement %1/%2', Comment = '%1 = Document number, %2 = Bill number';
+        Text1100002Lbl: Label 'Partial Document settlement %1', Comment = '%1 = Document number';
+        Text1100003Lbl: Label 'No receivable documents have been found that can be settled. \';
+        Text1100004Lbl: Label 'Please check that the selection is not empty and at least one receivable document is open.';
+        Text1100005Lbl: Label 'Residual adjust generated by rounding Amount';
+        Text1100006Lbl: Label '%1 receivable documents totaling %2 have been partially settled in Bill Group %3 by an amount of %4.', Comment = '%1 = Number of documents partially settled, %2 = Remaining amount, %3 = Bill group number, %4 = Applied amount';
+        Text1100007Lbl: Label 'The maximum permitted value is %1', Comment = '%1 = Remaining amount available for settlement';
+        Text1100008Lbl: Label 'Partial Document settlement %1 Customer No. %2', Comment = '%1 = Document number, %2 = Customer number';
+        Text1100009Lbl: Label 'Partial receivable document settlement %1/%2', Comment = '%1 = Document number, %2 = Bill number';
+        Text1100010Lbl: Label 'Partial receivable document settlement %1', Comment = '%1 = Document number';
         Window: Dialog;
         PostingDate: Date;
-        Delay: Decimal;
         SourceCode: Code[10];
         Acct: Code[20];
         DocCount: Integer;
@@ -450,7 +448,7 @@ report 7000084 "Partial Settl.- Receivable"
         GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::"G/L Account");
         BankAccPostingGr.TestField("Liabs. for Factoring Acc.");
         GenJnlLine.Validate("Account No.", BankAccPostingGr."Liabs. for Factoring Acc.");
-        GenJnlLine.Description := CopyStr(StrSubstNo(Text1100008, PostedDoc2."Document No.", PostedDoc2."Account No."), 1, MaxStrLen(GenJnlLine.Description));
+        GenJnlLine.Description := CopyStr(StrSubstNo(Text1100008Lbl, PostedDoc2."Document No.", PostedDoc2."Account No."), 1, MaxStrLen(GenJnlLine.Description));
         GenJnlLine.Validate("Currency Code", PostedBillGr."Currency Code");
         GenJnlLine.Validate(Amount, DisctedAmt);
         GenJnlLine."Source Code" := SourceCode;
@@ -494,10 +492,10 @@ report 7000084 "Partial Settl.- Receivable"
         GenJnlLine.Validate("Account No.", BankAcc."No.");
         if PostedDoc."Document Type" = PostedDoc."Document Type"::Bill then
             GenJnlLine.Description := CopyStr(StrSubstNo(
-                  Text1100001, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
+                  Text1100001Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
         else
             GenJnlLine.Description := CopyStr(StrSubstNo(
-                  Text1100002, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
+                  Text1100002Lbl, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
         GenJnlLine.Validate("Currency Code", PostedBillGr."Currency Code");
         GenJnlLine.Validate(Amount, BankAmt);
         GenJnlLine."Source Code" := SourceCode;
@@ -522,9 +520,9 @@ report 7000084 "Partial Settl.- Receivable"
         GenJnlLine."Account Type" := AccType;
         GenJnlLine.Validate("Account No.", AccNo);
         if PostedDoc."Document Type" = PostedDoc."Document Type"::Bill then
-            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100009, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
+            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100009Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
         else
-            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100010, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
+            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100010Lbl, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
         GenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
         GenJnlLine.Validate(Amount, Amount2);
         GenJnlLine."Applies-to Doc. Type" := CustLedgEntry."Document Type";

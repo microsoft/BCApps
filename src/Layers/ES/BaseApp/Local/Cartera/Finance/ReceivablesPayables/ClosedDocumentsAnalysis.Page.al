@@ -85,7 +85,9 @@ page 7000044 "Closed Documents Analysis"
                             ApplicationArea = All;
                             AutoFormatExpression = ClosedDoc."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Rejected';
                             Editable = false;
+                            ToolTip = 'Specifies that the related payment is rejected.';
                             Visible = RejectedVisible;
                         }
                         field(Rejected2; RedrawnAmt)

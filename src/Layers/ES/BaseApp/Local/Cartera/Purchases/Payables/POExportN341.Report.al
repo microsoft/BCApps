@@ -91,7 +91,7 @@ report 7000060 "PO - Export N34.1"
                     column(PayeeAddress_8_; PayeeAddress[8])
                     {
                     }
-                    column(STRSUBSTNO_Text1100003_PayeeCCC_VendBankAccCode__ExportAmount_; StrSubstNo(Text1100003, PayeeCCC, VendBankAccCode, ExportAmount))
+                    column(STRSUBSTNO_Text1100003_PayeeCCC_VendBankAccCode__ExportAmount_; StrSubstNo(BankInfoLbl, PayeeCCC, VendBankAccCode, ExportAmount))
                     {
                     }
                     column(ExportAmount; ExportAmount)
@@ -251,7 +251,7 @@ report 7000060 "PO - Export N34.1"
                                             TotalAmountInter := TotalAmountInter + ExportAmount;
                                         end;
                                     else
-                                        Error(Text1100002, "Entry No.", "Account No.", "Document No.", "Bill Gr./Pmt. Order No.");
+                                        Error(Text1100002Lbl, "Entry No.", "Account No.", "Document No.", "Bill Gr./Pmt. Order No.");
                                 end;
                                 if "Document Type" = "Document Type"::Bill then
                                     DocumentType := DocumentType::Bill
@@ -276,7 +276,7 @@ report 7000060 "PO - Export N34.1"
                             TempVendCCCAccNo := VendorBankAccount1."CCC Bank Account No.";
                             TempUserText :=
                               StrSubstNo(
-                                Text1100003,
+                                BankInfoLbl,
                                 ConvertStr(PadStr(VendorBankAccount1."CCC Bank No.", 4, ' '), ' ', '0') +
                                 ConvertStr(PadStr(VendorBankAccount1."CCC Bank Branch No.", 4, ' '), ' ', '0') +
                                 PadStr(VendorBankAccount1."CCC Control Digits", 2, ' ') +
@@ -312,7 +312,7 @@ report 7000060 "PO - Export N34.1"
                     if Number = 1 then // Original
                         Clear(CopyTxt)
                     else begin
-                        CopyTxt := Text1100000;
+                        CopyTxt := Text1100000Lbl;
                         OutputNo += 1;
                     end;
                 end;
@@ -327,13 +327,10 @@ report 7000060 "PO - Export N34.1"
 
             trigger OnAfterGetRecord()
             begin
-                TotalAmount := 0;
                 Amount := 0;
                 TotalDoc10Vend := 0;
                 TotalDoc33Vend := 0;
                 TotalAmountInter := 0;
-                AmountPaid := 0;
-                TotalAmountPaid := 0;
 
                 TestField("Currency Code", '');
                 TestField("Export Electronic Payment");
@@ -341,7 +338,7 @@ report 7000060 "PO - Export N34.1"
                 BankAccount.Get("Bank Account No.");
                 BankAccount.CalcFields(Balance);
                 if BankAccount.Balance < 0 then
-                    if not Confirm(Text1100004, false, BankAccount."No.", BankAccount.Name, BankAccount.Balance) then
+                    if not Confirm(Text1100004Lbl, false, BankAccount."No.", BankAccount.Name, BankAccount.Balance) then
                         CurrReport.Quit();
 
                 ElectPmtMgmt.GetCCCBankInfo("Bank Account No.",
@@ -358,14 +355,14 @@ report 7000060 "PO - Export N34.1"
                     if BankAccount."Last Remittance Advice No." <> '' then
                         BankAccount."Last Remittance Advice No." := IncStr(BankAccount."Last Remittance Advice No.")
                     else
-                        BankAccount."Last Remittance Advice No." := Text1100001;
+                        BankAccount."Last Remittance Advice No." := Text1100001Lbl;
                     LastRemittanceAdvNo := BankAccount."Last Remittance Advice No.";
                     BankAccount.Modify();
                 end else
                     if BankAccount."Last Remittance Advice No." <> '' then
                         LastRemittanceAdvNo := IncStr(BankAccount."Last Remittance Advice No.")
                     else
-                        LastRemittanceAdvNo := Text1100001;
+                        LastRemittanceAdvNo := Text1100001Lbl;
 
                 if not CurrReport.Preview then begin
                     ElectPmtMgmt.InsertHeaderRecType1(DeliveryDate, "Posting Date",
@@ -482,12 +479,9 @@ report 7000060 "PO - Export N34.1"
         DocType: Code[10];
         CopyTxt: Code[10];
         DeliveryDate: Date;
-        TotalAmount: Decimal;
         TotalDoc10Vend: Decimal;
         TotalDoc33Vend: Decimal;
         TotalAmountInter: Decimal;
-        AmountPaid: Decimal;
-        TotalAmountPaid: Decimal;
         ExportAmount: Decimal;
         NoOfCopies: Integer;
         ExpensesCode: Option Payer,Payee;
@@ -507,15 +501,15 @@ report 7000060 "PO - Export N34.1"
         Relat: Text[1];
         IBAN: Text[34];
         SwiftCode: Text[11];
-        Text1100000: Label 'COPY';
-        Text1100001: Label 'REM001';
-        Text1100002: Label 'Special Transfers are not allowed from Cartera. Please remove Entry No. %1, Account No. %2, Document No. %3 from Payment Order No. %4 and try again.';
+        Text1100000Lbl: Label 'COPY';
+        Text1100001Lbl: Label 'REM001';
+        Text1100002Lbl: Label 'Special Transfers are not allowed from Cartera. Please remove Entry No. %1, Account No. %2, Document No. %3 from Payment Order No. %4 and try again.', Comment = '%1 = Entry number, %2 = Vendor number, %3 = Document number, %4 = Payment order number';
         CompanyAddr: array[8] of Text[100];
         PayeeAddress: array[8] of Text[100];
-        Text1100003: Label 'We would like to inform you that your Account Number %1, in %2 Bank was credited for the Amount of %3 to settle these transactions:';
+        BankInfoLbl: Label 'We would like to inform you that your Account Number %1, in %2 Bank was credited for the Amount of %3 to settle these transactions:', Comment = '%1 = Vendor bank account number, %2 = Vendor bank account code, %3 = Payment amount';
         LastRemittanceAdvNo: Text[20];
         EPayExportFilePath: Text[250];
-        Text1100004: Label 'Bank %1 - %2, has an overdue balance of %3. Do you still want to record the amount?';
+        Text1100004Lbl: Label 'Bank %1 - %2, has an overdue balance of %3. Do you still want to record the amount?', Comment = '%1 = Bank account number, %2 = Bank account name, %3 = Bank account balance';
         OutputNo: Integer;
         TempVendCCCAccNo: Text[30];
         TempVendCCCControlDigits: Text[30];

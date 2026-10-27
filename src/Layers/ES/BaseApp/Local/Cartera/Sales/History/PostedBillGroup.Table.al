@@ -268,12 +268,12 @@ table 7000006 "Posted Bill Group"
     }
 
     var
-        Text1100000: Label 'untitled';
+        Text1100000Lbl: Label 'untitled';
 
     procedure Caption(): Text
     begin
         if "No." = '' then
-            exit(Text1100000);
+            exit(Text1100000Lbl);
         CalcFields("Bank Account Name");
         exit(StrSubstNo('%1 %2', "No.", "Bank Account Name"));
     end;

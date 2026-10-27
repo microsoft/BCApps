@@ -122,6 +122,7 @@ page 7000018 "Bank Account Selection"
                             AutoFormatExpression = CurrBillGr."Currency Code";
                             AutoFormatType = 1;
                             Editable = false;
+                            ToolTip = 'Specifies the amount of the current bill group.';
 
                             trigger OnDrillDown()
                             begin

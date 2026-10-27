@@ -28,16 +28,16 @@ codeunit 7000007 "Document-Misc"
     end;
 
     var
-        Text1100000: Label 'This document is included in a posted bill group. Its %1 cannot be modified.';
-        Text1100001: Label 'This document is closed. Its %1 cannot be modified.';
-        Text1100002: Label 'This document is included in a posted payment order. Its %1 cannot be modified.';
-        Text1100003: Label '%1 cannot be used in CSB Electronics Norms Exports.';
-        Text1100004: Label '%1 cannot be used in CSB Electronic Norm Export No. 34./Norm Export No. 34.1';
-        Text1100005: Label '%1 is not correct. Do you want to have it corrected?';
-        Text1100006: Label 'This account has no control digit. Do you want to have it calculated?';
-        Text1100007: Label 'Partial Bill settlement %1/%2';
-        Text1100008: Label 'Partial Document settlement %1 Customer No. %2';
-        Text1100009: Label 'Partial Document settlement %1';
+        Text1100000Lbl: Label 'This document is included in a posted bill group. Its %1 cannot be modified.', Comment = '%1 = Due Date field caption';
+        Text1100001Lbl: Label 'This document is closed. Its %1 cannot be modified.', Comment = '%1 = Due Date field caption';
+        Text1100002Lbl: Label 'This document is included in a posted payment order. Its %1 cannot be modified.', Comment = '%1 = Due Date field caption';
+        Text1100003Lbl: Label '%1 cannot be used in CSB Electronics Norms Exports.', Comment = '%1 = Payment method code';
+        Text1100004Lbl: Label '%1 cannot be used in CSB Electronic Norm Export No. 34./Norm Export No. 34.1', Comment = '%1 = Payment method code';
+        Text1100005Lbl: Label '%1 is not correct. Do you want to have it corrected?', Comment = '%1 = CCC Control Digits field caption';
+        Text1100006Lbl: Label 'This account has no control digit. Do you want to have it calculated?';
+        Text1100007Lbl: Label 'Partial Bill settlement %1/%2', Comment = '%1 = Document number, %2 = Bill number';
+        Text1100008Lbl: Label 'Partial Document settlement %1 Customer No. %2', Comment = '%1 = Document number, %2 = Customer number';
+        Text1100009Lbl: Label 'Partial Document settlement %1', Comment = '%1 = Document number';
 
     procedure UpdateReceivableDueDate(var CustLedgEntry: Record "Cust. Ledger Entry")
     var
@@ -54,11 +54,11 @@ codeunit 7000007 "Document-Misc"
                 end;
             CustLedgEntry."Document Situation"::"Posted BG/PO":
                 Error(
-                  Text1100000,
+                  Text1100000Lbl,
                   CustLedgEntry.FieldCaption("Due Date"));
             CustLedgEntry."Document Situation"::"Closed BG/PO", CustLedgEntry."Document Situation"::"Closed Documents":
                 Error(
-                  Text1100001,
+                  Text1100001Lbl,
                   CustLedgEntry.FieldCaption("Due Date"));
         end;
     end;
@@ -78,11 +78,11 @@ codeunit 7000007 "Document-Misc"
                 end;
             VendLedgEntry."Document Situation"::"Posted BG/PO":
                 Error(
-                  Text1100002,
+                  Text1100002Lbl,
                   VendLedgEntry.FieldCaption("Due Date"));
             VendLedgEntry."Document Situation"::"Closed BG/PO", VendLedgEntry."Document Situation"::"Closed Documents":
                 Error(
-                  Text1100001,
+                  Text1100001Lbl,
                   VendLedgEntry.FieldCaption("Due Date"));
         end;
     end;
@@ -100,7 +100,7 @@ codeunit 7000007 "Document-Misc"
             PaymentMethod."Bill Type"::IOU:
                 exit('3');
             else
-                Error(Text1100003, PmtMethodCode);
+                Error(Text1100003Lbl, PmtMethodCode);
         end;
     end;
 
@@ -115,7 +115,7 @@ codeunit 7000007 "Document-Misc"
             PaymentMethod."Bill Type"::Transfer:
                 exit('5');
             else
-                Error(Text1100004, PmtMethodCode);
+                Error(Text1100004Lbl, PmtMethodCode);
         end;
     end;
 
@@ -187,7 +187,7 @@ codeunit 7000007 "Document-Misc"
             if CustCCCControlDigits <> '' then begin
                 if CalcControlDigit(CustCCCBankBranchNo + Cust2, CustCCCAccNo) <> CustCCCControlDigits then begin
                     MessageTxt := StrSubstNo(
-                        Text1100005,
+                        Text1100005Lbl,
                         CustBankAcc.FieldCaption("CCC Control Digits"));
                     if not Confirm(MessageTxt) then
                         CustCCCControlDigits := '**'
@@ -195,7 +195,7 @@ codeunit 7000007 "Document-Misc"
                         CustCCCControlDigits := CalcControlDigit(CustCCCBankBranchNo + Cust2, CustCCCAccNo);
                 end
             end else
-                if not Confirm(Text1100006) then
+                if not Confirm(Text1100006Lbl) then
                     CustCCCControlDigits := '**'
                 else
                     CustCCCControlDigits := CalcControlDigit(CustCCCBankBranchNo + Cust2, CustCCCAccNo)
@@ -212,17 +212,17 @@ codeunit 7000007 "Document-Misc"
         GLEntry.SetRange("G/L Account No.", AccNo);
         if TypeDoc = TypeDoc::Bill then
             Description2 := CopyStr(
-                StrSubstNo(Text1100007, DocNo, BillNo),
+                StrSubstNo(Text1100007Lbl, DocNo, BillNo),
                 1, MaxStrLen(GLEntry.Description))
         else
             if CustAccNo <> '' then
                 Description2 := CopyStr(
-                    StrSubstNo(Text1100008,
+                    StrSubstNo(Text1100008Lbl,
                       DocNo,
                       CustAccNo), 1, MaxStrLen(GLEntry.Description))
             else
                 Description2 := CopyStr(
-                    StrSubstNo(Text1100009, DocNo),
+                    StrSubstNo(Text1100009Lbl, DocNo),
                     1, MaxStrLen(GLEntry.Description));
         GLEntry.SetRange(Description, Description2);
     end;

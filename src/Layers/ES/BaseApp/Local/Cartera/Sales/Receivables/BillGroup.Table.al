@@ -209,7 +209,7 @@ table 7000005 "Bill Group"
 
                 if ("Currency Code" <> xRec."Currency Code") and not BillGrIsEmpty() then
                     FieldError("Currency Code",
-                      StrSubstNo(Text1100003, TableCaption));
+                      StrSubstNo(Text1100003Lbl, TableCaption));
 
                 if "Currency Code" <> '' then begin
                     Currency.Reset();
@@ -220,7 +220,7 @@ table 7000005 "Bill Group"
                     Currency.Code := "Currency Code";
                     if not Currency.Find() then
                         Error(
-                          Text1100004,
+                          Text1100004Lbl,
                           "Currency Code");
                 end;
 
@@ -260,11 +260,11 @@ table 7000005 "Bill Group"
                 if Factoring = Factoring::" " then begin
                     Doc.SetFilter("Document Type", '<>%1', Doc."Document Type"::Bill);
                     if Doc.FindFirst() then
-                        Error(Text1100005);
+                        Error(Text1100005Lbl);
                 end else begin
                     Doc.SetFilter("Document Type", '%1', Doc."Document Type"::Bill);
                     if Doc.FindFirst() then
-                        Error(Text1100006);
+                        Error(Text1100006Lbl);
                 end;
             end;
         }
@@ -295,7 +295,7 @@ table 7000005 "Bill Group"
         Doc.SetRange(Type, Doc.Type::Receivable);
         Doc.SetRange("Bill Gr./Pmt. Order No.", "No.");
         if Doc.FindFirst() then
-            Error(Text1100002);
+            Error(Text1100002Lbl);
 
         BGPOCommentLine.SetRange("BG/PO No.", "No.");
         BGPOCommentLine.DeleteAll();
@@ -316,10 +316,10 @@ table 7000005 "Bill Group"
 
         if GetFilter("Bank Account No.") <> '' then
             if GetRangeMin("Bank Account No.") = GetRangeMax("Bank Account No.") then begin
-                Option := StrMenu(Text1100000);
+                Option := StrMenu(Text1100000Lbl);
                 case Option of
                     0:
-                        Error(Text1100001, TableCaption);
+                        Error(Text1100001Lbl, TableCaption);
                     1:
                         "Dealing Type" := "Dealing Type"::Collection;
                     2:
@@ -336,19 +336,6 @@ table 7000005 "Bill Group"
     end;
 
     var
-        Text1100000: Label '&Collection,&Discount';
-        Text1100001: Label 'The creation of a new %1 was cancelled by the user';
-        Text1100002: Label 'This Bill Group is not empty. Remove all its bills and try again.';
-        Text1100003: Label 'can only be changed when the %1 is empty';
-        Text1100004: Label 'The operation is not allowed for bill groups using %1. Check your currency setup.';
-        Text1100005: Label 'Invoices should be removed.';
-        Text1100006: Label 'Bills should be removed.';
-        Text1100007: Label 'This bill group has already been printed. Proceed anyway?';
-        Text1100008: Label 'The update has been interrupted by the user.';
-        Text1100009: Label 'Bill Group';
-        Text1100010: Label ' is currently in use in a Posted Bill Group.';
-        Text1100011: Label ' is currently in use in a Closed Bill Group.';
-        Text1100012: Label 'untitled';
         BillGr: Record "Bill Group";
         PostedBillGr: Record "Posted Bill Group";
         ClosedBillGr: Record "Closed Bill Group";
@@ -357,8 +344,21 @@ table 7000005 "Bill Group"
         Currency: Record Currency;
         BankAcc: Record "Bank Account";
         BGPOCommentLine: Record "BG/PO Comment Line";
-        Currencies: Page Currencies;
         CarteraManagement: Codeunit CarteraManagement;
+        Currencies: Page Currencies;
+        Text1100000Lbl: Label '&Collection,&Discount';
+        Text1100001Lbl: Label 'The creation of a new %1 was cancelled by the user', Comment = '%1 = Bill group table caption';
+        Text1100002Lbl: Label 'This Bill Group is not empty. Remove all its bills and try again.';
+        Text1100003Lbl: Label 'can only be changed when the %1 is empty', Comment = '%1 = Table caption';
+        Text1100004Lbl: Label 'The operation is not allowed for bill groups using %1. Check your currency setup.', Comment = '%1 = Currency code';
+        Text1100005Lbl: Label 'Invoices should be removed.';
+        Text1100006Lbl: Label 'Bills should be removed.';
+        Text1100007Lbl: Label 'This bill group has already been printed. Proceed anyway?';
+        Text1100008Lbl: Label 'The update has been interrupted by the user.';
+        Text1100009Lbl: Label 'Bill Group';
+        Text1100010Lbl: Label ' is currently in use in a Posted Bill Group.';
+        Text1100011Lbl: Label ' is currently in use in a Closed Bill Group.';
+        Text1100012Lbl: Label 'untitled';
         Option: Integer;
         SilentDirectDebitFormat: Option " ",Standard,N58;
         DirectDebitOptionTxt: Label 'Direct Debit';
@@ -384,8 +384,8 @@ table 7000005 "Bill Group"
     local procedure CheckPrinted()
     begin
         if "No. Printed" <> 0 then
-            if not Confirm(Text1100007) then
-                Error(Text1100008);
+            if not Confirm(Text1100007Lbl) then
+                Error(Text1100008Lbl);
     end;
 
     [Scope('OnPrem')]
@@ -396,15 +396,15 @@ table 7000005 "Bill Group"
 
     local procedure UpdateDescription()
     begin
-        "Posting Description" := Text1100009 + ' ' + "No.";
+        "Posting Description" := Text1100009Lbl + ' ' + "No.";
     end;
 
     local procedure CheckNoNotUsed()
     begin
         if PostedBillGr.Get("No.") then
-            FieldError("No.", PostedBillGr."No." + Text1100010);
+            FieldError("No.", PostedBillGr."No." + Text1100010Lbl);
         if ClosedBillGr.Get("No.") then
-            FieldError("No.", ClosedBillGr."No." + Text1100011);
+            FieldError("No.", ClosedBillGr."No." + Text1100011Lbl);
     end;
 
     [Scope('OnPrem')]
@@ -432,7 +432,7 @@ table 7000005 "Bill Group"
     procedure Caption(): Text
     begin
         if "No." = '' then
-            exit(Text1100012);
+            exit(Text1100012Lbl);
         CalcFields("Bank Account Name");
         exit(StrSubstNo('%1 %2', "No.", "Bank Account Name"));
     end;

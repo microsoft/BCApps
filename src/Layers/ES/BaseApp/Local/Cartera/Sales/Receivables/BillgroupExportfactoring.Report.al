@@ -40,15 +40,15 @@ report 7000089 "Bill group - Export factoring"
                         else
                             case PaymentMethod."Bill Type" of
                                 "ES Bill Type"::"Bill of Exchange":
-                                    DocType := Text1100009;
+                                    DocType := Text1100009Lbl;
                                 "ES Bill Type"::Receipt:
-                                    DocType := Text1100010;
+                                    DocType := Text1100010Lbl;
                                 "ES Bill Type"::IOU:
-                                    DocType := Text1100011;
+                                    DocType := Text1100011Lbl;
                                 "ES Bill Type"::Check:
-                                    DocType := Text1100012;
+                                    DocType := Text1100012Lbl;
                                 "ES Bill Type"::Transfer:
-                                    DocType := Text1100013;
+                                    DocType := Text1100013Lbl;
                                 else
                                     DocType := ' ';
                             end;
@@ -62,11 +62,11 @@ report 7000089 "Bill group - Export factoring"
 
                         OutText := '09' + PadStr('', 5, '0') + PadStr(Customer.Name, 30, ' ') + PadStr(Customer."VAT Registration No.", 14, ' ')
                           + PadStr(Customer.Address, 30, ' ') + PadStr(Customer.City, 30, ' ') +
-                          (PadStr('', 5 - StrLen(CustPostCode), '0') + CustPostCode) + Text1100014 + PadStr("Document No.", 10, ' ') + PadStr('', 10, ' ') +
-                          Format("Posting Date", 0, Text1100007)
-                          + Format("Due Date", 0, Text1100007) + RmgAmount + PadStr('', 2, '0') + PadStr('', 2, '0') + PadStr('', 2, '0')
+                          (PadStr('', 5 - StrLen(CustPostCode), '0') + CustPostCode) + Text1100014Lbl + PadStr("Document No.", 10, ' ') + PadStr('', 10, ' ') +
+                          Format("Posting Date", 0, Text1100007Lbl)
+                          + Format("Due Date", 0, Text1100007Lbl) + RmgAmount + PadStr('', 2, '0') + PadStr('', 2, '0') + PadStr('', 2, '0')
                           + CCCBankNo + CCCBankBranchNo + CCCAccNo + DocType + PadStr("Account No.", 15, ' ') + CCCControlDigits
-                          + Text1100015 + CurrCode + PadStr('', 21, ' ');
+                          + Text1100015Lbl + CurrCode + PadStr('', 21, ' ');
                         OutFile.Write(OutText);
                     end;
                 end;
@@ -75,7 +75,7 @@ report 7000089 "Bill group - Export factoring"
             trigger OnAfterGetRecord()
             begin
                 if Factoring = Factoring::" " then
-                    Error(Text1100005, "No.");
+                    Error(Text1100005Lbl, "No.");
 
                 TestField("Bank Account No.");
                 BankAcc.Get("Bank Account No.");
@@ -88,7 +88,7 @@ report 7000089 "Bill group - Export factoring"
                 if (CCCBankNo = '') or (CCCBankBranchNo = '') or
                    (CCCControlDigits = '') or (CCCAccNo = '')
                 then
-                    Error(Text1100006, BankAcc."No.");
+                    Error(Text1100006Lbl, BankAcc."No.");
 
                 CCCBankNo := PadStr('', MaxStrLen(CCCBankNo) - StrLen(CCCBankNo), '0') + CCCBankNo;
                 CCCBankBranchNo := PadStr('', MaxStrLen(CCCBankBranchNo) - StrLen(CCCBankBranchNo), '0') + CCCBankBranchNo;
@@ -101,7 +101,7 @@ report 7000089 "Bill group - Export factoring"
                 NoBillGroup := NoBillGroup + 1;
 
                 OutText := '06' + (PadStr('', 5 - StrLen(Format(NoBillGroup)), '0') + Format(NoBillGroup))
-                  + Format("Posting Date", 0, Text1100007) + PadStr('', 219, ' ');
+                  + Format("Posting Date", 0, Text1100007Lbl) + PadStr('', 219, ' ');
                 OutFile.Write(OutText);
             end;
 
@@ -124,24 +124,24 @@ report 7000089 "Bill group - Export factoring"
                 if SilentMode then
                     FileManagement.CopyServerFile(ExternalFile, SilentModeFile, true)
                 else
-                    Download(ExternalFile, '', 'C:', Text10701, ToFile);
+                    Download(ExternalFile, '', 'C:', FilterLbl, ToFile);
             end;
 
             trigger OnPreDataItem()
             begin
                 if BankSuffix = '' then
-                    Error(Text1100000);
+                    Error(Text1100000Lbl);
 
                 if not DocMisc.CheckBankSuffix(BankSuffixBankAcc, "Bank Account No.") then
-                    if not Confirm(Text1100001 +
-                         Text1100002,
+                    if not Confirm(Text1100001Lbl +
+                         Text1100002Lbl,
                          false,
                          FieldCaption("Bank Account No."),
                          TableCaption)
                     then
-                        Error(Text1100003);
+                        Error(Text1100003Lbl);
 
-                OutText := '03' + PadStr(BankSuffix, 5, '0') + NameCompany + Format(DeliveryDate, 0, Text1100004) + PadStr('', 189, ' ');
+                OutText := '03' + PadStr(BankSuffix, 5, '0') + NameCompany + Format(DeliveryDate, 0, Text1100004Lbl) + PadStr('', 189, ' ');
                 OutFile.Write(OutText);
             end;
         }
@@ -198,7 +198,7 @@ report 7000089 "Bill group - Export factoring"
         trigger OnOpenPage()
         begin
             if ExternalFile = '' then
-                ExternalFile := 'C:\' + Text10702;
+                ExternalFile := 'C:\' + Text10702Lbl;
             if DeliveryDate = 0D then
                 DeliveryDate := Today;
             "Bill Group".SetFilter(Factoring, '<>%1', "Bill Group".Factoring::" ");
@@ -224,32 +224,32 @@ report 7000089 "Bill group - Export factoring"
         OutFile.TextMode := true;
         OutFile.WriteMode := true;
         ExternalFile := FileMgt.ServerTempFileName('');
-        ToFile := Text10702;
+        ToFile := Text10702Lbl;
         OutFile.Create(ExternalFile);
     end;
 
     var
-        Text1100000: Label 'Bank Suffix cannot be blank.';
-        Text1100001: Label 'The Bank Suffix selected belongs to a %1  different than the %2. \';
-        Text1100002: Label 'Do you want to continue?.';
-        Text1100003: Label 'Process cancelled by request of user.';
-        Text1100004: Label '<year><Month,2><Day,2>', Locked = true;
-        Text1100005: Label 'Bill Group %1 cannot be sent to factoring';
-        Text1100006: Label 'Some data for Bank Account %1 are missing.';
-        Text1100007: Label '<Year><Month,2><Day,2>', Locked = true;
-        Text1100009: Label 'B';
-        Text1100010: Label 'R';
-        Text1100011: Label 'I';
-        Text1100012: Label 'C';
-        Text1100013: Label 'T';
-        Text1100014: Label 'F';
-        Text1100015: Label 'ES';
         CompanyInfo: Record "Company Information";
         Customer: Record Customer;
         BankAcc: Record "Bank Account";
         PaymentMethod: Record "Payment Method";
         GLSetup: Record "General Ledger Setup";
         DocMisc: Codeunit "Document-Misc";
+        Text1100000Lbl: Label 'Bank Suffix cannot be blank.';
+        Text1100001Lbl: Label 'The Bank Suffix selected belongs to a %1  different than the %2. \', Comment = '%1 = Bank Account No. field caption, %2 = Bill Group table caption';
+        Text1100002Lbl: Label 'Do you want to continue?.';
+        Text1100003Lbl: Label 'Process cancelled by request of user.';
+        Text1100004Lbl: Label '<year><Month,2><Day,2>', Locked = true;
+        Text1100005Lbl: Label 'Bill Group %1 cannot be sent to factoring', Comment = '%1 = Bill group number';
+        Text1100006Lbl: Label 'Some data for Bank Account %1 are missing.', Comment = '%1 = Bank account number';
+        Text1100007Lbl: Label '<Year><Month,2><Day,2>', Locked = true;
+        Text1100009Lbl: Label 'B';
+        Text1100010Lbl: Label 'R';
+        Text1100011Lbl: Label 'I';
+        Text1100012Lbl: Label 'C';
+        Text1100013Lbl: Label 'T';
+        Text1100014Lbl: Label 'F';
+        Text1100015Lbl: Label 'ES';
         OutFile: File;
         ExternalFile: Text[1024];
         CCCBankNo: Text[4];
@@ -270,8 +270,8 @@ report 7000089 "Bill group - Export factoring"
         BankSuffixBankAcc: Code[10];
         BankSuffix: Code[3];
         ToFile: Text[1024];
-        Text10701: Label 'ASC Files (*.asc)|*.asc|All Files (*.*)|*.*';
-        Text10702: Label 'FACTORING.ASC';
+        FilterLbl: Label 'ASC Files (*.asc)|*.asc|All Files (*.*)|*.*';
+        Text10702Lbl: Label 'FACTORING.ASC';
         SilentMode: Boolean;
         SilentModeFile: Text;
 

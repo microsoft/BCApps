@@ -282,25 +282,25 @@ report 7000008 "Bill Group - Test"
                         DocCount := DocCount + 1;
 
                         if "Collection Agent" <> "Collection Agent"::Bank then
-                            AddError(StrSubstNo(Text1100010, FieldCaption("Collection Agent"), "Collection Agent"::Bank));
+                            AddError(StrSubstNo(Text1100010Lbl, FieldCaption("Collection Agent"), "Collection Agent"::Bank));
 
                         if "Currency Code" <> BillGr."Currency Code" then
-                            AddError(StrSubstNo(Text1100010, FieldCaption("Currency Code"), BillGr."Currency Code"));
+                            AddError(StrSubstNo(Text1100010Lbl, FieldCaption("Currency Code"), BillGr."Currency Code"));
 
                         if "Remaining Amt. (LCY)" = 0 then
-                            AddError(StrSubstNo(Text1100011, FieldCaption("Remaining Amt. (LCY)")));
+                            AddError(StrSubstNo(Text1100011Lbl, FieldCaption("Remaining Amt. (LCY)")));
 
                         if Type <> Type::Receivable then
-                            AddError(StrSubstNo(Text1100010, FieldCaption(Type), Type::Receivable));
+                            AddError(StrSubstNo(Text1100010Lbl, FieldCaption(Type), Type::Receivable));
 
                         if Accepted = Accepted::No then
-                            AddError(StrSubstNo(Text1100012, FieldCaption(Accepted), false));
+                            AddError(StrSubstNo(Text1100012Lbl, FieldCaption(Accepted), false));
 
                         if (BillGr.Factoring <> BillGr.Factoring::" ") and ("Document Type" = "Document Type"::Bill) then
-                            AddError(StrSubstNo(Text1100012, FieldCaption("Document Type"), "Document Type"::Bill));
+                            AddError(StrSubstNo(Text1100012Lbl, FieldCaption("Document Type"), "Document Type"::Bill));
 
                         if (BillGr.Factoring = BillGr.Factoring::" ") and ("Document Type" <> "Document Type"::Bill) then
-                            AddError(StrSubstNo(Text1100010, FieldCaption("Document Type"), "Document Type"::Bill));
+                            AddError(StrSubstNo(Text1100010Lbl, FieldCaption("Document Type"), "Document Type"::Bill));
 
                         CustLedgEntry.Get("Entry No.");
                         CustPostingGr.Get(CustLedgEntry."Customer Posting Group");
@@ -308,7 +308,7 @@ report 7000008 "Bill Group - Test"
                             if CustPostingGr."Discted. Bills Acc." = '' then
                                 AddError(
                                   StrSubstNo(
-                                    Text1100013,
+                                    Text1100013Lbl,
                                     CustPostingGr.FieldCaption("Discted. Bills Acc."),
                                     CustPostingGr.TableCaption(),
                                     CustPostingGr.Code));
@@ -317,7 +317,7 @@ report 7000008 "Bill Group - Test"
                             if CustPostingGr."Bills on Collection Acc." = '' then
                                 AddError(
                                   StrSubstNo(
-                                    Text1100013,
+                                    Text1100013Lbl,
                                     CustPostingGr.FieldCaption("Bills on Collection Acc."),
                                     CustPostingGr.TableCaption(),
                                     CustPostingGr.Code));
@@ -329,7 +329,7 @@ report 7000008 "Bill Group - Test"
                             NoOfDays := 0;
                             if BillGr."Dealing Type" = BillGr."Dealing Type"::Discount then
                                 AddError(
-                                  Text1100014);
+                                  Text1100014Lbl);
                         end;
 
                         if CalcExpenses then begin
@@ -380,7 +380,7 @@ report 7000008 "Bill Group - Test"
                                     if BillGr."Dealing Type" = BillGr."Dealing Type"::Discount then
                                         AddError(
                                           StrSubstNo(
-                                            Text1100015,
+                                            Text1100015Lbl,
                                             CustRating.TableCaption(),
                                             BankAcc2.TableCaption(),
                                             BankAcc2."No.",
@@ -403,7 +403,7 @@ report 7000008 "Bill Group - Test"
                         if CustPostingGr."Bills Account" = '' then
                             AddError(
                               StrSubstNo(
-                                Text1100013,
+                                Text1100013Lbl,
                                 CustPostingGr.FieldCaption("Bills Account"),
                                 CustPostingGr.TableCaption(),
                                 CustPostingGr.Code));
@@ -426,7 +426,7 @@ report 7000008 "Bill Group - Test"
                             if BankAcc2."Bank Acc. Posting Group" = '' then
                                 AddError(
                                   StrSubstNo(
-                                    Text1100016,
+                                    Text1100016Lbl,
                                     BankAcc2.FieldCaption("Bank Acc. Posting Group"),
                                     BillGr.TableCaption(),
                                     BillGr."Bank Account No."));
@@ -434,7 +434,7 @@ report 7000008 "Bill Group - Test"
                                 if BankAccPostingGr."Liabs. for Disc. Bills Acc." = '' then
                                     AddError(
                                       StrSubstNo(
-                                        Text1100013,
+                                        Text1100013Lbl,
                                         BankAccPostingGr.FieldCaption("Liabs. for Disc. Bills Acc."),
                                         BankAccPostingGr.TableCaption(),
                                         BankAccPostingGr.Code));
@@ -845,9 +845,9 @@ report 7000008 "Bill Group - Test"
             trigger OnAfterGetRecord()
             begin
                 if "Dealing Type" = "Dealing Type"::Discount then
-                    OperationText := Text1100000
+                    OperationText := Text1100000Lbl
                 else
-                    OperationText := Text1100001;
+                    OperationText := Text1100001Lbl;
                 FactoringType := GetFactoringType();
 
                 Clear(BankAcc2);
@@ -858,7 +858,7 @@ report 7000008 "Bill Group - Test"
                     if BankAcc2."Currency Code" <> BillGr."Currency Code" then
                         AddError(
                           StrSubstNo(
-                            Text1100002,
+                            Text1100002Lbl,
                             BankAcc2.FieldCaption("Currency Code"),
                             BillGr."Currency Code",
                             BankAcc2.TableCaption,
@@ -866,14 +866,14 @@ report 7000008 "Bill Group - Test"
                     if BankAcc2."Operation Fees Code" = '' then
                         AddError(
                           StrSubstNo(
-                            Text1100003,
+                            Text1100003Lbl,
                             BankAcc2.FieldCaption("Operation Fees Code"),
                             BankAcc2.TableCaption,
                             BankAcc2."No."));
                     if BankAcc2."Customer Ratings Code" = '' then
                         AddError(
                           StrSubstNo(
-                            Text1100003,
+                            Text1100003Lbl,
                             BankAcc2.FieldCaption("Customer Ratings Code"),
                             BankAcc2.TableCaption,
                             BankAcc2."No."));
@@ -891,29 +891,29 @@ report 7000008 "Bill Group - Test"
                         BankAcc2.CalcFields("Posted Receiv. Bills Rmg. Amt.");
                         BillGr.CalcFields(Amount);
                         if BankAcc2."Posted Receiv. Bills Rmg. Amt." + BillGr.Amount > BankAcc2."Credit Limit for Discount" then
-                            AddError(Text1100004);
+                            AddError(Text1100004Lbl);
                     end;
                 end;
 
                 if "Bank Account No." = '' then
-                    AddError(StrSubstNo(Text1100005, FieldCaption("Bank Account No.")))
+                    AddError(StrSubstNo(Text1100005Lbl, FieldCaption("Bank Account No.")))
                 else
                     if PostingGroup = '' then
                         AddError(
                           StrSubstNo(
-                            Text1100006,
+                            Text1100006Lbl,
                             BankAcc2.TableCaption(),
                             "Bank Account No.",
                             BankAcc2.FieldCaption("Bank Acc. Posting Group")));
 
                 if "Posting Date" = 0D then
-                    AddError(StrSubstNo(Text1100005, FieldCaption("Posting Date")));
+                    AddError(StrSubstNo(Text1100005Lbl, FieldCaption("Posting Date")));
 
                 if "No. Printed" = 0 then
-                    AddError(Text1100007);
+                    AddError(Text1100007Lbl);
 
                 if CompanyIsBlocked then
-                    AddError(StrSubstNo(Text1100008, BankAcc2.TableCaption(), "Bank Account No."));
+                    AddError(StrSubstNo(Text1100008Lbl, BankAcc2.TableCaption(), "Bank Account No."));
 
                 Doc.Reset();
                 Doc.SetCurrentKey(Type, "Collection Agent", "Bill Gr./Pmt. Order No.");
@@ -921,7 +921,7 @@ report 7000008 "Bill Group - Test"
                 Doc.SetRange("Collection Agent", Doc."Collection Agent"::Bank);
                 Doc.SetRange("Bill Gr./Pmt. Order No.", "No.");
                 if not Doc.Find('-') then
-                    AddError(Text1100009);
+                    AddError(Text1100009Lbl);
 
                 BillGrDealingTypeInt := "Dealing Type".AsInteger();
                 BillGrFactoringInt := Factoring
@@ -961,29 +961,6 @@ report 7000008 "Bill Group - Test"
     end;
 
     var
-        Text1100000: Label 'For Discount';
-        Text1100001: Label 'For Collection';
-        Text1100002: Label '%1 must be %2 in %3 %4.';
-        Text1100003: Label '%1 must be specified in %2 %3.';
-        Text1100004: Label 'The credit limit will be exceeded.';
-        Text1100005: Label '%1 must be specified.';
-        Text1100006: Label '%1 %2 has no %3.';
-        Text1100007: Label 'The bill group has not been printed.';
-        Text1100008: Label '%1 %2 is blocked.';
-        Text1100009: Label 'The bill group is empty.';
-        Text1100010: Label '%1 must be %2.';
-        Text1100011: Label '%1 must not be zero.';
-        Text1100012: Label '%1 cannot be %2.';
-        Text1100013: Label 'Specify %1 in %2 %3.';
-        Text1100014: Label 'This Bill is due before the posting date of the bill group. It should not be included in a group for discount.';
-        Text1100015: Label 'The %1 for %2 %3 %4 %5 %6 %7 %8 doesn''t exist.';
-        Text1100016: Label 'Specify %1 for %2 %3.';
-        Text1100017: Label 'Risked Factoring';
-        Text1100018: Label 'Unrisked Factoring';
-        Text1100019: Label 'No. of invoices';
-        Text1100020: Label 'No. of bills';
-        Text1100021: Label 'Risked Factoring Expenses';
-        Text1100022: Label 'Unrisked Factoring Expenses';
         BankAcc2: Record "Bank Account";
         Cust: Record Customer;
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -995,6 +972,29 @@ report 7000008 "Bill Group - Test"
         CustRating: Record "Customer Rating";
         DocPost: Codeunit "Document-Post";
         FormatAddress: Codeunit "Format Address";
+        Text1100000Lbl: Label 'For Discount';
+        Text1100001Lbl: Label 'For Collection';
+        Text1100002Lbl: Label '%1 must be %2 in %3 %4.', Comment = '%1 = Field caption, %2 = Required value, %3 = Table caption, %4 = Record number';
+        Text1100003Lbl: Label '%1 must be specified in %2 %3.', Comment = '%1 = Field caption, %2 = Table caption, %3 = Record number';
+        Text1100004Lbl: Label 'The credit limit will be exceeded.';
+        Text1100005Lbl: Label '%1 must be specified.', Comment = '%1 = Field caption';
+        Text1100006Lbl: Label '%1 %2 has no %3.', Comment = '%1 = Table caption, %2 = Bank account number, %3 = Bank Acc. Posting Group field caption';
+        Text1100007Lbl: Label 'The bill group has not been printed.';
+        Text1100008Lbl: Label '%1 %2 is blocked.', Comment = '%1 = Table caption, %2 = Bank account number';
+        Text1100009Lbl: Label 'The bill group is empty.';
+        Text1100010Lbl: Label '%1 must be %2.', Comment = '%1 = Field caption, %2 = Required value';
+        Text1100011Lbl: Label '%1 must not be zero.', Comment = '%1 = Field caption';
+        Text1100012Lbl: Label '%1 cannot be %2.', Comment = '%1 = Field caption, %2 = Disallowed value';
+        Text1100013Lbl: Label 'Specify %1 in %2 %3.', Comment = '%1 = Field caption, %2 = Posting group table caption, %3 = Posting group code';
+        Text1100014Lbl: Label 'This Bill is due before the posting date of the bill group. It should not be included in a group for discount.';
+        Text1100015Lbl: Label 'The %1 for %2 %3 %4 %5 %6 %7 %8 doesn''t exist.', Comment = '%1 = Customer Rating table caption, %2 = Bank Account table caption, %3 = Bank account number, %4 = Currency Code field caption, %5 = Currency code, %6 = Customer table caption, %7 = Customer No. field caption, %8 = Customer number';
+        Text1100016Lbl: Label 'Specify %1 for %2 %3.', Comment = '%1 = Bank Acc. Posting Group field caption, %2 = Bill Group table caption, %3 = Bank account number';
+        Text1100017Lbl: Label 'Risked Factoring';
+        Text1100018Lbl: Label 'Unrisked Factoring';
+        Text1100019Lbl: Label 'No. of invoices';
+        Text1100020Lbl: Label 'No. of bills';
+        Text1100021Lbl: Label 'Risked Factoring Expenses';
+        Text1100022Lbl: Label 'Unrisked Factoring Expenses';
         BillGrFilter: Text[250];
         BankAccAddr: array[8] of Text[100];
         OperationText: Text[80];
@@ -1059,9 +1059,9 @@ report 7000008 "Bill Group - Test"
     begin
         if BillGr.Factoring <> BillGr.Factoring::" " then begin
             if BillGr.Factoring = BillGr.Factoring::Risked then
-                exit(Text1100017);
+                exit(Text1100017Lbl);
 
-            exit(Text1100018);
+            exit(Text1100018Lbl);
         end;
     end;
 
@@ -1069,9 +1069,9 @@ report 7000008 "Bill Group - Test"
     procedure SetLabel(): Text[30]
     begin
         if BillGr.Factoring <> BillGr.Factoring::" " then
-            exit(Text1100019);
+            exit(Text1100019Lbl);
 
-        exit(Text1100020);
+        exit(Text1100020Lbl);
     end;
 
     [Scope('OnPrem')]
@@ -1079,9 +1079,9 @@ report 7000008 "Bill Group - Test"
     begin
         if BillGr.Factoring <> BillGr.Factoring::" " then begin
             if BillGr.Factoring = BillGr.Factoring::Risked then
-                exit(Text1100021);
+                exit(Text1100021Lbl);
 
-            exit(Text1100022);
+            exit(Text1100022Lbl);
         end;
     end;
 }

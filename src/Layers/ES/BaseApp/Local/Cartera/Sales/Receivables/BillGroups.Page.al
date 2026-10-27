@@ -320,7 +320,7 @@ page 7000009 "Bill Groups"
     var
         BankAcc: Record "Bank Account";
         BillGr: Record "Bill Group";
-        BankSel: Page "Bank Account Selection";
         PostBGPO: Codeunit "BG/PO-Post and Print";
+        BankSel: Page "Bank Account Selection";
 }
 

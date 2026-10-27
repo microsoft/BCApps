@@ -62,15 +62,15 @@ table 7000010 "Operation Fee"
     end;
 
     var
-        Text1100000: Label 'untitled';
         FeeRange: Record "Fee Range";
+        Text1100000Lbl: Label 'untitled';
 
     procedure Caption(): Text
     var
         BankAcc: Record "Bank Account";
     begin
         if Code = '' then
-            exit(Text1100000);
+            exit(Text1100000Lbl);
         BankAcc.Get(Code);
         exit(StrSubstNo('%1 %2 %3', BankAcc."No.", BankAcc.Name, "Currency Code"));
     end;

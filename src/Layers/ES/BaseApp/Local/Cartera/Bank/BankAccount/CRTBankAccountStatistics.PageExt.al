@@ -90,11 +90,15 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                         field(Control1100031; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field(Control1100032; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field("TotalHonoredDocs[2]"; TotalHonoredDocs[2])
@@ -102,36 +106,48 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Honored Bills Amt.';
+                            ToolTip = 'Specifies the amount on honored bills. ';
                         }
                         field("TotalRejectedDocs[2]"; TotalRejectedDocs[2])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Rejected Bills Amt.';
+                            ToolTip = 'Specifies the amount on rejected bills.';
                         }
                         field("DocDiscIntAmt[2]"; DocDiscIntAmt[2])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Discount Interests Amt.';
+                            ToolTip = 'Specifies the amount that relates to interest charged in connection with discount payments.';
                         }
                         field("DocDiscExpAmt[2]"; DocDiscExpAmt[2])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Discount Expenses Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection with discount payments.';
                         }
                         field("DocCollExpAmt[2]"; DocCollExpAmt[2])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Collection Expenses Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection with collection payments.';
                         }
                         field("DocRejExpAmt[2]"; DocRejExpAmt[2])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Rejection Expenses Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection with rejections.';
                         }
                     }
                     group(Control1906484001)
@@ -140,11 +156,15 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                         field(Control1100033; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field(Control1100034; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field("TotalHonoredDocs[3]"; TotalHonoredDocs[3])
@@ -152,36 +172,48 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Honored Bills Amt.';
+                            ToolTip = 'Specifies the amount on honored bills. ';
                         }
                         field("TotalRejectedDocs[3]"; TotalRejectedDocs[3])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Rejected Bills Amt.';
+                            ToolTip = 'Specifies the amount on rejected bills.';
                         }
                         field("DocDiscIntAmt[3]"; DocDiscIntAmt[3])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Discount Interests Amt.';
+                            ToolTip = 'Specifies the amount that relates to interest charged in connection with discount payments.';
                         }
                         field("DocDiscExpAmt[3]"; DocDiscExpAmt[3])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Discount Expenses Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection with discount payments.';
                         }
                         field("DocCollExpAmt[3]"; DocCollExpAmt[3])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Collection Expenses Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection with collection payments.';
                         }
                         field("DocRejExpAmt[3]"; DocRejExpAmt[3])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Rejection Expenses Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection with rejections.';
                         }
                     }
                     group(Control1906936701)
@@ -190,11 +222,15 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                         field(Control1100035; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field(Control1100036; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field("TotalHonoredDocs[4]"; TotalHonoredDocs[4])
@@ -202,36 +238,48 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Honored Bills Amt.';
+                            ToolTip = 'Specifies the amount on honored bills. ';
                         }
                         field("TotalRejectedDocs[4]"; TotalRejectedDocs[4])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Rejected Bills Amt.';
+                            ToolTip = 'Specifies the amount on rejected bills.';
                         }
                         field("DocDiscIntAmt[4]"; DocDiscIntAmt[4])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Discount Interests Amt.';
+                            ToolTip = 'Specifies the amount that relates to interest charged in connection with discount payments.';
                         }
                         field("DocDiscExpAmt[4]"; DocDiscExpAmt[4])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Discount Expenses Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection with discount payments.';
                         }
                         field("DocCollExpAmt[4]"; DocCollExpAmt[4])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Collection Expenses Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection with collection payments.';
                         }
                         field("DocRejExpAmt[4]"; DocRejExpAmt[4])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Rejection Expenses Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection with rejections.';
                         }
                     }
                 }
@@ -248,6 +296,8 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                         field(Control66; BankAccDateName[1])
                         {
                             ApplicationArea = Basic, Suite;
+                            Caption = 'Date Name';
+                            ToolTip = 'Specifies the date.';
                         }
                         field("TotalHonoredInvoices[1]"; TotalHonoredInvoices[1])
                         {
@@ -310,6 +360,8 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                         field(Control1100048; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field("TotalHonoredInvoices[2]"; TotalHonoredInvoices[2])
@@ -317,39 +369,53 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Honored Inv. Amt.';
+                            ToolTip = 'Specifies the amount on honored invoices. ';
                         }
                         field("TotalRejectedInvoices[2]"; TotalRejectedInvoices[2])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Rejected Inv. Amt.';
+                            ToolTip = 'Specifies the amount on rejected invoices.';
                         }
                         field("FactDiscIntAmt[2]"; FactDiscIntAmt[2])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Discount Interests Amt.';
+                            ToolTip = 'Specifies the amount that relates to interest charged in connection with discount payments.';
                         }
                         field("RiskFactExpAmt[2]"; RiskFactExpAmt[2])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Risked Factoring Exp. Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection risked factoring.';
                         }
                         field("UnriskFactExpAmt[2]"; UnriskFactExpAmt[2])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Unrisked Factoring Exp. Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection unrisked factoring.';
                         }
                         field(Control1100038; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field(Control1100039; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                     }
@@ -359,6 +425,8 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                         field(Control1100049; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field("TotalHonoredInvoices[3]"; TotalHonoredInvoices[3])
@@ -366,39 +434,53 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Honored Inv. Amt.';
+                            ToolTip = 'Specifies the amount on honored invoices. ';
                         }
                         field("TotalRejectedInvoices[3]"; TotalRejectedInvoices[3])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Rejected Inv. Amt.';
+                            ToolTip = 'Specifies the amount on rejected invoices.';
                         }
                         field("FactDiscIntAmt[3]"; FactDiscIntAmt[3])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Discount Interests Amt.';
+                            ToolTip = 'Specifies the amount that relates to interest charged in connection with discount payments.';
                         }
                         field("RiskFactExpAmt[3]"; RiskFactExpAmt[3])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Risked Factoring Exp. Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection risked factoring.';
                         }
                         field("UnriskFactExpAmt[3]"; UnriskFactExpAmt[3])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Unrisked Factoring Exp. Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection unrisked factoring.';
                         }
                         field(Control1100044; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field(Control1100045; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                     }
@@ -408,6 +490,8 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                         field(Control1100050; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field("TotalHonoredInvoices[4]"; TotalHonoredInvoices[4])
@@ -415,39 +499,53 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Honored Inv. Amt.';
+                            ToolTip = 'Specifies the amount on honored invoices. ';
                         }
                         field("TotalRejectedInvoices[4]"; TotalRejectedInvoices[4])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Rejected Inv. Amt.';
+                            ToolTip = 'Specifies the amount on rejected invoices.';
                         }
                         field("FactDiscIntAmt[4]"; FactDiscIntAmt[4])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Discount Interests Amt.';
+                            ToolTip = 'Specifies the amount that relates to interest charged in connection with discount payments.';
                         }
                         field("RiskFactExpAmt[4]"; RiskFactExpAmt[4])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Risked Factoring Exp. Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection risked factoring.';
                         }
                         field("UnriskFactExpAmt[4]"; UnriskFactExpAmt[4])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Unrisked Factoring Exp. Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection unrisked factoring.';
                         }
                         field(Control1100046; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field(Control1100047; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                     }
@@ -465,6 +563,8 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                         field(Control91; BankAccDateName[1])
                         {
                             ApplicationArea = Basic, Suite;
+                            Caption = 'Date Name';
+                            ToolTip = 'Specifies the date.';
                         }
                         field("TotalHonoredPayableDoc[1]"; TotalHonoredPayableDoc[1])
                         {
@@ -505,6 +605,8 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                         field(Control1100053; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field("TotalHonoredPayableDoc[2]"; TotalHonoredPayableDoc[2])
@@ -512,21 +614,29 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Honored Amt.';
+                            ToolTip = 'Specifies the amount on all honored documents. ';
                         }
                         field("PmtOrdExpAmt[2]"; PmtOrdExpAmt[2])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Payment Order Expenses Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection with payment orders.';
                         }
                         field(Control1100056; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field(Control1100059; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                     }
@@ -536,6 +646,8 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                         field(Control1100054; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field("TotalHonoredPayableDoc[3]"; TotalHonoredPayableDoc[3])
@@ -543,21 +655,29 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Honored Amt.';
+                            ToolTip = 'Specifies the amount on all honored documents. ';
                         }
                         field("PmtOrdExpAmt[3]"; PmtOrdExpAmt[3])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Payment Order Expenses Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection with payment orders.';
                         }
                         field(Control1100057; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field(Control1100060; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                     }
@@ -567,6 +687,8 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                         field(Control1100055; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field("TotalHonoredPayableDoc[4]"; TotalHonoredPayableDoc[4])
@@ -574,21 +696,29 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Total Honored Amt.';
+                            ToolTip = 'Specifies the amount on all honored documents. ';
                         }
                         field("PmtOrdExpAmt[4]"; PmtOrdExpAmt[4])
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Payment Order Expenses Amt.';
+                            ToolTip = 'Specifies the amount that relates to commission and charges in connection with payment orders.';
                         }
                         field(Control1100058; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field(Control1100061; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                     }
@@ -600,11 +730,15 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                 field(Control1100062; PlaceholderESLbl)
                 {
                     ApplicationArea = Advanced;
+                    Caption = 'Placeholder';
+                    ToolTip = 'Specifies a placeholder used to align the statistics.';
                     Visible = false;
                 }
                 field(Control1100063; PlaceholderESLbl)
                 {
                     ApplicationArea = Advanced;
+                    Caption = 'Placeholder';
+                    ToolTip = 'Specifies a placeholder used to align the statistics.';
                     Visible = false;
                 }
                 fixed(Control1903384001)
@@ -653,29 +787,39 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
                         field(Control1100064; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field(Control1100065; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field(Control1100066; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                         field(RiskPerc; RiskPerc)
                         {
                             AutoFormatType = 0;
                             ApplicationArea = Basic, Suite;
+                            Caption = 'Risk Percentage';
                             ExtendedDatatype = Ratio;
                             MaxValue = 100;
                             MinValue = 0;
+                            ToolTip = 'Specifies the percentage of the credit limit for discount that is used by outstanding discounted bills.';
                         }
                         field(Control1100067; PlaceholderESLbl)
                         {
                             ApplicationArea = Advanced;
+                            Caption = 'Placeholder';
+                            ToolTip = 'Specifies a placeholder used to align the statistics.';
                             Visible = false;
                         }
                     }
@@ -712,9 +856,8 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
 
         BankAcc.SetRange("Dealing Type Filter", 0);
         // Collection
-        BankAcc.CalcFields("Posted Receiv. Bills Rmg. Amt.", "Posted Pay. Bills Rmg. Amt.", "Posted Pay. Inv. Rmg. Amt.");
+        BankAcc.CalcFields("Posted Receiv. Bills Rmg. Amt.");
         DocsForCollRmgAmt := BankAcc."Posted Receiv. Bills Rmg. Amt.";
-        PayableDocsRmgAmt := BankAcc."Posted Pay. Bills Rmg. Amt." + BankAcc."Posted Pay. Inv. Rmg. Amt.";
 
         BankAcc.SetRange("Date Filter", 0D, CurrentDate);
 
@@ -759,7 +902,6 @@ pageextension 7000021 "CRT Bank Account Statistics" extends "Bank Account Statis
         PlaceholderESLbl: Label 'Placeholder';
         DocsForDiscRmgAmt: Decimal;
         DocsForCollRmgAmt: Decimal;
-        PayableDocsRmgAmt: Decimal;
         DocCollExpAmt: array[4] of Decimal;
         DocDiscIntAmt: array[4] of Decimal;
         DocDiscExpAmt: array[4] of Decimal;

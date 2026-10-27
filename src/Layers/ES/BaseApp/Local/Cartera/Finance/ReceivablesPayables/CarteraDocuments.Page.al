@@ -346,14 +346,14 @@ page 7000003 "Cartera Documents"
     end;
 
     var
-        Text1100000: Label 'Payable Bills cannot be printed.';
-        Text1100001: Label 'Only Receivable Bills can be rejected.';
-        Text1100002: Label 'Only  Bills can be rejected.';
         Doc: Record "Cartera Doc.";
         CustLedgEntry: Record "Cust. Ledger Entry";
         SalesInvHeader: Record "Sales Invoice Header";
         PurchInvHeader: Record "Purch. Inv. Header";
         CarteraManagement: Codeunit CarteraManagement;
+        Text1100000Lbl: Label 'Payable Bills cannot be printed.';
+        Text1100001Lbl: Label 'Only Receivable Bills can be rejected.';
+        Text1100002Lbl: Label 'Only  Bills can be rejected.';
         CategoryFilter: Code[250];
         CurrTotalAmountLCY: Decimal;
         ShowCurrent: Boolean;
@@ -378,7 +378,7 @@ page 7000003 "Cartera Documents"
             exit;
 
         if (Doc.Type <> Doc.Type::Receivable) and (Doc."Document Type" = Doc."Document Type"::Bill) then
-            Error(Text1100000);
+            Error(Text1100000Lbl);
 
         if Doc.Type = Doc.Type::Receivable then begin
             if Doc."Document Type" = Doc."Document Type"::Bill then begin
@@ -416,9 +416,9 @@ page 7000003 "Cartera Documents"
     procedure RejectDocs()
     begin
         if Doc.Type <> Doc.Type::Receivable then
-            Error(Text1100001);
+            Error(Text1100001Lbl);
         if Doc."Document Type" <> Rec."Document Type"::Bill then
-            Error(Text1100002);
+            Error(Text1100002Lbl);
 
         CurrPage.SetSelectionFilter(Doc);
         if not Doc.Find('-') then

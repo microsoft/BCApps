@@ -121,10 +121,6 @@ page 35299 "Post. PO Analysis LCY Fact Box"
 
     var
         PostedDoc: Record "Posted Cartera Doc.";
-        OpenAmt: Decimal;
-        HonoredAmt: Decimal;
-        RejectedAmt: Decimal;
-        RedrawnAmt: Decimal;
         OpenAmtLCY: Decimal;
         HonoredAmtLCY: Decimal;
         RejectedAmtLCY: Decimal;
@@ -145,28 +141,24 @@ page 35299 "Post. PO Analysis LCY Fact Box"
         Rec.CopyFilter("Category Filter", PostedDoc."Category Code");
 
         PostedDoc.SetRange(Status, PostedDoc.Status::Open);
-        PostedDoc.CalcSums("Amount for Collection", "Amt. for Collection (LCY)");
-        OpenAmt := PostedDoc."Amount for Collection";
+        PostedDoc.CalcSums("Amt. for Collection (LCY)");
         OpenAmtLCY := PostedDoc."Amt. for Collection (LCY)";
         NoOpen := PostedDoc.Count;
 
         PostedDoc.SetRange(Status);
         PostedDoc.SetRange(Redrawn, true);
-        PostedDoc.CalcSums("Amount for Collection", "Amt. for Collection (LCY)");
-        RedrawnAmt := PostedDoc."Amount for Collection";
+        PostedDoc.CalcSums("Amt. for Collection (LCY)");
         RedrawnAmtLCY := PostedDoc."Amt. for Collection (LCY)";
         NoRedrawn := PostedDoc.Count;
         PostedDoc.SetRange(Redrawn);
 
         PostedDoc.SetRange(Status, PostedDoc.Status::Honored);
-        PostedDoc.CalcSums("Amount for Collection", "Amt. for Collection (LCY)");
-        HonoredAmt := PostedDoc."Amount for Collection" - RedrawnAmt;
+        PostedDoc.CalcSums("Amt. for Collection (LCY)");
         HonoredAmtLCY := PostedDoc."Amt. for Collection (LCY)" - RedrawnAmtLCY;
         NoHonored := PostedDoc.Count - NoRedrawn;
 
         PostedDoc.SetRange(Status, PostedDoc.Status::Rejected);
-        PostedDoc.CalcSums("Amount for Collection", "Amt. for Collection (LCY)");
-        RejectedAmt := PostedDoc."Amount for Collection";
+        PostedDoc.CalcSums("Amt. for Collection (LCY)");
         RejectedAmtLCY := PostedDoc."Amt. for Collection (LCY)";
         NoRejected := PostedDoc.Count;
     end;

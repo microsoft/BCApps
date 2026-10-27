@@ -202,14 +202,14 @@ table 7000007 "Closed Bill Group"
     end;
 
     var
-        Text1100000: Label 'untitled';
         ClosedDoc: Record "Closed Cartera Doc.";
         BGPOCommentLine: Record "BG/PO Comment Line";
+        Text1100000Lbl: Label 'untitled';
 
     procedure Caption(): Text
     begin
         if "No." = '' then
-            exit(Text1100000);
+            exit(Text1100000Lbl);
         CalcFields("Bank Account Name");
         exit(StrSubstNo('%1 %2', "No.", "Bank Account Name"));
     end;

@@ -102,9 +102,6 @@ page 35295 "Closed BG Analysis Non LCY FB"
         HonoredAmt: Decimal;
         RejectedAmt: Decimal;
         RedrawnAmt: Decimal;
-        HonoredAmtLCY: Decimal;
-        RejectedAmtLCY: Decimal;
-        RedrawnAmtLCY: Decimal;
         NoHonored: Integer;
         NoRejected: Integer;
         NoRedrawn: Integer;
@@ -120,22 +117,19 @@ page 35295 "Closed BG Analysis Non LCY FB"
 
         ClosedDoc.SetRange(Status, ClosedDoc.Status::Honored);
         ClosedDoc.SetRange(Redrawn, true);
-        ClosedDoc.CalcSums("Amount for Collection", "Amt. for Collection (LCY)");
+        ClosedDoc.CalcSums("Amount for Collection");
         RedrawnAmt := ClosedDoc."Amount for Collection";
-        RedrawnAmtLCY := ClosedDoc."Amt. for Collection (LCY)";
         NoRedrawn := ClosedDoc.Count;
 
         ClosedDoc.SetRange(Redrawn, false);
-        ClosedDoc.CalcSums("Amount for Collection", "Amt. for Collection (LCY)");
+        ClosedDoc.CalcSums("Amount for Collection");
         HonoredAmt := ClosedDoc."Amount for Collection";
-        HonoredAmtLCY := ClosedDoc."Amt. for Collection (LCY)";
         NoHonored := ClosedDoc.Count;
         ClosedDoc.SetRange(Redrawn);
 
         ClosedDoc.SetRange(Status, ClosedDoc.Status::Rejected);
-        ClosedDoc.CalcSums("Amount for Collection", "Amt. for Collection (LCY)");
+        ClosedDoc.CalcSums("Amount for Collection");
         RejectedAmt := ClosedDoc."Amount for Collection";
-        RejectedAmtLCY := ClosedDoc."Amt. for Collection (LCY)";
         NoRejected := ClosedDoc.Count;
         ClosedDoc.SetRange(Status);
     end;

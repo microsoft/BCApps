@@ -134,7 +134,7 @@ report 7000003 "Receivable Bill"
                         CurrencyCode := "Currency Code";
                 end;
 
-                CurrencyTxt := StrSubstNo(Text1100000, CurrencyCode);
+                CurrencyTxt := StrSubstNo(Text1100000Lbl, CurrencyCode);
 
                 case "Document Situation" of
                     "Document Situation"::"BG/PO", "Document Situation"::Cartera:
@@ -177,8 +177,8 @@ report 7000003 "Receivable Bill"
 
                 Customer.Get(AccountNo);
                 FormatAddress.Customer(CustAddr, Customer);
-                if NumberText[1] = Text1100002 then
-                    NumberText[1] := NumberText[1] + Text1100059;
+                if NumberText[1] = Text1100002Lbl then
+                    NumberText[1] := NumberText[1] + Text1100059Lbl;
             end;
         }
     }
@@ -234,74 +234,6 @@ report 7000003 "Receivable Bill"
     }
 
     var
-        Text1100000: Label 'The total amount of %1';
-        Text1100001: Label '%1 is too big to be text-formatted';
-        Text1100002: Label 'CERO ';
-        Text1100003: Label '<decimals>', Locked = true;
-        Text1100004: Label 'CON ';
-        Text1100005: Label 'MILLONES ';
-        Text1100006: Label 'UN MILLÓN ';
-        Text1100007: Label 'MIL ';
-        Text1100008: Label 'CIEN ';
-        Text1100009: Label 'CIENTO ';
-        Text1100010: Label 'DOSCIENTOS ';
-        Text1100011: Label 'TRESCIENTOS ';
-        Text1100012: Label 'CUATROCIENTOS ';
-        Text1100013: Label 'QUINIENTOS ';
-        Text1100014: Label 'SEISCIENTOS ';
-        Text1100015: Label 'SETECIENTOS ';
-        Text1100016: Label 'OCHOCIENTOS ';
-        Text1100017: Label 'NOVECIENTOS ';
-        Text1100018: Label 'DOSCIENTOS ';
-        Text1100019: Label 'TRESCIENTOS ';
-        Text1100020: Label 'CUATROCIENTOS ';
-        Text1100021: Label 'QUINIENTOS ';
-        Text1100022: Label 'SEISCIENTOS ';
-        Text1100023: Label 'SETECIENTOS ';
-        Text1100024: Label 'OCHOCIENTOS ';
-        Text1100025: Label 'NOVECIENTOS ';
-        Text1100026: Label 'DIEZ ';
-        Text1100027: Label 'ONCE ';
-        Text1100028: Label 'DOCE ';
-        Text1100029: Label 'TRECE ';
-        Text1100030: Label 'CATORCE ';
-        Text1100031: Label 'QUINCE ';
-        Text1100032: Label 'DIECI';
-        Text1100033: Label 'VEINTE ';
-        Text1100034: Label 'VEINTI';
-        Text1100035: Label 'TREINTA ';
-        Text1100036: Label 'TREINTA Y ';
-        Text1100037: Label 'CUARENTA ';
-        Text1100038: Label 'CUARENTA Y ';
-        Text1100039: Label 'CINCUENTA ';
-        Text1100040: Label 'CINCUENTA Y ';
-        Text1100041: Label 'SESENTA ';
-        Text1100042: Label 'SESENTA Y ';
-        Text1100043: Label 'SETENTA ';
-        Text1100044: Label 'SETENTA Y ';
-        Text1100045: Label 'OCHENTA ';
-        Text1100046: Label 'OCHENTA Y ';
-        Text1100047: Label 'NOVENTA ';
-        Text1100048: Label 'NOVENTA Y ';
-        Text1100049: Label 'UN ';
-        Text1100050: Label 'UNO ';
-        Text1100051: Label 'DOS ';
-        Text1100052: Label 'TRES ';
-        Text1100053: Label 'CUATRO ';
-        Text1100054: Label 'CINCO ';
-        Text1100055: Label 'SEIS ';
-        Text1100056: Label 'SIETE ';
-        Text1100057: Label 'OCHO ';
-        Text1100058: Label 'NUEVE ';
-        Text1100059: Label ' CÉNTIMOS';
-        Text1100060: Label ' CÉNTIMOS';
-        Text1100061: Label 'MILESIMAS';
-        Text1100062: Label 'DIEZMILESIMAS';
-        Text1100063: Label ' CÉNTIMO';
-        Text1100064: Label ' CÉNTIMO';
-        Text1100065: Label 'MILESIMA';
-        Text1100066: Label 'DIEZMILESIMA';
-        Text1100067: Label '%1 \results in a written number which is too long.';
         Doc: Record "Cartera Doc.";
         PostedDoc: Record "Posted Cartera Doc.";
         BillGr: Record "Bill Group";
@@ -311,6 +243,74 @@ report 7000003 "Receivable Bill"
         CustBankAcc: Record "Customer Bank Account";
         GLSetup: Record "General Ledger Setup";
         FormatAddress: Codeunit "Format Address";
+        Text1100000Lbl: Label 'The total amount of %1', Comment = '%1 = Currency code';
+        Text1100001Lbl: Label '%1 is too big to be text-formatted', Comment = '%1 = Amount to format in words';
+        Text1100002Lbl: Label 'CERO ';
+        Text1100003Lbl: Label '<decimals>', Locked = true;
+        Text1100004Lbl: Label 'CON ';
+        Text1100005Lbl: Label 'MILLONES ';
+        Text1100006Lbl: Label 'UN MILLÓN ';
+        Text1100007Lbl: Label 'MIL ';
+        Text1100008Lbl: Label 'CIEN ';
+        Text1100009Lbl: Label 'CIENTO ';
+        Text1100010Lbl: Label 'DOSCIENTOS ';
+        Text1100011Lbl: Label 'TRESCIENTOS ';
+        Text1100012Lbl: Label 'CUATROCIENTOS ';
+        Text1100013Lbl: Label 'QUINIENTOS ';
+        Text1100014Lbl: Label 'SEISCIENTOS ';
+        Text1100015Lbl: Label 'SETECIENTOS ';
+        Text1100016Lbl: Label 'OCHOCIENTOS ';
+        Text1100017Lbl: Label 'NOVECIENTOS ';
+        Text1100018Lbl: Label 'DOSCIENTOS ';
+        Text1100019Lbl: Label 'TRESCIENTOS ';
+        Text1100020Lbl: Label 'CUATROCIENTOS ';
+        Text1100021Lbl: Label 'QUINIENTOS ';
+        Text1100022Lbl: Label 'SEISCIENTOS ';
+        Text1100023Lbl: Label 'SETECIENTOS ';
+        Text1100024Lbl: Label 'OCHOCIENTOS ';
+        Text1100025Lbl: Label 'NOVECIENTOS ';
+        Text1100026Lbl: Label 'DIEZ ';
+        Text1100027Lbl: Label 'ONCE ';
+        Text1100028Lbl: Label 'DOCE ';
+        Text1100029Lbl: Label 'TRECE ';
+        Text1100030Lbl: Label 'CATORCE ';
+        Text1100031Lbl: Label 'QUINCE ';
+        Text1100032Lbl: Label 'DIECI';
+        Text1100033Lbl: Label 'VEINTE ';
+        Text1100034Lbl: Label 'VEINTI';
+        Text1100035Lbl: Label 'TREINTA ';
+        Text1100036Lbl: Label 'TREINTA Y ';
+        Text1100037Lbl: Label 'CUARENTA ';
+        Text1100038Lbl: Label 'CUARENTA Y ';
+        Text1100039Lbl: Label 'CINCUENTA ';
+        Text1100040Lbl: Label 'CINCUENTA Y ';
+        Text1100041Lbl: Label 'SESENTA ';
+        Text1100042Lbl: Label 'SESENTA Y ';
+        Text1100043Lbl: Label 'SETENTA ';
+        Text1100044Lbl: Label 'SETENTA Y ';
+        Text1100045Lbl: Label 'OCHENTA ';
+        Text1100046Lbl: Label 'OCHENTA Y ';
+        Text1100047Lbl: Label 'NOVENTA ';
+        Text1100048Lbl: Label 'NOVENTA Y ';
+        Text1100049Lbl: Label 'UN ';
+        Text1100050Lbl: Label 'UNO ';
+        Text1100051Lbl: Label 'DOS ';
+        Text1100052Lbl: Label 'TRES ';
+        Text1100053Lbl: Label 'CUATRO ';
+        Text1100054Lbl: Label 'CINCO ';
+        Text1100055Lbl: Label 'SEIS ';
+        Text1100056Lbl: Label 'SIETE ';
+        Text1100057Lbl: Label 'OCHO ';
+        Text1100058Lbl: Label 'NUEVE ';
+        Text1100059Lbl: Label ' CÉNTIMOS';
+        Text1100060Lbl: Label ' CÉNTIMOS';
+        Text1100061Lbl: Label 'MILESIMAS';
+        Text1100062Lbl: Label 'DIEZMILESIMAS';
+        Text1100063Lbl: Label ' CÉNTIMO';
+        Text1100064Lbl: Label ' CÉNTIMO';
+        Text1100065Lbl: Label 'MILESIMA';
+        Text1100066Lbl: Label 'DIEZMILESIMA';
+        Text1100067Lbl: Label '%1 \results in a written number which is too long.', Comment = '%1 = Text to add to the amount in words';
         PaymentMethod: Code[10];
         CustAddr: array[8] of Text[100];
         CollectionAgent: Option Direct,Bank;
@@ -367,10 +367,10 @@ report 7000003 "Receivable Bill"
         NoTextIndex := 1;
 
         if No > 999999999 then
-            Error(Text1100001, No);
+            Error(Text1100001Lbl, No);
 
         if Round(No, 1, '<') = 0 then
-            AddToNoText(NoText, NoTextIndex, Text1100002);
+            AddToNoText(NoText, NoTextIndex, Text1100002Lbl);
 
         HundMilion := Round(No, 1, '<') div 100000000;
         Remainder := Round(No, 1, '<') mod 100000000;
@@ -388,7 +388,7 @@ report 7000003 "Receivable Bill"
         Remainder := Remainder mod 100;
         Tens := Remainder div 10;
         Units := Remainder mod 10;
-        DecimalPlaces := StrLen(Format(No, 0, Text1100003));
+        DecimalPlaces := StrLen(Format(No, 0, Text1100003Lbl));
         if DecimalPlaces > 0 then begin
             DecimalPlaces := DecimalPlaces - 1;
             Decimals := (No - Round(No, 1, '<')) * Power(10, DecimalPlaces);
@@ -406,7 +406,7 @@ report 7000003 "Receivable Bill"
             FormatNoText(DecimalText, Decimals);
             AddToNoText(
               // NoText,NoTextIndex,Text1100004 + DecimalText[1] + TextNoDecimals(DecimalPlaces));
-              NoText, NoTextIndex, Text1100004 + DecimalText[1] + DecimalString);
+              NoText, NoTextIndex, Text1100004Lbl + DecimalText[1] + DecimalString);
         end;
     end;
 
@@ -421,11 +421,11 @@ report 7000003 "Receivable Bill"
     procedure TextTenUnitsMilion(Hundreds: Integer; Ten: Integer; Units: Integer; Masc: Boolean): Text[250]
     begin
         if (Hundreds <> 0) and (Ten = 0) and (Units = 0) then
-            exit(Text1100005);
+            exit(Text1100005Lbl);
         if (Hundreds = 0) and (Ten = 0) and (Units = 1) then
-            exit(Text1100006);
+            exit(Text1100006Lbl);
         if (Ten <> 0) or (Units <> 0) then
-            exit(TextTensUnits(Ten, Units, Masc) + Text1100005);
+            exit(TextTensUnits(Ten, Units, Masc) + Text1100005Lbl);
     end;
 
     [Scope('OnPrem')]
@@ -439,11 +439,11 @@ report 7000003 "Receivable Bill"
     procedure TextTenUnitsThousands(Hundreds: Integer; Ten: Integer; Units: Integer; Masc: Boolean): Text[250]
     begin
         if (Hundreds <> 0) and (Ten = 0) and (Units = 0) then
-            exit(Text1100007);
+            exit(Text1100007Lbl);
         if (Hundreds = 0) and (Ten = 0) and (Units = 1) then
-            exit(Text1100007);
+            exit(Text1100007Lbl);
         if (Ten <> 0) or (Units <> 0) then
-            exit(TextTensUnits(Ten, Units, Masc) + Text1100007);
+            exit(TextTensUnits(Ten, Units, Masc) + Text1100007Lbl);
     end;
 
     [Scope('OnPrem')]
@@ -455,49 +455,49 @@ report 7000003 "Receivable Bill"
             case Hundreds of
                 1:
                     if (Tens = 0) and (Units = 0) then
-                        exit(Text1100008)
+                        exit(Text1100008Lbl)
                     else
-                        exit(Text1100009);
+                        exit(Text1100009Lbl);
                 2:
-                    exit(Text1100010);
+                    exit(Text1100010Lbl);
                 3:
-                    exit(Text1100011);
+                    exit(Text1100011Lbl);
                 4:
-                    exit(Text1100012);
+                    exit(Text1100012Lbl);
                 5:
-                    exit(Text1100013);
+                    exit(Text1100013Lbl);
                 6:
-                    exit(Text1100014);
+                    exit(Text1100014Lbl);
                 7:
-                    exit(Text1100015);
+                    exit(Text1100015Lbl);
                 8:
-                    exit(Text1100016);
+                    exit(Text1100016Lbl);
                 9:
-                    exit(Text1100017);
+                    exit(Text1100017Lbl);
             end
         else
             case Hundreds of
                 1:
                     if (Tens = 0) and (Units = 0) then
-                        exit(Text1100008)
+                        exit(Text1100008Lbl)
                     else
-                        exit(Text1100009);
+                        exit(Text1100009Lbl);
                 2:
-                    exit(Text1100018);
+                    exit(Text1100018Lbl);
                 3:
-                    exit(Text1100019);
+                    exit(Text1100019Lbl);
                 4:
-                    exit(Text1100020);
+                    exit(Text1100020Lbl);
                 5:
-                    exit(Text1100021);
+                    exit(Text1100021Lbl);
                 6:
-                    exit(Text1100022);
+                    exit(Text1100022Lbl);
                 7:
-                    exit(Text1100023);
+                    exit(Text1100023Lbl);
                 8:
-                    exit(Text1100024);
+                    exit(Text1100024Lbl);
                 9:
-                    exit(Text1100025);
+                    exit(Text1100025Lbl);
             end;
     end;
 
@@ -510,60 +510,60 @@ report 7000003 "Receivable Bill"
             1:
                 case Units of
                     0:
-                        exit(Text1100026);
+                        exit(Text1100026Lbl);
                     1:
-                        exit(Text1100027);
+                        exit(Text1100027Lbl);
                     2:
-                        exit(Text1100028);
+                        exit(Text1100028Lbl);
                     3:
-                        exit(Text1100029);
+                        exit(Text1100029Lbl);
                     4:
-                        exit(Text1100030);
+                        exit(Text1100030Lbl);
                     5:
-                        exit(Text1100031);
+                        exit(Text1100031Lbl);
                     else
-                        exit(Text1100032 + TextUnits(Units, Masc));
+                        exit(Text1100032Lbl + TextUnits(Units, Masc));
                 end;
             2:
                 if Units = 0 then
-                    exit(Text1100033)
+                    exit(Text1100033Lbl)
                 else
-                    exit(Text1100034 + TextUnits(Units, Masc));
+                    exit(Text1100034Lbl + TextUnits(Units, Masc));
             3:
                 if Units = 0 then
-                    exit(Text1100035)
+                    exit(Text1100035Lbl)
                 else
-                    exit(Text1100036 + TextUnits(Units, Masc));
+                    exit(Text1100036Lbl + TextUnits(Units, Masc));
             4:
                 if Units = 0 then
-                    exit(Text1100037)
+                    exit(Text1100037Lbl)
                 else
-                    exit(Text1100038 + TextUnits(Units, Masc));
+                    exit(Text1100038Lbl + TextUnits(Units, Masc));
             5:
                 if Units = 0 then
-                    exit(Text1100039)
+                    exit(Text1100039Lbl)
                 else
-                    exit(Text1100040 + TextUnits(Units, Masc));
+                    exit(Text1100040Lbl + TextUnits(Units, Masc));
             6:
                 if Units = 0 then
-                    exit(Text1100041)
+                    exit(Text1100041Lbl)
                 else
-                    exit(Text1100042 + TextUnits(Units, Masc));
+                    exit(Text1100042Lbl + TextUnits(Units, Masc));
             7:
                 if Units = 0 then
-                    exit(Text1100043)
+                    exit(Text1100043Lbl)
                 else
-                    exit(Text1100044 + TextUnits(Units, Masc));
+                    exit(Text1100044Lbl + TextUnits(Units, Masc));
             8:
                 if Units = 0 then
-                    exit(Text1100045)
+                    exit(Text1100045Lbl)
                 else
-                    exit(Text1100046 + TextUnits(Units, Masc));
+                    exit(Text1100046Lbl + TextUnits(Units, Masc));
             9:
                 if Units = 0 then
-                    exit(Text1100047)
+                    exit(Text1100047Lbl)
                 else
-                    exit(Text1100048 + TextUnits(Units, Masc));
+                    exit(Text1100048Lbl + TextUnits(Units, Masc));
         end;
     end;
 
@@ -575,25 +575,25 @@ report 7000003 "Receivable Bill"
                 exit('');
             1:
                 if Masc then
-                    exit(Text1100049)
+                    exit(Text1100049Lbl)
                 else
-                    exit(Text1100050);
+                    exit(Text1100050Lbl);
             2:
-                exit(Text1100051);
+                exit(Text1100051Lbl);
             3:
-                exit(Text1100052);
+                exit(Text1100052Lbl);
             4:
-                exit(Text1100053);
+                exit(Text1100053Lbl);
             5:
-                exit(Text1100054);
+                exit(Text1100054Lbl);
             6:
-                exit(Text1100055);
+                exit(Text1100055Lbl);
             7:
-                exit(Text1100056);
+                exit(Text1100056Lbl);
             8:
-                exit(Text1100057);
+                exit(Text1100057Lbl);
             9:
-                exit(Text1100058);
+                exit(Text1100058Lbl);
         end;
     end;
 
@@ -605,26 +605,26 @@ report 7000003 "Receivable Bill"
                 0:
                     exit('');
                 1:
-                    exit(Text1100059);
+                    exit(Text1100059Lbl);
                 2:
-                    exit(Text1100060);
+                    exit(Text1100060Lbl);
                 3:
-                    exit(Text1100061);
+                    exit(Text1100061Lbl);
                 4:
-                    exit(Text1100062);
+                    exit(Text1100062Lbl);
             end
         else
             case NoDecimals of
                 0:
                     exit('');
                 1:
-                    exit(Text1100063);
+                    exit(Text1100063Lbl);
                 2:
-                    exit(Text1100064);
+                    exit(Text1100064Lbl);
                 3:
-                    exit(Text1100065);
+                    exit(Text1100065Lbl);
                 4:
-                    exit(Text1100066);
+                    exit(Text1100066Lbl);
             end;
     end;
 
@@ -633,7 +633,7 @@ report 7000003 "Receivable Bill"
         while StrLen(NoText[NoTextIndex] + AddText) > MaxStrLen(NoText[1]) do begin
             NoTextIndex := NoTextIndex + 1;
             if NoTextIndex > ArrayLen(NoText) then
-                Error(Text1100067, AddText);
+                Error(Text1100067Lbl, AddText);
         end;
 
         NoText[NoTextIndex] := DelChr(NoText[NoTextIndex] + AddText, '<');

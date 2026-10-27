@@ -42,7 +42,7 @@ report 7000096 "Redraw Receivable Bills"
 
                 if NewDueDate < "Due Date" then
                     Error(
-                      Text1100003,
+                      Text1100003Lbl,
                       FieldCaption("Due Date"),
                       FieldCaption("Entry No."),
                       "Entry No.");
@@ -161,7 +161,7 @@ report 7000096 "Redraw Receivable Bills"
                   FeeRange.GetTotalRejExpensesAmt() +
                   FinanceChargeTerms.GetTotalFinChargesAmt(),
                   StrSubstNo(
-                    Text1100004,
+                    Text1100004Lbl,
                     CustLedgEntry."Document No.",
                     DocNo),
                   DocNo);
@@ -177,7 +177,7 @@ report 7000096 "Redraw Receivable Bills"
                       "Gen. Journal Document Type"::" ",
                       -(FeeRange.GetTotalDiscExpensesAmt() + FeeRange.GetTotalCollExpensesAmt()),
                       StrSubstNo(
-                        Text1100005,
+                        Text1100005Lbl,
                         CustLedgEntry."Document No.",
                         CustLedgEntry."Bill No."),
                       '');
@@ -194,7 +194,7 @@ report 7000096 "Redraw Receivable Bills"
                           "Gen. Journal Document Type"::" ",
                           -FeeRange.GetTotalDiscInterestsAmt(),
                           StrSubstNo(
-                            Text1100006,
+                            Text1100006Lbl,
                             CustLedgEntry."Document No.",
                             CustLedgEntry."Bill No."),
                           '');
@@ -212,7 +212,7 @@ report 7000096 "Redraw Receivable Bills"
                       "Gen. Journal Document Type"::" ",
                       -FeeRange.GetTotalRejExpensesAmt(),
                       StrSubstNo(
-                        Text1100007,
+                        Text1100007Lbl,
                         CustLedgEntry."Document No.",
                         CustLedgEntry."Bill No."),
                       '');
@@ -229,7 +229,7 @@ report 7000096 "Redraw Receivable Bills"
                       "Gen. Journal Document Type"::" ",
                       -FinanceChargeTerms.GetTotalFinChargesAmt(),
                       StrSubstNo(
-                        Text1100008,
+                        Text1100008Lbl,
                         CustLedgEntry."Document No.",
                         CustLedgEntry."Bill No."),
                       '');
@@ -254,7 +254,7 @@ report 7000096 "Redraw Receivable Bills"
                           Account,
                           "Gen. Journal Document Type"::" ",
                           -SumLCYAmt,
-                          Text1100009,
+                          Text1100009Lbl,
                           '');
                     end;
                 end;
@@ -302,13 +302,11 @@ report 7000096 "Redraw Receivable Bills"
                 SplitDetailedCVEntry();
 
                 if ShowMessage then
-                    Message(Text1100010, DocCount);
+                    Message(Text1100010Lbl, DocCount);
             end;
 
             trigger OnPreDataItem()
             begin
-                IncludeExpenses := IncludeDiscCollExpenses or IncludeRejExpenses or IncludeFinanceCharges;
-
                 ReasonCode := GenJnlBatch."Reason Code";
                 GenJnlTemplate.Get(TemplName);
                 SourceCode := GenJnlTemplate."Source Code";
@@ -316,7 +314,7 @@ report 7000096 "Redraw Receivable Bills"
                 DocPost.CheckPostingDate(PostingDate);
 
                 Window.Open(
-                  Text1100002);
+                  Text1100002Lbl);
 
                 DocCount := 0;
 
@@ -486,11 +484,6 @@ report 7000096 "Redraw Receivable Bills"
         {
         }
 
-        trigger OnClosePage()
-        begin
-            IncludeExpenses := IncludeDiscCollExpenses or IncludeRejExpenses;
-        end;
-
         trigger OnOpenPage()
         begin
             OnBeforeOnOpenRequestPagePage(PostingDate, NewDueDate, NewPmtMethod, IncludeDiscCollExpenses, IncludeRejExpenses, IncludeFinanceCharges, TemplName, BatchName);
@@ -512,25 +505,14 @@ report 7000096 "Redraw Receivable Bills"
         OnBeforeOnPreReport(PostingDate, NewDueDate, NewPmtMethod, IncludeDiscCollExpenses, IncludeRejExpenses, IncludeFinanceCharges, TemplName, BatchName, IsHandled);
         if not IsHandled then begin
             if NewDueDate = 0D then
-                Error(Text1100000);
+                Error(Text1100000Lbl);
 
             if not GenJnlBatch.Get(TemplName, BatchName) then
-                Error(Text1100001);
+                Error(Text1100001Lbl);
         end;
     end;
 
     var
-        Text1100000: Label 'Please, specify a New Due Date for the redrawn bill.';
-        Text1100001: Label 'Please fill in both the Template Name and the Batch Name of the Auxiliary Journal with correct values.';
-        Text1100002: Label 'Redrawing              #1######';
-        Text1100003: Label 'The New Due Date cannot be earlier than the current %1 in Bill %2 %3.';
-        Text1100004: Label 'Bill %1/%2';
-        Text1100005: Label 'Bill %1/%2 Discount/Collection Expenses';
-        Text1100006: Label 'Bill %1/%2 Discount Interests';
-        Text1100007: Label 'Bill %1/%2 Rejection Expenses';
-        Text1100008: Label 'Bill %1/%2 Finance Charges';
-        Text1100009: Label 'Residual adjust generated by rounding Amount';
-        Text1100010: Label '%1 bills have been prepared for redrawal.';
         Customer: Record Customer;
         CustPostingGr: Record "Customer Posting Group";
         GenJnlTemplate: Record "Gen. Journal Template";
@@ -550,12 +532,22 @@ report 7000096 "Redraw Receivable Bills"
         DocPost: Codeunit "Document-Post";
         GenJnlManagement: Codeunit GenJnlManagement;
         CarteraJnlForm: Page "Cartera Journal";
+        Text1100000Lbl: Label 'Please, specify a New Due Date for the redrawn bill.';
+        Text1100001Lbl: Label 'Please fill in both the Template Name and the Batch Name of the Auxiliary Journal with correct values.';
+        Text1100002Lbl: Label 'Redrawing              #1######', Comment = '#1 = Number of bills redrawn';
+        Text1100003Lbl: Label 'The New Due Date cannot be earlier than the current %1 in Bill %2 %3.', Comment = '%1 = Due Date field caption, %2 = Entry No. field caption, %3 = Entry number';
+        Text1100004Lbl: Label 'Bill %1/%2', Comment = '%1 = Document number, %2 = Bill number';
+        Text1100005Lbl: Label 'Bill %1/%2 Discount/Collection Expenses', Comment = '%1 = Document number, %2 = Bill number';
+        Text1100006Lbl: Label 'Bill %1/%2 Discount Interests', Comment = '%1 = Document number, %2 = Bill number';
+        Text1100007Lbl: Label 'Bill %1/%2 Rejection Expenses', Comment = '%1 = Document number, %2 = Bill number';
+        Text1100008Lbl: Label 'Bill %1/%2 Finance Charges', Comment = '%1 = Document number, %2 = Bill number';
+        Text1100009Lbl: Label 'Residual adjust generated by rounding Amount';
+        Text1100010Lbl: Label '%1 bills have been prepared for redrawal.', Comment = '%1 = Number of bills prepared for redrawal';
         Window: Dialog;
         TransactionNo: Integer;
         IncludeDiscCollExpenses: Boolean;
         IncludeRejExpenses: Boolean;
         IncludeFinanceCharges: Boolean;
-        IncludeExpenses: Boolean;
         ArePostedDocs: Boolean;
         Discount: Boolean;
         IsOpenBill: Boolean;
@@ -687,7 +679,7 @@ report 7000096 "Redraw Receivable Bills"
                   "Gen. Journal Document Type"::" ",
                   -GainLossAmt,
                   StrSubstNo(
-                    Text1100004,
+                    Text1100004Lbl,
                     CustLedgEntry."Document No.",
                     CustLedgEntry."Bill No."),
                   '');
@@ -700,7 +692,7 @@ report 7000096 "Redraw Receivable Bills"
                   "Gen. Journal Document Type"::" ",
                   -GainLossAmt,
                   StrSubstNo(
-                    Text1100004,
+                    Text1100004Lbl,
                     CustLedgEntry."Document No.",
                     CustLedgEntry."Bill No."),
                   '');
@@ -714,7 +706,7 @@ report 7000096 "Redraw Receivable Bills"
               "Gen. Journal Document Type"::" ",
               GainLossAmt,
               StrSubstNo(
-                Text1100004,
+                Text1100004Lbl,
                 CustLedgEntry."Document No.",
                 CustLedgEntry."Bill No."),
               '');
@@ -788,11 +780,11 @@ report 7000096 "Redraw Receivable Bills"
     [Scope('OnPrem')]
     procedure CheckUnrealizedVAT(CustLedgEntry: Record "Cust. Ledger Entry")
     var
-        ExistVATNOReal: Boolean;
         VATPostingSetup: Record "VAT Posting Setup";
-        Text1100101: Label 'You can not redraw a bill when this contains Unrealized VAT.';
-        GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         CustLedgEntry2: Record "Cust. Ledger Entry";
+        GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+        ExistVATNOReal: Boolean;
+        Text1100101Lbl: Label 'You can not redraw a bill when this contains Unrealized VAT.';
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -807,7 +799,7 @@ report 7000096 "Redraw Receivable Bills"
         if CustLedgEntry2.FindFirst() then
             ExistVATNOReal := GenJnlPostLine.CustFindVATSetup(VATPostingSetup, CustLedgEntry2, true);
         if ExistVATNOReal then
-            Error(Text1100101);
+            Error(Text1100101Lbl);
     end;
 
     local procedure BatchNameOnAfterValidate()

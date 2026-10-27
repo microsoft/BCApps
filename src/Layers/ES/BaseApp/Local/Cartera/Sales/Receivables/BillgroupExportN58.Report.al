@@ -30,7 +30,7 @@ report 7000091 "Bill group - Export N58"
 
                 trigger OnAfterGetRecord()
                 begin
-                    DocType := DocMisc.DocType("Payment Method Code");
+                    DocMisc.DocType("Payment Method Code");
 
                     CustLedgEntry.Get("Entry No.");
 
@@ -71,13 +71,8 @@ report 7000091 "Bill group - Export N58"
                     CustAddress[3] := Customer.City;
                     CustAddress[4] := Customer."Post Code";
                     CustNoNIF := Customer."VAT Registration No.";
-                    AdditionalInfo := Text1100008 + "Document No." + '/' + "No.";
+                    AdditionalInfo := Text1100008Lbl + "Document No." + '/' + "No.";
                     AdditionalInfo2 := "Document No." + '/' + "No.";
-
-                    if Accepted = Accepted::Yes then
-                        IsAccepted := '1'
-                    else
-                        IsAccepted := '0';
 
                     TotalDoc := TotalDoc + 1;
                     TotalDocsCust := TotalDocsCust + 1;
@@ -89,12 +84,12 @@ report 7000091 "Bill group - Export N58"
                             if IsEuro then
                                 DocAmount := EuroAmount("Remaining Amt. (LCY)")
                             else
-                                DocAmount := ConvertStr(Format("Remaining Amount", 10, Text1100006), ' ', '0');
+                                DocAmount := ConvertStr(Format("Remaining Amount", 10, Text1100006Lbl), ' ', '0');
                         LCY = LCY::Other:
                             if IsEuro then
                                 DocAmount := EuroAmount("Remaining Amount")
                             else
-                                DocAmount := ConvertStr(Format("Remaining Amount", 10, Text1100006), ' ', '0');
+                                DocAmount := ConvertStr(Format("Remaining Amount", 10, Text1100006Lbl), ' ', '0');
                     end;
 
                     RegisterCode2 := RegisterCode + 6;
@@ -107,7 +102,7 @@ report 7000091 "Bill group - Export N58"
                       PadStr(Format(Customer.Name), 40, ' ') + ConvertStr(PadStr(CustCCCBankCode, 4, ' '), ' ', '0') +
                       ConvertStr(PadStr(CustCCCBankBranchNo, 4, ' '), ' ', '0') + PadStr(CustCCCControlDigits, 2, ' ') +
                       ConvertStr(PadStr(CustCCCAccNo, 10, ' '), ' ', '0') + DocAmount +
-                      Text1100009 + PadStr(AdditionalInfo2, 10, ' ') + PadStr(AdditionalInfo, 40, ' ') +
+                      Text1100009Lbl + PadStr(AdditionalInfo2, 10, ' ') + PadStr(AdditionalInfo, 40, ' ') +
                       Format("Due Date", 6, 5) + PadStr('', 2, ' ');
 
                     OutFile.Write(OutText);
@@ -141,7 +136,7 @@ report 7000091 "Bill group - Export N58"
                             end else begin
                                 "Bill Group".CalcFields(Amount);
                                 TotalAmount := "Bill Group".Amount + TotalAmount;
-                                BillGrAmount := ConvertStr(Format("Bill Group".Amount, 10, Text1100007), ' ', '0')
+                                BillGrAmount := ConvertStr(Format("Bill Group".Amount, 10, Text1100007Lbl), ' ', '0')
                             end;
                         LCY = LCY::Other:
                             if IsEuro then begin
@@ -151,7 +146,7 @@ report 7000091 "Bill group - Export N58"
                             end else begin
                                 "Bill Group".CalcFields(Amount);
                                 TotalAmount := "Bill Group".Amount + TotalAmount;
-                                BillGrAmount := ConvertStr(Format("Bill Group".Amount, 10, Text1100007), ' ', '0')
+                                BillGrAmount := ConvertStr(Format("Bill Group".Amount, 10, Text1100007Lbl), ' ', '0')
                             end;
                     end;
 
@@ -161,8 +156,8 @@ report 7000091 "Bill group - Export N58"
                     OutText :=
                       RegisterString + '70' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(BankSuffix, 3, ' ') +
                       PadStr('', 12, ' ') + PadStr('', 40, ' ') +
-                      PadStr('', 20, ' ') + BillGrAmount + PadStr('', 6, ' ') + ConvertStr(Format(TotalDocsCust, 10, Text1100007), ' ', '0') +
-                      ConvertStr(Format(TotalPrintedCust, 10, Text1100007), ' ', '0') + PadStr('', 20, ' ') + PadStr('', 18, ' ');
+                      PadStr('', 20, ' ') + BillGrAmount + PadStr('', 6, ' ') + ConvertStr(Format(TotalDocsCust, 10, Text1100007Lbl), ' ', '0') +
+                      ConvertStr(Format(TotalPrintedCust, 10, Text1100007Lbl), ' ', '0') + PadStr('', 20, ' ') + PadStr('', 18, ' ');
                     OutFile.Write(OutText);
 
                     TotalDocsCust := 0;
@@ -173,8 +168,6 @@ report 7000091 "Bill group - Export N58"
 
             trigger OnAfterGetRecord()
             begin
-                BillGrNo := CopyStr("No.", 7, 3);
-
                 RegisterCode2 := RegisterCode + 3;
                 DLDACurrency();
 
@@ -206,14 +199,14 @@ report 7000091 "Bill group - Export N58"
                       RegisterString + '70' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(BankSuffix, 3, ' ') +
                       PadStr('', 12, ' ') + PadStr('', 40, ' ') +
                       '0001' + PadStr('', 16, ' ') + EuroAmount(TotalAmount) + PadStr('', 6, ' ') +
-                      ConvertStr(Format(TotalDoc, 10, Text1100006), ' ', '0') + ConvertStr(Format(TotalPrinted, 10, Text1100006), ' ', '0') +
+                      ConvertStr(Format(TotalDoc, 10, Text1100006Lbl), ' ', '0') + ConvertStr(Format(TotalPrinted, 10, Text1100006Lbl), ' ', '0') +
                       PadStr('', 20, ' ') + PadStr('', 18, ' ')
                 else
                     OutText :=
                       RegisterString + '70' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(BankSuffix, 3, ' ') +
                       PadStr('', 12, ' ') + PadStr('', 40, ' ') +
-                      '0001' + PadStr('', 16, ' ') + ConvertStr(Format(TotalAmount, 10, Text1100007), ' ', '0') + PadStr('', 6, ' ') +
-                      ConvertStr(Format(TotalDoc, 10, Text1100007), ' ', '0') + ConvertStr(Format(TotalPrinted, 10, Text1100007), ' ', '0') +
+                      '0001' + PadStr('', 16, ' ') + ConvertStr(Format(TotalAmount, 10, Text1100007Lbl), ' ', '0') + PadStr('', 6, ' ') +
+                      ConvertStr(Format(TotalDoc, 10, Text1100007Lbl), ' ', '0') + ConvertStr(Format(TotalPrinted, 10, Text1100007Lbl), ' ', '0') +
                       PadStr('', 20, ' ') + PadStr('', 18, ' ');
 
                 OutFile.Write(OutText);
@@ -222,7 +215,7 @@ report 7000091 "Bill group - Export N58"
                 if SilentMode then
                     FileMgt.CopyServerFile(ExternalFile, SilentModeFileName, true)
                 else
-                    Download(ExternalFile, '', 'C:', Text10701, ToFile);
+                    Download(ExternalFile, '', 'C:', FilterLbl, ToFile);
             end;
 
             trigger OnPreDataItem()
@@ -232,7 +225,7 @@ report 7000091 "Bill group - Export N58"
                 Find('-');
 
                 if BankSuffix = '' then
-                    Error(Text1100000);
+                    Error(Text1100000Lbl);
 
                 if BankSuffixBankAcc = '' then begin
                     Suffix.SetRange(Suffix, BankSuffix);
@@ -241,13 +234,13 @@ report 7000091 "Bill group - Export N58"
                 end;
 
                 if not DocMisc.CheckBankSuffix(BankSuffixBankAcc, "Bank Account No.") then
-                    if not Confirm(Text1100001 +
-                         Text1100002,
+                    if not Confirm(Text1100001Lbl +
+                         Text1100002Lbl,
                          false,
                          FieldCaption("Bank Account No."),
                          TableCaption)
                     then
-                        Error(Text1100003);
+                        Error(Text1100003Lbl);
 
                 BankAcc.Get("Bank Account No.");
                 CCCBankNo := BankAcc."CCC Bank No.";
@@ -258,7 +251,7 @@ report 7000091 "Bill group - Export N58"
                 if (CCCBankNo = '') or (CCCBankBranchNo = '') or
                    (CCCControlDigits = '') or (CCCAccNo = '')
                 then
-                    Error(Text1100004, BankAcc."No.");
+                    Error(Text1100004Lbl, BankAcc."No.");
 
                 IsEuro := DocMisc.GetRegisterCode("Currency Code", RegisterCode, RegisterString);
 
@@ -327,7 +320,7 @@ report 7000091 "Bill group - Export N58"
         trigger OnOpenPage()
         begin
             if ExternalFile = '' then
-                ExternalFile := 'C:\' + Text10702;
+                ExternalFile := 'C:\' + Text10702Lbl;
         end;
     }
 
@@ -346,44 +339,33 @@ report 7000091 "Bill group - Export N58"
     var
         FileMgt: Codeunit "File Management";
     begin
-        if WithExpenses then
-            Expenses := '1'
-        else
-            Expenses := '0';
-
-        if PrintedDocs then
-            PrintedDocs2 := '0'
-        else
-            PrintedDocs2 := '1';
-
         OutFile.TextMode := true;
         OutFile.WriteMode := true;
         ExternalFile := FileMgt.ServerTempFileName('');
-        ToFile := Text10702;
+        ToFile := Text10702Lbl;
         OutFile.Create(ExternalFile);
     end;
 
     var
-        Text1100000: Label 'Bank Suffix cannot be blank.';
-        Text1100001: Label 'The Bank Suffix selected belongs to a %1  different than the %2. \';
-        Text1100002: Label 'Do you want to continue?.';
-        Text1100003: Label 'Process cancelled by request of user.';
-        Text1100004: Label 'Some data for Bank Account %1 are missing.';
-        Text1100006: Label '<Integer>', Locked = true;
-        Text1100007: Label '<integer>', Locked = true;
-        Text1100008: Label 'Bill';
-        Text1100009: Label 'DEVOL.';
         CompanyInfo: Record "Company Information";
         Customer: Record Customer;
         CustLedgEntry: Record "Cust. Ledger Entry";
         BankAcc: Record "Bank Account";
         CustBankAcc: Record "Customer Bank Account";
         PostalCode: Record "Post Code";
+        Suffix: Record Suffix;
         DocMisc: Codeunit "Document-Misc";
+        Text1100000Lbl: Label 'Bank Suffix cannot be blank.';
+        Text1100001Lbl: Label 'The Bank Suffix selected belongs to a %1  different than the %2. \', Comment = '%1 = Bank Account No. field caption, %2 = Bill Group table caption';
+        Text1100002Lbl: Label 'Do you want to continue?.';
+        Text1100003Lbl: Label 'Process cancelled by request of user.';
+        Text1100004Lbl: Label 'Some data for Bank Account %1 are missing.', Comment = '%1 = Bank account number';
+        Text1100006Lbl: Label '<Integer>', Locked = true;
+        Text1100007Lbl: Label '<integer>', Locked = true;
+        Text1100008Lbl: Label 'Bill';
+        Text1100009Lbl: Label 'DEVOL.';
         OutFile: File;
         ExternalFile: Text[1024];
-        WithExpenses: Boolean;
-        PrintedDocs: Boolean;
         Checkerrors: Boolean;
         NotDom: Boolean;
         VATRegNo: Text[9];
@@ -395,8 +377,6 @@ report 7000091 "Bill group - Export N58"
         CustCCCControlDigits: Text[2];
         CCCAccNo: Text[10];
         CustCCCAccNo: Text[10];
-        BillGrNo: Code[4];
-        DocType: Code[1];
         AdditionalInfo: Text[30];
         AdditionalInfo2: Text[30];
         CustAddress: array[4] of Text[100];
@@ -406,9 +386,6 @@ report 7000091 "Bill group - Export N58"
         TotalPrintedCust: Decimal;
         TotalPrinted: Decimal;
         TotalAmount: Decimal;
-        Expenses: Code[1];
-        IsAccepted: Code[1];
-        PrintedDocs2: Code[1];
         OutText: Text[162];
         RegisterCode: Integer;
         RegisterCode2: Integer;
@@ -420,10 +397,9 @@ report 7000091 "Bill group - Export N58"
         LCY: Option Euro,Other;
         BankSuffix: Code[3];
         BankSuffixBankAcc: Code[20];
-        Suffix: Record Suffix;
         ToFile: Text[1024];
-        Text10701: Label 'ASC Files (*.asc)|*.asc|All Files (*.*)|*.*';
-        Text10702: Label 'EFECTOS.ASC';
+        FilterLbl: Label 'ASC Files (*.asc)|*.asc|All Files (*.*)|*.*';
+        Text10702Lbl: Label 'EFECTOS.ASC';
         SilentMode: Boolean;
         SilentModeFileName: Text;
 

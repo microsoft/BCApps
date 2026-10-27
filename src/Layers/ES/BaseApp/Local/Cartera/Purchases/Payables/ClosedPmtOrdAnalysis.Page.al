@@ -64,14 +64,18 @@ page 7000062 "Closed Pmt. Ord. Analysis"
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Honored';
                             Editable = false;
+                            ToolTip = 'Specifies that the related payment is settled. ';
                         }
                         field(Rejected; RedrawnAmt)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
+                            Caption = 'Redrawn';
                             Editable = false;
+                            ToolTip = 'Specifies that the related payment is recirculated because it was rejected when its due date arrived.';
                         }
                     }
                     group("Amount (LCY)")

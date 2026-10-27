@@ -38,6 +38,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[1];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -50,6 +51,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[2];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -62,6 +64,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[3];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -74,6 +77,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[4];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -86,6 +90,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[5];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -98,6 +103,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[6];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -110,6 +116,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[7];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -122,6 +129,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[8];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -134,6 +142,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[9];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -146,6 +155,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[10];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -158,6 +168,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[11];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -170,6 +181,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[12];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -182,6 +194,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[13];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -194,6 +207,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[14];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -206,6 +220,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[15];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -218,6 +233,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[16];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -230,6 +246,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[17];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -242,6 +259,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[18];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -254,6 +272,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[19];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -266,6 +285,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[20];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -278,6 +298,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[21];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -290,6 +311,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[22];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -302,6 +324,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[23];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -314,6 +337,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[24];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -326,6 +350,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[25];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -338,6 +363,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[26];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -350,6 +376,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[27];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -362,6 +389,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[28];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -374,6 +402,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[29];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -386,6 +415,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[30];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -398,6 +428,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[31];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -410,6 +441,7 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
                     AutoFormatType = 1;
                     AutoFormatExpression = '';
                     CaptionClass = '3,' + MATRIX_ColumnCaption[32];
+                    ToolTip = 'Specifies the posted receivable bill amount in local currency for the bank account and period, based on the category and status filters.';
 
                     trigger OnDrillDown()
                     begin
@@ -441,7 +473,6 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
     var
         MatrixRecords: array[32] of Record Date;
         StatusFilterOption: Option Open,Honored,Rejected,All;
-        CalcAmt: Decimal;
         MATRIX_CellData: array[32] of Decimal;
         CategoryFilter: Code[250];
         MATRIX_ColumnCaption: array[32] of Text[1024];
@@ -508,7 +539,6 @@ page 36848 "Bank Cat.Post.Rec.Bills Matrix"
         else
             Rec.SetRange("Status Filter", StatusFilterOption);
         Rec.CalcFields("Posted Receiv Bills Amt. (LCY)");
-        CalcAmt := Rec."Posted Receiv Bills Amt. (LCY)";
         MATRIX_CellData[ColumnID] := Rec."Posted Receiv Bills Amt. (LCY)";
     end;
 }

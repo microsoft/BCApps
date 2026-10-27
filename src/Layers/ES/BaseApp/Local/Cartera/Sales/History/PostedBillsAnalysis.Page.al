@@ -126,7 +126,9 @@ page 7000068 "Posted Bills Analysis"
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
                             AutoFormatExpression = '';
+                            Caption = 'Redrawn (o/Rejected)';
                             Editable = false;
+                            ToolTip = 'Specifies the amount, in local currency, of bills redrawn after rejection.';
                         }
                     }
                     group("%")
@@ -136,33 +138,41 @@ page 7000068 "Posted Bills Analysis"
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 0;
+                            Caption = 'Open';
                             ExtendedDatatype = Ratio;
                             MaxValue = 100;
                             MinValue = 0;
+                            ToolTip = 'Specifies the percentage of the total bill amount that remains open.';
                         }
                         field(HonoredPercentage; HonoredPercentage)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 0;
+                            Caption = 'Closed';
                             ExtendedDatatype = Ratio;
                             MaxValue = 100;
                             MinValue = 0;
+                            ToolTip = 'Specifies the percentage of the total bill amount that has been settled, excluding redrawn bills.';
                         }
                         field(RejectedPercentage; RejectedPercentage)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 0;
+                            Caption = 'Rejected';
                             ExtendedDatatype = Ratio;
                             MaxValue = 100;
                             MinValue = 0;
+                            ToolTip = 'Specifies the percentage of the total bill amount that has been rejected, including redrawn bills.';
                         }
                         field(RedrawnPercentage; RedrawnPercentage)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 0;
+                            Caption = 'Redrawn (o/Rejected)';
                             ExtendedDatatype = Ratio;
                             MaxValue = 100;
                             MinValue = 0;
+                            ToolTip = 'Specifies the percentage of the rejected bill amount that has been redrawn.';
                         }
                     }
                 }

@@ -55,14 +55,14 @@ table 7000023 "Customer Rating"
     }
 
     var
-        Text1100000: Label 'untitled';
+        Text1100000Lbl: Label 'untitled';
 
     procedure Caption(): Text
     var
         BankAcc: Record "Bank Account";
     begin
         if Code = '' then
-            exit(Text1100000);
+            exit(Text1100000Lbl);
         BankAcc.Get(Code);
         exit(StrSubstNo('%1 %2 %3', BankAcc."No.", BankAcc.Name, "Currency Code"));
     end;
