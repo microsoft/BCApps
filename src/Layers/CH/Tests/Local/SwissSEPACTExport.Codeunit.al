@@ -3243,9 +3243,9 @@ codeunit 144352 "Swiss SEPA CT Export"
         GenJournalLine: Record "Gen. Journal Line";
         PaymentExportData: Record "Payment Export Data";
         Vendor: Record Vendor;
+        SEPACTFillExportBuffer: Codeunit "SEPA CT-Fill Export Buffer";
         Address: Text[100];
         Address2: Text[50];
-        SEPACTFillExportBuffer: Codeunit "SEPA CT-Fill Export Buffer";
     begin
         // [SCENARIO 656772] Vendor Address 2 is appended to the street name for Swiss SEPA exports.
         Initialize();
@@ -3254,8 +3254,8 @@ codeunit 144352 "Swiss SEPA CT Export"
         CreateGenJournalBatch(GenJournalBatch, CreateBankAccount(FindSwissSEPACTBankExpImpCode()));
         CreateGenJournalLine(GenJournalLine, GenJournalBatch);
         Vendor.Get(GenJournalLine."Account No.");
-        Address := LibraryRandom.RandText(StrLen(Address));
-        Address2 := LibraryRandom.RandText(StrLen(Address2));
+        Address := CopyStr(LibraryRandom.RandText(30), 1, MaxStrLen(Address));
+        Address2 := CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(Address2));
         Vendor.Validate(Address, Address);
         Vendor.Validate("Address 2", Address2);
         Vendor.Modify(true);
@@ -3274,9 +3274,9 @@ codeunit 144352 "Swiss SEPA CT Export"
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         PaymentExportData: Record "Payment Export Data";
-        Address: Text[100];
         Vendor: Record Vendor;
         SEPACTFillExportBuffer: Codeunit "SEPA CT-Fill Export Buffer";
+        Address: Text[100];
     begin
         // [SCENARIO 656772] A blank Vendor Address 2 does not add whitespace to the street name.
         Initialize();
@@ -3285,7 +3285,7 @@ codeunit 144352 "Swiss SEPA CT Export"
         CreateGenJournalBatch(GenJournalBatch, CreateBankAccount(FindSwissSEPACTBankExpImpCode()));
         CreateGenJournalLine(GenJournalLine, GenJournalBatch);
         Vendor.Get(GenJournalLine."Account No.");
-        Address := LibraryRandom.RandText(StrLen(Address));
+        Address := CopyStr(LibraryRandom.RandText(30), 1, MaxStrLen(Address));
         Vendor.Validate(Address, Address);
         Vendor.Validate("Address 2", '');
         Vendor.Modify(true);
