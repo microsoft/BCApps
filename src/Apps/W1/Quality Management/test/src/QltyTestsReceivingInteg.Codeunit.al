@@ -5,6 +5,7 @@
 namespace Microsoft.Test.QualityManagement;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
@@ -894,6 +895,87 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
     end;
 
     [Test]
+    procedure AttemptCreateInspectionOn_OnTransferReceivePost_MultipleLots_UsesLotQuantity()
+    var
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        OrderTransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ReservationEntry: Record "Reservation Entry";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryUtility: Codeunit "Library - Utility";
+        FirstLotNo: Code[50];
+        SecondLotNo: Code[50];
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO 654801] Transfer receipt inspections for a line split across several lots use each lot quantity, not the transfer line total
+
+        // [GIVEN] From, To, and In-Transit locations are set up
+        Initialize();
+        LibraryWarehouse.CreateLocationWMS(FromLocation, false, false, false, false, false);
+        LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+
+        // [GIVEN] A quality inspection template and transfer line generation rule are set up
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
+
+        // [GIVEN] A lot-tracked item with 2 units of lot A and 4 units of lot B at the From location
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
+        FirstLotNo := LibraryUtility.GenerateGUID();
+        SecondLotNo := LibraryUtility.GenerateGUID();
+        LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJournalLine(ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 6);
+        ItemJournalLine.Validate("Location Code", FromLocation.Code);
+        ItemJournalLine.Modify(true);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', FirstLotNo, 2);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', SecondLotNo, 4);
+        LibraryInventory.PostItemJournalLine(ItemJournalTemplate.Name, ItemJournalBatch.Name);
+
+        // [GIVEN] A released transfer order with one line of 6 split into lot A = 2 and lot B = 4
+        LibraryWarehouse.CreateTransferHeader(OrderTransferHeader, FromLocation.Code, ToLocation.Code, InTransitLocation.Code);
+        LibraryWarehouse.CreateTransferLine(OrderTransferHeader, TransferLine, Item."No.", 6);
+        LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, '', FirstLotNo, 2);
+        LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, '', SecondLotNo, 4);
+        LibraryWarehouse.ReleaseTransferOrder(OrderTransferHeader);
+
+        // [GIVEN] The generation rule is set to trigger on transfer order receive post
+        QltyInspectionGenRule."Transfer Order Trigger" := QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive;
+        QltyInspectionGenRule.Modify();
+
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] The transfer order is posted to ship and receive
+        LibraryWarehouse.PostTransferOrder(OrderTransferHeader, true, true);
+
+        QltyInspectionGenRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+
+        // [THEN] One inspection per lot is created, each with the quantity of its own lot
+        LibraryAssert.AreEqual(BeforeCount + 2, QltyInspectionHeader.Count(), 'Should be one inspection per lot.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.SetRange("Source Lot No.", FirstLotNo);
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(2, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match the first lot quantity.');
+        QltyInspectionHeader.SetRange("Source Lot No.", SecondLotNo);
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(4, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match the second lot quantity.');
+    end;
+
+    [Test]
     procedure AttemptCreateInspectionOn_OnTransferReceivePost()
     var
         FromLocation: Record Location;
@@ -1227,6 +1309,101 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
         LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match.');
         LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match picked quantity.');
+    end;
+
+    [Test]
+    procedure WarehouseIntegration_SalesPickShipBin_PartialPick_UsesMovedQuantity()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        Location: Record Location;
+        Zone: Record Zone;
+        BinType: Record "Bin Type";
+        WarehouseEntry: Record "Warehouse Entry";
+        Item: Record Item;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ForCountQltyInspectionHeader: Record "Qlty. Inspection Header";
+        Customer: Record Customer;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ReservationEntry: Record "Reservation Entry";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        OrdQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO 654801] A partial warehouse pick creates an inspection with the moved quantity, not the quantity to handle of the source document tracking
+
+        // [GIVEN] A full WMS location with a lot-tracked item in inventory and a pickable storage bin
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionGenRule.DeleteAll();
+        LibraryWarehouse.CreateFullWMSLocation(Location, 3);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
+        OrdQltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        OrdQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
+
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Lot No.", ReservationEntry."Lot No.");
+        WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
+        WarehouseEntry.FindFirst();
+        Zone.Get(Location.Code, WarehouseEntry."Zone Code");
+        BinType.Get(Zone."Bin Type Code");
+        if not BinType.Pick then begin
+            BinType.Pick := true;
+            BinType.Modify();
+        end;
+
+        // [GIVEN] A lot-tracked sales order of 50 with a warehouse shipment and a pick
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 50);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Modify();
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', ReservationEntry."Lot No.", 50);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader);
+        WarehouseShipmentHeader.SetRange("Location Code", Location.Code);
+        WarehouseShipmentHeader.FindFirst();
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        // [GIVEN] A generation rule triggered on warehouse movement register
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionGenRule."Warehouse Movement Trigger" := QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
+        QltyInspectionGenRule.Modify();
+
+        // [GIVEN] Only 30 of the 50 units are set to be handled on the pick
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        WarehouseActivityLine.SetRange("Item No.", Item."No.");
+        WarehouseActivityLine.SetRange("Location Code", Location.Code);
+        WarehouseActivityLine.FindSet(true);
+        WarehouseActivityHeader.Get(WarehouseActivityHeader.Type::Pick, WarehouseActivityLine."No.");
+        repeat
+            WarehouseActivityLine.Validate("Qty. to Handle", 30);
+            WarehouseActivityLine.Modify(true);
+        until WarehouseActivityLine.Next() = 0;
+
+        BeforeCount := ForCountQltyInspectionHeader.Count();
+
+        // [WHEN] The partial pick is registered
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [THEN] One inspection is created with the moved quantity
+        LibraryAssert.AreEqual(BeforeCount + 1, ForCountQltyInspectionHeader.Count(), 'Should be one new inspection created during the partial warehouse pick.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(30, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match the moved quantity.');
     end;
 
     [Test]
