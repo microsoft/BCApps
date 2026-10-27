@@ -1266,10 +1266,7 @@ table 5407 "Prod. Order Component"
                     exit(NeededQty);
                 exit(NeededQty);
             end;
-            IsHandled := false;
-            OnGetNeededQtyOnBeforeExitAfterPreviousPosting(Rec, CompQtyBase, NeededQty, IsHandled);
-            if IsHandled then
-                exit(NeededQty);
+            OnGetNeededQtyOnBeforeExitAfterPreviousPosting(Rec, CompQtyBase, NeededQty);
             exit(NeededQty);
         end;
         OnGetNeededQtyOnAfterCalcBasedOn(Rec);
@@ -2414,7 +2411,7 @@ table 5407 "Prod. Order Component"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetNeededQtyOnBeforeExitAfterPreviousPosting(var ProdOrderComponent: Record "Prod. Order Component"; var CompQtyBase: Decimal; var Result: Decimal; var IsHandled: Boolean)
+    local procedure OnGetNeededQtyOnBeforeExitAfterPreviousPosting(var ProdOrderComponent: Record "Prod. Order Component"; var CompQtyBase: Decimal; var Result: Decimal)
     begin
     end;
 
