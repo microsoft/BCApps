@@ -10417,9 +10417,9 @@ codeunit 80 "Sales-Post"
     end;
 
 #if not CLEAN30
-    internal procedure RunOnBeforeCreateCarteraBills(SalesHeader: Record "Sales Header"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var TotalSalesLine: Record "Sales Line")
+    internal procedure RunOnBeforeCreateCarteraBills(SalesHeader: Record "Sales Header"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var TotalSalesLine2: Record "Sales Line")
     begin
-        OnBeforeCreateCarteraBills(SalesHeader, CustLedgerEntry, TotalSalesLine);
+        OnBeforeCreateCarteraBills(SalesHeader, CustLedgerEntry, TotalSalesLine2);
     end;
 
     [Obsolete('Moved to codeunit "CRT Sales-Post"', '30.0')]

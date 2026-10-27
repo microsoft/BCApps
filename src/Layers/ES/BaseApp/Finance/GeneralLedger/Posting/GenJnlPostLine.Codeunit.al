@@ -12293,9 +12293,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
 #if not CLEAN30
-    internal procedure RunOnAfterGetSellToBuyFrom(var VATEntry: Record "VAT Entry"; GenJournalLine: Record "Gen. Journal Line")
+    internal procedure RunOnAfterGetSellToBuyFrom(var VATEntry2: Record "VAT Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
-        OnAfterGetSellToBuyFrom(VATEntry, GenJournalLine);
+        OnAfterGetSellToBuyFrom(VATEntry2, GenJournalLine);
     end;
 
     [Obsolete('Moved to codeunit CRT Gen. Jnl.-Post Line.', '30.0')]
