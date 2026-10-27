@@ -179,7 +179,7 @@ codeunit 20440 "Qlty. Report Mgmt."
     /// Resolves the name and contact details of the user who finished an inspection.
     /// </summary>
     /// <param name="FinishedByUserId">The user ID to resolve.</param>
-    /// <param name="FinishedByUserName">The resolved user name.</param>
+    /// <param name="FinishedByUserName">The resolved friendly name, with the user ID as a fallback when no name is available.</param>
     /// <param name="FinishedByTitle">The resolved title, with a quality inspector fallback.</param>
     /// <param name="FinishedByEmail">The resolved email address.</param>
     /// <param name="FinishedByPhone">The resolved phone number.</param>
@@ -188,7 +188,6 @@ codeunit 20440 "Qlty. Report Mgmt."
         QltyPersonLookup: Codeunit "Qlty. Person Lookup";
         DummyRecordId: RecordId;
     begin
-        FinishedByUserName := FinishedByUserId;
         QltyPersonLookup.GetBasicPersonDetails(FinishedByUserId, FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
 
         if (FinishedByTitle = '') and (FinishedByUserName <> '') then
@@ -199,6 +198,10 @@ codeunit 20440 "Qlty. Report Mgmt."
             if FinishedByTitle = '' then
                 FinishedByTitle := DefaultQualityInspectorTitleLbl;
         end;
+
+        // GetBasicPersonDetails clears the name first, so the user ID fallback must be applied after the lookup.
+        if FinishedByUserName = '' then
+            FinishedByUserName := FinishedByUserId;
     end;
 
     /// <summary>

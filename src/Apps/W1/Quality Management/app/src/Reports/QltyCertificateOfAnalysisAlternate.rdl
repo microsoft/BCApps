@@ -666,7 +666,7 @@
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=First(Fields!QltyInspection_Finished_By_User_ID.Value)</Value>
+                                      <Value>=First(Fields!QltyInspection_Finished_By_UserName.Value)</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>

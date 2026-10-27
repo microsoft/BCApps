@@ -71,6 +71,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         LotSerialTrackingDetailsTok: Label '%1 %2', Comment = '%1=lot no,%2=serial no', Locked = true;
         LockedYesLbl: Label 'Yes', Locked = true;
         LockedNoLbl: Label 'No', Locked = true;
+        QualityInspectorTitleTok: Label 'Quality Inspector', Locked = true;
         IsInitialized: Boolean;
 
     [Test]
@@ -456,6 +457,84 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryAssert.AreEqual(SalespersonPurchaser."Phone No.", OutPhone, 'OutPhone should have been set');
         LibraryAssert.AreEqual(Database::"Salesperson/Purchaser", OutSourceRecord.TableNo(), 'OutSourceRecord should have been a Salesperson/Purchaser record');
         LibraryAssert.AreEqual(SalespersonPurchaser.RecordId(), OutSourceRecord, 'OutSourceRecord should have been a specific Salesperson/Purchaser record');
+    end;
+
+    [Test]
+    procedure ResolveFinishedByPerson_UserWithFullName()
+    var
+        User: Record User;
+        LibraryPermissions: Codeunit "Library - Permissions";
+        FinishedByUserName: Text;
+        FinishedByTitle: Text;
+        FinishedByEmail: Text;
+        FinishedByPhone: Text;
+    begin
+        // [SCENARIO] The finishing user's friendly full name is shown on reports instead of the user ID
+
+        Initialize();
+
+        // [GIVEN] A User record with a full name that differs from the user name
+        LibraryPermissions.CreateUser(User, '', false);
+        User."Full Name" := CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(User."Full Name"));
+        User.Modify(false);
+
+        // [WHEN] ResolveFinishedByPerson is called with the User name
+        QltyInspectionUtility.ResolveFinishedByPerson(User."User Name", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+
+        // [THEN] The full name is returned together with the default quality inspector title
+        LibraryAssert.AreEqual(User."Full Name", FinishedByUserName, 'The finished by name should be the user full name.');
+        LibraryAssert.AreEqual(QualityInspectorTitleTok, FinishedByTitle, 'The finished by title should be the default quality inspector title.');
+    end;
+
+    [Test]
+    procedure ResolveFinishedByPerson_UserWithBlankFullName()
+    var
+        User: Record User;
+        LibraryPermissions: Codeunit "Library - Permissions";
+        FinishedByUserName: Text;
+        FinishedByTitle: Text;
+        FinishedByEmail: Text;
+        FinishedByPhone: Text;
+    begin
+        // [SCENARIO] The user ID is shown on reports when the finishing user has no full name
+
+        Initialize();
+
+        // [GIVEN] A User record with a blank full name
+        LibraryPermissions.CreateUser(User, '', false);
+        User."Full Name" := '';
+        User.Modify(false);
+
+        // [WHEN] ResolveFinishedByPerson is called with the User name
+        QltyInspectionUtility.ResolveFinishedByPerson(User."User Name", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+
+        // [THEN] The user ID is returned instead of a blank name
+        LibraryAssert.AreEqual(User."User Name", FinishedByUserName, 'The finished by name should fall back to the user ID.');
+        LibraryAssert.AreEqual(QualityInspectorTitleTok, FinishedByTitle, 'The finished by title should be the default quality inspector title.');
+    end;
+
+    [Test]
+    procedure ResolveFinishedByPerson_UserDoesNotExist()
+    var
+        FinishedByUserId: Code[50];
+        FinishedByUserName: Text;
+        FinishedByTitle: Text;
+        FinishedByEmail: Text;
+        FinishedByPhone: Text;
+    begin
+        // [SCENARIO] The saved user ID is shown on reports when the finishing user no longer exists
+
+        Initialize();
+
+        // [GIVEN] A user ID that does not exist in any person table
+        FinishedByUserId := 'QLTYDELETEDUSER';
+
+        // [WHEN] ResolveFinishedByPerson is called with the user ID
+        QltyInspectionUtility.ResolveFinishedByPerson(FinishedByUserId, FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+
+        // [THEN] The saved user ID is returned instead of a blank name
+        LibraryAssert.AreEqual(FinishedByUserId, FinishedByUserName, 'The finished by name should fall back to the saved user ID.');
+        LibraryAssert.AreEqual(QualityInspectorTitleTok, FinishedByTitle, 'The finished by title should be the default quality inspector title.');
     end;
 
     [Test]

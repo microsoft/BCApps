@@ -43,7 +43,7 @@ report 20401 "Qlty. Certificate of Analysis"
             column(QltyInspection_ReinspectionNo; CurrentInspection."Re-inspection No.") { }
             column(QltyInspection_Finished_By_User_ID; "Finished By User ID") { }
             column(QltyInspection_Finished_By_UserName; FinishedByUserName) { }
-            column(QltyInspection_Finished_By_Title; FinishedByUserName) { }
+            column(QltyInspection_Finished_By_Title; FinishedByTitle) { }
             column(QltyInspection_Finished_By_Email; FinishedByEmail) { }
             column(QltyInspection_Finished_By_Phone; FinishedByPhone) { }
             column(QltyInspection_Director_Title; ApproverTitle) { }
