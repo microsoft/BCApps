@@ -10,6 +10,7 @@ using Microsoft.HumanResources.Employee;
 codeunit 148315 "Expense Users API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -123,9 +124,6 @@ codeunit 148315 "Expense Users API Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Users API Test");
         if IsInitialized then
             exit;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Users API Test");
         if not ExpenseAgentSetup.Get() then begin

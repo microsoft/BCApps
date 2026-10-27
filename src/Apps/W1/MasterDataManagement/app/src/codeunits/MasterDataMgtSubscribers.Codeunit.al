@@ -11,11 +11,11 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
+using System.DataAdministration;
 using System.Environment;
 using System.Environment.Configuration;
 using System.IO;
 using System.Reflection;
-using System.Telemetry;
 using System.Threading;
 using System.Utilities;
 
@@ -30,7 +30,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
                   tabledata "Tenant Media Thumbnails" = imd,
                   tabledata "Integration Synch. Job" = r,
                   tabledata "Job Queue Entry" = rmd,
-                  tabledata "Master Data Management Setup" = r;
+                  tabledata "Master Data Management Setup" = rm;
 
     var
         ValueWillBeOverwrittenErr: label 'Record %2 was modified locally since the last synchronization and a different value for field %1 (%3) is synchronizing from the source record.\\Before retrying, open Synchronization Tables, select %4, choose action Fields and either disable the synchronization of %1 or set it up to overwrite local changes. Alternatively, choose to overwrite local changes on synchronization table %4.', Comment = '%1 - a field caption, %2 - a record identifier, %3 - a field value (any value), %4 - table caption';
@@ -75,7 +75,6 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         IntegrationTableMapping: Record "Integration Table Mapping";
         OriginalIntegrationTableMapping: Record "Integration Table Mapping";
         MasterDataManagement: Codeunit "Master Data Management";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if IsJobQueueEntryDataSynchJob(JobQueueEntry, IntegrationTableMapping) then begin
             if IntegrationSynchJob.HaveJobsBeenIdle(JobQueueEntry.GetLastLogEntryNo()) then begin
@@ -83,7 +82,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
                     JobQueueEntry.Status := JobQueueEntry.Status::"On Hold with Inactivity Timeout"
             end else
                 JobQueueEntry.Status := JobQueueEntry.Status::Ready;
-            FeatureTelemetry.LogUptake('0000OUA', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::Used);
+            MasterDataManagement.LogSynchronizationUsage(); // registers daily usage/uptake; internally guarded to once per day
             if IntegrationTableMapping.IsFullSynch() then begin
                 Session.LogMessage('0000JIS', StrSubstNo(RunningFullSynchTelemetryTxt, IntegrationTableMapping.Name), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                 OriginalIntegrationTableMapping.SetRange(Status, IntegrationTableMapping.Status::Enabled);
@@ -1606,5 +1605,17 @@ codeunit 7237 "Master Data Mgt. Subscribers"
                 MasterDataMgtCoupling.Modify();
             end;
         end;
+    end;
+
+    // Raised once per copied company, in that company's context, so the Company-scoped Isolated Storage entry
+    // resolves to the copied company.
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Cleanup", 'OnClearCompanyConfig', '', false, false)]
+    local procedure ClearCrossEnvSecretOnEnvironmentCopy(CompanyName: Text; SourceEnv: Enum "Environment Type"; DestinationEnv: Enum "Environment Type")
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        if not MasterDataManagementSetup.Get() then
+            exit;
+        MasterDataManagementSetup.ClearSourceClientSecretOnEnvironmentCopy();
     end;
 }

@@ -60,16 +60,16 @@ page 6975 "Expense Itemizations"
                 field(TotalAmount; TotalAmount)
                 {
                     AutoFormatType = 1;
-                    AutoFormatExpression = '';
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Total Amount';
+                    Caption = 'Total Itemized Amount';
                     Editable = false;
                     ToolTip = 'Specifies the sum of all itemizations for this expense.';
                 }
                 field(ExpenseAmount; ExpenseAmount)
                 {
                     AutoFormatType = 1;
-                    AutoFormatExpression = '';
+                    AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Basic, Suite;
                     Caption = 'Expense Amount';
                     Editable = false;
@@ -86,8 +86,10 @@ page 6975 "Expense Itemizations"
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        if Expense.Get(Rec.GetFilter("Expense No.")) then
+        if Expense.Get(Rec.GetFilter("Expense No.")) then begin
             Rec."Expense Category Code" := Expense."Expense Category";
+            Rec."Currency Code" := Expense."Currency Code";
+        end;
     end;
 
     trigger OnAfterGetCurrRecord()

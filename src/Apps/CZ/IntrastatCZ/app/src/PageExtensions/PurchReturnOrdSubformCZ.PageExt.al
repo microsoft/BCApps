@@ -18,6 +18,12 @@ pageextension 31323 "Purch. Return Ord. Subform CZ" extends "Purchase Return Ord
                 ToolTip = 'Specifies the statistic indication code.';
                 Visible = false;
             }
+            field("Country/Reg. of Orig. Code CZ"; Rec."Country/Reg. of Orig. Code CZ")
+            {
+                ApplicationArea = PurchReturnOrder;
+                ToolTip = 'Specifies a code for the country/region where the item was produced or processed.';
+                Visible = false;
+            }
         }
     }
 }
