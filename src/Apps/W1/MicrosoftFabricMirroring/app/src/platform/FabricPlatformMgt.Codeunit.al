@@ -526,27 +526,27 @@ codeunit 48520 "Fabric Platform Mgt"
             Message(TestConnectionSuccessMsg);
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     local procedure OnBeforeEnableExport(var IsHandled: Boolean)
     begin
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     local procedure OnBeforeStartExport(var IsHandled: Boolean)
     begin
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     local procedure OnBeforeStopExport(var IsHandled: Boolean)
     begin
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     local procedure OnBeforeDisableExport(var IsHandled: Boolean)
     begin
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     local procedure OnBeforeTestConnection(var IsHandled: Boolean; var IsSuccess: Boolean)
     begin
     end;
