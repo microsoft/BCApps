@@ -586,6 +586,12 @@ Describe "Separate RunTests action bucket configuration" {
             LegacyTestsBucket1 = $false
             LegacyTestsBucket2 = $false
         }
+        $script:expectedCoverageFormats = @{
+            IntegrationTests = @('bc-json')
+            UncategorizedTests = @('bc-json')
+            LegacyTestsBucket1 = @('bc-json', 'cobertura')
+            LegacyTestsBucket2 = @('bc-json', 'cobertura')
+        }
         $script:expectedTestType = @{
             IntegrationTests = 'IntegrationTest'
             UncategorizedTests = 'Uncategorized'
@@ -640,6 +646,8 @@ Describe "Separate RunTests action bucket configuration" {
                     $separateSettings.enabled | Should -BeTrue
                     $separateSettings.testType | Should -Be $bucketRule[0].settings.testType
                     $separateSettings.codeCoverageEnabled | Should -Be $script:expectedCoverage[$buildMode]
+                    @($separateSettings.codeCoverageFormats) |
+                        Should -Be $script:expectedCoverageFormats[$buildMode]
                 }
             }
         }
@@ -684,7 +692,7 @@ Describe "Separate RunTests action bucket configuration" {
                     $settings.useSeparateTestAction.codeCoverageEnabled |
                         Should -Be $script:expectedCoverage[$buildMode]
                     @($settings.useSeparateTestAction.codeCoverageFormats) |
-                        Should -Be @('bc-json', 'cobertura')
+                        Should -Be $script:expectedCoverageFormats[$buildMode]
                     $settings.useSeparateTestAction.codeCoverageSummary | Should -Be 'both'
                     $settings.testType | Should -Be $script:expectedTestType[$buildMode]
                     $settings.companyName | Should -Be $script:expectedCompany[$buildMode]
