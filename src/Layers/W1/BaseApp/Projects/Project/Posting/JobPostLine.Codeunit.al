@@ -8,6 +8,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -355,11 +356,23 @@ codeunit 1001 "Job Post-Line"
             JobTask.TestField("Job Task Type", JobTask."Job Task Type"::Posting);
         end;
         JobTransferLine.FromGenJnlLineToJnlLine(GenJnlLine, JobJnlLine);
+        if GenJnlLine."Source Currency Amount" <> 0 then
+            JobJnlLine."Source Currency Total Cost" := GetSourceCurrencyTotalCost(GenJnlLine, GLEntry);
         OnPostGenJnlLineOnAfterTransferToJnlLine(JobJnlLine, GenJnlLine, JobJnlPostLine);
 
         JobJnlPostLine.SetGLEntryNo(GLEntry."Entry No.");
         JobJnlPostLine.RunWithCheck(JobJnlLine);
         JobJnlPostLine.SetGLEntryNo(0);
+    end;
+
+    local procedure GetSourceCurrencyTotalCost(GenJnlLine: Record "Gen. Journal Line"; GLEntry: Record "G/L Entry") SourceCurrencyTotalCost: Decimal
+    var
+        NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+    begin
+        // The G/L entry amount excludes VAT; non-deductible VAT is posted separately and belongs to the project cost.
+        SourceCurrencyTotalCost := GLEntry."Additional-Currency Amount";
+        if NonDeductibleVAT.UseNonDeductibleVATAmountForJobCost() then
+            SourceCurrencyTotalCost += GenJnlLine."Non-Deductible VAT Amount ACY";
     end;
 
     procedure PostJobOnPurchaseLine(var PurchHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; PurchLine: Record "Purchase Line"; SourceCode: Code[10])
