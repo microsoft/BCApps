@@ -508,7 +508,6 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
     local procedure PrepareGenJnlLine(var SalesHeader: Record "Sales Header"; var InvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJnlLine: Record "Gen. Journal Line")
     var
-        BillToCust: Record Customer;
         IsHandled: Boolean;
     begin
         InitGenJnlLine(GenJnlLine, SalesHeader, InvoicePostingBuffer);
@@ -521,10 +520,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
         IsHandled := false;
         SalesPostInvoiceEventsBE.RunOnPrepareGenJnlLineOnBeforeUpdateCountryRegionCode(SalesHeader, GenJnlLine, InvoicePostingBuffer, IsHandled);
-        if not IsHandled then begin
-            BillToCust.Get(GenJnlLine."Bill-to/Pay-to No.");
-            GenJnlLine."Country/Region Code" := BillToCust."Country/Region Code";
-        end;
+        if not IsHandled then
+            GenJnlLine."Country/Region Code" := SalesHeader."VAT Country/Region Code";
 
         InvoicePostingBuffer.CopyToGenJnlLine(GenJnlLine);
         if GLSetup."Journal Templ. Name Mandatory" then
