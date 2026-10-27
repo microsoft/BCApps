@@ -1076,12 +1076,17 @@ codeunit 8614 "Config. XML Exchange"
     internal procedure LoadXMLDocumentFromFile(FileName: Text; var PackageXML: XmlDocument)
     var
         TempBlob: Codeunit "Temp Blob";
+        LittleEndianTempBlob: Codeunit "Temp Blob";
         XMLInStream: InStream;
         XMLText: Text;
         ByteOrderMark: Char;
     begin
         FileManagement.BLOBImportFromServerFile(TempBlob, FileName);
-        TempBlob.CreateInStream(XMLInStream, GetTextEncoding(TempBlob));
+        if IsUTF16BigEndian(TempBlob) then begin
+            SwapUTF16ByteOrder(TempBlob, LittleEndianTempBlob);
+            LittleEndianTempBlob.CreateInStream(XMLInStream, TextEncoding::UTF16);
+        end else
+            TempBlob.CreateInStream(XMLInStream, GetTextEncoding(TempBlob));
         XMLText := TypeHelper.ReadAsTextWithSeparator(XMLInStream, TypeHelper.LFSeparator());
         ByteOrderMark := 65279;
         if XMLText <> '' then
@@ -1092,18 +1097,55 @@ codeunit 8614 "Config. XML Exchange"
 
     local procedure GetTextEncoding(var TempBlob: Codeunit "Temp Blob"): TextEncoding
     var
-        XMLInStream: InStream;
         FirstByte: Byte;
         SecondByte: Byte;
     begin
-        if TempBlob.Length() >= 2 then begin
-            TempBlob.CreateInStream(XMLInStream);
-            XMLInStream.Read(FirstByte);
-            XMLInStream.Read(SecondByte);
-        end;
+        ReadFirstTwoBytes(TempBlob, FirstByte, SecondByte);
         if (FirstByte = 255) and (SecondByte = 254) then
             exit(TextEncoding::UTF16);
         exit(TextEncoding::UTF8);
+    end;
+
+    local procedure IsUTF16BigEndian(var TempBlob: Codeunit "Temp Blob"): Boolean
+    var
+        FirstByte: Byte;
+        SecondByte: Byte;
+    begin
+        ReadFirstTwoBytes(TempBlob, FirstByte, SecondByte);
+        exit((FirstByte = 254) and (SecondByte = 255));
+    end;
+
+    local procedure ReadFirstTwoBytes(var TempBlob: Codeunit "Temp Blob"; var FirstByte: Byte; var SecondByte: Byte)
+    var
+        XMLInStream: InStream;
+    begin
+        if TempBlob.Length() < 2 then
+            exit;
+        TempBlob.CreateInStream(XMLInStream);
+        XMLInStream.Read(FirstByte);
+        XMLInStream.Read(SecondByte);
+    end;
+
+    // Converts UTF-16 big-endian content to little-endian, the only UTF-16 byte order AL text streams can read.
+    local procedure SwapUTF16ByteOrder(var TempBlob: Codeunit "Temp Blob"; var SwappedTempBlob: Codeunit "Temp Blob")
+    var
+        SourceInStream: InStream;
+        TargetOutStream: OutStream;
+        HighByte: Byte;
+        LowByte: Byte;
+    begin
+        TempBlob.CreateInStream(SourceInStream);
+        SwappedTempBlob.CreateOutStream(TargetOutStream);
+        while not SourceInStream.EOS() do begin
+            SourceInStream.Read(HighByte);
+            if SourceInStream.EOS() then
+                TargetOutStream.Write(HighByte)
+            else begin
+                SourceInStream.Read(LowByte);
+                TargetOutStream.Write(LowByte);
+                TargetOutStream.Write(HighByte);
+            end;
+        end;
     end;
 
     local procedure AddAttribute(var ParentXmlNode: XmlNode; Name: Text; NodeValue: Text)
