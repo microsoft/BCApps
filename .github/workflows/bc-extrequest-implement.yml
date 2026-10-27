@@ -1,12 +1,14 @@
 name: 'Extensibility Request Implement'
 
-run-name: "${{ github.event_name == 'issues' && format('Implement extensibility request #{0}', github.event.issue.number) || format('Record extensibility request PR #{0}', github.event.pull_request.number) }}"
+run-name: "${{ github.event_name == 'issues' && format('Implement extensibility request #{0}', github.event.issue.number) || github.event_name == 'push' && format('Record merged extensibility requests for {0}', github.sha) || format('Record extensibility request PR #{0}', github.event.pull_request.number) }}"
 
 on:
   issues:
     types: [labeled]
   pull_request_target:
     types: [closed]
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -19,7 +21,7 @@ defaults:
     shell: pwsh
 
 concurrency:
-  group: bc-extrequest-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number }}
+  group: bc-extrequest-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number || github.sha }}
   cancel-in-progress: false
 
 env:
@@ -136,11 +138,87 @@ jobs:
             -Model 'gpt-5.6-sol' `
             -TelemetryEnabled ($env:TELEMETRY_ENABLED -eq 'true')
 
-  record-pr-outcome:
+  discover-pr-outcomes:
     if: >
-      github.event_name == 'pull_request_target' &&
-      (startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/ext_issue-') ||
-       startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/team-'))
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request_target' &&
+       github.event.pull_request.merged == false &&
+       (startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/ext_issue-') ||
+        startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/team-')))
+    runs-on: ubuntu-latest
+    outputs:
+      pull-requests: ${{ steps.discover.outputs.pull-requests }}
+    steps:
+      - name: Find pull request outcomes
+        id: discover
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $eventPayload = Get-Content -Raw $env:GITHUB_EVENT_PATH | ConvertFrom-Json
+          $pullRequests = @()
+          if ($env:GITHUB_EVENT_NAME -eq 'pull_request_target') {
+            $pullRequests = @(@{
+              number = $eventPayload.pull_request.number
+              headBranch = $eventPayload.pull_request.head.ref
+            })
+          } elseif (-not $eventPayload.deleted -and -not $eventPayload.created) {
+            $comparisonJson = gh api --paginate --slurp `
+              "repos/$env:GITHUB_REPOSITORY/compare/$($eventPayload.before)...$($eventPayload.after)?per_page=100"
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Unable to read the pushed commits.'
+            }
+            $pendingCommitShas = @(
+              ($comparisonJson | ConvertFrom-Json) |
+                ForEach-Object { $_.commits.sha } |
+                Sort-Object -Unique
+            )
+            for ($attempt = 1; $attempt -le 3 -and $pendingCommitShas.Count -gt 0; $attempt++) {
+              $retryCommitShas = @()
+              foreach ($commitSha in $pendingCommitShas) {
+                $prsJson = gh api --paginate --slurp `
+                  "repos/$env:GITHUB_REPOSITORY/commits/$commitSha/pulls?per_page=100"
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Unable to read pull requests for commit $commitSha."
+                }
+                $mergedPullRequests = @(
+                  ($prsJson | ConvertFrom-Json) | ForEach-Object { $_ } | Where-Object {
+                    $_.merged_at -and
+                    $_.base.ref -eq 'main' -and
+                    $_.base.repo.full_name -eq $env:GITHUB_REPOSITORY -and
+                    $_.merge_commit_sha -eq $commitSha
+                  }
+                )
+                if ($mergedPullRequests.Count -eq 0) {
+                  $retryCommitShas += $commitSha
+                  continue
+                }
+                foreach ($pr in $mergedPullRequests) {
+                  if ($pr.head.ref -match '^bc-extrequest-implement/(ext_issue-|team-)') {
+                    $pullRequests += @{
+                      number = $pr.number
+                      headBranch = $pr.head.ref
+                    }
+                  }
+                }
+              }
+              $pendingCommitShas = @($retryCommitShas)
+              if ($pendingCommitShas.Count -gt 0 -and $attempt -lt 3) {
+                Start-Sleep -Seconds 5
+              }
+            }
+          }
+          $pullRequests = @($pullRequests | Sort-Object -Property { $_.number } -Unique)
+          $json = ConvertTo-Json -InputObject $pullRequests -Compress
+          "pull-requests=$json" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+  record-pr-outcome:
+    needs: discover-pr-outcomes
+    if: needs.discover-pr-outcomes.outputs.pull-requests != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        pull-request: ${{ fromJSON(needs.discover-pr-outcomes.outputs.pull-requests) }}
     environment: extensibility-agent
     runs-on: ubuntu-latest
 
@@ -188,8 +266,8 @@ jobs:
         if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
-          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PULL_REQUEST_NUMBER: ${{ matrix.pull-request.number }}
+          HEAD_BRANCH: ${{ matrix.pull-request.headBranch }}
           EXT_REQ_AZURE_CLIENT_ID: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
           EXT_REQ_AZURE_TENANT_ID: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
           EXT_REQ_AZURE_SUBSCRIPTION_ID: ${{ vars.EXT_REQ_AZURE_SUBSCRIPTION_ID || secrets.EXT_REQ_AZURE_SUBSCRIPTION_ID }}
