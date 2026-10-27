@@ -4069,6 +4069,7 @@ codeunit 137405 "SCM Item Tracking"
 
         LibraryInventory.CreateTrackedItem(Item, '', '', ItemTrackingCodeWithoutWhse.Code);
         MockWarehouseEntry(Item."No.");
+        Commit();
 
         LibraryVariableStorage.Enqueue(
             StrSubstNo(CannotChangeItemRecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", WarehouseEntry.TableCaption()));
@@ -4100,6 +4101,7 @@ codeunit 137405 "SCM Item Tracking"
 
         LibraryInventory.CreateTrackedItem(Item, '', '', ItemTrackingCodeWithWhse.Code);
         MockWarehouseEntry(Item."No.");
+        Commit();
 
         LibraryVariableStorage.Enqueue(
             StrSubstNo(CannotChangeItemRecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", WarehouseEntry.TableCaption()));
