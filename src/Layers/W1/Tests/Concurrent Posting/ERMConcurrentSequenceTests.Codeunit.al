@@ -6,6 +6,7 @@ namespace Microsoft.Finance.Test;
 
 codeunit 134291 "ERM Concurrent Sequence Tests"
 {
+    // Keep session-based tests outside legacy buckets so CI uses the isolation-disabled runner.
     Subtype = Test;
     TestType = UnitTest;
     RequiredTestIsolation = Disabled;

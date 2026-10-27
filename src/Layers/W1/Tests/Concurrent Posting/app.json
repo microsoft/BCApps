@@ -1,0 +1,41 @@
+{
+  "id": "27da3ad8-e261-495c-bddd-9c7ff519a7d4",
+  "name": "Tests-Concurrent Posting",
+  "publisher": "Microsoft",
+  "version": "30.0.0.0",
+  "platform": "30.0.0.0",
+  "brief": "Tests-Concurrent Posting (W1)",
+  "description": "This extension provides multi-session concurrency tests for posting in Business Central.",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "dependencies": [
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+      "name": "Library Assert",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "target": "OnPrem",
+  "idRanges": [
+    {
+      "from": 134083,
+      "to": 134083
+    },
+    {
+      "from": 134291,
+      "to": 134291
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "application": "30.0.0.0"
+}
