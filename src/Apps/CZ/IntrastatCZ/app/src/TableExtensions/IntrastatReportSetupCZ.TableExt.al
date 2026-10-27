@@ -81,6 +81,11 @@ tableextension 31326 "Intrastat Report Setup CZ" extends "Intrastat Report Setup
             MaxValue = 100;
             ToolTip = 'Specifies the minimum percentage tolerance at which the system replaces the sales or purchase price from the item ledger entries with the fair market value entered on the item card when generating Intrastat line suggestions. This tolerance is evaluated during the Intrastat report line creation process.';
         }
+        field(31325; "Get Ctry/Reg. of Origin CZ"; Enum "Get Country/Reg. of Origin CZ")
+        {
+            Caption = 'Get Country/Region of Origin';
+            DataClassification = CustomerContent;
+        }
     }
 
     var

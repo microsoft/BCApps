@@ -62,8 +62,9 @@ table 6930 "Expense Agent Setup"
 
             trigger OnValidate()
             begin
-                if not "Enable Agent" then
+                if not Rec."Enable Agent" then
                     RemoveAllScheduledTasks();
+
                 if Rec."Enable Agent" then
                     CheckBeforeEnablingAgent();
 
@@ -604,7 +605,7 @@ table 6930 "Expense Agent Setup"
             Caption = 'Default Approver No.';
             ToolTip = 'Specifies the expense user who by default is set as approver.';
             DataClassification = CustomerContent;
-            TableRelation = "Expense User";
+            TableRelation = "Expense User" where("Can Approve" = const(true), "Unlimited Approval" = const(true));
 
             trigger OnValidate()
             var
@@ -800,9 +801,6 @@ table 6930 "Expense Agent Setup"
         CreateEmployeesForExpenseUsersQst: Label 'Turning on this setting will enable automatic creation of records in the Employee table. This may impact your HR setup in Business Central.\\Are you sure you want to enable this feature?';
         UpdateDefaultsApproverQst: Label 'You have changed the default approver.\\Do you also want to change approver from %1 to %2 for all expense users who currently have %1 as approver?', Comment = '%1 and %2 are both person names.';
         UpdatingDefaultApproversLbl: Label 'Updating approvers...';
-        XDOMESTICTxt: Label 'DOMESTIC'; // DOMESTIC VAT Business Posting Group used as default for all rates created by this codeunit
-
-
     internal procedure AssistEditNoreplyMailbox()
     var
         TempEmailAccount: Record "Email Account" temporary;
@@ -1180,19 +1178,40 @@ table 6930 "Expense Agent Setup"
     internal procedure CreateCountryVATRatesDefaults()
     var
         CreateExpenseCountryVATRates: Codeunit "Create Expense VAT Rates";
+        DefaultVATBusinessPostingGroup: Code[20];
     begin
         Rec.GetRecordOnce();
         if Rec."Default VAT Bus. Posting Group" = '' then begin
-            Rec."Default VAT Bus. Posting Group" := XDOMESTICTxt;
-            Rec.Modify();
+            DefaultVATBusinessPostingGroup := GetDefaultVATBusinessPostingGroup();
+            if DefaultVATBusinessPostingGroup <> '' then begin
+                Rec.Validate("Default VAT Bus. Posting Group", DefaultVATBusinessPostingGroup);
+                Rec.Modify();
+            end;
         end;
 
-        CreateExpenseCountryVATRates.InsertDefaultRates();
+        if not CreateExpenseCountryVATRates.InsertDefaultRates() then
+            exit;
 
         if not Rec."VAT Rates Applied" then begin
             Rec."VAT Rates Applied" := true;
             Rec.Modify();
         end;
+    end;
+
+    local procedure GetDefaultVATBusinessPostingGroup(): Code[20]
+    var
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        VATPostingSetup.SetFilter("VAT Bus. Posting Group", '<>%1', '');
+        if VATPostingSetup.FindSet() then
+            repeat
+                if VATBusinessPostingGroup.Get(VATPostingSetup."VAT Bus. Posting Group") then
+                    exit(VATBusinessPostingGroup.Code);
+            until VATPostingSetup.Next() = 0;
+
+        if VATBusinessPostingGroup.FindFirst() then
+            exit(VATBusinessPostingGroup.Code);
     end;
 
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense Agent Setup", 'X')]

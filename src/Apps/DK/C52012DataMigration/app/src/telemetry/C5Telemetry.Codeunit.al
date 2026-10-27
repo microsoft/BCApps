@@ -10,9 +10,12 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Integration;
+using System.Telemetry;
 
 codeunit 1872 "C5 Telemetry"
 {
+    Permissions = tabledata "Data Migration Status" = r;
+
     var
         EmptyZipFileBlobErr: Label 'Oops, it seems the blob is empty.';
         CopyToDatabaseFailedErr: Label 'Something went wrong with copying the zip file to Database.';
@@ -20,6 +23,20 @@ codeunit 1872 "C5 Telemetry"
         StagingTablesImportStartTxt: Label 'CSV file import to staging tables started.', Locked = true;
 
         StagingTablesImportFinishTxt: Label 'CSV file import to staging tables finished; duration: %1', Locked = true;
+        CloudMigrationTok: Label 'CloudMigration', Locked = true;
+        C5ProductTok: Label 'C5 2012', Locked = true;
+        MigrationFinishedTelemetryTok: Label 'C5 migration finished.', Locked = true;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Migration Mgt.", 'OnAfterMigrationFinished', '', true, true)]
+    local procedure OnAfterMigrationFinishedSubscriber(var DataMigrationStatus: Record "Data Migration Status"; WasAborted: Boolean; StartTime: DateTime; Retry: Boolean)
+    var
+        C5MigrationDashboardMgt: Codeunit "C5 Migr. Dashboard Mgt";
+    begin
+        if DataMigrationStatus."Migration Type" <> C5MigrationDashboardMgt.GetC5MigrationTypeTxt() then
+            exit;
+
+        SendMigrationFinishedTelemetry(WasAborted, Retry, CurrentDateTime());
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"C5 Unzip", 'OnZipFileBlobMissing', '', false, false)]
     local procedure OnZipFileBlobMissingSubscriber()
@@ -113,5 +130,60 @@ codeunit 1872 "C5 Telemetry"
             EntitiesToMigrateMessage += StrSubstNo(C5LedgerMsg, DataMigrationEntity."No. of Records");
 
         Session.LogMessage('00001I1', EntitiesToMigrateMessage, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', C5MigrationDashboardMgt.GetC5MigrationTypeTxt());
+    end;
+
+    internal procedure GetCompletedMigrationDateTime(var MigrationDateTime: DateTime): Boolean
+    var
+        DataMigrationStatus: Record "Data Migration Status";
+        C5MigrationDashboardMgt: Codeunit "C5 Migr. Dashboard Mgt";
+    begin
+        DataMigrationStatus.SetRange("Migration Type", C5MigrationDashboardMgt.GetC5MigrationTypeTxt());
+        DataMigrationStatus.SetRange(Status, DataMigrationStatus.Status::Completed);
+        if not DataMigrationStatus.FindSet() then
+            exit(false);
+
+        repeat
+            if DataMigrationStatus.SystemModifiedAt > MigrationDateTime then
+                MigrationDateTime := DataMigrationStatus.SystemModifiedAt;
+        until DataMigrationStatus.Next() = 0;
+
+        exit(true);
+    end;
+
+    internal procedure SendMigrationFinishedTelemetry(WasAborted: Boolean; Retry: Boolean; MigrationDateTime: DateTime)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        if WasAborted then begin
+            TelemetryDimensions.Add('Category', CloudMigrationTok);
+            TelemetryDimensions.Add('Product', C5ProductTok);
+            TelemetryDimensions.Add('WasAborted', Format(WasAborted, 0, 9));
+            TelemetryDimensions.Add('Retry', Format(Retry, 0, 9));
+            Session.LogMessage('0000VTR', MigrationFinishedTelemetryTok, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+            exit;
+        end;
+
+        if Retry then
+            exit;
+
+        SendCompletedMigrationTelemetry(MigrationDateTime);
+    end;
+
+    internal procedure SendCompletedMigrationTelemetry(MigrationDateTime: DateTime)
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        FeatureTelemetry.LogUptake('0000JMS', 'Cloud Migration', Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000JMU', 'Cloud Migration', Enum::"Feature Uptake Status"::"Set up");
+        FeatureTelemetry.LogUptake('0000JMQ', 'Cloud Migration', Enum::"Feature Uptake Status"::Used);
+
+        TelemetryDimensions.Add('Category', CloudMigrationTok);
+        TelemetryDimensions.Add('NumberOfCompanies', Format(1, 0, 9));
+        TelemetryDimensions.Add('TotalMigrationSize', Format(0, 0, 9));
+        TelemetryDimensions.Add('TotalOnPremSize', Format(0, 0, 9));
+        TelemetryDimensions.Add('Product', C5ProductTok);
+        TelemetryDimensions.Add('MigrationDateTime', Format(MigrationDateTime, 0, 9));
+        FeatureTelemetry.LogUsage('0000JMR', 'Cloud Migration', 'Tenant was cloud migrated', TelemetryDimensions);
     end;
 }

@@ -212,8 +212,7 @@ codeunit 131330 "Library - Fixed Asset"
         CreateFAPostingGroup(FAPostingGroup);
         LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
         UpdateFAPostingGroupGLAccounts(FAPostingGroup, VATPostingSetup);
-        FADeprBook.ModifyAll("FA Posting Group", FAPostingGroup.Code);
-        FADeprBook.ModifyAll("No. of Depreciation Years", LibraryRandom.RandIntInRange(2, 5));
+        FADeprBook.ModifyAll("FA Posting Group", FAPostingGroup.Code, "No. of Depreciation Years", LibraryRandom.RandIntInRange(2, 5));
     end;
 
     procedure CreateFixedAssetNo(): Code[20]

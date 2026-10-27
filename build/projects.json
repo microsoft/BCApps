@@ -5166,6 +5166,27 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
     },
+    "Microsoft Fabric Mirroring": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\MicrosoftFabricMirroring\\app",
+      "dvdFolder": "Applications\\Microsoft Fabric Mirroring\\Source",
+      "hasTranslations": true,
+      "installOnEnvironmentUpdate": false,
+      "supportedCountries": "All",
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
+    },
+    "Microsoft Fabric Mirroring Tests": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\MicrosoftFabricMirroring\\test",
+      "dvdFolder": "Applications\\Microsoft Fabric Mirroring\\Test",
+      "supportedCountries": "All",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
+    },
     "Service Management": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\ServiceManagement\\app",
       "dvdFolder": "Applications\\ServiceManagement\\Source",
@@ -5559,6 +5580,33 @@
     "FEC Audit File Tests": {
       "projectPath": "$env:INETROOT\\App\\Apps\\FR\\FECAuditFile\\test",
       "dvdFolder": "Applications\\FECAuditFile\\Test",
+      "supportedCountries": [
+        "FR"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "XML Audit File FR": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FR\\XMLAuditFile\\app",
+      "dvdFolder": "Applications\\XMLAuditFile\\Source",
+      "hasTranslations": true,
+      "supportedCountries": [
+        "FR"
+      ],
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "installOnEnvironmentUpdate": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "XML Audit File FR Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FR\\XMLAuditFile\\test",
+      "dvdFolder": "Applications\\XMLAuditFile\\Test",
       "supportedCountries": [
         "FR"
       ],
@@ -7014,6 +7062,28 @@
       "logLevel": "warning",
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
+    },
+    "Sales FR": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FR\\SalesFR\\app",
+      "dvdFolder": "Applications\\SalesFR\\Source",
+      "hasTranslations": true,
+      "supportedCountries": "FR",
+      "installOnEnvironmentUpdate": false,
+      "skipInstallOnPrem": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
+    },
+    "Sales FR Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FR\\SalesFR\\test",
+      "dvdFolder": "Applications\\SalesFR\\Test",
+      "supportedCountries": "FR",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Excise Taxes": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\ExciseTaxes\\app",

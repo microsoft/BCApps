@@ -270,6 +270,13 @@ codeunit 139757 "Library - Master Data Mgt."
         MDMCrossEnvChangeDetector.DetectChanges();
     end;
 
+    /// <summary>Returns the object ID of the cross-environment change detector codeunit, which its job queue entry runs.</summary>
+    /// <returns>The codeunit ID of "MDM Cross-Env Change Detector".</returns>
+    procedure ChangeDetectorCodeunitId(): Integer
+    begin
+        exit(Codeunit::"MDM Cross-Env Change Detector");
+    end;
+
     /// <summary>Validates a source environment URL against the HTTP transport's host allow-list; errors if it is not a valid Business Central endpoint.</summary>
     /// <param name="BaseUrl">The source environment base URL to validate.</param>
     procedure ValidateHttpTransportSourceHost(BaseUrl: Text)

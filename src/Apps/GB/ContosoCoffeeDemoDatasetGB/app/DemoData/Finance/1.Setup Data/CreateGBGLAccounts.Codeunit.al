@@ -128,6 +128,9 @@ codeunit 10506 "Create GB GL Accounts"
     var
         CreateGLAccount: Codeunit "Create G/L Account";
     begin
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogatoryAccountName(), '90230');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForDebitName(), '40500');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForCreditName(), '10850');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.BalanceSheetName(), '60000');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.AssetsName(), '60001');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.SalesofResourcesName(), '10200');
@@ -1167,10 +1170,8 @@ codeunit 10506 "Create GB GL Accounts"
         GLAccount: Record "G/L Account";
     begin
         GLAccount.SetRange("No.", FromGLAccountNo, ToGLAccountNo);
-        if GLAccount.FindSet() then begin
-            GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", false);
-            GLAccount.ModifyAll("Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
-        end;
+        if GLAccount.FindSet() then
+            GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", "Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
     end;
 
     procedure Income(): Code[20]

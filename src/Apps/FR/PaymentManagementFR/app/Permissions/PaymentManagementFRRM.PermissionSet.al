@@ -21,5 +21,6 @@ permissionset 10840 "Payment Management FR - RM"
                   tabledata "Payment Post. Buffer FR" = RM,
                   tabledata "Payment Status FR" = RM,
                   tabledata "Payment Step FR" = RM,
-                  tabledata "Payment Step Ledger FR" = RM;
+                  tabledata "Payment Step Ledger FR" = RM,
+                  tabledata "Unreal. CV Ledg. Buffer FR" = RM;
 }

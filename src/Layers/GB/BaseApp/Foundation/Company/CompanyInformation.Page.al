@@ -22,6 +22,7 @@ using Microsoft.Projects.Project.Setup;
 using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Setup;
 using System.Diagnostics;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
 using System.Integration.PowerBI;
@@ -76,6 +77,43 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
+                }
+                grid(Descriptions)
+                {
+                    Caption = 'Descriptions';
+                    GridLayout = Columns;
+                    group(CompanyDescriptionGroup)
+                    {
+                        ShowCaption = false;
+                        field(CompanyDescription; CompanyDescription)
+                        {
+                            ApplicationArea = Basic, Suite;
+                            Caption = 'Company Description';
+                            MultiLine = true;
+                            ToolTip = 'Specifies the company''s nature and intended purpose. The description applies to the current company and can provide context for AI-powered experiences.';
+
+                            trigger OnValidate()
+                            begin
+                                Rec.SetCompanyDescription(CompanyDescription);
+                            end;
+                        }
+                    }
+                    group(EnvironmentDescriptionGroup)
+                    {
+                        ShowCaption = false;
+                        field(EnvironmentDescription; EnvironmentDescription)
+                        {
+                            ApplicationArea = Basic, Suite;
+                            Caption = 'Environment Description';
+                            MultiLine = true;
+                            ToolTip = 'Specifies the environment''s nature and intended purpose. The description can provide context for AI-powered experiences.';
+
+                            trigger OnValidate()
+                            begin
+                                EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
+                            end;
+                        }
+                    }
                 }
                 field(Address; Rec.Address)
                 {
@@ -604,7 +642,7 @@ page 1 "Company Information"
                             LookupHelper.ClearCompanyDefaultPart(Enum::"Report Layout Subtype"::HeaderFooter);
                     end;
                 }
-                field(PowerBIWorkspace; Rec."Power BI Workspace Name")
+                field(PowerBIWorkspace; PowerBIWorkspaceDisplayName)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Power BI Workspace';
@@ -622,6 +660,7 @@ page 1 "Company Information"
                         if PowerBIWorkspaceMgt.LookupTargetWorkspace(NewWorkspaceId, NewWorkspaceName) then begin
                             Rec.Validate("Power BI Workspace Id", NewWorkspaceId);
                             Rec.Validate("Power BI Workspace Name", NewWorkspaceName);
+                            UpdatePowerBIWorkspaceDisplayName();
                             CurrPage.Update(true);
                         end;
                     end;
@@ -887,6 +926,8 @@ page 1 "Company Information"
 #if not CLEAN27
         HandleAddressLookupVisibility();
 #endif
+        UpdatePowerBIWorkspaceDisplayName();
+        LoadDescriptions();
     end;
 
     trigger OnClosePage()
@@ -896,7 +937,6 @@ page 1 "Company Information"
     begin
         if ApplicationAreaMgmtFacade.SaveExperienceTierCurrentCompany(Experience) then
             RestartSession();
-
         if SystemIndicatorChanged then begin
             Message(CompanyBadgeRefreshPageTxt);
             AuditLog.LogAuditMessage(StrSubstNo(CompanyBadgeChangedLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
@@ -937,7 +977,10 @@ page 1 "Company Information"
         CompanyInformationMgt: Codeunit "Company Information Mgt.";
         FormatAddress: Codeunit "Format Address";
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        EnvironmentInformation: Codeunit "Environment Information";
         Experience: Text;
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
         SystemIndicatorText: Code[6];
         SystemIndicatorTextEditable: Boolean;
         IBANMissing: Boolean;
@@ -959,9 +1002,17 @@ page 1 "Company Information"
         DocumentReportExperienceEnabled: Boolean;
         HeaderPartDisplay: Text;
         ThemePartDisplay: Text;
+        PowerBIWorkspaceDisplayName: Text[200];
 
     protected var
         SystemIndicatorChanged: Boolean;
+
+    local procedure UpdatePowerBIWorkspaceDisplayName()
+    var
+        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+    begin
+        PowerBIWorkspaceDisplayName := PowerBIWorkspaceMgt.GetTargetWorkspaceDisplayName();
+    end;
 
     local procedure UpdateSystemIndicator()
     var
@@ -986,6 +1037,12 @@ page 1 "Company Information"
     begin
         CountyVisible := FormatAddress.UseCounty(Rec."Country/Region Code");
         IsShipToCountyVisible := FormatAddress.UseCounty(Rec."Ship-to Country/Region Code");
+    end;
+
+    local procedure LoadDescriptions()
+    begin
+        CompanyDescription := Rec.GetCompanyDescription();
+        EnvironmentDescription := EnvironmentInformation.GetEnvironmentDescription();
     end;
 
     local procedure SetShowMandatoryConditions()
@@ -1078,4 +1135,3 @@ page 1 "Company Information"
         SessionSetting.RequestSessionUpdate(false);
     end;
 }
-
