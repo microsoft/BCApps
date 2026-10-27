@@ -29,33 +29,6 @@ codeunit 3344 "PA Setup Update"
         EmailConnectionMessageErr: Label 'Connection to mailbox failed. Please review the email account configuration for email %1', Comment = '%1 - Email account name';
         EmailConnectionNavigationActionLbl: Label 'Show email accounts';
 
-    internal procedure Load(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
-    var
-        Agent: Record Agent;
-        TempAgentSetupBuffer: Record "Agent Setup Buffer";
-        DesiredSetup: Codeunit "PA Setup";
-        StoredSetup: Codeunit "PA Setup";
-        PayablesAgentMetadata: Codeunit "Payables Agent Metadata";
-        AgentSetup: Codeunit "Agent Setup";
-    begin
-        // Skipping configuring the Agent framework records is valid in tests
-        if not PASetupUpdateParameters.GetSkipAgentConfiguration() then begin
-            if StoredSetup.FindAgentAndReconcileSetup(Agent) then;
-            AgentSetup.GetSetupRecord(
-                TempAgentSetupBuffer,
-                Agent."User Security ID",
-                "Agent Metadata Provider"::"Payables Agent",
-                StoredSetup.AgentUserName(),
-                PayablesAgentMetadata.AgentDisplayName(),
-                PayablesAgentMetadata.AgentSummary()
-            );
-            PASetupUpdateParameters.SetAgentSetupBuffer(TempAgentSetupBuffer);
-        end;
-
-        DesiredSetup.GetSetup();
-        PASetupUpdateParameters.SetDesiredSetup(DesiredSetup);
-    end;
-
     internal procedure Update(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
     var
         AzureADGraphUser: Codeunit "Azure AD Graph User";
@@ -68,9 +41,7 @@ codeunit 3344 "PA Setup Update"
             Error(DelegatedAdminErr);
 
         // Normalize deactivation and reject unsupported proposals before consent, trial or runtime writes.
-        PASetupUpdateParameters.GetDesiredSetup(DesiredSetup);
-        DesiredSetup.PrepareForApply(PASetupUpdateParameters.Enabling());
-        PASetupUpdateParameters.SetDesiredSetup(DesiredSetup);
+        PASetupUpdateParameters.PrepareForApply();
 
         PATelemetry.LogSetupStarted();
 
@@ -112,7 +83,7 @@ codeunit 3344 "PA Setup Update"
             exit;
         end;
 
-        Load(PASetupUpdateParameters);
+        PASetupUpdateParameters.InitializeFromStoredSetup();
         PASetupUpdateParameters.DisableEmailMonitoring();
         PASetupUpdateParameters.EnableAgent();
         PASetupUpdateParameters.SetSkipEmailVerification(true);

@@ -35,6 +35,7 @@ codeunit 3341 "Payables Agent Task"
         MultipleTaskBackingsErr: Label 'Agent task %1 has more than one Payables Agent backing record.', Comment = '%1 = Agent Task ID';
         AmbiguousTaskBackingErr: Label 'Agent task %1 has both version 1 and version 2 backing records.', Comment = '%1 = Agent Task ID';
         InvalidOutcomeErr: Label 'The outcome must be an existing purchase invoice, purchase order, purchase credit memo, posted purchase invoice, or posted purchase credit memo.';
+        OutcomeRegistrationNotSupportedErr: Label 'Outcome registration is only supported for version 2 Payables Agent tasks.', Comment = 'Payables Agent is a term, and should not be translated.';
         SourceTextNotSupportedErr: Label 'Extracted source text cannot be stored for this task.';
         AgentEDocumentServiceTok: Label 'AGENT', Locked = true;
         OutcomeTitleLbl: Label '%1 %2 from %3', Comment = '%1 = document kind, %2 = vendor document number, %3 = vendor name';
@@ -390,24 +391,18 @@ codeunit 3341 "Payables Agent Task"
 
     internal procedure RegisterOutcome(OutcomeRecordId: RecordId)
     var
-        EDocument: Record "E-Document";
         StoredTask: Record "Payables Agent Task";
     begin
         RequireLoaded();
+        if not CanRegisterOutcome() then
+            Error(OutcomeRegistrationNotSupportedErr);
         ValidateOutcome(OutcomeRecordId);
-        if LoadedVersion = "PA Version"::V2 then begin
-            if not StoredTask.Get(LoadedStoredTask."Entry No.") then
-                Error(TaskNotFoundErr);
-            AttachSourcePdf(LoadedStoredTask, OutcomeRecordId);
-            StoredTask.Outcome := OutcomeRecordId;
-            StoredTask.Modify();
-            UpdateAgentTaskTitle(OutcomeRecordId);
-        end else begin
-            if not EDocument.Get(LoadedEDocument."Entry No") then
-                Error(TaskNotFoundErr);
-            EDocument."Document Record ID" := OutcomeRecordId;
-            EDocument.Modify();
-        end;
+        if not StoredTask.Get(LoadedStoredTask."Entry No.") then
+            Error(TaskNotFoundErr);
+        AttachSourcePdf(LoadedStoredTask, OutcomeRecordId);
+        StoredTask.Outcome := OutcomeRecordId;
+        StoredTask.Modify();
+        UpdateAgentTaskTitle(OutcomeRecordId);
         Refresh();
     end;
 

@@ -394,7 +394,7 @@ page 3304 "Payables Agent Setup"
         if not AzureOpenAI.IsEnabled("Copilot Capability"::"Payables Agent") then
             Error(EnableCapabilityFirstErr);
 
-        PASetupUpdate.Load(PASetupUpdateParameters);
+        PASetupUpdateParameters.InitializeFromStoredSetup();
         PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
         CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
         CurrPage.AgentSetupPart.Page.Update();

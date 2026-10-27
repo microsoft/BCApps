@@ -362,7 +362,7 @@ page 3333 "Payables Agent Tasks"
         TasksSupplied := true;
     end;
 
-    local procedure ReloadTasks()
+    local procedure ReloadTasks() // TODO: this looks a bit complicated? don't quite get why, it may be better to put it in the preentation if the complexity can't be avoided.
     var
         TaskSource: Codeunit "PA Task Source";
         CurrentSourceId: Guid;

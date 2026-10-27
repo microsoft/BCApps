@@ -25,8 +25,6 @@ table 3332 "PA Detailed Task"
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
         }
-        // Opaque source identity used by presentation for source-only rows; accepted task identity is Agent Task ID.
-        // Entry No. is only a local row ordinal in this projection.
         field(2; "Task Id"; Guid)
         {
             Caption = 'Task Id';
@@ -54,7 +52,7 @@ table 3332 "PA Detailed Task"
             DataClassification = SystemMetadata;
         }
         /// <summary>
-        /// The vendor of the Purchase Invoice registered as the outcome. Blank for any other outcome.
+        /// The vendor of the Purchase Invoice registered as the outcome.
         /// </summary>
         field(10; "Vendor No."; Code[20])
         {

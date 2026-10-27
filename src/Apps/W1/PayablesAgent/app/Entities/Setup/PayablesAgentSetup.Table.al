@@ -45,8 +45,7 @@ table 3303 "Payables Agent Setup"
         {
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA28
-#pragma warning disable AS0072
+#if not CLEANSCHEMA31
         field(4; "Agent User Security Id"; Guid)
         {
             DataClassification = SystemMetadata;
@@ -59,14 +58,22 @@ table 3303 "Payables Agent Setup"
             ObsoleteTag = '31.0';
 #endif
         }
-#pragma warning restore AS0072
 #endif
+#if not CLEANSCHEMA33
         field(5; "Review Incoming Invoice"; Boolean)
         {
             DataClassification = CustomerContent;
             InitValue = true;
-            // TODOPAV2
+            ObsoleteReason = 'Field replaced';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
         field(7; Exists; Boolean)
         {
             Caption = 'Exists';

@@ -491,7 +491,7 @@ codeunit 3326 "PA Test Fixtures"
         Clear(PASetupUpdateParameters);
         PASetupUpdateParameters.SetSkipAgentConfiguration(not CreateAgentUser);
         PASetupUpdateParameters.SetSkipEmailVerification(true);
-        PASetupUpdate.Load(PASetupUpdateParameters);
+        PASetupUpdateParameters.InitializeFromStoredSetup();
     end;
 
     /// <summary>

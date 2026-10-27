@@ -21,11 +21,11 @@ codeunit 3343 "PA Setup"
     Permissions = tabledata "Payables Agent Setup" = RIMD, tabledata "Outlook Setup" = RIM, tabledata Agent = R;
 
     var
-        SetupRecord: Record "Payables Agent Setup";
+        PayablesAgentSetupRecord: Record "Payables Agent Setup";
         OutlookSetup: Record "Outlook Setup";
         PAV1V2Flag: Codeunit "PA V1V2 Flag";
         IsV2: Boolean;
-        OutlookExists: Boolean;
+        OutlookSetupExists: Boolean;
         AgentUserNameLbl: Label 'Payables Agent', Comment = 'User name of the agent.', Locked = true;
         PayablesAgentProfileTok: Label 'Payables Agent', Locked = true;
         PayablesAgentV2ProfileTok: Label 'Payables Agent Profile', Locked = true;
@@ -51,13 +51,13 @@ codeunit 3343 "PA Setup"
     var
         Exists: Boolean;
     begin
-        Clear(SetupRecord);
+        Clear(PayablesAgentSetupRecord);
         Clear(OutlookSetup);
         IsV2 := PAV1V2Flag.IsV2Active();
-        Exists := SetupRecord.GetSetup(InsertIfMissing);
-        OutlookExists := false;
+        Exists := PayablesAgentSetupRecord.GetSetup(InsertIfMissing);
+        OutlookSetupExists := false;
         if not IsV2 then
-            OutlookExists := OutlookSetup.FindFirst();
+            OutlookSetupExists := OutlookSetup.FindFirst();
         exit(Exists);
     end;
 
@@ -111,12 +111,12 @@ codeunit 3343 "PA Setup"
         PageRecord: Record "Payables Agent Setup";
     begin
         // Project logical settings only, without storage system fields or obsolete backing references.
-        PageRecord.Id := SetupRecord.Id;
-        PageRecord."Monitor Outlook" := SetupRecord."Monitor Outlook";
-        PageRecord."Email Review Policy" := SetupRecord."Email Review Policy";
-        PageRecord."User Security Id" := SetupRecord."User Security Id";
-        PageRecord."Last Activated" := SetupRecord."Last Activated";
-        PageRecord."Applied Instr. Config Hash" := SetupRecord."Applied Instr. Config Hash";
+        PageRecord.Id := PayablesAgentSetupRecord.Id;
+        PageRecord."Monitor Outlook" := PayablesAgentSetupRecord."Monitor Outlook";
+        PageRecord."Email Review Policy" := PayablesAgentSetupRecord."Email Review Policy";
+        PageRecord."User Security Id" := PayablesAgentSetupRecord."User Security Id";
+        PageRecord."Last Activated" := PayablesAgentSetupRecord."Last Activated";
+        PageRecord."Applied Instr. Config Hash" := PayablesAgentSetupRecord."Applied Instr. Config Hash";
         PageRecord."Email Account Id" := GetEmailAccountId();
         PageRecord."Email Folder" := GetEmailFolder();
         PageRecord."Email Folder Id" := GetEmailFolderId();
@@ -128,116 +128,116 @@ codeunit 3343 "PA Setup"
     // Clears an editable proposal without persisting it. Evaluation cleanup applies this before deleting setup.
     internal procedure ResetProposal()
     begin
-        Clear(SetupRecord);
+        Clear(PayablesAgentSetupRecord);
         Clear(OutlookSetup);
         IsV2 := PAV1V2Flag.IsV2Active();
-        OutlookExists := not IsV2;
+        OutlookSetupExists := not IsV2;
     end;
 
     internal procedure GetMonitorOutlook(): Boolean
     begin
-        exit(SetupRecord."Monitor Outlook");
+        exit(PayablesAgentSetupRecord."Monitor Outlook");
     end;
 
     internal procedure SetMonitorOutlook(Value: Boolean)
     begin
-        SetupRecord."Monitor Outlook" := Value;
+        PayablesAgentSetupRecord."Monitor Outlook" := Value;
     end;
 
     internal procedure GetEmailReviewPolicy(): Enum "PA Email Review Policy"
     begin
-        exit(SetupRecord."Email Review Policy");
+        exit(PayablesAgentSetupRecord."Email Review Policy");
     end;
 
     internal procedure SetEmailReviewPolicy(Value: Enum "PA Email Review Policy")
     begin
-        SetupRecord."Email Review Policy" := Value;
+        PayablesAgentSetupRecord."Email Review Policy" := Value;
     end;
 
     internal procedure SetMailboxSelection(AccountId: Guid; FolderName: Text[2048]; FolderId: Text[2048])
     begin
         IsV2 := PAV1V2Flag.IsV2Active();
-        SetupRecord."Email Account Id" := AccountId;
-        SetupRecord."Email Folder" := FolderName;
-        SetupRecord."Email Folder Id" := FolderId;
+        PayablesAgentSetupRecord."Email Account Id" := AccountId;
+        PayablesAgentSetupRecord."Email Folder" := FolderName;
+        PayablesAgentSetupRecord."Email Folder Id" := FolderId;
         if not IsV2 then begin
             OutlookSetup."Email Account ID" := AccountId;
             OutlookSetup."Email Folder" := FolderName;
             OutlookSetup."Email Folder Id" := FolderId;
-            OutlookExists := true;
+            OutlookSetupExists := true;
         end;
     end;
 
     internal procedure GetEmailAccountId(): Guid
     begin
-        if not IsV2 and OutlookExists then
+        if not IsV2 and OutlookSetupExists then
             exit(OutlookSetup."Email Account ID");
-        exit(SetupRecord."Email Account Id");
+        exit(PayablesAgentSetupRecord."Email Account Id");
     end;
 
     internal procedure GetEmailFolder(): Text[2048]
     begin
-        if not IsV2 and OutlookExists then
+        if not IsV2 and OutlookSetupExists then
             exit(OutlookSetup."Email Folder");
-        exit(SetupRecord."Email Folder");
+        exit(PayablesAgentSetupRecord."Email Folder");
     end;
 
     internal procedure GetEmailFolderId(): Text[2048]
     begin
-        if not IsV2 and OutlookExists then
+        if not IsV2 and OutlookSetupExists then
             exit(OutlookSetup."Email Folder Id");
-        exit(SetupRecord."Email Folder Id");
+        exit(PayablesAgentSetupRecord."Email Folder Id");
     end;
 
     internal procedure GetEmailMonitoringConsent(): Boolean
     begin
-        if not IsV2 and OutlookExists then
+        if not IsV2 and OutlookSetupExists then
             exit(OutlookSetup."Consent Received");
-        exit(SetupRecord."Email Monitoring Consent");
+        exit(PayablesAgentSetupRecord."Email Monitoring Consent");
     end;
 
     internal procedure SetEmailMonitoringConsent(Value: Boolean)
     begin
-        SetupRecord."Email Monitoring Consent" := Value;
+        PayablesAgentSetupRecord."Email Monitoring Consent" := Value;
         if not IsV2 then
             OutlookSetup."Consent Received" := Value;
     end;
 
     internal procedure GetLastSyncAt(): DateTime
     begin
-        if not IsV2 and OutlookExists then
+        if not IsV2 and OutlookSetupExists then
             exit(OutlookSetup."Last Sync At");
-        exit(SetupRecord."Last Sync At");
+        exit(PayablesAgentSetupRecord."Last Sync At");
     end;
 
     internal procedure GetUserSecurityId(): Guid
     begin
-        exit(SetupRecord."User Security Id");
+        exit(PayablesAgentSetupRecord."User Security Id");
     end;
 
     internal procedure SetUserSecurityId(Value: Guid)
     begin
-        SetupRecord."User Security Id" := Value;
+        PayablesAgentSetupRecord."User Security Id" := Value;
     end;
 
     internal procedure GetLastActivated(): DateTime
     begin
-        exit(SetupRecord."Last Activated");
+        exit(PayablesAgentSetupRecord."Last Activated");
     end;
 
     internal procedure SetLastActivated(Value: DateTime)
     begin
-        SetupRecord."Last Activated" := Value;
+        PayablesAgentSetupRecord."Last Activated" := Value;
     end;
 
     internal procedure GetAppliedInstrConfigHash(): Text[64]
     begin
-        exit(SetupRecord."Applied Instr. Config Hash");
+        exit(PayablesAgentSetupRecord."Applied Instr. Config Hash");
     end;
 
     internal procedure SetAppliedInstrConfigHash(Value: Text[64])
     begin
-        SetupRecord."Applied Instr. Config Hash" := Value;
+        PayablesAgentSetupRecord."Applied Instr. Config Hash" := Value;
     end;
 
     internal procedure GetAgentProfile(): Text[30]
@@ -254,7 +254,7 @@ codeunit 3343 "PA Setup"
         exit(PayablesAgentPermissionSetTok);
     end;
 
-    internal procedure GetAgentInstructionsResource(AgentDrivenLineMatching: Boolean): Text
+    internal procedure GetAgentInstructionsResource(AgentDrivenLineMatching: Boolean): Text // TODO: Shouldnt receive this as param
     begin
         if PAV1V2Flag.IsV2Active() then
             exit(AgentInstructionsV2Tok);
@@ -314,15 +314,15 @@ codeunit 3343 "PA Setup"
             DisableImport(); // Stop any remaining old importer when monitoring is off after a version switch.
 
         StoredSetup.GetOrCreateSetup();
-        StoredSetup."Monitor Outlook" := SetupRecord."Monitor Outlook";
-        StoredSetup."Email Review Policy" := SetupRecord."Email Review Policy";
+        StoredSetup."Monitor Outlook" := PayablesAgentSetupRecord."Monitor Outlook";
+        StoredSetup."Email Review Policy" := PayablesAgentSetupRecord."Email Review Policy";
         StoredSetup."Email Account Id" := GetEmailAccountId();
         StoredSetup."Email Folder" := GetEmailFolder();
         StoredSetup."Email Folder Id" := GetEmailFolderId();
         StoredSetup."Email Monitoring Consent" := GetEmailMonitoringConsent();
-        StoredSetup."User Security Id" := SetupRecord."User Security Id";
-        StoredSetup."Last Activated" := SetupRecord."Last Activated";
-        StoredSetup."Applied Instr. Config Hash" := SetupRecord."Applied Instr. Config Hash";
+        StoredSetup."User Security Id" := PayablesAgentSetupRecord."User Security Id";
+        StoredSetup."Last Activated" := PayablesAgentSetupRecord."Last Activated";
+        StoredSetup."Applied Instr. Config Hash" := PayablesAgentSetupRecord."Applied Instr. Config Hash";
         StoredSetup."Last Sync At" := GetLastSyncAt();
         StoredSetup.Modify();
         GetSetup();
@@ -379,7 +379,7 @@ codeunit 3343 "PA Setup"
             StoredOutlookSetup.Insert();
 
         OutlookSetup := StoredOutlookSetup;
-        OutlookExists := true;
+        OutlookSetupExists := true;
         SyncV1EDocumentService(Enabling, EmailAccountChanged);
     end;
 

@@ -180,14 +180,12 @@ page 3307 "PA Demo Guide"
     end;
 
     trigger OnOpenPage();
-    var
-        PASetupUpdate: Codeunit "PA Setup Update";
     begin
         PATelemetry.LogDemoGuideOpened();
         Commit();
         if not SetupConfigurationProvided then begin
             PATelemetry.LogDemoGuideMissingSetup();
-            PASetupUpdate.Load(PASetupUpdateParameters);
+            PASetupUpdateParameters.InitializeFromStoredSetup();
         end;
 
         Step := Step::Start;

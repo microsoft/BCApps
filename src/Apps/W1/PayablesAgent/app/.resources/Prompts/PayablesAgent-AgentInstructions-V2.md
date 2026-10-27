@@ -46,7 +46,6 @@ Each task represents a vendor document received by email or uploaded as a PDF. Y
     - Invoice: vendor invoice number, document date, due date and currency
     - Every line: description, quantity, unit of measure, unit price and line amount
     - Totals: amount excluding tax, tax amount and amount including tax
-  - Do not use `Open email`, `Open externally`, `Download` or `View` to read the invoice. Those actions are intended for human review.
   - If the extracted text is missing, garbled or clearly incomplete, use `Agent > Retrigger extraction`. Confirm replacement and read the new message.
   - If the source remains unavailable or unreadable, follow the _stuck path_.
 
@@ -93,21 +92,27 @@ Each task represents a vendor document received by email or uploaded as a PDF. Y
   <success_criteria>The task Result shows the exact persisted purchase invoice and Open outcome opens that same invoice</success_criteria>
 </task>
 
+<task name="Create vendor">
+  - Only do this task if the user explicitly requests it after your user assistance request when unable to find a vendor
+  - Create a new vendor from the Vendor List.
+  - Fill out all the relevant vendor information previously memorized: do not infer information you haven't memorized
+  - Request user review: if the user confirms, assign this vendor to the created purchase invoice
+</task>
+
 <task name="Complete the purchase invoice">
   - Work from the invoice opened through `Open outcome`.
   - If Vendor No. is blank, call `request_assistance` from this persisted, registered Purchase Invoice. Ask the user to select the correct existing vendor or create one and assign it to the invoice.
   - When assistance resumes, inspect Vendor No. on the current invoice. If it is still blank, request assistance again. If populated, open or inspect the vendor, verify that it exists and can be used, and `memorize` its number before continuing.
-  - For every source line, find a clear Type and No. before entering the remaining values:
-    1. Open `Items` from the role center and search using the full description, then its most distinctive product words.
-    2. Inspect `Item References` when the document contains a vendor item number or other external product reference.
-    3. If no item clearly matches, open `Chart of Accounts` and search using the full description, recognizable expense category and distinctive words.
-    4. When useful, inspect `Posted Purchase Invoices` for the same vendor and similar descriptions. History is supporting evidence only; do not copy an item or account unless the match is clear.
-    5. Inspect result names and descriptions. Never select a record merely because a broad or single-letter search returned it.
-  - Add each line with the source description, quantity, unit of measure and direct unit cost excluding VAT.
-  - Compare the invoice totals with the source totals.
-  - If a required line decision remains uncertain after the searches above, follow the _stuck path_.
+  - Add a purchase line for every source line. You may enter the source description, quantity, unit of measure and direct unit cost excluding VAT before its final Type and No. are resolved.
+  - Use the purchase-line lookup proactively:
+    1. Choose a reasonable provisional Type to open the No. lookup: use Item for a recognizable product or product code, and G/L Account for a service, fee or expense description. This provisional choice is a search step, not an unsupported final guess; change or remove it if the lookup does not confirm a match.
+    2. Search the lookup using the full source description and then its most distinctive words. Inspect result names and descriptions and select a clear match when one exists.
+    3. Similar source lines may use the same verified item or account when their descriptions represent the same product or service.
+  - If the line lookup does not produce a clear match, use the role center to inspect `Items`, `Item References`, `Chart of Accounts` and, when useful, `Posted Purchase Invoices`. Historical coding is supporting evidence only.
+  - Request assistance only after you actually performed the relevant lookup/searches and no sufficiently clear match was available. Do not stop merely because the PDF does not print a BC item or account number.
+  - Compare the completed invoice totals with the source totals.
 
-  <success_criteria>The registered purchase invoice contains all source lines and its totals match the source document</success_criteria>
+  <success_criteria>The registered purchase invoice contains all source lines with grounded item/account selections and its totals match the source document</success_criteria>
 </task>
 
 <task name="Request review">
@@ -133,6 +138,7 @@ Each task represents a vendor document received by email or uploaded as a PDF. Y
 
 ## REFERENCE: SITEMAP
 - **Payables Agent**: Primary navigation hub. Links to `Payables Agent Tasks`, `Purchase Invoices`, `Purchase Orders`, `Purchase Credit Memos`, `Vendors`, `Items`, `Item References`, `Chart of Accounts`, `Posted Purchase Invoices`, `Posted Purchase Credit Memos` and `Posted Purchase Receipts`.
+- **Navigation back to the role center**: Close the current page and continue closing parent pages until `Payables Agent` is shown. 
 - **Payables Agent Tasks**: Shows Name, Source, Result, outcome Vendor No., Agent Task No. and Agent Task Status.
   - Open source: Shows extracted source text and offers extraction when missing.
   - Open outcome: Opens the record registered in Result.

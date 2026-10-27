@@ -17,8 +17,6 @@ codeunit 3350 "PA Agent Access"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    #region Who can create and use the agent
-
     internal procedure CanShowAgentActions(): Boolean
     var
         Agent: Record Agent;
@@ -29,7 +27,6 @@ codeunit 3350 "PA Agent Access"
         AgentMetadataProvider: Enum "Agent Metadata Provider";
     begin
         // Upload and setup actions are for people supervising the agent, never for the agent runtime user.
-        // Short-circuit before configuration lookup so an agent session does not need read access to the Agent table.
         if AgentSession.IsAgentSession(AgentMetadataProvider) then
             exit(false);
         if not AgentUtilities.IsAgentsFeatureEnabled() then
@@ -123,6 +120,4 @@ codeunit 3350 "PA Agent Access"
             AgentAccessControl.Insert();
         end;
     end;
-
-    #endregion
 }

@@ -49,14 +49,13 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
         EDocument: Record "E-Document";
         AgentCU: Codeunit Agent;
         PASetupConfig: Codeunit "PA Setup Update Parameters";
-        PASetupUpdate: Codeunit "PA Setup Update";
         EDocImport: Codeunit "E-Doc. Import";
         FileUpload: FileUpload;
         InStream: InStream;
         AgentNotActiveErr: Label 'The Payables Agent is not active.', Comment = 'Payables Agent is a term, and should not be translated.';
         SourceDetailsTok: Label 'Local file %1', Comment = '%1 is the file name.';
     begin
-        PASetupUpdate.Load(PASetupConfig);
+        PASetupConfig.InitializeFromStoredSetup();
         if not AgentCU.IsActive(PASetupConfig.GetAgentSetupBuffer()."User Security ID") then
             Error(AgentNotActiveErr);
         foreach FileUpload in Files do begin

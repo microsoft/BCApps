@@ -9,7 +9,7 @@ using System.Agents;
 using System.Email;
 using System.Utilities;
 
-codeunit 3321 "PA Setup Update Parameters"
+codeunit 3321 "PA Setup Update Parameters" // TODO: how could it look if we made this one more meaty, maybe a lot of the getters/setters internal exposure here could be limited quite a bit
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -44,6 +44,33 @@ codeunit 3321 "PA Setup Update Parameters"
         SkipEmailVerification := LocalSkipEmailVerification;
     end;
 
+    // Loads the editable proposal. Unless agent configuration is skipped, this may create Setup and
+    // reconcile its stored Agent User ID before preparing the framework setup buffer.
+    internal procedure InitializeFromStoredSetup()
+    var
+        Agent: Record Agent;
+        StoredSetup: Codeunit "PA Setup";
+        PayablesAgentMetadata: Codeunit "Payables Agent Metadata";
+        TempLoadedAgentSetupBuffer: Record "Agent Setup Buffer";
+        AgentSetup: Codeunit "Agent Setup";
+    begin
+        if not SkipAgentConfiguration then begin
+            if StoredSetup.FindAgentAndReconcileSetup(Agent) then;
+            AgentSetup.GetSetupRecord(
+                TempLoadedAgentSetupBuffer,
+                Agent."User Security ID",
+                "Agent Metadata Provider"::"Payables Agent",
+                StoredSetup.AgentUserName(),
+                PayablesAgentMetadata.AgentDisplayName(),
+                PayablesAgentMetadata.AgentSummary()
+            );
+            SetAgentSetupBuffer(TempLoadedAgentSetupBuffer);
+        end;
+
+        Clear(DesiredSetup);
+        DesiredSetup.GetSetup();
+    end;
+
     procedure GetDesiredSetup(var PASetup: Codeunit "PA Setup")
     begin
         PASetup := DesiredSetup;
@@ -72,6 +99,11 @@ codeunit 3321 "PA Setup Update Parameters"
     procedure Enabling(): Boolean
     begin
         exit(TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Enabled);
+    end;
+
+    procedure PrepareForApply()
+    begin
+        DesiredSetup.PrepareForApply(Enabling());
     end;
 
     procedure EnableAgent()

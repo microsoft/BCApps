@@ -30,7 +30,6 @@ codeunit 3317 "Payables Agent OCV"
             exit;
         IsAgentDraftPageFeedbackContext(Context, Handled);
     end;
-    // TODOPAV2: Adapt OCV entry points
 
     procedure TriggerDisableAgentFeedback()
     var
