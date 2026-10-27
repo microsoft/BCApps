@@ -245,7 +245,7 @@ codeunit 6195 "E-Doc. AI Tool Processor"
     var
         AOAIDeployments: Codeunit "AOAI Deployments";
     begin
-        exit(AOAIDeployments.GetGPT56CeresPreview());
+        exit(AOAIDeployments.GetGPT56CeresLatest());
     end;
 
     procedure GetEDocumentMatchingAssistanceName(): Text
