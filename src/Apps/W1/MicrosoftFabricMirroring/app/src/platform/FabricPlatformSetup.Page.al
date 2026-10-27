@@ -486,7 +486,6 @@ page 48511 "Fabric Platform Setup"
         ErrInfo.Message(FabricDataInvalidErr);
         ErrInfo.DetailedMessage(DetailedMessage);
         ErrInfo.DataClassification(DataClassification::SystemMetadata);
-        ErrInfo.ErrorType(ErrorType::Internal);
     end;
 
     var

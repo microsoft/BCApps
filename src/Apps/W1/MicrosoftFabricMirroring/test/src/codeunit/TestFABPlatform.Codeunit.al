@@ -861,6 +861,32 @@ codeunit 140012 "Test FAB Platform"
     end;
 
     [Test]
+    procedure GetWorkspacesShowsHttpFailureMessage()
+    var
+        TempBuffer: Record "Name/Value Buffer" temporary;
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
+        Token: SecretText;
+    begin
+        Initialize();
+        FabricPrivacyNotice.Approve();
+        Token := SecretStrSubstNo(SampleTokenLbl);
+        LookupState.SetFabricApiToken(Token, 3600);
+        PlatformTestSub.AddMockHttpResponse(403, '{}', 'GET', 'https://api.fabric.microsoft.com/v1/workspaces');
+        BindSubscription(PlatformTestSub);
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        asserterror AdminClient.GetWorkspaces(TempBuffer);
+
+        Assert.ExpectedError('Failed to retrieve workspaces. Contact your administrator if the problem persists.');
+        PlatformTestSub.AssertHttpRequestsComplete();
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
     procedure GetWorkspacesErrorsOnMalformedResponse()
     var
         TempBuffer: Record "Name/Value Buffer" temporary;
@@ -1063,8 +1089,7 @@ codeunit 140012 "Test FAB Platform"
         asserterror AdminClient.AddServicePrincipalToWorkspace('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222');
 
         //[THEN] Failure to verify access is not treated as success
-        // Internal errors hide the supplied message.
-        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('Failed to verify the existing workspace role');
         PlatformTestSub.AssertHttpRequestsComplete();
         UnbindSubscription(PlatformTestSub);
     end;

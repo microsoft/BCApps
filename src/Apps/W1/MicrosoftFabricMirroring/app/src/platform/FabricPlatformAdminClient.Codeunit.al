@@ -307,7 +307,6 @@ codeunit 48526 "Fabric Platform Admin Client"
         ErrInfo.Message(RetrieveWorkspacesHttpGenericErr);
         ErrInfo.DetailedMessage(StrSubstNo(RetrieveWorkspacesHttpErr, StatusCode));
         ErrInfo.DataClassification(DataClassification::SystemMetadata);
-        ErrInfo.ErrorType(ErrorType::Internal);
     end;
 
     local procedure CreateMirroredDbsHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
@@ -315,7 +314,6 @@ codeunit 48526 "Fabric Platform Admin Client"
         ErrInfo.Message(RetrieveMirroredDbsHttpGenericErr);
         ErrInfo.DetailedMessage(StrSubstNo(RetrieveMirroredDbsHttpStatusErr, StatusCode));
         ErrInfo.DataClassification(DataClassification::SystemMetadata);
-        ErrInfo.ErrorType(ErrorType::Internal);
     end;
 
     local procedure CreateAddSPHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
@@ -323,7 +321,6 @@ codeunit 48526 "Fabric Platform Admin Client"
         ErrInfo.Message(AddSPHttpGenericErr);
         ErrInfo.DetailedMessage(StrSubstNo(AddSPHttpStatusErr, StatusCode));
         ErrInfo.DataClassification(DataClassification::SystemMetadata);
-        ErrInfo.ErrorType(ErrorType::Internal);
     end;
 
     local procedure CreateVerifyWorkspaceRoleHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
@@ -331,7 +328,6 @@ codeunit 48526 "Fabric Platform Admin Client"
         ErrInfo.Message(VerifyWorkspaceRoleHttpGenericErr);
         ErrInfo.DetailedMessage(StrSubstNo(VerifyWorkspaceRoleHttpStatusErr, StatusCode));
         ErrInfo.DataClassification(DataClassification::SystemMetadata);
-        ErrInfo.ErrorType(ErrorType::Internal);
     end;
 
     local procedure FormatGuidForFabricUrl(GuidText: Text): Text
