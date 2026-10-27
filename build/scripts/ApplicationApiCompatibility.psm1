@@ -88,14 +88,15 @@ function Read-ApplicationApiPackage {
 function Write-ApplicationApiContract {
     param(
         [System.Text.Json.JsonElement] $Element,
-        [System.Text.Json.Utf8JsonWriter] $Writer
+        [System.Text.Json.Utf8JsonWriter] $Writer,
+        [string[]] $IgnoredProperties = @()
     )
 
     switch ($Element.ValueKind) {
         Object {
             $Writer.WriteStartObject()
             foreach ($property in @($Element.EnumerateObject() | Sort-Object Name -CaseSensitive)) {
-                if ($property.Name -ceq 'ReferenceSourceFileName') { continue }
+                if ($property.Name -ceq 'ReferenceSourceFileName' -or $property.Name -cin $IgnoredProperties) { continue }
                 $Writer.WritePropertyName($property.Name)
                 Write-ApplicationApiContract -Element $property.Value -Writer $Writer
             }
@@ -124,7 +125,8 @@ function Add-ApplicationApiSymbols {
 
     $objectCollections = @(
         'Codeunits', 'Pages', 'PageExtensions', 'Reports', 'ReportExtensions', 'XmlPorts', 'Queries',
-        'EnumTypes', 'EnumExtensionTypes', 'Interfaces', 'PermissionSets', 'PermissionSetExtensions', 'ControlAddIns'
+        'EnumTypes', 'EnumExtensionTypes', 'Interfaces', 'PermissionSets', 'PermissionSetExtensions', 'ControlAddIns',
+        'Profiles', 'ProfileExtensions', 'PageCustomizations'
     )
     foreach ($property in $Element.EnumerateObject()) {
         if ($property.Name -ceq 'Namespaces') {
@@ -143,15 +145,17 @@ function Add-ApplicationApiSymbols {
             foreach ($symbol in $property.Value.EnumerateArray()) {
                 $id = [System.Text.Json.JsonElement]::new()
                 $hasId = $symbol.TryGetProperty('Id', [ref]$id)
-                $key = if ($hasId) { "$($property.Name):$($id.GetInt32())" } else { '' }
-                if ($SymbolKeys.Count -gt 0 -and -not $SymbolKeys.ContainsKey($key)) { continue }
+                $name = $symbol.GetProperty('Name').GetString()
+                $namedIdentity = $property.Name -cin @('Interfaces', 'ControlAddIns', 'Profiles', 'ProfileExtensions', 'PageCustomizations')
+                $key = if ($namedIdentity) { "$($property.Name):${Namespace}:$name" } elseif ($hasId) { "$($property.Name):$($id.GetInt32())" } else { '' }
+                $nameSelector = "$($property.Name):Name:$name"
+                if ($SymbolKeys.Count -gt 0 -and -not $SymbolKeys.ContainsKey($key) -and -not $SymbolKeys.ContainsKey($nameSelector)) { continue }
                 $properties = [System.Text.Json.JsonElement]::new()
                 if ($symbol.TryGetProperty('Properties', [ref]$properties)) {
                     $access = @($properties.EnumerateArray() | Where-Object { $_.GetProperty('Name').GetString() -ceq 'Access' })
                     if ($access.Count -eq 1 -and $access[0].GetProperty('Value').GetString() -ieq 'Internal') { continue }
                 }
-                $name = $symbol.GetProperty('Name').GetString()
-                if (-not $hasId) {
+                if (-not $hasId -and -not $namedIdentity) {
                     $Snapshot.ReviewRequired.Add("$($Package.Name): unsupported ID-less $($property.Name) '$name'.")
                     continue
                 }
@@ -163,7 +167,13 @@ function Add-ApplicationApiSymbols {
                 $writer = [System.Text.Json.Utf8JsonWriter]::new($buffer)
                 $hash = [System.Security.Cryptography.SHA256]::Create()
                 try {
-                    Write-ApplicationApiContract -Element $symbol -Writer $writer
+                    # These root properties are generated from the owning app, not the public object contract.
+                    $ignoredProperties = switch ($property.Name) {
+                        Interfaces { @('Id') }
+                        ControlAddIns { @('PublicKeyToken') }
+                        default { @() }
+                    }
+                    Write-ApplicationApiContract -Element $symbol -Writer $writer -IgnoredProperties @($ignoredProperties)
                     $writer.Flush()
                     $fingerprint = [System.Convert]::ToBase64String($hash.ComputeHash($buffer.ToArray()))
                 }
@@ -173,8 +183,9 @@ function Add-ApplicationApiSymbols {
                     $buffer.Dispose()
                 }
                 $Snapshot.Symbols[$key] = [PSCustomObject]@{
+                    Key = $key
                     Kind = $property.Name
-                    Id = $id.GetInt32()
+                    Id = if ($hasId) { $id.GetInt32() } else { $null }
                     Name = $name
                     Namespace = $Namespace
                     OwnerId = $Package.Id
@@ -296,7 +307,8 @@ function Get-ApplicationApiSnapshot {
     Compares aggregate non-table symbol contracts without replacing AppSourceCop.
 .DESCRIPTION
     Unchanged means symbol equivalence, not full compatibility. Source file paths and
-    JSON property order are ignored; all remaining object metadata is compared strictly.
+    JSON property order and compiler-generated interface IDs/control-add-in tokens are
+    ignored; all remaining object metadata is compared strictly.
     Changed contracts require review, even for potentially compatible additions.
     Table/field schema and move metadata must still be validated by AppSourceCop.
 .EXAMPLE

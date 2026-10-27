@@ -6,8 +6,16 @@ Import-Module "$PSScriptRoot\ApplicationApiCompatibility.psm1"
 
 $script:RemovalRules = @{
     AS0029 = @{ Page = 'Pages'; PageExtension = 'PageExtensions' }
-    AS0088 = @{ Codeunit = 'Codeunits' }
+    AS0088 = @{
+        Codeunit = 'Codeunits'; Report = 'Reports'; ReportExtension = 'ReportExtensions'
+        Query = 'Queries'; XmlPort = 'XmlPorts'
+        Enum = 'EnumTypes'; EnumExtension = 'EnumExtensionTypes'
+        PermissionSet = 'PermissionSets'; PermissionSetExtension = 'PermissionSetExtensions'
+    }
+    AS0089 = @{ Profile = 'Profiles'; ProfileExtension = 'ProfileExtensions'; ControlAddIn = 'ControlAddIns'; PageCustomization = 'PageCustomizations' }
+    AS0065 = @{ Interface = 'Interfaces' }
 }
+$script:ObjectRemovalPattern = "^The '(?<kind>\w+)' with (?:ID '(?<id>[0-9]+)' and name|name) '(?<name>.+)' was found in the previous version, but is missing in the current extension\. This will break dependent extensions\.$"
 $script:MemberRules = @{
     AS0018 = "^Procedure '.+' has been removed in '(?<kind>\w+) (?<name>.+)'\. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure\.$"
     AS0031 = "^The action with name '.+' defined in (?<kind>Page|PageExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\. This will break dependent extensions\.$"
@@ -146,15 +154,33 @@ function Get-ApplicationApiRemovalDiagnostics {
         }
         if ($lineMatches.Count -ne $removals.Count) { throw "Text/structured removal diagnostics disagree in '$($file.FullName)'." }
         $wholeObjects = @{}
+        $wholeObjectParents = @{}
         foreach ($issue in @($removals | Where-Object { $script:RemovalRules.ContainsKey($_.ruleId) })) {
-            if ($issue.shortMessage -cnotmatch "^The '(?<kind>Page|PageExtension|Codeunit)' with ID '(?<id>[0-9]+)' and name '(?<name>.+)' was found in the previous version, but is missing in the current extension\. This will break dependent extensions\.$") {
+            $kind = ''
+            $id = ''
+            $name = ''
+            if ($issue.ruleId -eq 'AS0065' -and $issue.shortMessage -cmatch "^Interface '(?<name>.+)' has been deleted\.$") {
+                $kind = 'Interface'
+                $name = $Matches.name
+            }
+            elseif ($issue.shortMessage -cmatch $script:ObjectRemovalPattern) {
+                $kind = $Matches.kind
+                $name = $Matches.name
+                if ($Matches.ContainsKey('id')) { $id = $Matches.id }
+            }
+            else {
                 throw "Unsupported object-removal diagnostic: $($issue.shortMessage)"
             }
             $kinds = $script:RemovalRules[$issue.ruleId]
-            if (-not $kinds.ContainsKey($Matches.kind)) { throw "Unexpected object type for '$($issue.ruleId)'." }
-            $parentKey = "$($Matches.kind):$($Matches.name)"
+            if (-not $kinds.ContainsKey($kind)) { throw "Unexpected object type for '$($issue.ruleId)'." }
+            $named = $issue.ruleId -in @('AS0065', 'AS0089')
+            if (-not $named -and -not $id) { throw "Missing object ID for '$($issue.ruleId)'." }
+            $collection = $kinds[$kind]
+            $parentKey = "${kind}:$name"
             if ($wholeObjects.ContainsKey($parentKey)) { throw "Ambiguous parent object '$parentKey'." }
-            $wholeObjects[$parentKey] = @{ Key = "$($kinds[$Matches.kind]):$([int]$Matches.id)"; Name = $Matches.name }
+            $key = if ($named) { "${collection}:Name:$name" } else { "${collection}:$([int]$id)" }
+            $wholeObjects[$parentKey] = @{ Key = $key; Kind = $collection; Name = $name; Named = $named }
+            $wholeObjectParents["$($issue.ruleId):$($issue.shortMessage)"] = $parentKey
         }
         foreach ($issue in $removals) {
             $signature = "$($issue.ruleId):$($issue.shortMessage)"
@@ -165,11 +191,11 @@ function Get-ApplicationApiRemovalDiagnostics {
                 if ($issue.shortMessage -cnotmatch $script:MemberRules[$issue.ruleId]) {
                     throw "Unsupported member-removal diagnostic: $signature"
                 }
+                $parentKey = "$($Matches.kind):$($Matches.name)"
             }
             else {
-                $null = $issue.shortMessage -cmatch "^The '(?<kind>Page|PageExtension|Codeunit)' with ID '[0-9]+' and name '(?<name>.+)'"
+                $parentKey = $wholeObjectParents[$signature]
             }
-            $parentKey = "$($Matches.kind):$($Matches.name)"
             if (-not $wholeObjects.ContainsKey($parentKey)) {
                 throw "$signature is not part of a whole-object move; the original compatibility check remains enforced."
             }
@@ -177,6 +203,8 @@ function Get-ApplicationApiRemovalDiagnostics {
             $diagnostics.Add([PSCustomObject]@{
                 RuleId = $issue.ruleId
                 Key = $parent.Key
+                Kind = $parent.Kind
+                Named = $parent.Named
                 Name = $parent.Name
                 Origin = $owner
                 Message = $issue.shortMessage
@@ -207,11 +235,19 @@ function Test-ApplicationApiMoves {
         throw 'Application identity changed.'
     }
     foreach ($diagnostic in $Diagnostics) {
-        $old = $Baseline.Symbols[$diagnostic.Key]
-        $new = $Current.Symbols[$diagnostic.Key]
         $origin = $diagnostic.Origin
+        $candidates = @(
+            if ($diagnostic.Named) {
+                $Baseline.Symbols.Values | Where-Object { $_.Kind -ceq $diagnostic.Kind -and $_.Name -ceq $diagnostic.Name -and $_.OwnerId -eq $origin.Id }
+            }
+            elseif ($Baseline.Symbols.ContainsKey($diagnostic.Key)) { $Baseline.Symbols[$diagnostic.Key] }
+        )
+        $old = if ($candidates.Count -eq 1) { $candidates[0] } else { $null }
+        $key = if ($old) { $old.Key } else { $diagnostic.Key }
+        $new = $Current.Symbols[$key]
         $reason = ''
-        if (-not $old -or -not $new) { $reason = 'Object is missing, internal, or outside the exposed Application API.' }
+        if ($candidates.Count -gt 1) { $reason = 'The diagnostic does not identify an unambiguous object namespace.' }
+        elseif (-not $old -or -not $new) { $reason = 'Object is missing, internal, or outside the exposed Application API.' }
         elseif ($old.OwnerId -ne $origin.Id -or $old.Name -cne $diagnostic.Name) { $reason = 'Diagnostic does not identify the baseline owner/object.' }
         elseif ($old.OwnerId -eq $new.OwnerId) { $reason = 'Object has not moved to another Application member.' }
         elseif (-not $Current.Packages.ContainsKey($origin.Id)) { $reason = 'The source app is no longer an exposed Application member.' }
@@ -223,7 +259,7 @@ function Test-ApplicationApiMoves {
         }
         [PSCustomObject]@{
             RuleId = $diagnostic.RuleId
-            Key = $diagnostic.Key
+            Key = $key
             Name = $diagnostic.Name
             Accepted = -not $reason
             Reason = $reason

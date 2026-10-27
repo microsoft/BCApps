@@ -70,7 +70,13 @@ Describe 'Application API compatibility prototype' {
         }
 
         function New-ApiGateLayout {
-            param([string] $RuleId = 'AS0029', [string] $Kind = 'Page', [string[]] $CacheDependencies = @())
+            param(
+                [string] $RuleId = 'AS0029',
+                [string] $Kind = 'Page',
+                [int] $Id = 621,
+                [string] $Name = 'IC API Log Entries',
+                [string[]] $CacheDependencies = @()
+            )
 
             $project = Join-Path $TestDrive ([guid]::NewGuid().ToString())
             $output = Join-Path $project '.buildartifacts\Apps'
@@ -111,7 +117,11 @@ Describe 'Application API compatibility prototype' {
                 $issues = @()
                 if ($app.id -eq $baseId) {
                     $sourceLog = $log
-                    $message = "The '$Kind' with ID '621' and name 'IC API Log Entries' was found in the previous version, but is missing in the current extension. This will break dependent extensions."
+                    $message = switch ($RuleId) {
+                        AS0065 { "Interface '$Name' has been deleted." }
+                        AS0089 { "The '$Kind' with name '$Name' was found in the previous version, but is missing in the current extension. This will break dependent extensions." }
+                        default { "The '$Kind' with ID '$Id' and name '$Name' was found in the previous version, but is missing in the current extension. This will break dependent extensions." }
+                    }
                     $lines += "[OUT] warning ${RuleId}: $message"
                     $lines += '[OUT] app.json(1,1): warning AA0021: ordinary warning stays visible'
                     $issues = @(
@@ -305,6 +315,133 @@ Describe 'Application API compatibility prototype' {
             { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
             Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0029'
             { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+        }
+
+        It 'reconciles an unchanged <Kind> move using its symbol collection' -TestCases @(
+            @{ Kind = 'PageExtension'; Collection = 'PageExtensions'; RuleId = 'AS0029' },
+            @{ Kind = 'Report'; Collection = 'Reports'; RuleId = 'AS0088' },
+            @{ Kind = 'ReportExtension'; Collection = 'ReportExtensions'; RuleId = 'AS0088' },
+            @{ Kind = 'XmlPort'; Collection = 'XmlPorts'; RuleId = 'AS0088' },
+            @{ Kind = 'Query'; Collection = 'Queries'; RuleId = 'AS0088' },
+            @{ Kind = 'Enum'; Collection = 'EnumTypes'; RuleId = 'AS0088' },
+            @{ Kind = 'EnumExtension'; Collection = 'EnumExtensionTypes'; RuleId = 'AS0088' },
+            @{ Kind = 'PermissionSet'; Collection = 'PermissionSets'; RuleId = 'AS0088' },
+            @{ Kind = 'PermissionSetExtension'; Collection = 'PermissionSetExtensions'; RuleId = 'AS0088' }
+        ) {
+            param($Kind, $Collection, $RuleId)
+            $symbol = @{ Id = 511; Name = 'Complete IC Inbox Action' }
+            $collections = @{ Namespaces = @(@{ Name = 'Microsoft.Intercompany.Inbox'; $Collection = @($symbol) }) }
+            $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $collections
+            $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $collections
+            $gate = New-ApiGateLayout -RuleId $RuleId -Kind $Kind -Id $symbol.Id -Name $symbol.Name
+            Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+            { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+            $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+            $state.AcceptedMoves.Count | Should -Be 1
+            $state.AcceptedMoves[0].Key | Should -Be "${Collection}:511"
+            $state.AcceptedMoves[0].Accepted | Should -BeTrue
+            Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Not -Match "warning ${RuleId}:"
+        }
+
+        It 'reconciles an unchanged named <Kind> move including regenerated ownership metadata' -TestCases @(
+            @{ Kind = 'Interface'; Collection = 'Interfaces'; RuleId = 'AS0065' },
+            @{ Kind = 'ControlAddIn'; Collection = 'ControlAddIns'; RuleId = 'AS0089' },
+            @{ Kind = 'Profile'; Collection = 'Profiles'; RuleId = 'AS0089' },
+            @{ Kind = 'ProfileExtension'; Collection = 'ProfileExtensions'; RuleId = 'AS0089' },
+            @{ Kind = 'PageCustomization'; Collection = 'PageCustomizations'; RuleId = 'AS0089' }
+        ) {
+            param($Kind, $Collection, $RuleId)
+            $symbol = @{ Name = 'Moved named object'; Methods = @(@{ Name = 'Process'; Id = 123 }) }
+            if ($Kind -eq 'Interface') { $symbol.Id = 111 }
+            if ($Kind -eq 'ControlAddIn') { $symbol.PublicKeyToken = 'source-token' }
+            if ($Kind -eq 'PageCustomization') { $symbol.Id = 0 }
+            $collections = @{ Namespaces = @(@{ Name = 'Migration.Probe'; $Collection = @($symbol) }) }
+            $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $collections
+            if ($Kind -eq 'Interface') { $symbol.Id = 222 }
+            if ($Kind -eq 'ControlAddIn') { $symbol.PublicKeyToken = 'destination-token' }
+            $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $collections
+            $gate = New-ApiGateLayout -RuleId $RuleId -Kind $Kind -Name $symbol.Name
+            if ($Kind -in @('Interface', 'ControlAddIn')) {
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0018 -Message "Procedure 'Process()' has been removed in '$Kind Moved named object'. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure."
+            }
+            Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+            { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+            $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+            $state.AcceptedMoves[0].Key | Should -Be "${Collection}:Migration.Probe:Moved named object"
+            @($state.AcceptedMoves | Where-Object { -not $_.Accepted }).Count | Should -Be 0
+        }
+
+        It 'rejects a named move when its identity or contract is <Failure>' -TestCases @(
+            @{ Failure = 'deleted' },
+            @{ Failure = 'changed' },
+            @{ Failure = 'renamed' },
+            @{ Failure = 'in another namespace' },
+            @{ Failure = 'ambiguous' }
+        ) {
+            param($Failure)
+            $symbol = @{ Name = 'Moved interface'; Id = 111; Methods = @(@{ Name = 'Process'; Id = 123 }) }
+            $collections = @{ Namespaces = @(@{ Name = 'Migration.Probe'; Interfaces = @($symbol) }) }
+            if ($Failure -eq 'ambiguous') {
+                $collections.Namespaces += @{ Name = 'Migration.Other'; Interfaces = @($symbol) }
+            }
+            $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $collections
+            switch ($Failure) {
+                deleted { $collections.Namespaces[0].Interfaces = @() }
+                changed { $symbol.Methods[0].Id = 456 }
+                renamed { $symbol.Name = 'Renamed interface' }
+                'in another namespace' { $collections.Namespaces[0].Name = 'Migration.Other' }
+            }
+            $symbol.Id = 222
+            $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $collections
+            $gate = New-ApiGateLayout -RuleId AS0065 -Kind Interface -Name 'Moved interface'
+            { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+            { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0065'
+        }
+
+        It 'keeps multiple page customizations with compiler-assigned ID zero distinct' {
+            $symbols = @(@{ Id = 0; Name = 'First customization' }, @{ Id = 0; Name = 'Second customization' })
+            $collections = @{ Namespaces = @(@{ Name = 'Migration.Probe'; PageCustomizations = $symbols }) }
+            $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $collections
+            $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $collections
+            $gate = New-ApiGateLayout -RuleId AS0089 -Kind PageCustomization -Name $symbols[0].Name
+            Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0089 -Message "The 'PageCustomization' with name '$($symbols[1].Name)' was found in the previous version, but is missing in the current extension. This will break dependent extensions."
+            Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+            $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+            $state.AcceptedMoves.Count | Should -Be 2
+            @($state.AcceptedMoves | Where-Object { -not $_.Accepted }).Count | Should -Be 0
+        }
+
+        It 'rejects a report move when the report is <Failure>' -TestCases @(
+            @{ Failure = 'deleted' },
+            @{ Failure = 'changed' }
+        ) {
+            param($Failure)
+            $symbol = @{ Id = 511; Name = 'Complete IC Inbox Action'; Properties = @(@{ Name = 'ProcessingOnly'; Value = 'true' }) }
+            $collections = @{ Reports = @($symbol) }
+            $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $collections
+            if ($Failure -eq 'deleted') { $collections.Reports = @() }
+            else { $symbol.Properties[0].Value = 'false' }
+            $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $collections
+            $gate = New-ApiGateLayout -RuleId AS0088 -Kind Report -Id $symbol.Id -Name $symbol.Name
+            { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+            { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0088'
+        }
+
+        It 'does not defer unsupported <Kind> removals under <RuleId>' -TestCases @(
+            @{ Kind = 'Table'; RuleId = 'AS0029' },
+            @{ Kind = 'TableExtension'; RuleId = 'AS0029' },
+            @{ Kind = 'Table'; RuleId = 'AS0088' },
+            @{ Kind = 'TableExtension'; RuleId = 'AS0088' },
+            @{ Kind = 'FutureObject'; RuleId = 'AS0029' },
+            @{ Kind = 'Report'; RuleId = 'AS0029' }
+        ) {
+            param($Kind, $RuleId)
+            $gate = New-ApiGateLayout -Kind $Kind -RuleId $RuleId
+            { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*Unexpected object type*'
+            { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match "warning ${RuleId}:"
         }
 
         It 'rejects a changed moved contract' {
