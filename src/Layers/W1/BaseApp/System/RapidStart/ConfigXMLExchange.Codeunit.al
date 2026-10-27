@@ -25,7 +25,9 @@ codeunit 8614 "Config. XML Exchange"
         ConfigMgt: Codeunit "Config. Management";
         ConfigPckgCompressionMgt: Codeunit "Config. Pckg. Compression Mgt.";
         TypeHelper: Codeunit "Type Helper";
+#if not CLEAN30
         XMLDOMMgt: Codeunit "XML DOM Management";
+#endif
         ErrorTypeEnum: Option General,TableRelation;
         ImportedPackageCode: Code[20];
         Advanced: Boolean;
@@ -185,13 +187,13 @@ codeunit 8614 "Config. XML Exchange"
     local procedure AddFieldAttributes(ConfigPackageField: Record "Config. Package Field"; var FieldNode: XmlNode)
     begin
         if ConfigPackageField."Primary Key" then
-            XMLDOMMgt.AddAttribute(FieldNode, GetElementNameFromText(ConfigPackageField.FieldName("Primary Key")), '1');
+            AddAttribute(FieldNode, GetElementNameFromText(ConfigPackageField.FieldName("Primary Key")), '1');
         if ConfigPackageField."Validate Field" then
-            XMLDOMMgt.AddAttribute(FieldNode, GetElementNameFromText(ConfigPackageField.FieldName("Validate Field")), '1');
+            AddAttribute(FieldNode, GetElementNameFromText(ConfigPackageField.FieldName("Validate Field")), '1');
         if ConfigPackageField."Create Missing Codes" then
-            XMLDOMMgt.AddAttribute(FieldNode, GetElementNameFromText(ConfigPackageField.FieldName("Create Missing Codes")), '1');
+            AddAttribute(FieldNode, GetElementNameFromText(ConfigPackageField.FieldName("Create Missing Codes")), '1');
         if ConfigPackageField."Processing Order" <> 0 then
-            XMLDOMMgt.AddAttribute(
+            AddAttribute(
               FieldNode, GetElementNameFromText(ConfigPackageField.FieldName("Processing Order")), Format(ConfigPackageField."Processing Order"));
 
         OnAfterAddFieldAttributesProcedure(ConfigPackageField, FieldNode);
@@ -571,9 +573,9 @@ codeunit 8614 "Config. XML Exchange"
                                         AddFieldAttributes(ConfigPackageField, FieldNode);
                                     if Advanced then
                                         if ConfigPackageField."Localize Field" then
-                                            XMLDOMMgt.AddAttribute(FieldNode, '_loc', 'locData')
+                                            AddAttribute(FieldNode, '_loc', 'locData')
                                         else
-                                            XMLDOMMgt.AddAttribute(FieldNode, '_loc', 'locNone');
+                                            AddAttribute(FieldNode, '_loc', 'locNone');
                                 end;
                             end;
                         until ConfigPackageField.Next() = 0;
@@ -922,21 +924,21 @@ codeunit 8614 "Config. XML Exchange"
             InitializeMediaTempFolder();
             PackageXML.GetRoot(DocumentElement);
             DocumentElementNode := DocumentElement.AsXmlNode();
-            XMLDOMMgt.AddAttribute(
+            AddAttribute(
               DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Min. Count For Async Import")),
               Format(ConfigPackage."Min. Count For Async Import"));
             if ConfigPackage."Exclude Config. Tables" then
-                XMLDOMMgt.AddAttribute(DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Exclude Config. Tables")), '1');
+                AddAttribute(DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Exclude Config. Tables")), '1');
             if ConfigPackage."Processing Order" > 0 then
-                XMLDOMMgt.AddAttribute(
+                AddAttribute(
                   DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Processing Order")), Format(ConfigPackage."Processing Order"));
             if ConfigPackage."Language ID" > 0 then
-                XMLDOMMgt.AddAttribute(
+                AddAttribute(
                   DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Language ID")), Format(ConfigPackage."Language ID"));
-            XMLDOMMgt.AddAttribute(
+            AddAttribute(
               DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Product Version")), ConfigPackage."Product Version");
-            XMLDOMMgt.AddAttribute(DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Package Name")), ConfigPackage."Package Name");
-            XMLDOMMgt.AddAttribute(DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName(Code)), ConfigPackage.Code);
+            AddAttribute(DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName("Package Name")), ConfigPackage."Package Name");
+            AddAttribute(DocumentElementNode, GetElementNameFromText(ConfigPackage.FieldName(Code)), ConfigPackage.Code);
             OnExportPackageToXMLDocumentOnAfterSetAttributes(ConfigPackage, DocumentElementNode);
         end;
 
@@ -1064,9 +1066,49 @@ codeunit 8614 "Config. XML Exchange"
     var
         PackageXML: XmlDocument;
     begin
-        XMLDOMMgt.LoadXMLDocumentFromFile(XMLDataFile, PackageXML);
+        LoadXMLDocumentFromFile(XMLDataFile, PackageXML);
 
         exit(ImportPackageXMLDocument(PackageXML, ''));
+    end;
+
+    // The file is read as text and then parsed, so the encoding in the XML declaration is ignored, as it was with XML DOM Management.
+    // Packages edited outside Business Central are often saved as UTF-8 while still declaring UTF-16.
+    internal procedure LoadXMLDocumentFromFile(FileName: Text; var PackageXML: XmlDocument)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        XMLInStream: InStream;
+        XMLText: Text;
+        ByteOrderMark: Char;
+    begin
+        FileManagement.BLOBImportFromServerFile(TempBlob, FileName);
+        TempBlob.CreateInStream(XMLInStream, GetTextEncoding(TempBlob));
+        XMLText := TypeHelper.ReadAsTextWithSeparator(XMLInStream, TypeHelper.LFSeparator());
+        ByteOrderMark := 65279;
+        if XMLText <> '' then
+            if XMLText[1] = ByteOrderMark then
+                XMLText := CopyStr(XMLText, 2);
+        XmlDocument.ReadFrom(XMLText, PackageXML);
+    end;
+
+    local procedure GetTextEncoding(var TempBlob: Codeunit "Temp Blob"): TextEncoding
+    var
+        XMLInStream: InStream;
+        FirstByte: Byte;
+        SecondByte: Byte;
+    begin
+        if TempBlob.Length() >= 2 then begin
+            TempBlob.CreateInStream(XMLInStream);
+            XMLInStream.Read(FirstByte);
+            XMLInStream.Read(SecondByte);
+        end;
+        if (FirstByte = 255) and (SecondByte = 254) then
+            exit(TextEncoding::UTF16);
+        exit(TextEncoding::UTF8);
+    end;
+
+    local procedure AddAttribute(var ParentXmlNode: XmlNode; Name: Text; NodeValue: Text)
+    begin
+        ParentXmlNode.AsXmlElement().SetAttribute(Name, NodeValue);
     end;
 
     /// <summary>
@@ -1964,8 +2006,11 @@ codeunit 8614 "Config. XML Exchange"
     /// <param name="XMLNode">The XML node that contains the attribute.</param>
     /// <returns>The attribute value, or an empty string if the attribute does not exist.</returns>
     procedure GetAttribute(AttributeName: Text[1024]; var XMLNode: XmlNode) AttributeValue: Text[1000]
+    var
+        FoundXmlAttribute: XmlAttribute;
     begin
-        AttributeValue := CopyStr(XMLDOMMgt.GetAttributeValue(XMLNode, AttributeName), 1, MaxStrLen(AttributeValue));
+        if XMLNode.AsXmlElement().Attributes().Get(AttributeName, FoundXmlAttribute) then
+            AttributeValue := CopyStr(FoundXmlAttribute.Value(), 1, MaxStrLen(AttributeValue));
     end;
 
     local procedure GetDimValueFromTable(var RecRef: RecordRef; DimCode: Code[20]): Code[20]
