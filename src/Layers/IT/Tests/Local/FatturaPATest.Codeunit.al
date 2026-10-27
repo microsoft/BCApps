@@ -1300,11 +1300,9 @@ codeunit 144200 "FatturaPA Test"
         Initialize();
 
         // [GIVEN] A Country/Region with a one-character ISO Code inserted without field validation
-        CountryRegion.Init();
-        CountryRegion.Code := CopyStr(LibraryUtility.GenerateGUID(), 1, 3);
-        CountryRegion.Name := LibraryUtility.GenerateGUID();
+        LibraryERM.CreateCountryRegion(CountryRegion);
         CountryRegion."ISO Code" := 'U';
-        CountryRegion.Insert();
+        CountryRegion.Modify();
 
         // [WHEN] The shared FatturaPA ISO country getter is called
         asserterror FatturaDocHelper.GetISOCountryCode(CountryRegion.Code);
@@ -1330,10 +1328,9 @@ codeunit 144200 "FatturaPA Test"
         Initialize();
 
         // [GIVEN] A foreign Country/Region without an ISO Code
-        CountryRegion.Init();
-        CountryRegion.Code := CopyStr(LibraryUtility.GenerateGUID(), 1, 3);
-        CountryRegion.Name := LibraryUtility.GenerateGUID();
-        CountryRegion.Insert();
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := '';
+        CountryRegion.Modify();
 
         // [GIVEN] A posted Sales Invoice for a Customer in that Country/Region
         CustomerNo := CreateForeignCustomer(CountryRegion.Code);
