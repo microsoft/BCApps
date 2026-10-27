@@ -4858,56 +4858,73 @@ codeunit 134776 "Document Attachment Tests"
     [Test]
     procedure EnsureShowDetailsErrorsWhenSourceRecordCannotBeResolved()
     var
-        DocumentAttachment: Record "Document Attachment";
-        PaymentTerms: Record "Payment Terms";
-        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
+        Customer: Record Customer;
+        DocumentAttachmentTests: Codeunit "Document Attachment Tests";
+        RecRef: RecordRef;
+        CustomerCard: TestPage "Customer Card";
     begin
         // [SCENARIO 646549] Show details reports the unresolved source record instead of failing with "The record is not open".
         // Upload files and Attach from email cannot be invoked from a TestPage, but they run the same source resolution as Show details.
         Initialize();
 
-        // [GIVEN] Document Attachment that points to a table neither the FactBox nor any subscriber maps.
-        CreateDocAttachForUnmappedTable(DocumentAttachment);
+        // [GIVEN] Customer with an attachment, shown in the Documents FactBox of the Customer Card.
+        LibrarySales.CreateCustomer(Customer);
+        RecRef.Get(Customer.RecordId());
+        CreateDocAttach(RecRef, 'Customer.jpeg', false, false);
 
-        // [GIVEN] Documents FactBox opened on that attachment.
-        DocAttachmentListFactbox.OpenView();
-        DocAttachmentListFactbox.GoToRecord(DocumentAttachment);
+        // [GIVEN] Customer Card opened for the customer.
+        CustomerCard.OpenView();
+        CustomerCard.GoToRecord(Customer);
+
+        // [GIVEN] Neither the FactBox nor any subscriber resolves the source record, as for a table that is not mapped.
+        DocumentAttachmentTests.SetForceGetRefTableFail(Customer.RecordId());
+        BindSubscription(DocumentAttachmentTests);
 
         // [WHEN] Show details is invoked on the Documents FactBox.
-        asserterror DocAttachmentListFactbox.OpenInDetail.Invoke();
+        asserterror CustomerCard."Attached Documents List".OpenInDetail.Invoke();
 
         // [THEN] The error states that the source record cannot be resolved and names the table.
-        Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, PaymentTerms.TableCaption()));
-        DocAttachmentListFactbox.Close();
+        Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, Customer.TableCaption()));
+        UnbindSubscription(DocumentAttachmentTests);
+        CustomerCard.Close();
     end;
 
     [Test]
     procedure EnsureShowDetailsErrorsWhenPostedSalesShipmentIsMissing()
     var
-        DocumentAttachment: Record "Document Attachment";
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
         SalesShipmentHeader: Record "Sales Shipment Header";
-        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
+        RecRef: RecordRef;
+        PostedSalesShipment: TestPage "Posted Sales Shipment";
     begin
         // [SCENARIO 646549] Show details on an attachment of a Posted Sales Shipment that no longer exists must error instead of opening another shipment.
         Initialize();
 
-        // [GIVEN] Document Attachment that points to a Posted Sales Shipment that does not exist.
-        DocumentAttachment.Init();
-        DocumentAttachment."Table ID" := Database::"Sales Shipment Header";
-        DocumentAttachment."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."No."));
-        DocumentAttachment."File Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."File Name"));
-        DocumentAttachment.Insert();
+        // [GIVEN] Posted Sales Shipment with an attachment.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        CreateInventoryPostingSetupForItem(Item);
+        CreateSalesDoc(SalesHeader, SalesLine, Customer, Item, SalesHeader."Document Type"::Order);
+        SalesShipmentHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, false));
+        RecRef.GetTable(SalesShipmentHeader);
+        CreateDocAttach(RecRef, 'PostedSalesShipment.jpeg', false, false);
 
-        // [GIVEN] Documents FactBox opened on that attachment.
-        DocAttachmentListFactbox.OpenView();
-        DocAttachmentListFactbox.GoToRecord(DocumentAttachment);
+        // [GIVEN] Posted Sales Shipment page opened, showing the attachment in the Documents FactBox.
+        PostedSalesShipment.OpenView();
+        PostedSalesShipment.GoToRecord(SalesShipmentHeader);
+
+        // [GIVEN] The Posted Sales Shipment no longer exists while its attachment is still shown.
+        SalesShipmentHeader.Delete();
 
         // [WHEN] Show details is invoked on the Documents FactBox.
-        asserterror DocAttachmentListFactbox.OpenInDetail.Invoke();
+        asserterror PostedSalesShipment."Attached Documents List".OpenInDetail.Invoke();
 
         // [THEN] The error states that the source record cannot be resolved and names the table.
         Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, SalesShipmentHeader.TableCaption()));
-        DocAttachmentListFactbox.Close();
+        PostedSalesShipment.Close();
     end;
 
     [Test]
