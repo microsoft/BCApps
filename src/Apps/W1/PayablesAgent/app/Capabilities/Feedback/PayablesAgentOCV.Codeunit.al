@@ -119,14 +119,13 @@ codeunit 3317 "Payables Agent OCV"
     var
         PayablesAgentKPI: Record "Payables Agent KPI";
         Agent: Record Agent;
-        PAAgentConfiguration: Codeunit "PA Agent Configuration";
         PASetup: Codeunit "PA Setup";
         EnvironmentInfo: Codeunit "Environment Information";
         LastActivated: DateTime;
     begin
         PASetup.GetSetup();
         LastActivated := PASetup.GetLastActivated();
-        if PAAgentConfiguration.GetAgent(Agent) and (LastActivated = 0DT) then
+        if PASetup.TryFindAgent(Agent) and (LastActivated = 0DT) then
             if Agent.State = Agent.State::Enabled then
                 exit(true); // If never activated, it was activated before we introduced the field, so allow feedback
 

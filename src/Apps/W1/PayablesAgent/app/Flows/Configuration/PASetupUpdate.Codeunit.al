@@ -11,7 +11,6 @@ using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Privacy;
-using System.Reflection;
 using System.Security.AccessControl;
 using System.Utilities;
 
@@ -22,7 +21,6 @@ codeunit 3344 "PA Setup Update"
     InherentPermissions = X;
 
     var
-        PAAgentConfiguration: Codeunit "PA Agent Configuration";
         PAAgentInstructions: Codeunit "PA Agent Instructions";
         PAAgentAccess: Codeunit "PA Agent Access";
         PATelemetry: Codeunit "PA Telemetry";
@@ -34,20 +32,22 @@ codeunit 3344 "PA Setup Update"
     internal procedure Load(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
     var
         Agent: Record Agent;
-        DesiredSetup: Codeunit "PA Setup";
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
+        DesiredSetup: Codeunit "PA Setup";
+        StoredSetup: Codeunit "PA Setup";
+        PayablesAgentMetadata: Codeunit "Payables Agent Metadata";
         AgentSetup: Codeunit "Agent Setup";
     begin
         // Skipping configuring the Agent framework records is valid in tests
         if not PASetupUpdateParameters.GetSkipAgentConfiguration() then begin
-            if PAAgentConfiguration.GetAgent(Agent) then;
+            if StoredSetup.FindAgentAndReconcileSetup(Agent) then;
             AgentSetup.GetSetupRecord(
                 TempAgentSetupBuffer,
                 Agent."User Security ID",
                 "Agent Metadata Provider"::"Payables Agent",
-                PAAgentConfiguration.AgentUserName(),
-                PAAgentConfiguration.AgentDisplayName(),
-                PAAgentConfiguration.AgentSummary()
+                StoredSetup.AgentUserName(),
+                PayablesAgentMetadata.AgentDisplayName(),
+                PayablesAgentMetadata.AgentSummary()
             );
             PASetupUpdateParameters.SetAgentSetupBuffer(TempAgentSetupBuffer);
         end;
@@ -105,8 +105,9 @@ codeunit 3344 "PA Setup Update"
     internal procedure EnsureActivated(var AlreadyActivated: Boolean)
     var
         PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
+        StoredSetup: Codeunit "PA Setup";
     begin
-        if PAAgentConfiguration.IsAgentEnabled() then begin
+        if StoredSetup.IsStoredAgentEnabled() then begin
             AlreadyActivated := true;
             exit;
         end;
@@ -253,8 +254,8 @@ codeunit 3344 "PA Setup Update"
     [EventSubscriber(ObjectType::Report, Report::"Copy Company", 'OnAfterCreatedNewCompanyByCopyCompany', '', false, false)]
     local procedure HandleOnAfterCreatedNewCompanyByCopyCompany(NewCompanyName: Text[30])
     var
-        PASetup: Codeunit "PA Setup";
         PayablesAgentKPI: Record "Payables Agent KPI";
+        PASetup: Codeunit "PA Setup";
     begin
         PASetup.DeleteSetup(NewCompanyName);
 

@@ -7,6 +7,7 @@ namespace Microsoft.Agent.PayablesAgent;
 
 table 3304 "Payables Agent KPI"
 {
+    Extensible = false;
     Access = Internal;
     InherentEntitlements = RIMDX;
     InherentPermissions = RIMDX;

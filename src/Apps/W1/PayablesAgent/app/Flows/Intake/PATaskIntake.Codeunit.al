@@ -18,7 +18,7 @@ codeunit 3345 "PA Task Intake"
     var
         AgentNotActiveErr: Label 'The Payables Agent is not active.', Comment = 'Payables Agent is a term, and should not be translated.';
         SourceNotCreatedErr: Label 'The invoice source could not be created.';
-        TaskNotLoadableErr: Label 'Agent task %1 was created but its Payables Agent backing could not be loaded.';
+        TaskNotLoadableErr: Label 'Agent task %1 was created but its Payables Agent backing could not be loaded.', Comment = '%1 = Agent Task ID';
         SenderRejectedReasonTxt: Label 'The sender policy rejected this source.';
 
     internal procedure CreateTask(FileName: Text; PdfInStream: InStream)
@@ -82,10 +82,10 @@ codeunit 3345 "PA Task Intake"
         Agent: Record Agent;
         AgentTask: Record "Agent Task";
         KnownSender: Record "PA Known Sender";
-        PAAgentConfiguration: Codeunit "PA Agent Configuration";
+        PayablesAgentKPI: Record "Payables Agent KPI";
+        PASetup: Codeunit "PA Setup";
         PAAgentInstructions: Codeunit "PA Agent Instructions";
         PATelemetry: Codeunit "PA Telemetry";
-        PayablesAgentKPI: Record "Payables Agent KPI";
         PATrial: Codeunit "PA Trial";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
@@ -107,7 +107,7 @@ codeunit 3345 "PA Task Intake"
         AgentTask.SetRange("External ID", ExternalId);
         if not AgentTask.IsEmpty() then
             exit(false);
-        if not PAAgentConfiguration.GetAgent(Agent) then
+        if not PASetup.FindAgentAndReconcileSetup(Agent) then
             exit(false);
         if Agent.State = Agent.State::Disabled then
             exit(false);

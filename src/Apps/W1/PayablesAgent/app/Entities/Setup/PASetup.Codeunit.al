@@ -9,8 +9,8 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.EServices.EDocumentConnector.Microsoft365;
-using System.Email;
 using System.Agents;
+using System.Email;
 
 // Applies configuration and backing monitoring together; editable proposals may be invalid until applied.
 codeunit 3343 "PA Setup"
@@ -26,6 +26,7 @@ codeunit 3343 "PA Setup"
         PAV1V2Flag: Codeunit "PA V1V2 Flag";
         IsV2: Boolean;
         OutlookExists: Boolean;
+        AgentUserNameLbl: Label 'Payables Agent', Comment = 'User name of the agent.', Locked = true;
         PayablesAgentProfileTok: Label 'Payables Agent', Locked = true;
         PayablesAgentV2ProfileTok: Label 'Payables Agent Profile', Locked = true;
         PayablesAgentPermissionSetTok: Label 'Payables Ag. - Run', Locked = true;
@@ -60,6 +61,51 @@ codeunit 3343 "PA Setup"
         exit(Exists);
     end;
 
+    // A read-only lookup: neither the stored setup nor this editable proposal is changed.
+    internal procedure TryFindAgent(var Agent: Record Agent): Boolean
+    var
+        StoredSetup: Record "Payables Agent Setup";
+    begin
+        Clear(Agent);
+        if StoredSetup.GetSetup(false) then
+            if Agent.Get(StoredSetup."User Security Id") then
+                exit(true);
+        Agent.SetRange("User Name", AgentUserName());
+        exit(Agent.FindFirst());
+    end;
+
+    // Explicitly repairs the persisted agent association without overwriting an editable proposal.
+    internal procedure FindAgentAndReconcileSetup(var Agent: Record Agent): Boolean
+    var
+        StoredSetup: Record "Payables Agent Setup";
+        AgentUserId: Guid;
+        Found: Boolean;
+    begin
+        StoredSetup.GetOrCreateSetup();
+        Found := TryFindAgent(Agent);
+        if Found then
+            AgentUserId := Agent."User Security ID";
+        SaveUserSecurityId(AgentUserId);
+        exit(Found);
+    end;
+
+    internal procedure IsStoredAgentEnabled(): Boolean
+    var
+        StoredSetup: Record "Payables Agent Setup";
+        Agent: Record Agent;
+    begin
+        if not StoredSetup.GetSetup(false) then
+            exit(false);
+        if not Agent.Get(StoredSetup."User Security Id") then
+            exit(false);
+        exit(Agent.State = Agent.State::Enabled);
+    end;
+
+    internal procedure AgentUserName(): Code[50]
+    begin
+        exit(CopyStr(AgentUserNameLbl + ' - ' + CompanyName(), 1, 50));
+    end;
+
     internal procedure GetPageRecord(): Record "Payables Agent Setup"
     var
         PageRecord: Record "Payables Agent Setup";
@@ -79,18 +125,13 @@ codeunit 3343 "PA Setup"
         exit(PageRecord);
     end;
 
-    internal procedure SetPageRecord(PageRecord: Record "Payables Agent Setup")
+    // Clears an editable proposal without persisting it. Evaluation cleanup applies this before deleting setup.
+    internal procedure ResetProposal()
     begin
+        Clear(SetupRecord);
+        Clear(OutlookSetup);
         IsV2 := PAV1V2Flag.IsV2Active();
-        SetupRecord := PageRecord;
-        if not IsV2 then begin
-            OutlookSetup."Email Account ID" := PageRecord."Email Account Id";
-            OutlookSetup."Email Folder" := PageRecord."Email Folder";
-            OutlookSetup."Email Folder Id" := PageRecord."Email Folder Id";
-            OutlookSetup."Consent Received" := PageRecord."Email Monitoring Consent";
-            OutlookSetup."Last Sync At" := PageRecord."Last Sync At";
-            OutlookExists := true;
-        end;
+        OutlookExists := not IsV2;
     end;
 
     internal procedure GetMonitorOutlook(): Boolean
@@ -106,6 +147,25 @@ codeunit 3343 "PA Setup"
     internal procedure GetEmailReviewPolicy(): Enum "PA Email Review Policy"
     begin
         exit(SetupRecord."Email Review Policy");
+    end;
+
+    internal procedure SetEmailReviewPolicy(Value: Enum "PA Email Review Policy")
+    begin
+        SetupRecord."Email Review Policy" := Value;
+    end;
+
+    internal procedure SetMailboxSelection(AccountId: Guid; FolderName: Text[2048]; FolderId: Text[2048])
+    begin
+        IsV2 := PAV1V2Flag.IsV2Active();
+        SetupRecord."Email Account Id" := AccountId;
+        SetupRecord."Email Folder" := FolderName;
+        SetupRecord."Email Folder Id" := FolderId;
+        if not IsV2 then begin
+            OutlookSetup."Email Account ID" := AccountId;
+            OutlookSetup."Email Folder" := FolderName;
+            OutlookSetup."Email Folder Id" := FolderId;
+            OutlookExists := true;
+        end;
     end;
 
     internal procedure GetEmailAccountId(): Guid

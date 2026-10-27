@@ -7,7 +7,7 @@ namespace Microsoft.Agent.PayablesAgent;
 
 using System.Environment.Configuration;
 
-codeunit 3315 "PA Billing Binding"
+codeunit 3334 "PA Billing Binding"
 {
     Access = Internal;
     InherentEntitlements = X;

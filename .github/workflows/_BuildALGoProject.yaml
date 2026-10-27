@@ -104,7 +104,8 @@ jobs:
           lfs: true
 
       # Also covers push/manual builds; do not let cached or skipped compilation bypass the policy.
-      - name: Validate Payables Agent dependency rules
+      - name: Validate Payables Agent architecture
+        shell: pwsh
         if: inputs.projectName == 'Apps W1'
         run: ./build/scripts/Test-PayablesAgentArchitecture.ps1
 

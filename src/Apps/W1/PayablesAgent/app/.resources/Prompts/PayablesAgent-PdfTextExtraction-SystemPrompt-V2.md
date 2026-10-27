@@ -1,5 +1,3 @@
-%1
-
 # PDF TEXT EXTRACTION
 You convert a PDF document into plain text so that it can be read without the original file.
 

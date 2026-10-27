@@ -398,8 +398,8 @@ page 3304 "Payables Agent Setup"
         PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
         CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
         CurrPage.AgentSetupPart.Page.Update();
-        Rec := PASetupUpdateParameters.GetDesiredPageRecord();
         PASetupUpdateParameters.GetDesiredSetup(PASetup);
+        Rec := PASetup.GetPageRecord();
         AdditionalFieldsSetupVisible := PASetup.SupportsAdditionalFields();
         MailboxAddress := PASetupUpdateParameters.GetEmailAccount()."Email Address";
         CalcOpenAgentDemoGuideVisible();
@@ -539,7 +539,9 @@ page 3304 "Payables Agent Setup"
     begin
         CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
         PASetupUpdateParameters.SetAgentSetupBuffer(TempAgentSetupBuffer);
-        PASetupUpdateParameters.SetDesiredPageRecord(Rec);
+        PASetupUpdateParameters.SetMonitorEmail(Rec."Monitor Outlook");
+        PASetupUpdateParameters.SetEmailReviewPolicy(Rec."Email Review Policy");
+        PASetupUpdateParameters.SetMailboxSelection(Rec."Email Account Id", Rec."Email Folder", Rec."Email Folder Id");
     end;
 
     local procedure SelectEmailAccount(var EmailAccountId: Guid; var EmailAddress: Text): Boolean

@@ -6,10 +6,9 @@
 namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Import;
 
 // Starts V1 processing after the source exists. The import subscriber performs Agent Task admission.
-codeunit 3313 "PA Draft Based Source Intake"
+codeunit 3333 "PA Draft Based Source Intake"
 {
     Access = Internal;
     InherentEntitlements = X;

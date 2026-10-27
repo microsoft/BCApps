@@ -71,12 +71,12 @@ codeunit 3305 "Payables Agent Upgrade"
     var
         Agent: Record Agent;
         EnvironmentInformation: Codeunit "Environment Information";
-        PAAgentConfiguration: Codeunit "PA Agent Configuration";
+        PASetup: Codeunit "PA Setup";
         PAAgentInstructions: Codeunit "PA Agent Instructions";
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;
-        if PAAgentConfiguration.GetAgent(Agent) then
+        if PASetup.FindAgentAndReconcileSetup(Agent) then
             PAAgentInstructions.SetAgentInstructions(Agent."User Security ID");
     end;
 

@@ -23,6 +23,8 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
     #region IAgentMetadata
     var
         PayablesAgentInitialsTok: Label 'PA', Locked = true, Comment = 'Initials for payables agent.', MaxLength = 4;
+        AgentDisplayNameLbl: Label 'Payables Agent', Locked = true, Comment = 'Display name of the agent.';
+        AgentSummaryLbl: Label 'Monitors incoming emails for vendor invoices, matches senders to registered vendors, and creates purchase document drafts for review.';
 
 
     procedure GetInitials(AgentUserId: Guid): Text[4]
@@ -60,6 +62,17 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
     procedure GetDefaultInitials(): Text[4]
     begin
         exit(PayablesAgentInitialsTok);
+    end;
+
+    internal procedure AgentDisplayName(): Text[80]
+    begin
+        exit(AgentDisplayNameLbl);
+    end;
+
+    // The summary still describes the draft-based (v1) agent.
+    internal procedure AgentSummary(): Text
+    begin
+        exit(AgentSummaryLbl);
     end;
 
     procedure GetFirstTimeSetupPageId(): Integer

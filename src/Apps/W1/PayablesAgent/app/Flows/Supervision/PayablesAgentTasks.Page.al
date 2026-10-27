@@ -364,7 +364,7 @@ page 3333 "Payables Agent Tasks"
 
     local procedure ReloadTasks()
     var
-        Source: Codeunit "PA Task Source";
+        TaskSource: Codeunit "PA Task Source";
         CurrentSourceId: Guid;
     begin
         CurrentSourceId := Rec."Task Id";
@@ -381,8 +381,8 @@ page 3333 "Payables Agent Tasks"
                         end else
                             Rec.Delete();
                     end else
-                        if Source.Load(Rec."Task Id") then begin
-                            Presentation.PopulateRejectedSourceRow(Rec, Source);
+                        if TaskSource.Load(Rec."Task Id") then begin
+                            Presentation.PopulateRejectedSourceRow(Rec, TaskSource);
                             Rec.Modify();
                         end else
                             Rec.Delete();

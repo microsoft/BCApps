@@ -20,12 +20,12 @@ codeunit 3340 "PA Task Source"
     var
         LoadedStoredTask: Record "Payables Agent Task";
         DraftBasedSource: Codeunit "PA Draft Based Task Source";
-        LoadedVersion: Enum "PA Version";
         PAV1V2Flag: Codeunit "PA V1V2 Flag";
+        LoadedVersion: Enum "PA Version";
         SourceNotFoundErr: Label 'The task source does not exist.';
         InvalidAgentTaskErr: Label 'A valid Agent Task ID is required.';
-        AgentTaskAlreadyBoundErr: Label 'Agent task %1 is already bound to another Payables Agent source.';
-        SourceAlreadyBoundErr: Label 'The source is already bound to agent task %1.';
+        AgentTaskAlreadyBoundErr: Label 'Agent task %1 is already bound to another Payables Agent source.', Comment = '%1 = Agent Task ID';
+        SourceAlreadyBoundErr: Label 'The source is already bound to agent task %1.', Comment = '%1 = Agent Task ID';
         AcceptedSourceCannotBeRejectedErr: Label 'An accepted source cannot be rejected.';
         PdfMimeTypeTok: Label 'application/pdf', Locked = true;
 

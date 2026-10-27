@@ -7,6 +7,7 @@ namespace Microsoft.Agent.PayablesAgent;
 
 page 3313 "PA Known Senders"
 {
+    Extensible = false;
     Caption = 'Payables Agent Known Senders', Comment = 'Payables Agent is a term, and should not be translated.';
     PageType = List;
     SourceTable = "PA Known Sender";

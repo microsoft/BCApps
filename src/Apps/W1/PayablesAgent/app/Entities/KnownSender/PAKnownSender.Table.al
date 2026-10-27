@@ -7,6 +7,7 @@ namespace Microsoft.Agent.PayablesAgent;
 
 table 3308 "PA Known Sender"
 {
+    Extensible = false;
     Access = Internal;
     Caption = 'Payables Agent Known Sender', Comment = 'Payables Agent is a term, and should not be translated.';
     InherentEntitlements = RIMDX;

@@ -54,14 +54,19 @@ codeunit 3321 "PA Setup Update Parameters"
         DesiredSetup := PASetup;
     end;
 
-    procedure SetDesiredPageRecord(PageRecord: Record "Payables Agent Setup")
+    procedure SetMonitorEmail(Value: Boolean)
     begin
-        DesiredSetup.SetPageRecord(PageRecord);
+        DesiredSetup.SetMonitorOutlook(Value);
     end;
 
-    procedure GetDesiredPageRecord(): Record "Payables Agent Setup"
+    procedure SetEmailReviewPolicy(Value: Enum "PA Email Review Policy")
     begin
-        exit(DesiredSetup.GetPageRecord());
+        DesiredSetup.SetEmailReviewPolicy(Value);
+    end;
+
+    procedure SetMailboxSelection(AccountId: Guid; FolderName: Text[2048]; FolderId: Text[2048])
+    begin
+        DesiredSetup.SetMailboxSelection(AccountId, FolderName, FolderId);
     end;
 
     procedure Enabling(): Boolean
@@ -71,11 +76,11 @@ codeunit 3321 "PA Setup Update Parameters"
 
     procedure EnableAgent()
     var
-        LocalAgentSetupBuffer: Record "Agent Setup Buffer";
+        TempLocalAgentSetupBuffer: Record "Agent Setup Buffer";
     begin
-        GetAgentSetupBuffer(LocalAgentSetupBuffer);
-        LocalAgentSetupBuffer.Validate(State, LocalAgentSetupBuffer.State::Enabled);
-        SetAgentSetupBuffer(LocalAgentSetupBuffer);
+        GetAgentSetupBuffer(TempLocalAgentSetupBuffer);
+        TempLocalAgentSetupBuffer.Validate(State, TempLocalAgentSetupBuffer.State::Enabled);
+        SetAgentSetupBuffer(TempLocalAgentSetupBuffer);
     end;
 
     procedure MonitorEmail(): Boolean

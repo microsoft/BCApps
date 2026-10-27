@@ -53,10 +53,10 @@ codeunit 3327 "PA Task Upload"
     local procedure ShowTaskPane()
     var
         Agent: Record Agent;
-        PAAgentConfiguration: Codeunit "PA Agent Configuration";
+        PASetup: Codeunit "PA Setup";
         TaskPane: Codeunit "Task Pane";
     begin
-        if not PAAgentConfiguration.GetAgent(Agent) then
+        if not PASetup.TryFindAgent(Agent) then
             exit;
 
         // An archived agent is not resolvable in the task pane, so its card remains the audit entry point.

@@ -17,8 +17,10 @@ codeunit 3339 "PA V1V2 Flag"
 #endif
 
     internal procedure GetVersion(): Enum "PA Version"
+#if DEVELOPMENT
     var
         EvaluationVersion: Enum "PA Version";
+#endif
     begin
 #if DEVELOPMENT
         EvaluationVersion := DevelopmentSettings.GetEvaluationVersionOverride();

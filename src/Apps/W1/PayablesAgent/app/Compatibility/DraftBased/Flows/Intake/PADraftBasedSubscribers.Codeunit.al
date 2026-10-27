@@ -1,11 +1,10 @@
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.EServices.EDocumentConnector.Microsoft365;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.EServices.EDocumentConnector.Microsoft365;
 using System.Agents;
-using System.Telemetry;
 
 // Rule: all subscribers only apply for v1 (they all need a guard)
 codeunit 3312 "PA Draft Based Subscribers"
@@ -45,9 +44,9 @@ codeunit 3312 "PA Draft Based Subscribers"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
     local procedure RecordKnownSenderOnAgentProcessingStep(EDocument: Record "E-Document")
     var
+        KnownSender: Record "PA Known Sender";
         PayablesAgent: Codeunit "Payables Agent Metadata";
         EDocumentPATask: Codeunit "Payables Agent Task";
-        KnownSender: Record "PA Known Sender";
         SessionID: BigInteger;
     begin
         if PAV1V2Flag.IsV2Active() then

@@ -7,6 +7,7 @@ namespace Microsoft.Agent.PayablesAgent;
 
 page 3303 "Payables Agent RC"
 {
+    Extensible = false;
     PageType = RoleCenter;
     Caption = 'Payables Agent', Locked = true;
     InherentEntitlements = X;

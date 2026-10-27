@@ -7,7 +7,7 @@ namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.Purchases.Document;
 
-codeunit 3306 "PA KPI Events"
+codeunit 3306 "Payables Agent KPI"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -16,8 +16,8 @@ codeunit 3306 "PA KPI Events"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterInsertEvent', '', false, false)]
     local procedure CountPurchaseInvoiceCreatedByAgent(var Rec: Record "Purchase Header"; RunTrigger: Boolean)
     var
-        PayablesAgent: Codeunit "Payables Agent Metadata";
         PayablesAgentKPI: Record "Payables Agent KPI";
+        PayablesAgent: Codeunit "Payables Agent Metadata";
         AgentTaskId: BigInteger;
     begin
         if Rec.IsTemporary() or (Rec."Document Type" <> Rec."Document Type"::Invoice) then

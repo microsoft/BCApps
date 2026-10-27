@@ -22,7 +22,7 @@ codeunit 3350 "PA Agent Access"
     internal procedure CanShowAgentActions(): Boolean
     var
         Agent: Record Agent;
-        PAAgentConfiguration: Codeunit "PA Agent Configuration";
+        PASetup: Codeunit "PA Setup";
         AgentSession: Codeunit "Agent Session";
         AgentUtilities: Codeunit "Agent Utilities";
         CopilotCapability: Codeunit "Copilot Capability";
@@ -36,7 +36,7 @@ codeunit 3350 "PA Agent Access"
             exit(false);
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
-        if not PAAgentConfiguration.GetAgent(Agent) then
+        if not PASetup.TryFindAgent(Agent) then
             exit(AllowCreateNewAgent());
 
         // Payables Agent is created. It has to be enabled and user has to have permissions to use it in order to show the agent actions.
@@ -49,7 +49,7 @@ codeunit 3350 "PA Agent Access"
     internal procedure AllowCreateNewAgent(): Boolean
     var
         Agent: Record Agent;
-        PAAgentConfiguration: Codeunit "PA Agent Configuration";
+        PASetup: Codeunit "PA Setup";
         AgentSystemPermissions: Codeunit "Agent System Permissions";
         AgentUtilities: Codeunit "Agent Utilities";
         CopilotCapability: Codeunit "Copilot Capability";
@@ -58,7 +58,7 @@ codeunit 3350 "PA Agent Access"
             exit(false);
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
-        if PAAgentConfiguration.GetAgent(Agent, false) then
+        if PASetup.TryFindAgent(Agent) then
             exit(false);
 
         // No payables agent exists

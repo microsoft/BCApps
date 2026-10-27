@@ -7,7 +7,7 @@ namespace Microsoft.Agent.PayablesAgent;
 
 using System.Telemetry;
 
-codeunit 3316 "PA Draft Based Telemetry"
+codeunit 3348 "PA Draft Based Telemetry"
 {
     Access = Internal;
     InherentEntitlements = X;

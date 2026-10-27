@@ -118,9 +118,9 @@ codeunit 3330 "PA Task Presentation"
     var
         TempTasks: Record "PA Detailed Task" temporary;
         Tasks: Codeunit "PA Task Collection";
+        TasksPage: Page "Payables Agent Tasks";
         SourceIds: List of [Guid];
         TaskIds: List of [BigInteger];
-        TasksPage: Page "Payables Agent Tasks";
     begin
         if State = "PA Task State"::Rejected then begin
             Tasks.GetRejectedSourceIds(SourceIds);

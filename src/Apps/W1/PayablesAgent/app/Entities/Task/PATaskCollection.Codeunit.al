@@ -38,8 +38,8 @@ codeunit 3342 "PA Task Collection"
 
     internal procedure GetTaskIdsByState(State: Enum "PA Task State"; var TaskIds: List of [BigInteger])
     var
-        AllTaskIds: List of [BigInteger];
         Task: Codeunit "Payables Agent Task";
+        AllTaskIds: List of [BigInteger];
         TaskId: BigInteger;
     begin
         Clear(TaskIds);

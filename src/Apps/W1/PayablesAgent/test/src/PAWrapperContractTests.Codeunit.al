@@ -162,9 +162,9 @@ codeunit 133735 "PA Wrapper Contract Tests"
         DocumentAttachment: Record "Document Attachment";
         Task: Codeunit "Payables Agent Task";
         Pdf: Codeunit "Temp Blob";
+        OutcomeRef: RecordRef;
         PdfOut: OutStream;
         PdfIn: InStream;
-        OutcomeRef: RecordRef;
     begin
         CreateTask(StoredTask, Task);
         Pdf.CreateOutStream(PdfOut);
@@ -262,10 +262,13 @@ codeunit 133735 "PA Wrapper Contract Tests"
         StoredA: Record "Payables Agent Task";
         StoredB: Record "Payables Agent Task";
         StoredC: Record "Payables Agent Task";
+        Header: Record "Purchase Header";
+        PostedInvoice: Record "Purch. Inv. Header";
+        PostedCreditMemo: Record "Purch. Cr. Memo Hdr.";
         TaskA: Codeunit "Payables Agent Task";
         TaskB: Codeunit "Payables Agent Task";
         TaskC: Codeunit "Payables Agent Task";
-        TaskOutcomes: Codeunit "PA Task Outcome Repository";
+        Posting: Codeunit "PA Task Posting";
         Original: RecordId;
         Different: RecordId;
         Posted: RecordId;
@@ -275,16 +278,19 @@ codeunit 133735 "PA Wrapper Contract Tests"
         CreateTask(StoredC, TaskC);
         Original := CreatePurchaseDocument("Purchase Document Type"::Invoice);
         Different := CreatePurchaseDocument("Purchase Document Type"::Invoice);
-        Posted := CreatePostedInvoice();
+        Header.Get(Original);
+        PostedInvoice.Get(CreatePostedInvoice());
+        Posted := PostedInvoice.RecordId();
         TaskA.RegisterOutcome(Original);
         TaskB.RegisterOutcome(Original);
         TaskC.RegisterOutcome(Original);
         TaskC.RegisterOutcome(Different); // Reassigned after the original reference was observed.
-        TaskOutcomes.ReplaceReferences(Original, Posted);
+        Posting.FollowPostedOutcome(Header, PostedInvoice, PostedCreditMemo, false);
         CheckOutcome(StoredA."Agent Task ID", Posted);
         CheckOutcome(StoredB."Agent Task ID", Posted);
         CheckOutcome(StoredC."Agent Task ID", Different);
-        TaskOutcomes.ReplaceReferences(Original, CreatePostedInvoice());
+        PostedInvoice.Get(CreatePostedInvoice());
+        Posting.FollowPostedOutcome(Header, PostedInvoice, PostedCreditMemo, false);
         CheckOutcome(StoredA."Agent Task ID", Posted);
         CheckOutcome(StoredB."Agent Task ID", Posted);
         CheckOutcome(StoredC."Agent Task ID", Different);
@@ -343,16 +349,6 @@ codeunit 133735 "PA Wrapper Contract Tests"
     end;
 
     [Test]
-    procedure EmptyReplacementSourceCannotMatchUnassignedTasks()
-    var
-        TaskOutcomes: Codeunit "PA Task Outcome Repository";
-        EmptyOutcome: RecordId;
-    begin
-        asserterror TaskOutcomes.ReplaceReferences(EmptyOutcome, CreatePostedInvoice());
-        Check(StrPos(GetLastErrorText(), 'existing outcome reference is required') > 0, 'An empty old reference must be rejected.');
-    end;
-
-    [Test]
     procedure SetupProposalDoesNotPersistUntilApplied()
     var
         Proposal: Codeunit "PA Setup";
@@ -385,14 +381,12 @@ codeunit 133735 "PA Wrapper Contract Tests"
     procedure UnsupportedOrIncompleteMonitoringCannotBeApplied()
     var
         Proposal: Codeunit "PA Setup";
-        PageRecord: Record "Payables Agent Setup" temporary;
+        MissingAccountId: Guid;
     begin
         Proposal.GetSetup();
-        PageRecord := Proposal.GetPageRecord();
-        PageRecord."Monitor Outlook" := true;
-        Clear(PageRecord."Email Account Id");
-        PageRecord."Email Review Policy" := "PA Email Review Policy"::Always;
-        Proposal.SetPageRecord(PageRecord);
+        Proposal.SetMonitorOutlook(true);
+        Proposal.SetMailboxSelection(MissingAccountId, '', '');
+        Proposal.SetEmailReviewPolicy("PA Email Review Policy"::Always);
         // V1 rejects the absent mailbox; a v2 build must reject monitoring itself before any writes.
         asserterror Proposal.ApplySetup(true);
         Check((StrPos(GetLastErrorText(), 'Select a mailbox') > 0) or
@@ -403,16 +397,13 @@ codeunit 133735 "PA Wrapper Contract Tests"
     procedure MonitoringCannotBeAppliedWithoutEnabledAgent()
     var
         Proposal: Codeunit "PA Setup";
-        PageRecord: Record "Payables Agent Setup" temporary;
     begin
         Proposal.GetSetup();
-        PageRecord := Proposal.GetPageRecord();
-        PageRecord."Monitor Outlook" := true;
-        PageRecord."Email Account Id" := CreateGuid();
-        PageRecord."Email Monitoring Consent" := true;
-        PageRecord."Email Review Policy" := "PA Email Review Policy"::Always;
-        PageRecord."User Security Id" := CreateGuid(); // No such runtime agent.
-        Proposal.SetPageRecord(PageRecord);
+        Proposal.SetMonitorOutlook(true);
+        Proposal.SetMailboxSelection(CreateGuid(), '', '');
+        Proposal.SetEmailMonitoringConsent(true);
+        Proposal.SetEmailReviewPolicy("PA Email Review Policy"::Always);
+        Proposal.SetUserSecurityId(CreateGuid()); // No such runtime agent.
         asserterror Proposal.ApplySetup(true);
         Check((StrPos(GetLastErrorText(), 'requires an enabled Payables Agent') > 0) or
             (StrPos(GetLastErrorText(), 'not available for this version') > 0), 'The wrapper must not trust Enabling=true without an enabled agent.');

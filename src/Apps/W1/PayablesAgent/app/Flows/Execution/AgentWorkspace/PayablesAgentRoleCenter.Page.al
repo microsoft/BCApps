@@ -14,6 +14,7 @@ using Microsoft.Purchases.Vendor;
 
 page 3337 "Payables Agent Role Center"
 {
+    Extensible = false;
     PageType = RoleCenter;
     Caption = 'Payables Agent', Locked = true;
     InherentEntitlements = X;

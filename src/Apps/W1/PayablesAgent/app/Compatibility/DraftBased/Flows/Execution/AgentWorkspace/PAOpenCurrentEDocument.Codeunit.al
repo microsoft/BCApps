@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument;
 // V1 page navigation uses the accepted task wrapper to resolve the current source.
 codeunit 3308 "PA Open Current E-Document"
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 

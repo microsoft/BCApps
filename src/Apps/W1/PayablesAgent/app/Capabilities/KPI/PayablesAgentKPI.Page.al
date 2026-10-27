@@ -9,6 +9,7 @@ using System.Agents;
 
 page 3306 "Payables Agent KPI"
 {
+    Extensible = false;
     PageType = CardPart;
     ApplicationArea = All;
     SourceTable = Agent;

@@ -1,8 +1,14 @@
-# Payables Agent
+# Payables Agent's architecture
 
-The Payables Agent is a per-company BC-agent-runtime agent. It deals with the creation of Purchase Invoices in Business Central from unstructured input.
+**Goal**: The aim of this document is to provide a high-level overview of the organizational concepts behind the code in the Payables Agent app application. This should be used to plan contributions to this codebase, and to aid reviewers in assesing whether a contribution is cohesive with the current model.
 
-A BC-agent-runtime agent, is an LLM-based agent that operates on a logical client of Business Central with it's own profile and user assigned.
+Edits to this document are encouraged to be done by maintainers consciously deciding its shape. This is to maintain the mental model in the maintainers as well. Coding agents are encoraged to .
+
+## Context: Business Central's Payables Agent
+
+The Payables Agent is a per-company BC-agent-runtime agent. It deals with the creation of Purchase Invoices in Business Central from arbitrary input.
+
+A BC-agent-runtime agent, is an LLM-based agent that operates on a logical client of Business Central with its own profile and user assigned.
 
 The Payables Agent supports the following user-level capabilities:
 - Find an appropriate vendor for the intended invoice
@@ -10,11 +16,11 @@ The Payables Agent supports the following user-level capabilities:
 - Filling in all header and line-level properties that can be interpreted from the input, or from history of how the users usually fill in these values.
 - Match to existing Purchase Orders in order to invoice them when the invoice created by the Payables Agent is posted.
 
-## Payables Agent V1 and V2
+### Payables Agent V1 and V2
 
 There are two versions of the Payables Agent, distinguished by the entity that they base their work on. In version 1, the agent operates by receiving an "E-Document" (which in practice is limited to only PDFs received via e-mail or uploaded manually) and creates a Purchase Invoice by processing the E-Document. In version 2, the input is represented by a "Payables Agent Task" and the agent user directly creates the Purchase Invoice.
 
-### Version 1: Draft-based Payables Agent
+#### Version 1: Draft-based Payables Agent
 
 An ad-hoc E-Document Service polls via the M365 connector, Outlook emails with PDF attachments, which are then interpreted as artificial E-Documents. When such an E-Document is created, an agent-framework task is created, which then goes and process the e-document into a purchase invoice.
 
@@ -26,11 +32,13 @@ Once the user is satisfied with the values in the draft page, the agent proceeds
 
 > Note: Within this version, there is an ECS experiment that skips the E-Document logic that fills in values and changes the agent prompt to do this logic itself instead. 
 
-### Version 2: Payables Agent
+#### Version 2: Payables Agent
 
 In this version, the entity at the center is the Payables Agent Task. Defined in this AL app. There is no involvement of the E-Document framework.
 
 The agent task is created with direct information about its source, the agent user directly consults it, and creates the appropriate Purchase Invoice directly, without any draft page.
+
+Base-block PDF text extraction uses only the bundled extraction instructions. A separate security prompt and Key Vault lookup are intentionally not introduced for extraction at this stage; agent runtime instruction assembly retains its existing security-prompt handling.
 
 Current gaps of version 2 with respect to version 1, and their plan:
 - Email sourcing: Version 1 uses the E-Document import codeunit to source emails, in version 2 ownership will be transferred directly to this AL app.
@@ -99,11 +107,11 @@ Across the flows and cross-cutting concerns, data persistance may be required. T
 
 Entity wrappers own data access, updates and persisted invariants, hiding their backing representations. The Task Source wrapper owns its V2 backing directly and delegates V1 E-Document reads and source creation to the draft-based source adapter; it does not start the V1 import pipeline. Navigation, formatting and caller-specific enrichment belong to consumers. `PA Detailed Task` is only the temporary, sortable backing of task list pages; other code consumes task/source getters directly.
 
-The Setup wrapper may hold an invalid editable proposal, but applying it persists settings and configures backing monitoring together: disabling the agent also disables monitoring, and requesting monitoring on v2 fails until its importer exists. `PA Setup Update` owns consent, runtime configuration and operation order; wrappers do not commit.
+The Setup wrapper may hold an invalid editable proposal, but applying it persists settings and configures backing monitoring together: disabling the agent also disables monitoring, and requesting monitoring on v2 fails until its importer exists. The setup page uses a temporary `Payables Agent Setup` record for the platform UI and initializes it from a read-only Setup projection. Before applying changes or opening the sample guide, the page translates only editable fields into semantic setters on `PA Setup Update Parameters`; no backing-table record is transported through that flow. `PA Setup` also owns the company-to-framework-Agent association: `TryFindAgent` is a read-only lookup by stored user ID with a company-name fallback, while `FindAgentAndReconcileSetup` explicitly creates/repairs the persisted association. The latter uses separate stored records so it does not overwrite an editable proposal. Registration metadata owns the agent display name and summary. `PA Setup Update` owns consent, runtime configuration and operation order; wrappers do not commit.
 
 A received Task Source exists before admission and may be accepted or rejected. Intake evaluates external policy such as known senders, setup, trial and agent availability. For a V1 PDF upload, Intake first creates the source, then calls the draft-based intake operation to process the E-Document; its import subscriber calls the same authoritative Intake entry point to create the Agent Framework task. V2 intake creates that task directly after source creation. Acceptance binds the source exactly once. The accepted Task aggregate has one identity, the Agent Framework Task ID, and loads the framework task together with exactly one v1 or v2 source backing. Historical v1 and current v2 tasks therefore share one list without copying e-documents into the v2 table; task capabilities disable actions unsupported by a particular version. Rejected v2 sources remain visible as rejected intake rows without pretending to have an Agent Framework task.
 
-Task mutations reload current state and update only their intended fields. Outcomes must refer to existing purchase invoices, orders, credit memos, posted purchase invoices or posted purchase credit memos; the caller judges business completeness. A posting subscriber conditionally replaces invoice/credit-memo outcome references before the posting commit, ignoring preview and order posting.
+Task mutations reload current state and update only their intended fields. Outcomes must refer to existing purchase invoices, orders, credit memos, posted purchase invoices or posted purchase credit memos; the caller judges business completeness. Until the Agent Framework can attach the source PDF to a V2 outcome, the Task entity attaches it during outcome registration through a private helper in its `Agent runtime limitations` region. A posting subscriber conditionally replaces invoice/credit-memo outcome references before the posting commit, ignoring preview and order posting. This is an explicit set-level exception to per-task backing access: the posting flow updates every V2 task row and AGENT-service V1 E-Document still referencing the old outcome, without invoking per-task registration, PDF attachment or title updates.
 
 Currently the identified entities are:
 - Setup: Agent's configured state and derived views of that configuration.
@@ -133,6 +141,7 @@ Flows/
 Entities/
     Setup/
     Task/
+    TaskSource/
     KnownSender/
     KPI/                                KPI record, scenario enum and record operations
     Trial/                              Trial state and lifecycle
@@ -185,5 +194,59 @@ Declarative objects directly bound to draft-based surfaces, such as profiles and
 - AI tests use app-owned semantic fixture entry points. `TestSupport` hides version dispatch, while backing-specific fixture implementations stay under the corresponding compatibility boundary; the AI test app does not reference E-Document backing records directly. Some BCApps non-AI wrapper contract tests still inspect V2 backing data directly; treat those as explicit test-boundary review items, not examples for new AI tests.
 - var block location
 
-### Dependency rules
+### Architectural static validations
+
+`architecture-rules.json` configures the app's dependency boundaries and other architectural conventions. `architecture-rules.schema.json` validates that configuration in the editor and at runtime. There are no external source catalogs. Run the checked-out gate with PowerShell 7:
+
+```powershell
+./build/scripts/Test-PayablesAgentArchitecture.ps1
+./build/scripts/Test-PayablesAgentArchitecture.ps1 -WarningsAsErrors
+Invoke-Pester ./build/scripts/tests/ALArchitectureRules.Test.ps1
+```
+
+Paths above are repository-relative. CI runs the same entry point in PR validation (including merge queues) and Apps W1 builds, before AL-Go cache/skip decisions. Local editor/compiler builds do not run it automatically.
+
+#### Small checks, not another AL parser
+
+The checker masks comments and single-quoted strings, preserving line numbers. Quoted identifiers are opaque, including embedded comment markers and escaped quotes. Object declarations must start on conventional declaration lines. All preprocessor branches are scanned; the checker does not evaluate AL expressions or bind symbols through `using` directives.
+
+- **Local dependencies** (`check: dependencies`): `from` selects callers and `to` selects target objects by app-relative paths and optional object kinds. References are matched by **type and name**, so `Record "Payables Agent Task"` is not a dependency on the same-named codeunit. Explicit typed references/object constants, direct object-valued properties (`SourceTable`, navigation, `RoleCenter`, `Profile`), simple `TableRelation = Table[.Field]`, and extension/customization targets are recognized. A short `symbols` list of `{ kind, name }` can replace `to` for framework contracts such as task builders. There is no external source scan.
+- **External boundaries** (`check: namespaces`): namespace imports, declarations and fully qualified uses are a conservative proxy for an external dependency, even for unused imports. Prefixes include child namespaces, but not similarly named siblings. E-Document namespaces are checked separately from local dependencies. Other external boundaries can use the same check without adding catalogs.
+- **Object properties** (`check: properties`): require explicit, unconditional object-header properties. `Access = Internal` applies only to supporting kinds; `Extensible = false` applies to pages, tables and enums. Specific temporary table/page projections are pinned independently. Field/control properties cannot satisfy an object property requirement.
+- **Code ownership** (`check: forbiddenCode`): small, named code-pattern policies reject explicit entity commits and interactive UI, and centralize telemetry emission. They examine code with comments, strings and quoted identifiers masked, not procedure bodies or a call graph.
+- **Development isolation** (`check: developmentOnly`): `_Development` files require a whole-file `#if DEVELOPMENT` wrapper, without an outer `#else`/`#elif` or code after its closing directive.
+- **Manifest policy** (`check: manifest`): restrict friend-app IDs, test-library dependencies and production preprocessor symbols.
+- **Placement** (`check: placement`): require the app namespace and approved owner paths. Existing `_Obsolete` paths are explicitly listed, preventing that directory from becoming a home for new code.
+
+Selectors have required `paths` and optional `kinds`. Fields are ANDed, array entries are ORed. Only case-insensitive `*` and `?` globs are supported; **`*` spans directories** (there is no separate `**` syntax). File selectors are app-relative forward-slash paths. A rule whose source selector matches nothing, or whose dependency target selector matches no objects, fails configuration validation.
+
+Example local boundary:
+
+```json
+{
+    "id": "PA005",
+    "check": "dependencies",
+    "description": "Entities must not depend on flow implementations.",
+    "severity": "warning",
+    "from": { "paths": ["Entities/*"] },
+    "to": { "paths": ["Flows/*", "Compatibility/DraftBased/*"] },
+    "exceptions": [
+        {
+            "from": { "paths": ["Entities/TaskSource/PATaskSource.Codeunit.al"] },
+            "target": "Compatibility/DraftBased/Entities/TaskSource/PADraftBasedTaskSource.Codeunit.al",
+            "reason": "The source wrapper delegates its V1 backing representation to this adapter."
+        }
+    ]
+}
+```
+
+Exceptions need a source selector and a reason; an optional `target` glob narrows them. Dependency targets are object paths (or `kind:name` for explicit symbols), namespace targets are configured prefixes, property targets are property names, and manifest targets use `symbol:`, `friend:` or `dependency:` prefixes. Exceptions that no longer suppress a finding fail the gate, including on warning rules. Temporary backing references and declarative grants need explicit exceptions rather than inferred exemptions.
+
+#### Deliberate limitations and rollout
+
+This gate does **not** resolve numeric/dynamic object IDs, indirect calls, aliases, implicit enum expressions, page parts/dataitems, compound/qualified table relations, CalcFormula expressions, transitive commits, effective action visibility or persisted-versus-temporary use. Explicitly qualified local references can be compared with the declared target namespace, but unqualified same-type/same-name objects are conservatively potential matches; no namespace binding is attempted. These limitations belong in a future custom analyzer, not an expanding PowerShell parser.
+
+The original cleanup boundaries remain warnings until their callers are migrated. Visibility/extensibility, fixture isolation, entity commit/UI ownership, telemetry ownership, development wrappers, manifest access and projection contracts are blocking. Historical non-extensible-property exceptions name only existing obsolete files. The `DEVELOPMENT` manifest rule is temporarily a warning: the base-block's V2 evaluation override currently requires that symbol. Removing it must be coordinated with a production-safe evaluation/version-selection seam, not done as a static-check side effect.
+
+The NAV AI-test app owns its own gate; BCApps does not depend on that private checkout. The reusable namespace and manifest checks can enforce the same E-Document isolation there. V1/V2 behavior, diagnostics semantics, monitoring reconciliation and task invariants remain responsibilities of AL contract tests and scenario runs, not these textual checks.
 

@@ -26,7 +26,9 @@ codeunit 3326 "PA Test Fixtures"
     /// </summary>
     var
         PASetupUpdate: Codeunit "PA Setup Update";
-        PAAgentConfiguration: Codeunit "PA Agent Configuration";
+#if DEVELOPMENT
+        DevelopmentSettings: Codeunit "PA Development Settings";
+#endif
         TaskNotFoundErr: Label 'Agent task %1 does not work on a Payables Agent task.', Locked = true;
         VendorNotFoundErr: Label 'Vendor not found for the given name %1', Locked = true;
         AccountNotFoundErr: Label 'Account not found for the given code %1', Locked = true;
@@ -34,9 +36,8 @@ codeunit 3326 "PA Test Fixtures"
         PurchaseLinesNotFoundErr: Label 'No purchase invoice lines were found for purchase invoice %1.', Locked = true;
         UnexpectedOutcomeErr: Label 'The task outcome %1 is not an existing purchase invoice.', Locked = true;
         UnknownEvaluationVersionErr: Label 'An evaluation must select version 1 or version 2 of the Payables Agent.';
+#if not DEVELOPMENT
         EvaluationVersionUnavailableErr: Label 'Payables Agent version %1 is not available in this build.', Comment = '%1 = Payables Agent version';
-#if DEVELOPMENT
-        DevelopmentSettings: Codeunit "PA Development Settings";
 #endif
 
     internal procedure EnsureActivatedAndCreateTaskFromPdf(FileName: Text; PdfInStream: InStream; var PATask: Codeunit "Payables Agent Task"): Boolean
@@ -250,9 +251,9 @@ codeunit 3326 "PA Test Fixtures"
     var
         Task: Codeunit "Payables Agent Task";
         DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
+        Outcome: RecordId;
         Errors: JsonArray;
         PurchaseInvoice: JsonObject;
-        Outcome: RecordId;
         OutcomeStatus: Text;
         HasPurchaseInvoice: Boolean;
     begin
@@ -498,13 +499,12 @@ codeunit 3326 "PA Test Fixtures"
     /// </summary>
     internal procedure SetEmailMonitoring(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters"; MonitorEmail: Boolean; EmailAccountId: Guid; ReviewPolicy: Enum "PA Email Review Policy")
     var
-        TempPageRecord: Record "Payables Agent Setup" temporary;
+        DesiredSetup: Codeunit "PA Setup";
     begin
-        TempPageRecord := PASetupUpdateParameters.GetDesiredPageRecord();
-        TempPageRecord."Monitor Outlook" := MonitorEmail;
-        TempPageRecord."Email Account Id" := EmailAccountId;
-        TempPageRecord."Email Review Policy" := ReviewPolicy;
-        PASetupUpdateParameters.SetDesiredPageRecord(TempPageRecord);
+        PASetupUpdateParameters.GetDesiredSetup(DesiredSetup);
+        PASetupUpdateParameters.SetMonitorEmail(MonitorEmail);
+        PASetupUpdateParameters.SetEmailReviewPolicy(ReviewPolicy);
+        PASetupUpdateParameters.SetMailboxSelection(EmailAccountId, DesiredSetup.GetEmailFolder(), DesiredSetup.GetEmailFolderId());
     end;
 
     /// <summary>
@@ -527,11 +527,10 @@ codeunit 3326 "PA Test Fixtures"
     var
         Agent: Record Agent;
         TempAgentSetupBuffer: Record "Agent Setup Buffer" temporary;
-        TempBlankPageRecord: Record "Payables Agent Setup" temporary;
         PASetup: Codeunit "PA Setup";
         PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
     begin
-        if PAAgentConfiguration.GetAgent(Agent, false) then begin
+        if PASetup.TryFindAgent(Agent) then begin
             LoadConfiguration(PASetupUpdateParameters, true);
             PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
             TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Disabled;
@@ -542,8 +541,7 @@ codeunit 3326 "PA Test Fixtures"
         end;
 
         PASetup.GetSetup();
-        TempBlankPageRecord.Init();
-        PASetup.SetPageRecord(TempBlankPageRecord);
+        PASetup.ResetProposal();
         PASetup.ApplySetup(false);
         PASetup.DeleteSetup(CopyStr(CompanyName(), 1, 30));
     end;

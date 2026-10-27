@@ -217,8 +217,13 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
 
+      - name: Test Payables Agent architecture checker
+        shell: pwsh
+        run: Invoke-Pester ./build/scripts/tests/ALArchitectureRules.Test.ps1 -EnableExit
+
       # Run independently of AL-Go change detection/cache decisions, including on merge queues.
-      - name: Validate Payables Agent dependency rules
+      - name: Validate Payables Agent architecture
+        shell: pwsh
         run: ./build/scripts/Test-PayablesAgentArchitecture.ps1
   
       - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main

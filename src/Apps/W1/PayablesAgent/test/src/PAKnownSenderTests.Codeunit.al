@@ -23,7 +23,10 @@ codeunit 133703 "PA Known Sender Tests"
     var
         PAKnownSender: Record "PA Known Sender";
         PATaskSource: Codeunit "PA Task Source";
+        // Synthetic sender address is the input to this email-source fixture.
+#pragma warning disable AA0240
         SenderEmailTok: Label 'first-sender@contoso.com', Locked = true;
+#pragma warning restore AA0240
     begin
         // [GIVEN] A clean Known Sender table and a task received by email from a sender.
         PAKnownSender.DeleteAll();
@@ -42,7 +45,10 @@ codeunit 133703 "PA Known Sender Tests"
     var
         PAKnownSender: Record "PA Known Sender";
         PATaskSource: Codeunit "PA Task Source";
+        // Synthetic sender address is the input to this email-source fixture.
+#pragma warning disable AA0240
         SenderEmailTok: Label 'pipeline-sender@contoso.com', Locked = true;
+#pragma warning restore AA0240
     begin
         // [GIVEN] A clean Known Sender table and a task received by email from a sender.
         PAKnownSender.DeleteAll();

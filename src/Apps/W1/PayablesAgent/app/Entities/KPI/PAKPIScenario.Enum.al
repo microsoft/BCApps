@@ -7,6 +7,9 @@ namespace Microsoft.Agent.PayablesAgent;
 
 enum 3303 "PA KPI Scenario"
 {
+    Access = Internal;
+    Extensible = false;
+
     value(0; "Agent Tasks Received")
     {
         Caption = 'Agent Tasks Received';

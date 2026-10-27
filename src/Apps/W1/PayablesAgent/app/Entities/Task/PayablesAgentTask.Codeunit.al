@@ -7,10 +7,12 @@ namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using System.Agents;
 using System.Email;
+using System.IO;
 using System.Utilities;
 
 // Aggregate over one accepted Payables Agent task. Its sole identity is the Agent Framework task ID.
@@ -21,7 +23,8 @@ codeunit 3341 "Payables Agent Task"
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata "Agent Task" = RM, tabledata "Agent Task Message" = R,
-        tabledata "E-Document" = RM, tabledata "E-Doc. Data Storage" = R, tabledata "Email Inbox" = R;
+        tabledata "E-Document" = RM, tabledata "E-Doc. Data Storage" = R, tabledata "Email Inbox" = R,
+        tabledata "Document Attachment" = RI;
 
     var
         LoadedAgentTask: Record "Agent Task";
@@ -29,8 +32,8 @@ codeunit 3341 "Payables Agent Task"
         LoadedEDocument: Record "E-Document";
         LoadedVersion: Enum "PA Version";
         TaskNotFoundErr: Label 'The task does not exist.';
-        MultipleTaskBackingsErr: Label 'Agent task %1 has more than one Payables Agent backing record.';
-        AmbiguousTaskBackingErr: Label 'Agent task %1 has both version 1 and version 2 backing records.';
+        MultipleTaskBackingsErr: Label 'Agent task %1 has more than one Payables Agent backing record.', Comment = '%1 = Agent Task ID';
+        AmbiguousTaskBackingErr: Label 'Agent task %1 has both version 1 and version 2 backing records.', Comment = '%1 = Agent Task ID';
         InvalidOutcomeErr: Label 'The outcome must be an existing purchase invoice, purchase order, purchase credit memo, posted purchase invoice, or posted purchase credit memo.';
         SourceTextNotSupportedErr: Label 'Extracted source text cannot be stored for this task.';
         AgentEDocumentServiceTok: Label 'AGENT', Locked = true;
@@ -57,7 +60,7 @@ codeunit 3341 "Payables Agent Task"
         end;
 
         StoredTask.SetRange("Agent Task ID", AgentTaskId);
-        if StoredTask.FindFirst() then begin
+        if StoredTask.FindSet() then begin
             LoadedStoredTask := StoredTask;
             HasTaskBacking := true;
             if StoredTask.Next() <> 0 then
@@ -66,7 +69,7 @@ codeunit 3341 "Payables Agent Task"
 
         AgentTaskMessage.SetRange("Task ID", AgentTaskId);
         AgentTaskMessage.SetFilter("External ID", '<>%1', '');
-        if AgentTaskMessage.FindFirst() then
+        if AgentTaskMessage.FindSet() then
             repeat
                 if Evaluate(EDocumentEntryNo, AgentTaskMessage."External ID") then
                     if EDocument.Get(EDocumentEntryNo) then
@@ -368,7 +371,10 @@ codeunit 3341 "Payables Agent Task"
         if not StoredTask.Get(LoadedStoredTask."Entry No.") then
             Error(TaskNotFoundErr);
         StoredTask.SetFileContentAsText(NewText);
+        // SetFileContentAsText mutates this record's BLOB; CodeCop does not track the table-method write.
+#pragma warning disable AA0214
         StoredTask.Modify();
+#pragma warning restore AA0214
         Refresh();
     end;
 
@@ -386,14 +392,13 @@ codeunit 3341 "Payables Agent Task"
     var
         EDocument: Record "E-Document";
         StoredTask: Record "Payables Agent Task";
-        OutcomeAttachment: Codeunit "PA Outcome PDF Attachment";
     begin
         RequireLoaded();
         ValidateOutcome(OutcomeRecordId);
         if LoadedVersion = "PA Version"::V2 then begin
             if not StoredTask.Get(LoadedStoredTask."Entry No.") then
                 Error(TaskNotFoundErr);
-            OutcomeAttachment.AttachSourcePdf(LoadedStoredTask, OutcomeRecordId);
+            AttachSourcePdf(LoadedStoredTask, OutcomeRecordId);
             StoredTask.Outcome := OutcomeRecordId;
             StoredTask.Modify();
             UpdateAgentTaskTitle(OutcomeRecordId);
@@ -411,6 +416,43 @@ codeunit 3341 "Payables Agent Task"
         RequireLoaded();
         exit(LoadedAgentTask."External ID");
     end;
+
+    #region Agent runtime limitations
+    // Temporary bridge until the Agent Framework can attach the source PDF to an outcome itself.
+    local procedure AttachSourcePdf(StoredTask: Record "Payables Agent Task"; Outcome: RecordId)
+    var
+        DocumentAttachment: Record "Document Attachment";
+        FileManagement: Codeunit "File Management";
+        Pdf: Codeunit "Temp Blob";
+        OutcomeRef: RecordRef;
+        PdfStream: InStream;
+        FileName: Text;
+        BaseName: Text;
+        AttachmentNameLbl: Label 'Payables Agent %1 - %2', Comment = '%1 = task entry number, %2 = source PDF file name without extension';
+    begin
+        if not StoredTask."File Content".HasValue() then
+            exit;
+
+        OutcomeRef.Get(Outcome);
+        // The task ID disambiguates PDFs from different tasks and makes repeat registration idempotent.
+        BaseName := FileManagement.GetFileNameWithoutExtension(StoredTask."File Name");
+        FileName := CopyStr(StrSubstNo(AttachmentNameLbl, StoredTask."Entry No.", BaseName), 1, 246) + '.pdf';
+        DocumentAttachment.InitFieldsFromRecRef(OutcomeRef);
+        DocumentAttachment.SetRange("Table ID", DocumentAttachment."Table ID");
+        DocumentAttachment.SetRange("No.", DocumentAttachment."No.");
+        DocumentAttachment.SetRange("Document Type", DocumentAttachment."Document Type");
+        DocumentAttachment.SetRange("Line No.", DocumentAttachment."Line No.");
+        DocumentAttachment.SetRange("File Name", CopyStr(FileManagement.GetFileNameWithoutExtension(FileName), 1, MaxStrLen(DocumentAttachment."File Name")));
+        DocumentAttachment.SetRange("File Extension", 'pdf');
+        if not DocumentAttachment.IsEmpty() then
+            exit;
+
+        StoredTask.GetFileContent(Pdf);
+        Pdf.CreateInStream(PdfStream);
+        Clear(DocumentAttachment);
+        DocumentAttachment.SaveAttachmentFromStream(PdfStream, OutcomeRef, FileName, false);
+    end;
+    #endregion
 
     local procedure UpdateAgentTaskTitle(OutcomeRecordId: RecordId)
     var

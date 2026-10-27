@@ -36,9 +36,9 @@ codeunit 133736 "PA Draft Based Contract Tests"
         Source: Codeunit "PA Task Source";
         Task: Codeunit "Payables Agent Task";
         Fixtures: Codeunit "PA Test Fixtures";
+        ExpectedResult, UnrelatedResult : RecordId;
         Diagnostics, Header, PurchaseInvoice : JsonObject;
         Errors, Lines : JsonArray;
-        ExpectedResult, UnrelatedResult : RecordId;
     begin
         Check(Fixtures.CreateDraftBasedUploadContractScenario(Source, Task, ExpectedResult, UnrelatedResult), 'The draft-based upload scenario must be created.');
         Check(Fixtures.GetTaskDiagnosticEvidence(Task.GetAgentTaskId(), Diagnostics), 'Diagnostics must be available for the Payables Agent task.');

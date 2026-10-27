@@ -51,13 +51,11 @@ codeunit 3311 "PA Billing"
         NumberOfLines := 0;
         if not VerifyNumberOfLinesExtracted(EDocument, NumberOfLines) then begin
             NumberOfDocumentsWithoutLines := IncrementNoLinesDocumentsDailyCount();
-            if NumberOfDocumentsWithoutLines > GetAllowedNumberOfDocumentsWithoutLinesPerDay() then begin
+            if NumberOfDocumentsWithoutLines > GetAllowedNumberOfDocumentsWithoutLinesPerDay() then
                 DraftBasedTelemetry.LogBillingTooManyDocumentsWithoutLines(SessionEDocumentEntryNo, NumberOfDocumentsWithoutLines);
-            end;
             exit;
-        end else begin
+        end else
             DraftBasedTelemetry.LogBillingLinesExtracted(GetLinesRange(NumberOfLines));
-        end;
 
         LogPurchaseDocumentDraftCreated(EDocument, EDocumentPurchaseHeader, AgentTaskID);
         LogLinesExpense(EDocument, EDocumentPurchaseHeader, AgentTaskID, NumberOfLines);

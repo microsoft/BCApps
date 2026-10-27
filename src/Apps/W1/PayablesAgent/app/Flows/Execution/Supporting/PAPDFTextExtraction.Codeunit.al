@@ -6,7 +6,6 @@
 namespace Microsoft.Agent.PayablesAgent;
 
 using System.AI;
-using System.Azure.KeyVault;
 using System.Text;
 using System.Utilities;
 
@@ -18,7 +17,6 @@ codeunit 3336 "PA PDF Text Extraction"
 
     var
         SystemPromptResourceTok: Label 'Prompts/PayablesAgent-PdfTextExtraction-SystemPrompt-V2.md', Locked = true;
-        SecurityPromptSecretNameTok: Label 'PayablesAgent-PdfTextExtraction-SecurityPromptV2', Locked = true;
         PdfFileDataTok: Label 'data:application/pdf;base64,%1', Comment = '%1 = base64 file content', Locked = true;
         UserPromptTxt: Label 'Extract all text from the attached PDF document.', Locked = true;
         ExtractionFailedErr: Label 'The text could not be extracted from the file.';
@@ -72,19 +70,11 @@ codeunit 3336 "PA PDF Text Extraction"
             Error(ExtractionFailedErr);
     end;
 
-    [NonDebuggable]
-    local procedure GetSystemPrompt(): SecretText
-    var
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        SecurityPrompt: SecretText;
-        SystemPromptTemplate: Text;
+    local procedure GetSystemPrompt() SystemPrompt: Text
     begin
-        SystemPromptTemplate := NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8);
-        if SystemPromptTemplate = '' then
+        // The base-block extraction deliberately uses only bundled instructions, without a separate security prompt.
+        SystemPrompt := NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8);
+        if SystemPrompt = '' then
             Error(ExtractionFailedErr);
-        // TODOPAV1V2
-        //if not AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptSecretNameTok, SecurityPrompt) then
-        //Error(ExtractionFailedErr);
-        exit(SecretText.SecretStrSubstNo(SystemPromptTemplate, SecurityPrompt));
     end;
 }
