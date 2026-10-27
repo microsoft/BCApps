@@ -1529,6 +1529,52 @@
     end;
 
     [Test]
+    procedure UnapplyPartiallyAppliedFCYPaymentBeforeLaterExchRateAdjmtsRevaluesEachDate()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry";
+        PaymentVendorLedgerEntry: Record "Vendor Ledger Entry";
+        ERMApplyUnapplyVendor: Codeunit "ERM Apply Unapply Vendor";
+        PostingDate: array[3] of Date;
+        ExpectedRemainingAmtLCY: array[3] of Decimal;
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 1.0] [FCY] [Adjust Exchange Rate]
+        // [SCENARIO] Unapplying an FCY payment that was partially applied before later exchange rate adjustments revalues the reopened amount on each adjustment date.
+        Initialize();
+        BindSubscription(ERMApplyUnapplyVendor);
+
+        // [GIVEN] "Appln. between Currencies" = All
+        UpdatePurchaseAndPayableSetup(PurchasesPayablesSetup."Appln. between Currencies"::All);
+
+        // [GIVEN] Currency "EUR" with exchange rates 1.16, 1.167018 and 1.168121 on dates D1, D2 and D3
+        CurrencyCode := CreateCurrencyWithExchRatesOnThreeDates(PostingDate);
+
+        // [GIVEN] LCY invoice "I" of 10000 and EUR payment "P" of 25000 at the exchange rate of D1, both posted on D1
+        PostLCYInvoiceAndFCYPayment(
+          InvoiceVendorLedgerEntry, PaymentVendorLedgerEntry, PostingDate[1], CurrencyCode, -10000, 25000, 0);
+
+        // [GIVEN] "P" applied to "I" on D1, leaving 13400 EUR of "P" open
+        ApplyVendorLedgerEntry(
+          InvoiceVendorLedgerEntry."Document Type", PaymentVendorLedgerEntry."Document Type",
+          InvoiceVendorLedgerEntry."Document No.", PaymentVendorLedgerEntry."Document No.");
+
+        // [GIVEN] Exchange rates adjusted on D2 and D3 for the open amount of "P"
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[2], PostingDate[2]);
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[3], PostingDate[3]);
+
+        // [WHEN] Unapply "P" on D1
+        PostUnapplyVendLedgEntryOnDate(PaymentVendorLedgerEntry, PostingDate[1]);
+        UnbindSubscription(ERMApplyUnapplyVendor);
+
+        // [THEN] "Remaining Amt. (LCY)" of "P" is 25000 EUR at the rate of each date: 21551.72 as of D1, 21422.12 as of D2 and 21401.89 as of D3
+        ExpectedRemainingAmtLCY[1] := 21551.72;
+        ExpectedRemainingAmtLCY[2] := 21422.12;
+        ExpectedRemainingAmtLCY[3] := 21401.89;
+        VerifyVendLedgEntryRemAmtLCYOnDates(PaymentVendorLedgerEntry."Entry No.", PostingDate, ExpectedRemainingAmtLCY);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure RemainingAmountIsZeorBeforeAndAfterRunningExchRateAdjustmentReport()
     var
