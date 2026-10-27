@@ -425,6 +425,7 @@ report 94 "Close Income Statement"
 
         NoOfRecords := GenJnlLine.Count();
         Window.Update(1, LineCount);
+        GenJnlPostLine.SetSkipAddCurrResiduals(GLSetup."Additional Reporting Currency" <> '');
         repeat
             GenJnlLine2 := GenJnlLine;
             LineCount := LineCount + 1;
@@ -441,6 +442,7 @@ report 94 "Close Income Statement"
             if UseClosedACYAmount then
                 UnbindSubscription(CloseIncStmtACYHandler);
         until GenJnlLine.Next() = 0;
+        GenJnlPostLine.SetSkipAddCurrResiduals(false);
         UpdateAnalysisView.UpdateAll(0, true);
     end;
 
