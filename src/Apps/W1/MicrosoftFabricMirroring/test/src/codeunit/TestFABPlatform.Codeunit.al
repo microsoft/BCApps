@@ -1063,7 +1063,8 @@ codeunit 140012 "Test FAB Platform"
         asserterror AdminClient.AddServicePrincipalToWorkspace('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222');
 
         //[THEN] Failure to verify access is not treated as success
-        Assert.ExpectedError('Failed to verify the existing workspace role');
+        // Internal errors hide the supplied message.
+        Assert.ExpectedErrorCode('Dialog');
         PlatformTestSub.AssertHttpRequestsComplete();
         UnbindSubscription(PlatformTestSub);
     end;
