@@ -2038,7 +2038,7 @@ codeunit 144040 "UT TAB Payment Management"
         SetPaymentFeatureEnabled(FeatureEnabled);
         if PageId <> ExpectedPageId then begin
             ClearLastError();
-            asserterror Page.Run(PageId);
+            asserterror OpenPaymentPageForRedirect(PageId);
             Assert.AreEqual('', GetLastErrorText(), 'Redirecting must close the original page without a visible error.');
         end else
             Page.Run(PageId);
@@ -2046,6 +2046,33 @@ codeunit 144040 "UT TAB Payment Management"
         Assert.AreEqual(ExpectedPageId, LibraryVariableStorage.DequeueInteger(), 'The page must match the current payment feature state.');
         RestorePaymentFeatureStatus();
     end;
+
+#pragma warning disable AL0432
+    local procedure OpenPaymentPageForRedirect(PageId: Integer)
+    var
+        PaymentSlipList: TestPage "Payment Slip List";
+        PaymentReport: TestPage "Payment Report";
+        ViewEditPaymentLine: TestPage "View/Edit Payment Line";
+        PaymentSlipListFR: TestPage "Payment Slip List FR";
+        PaymentReportFR: TestPage "Payment Report FR";
+        ViewEditPaymentLineFR: TestPage "View/Edit Payment Line FR";
+    begin
+        case PageId of
+            Page::"Payment Slip List":
+                PaymentSlipList.OpenView();
+            Page::"Payment Report":
+                PaymentReport.OpenView();
+            Page::"View/Edit Payment Line":
+                ViewEditPaymentLine.OpenView();
+            Page::"Payment Slip List FR":
+                PaymentSlipListFR.OpenView();
+            Page::"Payment Report FR":
+                PaymentReportFR.OpenView();
+            Page::"View/Edit Payment Line FR":
+                ViewEditPaymentLineFR.OpenView();
+        end;
+    end;
+#pragma warning restore AL0432
 #endif
 
     local procedure SetPaymentFeatureEnabled(FeatureEnabled: Boolean)
