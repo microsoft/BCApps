@@ -1541,7 +1541,6 @@ table 246 "Requisition Line"
         exit(("Action Message" = "Action Message"::New) and
              ("Ref. Order Type" = "Ref. Order Type"::Purchase) and
              ("Ref. Order No." <> '') and
-             ("Ref. Order Status" = "Ref. Order Status"::Simulated) and
              ("Ref. Line No." = 0));
     end;
 
@@ -1598,7 +1597,6 @@ table 246 "Requisition Line"
     begin
         if not HasPurchaseOrderTarget() then
             exit;
-
         case true of
             IsRecurringWorksheetTemplate():
                 Failure := RecurringTemplateErr;
@@ -1617,8 +1615,7 @@ table 246 "Requisition Line"
             PurchaseHeader."Currency Code" <> "Currency Code":
                 Failure := CurrencyErr;
         end;
-
-        if Failure = '' then begin
+        if Failure = '' then
             if Purchasing.Get("Purchasing Code") then
                 if Purchasing."Special Order" and (PurchaseHeader."Location Code" <> "Location Code") then
                     Failure := SpecialOrderErr
@@ -1636,8 +1633,6 @@ table 246 "Requisition Line"
                                (PurchaseHeader."Ship-to Contact" <> SalesHeader."Ship-to Contact")
                             then
                                 Failure := DropShipmentErr;
-        end;
-
         if Failure = '' then begin
             PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
             PurchaseLine.SetRange("Document No.", "Ref. Order No.");
@@ -1646,7 +1641,6 @@ table 246 "Requisition Line"
             if not PurchaseLine.IsEmpty() then
                 Failure := PurchasingErr;
         end;
-
         if Failure <> '' then
             Error(TargetErr, "Line No.", "Worksheet Template Name", "Journal Batch Name", "Ref. Order No.", Failure);
     end;

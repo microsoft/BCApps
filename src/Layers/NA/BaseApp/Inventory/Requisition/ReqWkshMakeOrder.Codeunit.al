@@ -130,7 +130,7 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnAfterCarryOutBatchAction(ReqLine2);
     end;
 
-    procedure CheckPurchaseOrderTargets(var RequisitionLine: Record "Requisition Line")
+   internal procedure CheckPurchaseOrderTargets(var RequisitionLine: Record "Requisition Line")
     var
         TargetRequisitionLine: Record "Requisition Line";
     begin
@@ -140,6 +140,11 @@ codeunit 333 "Req. Wksh.-Make Order"
         TargetRequisitionLine.SetRange("Action Message", TargetRequisitionLine."Action Message"::New);
         TargetRequisitionLine.SetFilter("Replenishment System", '%1|%2',
             TargetRequisitionLine."Replenishment System"::Purchase, TargetRequisitionLine."Replenishment System"::"Prod. Order");
+        TargetRequisitionLine.SetLoadFields(
+            "Action Message", "Ref. Order Type", "Ref. Order No.", "Ref. Line No.",
+            "Vendor No.", "Sell-to Customer No.", "Ship-to Code", "Order Address Code", "Currency Code",
+            "Purchasing Code", "Location Code", "Sales Order No.",
+            "Line No.", "Worksheet Template Name", "Journal Batch Name");
         if TargetRequisitionLine.FindSet() then
             repeat
                 if TargetRequisitionLine.HasPurchaseOrderTarget() then
@@ -531,7 +536,6 @@ codeunit 333 "Req. Wksh.-Make Order"
                             MakeRecurringTexts(ReqLine);
                             InsertPurchOrderLine(ReqLine, PurchOrderHeader);
                             if UsingPurchaseOrderTarget then begin
-                                // Include appended lines in the batch cleanup even when no new header was created.
                                 OrderCounter := OrderCounter + 1;
                                 OrderLineCounter := OrderLineCounter + 1;
                                 LineCount := 0;
