@@ -41,8 +41,8 @@ codeunit 147564 "SII Event Tests"
         BindSubscription(SIIEventTests);
         Assert.IsTrue(SIIXMLCreator.GenerateXml(VendorLedgerEntry, XMLDoc, 0, false), IncorrectXMLDocErr);
 
-        VerifyXPathCount(XMLDoc, '//*[name()=''sii:FacturaRecibida'']/*[name()=''sii:TestNative'']', 1);
-        LibrarySII.ValidateElementByName(XMLDoc, 'sii:TestNative', TestValueTxt);
+        VerifyXPathCount(XMLDoc, '//*[name()=''siiLR:FacturaRecibida'']/*[name()=''siiLR:TestNative'']', 1);
+        LibrarySII.ValidateElementByName(XMLDoc, 'siiLR:TestNative', TestValueTxt);
     end;
 
     [Test]
