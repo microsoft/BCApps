@@ -3,10 +3,10 @@ name: 'PowerShell'
 on:
   push:
     branches: [ "main", "releases/*" ]
-    paths: ["**.ps1", "**.psm1", "**.psd1", ".github/workflows/powershell.yaml" ]
+    paths: ["**.ps1", "**.psm1", "**.psd1", ".github/workflows/PowerShell.yaml" ]
   pull_request:
     branches: [ "main", "releases/*" ]
-    paths: ["**.ps1", "**.psm1", "**.psd1", ".github/workflows/powershell.yaml" ]
+    paths: ["**.ps1", "**.psm1", "**.psd1", ".github/workflows/PowerShell.yaml" ]
 
 permissions:
   contents: read
@@ -27,6 +27,23 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install SARIF conversion module
+        shell: pwsh
+        run: |
+          for ($attempt = 1; $attempt -le 3; $attempt++) {
+            try {
+              Install-Module -Name ConvertToSARIF -RequiredVersion 1.0.0 -Repository PSGallery -Scope CurrentUser -Force -ErrorAction Stop
+              break
+            }
+            catch {
+              if ($attempt -eq 3) {
+                throw
+              }
+              Write-Warning "ConvertToSARIF installation failed (attempt ${attempt}/3): $_"
+              Start-Sleep -Seconds 10
+            }
+          }
 
       - name: Run PSScriptAnalyzer
         uses: microsoft/psscriptanalyzer-action@6b2948b1944407914a58661c49941824d149734f # v1.1
