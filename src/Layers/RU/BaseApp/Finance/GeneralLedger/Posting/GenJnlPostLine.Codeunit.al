@@ -4108,9 +4108,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 exit;
 
         if not GLSetup."Enable Russian Accounting" then begin
-            AmountAddCurr := 0;
-            if (AddCurrencyCode <> '') and (OldCVLedgEntryBuf."Currency Code" = AddCurrencyCode) then
-                AmountAddCurr := OldAppliedAmount;
+            AmountAddCurr := CalcApplicationAddCurrAmount(
+                NewCVLedgEntryBuf, OldCVLedgEntryBuf, AppliedAmount, OldAppliedAmount, AppliedAmountLCY);
             DtldCVLedgEntryBuf.InitDetailedCVLedgEntryBuf(
               GenJnlLine, OldCVLedgEntryBuf, DtldCVLedgEntryBuf,
               DtldCVLedgEntryBuf."Entry Type"::Application, OldAppliedAmount, AppliedAmountLCY, AmountAddCurr,
@@ -4127,8 +4126,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 if DtldCVLedgEntryBuf."Currency Code" <> '' then
                     OldAppliedAmount := 0;
             end;
+            AmountAddCurr := CalcApplicationAddCurrAmount(
+                NewCVLedgEntryBuf, OldCVLedgEntryBuf, AppliedAmount, OldAppliedAmount, AppliedAmountLCY);
             DtldCVLedgEntryBuf.Amount := OldAppliedAmount;
             DtldCVLedgEntryBuf."Amount (LCY)" := AppliedAmountLCY;
+            DtldCVLedgEntryBuf."Additional-Currency Amount" := AmountAddCurr;
             DtldCVLedgEntryBuf."Applied CV Ledger Entry No." := NewCVLedgEntryBuf."Entry No.";
             DtldCVLedgEntryBuf."Remaining Pmt. Disc. Possible" :=
               PrevOldCVLedgEntryBuf."Remaining Pmt. Disc. Possible";
@@ -4153,12 +4155,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         else
             AllApplied := false;
 
-        AmountAddCurr := 0;
-        if (AddCurrencyCode <> '') and (NewCVLedgEntryBuf."Currency Code" = AddCurrencyCode) then
-            AmountAddCurr := -AppliedAmount;
         DtldCVLedgEntryBuf.InitDetailedCVLedgEntryBuf(
           GenJnlLine, NewCVLedgEntryBuf, DtldCVLedgEntryBuf,
-          DtldCVLedgEntryBuf."Entry Type"::Application, -AppliedAmount, -AppliedAmountLCY, AmountAddCurr,
+          DtldCVLedgEntryBuf."Entry Type"::Application, -AppliedAmount, -AppliedAmountLCY, -AmountAddCurr,
           NewCVLedgEntryBuf."Entry No.", PrevNewCVLedgEntryBuf."Remaining Pmt. Disc. Possible",
           PrevNewCVLedgEntryBuf."Max. Payment Tolerance");
 
@@ -4177,6 +4176,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
             NewCVLedgEntryBuf."Closed at Date" := GenJnlLine."Posting Date";
 
         OnAfterCalcApplication(GenJnlLine, DtldCVLedgEntryBuf);
+    end;
+
+    local procedure CalcApplicationAddCurrAmount(NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; AppliedAmount: Decimal; OldAppliedAmount: Decimal; AppliedAmountLCY: Decimal): Decimal
+    begin
+        if AddCurrencyCode = '' then
+            exit(0);
+
+        if NewCVLedgEntryBuf."Currency Code" = AddCurrencyCode then
+            exit(AppliedAmount);
+        if OldCVLedgEntryBuf."Currency Code" = AddCurrencyCode then
+            exit(OldAppliedAmount);
+
+        exit(CalcLCYToAddCurr(AppliedAmountLCY));
     end;
 
     /// <summary>
@@ -6422,7 +6434,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
             DetailedCVLedgEntryBuffer."Entry Type"::Application:
                 if MultiplePostingGroups then
                     CreateGLEntry(
-                        GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Additional-Currency Amount", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
+                        GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Additional-Currency Amount",
+                        (AddCurrencyCode <> '') and ((DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode) or (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application)),
                         CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Loss",
             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Gain":
@@ -7307,9 +7320,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     CustomerPostingGroup.Get(DetailedCustLedgEntry2."Posting Group");
                 if GLSetup."Enable Russian Accounting" then
                     DetailedCVLedgEntryBuffer."Posting Date" := DetailedCustLedgEntry2."Posting Date";
-                if not (DetailedCVLedgEntryBuffer."Prepmt. Diff." or DetailedCVLedgEntryBuffer."Prepmt. Diff. in TA") then
-                    SetAddCurrForUnapplication(DetailedCVLedgEntryBuffer)
-                else
+                if not (DetailedCVLedgEntryBuffer."Prepmt. Diff." or DetailedCVLedgEntryBuffer."Prepmt. Diff. in TA") then begin
+                    if DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application then
+                        SetCustApplicationAddCurrForUnapplication(DetailedCVLedgEntryBuffer, DetailedCustLedgEntry2)
+                    else
+                        SetAddCurrForUnapplication(DetailedCVLedgEntryBuffer);
+                end else
                     DetailedCVLedgEntryBuffer."Additional-Currency Amount" := 0;
                 CurrencyLCY.InitRoundingPrecision();
 
@@ -7534,9 +7550,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 VendorPostingGroup.Get(DetailedVendorLedgEntry2."Posting Group");
             if GLSetup."Enable Russian Accounting" then
                 DetailedCVLedgEntryBuffer."Posting Date" := DetailedVendorLedgEntry2."Posting Date";
-            if not (DetailedCVLedgEntryBuffer."Prepmt. Diff." or DetailedCVLedgEntryBuffer."Prepmt. Diff. in TA") then
-                SetAddCurrForUnapplication(DetailedCVLedgEntryBuffer)
-            else
+            if not (DetailedCVLedgEntryBuffer."Prepmt. Diff." or DetailedCVLedgEntryBuffer."Prepmt. Diff. in TA") then begin
+                if DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application then
+                    SetVendApplicationAddCurrForUnapplication(DetailedCVLedgEntryBuffer, DetailedVendorLedgEntry2)
+                else
+                    SetAddCurrForUnapplication(DetailedCVLedgEntryBuffer);
+            end else
                 DetailedCVLedgEntryBuffer."Additional-Currency Amount" := 0;
             CurrencyLCY.InitRoundingPrecision();
 
@@ -7694,7 +7713,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
             DetailedCVLedgEntryBuffer.TransferFields(NewDetailedEmployeeLedgerEntry);
             if EmployeePostingGroup.Code <> DetailedEmployeeLedgerEntry2."Posting Group" then
                 EmployeePostingGroup.Get(DetailedEmployeeLedgerEntry2."Posting Group");
-            SetAddCurrForUnapplication(DetailedCVLedgEntryBuffer);
+            if DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application then
+                SetEmplApplicationAddCurrForUnapplication(DetailedCVLedgEntryBuffer, DetailedEmployeeLedgerEntry2)
+            else
+                SetAddCurrForUnapplication(DetailedCVLedgEntryBuffer);
             CurrencyLCY.InitRoundingPrecision();
             IsHandled := false;
             OnUnapplyEmplLedgEntryOnBeforeUpdateTotalAmounts(GenJournalLineToPost, DetailedCVLedgEntryBuffer, IsHandled);
@@ -7958,6 +7980,78 @@ codeunit 12 "Gen. Jnl.-Post Line"
             CurrExchRate.ExchangeAmtLCYToFCY(
               Date, AddCurrencyCode, Amt, CurrExchRate.ExchangeRate(Date, AddCurrencyCode)),
             AddCurrency."Amount Rounding Precision"));
+    end;
+
+    local procedure SetCustApplicationAddCurrForUnapplication(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    var
+        AppliedDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        if AddCurrencyCode = '' then
+            exit;
+
+        if DtldCVLedgEntryBuf."Currency Code" = AddCurrencyCode then begin
+            DtldCVLedgEntryBuf."Additional-Currency Amount" := DtldCVLedgEntryBuf.Amount;
+            exit;
+        end;
+
+        AppliedDetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", DetailedCustLedgEntry."Applied Cust. Ledger Entry No.");
+        AppliedDetailedCustLedgEntry.SetRange("Applied Cust. Ledger Entry No.", DetailedCustLedgEntry."Cust. Ledger Entry No.");
+        AppliedDetailedCustLedgEntry.SetRange("Entry Type", AppliedDetailedCustLedgEntry."Entry Type"::Application);
+        AppliedDetailedCustLedgEntry.SetRange("Application No.", DetailedCustLedgEntry."Application No.");
+        AppliedDetailedCustLedgEntry.SetRange("Transaction No.", DetailedCustLedgEntry."Transaction No.");
+        if AppliedDetailedCustLedgEntry.FindFirst() and (AppliedDetailedCustLedgEntry."Currency Code" = AddCurrencyCode) then
+            DtldCVLedgEntryBuf."Additional-Currency Amount" := AppliedDetailedCustLedgEntry.Amount
+        else
+            DtldCVLedgEntryBuf."Additional-Currency Amount" :=
+                CalcAddCurrForUnapplication(DetailedCustLedgEntry."Posting Date", DtldCVLedgEntryBuf."Amount (LCY)");
+    end;
+
+    local procedure SetVendApplicationAddCurrForUnapplication(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry")
+    var
+        AppliedDetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        if AddCurrencyCode = '' then
+            exit;
+
+        if DtldCVLedgEntryBuf."Currency Code" = AddCurrencyCode then begin
+            DtldCVLedgEntryBuf."Additional-Currency Amount" := DtldCVLedgEntryBuf.Amount;
+            exit;
+        end;
+
+        AppliedDetailedVendorLedgEntry.SetRange("Vendor Ledger Entry No.", DetailedVendorLedgEntry."Applied Vend. Ledger Entry No.");
+        AppliedDetailedVendorLedgEntry.SetRange("Applied Vend. Ledger Entry No.", DetailedVendorLedgEntry."Vendor Ledger Entry No.");
+        AppliedDetailedVendorLedgEntry.SetRange("Entry Type", AppliedDetailedVendorLedgEntry."Entry Type"::Application);
+        AppliedDetailedVendorLedgEntry.SetRange("Application No.", DetailedVendorLedgEntry."Application No.");
+        AppliedDetailedVendorLedgEntry.SetRange("Transaction No.", DetailedVendorLedgEntry."Transaction No.");
+        if AppliedDetailedVendorLedgEntry.FindFirst() and (AppliedDetailedVendorLedgEntry."Currency Code" = AddCurrencyCode) then
+            DtldCVLedgEntryBuf."Additional-Currency Amount" := AppliedDetailedVendorLedgEntry.Amount
+        else
+            DtldCVLedgEntryBuf."Additional-Currency Amount" :=
+                CalcAddCurrForUnapplication(DetailedVendorLedgEntry."Posting Date", DtldCVLedgEntryBuf."Amount (LCY)");
+    end;
+
+    local procedure SetEmplApplicationAddCurrForUnapplication(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry")
+    var
+        AppliedDetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry";
+    begin
+        if AddCurrencyCode = '' then
+            exit;
+
+        if DtldCVLedgEntryBuf."Currency Code" = AddCurrencyCode then begin
+            DtldCVLedgEntryBuf."Additional-Currency Amount" := DtldCVLedgEntryBuf.Amount;
+            exit;
+        end;
+
+        AppliedDetailedEmployeeLedgerEntry.SetRange("Employee Ledger Entry No.", DetailedEmployeeLedgerEntry."Applied Empl. Ledger Entry No.");
+        AppliedDetailedEmployeeLedgerEntry.SetRange("Applied Empl. Ledger Entry No.", DetailedEmployeeLedgerEntry."Employee Ledger Entry No.");
+        AppliedDetailedEmployeeLedgerEntry.SetRange("Entry Type", AppliedDetailedEmployeeLedgerEntry."Entry Type"::Application);
+        AppliedDetailedEmployeeLedgerEntry.SetRange("Application No.", DetailedEmployeeLedgerEntry."Application No.");
+        AppliedDetailedEmployeeLedgerEntry.SetRange("Transaction No.", DetailedEmployeeLedgerEntry."Transaction No.");
+        if AppliedDetailedEmployeeLedgerEntry.FindFirst() and (AppliedDetailedEmployeeLedgerEntry."Currency Code" = AddCurrencyCode) then
+            DtldCVLedgEntryBuf."Additional-Currency Amount" := AppliedDetailedEmployeeLedgerEntry.Amount
+        else
+            DtldCVLedgEntryBuf."Additional-Currency Amount" :=
+                CalcAddCurrForUnapplication(DetailedEmployeeLedgerEntry."Posting Date", DtldCVLedgEntryBuf."Amount (LCY)");
     end;
 
     local procedure CalcVATAmountFromVATEntry(AmountLCY: Decimal; var VATEntry: Record "VAT Entry"; CurrencyLCY: Record Currency) VATAmountLCY: Decimal
