@@ -1447,14 +1447,28 @@ codeunit 134195 "ERM Multiple Posting Groups"
     [Test]
     [Scope('OnPrem')]
     procedure CheckEmployeeApplicationMultiplePostingGroupsAdditionalCurrencyAmounts()
+    begin
+        RunEmployeeApplicationMultiplePostingGroupsAdditionalCurrencyAmounts(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CheckEmployeeApplicationMultiplePostingGroupsAdditionalCurrencyDocumentCurrency()
+    begin
+        RunEmployeeApplicationMultiplePostingGroupsAdditionalCurrencyAmounts(true);
+    end;
+
+    local procedure RunEmployeeApplicationMultiplePostingGroupsAdditionalCurrencyAmounts(DocumentCurrencyIsAdditionalReportingCurrency: Boolean)
     var
         Employee: Record Employee;
         EmployeePostingGroup: Record "Employee Posting Group";
         EmployeePostingGroup2: Record "Employee Posting Group";
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         ExpenseNo: Code[20];
         PaymentNo: Code[20];
+        CurrencyCode: Code[10];
         Amount: Decimal;
         ExpenseAmountACY: Decimal;
         PaymentAmountACY: Decimal;
@@ -1464,6 +1478,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
 
         SetHRAllowMultiplePostingGroups(true);
         SetAdditionalReportingCurrency();
+        GeneralLedgerSetup.Get();
+        CurrencyCode := GeneralLedgerSetup."Additional Reporting Currency";
         EnsureEmployeeApplicationBatch();
         LibraryHumanResource.CreateEmployee(Employee);
         Employee.Validate("Allow Multiple Posting Groups", true);
@@ -1478,6 +1494,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         LibraryERM.CreateGeneralJnlLine(
             GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
             GenJournalLine."Account Type"::Employee, Employee."No.", -Amount);
+        if DocumentCurrencyIsAdditionalReportingCurrency then
+            GenJournalLine.Validate("Currency Code", CurrencyCode);
         GenJournalLine.Validate("Posting Group", EmployeePostingGroup2.Code);
         GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
         GenJournalLine.Modify(true);
@@ -1487,6 +1505,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         LibraryERM.CreateGeneralJnlLine(
             GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
             GenJournalLine."Account Type"::Employee, Employee."No.", Amount);
+        if DocumentCurrencyIsAdditionalReportingCurrency then
+            GenJournalLine.Validate("Currency Code", CurrencyCode);
         GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
         GenJournalLine.Modify(true);
         PaymentNo := GenJournalLine."Document No.";

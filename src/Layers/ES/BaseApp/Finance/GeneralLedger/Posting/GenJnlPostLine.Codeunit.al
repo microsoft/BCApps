@@ -3687,6 +3687,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     var
         IsHandled: Boolean;
         ShouldSetClosedFields: Boolean;
+        AmountAddCurr: Decimal;
     begin
         IsHandled := false;
         OnBeforeCalcAplication(
@@ -3700,9 +3701,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if AppliedAmount = 0 then
                 exit;
 
+        AmountAddCurr := 0;
+        if (AddCurrencyCode <> '') and (OldCVLedgEntryBuf."Currency Code" = AddCurrencyCode) then
+            AmountAddCurr := OldAppliedAmount;
         DtldCVLedgEntryBuf.InitDetailedCVLedgEntryBuf(
           GenJnlLine, OldCVLedgEntryBuf, DtldCVLedgEntryBuf,
-          DtldCVLedgEntryBuf."Entry Type"::Application, OldAppliedAmount, AppliedAmountLCY, 0,
+          DtldCVLedgEntryBuf."Entry Type"::Application, OldAppliedAmount, AppliedAmountLCY, AmountAddCurr,
           NewCVLedgEntryBuf."Entry No.", PrevOldCVLedgEntryBuf."Remaining Pmt. Disc. Possible",
           PrevOldCVLedgEntryBuf."Max. Payment Tolerance");
 
@@ -3720,9 +3724,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         else
             AllApplied := false;
 
+        AmountAddCurr := 0;
+        if (AddCurrencyCode <> '') and (NewCVLedgEntryBuf."Currency Code" = AddCurrencyCode) then
+            AmountAddCurr := -AppliedAmount;
         DtldCVLedgEntryBuf.InitDetailedCVLedgEntryBuf(
           GenJnlLine, NewCVLedgEntryBuf, DtldCVLedgEntryBuf,
-          DtldCVLedgEntryBuf."Entry Type"::Application, -AppliedAmount, -AppliedAmountLCY, 0,
+          DtldCVLedgEntryBuf."Entry Type"::Application, -AppliedAmount, -AppliedAmountLCY, AmountAddCurr,
           NewCVLedgEntryBuf."Entry No.", PrevNewCVLedgEntryBuf."Remaining Pmt. Disc. Possible",
           PrevNewCVLedgEntryBuf."Max. Payment Tolerance");
 
