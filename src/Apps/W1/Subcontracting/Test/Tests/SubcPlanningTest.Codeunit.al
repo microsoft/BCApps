@@ -753,6 +753,7 @@ codeunit 139996 "Subc. Planning Test"
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         WorkCenter: array[2] of Record "Work Center";
+        SubcCompFactboxMgmt: Codeunit "Subc. Comp. Factbox Mgmt.";
         InitialQuantity: Decimal;
         NewComponentQuantity: Decimal;
         NewComponentDueDate: Date;
@@ -763,6 +764,7 @@ codeunit 139996 "Subc. Planning Test"
         MigratedComponentPurchaseLineErr: Label 'Rescheduling should migrate the legacy routing reference and component identity.';
         FamilyComponentQuantityErr: Label 'The Family component purchase quantity should be updated.';
         FamilyComponentDateErr: Label 'The Family component purchase date should be updated.';
+        LegacyFamilyComponentOutstandingQuantityErr: Label 'An unambiguous legacy Family component purchase line should remain visible in the outstanding quantity.';
     begin
         // [SCENARIO] A vendor-supplied component is rescheduled for a Family output whose production line number differs from the shared routing reference.
         Initialize();
@@ -819,6 +821,10 @@ codeunit 139996 "Subc. Planning Test"
         PurchaseLineComp."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
         PurchaseLineComp."Subc. Prod. Comp. Line No." := 0;
         PurchaseLineComp.Modify();
+        Assert.AreEqual(
+            PurchaseLineComp."Outstanding Qty. (Base)",
+            SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
+            LegacyFamilyComponentOutstandingQuantityErr);
 
         ProdOrderLine.Validate(Quantity, InitialQuantity + 1);
         ProdOrderLine.Modify(true);
@@ -863,8 +869,8 @@ codeunit 139996 "Subc. Planning Test"
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
-        SubcCompFactboxMgmt: Codeunit "Subc. Comp. Factbox Mgmt.";
         WorkCenter: array[2] of Record "Work Center";
+        SubcCompFactboxMgmt: Codeunit "Subc. Comp. Factbox Mgmt.";
         InitialQuantity: Decimal;
         NewComponentQuantity: Decimal;
         NewComponentDueDate: Date;
