@@ -2419,6 +2419,13 @@ codeunit 7312 "Create Pick"
                             CalcQtyCanBePicked(CurrLocation.Code, ItemNo, VariantCode, EntrySummary, CalledFromMoveWksh);
                         TotalAvailQtyToPickBase := Minimum(TotalAvailQtyToPickBase, QtyCanBePicked);
 
+                        // Without breakbulk only bin contents in the requested unit of measure can be picked, so the lot must not get more than that.
+                        if IsPickByExactRequestedUnitOfMeasure() then
+                            TotalAvailQtyToPickBase :=
+                                Minimum(
+                                    TotalAvailQtyToPickBase,
+                                    CalcQtyAvailToPickInUnitOfMeasure(CurrLocation.Code, ItemNo, VariantCode, UnitofMeasureCode, WhseItemTrackingSetup));
+
                         TotalAvailQtyToPickBase := TotalAvailQtyToPickBase - QtyTracked;
                         QtyToPickBase := 0;
 
@@ -2455,6 +2462,36 @@ codeunit 7312 "Create Pick"
     local procedure IsPickByExactRequestedUnitOfMeasure(): Boolean
     begin
         exit(CurrLocation."Directed Put-away and Pick" and (not CurrLocation."Allow Breakbulk"));
+    end;
+
+    local procedure CalcQtyAvailToPickInUnitOfMeasure(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; UnitofMeasureCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup") QtyAvailToPickBase: Decimal
+    var
+        BinContent: Record "Bin Content";
+        TempWarehouseActivityLine2: Record "Warehouse Activity Line" temporary;
+    begin
+        TempWarehouseActivityLine2.Copy(TempWarehouseActivityLine, true);
+        TempWarehouseActivityLine2.Reset();
+        TempWarehouseActivityLine2.SetRange("Item No.", ItemNo);
+        TempWarehouseActivityLine2.SetRange("Location Code", LocationCode);
+        TempWarehouseActivityLine2.SetRange("Variant Code", VariantCode);
+        TempWarehouseActivityLine2.SetRange("Unit of Measure Code", UnitofMeasureCode);
+        TempWarehouseActivityLine2.SetRange("Action Type", TempWarehouseActivityLine2."Action Type"::Take);
+        TempWarehouseActivityLine2.SetRange("Breakbulk No.", 0);
+        TempWarehouseActivityLine2.SetTrackingFilterFromWhseItemTrackingSetupifNotBlank(WhseItemTrackingSetup);
+
+        BinContent.SetRange("Location Code", LocationCode);
+        BinContent.SetRange("Item No.", ItemNo);
+        BinContent.SetRange("Variant Code", VariantCode);
+        BinContent.SetRange("Unit of Measure Code", UnitofMeasureCode);
+        BinContent.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
+        if BinContent.FindSet() then
+            repeat
+                if (UseForPick(BinContent) and not CalledFromMoveWksh) or (UseForReplenishment(BinContent) and CalledFromMoveWksh) then begin
+                    TempWarehouseActivityLine2.SetRange("Bin Code", BinContent."Bin Code");
+                    TempWarehouseActivityLine2.CalcSums("Qty. (Base)");
+                    QtyAvailToPickBase += Maximum(0, BinContent.CalcQtyAvailToPick(-TempWarehouseActivityLine2."Qty. (Base)"));
+                end;
+            until BinContent.Next() = 0;
     end;
 
     procedure ItemTrackedQuantity(WhseItemTrackingSetup: Record "Item Tracking Setup"): Decimal
