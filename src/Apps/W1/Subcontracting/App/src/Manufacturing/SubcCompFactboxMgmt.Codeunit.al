@@ -101,7 +101,7 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
         PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
         PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
         PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
@@ -134,7 +134,7 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
         PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
         PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
         PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
@@ -168,7 +168,7 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
         PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
         PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
         PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
@@ -200,7 +200,7 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
         PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
         PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
         PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");

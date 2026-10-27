@@ -847,6 +847,163 @@ codeunit 139996 "Subc. Planning Test"
         Assert.AreEqual(NewComponentDueDate, PurchaseLineComp."Expected Receipt Date", FamilyComponentDateErr);
     end;
 
+    [Test]
+    procedure AmbiguousLegacyFamilyComponentLineIsNotMigratedToAnotherOutput()
+    var
+        Family: Record Family;
+        FamilyLine: array[2] of Record "Family Line";
+        Item: Record Item;
+        SecondOutputItem: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComponent: array[2] of Record "Prod. Order Component";
+        ProdOrderLine: array[2] of Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseLineComp: array[2] of Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcCompFactboxMgmt: Codeunit "Subc. Comp. Factbox Mgmt.";
+        WorkCenter: array[2] of Record "Work Center";
+        InitialQuantity: Decimal;
+        NewComponentQuantity: Decimal;
+        NewComponentDueDate: Date;
+        OutputIndex: Integer;
+        OriginalPurchaseQuantity: array[2] of Decimal;
+        OriginalPurchaseDueDate: array[2] of Date;
+        AmbiguousFamilyPurchaseOrderErr: Label 'Both Family outputs must share one subcontracting purchase order for this regression.';
+        FamilyOutputPurchaseLineErr: Label 'Each Family output must have its own vendor-supplied component purchase line.';
+        FamilyOutputSharedComponentErr: Label 'Both Family outputs must share the same vendor-supplied component.';
+        AmbiguousLegacyPurchaseLineQuantityErr: Label 'Rescheduling one Family output must not overwrite an ambiguous legacy component purchase line.';
+        AmbiguousLegacyPurchaseLineDateErr: Label 'Rescheduling one Family output must not overwrite the date on an ambiguous legacy component purchase line.';
+        AmbiguousLegacyPurchaseLineIdentityErr: Label 'An ambiguous legacy component purchase line must not be relinked to another Family output.';
+        FamilyOutputRescheduleActionErr: Label 'The second Family output should have a quantity or date reschedule action.';
+        FamilyComponentOutstandingQuantityErr: Label 'The Family component outstanding quantity should use the actual production-line identity.';
+    begin
+        // [SCENARIO] Rescheduling one Family output does not migrate a legacy component purchase line shared by multiple outputs.
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        LibraryInventory.CreateItem(SecondOutputItem);
+        SecondOutputItem.Validate("Production BOM No.", Item."Production BOM No.");
+        SecondOutputItem.Modify(true);
+
+        LibraryManufacturing.CreateFamily(Family);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine[1], Family."No.", Item."No.", 1);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine[2], Family."No.", SecondOutputItem."No.", 1);
+        Family.Validate("Routing No.", Item."Routing No.");
+        Family.Modify(true);
+
+        InitialQuantity := LibraryRandom.RandIntInRange(5, 10);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Family, Family."No.", InitialQuantity);
+
+        for OutputIndex := 1 to 2 do begin
+            ProdOrderLine[OutputIndex].SetRange(Status, ProductionOrder.Status);
+            ProdOrderLine[OutputIndex].SetRange("Prod. Order No.", ProductionOrder."No.");
+            if OutputIndex = 1 then
+                ProdOrderLine[OutputIndex].SetRange("Item No.", Item."No.")
+            else
+                ProdOrderLine[OutputIndex].SetRange("Item No.", SecondOutputItem."No.");
+            Assert.IsTrue(ProdOrderLine[OutputIndex].FindFirst(), FamilyOutputPurchaseLineErr);
+
+            ProdOrderComponent[OutputIndex].SetRange(Status, ProductionOrder.Status);
+            ProdOrderComponent[OutputIndex].SetRange("Prod. Order No.", ProductionOrder."No.");
+            ProdOrderComponent[OutputIndex].SetRange("Prod. Order Line No.", ProdOrderLine[OutputIndex]."Line No.");
+#pragma warning disable AA0210
+            ProdOrderComponent[OutputIndex].SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
+            Assert.IsTrue(ProdOrderComponent[OutputIndex].FindFirst(), FamilyOutputPurchaseLineErr);
+        end;
+        Assert.AreEqual(
+            ProdOrderComponent[1]."Item No.",
+            ProdOrderComponent[2]."Item No.",
+            FamilyOutputSharedComponentErr);
+
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        for OutputIndex := 1 to 2 do begin
+            PurchaseLineComp[OutputIndex].SetRange("Document Type", PurchaseLineComp[OutputIndex]."Document Type"::Order);
+            PurchaseLineComp[OutputIndex].SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+            PurchaseLineComp[OutputIndex].SetRange("Subc. Prod. Order Line No.", ProdOrderLine[OutputIndex]."Line No.");
+            PurchaseLineComp[OutputIndex].SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+            PurchaseLineComp[OutputIndex].SetRange("Subc. Prod. Comp. Line No.", ProdOrderComponent[OutputIndex]."Line No.");
+            PurchaseLineComp[OutputIndex].SetRange("No.", ProdOrderComponent[OutputIndex]."Item No.");
+            Assert.IsTrue(PurchaseLineComp[OutputIndex].FindFirst(), FamilyOutputPurchaseLineErr);
+            OriginalPurchaseQuantity[OutputIndex] := PurchaseLineComp[OutputIndex].Quantity;
+            OriginalPurchaseDueDate[OutputIndex] := PurchaseLineComp[OutputIndex]."Expected Receipt Date";
+            Assert.AreEqual(
+                PurchaseLineComp[OutputIndex]."Outstanding Qty. (Base)",
+                SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent[OutputIndex]),
+                FamilyComponentOutstandingQuantityErr);
+        end;
+        Assert.AreEqual(
+            PurchaseLineComp[1]."Document No.",
+            PurchaseLineComp[2]."Document No.",
+            AmbiguousFamilyPurchaseOrderErr);
+
+        // Simulate legacy purchase lines that only stored the shared routing reference.
+        for OutputIndex := 1 to 2 do begin
+            PurchaseLineComp[OutputIndex]."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
+            PurchaseLineComp[OutputIndex]."Subc. Prod. Comp. Line No." := 0;
+            PurchaseLineComp[OutputIndex].Modify();
+        end;
+
+        // Reschedule the second output first, where a routing-reference match cannot identify its purchase line.
+        ProdOrderLine[2].Validate(Quantity, InitialQuantity + 1);
+        ProdOrderLine[2].Modify(true);
+        ProdOrderComponent[2].FindFirst();
+        NewComponentQuantity := ProdOrderComponent[2]."Remaining Quantity" + 3;
+        NewComponentDueDate := CalcDate('<30D>', WorkDate());
+        ProdOrderComponent[2]."Remaining Quantity" := NewComponentQuantity;
+        ProdOrderComponent[2]."Due Date" := NewComponentDueDate;
+        ProdOrderComponent[2].Modify();
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        RequisitionLine.SetRange("Prod. Order Line No.", ProdOrderLine[2]."Line No.");
+        Assert.IsTrue(RequisitionLine.FindFirst(), FamilyOutputPurchaseLineErr);
+        Assert.IsTrue(
+            RequisitionLine."Action Message" in
+                [RequisitionLine."Action Message"::"Change Qty.",
+                 RequisitionLine."Action Message"::"Resched. & Chg. Qty."],
+            FamilyOutputRescheduleActionErr);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        for OutputIndex := 1 to 2 do begin
+            PurchaseLineComp[OutputIndex].Get(
+                PurchaseLineComp[OutputIndex]."Document Type",
+                PurchaseLineComp[OutputIndex]."Document No.",
+                PurchaseLineComp[OutputIndex]."Line No.");
+            Assert.AreEqual(
+                OriginalPurchaseQuantity[OutputIndex],
+                PurchaseLineComp[OutputIndex].Quantity,
+                AmbiguousLegacyPurchaseLineQuantityErr);
+            Assert.AreEqual(
+                OriginalPurchaseDueDate[OutputIndex],
+                PurchaseLineComp[OutputIndex]."Expected Receipt Date",
+                AmbiguousLegacyPurchaseLineDateErr);
+            Assert.AreEqual(
+                ProdOrderRoutingLine."Routing Reference No.",
+                PurchaseLineComp[OutputIndex]."Subc. Prod. Order Line No.",
+                AmbiguousLegacyPurchaseLineIdentityErr);
+            Assert.AreEqual(0, PurchaseLineComp[OutputIndex]."Subc. Prod. Comp. Line No.", AmbiguousLegacyPurchaseLineIdentityErr);
+        end;
+    end;
+
     local procedure AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent: Record "Prod. Order Component"; PurchaseLine: Record "Purchase Line"; Location: Record Location; Vendor: Record Vendor; BaseCalendar: Record "Base Calendar")
     var
         CustomizedCalendarChange: array[2] of Record "Customized Calendar Change";
@@ -1036,6 +1193,7 @@ codeunit 139996 "Subc. Planning Test"
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         LibraryPlanning: Codeunit "Library - Planning";

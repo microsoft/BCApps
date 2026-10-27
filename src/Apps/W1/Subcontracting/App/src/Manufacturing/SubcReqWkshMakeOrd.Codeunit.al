@@ -185,7 +185,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ProdOrderComponent.SetRange("Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-        ProdOrderComponent.SetLoadFields("Item No.", "Variant Code", "Remaining Quantity", "Due Date");
+        ProdOrderComponent.SetLoadFields("Item No.", "Variant Code", "Routing Link Code", "Component Supply Method", "Remaining Quantity", "Due Date");
         if ProdOrderComponent.FindSet() then
             repeat
                 PurchaseLineComp.SetRange("Document Type", PurchaseLine."Document Type");
@@ -199,23 +199,30 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                 PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", ProdOrderComponent."Line No.");
                 FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
                 ShouldModifyPurchaseLine := false;
-                if not FoundPurchaseLineComp then begin
-                    PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Routing Reference No.");
-                    FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
-                    if FoundPurchaseLineComp then begin
-                        PurchaseLineComp."Subc. Prod. Order Line No." := RequisitionLine."Prod. Order Line No.";
-                        ShouldModifyPurchaseLine := true;
+                if not FoundPurchaseLineComp then
+                    if IsLegacyComponentPurchaseLineUnambiguous(ProdOrderComponent, true) then begin
+                        PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", 0);
+                        PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Routing Reference No.");
+                        FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
+                        if FoundPurchaseLineComp then begin
+                            PurchaseLineComp."Subc. Prod. Order Line No." := RequisitionLine."Prod. Order Line No.";
+                            PurchaseLineComp."Subc. Prod. Comp. Line No." := ProdOrderComponent."Line No.";
+                            ShouldModifyPurchaseLine := true;
+                        end;
                     end;
-                end;
                 if not FoundPurchaseLineComp then begin
                     PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", 0);
                     PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
                     FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
                     if not FoundPurchaseLineComp then begin
-                        PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Routing Reference No.");
-                        FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
+                        if IsLegacyComponentPurchaseLineUnambiguous(ProdOrderComponent, false) then begin
+                            PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", 0);
+                            PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Routing Reference No.");
+                            FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
+                        end;
                         if FoundPurchaseLineComp then begin
                             PurchaseLineComp."Subc. Prod. Order Line No." := RequisitionLine."Prod. Order Line No.";
+                            PurchaseLineComp."Subc. Prod. Comp. Line No." := ProdOrderComponent."Line No.";
                             ShouldModifyPurchaseLine := true;
                         end;
                     end;
@@ -236,5 +243,22 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                         PurchaseLineComp.Modify(true);
                 end;
             until ProdOrderComponent.Next() = 0;
+    end;
+
+    local procedure IsLegacyComponentPurchaseLineUnambiguous(ProdOrderComponent: Record "Prod. Order Component"; MatchComponentLineNo: Boolean): Boolean
+    var
+        OtherProdOrderComponent: Record "Prod. Order Component";
+    begin
+        OtherProdOrderComponent.SetRange(Status, ProdOrderComponent.Status);
+        OtherProdOrderComponent.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        OtherProdOrderComponent.SetFilter("Prod. Order Line No.", '<>%1', ProdOrderComponent."Prod. Order Line No.");
+        OtherProdOrderComponent.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
+        OtherProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method");
+        OtherProdOrderComponent.SetRange("Item No.", ProdOrderComponent."Item No.");
+        OtherProdOrderComponent.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+        if MatchComponentLineNo then
+            OtherProdOrderComponent.SetRange("Line No.", ProdOrderComponent."Line No.");
+
+        exit(OtherProdOrderComponent.IsEmpty());
     end;
 }
