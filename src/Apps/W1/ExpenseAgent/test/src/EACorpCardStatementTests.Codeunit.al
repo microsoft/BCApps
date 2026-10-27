@@ -81,7 +81,9 @@ codeunit 148359 EACorpCardStatementTests
         SecondStatement: Record "EA Corp Card Statement";
         EmptyStatement: Record "EA Corp Card Statement";
         CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardStmtSummary: Codeunit "EA Corp Card Stmt Summary";
         Statements: TestPage "EA Corp Card Statements";
+        Parameters: Dictionary of [Text, Text];
     begin
         Initialize();
         CreateStatement(FirstStatement, 'STMT-SUMMARY-A', 1000, 1);
@@ -90,17 +92,24 @@ codeunit 148359 EACorpCardStatementTests
         CreateTransaction(CorpCardTrans, SecondStatement, 'SUMMARY-B1', 1000, 'EXP-SUMMARY-B1');
         CreateTransaction(CorpCardTrans, SecondStatement, 'SUMMARY-B2', 2000, 'EXP-SUMMARY-B2');
         CreateStatement(EmptyStatement, 'STMT-SUMMARY-EMPTY', 0, 0);
+        Commit();
 
         Statements.OpenView();
         Statements.GoToRecord(FirstStatement);
+        Parameters.Set(CorpCardStmtSummary.GetStatementEntryNoKey(), Format(FirstStatement."Statement Entry No."));
+        Statements.ReconciliationSummary.RunPageBackgroundTask(Codeunit::"EA Corp Card Stmt Summary", Parameters, true);
         Statements.ReconciliationSummary.UnreconciledTransactions.AssertEquals(1);
         Statements.ReconciliationSummary.UnreconciledAmount.AssertEquals(1000);
 
         Statements.GoToRecord(SecondStatement);
+        Parameters.Set(CorpCardStmtSummary.GetStatementEntryNoKey(), Format(SecondStatement."Statement Entry No."));
+        Statements.ReconciliationSummary.RunPageBackgroundTask(Codeunit::"EA Corp Card Stmt Summary", Parameters, true);
         Statements.ReconciliationSummary.UnreconciledTransactions.AssertEquals(2);
         Statements.ReconciliationSummary.UnreconciledAmount.AssertEquals(3000);
 
         Statements.GoToRecord(EmptyStatement);
+        Parameters.Set(CorpCardStmtSummary.GetStatementEntryNoKey(), Format(EmptyStatement."Statement Entry No."));
+        Statements.ReconciliationSummary.RunPageBackgroundTask(Codeunit::"EA Corp Card Stmt Summary", Parameters, true);
         Statements.ReconciliationSummary.ReconciledTransactions.AssertEquals(0);
         Statements.ReconciliationSummary.ReconciledAmount.AssertEquals(0);
         Statements.ReconciliationSummary.UnreconciledTransactions.AssertEquals(0);
@@ -108,6 +117,8 @@ codeunit 148359 EACorpCardStatementTests
         Statements.ReconciliationSummary.SettlementStatus.AssertEquals('');
 
         Statements.GoToRecord(FirstStatement);
+        Parameters.Set(CorpCardStmtSummary.GetStatementEntryNoKey(), Format(FirstStatement."Statement Entry No."));
+        Statements.ReconciliationSummary.RunPageBackgroundTask(Codeunit::"EA Corp Card Stmt Summary", Parameters, true);
         Statements.ReconciliationSummary.UnreconciledTransactions.AssertEquals(1);
         Statements.ReconciliationSummary.UnreconciledAmount.AssertEquals(1000);
         Statements.Close();

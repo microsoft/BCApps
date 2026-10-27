@@ -556,6 +556,7 @@ codeunit 148360 EACorpCardSettlementTests
         UnlinkedTrans: Record "EA Corp Card Trans";
         CorpCardStmtSummary: Codeunit "EA Corp Card Stmt Summary";
         Results: Dictionary of [Text, Text];
+        ActualAmount: Decimal;
     begin
         Initialize();
         CreateStatement(CorpCardStatement, 'STMT-BACKGROUND', 3000, CorpCardStatement.Status::Validated);
@@ -570,11 +571,14 @@ codeunit 148360 EACorpCardSettlementTests
         Results := RunStatementSummary(CorpCardStatement);
 
         Assert.AreEqual(Format(0), Results.Get(CorpCardStmtSummary.GetReconciledTransactionsKey()), 'Transactions without a settlement must not be reconciled.');
-        Assert.AreEqual(Format(0), Results.Get(CorpCardStmtSummary.GetReconciledAmountKey()), 'The reconciled amount must be zero without a settlement.');
+        Evaluate(ActualAmount, Results.Get(CorpCardStmtSummary.GetReconciledAmountKey()));
+        Assert.AreEqual(0, ActualAmount, 'The reconciled amount must be zero without a settlement.');
         Assert.AreEqual(Format(1), Results.Get(CorpCardStmtSummary.GetUnreconciledTransactionsKey()), 'The background summary must count unsettled transactions.');
-        Assert.AreEqual(Format(3000), Results.Get(CorpCardStmtSummary.GetUnreconciledAmountKey()), 'The background summary must report the unsettled amount.');
+        Evaluate(ActualAmount, Results.Get(CorpCardStmtSummary.GetUnreconciledAmountKey()));
+        Assert.AreEqual(3000, ActualAmount, 'The background summary must report the unsettled amount.');
         Assert.AreEqual(Format(1), Results.Get(CorpCardStmtSummary.GetUnlinkedBankEntriesKey()), 'The background summary must exclude bank entries linked to transactions.');
-        Assert.AreEqual(Format(-700), Results.Get(CorpCardStmtSummary.GetUnlinkedBankAmountKey()), 'The background summary must report the unlinked bank amount.');
+        Evaluate(ActualAmount, Results.Get(CorpCardStmtSummary.GetUnlinkedBankAmountKey()));
+        Assert.AreEqual(-700, ActualAmount, 'The background summary must report the unlinked bank amount.');
         Assert.AreEqual('', Results.Get(CorpCardStmtSummary.GetSettlementStatusKey()), 'The settlement status must be blank without a settlement.');
     end;
 
@@ -586,6 +590,7 @@ codeunit 148360 EACorpCardSettlementTests
         CorpCardTrans: Record "EA Corp Card Trans";
         CorpCardStmtSummary: Codeunit "EA Corp Card Stmt Summary";
         Results: Dictionary of [Text, Text];
+        ActualAmount: Decimal;
     begin
         Initialize();
         CreatePostedClosedSettlement(CorpCardSettlement, CorpCardStatement, CorpCardTrans);
@@ -593,9 +598,11 @@ codeunit 148360 EACorpCardSettlementTests
         Results := RunStatementSummary(CorpCardStatement);
 
         Assert.AreEqual(Format(1), Results.Get(CorpCardStmtSummary.GetReconciledTransactionsKey()), 'The background summary must count reconciled transactions.');
-        Assert.AreEqual(Format(3000), Results.Get(CorpCardStmtSummary.GetReconciledAmountKey()), 'The background summary must report the reconciled amount.');
+        Evaluate(ActualAmount, Results.Get(CorpCardStmtSummary.GetReconciledAmountKey()));
+        Assert.AreEqual(3000, ActualAmount, 'The background summary must report the reconciled amount.');
         Assert.AreEqual(Format(0), Results.Get(CorpCardStmtSummary.GetUnreconciledTransactionsKey()), 'A fully reconciled statement must have no unreconciled transactions.');
-        Assert.AreEqual(Format(0), Results.Get(CorpCardStmtSummary.GetUnreconciledAmountKey()), 'A fully reconciled statement must have no unreconciled amount.');
+        Evaluate(ActualAmount, Results.Get(CorpCardStmtSummary.GetUnreconciledAmountKey()));
+        Assert.AreEqual(0, ActualAmount, 'A fully reconciled statement must have no unreconciled amount.');
         Assert.AreEqual(Format(CorpCardSettlement.Status), Results.Get(CorpCardStmtSummary.GetSettlementStatusKey()), 'The background summary must report the settlement status.');
     end;
 
