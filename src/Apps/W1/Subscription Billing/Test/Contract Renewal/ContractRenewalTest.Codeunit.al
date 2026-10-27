@@ -381,6 +381,152 @@ codeunit 139692 "Contract Renewal Test"
         TestContractRenewalPeriodCalculation(NewRenewalTerm);
     end;
 
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure ContractRenewalQuoteTransfersDiscountToSalesSubscriptionLineAndReportTotals()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesServiceCommitment: Record "Sales Subscription Line";
+        ServiceCommitment: Record "Subscription Line";
+        TempSalesServiceCommitmentBuff: Record "Sales Service Commitment Buff." temporary;
+        RenewalTerm: DateFormula;
+        UniqueRhythmDictionary: Dictionary of [Code[20], Text];
+    begin
+        // [SCENARIO 655904] The discount of a Customer Subscription Contract line is transferred to the Contract Renewal Quote
+        // [SCENARIO 655904] so the Subscription Billing totals printed on the Sales Quote include the discount.
+        Initialize();
+
+        // [GIVEN] A Customer Subscription Contract line with Quantity = 1, Price = 50, Discount % = 10, Billing Base Period = Billing Rhythm = <12M>
+        CreateBaseData(false, false, 1, 0);
+        ServiceObject.Get(ServiceObject."No.");
+        ServiceObject.Quantity := 1;
+        ServiceObject.Modify(false);
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.FindFirst();
+        ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<12M>', '<12M>');
+        ServiceCommitment.Validate(Price, 50);
+        ServiceCommitment.Validate("Discount %", 10);
+        ServiceCommitment.Modify(false);
+        ServiceCommitment.TestField(Amount, 45);
+
+        // [WHEN] A Contract Renewal Quote with a Renewal Term of <12M> is created
+        Evaluate(RenewalTerm, '<12M>');
+        UpdateContractLinesWithNewRenewalTerm(RenewalTerm);
+        SalesHeader.Get(SalesHeader."Document Type"::Quote, CreateSalesQuoteFromContract()); // SelectContractRenewalHandler
+
+        // [THEN] The Sales Subscription Line of the quote carries the discount
+        SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type", SalesHeader."No.");
+        SalesServiceCommitment.SetRange(Process, Enum::Process::"Contract Renewal");
+        SalesServiceCommitment.FindFirst();
+        SalesServiceCommitment.TestField(Price, 50);
+        SalesServiceCommitment.TestField("Discount %", 10);
+        SalesServiceCommitment.TestField("Discount Amount", 5);
+        SalesServiceCommitment.TestField(Amount, 45);
+
+        // [THEN] The Contract Renewal total used by the Sales Quote for Subscription Billing layout is the discounted amount
+        SalesServiceCommitment.CalcVATAmountLines(SalesHeader, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);
+        TempSalesServiceCommitmentBuff.CalcSums("Line Amount");
+        Assert.AreEqual(45, TempSalesServiceCommitmentBuff."Line Amount", 'The Contract Renewal total excl. VAT must include the 10% discount.');
+    end;
+
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure CheckVatCalculationForContractRenewalWithBillingBasePeriodDifferentFromBillingRhythm()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesServiceCommitment: Record "Sales Subscription Line";
+        TempSalesServiceCommitmentBuff: Record "Sales Service Commitment Buff." temporary;
+        DateFormulaManagement: Codeunit "Date Formula Management";
+        UniqueRhythmDictionary: Dictionary of [Code[20], Text];
+    begin
+        // [SCENARIO] The Subscription totals of a Contract Renewal Quote show the amount for the whole renewal term.
+        // [SCENARIO] The Amount per Billing Base Period is converted to the Billing Rhythm first and only then scaled by the renewal term.
+        Initialize();
+
+        // [GIVEN] A Contract Renewal Quote over a Renewal Term of <12M> for a Subscription Line priced at 100 per month (Billing Base Period <1M>) but billed yearly (Billing Rhythm <12M>)
+        CreateContractRenewalQuoteForBillingPeriods('<1M>', '<12M>', '<12M>', SalesHeader, SalesServiceCommitment);
+
+        // [GIVEN] Exactly one Billing Rhythm fits into the Renewal Term, so the renewal ratio does not scale the amount at all
+        Assert.AreEqual(
+            1, DateFormulaManagement.CalculateRenewalTermRatioByBillingRhythm(SalesServiceCommitment."Agreed Sub. Line Start Date", SalesServiceCommitment."Initial Term", SalesServiceCommitment."Billing Rhythm"),
+            'A Renewal Term of <12M> billed in a Billing Rhythm of <12M> should result in a renewal ratio of exactly 1.');
+
+        // [WHEN] VAT amount lines are calculated for the Contract Renewal Quote
+        SalesServiceCommitment.CalcVATAmountLines(SalesHeader, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);
+
+        // [THEN] The totals show the amount for the whole 12 month renewal term (100 per month * 12), not the monthly amount
+        Assert.RecordCount(TempSalesServiceCommitmentBuff, 1);
+        TempSalesServiceCommitmentBuff.CalcSums("Line Amount");
+        Assert.AreEqual(1200, TempSalesServiceCommitmentBuff."Line Amount", 'Contract Renewal Sales Quote VAT Line Amount must be scaled from the Billing Base Period to the Billing Rhythm.');
+    end;
+
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure CheckVatCalculationForContractRenewalWithoutBillingBasePeriod()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesServiceCommitment: Record "Sales Subscription Line";
+        TempSalesServiceCommitmentBuff: Record "Sales Service Commitment Buff." temporary;
+        UniqueRhythmDictionary: Dictionary of [Code[20], Text];
+    begin
+        // [SCENARIO] A Contract Renewal Quote whose Subscription Line has no Billing Base Period still shows a total.
+        // [SCENARIO] Create Sub. Contract Renewal only transfers the Billing Base Period when it is set, so it can reach the Sales Quote empty.
+        // [SCENARIO] The Contract Renewal branch has to fall back the same way the regular branch does, which counts a missing Billing Base Period as 1.
+        // [SCENARIO] What is pinned here is that consistency between the two branches, not the amount the billing engine charges for such a line.
+        Initialize();
+
+        // [GIVEN] A Contract Renewal Quote over a Renewal Term of <12M> for a Subscription Line priced at 100 per year (Billing Base Period <12M>) and billed yearly (Billing Rhythm <12M>)
+        CreateContractRenewalQuoteForBillingPeriods('<12M>', '<12M>', '<12M>', SalesHeader, SalesServiceCommitment);
+
+        // [GIVEN] The Subscription Line of the quote has no Billing Base Period
+        Clear(SalesServiceCommitment."Billing Base Period");
+        SalesServiceCommitment.Modify(false);
+
+        // [WHEN] VAT amount lines are calculated for the Contract Renewal Quote
+        SalesServiceCommitment.CalcVATAmountLines(SalesHeader, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);
+
+        // [THEN] The Amount is scaled to the Billing Rhythm with a Billing Base Period count of 1, the same fallback a regular Sales Quote applies
+        Assert.RecordCount(TempSalesServiceCommitmentBuff, 1);
+        TempSalesServiceCommitmentBuff.CalcSums("Line Amount");
+        Assert.AreEqual(1200, TempSalesServiceCommitmentBuff."Line Amount", 'Contract Renewal Sales Quote VAT Line Amount must fall back to a Billing Base Period count of 1.');
+    end;
+
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure CheckVatCalculationForContractRenewalWithComplexBillingRhythm()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesServiceCommitment: Record "Sales Subscription Line";
+        TempSalesServiceCommitmentBuff: Record "Sales Service Commitment Buff." temporary;
+        DateFormulaManagement: Codeunit "Date Formula Management";
+        ComplexBillingRhythm: DateFormula;
+        ExpectedLineAmount: Decimal;
+        UniqueRhythmDictionary: Dictionary of [Code[20], Text];
+    begin
+        // [SCENARIO] A Billing Rhythm that is not a plain period (<1M+1D>) has no period count, so the Amount has to be taken as it is instead of being multiplied by zero.
+        Initialize();
+
+        // [GIVEN] A Contract Renewal Quote over a Renewal Term of <12M> for a Subscription Line priced at 100
+        CreateContractRenewalQuoteForBillingPeriods('<1M>', '<1M>', '<12M>', SalesHeader, SalesServiceCommitment);
+
+        // [GIVEN] The Subscription Line of the quote is billed in a complex Billing Rhythm and has no Billing Base Period to compare it against
+        Clear(SalesServiceCommitment."Billing Base Period");
+        Evaluate(ComplexBillingRhythm, '<1M+1D>');
+        SalesServiceCommitment."Billing Rhythm" := ComplexBillingRhythm;
+        SalesServiceCommitment.Modify(false);
+
+        ExpectedLineAmount := 100 * DateFormulaManagement.CalculateRenewalTermRatioByBillingRhythm(SalesServiceCommitment."Agreed Sub. Line Start Date", SalesServiceCommitment."Initial Term", ComplexBillingRhythm);
+        Assert.IsTrue(ExpectedLineAmount > 0, 'The renewal ratio for a complex Billing Rhythm should be greater than zero.');
+
+        // [WHEN] VAT amount lines are calculated for the Contract Renewal Quote
+        SalesServiceCommitment.CalcVATAmountLines(SalesHeader, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);
+
+        // [THEN] The total is the Amount scaled by the renewal term ratio only, and not zero
+        Assert.RecordCount(TempSalesServiceCommitmentBuff, 1);
+        TempSalesServiceCommitmentBuff.CalcSums("Line Amount");
+        Assert.AreEqual(ExpectedLineAmount, TempSalesServiceCommitmentBuff."Line Amount", 'Contract Renewal Sales Quote VAT Line Amount must fall back to a Billing Rhythm count of 1.');
+    end;
+
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ConfirmHandler,ContractRenewalSelectionHandler')]
     procedure CheckServCommSelectionPageAcceptChanges()
@@ -925,6 +1071,43 @@ codeunit 139692 "Contract Renewal Test"
         ContractTestLibrary.SetGeneralPostingSetup(Customer."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group", false, Enum::"Service Partner"::Customer);
     end;
 
+    local procedure CreateContractRenewalQuoteForBillingPeriods(BillingBasePeriodText: Text; BillingRhythmText: Text; RenewalTermText: Text; var SalesHeader: Record "Sales Header"; var SalesServiceCommitment: Record "Sales Subscription Line")
+    var
+        ServiceCommitment: Record "Subscription Line";
+        BillingBasePeriod: DateFormula;
+        BillingRhythm: DateFormula;
+        NewRenewalTerm: DateFormula;
+    begin
+        // Creates a Contract Renewal Quote for a Customer Subscription Contract with a single Subscription Line
+        // that uses the given Billing Base Period and Billing Rhythm, and prices the resulting Sales Subscription Line at 100 per Billing Base Period
+        Evaluate(BillingBasePeriod, BillingBasePeriodText);
+        Evaluate(BillingRhythm, BillingRhythmText);
+        Evaluate(NewRenewalTerm, RenewalTermText);
+
+        CreateBaseData(false, false, 1, 0);
+
+        ServiceCommitment.Reset();
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.FindFirst();
+        ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, BillingBasePeriodText, BillingRhythmText);
+        ServiceCommitment.Modify(false);
+
+        UpdateContractLinesWithNewRenewalTerm(NewRenewalTerm);
+        Clear(ContractRenewalMgt);
+        SalesHeader.Get(SalesHeader."Document Type"::Quote, CreateSalesQuoteFromContract()); // SelectContractRenewalHandler
+
+        SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type", SalesHeader."No.");
+        SalesServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Customer);
+        SalesServiceCommitment.SetRange("Invoicing via", SalesServiceCommitment."Invoicing via"::Contract);
+        Assert.RecordCount(SalesServiceCommitment, 1);
+        SalesServiceCommitment.FindFirst();
+        SalesServiceCommitment.TestField("Billing Base Period", BillingBasePeriod);
+        SalesServiceCommitment.TestField("Billing Rhythm", BillingRhythm);
+        SalesServiceCommitment.TestField("Initial Term", NewRenewalTerm);
+        SalesServiceCommitment.Amount := 100;
+        SalesServiceCommitment.Modify(false);
+    end;
+
     local procedure CreateContractRenewalLinesFromContract()
     var
         CustomerContract2: Record "Customer Subscription Contract";
@@ -1080,11 +1263,18 @@ codeunit 139692 "Contract Renewal Test"
         SalesServiceCommitment: Record "Sales Subscription Line";
         TempSalesServiceCommitmentBuff: Record "Sales Service Commitment Buff." temporary;
         DateFormulaManagement: Codeunit "Date Formula Management";
+        BillingBasePeriodOneYear: DateFormula;
+        BillingRhythmOneMonth: DateFormula;
         SalesQuoteNo: Code[20];
         ExpectedCalculatedLineAmount: Decimal;
         PriceRatio: Decimal;
         UniqueRhythmDictionary: Dictionary of [Code[20], Text];
     begin
+        // The base data prices every Subscription Line per year and bills it monthly, so one Billing Rhythm is a twelfth of the Billing Base Period.
+        // That factor is stated here as a literal instead of being read back through Date Formula Management, so the expectation cannot follow the implementation into a wrong conversion.
+        Evaluate(BillingBasePeriodOneYear, '<1Y>');
+        Evaluate(BillingRhythmOneMonth, '<1M>');
+
         UpdateContractLinesWithNewRenewalTerm(NewRenewalTerm);
 
         Clear(ContractRenewalMgt);
@@ -1097,9 +1287,11 @@ codeunit 139692 "Contract Renewal Test"
             SalesServiceCommitment.FilterOnSalesLine(SalesLine);
             SalesServiceCommitment.FindFirst();
             SalesServiceCommitment.TestField("Initial Term", NewRenewalTerm);
-            SalesServiceCommitment.TestField("Billing Rhythm");
+            SalesServiceCommitment.TestField("Billing Base Period", BillingBasePeriodOneYear);
+            SalesServiceCommitment.TestField("Billing Rhythm", BillingRhythmOneMonth);
             PriceRatio := DateFormulaManagement.CalculateRenewalTermRatioByBillingRhythm(SalesServiceCommitment."Agreed Sub. Line Start Date", SalesServiceCommitment."Initial Term", SalesServiceCommitment."Billing Rhythm");
-            ExpectedCalculatedLineAmount += SalesServiceCommitment.Amount * PriceRatio;
+            // The Amount is stated per Billing Base Period; it has to be converted to the Billing Rhythm before the renewal term ratio is applied
+            ExpectedCalculatedLineAmount += SalesServiceCommitment.Amount / 12 * PriceRatio;
         until SalesLine.Next() = 0;
 
         SalesServiceCommitment.CalcVATAmountLines(SalesHeader, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);

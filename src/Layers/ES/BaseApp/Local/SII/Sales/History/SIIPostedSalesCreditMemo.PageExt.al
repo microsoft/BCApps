@@ -6,7 +6,8 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.History;
 
-pageextension 7000110 "SII Posted Sales Credit Memo" extends "Posted Sales Credit Memo"
+#pragma warning disable AS0088
+pageextension 7000010 "SII Posted Sales Credit Memo" extends "Posted Sales Credit Memo"
 {
     layout
     {

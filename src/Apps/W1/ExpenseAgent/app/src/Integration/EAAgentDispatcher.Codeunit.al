@@ -126,6 +126,7 @@ codeunit 6938 "EA Agent Dispatcher"
         UpdateTaskSucceeded(EASchedulerTask);
         EAEmailSetup.RemoveProcessedEmailsOutsideLast24hrs();
         RemoveSentEmailsOlderThan1Day();
+        EAAgentScheduler.RemoveTaskLogsOlderThan24hrs();
     end;
 
     local procedure CanRunTask(var Setup: Record "Expense Agent Setup"; var ErrorMessage: Text): Boolean

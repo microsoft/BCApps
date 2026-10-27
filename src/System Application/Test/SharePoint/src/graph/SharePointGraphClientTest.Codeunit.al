@@ -246,6 +246,53 @@ codeunit 132984 "SharePoint Graph Client Test"
     end;
 
     [Test]
+    procedure TestGetListItem_DefaultExpandNotLeakedToCallerParameters()
+    var
+        TempList: Record "SharePoint Graph List" temporary;
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        GraphOptionalParameters: Codeunit "Graph Optional Parameters";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Mock responses for GetListItem followed by GetLists
+        Initialize();
+        SharePointGraphTestLibrary.ResetMockHandler();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetListItemResponse());
+        SharePointGraphTestLibrary.AddMockResponse(200, GetListsResponse());
+
+        // [WHEN] Reusing the same optional parameters instance for GetListItem and then GetLists
+        SharePointGraphResponse := SharePointGraphClient.GetListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', TempListItem, GraphOptionalParameters);
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'GetListItem should succeed');
+        SharePointGraphResponse := SharePointGraphClient.GetLists(TempList, GraphOptionalParameters);
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'GetLists should succeed');
+
+        // [THEN] Only the GetListItem request expands fields; the default is not written into the caller's parameters
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('expand=fields'), 'GetListItem request should expand fields');
+        LibraryAssert.IsFalse(SharePointGraphTestLibrary.GetMockHttpRequestUri(2).Contains('expand'), 'GetLists request should not inherit the fields expansion');
+    end;
+
+    [Test]
+    procedure TestGetListItem_CustomExpandOverridesDefault()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        GraphOptionalParameters: Codeunit "Graph Optional Parameters";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Mock response for GetListItem and an own $expand parameter
+        Initialize();
+        SharePointGraphTestLibrary.ResetMockHandler();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetListItemResponse());
+        GraphOptionalParameters.SetODataQueryParameter(Enum::"Graph OData Query Parameter"::expand, 'analytics');
+
+        // [WHEN] Calling GetListItem with the custom expand
+        SharePointGraphResponse := SharePointGraphClient.GetListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', TempListItem, GraphOptionalParameters);
+
+        // [THEN] The request uses the supplied expand instead of the default fields expansion
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'GetListItem should succeed');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('expand=analytics'), 'Request URI should use the supplied expand');
+        LibraryAssert.IsFalse(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('expand=fields'), 'Request URI should not add the default fields expansion');
+    end;
+
+    [Test]
     procedure TestUpdateListItem()
     var
         TempListItem: Record "SharePoint Graph List Item" temporary;
@@ -267,6 +314,7 @@ codeunit 132984 "SharePoint Graph Client Test"
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'UpdateListItem should succeed');
         LibraryAssert.AreEqual('1', TempListItem.Id, 'Id should match');
         LibraryAssert.AreEqual('Updated Title', TempListItem.Title, 'Title should match the updated value');
+        LibraryAssert.AreEqual('', TempListItem.WebUrl, 'WebUrl is not part of the PATCH response and should be blank for a new record');
         LibraryAssert.AreEqual(1, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 1 request (PATCH)');
         LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'Request should be PATCH');
         LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('/fields'), 'Request URI should target /fields');
@@ -330,11 +378,37 @@ codeunit 132984 "SharePoint Graph Client Test"
     end;
 
     [Test]
+    procedure TestUpdateListItem_ResponseWithoutFieldValues()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        FieldsJson: JsonObject;
+    begin
+        // [GIVEN] A 200 response to the PATCH that carries only OData annotations and no column values
+        Initialize();
+        SharePointGraphTestLibrary.ResetMockHandler();
+        SharePointGraphTestLibrary.AddMockResponse(200, '{"@odata.context": "https://graph.microsoft.com/v1.0/$metadata#fields/$entity"}');
+
+        // [WHEN] Calling UpdateListItem
+        FieldsJson.Add('Title', 'Updated Title');
+        SharePointGraphResponse := SharePointGraphClient.UpdateListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', FieldsJson, TempListItem);
+
+        // [THEN] Operation should fail with a parse error and nothing should be stored in the record
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'UpdateListItem should fail when the response has no column values');
+        LibraryAssert.IsTrue(SharePointGraphResponse.GetError().Contains('parse'), 'Error should indicate a parse failure');
+        LibraryAssert.AreEqual(0, TempListItem.Count(), 'Record should stay empty');
+    end;
+
+    [Test]
     procedure TestUpdateListItem_BufferReusedFromGet()
     var
         TempListItem: Record "SharePoint Graph List Item" temporary;
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         FieldsJson: JsonObject;
+        WebUrlFromGet: Text;
+        ContentTypeFromGet: Text;
+        CreatedDateTimeFromGet: DateTime;
+        LastModifiedDateTimeFromGet: DateTime;
     begin
         // [GIVEN] Mock responses for GetListItem followed by UpdateListItem (PATCH fields)
         Initialize();
@@ -345,15 +419,25 @@ codeunit 132984 "SharePoint Graph Client Test"
         // [WHEN] Getting an item and then updating it with the same record variable
         SharePointGraphResponse := SharePointGraphClient.GetListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', TempListItem);
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'GetListItem should succeed');
+        WebUrlFromGet := TempListItem.WebUrl;
+        ContentTypeFromGet := TempListItem.ContentType;
+        CreatedDateTimeFromGet := TempListItem.CreatedDateTime;
+        LastModifiedDateTimeFromGet := TempListItem.LastModifiedDateTime;
+        LibraryAssert.IsTrue(WebUrlFromGet <> '', 'GetListItem should populate WebUrl');
+        LibraryAssert.IsTrue(CreatedDateTimeFromGet <> 0DT, 'GetListItem should populate CreatedDateTime');
 
         FieldsJson.Add('Title', 'Updated Title');
         SharePointGraphResponse := SharePointGraphClient.UpdateListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', FieldsJson, TempListItem);
 
-        // [THEN] Update should succeed and refresh the existing record instead of failing on a duplicate insert
+        // [THEN] Update should succeed, refresh the existing record and keep the fields the PATCH response does not return
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'UpdateListItem should succeed when the record already contains the item');
         LibraryAssert.AreEqual(1, TempListItem.Count(), 'Record should contain exactly one item');
         LibraryAssert.AreEqual('1', TempListItem.Id, 'Id should match');
         LibraryAssert.AreEqual('Updated Title', TempListItem.Title, 'Title should be refreshed from the PATCH response');
+        LibraryAssert.AreEqual(WebUrlFromGet, TempListItem.WebUrl, 'WebUrl should be preserved from GetListItem');
+        LibraryAssert.AreEqual(ContentTypeFromGet, TempListItem.ContentType, 'ContentType should be preserved from GetListItem');
+        LibraryAssert.AreEqual(CreatedDateTimeFromGet, TempListItem.CreatedDateTime, 'CreatedDateTime should be preserved from GetListItem');
+        LibraryAssert.AreEqual(LastModifiedDateTimeFromGet, TempListItem.LastModifiedDateTime, 'LastModifiedDateTime should be preserved from GetListItem');
         LibraryAssert.AreEqual(2, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 2 requests (GET + PATCH)');
     end;
 
