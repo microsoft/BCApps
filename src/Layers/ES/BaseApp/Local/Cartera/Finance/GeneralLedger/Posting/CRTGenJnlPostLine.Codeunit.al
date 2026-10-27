@@ -70,7 +70,7 @@ codeunit 7000017 "CRT Gen. Jnl.-Post Line"
             VATEntry."Bill-to/Pay-to No." := GenJnlLine2."Account No.";
 
         OnAfterGetSellToBuyFrom(VATEntry, GenJnlLine2);
-#if not CLEAN29
+#if not CLEAN30
         GenJnlPostLineEvents.RunOnAfterGetSellToBuyFrom(VATEntry, GenJnlLine2);
 #endif
     end;
@@ -81,7 +81,7 @@ codeunit 7000017 "CRT Gen. Jnl.-Post Line"
     end;
 
     var
-#if not CLEAN29
+#if not CLEAN30
         GenJnlPostLineEvents: Codeunit "Gen. Jnl.-Post Line";
 #endif
         GenJnlLineNotFoundErr: Label 'Check that all the entries with the same %2 and a %3 and \%4 associated have a Customer/Vendor associated, check that all the lines with the same \%2 have not more than one Customer/Vendor associated, check that all the lines with same \%2 have in the field %1 the same value: Invoice, Credit Memo or Finance Charge Memo.', Comment = 'Field captions: %1 = "Document Type", %2 = "Document No.", %3 = "VAT Bus. Posting Group", %4 = "VAT Prod. Posting Group"';

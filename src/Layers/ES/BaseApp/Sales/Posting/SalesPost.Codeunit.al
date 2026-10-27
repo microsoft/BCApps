@@ -10416,13 +10416,13 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeCreateCarteraBills(SalesHeader: Record "Sales Header"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var TotalSalesLine: Record "Sales Line")
     begin
         OnBeforeCreateCarteraBills(SalesHeader, CustLedgerEntry, TotalSalesLine);
     end;
 
-    [Obsolete('Moved to codeunit "CRT Sales-Post"', '29.0')]
+    [Obsolete('Moved to codeunit "CRT Sales-Post"', '30.0')]
     /// <summary>
     /// Event raised by OnBeforeCreateCarteraBills.
     /// </summary>

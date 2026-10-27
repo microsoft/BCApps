@@ -11524,13 +11524,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeCreateCarteraBills(PurchHeader: Record "Purchase Header"; var VendLedgEntry: Record "Vendor Ledger Entry"; var TotalPurchLine: Record "Purchase Line"; CommitIsSupressed: Boolean)
     begin
         OnBeforeCreateCarteraBills(PurchHeader, VendLedgEntry, TotalPurchLine, CommitIsSupressed);
     end;
 
-    [Obsolete('Moved to codeunit "CRT Purch.-Post"', '29.0')]
+    [Obsolete('Moved to codeunit "CRT Purch.-Post"', '30.0')]
     /// <summary>
     /// Event raised by OnBeforeCreateCarteraBills.
     /// </summary>

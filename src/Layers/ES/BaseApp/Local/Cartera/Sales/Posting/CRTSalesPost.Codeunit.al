@@ -23,7 +23,7 @@ codeunit 7000096 "CRT Sales-Post"
         CarteraSetup: Record "Cartera Setup";
         PaymentMethod: Record "Payment Method";
         InvoiceSplitPayment: Codeunit "Invoice-Split Payment";
-#if not CLEAN29
+#if not CLEAN30
         SalesPost: Codeunit "Sales-Post";
 #endif
     begin
@@ -38,7 +38,7 @@ codeunit 7000096 "CRT Sales-Post"
            (not SalesHeader.IsCreditDocType()) and CarteraSetup.ReadPermission
         then begin
             OnBeforeCreateCarteraBills(SalesHeader, CustLedgEntry, TotalSalesLine);
-#if not CLEAN29
+#if not CLEAN30
             SalesPost.RunOnBeforeCreateCarteraBills(SalesHeader, CustLedgEntry, TotalSalesLine);
 #endif
             InvoiceSplitPayment.SplitSalesInv(

@@ -847,6 +847,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATEntry."Sales Tax Connection No." := NextConnectionNo;
         VATEntry.SetVATDateFromGenJnlLine(GenJnlLine);
         OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine, VATEntry, CurrExchRate, VATPostingSetup);
+#if not CLEAN30
+        OnInsertVATOnAfterCopyVATPostingSetupFields(VATPostingSetup, VATEntry);
+#endif
 
         if GenJnlLine."VAT Difference" = 0 then
             VATDifferenceLCY := 0
@@ -11666,6 +11669,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
+#if not CLEAN30
+    [Obsolete('Replaced by OnInsertVATOnAfterAssignVATEntryFields.', '30.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertVATOnAfterCopyVATPostingSetupFields(var VATPostingSetup: Record "VAT Posting Setup"; var VATEntry: Record "VAT Entry")
+    begin
+    end;
+#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnInsertVATOnBeforeCreateGLEntryForReverseChargeVATToPurchAcc(var GenJournalLine: Record "Gen. Journal Line"; var VATPostingSetup: Record "VAT Posting Setup"; UnrealizedVAT: Boolean; VATAmount: Decimal; VATAmountAddCurr: Decimal; UseAmountAddCurr: Boolean)
     begin
@@ -12281,13 +12292,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnAfterGetSellToBuyFrom(var VATEntry: Record "VAT Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
         OnAfterGetSellToBuyFrom(VATEntry, GenJournalLine);
     end;
 
-    [Obsolete('Moved to codeunit CRT Gen. Jnl.-Post Line.', '29.0')]
+    [Obsolete('Moved to codeunit CRT Gen. Jnl.-Post Line.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetSellToBuyFrom(var VATEntry: Record "VAT Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin

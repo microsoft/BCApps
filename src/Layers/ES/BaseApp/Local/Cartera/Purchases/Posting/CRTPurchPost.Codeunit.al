@@ -22,7 +22,7 @@ codeunit 7000095 "CRT Purch.-Post"
         CarteraSetup: Record "Cartera Setup";
         PaymentMethod: Record "Payment Method";
         InvoiceSplitPayment: Codeunit "Invoice-Split Payment";
-#if not CLEAN29
+#if not CLEAN30
         PurchPost: Codeunit "Purch.-Post";
 #endif
     begin
@@ -36,7 +36,7 @@ codeunit 7000095 "CRT Purch.-Post"
            not PurchHeader.IsCreditDocType() and CarteraSetup.ReadPermission
         then begin
             OnBeforeCreateCarteraBills(PurchHeader, VendLedgEntry, TotalPurchLine, SuppressCommit);
-#if not CLEAN29
+#if not CLEAN30
             PurchPost.RunOnBeforeCreateCarteraBills(PurchHeader, VendLedgEntry, TotalPurchLine, SuppressCommit);
 #endif
             InvoiceSplitPayment.SplitPurchInv(

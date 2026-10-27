@@ -7233,8 +7233,8 @@ codeunit 6620 "Copy Document Mgt."
             Error(Text001, ToPurchHeader."Document Type", ToPurchHeader."No.");
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by W1 procedure and  codeunit "CRT Copy Document Mgt." in ES layer', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by W1 procedure and  codeunit "CRT Copy Document Mgt." in ES layer', '30.0')]
     procedure UpdateCustLedgerEntry(var ToSalesHeader: Record "Sales Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20]; FromSalesInvHeader: Record "Sales Invoice Header")
     begin
         FromSalesInvHeader.TestField("No.", FromDocNo);
@@ -7281,8 +7281,8 @@ codeunit 6620 "Copy Document Mgt."
         OnAfterUpdateCustLedgerEntry(ToSalesHeader, FromDocType, FromDocNo, CustLedgEntry);
     end;
 
-#if not CLEAN29
-    [Obsolete('Replaced by W1 procedure and  codeunit "CRT Copy Document Mgt." in ES layer', '29.0')]
+#if not CLEAN30
+    [Obsolete('Replaced by W1 procedure and  codeunit "CRT Copy Document Mgt." in ES layer', '30.0')]
     procedure UpdateVendLedgEntry(var ToPurchHeader: Record "Purchase Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20]; FromPurchInvHeader: Record "Purch. Inv. Header")
     begin
         FromPurchInvHeader.TestField("No.", FromDocNo);
