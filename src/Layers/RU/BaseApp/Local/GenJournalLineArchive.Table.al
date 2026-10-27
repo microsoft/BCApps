@@ -633,7 +633,7 @@ table 12403 "Gen. Journal Line Archive"
             Caption = 'Financial Void';
             Editable = false;
         }
-        field(130; "IC Account Type"; Enum "IC Journal Account Type")
+        field(130; "IC Account Type"; Enum Microsoft.Intercompany.Journal."IC Journal Account Type")
         {
             Caption = 'IC Account Type';
         }

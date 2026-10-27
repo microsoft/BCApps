@@ -14,7 +14,6 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Intercompany.Journal;
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
@@ -173,7 +172,6 @@ report 11603 "Calculate GST Settlement"
                         ClearingVATAmount := 0;
                         ClearingPostingDate := 0D;
                         ClearingDescription := '';
-
                         case Type of
                             Type::"G/L Entry":
                                 begin
@@ -198,7 +196,6 @@ report 11603 "Calculate GST Settlement"
                                                 if VATPostingSetup."Purchase VAT Account" <> '' then
                                                     ClearingAccNo := VATPostingSetup."Purchase VAT Account";
                                         end;
-
                                     case "Amount Type" of
                                         "Amount Type"::Base, "Amount Type"::Amount:
                                             begin
@@ -215,7 +212,6 @@ report 11603 "Calculate GST Settlement"
                                     ClearingDescription := StrSubstNo(Text1450015, VATEntry.TableCaption(), VATEntry."Entry No.");
                                 end;
                         end;
-
                         if (ClearingAccNo = '') and (ClearingVATAmount <> 0) then
                             Error(Text1450009, VATEntry.TableCaption(), VATEntry."Entry No.");
                         if (AccType = AccType::"G/L Account") and (ClearingAccNo = AccNo) then
@@ -225,7 +221,6 @@ report 11603 "Calculate GST Settlement"
 
                         TotalClearingAmount := TotalClearingAmount + ClearingAmount;
                         TotalClearingVATAmount := TotalClearingVATAmount + ClearingVATAmount;
-
                         if Post then
                             if not TempGLAccountNetChange.Get(ClearingAccNo) then begin
                                 TempGLAccountNetChange.Init();
@@ -345,7 +340,6 @@ report 11603 "Calculate GST Settlement"
                     begin
                         if not Post then
                             CurrReport.Break();
-
                         if TempGLAccountNetChange.Find('-') then begin
                             // Post clearing accounts
                             repeat
@@ -528,10 +522,8 @@ report 11603 "Calculate GST Settlement"
                         else
                             CurrReport.Break();
                     end;
-
                     if Post then
                         Window.Update(3, StrSubstNo('Field %1', CurrFieldID));
-
                     if CurrAmt = 0 then
                         CurrReport.Skip();
 
@@ -579,7 +571,6 @@ report 11603 "Calculate GST Settlement"
             begin
                 if Post and (AccNo = '') then
                     Error(Text1450001);
-
                 if Post then
                     Window.Open(
                       Text1450002 +

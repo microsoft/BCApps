@@ -59,7 +59,6 @@ using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 using System.Environment.Configuration;
 using System.Utilities;
-using Microsoft.Intercompany.Partner;
 
 table 39 "Purchase Line"
 {
@@ -125,7 +124,6 @@ table 39 "Purchase Line"
 
                 CheckAssociatedSalesOrder();
                 CheckAssociatedProdOrder();
-
                 if Type <> xRec.Type then begin
                     case xRec.Type of
                         Type::Item:
@@ -156,7 +154,6 @@ table 39 "Purchase Line"
                 TempPurchLine := Rec;
                 Init();
                 SystemId := TempPurchLine.SystemId;
-
                 if xRec."Line Amount" <> 0 then
                     "Recalculate Invoice Disc." := xRec."Allow Invoice Disc.";
 
@@ -164,7 +161,6 @@ table 39 "Purchase Line"
                 "System-Created Entry" := TempPurchLine."System-Created Entry";
                 OnValidateTypeOnCopyFromTempPurchLine(Rec, TempPurchLine, xRec);
                 Validate("FA Posting Type");
-
                 if Type = Type::Item then
                     "Allow Item Charge Assignment" := true
                 else
@@ -179,7 +175,8 @@ table 39 "Purchase Line"
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             ValidateTableRelation = false;
-            TableRelation = if (Type = const(" ")) "Standard Text"
+            TableRelation =
+            if (Type = const(" ")) "Standard Text"
             else
             if (Type = const("G/L Account"), "System-Created Entry" = const(false)) "G/L Account" where("Direct Posting" = const(true), "Account Type" = const(Posting), Blocked = const(false))
             else
@@ -229,7 +226,6 @@ table 39 "Purchase Line"
                 CheckAssociatedProdOrder();
 
                 OnValidateNoOnAfterChecks(Rec, xRec, CurrFieldNo);
-
                 if "No." <> xRec."No." then begin
                     if (Quantity <> 0) and ItemExists(xRec."No.") then begin
                         PurchLineReserve.VerifyChange(Rec, xRec);
@@ -261,7 +257,6 @@ table 39 "Purchase Line"
                     exit;
                 if "No." = '' then
                     exit;
-
                 if HasTypeToFillMandatoryFields() then begin
                     Quantity := TempPurchLine.Quantity;
                     "Outstanding Qty. (Base)" := TempPurchLine."Outstanding Qty. (Base)";
@@ -277,7 +272,6 @@ table 39 "Purchase Line"
                 UpdateDates();
 
                 OnAfterAssignHeaderValues(Rec, PurchHeader);
-
                 case Type of
                     Type::" ":
                         CopyFromStandardText();
@@ -294,7 +288,6 @@ table 39 "Purchase Line"
                 end;
 
                 OnAfterAssignFieldsForNo(Rec, xRec, PurchHeader);
-
                 if Type <> Type::" " then begin
                     PostingSetupMgt.CheckGenPostingSetupPurchAccount("Gen. Bus. Posting Group", "Gen. Prod. Posting Group");
                     PostingSetupMgt.CheckVATPostingSetupPurchAccount("VAT Bus. Posting Group", "VAT Prod. Posting Group");
@@ -307,7 +300,6 @@ table 39 "Purchase Line"
                         Validate("VAT Prod. Posting Group");
 
                 UpdatePrepmtSetupFields();
-
                 if HasTypeToFillMandatoryFields() then begin
                     PlanPriceCalcByField(FieldNo("No."));
                     IsHandled := false;
@@ -359,7 +351,6 @@ table 39 "Purchase Line"
                 OnValidateLocationCodeOnAfterTestStatusOpen(Rec, xRec, IsHandled, ShouldExit);
                 if ShouldExit then
                     exit;
-
                 if xRec."Location Code" <> "Location Code" then begin
                     if ("Prepmt. Amt. Inv." <> 0) and (not IsHandled) then
                         if not ConfirmManagement.GetResponseOrDefault(
@@ -383,13 +374,11 @@ table 39 "Purchase Line"
                 if not IsHandled then
                     if "Special Order" then
                         Error(Text001, FieldCaption("Location Code"), "Special Order Sales No.");
-
                 if "Location Code" <> xRec."Location Code" then begin
                     InitItemAppl();
                     if IsInventoriableItem() then
                         PostingSetupMgt.CheckInvtPostingSetupInventoryAccount("Location Code", "Posting Group");
                 end;
-
                 if (xRec."Location Code" <> "Location Code") and (Quantity <> 0) then begin
                     PurchLineReserve.VerifyChange(Rec, xRec);
                     PurchasesWarehouseMgt.PurchaseLineVerifyChange(Rec, xRec);
@@ -421,7 +410,6 @@ table 39 "Purchase Line"
                 CheckWMS();
                 if Rec."Receipt on Invoice" and not MatchedOrderLineMgmt.IsReceiptOnInvoiceAllowedForLocation("Location Code") then
                     Rec.Validate("Receipt on Invoice", false);
-
                 if "Document Type" = "Document Type"::"Return Order" then
                     ValidateReturnReasonCode(FieldNo("Location Code"));
 
@@ -434,7 +422,8 @@ table 39 "Purchase Line"
         {
             Caption = 'Posting Group';
             Editable = false;
-            TableRelation = if (Type = const(Item)) "Inventory Posting Group"
+            TableRelation =
+            if (Type = const(Item)) "Inventory Posting Group"
             else
             if (Type = const("Fixed Asset")) "FA Posting Group";
         }
@@ -455,7 +444,6 @@ table 39 "Purchase Line"
                     if not IsHandled then
                         CheckDateConflict.PurchLineCheck(Rec, CurrFieldNo <> 0);
                 end;
-
                 if "Expected Receipt Date" <> 0D then begin
                     CustomCalendarChange[1].SetSource(CalChange."Source Type"::Location, "Location Code", '', '');
                     ValidatePlannedReceiptDateWithCustomCalendarChange(CustomCalendarChange);
@@ -467,7 +455,8 @@ table 39 "Purchase Line"
         {
             Caption = 'Description';
             ToolTip = 'Specifies a description of the entry of the product to be purchased. To add a non-transactional text line, fill in the Description field only.';
-            TableRelation = if (Type = const("G/L Account"), "System-Created Entry" = const(false)) "G/L Account".Name where("Direct Posting" = const(true), "Account Type" = const(Posting), Blocked = const(false))
+            TableRelation =
+            if (Type = const("G/L Account"), "System-Created Entry" = const(false)) "G/L Account".Name where("Direct Posting" = const(true), "Account Type" = const(Posting), Blocked = const(false))
             else
             if (Type = const("G/L Account"), "System-Created Entry" = const(true)) "G/L Account".Name
             else
@@ -495,13 +484,10 @@ table 39 "Purchase Line"
                 OnBeforeValidateDescription(Rec, xRec, CurrFieldNo, IsHandled);
                 if IsHandled then
                     exit;
-
                 if Type = Type::" " then
                     exit;
-
                 if "No." <> '' then
                     exit;
-
                 case Type of
                     Type::Item:
                         ValidateItemDescription();
@@ -559,7 +545,6 @@ table 39 "Purchase Line"
                 OnValidateQuantityOnBeforeDropShptCheck(Rec, xRec, CurrFieldNo, IsHandled);
 
                 Quantity := UOMMgt.RoundAndValidateQty(Quantity, "Qty. Rounding Precision", FieldCaption(Quantity));
-
                 if not IsHandled then
                     if "Drop Shipment" and ("Document Type" <> "Document Type"::Invoice) then
                         Error(
@@ -567,7 +552,6 @@ table 39 "Purchase Line"
 
                 "Quantity (Base)" := CalcBaseQty(Quantity, FieldCaption(Quantity), FieldCaption("Quantity (Base)"));
                 OnValidateQuantityOnAfterCalcBaseQty(Rec, xRec);
-
                 if CurrFieldNo = Rec.FieldNo(Quantity) then
                     CheckWarehouse(false);
 
@@ -598,7 +582,6 @@ table 39 "Purchase Line"
                 end;
 
                 CheckCorrectiveCreditMemoQtyIncrease(xRec);
-
                 if (Type = Type::"Charge (Item)") and (CurrFieldNo <> 0) then begin
                     if (Quantity = 0) and ("Qty. to Assign" <> 0) then
                         FieldError("Qty. to Assign", StrSubstNo(Text011, FieldCaption(Quantity), Quantity));
@@ -629,13 +612,11 @@ table 39 "Purchase Line"
                 end;
                 if (Quantity * xRec.Quantity < 0) or (Quantity = 0) then
                     InitItemAppl();
-
                 if Quantity <> xRec.Quantity then
                     PlanPriceCalcByField(FieldNo(Quantity));
                 ValidateLineDiscountPctForNotItemType();
 
                 OnValidateQuantityOnAfterPlanPriceCalcByField(Rec, xRec);
-
                 if Type = Type::"Charge (Item)" then
                     "Line Discount %" := 0;
 
@@ -662,10 +643,8 @@ table 39 "Purchase Line"
 
                 UpdateDirectUnitCostByField(FieldNo(Quantity));
                 UpdatePrePaymentAmounts();
-
                 if "Job Planning Line No." <> 0 then
                     Validate("Job Planning Line No.");
-
                 if JobTaskIsSet() then begin
                     CreateTempJobJnlLine(true);
                     UpdateJobPrices();
@@ -702,7 +681,6 @@ table 39 "Purchase Line"
                     exit;
 
                 "Qty. to Invoice" := UOMMgt.RoundAndValidateQty("Qty. to Invoice", "Qty. Rounding Precision", FieldCaption("Qty. to Invoice"));
-
                 if "Qty. to Invoice" = MaxQtyToInvoice() then
                     InitQtyToInvoice()
                 else begin
@@ -712,7 +690,6 @@ table 39 "Purchase Line"
                 end;
                 if ("Qty. to Invoice" * Quantity < 0) or (Abs("Qty. to Invoice") > Abs(MaxQtyToInvoice())) then
                     Error(CannotInvoiceErrorInfo());
-
                 if ("Qty. to Invoice (Base)" * "Quantity (Base)" < 0) or (Abs("Qty. to Invoice (Base)") > Abs(MaxQtyToInvoiceBase())) then
                     Error(
                       Text007,
@@ -721,7 +698,6 @@ table 39 "Purchase Line"
                 NonDeductibleVAT.InitNonDeductibleVATDiff(Rec);
                 CalcInvDiscToInvoice();
                 CalcPrepaymentToDeduct();
-
                 if "Job Planning Line No." <> 0 then
                     Validate("Job Planning Line No.");
             end;
@@ -767,16 +743,13 @@ table 39 "Purchase Line"
                     if not IsHandled then begin
                         if not CanReceiveQty() then
                             Error(CannotReceiveErrorInfo());
-
                         if not CanReceiveBaseQty() then
                             Error(Text009, "Outstanding Qty. (Base)");
                     end;
 
                 OnValidateQtyToReceiveOnAfterCheckQty(Rec, CurrFieldNo);
-
                 if (CurrFieldNo <> 0) and (Type = Type::Item) and ("Qty. to Receive" < 0) then
                     CheckApplToItemLedgEntry();
-
                 if "Job Planning Line No." <> 0 then
                     Validate("Job Planning Line No.");
             end;
@@ -813,12 +786,10 @@ table 39 "Purchase Line"
                 TestStatusOpen();
                 TestField("No.");
                 TestFieldQuantity(FieldNo("Unit Cost (LCY)"));
-
                 if IsProdOrder() then
                     Error(
                       Text99000000,
                       FieldCaption("Unit Cost (LCY)"));
-
                 if CurrFieldNo = FieldNo("Unit Cost (LCY)") then
                     if Type = Type::Item then begin
                         GetItem(Item);
@@ -847,7 +818,6 @@ table 39 "Purchase Line"
                 CalcIndirectCostPercent();
 
                 UpdateSalesCostFromUnitCostLCY();
-
                 if JobTaskIsSet() then begin
                     CreateTempJobJnlLine(false);
                     TempJobJnlLine.Validate("Unit Cost (LCY)", "Unit Cost (LCY)");
@@ -1040,7 +1010,6 @@ table 39 "Purchase Line"
                 TestStatusOpen();
                 if ("VAT Calculation Type" = "VAT Calculation Type"::"Full VAT") and "Allow Invoice Disc." then
                     Error(CannotAllowInvDiscountErr, FieldCaption("Allow Invoice Disc."));
-
                 if "Allow Invoice Disc." <> xRec."Allow Invoice Disc." then begin
                     if not "Allow Invoice Disc." then begin
                         "Inv. Discount Amount" := 0;
@@ -1144,20 +1113,16 @@ table 39 "Purchase Line"
                 TestField("Special Order", false);
                 TestField("Receipt No.", '');
                 MatchedOrderLineMgmt.IsLineMatched(Rec, true);
-
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
-
                 if CheckReservationForJobNo() then
                     TestField("Job No.", '');
-
                 if (xRec."Job No." <> "Job No.") and (Quantity <> 0) then
                     if Type = Type::Item then
                         PurchasesWarehouseMgt.PurchaseLineVerifyChange(Rec, xRec);
 
                 PlanPriceCalcByField(FieldNo("Job No."));
                 InitJobFields();
-
                 if "Job No." = '' then begin
                     CreateDimFromDefaultDim(Rec.FieldNo("Job No."));
                     exit;
@@ -1178,7 +1143,6 @@ table 39 "Purchase Line"
                 CreateDimFromDefaultDim(Rec.FieldNo("Job No."));
 
                 UpdateDirectUnitCostByField(FieldNo("Job No."));
-
                 if (xRec."Line Discount %" <> "Line Discount %") and ("Line Discount Amount" <> 0) then
                     UpdateLineDiscPct();
             end;
@@ -1361,7 +1325,8 @@ table 39 "Purchase Line"
         {
             Caption = 'Sales Order No.';
             Editable = false;
-            TableRelation = if ("Drop Shipment" = const(true)) "Sales Header"."No." where("Document Type" = const(Order));
+            TableRelation =
+            if ("Drop Shipment" = const(true)) "Sales Header"."No." where("Document Type" = const(Order));
 
             trigger OnValidate()
             begin
@@ -1375,7 +1340,8 @@ table 39 "Purchase Line"
         {
             Caption = 'Sales Order Line No.';
             Editable = false;
-            TableRelation = if ("Drop Shipment" = const(true)) "Sales Line"."Line No." where("Document Type" = const(Order),
+            TableRelation =
+            if ("Drop Shipment" = const(true)) "Sales Line"."Line No." where("Document Type" = const(Order),
                                                                                             "Document No." = field("Sales Order No."));
 
             trigger OnValidate()
@@ -1663,7 +1629,6 @@ table 39 "Purchase Line"
                 OnValidateBlanketOrderNoOnAfterCheck(Rec, xRec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if "Blanket Order No." = '' then
                     "Blanket Order Line No." := 0
                 else
@@ -1789,7 +1754,7 @@ table 39 "Purchase Line"
             Editable = false;
         }
 #if not CLEANSCHEMA30
-        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
+        field(107; "IC Partner Ref. Type"; Enum Microsoft.Intercompany.Partner."IC Partner Reference Type")
         {
             Caption = 'IC Partner Ref. Type';
             DataClassification = CustomerContent;
@@ -1825,7 +1790,6 @@ table 39 "Purchase Line"
             begin
                 TestStatusOpen();
                 UpdatePrepmtSetupFields();
-
                 if HasTypeToFillMandatoryFields() then
                     UpdateAmounts();
                 UpdateBaseAmounts(Amount, "Amount Including VAT", "VAT Base Amount");
@@ -1952,7 +1916,6 @@ table 39 "Purchase Line"
                     FieldError(
                       "Prepmt Amt to Deduct",
                       StrSubstNo(Text039, "Prepmt. Amt. Inv." - "Prepmt Amt Deducted"));
-
                 if "Prepmt Amt to Deduct" > "Qty. to Invoice" * "Direct Unit Cost" then
                     FieldError(
                       "Prepmt Amt to Deduct",
@@ -2097,7 +2060,6 @@ table 39 "Purchase Line"
                 end;
 
                 SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Unit Cost (LCY)" * Quantity);
-
                 if SpendRequest."Dimension Set ID" <> 0 then begin
                     DimensionSetIDArr[1] := Rec."Dimension Set ID";
                     DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
@@ -2145,7 +2107,6 @@ table 39 "Purchase Line"
                 TestStatusOpen();
                 TestField("Receipt No.", '');
                 MatchedOrderLineMgmt.IsLineMatched(Rec, true);
-
                 if "Job Task No." <> xRec."Job Task No." then begin
                     Validate("Job Planning Line No.", 0);
                     if "Document Type" = "Document Type"::Order then
@@ -2154,7 +2115,6 @@ table 39 "Purchase Line"
                         PurchasesWarehouseMgt.PurchaseLineVerifyChange(Rec, xRec);
                     PlanPriceCalcByField(FieldNo("Job Task No."));
                 end;
-
                 if "Job Task No." = '' then begin
                     Clear(TempJobJnlLine);
                     "Job Line Type" := "Job Line Type"::" ";
@@ -2170,7 +2130,6 @@ table 39 "Purchase Line"
                     UpdateJobPrices();
                 end;
                 UpdateDimensionsFromJobTask();
-
                 if (xRec."Line Discount %" <> "Line Discount %") and
                    (xRec."Job Task No." <> "Job Task No.") and
                    ("Line Discount Amount" <> 0)
@@ -2196,10 +2155,8 @@ table 39 "Purchase Line"
                 TestStatusOpen();
                 TestField("Receipt No.", '');
                 MatchedOrderLineMgmt.IsLineMatched(Rec, true);
-
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
-
                 if "Job Planning Line No." <> 0 then
                     Error(Text048, FieldCaption("Job Line Type"), FieldCaption("Job Planning Line No."));
             end;
@@ -2224,10 +2181,8 @@ table 39 "Purchase Line"
 
                 TestField("Receipt No.", '');
                 MatchedOrderLineMgmt.IsLineMatched(Rec, true);
-
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
-
                 if JobTaskIsSet() then begin
                     CreateTempJobJnlLine(false);
                     TempJobJnlLine.Validate("Unit Price", "Job Unit Price");
@@ -2264,10 +2219,8 @@ table 39 "Purchase Line"
 
                 TestField("Receipt No.", '');
                 MatchedOrderLineMgmt.IsLineMatched(Rec, true);
-
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
-
                 if JobTaskIsSet() then begin
                     CreateTempJobJnlLine(false);
                     TempJobJnlLine.Validate("Line Amount", "Job Line Amount");
@@ -2295,10 +2248,8 @@ table 39 "Purchase Line"
 
                 TestField("Receipt No.", '');
                 MatchedOrderLineMgmt.IsLineMatched(Rec, true);
-
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
-
                 if JobTaskIsSet() then begin
                     CreateTempJobJnlLine(false);
                     TempJobJnlLine.Validate("Line Discount Amount", "Job Line Discount Amount");
@@ -2328,10 +2279,8 @@ table 39 "Purchase Line"
 
                 TestField("Receipt No.", '');
                 MatchedOrderLineMgmt.IsLineMatched(Rec, true);
-
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
-
                 if JobTaskIsSet() then begin
                     CreateTempJobJnlLine(false);
                     TempJobJnlLine.Validate("Line Discount %", "Job Line Discount %");
@@ -2359,10 +2308,8 @@ table 39 "Purchase Line"
 
                 TestField("Receipt No.", '');
                 MatchedOrderLineMgmt.IsLineMatched(Rec, true);
-
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
-
                 if JobTaskIsSet() then begin
                     CreateTempJobJnlLine(false);
                     TempJobJnlLine.Validate("Unit Price (LCY)", "Job Unit Price (LCY)");
@@ -2399,10 +2346,8 @@ table 39 "Purchase Line"
 
                 TestField("Receipt No.", '');
                 MatchedOrderLineMgmt.IsLineMatched(Rec, true);
-
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
-
                 if JobTaskIsSet() then begin
                     CreateTempJobJnlLine(false);
                     TempJobJnlLine.Validate("Line Amount (LCY)", "Job Line Amount (LCY)");
@@ -2430,10 +2375,8 @@ table 39 "Purchase Line"
 
                 TestField("Receipt No.", '');
                 MatchedOrderLineMgmt.IsLineMatched(Rec, true);
-
                 if "Document Type" = "Document Type"::Order then
                     TestField("Quantity Received", 0);
-
                 if JobTaskIsSet() then begin
                     CreateTempJobJnlLine(false);
                     TempJobJnlLine.Validate("Line Discount Amount (LCY)", "Job Line Disc. Amount (LCY)");
@@ -2479,7 +2422,6 @@ table 39 "Purchase Line"
                 JobPlanningLine.SetRange("No.", "No.");
                 JobPlanningLine.SetRange("Usage Link", true);
                 JobPlanningLine.SetRange("System-Created Entry", false);
-
                 if PAGE.RunModal(0, JobPlanningLine) = ACTION::LookupOK then
                     Validate("Job Planning Line No.", JobPlanningLine."Line No.");
             end;
@@ -2534,7 +2476,6 @@ table 39 "Purchase Line"
             begin
                 if ("Job Remaining Qty." <> 0) and ("Job Planning Line No." = 0) then
                     Error(Text047, FieldCaption("Job Remaining Qty."), FieldCaption("Job Planning Line No."));
-
                 if "Job Planning Line No." <> 0 then begin
                     JobPlanningLine.SetLoadFields("No.", "Variant Code", Quantity, "Unit of Measure Code", "Qty. per Unit of Measure", "Qty. Rounding Precision (Base)");
                     JobPlanningLine.Get("Job No.", "Job Task No.", "Job Planning Line No.");
@@ -2573,7 +2514,6 @@ table 39 "Purchase Line"
                   "Document Type".AsInteger(), "Document No.", "Line No.",
                   GetDeferralAmount(), DeferralPostDate,
                   Description, PurchHeader."Currency Code");
-
                 if "Document Type" = "Document Type"::"Return Order" then
                     "Returns Deferral Start Date" :=
                       DeferralUtilities.GetDeferralStartDate(
@@ -2654,7 +2594,8 @@ table 39 "Purchase Line"
         {
             Caption = 'Variant Code';
             ToolTip = 'Specifies the variant of the item on the line.';
-            TableRelation = if (Type = const(Item), "Document Type" = filter(<> "Credit Memo" & <> "Return Order")) "Item Variant".Code where("Item No." = field("No."), Blocked = const(false), "Purchasing Blocked" = const(false))
+            TableRelation =
+            if (Type = const(Item), "Document Type" = filter(<> "Credit Memo" & <> "Return Order")) "Item Variant".Code where("Item No." = field("No."), Blocked = const(false), "Purchasing Blocked" = const(false))
             else
             if (Type = const(Item), "Document Type" = filter("Credit Memo" | "Return Order")) "Item Variant".Code where("Item No." = field("No."), Blocked = const(false));
 
@@ -2677,7 +2618,6 @@ table 39 "Purchase Line"
                     end;
                 end;
                 TestStatusOpen();
-
                 if xRec."Variant Code" <> "Variant Code" then begin
                     TestField("Qty. Rcd. Not Invoiced", 0);
                     TestField("Receipt No.", '');
@@ -2693,11 +2633,9 @@ table 39 "Purchase Line"
                         Error(Text001, FieldCaption("Variant Code"), "Sales Order No.");
 
                 OnValidateVariantCodeOnAfterValidationChecks(Rec, xRec, CurrFieldNo);
-
                 if Type = Type::Item then
                     if "Variant Code" <> xRec."Variant Code" then
                         PlanPriceCalcByField(FieldNo("Variant Code"));
-
                 if (xRec."Variant Code" <> "Variant Code") and (Quantity <> 0) then begin
                     PurchLineReserve.VerifyChange(Rec, xRec);
                     PurchasesWarehouseMgt.PurchaseLineVerifyChange(Rec, xRec);
@@ -2714,7 +2652,6 @@ table 39 "Purchase Line"
                         UpdateItemReference();
 
                 OnValidateVariantCodeOnAfterUpdateItemReference(Rec, CurrFieldNo);
-
                 if JobTaskIsSet() then begin
                     CreateTempJobJnlLine(true);
                     UpdateJobPrices();
@@ -2726,7 +2663,8 @@ table 39 "Purchase Line"
         {
             Caption = 'Bin Code';
             ToolTip = 'Specifies the bin where the items are picked or put away.';
-            TableRelation = if ("Document Type" = filter(Order | Invoice),
+            TableRelation =
+            if ("Document Type" = filter(Order | Invoice),
                                 Quantity = filter(< 0)) "Bin Content"."Bin Code" where("Location Code" = field("Location Code"),
                                                                                      "Item No." = field("No."),
                                                                                      "Variant Code" = field("Variant Code"))
@@ -2748,12 +2686,10 @@ table 39 "Purchase Line"
                 OnBeforeLookupBinCode(Rec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if not IsInbound() and ("Quantity (Base)" <> 0) then
                     BinCode := WMSManagement.BinContentLookUp("Location Code", "No.", "Variant Code", '', "Bin Code")
                 else
                     BinCode := WMSManagement.BinLookUp("Location Code", "No.", "Variant Code", '');
-
                 if BinCode <> '' then
                     Validate("Bin Code", BinCode);
             end;
@@ -2769,7 +2705,6 @@ table 39 "Purchase Line"
                         WMSManagement.FindBinContent("Location Code", "Bin Code", "No.", "Variant Code", '')
                     else
                         WMSManagement.FindBin("Location Code", "Bin Code", '');
-
                 if "Drop Shipment" then
                     ShowBinCodeCannotBeChangedError();
 
@@ -2783,7 +2718,6 @@ table 39 "Purchase Line"
 
                 GetItem(Item);
                 Item.TestField(Type, Item.Type::Inventory);
-
                 if "Bin Code" <> '' then begin
                     GetLocation("Location Code");
                     Location.TestField("Bin Mandatory");
@@ -2822,7 +2756,8 @@ table 39 "Purchase Line"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
-            TableRelation = if (Type = const(Item),
+            TableRelation =
+            if (Type = const(Item),
                                 "No." = filter(<> '')) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource), "No." = filter(<> '')) "Resource Unit of Measure".Code where("Resource No." = field("No."))
@@ -2854,7 +2789,6 @@ table 39 "Purchase Line"
                 if not IsHandled then
                     if "Drop Shipment" then
                         Error(Text001, FieldCaption("Unit of Measure Code"), "Sales Order No.");
-
                 if (xRec."Unit of Measure Code" <> "Unit of Measure Code") and (Quantity <> 0) then begin
                     PurchasesWarehouseMgt.PurchaseLineVerifyChange(Rec, xRec);
                     PlanPriceCalcByField(FieldNo("Unit of Measure Code"));
@@ -3152,7 +3086,6 @@ table 39 "Purchase Line"
                 OnBeforeValidatePurchasingCode(Rec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if PurchasingCode.Get("Purchasing Code") then begin
                     "Drop Shipment" := PurchasingCode."Drop Shipment";
                     "Special Order" := PurchasingCode."Special Order";
@@ -3177,7 +3110,8 @@ table 39 "Purchase Line"
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
             Caption = 'Special Order Sales No.';
-            TableRelation = if ("Special Order" = const(true)) "Sales Header"."No." where("Document Type" = const(Order));
+            TableRelation =
+            if ("Special Order" = const(true)) "Sales Header"."No." where("Document Type" = const(Order));
 
             trigger OnValidate()
             begin
@@ -3189,7 +3123,8 @@ table 39 "Purchase Line"
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
             Caption = 'Special Order Sales Line No.';
-            TableRelation = if ("Special Order" = const(true)) "Sales Line"."Line No." where("Document Type" = const(Order),
+            TableRelation =
+            if ("Special Order" = const(true)) "Sales Line"."Line No." where("Document Type" = const(Order),
                                                                                             "Document No." = field("Special Order Sales No."));
 
             trigger OnValidate()
@@ -3224,7 +3159,8 @@ table 39 "Purchase Line"
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'Item Reference Unit of Measure';
-            TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."));
+            TableRelation =
+            if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."));
         }
         field(5727; "Item Reference Type"; Enum "Item Reference Type")
         {
@@ -3269,7 +3205,6 @@ table 39 "Purchase Line"
                 OnBeforeValidateRequestedReceiptDate(Rec, xRec, CustomCalendarChange, CurrFieldNo, IsHandled);
                 if IsHandled then
                     exit;
-
                 if (CurrFieldNo <> 0) and
                    ("Promised Receipt Date" <> 0D)
                 then
@@ -3277,7 +3212,6 @@ table 39 "Purchase Line"
                       Text023,
                       FieldCaption("Requested Receipt Date"),
                       FieldCaption("Promised Receipt Date"));
-
                 if "Requested Receipt Date" <> 0D then begin
                     CustomCalendarChange[1].SetSource(CalChange."Source Type"::Vendor, "Buy-from Vendor No.", '', '');
                     CustomCalendarChange[2].SetSource(CalChange."Source Type"::Location, "Location Code", '', '');
@@ -3301,7 +3235,6 @@ table 39 "Purchase Line"
                 OnBeforeValidatePromisedReceiptDate(Rec, CurrFieldNo, IsHandled, xRec);
                 if IsHandled then
                     exit;
-
                 if CurrFieldNo <> 0 then
                     if "Promised Receipt Date" <> 0D then
                         Validate("Planned Receipt Date", "Promised Receipt Date")
@@ -3327,7 +3260,6 @@ table 39 "Purchase Line"
                     exit;
 
                 LeadTimeMgt.CheckLeadTimeIsNotNegative("Lead Time Calculation");
-
                 if "Requested Receipt Date" <> 0D then
                     Validate("Planned Receipt Date")
                 else
@@ -3365,7 +3297,6 @@ table 39 "Purchase Line"
                 OnBeforeValidatePlannedReceiptDate(Rec, xRec, CurrFieldNo, TrackingBlocked, IsHandled);
                 if IsHandled then
                     exit;
-
                 if "Promised Receipt Date" <> 0D then begin
                     if "Planned Receipt Date" <> 0D then begin
                         CustomCalendarChange[1].SetSource(CalChange."Source Type"::Location, "Location Code", '', '');
@@ -3386,7 +3317,6 @@ table 39 "Purchase Line"
                             Validate("Requested Receipt Date")
                         else
                             GetUpdateBasicDates();
-
                 if not TrackingBlocked then
                     CheckDateConflict.PurchLineCheck(Rec, CurrFieldNo <> 0);
             end;
@@ -3406,27 +3336,23 @@ table 39 "Purchase Line"
                 OnBeforeValidateOrderDate(Rec, xRec, CurrFieldNo, TrackingBlocked, IsHandled);
                 if IsHandled then
                     exit;
-
                 if (CurrFieldNo <> 0) and
                    ("Document Type" = "Document Type"::Order) and
                    ("Order Date" < WorkDate()) and
                    ("Order Date" <> 0D)
                 then
                     ShowEarlyOrderDateMessage();
-
                 if "Order Date" <> 0D then begin
                     CustomCalendarChange[1].SetSource(CalChange."Source Type"::Vendor, "Buy-from Vendor No.", '', '');
                     CustomCalendarChange[2].SetSource(CalChange."Source Type"::Location, "Location Code", '', '');
                     UpdatePlannedReceiptDateFromOrderDate(CustomCalendarChange);
                 end;
-
                 if "Planned Receipt Date" <> 0D then begin
                     CustomCalendarChange[1].SetSource(CalChange."Source Type"::Location, "Location Code", '', '');
                     "Expected Receipt Date" :=
                       CalendarMgmt.CalcDateBOC(InternalLeadTimeDays("Planned Receipt Date"), "Planned Receipt Date", CustomCalendarChange, false)
                 end else
                     "Expected Receipt Date" := "Planned Receipt Date";
-
                 if not TrackingBlocked then begin
                     IsHandled := false;
                     OnValidateOrderDateOnBeforeCheckDateConflict(Rec, CurrFieldNo, IsHandled);
@@ -3496,7 +3422,6 @@ table 39 "Purchase Line"
                 "Return Qty. to Ship" := UOMMgt.RoundAndValidateQty("Return Qty. to Ship", "Qty. Rounding Precision", FieldCaption("Return Qty. to Ship"));
 
                 OnValidateReturnQtyToShipOnAfterCheck(Rec, CurrFieldNo);
-
                 if "Return Qty. to Ship" = Quantity - "Return Qty. Shipped" then
                     InitQtyToShip()
                 else begin
@@ -3520,7 +3445,6 @@ table 39 "Purchase Line"
                     then
                         Error(Text021, "Outstanding Qty. (Base)");
                 end;
-
                 if (CurrFieldNo <> 0) and (Type = Type::Item) and ("Return Qty. to Ship" > 0) then
                     CheckApplToItemLedgEntry();
             end;
@@ -3755,7 +3679,6 @@ table 39 "Purchase Line"
                     "Over-Receipt Approval Status" := "Over-Receipt Approval Status"::" ";
                     exit;
                 end;
-
                 if xRec."Over-Receipt Quantity" = "Over-Receipt Quantity" then
                     exit;
                 PurchaseHeader.Get(Rec."Document Type", Rec."Document No.");
@@ -3770,7 +3693,6 @@ table 39 "Purchase Line"
                 end;
                 if "Over-Receipt Quantity" <> 0 then
                     CheckLocationRequireReceive();
-
                 if ("Over-Receipt Code" <> '') then begin
                     OverReceiptMgt.VerifyOverReceiptQuantity(Rec, xRec);
                     OverReceiptCode.Get("Over-Receipt Code");
@@ -3822,7 +3744,6 @@ table 39 "Purchase Line"
             begin
                 if "Receipt on Invoice" then
                     MatchedOrderLineMgmt.CheckLineReceiptOnInvoiceAllowed(Rec);
-
                 if "Document Type" = "Document Type"::Order then
                     InitQtyToReceive();
 
@@ -3993,7 +3914,6 @@ table 39 "Purchase Line"
         OnDeleteOnBeforeTestStatusOpen(Rec, IsHandled);
         if not IsHandled then
             TestStatusOpen();
-
         if (Rec.Quantity <> 0) and Rec.ItemExists(Rec."No.") then begin
             PurchLineReserve.DeleteLine(Rec);
             IsHandled := false;
@@ -4013,7 +3933,6 @@ table 39 "Purchase Line"
                 PurchasesWarehouseMgt.PurchaseLineDelete(Rec);
             end;
         end;
-
         if ("Document Type" = "Document Type"::Order) and (Quantity <> "Quantity Invoiced") then
             TestField("Prepmt. Amt. Inv.", "Prepmt Amt Deducted");
 
@@ -4031,7 +3950,6 @@ table 39 "Purchase Line"
         UpdateSpecialSalesOrderLineFromOnDelete(SalesOrderLine);
 
         CatalogItemMgt.DelNonStockPurch(Rec);
-
         if "Document Type" = "Document Type"::"Blanket Order" then begin
             PurchLine2.Reset();
             PurchLine2.SetCurrentKey("Document Type", "Blanket Order No.", "Blanket Order Line No.");
@@ -4041,13 +3959,10 @@ table 39 "Purchase Line"
             if PurchLine2.FindFirst() then
                 PurchLine2.TestField("Blanket Order Line No.", 0);
         end;
-
         if Type = Type::Item then
             DeleteItemChargeAssignment("Document Type", "Document No.", "Line No.");
-
         if Type = Type::"Charge (Item)" then
             DeleteChargeChargeAssgnt("Document Type", "Document No.", "Line No.");
-
         if "Line No." <> 0 then begin
             PurchLine2.Reset();
             PurchLine2.SetRange("Document Type", "Document Type");
@@ -4080,7 +3995,6 @@ table 39 "Purchase Line"
             UpdateAmounts();
             OnDeleteOnAfterUpdateAmounts(Rec);
         end;
-
         if "Deferral Code" <> '' then
             DeferralUtilities.DeferralCodeOnDelete(
                 Enum::"Deferral Document Type"::Purchase.AsInteger(), '', '',
@@ -4093,7 +4007,6 @@ table 39 "Purchase Line"
     begin
         TestStatusOpen();
         VerifyPurchaseHeaderExists();
-
         if Quantity <> 0 then begin
             OnBeforeVerifyReservedQty(Rec, xRec, 0);
             PurchLineReserve.VerifyQuantity(Rec, xRec);
@@ -4121,7 +4034,6 @@ table 39 "Purchase Line"
                     PurchLine2.TestField("No.", "No.");
                 until PurchLine2.Next() = 0;
         end;
-
         if ((Quantity <> 0) or (xRec.Quantity <> 0)) and ItemExists(xRec."No.") then
             PurchLineReserve.VerifyChange(Rec, xRec);
         OnAfterModifyOnAfterVerifyChange(Rec, CurrFieldNo);
@@ -4276,7 +4188,6 @@ table 39 "Purchase Line"
         OnBeforeInitOutstanding(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if IsCreditDocType() then begin
             "Outstanding Quantity" := Quantity - "Return Qty. Shipped";
             "Outstanding Qty. (Base)" := "Quantity (Base)" - "Return Qty. Shipped (Base)";
@@ -4425,7 +4336,6 @@ table 39 "Purchase Line"
         OnBeforeInitOutstandingAndQtyToShipReceive(Rec, TempPurchLine, IsHandled, xRec);
         if IsHandled then
             exit;
-
         if Quantity <> 0 then begin
             InitOutstanding();
             if IsCreditDocType() then
@@ -4491,7 +4401,6 @@ table 39 "Purchase Line"
         OnBeforeInitJobFields(Rec, xRec, IsHandled, CurrFieldNo);
         if IsHandled then
             exit;
-
         if "Job No." <> xRec."Job No." then begin
             Validate("Job Task No.", '');
             Validate("Job Planning Line No.", 0);
@@ -4511,10 +4420,8 @@ table 39 "Purchase Line"
         OnBeforeMaxQtyToInvoice(Rec, MaxQty, IsHandled);
         if IsHandled then
             exit(MaxQty);
-
         if "Prepayment Line" then
             exit(1);
-
         if IsCreditDocType() then
             exit("Return Qty. Shipped" + "Return Qty. to Ship" - "Quantity Invoiced");
         if "Document Type" = "Document Type"::"Blanket Order" then
@@ -4535,7 +4442,6 @@ table 39 "Purchase Line"
         OnBeforeMaxQtyToInvoiceBase(Rec, MaxQtyBase, IsHandled);
         if IsHandled then
             exit(MaxQtyBase);
-
         if IsCreditDocType() then
             exit("Return Qty. Shipped (Base)" + "Return Qty. to Ship (Base)" - "Qty. Invoiced (Base)");
         if "Document Type" = "Document Type"::"Blanket Order" then
@@ -4583,14 +4489,12 @@ table 39 "Purchase Line"
                   Round(
                     "Inv. Discount Amount" * "Qty. to Invoice" / Quantity,
                     Currency."Amount Rounding Precision"));
-
             if OldInvDiscAmtToInv <> "Inv. Disc. Amount to Invoice" then begin
                 "Amount Including VAT" := "Amount Including VAT" - "VAT Difference";
                 ClearVATDifference();
                 NonDeductibleVAT.InitNonDeductibleVATDiff(Rec);
             end;
             NotifyOnMissingSetup(FieldNo("Inv. Discount Amount"));
-
         end;
         OnAfterCalcInvDiscToInvoice(Rec, OldInvDiscAmtToInv);
     end;
@@ -4610,12 +4514,10 @@ table 39 "Purchase Line"
     begin
         if Abs("Qty. to Receive") > Abs("Outstanding Quantity") then
             exit(false);
-
         if ("Qty. to Receive" < 0) and (Quantity > 0) or
            ("Qty. to Receive" > 0) and (Quantity < 0)
         then
             exit(false);
-
         if ("Outstanding Quantity" < 0) and (Quantity > 0) or
            ("Outstanding Quantity" > 0) and (Quantity < 0)
         then
@@ -4628,12 +4530,10 @@ table 39 "Purchase Line"
     begin
         if Abs("Qty. to Receive (Base)") > Abs("Outstanding Qty. (Base)") then
             exit(false);
-
         if ("Qty. to Receive (Base)" < 0) and ("Quantity (Base)" > 0) or
            ("Qty. to Receive (Base)" > 0) and ("Quantity (Base)" < 0)
         then
             exit(false);
-
         if ("Outstanding Qty. (Base)" < 0) and ("Quantity (Base)" > 0) or
            ("Outstanding Qty. (Base)" > 0) and ("Quantity (Base)" < 0)
         then
@@ -4650,11 +4550,9 @@ table 39 "Purchase Line"
         OnBeforeCheckLineAmount(Rec, MaxLineAmount, IsHandled, CurrFieldNo);
         if IsHandled then
             exit;
-
         if "Line Amount" < 0 then
             if "Line Amount" < MaxLineAmount then
                 Error(LineAmountInvalidErr);
-
         if "Line Amount" > 0 then
             if "Line Amount" > MaxLineAmount then
                 Error(LineAmountInvalidErr);
@@ -4668,7 +4566,6 @@ table 39 "Purchase Line"
         OnBeforeCheckLineTypeOnIndirectCostPercentUpdate(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if Type <> Type::Item then
             TestField("Indirect Cost %", 0);
     end;
@@ -4688,7 +4585,6 @@ table 39 "Purchase Line"
         OnBeforeCalcIndirectCostPercent(Rec, UnitCostCurrency, IsHandled);
         if IsHandled then
             exit;
-
         if ("Direct Unit Cost" <> 0) and
            ("Direct Unit Cost" <> ("Line Discount Amount" / Quantity))
         then begin
@@ -4783,7 +4679,6 @@ table 39 "Purchase Line"
         PrepaymentMgt.SetPurchPrepaymentPct(Rec, PurchHeader."Posting Date");
         if IsInventoriableItem() then
             PostingSetupMgt.CheckInvtPostingSetupInventoryAccount("Location Code", "Posting Group");
-
         if Item."Price Includes VAT" then begin
             if not VATPostingSetup.Get(Item."VAT Bus. Posting Gr. (Price)", Item."VAT Prod. Posting Group") then
                 VATPostingSetup.Init();
@@ -4811,7 +4706,6 @@ table 39 "Purchase Line"
                 GetItemTranslation();
 
         OnCopyFromItemOnAfterGetItemTranslation(Rec, Item);
-
         if Item."Purch. Unit of Measure" <> '' then
             "Unit of Measure Code" := Item."Purch. Unit of Measure"
         else
@@ -4914,7 +4808,6 @@ table 39 "Purchase Line"
             ItemLedgEntry.SetRange("Location Code", "Location Code");
         ItemLedgEntry.SetRange("Variant Code", "Variant Code");
         OnSelectItemEntryOnAfterItemLedgEntrySetFilters(Rec, ItemLedgEntry);
-
         if PAGE.RunModal(PAGE::"Item Ledger Entries", ItemLedgEntry) = ACTION::LookupOK then
             Validate("Appl.-to Item Entry", ItemLedgEntry."Entry No.");
     end;
@@ -4931,7 +4824,6 @@ table 39 "Purchase Line"
     begin
         PurchHeader := NewPurchHeader;
         SetSuppressPurchaseHeaderExistsVerification(true);
-
         if PurchHeader."Currency Code" = '' then
             Currency.InitRoundingPrecision()
         else begin
@@ -5212,7 +5104,6 @@ table 39 "Purchase Line"
         OnBeforeUpdateDirectUnitCost(Rec, xRec, CalledByFieldNo, CurrFieldNo, IsHandled);
         if IsHandled then
             exit;
-
         if (CurrFieldNo <> 0) and IsProdOrder() then
             UpdateAmounts();
 
@@ -5223,7 +5114,6 @@ table 39 "Purchase Line"
         OnUpdateDirectUnitCostByFieldOnAfterCalcShouldExit(Rec, xRec, CalledByFieldNo, CurrFieldNo, ShouldExit);
         if ShouldExit then
             exit;
-
         case Type of
             Type::"G/L Account",
             Type::Item,
@@ -5269,8 +5159,8 @@ table 39 "Purchase Line"
         OnBeforeBlanketOrderIsRelated(Rec, BlanketOrderPurchaseLine, IsHandled, Result);
         if IsHandled then
             exit(Result);
-
-        if "Blanket Order Line No." = 0 then exit;
+        if "Blanket Order Line No." = 0 then
+            exit;
         BlanketOrderPurchaseLine.SetLoadFields("Direct Unit Cost", "Line Discount %");
         OnBlanketOrderIsRelatedOnAfterSetLoadFields(BlanketOrderPurchaseLine);
         if BlanketOrderPurchaseLine.Get("Document Type"::"Blanket Order", "Blanket Order No.", "Blanket Order Line No.") then
@@ -5436,7 +5326,6 @@ table 39 "Purchase Line"
               Round(("Line Discount Amount" + "Inv. Discount Amount") / Quantity,
                 GLSetup."Unit-Amount Rounding Precision");
         OnUpdateUnitCostOnAfterCalcDiscountAmountPerQty(Rec, DiscountAmountPerQty);
-
         if "VAT Calculation Type" = "VAT Calculation Type"::"Full VAT" then
             "Unit Cost" := 0
         else
@@ -5450,7 +5339,6 @@ table 39 "Purchase Line"
                   GetOverheadRateFCY();
 
         OnUpdateUnitCostOnBeforeUpdateUnitCostLCY(Rec, xRec, PurchHeader, CurrFieldNo, Item, SKU, Currency, GLSetup);
-
         if PurchHeader."Currency Code" <> '' then begin
             PurchHeader.TestField("Currency Factor");
             "Unit Cost (LCY)" :=
@@ -5481,7 +5369,6 @@ table 39 "Purchase Line"
         OnAfterUpdateUnitCost(Rec, xRec, PurchHeader, Item, SKU, Currency, GLSetup);
 
         UpdateSalesCost();
-
         if JobTaskIsSet() and not UpdateFromVAT and not "Prepayment Line" then begin
             CreateTempJobJnlLine(false);
             TempJobJnlLine.Validate("Unit Cost (LCY)", "Unit Cost (LCY)");
@@ -5507,7 +5394,6 @@ table 39 "Purchase Line"
         OnBeforeUpdateAmounts(Rec, xRec, CurrFieldNo, IsHandled);
         if IsHandled then
             exit;
-
         if Type = Type::" " then
             exit;
 
@@ -5518,7 +5404,6 @@ table 39 "Purchase Line"
         "Recalculate Invoice Disc." := "Recalculate Invoice Disc." or "Allow Invoice Disc.";
 
         UpdateLineAmount(LineAmountChanged);
-
         if not "Prepayment Line" then
             UpdatePrepmtAmounts();
 
@@ -5528,19 +5413,16 @@ table 39 "Purchase Line"
         if VATBaseAmount <> "VAT Base Amount" then
             LineAmountChanged := true;
         LineAmountChanged := LineAmountChanged or (NonDeductAmount <> NonDeductibleVAT.GetNonDeductibleVATAmount(Rec));
-
         if LineAmountChanged then begin
             UpdateDeferralAmounts();
             LineAmountChanged := false;
         end;
 
         InitOutstandingAmount();
-
         if Type = Type::"Charge (Item)" then
             UpdateItemChargeAssgnt();
 
         CalcPrepaymentToDeduct();
-
         if "Spend Request No." <> '' then
             CheckSpendRequestAmount();
 
@@ -5562,7 +5444,6 @@ table 39 "Purchase Line"
         OnBeforeUpdateJobFields(Rec, xRec, IsHandled);
         if IsHandled then
             exit;
-
         if xRec."Job No." <> '' then
             Validate("Job No.", xRec."Job No.");
         "Job Line Type" := xRec."Job Line Type";
@@ -5581,7 +5462,6 @@ table 39 "Purchase Line"
         OnBeforeUpdateSpecialSalesOrderLineFromOnDelete(Rec, SalesOrderLine, IsHandled);
         if IsHandled then
             exit;
-
         if ("Special Order Sales Line No." <> 0) and ("Quantity Invoiced" = 0) then begin
             LockTable();
             SalesOrderLine.LockTable();
@@ -5622,7 +5502,6 @@ table 39 "Purchase Line"
         PurchLine2.SetRange("Tax Group Code", "Tax Group Code");
         PurchLine2.SetRange("Tax Area Code", "Tax Area Code");
         OnUpdateVATAmountsOnAfterSetFilters(Rec, PurchLine2);
-
         if "Line Amount" = "Inv. Discount Amount" then begin
             Amount := 0;
             "VAT Base Amount" := 0;
@@ -5668,7 +5547,6 @@ table 39 "Purchase Line"
                 Rec, PurchLine2, TotalAmount, TotalAmountInclVAT, TotalLineAmount, TotalInvDiscAmount, TotalQuantityBase, TotalVATDifference, IsHandled);
             if IsHandled then
                 exit;
-
             if PurchHeader."Prices Including VAT" then
                 case "VAT Calculation Type" of
                     "VAT Calculation Type"::"Normal VAT",
@@ -5794,7 +5672,6 @@ table 39 "Purchase Line"
         OnBeforeUpdatePrepmtSetupFields(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if ("Prepayment %" <> 0) and HasTypeToFillMandatoryFields() then begin
             TestField("Document Type", "Document Type"::Order);
             TestField("No.");
@@ -5846,7 +5723,6 @@ table 39 "Purchase Line"
         OnUpdateSalesCostOnBeforeGetSalesOrderLine(Rec, IsHandled);
         if IsHandled then
             exit;
-
         case true of
             "Sales Order Line No." <> 0: // Drop Shipment
                 SalesOrderLine.Get(SalesOrderLine."Document Type"::Order, "Sales Order No.", "Sales Order Line No.");
@@ -5883,13 +5759,11 @@ table 39 "Purchase Line"
         OnBeforeGetFAPostingGroup(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if (Type <> Type::"Fixed Asset") or ("No." = '') then
             exit;
         if "Depreciation Book Code" = '' then
             if not FindDefaultFADeprBook() then
                 exit;
-
         if "FA Posting Type" = "FA Posting Type"::" " then
             "FA Posting Type" := "FA Posting Type"::"Acquisition Cost";
         FADeprBook.Get("No.", "Depreciation Book Code");
@@ -5947,7 +5821,6 @@ table 39 "Purchase Line"
         DefaultFADeprBook.SetRange("Default FA Depreciation Book", true);
 
         SetFADeprBook.SetRange("FA No.", "No.");
-
         case true of
             SetFADeprBook.Count = 1:
                 begin
@@ -6011,7 +5884,6 @@ table 39 "Purchase Line"
         OnBeforeSelectMultipleItems(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if IsCreditDocType() then
             SelectionFilter := ItemListPage.SelectActiveItems()
         else
@@ -6087,7 +5959,6 @@ table 39 "Purchase Line"
         OnBeforeTransferExtendedTexts(PurchaseLine, LastPurchaseLine, IsHandled);
         if IsHandled then
             exit;
-
         if TransferExtendedText.PurchCheckIfAnyExtText(PurchaseLine, false) then begin
             TransferExtendedText.InsertPurchExtTextRetLast(PurchaseLine, LastPurchaseLine);
             PurchaseLine."Line No." := LastPurchaseLine."Line No."
@@ -6233,7 +6104,6 @@ table 39 "Purchase Line"
                 OnGetSignedValue(Rec, Value, Result);
                 exit(Result);
             end;
-
         end;
     end;
 
@@ -6366,15 +6236,12 @@ table 39 "Purchase Line"
         OnBeforeValidateItemDescription(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if IsReceivedFromOcr() then
             exit;
-
         if StrLen(Description) <= MaxStrLen(Item."No.") then
             DescriptionIsNo := Item.Get(Description)
         else
             DescriptionIsNo := false;
-
         if not DescriptionIsNo then begin
             Item.SetRange(Blocked, false);
             if not IsCreditDocType() then
@@ -6396,7 +6263,6 @@ table 39 "Purchase Line"
                 exit;
             end;
         end;
-
         if Item.TryGetItemNoOpenCard(ReturnValue, Description, false, false, false) then
             case ReturnValue of
                 '', "No.":
@@ -6439,7 +6305,6 @@ table 39 "Purchase Line"
         OnBeforeValidateLineDiscountPctForNotItemType(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if Type <> Type::Item then
             Validate("Line Discount %");
     end;
@@ -6570,7 +6435,6 @@ table 39 "Purchase Line"
     begin
         Get("Document Type", "Document No.", "Line No.");
         CheckNoAndQuantityForItemChargeAssgnt();
-
         if Type <> Type::"Charge (Item)" then begin
             Message(ItemChargeAssignmentErr);
             exit;
@@ -6618,13 +6482,11 @@ table 39 "Purchase Line"
         if not IsHandled then
             ItemChargeAssgntLineAmt :=
                 Round(ItemChargeAssgntLineAmt * ("Qty. to Invoice" / Quantity), Currency."Amount Rounding Precision");
-
         if IsCreditDocType() then
             AssignItemChargePurch.CreateDocChargeAssgnt(ItemChargeAssgntPurch, "Return Shipment No.")
         else
             AssignItemChargePurch.CreateDocChargeAssgnt(ItemChargeAssgntPurch, "Receipt No.");
         Clear(AssignItemChargePurch);
-
         if IncludeNonDedVATAmount then begin
             Rec."Item Charge Has Non.Ded. VAT" := IncludeNonDedVATAmount;
             Rec.Modify();
@@ -6660,7 +6522,6 @@ table 39 "Purchase Line"
         OnBeforeUpdateItemChargeAssgnt(Rec, CurrFieldNo, IsHandled);
         if IsHandled then
             exit;
-
         if "Document Type" = "Document Type"::"Blanket Order" then
             exit;
 
@@ -6681,7 +6542,6 @@ table 39 "Purchase Line"
                   FieldCaption("Unit Cost"));
             ItemChargeAssgntPurch.SetRange("Qty. Assigned");
         end;
-
         if (CurrFieldNo <> 0) and (Quantity <> xRec.Quantity) then begin
             ItemChargeAssgntPurch.SetFilter("Qty. Assigned", '<>0');
             if not ItemChargeAssgntPurch.IsEmpty() then
@@ -6689,7 +6549,6 @@ table 39 "Purchase Line"
                   FieldCaption(Quantity));
             ItemChargeAssgntPurch.SetRange("Qty. Assigned");
         end;
-
         if ItemChargeAssgntPurch.FindSet(true) and (Quantity <> 0) then begin
             GetPurchHeader();
             TotalAmtToAssign := CalcTotalAmtToAssign(TotalQtyToAssign);
@@ -6803,7 +6662,6 @@ table 39 "Purchase Line"
         OnBeforeCheckAssosiatedSalesOrder(Rec, xRec, CurrFieldNo, IsHandled);
         if IsHandled then
             exit;
-
         if "Drop Shipment" then
             Error(Text001, FieldCaption("No."), "Sales Order No.");
         if "Special Order" then
@@ -6858,7 +6716,6 @@ table 39 "Purchase Line"
     begin
         if Rec.IsTemporary() then
             exit;
-
         if SuppressPurchaseHeaderExistsVerification then
             exit;
 
@@ -6932,10 +6789,8 @@ table 39 "Purchase Line"
         OnBeforeTestStatusOpen(Rec, PurchHeader, xRec, CurrFieldNo, IsHandled);
         if IsHandled then
             exit;
-
         if StatusCheckSuspended then
             exit;
-
         if not "System-Created Entry" then
             if (xRec.Type <> Type) or HasTypeToFillMandatoryFields() then
                 PurchHeader.TestField(Status, PurchHeader.Status::Open);
@@ -6975,7 +6830,6 @@ table 39 "Purchase Line"
         OnBeforeUpdateLeadTimeFields(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if Type = Type::Item then begin
             GetPurchHeader();
 
@@ -7014,7 +6868,6 @@ table 39 "Purchase Line"
         OnBeforeUpdateDates(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if "Promised Receipt Date" <> 0D then
             Validate("Promised Receipt Date")
         else
@@ -7120,16 +6973,13 @@ table 39 "Purchase Line"
                         end;
 
                         IsLineAmountToInvoiceSimple := QtyType = QtyType::General;
-
                         if not IsLineAmountToInvoiceSimple then
                             OnAfterCheckIsLineAmountToInvoiceSimple(PurchHeader, IsLineAmountToInvoiceSimple);
-
                         if IsLineAmountToInvoiceSimple then
                             LineAmountToInvoice := PurchLine."Line Amount"
                         else
                             LineAmountToInvoice :=
                               Round(PurchLine."Line Amount" * PurchLine."Qty. to Invoice" / PurchLine.Quantity, Currency."Amount Rounding Precision");
-
                         if PurchLine."Allow Invoice Disc." then begin
                             if (VATAmountLine."Inv. Disc. Base Amount" = 0) or (LineAmountToInvoice = 0) then
                                 InvDiscAmount := 0
@@ -7242,7 +7092,6 @@ table 39 "Purchase Line"
                                 Rec, PurchHeader, VATAmountLine, TempVATAmountLineRemainder, QtyType, PurchLine, LineAmountToInvoice, InvDiscAmount);
                         end;
                         OnUpdateVATOnLinesOnAfterCalculateAmounts(PurchLine, PurchHeader);
-
                         if QtyType = QtyType::General then begin
                             if not PurchLine."Prepayment Line" then
                                 PurchLine.UpdatePrepmtAmounts();
@@ -7261,7 +7110,6 @@ table 39 "Purchase Line"
                         OnUpdateVATOnLinesOnBeforeModifyPurchLine(PurchLine, VATAmount);
                         PurchLine.Modify();
                         LineWasModified := true;
-
                         if (PurchLine."Deferral Code" <> '') and (DeferralAmount <> PurchLine.GetDeferralAmount()) then
                             PurchLine.UpdateDeferralAmounts();
 
@@ -7321,12 +7169,10 @@ table 39 "Purchase Line"
                        [PurchLine."VAT Calculation Type"::"Reverse Charge VAT", PurchLine."VAT Calculation Type"::"Sales Tax"]
                     then
                         PurchLine.ClearVATPct();
-
                     if not FindVATAmountLine(PurchLine, VATAmountLine) then begin
                         InsertVATAmountLine(PurchLine, VATAmountLine);
                         OnCalcVATAmountLinesAfterVATAmountLineInsertNewLine(PurchLine, VATAmountLine);
                     end;
-
                     case QtyType of
                         QtyType::General:
                             begin
@@ -7524,7 +7370,6 @@ table 39 "Purchase Line"
         OnBeforeUpdateWithWarehouseReceive(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if IsInventoriableItem() then
             case true of
                 ("Document Type" in ["Document Type"::Quote, "Document Type"::Order]) and (Quantity >= 0):
@@ -7576,7 +7421,6 @@ table 39 "Purchase Line"
         OnBeforeCheckWarehouse(Rec, IsHandled, ShowDialogMessage);
         if IsHandled then
             exit;
-
         if IsProdOrder() then
             exit;
 
@@ -7592,10 +7436,8 @@ table 39 "Purchase Line"
             Location2 := Location;
 
         OnCheckWarehouseOnAfterSetLocation2(Rec, Location2);
-
         if IsInbound() and IsInventoriableItem() and Location2."Bin Mandatory" then
             WMSManagement.CheckWarehouse(Location2.Code, Rec."Bin Code", Rec."No.", Rec."Variant Code", Rec."Unit of Measure Code", Quantity);
-
         if ShowDialogMessage then begin
             DialogText := Text033;
             if ("Document Type" in ["Document Type"::Order, "Document Type"::"Return Order"]) and
@@ -7632,7 +7474,6 @@ table 39 "Purchase Line"
                           CopyStr(DialogText + Location2.GetRequirementText(Location2.FieldNo("Require Put-away")), 1, MaxStrLen(DialogText));
                     end;
                 end;
-
                 if (("Document Type" = "Document Type"::Order) and (Quantity < 0) and
                     (Location2."Require Shipment" or Location2."Require Pick")) or
                    (("Document Type" = "Document Type"::"Return Order") and (Quantity >= 0) and
@@ -7682,7 +7523,6 @@ table 39 "Purchase Line"
         OnBeforeGetOverheadRateFCY(Rec, QtyPerUOM, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if not IsProdOrder() then
             QtyPerUOM := "Qty. per Unit of Measure"
         else begin
@@ -7778,14 +7618,12 @@ table 39 "Purchase Line"
         OnBeforeGetDefaultBin(Rec, IsHandled, xRec);
         if IsHandled then
             exit;
-
         if (Type <> Type::Item) or IsNonInventoriableItem() then
             exit;
 
         "Bin Code" := '';
         if "Drop Shipment" then
             exit;
-
         if ("Location Code" <> '') and ("No." <> '') then begin
             GetLocation("Location Code");
             if Location."Bin Mandatory" and not Location."Directed Put-away and Pick" then begin
@@ -7834,7 +7672,6 @@ table 39 "Purchase Line"
         OnBeforeVerifyLineTypeForJob(Rec, xRec, IsHandled);
         if IsHandled then
             exit;
-
         if not (Type in [Type::Item, Type::"G/L Account"]) then
             FieldError("Job No.", StrSubstNo(MustNotBeSpecifiedErr, FieldCaption(Type), Type));
     end;
@@ -7871,7 +7708,6 @@ table 39 "Purchase Line"
             exit("No.");
 
         GetPurchSetup();
-
         if (SourceNo = '') then
             exit('');
         if Type = Type::Item then
@@ -7897,7 +7733,6 @@ table 39 "Purchase Line"
         OnBeforeGetAbsMin(Rec, QtyToHandle, QtyHandled, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if Abs(QtyHandled) < Abs(QtyToHandle) then
             exit(QtyHandled);
 
@@ -7916,10 +7751,8 @@ table 39 "Purchase Line"
         OnBeforeCheckApplToItemLedgEntry(Rec, ItemLedgEntry, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if "Appl.-to Item Entry" = 0 then
             exit;
-
         if IsMatchedToReceiptOrOrder() then
             exit;
 
@@ -7946,7 +7779,6 @@ table 39 "Purchase Line"
               Text042,
               ItemLedgEntry.Quantity, ItemLedgEntry.FieldCaption("Document No."),
               ItemLedgEntry."Document No.");
-
         if IsCreditDocType() then
             if Abs("Outstanding Qty. (Base)") > ItemLedgEntry."Remaining Quantity" then begin
                 ReturnedQty := ApplyRec.Returned(ItemLedgEntry."Entry No.");
@@ -7955,7 +7787,6 @@ table 39 "Purchase Line"
                     ReturnedQty := Round(ReturnedQty / "Qty. per Unit of Measure", UOMMgt.QtyRndPrecision());
                     RemainingtobeReturnedQty := Round(RemainingtobeReturnedQty / "Qty. per Unit of Measure", UOMMgt.QtyRndPrecision());
                 end;
-
                 if ((("Qty. per Unit of Measure" = 0) and (RemainingtobeReturnedQty < Abs("Outstanding Qty. (Base)"))) or
                     (("Qty. per Unit of Measure" <> 0) and (RemainingtobeReturnedQty < Abs("Outstanding Quantity"))))
                 then
@@ -7979,7 +7810,6 @@ table 39 "Purchase Line"
         OnBeforeCalcPrepaymentToDeduct(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if ("Qty. to Invoice" <> 0) and ("Prepmt. Amt. Inv." <> 0) then begin
             GetPurchHeader();
             if ("Prepayment %" = 100) and not IsFinalInvoice() then begin
@@ -8022,12 +7852,10 @@ table 39 "Purchase Line"
         OnBeforeGetLineAmountToHandle(Rec, Currency, QtyToHandle, LineAmount, LineDiscAmount, IsHandled);
         if IsHandled then
             exit(LineAmount - LineDiscAmount);
-
         if "Line Discount %" = 100 then
             exit(0);
 
         GetPurchHeader();
-
         if "Prepmt Amt to Deduct" = 0 then
             LineAmount := Round(QtyToHandle * "Direct Unit Cost", Currency."Amount Rounding Precision")
         else
@@ -8036,7 +7864,6 @@ table 39 "Purchase Line"
                 LineAmount := Round(QtyToHandle * LineAmount / Quantity, Currency."Amount Rounding Precision");
             end else
                 LineAmount := 0;
-
         if QtyToHandle <> Quantity then
             LineDiscAmount := Round(LineAmount * "Line Discount %" / 100, Currency."Amount Rounding Precision")
         else
@@ -8061,12 +7888,10 @@ table 39 "Purchase Line"
     begin
         if "Line Discount %" = 100 then
             exit(0);
-
         if IsCreditDocType() then
             DocType := DocType::"Credit Memo"
         else
             DocType := DocType::Invoice;
-
         if ("Prepayment %" = 100) and not "Prepayment Line" and ("Prepmt Amt to Deduct" <> 0) then
             if PurchasePostPrepayments.PrepmtAmount(Rec, DocType) <= 0 then
                 exit("Prepmt Amt to Deduct" + "Inv. Disc. Amount to Invoice");
@@ -8121,7 +7946,6 @@ table 39 "Purchase Line"
         TempJobJnlLine.Validate(Quantity, Quantity);
         TempJobJnlLine.Validate("Variant Code", "Variant Code");
         TempJobJnlLine.Validate("Unit of Measure Code", "Unit of Measure Code");
-
         if not GetPrices then begin
             if xRec."Line No." <> 0 then begin
                 TempJobJnlLine."Unit Cost" := xRec."Unit Cost";
@@ -8158,7 +7982,6 @@ table 39 "Purchase Line"
         OnBeforeUpdateJobPrices(Rec, TempJobJnlLine, PurchRcptLine, CurrFieldNo, IsHandled);
         if IsHandled then
             exit;
-
         if "Receipt No." = '' then begin
             "Job Unit Price" := TempJobJnlLine."Unit Price";
             "Job Total Price" := TempJobJnlLine."Total Price";
@@ -8235,7 +8058,6 @@ table 39 "Purchase Line"
         CalcInvDiscToInvoice();
 
         CalcPrepaymentToDeduct();
-
         if "Job Planning Line No." <> 0 then
             Validate("Job Planning Line No.");
 
@@ -8280,7 +8102,6 @@ table 39 "Purchase Line"
         OnBeforeClearQtyIfBlank(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if "Document Type" = "Document Type"::Order then begin
             GetPurchSetup();
             if PurchSetup."Default Qty. to Receive" = PurchSetup."Default Qty. to Receive"::Blank then begin
@@ -8373,10 +8194,8 @@ table 39 "Purchase Line"
         OnBeforeUpdatePrepmtAmounts(Rec, PurchHeader, IsHandled, CurrFieldNo);
         if IsHandled then
             exit;
-
         if ("Document Type" <> "Document Type"::Invoice) or ("Prepayment %" = 0) then
             exit;
-
         if not ReceiptLine.Get("Receipt No.", "Receipt Line No.") then begin
             "Prepmt Amt to Deduct" := 0;
             "Prepmt VAT Diff. to Deduct" := 0;
@@ -8428,7 +8247,6 @@ table 39 "Purchase Line"
         OnBeforeSetUnitOfMeasure(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if "Unit of Measure Code" = '' then
             "Unit of Measure" := ''
         else begin
@@ -8483,7 +8301,6 @@ table 39 "Purchase Line"
         OnBeforeZeroAmountLine(Rec, QtyType, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if Type = Type::" " then
             exit(true);
         if Quantity = 0 then
@@ -8687,7 +8504,6 @@ table 39 "Purchase Line"
         OnBeforeConfirmReceivedShippedItemDimChange(Rec, IsHandled, Result);
         if IsHandled then
             exit(Result);
-
         if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(Text049, TableCaption), true) then
             Error(Text050);
 
@@ -8705,7 +8521,6 @@ table 39 "Purchase Line"
         OnBeforeInitType(Rec, xRec, PurchHeader, IsHandled);
         if IsHandled then
             exit;
-
         if "Document No." <> '' then begin
             if not PurchHeader.Get("Document Type", "Document No.") then
                 exit;
@@ -8771,7 +8586,6 @@ table 39 "Purchase Line"
         OnBeforeCheckLocationOnWMS(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if (Type = Type::Item) and IsInventoriableItem() then begin
             DialogText := Text033;
             if "Quantity (Base)" <> 0 then
@@ -8880,12 +8694,10 @@ table 39 "Purchase Line"
         OnBeforeValidateReturnReasonCode(Rec, CallingFieldNo, IsHandled);
         if IsHandled then
             exit;
-
         if CallingFieldNo = 0 then
             exit;
         if "Return Reason Code" = '' then
             PlanPriceCalcByField(CallingFieldNo);
-
         if ReturnReason.Get("Return Reason Code") then begin
             if (CallingFieldNo <> FieldNo("Location Code")) and (ReturnReason."Default Location Code" <> '') then
                 Validate("Location Code", ReturnReason."Default Location Code");
@@ -8988,7 +8800,6 @@ table 39 "Purchase Line"
         ItemReferenceMgt.EnterPurchaseItemReference(Rec);
 
         OnAfterUpdateItemReference(Rec);
-
         if Type <> Type::Item then
             exit;
 
@@ -9007,7 +8818,6 @@ table 39 "Purchase Line"
     local procedure CalcTotalAmtToAssign(TotalQtyToAssign: Decimal) TotalAmtToAssign: Decimal
     begin
         TotalAmtToAssign := CalcLineAmount() * TotalQtyToAssign / Quantity;
-
         if PurchHeader."Prices Including VAT" then
             TotalAmtToAssign := TotalAmtToAssign / (1 + "VAT %" / 100) - "VAT Difference";
 
@@ -9042,7 +8852,6 @@ table 39 "Purchase Line"
         OnBeforeGetDeferralAmount(Rec, DeferralAmount, IsHandled);
         if IsHandled then
             exit;
-
         if "VAT Base Amount" <> 0 then
             DeferralAmount := "VAT Base Amount"
         else
@@ -9123,7 +8932,6 @@ table 39 "Purchase Line"
         OnBeforeInitDeferralCode(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if "Document Type" in
            ["Document Type"::Order, "Document Type"::Invoice, "Document Type"::"Credit Memo", "Document Type"::"Return Order"]
         then
@@ -9286,7 +9094,6 @@ table 39 "Purchase Line"
         OnBeforeSendLineInvoiceDiscountResetNotification(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if ("Inv. Discount Amount" = 0) and (xRec."Inv. Discount Amount" <> 0) and ("Line Amount" <> 0) then begin
             NotificationToSend.Id := PurchHeader.GetLineInvoiceDiscountResetNotificationId();
             NotificationToSend.Message := StrSubstNo(LineInvoiceDiscountAmountResetTok, RecordId);
@@ -9334,7 +9141,6 @@ table 39 "Purchase Line"
         OnBeforeFormatTypeAsText(Rec, FormattedType, IsHandled);
         if IsHandled then
             exit(FormattedType);
-
         if Type = Type::" " then
             exit(CommentLbl);
 
@@ -9368,7 +9174,6 @@ table 39 "Purchase Line"
         OnBeforeUpdateLineDiscPct(Rec, Currency, IsHandled, CurrFieldNo);
         if IsHandled then
             exit;
-
         if Round(Quantity * "Direct Unit Cost", Currency."Amount Rounding Precision") <> 0 then begin
             LineDiscountPct := Round(
                 "Line Discount Amount" / Round(Quantity * "Direct Unit Cost", Currency."Amount Rounding Precision") * 100,
@@ -9409,7 +9214,6 @@ table 39 "Purchase Line"
         then
             if PurchHeader."Document Type" <> PurchHeader."Document Type"::Invoice then
                 exit;
-
         if PurchHeader."Document Type" <> PurchHeader."Document Type"::Invoice then begin
             OutstandingAmountExclTax := CalculateOutstandingAmountExclTax();
             "Prepayment VAT Difference" := 0;
@@ -9419,7 +9223,6 @@ table 39 "Purchase Line"
             end;
             PrePaymentLineAmountEntered := false;
         end;
-
         if not IsTemporary() then
             CheckPrepmtAmounts();
     end;
@@ -9445,7 +9248,6 @@ table 39 "Purchase Line"
         OnBeforeCheckPrepmtAmounts(Rec, PurchHeader, CurrFieldNo, IsHandled, xRec);
         if IsHandled then
             exit;
-
         if "Prepayment %" <> 0 then begin
             if "System-Created Entry" then
                 if Type = Type::"G/L Account" then
@@ -9488,7 +9290,6 @@ table 39 "Purchase Line"
         OnBeforeCheckPrepmtAmtInvEmpty(Rec, IsHandled, xRec);
         if IsHandled then
             exit;
-
         if ("Prepmt. Amt. Inv." <> 0) and (Rec."VAT Prod. Posting Group" <> xRec."VAT Prod. Posting Group") then
             Error(CannotChangeVATGroupWithPrepmInvErr);
     end;
@@ -9509,10 +9310,8 @@ table 39 "Purchase Line"
         OnBeforeOverReceiptProcessing(Rec, xRec, CurrFieldNo, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if not OverReceiptMgt.IsOverReceiptAllowed() or (Abs("Qty. to Receive") <= Abs("Outstanding Quantity")) then
             exit(false);
-
         if (Rec."Over-Receipt Code" = '') and (OverReceiptMgt.GetDefaultOverReceiptCode(Rec) = '') then
             exit(false);
 
@@ -9581,7 +9380,6 @@ table 39 "Purchase Line"
         OnBeforeCheckBuyFromVendorNo(PurchaseHeader, IsHandled);
         if IsHandled then
             exit;
-
         if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Quote then
             CheckQuoteVendorTemplateCode(PurchaseHeader)
         else
@@ -9596,7 +9394,6 @@ table 39 "Purchase Line"
         OnBeforeUpdateLineAmount(Rec, xRec, Currency, LineAmountChanged, IsHandled);
         if IsHandled then
             exit;
-
         if Rec."Line Amount" <> xRec."Line Amount" then begin
             ClearVATDifference();
             NonDeductibleVAT.InitNonDeductibleVATDiff(Rec);
@@ -9772,7 +9569,6 @@ table 39 "Purchase Line"
         OnBeforeInitTableValuePair(TableValuePair, FieldNo, IsHandled, Rec);
         if IsHandled then
             exit;
-
         case true of
             FieldNo = Rec.FieldNo("No."):
                 TableValuePair.Add(DimMgt.PurchLineTypeToTableID(Type), Rec."No.");
@@ -9887,7 +9683,6 @@ table 39 "Purchase Line"
                     TempPurchaseLine.Insert();
                 end;
             until InvtItemPurchLine.Next() = 0;
-
         if PAGE.RunModal(PAGE::"Purchase Lines", TempPurchaseLine) = ACTION::LookupOK then
             if TempPurchaseLine."Line No." <> 0 then
                 repeat
@@ -10015,15 +9810,12 @@ table 39 "Purchase Line"
         QtyReservedFromStock: Decimal;
     begin
         Result := true;
-
         if not Rec.IsInventoriableItem() then
             exit(true);
-
         if ReservedFromStock = ReservedFromStock::" " then
             exit(true);
 
         QtyReservedFromStock := PurchLineReserve.GetReservedQtyFromInventory(Rec);
-
         case ReservedFromStock of
             ReservedFromStock::Full:
                 if QtyToPost <> QtyReservedFromStock then
@@ -10075,7 +9867,6 @@ table 39 "Purchase Line"
               MustSpecifyErr,
               PurchaseHeader.FieldCaption("Buy-from Vendor No."),
               PurchaseHeader.FieldCaption("Buy-from Vendor Templ. Code"));
-
         if (PurchaseHeader."Pay-to Vendor No." = '') and
            (PurchaseHeader."Pay-to Vendor Templ. Code" = '')
         then
@@ -10095,10 +9886,8 @@ table 39 "Purchase Line"
     begin
         if not ShouldExit then
             exit;
-
         if Quantity <> 1 then
             exit;
-
         if QuantityDefaultedFromGLAccount() then
             ShouldExit := false;
     end;
@@ -10183,7 +9972,6 @@ table 39 "Purchase Line"
         OnBeforeTestPurchaseJobFields(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if Rec."Job No." = '' then
             exit;
 
@@ -10222,10 +10010,8 @@ table 39 "Purchase Line"
     begin
         if not ("Copied From Posted Doc." and IsCreditDocType()) then
             exit;
-
         if not IsNonInventoriableItem() then
             exit;
-
         if Abs("Quantity (Base)") > Abs(xPurchaseLine."Quantity (Base)") then
             FieldError(Quantity, StrSubstNo(CorrectiveCreditMemoQtyIncreaseErr, xPurchaseLine.Quantity));
     end;

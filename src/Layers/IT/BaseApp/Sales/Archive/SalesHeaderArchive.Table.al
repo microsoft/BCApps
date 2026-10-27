@@ -39,7 +39,6 @@ using System.Globalization;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
-using Microsoft.Intercompany.Setup;
 
 /// <summary>
 /// Stores archived versions of sales document headers for historical reference and audit trails.
@@ -451,7 +450,8 @@ table 5107 "Sales Header Archive"
         field(55; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account";
         }
@@ -1008,7 +1008,7 @@ table 5107 "Sales Header Archive"
         }
 #endif
 #if not CLEANSCHEMA30
-        field(129; "IC Direction"; Enum "IC Direction Type")
+        field(129; "IC Direction"; Enum Microsoft.Intercompany.Setup."IC Direction Type")
         {
             Caption = 'IC Direction';
             DataClassification = CustomerContent;
@@ -1596,7 +1596,8 @@ table 5107 "Sales Header Archive"
         field(12137; "Tax Representative No."; Code[20])
         {
             Caption = 'Tax Representative No.';
-            TableRelation = if ("Tax Representative Type" = filter(Customer)) Customer
+            TableRelation =
+            if ("Tax Representative Type" = filter(Customer)) Customer
             else
             if ("Tax Representative Type" = filter(Contact)) Contact;
         }
@@ -1644,7 +1645,8 @@ table 5107 "Sales Header Archive"
         field(12175; "3rd Party Loader No."; Code[20])
         {
             Caption = '3rd Party Loader No.';
-            TableRelation = if ("3rd Party Loader Type" = const(Vendor)) Vendor
+            TableRelation =
+            if ("3rd Party Loader Type" = const(Vendor)) Vendor
             else
             if ("3rd Party Loader Type" = const(Contact)) Contact where(Type = filter(Company));
         }
@@ -1747,7 +1749,6 @@ table 5107 "Sales Header Archive"
         OnBeforeSetSecurityFilterOnRespCenter(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if UserSetupMgt.GetSalesFilter() <> '' then begin
             FilterGroup(2);
             SetRange("Responsibility Center", UserSetupMgt.GetSalesFilter());

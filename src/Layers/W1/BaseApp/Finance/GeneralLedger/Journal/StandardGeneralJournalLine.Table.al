@@ -19,7 +19,6 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
-using Microsoft.Intercompany.Journal;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -82,7 +81,6 @@ table 751 "Standard General Journal Line"
 
                 Validate("Account No.", '');
                 OnSetICAccountNoBlank(Rec);
-
                 if "Account Type" in ["Account Type"::Customer, "Account Type"::Vendor, "Account Type"::"Bank Account"] then begin
                     Validate("Gen. Posting Type", "Gen. Posting Type"::" ");
                     Validate("Gen. Bus. Posting Group", '');
@@ -93,7 +91,6 @@ table 751 "Standard General Journal Line"
                     then
                         Validate("Payment Terms Code", '');
                 UpdateSource();
-
                 if xRec."Account Type" in
                    [xRec."Account Type"::Customer, xRec."Account Type"::Vendor]
                 then begin
@@ -110,7 +107,8 @@ table 751 "Standard General Journal Line"
         {
             Caption = 'Account No.';
             ToolTip = 'Specifies the account number that the entry on the journal line will be posted to.';
-            TableRelation = if ("Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Account Type" = const(Customer)) Customer
             else
@@ -123,7 +121,6 @@ table 751 "Standard General Journal Line"
             trigger OnValidate()
             begin
                 OnSetICPartnerCodeBlank(Rec, xRec."Account Type");
-
                 if "Account No." = '' then begin
                     UpdateLineBalance();
                     UpdateSource();
@@ -140,7 +137,6 @@ table 751 "Standard General Journal Line"
                     end;
                     exit;
                 end;
-
                 case "Account Type" of
                     "Account Type"::"G/L Account":
                         GetGLAccount();
@@ -244,7 +240,8 @@ table 751 "Standard General Journal Line"
         {
             Caption = 'Bal. Account No.';
             ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -257,7 +254,6 @@ table 751 "Standard General Journal Line"
             trigger OnValidate()
             begin
                 OnSetICPartnerCodeBlank(Rec, xRec."Bal. Account Type");
-
                 if "Bal. Account No." = '' then begin
                     UpdateLineBalance();
                     UpdateSource();
@@ -274,7 +270,6 @@ table 751 "Standard General Journal Line"
                     end;
                     exit;
                 end;
-
                 case "Bal. Account Type" of
                     "Bal. Account Type"::"G/L Account":
                         GetGLBalAccount();
@@ -317,7 +312,6 @@ table 751 "Standard General Journal Line"
                 if "Account Type" = "Account Type"::"Bank Account" then
                     if BankAcc.Get("Account No.") and (BankAcc."Currency Code" <> '') then
                         BankAcc.TestField("Currency Code", "Currency Code");
-
                 if "Currency Code" <> '' then begin
                     GetCurrency();
                     if ("Currency Code" <> xRec."Currency Code") or
@@ -478,7 +472,8 @@ table 751 "Standard General Journal Line"
         {
             Caption = 'Bill-to/Pay-to No.';
             ToolTip = 'Specifies the number of the bill-to customer or pay-to vendor that the entry is linked to.';
-            TableRelation = if ("Account Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Account Type" = const(Customer)) Customer
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -499,7 +494,8 @@ table 751 "Standard General Journal Line"
         {
             Caption = 'Posting Group';
             Editable = false;
-            TableRelation = if ("Account Type" = const(Customer)) "Customer Posting Group"
+            TableRelation =
+            if ("Account Type" = const(Customer)) "Customer Posting Group"
             else
             if ("Account Type" = const(Vendor)) "Vendor Posting Group"
             else
@@ -640,7 +636,6 @@ table 751 "Standard General Journal Line"
 
                 GetCurrency();
                 "VAT Amount" := Round("VAT Amount", Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
-
                 if "VAT Amount" * Amount < 0 then
                     if "VAT Amount" > 0 then
                         Error(Text011, FieldCaption("VAT Amount"))
@@ -814,7 +809,6 @@ table 751 "Standard General Journal Line"
                     then
                         Validate("Payment Terms Code", '');
                 UpdateSource();
-
                 if xRec."Bal. Account Type" in
                    [xRec."Bal. Account Type"::Customer, xRec."Bal. Account Type"::Vendor]
                 then begin
@@ -970,7 +964,6 @@ table 751 "Standard General Journal Line"
                 GetCurrency();
                 "Bal. VAT Amount" :=
                   Round("Bal. VAT Amount", Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
-
                 if "Bal. VAT Amount" * Amount > 0 then
                     if "Bal. VAT Amount" > 0 then
                         Error(Text011, FieldCaption("Bal. VAT Amount"))
@@ -1159,7 +1152,8 @@ table 751 "Standard General Journal Line"
         field(79; "Source No."; Code[20])
         {
             Caption = 'Source No.';
-            TableRelation = if ("Source Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Source Type" = const(Customer)) Customer
             else
             if ("Source Type" = const(Vendor)) Vendor
             else
@@ -1399,7 +1393,8 @@ table 751 "Standard General Journal Line"
         {
             Caption = 'Ship-to/Order Address Code';
             ToolTip = 'Specifies the address code of the ship-to customer or order-from vendor that the entry is linked to.';
-            TableRelation = if ("Account Type" = const(Customer)) "Ship-to Address".Code where("Customer No." = field("Bill-to/Pay-to No."))
+            TableRelation =
+            if ("Account Type" = const(Customer)) "Ship-to Address".Code where("Customer No." = field("Bill-to/Pay-to No."))
             else
             if ("Account Type" = const(Vendor)) "Order Address".Code where("Vendor No." = field("Bill-to/Pay-to No."))
             else
@@ -1460,7 +1455,8 @@ table 751 "Standard General Journal Line"
         field(118; "Sell-to/Buy-from No."; Code[20])
         {
             Caption = 'Sell-to/Buy-from No.';
-            TableRelation = if ("Account Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Account Type" = const(Customer)) Customer
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -1469,7 +1465,7 @@ table 751 "Standard General Journal Line"
             if ("Bal. Account Type" = const(Vendor)) Vendor;
         }
 #if not CLEANSCHEMA30
-        field(130; "IC Account Type"; Enum "IC Journal Account Type")
+        field(130; "IC Account Type"; Enum Microsoft.Intercompany.Journal."IC Journal Account Type")
         {
             Caption = 'IC Account Type';
             DataClassification = CustomerContent;
@@ -1786,7 +1782,6 @@ table 751 "Standard General Journal Line"
         CheckGLAcc(GLAcc);
         if "Bal. Account No." = '' then
             Description := GLAcc.Name;
-
         if ("Bal. Account No." = '') or
            ("Bal. Account Type" in
             ["Bal. Account Type"::"G/L Account", "Bal. Account Type"::"Bank Account"])

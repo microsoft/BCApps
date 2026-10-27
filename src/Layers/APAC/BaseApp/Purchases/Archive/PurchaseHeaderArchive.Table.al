@@ -36,7 +36,6 @@ using Microsoft.Sales.History;
 using System.Globalization;
 using System.Security.AccessControl;
 using System.Security.User;
-using Microsoft.Intercompany.Setup;
 
 table 5109 "Purchase Header Archive"
 {
@@ -294,7 +293,8 @@ table 5109 "Purchase Header Archive"
         field(55; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account";
         }
@@ -659,7 +659,7 @@ table 5109 "Purchase Header Archive"
         }
 #endif
 #if not CLEANSCHEMA30
-        field(129; "IC Direction"; Enum "IC Direction Type")
+        field(129; "IC Direction"; Enum Microsoft.Intercompany.Setup."IC Direction Type")
         {
             Caption = 'IC Direction';
             DataClassification = CustomerContent;
@@ -1049,7 +1049,6 @@ table 5109 "Purchase Header Archive"
         OnBeforeSetSecurityFilterOnRespCenter(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if UserSetupManagement.GetPurchasesFilter() <> '' then begin
             FilterGroup(2);
             SetRange("Responsibility Center", UserSetupManagement.GetPurchasesFilter());

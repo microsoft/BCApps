@@ -35,7 +35,6 @@ using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Structure;
 using System.Reflection;
-using Microsoft.Intercompany.Partner;
 
 table 5110 "Purchase Line Archive"
 {
@@ -77,7 +76,8 @@ table 5110 "Purchase Line Archive"
         {
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
-            TableRelation = if (Type = const(" ")) "Standard Text"
+            TableRelation =
+            if (Type = const(" ")) "Standard Text"
             else
             if (Type = const("G/L Account")) "G/L Account"
             else
@@ -96,7 +96,8 @@ table 5110 "Purchase Line Archive"
         field(8; "Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
-            TableRelation = if (Type = const(Item)) "Inventory Posting Group"
+            TableRelation =
+            if (Type = const(Item)) "Inventory Posting Group"
             else
             if (Type = const("Fixed Asset")) "FA Posting Group";
         }
@@ -346,12 +347,14 @@ table 5110 "Purchase Line Archive"
         field(71; "Sales Order No."; Code[20])
         {
             Caption = 'Sales Order No.';
-            TableRelation = if ("Drop Shipment" = const(true)) "Sales Header"."No." where("Document Type" = const(Order));
+            TableRelation =
+            if ("Drop Shipment" = const(true)) "Sales Header"."No." where("Document Type" = const(Order));
         }
         field(72; "Sales Order Line No."; Integer)
         {
             Caption = 'Sales Order Line No.';
-            TableRelation = if ("Drop Shipment" = const(true)) "Sales Line"."Line No." where("Document Type" = const(Order),
+            TableRelation =
+            if ("Drop Shipment" = const(true)) "Sales Line"."Line No." where("Document Type" = const(Order),
                                                                                             "Document No." = field("Sales Order No."));
         }
         field(73; "Drop Shipment"; Boolean)
@@ -515,7 +518,7 @@ table 5110 "Purchase Line Archive"
             Caption = 'VAT Identifier';
         }
 #if not CLEANSCHEMA30
-        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
+        field(107; "IC Partner Ref. Type"; Enum Microsoft.Intercompany.Partner."IC Partner Reference Type")
         {
             Caption = 'IC Partner Ref. Type';
             DataClassification = CustomerContent;
@@ -813,7 +816,8 @@ table 5110 "Purchase Line Archive"
         {
             Caption = 'Variant Code';
             ToolTip = 'Specifies the variant of the item on the line.';
-            TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
+            TableRelation =
+            if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
         }
         field(5403; "Bin Code"; Code[20])
         {
@@ -831,7 +835,8 @@ table 5110 "Purchase Line Archive"
         {
             Caption = 'Unit of Measure Code';
             ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
-            TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
+            TableRelation =
+            if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             "Unit of Measure";
         }
@@ -955,12 +960,14 @@ table 5110 "Purchase Line Archive"
         field(5714; "Special Order Sales No."; Code[20])
         {
             Caption = 'Special Order Sales No.';
-            TableRelation = if ("Special Order" = const(true)) "Sales Header"."No." where("Document Type" = const(Order));
+            TableRelation =
+            if ("Special Order" = const(true)) "Sales Header"."No." where("Document Type" = const(Order));
         }
         field(5715; "Special Order Sales Line No."; Integer)
         {
             Caption = 'Special Order Sales Line No.';
-            TableRelation = if ("Special Order" = const(true)) "Sales Line"."Line No." where("Document Type" = const(Order),
+            TableRelation =
+            if ("Special Order" = const(true)) "Sales Line"."Line No." where("Document Type" = const(Order),
                                                                                             "Document No." = field("Special Order Sales No."));
         }
         field(5725; "Item Reference No."; Code[50])
@@ -971,7 +978,8 @@ table 5110 "Purchase Line Archive"
         field(5726; "Item Reference Unit of Measure"; Code[10])
         {
             Caption = 'Reference Unit of Measure';
-            TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."));
+            TableRelation =
+            if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."));
         }
         field(5727; "Item Reference Type"; Enum "Item Reference Type")
         {
@@ -1347,7 +1355,6 @@ table 5110 "Purchase Line Archive"
         PurchCommentLineArchive.SetRange("Version No.", Rec."Version No.");
         if not PurchCommentLineArchive.IsEmpty() then
             PurchCommentLineArchive.DeleteAll();
-
         if Rec."Deferral Code" <> '' then
             DeferralHeaderArchive.DeleteHeader(
                 "Deferral Document Type"::Purchase.AsInteger(),
