@@ -80,7 +80,7 @@ codeunit 3374 "MX Payment Compl. Cancel"
     begin
         // Legacy parity: only a cancellation that was already requested can be closed manually
         if not (Complement."Cancellation Status" in [Complement."Cancellation Status"::"Cancel In Progress", Complement."Cancellation Status"::"Cancel Error"]) then
-            Error(InvalidStatusForMarkErr, Complement."Cancellation Status");
+            Error(InvalidStatusForMarkErr);
         if not Confirm(MarkAsCanceledQst, false) then
             exit;
 
@@ -99,7 +99,7 @@ codeunit 3374 "MX Payment Compl. Cancel"
     procedure ResetCancellationRequest(var Complement: Record "MX Payment Complement")
     begin
         if Complement."Cancellation Status" <> Complement."Cancellation Status"::"Cancel In Progress" then
-            Error(InvalidStatusForResetErr, Complement."Cancellation Status");
+            Error(InvalidStatusForResetErr);
         if not Confirm(ResetCancellationRequestQst, false) then
             exit;
 
@@ -234,11 +234,11 @@ codeunit 3374 "MX Payment Compl. Cancel"
     var
         CancelOptionsTxt: Label 'Cancel Request,Get Response,Mark as Canceled,Reset Cancellation Request';
         NotStampedErr: Label 'The payment complement has not been stamped, so there is nothing to cancel.';
-        InvalidStatusForMarkErr: Label 'Only a payment complement with a cancellation in progress or a cancellation error can be marked as canceled. The cancellation status is %1.', Comment = '%1 = cancellation status';
+        InvalidStatusForMarkErr: Label 'Only a payment complement with a cancellation in progress or a cancellation error can be marked as canceled.';
         CancelQst: Label 'Do you want to cancel the payment complement?';
         InvalidStatusForCancelErr: Label 'The payment complement cannot be canceled because its cancellation status is %1.', Comment = '%1 = cancellation status';
         InvalidStatusForResponseErr: Label 'There is no cancellation in progress for this payment complement. The cancellation status is %1.', Comment = '%1 = cancellation status';
-        InvalidStatusForResetErr: Label 'Only a cancellation in progress can be reset. The cancellation status is %1.', Comment = '%1 = cancellation status';
+        InvalidStatusForResetErr: Label 'Only a cancellation in progress can be reset.';
         MissingCancelRequestErr: Label 'The cancellation request could not be created.';
         MarkAsCanceledQst: Label 'This will mark the payment complement as canceled in Business Central without contacting the PAC. Only use this if you have confirmed the complement is already canceled in SAT. Do you want to continue?';
         ResetCancellationRequestQst: Label 'Do you want to reset the cancellation request to the error status?';
