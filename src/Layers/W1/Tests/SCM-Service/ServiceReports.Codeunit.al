@@ -844,6 +844,7 @@ codeunit 136900 "Service Reports"
         // [SCENARIO 428385] Service Lines are shown in groups per Service Item Line.
         // [GIVEN] Service Order shipped and invoiced.
         Initialize();
+        LibrarySales.SetInvoiceRounding(false);
         LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
         LibraryService.CreateServiceHeader(
           ServiceHeader, ServiceHeader."Document Type"::Order, CreateCustomer(VATPostingSetup."VAT Bus. Posting Group"));
@@ -2232,6 +2233,7 @@ codeunit 136900 "Service Reports"
     begin
         // [SCENARIO 575517] Check Report 5911 "Service - Invoice" shows the translated VAT Clause.
         Initialize();
+        LibrarySales.SetInvoiceRounding(false);
 
         // [GIVEN] Language code "DEU".
         Language.Validate(Code, LibraryUtility.GenerateGUID());
