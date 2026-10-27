@@ -961,7 +961,7 @@ table 5107 "Sales Header Archive"
         }
 #endif
 #if not CLEANSCHEMA30
-        field(124; "IC Status"; Enum "Sales Document IC Status")
+        field(124; "IC Status"; Enum Microsoft.Intercompany.Setup."Sales Document IC Status")
         {
             Caption = 'IC Status';
             DataClassification = CustomerContent;

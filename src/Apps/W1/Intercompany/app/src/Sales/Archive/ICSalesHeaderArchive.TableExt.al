@@ -26,7 +26,7 @@ tableextension 8467 ICSalesHeaderArchive extends "Sales Header Archive"
         /// <summary>
         /// Specifies the intercompany processing status of the document.
         /// </summary>
-        field(124; "IC Status"; Enum "Sales Document IC Status")
+        field(124; "IC Status"; Enum Microsoft.Intercompany.Setup."Sales Document IC Status")
         {
             MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
             Caption = 'IC Status';

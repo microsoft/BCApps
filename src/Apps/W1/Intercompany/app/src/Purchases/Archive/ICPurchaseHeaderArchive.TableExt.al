@@ -20,7 +20,7 @@ tableextension 8442 ICPurchaseHeaderArchive extends "Purchase Header Archive"
             Caption = 'Send IC Document';
             DataClassification = CustomerContent;
         }
-        field(124; "IC Status"; Enum "Purchase Document IC Status")
+        field(124; "IC Status"; Enum Microsoft.Intercompany.Setup."Purchase Document IC Status")
         {
             MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
             Caption = 'IC Status';
