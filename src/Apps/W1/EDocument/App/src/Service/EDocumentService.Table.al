@@ -364,11 +364,6 @@ table 6103 "E-Document Service"
         EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, "E-Document Type"::"Purchase Credit Memo", "E-Doc. Supp. Type Direction"::Incoming);
     end;
 
-    internal procedure GetPDFReaderServiceCode(): Code[20]
-    begin
-        exit(AzureDocumentIntelligenceTok);
-    end;
-
     internal procedure IsAutomaticProcessingEnabled(): Boolean
     begin
         exit(Rec."Automatic Import Processing" = Enum::"E-Doc. Automatic Processing"::Yes);
