@@ -53,9 +53,14 @@ page 5129 "Update Opportunity"
                 Editable = SalesCycleStageEditable;
 
                 trigger OnLookup(var Text: Text): Boolean
+                var
+                    PreviousSalesCycleStage: Integer;
                 begin
+                    PreviousSalesCycleStage := Rec."Sales Cycle Stage";
                     Rec.LookupSalesCycleStage();
                     Rec.ValidateSalesCycleStage();
+                    if Rec."Sales Cycle Stage" <> PreviousSalesCycleStage then
+                        SalesCycleStageOnAfterValidate();
                 end;
 
                 trigger OnValidate()
@@ -291,8 +296,13 @@ page 5129 "Update Opportunity"
 
     local procedure SalesCycleStageOnAfterValidate()
     begin
-        if SalesCycleStage.Get(Rec."Sales Cycle Code", Rec."Sales Cycle Stage") then
+        if SalesCycleStage.Get(Rec."Sales Cycle Code", Rec."Sales Cycle Stage") then begin
             Rec."Sales Cycle Stage Description" := SalesCycleStage.Description;
+            if (Rec."Action Type" in [Rec."Action Type"::Skip, Rec."Action Type"::Jump]) and
+               (SalesCycleStage."Chances of Success %" <> 0)
+            then
+                Rec."Chances of Success %" := SalesCycleStage."Chances of Success %";
+        end;
     end;
 
     local procedure FirstActionTypeOnValidate()
