@@ -5,8 +5,8 @@ using Microsoft.Bank.Payment;
 #endif
 #if not CLEAN30
 using Microsoft.Finance.FinancialReports;
-#endif
 using Microsoft.Finance.ReceivablesPayables;
+#endif
 using Microsoft.Sales.Document;
 
 permissionset 1001 "LOCAL"
@@ -37,6 +37,10 @@ permissionset 1001 "LOCAL"
                   tabledata "Payment Step" = RIMD,
                   tabledata "Payment Step Ledger" = RIMD,
 #endif
-                  tabledata "Shipment Invoiced" = RIMD,
-                  tabledata "Unreal. CV Ledg. Entry Buffer" = RIMD;
+#if not CLEAN30
+#pragma warning disable AL0432
+                  tabledata "Unreal. CV Ledg. Entry Buffer" = RIMD,
+#pragma warning restore AL0432
+#endif
+                  tabledata "Shipment Invoiced" = RIMD;
 }

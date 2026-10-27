@@ -76,6 +76,14 @@ codeunit 6103 "E-Document Subscribers"
         LogAfterValidate(Rec."Entry No", NullGuid, 'Vendor No.');
     end;
 
+    [EventSubscriber(ObjectType::Page, Page::"E-Document Purchase Draft", OnAfterValidateEvent, "Applies-to Vendor Inv. No.", false, false)]
+    local procedure OnAfterValidateDraftPageAppliesToVendorInvNo(var Rec: Record "E-Document"; var xRec: Record "E-Document")
+    var
+        NullGuid: Guid;
+    begin
+        LogAfterValidate(Rec."Entry No", NullGuid, 'Applies-to Vendor Inv. No.');
+    end;
+
     [EventSubscriber(ObjectType::Page, Page::"E-Document Purchase Draft", OnAfterValidateEvent, "Invoice Discount", false, false)]
     local procedure OnAfterValidateDraftPageDiscount(var Rec: Record "E-Document"; var xRec: Record "E-Document")
     var
