@@ -1,3 +1,14 @@
+namespace Microsoft.Finance.VAT.Reporting.Test;
+
+using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
+using Microsoft.Sales.Customer;
+using System.IO;
+using System.TestLibraries.Utilities;
+using System.Text;
+using System.Utilities;
 codeunit 144064 "INTERVAT XML Output"
 {
     // [FEATURE] [INTERVAT] [XML]
