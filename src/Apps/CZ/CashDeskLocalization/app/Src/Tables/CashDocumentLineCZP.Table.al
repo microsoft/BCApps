@@ -1933,7 +1933,7 @@ table 11733 "Cash Document Line CZP"
         exit(
             ("Document Type" = "Document Type"::Withdrawal) and
             ("Account Type" = "Account Type"::Customer) and
-            ("Gen. Document Type" = "Gen. Document Type"::Payment));
+            ("Gen. Document Type" = "Gen. Document Type"::Refund));
     end;
 
     procedure IsInvoicePayment(): Boolean
