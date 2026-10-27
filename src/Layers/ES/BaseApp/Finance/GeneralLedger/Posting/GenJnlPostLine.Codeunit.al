@@ -6115,21 +6115,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         CreateGLEntry(
                             GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)",
                             GLCalcAddCurrency(
-                                DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount, 0,
+                                DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount,
+                                DetailedCVLedgEntryBuffer."Additional-Currency Amount",
                                 DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode, GenJournalLine),
                             DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
                             CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
                     PostDtldCVApplicationEntry(GenJournalLine, DetailedCVLedgEntryBuffer);
                 end;
-                if MultiplePostingGroups then
-                    CreateGLEntry(
-                        GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)",
-                        GLCalcAddCurrency(
-                            DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount,
-                            DetailedCVLedgEntryBuffer."Additional-Currency Amount",
-                            DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode, GenJournalLine),
-                        DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
-                        CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Loss",
             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Gain",
             DetailedCVLedgEntryBuffer."Entry Type"::"Realized Loss",

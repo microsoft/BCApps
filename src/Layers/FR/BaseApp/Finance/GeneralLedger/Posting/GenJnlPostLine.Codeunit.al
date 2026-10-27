@@ -5580,11 +5580,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     CreateGLEntry(
                         GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)",
                         GLCalcAddCurrency(
-                            DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount, 0,
-                            DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode, GenJournalLine),
-                        DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
-                        GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)",
-                        GLCalcAddCurrency(
                             DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount,
                             DetailedCVLedgEntryBuffer."Additional-Currency Amount",
                             DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode, GenJournalLine),

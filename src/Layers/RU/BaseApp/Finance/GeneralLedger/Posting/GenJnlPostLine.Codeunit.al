@@ -4135,12 +4135,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             DtldCVLedgEntryBuf."Applied Amount (LCY)" := AppliedAmountLCY;
             DtldCVLedgEntryBuf.InsertDtldCVLedgEntry(DtldCVLedgEntryBuf, OldCVLedgEntryBuf, false);
         end;
-        DtldCVLedgEntryBuf.InitDetailedCVLedgEntryBuf(
-          GenJnlLine, OldCVLedgEntryBuf, DtldCVLedgEntryBuf,
-          DtldCVLedgEntryBuf."Entry Type"::Application, OldAppliedAmount, AppliedAmountLCY,
-          CalcApplicationAddCurrAmount(GenJnlLine, OldCVLedgEntryBuf."Currency Code", OldAppliedAmount, AppliedAmountLCY),
-          NewCVLedgEntryBuf."Entry No.", PrevOldCVLedgEntryBuf."Remaining Pmt. Disc. Possible",
-          PrevOldCVLedgEntryBuf."Max. Payment Tolerance");
 
         OnAfterInitOldDtldCVLedgEntryBuf(
           DtldCVLedgEntryBuf, NewCVLedgEntryBuf, OldCVLedgEntryBuf, PrevNewCVLedgEntryBuf, PrevOldCVLedgEntryBuf, GenJnlLine);
@@ -7981,19 +7975,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             AddCurrency."Amount Rounding Precision"));
     end;
 
-    local procedure CalcApplicationAddCurrAmount(GenJnlLine: Record "Gen. Journal Line"; CurrencyCode: Code[10]; Amount: Decimal; AmountLCY: Decimal): Decimal
-    begin
-        if (AddCurrencyCode = '') or
-           (GenJnlLine."Additional-Currency Posting" <> GenJnlLine."Additional-Currency Posting"::None)
-        then
-            exit(0);
-
-        if CurrencyCode = AddCurrencyCode then
-            exit(Amount);
-
-        exit(CalcAddCurrForUnapplication(GenJnlLine."Posting Date", AmountLCY));
-    end;
-
     local procedure CalcVATAmountFromVATEntry(AmountLCY: Decimal; var VATEntry: Record "VAT Entry"; CurrencyLCY: Record Currency) VATAmountLCY: Decimal
     begin
         if (AmountLCY = VATEntry.Base) or (VATEntry.Base = 0) then begin
@@ -10591,25 +10572,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 CheckCustApplDates(NewCVLedgEntryBuf."Posting Date", OldCustLedgEntry."Posting Date", NewCVLedgEntryBuf."Entry No.")
             else
                 CheckCustApplDates(OldCustLedgEntry."Posting Date", NewCVLedgEntryBuf."Posting Date", OldCustLedgEntry."Entry No.");
-        if DtldCVLedgEntryBuf."Entry Type" = DtldCVLedgEntryBuf."Entry Type"::Application then begin
-            if AddCurrencyCode <> '' then
-                if DtldCVLedgEntryBuf."Currency Code" = AddCurrencyCode then
-                    DtldCVLedgEntryBuf."Additional-Currency Amount" := DtldCVLedgEntryBuf.Amount
-                else
-                    DtldCVLedgEntryBuf."Additional-Currency Amount" :=
-                        CalcAddCurrForUnapplication(DtldCVLedgEntryBuf."Posting Date", DtldCVLedgEntryBuf."Amount (LCY)")
-        end else
-            if not (DtldCVLedgEntryBuf."Entry Type" in
-                    [DtldCVLedgEntryBuf."Entry Type"::"Unrealized Loss",
-                     DtldCVLedgEntryBuf."Entry Type"::"Unrealized Gain", DtldCVLedgEntryBuf."Entry Type"::"Realized Loss",
-                     DtldCVLedgEntryBuf."Entry Type"::"Realized Gain", DtldCVLedgEntryBuf."Entry Type"::"Correction of Remaining Amount"])
-            then
-                if (DtldCVLedgEntryBuf."Entry Type" = DtldCVLedgEntryBuf."Entry Type"::"Appln. Rounding") or
-                   ((AddCurrencyCode <> '') and (AddCurrencyCode = DtldCVLedgEntryBuf."Currency Code"))
-                then
-                    DtldCVLedgEntryBuf."Additional-Currency Amount" := DtldCVLedgEntryBuf.Amount
-                else
-                    DtldCVLedgEntryBuf."Additional-Currency Amount" := CalcAddCurrForUnapplication(DtldCVLedgEntryBuf."Posting Date", DtldCVLedgEntryBuf."Amount (LCY)");
     end;
 
     local procedure CheckVendApplDates(PrepaymentPostingDate: Date; InitialEntryPostingDate: Date; EntryNo: Integer)

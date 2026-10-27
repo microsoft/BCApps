@@ -600,8 +600,6 @@ codeunit 134195 "ERM Multiple Posting Groups"
         Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
         VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", TotalAmount, TotalAmount);
         VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", -TotalAmount, -TotalAmount);
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", TotalAmount, TotalAmount);
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", -TotalAmount, -TotalAmount);
     end;
 
     [Test]
@@ -840,8 +838,6 @@ codeunit 134195 "ERM Multiple Posting Groups"
         GLEntry.Reset();
         GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
         Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup2."Payables Account", -TotalAmount, -TotalAmount);
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup."Payables Account", TotalAmount, TotalAmount);
         VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup2."Payables Account", -TotalAmount, -TotalAmount);
         VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup."Payables Account", TotalAmount, TotalAmount);
     end;
@@ -1495,14 +1491,6 @@ codeunit 134195 "ERM Multiple Posting Groups"
         GLEntry.SetRange("G/L Account No.", AccountNo);
         GLEntry.FindFirst();
         Assert.AreEqual(Amount, GLEntry.Amount, StrSubstNo('G/L entry amount %1 for posting group %2 is not correct', GLEntry.Amount, AccountNo));
-    end;
-
-    local procedure VerifyGLEntryForGLAccountAndAddCurrAmount(var GLEntry: Record "G/L Entry"; AccountNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal)
-    begin
-        VerifyGLEntryForGLAccount(GLEntry, AccountNo, Amount);
-        Assert.AreEqual(
-            AmountAddCurr, GLEntry."Additional-Currency Amount",
-            StrSubstNo('G/L entry additional currency amount %1 for posting group %2 is not correct', GLEntry."Additional-Currency Amount", AccountNo));
     end;
 
     local procedure VerifyGLEntryForGLAccountAndAddCurrAmount(var GLEntry: Record "G/L Entry"; AccountNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal)
