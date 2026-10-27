@@ -37,9 +37,9 @@ codeunit 10689 "Elec. VAT XML Helper"
 
     procedure LoadXmlFromText(RawXmlText: Text)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        XmlUtilities: Codeunit "XML Utilities";
     begin
-        XMLDOMManagement.ClearUTF8BOMSymbols(RawXmlText);
+        XmlUtilities.ClearUtf8BomSymbols(RawXmlText);
         XmlDocument.ReadFrom(RawXmlText, XMLDoc);
         XmlDocument.ReadFrom(RawXmlText, XMLDoc);
         XMLNsMgr.NameTable(XMLDoc.NameTable);
