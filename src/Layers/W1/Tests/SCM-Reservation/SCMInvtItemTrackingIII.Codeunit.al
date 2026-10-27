@@ -44,6 +44,7 @@ codeunit 137262 "SCM Invt Item Tracking III"
         WrongInvoicedQtyErr: Label 'Quantity Invoiced is incorrect in %1.', Comment = '%1=Purch. Rcpt. Line table caption';
         WrongNoOfComponentEntriesErr: Label 'Wrong number of assembly component entries is shown in Item Tracing.';
         WrongQtyForItemErr: Label '%1 in the item tracking assigned to the document line for item %2 is currently %3. It must be %4.\\Check the assignment for serial number %5, lot number %6, package number %7.', Comment = '%1 - Qty. to Handle or Qty. to Invoice, %2 - Item No., %3 - actual value, %4 - expected value, %5 - Serial No., %6 - Lot No., %7 - Package No.';
+        TrackingAvailabilityQst: Label 'You do not have enough inventory to meet the demand for items in one or more lines.\This is indicated by No in the Availability fields.\Do you want to continue?';
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -3344,7 +3345,7 @@ codeunit 137262 "SCM Invt Item Tracking III"
     end;
 
     [Test]
-    [HandlerFunctions('ItemTrackingLinesPageHandlerTrackingOption')]
+    [HandlerFunctions('ItemTrackingLinesPageHandlerTrackingOption,TrackingAvailabilityConfirmHandler')]
     procedure RemainingQtyOnProdOrderCompAfterTwoPartialConsumptionsWithPlanningAndLotTracking()
     var
         CompItem: Record Item;
@@ -3418,6 +3419,8 @@ codeunit 137262 "SCM Invt Item Tracking III"
         ProdOrderComponent.TestField("Act. Consumption (Qty)", 2 * ConsumptionQty);
         ProdOrderComponent.TestField("Remaining Quantity", QtyPer - 2 * ConsumptionQty);
         ProdOrderComponent.TestField("Remaining Qty. (Base)", QtyPer - 2 * ConsumptionQty);
+        CompItem.CalcFields(Inventory);
+        CompItem.TestField(Inventory, QtyPer - 2 * ConsumptionQty);
 
         // [THEN] Remaining reservation entries of the component do not carry "New Lot No." from the consumption journal.
         ReservationEntry.SetSourceFilter(
@@ -5296,9 +5299,18 @@ codeunit 137262 "SCM Invt Item Tracking III"
     local procedure CreateAndPostConsumptionJournalForProdOrderComp(ProdOrderComponent: Record "Prod. Order Component"; LotNo: Code[50]; Qty: Decimal)
     var
         ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
         ConsumptionItemJournalTemplate: Record "Item Journal Template";
         ConsumptionItemJournalBatch: Record "Item Journal Batch";
     begin
+        ItemLedgerEntry.SetRange("Item No.", ProdOrderComponent."Item No.");
+        ItemLedgerEntry.SetRange("Location Code", ProdOrderComponent."Location Code");
+        ItemLedgerEntry.SetRange("Lot No.", LotNo);
+        ItemLedgerEntry.CalcSums("Remaining Quantity");
+        Assert.IsTrue(
+            ItemLedgerEntry."Remaining Quantity" >= Qty,
+            'The selected lot must have enough inventory for the partial consumption.');
+
         ConsumptionJournalSetup(ConsumptionItemJournalTemplate, ConsumptionItemJournalBatch);
         LibraryInventory.ClearItemJournal(ConsumptionItemJournalTemplate, ConsumptionItemJournalBatch);
         LibraryInventory.CreateItemJournalLine(
@@ -5357,6 +5369,14 @@ codeunit 137262 "SCM Invt Item Tracking III"
 
         CreateAndPostPurchaseOrderWithIT(PurchaseLine, Item."No.", '', TrackingOption);
         FindItemLedgerEntry(ItemLedgerEntry, Item."No.");
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure TrackingAvailabilityConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.AreEqual(TrackingAvailabilityQst, Question, Question);
+        Reply := true;
     end;
 
     [ConfirmHandler]
@@ -5595,4 +5615,3 @@ codeunit 137262 "SCM Invt Item Tracking III"
         ItemTracingSpecification.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
-

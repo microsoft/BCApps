@@ -3,6 +3,7 @@ namespace Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Service.Item;
 using Microsoft.Warehouse.Ledger;
@@ -340,6 +341,7 @@ codeunit 137933 "Item Tracking Code Changes"
     var
         Item: Record Item;
         ItemTrackingCode: Record "Item Tracking Code";
+        InventorySetup: Record "Inventory Setup";
         ErrorMessages: TestPage "Error Messages";
     begin
         // [FEATURE] [AI test 1.0]
@@ -347,7 +349,13 @@ codeunit 137933 "Item Tracking Code Changes"
         Initialize();
 
         // [GIVEN] Item "I" with adjusted costs that have not been posted to the general ledger.
+        InventorySetup.Get();
+        LibraryInventory.SetAutomaticCostPosting(false);
         CreateClosedItemHistory(Item, WorkDate() - 1, true, false);
+        LibraryInventory.SetAutomaticCostPosting(InventorySetup."Automatic Cost Posting");
+        Item.TestField("Cost is Adjusted", true);
+        Item.CalcFields("Cost is Posted to G/L");
+        Item.TestField("Cost is Posted to G/L", false);
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
 
         // [WHEN] Lot tracking is enabled for item "I".

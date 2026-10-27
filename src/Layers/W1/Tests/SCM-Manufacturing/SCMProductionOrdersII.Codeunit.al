@@ -7658,6 +7658,7 @@ codeunit 137072 "SCM Production Orders II"
 
         // [GIVEN] Lot tracking is represented as enabled on the day after the historical consumption.
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        CompItem.Get(CompItem."No.");
         CompItem."Item Tracking Code" := ItemTrackingCode.Code;
         CompItem.Modify();
         CreateItemTrackingCodeChangeLog(CompItem."No.", WorkDate() + 1, '', ItemTrackingCode.Code);
@@ -7672,7 +7673,7 @@ codeunit 137072 "SCM Production Orders II"
     end;
 
     [Test]
-    [HandlerFunctions('ProductionJnlPageHandler2,ConfirmHandler,MessageHandlerNoText')]
+    [HandlerFunctions('ProductionJnlPageHandler,ConfirmHandler,MessageHandlerNoText')]
     procedure ReverseProductionOutputIsBlockedAfterProducedItemChangedFromBlankToLotTracking()
     var
         CompItem: Record Item;
@@ -7704,10 +7705,12 @@ codeunit 137072 "SCM Production Orders II"
 
         // [GIVEN] Lot tracking is enabled for the produced item without a historical change-log entry.
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        FGItem.Get(FGItem."No.");
         FGItem."Item Tracking Code" := ItemTrackingCode.Code;
         FGItem.Modify();
 
         // [WHEN] The historical output entry is reversed.
+        ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
         asserterror UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
 
         // [THEN] Reversal is blocked before posting because the required lot cannot be determined.
@@ -7751,10 +7754,11 @@ codeunit 137072 "SCM Production Orders II"
         ItemLedgerEntry.FindFirst();
 
         // [WHEN] The historical consumption entry is reversed.
+        ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
         UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
 
         // [THEN] A positive reversing consumption entry is posted.
-        VerifyReversedConsumptionExists(CompItem."No.");
+        VerifyReversedConsumption(CompItem."No.", 1);
     end;
 
     [Test]
@@ -11005,14 +11009,16 @@ codeunit 137072 "SCM Production Orders II"
         ItemTrackingCodeChangeLog.Insert(true);
     end;
 
-    local procedure VerifyReversedConsumptionExists(ItemNo: Code[20])
+    local procedure VerifyReversedConsumption(ItemNo: Code[20]; ExpectedQuantity: Decimal)
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
     begin
         ItemLedgerEntry.SetRange("Item No.", ItemNo);
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
         ItemLedgerEntry.SetFilter(Quantity, '>0');
-        Assert.IsFalse(ItemLedgerEntry.IsEmpty(), 'A reversing production consumption entry should exist.');
+        Assert.RecordCount(ItemLedgerEntry, 1);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField(Quantity, ExpectedQuantity);
     end;
 
     local procedure FindPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; ItemNo: Code[20])

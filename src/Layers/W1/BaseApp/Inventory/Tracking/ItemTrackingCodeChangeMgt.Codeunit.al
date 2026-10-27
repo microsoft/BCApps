@@ -23,6 +23,8 @@ using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Structure;
+using System.Security.AccessControl;
+using System.Security.User;
 using System.Utilities;
 
 codeunit 7047 "Item Tracking Code Change Mgt."
@@ -71,9 +73,14 @@ codeunit 7047 "Item Tracking Code Change Mgt."
 
     local procedure TestItemTrackingCodeChangePermission(Item: Record Item)
     var
-        ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
+        TempExpandedPermission: Record "Expanded Permission" temporary;
+        UserPermissions: Codeunit "User Permissions";
     begin
-        if not ItemTrackingCodeChangeLog.WritePermission() then
+        TempExpandedPermission :=
+            UserPermissions.GetEffectivePermission(
+                TempExpandedPermission."Object Type"::"Table Data",
+                Database::"Item Tracking Code Change Log");
+        if TempExpandedPermission."Insert Permission" <> TempExpandedPermission."Insert Permission"::Yes then
             Error(MissingItemTrackingChangePermissionErr, Item."No.");
     end;
 

@@ -16,6 +16,7 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryERM: Codeunit "Library - ERM";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibrarySales: Codeunit "Library - Sales";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryCosting: Codeunit "Library - Costing";
         LibraryPostInventoryToGL: Codeunit "Library - Post Inventory To GL";
@@ -31,16 +32,21 @@ codeunit 137031 "SCM Costing Purchase Returns I"
     procedure PurchaseReturnUsesCurrentLotTrackingAfterLotTrackingIsEnabled()
     var
         ItemTrackingCode: Record "Item Tracking Code";
-        ItemJournalLine: Record "Item Journal Line";
         ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemApplicationEntry: Record "Item Application Entry";
         ReservationEntry: Record "Reservation Entry";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReturnHeader: Record "Sales Header";
+        SalesReturnLine: Record "Sales Line";
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
         PurchInvLine: Record "Purch. Inv. Line";
         PurchaseReturnHeader: Record "Purchase Header";
         PurchaseReturnLine: Record "Purchase Line";
         OriginalPurchaseEntryNo: Integer;
+        OriginalSalesEntryNo: Integer;
         LotNo: Code[50];
         PostedCreditMemoNo: Code[20];
         PostingDate: Date;
@@ -51,7 +57,7 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         PostingDate := WorkDate() - 1;
         WorkDate(PostingDate);
 
-        // [GIVEN] An untracked purchase receipt is fully consumed.
+        // [GIVEN] An untracked item is purchased and completely sold.
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreatePurchaseOrder(PurchaseHeader, PurchaseLine, Item, '', '', 1, PostingDate, 1);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
@@ -60,11 +66,12 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         ItemLedgerEntry.SetRange(Positive, true);
         ItemLedgerEntry.FindFirst();
         OriginalPurchaseEntryNo := ItemLedgerEntry."Entry No.";
-        LibraryInventory.CreateItemJnlLine(
-            ItemJournalLine, ItemJournalLine."Entry Type"::"Negative Adjmt.", PostingDate, Item."No.", 1, '');
-        ItemJournalLine.Validate("Applies-to Entry", OriginalPurchaseEntryNo);
-        ItemJournalLine.Modify(true);
-        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        LibrarySales.CreateSalesOrder(SalesHeader, SalesLine, Item, '', '', 1, PostingDate, 1);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, false);
+        ItemLedgerEntry.FindFirst();
+        OriginalSalesEntryNo := ItemLedgerEntry."Entry No.";
         Item.CalcFields(Inventory);
         Item.TestField(Inventory, 0);
 
@@ -77,6 +84,26 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
         Item.Modify(true);
         LotNo := ItemTrackingCode.Code;
+
+        // [GIVEN] The customer returns the historical sale into stock with the current lot.
+        LibrarySales.CreateSalesHeader(
+            SalesReturnHeader, SalesReturnHeader."Document Type"::"Return Order", SalesHeader."Sell-to Customer No.");
+        LibrarySales.CreateSalesLine(
+            SalesReturnLine, SalesReturnHeader, SalesReturnLine.Type::Item, Item."No.", 1);
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesReturnLine, '', LotNo, 1);
+        SalesReturnLine.Validate("Appl.-from Item Entry", OriginalSalesEntryNo);
+        SalesReturnLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesReturnHeader, true, true);
+        Item.CalcFields(Inventory);
+        Item.TestField(Inventory, 1);
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField("Lot No.", LotNo);
+        ItemLedgerEntry.TestField("Remaining Quantity", 1);
+        ItemApplicationEntry.SetRange("Inbound Item Entry No.", ItemLedgerEntry."Entry No.");
+        ItemApplicationEntry.SetRange("Outbound Item Entry No.", OriginalSalesEntryNo);
+        ItemApplicationEntry.SetRange("Cost Application", true);
+        Assert.RecordCount(ItemApplicationEntry, 1);
 
         // [WHEN] A lot-tracked purchase return is explicitly applied to the historical receipt.
         LibraryPurchase.CreatePurchHeader(
@@ -98,6 +125,11 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         ItemLedgerEntry.FindLast();
         ItemLedgerEntry.TestField("Lot No.", LotNo);
         ItemLedgerEntry.TestField("Applies-to Entry", OriginalPurchaseEntryNo);
+        ItemApplicationEntry.SetRange("Inbound Item Entry No.", OriginalPurchaseEntryNo);
+        ItemApplicationEntry.SetRange("Outbound Item Entry No.", ItemLedgerEntry."Entry No.");
+        Assert.RecordCount(ItemApplicationEntry, 1);
+        Item.CalcFields(Inventory);
+        Item.TestField(Inventory, 0);
 
         // [THEN] The posted purchase credit memo resolves its historical invoice without a tracking error.
         PurchCrMemoLine.SetRange("Document No.", PostedCreditMemoNo);
@@ -111,14 +143,19 @@ codeunit 137031 "SCM Costing Purchase Returns I"
     procedure PurchaseReturnUsesCurrentPackageTrackingAfterPackageTrackingIsEnabled()
     var
         ItemTrackingCode: Record "Item Tracking Code";
-        ItemJournalLine: Record "Item Journal Line";
         ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemApplicationEntry: Record "Item Application Entry";
         ReservationEntry: Record "Reservation Entry";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReturnHeader: Record "Sales Header";
+        SalesReturnLine: Record "Sales Line";
         PurchaseReturnHeader: Record "Purchase Header";
         PurchaseReturnLine: Record "Purchase Line";
         OriginalPurchaseEntryNo: Integer;
+        OriginalSalesEntryNo: Integer;
         PackageNo: Code[50];
         PostingDate: Date;
     begin
@@ -128,7 +165,7 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         PostingDate := WorkDate() - 1;
         WorkDate(PostingDate);
 
-        // [GIVEN] An untracked purchase receipt is fully consumed.
+        // [GIVEN] An untracked item is purchased and completely sold.
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreatePurchaseOrder(PurchaseHeader, PurchaseLine, Item, '', '', 1, PostingDate, 1);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
@@ -137,11 +174,12 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         ItemLedgerEntry.SetRange(Positive, true);
         ItemLedgerEntry.FindFirst();
         OriginalPurchaseEntryNo := ItemLedgerEntry."Entry No.";
-        LibraryInventory.CreateItemJnlLine(
-            ItemJournalLine, ItemJournalLine."Entry Type"::"Negative Adjmt.", PostingDate, Item."No.", 1, '');
-        ItemJournalLine.Validate("Applies-to Entry", OriginalPurchaseEntryNo);
-        ItemJournalLine.Modify(true);
-        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        LibrarySales.CreateSalesOrder(SalesHeader, SalesLine, Item, '', '', 1, PostingDate, 1);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, false);
+        ItemLedgerEntry.FindFirst();
+        OriginalSalesEntryNo := ItemLedgerEntry."Entry No.";
         Item.CalcFields(Inventory);
         Item.TestField(Inventory, 0);
 
@@ -154,6 +192,26 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
         Item.Modify(true);
         PackageNo := ItemTrackingCode.Code;
+
+        // [GIVEN] The customer returns the historical sale into stock with the current package.
+        LibrarySales.CreateSalesHeader(
+            SalesReturnHeader, SalesReturnHeader."Document Type"::"Return Order", SalesHeader."Sell-to Customer No.");
+        LibrarySales.CreateSalesLine(
+            SalesReturnLine, SalesReturnHeader, SalesReturnLine.Type::Item, Item."No.", 1);
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesReturnLine, '', '', PackageNo, 1);
+        SalesReturnLine.Validate("Appl.-from Item Entry", OriginalSalesEntryNo);
+        SalesReturnLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesReturnHeader, true, true);
+        Item.CalcFields(Inventory);
+        Item.TestField(Inventory, 1);
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField("Package No.", PackageNo);
+        ItemLedgerEntry.TestField("Remaining Quantity", 1);
+        ItemApplicationEntry.SetRange("Inbound Item Entry No.", ItemLedgerEntry."Entry No.");
+        ItemApplicationEntry.SetRange("Outbound Item Entry No.", OriginalSalesEntryNo);
+        ItemApplicationEntry.SetRange("Cost Application", true);
+        Assert.RecordCount(ItemApplicationEntry, 1);
 
         // [WHEN] A package-tracked purchase return is applied to the historical receipt.
         LibraryPurchase.CreatePurchHeader(
@@ -173,6 +231,11 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         ItemLedgerEntry.FindLast();
         ItemLedgerEntry.TestField("Package No.", PackageNo);
         ItemLedgerEntry.TestField("Applies-to Entry", OriginalPurchaseEntryNo);
+        ItemApplicationEntry.SetRange("Inbound Item Entry No.", OriginalPurchaseEntryNo);
+        ItemApplicationEntry.SetRange("Outbound Item Entry No.", ItemLedgerEntry."Entry No.");
+        Assert.RecordCount(ItemApplicationEntry, 1);
+        Item.CalcFields(Inventory);
+        Item.TestField(Inventory, 0);
     end;
 
     local procedure NoSeriesSetup()
