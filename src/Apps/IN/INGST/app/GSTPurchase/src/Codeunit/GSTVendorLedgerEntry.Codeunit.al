@@ -144,6 +144,7 @@ codeunit 18082 "GST Vendor Ledger Entry"
             exit(false);
         if PurchaseLine."Qty. Rcd. Not Invoiced" <= 0 then
             exit(false);
+        PurchaseHeader.SetLoadFields("GST Vendor Type");
         if not PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
             exit(false);
         if not (PurchaseHeader."GST Vendor Type" in [PurchaseHeader."GST Vendor Type"::Import, PurchaseHeader."GST Vendor Type"::SEZ]) then
@@ -161,11 +162,18 @@ codeunit 18082 "GST Vendor Ledger Entry"
             exit;
         if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
             exit;
+        if not IsImportOrSEZvendor(PurchaseHeader) then
+            exit;
         if PurchaseLine."Qty. to Receive" = 0 then
             exit;
         if PurchaseLine."Qty. to Invoice" <> PurchaseLine."Qty. Rcd. Not Invoiced" then
             exit;
 
         PurchaseLine.InitQtyToInvoice();
+    end;
+
+    local procedure IsImportOrSEZvendor(PurchaseHeader: Record "Purchase Header"): Boolean
+    begin
+        exit(PurchaseHeader."GST Vendor Type" in [PurchaseHeader."GST Vendor Type"::Import, PurchaseHeader."GST Vendor Type"::SEZ]);
     end;
 }
