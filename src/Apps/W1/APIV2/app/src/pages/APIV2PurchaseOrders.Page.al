@@ -102,7 +102,6 @@ page 30066 "APIV2 - Purchase Orders"
                                 Error(BuyFromVendorValuesDontMatchErr);
                             exit;
                         end;
-
                         if not BuyFromVendor.Get(Rec."Buy-from Vendor No.") then
                             Error(CouldNotFindBuyFromVendorErr);
 
@@ -146,7 +145,6 @@ page 30066 "APIV2 - Purchase Orders"
                                 Error(PayToVendorValuesDontMatchErr);
                             exit;
                         end;
-
                         if not PayToVendor.Get(Rec."Pay-to Vendor No.") then
                             Error(CouldNotFindPayToVendorErr);
 
@@ -377,13 +375,11 @@ page 30066 "APIV2 - Purchase Orders"
                         Rec."Currency Code" :=
                           GraphMgtGeneralTools.TranslateCurrencyCodeToNAVCurrencyCode(
                             LCYCurrencyCode, COPYSTR(CurrencyCodeTxt, 1, MAXSTRLEN(LCYCurrencyCode)));
-
                         if Currency.Code <> '' then begin
                             if Currency.Code <> Rec."Currency Code" then
                                 Error(CurrencyValuesDontMatchErr);
                             exit;
                         end;
-
                         if Rec."Currency Code" = '' then
                             Rec."Currency Id" := BlankGUID
                         else begin
@@ -578,8 +574,6 @@ page 30066 "APIV2 - Purchase Orders"
     trigger OnAfterGetRecord()
     begin
         SetCalculatedFields();
-        if HasWritePermission then
-            GraphMgtPurchOrderBuffer.RedistributeInvoiceDiscounts(Rec);
     end;
 
     trigger OnDeleteRecord(): Boolean
@@ -729,12 +723,10 @@ page 30066 "APIV2 - Purchase Orders"
 
         TempFieldBuffer.Reset();
         TempFieldBuffer.DeleteAll();
-
         if DocumentDateSet then begin
             Rec."Document Date" := DocumentDateVar;
             RegisterFieldSet(Rec.FieldNo("Document Date"));
         end;
-
         if PostingDateSet then begin
             Rec."Posting Date" := PostingDateVar;
             RegisterFieldSet(Rec.FieldNo("Posting Date"));

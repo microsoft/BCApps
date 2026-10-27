@@ -153,11 +153,11 @@ codeunit 66 "Purch - Calc Disc. By Type"
            (PurchHeader."Invoice Discount Value" = 0)
         then
             exit(false);
-        if not ApplicationAreaMgmtFacade.IsFoundationEnabled() then
-            exit(false);
+
         PurchPayablesSetup.Get();
-        if not PurchPayablesSetup."Calc. Inv. Discount" and
-           (PurchHeader."Invoice Discount Calculation" = PurchHeader."Invoice Discount Calculation"::None)
+        if (not ApplicationAreaMgmtFacade.IsFoundationEnabled() and
+            (not PurchPayablesSetup."Calc. Inv. Discount" and
+             (PurchHeader."Invoice Discount Calculation" = PurchHeader."Invoice Discount Calculation"::None)))
         then
             exit(false);
 
