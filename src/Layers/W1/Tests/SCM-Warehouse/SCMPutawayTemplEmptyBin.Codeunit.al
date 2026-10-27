@@ -46,12 +46,14 @@ codeunit 137006 "SCM Put-away Templ. Empty Bin"
     begin
         // [SCENARIO #02] Receipt and shipment bins are excluded when searching through Bin Content.
 
-        // [GIVEN] A warehouse setup with Receipt and Shipment bins configured.
+        // [GIVEN] A warehouse setup with Receipt and Shipment bins configured. Shipment bin has the highest ranking. Shipment bin contains inventory.
         // [GIVEN] A Put-away Template configured with Find Same Item.
         // [GIVEN] Always Create Put-away Line is enabled.
         Initialize();
         CreateBaseData();
-        ConfigureTemplate(false, false, true, false, false, false);
+        ConfigureBinTopCandidates();
+        AddInventoryToBin(ShipmentBin.Code, LibraryRandom.RandIntInRange(5, 10));
+        ConfigureTemplate(false, true, true, false, false, false);
         SetAlwaysCreatePutAwayLine(true);
 
         // [WHEN] A warehouse receipt is posted.
@@ -66,6 +68,8 @@ codeunit 137006 "SCM Put-away Templ. Empty Bin"
         LibraryAssert.AreNotEqual(ReceiptBin.Code, WarehouseActivityLine."Bin Code", 'Receipt bin must not be selected.');
         // [THEN] The Shipment Bin is not selected.
         LibraryAssert.AreNotEqual(ShipmentBin.Code, WarehouseActivityLine."Bin Code", 'Shipment bin must not be selected.');
+        // [THEN] Assert exact bin - StockedBinC is selected.
+        LibraryAssert.AreEqual(StockedBinC.Code, WarehouseActivityLine."Bin Code", 'Expected StockedBinC as the destination bin.');
     end;
 
     [Test]
@@ -240,6 +244,19 @@ codeunit 137006 "SCM Put-away Templ. Empty Bin"
         AddInventoryToBin(ReceiptBin.Code, 1);
         AddInventoryToBin(ShipmentBin.Code, 1);
     end;
+
+    local procedure ConfigureBinTopCandidates()
+    begin
+        ShipmentBin.Validate("Bin Ranking", 30);
+        ShipmentBin.Modify();
+
+        StockedBinC.Validate("Bin Ranking", 20);
+        StockedBinC.Modify();
+
+        StockedBinA.Validate("Bin Ranking", 10);
+        StockedBinA.Modify();
+    end;
+
 
     var
         Item: Record Item;
