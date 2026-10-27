@@ -527,22 +527,27 @@ codeunit 134195 "ERM Multiple Posting Groups"
         CustomerPostingGroup2: Record "Customer Posting Group";
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
+        GLEntry: Record "G/L Entry";
         GLRegister: Record "G/L Register";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         InvoiceNo: Code[20];
         PaymentNo: Code[20];
+        CurrencyCode: Code[10];
         TotalAmount: Decimal;
         LastGLRegNo: Integer;
     begin
         Initialize();
 
         SetSalesAllowMultiplePostingGroups(true);
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
 
         // Create sales invoice, change customer posting group and post
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Allow Multiple Posting Groups", true);
+        Customer.Validate("Currency Code", CurrencyCode);
         Customer.Modify();
         CustomerPostingGroup.Get(Customer."Customer Posting Group");
         LibrarySales.CreateSalesDocumentWithItem(SalesHeader, SalesLine, "Sales Document Type"::Invoice, Customer."No.", '', 1, '', 0D);
@@ -565,6 +570,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
         LibraryERM.CreateGeneralJnlLine(
             GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
             GenJournalLine."Account Type"::Customer, Customer."No.", -TotalAmount);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
         GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
         GenJournalLine.Modify();
         PaymentNo := GenJournalLine."Document No.";
@@ -576,11 +582,73 @@ codeunit 134195 "ERM Multiple Posting Groups"
         // Apply payment to invoice - should post 2 G/L entries between Receivables accounts
         ApplyAndPostCustomerEntry(PaymentNo, InvoiceNo, -TotalAmount, "Gen. Journal Document Type"::Payment, "Gen. Journal Document Type"::Invoice);
 
+        // Verify posted apply G/L entries
+        GLRegister.Get(LastGLRegNo + 1);
+        GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", -TotalAmount, -TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", TotalAmount, TotalAmount);
+
         // Unapply payment - should post 2 reversal G/L entries between Receivables accounts
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
         LibraryERM.UnapplyCustomerLedgerEntry(CustLedgerEntry);
 
         // Verify posted unapply G/L entries - currently not possible for ES due to Cartera
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CheckMixedCurrencyCustomerApplicationWithAdditionalReportingCurrency()
+    var
+        Customer: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        GLEntry: Record "G/L Entry";
+        CurrencyCode: Code[10];
+        InvoiceNo: Code[20];
+        PaymentNo: Code[20];
+    begin
+        Initialize();
+
+        SetSalesAllowMultiplePostingGroups(false);
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1.1, 1.1);
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
+        LibrarySales.CreateCustomer(Customer);
+
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Customer, Customer."No.", 1100);
+        GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        GenJournalLine.Modify(true);
+        InvoiceNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer, Customer."No.", -1000);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        GenJournalLine.Modify(true);
+        PaymentNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        ApplyAndPostCustomerEntry(
+            PaymentNo, InvoiceNo, -1000, "Gen. Journal Document Type"::Payment, "Gen. Journal Document Type"::Invoice);
+
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
+        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
+        DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
+        DetailedCustLedgEntry.FindFirst();
+
+        GLEntry.SetRange("Transaction No.", DetailedCustLedgEntry."Transaction No.");
+        GLEntry.SetRange(Amount, 0);
+        GLEntry.SetFilter("Additional-Currency Amount", '<>%1', 0);
+        Assert.AreEqual(
+            0, GLEntry.Count(),
+            'The application created an unbalanced additional-currency G/L entry for mixed-currency documents.');
     end;
 
     [Test]
@@ -692,22 +760,27 @@ codeunit 134195 "ERM Multiple Posting Groups"
         VendorPostingGroup2: Record "Vendor Posting Group";
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
+        GLEntry: Record "G/L Entry";
         GLRegister: Record "G/L Register";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         InvoiceNo: Code[20];
         PaymentNo: Code[20];
+        CurrencyCode: Code[10];
         TotalAmount: Decimal;
         LastGLRegNo: Integer;
     begin
         Initialize();
 
         SetPurchAllowMultiplePostingGroups(true);
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
 
         // Create purchase invoice, change vendor posting group and post
         LibraryPurchase.CreateVendor(Vendor);
         Vendor.Validate("Allow Multiple Posting Groups", true);
+        Vendor.Validate("Currency Code", CurrencyCode);
         Vendor.Modify();
         VendorPostingGroup.Get(Vendor."Vendor Posting Group");
         LibraryPurchase.CreatePurchaseDocumentWithItem(PurchaseHeader, PurchaseLine, "Purchase Document Type"::Invoice, Vendor."No.", '', 1, '', 0D);
@@ -730,6 +803,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
         LibraryERM.CreateGeneralJnlLine(
             GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
             GenJournalLine."Account Type"::Vendor, Vendor."No.", TotalAmount);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
         GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
         GenJournalLine.Modify();
         PaymentNo := GenJournalLine."Document No.";
@@ -740,6 +814,13 @@ codeunit 134195 "ERM Multiple Posting Groups"
 
         // Apply payment to invoice - should post 2 G/L entries between Payables accounts
         ApplyAndPostVendorEntry(PaymentNo, InvoiceNo, TotalAmount, "Gen. Journal Document Type"::Payment, "Gen. Journal Document Type"::Invoice);
+
+        // Verify posted apply G/L entries
+        GLRegister.Get(LastGLRegNo + 1);
+        GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup2."Payables Account", TotalAmount, TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup."Payables Account", -TotalAmount, -TotalAmount);
 
         // Unapply payment - should post 2 reversal G/L entries between Payables accounts
         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
@@ -805,6 +886,100 @@ codeunit 134195 "ERM Multiple Posting Groups"
         // [THEN] Unapplying payment - should post 2 reversal G/L entries between Payables accounts
         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
         LibraryERM.UnapplyVendorLedgerEntry(VendorLedgerEntry);
+        // Verify posted unapply G/L entries
+        GLRegister.Get(LastGLRegNo + 2);
+        GLEntry.Reset();
+        GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup2."Payables Account", -TotalAmount, -TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup."Payables Account", TotalAmount, TotalAmount);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CheckEmployeeApplyUnapplyMultiplePostingGroupsWithAdditionalReportingCurrency()
+    var
+        Employee: Record Employee;
+        EmployeePostingGroup: Record "Employee Posting Group";
+        EmployeePostingGroup2: Record "Employee Posting Group";
+        EmployeeLedgerEntry: Record "Employee Ledger Entry";
+        EmployeeLedgerEntry2: Record "Employee Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GLEntry: Record "G/L Entry";
+        GLRegister: Record "G/L Register";
+        CurrencyCode: Code[10];
+        InvoiceNo: Code[20];
+        PaymentNo: Code[20];
+        LastGLRegNo: Integer;
+        AppliedAmountAddCurr: Decimal;
+        AppliedAmountAddCurr2: Decimal;
+        UnappliedAmountAddCurr: Decimal;
+        UnappliedAmountAddCurr2: Decimal;
+    begin
+        Initialize();
+
+        SetHRAllowMultiplePostingGroups(true);
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
+
+        LibraryHumanResource.CreateEmployee(Employee);
+        Employee.Validate("Allow Multiple Posting Groups", true);
+        Employee.Modify();
+        EmployeePostingGroup.Get(Employee."Employee Posting Group");
+        LibraryHumanResource.CreateEmployeePostingGroup(EmployeePostingGroup2);
+        LibraryHumanResource.CreateAltEmployeePostingGroup(Employee."Employee Posting Group", EmployeePostingGroup2.Code);
+
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.DeleteAll();
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::Employee, Employee."No.", -1000);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        GenJournalLine.Modify(true);
+        InvoiceNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Employee, Employee."No.", 1000);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        GenJournalLine.Validate("Posting Group", EmployeePostingGroup2.Code);
+        GenJournalLine.Modify(true);
+        PaymentNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        GLRegister.FindLast();
+        LastGLRegNo := GLRegister."No.";
+
+        LibraryERM.FindEmployeeLedgerEntry(EmployeeLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
+        EmployeeLedgerEntry.CalcFields("Remaining Amount");
+        LibraryERM.SetApplyEmployeeEntry(EmployeeLedgerEntry, EmployeeLedgerEntry."Remaining Amount");
+        LibraryERM.FindEmployeeLedgerEntry(EmployeeLedgerEntry2, "Gen. Journal Document Type"::" ", InvoiceNo);
+        EmployeeLedgerEntry2.CalcFields("Remaining Amount");
+        EmployeeLedgerEntry2.Validate("Amount to Apply", EmployeeLedgerEntry2."Remaining Amount");
+        EmployeeLedgerEntry2.Modify(true);
+        LibraryERM.SetAppliestoIdEmployee(EmployeeLedgerEntry2);
+        LibraryERM.PostEmplLedgerApplication(EmployeeLedgerEntry);
+
+        GLRegister.Get(LastGLRegNo + 1);
+        AppliedAmountAddCurr := GetGLEntryAddCurrencyAmount(GLEntry, GLRegister, EmployeePostingGroup."Payables Account");
+        AppliedAmountAddCurr2 := GetGLEntryAddCurrencyAmount(GLEntry, GLRegister, EmployeePostingGroup2."Payables Account");
+        Assert.AreNotEqual(0, AppliedAmountAddCurr, 'Application additional-currency amount was not posted for the default employee posting group.');
+        Assert.AreEqual(0, AppliedAmountAddCurr + AppliedAmountAddCurr2, 'Application additional-currency amounts are not balanced.');
+
+        LibraryERM.FindEmployeeLedgerEntry(EmployeeLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
+        LibraryERM.UnapplyEmployeeLedgerEntry(EmployeeLedgerEntry);
+
+        GLRegister.Get(LastGLRegNo + 2);
+        UnappliedAmountAddCurr := GetGLEntryAddCurrencyAmount(GLEntry, GLRegister, EmployeePostingGroup."Payables Account");
+        UnappliedAmountAddCurr2 := GetGLEntryAddCurrencyAmount(GLEntry, GLRegister, EmployeePostingGroup2."Payables Account");
+        Assert.AreEqual(0, AppliedAmountAddCurr + UnappliedAmountAddCurr, 'Unapplication did not reverse the default employee posting group ACY amount.');
+        Assert.AreEqual(0, AppliedAmountAddCurr2 + UnappliedAmountAddCurr2, 'Unapplication did not reverse the alternative employee posting group ACY amount.');
     end;
 
     [Test]
@@ -1582,6 +1757,35 @@ codeunit 134195 "ERM Multiple Posting Groups"
         LibraryERM.PostVendLedgerApplication(VendorLedgerEntry);
     end;
 
+    local procedure VerifyGLEntryForGLAccount(var GLEntry: Record "G/L Entry"; AccountNo: Code[20]; Amount: Decimal)
+    begin
+        GLEntry.SetRange("G/L Account No.", AccountNo);
+        GLEntry.FindFirst();
+        Assert.AreEqual(Amount, GLEntry.Amount, StrSubstNo('G/L entry amount %1 for posting group %2 is not correct', GLEntry.Amount, AccountNo));
+    end;
+
+    local procedure VerifyGLEntryForGLAccountAndAddCurrAmount(var GLEntry: Record "G/L Entry"; AccountNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal)
+    begin
+        VerifyGLEntryForGLAccount(GLEntry, AccountNo, Amount);
+        Assert.AreEqual(
+            AmountAddCurr, GLEntry."Additional-Currency Amount",
+            StrSubstNo('G/L entry additional currency amount %1 for posting group %2 is not correct', GLEntry."Additional-Currency Amount", AccountNo));
+    end;
+
+    local procedure GetGLEntryAddCurrencyAmount(var GLEntry: Record "G/L Entry"; GLRegister: Record "G/L Register"; AccountNo: Code[20]): Decimal
+    var
+        AmountAddCurr: Decimal;
+    begin
+        GLEntry.Reset();
+        GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        GLEntry.SetRange("G/L Account No.", AccountNo);
+        if GLEntry.FindSet() then
+            repeat
+                AmountAddCurr += GLEntry."Additional-Currency Amount";
+            until GLEntry.Next() = 0;
+        exit(AmountAddCurr);
+    end;
+
     local procedure UpdateServiceDocumentNos(DocType: Option Invoice,CreditMemo; var OldValue: Code[20]; ReturnOldValue: Boolean)
     var
         ServiceMgtSetup: Record "Service Mgt. Setup";
@@ -1777,4 +1981,6 @@ codeunit 134195 "ERM Multiple Posting Groups"
     begin
         Reply := true;
     end;
+}
+
 }
