@@ -132,7 +132,7 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnAfterCarryOutBatchAction(ReqLine2);
     end;
 
-    procedure CheckPurchaseOrderTargets(var RequisitionLine: Record "Requisition Line")
+   procedure CheckPurchaseOrderTargets(var RequisitionLine: Record "Requisition Line")
     var
         TargetRequisitionLine: Record "Requisition Line";
     begin

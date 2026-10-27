@@ -148,6 +148,15 @@ codeunit 139984 "Subc. Library Mfg. Management"
         CreateRoutingLine(RoutingLine, RoutingHeader, CenterNo, OperationNo, LibraryRandom.RandInt(5), LibraryRandom.RandInt(5));
     end;
 
+    /// <summary>
+    /// Creates a routing line with the specified operation and setup and run times in minutes.
+    /// </summary>
+    /// <param name="RoutingLine">The routing line to create.</param>
+    /// <param name="RoutingHeader">The routing header to which the line belongs.</param>
+    /// <param name="CenterNo">The number of the work center or machine center for the operation.</param>
+    /// <param name="OperationNo">The operation number for the routing line.</param>
+    /// <param name="SetupTime">The setup time in minutes.</param>
+    /// <param name="RunTime">The run time in minutes.</param>
     procedure CreateRoutingLine(var RoutingLine: Record "Routing Line"; RoutingHeader: Record "Routing Header"; CenterNo: Code[20]; OperationNo: Code[10]; SetupTime: Decimal; RunTime: Decimal)
     var
         CapacityUnitOfMeasure: Record "Capacity Unit of Measure";

@@ -1541,7 +1541,6 @@ table 246 "Requisition Line"
         exit(("Action Message" = "Action Message"::New) and
              ("Ref. Order Type" = "Ref. Order Type"::Purchase) and
              ("Ref. Order No." <> '') and
-             ("Ref. Order Status" = "Ref. Order Status"::Simulated) and
              ("Ref. Line No." = 0));
     end;
 

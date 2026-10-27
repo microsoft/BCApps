@@ -886,6 +886,8 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
 
         // [GIVEN] The vendor is changed and changed back, which rebuilds the dimensions from the defaults.
         SubcontractingMgmtLibrary.ChangeVendorAndBack(RequisitionLine);
+        RequisitionLine.Get(RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", RequisitionLine."Line No.");
+        VerifyDimensionValueInSet(RequisitionLine."Dimension Set ID", DimensionValue);
 
         // [WHEN] Carry Out runs without an assigned order.
         SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
@@ -1429,11 +1431,13 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
 
     local procedure CreatePurchasingCode(var Purchasing: Record Purchasing; DropShipment: Boolean; SpecialOrder: Boolean)
     begin
-        Purchasing.Init();
-        Purchasing.Code := CopyStr(LibraryUtility.GenerateRandomCode(Purchasing.FieldNo(Code), Database::Purchasing), 1, MaxStrLen(Purchasing.Code));
-        Purchasing."Drop Shipment" := DropShipment;
-        Purchasing."Special Order" := SpecialOrder;
-        Purchasing.Insert();
+        if DropShipment then
+            LibraryPurchase.CreateDropShipmentPurchasingCode(Purchasing)
+        else
+            if SpecialOrder then
+                LibraryPurchase.CreateSpecialOrderPurchasingCode(Purchasing)
+            else
+                LibraryPurchase.CreatePurchasingCode(Purchasing);
     end;
 
     local procedure RunCarryOut(RequisitionLine: Record "Requisition Line")

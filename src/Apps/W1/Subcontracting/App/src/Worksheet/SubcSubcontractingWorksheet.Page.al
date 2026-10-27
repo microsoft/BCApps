@@ -280,7 +280,7 @@ page 20504 "Subc. Subcontracting Worksheet"
                 Image = Line;
                 action(ShowPurchaseOrder)
                 {
-                    Caption = 'Show Purchase Order';
+                    Caption = 'Show purchase order';
                     Enabled = CanShowPurchaseOrder;
                     Image = Document;
                     ToolTip = 'Open the purchase order referenced by the current worksheet line.';
@@ -356,7 +356,7 @@ page 20504 "Subc. Subcontracting Worksheet"
                 }
                 action(AssignPurchaseOrder)
                 {
-                    Caption = 'Assign Purchase Order';
+                    Caption = 'Assign purchase order';
                     Image = Purchase;
                     ToolTip = 'Select an open purchase order for the current new subcontracting suggestion.';
 
@@ -368,7 +368,7 @@ page 20504 "Subc. Subcontracting Worksheet"
                 }
                 action(ClearPurchaseOrder)
                 {
-                    Caption = 'Clear Purchase Order Target';
+                    Caption = 'Clear purchase order target';
                     Image = Cancel;
                     ToolTip = 'Remove the selected purchase order from the current new suggestion.';
 

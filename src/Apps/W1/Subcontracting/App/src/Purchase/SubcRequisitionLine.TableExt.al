@@ -134,7 +134,7 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
 #pragma warning restore AL0432
 #endif
 
-    procedure AssignPurchaseOrderTarget()
+    internal procedure AssignPurchaseOrderTarget()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseOrderList: Page "Purchase Order List";
