@@ -610,7 +610,9 @@ codeunit 145403 "AU Feature Bugs"
         Assert.AreEqual(0, VATEntry."VAT Difference", VATEntry.FieldCaption("VAT Difference"));
         Assert.AreEqual(ACYVATDifference, VATEntry."Add.-Curr. VAT Difference", VATEntry.FieldCaption("Add.-Curr. VAT Difference"));
 
+#pragma warning disable AA0210
         VATEntry.SetRange(Base, 100);
+#pragma warning restore AA0210
         VATEntry.FindFirst();
         Assert.AreEqual(MainACYAmount, VATEntry."Additional-Currency Amount", ACYAmountErr);
         Assert.AreEqual(ACYVATDifference, VATEntry."Add.-Curr. VAT Difference", VATEntry.FieldCaption("Add.-Curr. VAT Difference"));
@@ -734,7 +736,6 @@ codeunit 145403 "AU Feature Bugs"
                 else
                     Assert.Fail(UnexpectedVATEntryErr);
             end;
-
         until VATEntry.Next() = 0;
 
         // [THEN] There are two VAT entries (main line and discount line) with different Base
