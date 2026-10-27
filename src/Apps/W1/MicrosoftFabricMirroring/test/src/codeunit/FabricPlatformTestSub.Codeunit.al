@@ -8,14 +8,18 @@ codeunit 140010 "Fabric Platform Test Sub" implements "Http Client Handler"
     EventSubscriberInstance = Manual;
 
     var
+        Assert: Codeunit "Assert";
         EnableCalled: Boolean;
         StartCalled: Boolean;
         StopCalled: Boolean;
         DisableCalled: Boolean;
         TestConnectionCalled: Boolean;
-        MockStatusCode: Integer;
-        MockResponseBody: Text;
+        MockStatusCodes: List of [Integer];
+        MockResponseBodies: List of [Text];
+        ExpectedHttpMethods: List of [Text];
+        ExpectedRequestUris: List of [Text];
         MockResponseConfigured: Boolean;
+        UnexpectedHttpRequestErr: Label 'Unexpected HTTP request: %1 %2.', Comment = '%1 = HTTP method, %2 = request URI';
 
     procedure Reset()
     begin
@@ -24,8 +28,10 @@ codeunit 140010 "Fabric Platform Test Sub" implements "Http Client Handler"
         StopCalled := false;
         DisableCalled := false;
         TestConnectionCalled := false;
-        MockStatusCode := 0;
-        MockResponseBody := '';
+        Clear(MockStatusCodes);
+        Clear(MockResponseBodies);
+        Clear(ExpectedHttpMethods);
+        Clear(ExpectedRequestUris);
         MockResponseConfigured := false;
     end;
 
@@ -57,21 +63,51 @@ codeunit 140010 "Fabric Platform Test Sub" implements "Http Client Handler"
     /// <summary>Configures the mocked HTTP response returned to the next Fabric Platform Http Client caller.</summary>
     procedure SetMockHttpResponse(StatusCode: Integer; ResponseBody: Text)
     begin
-        MockStatusCode := StatusCode;
-        MockResponseBody := ResponseBody;
+        Clear(MockStatusCodes);
+        Clear(MockResponseBodies);
+        Clear(ExpectedHttpMethods);
+        Clear(ExpectedRequestUris);
+        AddMockHttpResponse(StatusCode, ResponseBody, '', '');
+    end;
+
+    procedure AddMockHttpResponse(StatusCode: Integer; ResponseBody: Text; ExpectedHttpMethod: Text; ExpectedRequestUri: Text)
+    begin
+        MockStatusCodes.Add(StatusCode);
+        MockResponseBodies.Add(ResponseBody);
+        ExpectedHttpMethods.Add(ExpectedHttpMethod);
+        ExpectedRequestUris.Add(ExpectedRequestUri);
         MockResponseConfigured := true;
+    end;
+
+    procedure AssertHttpRequestsComplete()
+    begin
+        Assert.AreEqual(0, MockStatusCodes.Count(), 'Expected all mocked HTTP requests to be sent.');
     end;
 
     procedure Send(CurrHttpClientInstance: HttpClient; HttpRequestMessage: Codeunit "Http Request Message"; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
     var
         MockContent: Codeunit "Http Content";
+        MockStatusCode: Integer;
+        MockResponseBody: Text;
     begin
+        if MockStatusCodes.Count() = 0 then
+            Error(UnexpectedHttpRequestErr, HttpRequestMessage.GetHttpMethod(), HttpRequestMessage.GetRequestUri());
+        if ExpectedHttpMethods.Get(1) <> '' then
+            Assert.AreEqual(ExpectedHttpMethods.Get(1), HttpRequestMessage.GetHttpMethod(), 'Unexpected HTTP method.');
+        if ExpectedRequestUris.Get(1) <> '' then
+            Assert.AreEqual(ExpectedRequestUris.Get(1), HttpRequestMessage.GetRequestUri(), 'Unexpected HTTP request URI.');
+
+        MockStatusCode := MockStatusCodes.Get(1);
+        MockResponseBody := MockResponseBodies.Get(1);
+        MockStatusCodes.RemoveAt(1);
+        MockResponseBodies.RemoveAt(1);
+        ExpectedHttpMethods.RemoveAt(1);
+        ExpectedRequestUris.RemoveAt(1);
+
         HttpResponseMessage.SetHttpStatusCode(MockStatusCode);
         HttpResponseMessage.SetIsSuccessStatusCode((MockStatusCode >= 200) and (MockStatusCode < 300));
-        if MockResponseBody <> '' then begin
-            MockContent := MockContent.Create(MockResponseBody, 'application/json');
-            HttpResponseMessage.SetContent(MockContent);
-        end;
+        MockContent := MockContent.Create(MockResponseBody, 'application/json');
+        HttpResponseMessage.SetContent(MockContent);
         exit(true);
     end;
 
