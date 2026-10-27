@@ -271,7 +271,7 @@ codeunit 4587 "SOA Impl"
         PrivacyNotice: Codeunit "Privacy Notice";
         AIServiceName: Interface "AI Service Name";
         EmptyGuid: Guid;
-        PrivacyApprovalRequiredErr: Label 'An administrator must approve Azure OpenAI for everyone in Privacy Notices Status before using Sales Order Agent with Business IQ.';
+        PrivacyApprovalRequiredErr: Label 'An administrator must approve Azure OpenAI for everyone in Privacy Notices Status before using Sales Order Agent with Business Skills.';
     begin
         AIServiceName := Enum::"Azure AI Service Type"::"Azure OpenAI";
         PrivacyNoticeStatus.SetRange("User SID Filter", EmptyGuid);

@@ -1,45 +1,16 @@
 # Resolve Contact or Customer
 
-Resolve supplied buyer information to an eligible Business Central contact or customer in the current company. If the sender's email matches both a Person contact and its associated Company contact, select the Person contact automatically and continue without asking for clarification. Use the Company contact only when no matching Person contact exists. If multiple matching Person contacts remain, request assistance rather than selecting arbitrarily.
+Select an eligible existing contact or customer for the buyer in the current BC company.
 
-## Context and scope
+If both an eligible contact and a customer match the sender's email, always choose the contact without asking the user to choose between them.
 
-Use whichever buyer details are available from the authorized request or conversation, such as the sender's email address, name, company name, or phone number, together with the current BC company's eligible contact/customer records. These details are alternatives, not a checklist of required fields. Respect the runtime's record filters and permissions. This skill selects an existing contact or customer; it does not require item search or create a document.
+Otherwise, reuse a buyer already selected by the runtime for an unchanged request, even if their name or email differs from the conversation. Search again only if the request changes or the record is no longer usable.
 
-## Using available context and resuming
+Use any available email, name, company, or phone number; do not require all of them. If no buyer information exists, request assistance.
 
-Search with the information available instead of requesting missing optional buyer details or a preselected Customer No. or Contact No. Use the search results and the single-record rules below. Request assistance only when no buyer information is available, no eligible record is found, or the actual results cannot distinguish eligible records. Do not guess a different legal entity.
+1. Open Contacts (page 5052). If only one eligible record is displayed, select it. Otherwise search one available detail at a time, starting with email, then name, company, and phone.
+2. When contacts share the email, check their BC "Type", opening their cards if needed. Always choose an eligible Person contact rather than a Company contact, without asking which type to use or requiring a verified company association. Use a Company contact only when no eligible Person matches.
+3. If no contact matches, open Customers (page 22) and apply the same single-record or search procedure.
+4. Request assistance only if no eligible record is found or multiple equally preferred matches remain unresolved, such as two Person contacts. One matching Person plus Company contacts is not an unresolved conflict.
 
-If an eligible contact or customer has already been selected by the runtime or confirmed task progress, reuse it for the unchanged request without another identity-confirmation step. Search again when the request or selection has changed or a tool reports that the record is no longer usable.
-
-## 1. Check that identity information is available
-
-Any available buyer detail can be used for the search. Do not require an email address, name, company name, and phone number all to be present.
-
-If there is no information related to the customer, contact, or company, request assistance. Do not proceed until this is resolved.
-
-## 2. Find the contact
-
-Navigate to the contact list page (page 5052).
-
-If only one contact record is displayed, select it directly without searching.
-
-If multiple contacts are displayed, search using the available conversation information one piece at a time, starting with the email address, sender's name, company name, phone number, and other relevant details. Do not select a contact from multiple records without first performing a search.
-
-## 3. Find the customer if no contact was found
-
-If the contact is not found, navigate to the customer list page (page 22).
-
-If only one customer record is displayed, select it directly without searching.
-
-If multiple customers are displayed, search using the available conversation information one piece at a time, starting with the email address, sender's name, company name, phone number, and other relevant details. Do not select a customer from multiple records without first performing a search.
-
-If neither a contact nor a customer is found, request assistance.
-
-## 4. Return the selected record
-
-The selected contact or customer is authoritative, even if its name or email address does not exactly match the conversation history. Incoming emails can be mapped to another contact for response routing. Do not request assistance solely because of that mismatch.
-
-## Completion
-
-Complete with the selected record's identifier, whether it is a contact or customer, and the evidence used to select it. If selection remains unresolved, report the ambiguity and required assistance. Do not start quote creation as part of this skill.
+Return the selected record's number, type, and matching information. Respect existing record filters and permissions; do not create a quote here.

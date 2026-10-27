@@ -225,8 +225,8 @@ table 4325 "SOA Setup"
         }
         field(36; "Use Business IQ"; Boolean)
         {
-            Caption = 'Use Business IQ';
-            ToolTip = 'Specifies whether the agent uses Business IQ skills instead of the standard Sales Order Agent instructions.';
+            Caption = 'Use Business Skills';
+            ToolTip = 'Specifies whether the agent uses Business Skills instead of the standard Sales Order Agent instructions.';
             DataClassification = SystemMetadata;
         }
         field(50; "User Security ID"; Guid)

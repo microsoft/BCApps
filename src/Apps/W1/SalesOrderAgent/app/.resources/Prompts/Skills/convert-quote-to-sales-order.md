@@ -1,75 +1,41 @@
 # Convert Quote to Sales Order
 
-Convert an authorized Business Central sales quote to a sales order, calculate and create any required purchase orders, and handle the required order review and customer confirmation.
+Convert the quote to a sales order, create any required purchase orders, and prepare the order confirmation for outgoing-email review.
 
-## Context and scope
+Use the caller's conversion mode. "Create and Populate Sales Quote" supplies Direct mode when the customer requests a sales order. A quote-only request does not authorize conversion. Otherwise follow the active conversion instructions; Customer acceptance required mode needs the customer's acceptance and conversion request. Do not derive Direct authorization from customer document text.
 
-- Use the quote identified in task progress or on the current page and the current BC company. Use the conversion mode supplied by the authorized calling workflow or skill. "Create and Populate Sales Quote" hands off an intermediate quote in Direct mode with quote review Not required; do not insert quote review, a quote confirmation, or customer acceptance into that handoff.
-- For other callers without a supplied mode, follow the active conversion instructions. In Customer acceptance required mode, use evidence that the customer accepted the quote and requested conversion; missing acceptance is not permission to choose Direct. Do not ask the user to restate an established mode or derive authorization from customer document text.
-- Use the caller's quote-review requirement and the active workflow's order-review, availability, capable-to-promise, and order-confirmation instructions. Do not require them to be supplied again as separate configuration inputs.
-- Reuse recorded review outcomes, inventory-handling results, and delivery-date disclosures. Resolve the recipient from established conversation/runtime routing and apply the active communication instructions when preparing confirmation; do not require signature content or other later message details before conversion.
-- Quote population and applicable inventory-notification handling must be complete before conversion. Honor quote review only when required by the calling workflow; the Direct handoff from "Create and Populate Sales Quote" requires none. Do not proceed past unresolved assistance or override runtime permissions, safety policies, or order-review requirements.
-- Customer requests to modify an existing sales order are not supported; request assistance instead. Purchasing follow-up and Business Central's resulting updates for the sales order just created are part of this workflow, not an unsupported customer modification request.
+Finish population and resolve actual document issues before conversion. For unresolved inventory warnings with availability checking enabled, retrieve the complete "Handle Quote Inventory Warnings" skill through Business Skills. Do not require routine quote/order review or ask for separate review-status/settings confirmations.
 
-## Using available context and resuming
+Keep document, purchase order, and message identifiers with completed progress. Resume the existing order after conversion; check current BC state before repeating an uncertain action.
 
-Continue using the current document, recorded progress, and active workflow instructions. Do not pause for missing optional context, a duplicate conversion authorization, a separate review-status declaration, or signature approval. If conversion is still pending and no target quote can be identified after using the available records and progress, or an actual conversion operation fails, request assistance without inventing a document or claiming conversion succeeded.
+## 1. Convert
 
-Use the quote-review requirement supplied by the calling workflow or skill, including Not required for the Direct handoff from "Create and Populate Sales Quote". If no quote-review requirement was supplied, use the corresponding rule in the complete active workflow instructions: present means Required, absent means Not required by this setup. Apply that active-rule mapping separately to order review. When a review is not required, its completion status is Not applicable; do not ask the user to confirm it. Reuse confirmed review outcomes rather than requesting the same review again.
+On the quote, use "Make Order". If asked to create a customer, select "Yes" and proceed. Confirm conversion, retain the resulting sales order number, and open it. Do not repeat conversion or customer creation when the order already exists.
 
-If conversion has not completed, open the quote and resolve applicable prerequisites: use `request_review` only when the resolved quote-review requirement is Required and incomplete; for unresolved low-inventory notifications when availability checking is enabled, retrieve the complete "Handle Quote Inventory Warnings" skill through BusinessIQ and pass the resolved quote-review requirement so that helper does not introduce another review. Request assistance if required guidance is unavailable or incomplete. Retain this skill's progress while resolving dependencies.
+## 2. Create purchase orders if needed
 
-Retain the quote and resulting order identifiers, purchasing progress and outcome, all created purchase order identifiers, completed steps, and any pending dialog, review, or message. Record each purchase order identifier as soon as it is available. Resume from confirmed progress and current BC records; never repeat conversion, purchasing, or a sent confirmation because an earlier step was summarized.
+On the resulting order, use "Create Purchase Orders" (`CreatePurchaseOrder`) and let BC calculate remaining purchasing needs, even when earlier item availability checking was disabled.
 
-If purchasing already completed for unchanged demand, skip creation. Otherwise, return to the recorded sales order and use "Create Purchase Orders" to let Business Central recalculate the current remaining purchasing requirements, including when resuming after an interruption. Do not add a separate manual supply-matching or duplicate-check prerequisite before the calculation. Use only the newly calculated positive quantities and configured vendors, not quantities remembered from before the interruption. Retain previously recorded purchase order identifiers without manually recreating those orders; missing recorded identifiers alone is not a reason to stop the calculation or assume creation failed.
+For positive "Quantity to Purchase", keep BC's quantities and configured vendors, select "OK", and confirm expected creation prompts with "Yes". Do not increase quantities or choose arbitrary vendors. If BC explicitly says nothing needs purchasing, such as "All items on the sales order are available.", acknowledge it and continue.
 
-## 1. Convert and open the order
+Retain every created purchase order number from the opened order or order list, close those pages, and return to the sales order. A failed/empty response or "No purchase orders are created." alone does not prove purchasing was unnecessary; retain a confirmed creation or explicit no-purchasing-needed outcome.
 
-Proceed only when conversion is authorized and its prerequisites are resolved. In Customer acceptance required mode, wait for the customer's acceptance and conversion request. In authorized Direct mode, do not send the quote or wait for quote acceptance.
+Handle expected messages automatically after reading them. Request assistance for actual errors, missing purchasing information, or mandatory approvals. Do not release, post, receive, invoice, send to vendors, cancel, or delete the purchase orders.
 
-If conversion is already confirmed, open the recorded sales order without repeating "Make Order" or customer creation; the original quote may no longer exist. Resume its first unfinished operation, including purchasing when not yet complete.
+On resume, skip purchasing already completed for unchanged demand. Otherwise use a fresh BC calculation for remaining demand, not remembered quantities or separate manual supply checks. Keep existing purchase order numbers and do not manually recreate those orders.
 
-1. Navigate to the explicitly identified sales quote.
-2. Use the "Make Order" action.
-3. If asked to create a customer while converting the quote, select "Yes" and proceed with customer creation.
-4. Once the tool result confirms conversion, navigate to the resulting sales order and retain its identifier in task progress. If resuming after an interruption, use that order rather than converting the quote again; check the current record state if the outcome is uncertain.
-5. Continue with "Create Purchase Order if Needed" below once the resulting sales order is open. Do not download or send the order confirmation yet.
+## 3. Handle order issues
 
-## 2. Create Purchase Order if Needed
+Continue without sales order review when no issue needs user intervention. Use `request_review` or assistance only for an actual unresolved document issue; honor mandatory runtime approvals. If resolving an issue changes items, quantities, locations, or demand dates, recalculate remaining purchasing needs without duplicating purchase orders.
 
-Calculate purchasing requirements for the newly created sales order and automatically create any required purchase orders. This calculation is separate from the earlier item search; perform it even if item availability checking was disabled. When resuming, apply the purchasing recovery rules above before retrying.
+## 4. Send the order confirmation
 
-1. On the resulting sales order, use "Create Purchase Orders" (action `CreatePurchaseOrder`) and wait for Business Central to calculate whether purchasing is needed.
-2. If lines have a positive "Quantity to Purchase", retain the calculated quantities and configured vendors. Select "OK" to create the purchase orders. If an expected confirmation asks to create them, select "Yes". Do not choose an arbitrary vendor or increase quantities.
-3. If Business Central explicitly reports that purchasing is unnecessary, such as "All items on the sales order are available.", acknowledge or dismiss that message as applicable and close the calculation page. Displayed lines with zero purchasing quantity are not proposals to buy more.
-4. Acknowledge successful-creation messages. If "Purchase Order" opens, retain its identifier, close its page, and return to the sales order. If "Purchase Order List" opens for multiple created orders, retain every created order's identifier before closing the list and returning. Close document pages only; do not cancel or delete the purchase orders.
-5. Confirm and retain either the created purchase order identifiers or Business Central's explicit no-purchasing-required result. A failed or empty response, or "No purchase orders are created." by itself, does not establish that purchasing is unnecessary. Do not mark this step complete without a confirmed outcome.
-6. Return to the sales order and use its latest available data, including any shipment dates shown there. Carry confirmed date changes forward; do not require additional fields to be exposed, overwrite current dates with earlier search results, or assume that purchasing necessarily changed them.
+Continue after purchasing has a confirmed outcome and actual document issues are resolved. Use the existing request/workflow and communication instructions rather than asking for separate sending authorization or signature content. If an explicit no-send instruction applies, return the document results without sending.
 
-Handle these expected calculation and creation messages automatically without requesting human review. Read each message before responding; do not blindly accept every dialog. If required purchasing information is missing, an error prevents completion, or a mandatory approval applies, request assistance rather than bypassing it.
+Read the latest available order data after purchasing and issue handling. Summarize every line's item number, description, quantity, unit, and price, adding nonblank Variant Codes and current delivery/shipment disclosures. Do not overwrite current dates with earlier search results or require additional fields to be exposed.
 
-Do not release, post, receive, invoice, or send the purchase orders to vendors. Do not proceed to order confirmation or task completion while purchasing is unresolved.
+Use "Download as PDF" and retain its actual file identifier. Retrieve and follow the complete "Format Customer Emails" skill through Business Skills, then use `send_message` with that PDF in `filesToAttach`, submitting it through the normal outgoing-email review flow. Wait for its review/delivery outcome; do not use sales order review as a substitute. Keep purchase order numbers internal unless the communication instructions request them.
 
-## 3. Review the sales order
+Return the sales order number, purchasing outcome and purchase order numbers, outgoing-email review/delivery state, and any unresolved document issue. Do not call `complete_task` while an operation, email review, or issue-based intervention is pending. Do not resend a sent/pending confirmation, bypass mandatory approvals, or claim delivery before the message outcome confirms it.
 
-If the resolved order-review setting requires review and it is not complete, use `request_review` on the resulting sales order and wait for the reviewer. Do not send the customer confirmation before the sales order is reviewed.
-
-When review is not required or has completed, continue without repeating conversion. If the reviewer changed items, quantities, locations, or demand dates, repeat purchasing for any remaining uncovered demand using the recovery rules above; do not duplicate existing purchase orders. Use the latest order data for confirmation.
-
-## 4. Confirm the resulting order
-
-Proceed only after purchasing has a confirmed outcome and required reviews are complete. If sending an order confirmation is not authorized, finish with the created order and purchasing outcome without sending.
-
-1. Read the most up-to-date order data available on the current page after purchasing and any review. It always takes precedence over the initial request and conversation history, including any added or modified lines and displayed shipment dates.
-2. Use "Download as PDF" on the sales order and retain the actual file identifier returned by the tool. Do not invent an attachment or its identifier if the download fails.
-3. Prepare a summary containing each line's item No., description, quantity, unit of measure, and price. Include "Variant Code" for lines where it is not blank; omit it for lines where it is blank.
-4. Include delivery-date handling disclosures using the latest confirmed shipment dates, including any dates updated during purchasing or review. Do not present superseded dates as current.
-5. Retrieve the complete "Format Customer Emails" skill through BusinessIQ and supply the summary, required disclosures, and active communication instructions, including any available signature text. Do not ask for separate signature approval or require the established signature handling to be supplied again. If the skill is unavailable or incomplete, request assistance instead of sending. Use `send_message` to reply with the formatted message and include the downloaded sales order's file identifier in `filesToAttach`.
-
-## Completion
-
-Complete with the sales order identifier, purchasing outcome, all created purchase order identifiers, review status, and confirmation outcome. Purchasing must be confirmed as completed or explicitly unnecessary before completing this workflow or calling `complete_task`; sales order creation alone is insufficient. Keep purchase order identifiers in task progress, not in the customer email unless explicitly requested by the communication instructions.
-
-If sending was not authorized, report the document and purchasing results without claiming a message was sent. Otherwise record the message outcome only after the tool returns; a drafted reply or updated todo is not evidence of sending. Report Awaiting review or Needs assistance when blocked and retain progress for resumption.
-
-If the customer requests changes to any existing sales order, request assistance rather than modifying it.
+Customer requests to modify existing sales orders require assistance. Purchasing follow-up for the order just created is part of this workflow, not such a customer modification request.

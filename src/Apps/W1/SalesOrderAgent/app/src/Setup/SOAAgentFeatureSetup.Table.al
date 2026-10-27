@@ -23,7 +23,7 @@ table 4597 "SOA Agent Feature Setup"
         }
         field(2; "Use Business IQ"; Boolean)
         {
-            Caption = 'Use Business IQ';
+            Caption = 'Use Business Skills';
         }
     }
 

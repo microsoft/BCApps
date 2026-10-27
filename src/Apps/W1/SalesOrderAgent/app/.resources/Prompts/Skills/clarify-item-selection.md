@@ -1,53 +1,25 @@
 # Clarify Item Selection
 
-Clarify requested items with the customer when search results are ambiguous, include non-matching alternatives, or contain no result for a requested specific variant.
+Ask the customer to resolve ambiguous items, alternatives, or a requested specific variant with no result.
 
-## Context and scope
+Use existing search results, or retrieve the complete "Find Requested Items" skill through Business Skills first. Skip clarification only when every requested item has exactly one matching result. Ordinary missing-item and pricing errors stay in the search assistance flow.
 
-- Use the original requested items and the completed item search results, including matching status, Variant Codes, descriptions, prices including discounts, units of measure, and applicable availability information.
-- Follow the active SOA availability, capable-to-promise, and customer-communication instructions. Use the recipient established by the conversation/runtime routing and any available signature text; do not ask for these values or settings to be repeated as separate inputs. The active instruction to request customer clarification supplies authorization for that reply, subject to runtime permissions and required message reviews.
-- Ordinary missing-item and pricing errors belong to the item-search assistance flow. This skill handles the specific-variant no-result exception and customer selection from returned options.
-- This skill does not authorize creating a quote or selecting an alternative without resolving the customer's choice.
+## Prepare the choices
 
-## Using available context and resuming
+For a specific variant with no result, say the requested item and variant are unavailable and no suitable alternative variant is available. Ask whether the customer wants to revise the item or variant. Do not offer another product/variant or request assistance for this outcome.
 
-If item search has not been completed, retrieve the complete "Find Requested Items" skill through BusinessIQ and use its results before deciding whether clarification is needed. Retain this skill's progress while resolving that dependency. If required guidance is unavailable or incomplete, follow the main workflow's assistance rule rather than inventing a procedure.
+Apply that exception only when search metadata identifies the requested variant; descriptive characteristics alone and an empty `Variants` array do not prove a missing variant. Do not infer variants from code naming.
 
-Use available search results, active instructions, and established routing without introducing a separate configuration, signature-approval, or document-review checklist for item clarification. Do not invent item facts or a recipient; request assistance if no recipient can be determined from existing routing or an actual sending operation fails.
+For multiple or non-matching results, show all options in separate matching-item and alternative tables, including descriptions, discounted prices, units, and availability levels when checking is enabled. When disabled, omit availability and do not reject options because of stock.
 
-If a clarification message was already sent or is pending review, retain its identifier and wait for the outcome or customer response instead of sending it again. Honor required review before customer contact.
+For a same-product variant alternative, explain that the product was found but the requested variant is unavailable or unspecified, and offer the available variant. For a different-product alternative, explain that the queried item was not found.
 
-## 1. Decide whether clarification is required
+When capable-to-promise is active, also show unavailable items that can ship later, with descriptions, earliest shipment dates, discounted prices, and units.
 
-Skip this skill only when there is exactly one matching item for every requested item. Otherwise, do not skip customer clarification, including when a requested specific variant has no item result.
+## Send and wait
 
-## 2. Handle a requested specific variant with no result
+Include the search's delivery-date disclosures. Retrieve the complete "Format Customer Emails" skill through Business Skills, then use `send_message` with `requestsInformation` set to true and the established recipient.
 
-A specific variant may be expressed by a code or by a characteristic such as size, fit, color, capacity, compatibility, technical specification, safety classification, or intended user, but a characteristic alone does not prove that the item uses variants. Apply this section only when item-search metadata resolves the requested characteristic to a Variant Code or explicitly identifies it as an unresolved variant for an item that has variants. When an item's `Variants` array is empty, treat characteristics in its item description as description content, not missing variants. Do not rely on a variant-code naming convention.
+Retain the returned message identifier and wait for any required review/customer response; do not resend an existing pending or sent clarification. Record the customer's choice and search revised items again as needed.
 
-Always reply that the requested item and variant are unavailable and that no suitable alternative variant is available.
-
-Do not request assistance for this outcome, offer a different item or variant, or create a sales quote. Ask whether the customer wants to revise the requested item or variant.
-
-## 3. Present multiple or non-matching results
-
-Always reply to the customer when multiple items or non-matching items were returned.
-
-Provide tables of all available options for each requested item, including descriptions, availability levels, prices including discounts, and units of measure. Separate matching items from alternatives into two tables. When availability checking is disabled, omit availability levels and do not classify returned options as unavailable because of stock or quantity.
-
-For a result marked as a non-matching item, distinguish these cases:
-
-- **Same product, different variant:** make clear that the product itself was found. Explain either that the specific requested variant is unavailable or that no specific variant could be determined from the request, and offer the result as an available variant. Do not say the product was not found or was not found in a variant.
-- **Different product:** explain that the queried item was not found and that alternative items are available.
-
-Only when capable-to-promise is explicitly enabled, also provide a table of items that are currently unavailable but can ship later. Include descriptions, earliest shipment dates, prices including discounts, and units of measure.
-
-## 4. Send the clarification
-
-Include any delivery-date handling disclosures carried forward from item search. Before sending, retrieve the complete "Format Customer Emails" skill through BusinessIQ and supply the message content and active communication instructions, including any available signature text. Do not require a separate signature-mode input or signature approval. If the formatting skill is unavailable or incomplete, request assistance instead of sending.
-
-Use `send_message` with `requestsInformation` set to true because the customer's selection or revised request is needed. Record the message outcome only after the tool returns; preparing the text or updating a todo does not establish that the message was sent.
-
-## Completion
-
-Complete with a confirmed item selection when one is available; otherwise report Awaiting customer response, Awaiting review, or Needs assistance, with the message identifier and unresolved choices. When the customer responds, capture their selection or revised request and identify which items need another search. Do not create a quote as part of this skill.
+Return the selection or waiting/assistance state. Do not create a quote or choose an unconfirmed alternative here.

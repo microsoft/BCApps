@@ -459,7 +459,7 @@ page 4400 "SOA Setup"
             }
             group(BusinessIQCard)
             {
-                Caption = 'Business IQ';
+                Caption = 'Business Skills';
                 InstructionalText = 'Use relevant business skills to help the agent carry out its workflows.';
 
                 field(UseBusinessIQ; Rec."Use Business IQ")
