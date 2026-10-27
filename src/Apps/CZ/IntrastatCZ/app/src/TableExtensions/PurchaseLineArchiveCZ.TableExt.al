@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Intrastat;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Purchases.Archive;
 
 tableextension 31332 "Purchase Line Archive CZ" extends "Purchase Line Archive"
@@ -14,6 +15,12 @@ tableextension 31332 "Purchase Line Archive CZ" extends "Purchase Line Archive"
         {
             Caption = 'Physical Transfer';
             DataClassification = CustomerContent;
+        }
+        field(31310; "Country/Reg. of Orig. Code CZ"; Code[10])
+        {
+            Caption = 'Country/Region of Origin Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Country/Region";
         }
     }
 }

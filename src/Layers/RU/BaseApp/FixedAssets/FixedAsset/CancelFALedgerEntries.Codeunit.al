@@ -22,7 +22,7 @@ codeunit 5624 "Cancel FA Ledger Entries"
         GenJnlLine: Record "Gen. Journal Line";
         FAJnlLine: Record "FA Journal Line";
         FA: Record "Fixed Asset";
-        GLIntegration: array[9] of Boolean;
+        GLIntegration: array[13] of Boolean;
         FAJnlNextLineNo: Integer;
         GenJnlNextLineNo: Integer;
         DeprBookCode: Code[10];
@@ -67,7 +67,7 @@ codeunit 5624 "Cancel FA Ledger Entries"
                 IsHandled := false;
                 OnTransferLineOnBeforeIndexGLIntegration(DeprBook, IsHandled);
                 if not IsHandled then begin
-                    DeprBook.IndexGLIntegration(GLIntegration);
+                    DeprBook.IndexGLIntegration(GLIntegration, true);
                     CheckType(FALedgEntry);
                     if NewPostingDate > 0D then begin
                         FALedgEntry."Posting Date" := NewPostingDate;
@@ -96,7 +96,8 @@ codeunit 5624 "Cancel FA Ledger Entries"
         if IsHandled then
             exit;
 
-        if (FALedgEntry."FA Posting Type".AsInteger() > FALedgEntry."FA Posting Type"::"Salvage Value".AsInteger()) or
+        if ((FALedgEntry."FA Posting Type".AsInteger() > FALedgEntry."FA Posting Type"::"Salvage Value".AsInteger()) and
+            (FALedgEntry."FA Posting Type".AsInteger() <> FALedgEntry."FA Posting Type"::Derogatory.AsInteger())) or
                (FALedgEntry."FA Posting Category" <> FALedgEntry."FA Posting Category"::" ")
         then begin
             FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::"Proceeds on Disposal";
@@ -116,6 +117,8 @@ codeunit 5624 "Cancel FA Ledger Entries"
             FAJnlUsedOnce := true;
             FAJnlDocumentNo :=
               FAJnlSetup.GetFAJnlDocumentNo(FAJnlLine, FALedgEntry."FA Posting Date", false);
+            if FAJnlDocumentNo = '' then
+                FAJnlDocumentNo := GetLastFAJnlDocumentNo(FAJnlLine);
         end;
 
         FALedgEntry.MoveToFAJnl(FAJnlLine);
@@ -150,6 +153,8 @@ codeunit 5624 "Cancel FA Ledger Entries"
             GenJnlUsedOnce := true;
             GenJnlDocumentNo :=
               FAJnlSetup.GetGenJnlDocumentNo(GenJnlLine, FALedgEntry."FA Posting Date", false);
+            if GenJnlDocumentNo = '' then
+                GenJnlDocumentNo := GetLastGenJnlDocumentNo(GenJnlLine);
         end;
 
         FALedgEntry.MoveToGenJnl(GenJnlLine);
@@ -172,6 +177,26 @@ codeunit 5624 "Cancel FA Ledger Entries"
             FAInsertGLAcc.GetBalAcc(GenJnlLine);
 
         OnAfterInsertGenJnlLine(GenJnlLine, FALedgEntry, BalAccount);
+    end;
+
+    local procedure GetLastFAJnlDocumentNo(FAJournalLine: Record "FA Journal Line"): Code[20]
+    var
+        LastFAJournalLine: Record "FA Journal Line";
+    begin
+        LastFAJournalLine.SetRange("Journal Template Name", FAJournalLine."Journal Template Name");
+        LastFAJournalLine.SetRange("Journal Batch Name", FAJournalLine."Journal Batch Name");
+        if LastFAJournalLine.FindLast() then
+            exit(LastFAJournalLine."Document No.");
+    end;
+
+    local procedure GetLastGenJnlDocumentNo(GenJournalLine: Record "Gen. Journal Line"): Code[20]
+    var
+        LastGenJournalLine: Record "Gen. Journal Line";
+    begin
+        LastGenJournalLine.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
+        LastGenJournalLine.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+        if LastGenJournalLine.FindLast() then
+            exit(LastGenJournalLine."Document No.");
     end;
 
     procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
