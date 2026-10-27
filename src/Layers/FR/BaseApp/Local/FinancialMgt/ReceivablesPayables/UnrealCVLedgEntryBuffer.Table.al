@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA33
 namespace Microsoft.Finance.ReceivablesPayables;
 
 using Microsoft.Purchases.Payables;
@@ -13,6 +14,14 @@ table 10871 "Unreal. CV Ledg. Entry Buffer"
 {
     Caption = 'Unreal. CV Ledg. Entry Buffer';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to Unreal. CV Ledg. Buffer FR in the Payment Management FR app.';
+#if not CLEAN30
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '33.0';
+#endif
 
     fields
     {
@@ -85,3 +94,4 @@ table 10871 "Unreal. CV Ledg. Entry Buffer"
 
     end;
 }
+#endif

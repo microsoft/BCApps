@@ -4284,11 +4284,28 @@ codeunit 137088 "SCM Order Planning - III"
     local procedure ClearGlobals()
     var
         RequisitionLine: Record "Requisition Line";
+        ReservationEntry: Record "Reservation Entry";
+        ReservEntryNos: List of [Integer];
+        ReservEntryNo: Integer;
     begin
         Clear(VerifyOnGlobal);
         Clear(DemandTypeGlobal);
         Clear(GlobalChildItemNo);
         Clear(ExpectedQuantity);
+        // Requisition lines are deleted without triggers, so remove their reservations (both sides) explicitly;
+        // otherwise a new line reusing the same template/batch/line no. inherits them.
+        ReservationEntry.SetRange("Source Type", Database::"Requisition Line");
+        ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Reservation);
+        ReservationEntry.SetLoadFields("Entry No.");
+        if ReservationEntry.FindSet() then
+            repeat
+                ReservEntryNos.Add(ReservationEntry."Entry No.");
+            until ReservationEntry.Next() = 0;
+        ReservationEntry.Reset();
+        foreach ReservEntryNo in ReservEntryNos do begin
+            ReservationEntry.SetRange("Entry No.", ReservEntryNo);
+            ReservationEntry.DeleteAll();
+        end;
         RequisitionLine.Reset();
         RequisitionLine.DeleteAll();
         ClearManufacturingUserTemplate();

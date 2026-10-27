@@ -649,7 +649,7 @@ codeunit 8060 "Create Billing Documents"
         SalesHeader."No. Printed" := 0;
         SalesHeader.Validate("Posting Date", PostingDate);
         SalesHeader.Validate("Document Date", DocumentDate);
-        SalesHeader.Validate("Currency Code");
+        SalesHeader.Validate("Currency Code", CopyStr(TempBillingLine."Currency Code", 1, MaxStrLen(SalesHeader."Currency Code")));
         SalesHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
         TranslationHelper.SetGlobalLanguageByCode(SalesHeader."Language Code");
         SalesHeader."Posting Description" := CustomerContractLbl + ' ' + CustomerContract."No.";
@@ -716,7 +716,7 @@ codeunit 8060 "Create Billing Documents"
         SalesHeader.Validate("Sell-to Customer No.", CustomerNo);
         SalesHeader.Validate("Posting Date", PostingDate);
         SalesHeader.Validate("Document Date", DocumentDate);
-        SalesHeader.Validate("Currency Code");
+        SalesHeader.Validate("Currency Code", CopyStr(TempBillingLine."Currency Code", 1, MaxStrLen(SalesHeader."Currency Code")));
         SalesHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
         TranslationHelper.SetGlobalLanguageByCode(SalesHeader."Language Code");
         SalesHeader."Posting Description" := CustomerContractLbl + ' ' + TempBillingLine."Subscription Contract No.";
@@ -907,11 +907,13 @@ codeunit 8060 "Create Billing Documents"
         PartnerBillingLine: Record "Billing Line";
     begin
         PartnerBillingLine.CopyFilters(BillingLine);
+        PartnerBillingLine.FilterGroup(2);
         PartnerBillingLine.SetRange(Partner, Enum::"Service Partner"::Customer);
         CustomerBillingLinesFound := not PartnerBillingLine.IsEmpty();
 
         PartnerBillingLine.SetRange(Partner, Enum::"Service Partner"::Vendor);
         VendorBillingLinesFound := not PartnerBillingLine.IsEmpty();
+        PartnerBillingLine.FilterGroup(0);
 
         if (CustomerBillingLinesFound and VendorBillingLinesFound) then begin
             DisplayOrLogUnspecificError(OnlyOneServicePartnerErr);
