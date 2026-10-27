@@ -11015,7 +11015,7 @@ codeunit 137072 "SCM Production Orders II"
     begin
         ItemLedgerEntry.SetRange("Item No.", ItemNo);
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
-        ItemLedgerEntry.SetFilter(Quantity, '>0');
+        ItemLedgerEntry.SetRange(Positive, true);
         Assert.RecordCount(ItemLedgerEntry, 1);
         ItemLedgerEntry.FindFirst();
         ItemLedgerEntry.TestField(Quantity, ExpectedQuantity);
