@@ -7,7 +7,7 @@ namespace Microsoft.eServices.EDocument.Extensions;
 
 using Microsoft.Sales.Customer;
 
-tableextension 6245 "E-Document Customer" extends Customer
+tableextension 6174 "E-Document Customer" extends Customer
 {
     fields
     {

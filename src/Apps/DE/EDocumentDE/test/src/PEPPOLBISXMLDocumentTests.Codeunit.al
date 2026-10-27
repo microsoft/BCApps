@@ -172,14 +172,14 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
-        RegistrationNo: Text[20];
+        RegistrationNo: Text[50];
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 652557] PEPPOL exports the customer Registration No. as the buyer legal entity identifier when GLN and VAT ID are unavailable
         Initialize();
 
-        // [GIVEN] A customer configured to use only Registration No.
-        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        // [GIVEN] A customer configured to use only a Registration No. longer than 20 characters
+        RegistrationNo := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(30, 0), 1, MaxStrLen(RegistrationNo));
         Customer.Get(CreateCustomerWithRegistrationNo(RegistrationNo));
         SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLineForCustomer("Sales Document Type"::Invoice, Customer."No."));
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
@@ -549,7 +549,7 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
         exit(Customer."No.");
     end;
 
-    local procedure CreateCustomerWithRegistrationNo(RegistrationNo: Text[20]): Code[20]
+    local procedure CreateCustomerWithRegistrationNo(RegistrationNo: Text[50]): Code[20]
     var
         Customer: Record Customer;
     begin

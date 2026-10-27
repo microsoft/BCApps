@@ -585,7 +585,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         City: Text[50];
         CountryCode: Code[10];
         VATRegistrationNo: Text[20];
-        CustomerRegistrationNo: Text[20];
+        CustomerRegistrationNo: Text[50];
         YourReference: Text[35];
         Contact: Text[100];
         CustomerEmail: Text[250];
@@ -655,7 +655,7 @@ codeunit 13917 "Export ZUGFeRD Document"
             if Customer."Use GLN in Electronic Document" then
                 CustomerGLN := Customer.GLN;
             if Customer."Use Reg. No. in E-Document" and (Customer.GLN = '') and (Customer."VAT Registration No." = '') and (Customer."Registration Number" <> '') then
-                CustomerRegistrationNo := CopyStr(Customer."Registration Number", 1, MaxStrLen(CustomerRegistrationNo));
+                CustomerRegistrationNo := Customer."Registration Number";
         end;
         HeaderTradeAgreementElement := XmlElement.Create('ApplicableHeaderTradeAgreement', XmlNamespaceRAM);
         HeaderTradeAgreementElement.Add(XmlElement.Create('BuyerReference', XmlNamespaceRAM, GetBuyerReference(RecordVariant)));

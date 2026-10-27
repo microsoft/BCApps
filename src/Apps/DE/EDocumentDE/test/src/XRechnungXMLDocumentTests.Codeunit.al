@@ -2201,14 +2201,14 @@ codeunit 13918 "XRechnung XML Document Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
-        RegistrationNo: Text[20];
+        RegistrationNo: Text[50];
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 652557] Customer Registration No. is exported as the legal entity identifier when GLN and VAT ID are unavailable
         Initialize();
 
-        // [GIVEN] A customer with a Registration No. but no GLN or VAT ID
-        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        // [GIVEN] A customer with a Registration No. longer than 20 characters but no GLN or VAT ID
+        RegistrationNo := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(30, 0), 1, MaxStrLen(RegistrationNo));
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithRegistrationNo(RegistrationNo));
 
         // [WHEN] Export XRechnung electronic document
@@ -4698,7 +4698,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         exit(SalesHeader."No.");
     end;
 
-    local procedure CreateAndPostSalesInvoiceForCustomerWithRegistrationNo(RegistrationNo: Text[20]): Code[20]
+    local procedure CreateAndPostSalesInvoiceForCustomerWithRegistrationNo(RegistrationNo: Text[50]): Code[20]
     var
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
