@@ -32,44 +32,52 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         MLLMExtractionStartedMsg: Label 'MLLM extraction started.', Locked = true;
         MLLMExtractionSucceededMsg: Label 'MLLM extraction succeeded.', Locked = true;
         MLLMApiCallSucceededMsg: Label 'MLLM API call succeeded.', Locked = true;
-        MLLMApiCallFailedMsg: Label 'MLLM API call failed, falling back to ADI.', Locked = true;
-        MLLMEmptyResponseMsg: Label 'MLLM returned empty response, falling back to ADI.', Locked = true;
-        MLLMJsonParseFailedMsg: Label 'MLLM response is not valid JSON, falling back to ADI.', Locked = true;
-        MLLMSchemaValidationFailedMsg: Label 'MLLM response missing required vendor fields (name or address), falling back to ADI.', Locked = true;
+        MLLMApiCallFailedMsg: Label 'MLLM API call failed, trying the next extraction method.', Locked = true;
+        MLLMEmptyResponseMsg: Label 'MLLM returned empty response, trying the next extraction method.', Locked = true;
+        MLLMJsonParseFailedMsg: Label 'MLLM response is not valid JSON, trying the next extraction method.', Locked = true;
+        MLLMSchemaValidationFailedMsg: Label 'MLLM response missing required vendor fields (name or address), trying the next extraction method.', Locked = true;
         ADIFallbackSucceededMsg: Label 'ADI fallback produced structured data.', Locked = true;
         DocumentNotProcessedErr: Label 'The document could not be processed.';
         InappropriateContentErr: Label 'The document could not be processed because it contains inappropriate content.';
 
     procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
     var
+        AOAIDeployments: Codeunit "AOAI Deployments";
         ResponseJson: JsonObject;
         CustomDimensions: Dictionary of [Text, Text];
         ResponseText: Text;
+        DeploymentName: Text;
     begin
         Telemetry.LogMessage('0000SGQ', MLLMExtractionStartedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
 
         RegisterCopilotCapabilityIfNeeded();
 
-        ResponseText := CallMLLM(EDocumentDataStorage);
-
-        if IsInappropriateContentResponse(ResponseText) then
-            Error(InappropriateContentErr);
-
-        if not ValidateAndUnwrapResponse(ResponseText, ResponseJson) then
+        DeploymentName := AOAIDeployments.GetGPT56CeresPreview();
+        if not TryExtractWithModel(EDocumentDataStorage, DeploymentName, ResponseText, ResponseJson) then
             exit(FallbackToADI(EDocumentDataStorage));
 
         StructuredData := ResponseText;
         FileFormat := "E-Doc. File Format"::JSON;
 
         CustomDimensions := GetCustomDimensions();
+        CustomDimensions.Add('Model', DeploymentName);
         CustomDimensions.Add('LineCount', Format(GetInvoiceLineCount(ResponseJson)));
         Telemetry.LogMessage('0000SGR', MLLMExtractionSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
 
         exit(this);
     end;
 
-    [NonDebuggable]
-    local procedure CallMLLM(EDocumentDataStorage: Record "E-Doc. Data Storage"): Text
+    local procedure TryExtractWithModel(EDocumentDataStorage: Record "E-Doc. Data Storage"; DeploymentName: Text; var ResponseText: Text; var ResponseJson: JsonObject): Boolean
+    begin
+        Clear(ResponseJson);
+        ResponseText := CallMLLM(EDocumentDataStorage, DeploymentName);
+        if IsInappropriateContentResponse(ResponseText) then
+            Error(InappropriateContentErr);
+
+        exit(ValidateAndUnwrapResponse(ResponseText, ResponseJson));
+    end;
+
+    local procedure CallMLLM(EDocumentDataStorage: Record "E-Doc. Data Storage"; DeploymentName: Text): Text
     var
         Base64Convert: Codeunit "Base64 Convert";
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -77,7 +85,6 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIUserMessage: Codeunit "AOAI User Message";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
-        AOAIDeployments: Codeunit "AOAI Deployments";
         EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
         FromTempBlob: Codeunit "Temp Blob";
         CustomDimensions: Dictionary of [Text, Text];
@@ -85,6 +92,10 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         Base64Data: Text;
         StartTime: DateTime;
         DurationMs: Integer;
+        StatusCode: Integer;
+        ErrorText: Text;
+        ResponseText: Text;
+        ApiCallSucceeded: Boolean;
     begin
         // Load schema and convert PDF to base64
         FromTempBlob := EDocumentDataStorage.GetTempBlob();
@@ -92,7 +103,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         Base64Data := Base64Convert.ToBase64(InStream);
 
         // Build AOAI call
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", DeploymentName);
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis");
 
         AOAIChatCompletionParams.SetTemperature(0);
@@ -101,23 +112,37 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         AOAIChatMessages.SetPrimarySystemMessage(NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8));
 
         AOAIUserMessage.AddFilePart(StrSubstNo(FileDataLbl, Base64Data));
-        AOAIUserMessage.AddTextPart(SecretText.SecretStrSubstNo(UserPromptLbl, EDocMLLMSchemaHelper.GetDefaultSchema(), GetSecurityClause()).Unwrap());
+        AddUserPromptTextPart(AOAIUserMessage, EDocMLLMSchemaHelper.GetDefaultSchema());
         AOAIChatMessages.AddUserMessage(AOAIUserMessage);
 
         StartTime := CurrentDateTime();
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
         DurationMs := CurrentDateTime() - StartTime;
+        ApiCallSucceeded := AOAIOperationResponse.IsSuccess();
+        StatusCode := AOAIOperationResponse.GetStatusCode();
+        ErrorText := AOAIOperationResponse.GetError();
+        ResponseText := AOAIOperationResponse.GetResult();
 
         CustomDimensions := GetCustomDimensions();
+        CustomDimensions.Add('Model', DeploymentName);
         CustomDimensions.Add('DurationMs', Format(DurationMs));
-
-        if not AOAIOperationResponse.IsSuccess() then begin
+        CustomDimensions.Add('StatusCode', Format(StatusCode));
+        CustomDimensions.Add('ResponseLength', Format(StrLen(ResponseText)));
+        CustomDimensions.Add('HasErrorDetails', Format(ErrorText <> ''));
+        if not ApiCallSucceeded then begin
             Telemetry.LogMessage('0000SGS', MLLMApiCallFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
             exit('');
         end;
 
         Telemetry.LogMessage('0000SGT', MLLMApiCallSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
-        exit(AOAIOperationResponse.GetResult());
+        exit(ResponseText);
+    end;
+
+    // Kept separate so CallMLLM stays debuggable without exposing the unwrapped security prompt.
+    [NonDebuggable]
+    local procedure AddUserPromptTextPart(var AOAIUserMessage: Codeunit "AOAI User Message"; Schema: Text)
+    begin
+        AOAIUserMessage.AddTextPart(SecretText.SecretStrSubstNo(UserPromptLbl, Schema, GetSecurityClause()).Unwrap());
     end;
 
     local procedure GetSecurityClause() Result: SecretText
@@ -139,7 +164,6 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
             exit(false);
         if not ResponseJson.ReadFrom(ResponseText) then
             exit(false);
-
         if ResponseJson.Get('content', ContentToken) and ContentToken.IsValue() then begin
             InnerText := ContentToken.AsValue().AsText();
             Clear(ResponseJson);
@@ -157,7 +181,6 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
             Telemetry.LogMessage('0000SGU', MLLMEmptyResponseMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
             exit(false);
         end;
-
         if not ResponseJson.ReadFrom(ResponseText) then begin
             Telemetry.LogMessage('0000SGV', MLLMJsonParseFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
             exit(false);
@@ -171,7 +194,6 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
                 exit(false);
             end;
         end;
-
         if not ValidateMLLMResponse(ResponseJson) then begin
             Telemetry.LogMessage('0000SGX', MLLMSchemaValidationFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
             exit(false);
@@ -207,25 +229,21 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         if not SupplierToken.IsObject() then
             exit(false);
         SupplierObj := SupplierToken.AsObject();
-
         if not SupplierObj.Get('party', PartyToken) then
             exit(false);
         if not PartyToken.IsObject() then
             exit(false);
         PartyObj := PartyToken.AsObject();
-
         if not PartyObj.Get('party_name', NameToken) then
             exit(false);
         if not NameToken.IsObject() then
             exit(false);
         NameObj := NameToken.AsObject();
-
         if not NameObj.Get('name', NameToken) then
             exit(false);
         VendorName := NameToken.AsValue().AsText();
         if VendorName = '' then
             exit(false);
-
         if not PartyObj.Get('postal_address', AddressToken) then
             exit(false);
         if not AddressToken.IsObject() then
@@ -297,7 +315,6 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         IsCreditNote := EDocMLLMSchemaHelper.IsCreditNote(SourceJsonObject);
         EDocMLLMSchemaHelper.MapHeaderFromJson(SourceJsonObject, TempEDocPurchaseHeader);
         TempEDocPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
-
         if SourceJsonObject.Get('invoice_line', LinesToken) then
             if LinesToken.IsArray() then begin
                 LinesArray := LinesToken.AsArray();
