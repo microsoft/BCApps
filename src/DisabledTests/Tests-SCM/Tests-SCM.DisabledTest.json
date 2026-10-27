@@ -130,6 +130,11 @@
     "method": "SalesPriceStartingDateAfterEndingDateError"
   },
   {
+    "codeunitId": 137156,
+    "codeunitName": "SCM Orders IV",
+    "method": "ChangeQtyOnSOAfterSortingOnReservedField"
+  },
+  {
     "codeunitId": 137158,
     "codeunitName": "SCM Orders V",
     "method": "OpenCommentsFromTaskCardPage"

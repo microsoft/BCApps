@@ -126,7 +126,7 @@ codeunit 134124 "ERM Reverse Employee Ledger"
         GenJournalLine: Record "Gen. Journal Line";
         GLRegisters: TestPage "G/L Registers";
         EmployeeLedgerEntries: TestPage "Employee Ledger Entries";
-        EmplLedgEntryNo: Integer;
+        EmplLedgEntryNo: BigInteger;
     begin
         // [FEATURE] [UI] [G/L Registers] [Employee Ledger Entries]
         // [SCENARIO 274734] Stan can view the Employee Ledger Entries that resulted in the G/L Register Entry on page G/L Register Entries
@@ -224,7 +224,7 @@ codeunit 134124 "ERM Reverse Employee Ledger"
     var
         GenJournalLine: Record "Gen. Journal Line";
         EmployeeLedgerEntries: TestPage "Employee Ledger Entries";
-        EmplLedgEntryNo: Integer;
+        EmplLedgEntryNo: BigInteger;
     begin
         // [FEATURE] [UI] [Reverse Transaction]
         // [SCENARIO 274734] When Reverse Transaction is called from Employee Ledger Entries page then Reversal Entries are shown on Reversal Entries page
@@ -407,7 +407,7 @@ codeunit 134124 "ERM Reverse Employee Ledger"
         exit(EmployeeLedgerEntry."Entry No.");
     end;
 
-    local procedure FindGLRegisterByEmplLedgEntry(EmplLedgEntryNo: Integer): Integer
+    local procedure FindGLRegisterByEmplLedgEntry(EmplLedgEntryNo: Integer): BigInteger
     var
         GLRegister: Record "G/L Register";
     begin
