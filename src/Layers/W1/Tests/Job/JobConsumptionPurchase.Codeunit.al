@@ -4988,6 +4988,39 @@ codeunit 136302 "Job Consumption Purchase"
             StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost"), GLEntry.Amount));
     end;
 
+    [Test]
+    [HandlerFunctions('PurchaseOrderStatisticsSetInvDiscountAndVATDifferenceInvoicingPageHandler,VATAmountLinesAddVATDifferenceModalPageHandler')]
+    procedure JobLedgerEntryTotalCostForGLAccLineWithChangedInvDiscAmountToInvoicePricesInclVATAndVATDifferenceMultipleQty()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        ExpectedAmount: Decimal;
+    begin
+        // [FEATURE] [G/L Account] [Invoice Discount] [Prices Including VAT] [VAT Difference]
+        // [SCENARIO 642385] Project ledger entry total cost for a G/L Account line deducts the VAT difference once when more than one unit is invoiced
+        Initialize();
+
+        // [GIVEN] Purchase order with "Prices Including VAT" and G/L Account line with "VAT %" = 20 linked to a project task: Quantity = 10, "Direct Unit Cost" = 200, invoice discount = 1000
+        // [GIVEN] "Qty. to Invoice" = 4, invoice discount on the Invoicing tab of purchase order statistics changed to 0 and invoiced VAT amount increased by "VAT Difference" = 0.01
+        // [WHEN] Receive and invoice the purchase order
+        PostGLAccLineWithInvDiscAmountToInvoice(
+            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10, 4, 200, 1000, 0, true, 0, '', '', 20, 0.01);
+
+        // [THEN] G/L entry for the G/L Account has amount 200 * 4 / 1.2 - 0.01 = 666.66
+        ExpectedAmount := Round(200 * 4 / 1.2, LibraryERM.GetAmountRoundingPrecision()) - 0.01;
+        Assert.AreEqual(ExpectedAmount, GLEntry.Amount, StrSubstNo(ValueMustMatchErr, GLEntry.FieldCaption(Amount), ExpectedAmount));
+
+        // [THEN] Project ledger entry "Total Cost (LCY)" and "Total Cost" are equal to the G/L entry amount, i.e. the VAT difference is deducted once
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost (LCY)",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), GLEntry.Amount));
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost"), GLEntry.Amount));
+    end;
+
     local procedure Initialize()
     var
         WarehouseEmployee: Record "Warehouse Employee";

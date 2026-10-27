@@ -6342,24 +6342,30 @@ codeunit 90 "Purch.-Post"
         GetGLSetup();
         FullLineDiscAmountPerQty :=
             Round((FullLineDiscAmount + FullLineInvDiscAmount) / PurchLine2.Quantity, GLSetup."Unit-Amount Rounding Precision");
+        // UpdateUnitCost of the purchase line deducts the whole "VAT Difference" from "Unit Cost", so the baseline does the same.
         if PurchLine2."Unit Cost" <>
-           Round(CalcJobUnitCostFromDiscAmountPerQty(PurchHeader, PurchLine2, FullLineDiscAmountPerQty), Currency."Unit-Amount Rounding Precision")
+           Round(
+               CalcJobUnitCostFromDiscAmountPerQty(PurchHeader, PurchLine2, FullLineDiscAmountPerQty, PurchLine2."VAT Difference"),
+               Currency."Unit-Amount Rounding Precision")
         then
             exit(false);
 
         // Calculate from the invoiced amount without rounding, so that the project totals match the invoiced amount.
+        // "VAT Difference" is an amount of the invoiced line, so it is spread over "Qty. to Invoice" to deduct it once from the total.
         JobUnitCostToInvoice :=
             CalcJobUnitCostFromDiscAmountPerQty(
-                PurchHeader, PurchLine2, (PurchLine2."Line Discount Amount" + PurchLine2."Inv. Discount Amount") / PurchLine2."Qty. to Invoice");
+                PurchHeader, PurchLine2,
+                (PurchLine2."Line Discount Amount" + PurchLine2."Inv. Discount Amount") / PurchLine2."Qty. to Invoice",
+                PurchLine2."VAT Difference" / PurchLine2."Qty. to Invoice");
         exit(true);
     end;
 
-    local procedure CalcJobUnitCostFromDiscAmountPerQty(PurchHeader: Record "Purchase Header"; PurchLine2: Record "Purchase Line"; DiscountAmountPerQty: Decimal) UnitCost: Decimal
+    local procedure CalcJobUnitCostFromDiscAmountPerQty(PurchHeader: Record "Purchase Header"; PurchLine2: Record "Purchase Line"; DiscountAmountPerQty: Decimal; UnitCostVATDifference: Decimal) UnitCost: Decimal
     begin
-        // Mirrors "Unit Cost" calculation in UpdateUnitCost of the purchase line, including the VAT difference for prices including VAT
+        // Mirrors "Unit Cost" calculation in UpdateUnitCost of the purchase line; the VAT difference only applies to prices including VAT
         UnitCost := (PurchLine2."Direct Unit Cost" - DiscountAmountPerQty) * (1 + PurchLine2."Indirect Cost %" / 100);
         if PurchHeader."Prices Including VAT" then
-            UnitCost := UnitCost / (1 + PurchLine2.GetVATPct() / 100) - PurchLine2."VAT Difference";
+            UnitCost := UnitCost / (1 + PurchLine2.GetVATPct() / 100) - UnitCostVATDifference;
     end;
 
     local procedure UpdateJobPurchLineUnitCostForInvDiscToInvoice(PurchHeader: Record "Purchase Header"; var JobPurchLine2: Record "Purchase Line"; JobUnitCostToInvoice: Decimal)
