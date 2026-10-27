@@ -1028,18 +1028,15 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
     local procedure SetVendorExchangeRateACYAmounts(PurchHeader: Record "Purchase Header"; InvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJnlLine: Record "Gen. Journal Line")
     var
         Factor: Decimal;
-        AmountACY: Decimal;
     begin
         GetACYCurrency();
         Factor := CurrExchRate.ExchangeRateFactorFRS21(GenJnlLine."Posting Date", ACYCurrency.Code, PurchHeader."Vendor Exchange Rate (ACY)");
-        AmountACY := VendorExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer.Amount, Factor);
         GenJnlLine."VAT Base (ACY)" := VendorExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Base Amount", Factor);
         GenJnlLine."VAT Difference (ACY)" := InvoicePostingBuffer."VAT Difference (ACY)";
-        GenJnlLine."Amount Including VAT (ACY)" :=
-            Round(
-                AmountACY + GenJnlLine."VAT Base (ACY)" * InvoicePostingBuffer."VAT %" / 100,
-                ACYCurrency."Amount Rounding Precision") + GenJnlLine."VAT Difference (ACY)";
-        GenJnlLine."VAT Amount (ACY)" := GenJnlLine."Amount Including VAT (ACY)" - GenJnlLine."VAT Base (ACY)";
+        GenJnlLine."VAT Amount (ACY)" :=
+            VendorExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Amount" - InvoicePostingBuffer."VAT Difference", Factor) +
+            GenJnlLine."VAT Difference (ACY)";
+        GenJnlLine."Amount Including VAT (ACY)" := GenJnlLine."VAT Base (ACY)" + GenJnlLine."VAT Amount (ACY)";
     end;
 
     local procedure VendorExchangeAmtLCYToACY(PostingDate: Date; AmountLCY: Decimal; Factor: Decimal): Decimal
