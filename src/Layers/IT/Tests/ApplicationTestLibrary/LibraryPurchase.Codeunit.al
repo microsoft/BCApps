@@ -706,7 +706,7 @@ codeunit 130512 "Library - Purchase"
         VendorPostingGroup.Insert(true);
     end;
 
-    procedure CreateAltVendorPostingGroup(ParentCode: Code[10]; AltCode: Code[10])
+    procedure CreateAltVendorPostingGroup(ParentCode: Code[20]; AltCode: Code[20])
     var
         AltVendorPostingGroup: Record "Alt. Vendor Posting Group";
     begin
