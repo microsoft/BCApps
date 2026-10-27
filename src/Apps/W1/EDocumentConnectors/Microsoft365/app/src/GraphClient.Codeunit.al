@@ -84,6 +84,7 @@ codeunit 6384 "Graph Client"
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
+        HttpHeaders: HttpHeaders;
         FileUrl: Text;
         ErrorDetails: Text;
         ClientRequestId: Text;
@@ -94,6 +95,9 @@ codeunit 6384 "Graph Client"
         FileUrl := GetGraphItemByIdUrl(DriveId, TempDocumentSharing."Item Id") + '/content';
 
         InitializeWebRequest(FileUrl, 'GET', '', HttpRequestMessage, ClientRequestId);
+        // Return the content directly instead of redirecting to a pre-authenticated (tempauth) SharePoint URL; tempauth URLs are being retired.
+        HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Prefer', 'noredirect');
 
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
             Session.LogMessage('0000VSU', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetTelemetryDimensions(ClientRequestId));
