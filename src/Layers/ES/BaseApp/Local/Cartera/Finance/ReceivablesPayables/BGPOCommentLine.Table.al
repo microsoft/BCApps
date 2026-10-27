@@ -64,7 +64,7 @@ table 7000008 "BG/PO Comment Line"
     begin
         BGPOCommentLine.SetRange("BG/PO No.", "BG/PO No.");
         BGPOCommentLine.SetRange(Type, Type);
-        if not BGPOCommentLine.FindFirst() then
+        if BGPOCommentLine.IsEmpty() then
             Date := WorkDate();
     end;
 
@@ -111,4 +111,3 @@ table 7000008 "BG/PO Comment Line"
         end;
     end;
 }
-

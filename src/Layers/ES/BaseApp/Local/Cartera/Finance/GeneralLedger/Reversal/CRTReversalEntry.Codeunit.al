@@ -32,7 +32,7 @@ codeunit 7000098 "CRT Reversal Entry"
         CarteraDoc.SetCurrentKey(Type, "Document No.");
         CarteraDoc.SetRange("Document No.", GLEntry."Document No.");
         CarteraDoc.SetRange("Document Type", CarteraDoc."Document Type"::Invoice);
-        if CarteraDoc.FindFirst() then
+        if not CarteraDoc.IsEmpty() then
             Error(CannotReverseCarteraInvoiceErr);
     end;
 }

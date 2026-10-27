@@ -254,9 +254,12 @@ codeunit 7000006 "Document-Post"
             CarteraDoc.LockTable();
             PostedCarteraDoc.LockTable();
             ClosedCarteraDoc.LockTable();
+            // Preserve the locking reads and their order; the record values are not needed.
+#pragma warning disable AA0175
             if CarteraDoc2.FindLast() then;
             if PostedCarteraDoc2.FindLast() then;
             if ClosedCarteraDoc2.FindLast() then;
+#pragma warning restore AA0175
         end;
         if CustLedgEntry."Remaining Amount" = 0 then
             CustLedgEntry."Remaining Amt. (LCY)" := 0;
@@ -394,9 +397,12 @@ codeunit 7000006 "Document-Post"
             DocLock := true;
             CarteraDoc.LockTable();
             PostedCarteraDoc.LockTable();
+            // Preserve the locking reads and their order; the record values are not needed.
+#pragma warning disable AA0175
             if CarteraDoc2.FindLast() then;
             if PostedCarteraDoc2.FindLast() then;
             if ClosedCarteraDoc2.FindLast() then;
+#pragma warning restore AA0175
             ClosedCarteraDoc.LockTable();
         end;
         if VendLedgEntry."Remaining Amount" = 0 then
@@ -1276,4 +1282,3 @@ codeunit 7000006 "Document-Post"
     begin
     end;
 }
-
