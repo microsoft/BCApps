@@ -523,6 +523,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
         Customer: Record Customer;
         CustomerPostingGroup: Record "Customer Posting Group";
         CustomerPostingGroup2: Record "Customer Posting Group";
+        GLSetup: Record "General Ledger Setup";
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
         GLEntry: Record "G/L Entry";
@@ -539,6 +540,9 @@ codeunit 134195 "ERM Multiple Posting Groups"
         Initialize();
 
         SetSalesAllowMultiplePostingGroups(true);
+        GLSetup.Get();
+        GLSetup.Validate("Enable Russian Accounting", true);
+        GLSetup.Modify(true);
         CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
         LibraryERM.SetAddReportingCurrency(CurrencyCode);
 
