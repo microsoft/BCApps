@@ -49,7 +49,6 @@ codeunit 4600 "SOA Document Events"
             exit;
 
         TelemetryDimensions.Add('TaskId', Format(AgentTaskID));
-        TelemetryDimensions.Add('SalesHeaderSystemId', Format(Rec.SystemId));
         repeat
             if not WasTransferredByEmail(AgentTaskMessage) then begin
                 CopiedAttachments := 0;
