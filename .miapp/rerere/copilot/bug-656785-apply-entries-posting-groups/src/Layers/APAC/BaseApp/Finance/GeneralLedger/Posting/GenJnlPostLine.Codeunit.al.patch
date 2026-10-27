@@ -1,0 +1,27 @@
+diff --git a/tmp/tmpKPiivT.tmp.back b/tmp/tmpKPiivT.tmp
+index 7800411..d7d42dc 100644
+--- a/tmp/tmpKPiivT.tmp.back
++++ b/tmp/tmpKPiivT.tmp
+@@ -5921,22 +5921,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
+             DetailedCVLedgEntryBuffer."Entry Type"::Application:
+                 if MultiplePostingGroups then
+                     CreateGLEntry(
+-<<<<<<< src/Layers/APAC/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+                         GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)",
+                         GLCalcAddCurrency(
+                             DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount, 0,
+                             DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode, GenJournalLine),
+                         DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
+-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+-                        GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)", 0, DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
+-=======
+                         GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)",
+                         GLCalcAddCurrency(
+                             DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount,
+                             DetailedCVLedgEntryBuffer."Additional-Currency Amount",
+                             DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode, GenJournalLine),
+                         DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
+->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+                         CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
+             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Loss",
+             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Gain",

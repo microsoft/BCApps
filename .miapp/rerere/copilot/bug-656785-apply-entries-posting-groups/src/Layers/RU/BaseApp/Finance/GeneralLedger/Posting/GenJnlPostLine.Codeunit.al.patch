@@ -1,0 +1,69 @@
+diff --git a/tmp/tmpqs8wq6.tmp.back b/tmp/tmpqs8wq6.tmp
+index 7762871..64aa8f9 100644
+--- a/tmp/tmpqs8wq6.tmp.back
++++ b/tmp/tmpqs8wq6.tmp
+@@ -4106,7 +4106,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
+             if AppliedAmount = 0 then
+                 exit;
+ 
+-<<<<<<< src/Layers/RU/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+         if not GLSetup."Enable Russian Accounting" then
+             DtldCVLedgEntryBuf.InitDetailedCVLedgEntryBuf(
+               GenJnlLine, OldCVLedgEntryBuf, DtldCVLedgEntryBuf,
+@@ -4136,20 +4135,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
+             DtldCVLedgEntryBuf."Applied Amount (LCY)" := AppliedAmountLCY;
+             DtldCVLedgEntryBuf.InsertDtldCVLedgEntry(DtldCVLedgEntryBuf, OldCVLedgEntryBuf, false);
+         end;
+-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+-        DtldCVLedgEntryBuf.InitDetailedCVLedgEntryBuf(
+-          GenJnlLine, OldCVLedgEntryBuf, DtldCVLedgEntryBuf,
+-          DtldCVLedgEntryBuf."Entry Type"::Application, OldAppliedAmount, AppliedAmountLCY, 0,
+-          NewCVLedgEntryBuf."Entry No.", PrevOldCVLedgEntryBuf."Remaining Pmt. Disc. Possible",
+-          PrevOldCVLedgEntryBuf."Max. Payment Tolerance");
+-=======
+         DtldCVLedgEntryBuf.InitDetailedCVLedgEntryBuf(
+           GenJnlLine, OldCVLedgEntryBuf, DtldCVLedgEntryBuf,
+           DtldCVLedgEntryBuf."Entry Type"::Application, OldAppliedAmount, AppliedAmountLCY,
+           CalcApplicationAddCurrAmount(GenJnlLine, OldCVLedgEntryBuf."Currency Code", OldAppliedAmount, AppliedAmountLCY),
+           NewCVLedgEntryBuf."Entry No.", PrevOldCVLedgEntryBuf."Remaining Pmt. Disc. Possible",
+           PrevOldCVLedgEntryBuf."Max. Payment Tolerance");
+->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+ 
+         OnAfterInitOldDtldCVLedgEntryBuf(
+           DtldCVLedgEntryBuf, NewCVLedgEntryBuf, OldCVLedgEntryBuf, PrevNewCVLedgEntryBuf, PrevOldCVLedgEntryBuf, GenJnlLine);
+@@ -10592,7 +10583,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
+ 
+     local procedure CheckCustPrepmtApplPostingDate(GenJnlLine: Record "Gen. Journal Line"; NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; OldCustLedgEntry: Record "Cust. Ledger Entry")
+     begin
+-<<<<<<< src/Layers/RU/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+         if GenJnlLine."Prepayment Status" <> GenJnlLine."Prepayment Status"::" " then
+             exit;
+ 
+@@ -10601,19 +10591,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
+                 CheckCustApplDates(NewCVLedgEntryBuf."Posting Date", OldCustLedgEntry."Posting Date", NewCVLedgEntryBuf."Entry No.")
+             else
+                 CheckCustApplDates(OldCustLedgEntry."Posting Date", NewCVLedgEntryBuf."Posting Date", OldCustLedgEntry."Entry No.");
+-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+-        if not (DtldCVLedgEntryBuf."Entry Type" in
+-                [DtldCVLedgEntryBuf."Entry Type"::Application, DtldCVLedgEntryBuf."Entry Type"::"Unrealized Loss",
+-                 DtldCVLedgEntryBuf."Entry Type"::"Unrealized Gain", DtldCVLedgEntryBuf."Entry Type"::"Realized Loss",
+-                 DtldCVLedgEntryBuf."Entry Type"::"Realized Gain", DtldCVLedgEntryBuf."Entry Type"::"Correction of Remaining Amount"])
+-        then
+-            if (DtldCVLedgEntryBuf."Entry Type" = DtldCVLedgEntryBuf."Entry Type"::"Appln. Rounding") or
+-               ((AddCurrencyCode <> '') and (AddCurrencyCode = DtldCVLedgEntryBuf."Currency Code"))
+-            then
+-                DtldCVLedgEntryBuf."Additional-Currency Amount" := DtldCVLedgEntryBuf.Amount
+-            else
+-                DtldCVLedgEntryBuf."Additional-Currency Amount" := CalcAddCurrForUnapplication(DtldCVLedgEntryBuf."Posting Date", DtldCVLedgEntryBuf."Amount (LCY)");
+-=======
+         if DtldCVLedgEntryBuf."Entry Type" = DtldCVLedgEntryBuf."Entry Type"::Application then begin
+             if AddCurrencyCode <> '' then
+                 if DtldCVLedgEntryBuf."Currency Code" = AddCurrencyCode then
+@@ -10633,7 +10610,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
+                     DtldCVLedgEntryBuf."Additional-Currency Amount" := DtldCVLedgEntryBuf.Amount
+                 else
+                     DtldCVLedgEntryBuf."Additional-Currency Amount" := CalcAddCurrForUnapplication(DtldCVLedgEntryBuf."Posting Date", DtldCVLedgEntryBuf."Amount (LCY)");
+->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+     end;
+ 
+     local procedure CheckVendApplDates(PrepaymentPostingDate: Date; InitialEntryPostingDate: Date; EntryNo: Integer)

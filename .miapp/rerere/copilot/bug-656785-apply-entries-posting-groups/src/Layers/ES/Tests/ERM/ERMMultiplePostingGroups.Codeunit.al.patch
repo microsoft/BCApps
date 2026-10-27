@@ -1,0 +1,102 @@
+diff --git a/tmp/tmpUXOAnl.tmp.back b/tmp/tmpUXOAnl.tmp
+index d7b4b83..733ac7a 100644
+--- a/tmp/tmpUXOAnl.tmp.back
++++ b/tmp/tmpUXOAnl.tmp
+@@ -593,17 +593,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
+         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
+         LibraryERM.UnapplyCustomerLedgerEntry(CustLedgerEntry);
+ 
+-<<<<<<< src/Layers/ES/Tests/ERM/ERMMultiplePostingGroups.Codeunit.al
+         // Verify posted unapply G/L entries - currently not possible for ES due to Cartera
+-||||||| Base: src/Layers/W1/Tests/ERM/ERMMultiplePostingGroups.Codeunit.al
+-        // Verify posted unapply G/L entries
+-        GLRegister.Get(LastGLRegNo + 2);
+-        GLEntry.Reset();
+-        GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+-        Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
+-        VerifyGLEntryForGLAccount(GLEntry, CustomerPostingGroup2."Receivables Account", TotalAmount);
+-        VerifyGLEntryForGLAccount(GLEntry, CustomerPostingGroup."Receivables Account", -TotalAmount);
+-=======
+         // Verify posted unapply G/L entries
+         GLRegister.Get(LastGLRegNo + 2);
+         GLEntry.Reset();
+@@ -666,7 +656,6 @@ codeunit 134195 "ERM Multiple Posting Groups"
+         Assert.AreEqual(
+             0, GLEntry.Count(),
+             'The application created an unbalanced additional-currency G/L entry for mixed-currency documents.');
+->>>>>>> src/Layers/W1/Tests/ERM/ERMMultiplePostingGroups.Codeunit.al
+     end;
+ 
+     [Test]
+@@ -844,7 +833,6 @@ codeunit 134195 "ERM Multiple Posting Groups"
+         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
+         LibraryERM.UnapplyVendorLedgerEntry(VendorLedgerEntry);
+ 
+-<<<<<<< src/Layers/ES/Tests/ERM/ERMMultiplePostingGroups.Codeunit.al
+         // Verify posted unapply G/L entries - currently not possible for ES due to Cartera
+     end;
+ 
+@@ -905,15 +893,6 @@ codeunit 134195 "ERM Multiple Posting Groups"
+         // [THEN] Unapplying payment - should post 2 reversal G/L entries between Payables accounts
+         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
+         LibraryERM.UnapplyVendorLedgerEntry(VendorLedgerEntry);
+-||||||| Base: src/Layers/W1/Tests/ERM/ERMMultiplePostingGroups.Codeunit.al
+-        // Verify posted unapply G/L entries
+-        GLRegister.Get(LastGLRegNo + 2);
+-        GLEntry.Reset();
+-        GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+-        Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
+-        VerifyGLEntryForGLAccount(GLEntry, VendorPostingGroup2."Payables Account", -TotalAmount);
+-        VerifyGLEntryForGLAccount(GLEntry, VendorPostingGroup."Payables Account", TotalAmount);
+-=======
+         // Verify posted unapply G/L entries
+         GLRegister.Get(LastGLRegNo + 2);
+         GLEntry.Reset();
+@@ -1008,7 +987,6 @@ codeunit 134195 "ERM Multiple Posting Groups"
+         UnappliedAmountAddCurr2 := GetGLEntryAddCurrencyAmount(GLEntry, GLRegister, EmployeePostingGroup2."Payables Account");
+         Assert.AreEqual(0, AppliedAmountAddCurr + UnappliedAmountAddCurr, 'Unapplication did not reverse the default employee posting group ACY amount.');
+         Assert.AreEqual(0, AppliedAmountAddCurr2 + UnappliedAmountAddCurr2, 'Unapplication did not reverse the alternative employee posting group ACY amount.');
+->>>>>>> src/Layers/W1/Tests/ERM/ERMMultiplePostingGroups.Codeunit.al
+     end;
+ 
+     [Test]
+@@ -1793,7 +1771,6 @@ codeunit 134195 "ERM Multiple Posting Groups"
+         Assert.AreEqual(Amount, GLEntry.Amount, StrSubstNo('G/L entry amount %1 for posting group %2 is not correct', GLEntry.Amount, AccountNo));
+     end;
+ 
+-<<<<<<< src/Layers/ES/Tests/ERM/ERMMultiplePostingGroups.Codeunit.al
+     local procedure VerifyGLEntryForGLAccountAndAddCurrAmount(var GLEntry: Record "G/L Entry"; AccountNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal)
+     begin
+         VerifyGLEntryForGLAccount(GLEntry, AccountNo, Amount);
+@@ -1802,8 +1779,6 @@ codeunit 134195 "ERM Multiple Posting Groups"
+             StrSubstNo('G/L entry additional currency amount %1 for posting group %2 is not correct', GLEntry."Additional-Currency Amount", AccountNo));
+     end;
+ 
+-||||||| Base: src/Layers/W1/Tests/ERM/ERMMultiplePostingGroups.Codeunit.al
+-=======
+     local procedure VerifyGLEntryForGLAccountAndAddCurrAmount(var GLEntry: Record "G/L Entry"; AccountNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal)
+     begin
+         VerifyGLEntryForGLAccount(GLEntry, AccountNo, Amount);
+@@ -1826,7 +1801,6 @@ codeunit 134195 "ERM Multiple Posting Groups"
+         exit(AmountAddCurr);
+     end;
+ 
+->>>>>>> src/Layers/W1/Tests/ERM/ERMMultiplePostingGroups.Codeunit.al
+     local procedure UpdateServiceDocumentNos(DocType: Option Invoice,CreditMemo; var OldValue: Code[20]; ReturnOldValue: Boolean)
+     var
+         ServiceMgtSetup: Record "Service Mgt. Setup";
+@@ -2022,12 +1996,6 @@ codeunit 134195 "ERM Multiple Posting Groups"
+     begin
+         Reply := true;
+     end;
+-<<<<<<< src/Layers/ES/Tests/ERM/ERMMultiplePostingGroups.Codeunit.al
+ }
+-||||||| Base: src/Layers/W1/Tests/ERM/ERMMultiplePostingGroups.Codeunit.al
+ 
+-}
+-=======
+-
+-}
+->>>>>>> src/Layers/W1/Tests/ERM/ERMMultiplePostingGroups.Codeunit.al
++}
+\ No newline at end of file

@@ -1,0 +1,33 @@
+diff --git a/tmp/tmpGf6EJu.tmp.back b/tmp/tmpGf6EJu.tmp
+index 21a6b06..9557c99 100644
+--- a/tmp/tmpGf6EJu.tmp.back
++++ b/tmp/tmpGf6EJu.tmp
+@@ -6110,7 +6110,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
+             DetailedCVLedgEntryBuffer."Entry Type"::"Initial Entry":
+                 ;
+             DetailedCVLedgEntryBuffer."Entry Type"::Application:
+-<<<<<<< src/Layers/ES/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+                 begin
+                     if MultiplePostingGroups then
+                         CreateGLEntry(
+@@ -6122,12 +6121,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
+                             CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
+                     PostDtldCVApplicationEntry(GenJournalLine, DetailedCVLedgEntryBuffer);
+                 end;
+-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+-                if MultiplePostingGroups then
+-                    CreateGLEntry(
+-                        GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)", 0, DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
+-                        CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
+-=======
+                 if MultiplePostingGroups then
+                     CreateGLEntry(
+                         GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)",
+@@ -6137,7 +6130,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
+                             DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode, GenJournalLine),
+                         DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
+                         CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
+->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Loss",
+             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Gain",
+             DetailedCVLedgEntryBuffer."Entry Type"::"Realized Loss",
