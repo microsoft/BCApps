@@ -2,6 +2,20 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.Finance.AuditFileExport.Test;
+
+using Microsoft.Finance.AuditFileExport;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using System.IO;
+using System.TestLibraries.Utilities;
 
 codeunit 148111 "SAF-T XML Tests 1.4"
 {

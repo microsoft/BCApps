@@ -546,6 +546,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
         if not HasExportableDimensionValues() then
             exit;
 
+        LastDimensionCode := '';
         DimensionValue.FindSet();
         if GuiAllowed() then
             Window.Update(1, ExportingDimensionsTxt);
