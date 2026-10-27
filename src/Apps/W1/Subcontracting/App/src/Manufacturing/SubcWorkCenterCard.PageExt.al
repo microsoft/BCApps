@@ -15,7 +15,7 @@ pageextension 20506 "Subc. Work Center Card" extends "Work Center Card"
         {
             trigger OnAfterValidate()
             begin
-                CurrPage.Update(false);
+                CurrPage.Update();
                 SubcNotificationMgmt.ShowMissingSubcontractingLocationNotification(Rec."Subcontractor No.");
             end;
         }

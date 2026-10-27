@@ -29,6 +29,7 @@ codeunit 139799 "E-Doc. Helper Test"
         // [FEATURE] [E-Document]
     end;
 
+
     [Test]
     procedure ValidateLineDiscountTest()
     var
@@ -227,6 +228,78 @@ codeunit 139799 "E-Doc. Helper Test"
 
         // [THEN] No errors should be logged (validation should succeed via VAT matching)
         Assert.IsFalse(EDocErrorHelper.HasErrors(EDocument), 'No errors should be logged when VAT Registration No. matches');
+
+        // Cleanup
+        EDocument.Delete();
+    end;
+
+    [Test]
+    procedure ValidateReceivingCompanyInfoIgnoresGLNWhenUseGLNIsDisabled()
+    var
+        EDocument: Record "E-Document";
+        CompanyInformation: Record "Company Information";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        EDocErrorHelper: Codeunit "E-Document Error Helper";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        LibraryLowerPermission.SetOutsideO365Scope();
+        // [SCENARIO 650323] GLN is not validated when "Use GLN in Electronic Documents" is disabled in Company Information
+        
+        // [GIVEN] Company Information with GLN filled, VAT Registration No. filled and "Use GLN in Electronic Documents" = false
+        CompanyInformation.Get();
+        CompanyInformation.GLN := CopyStr(LibraryUtility.GenerateRandomNumericText(MaxStrLen(CompanyInformation.GLN)), 1, MaxStrLen(CompanyInformation.GLN));
+        CompanyInformation."VAT Registration No." := CopyStr(LibraryUtility.GenerateRandomNumericText(MaxStrLen(CompanyInformation."VAT Registration No.")), 1, MaxStrLen(CompanyInformation."VAT Registration No."));
+        CompanyInformation."Use GLN in Electronic Document" := false;
+        CompanyInformation.Modify();
+
+        // [GIVEN] An incoming E-Document with matching VAT Registration No. and no GLN
+        EDocument.Init();
+        EDocument."Entry No" := 0;
+        EDocument."Receiving Company VAT Reg. No." := CompanyInformation."VAT Registration No.";
+        EDocument."Receiving Company GLN" := '';
+        EDocument.Insert(true);
+
+        // [WHEN] Validating receiving company info
+        EDocumentImportHelper.ValidateReceivingCompanyInfo(EDocument);
+
+        // [THEN] No GLN mismatch error is logged
+        Assert.IsFalse(EDocErrorHelper.HasErrors(EDocument), 'GLN must not be validated when "Use GLN in Electronic Documents" is disabled');
+
+        // Cleanup
+        EDocument.Delete();
+    end;
+
+    [Test]
+    procedure ValidateReceivingCompanyInfoChecksGLNWhenUseGLNIsEnabled()
+    var
+        EDocument: Record "E-Document";
+        CompanyInformation: Record "Company Information";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        EDocErrorHelper: Codeunit "E-Document Error Helper";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        LibraryLowerPermission.SetOutsideO365Scope();
+        // [SCENARIO 650323] GLN is validated when "Use GLN in Electronic Documents" is enabled in Company Information
+        
+        // [GIVEN] Company Information with GLN filled, VAT Registration No. filled and "Use GLN in Electronic Documents" = true
+        CompanyInformation.Get();
+        CompanyInformation.GLN := CopyStr(LibraryUtility.GenerateRandomNumericText(MaxStrLen(CompanyInformation.GLN)), 1, MaxStrLen(CompanyInformation.GLN));
+        CompanyInformation."VAT Registration No." := CopyStr(LibraryUtility.GenerateRandomNumericText(MaxStrLen(CompanyInformation."VAT Registration No.")), 1, MaxStrLen(CompanyInformation."VAT Registration No."));
+        CompanyInformation."Use GLN in Electronic Document" := true;
+        CompanyInformation.Modify();
+
+        // [GIVEN] An incoming E-Document with matching VAT Registration No. and no GLN
+        EDocument.Init();
+        EDocument."Entry No" := 0;
+        EDocument."Receiving Company VAT Reg. No." := CompanyInformation."VAT Registration No.";
+        EDocument."Receiving Company GLN" := '';
+        EDocument.Insert(true);
+
+        // [WHEN] Validating receiving company info
+        EDocumentImportHelper.ValidateReceivingCompanyInfo(EDocument);
+
+        // [THEN] GLN mismatch error is logged
+        Assert.IsTrue(EDocErrorHelper.HasErrors(EDocument), 'GLN mismatch must be reported when "Use GLN in Electronic Documents" is enabled');
 
         // Cleanup
         EDocument.Delete();
