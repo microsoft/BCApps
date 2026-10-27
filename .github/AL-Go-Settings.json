@@ -20,7 +20,7 @@
   "failOn": "newWarning",
   "workspaceCompilation": {
     "enabled": true,
-    "parallelism": -1
+    "parallelism": 1
   },
   "conditionalSettings": [
     {
