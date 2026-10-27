@@ -908,26 +908,59 @@ codeunit 148340 "Expense Policy Evaluation Test"
     end;
 
     [Test]
-    procedure AddingPerDiemInvalidatesParent()
+    procedure AutoPopulatingPerDiemInvalidatesParent()
     var
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
-        ExpenseSubcategory: Record "Expense Subcategory";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseLocation: Record "Expense Location";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+        EvaluatedVersion: Integer;
+        EvaluatedAt: DateTime;
     begin
-        // [SCENARIO] Inserting a child per diem invalidates the parent line's evaluation.
+        // [SCENARIO] Auto-populating per diems invalidates an evaluated parent and preserves that state when the line is saved.
         Initialize();
+        LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 100, 0, 0);
         CreateTestReportLine(ExpenseReportLine);
+
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::"Per Diem", ExpenseReportLine."Payment Method Code");
+        LibraryExpense.CreateExpenseLocation(ExpenseLocation, '', '');
+        LibraryExpense.CreateExpenseRuleWithCondition(
+            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseCategory.Code, ExpenseLocation."No.", WorkDate(),
+            ExpenseRuleHeader."Justification Required"::" ", '', '', ExpenseRuleCondition."Condition Type"::"Daily Rate", 100);
+
+        ExpenseReportLine.SetSkipRuleApplication(true);
+        ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.Validate("Expense Date", WorkDate());
+        ExpenseReportLine.Validate("Starting Date and Time", CreateDateTime(WorkDate(), 000000T));
+        ExpenseReportLine.Validate("Ending Date and Time", CreateDateTime(WorkDate() + 1, 235900T));
+        ExpenseReportLine.Modify(true);
+        ExpenseReportLine.SetSkipRuleApplication(false);
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
-        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        EvaluatedVersion := ExpenseReportLine."Evaluated Policy Version";
+        EvaluatedAt := ExpenseReportLine."Policies Evaluated At";
 
-        // [WHEN] A per diem is added to the line.
-        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseReportLine."Expense Category", true);
-        LibraryExpense.CreateExpenseReportLinePerDiem(ExpenseReportLinePerDiem, ExpenseReportLine, ExpenseReportLine."Expense Category", ExpenseSubcategory.Code, '', WorkDate(), true, true, true, LibraryRandom.RandIntInRange(10, 100));
+        ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.RecordCount(ExpenseReportLinePerDiem, 0);
 
-        // [THEN] The parent is invalidated and reports Stale.
+        // [WHEN] Setting the location applies the daily-rate rule and generates two per diems.
+        ExpenseReportLine.Validate("Expense Location", ExpenseLocation."No.");
+
+        // [THEN] Auto-population advances the caller's policy version once per generated day.
+        Assert.RecordCount(ExpenseReportLinePerDiem, 2);
+        Assert.AreEqual(EvaluatedVersion + 2, ExpenseReportLine."Policy Eval Version", 'Each auto-populated per diem must advance the parent policy version.');
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Auto-populating per diems must leave the parent Stale before saving.');
+        Assert.AreEqual(200, ExpenseReportLine.Amount, 'The line amount must equal the two daily rates.');
+
+        // [THEN] Saving the parent preserves its prior evaluation and leaves it Stale.
+        ExpenseReportLine.Modify(true);
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        Assert.AreEqual(1, ExpenseReportLine."Policy Eval Version", 'Adding a child per diem must invalidate (bump) the parent.');
-        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'A child per diem insert after evaluation must leave the parent Stale.');
+        Assert.IsTrue(ExpenseReportLine."Policy Eval Version" > EvaluatedVersion, 'The saved policy version must be newer than the evaluated version.');
+        Assert.AreEqual(EvaluatedVersion, ExpenseReportLine."Evaluated Policy Version", 'Auto-population must not mark the new version evaluated.');
+        Assert.AreEqual(EvaluatedAt, ExpenseReportLine."Policies Evaluated At", 'Auto-population must preserve the prior evaluation timestamp.');
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'The auto-populated parent must remain Stale after saving.');
     end;
 
     // --- Policies to evaluate endpoint ------------------------------------------------------
