@@ -183,6 +183,19 @@ jobs:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
 
+      - name: Configure aggregate Application API validation
+        if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && fromJson(env.workspaceCompilation).enabled == true
+        shell: pwsh
+        env:
+          BUILD_PROJECT: ${{ inputs.project }}
+        run: |
+          $hook = Join-Path $env:BUILD_PROJECT '.AL-Go\PostCompileApp.ps1'
+          if (Test-Path -LiteralPath $hook) {
+            throw "An existing PostCompileApp hook must be composed with aggregate API validation: $hook"
+          }
+          New-Item -Path (Split-Path $hook -Parent) -ItemType Directory -Force | Out-Null
+          Copy-Item -LiteralPath 'build\scripts\ALGoPostCompileApp.ps1' -Destination $hook -ErrorAction Stop
+
       - name: Compile Apps
         id: compile
         uses: microsoft/AL-Go/Actions/CompileApps@20620d1a3676cecfa2d0bbba3ced4a89f0e08217
@@ -190,6 +203,7 @@ jobs:
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
           BuildMode: ${{ inputs.buildMode }}
+          BC_APPLICATION_API_VALIDATION: 'true'
         with:
           shell: ${{ inputs.shell }}
           artifact: ${{ env.artifact }}
@@ -200,6 +214,27 @@ jobs:
           baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
           baselineWorkflowSHA: ${{ inputs.baselineWorkflowSHA }}
           previousAppsPath: ${{ steps.DownloadPreviousRelease.outputs.PreviousAppsPath }}
+
+      - name: Verify aggregate Application API validation completed
+        if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && fromJson(env.workspaceCompilation).enabled == true
+        shell: pwsh
+        env:
+          BUILD_PROJECT: ${{ inputs.project }}
+        run: |
+          Import-Module '.\build\scripts\ApplicationApiValidation.psm1'
+          Assert-ApplicationApiValidationComplete -ProjectFolder $env:BUILD_PROJECT
+
+      - name: Publish aggregate Application API validation report
+        if: always() && inputs.artifactsRetentionDays >= 0 && hashFiles(format('{0}/.buildartifacts/ApplicationApiValidation/state.json', inputs.project)) != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
+        with:
+          name: 'ApplicationApi-${{ inputs.projectName }}-${{ inputs.buildMode }}'
+          path: |
+            ${{ inputs.project }}/.buildartifacts/ApplicationApiValidation/state.json
+            ${{ inputs.project }}/.buildartifacts/ApplicationApiValidation/Originals/
+          retention-days: ${{ inputs.artifactsRetentionDays }}
 
       - name: Save needs context to file
         shell: pwsh

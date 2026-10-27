@@ -292,6 +292,11 @@ if($appType -eq 'app')
             }
 
             Enable-BreakingChangesCheckForWorkspace -AppSymbolsFolder $parameters.Value["PackageCachePath"] -WorkspaceFile $parameters.Value["WorkspaceFile"] -BuildMode $appBuildMode -CountryCode $countryCode | Out-Null
+
+            if ($env:BC_APPLICATION_API_VALIDATION -eq 'true' -and $countryCode -ne 'RU') {
+                Import-Module "$PSScriptRoot\ApplicationApiValidation.psm1"
+                Initialize-ApplicationApiValidation -CompilationParameters $parameters.Value -CountryCode $countryCode -BuildMode $appBuildMode
+            }
         }
     }
 }
