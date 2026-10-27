@@ -71,8 +71,7 @@
           "testType": "IntegrationTest",
           "codeCoverageEnabled": true,
           "codeCoverageFormats": [
-            "bc-json",
-            "cobertura"
+            "bc-json"
           ],
           "codeCoverageSummary": "both"
         }
@@ -92,8 +91,7 @@
           "testType": "Uncategorized",
           "codeCoverageEnabled": true,
           "codeCoverageFormats": [
-            "bc-json",
-            "cobertura"
+            "bc-json"
           ],
           "codeCoverageSummary": "both"
         }
