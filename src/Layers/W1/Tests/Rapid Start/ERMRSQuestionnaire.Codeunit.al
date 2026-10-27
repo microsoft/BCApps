@@ -480,6 +480,42 @@ codeunit 136600 "ERM RS Questionnaire"
 
     [Test]
     [Scope('OnPrem')]
+    procedure XMLImport_UTF16BigEndianFile_Ok()
+    var
+        ConfigQuestionnaire: Record "Config. Questionnaire";
+        QuestionnaireCode: Code[10];
+        QuestionnaireDescription: Text[100];
+        XMLText: Text[1024];
+        FilePath: Text;
+        NonAsciiChar: Char;
+    begin
+        // [SCENARIO] A questionnaire file saved as UTF-16 big-endian with a byte order mark is imported.
+        Initialize();
+
+        // [GIVEN] A questionnaire whose description contains a non-ASCII character, written to a UTF-16 big-endian file
+        LibraryRapidStart.CreateQuestionnaire(ConfigQuestionnaire);
+        NonAsciiChar := 248;
+        ConfigQuestionnaire.Description := 'Pr' + Format(NonAsciiChar) + 've';
+        ConfigQuestionnaire.Modify();
+        QuestionnaireCode := ConfigQuestionnaire.Code;
+        QuestionnaireDescription := ConfigQuestionnaire.Description;
+        CreateQuestionnaireXML(XMLText, ConfigQuestionnaire);
+        FilePath := FileMgt.ServerTempFileName('xml');
+        WriteUTF16BigEndianFile(FilePath, '<?xml version="1.0" encoding="UTF-16" standalone="yes"?>' + XMLText);
+        ConfigQuestionnaire.Delete();
+
+        // [WHEN] The file is imported
+        QuestionnaireManagement.ImportQuestionnaireAsXML(FilePath);
+
+        // [THEN] The questionnaire is imported with the non-ASCII description intact
+        ConfigQuestionnaire.Get(QuestionnaireCode);
+        Assert.AreEqual(QuestionnaireDescription, ConfigQuestionnaire.Description, ConfigQuestionnaire.FieldCaption(Description));
+
+        Erase(FilePath);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure XMLImport_QuestionnaireWithQuestion_Ok()
     var
         ConfigQuestionArea: Record "Config. Question Area";
@@ -889,6 +925,30 @@ codeunit 136600 "ERM RS Questionnaire"
           '<Description fieldlength="50">' + ConfigQuestionnaire.Description + '</Description>';
 
         CreateXMLNode(XMLText, 'Questionnaire', XMLNodeText, true);
+    end;
+
+    local procedure WriteUTF16BigEndianFile(FilePath: Text; Content: Text)
+    var
+        TargetFile: File;
+        FileOutStream: OutStream;
+        ContentByte: Byte;
+        CharCode: Integer;
+        i: Integer;
+    begin
+        TargetFile.Create(FilePath);
+        TargetFile.CreateOutStream(FileOutStream);
+        ContentByte := 254;
+        FileOutStream.Write(ContentByte);
+        ContentByte := 255;
+        FileOutStream.Write(ContentByte);
+        for i := 1 to StrLen(Content) do begin
+            CharCode := Content[i];
+            ContentByte := CharCode div 256;
+            FileOutStream.Write(ContentByte);
+            ContentByte := CharCode mod 256;
+            FileOutStream.Write(ContentByte);
+        end;
+        TargetFile.Close();
     end;
 
     local procedure WriteBytesToFile(FilePath: Text; Content: Text)
