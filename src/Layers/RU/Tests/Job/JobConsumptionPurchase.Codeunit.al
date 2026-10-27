@@ -4836,7 +4836,7 @@ codeunit 136302 "Job Consumption Purchase"
         // [GIVEN] "Qty. to Invoice" = 3000 and invoice discount on the Invoicing tab of purchase order statistics changed to 100, i.e. 0.0333.. per unit
         // [WHEN] Receive and invoice the purchase order
         PostGLAccLineWithInvDiscAmountToInvoice(
-            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10000, 3000, 200, 1000000, 100, false, 0, '', '', 0);
+            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10000, 3000, 200, 1000000, 100, false, 0, '', '', 0, 0);
 
         // [THEN] G/L entry for the G/L Account has amount 200 * 3000 - 100 = 599900
         ExpectedAmount := 599900;
@@ -4876,7 +4876,7 @@ codeunit 136302 "Job Consumption Purchase"
         // [GIVEN] "Qty. to Invoice" = 3000 and invoice discount on the Invoicing tab of purchase order statistics changed to 100
         // [WHEN] Receive and invoice the purchase order
         PostGLAccLineWithInvDiscAmountToInvoice(
-            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10000, 3000, 200, 1000000, 100, true, 0, '', '', 20);
+            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10000, 3000, 200, 1000000, 100, true, 0, '', '', 20, 0);
 
         // [THEN] G/L entry for the G/L Account has amount (200 * 3000 - 100) / 1.2 = 499916.67
         ExpectedAmount := Round((200 * 3000 - 100) / 1.2, LibraryERM.GetAmountRoundingPrecision());
@@ -4913,13 +4913,46 @@ codeunit 136302 "Job Consumption Purchase"
         // [GIVEN] "Qty. to Invoice" = 3000 and invoice discount on the Invoicing tab of purchase order statistics changed to 100
         // [WHEN] Receive and invoice the purchase order
         PostGLAccLineWithInvDiscAmountToInvoice(
-            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10000, 3000, 200, 1000000, 100, false, 0, '', JobCurrencyCode, 0);
+            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10000, 3000, 200, 1000000, 100, false, 0, '', JobCurrencyCode, 0, 0);
 
         // [THEN] G/L entry for the G/L Account has amount 200 * 3000 - 100 = 599900
         ExpectedAmount := 599900;
         Assert.AreEqual(ExpectedAmount, GLEntry.Amount, StrSubstNo(ValueMustMatchErr, GLEntry.FieldCaption(Amount), ExpectedAmount));
 
         // [THEN] Project ledger entry "Total Cost (LCY)" and "Total Cost" in "FCY" are exactly equal to the G/L entry amount
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost (LCY)",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), GLEntry.Amount));
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost"), GLEntry.Amount));
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchaseOrderStatisticsSetInvDiscountAndVATDifferenceInvoicingPageHandler,VATAmountLinesAddVATDifferenceModalPageHandler')]
+    procedure JobLedgerEntryTotalCostForGLAccLineWithChangedInvDiscAmountToInvoicePricesInclVATAndVATDifference()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        ExpectedAmount: Decimal;
+    begin
+        // [FEATURE] [G/L Account] [Invoice Discount] [Prices Including VAT] [VAT Difference]
+        // [SCENARIO 642385] Project ledger entry total cost for a G/L Account line is equal to the invoiced amount when prices include VAT and the invoiced VAT amount has a VAT difference
+        Initialize();
+
+        // [GIVEN] Purchase order with "Prices Including VAT" and G/L Account line with "VAT %" = 20 linked to a project task: Quantity = 10, "Direct Unit Cost" = 200, invoice discount = 1000
+        // [GIVEN] "Qty. to Invoice" = 1, invoice discount on the Invoicing tab of purchase order statistics changed to 0 and invoiced VAT amount increased by "VAT Difference" = 0.01
+        // [WHEN] Receive and invoice the purchase order
+        PostGLAccLineWithInvDiscAmountToInvoice(
+            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10, 1, 200, 1000, 0, true, 0, '', '', 20, 0.01);
+
+        // [THEN] G/L entry for the G/L Account has amount 200 / 1.2 - 0.01 = 166.66
+        ExpectedAmount := Round(200 / 1.2, LibraryERM.GetAmountRoundingPrecision()) - 0.01;
+        Assert.AreEqual(ExpectedAmount, GLEntry.Amount, StrSubstNo(ValueMustMatchErr, GLEntry.FieldCaption(Amount), ExpectedAmount));
+
+        // [THEN] Project ledger entry "Total Cost (LCY)" and "Total Cost" are equal to the G/L entry amount
         Assert.AreEqual(
             GLEntry.Amount, JobLedgerEntry."Total Cost (LCY)",
             StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), GLEntry.Amount));
@@ -7356,10 +7389,10 @@ codeunit 136302 "Job Consumption Purchase"
 
         PostGLAccLineWithInvDiscAmountToInvoice(
             PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, Quantity, QtyToInvoice, DirectUnitCost,
-            InvDiscAmountPerUnit * Quantity, NewInvDiscAmountPerUnit * QtyToInvoice, PricesIncludingVAT, IndirectCostPct, CurrencyCode, '', 0);
+            InvDiscAmountPerUnit * Quantity, NewInvDiscAmountPerUnit * QtyToInvoice, PricesIncludingVAT, IndirectCostPct, CurrencyCode, '', 0, 0);
     end;
 
-    local procedure PostGLAccLineWithInvDiscAmountToInvoice(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var GLEntry: Record "G/L Entry"; var JobLedgerEntry: Record "Job Ledger Entry"; Quantity: Decimal; QtyToInvoice: Decimal; DirectUnitCost: Decimal; InvDiscAmount: Decimal; NewInvDiscAmountToInvoice: Decimal; PricesIncludingVAT: Boolean; IndirectCostPct: Decimal; CurrencyCode: Code[10]; JobCurrencyCode: Code[10]; VATPct: Decimal)
+    local procedure PostGLAccLineWithInvDiscAmountToInvoice(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var GLEntry: Record "G/L Entry"; var JobLedgerEntry: Record "Job Ledger Entry"; Quantity: Decimal; QtyToInvoice: Decimal; DirectUnitCost: Decimal; InvDiscAmount: Decimal; NewInvDiscAmountToInvoice: Decimal; PricesIncludingVAT: Boolean; IndirectCostPct: Decimal; CurrencyCode: Code[10]; JobCurrencyCode: Code[10]; VATPct: Decimal; VATDifference: Decimal)
     var
         Job: Record Job;
         JobTask: Record "Job Task";
@@ -7376,6 +7409,10 @@ codeunit 136302 "Job Consumption Purchase"
         PurchasesPayablesSetup.Validate("Calc. Inv. Discount", false);
         PurchasesPayablesSetup.Validate("Discount Posting", PurchasesPayablesSetup."Discount Posting"::"No Discounts");
         PurchasesPayablesSetup.Modify(true);
+        if VATDifference <> 0 then begin
+            LibraryPurchase.SetAllowVATDifference(true);
+            LibraryERM.SetMaxVATDifferenceAllowed(VATDifference);
+        end;
 
         LibraryJob.CreateJob(Job);
         if JobCurrencyCode <> '' then begin
@@ -7416,10 +7453,13 @@ codeunit 136302 "Job Consumption Purchase"
             StrSubstNo(ValueMustMatchErr, PurchaseLine.FieldCaption("Inv. Disc. Amount to Invoice"), InvDiscAmountToInvoice));
 
         LibraryVariableStorage.Enqueue(NewInvDiscAmountToInvoice);
+        if VATDifference <> 0 then
+            LibraryVariableStorage.Enqueue(VATDifference);
         PurchaseOrder.OpenEdit();
         PurchaseOrder.GotoRecord(PurchaseHeader);
         PurchaseOrder.PurchaseOrderStatistics.Invoke();
         PurchaseOrder.Close();
+        LibraryVariableStorage.AssertEmpty();
         PurchaseLine.Find();
         Assert.AreEqual(
             NewInvDiscAmountToInvoice, PurchaseLine."Inv. Disc. Amount to Invoice",
@@ -7442,6 +7482,21 @@ codeunit 136302 "Job Consumption Purchase"
     begin
         PurchaseOrderStatistics.InvDiscountAmount_Invoicing.SetValue(LibraryVariableStorage.DequeueDecimal());
         PurchaseOrderStatistics.OK().Invoke();
+    end;
+
+    [PageHandler]
+    procedure PurchaseOrderStatisticsSetInvDiscountAndVATDifferenceInvoicingPageHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
+    begin
+        PurchaseOrderStatistics.InvDiscountAmount_Invoicing.SetValue(LibraryVariableStorage.DequeueDecimal());
+        PurchaseOrderStatistics.NoOfVATLines_Invoicing.DrillDown();
+        PurchaseOrderStatistics.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure VATAmountLinesAddVATDifferenceModalPageHandler(var VATAmountLines: TestPage "VAT Amount Lines")
+    begin
+        VATAmountLines."VAT Amount".SetValue(VATAmountLines."VAT Amount".AsDecimal() + LibraryVariableStorage.DequeueDecimal());
+        VATAmountLines.OK().Invoke();
     end;
 
     local procedure UndoPurchReciptAndAdjustCostItemEntries(var PurchaseLine: Record "Purchase Line"; var Item: Record Item)

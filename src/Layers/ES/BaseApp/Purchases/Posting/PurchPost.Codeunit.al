@@ -6356,9 +6356,10 @@ codeunit 90 "Purch.-Post"
 
     local procedure CalcJobUnitCostFromDiscAmountPerQty(PurchHeader: Record "Purchase Header"; PurchLine2: Record "Purchase Line"; DiscountAmountPerQty: Decimal) UnitCost: Decimal
     begin
+        // Mirrors "Unit Cost" calculation in UpdateUnitCost of the purchase line, including the VAT difference for prices including VAT
         UnitCost := (PurchLine2."Direct Unit Cost" - DiscountAmountPerQty) * (1 + PurchLine2."Indirect Cost %" / 100);
         if PurchHeader."Prices Including VAT" then
-            UnitCost := UnitCost / (1 + PurchLine2.GetVATPct() / 100);
+            UnitCost := UnitCost / (1 + PurchLine2.GetVATPct() / 100) - PurchLine2."VAT Difference";
     end;
 
     local procedure UpdateJobPurchLineUnitCostForInvDiscToInvoice(PurchHeader: Record "Purchase Header"; var JobPurchLine2: Record "Purchase Line"; JobUnitCostToInvoice: Decimal)
