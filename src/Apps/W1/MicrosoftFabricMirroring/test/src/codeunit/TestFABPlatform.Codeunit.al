@@ -861,6 +861,32 @@ codeunit 140012 "Test FAB Platform"
     end;
 
     [Test]
+    procedure GetWorkspacesShowsHttpFailureMessage()
+    var
+        TempBuffer: Record "Name/Value Buffer" temporary;
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
+        Token: SecretText;
+    begin
+        Initialize();
+        FabricPrivacyNotice.Approve();
+        Token := SecretStrSubstNo(SampleTokenLbl);
+        LookupState.SetFabricApiToken(Token, 3600);
+        PlatformTestSub.AddMockHttpResponse(403, '{}', 'GET', 'https://api.fabric.microsoft.com/v1/workspaces');
+        BindSubscription(PlatformTestSub);
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        asserterror AdminClient.GetWorkspaces(TempBuffer);
+
+        Assert.ExpectedError('Failed to retrieve workspaces. Contact your administrator if the problem persists.');
+        PlatformTestSub.AssertHttpRequestsComplete();
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
     procedure GetWorkspacesErrorsOnMalformedResponse()
     var
         TempBuffer: Record "Name/Value Buffer" temporary;
