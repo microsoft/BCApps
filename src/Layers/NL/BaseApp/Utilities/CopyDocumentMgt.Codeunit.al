@@ -2469,36 +2469,35 @@ codeunit 6620 "Copy Document Mgt."
         if ValueEntry.FindSet() then begin
             repeat
                 IsSupportedDocumentType := false;
+                if ValueEntry.Inventoriable then
+                    ItemChargeCostAmount := ValueEntry."Cost Amount (Actual)"
+                else
+                    ItemChargeCostAmount := ValueEntry."Cost Amount (Non-Invtbl.)";
                 if ItemLedgerEntry.Get(ValueEntry."Item Ledger Entry No.") then
                     case ItemLedgerEntry."Document Type" of
                         ItemLedgerEntry."Document Type"::"Purchase Receipt":
                             begin
                                 AppliesToDocType := AppliesToDocType::Receipt;
-                                ItemChargeCostAmount := ValueEntry."Cost Amount (Actual)";
                                 IsSupportedDocumentType := true;
                             end;
                         ItemLedgerEntry."Document Type"::"Transfer Receipt":
                             begin
                                 AppliesToDocType := AppliesToDocType::"Transfer Receipt";
-                                ItemChargeCostAmount := ValueEntry."Cost Amount (Actual)";
                                 IsSupportedDocumentType := true;
                             end;
                         ItemLedgerEntry."Document Type"::"Purchase Return Shipment":
                             begin
                                 AppliesToDocType := AppliesToDocType::"Return Shipment";
-                                ItemChargeCostAmount := ValueEntry."Cost Amount (Non-Invtbl.)";
                                 IsSupportedDocumentType := true;
                             end;
                         ItemLedgerEntry."Document Type"::"Sales Shipment":
                             begin
                                 AppliesToDocType := AppliesToDocType::"Sales Shipment";
-                                ItemChargeCostAmount := ValueEntry."Cost Amount (Non-Invtbl.)";
                                 IsSupportedDocumentType := true;
                             end;
                         ItemLedgerEntry."Document Type"::"Sales Return Receipt":
                             begin
                                 AppliesToDocType := AppliesToDocType::"Return Receipt";
-                                ItemChargeCostAmount := ValueEntry."Cost Amount (Actual)";
                                 IsSupportedDocumentType := true;
                             end;
                     end;
