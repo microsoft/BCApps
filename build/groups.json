@@ -3103,6 +3103,53 @@
     ]
   },
   {
+    "name": "Report Filename Manager",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Report Filename Manager Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Review General Ledger Entries",
     "groups": [
       {
@@ -7540,6 +7587,50 @@
     ]
   },
   {
+    "name": "XML Audit File FR",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "XML Audit File FR Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Payment Practices",
     "groups": [
       {
@@ -9310,6 +9401,56 @@
       },
       {
         "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Sales FR",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Sales FR Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },
