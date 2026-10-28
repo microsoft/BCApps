@@ -58,6 +58,10 @@ page 6914 "Expense Categories API"
                 {
                     Caption = 'Default Payment Method';
                 }
+                field(amountLimitForNoReceipt; Rec."Amount Limit for No Receipt")
+                {
+                    Caption = 'Amount Limit for No Receipt';
+                }
                 field(paymentMethodDescription; PaymentMethodDescription)
                 {
                     Caption = 'Payment Method Description';

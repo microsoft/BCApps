@@ -36,14 +36,14 @@ codeunit 6980 "Release Expense Document"
         if Expense."Job No." <> '' then
             Expense.TestField("Job Task No.");
 
+        Expense.ApplyRule(false, true);
+
         if Expense."No Receipt Type" = Expense."No Receipt Type"::"Lost Receipt" then begin
             if NoReceiptDeclarationMgt.HasOriginalReceipt(Expense) then
                 Error(NoReceiptWithOriginalReceiptErr, Expense."No.");
             if not NoReceiptDeclarationMgt.HasCurrentDeclaration(Expense) then
                 Error(NoReceiptDeclarationNotCurrentErr, Expense."No.");
         end;
-
-        Expense.ApplyRule(false, true);
 
         Expense.Status := Expense.Status::Released;
         Expense.Modify(true);

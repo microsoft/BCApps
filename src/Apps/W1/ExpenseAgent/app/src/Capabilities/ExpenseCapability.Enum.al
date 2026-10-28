@@ -99,7 +99,7 @@ enum 6984 "Expense Capability"
     }
 
     /// <summary>
-    /// Travel requests are available in the expense app.
+    /// No receipt declarations and category thresholds are enabled by company policy.
     /// </summary>
     value(9; NoReceipt)
     {

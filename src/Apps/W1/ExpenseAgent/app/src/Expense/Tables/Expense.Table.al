@@ -92,6 +92,7 @@ table 6900 Expense
             begin
                 TestStatusOpen();
                 if "Expense Category" <> xRec."Expense Category" then begin
+                    MarkNoReceiptDeclarationOutdated();
                     ConfirmAndDeleteAssociatedRecords(Rec.FieldCaption("Expense Category"));
 
                     ClearRuleId();
@@ -173,6 +174,7 @@ table 6900 Expense
                 if xRec."Expense Date" <> Rec."Expense Date" then
                     MarkNoReceiptDeclarationOutdated();
                 if "Expense Date" <> xRec."Expense Date" then begin
+                    UpdateAmount();
                     ClearRuleId();
                     ApplyRule();
                 end;
@@ -1150,6 +1152,7 @@ table 6900 Expense
         end;
         if ValidateRuleOnly then begin
             TestStatusOpen();
+            UpdateNoReceiptType();
             ExpenseRuleValidation.ValidateExpenseAgainstRule(Rec);
         end;
     end;
@@ -1168,6 +1171,7 @@ table 6900 Expense
 
         Rec.SetSkipRuleApplication(true);
         ExpenseAutoPopulation.FindRuleAndUpdateExpense(Rec);
+        UpdateNoReceiptType();
         ExpenseRuleValidation.ValidateExpenseAgainstRule(Rec);
         Rec.SetSkipRuleApplication(false);
     end;
@@ -1309,20 +1313,24 @@ table 6900 Expense
     local procedure UpdateNoReceiptType()
     var
         ExpenseCategory: Record "Expense Category";
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
     begin
-        if Rec."Expense Category" = '' then
-            exit;
-        if xRec."Amount (LCY)" = Rec."Amount (LCY)" then
-            exit;
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Allow No Receipt" and ExpenseCategory.Get(Rec."Expense Category") then
+            if Rec."Amount (LCY)" < ExpenseCategory."Amount Limit for No Receipt" then begin
+                if Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt" then begin
+                    // Category validation temporarily resets the amount before the API applies the final amount.
+                    if Rec.Amount = 0 then
+                        exit;
+                    NoReceiptDeclarationMgt.ClearDeclaration(Rec);
+                end;
+                Rec."No Receipt Type" := Rec."No Receipt Type"::"Receipt not needed";
+                exit;
+            end;
+
         if Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt" then
             exit;
-        ExpenseAgentSetup.GetRecordOnce();
-        if ExpenseAgentSetup."Allow No Receipt" then
-            if ExpenseCategory.Get(Rec."Expense Category") then
-                if Rec."Amount (LCY)" < ExpenseCategory."Amount Limit for No Receipt" then
-                    Rec."No Receipt Type" := Rec."No Receipt Type"::"Receipt not needed"
-                else
-                    Rec."No Receipt Type" := Rec."No Receipt Type"::" ";
+        Clear(Rec."No Receipt Type");
     end;
 
     local procedure UpdateCurrencyFactor()

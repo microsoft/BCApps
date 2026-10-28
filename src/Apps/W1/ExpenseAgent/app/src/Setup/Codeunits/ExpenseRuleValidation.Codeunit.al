@@ -264,6 +264,7 @@ codeunit 6902 "Expense Rule Validation"
         HasAcceptableProof: Boolean;
     begin
         RecallExpenseAttachmentNotification();
+        HasAcceptableProof := Expense."No Receipt Type" = Expense."No Receipt Type"::"Receipt not needed";
         if Expense."No Receipt Type" = Expense."No Receipt Type"::"Lost Receipt" then
             HasAcceptableProof := NoReceiptDeclarationMgt.HasCurrentDeclaration(Expense)
         else
@@ -275,7 +276,8 @@ codeunit 6902 "Expense Rule Validation"
             Enum::"Expense Attachment Enforcement"::Warning:
                 if not HasAcceptableProof then
                     ShowMissingAttachmentNotification(Expense);
-            Enum::"Expense Attachment Enforcement"::Error:
+            Enum::"Expense Attachment Enforcement"::Error,
+            Enum::"Expense Attachment Enforcement"::"Not needed under limit":
                 if not HasAcceptableProof then
                     AddMissingAttachmentViolation(Expense);
         end;
@@ -287,6 +289,7 @@ codeunit 6902 "Expense Rule Validation"
         HasAcceptableProof: Boolean;
     begin
         RecallExpenseReportLineAttachmentNotification();
+        HasAcceptableProof := ExpenseReportLine."No Receipt Type" = ExpenseReportLine."No Receipt Type"::"Receipt not needed";
         if ExpenseReportLine."No Receipt Type" = ExpenseReportLine."No Receipt Type"::"Lost Receipt" then
             HasAcceptableProof := NoReceiptDeclarationMgt.HasDeclaration(ExpenseReportLine)
         else
@@ -298,7 +301,8 @@ codeunit 6902 "Expense Rule Validation"
             Enum::"Expense Attachment Enforcement"::Warning:
                 if not HasAcceptableProof then
                     ShowMissingAttachmentNotification(ExpenseReportLine);
-            Enum::"Expense Attachment Enforcement"::Error:
+            Enum::"Expense Attachment Enforcement"::Error,
+            Enum::"Expense Attachment Enforcement"::"Not needed under limit":
                 if not HasAcceptableProof then
                     AddMissingAttachmentViolation(ExpenseReportLine);
         end;
