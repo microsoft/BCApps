@@ -26,6 +26,16 @@ codeunit 132684 "Azure OpenAI Test"
         BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
 
     [Test]
+    procedure TestGPT56CeresDeploymentNames()
+    var
+        AOAIDeployments: Codeunit "AOAI Deployments";
+    begin
+        // [SCENARIO] GPT-5.6 Ceres exposes distinct latest and preview deployment names.
+        LibraryAssert.AreEqual('gpt-56-ceres-latest', AOAIDeployments.GetGPT56CeresLatest(), 'The GPT-5.6 Ceres latest deployment name should be returned.');
+        LibraryAssert.AreEqual('gpt-56-ceres-preview', AOAIDeployments.GetGPT56CeresPreview(), 'The GPT-5.6 Ceres preview deployment name should be returned.');
+    end;
+
+    [Test]
     [HandlerFunctions('HandleCopilotNotAvailable')]
     procedure TestIsEnabledRejectPrivacyNotice()
     var
