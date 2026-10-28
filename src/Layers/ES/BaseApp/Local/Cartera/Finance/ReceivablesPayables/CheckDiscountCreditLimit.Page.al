@@ -100,6 +100,7 @@ page 7000037 "Check Discount Credit Limit"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Ledger E&ntries';
+                    Image = BankAccountLedger;
                     RunObject = Page "Bank Account Ledger Entries";
                     RunPageLink = "Bank Account No." = field("No.");
                     RunPageView = sorting("Bank Account No.", "Posting Date");
@@ -144,6 +145,7 @@ page 7000037 "Check Discount Credit Limit"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'St&atements';
+                    Image = List;
                     RunObject = Page "Bank Account Statement List";
                     RunPageLink = "Bank Account No." = field("No.");
                     ToolTip = 'Specifies the statements for this bank account.';
@@ -165,6 +167,7 @@ page 7000037 "Check Discount Credit Limit"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = '&Operation Fees';
+                    Image = Costs;
                     RunObject = Page "Operation Fees";
                     RunPageLink = Code = field("Operation Fees Code"),
                                   "Currency Code" = field("Currency Code");
@@ -212,6 +215,7 @@ page 7000037 "Check Discount Credit Limit"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Payment O&rders';
+                    Image = Payment;
                     RunObject = Page "Payment Orders List";
                     RunPageLink = "Bank Account No." = field("No.");
                     RunPageView = sorting("Bank Account No.");

@@ -38,7 +38,10 @@ page 7000040 "Cartera Setup"
             group(Numbering)
             {
                 Caption = 'Numbering';
+                // Preserve the published control name for compatibility.
+#pragma warning disable AA0100
                 field("GenLedgerSetup.""Bank Account Nos."""; GenLedgerSetup."Bank Account Nos.")
+#pragma warning restore AA0100
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Bank Account Nos.';
