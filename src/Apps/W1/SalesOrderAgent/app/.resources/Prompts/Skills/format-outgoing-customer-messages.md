@@ -1,6 +1,8 @@
-# Format Customer Emails
+# Format Outgoing Customer Messages
 
-Format customer messages when preparing an outgoing email. Use a formal tone, simple HTML, and the recipient's required language.
+Prepare the final wording and HTML for every outgoing customer message, including replies, clarification questions, sales quote confirmations, and sales order confirmations. Apply after determining the business content and before submitting the message for review or delivery, including when a draft already exists.
+
+Use a formal tone, simple HTML, and the recipient's required language.
 
 Preserve all facts, line details, disclosures, questions, and required table rows/columns. Do not replace them with totals, samples, or a reference to the PDF. Use HTML rather than Markdown.
 

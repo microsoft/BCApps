@@ -18,7 +18,7 @@ codeunit 4598 "SOA Instructions"
     InherentPermissions = X;
 
     /// <summary>
-    /// Creates or refreshes the packaged SOA skills and activates them without changing their company or domain links.
+    /// Creates the packaged SOA skills for the current company, or refreshes existing skills without changing their company or domain links.
     /// Each Markdown resource supplies its title in the first heading and its description in the opening paragraph.
     /// </summary>
     internal procedure UpdateBusinessSkills()
@@ -38,6 +38,7 @@ codeunit 4598 "SOA Instructions"
     local procedure UpdateBusinessSkill(ResourceName: Text)
     var
         BusinessSkill: Record "Business Skill";
+        BusinessSkillBuilder: Codeunit "Business Skill Builder";
         SkillTitle: Text[250];
         SkillDescription: Text[2048];
         SkillText: Text;
@@ -63,12 +64,11 @@ codeunit 4598 "SOA Instructions"
             BusinessSkill.Status := BusinessSkill.Status::Active;
             BusinessSkill.Modify(true);
         end else begin
-            BusinessSkill.Init();
-            BusinessSkill.Title := SkillTitle;
-            BusinessSkill.Description := SkillDescription;
-            BusinessSkill.SetText(SkillText);
-            BusinessSkill.Status := BusinessSkill.Status::Active;
-            BusinessSkill.Insert(true);
+            BusinessSkillBuilder.Initialize(SkillTitle, SkillText);
+            BusinessSkillBuilder.SetDescription(SkillDescription);
+            BusinessSkillBuilder.SetActive(true);
+            BusinessSkillBuilder.AddCompany(CompanyName());
+            BusinessSkillBuilder.Create();
         end;
     end;
 

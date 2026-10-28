@@ -14,7 +14,7 @@ On the quote, use "Make Order". If asked to create a customer, select "Yes" and 
 
 ## 2. Create purchase orders if needed
 
-On the resulting order, use "Create Purchase Orders" (`CreatePurchaseOrder`) and let BC calculate remaining purchasing needs, even when earlier item availability checking was disabled.
+On the resulting order, use "Create Purchase Orders" and let BC calculate remaining purchasing needs, even when earlier item availability checking was disabled.
 
 For positive "Quantity to Purchase", keep BC's quantities and configured vendors, select "OK", and confirm expected creation prompts with "Yes". Do not increase quantities or choose arbitrary vendors. If BC explicitly says nothing needs purchasing, such as "All items on the sales order are available.", acknowledge it and continue.
 
@@ -34,8 +34,8 @@ Continue after purchasing has a confirmed outcome and actual document issues are
 
 Read the latest available order data after purchasing and issue handling. Summarize every line's item number, description, quantity, unit, and price, adding nonblank Variant Codes and current delivery/shipment disclosures. Do not overwrite current dates with earlier search results or require additional fields to be exposed.
 
-Use "Download as PDF" and retain its actual file identifier. Format the customer confirmation according to the active communication instructions, then use `send_message` with that PDF in `filesToAttach`, submitting it through the normal outgoing-email review flow. Wait for its review/delivery outcome; document review and outgoing-email review are separate requirements. Keep purchase order numbers internal unless the communication instructions request them.
+Use "Download as PDF" and retain its actual file identifier. Format the customer confirmation according to the active communication instructions, then submit it through the normal outgoing-email review flow, attaching that PDF using its actual returned file identifier. Wait for its review/delivery outcome; document review and outgoing-email review are separate requirements. Keep purchase order numbers internal unless the communication instructions request them.
 
-Return the sales order number, purchasing outcome and purchase order numbers, outgoing-email review/delivery state, and any unresolved document issue. Do not call `complete_task` while an operation, email review, or issue-based intervention is pending. Do not resend a sent/pending confirmation, bypass mandatory approvals, or claim delivery before the message outcome confirms it.
+Return the sales order number, purchasing outcome and purchase order numbers, outgoing-email review/delivery state, and any unresolved document issue. Do not complete the task while an operation, email review, or issue-based intervention is pending. Do not resend a sent/pending confirmation, bypass mandatory approvals, or claim delivery before the message outcome confirms it.
 
 Customer requests to modify existing sales orders require assistance. Purchasing follow-up for the order just created is part of this workflow, not such a customer modification request.
