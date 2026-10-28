@@ -547,7 +547,7 @@ codeunit 134228 "ERM Close Income Statement"
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
         SelectDimForCloseIncomeStatement(TempDimensionSetEntry);
         DocumentNo := LibraryUtility.GenerateGUID();
-        RunCloseIncomeStatement(
+        RunCloseIncomeStatementForRetainedEarningsAccount(
             GenJournalLine, PostingDate, LibraryERM.CreateGLAccountNo(),
             PostToRetainedEarningsAcc::Balance, false, true, DocumentNo);
 
@@ -620,7 +620,7 @@ codeunit 134228 "ERM Close Income Statement"
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
         SelectDimForCloseIncomeStatement(TempDimensionSetEntry);
         DocumentNo := LibraryUtility.GenerateGUID();
-        RunCloseIncomeStatement(
+        RunCloseIncomeStatementForRetainedEarningsAccount(
             GenJournalLine, PostingDate, LibraryERM.CreateGLAccountNo(),
             PostToRetainedEarningsAcc::Balance, false, true, DocumentNo);
 
@@ -706,12 +706,12 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryFiscalYear.CloseFiscalYear();
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
         DocumentNo := LibraryUtility.GenerateGUID();
-        RetainedEarningsAccountNo := LibraryERM.CreateGLAccountNo();
+        RetainedEarningsAccountNo := FindRetainedEarningsAccountNo();
         SelectedDimension.SetRange("User ID", UserId);
         SelectedDimension.SetRange("Object Type", 3);
         SelectedDimension.SetRange("Object ID", REPORT::"Close Income Statement");
         SelectedDimension.DeleteAll();
-        RunCloseIncomeStatement(
+        RunCloseIncomeStatementForRetainedEarningsAccount(
             GenJournalLine, PostingDate, RetainedEarningsAccountNo,
             RetainedEarningsPosting, false, false, DocumentNo);
 
@@ -816,7 +816,7 @@ codeunit 134228 "ERM Close Income Statement"
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
         SelectDimForCloseIncomeStatement(TempDimensionSetEntry);
         DocumentNo := LibraryUtility.GenerateGUID();
-        RunCloseIncomeStatement(
+        RunCloseIncomeStatementForRetainedEarningsAccount(
             GenJournalLine, PostingDate, LibraryERM.CreateGLAccountNo(),
             PostToRetainedEarningsAcc::Balance, true, true, DocumentNo);
 
@@ -1655,6 +1655,23 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryVariableStorage.Enqueue(UseDimensions);
 
         Commit();  // commit requires to run report.
+        REPORT.Run(REPORT::"Close Income Statement");
+    end;
+
+    local procedure RunCloseIncomeStatementForRetainedEarningsAccount(GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; RetainedEarningsAccountNo: Code[20]; PostToRetainedEarningsAcc: Option; ClosePerBusinessUnit: Boolean; UseDimensions: Boolean; DocumentNo: Code[20])
+    begin
+        LibraryVariableStorage.Enqueue(PostingDate);
+        LibraryVariableStorage.Enqueue(GenJournalLine."Journal Template Name");
+        LibraryVariableStorage.Enqueue(GenJournalLine."Journal Batch Name");
+        LibraryVariableStorage.Enqueue(DocumentNo);
+        LibraryVariableStorage.Enqueue(LibraryERM.CreateGLAccountNo());
+        LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
+        LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
+        LibraryVariableStorage.Enqueue(PostToRetainedEarningsAcc);
+        LibraryVariableStorage.Enqueue(ClosePerBusinessUnit);
+        LibraryVariableStorage.Enqueue(UseDimensions);
+
+        Commit();
         REPORT.Run(REPORT::"Close Income Statement");
     end;
 
