@@ -45,6 +45,7 @@ page 99000787 "Production BOM List"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
+                    StyleExpr = StatusStyleTxt;
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
@@ -263,7 +264,25 @@ page 99000787 "Production BOM List"
         }
     }
 
+    trigger OnAfterGetRecord()
+    begin
+        SetStatusStyle();
+    end;
+
     var
         ProdBOMWhereUsed: Page "Prod. BOM Where-Used";
+        StatusStyleTxt: Text;
+
+    local procedure SetStatusStyle()
+    begin
+        case Rec.Status of
+            Rec.Status::Certified:
+                StatusStyleTxt := 'Strong';
+            Rec.Status::New, Rec.Status::"Under Development":
+                StatusStyleTxt := 'Favorable';
+            else
+                StatusStyleTxt := '';
+        end;
+    end;
 }
 
