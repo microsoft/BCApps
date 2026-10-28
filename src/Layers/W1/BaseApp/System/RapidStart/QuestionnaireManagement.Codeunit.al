@@ -1065,8 +1065,8 @@ codeunit 8610 "Questionnaire Management"
         RootElement: XmlElement;
         Node: XmlNode;
         SchemaPath: Text;
-        SchemaAreaPathTok: Label 'xsd:element/%2[@name=''%1'']', Locked = true;
-        SchemaQuestionColumnsPathTok: Label '%1[@name=''ConfigQuestion'']/%1', Locked = true;
+        SchemaAreaPathTok: Label 'xsd:element/%2[@name=''%1'']', Comment = '%1 = Question area name, %2 = schema path', Locked = true;
+        SchemaQuestionColumnsPathTok: Label '%1[@name=''ConfigQuestion'']/%1', Comment = '%1 = schema path', Locked = true;
     begin
         SchemaPath := 'xsd:complexType/xsd:sequence/xsd:element';
         MapXML.GetRoot(RootElement);
