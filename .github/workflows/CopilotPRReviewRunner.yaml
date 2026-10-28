@@ -1,0 +1,196 @@
+name: Copilot PR Review Runner
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: copilot-pr-review-runner-${{ github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: pwsh
+
+env:
+  ALGoOrgSettings: ${{ vars.ALGoOrgSettings }}
+  ALGoRepoSettings: ${{ vars.ALGoRepoSettings }}
+  REVIEW_AGENT_VERSION: 10.0.7
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  prepare:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    runs-on: [ windows-latest ]
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    outputs:
+      model: ${{ steps.context.outputs.model }}
+      leafModel: ${{ steps.context.outputs.leafModel }}
+      eligible: ${{ steps.context.outputs.eligible }}
+      prNumber: ${{ steps.context.outputs.prNumber }}
+      headSha: ${{ steps.context.outputs.headSha }}
+      baseRef: ${{ steps.context.outputs.baseRef }}
+      bcqualitySettingsJson: ${{ steps.context.outputs.bcqualitySettingsJson }}
+    steps:
+      - name: Checkout trusted settings
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download pull request metadata
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: copilot-pr-review-metadata
+          path: .copilot-pr-review-metadata
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Read settings
+        uses: microsoft/AL-Go/Actions/ReadSettings@fb27afbcab20378ab0ac0978e7efe4131bdc0962
+        with:
+          shell: pwsh
+          project: ''
+          workflowName: ''
+          get: CodeReviewAgent,BCQuality
+
+      - name: Resolve review context
+        id: context
+        uses: microsoft/AL-Go/Actions/ReviewAgent@fb27afbcab20378ab0ac0978e7efe4131bdc0962
+        with:
+          shell: pwsh
+          phase: context
+          codeReviewSettingsJson: ${{ env.CodeReviewAgent }}
+          bcqualitySettingsJson: ${{ env.BCQuality }}
+          metadataPath: .copilot-pr-review-metadata/event.json
+          workflowHeadSha: ${{ github.event.workflow_run.head_sha }}
+          workflowRunId: ${{ github.event.workflow_run.id }}
+
+  review:
+    needs: prepare
+    if: needs.prepare.outputs.eligible == 'true'
+    runs-on: [ windows-latest ]
+    permissions:
+      contents: read
+      pull-requests: read
+      copilot-requests: write
+    steps:
+      - name: Checkout trusted target base
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ needs.prepare.outputs.baseRef }}
+          path: trusted
+          fetch-depth: 0
+          token: ${{ github.token }}
+          # The tool-enabled Copilot CLI runs in this job; do not leave a token
+          # in .git/config where a successful prompt-injection could read it.
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Setup Copilot CLI
+        uses: microsoft/AL-Go/Actions/ReviewAgent@fb27afbcab20378ab0ac0978e7efe4131bdc0962
+        with:
+          shell: pwsh
+          phase: prepare
+
+      - name: Setup BCQuality
+        id: setup
+        uses: microsoft/AL-Go/Actions/SetupBCQuality@fb27afbcab20378ab0ac0978e7efe4131bdc0962
+        with:
+          shell: pwsh
+          bcqualitySettingsJson: ${{ needs.prepare.outputs.bcqualitySettingsJson }}
+          token: ${{ secrets.BCQUALITY_TOKEN }}
+
+      - name: Run Copilot PR review
+        uses: microsoft/AL-Go/Actions/ReviewAgent@fb27afbcab20378ab0ac0978e7efe4131bdc0962
+        with:
+          shell: pwsh
+          phase: generate
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          prNumber: ${{ needs.prepare.outputs.prNumber }}
+          prHeadSha: ${{ needs.prepare.outputs.headSha }}
+          baseRef: ${{ needs.prepare.outputs.baseRef }}
+          model: ${{ needs.prepare.outputs.model }}
+          leafModel: ${{ needs.prepare.outputs.leafModel }}
+          reviewWorkspace: ${{ github.workspace }}/trusted
+          reviewOutputDir: ${{ github.workspace }}/review-output
+          bcqualityRoot: ${{ steps.setup.outputs.pluginRoot }}
+          bcqualitySettingsJson: ${{ needs.prepare.outputs.bcqualitySettingsJson }}
+          agentVersion: ${{ env.REVIEW_AGENT_VERSION }}
+
+      - name: Upload review output
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: copilot-pr-review-output-${{ needs.prepare.outputs.prNumber }}
+          path: ${{ github.workspace }}/review-output
+          if-no-files-found: warn
+
+      - name: Upload BCQuality filter report
+        if: always() && steps.setup.outputs.filterReport != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bcquality-filter-report-${{ needs.prepare.outputs.prNumber }}
+          path: ${{ steps.setup.outputs.filterReport }}
+          if-no-files-found: warn
+
+  publish:
+    needs: [prepare, review]
+    if: needs.review.result == 'success'
+    concurrency:
+      group: copilot-pr-review-publish-${{ needs.prepare.outputs.prNumber }}
+      cancel-in-progress: false
+    runs-on: [ windows-latest ]
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout trusted target base
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ needs.prepare.outputs.baseRef }}
+          path: trusted
+          fetch-depth: 0
+          token: ${{ github.token }}
+          # This job holds issues/pull-requests:write but posts via the GitHub
+          # API (not git push), so it needs no stored credentials.
+          persist-credentials: false
+
+      - name: Download review output
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: copilot-pr-review-output-${{ needs.prepare.outputs.prNumber }}
+          path: ${{ github.workspace }}/review-output
+
+      - name: Publish Copilot PR review
+        uses: microsoft/AL-Go/Actions/ReviewAgent@fb27afbcab20378ab0ac0978e7efe4131bdc0962
+        with:
+          shell: pwsh
+          phase: post
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          prNumber: ${{ needs.prepare.outputs.prNumber }}
+          prHeadSha: ${{ needs.prepare.outputs.headSha }}
+          baseRef: ${{ needs.prepare.outputs.baseRef }}
+          reviewWorkspace: ${{ github.workspace }}/trusted
+          reviewOutputDir: ${{ github.workspace }}/review-output
+          bcqualitySettingsJson: ${{ needs.prepare.outputs.bcqualitySettingsJson }}
+          agentVersion: ${{ env.REVIEW_AGENT_VERSION }}
+
+      - name: Upload published review artifacts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: copilot-pr-review-final-${{ needs.prepare.outputs.prNumber }}
+          path: ${{ github.workspace }}/review-output
+          if-no-files-found: warn
