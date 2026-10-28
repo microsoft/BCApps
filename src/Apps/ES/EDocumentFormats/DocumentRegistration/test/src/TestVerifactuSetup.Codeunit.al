@@ -10,6 +10,8 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using System.Privacy;
 using System.Security.Encryption;
+using System.Text;
+using System.Utilities;
 
 codeunit 148003 "Test Verifactu Setup"
 {
@@ -22,28 +24,22 @@ codeunit 148003 "Test Verifactu Setup"
         IsInitialized: Boolean;
         DisableSIIQst: Label 'SII setup will be disabled. Do you want to proceed?';
         DisableVerifactuQst: Label 'Verifactu setup will be disabled. Do you want to proceed?';
-        // The *CertTok labels below are NOT secrets. Each is the base64 DER encoding of a public X.509 certificate only:
-        // no private key and no password. They are self-signed test certificates generated for these tests, with fictitious
-        // CRONUS subjects, and are not trusted by or registered with any certificate authority or AEAT.
-        // They are used only as input for seal certificate detection, which searches the raw certificate bytes for eIDAS OIDs:
-        // - ESealQcTypeCertTok: QcStatements extension with QcType eSeal (0.4.0.1862.1.6.2) -> seal certificate.
-        // - QcpLegalPolicyCertTok: certificate policy QCP-l-qscd (0.4.0.194112.1.3) -> seal certificate.
-        // - ESignQcTypeCertTok: QcType eSign (0.4.0.1862.1.6.1) and policy QCP-n-qscd (0.4.0.194112.1.2), with a natural
-        //   person / representative subject -> not a seal certificate.
-        // - NoQcInfoCertTok: no QcStatements and no certificate policy -> not a seal certificate.
-        // The certificates are never loaded or validated, so their expiry date does not affect the tests.
-        ESealQcTypeCertTok: Label 'MIIByTCCAXCgAwIBAgIBATAKBggqhkjOPQQDAjBVMQswCQYDVQQGEwJFUzEVMBMGA1UECgwMQ1JPTlVTIEVTIFNMMRgwFgYDVQRhDA9WQVRFUy1CMDAwMDAwMDAxFTATBgNVBAMMDENST05VUyBTRUxMTzAeFw0yNjAxMDEwMDAwMDBaFw0zNjAxMDEwMDAwMDBaMFUxCzAJBgNVBAYTAkVTMRUwEwYDVQQKDAxDUk9OVVMgRVMgU0wxGDAWBgNVBGEMD1ZBVEVTLUIwMDAwMDAwMDEVMBMGA1UEAwwMQ1JPTlVTIFNFTExPMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEzGL21hHa+R3aI9CgYjDPDrLVP0fRj2y9QR4ShsS/AluWSbuRwWdIJptXaAKOHcP2Vbvbr9q0fO7YimV/EBOCf6MxMC8wLQYIKwYBBQUHAQMEITAfMAgGBgQAjkYBATATBgYEAI5GAQYwCQYHBACORgEGAjAKBggqhkjOPQQDAgNHADBEAiAXqEiTll8eoN4uQIEoQtzdcbkMUMChLgw4OD7VRFHP6wIgGU6AG9+wo/7tViTO8zO27SlivhAUfzfSGK2bO4lCcdg=', Locked = true;
-        ESignQcTypeCertTok: Label 'MIIChDCCAiygAwIBAgIBATAKBggqhkjOPQQDAjCBpzELMAkGA1UEBhMCRVMxFTATBgNVBAoMDENST05VUyBFUyBTTDEYMBYGA1UEYQwPVkFURVMtQjAwMDAwMDAwMQ0wCwYDVQQqDARKVUFOMQ8wDQYDVQQEDAZHQVJDSUExGDAWBgNVBAUTD0lEQ0VTLTAwMDAwMDAwVDEtMCsGA1UEAwwkMDAwMDAwMDBUIEpVQU4gR0FSQ0lBIChSOiBCMDAwMDAwMDApMB4XDTI2MDEwMTAwMDAwMFoXDTM2MDEwMTAwMDAwMFowgacxCzAJBgNVBAYTAkVTMRUwEwYDVQQKDAxDUk9OVVMgRVMgU0wxGDAWBgNVBGEMD1ZBVEVTLUIwMDAwMDAwMDENMAsGA1UEKgwESlVBTjEPMA0GA1UEBAwGR0FSQ0lBMRgwFgYDVQQFEw9JRENFUy0wMDAwMDAwMFQxLTArBgNVBAMMJDAwMDAwMDAwVCBKVUFOIEdBUkNJQSAoUjogQjAwMDAwMDAwKTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABMxi9tYR2vkd2iPQoGIwzw6y1T9H0Y9svUEeEobEvwJblkm7kcFnSCabV2gCjh3D9lW726/atHzu2IplfxATgn+jRzBFMC0GCCsGAQUFBwEDBCEwHzAIBgYEAI5GAQEwEwYGBACORgEGMAkGBwQAjkYBBgEwFAYDVR0gBA0wCzAJBgcEAIvsQAECMAoGCCqGSM49BAMCA0YAMEMCICn5naFxn71FR7Y75mqixAqY/GnL9JL/FrRlNF4P7ikyAh9g65mM1+Vi5d9cCwTOToRJnliP8fRZOR7ywAyAAYeu', Locked = true;
-        QcpLegalPolicyCertTok: Label 'MIIBsTCCAVegAwIBAgIBATAKBggqhkjOPQQDAjBVMQswCQYDVQQGEwJFUzEVMBMGA1UECgwMQ1JPTlVTIEVTIFNMMRgwFgYDVQRhDA9WQVRFUy1CMDAwMDAwMDAxFTATBgNVBAMMDENST05VUyBTRUxMTzAeFw0yNjAxMDEwMDAwMDBaFw0zNjAxMDEwMDAwMDBaMFUxCzAJBgNVBAYTAkVTMRUwEwYDVQQKDAxDUk9OVVMgRVMgU0wxGDAWBgNVBGEMD1ZBVEVTLUIwMDAwMDAwMDEVMBMGA1UEAwwMQ1JPTlVTIFNFTExPMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEzGL21hHa+R3aI9CgYjDPDrLVP0fRj2y9QR4ShsS/AluWSbuRwWdIJptXaAKOHcP2Vbvbr9q0fO7YimV/EBOCf6MYMBYwFAYDVR0gBA0wCzAJBgcEAIvsQAEDMAoGCCqGSM49BAMCA0gAMEUCIBIL2OBBaRn2ylUEtmn76jjL4He4gMN33jLQ4pdXq7MLAiEAuh2XrXlEEFpuCIrKjprmDay5IPXhn0GCoOhhR1FMtoY=', Locked = true;
-        NoQcInfoCertTok: Label 'MIIBijCCATGgAwIBAgIBATAKBggqhkjOPQQDAjBPMQswCQYDVQQGEwJFUzEVMBMGA1UECgwMQ1JPTlVTIEVTIFNMMRgwFgYDVQRhDA9WQVRFUy1CMDAwMDAwMDAxDzANBgNVBAMMBkNST05VUzAeFw0yNjAxMDEwMDAwMDBaFw0zNjAxMDEwMDAwMDBaME8xCzAJBgNVBAYTAkVTMRUwEwYDVQQKDAxDUk9OVVMgRVMgU0wxGDAWBgNVBGEMD1ZBVEVTLUIwMDAwMDAwMDEPMA0GA1UEAwwGQ1JPTlVTMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEzGL21hHa+R3aI9CgYjDPDrLVP0fRj2y9QR4ShsS/AluWSbuRwWdIJptXaAKOHcP2Vbvbr9q0fO7YimV/EBOCfzAKBggqhkjOPQQDAgNHADBEAiBPfGoyCyeejgINXz+Zgx3OVx6wflXVNiAMj0886+yFzQIgHBCEOXpjMsw9Nd+MvydEqfmFB+f7IgifrOPwysunxBc=', Locked = true;
+        // Seal detection only searches the raw certificate bytes for eIDAS OIDs, so the tests use hex-encoded DER fragments
+        // of certificate extensions, not certificates.
+        QcStatementsESealTok: Label '301F3008060604008E4601013013060604008E4601063009060704008E46010602', Locked = true;
+        CertificatePoliciesQcpLegalQscdTok: Label '300B3009060704008BEC400103', Locked = true;
+        QcStatementsESignAndPoliciesQcpNaturalQscdTok: Label '301F3008060604008E4601013013060604008E4601063009060704008E46010601300B3009060704008BEC400102', Locked = true;
+        ExtendedKeyUsageClientAuthTok: Label '300A06082B06010505070302', Locked = true;
+        ESealOidNotOnByteBoundaryTok: Label 'A060704008E460106020', Locked = true;
+        HexDigitsTok: Label '0123456789ABCDEF', Locked = true;
 
     [Test]
     procedure SealCertificateDetectedByESealQcType()
     var
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
     begin
-        // [SCENARIO 656929] A certificate with the eIDAS QcType eSeal is detected as an electronic seal certificate
-        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificateData(ESealQcTypeCertTok), 'QcType eSeal certificate should be detected as seal certificate');
+        // [SCENARIO 656929] A certificate with the eIDAS QcType eSeal (0.4.0.1862.1.6.2) is detected as an electronic seal certificate
+        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(QcStatementsESealTok)), 'QcType eSeal certificate should be detected as seal certificate');
     end;
 
     [Test]
@@ -51,8 +47,8 @@ codeunit 148003 "Test Verifactu Setup"
     var
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
     begin
-        // [SCENARIO 656929] A certificate with the legal person policy QCP-l-qscd is detected as an electronic seal certificate
-        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificateData(QcpLegalPolicyCertTok), 'QCP-l-qscd certificate should be detected as seal certificate');
+        // [SCENARIO 656929] A certificate with the legal person policy QCP-l-qscd (0.4.0.194112.1.3) is detected as an electronic seal certificate
+        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(CertificatePoliciesQcpLegalQscdTok)), 'QCP-l-qscd certificate should be detected as seal certificate');
     end;
 
     [Test]
@@ -60,8 +56,8 @@ codeunit 148003 "Test Verifactu Setup"
     var
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
     begin
-        // [SCENARIO 656929] A representative certificate with QcType eSign and policy QCP-n-qscd is not a seal certificate
-        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(ESignQcTypeCertTok), 'QcType eSign certificate should not be detected as seal certificate');
+        // [SCENARIO 656929] A representative certificate with QcType eSign (0.4.0.1862.1.6.1) and policy QCP-n-qscd (0.4.0.194112.1.2) is not a seal certificate
+        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(QcStatementsESignAndPoliciesQcpNaturalQscdTok)), 'QcType eSign certificate should not be detected as seal certificate');
     end;
 
     [Test]
@@ -70,9 +66,20 @@ codeunit 148003 "Test Verifactu Setup"
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
     begin
         // [SCENARIO 656929] A certificate that does not identify itself as an electronic seal keeps using the standard endpoint
-        // [GIVEN] A certificate without eIDAS QcType or certificate policy, issued to an organization only
+        // [GIVEN] Certificate data without eIDAS QcType or certificate policy
         // [THEN] It is not detected as a seal certificate
-        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(NoQcInfoCertTok), 'Certificate without eIDAS information should not be detected as seal certificate');
+        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(ExtendedKeyUsageClientAuthTok)), 'Certificate without eIDAS information should not be detected as seal certificate');
+    end;
+
+    [Test]
+    procedure SealOidNotOnByteBoundaryNotDetectedAsSeal()
+    var
+        DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
+    begin
+        // [SCENARIO 656929] Detection only matches complete OID bytes
+        // [GIVEN] Certificate data whose hex representation contains the eSeal OID shifted by half a byte
+        // [THEN] It is not detected as a seal certificate
+        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(ESealOidNotOnByteBoundaryTok)), 'OID bytes that are not on a byte boundary should not be matched');
     end;
 
     [Test]
@@ -550,6 +557,24 @@ codeunit 148003 "Test Verifactu Setup"
         IsolatedCertificate.Scope := IsolatedCertificate.Scope::Company;
         IsolatedCertificate.Insert(true);
         exit(IsolatedCertificate.Code);
+    end;
+
+    local procedure HexToBase64(HexText: Text): Text
+    var
+        TempBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        OutStr: OutStream;
+        InStr: InStream;
+        ByteValue: Byte;
+        i: Integer;
+    begin
+        TempBlob.CreateOutStream(OutStr);
+        for i := 1 to StrLen(HexText) div 2 do begin
+            ByteValue := (StrPos(HexDigitsTok, CopyStr(HexText, 2 * i - 1, 1)) - 1) * 16 + StrPos(HexDigitsTok, CopyStr(HexText, 2 * i, 1)) - 1;
+            OutStr.Write(ByteValue);
+        end;
+        TempBlob.CreateInStream(InStr);
+        exit(Base64Convert.ToBase64(InStr));
     end;
 
     local procedure CreateSIISetup(var SIISetup: Record "SII Setup"; IsEnabled: Boolean)
