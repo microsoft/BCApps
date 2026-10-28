@@ -823,6 +823,7 @@ report 94 "Close Income Statement"
                     end;
                 end else
                     GenJnlLine.Validate(Amount, -BalLineBuffer.Amount);
+                GenJnlLine."Source Curr. VAT Amount" := 0;
                 GenJnlLine."System-Created Entry" := true;
                 OnInsBalLinesOnBeforeGenJnlLineInsert(GenJnlLine, BalLineBuffer);
                 GenJnlLine.Insert();

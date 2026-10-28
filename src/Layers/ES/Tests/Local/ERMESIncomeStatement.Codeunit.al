@@ -295,6 +295,59 @@ codeunit 144054 "ERM ES Income Statement"
         // [THEN] Verify Closed Income Statement Report should be run successfully.
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure ClosingSourceVATIsNotCopiedToBalancingAccount()
+    var
+        Currency: Record Currency;
+        GenJournalLine: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        SelectedDimension: Record "Selected Dimension";
+        PostingDate: Date;
+    begin
+        // [SCENARIO] Spanish closing lines preserve source VAT only on the income account.
+        Initialize();
+        LibraryERM.SetAddReportingCurrency('');
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+        CreateGenJournalLine(GenJournalLine, GLAccount);
+        PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Validate(Amount, 10);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        LibraryERM.CreateCurrency(Currency);
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        GLEntry.FindLast();
+        GLEntry."Source Currency Code" := Currency.Code;
+        GLEntry."Source Currency Amount" := 0;
+        GLEntry."Source Currency VAT Amount" := 3;
+        GLEntry.Modify();
+        SelectedDimension.SetRange("User ID", UserId);
+        SelectedDimension.SetRange("Object Type", 3);
+        SelectedDimension.SetRange("Object ID", REPORT::"Close Income Statement");
+        SelectedDimension.DeleteAll();
+
+        LibraryFiscalYear.CloseFiscalYear();
+        CloseIncomeStatement(GenJournalLine);
+
+        GLEntry.SetRange("Posting Date", ClosingDate(CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true))));
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        Assert.AreEqual(-10, GLEntry.Amount, 'Incorrect closing amount.');
+        Assert.AreEqual(-3, GLEntry."Source Currency VAT Amount", 'Incorrect closing source currency VAT amount.');
+        GLEntry.SetRange("G/L Account No.", GLAccount."Income Stmt. Bal. Acc.");
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        Assert.AreEqual(10, GLEntry.Amount, 'Incorrect balancing amount.');
+        Assert.AreEqual(0, GLEntry."Source Currency VAT Amount", 'Incorrect balancing source currency VAT amount.');
+        GenJournalLine.SetRange("Account No.", GLAccount."Income Stmt. Bal. Acc.");
+        GenJournalLine.FindFirst();
+        Assert.AreEqual(0, GenJournalLine."Source Curr. VAT Amount", 'Incorrect balancing journal source currency VAT amount.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
@@ -668,4 +721,3 @@ codeunit 144054 "ERM ES Income Statement"
         Message(ExpectedMessageMsg);
     end;
 }
-

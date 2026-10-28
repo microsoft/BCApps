@@ -1664,7 +1664,7 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryVariableStorage.Enqueue(GenJournalLine."Journal Template Name");
         LibraryVariableStorage.Enqueue(GenJournalLine."Journal Batch Name");
         LibraryVariableStorage.Enqueue(DocumentNo);
-        LibraryVariableStorage.Enqueue(LibraryERM.CreateGLAccountNo());
+        LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
         LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
         LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
         LibraryVariableStorage.Enqueue(RetainedEarningsPosting);
