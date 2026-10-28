@@ -123,7 +123,7 @@ codeunit 18082 "GST Vendor Ledger Entry"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnInitQtyToReceive2OnBeforeCalcInvDiscToInvoice, '', false, false)]
-    local procedure UpdateInvoicedQty(var PurchaseLine: Record "Purchase Line"; var xPurchaseLine: Record "Purchase Line")
+    local procedure UpdateInvoicedQty(var PurchaseLine: Record "Purchase Line")
     begin
         SetQtyToInvoiceToRecvdQty(PurchaseLine);
     end;
@@ -164,7 +164,7 @@ codeunit 18082 "GST Vendor Ledger Entry"
     begin
         if not (PurchaseHeader.Receive and PurchaseHeader.Invoice) then
             exit;
-        if TempPurchLine."Document Type" <> TempPurchLine."Document Type"::Order then
+        if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
             exit;
         if not IsImportOrSEZVendor(PurchaseHeader) then
             exit;
