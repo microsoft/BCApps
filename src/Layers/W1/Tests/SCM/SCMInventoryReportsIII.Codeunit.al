@@ -2,6 +2,7 @@ codeunit 137350 "SCM Inventory Reports - III"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -49,6 +50,9 @@ codeunit 137350 "SCM Inventory Reports - III"
         EntriesPostedToGLMsg: Label 'value entries have been posted to the general ledger.';
         NothingToPostToGLMsg: Label 'There is nothing to post to the general ledger.';
         PostMethod: Option "per Posting Group","per Entry";
+        DeletedPostValueEntryToGLCount: Integer;
+        DeletedPostValueEntryToGLCountErr: Label 'Number of rows deleted from "Post Value Entry to G/L" does not match the number of marked rows.';
+        MarkedPostValueEntryToGLRemainErr: Label 'Marked "Post Value Entry to G/L" rows remain after MarkedOnly + DeleteAll.';
 
     [Test]
     [HandlerFunctions('ConfirmHandler,InventoryValuationRequestPageHandler')]
@@ -1201,6 +1205,104 @@ codeunit 137350 "SCM Inventory Reports - III"
     end;
 
     [Test]
+    procedure MarkedOnlyDeleteAllRemovesAllMarkedPostValueEntriesWithManyMarks()
+    var
+        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        SCMInventoryReportsIII: Codeunit "SCM Inventory Reports - III";
+        FirstValueEntryNo: Integer;
+        NoOfEntries: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] MarkedOnly + DeleteAll on "Post Value Entry to G/L" deletes every marked row when more than 1,500 non-contiguous rows are marked.
+        Initialize();
+        NoOfEntries := 40000;
+
+        // [GIVEN] 40,000 "Post Value Entry to G/L" rows spread over 3 items and 5 posting dates.
+        FirstValueEntryNo := CreatePostValueEntriesToGL(NoOfEntries);
+
+        // [GIVEN] Delete subscriber on "Post Value Entry to G/L" is bound, so DeleteAll deletes row by row as in the reported environments.
+        BindSubscription(SCMInventoryReportsIII);
+
+        // [GIVEN] Rows sorted by "Item No.", "Posting Date" as in report "Post Inventory Cost to G/L" and every second new row marked (20,000 marks).
+        PostValueEntryToGL.SetCurrentKey("Item No.", "Posting Date");
+        MarkEverySecondPostValueEntryToGL(PostValueEntryToGL, FirstValueEntryNo, NoOfEntries);
+
+        // [WHEN] Delete the marked rows.
+        PostValueEntryToGL.MarkedOnly(true);
+        PostValueEntryToGL.DeleteAll();
+
+        // [THEN] All 20,000 marked rows are deleted and the 20,000 unmarked rows remain.
+        Assert.AreEqual(NoOfEntries div 2, SCMInventoryReportsIII.GetDeletedPostValueEntryToGLCount(), DeletedPostValueEntryToGLCountErr);
+        VerifyOnlyUnmarkedPostValueEntriesToGLRemain(FirstValueEntryNo, NoOfEntries);
+    end;
+
+    [Test]
+    procedure MarkedOnlyDeleteAllRemovesAllMarkedPostValueEntriesWithManyMarksAndValueEntryNoFilter()
+    var
+        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        SCMInventoryReportsIII: Codeunit "SCM Inventory Reports - III";
+        FirstValueEntryNo: Integer;
+        NoOfEntries: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] MarkedOnly + DeleteAll on "Post Value Entry to G/L" filtered on "Value Entry No." deletes every marked row when more than 1,500 non-contiguous rows are marked.
+        Initialize();
+        NoOfEntries := 40000;
+
+        // [GIVEN] 40,000 "Post Value Entry to G/L" rows spread over 3 items and 5 posting dates.
+        FirstValueEntryNo := CreatePostValueEntriesToGL(NoOfEntries);
+
+        // [GIVEN] Delete subscriber on "Post Value Entry to G/L" is bound, so DeleteAll deletes row by row as in the reported environments.
+        BindSubscription(SCMInventoryReportsIII);
+
+        // [GIVEN] Rows sorted by "Item No.", "Posting Date" and filtered on the "Value Entry No." range of the new rows, every second row marked (20,000 marks).
+        PostValueEntryToGL.SetCurrentKey("Item No.", "Posting Date");
+        PostValueEntryToGL.SetRange("Value Entry No.", FirstValueEntryNo, FirstValueEntryNo + NoOfEntries - 1);
+        MarkEverySecondPostValueEntryToGL(PostValueEntryToGL, FirstValueEntryNo, NoOfEntries);
+
+        // [WHEN] Delete the marked rows.
+        PostValueEntryToGL.MarkedOnly(true);
+        PostValueEntryToGL.DeleteAll();
+
+        // [THEN] All 20,000 marked rows are deleted and the 20,000 unmarked rows remain.
+        Assert.AreEqual(NoOfEntries div 2, SCMInventoryReportsIII.GetDeletedPostValueEntryToGLCount(), DeletedPostValueEntryToGLCountErr);
+        VerifyOnlyUnmarkedPostValueEntriesToGLRemain(FirstValueEntryNo, NoOfEntries);
+    end;
+
+    [Test]
+    procedure MarkedOnlyDeleteAllRemovesAllMarkedPostValueEntriesBelowMarksPartitionThreshold()
+    var
+        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        SCMInventoryReportsIII: Codeunit "SCM Inventory Reports - III";
+        FirstValueEntryNo: Integer;
+        NoOfEntries: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] MarkedOnly + DeleteAll on "Post Value Entry to G/L" filtered on "Value Entry No." deletes every marked row when 1,000 rows are marked (below the 1,500 marks partition threshold).
+        Initialize();
+        NoOfEntries := 2000;
+
+        // [GIVEN] 2,000 "Post Value Entry to G/L" rows spread over 3 items and 5 posting dates.
+        FirstValueEntryNo := CreatePostValueEntriesToGL(NoOfEntries);
+
+        // [GIVEN] Delete subscriber on "Post Value Entry to G/L" is bound, so DeleteAll deletes row by row as in the reported environments.
+        BindSubscription(SCMInventoryReportsIII);
+
+        // [GIVEN] Rows sorted by "Item No.", "Posting Date" and filtered on the "Value Entry No." range of the new rows, every second row marked (1,000 marks).
+        PostValueEntryToGL.SetCurrentKey("Item No.", "Posting Date");
+        PostValueEntryToGL.SetRange("Value Entry No.", FirstValueEntryNo, FirstValueEntryNo + NoOfEntries - 1);
+        MarkEverySecondPostValueEntryToGL(PostValueEntryToGL, FirstValueEntryNo, NoOfEntries);
+
+        // [WHEN] Delete the marked rows.
+        PostValueEntryToGL.MarkedOnly(true);
+        PostValueEntryToGL.DeleteAll();
+
+        // [THEN] All 1,000 marked rows are deleted and the 1,000 unmarked rows remain.
+        Assert.AreEqual(NoOfEntries div 2, SCMInventoryReportsIII.GetDeletedPostValueEntryToGLCount(), DeletedPostValueEntryToGLCountErr);
+        VerifyOnlyUnmarkedPostValueEntriesToGLRemain(FirstValueEntryNo, NoOfEntries);
+    end;
+
+    [Test]
     [HandlerFunctions('InventoryValuationRequestPageHandler')]
     [Scope('OnPrem')]
     procedure InventoryValueOnInventoryValuationAfterAdjustCostItemEntries()
@@ -1714,6 +1816,72 @@ codeunit 137350 "SCM Inventory Reports - III"
         isInitialized := true;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Inventory Reports - III");
+    end;
+
+    local procedure CreatePostValueEntriesToGL(NoOfEntries: Integer) FirstValueEntryNo: Integer
+    var
+        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ItemNos: array[3] of Code[20];
+        Index: Integer;
+    begin
+        // Consecutive "Value Entry No." values alternate between items and posting dates, so marked rows are not contiguous in the "Item No.", "Posting Date" key.
+        for Index := 1 to ArrayLen(ItemNos) do
+            ItemNos[Index] := LibraryInventory.CreateItemNo();
+
+        FirstValueEntryNo := GetFirstFreeValueEntryNo();
+        for Index := 0 to NoOfEntries - 1 do begin
+            PostValueEntryToGL.Init();
+            PostValueEntryToGL."Value Entry No." := FirstValueEntryNo + Index;
+            PostValueEntryToGL."Item No." := ItemNos[(Index mod ArrayLen(ItemNos)) + 1];
+            PostValueEntryToGL."Posting Date" := WorkDate() - (Index mod 5);
+            PostValueEntryToGL.Insert();
+        end;
+    end;
+
+    local procedure GetFirstFreeValueEntryNo(): Integer
+    var
+        ValueEntry: Record "Value Entry";
+        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        LastEntryNo: Integer;
+    begin
+        LastEntryNo := ValueEntry.GetLastEntryNo();
+        if PostValueEntryToGL.FindLast() then
+            if PostValueEntryToGL."Value Entry No." > LastEntryNo then
+                LastEntryNo := PostValueEntryToGL."Value Entry No.";
+        exit(LastEntryNo + 1);
+    end;
+
+    local procedure MarkEverySecondPostValueEntryToGL(var PostValueEntryToGL: Record "Post Value Entry to G/L"; FirstValueEntryNo: Integer; NoOfEntries: Integer)
+    begin
+        // Mark while iterating in the current key and filters, the same way report "Post Inventory Cost to G/L" marks its data item.
+        PostValueEntryToGL.FindSet();
+        repeat
+            if IsMarkedPostValueEntryToGL(PostValueEntryToGL."Value Entry No.", FirstValueEntryNo, NoOfEntries) then
+                PostValueEntryToGL.Mark(true);
+        until PostValueEntryToGL.Next() = 0;
+    end;
+
+    local procedure IsMarkedPostValueEntryToGL(ValueEntryNo: Integer; FirstValueEntryNo: Integer; NoOfEntries: Integer): Boolean
+    begin
+        if (ValueEntryNo < FirstValueEntryNo) or (ValueEntryNo >= FirstValueEntryNo + NoOfEntries) then
+            exit(false);
+        exit((ValueEntryNo - FirstValueEntryNo) mod 2 = 0);
+    end;
+
+    local procedure VerifyOnlyUnmarkedPostValueEntriesToGLRemain(FirstValueEntryNo: Integer; NoOfEntries: Integer)
+    var
+        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        RemainingMarkedCount: Integer;
+    begin
+        PostValueEntryToGL.SetRange("Value Entry No.", FirstValueEntryNo, FirstValueEntryNo + NoOfEntries - 1);
+        PostValueEntryToGL.FindSet();
+        repeat
+            if IsMarkedPostValueEntryToGL(PostValueEntryToGL."Value Entry No.", FirstValueEntryNo, NoOfEntries) then
+                RemainingMarkedCount += 1;
+        until PostValueEntryToGL.Next() = 0;
+
+        Assert.AreEqual(0, RemainingMarkedCount, MarkedPostValueEntryToGLRemainErr);
+        Assert.RecordCount(PostValueEntryToGL, NoOfEntries div 2);
     end;
 
     local procedure InitSetupForProdItem(Qty: Decimal): Code[20]
@@ -3226,5 +3394,19 @@ codeunit 137350 "SCM Inventory Reports - III"
     procedure ConfirmHandlerNo(Question: Text; var Reply: Boolean)
     begin
         Reply := false;
+    end;
+
+    procedure GetDeletedPostValueEntryToGLCount(): Integer
+    begin
+        exit(DeletedPostValueEntryToGLCount);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Post Value Entry to G/L", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure CountDeletedPostValueEntryToGL(var Rec: Record "Post Value Entry to G/L"; RunTrigger: Boolean)
+    begin
+        // Any registered delete subscriber makes the platform delete row by row (Find/Delete/Next) instead of a single bulk DELETE.
+        if Rec.IsTemporary() then
+            exit;
+        DeletedPostValueEntryToGLCount += 1;
     end;
 }
