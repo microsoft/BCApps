@@ -15,7 +15,7 @@ pageextension 7000018 "CRT Bank Account Card" extends "Bank Account Card"
 {
     layout
     {
-        addlast(content)
+        addbefore(Transfer)
         {
             group(Cartera)
             {
@@ -47,7 +47,7 @@ pageextension 7000018 "CRT Bank Account Card" extends "Bank Account Card"
 
     actions
     {
-        addlast("&Bank Acc.")
+        addbefore(PagePositivePayEntries)
         {
             separator(Action1100030)
             {
