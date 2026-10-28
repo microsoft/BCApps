@@ -875,6 +875,9 @@ table 1226 "Payment Export Data"
 
     local procedure SetRecipientAddress(Address: Text[100]; Address2: Text[50]): Text[70]
     begin
+        if not SwissExport then
+            exit;
+
         if (Address <> '') and (Address2 <> '') then
             exit(CopyStr(Address + ' ' + Address2, 1, 70));
         if (Address <> '') and (Address2 = '') then
