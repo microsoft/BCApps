@@ -1034,7 +1034,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."VAT Base (ACY)" := VendorExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Base Amount", Factor);
         GenJnlLine."VAT Difference (ACY)" := InvoicePostingBuffer."VAT Difference (ACY)";
         GenJnlLine."VAT Amount (ACY)" :=
-            VendorExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Amount" - InvoicePostingBuffer."VAT Difference", Factor) +
+            Round(GenJnlLine."VAT Base (ACY)" * InvoicePostingBuffer."VAT %" / 100, ACYCurrency."Amount Rounding Precision") +
             GenJnlLine."VAT Difference (ACY)";
         GenJnlLine."Amount Including VAT (ACY)" := GenJnlLine."VAT Base (ACY)" + GenJnlLine."VAT Amount (ACY)";
     end;
