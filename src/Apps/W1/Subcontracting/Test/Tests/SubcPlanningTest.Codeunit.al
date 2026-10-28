@@ -1083,9 +1083,9 @@ codeunit 139996 "Subc. Planning Test"
     var
         CustomizedCalendarChange: array[2] of Record "Customized Calendar Change";
         CalendarManagement: Codeunit "Calendar Management";
+        ExpectedDateFormula: DateFormula;
         ExpectedPlannedReceiptDate: Date;
         ExpectedOrderDate: Date;
-        ExpectedDateFormula: DateFormula;
         SafetyLeadTimeAssertMsg: Label 'The component purchase line must use the explicit safety lead time.';
         InboundHandlingTimeAssertMsg: Label 'The component purchase line must use the location inbound handling time.';
         LeadTimeAssertMsg: Label 'Purchase lead time must follow Item Vendor, SKU, Item, then Vendor precedence.';
