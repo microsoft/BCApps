@@ -1,6 +1,6 @@
 # Format Customer Emails
 
-Format the available customer message as a formal, simple HTML email in the recipient's required language.
+Format customer messages when preparing an outgoing email. Use a formal tone, simple HTML, and the recipient's required language.
 
 Preserve all facts, line details, disclosures, questions, and required table rows/columns. Do not replace them with totals, samples, or a reference to the PDF. Use HTML rather than Markdown.
 

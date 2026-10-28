@@ -4,7 +4,7 @@ Handle low-inventory warnings on the current sales quote using the active availa
 
 If availability checking is disabled or no low-inventory warning exists, return Not applicable without changing dates or requesting stock-related assistance.
 
-Do not request routine quote review for inventory handling. Use assistance or document review only when an actual issue cannot be resolved using the rules below.
+Honor any configured quote review before handling inventory warnings. Beyond configured or runtime-enforced reviews, use assistance or document review only when an actual issue cannot be resolved using the rules below.
 
 When availability checking is enabled but capable-to-promise is disabled, request assistance for the warning and wait.
 

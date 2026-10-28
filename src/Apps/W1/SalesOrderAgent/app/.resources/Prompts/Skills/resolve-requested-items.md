@@ -1,6 +1,6 @@
-# Find Requested Items
+# Resolve Requested Items
 
-Find and evaluate every requested item before item selection or quote creation.
+Resolve every requested item when processing a sales inquiry or preparing a sales quote. Search and evaluate items under the active availability settings, obtain customer selections when needed, and return resolved items or a waiting/assistance state.
 
 ## Search
 
@@ -21,7 +21,7 @@ For a price-calculation error, request assistance with the full notification err
 
 Treat a characteristic as a specific variant only when search metadata resolves a Variant Code or identifies an unresolved variant for a variant-using item. An empty `Variants` array means descriptive colors/sizes are not missing variants; do not infer variants from code naming.
 
-If a requested specific variant has no result, return Needs clarification with no safe alternative for "Clarify Item Selection". Do not request assistance for that missing result or missing shipment date, select another variant, or create a quote. For other missing items, request assistance naming the item and adding: "Please make such items available or stop the task and handle manually."
+If a requested specific variant has no result, obtain customer clarification as described below. Do not request assistance for that missing result or missing shipment date, select another variant, or create a quote. For other missing items, request assistance naming the item and adding: "Please make such items available or stop the task and handle manually."
 
 Follow the active SOA availability settings without asking for separate flags. Capable-to-promise applies only when its active rule and availability checking are enabled; returned dates do not enable it.
 
@@ -31,10 +31,30 @@ Follow the active SOA availability settings without asking for separate flags. C
 
 Do not proceed past unresolved assistance or select an unconfirmed alternative.
 
-## Return the results
-
-Return every item's matching status, identifiers, description, Variant Code, quantity, unit, discounted price, and applicable availability/shipment dates. Distinguish resolved matches, customer clarification, and assistance.
+## Delivery-date disclosures
 
 Ignore past requested dates without asking for replacements. Across body and attachments, choose the latest non-past delivery date; if all are past, use none. Carry a disclosure for the next customer reply explaining ignored dates and, for multiple dates, which was used. Do not stop processing because of these dates.
 
-Reuse retained results only while item, quantity, unit, date, and pricing/location context are unchanged. This skill does not send messages or create documents.
+## Resolve customer selections
+
+Skip customer clarification only when every requested item has exactly one matching result or the customer has already confirmed a selection from the current results. Never select an unconfirmed alternative. Ordinary missing-item and pricing errors require user assistance rather than customer clarification.
+
+For a requested specific variant with no result, say the requested item and variant are unavailable and no suitable alternative variant is available. Ask whether the customer wants to revise the item or variant. Do not offer another product or variant.
+
+For multiple or non-matching results, show all options in separate matching-item and alternative tables, including descriptions, discounted prices, units, and availability levels when checking is enabled. When disabled, omit availability and do not reject options because of stock.
+
+For a same-product variant alternative, explain that the product was found but the requested variant is unavailable or unspecified, and offer the available variant. For a different-product alternative, explain that the queried item was not found.
+
+When capable-to-promise is active, also show unavailable items that can ship later, with descriptions, earliest shipment dates, discounted prices, and units.
+
+## Send clarification and wait
+
+When clarification is needed, include the delivery-date disclosures and format the customer reply according to the active communication instructions. Use `send_message` with `requestsInformation` set to true and the established recipient.
+
+Retain the returned message identifier and wait for any required review/customer response; do not resend an existing pending or sent clarification. Record the customer's choice and search revised items again as needed. Do not treat a sent question as a resolved selection.
+
+## Return the results
+
+Return every item's matching status, identifiers, description, Variant Code, quantity, unit, discounted price, and applicable availability/shipment dates, along with delivery-date disclosures and any clarification message identifier. Distinguish resolved selections, pending review/customer response, and assistance.
+
+Reuse retained results and confirmed selections only while item, quantity, unit, date, and pricing/location context are unchanged. Resume unfinished work without repeating a completed search or clarification. Do not create sales documents here.

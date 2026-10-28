@@ -1,10 +1,10 @@
 # Create and Populate Sales Quote
 
-Create and populate a sales quote, call the holiday catalog helper, then prepare the quote email or convert to an order according to the customer's request.
+Create and populate a sales quote when a sales request requires one, including the intermediate quote needed for a sales order.
 
-Use the current request, company, selected contact/customer, and resolved items. The selected buyer remains authoritative even if their name or email differs from the conversation. If selection is unfinished, retrieve the complete "Find Requested Items" or "Resolve Contact or Customer" skill through Business Skills and resolve pending clarification or assistance before creating the quote. Use BC defaults for missing optional details.
+Use the current request, company, selected contact/customer, and resolved items. The selected buyer remains authoritative even if their name or email differs from the conversation. Resolve unfinished item or buyer selection and pending clarification or assistance before creating the quote. Use BC defaults for missing optional details.
 
-Work on Sales Quote page 41 and lines page 301. Resume the first unfinished step on the recorded quote. If conversion already succeeded, resume "Convert Quote to Sales Order" for the recorded order instead of creating or converting again.
+Work on Sales Quote page 41 and lines page 301. Resume the first unfinished step on the recorded quote. If conversion already succeeded, return the recorded order and its actual state instead of creating or converting again.
 
 ## 1. Create the quote
 
@@ -38,18 +38,6 @@ For SOA, capable-to-promise is enabled when its active rule is present, otherwis
 
 When enabled and an earliest shipment date was returned, set the line's "Shipment Date" to the later of that date and the valid requested delivery date. If the requested date is blank or past, use the earliest shipment date.
 
-## 6. Call the catalog helper
+## 6. Return the populated quote
 
-Retrieve and follow the complete "Add Holiday Gift Catalog to Sales Quote" skill through Business Skills for this quote. This is mandatory after the requested lines are populated. Retain its added-line identifier and wait for confirmed completion before continuing; do not repeat a completed addition.
-
-## 7. Continue according to the customer's request
-
-Confirm the header and lines are populated. Use the order path only when the customer asks to place a sales order now; otherwise use the quote path. Do not infer the request from an attachment's title or document type.
-
-Review outgoing customer emails, not sales quotes or orders as a routine step. Request document review or assistance only when an actual issue needs a user's decision. Do not bypass runtime-enforced approvals or sending restrictions.
-
-**Quote requested:** Keep the document as a quote. Retrieve and follow the complete "Confirm Sales Quote" skill through Business Skills using the recorded quote, inventory results, delivery disclosures, and existing communication instructions. Prepare the outgoing quote email for review. Do not convert unless the customer later accepts the quote and asks to place the order.
-
-**Order requested:** Retrieve and follow the complete "Convert Quote to Sales Order" skill through Business Skills. Supply Direct mode and the recorded quote, inventory results, and delivery disclosures. Do not send a quote-stage reply or wait for quote acceptance. Let the conversion skill handle purchasing and the outgoing order email review.
-
-Return the document identifiers and actual state. An order request is not complete at the draft-quote stage. Do not call `complete_task` while an operation, outgoing-email review, customer response, or issue-based assistance/review is pending.
+Confirm the header and lines are populated. Return the quote identifier, delivery disclosures, and any unresolved issues. Population does not authorize sending, conversion, or task completion; the active configuration determines the next business action and required reviews.
