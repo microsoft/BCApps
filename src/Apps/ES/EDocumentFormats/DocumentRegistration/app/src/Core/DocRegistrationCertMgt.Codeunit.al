@@ -31,14 +31,10 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
         SecurityAuditCertPasswordSaveFailedTxt: Label 'Failed to save Verifactu certificate password to isolated storage.', Locked = true;
         SecurityAuditCertDeletedTxt: Label 'Verifactu certificate and password deleted from isolated storage.', Locked = true;
         SecurityAuditSetupCleanedTxt: Label 'Verifactu setup deleted during environment cleanup.', Locked = true;
-        // DER-encoded OIDs from ETSI EN 319 412-5 (QcType) and ETSI EN 319 411-2 (QCP policies)
+        // DER-encoded OIDs from ETSI EN 319 412-5 (QcType eSeal) and ETSI EN 319 411-2 (QCP-l / QCP-l-qscd policies)
         QcTypeESealOidTok: Label '060704008E46010602', Locked = true;
-        QcTypeESignOidTok: Label '060704008E46010601', Locked = true;
         PolicyQcpLegalOidTok: Label '060704008BEC400101', Locked = true;
         PolicyQcpLegalQscdOidTok: Label '060704008BEC400103', Locked = true;
-        PolicyQcpNaturalOidTok: Label '060704008BEC400100', Locked = true;
-        PolicyQcpNaturalQscdOidTok: Label '060704008BEC400102', Locked = true;
-        NaturalPersonSubjectPatternTok: Label '(^|[,+]\s*)(G|GN|GIVENNAME|SN|SURNAME|OID\.2\.5\.4\.42|OID\.2\.5\.4\.4)=', Locked = true;
         HexDigitsTok: Label '0123456789ABCDEF', Locked = true;
 
     /// <summary>
@@ -70,26 +66,18 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
     end;
 
     /// <summary>
-    /// Classifies a certificate by its eIDAS QcType or certificate policy OIDs. Falls back to the subject when neither is present:
-    /// certificates for natural persons (including legal entity representatives) carry a given name or surname, seal certificates do not.
+    /// Returns true only when the certificate explicitly identifies itself as an electronic seal, through the eIDAS QcType eSeal
+    /// or a legal person certificate policy (QCP-l / QCP-l-qscd). Any other certificate keeps using the standard endpoint.
     /// </summary>
-    internal procedure IsSealCertificate(RawCertDataBase64: Text; Subject: Text): Boolean
+    internal procedure IsSealCertificateData(RawCertDataBase64: Text): Boolean
     var
-        Regex: Codeunit Regex;
         CertDataHex: Text;
     begin
         CertDataHex := ConvertBase64ToHex(RawCertDataBase64);
-        if ContainsByteSequence(CertDataHex, QcTypeESealOidTok) or
-           ContainsByteSequence(CertDataHex, PolicyQcpLegalOidTok) or
-           ContainsByteSequence(CertDataHex, PolicyQcpLegalQscdOidTok)
-        then
-            exit(true);
-        if ContainsByteSequence(CertDataHex, QcTypeESignOidTok) or
-           ContainsByteSequence(CertDataHex, PolicyQcpNaturalOidTok) or
-           ContainsByteSequence(CertDataHex, PolicyQcpNaturalQscdOidTok)
-        then
-            exit(false);
-        exit(not Regex.IsMatch(UpperCase(Subject), NaturalPersonSubjectPatternTok));
+        exit(
+            ContainsByteSequence(CertDataHex, QcTypeESealOidTok) or
+            ContainsByteSequence(CertDataHex, PolicyQcpLegalOidTok) or
+            ContainsByteSequence(CertDataHex, PolicyQcpLegalQscdOidTok));
     end;
 
     [TryFunction]
@@ -98,12 +86,11 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
     var
         X509Certificate2: Codeunit X509Certificate2;
         CertPassword: SecretText;
-        CertBase64, Subject : Text;
+        CertBase64: Text;
     begin
         CertBase64 := GetCertAsBase64String(IsolatedCertificate);
         CertPassword := GetPasswordAsSecret(IsolatedCertificate);
-        X509Certificate2.GetCertificateSubject(CertBase64, CertPassword, Subject);
-        IsSeal := IsSealCertificate(X509Certificate2.GetRawCertDataAsBase64String(CertBase64, CertPassword), Subject);
+        IsSeal := IsSealCertificateData(X509Certificate2.GetRawCertDataAsBase64String(CertBase64, CertPassword));
     end;
 
     local procedure ConvertBase64ToHex(Base64Text: Text): Text

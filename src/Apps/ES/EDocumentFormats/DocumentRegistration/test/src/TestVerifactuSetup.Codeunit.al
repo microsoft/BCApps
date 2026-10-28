@@ -26,8 +26,6 @@ codeunit 148003 "Test Verifactu Setup"
         ESignQcTypeCertTok: Label 'MIIChDCCAiygAwIBAgIBATAKBggqhkjOPQQDAjCBpzELMAkGA1UEBhMCRVMxFTATBgNVBAoMDENST05VUyBFUyBTTDEYMBYGA1UEYQwPVkFURVMtQjAwMDAwMDAwMQ0wCwYDVQQqDARKVUFOMQ8wDQYDVQQEDAZHQVJDSUExGDAWBgNVBAUTD0lEQ0VTLTAwMDAwMDAwVDEtMCsGA1UEAwwkMDAwMDAwMDBUIEpVQU4gR0FSQ0lBIChSOiBCMDAwMDAwMDApMB4XDTI2MDEwMTAwMDAwMFoXDTM2MDEwMTAwMDAwMFowgacxCzAJBgNVBAYTAkVTMRUwEwYDVQQKDAxDUk9OVVMgRVMgU0wxGDAWBgNVBGEMD1ZBVEVTLUIwMDAwMDAwMDENMAsGA1UEKgwESlVBTjEPMA0GA1UEBAwGR0FSQ0lBMRgwFgYDVQQFEw9JRENFUy0wMDAwMDAwMFQxLTArBgNVBAMMJDAwMDAwMDAwVCBKVUFOIEdBUkNJQSAoUjogQjAwMDAwMDAwKTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABMxi9tYR2vkd2iPQoGIwzw6y1T9H0Y9svUEeEobEvwJblkm7kcFnSCabV2gCjh3D9lW726/atHzu2IplfxATgn+jRzBFMC0GCCsGAQUFBwEDBCEwHzAIBgYEAI5GAQEwEwYGBACORgEGMAkGBwQAjkYBBgEwFAYDVR0gBA0wCzAJBgcEAIvsQAECMAoGCCqGSM49BAMCA0YAMEMCICn5naFxn71FR7Y75mqixAqY/GnL9JL/FrRlNF4P7ikyAh9g65mM1+Vi5d9cCwTOToRJnliP8fRZOR7ywAyAAYeu', Locked = true;
         QcpLegalPolicyCertTok: Label 'MIIBsTCCAVegAwIBAgIBATAKBggqhkjOPQQDAjBVMQswCQYDVQQGEwJFUzEVMBMGA1UECgwMQ1JPTlVTIEVTIFNMMRgwFgYDVQRhDA9WQVRFUy1CMDAwMDAwMDAxFTATBgNVBAMMDENST05VUyBTRUxMTzAeFw0yNjAxMDEwMDAwMDBaFw0zNjAxMDEwMDAwMDBaMFUxCzAJBgNVBAYTAkVTMRUwEwYDVQQKDAxDUk9OVVMgRVMgU0wxGDAWBgNVBGEMD1ZBVEVTLUIwMDAwMDAwMDEVMBMGA1UEAwwMQ1JPTlVTIFNFTExPMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEzGL21hHa+R3aI9CgYjDPDrLVP0fRj2y9QR4ShsS/AluWSbuRwWdIJptXaAKOHcP2Vbvbr9q0fO7YimV/EBOCf6MYMBYwFAYDVR0gBA0wCzAJBgcEAIvsQAEDMAoGCCqGSM49BAMCA0gAMEUCIBIL2OBBaRn2ylUEtmn76jjL4He4gMN33jLQ4pdXq7MLAiEAuh2XrXlEEFpuCIrKjprmDay5IPXhn0GCoOhhR1FMtoY=', Locked = true;
         NoQcInfoCertTok: Label 'MIIBijCCATGgAwIBAgIBATAKBggqhkjOPQQDAjBPMQswCQYDVQQGEwJFUzEVMBMGA1UECgwMQ1JPTlVTIEVTIFNMMRgwFgYDVQRhDA9WQVRFUy1CMDAwMDAwMDAxDzANBgNVBAMMBkNST05VUzAeFw0yNjAxMDEwMDAwMDBaFw0zNjAxMDEwMDAwMDBaME8xCzAJBgNVBAYTAkVTMRUwEwYDVQQKDAxDUk9OVVMgRVMgU0wxGDAWBgNVBGEMD1ZBVEVTLUIwMDAwMDAwMDEPMA0GA1UEAwwGQ1JPTlVTMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEzGL21hHa+R3aI9CgYjDPDrLVP0fRj2y9QR4ShsS/AluWSbuRwWdIJptXaAKOHcP2Vbvbr9q0fO7YimV/EBOCfzAKBggqhkjOPQQDAgNHADBEAiBPfGoyCyeejgINXz+Zgx3OVx6wflXVNiAMj0886+yFzQIgHBCEOXpjMsw9Nd+MvydEqfmFB+f7IgifrOPwysunxBc=', Locked = true;
-        OrganizationSubjectTxt: Label 'CN=CRONUS SELLO, OID.2.5.4.97=VATES-B00000000, O=CRONUS ES SL, C=ES', Locked = true;
-        NaturalPersonSubjectTxt: Label 'CN=00000000T JUAN GARCIA (R: B00000000), SERIALNUMBER=IDCES-00000000T, SN=GARCIA, G=JUAN, OID.2.5.4.97=VATES-B00000000, O=CRONUS ES SL, C=ES', Locked = true;
 
     [Test]
     procedure SealCertificateDetectedByESealQcType()
@@ -35,9 +33,7 @@ codeunit 148003 "Test Verifactu Setup"
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
     begin
         // [SCENARIO 656929] A certificate with the eIDAS QcType eSeal is detected as an electronic seal certificate
-        // [WHEN] The certificate carries QcType eSeal, even if the subject contains a natural person name
-        // [THEN] It is detected as a seal certificate
-        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificate(ESealQcTypeCertTok, NaturalPersonSubjectTxt), 'QcType eSeal certificate should be detected as seal certificate');
+        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificateData(ESealQcTypeCertTok), 'QcType eSeal certificate should be detected as seal certificate');
     end;
 
     [Test]
@@ -46,7 +42,7 @@ codeunit 148003 "Test Verifactu Setup"
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
     begin
         // [SCENARIO 656929] A certificate with the legal person policy QCP-l-qscd is detected as an electronic seal certificate
-        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificate(QcpLegalPolicyCertTok, NaturalPersonSubjectTxt), 'QCP-l-qscd certificate should be detected as seal certificate');
+        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificateData(QcpLegalPolicyCertTok), 'QCP-l-qscd certificate should be detected as seal certificate');
     end;
 
     [Test]
@@ -54,28 +50,19 @@ codeunit 148003 "Test Verifactu Setup"
     var
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
     begin
-        // [SCENARIO 656929] A certificate with QcType eSign and policy QCP-n-qscd is not a seal certificate
-        // [WHEN] The certificate carries QcType eSign, even if the subject has no natural person name
+        // [SCENARIO 656929] A representative certificate with QcType eSign and policy QCP-n-qscd is not a seal certificate
+        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(ESignQcTypeCertTok), 'QcType eSign certificate should not be detected as seal certificate');
+    end;
+
+    [Test]
+    procedure CertificateWithoutQcInformationNotDetectedAsSeal()
+    var
+        DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
+    begin
+        // [SCENARIO 656929] A certificate that does not identify itself as an electronic seal keeps using the standard endpoint
+        // [GIVEN] A certificate without eIDAS QcType or certificate policy, issued to an organization only
         // [THEN] It is not detected as a seal certificate
-        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificate(ESignQcTypeCertTok, OrganizationSubjectTxt), 'QcType eSign certificate should not be detected as seal certificate');
-    end;
-
-    [Test]
-    procedure SealCertificateDetectedBySubjectWhenNoQcInformation()
-    var
-        DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
-    begin
-        // [SCENARIO 656929] Without eIDAS information, a certificate whose subject has no given name or surname is a seal certificate
-        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificate(NoQcInfoCertTok, OrganizationSubjectTxt), 'Organization-only subject should be detected as seal certificate');
-    end;
-
-    [Test]
-    procedure PersonalCertificateDetectedBySubjectWhenNoQcInformation()
-    var
-        DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
-    begin
-        // [SCENARIO 656929] Without eIDAS information, a certificate whose subject has a given name and surname is not a seal certificate
-        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificate(NoQcInfoCertTok, NaturalPersonSubjectTxt), 'Natural person subject should not be detected as seal certificate');
+        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(NoQcInfoCertTok), 'Certificate without eIDAS information should not be detected as seal certificate');
     end;
 
     [Test]

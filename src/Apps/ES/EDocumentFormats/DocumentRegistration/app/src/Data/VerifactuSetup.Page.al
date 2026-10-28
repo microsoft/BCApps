@@ -67,7 +67,7 @@ page 10777 "Verifactu Setup"
                     ApplicationArea = All;
                     Caption = 'Certificate Type';
                     Editable = false;
-                    ToolTip = 'Specifies the type of the selected certificate, detected from the certificate itself. Documents signed with an electronic seal certificate are sent to the dedicated AEAT endpoint for seal certificates.';
+                    ToolTip = 'Specifies the type of the selected certificate, detected from the certificate itself. A certificate is treated as an electronic seal only when it identifies itself as one (eIDAS QcType eSeal or a legal person certificate policy). Documents signed with an electronic seal certificate are sent to the dedicated AEAT endpoint for seal certificates.';
                 }
             }
         }
