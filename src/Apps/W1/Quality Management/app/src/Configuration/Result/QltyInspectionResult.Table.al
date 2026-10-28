@@ -72,7 +72,7 @@ table 20411 "Qlty. Inspection Result"
                    (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")) and
                    (Rec."Copy Behavior" in [Rec."Copy Behavior"::"Automatically copy the result"])
                 then
-                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec.Code);
+                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec);
             end;
         }
         field(11; "Default Text Condition"; Text[500])
@@ -87,7 +87,7 @@ table 20411 "Qlty. Inspection Result"
                    (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")) and
                    (Rec."Copy Behavior" in [Rec."Copy Behavior"::"Automatically copy the result"])
                 then
-                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec.Code);
+                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec);
             end;
         }
         field(12; "Default Boolean Condition"; Text[500])
@@ -102,7 +102,7 @@ table 20411 "Qlty. Inspection Result"
                    (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")) and
                    (Rec."Copy Behavior" in [Rec."Copy Behavior"::"Automatically copy the result"])
                 then
-                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec.Code);
+                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec);
             end;
         }
         field(13; "Result Category"; Enum "Qlty. Result Category")
