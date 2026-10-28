@@ -337,10 +337,6 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         if not GuiAllowed() then
             exit(true);
 
-        OnCanPostReversalOnBeforeConfirm(HideDialog);
-        if HideDialog then
-            exit(true);
-
         QuestionTxt := ReverseEntriesMsg + '\' + ReverseEntriesQst;
         exit(Confirm(QuestionTxt));
     end;
@@ -539,11 +535,6 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
 
     [IntegrationEvent(false, false)]
     local procedure OnReverseCapacityLedgerEntryOnAfterReverseOutputCapacityLedgerEntries(var CapacityLedgerEntry: Record "Capacity Ledger Entry"; var Processed: Boolean; var HideDialog: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnCanPostReversalOnBeforeConfirm(var HideDialog: Boolean)
     begin
     end;
 
