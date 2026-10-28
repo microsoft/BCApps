@@ -52,6 +52,64 @@ codeunit 134151 "ERM Intercompany"
 
     [Test]
     [Scope('OnPrem')]
+    procedure WorkflowCustomerEntityICPartnerCode()
+    var
+        Customer: Record Customer;
+        CustomerWithoutPartner: Record Customer;
+        ICPartner: Record "IC Partner";
+        WorkflowCustomerEntity: TestPage "Workflow - Customer Entity";
+        NewICPartnerCode: Code[20];
+    begin
+        Initialize();
+        Customer.Get(CreateCustomer(Customer.Blocked::" ", CreateICPartner()));
+        LibrarySales.CreateCustomer(CustomerWithoutPartner);
+        NewICPartnerCode := CreateICPartner();
+
+        WorkflowCustomerEntity.OpenEdit();
+        WorkflowCustomerEntity.GoToRecord(Customer);
+        WorkflowCustomerEntity.icPartnerCode.AssertEquals(Customer."IC Partner Code");
+        WorkflowCustomerEntity.icPartnerCode.SetValue(NewICPartnerCode);
+        WorkflowCustomerEntity.GoToRecord(CustomerWithoutPartner);
+        WorkflowCustomerEntity.icPartnerCode.AssertEquals('');
+        WorkflowCustomerEntity.Close();
+
+        Customer.Get(Customer."No.");
+        Customer.TestField("IC Partner Code", NewICPartnerCode);
+        ICPartner.Get(NewICPartnerCode);
+        ICPartner.TestField("Customer No.", Customer."No.");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure WorkflowVendorEntityICPartnerCode()
+    var
+        Vendor: Record Vendor;
+        VendorWithoutPartner: Record Vendor;
+        ICPartner: Record "IC Partner";
+        WorkflowVendorEntity: TestPage "Workflow - Vendor Entity";
+        NewICPartnerCode: Code[20];
+    begin
+        Initialize();
+        Vendor.Get(CreateVendor(Vendor.Blocked::" ", CreateICPartner()));
+        LibraryPurchase.CreateVendor(VendorWithoutPartner);
+        NewICPartnerCode := CreateICPartner();
+
+        WorkflowVendorEntity.OpenEdit();
+        WorkflowVendorEntity.GoToRecord(Vendor);
+        WorkflowVendorEntity.icPartnerCode.AssertEquals(Vendor."IC Partner Code");
+        WorkflowVendorEntity.icPartnerCode.SetValue(NewICPartnerCode);
+        WorkflowVendorEntity.GoToRecord(VendorWithoutPartner);
+        WorkflowVendorEntity.icPartnerCode.AssertEquals('');
+        WorkflowVendorEntity.Close();
+
+        Vendor.Get(Vendor."No.");
+        Vendor.TestField("IC Partner Code", NewICPartnerCode);
+        ICPartner.Get(NewICPartnerCode);
+        ICPartner.TestField("Vendor No.", Vendor."No.");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure BlockedAllForVendor()
     var
         Vendor: Record Vendor;
