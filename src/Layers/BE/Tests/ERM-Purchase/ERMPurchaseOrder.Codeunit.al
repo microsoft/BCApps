@@ -1782,6 +1782,89 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [Scope('OnPrem')]
+    procedure PartialInvoicesUsePostedReceiptBaseQuantities()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        BaseItemUnitOfMeasure: Record "Item Unit of Measure";
+        PurchaseItemUnitOfMeasure: Record "Item Unit of Measure";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptQuantities: array[6] of Decimal;
+        InvoiceQuantities: array[4] of Decimal;
+        PurchaseOrderNo: Code[20];
+        PurchaseLineNo: Integer;
+        Index: Integer;
+        ItemLedgerEntryCount: Integer;
+        TotalReceivedBaseQuantity: Decimal;
+    begin
+        // [FEATURE] [Purchase Order] [Partial Invoice] [Unit of Measure] [Rounding]
+        // [SCENARIO 656817] Partial invoices use the base quantities posted on the related purchase receipts.
+        Initialize();
+
+        // [GIVEN] An item with 1 PCS base quantity rounding and a purchase unit of measure where 1 TON = 135 PCS.
+        LibraryInventory.CreateItem(Item);
+        BaseItemUnitOfMeasure.Get(Item."No.", Item."Base Unit of Measure");
+        BaseItemUnitOfMeasure.Validate("Qty. Rounding Precision", 1);
+        BaseItemUnitOfMeasure.Modify(true);
+        LibraryInventory.CreateItemUnitOfMeasureCode(PurchaseItemUnitOfMeasure, Item."No.", 135);
+
+        // [GIVEN] A purchase order for 500 TON.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateVendor());
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 500);
+        PurchaseLine.Validate("Unit of Measure Code", PurchaseItemUnitOfMeasure.Code);
+        PurchaseLine.Modify(true);
+        PurchaseOrderNo := PurchaseHeader."No.";
+        PurchaseLineNo := PurchaseLine."Line No.";
+
+        // [GIVEN] Six partial receipts whose individually rounded base quantities total 67500 PCS.
+        ReceiptQuantities[1] := 49.95;
+        ReceiptQuantities[2] := 99.9;
+        ReceiptQuantities[3] := 99.9;
+        ReceiptQuantities[4] := 37.962;
+        ReceiptQuantities[5] := 112.288;
+        ReceiptQuantities[6] := 100;
+        for Index := 1 to ArrayLen(ReceiptQuantities) do begin
+            PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, PurchaseOrderNo);
+            PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchaseOrderNo, PurchaseLineNo);
+            PurchaseLine.Validate("Qty. to Receive", ReceiptQuantities[Index]);
+            PurchaseLine.Validate("Qty. to Invoice", 0);
+            PurchaseLine.Modify(true);
+            LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        end;
+
+        // [WHEN] The receipts are invoiced in four partial invoices, including one invoice covering three receipts.
+        InvoiceQuantities[1] := 49.95;
+        InvoiceQuantities[2] := 237.762;
+        InvoiceQuantities[3] := 112.288;
+        InvoiceQuantities[4] := 100;
+        for Index := 1 to ArrayLen(InvoiceQuantities) do begin
+            PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, PurchaseOrderNo);
+            PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+            PurchaseHeader.Modify(true);
+            PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchaseOrderNo, PurchaseLineNo);
+            PurchaseLine.Validate("Qty. to Receive", 0);
+            PurchaseLine.Validate("Qty. to Invoice", InvoiceQuantities[Index]);
+            PurchaseLine.Modify(true);
+            LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+        end;
+
+        // [THEN] All six receipt item ledger entries are fully invoiced for 67500 PCS in total.
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Purchase);
+        ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Purchase Receipt");
+        ItemLedgerEntry.FindSet();
+        repeat
+            ItemLedgerEntry.TestField("Invoiced Quantity", ItemLedgerEntry.Quantity);
+            TotalReceivedBaseQuantity += ItemLedgerEntry.Quantity;
+            ItemLedgerEntryCount += 1;
+        until ItemLedgerEntry.Next() = 0;
+        Assert.AreEqual(ArrayLen(ReceiptQuantities), ItemLedgerEntryCount, 'Unexpected number of purchase receipt item ledger entries.');
+        Assert.AreEqual(67500, TotalReceivedBaseQuantity, 'The total received base quantity must be fully invoiced.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure BaseValuesAreRoundedWithRoundingPrecisionSpecifiedOnPurchaseOrderLine()
     var
         PurchaseHeader: Record "Purchase Header";
