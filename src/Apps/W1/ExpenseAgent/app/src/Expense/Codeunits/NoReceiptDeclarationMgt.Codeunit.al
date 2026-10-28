@@ -8,7 +8,7 @@ using Microsoft.Foundation.Attachment;
 using System.Utilities;
 
 #pragma warning disable AL0679
-codeunit 6913 "No Receipt Declaration Mgt."
+codeunit 6914 "No Receipt Declaration Mgt."
 #pragma warning restore AL0679
 {
     Access = Internal;
