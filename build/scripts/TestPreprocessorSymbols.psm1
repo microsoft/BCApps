@@ -16,6 +16,11 @@
 .PARAMETER symbolConfigs
     An array of objects where each entry has a stem, an upper, and a lower bound.
 
+.PARAMETER allowedSymbols
+    Explicitly allowed, non-versioned symbols. These must appear as standalone symbols
+    in #if directives (optionally with not); uppercase names and normal spacing
+    are still required. Versioned CLEAN/CLEANSCHEMA rules are not affected.
+
 .EXAMPLE
     $alfiles = Get-ChildItem -Recurse -Filter *.al -Path .\App\
     foreach ($alfile in $alfiles) {
@@ -38,7 +43,8 @@ function Test-PreprocessorSymbols {
         [Parameter(Mandatory=$true)]
         [string]$filePath,
         [Parameter(Mandatory=$true)]
-        [hashtable[]]$symbolConfigs
+        [hashtable[]]$symbolConfigs,
+        [string[]]$allowedSymbols = @()
     )
 
     # check if extension is .al, else return $null
@@ -66,12 +72,19 @@ function Test-PreprocessorSymbols {
         $symbolPattern += "^#elseif\s${upperStem}($rangePattern)"
     }
 
+    # Non-versioned symbols are opt-in. Match the entire symbol, not a prefix,
+    # while allowing trailing whitespace or a line comment.
+    foreach ($symbol in $allowedSymbols) {
+        $escapedSymbol = [regex]::Escape($symbol.ToUpperInvariant())
+        $symbolPattern += "^#if\s(not\s)?${escapedSymbol}(\s*//.*)?\s*$"
+    }
+
     # Add #endif to the symbol pattern but not to the strict pattern
     $symbolPattern += "#else\b"
     $symbolPattern += "#endif"
 
     # Read the content of the file
-    $content = Get-Content -Path $filePath
+    $content = @(Get-Content -LiteralPath $filePath -ErrorAction Stop)
 
     # Initialize lists to store any invalid preprocessor symbols with line numbers
     $invalidLowercaseSymbols = @()
@@ -110,6 +123,15 @@ function Test-PreprocessorSymbols {
             $invalidPatternSymbols += "${filePath}:${lineNumber}: $line"
         }
 
+        # Check the case of explicitly allowed symbols independently of versioned stems.
+        foreach ($symbol in $allowedSymbols) {
+            $upperSymbol = $symbol.ToUpperInvariant()
+            $escapedSymbol = [regex]::Escape($upperSymbol)
+            if ($line -match "^#if\s(not\s)?(?<symbol>${escapedSymbol})(?=\s|//|$)" -and $Matches.symbol -cne $upperSymbol) {
+                $invalidStemSymbols += "${filePath}:${lineNumber}: $line"
+            }
+        }
+
         # Check for uppercase stem
         foreach ($config in $symbolConfigs) {
             $stem = $config.stem
@@ -120,7 +142,7 @@ function Test-PreprocessorSymbols {
         }
     }
 
-    if (($invalidLowercaseSymbols.Count -gt 0) -or ($invalidPatternSymbols -gt 0) -or ($invalidStemSymbols -gt 0)) {
+    if (($invalidLowercaseSymbols.Count -gt 0) -or ($invalidPatternSymbols.Count -gt 0) -or ($invalidStemSymbols.Count -gt 0)) {
         return @{ "invalidLowercaseSymbols" = $invalidLowercaseSymbols; "invalidPatternSymbols" = $invalidPatternSymbols; "invalidStemSymbols" = $invalidStemSymbols }
     } else {
         return $null

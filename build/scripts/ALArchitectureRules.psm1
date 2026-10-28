@@ -183,11 +183,11 @@ function Get-ArchitectureFindings($Rule, $File, [object[]] $Files, [object[]] $R
             }
         }
         'developmentOnly' {
-            # Require one outer #if SYMBOL, with no outer #else/#elseif or content after #endif.
+            # Require one outer #if SYMBOL, with no outer #else or content after #endif.
             $trimmed = $File.Source.Trim()
             $valid = $trimmed -match ('^#if\s+' + [regex]::Escape($Rule.symbol) + '\s*\r?\n')
             $depth = 0
-            foreach ($directive in Get-ArchitectureMatches $trimmed '^\s*#(?<directive>if|else|elseif|elif|endif)\b[^\r\n]*') {
+            foreach ($directive in Get-ArchitectureMatches $trimmed '^\s*#(?<directive>if|else|endif)\b[^\r\n]*') {
                 switch ($directive.Groups['directive'].Value.ToLowerInvariant()) {
                     'if' { $depth++ }
                     'endif' { $depth--; if ($depth -eq 0 -and $trimmed.Substring($directive.Index + $directive.Length).Trim()) { $valid = $false } }

@@ -301,4 +301,111 @@ Describe "Test-PreprocessorSymbols" {
         $result.invalidPatternSymbols | Should -Be @('TestDrive:\dummy.al:3: #if not CLEAN18', 'TestDrive:\dummy.al:6: # if CLEAN25', 'TestDrive:\dummy.al:13: #if CLEANUP12', 'TestDrive:\dummy.al:14: #elseif CLEANsCHEMA34').
         $result.invalidStemSymbols | Should -Be @('TestDrive:\dummy.al:10: #if not CLEANschema22').
     }
+
+    It 'allows the registered standalone DEVELOPMENT directive: <Directive>' -TestCases @(
+        @{ Directive = '#if DEVELOPMENT' },
+        @{ Directive = '#if not DEVELOPMENT' },
+        @{ Directive = '#if DEVELOPMENT // Local development only' },
+        @{ Directive = '#if not DEVELOPMENT   ' }
+    ) {
+        param($Directive)
+        Set-Content -LiteralPath (Join-Path $TestDrive 'development.al') -ErrorAction Stop -Value $Directive
+        $result = Test-PreprocessorSymbols -filePath (Join-Path $TestDrive 'development.al') -symbolConfigs @(
+            @{ stem = 'CLEAN'; lowerBound = 26; upperBound = 30 },
+            @{ stem = 'CLEANSCHEMA'; lowerBound = 23; upperBound = 33 }
+        ) -allowedSymbols @('DEVELOPMENT')
+
+        $result | Should -Be $null
+    }
+
+    It 'does not allow DEVELOPMENT unless explicitly registered' {
+        Set-Content -LiteralPath (Join-Path $TestDrive 'development.al') -ErrorAction Stop -Value '#if DEVELOPMENT'
+        $result = Test-PreprocessorSymbols -filePath (Join-Path $TestDrive 'development.al') -symbolConfigs @(
+            @{ stem = 'CLEAN'; lowerBound = 26; upperBound = 30 }
+        )
+
+        $result.invalidPatternSymbols.Count | Should -Be 1
+    }
+
+    It 'rejects incorrect casing of DEVELOPMENT: <Directive>' -TestCases @(
+        @{ Directive = '#if development' },
+        @{ Directive = '#if not Development' }
+    ) {
+        param($Directive)
+        Set-Content -LiteralPath (Join-Path $TestDrive 'development.al') -ErrorAction Stop -Value $Directive
+        $result = Test-PreprocessorSymbols -filePath (Join-Path $TestDrive 'development.al') -symbolConfigs @(
+            @{ stem = 'CLEAN'; lowerBound = 26; upperBound = 30 }
+        ) -allowedSymbols @('DEVELOPMENT')
+
+        $result.invalidPatternSymbols.Count | Should -Be 0
+        $result.invalidStemSymbols.Count | Should -Be 1
+    }
+
+    It 'retains lowercase directive keywords for DEVELOPMENT: <Directive>' -TestCases @(
+        @{ Directive = '#IF DEVELOPMENT' },
+        @{ Directive = '#if NOT DEVELOPMENT' }
+    ) {
+        param($Directive)
+        Set-Content -LiteralPath (Join-Path $TestDrive 'development.al') -ErrorAction Stop -Value $Directive
+        $result = Test-PreprocessorSymbols -filePath (Join-Path $TestDrive 'development.al') -symbolConfigs @(
+            @{ stem = 'CLEAN'; lowerBound = 26; upperBound = 30 }
+        ) -allowedSymbols @('DEVELOPMENT')
+
+        $result.invalidLowercaseSymbols.Count | Should -Be 1
+    }
+
+    It 'does not let DEVELOPMENT bypass unknown symbols or malformed spacing: <Directive>' -TestCases @(
+        @{ Directive = '#if DEVELOPMENT1' },
+        @{ Directive = '#if DEVELOPMENT_EXTRA' },
+        @{ Directive = '#if DEVELOPMENT and UNKNOWN' },
+        @{ Directive = '#if OTHER' },
+        @{ Directive = '#if  DEVELOPMENT' },
+        @{ Directive = '#if not  DEVELOPMENT' },
+        @{ Directive = '# if DEVELOPMENT' },
+        @{ Directive = '#if CLEAN25' },
+        @{ Directive = '#if CLEAN31' },
+        @{ Directive = '#if CLEANSCHEMA22' },
+        @{ Directive = '#if CLEANSCHEMA34' }
+    ) {
+        param($Directive)
+        Set-Content -LiteralPath (Join-Path $TestDrive 'development.al') -ErrorAction Stop -Value $Directive
+        $result = Test-PreprocessorSymbols -filePath (Join-Path $TestDrive 'development.al') -symbolConfigs @(
+            @{ stem = 'CLEAN'; lowerBound = 26; upperBound = 30 },
+            @{ stem = 'CLEANSCHEMA'; lowerBound = 23; upperBound = 33 }
+        ) -allowedSymbols @('DEVELOPMENT')
+
+        $result.invalidPatternSymbols.Count | Should -Be 1
+    }
+
+    It 'continues to accept versioned cleanup symbols alongside DEVELOPMENT' {
+        Set-Content -LiteralPath (Join-Path $TestDrive 'development.al') -ErrorAction Stop -Value @(
+            '#if CLEAN26',
+            '#endif',
+            '#if CLEAN30',
+            '#endif',
+            '#if not CLEANSCHEMA23',
+            '#endif',
+            '#if CLEANSCHEMA33',
+            '#endif',
+            '#if DEVELOPMENT',
+            '#endif'
+        )
+        $result = Test-PreprocessorSymbols -filePath (Join-Path $TestDrive 'development.al') -symbolConfigs @(
+            @{ stem = 'CLEAN'; lowerBound = 26; upperBound = 30 },
+            @{ stem = 'CLEANSCHEMA'; lowerBound = 23; upperBound = 33 }
+        ) -allowedSymbols @('DEVELOPMENT')
+
+        $result | Should -Be $null
+    }
+
+    It 'runs the checked-out preprocessor action with DEVELOPMENT explicitly allowed' {
+        $repoRoot = Join-Path $PSScriptRoot '../../..'
+        $workflow = Get-Content -LiteralPath (Join-Path $repoRoot '.github/workflows/PullRequestHandler.yaml') -Raw
+        $action = Get-Content -LiteralPath (Join-Path $repoRoot '.github/actions/TestPreprocessorSymbols/action.ps1') -Raw
+
+        $workflow.Contains('uses: ./.github/actions/TestPreprocessorSymbols') | Should -Be $true
+        $workflow.Contains('microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main') | Should -Be $false
+        $action.Contains('$allowedSymbols = @(''DEVELOPMENT'')') | Should -Be $true
+        $action.Contains('-allowedSymbols $allowedSymbols') | Should -Be $true
+    }
 }

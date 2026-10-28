@@ -238,7 +238,8 @@ jobs:
         if: steps.payablesAgentChanges.outputs.required != 'false'
         run: ./build/scripts/Test-PayablesAgentArchitecture.ps1
   
-      - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
+      # Use the checked-out validator so PR changes to the symbol policy take effect. TO BE UNDONE (change merged separately)
+      - uses: ./.github/actions/TestPreprocessorSymbols
   
       - uses: microsoft/BCApps/.github/actions/TestObsoleteTagPreprocessors@main
   

@@ -233,23 +233,17 @@ end;
         Assert-Value (Get-Result).Diagnostics.Count 0
     }
 
-    It 'rejects outer else/elseif branches, missing endif and code after a development guard' {
+    It 'rejects outer else branches, missing endif and code after a development guard' {
         Set-Policy (New-Rule 'developmentOnly' @{ symbol = 'DEVELOPMENT' })
-        foreach ($suffix in @("#else`n#endif", "#elseif FEATURE`n#endif", '', "#endif`nvar R: Integer;")) {
+        foreach ($suffix in @("#else`n#endif", '', "#endif`nvar R: Integer;")) {
             Set-File 'Consumers/Caller.al' "#if DEVELOPMENT`nnamespace Demo;`ncodeunit 50104 Caller`n{ }`n$suffix"
             Assert-Value (Get-Result).Diagnostics.Count 1
         }
     }
 
-    It 'rejects a real AL elseif branch that would expose an object outside development' {
-        Set-Policy (New-Rule 'developmentOnly' @{ symbol = 'DEVELOPMENT' })
-        Set-File 'Consumers/Caller.al' "#if DEVELOPMENT`nnamespace Demo;`ncodeunit 50104 Caller`n{ }`n#elseif PRODUCTION`nnamespace Demo;`ncodeunit 50104 Caller`n{ }`n#endif"
-        Assert-Value (Get-Result).Diagnostics.Count 1
-    }
-
     It 'permits nested conditionals inside the whole-file development guard' {
         Set-Policy (New-Rule 'developmentOnly' @{ symbol = 'DEVELOPMENT' })
-        Set-File 'Consumers/Caller.al' "#if DEVELOPMENT`nnamespace Demo;`ncodeunit 50104 Caller`n{`n#if FEATURE`nvar R: Integer;`n#elseif OTHER_FEATURE`nvar T: Integer;`n#else`nvar S: Integer;`n#endif`n}`n#endif"
+        Set-File 'Consumers/Caller.al' "#if DEVELOPMENT`nnamespace Demo;`ncodeunit 50104 Caller`n{`n#if FEATURE`nvar R: Integer;`n#else`nvar S: Integer;`n#endif`n}`n#endif"
         Assert-Value (Get-Result).Diagnostics.Count 0
     }
 

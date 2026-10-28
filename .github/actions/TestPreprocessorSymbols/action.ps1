@@ -1,4 +1,4 @@
-# Current path is .github/actions/VerifyAppChanges
+# Validate preprocessor symbols using the scripts from this checkout.
 
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\GuardingV2ExtensionsHelper.psm1" -DisableNameChecking
@@ -23,7 +23,9 @@ $symbolConfigs = @(
     @{stem = "CLEANSCHEMA"; lowerBound = $schemaLowerBound; upperBound = $mainVersion + 3} # next lowerbound, after cleanup should be 25, then
 )
 
-Write-Host "Checking preprocessor symbols with $symbolConfigs"
+$allowedSymbols = @('DEVELOPMENT')
+
+Write-Host "Checking preprocessor symbols with $symbolConfigs; allowed non-versioned symbols: $($allowedSymbols -join ', ')"
 
 #initialize arrays to store any invalid preprocessor symbols with line numbers
 $invalidLowercaseSymbols = @()
@@ -33,7 +35,7 @@ $invalidStemSymbols = @()
 $alfiles = (Get-ChildItem -Filter '*.al' -Recurse) | Select-Object -ExpandProperty FullName
 foreach ($file in $alfiles) {
     # Call the Test-PreprocessorSymbols function with the file path and calculated version bounds
-    $result = Test-PreprocessorSymbols -filePath $file -symbolConfigs $symbolConfigs
+    $result = Test-PreprocessorSymbols -filePath $file -symbolConfigs $symbolConfigs -allowedSymbols $allowedSymbols
     if ($null -ne $result) {
         $invalidLowercaseSymbols += $result.invalidLowercaseSymbols
         $invalidPatternSymbols += $result.invalidPatternSymbols
