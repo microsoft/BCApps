@@ -29,7 +29,11 @@ pageextension 7000014 "CRT Acc. Receivable Activities" extends "Acc. Receivable 
                     DrillDownPageID = "Posted Cartera Documents";
                     ToolTip = 'Specifies the receivables documents that have been posted.';
                 }
+            }
 
+            cuegroup(CarteraActions)
+            {
+                Caption = 'Cartera Actions';
                 actions
                 {
                     action("New Bill Group")

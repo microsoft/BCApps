@@ -28,7 +28,11 @@ pageextension 7000026 "CRT Account Mgr. Activities" extends "Account Manager Act
                     DrillDownPageID = "Payables Cartera Docs";
                     ToolTip = 'Specifies the payables document that is associated with the bill group.';
                 }
+            }
 
+            cuegroup(CarteraActions)
+            {
+                Caption = 'Cartera Actions';
                 actions
                 {
                     action("New Bill Group")

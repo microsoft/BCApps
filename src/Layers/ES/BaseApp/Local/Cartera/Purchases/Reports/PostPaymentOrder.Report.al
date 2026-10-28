@@ -63,37 +63,37 @@ report 7000080 "Post Payment Order"
                     end;
                     OnAfterGetAccountNos("Cartera Doc.", AccountNo, BalanceAccount);
 
-                    if BGPOPostBuffer.Get(AccountNo, BalanceAccount, VendLedgEntry."Entry No.") then begin
-                        BGPOPostBuffer.Amount := BGPOPostBuffer.Amount + "Remaining Amount";
+                    if TempBGPOPostBuffer.Get(AccountNo, BalanceAccount, VendLedgEntry."Entry No.") then begin
+                        TempBGPOPostBuffer.Amount := TempBGPOPostBuffer.Amount + "Remaining Amount";
                         if "Currency Code" <> '' then
-                            BGPOPostBuffer."Gain - Loss Amount (LCY)" := BGPOPostBuffer."Gain - Loss Amount (LCY)" +
+                            TempBGPOPostBuffer."Gain - Loss Amount (LCY)" := TempBGPOPostBuffer."Gain - Loss Amount (LCY)" +
                               GainLossManagement("Remaining Amount", "Posting Date", "Currency Code");
-                        BGPOPostBuffer.Modify();
+                        TempBGPOPostBuffer.Modify();
                     end else begin
-                        BGPOPostBuffer.Account := AccountNo;
-                        BGPOPostBuffer."Balance Account" := BalanceAccount;
-                        BGPOPostBuffer."Entry No." := VendLedgEntry."Entry No.";
-                        BGPOPostBuffer."Global Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
-                        BGPOPostBuffer."Global Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
-                        BGPOPostBuffer."Dimension Set ID" := VendLedgEntry."Dimension Set ID";
-                        BGPOPostBuffer.Amount := "Remaining Amount";
+                        TempBGPOPostBuffer.Account := AccountNo;
+                        TempBGPOPostBuffer."Balance Account" := BalanceAccount;
+                        TempBGPOPostBuffer."Entry No." := VendLedgEntry."Entry No.";
+                        TempBGPOPostBuffer."Global Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
+                        TempBGPOPostBuffer."Global Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
+                        TempBGPOPostBuffer."Dimension Set ID" := VendLedgEntry."Dimension Set ID";
+                        TempBGPOPostBuffer.Amount := "Remaining Amount";
                         if "Currency Code" <> '' then
-                            BGPOPostBuffer."Gain - Loss Amount (LCY)" := GainLossManagement(
+                            TempBGPOPostBuffer."Gain - Loss Amount (LCY)" := GainLossManagement(
                                 "Remaining Amount",
                                 "Posting Date",
                                 "Currency Code");
-                        BGPOPostBuffer.Insert();
+                        TempBGPOPostBuffer.Insert();
                     end;
 
-                    PostedDocBuffer.Init();
-                    PostedDocBuffer.TransferFields("Cartera Doc.");
-                    PostedDocBuffer."Category Code" := '';
-                    PostedDocBuffer."Bank Account No." := PmtOrd."Bank Account No.";
-                    PostedDocBuffer."Remaining Amount" := "Remaining Amount";
-                    PostedDocBuffer."Remaining Amt. (LCY)" := "Remaining Amt. (LCY)";
-                    PostedDocBuffer."Original Document No." := "Original Document No.";
-                    OnBeforePostedDocBufferInsert(PostedDocBuffer, "Cartera Doc.", PmtOrd);
-                    PostedDocBuffer.Insert();
+                    TempPostedDocBuffer.Init();
+                    TempPostedDocBuffer.TransferFields("Cartera Doc.");
+                    TempPostedDocBuffer."Category Code" := '';
+                    TempPostedDocBuffer."Bank Account No." := PmtOrd."Bank Account No.";
+                    TempPostedDocBuffer."Remaining Amount" := "Remaining Amount";
+                    TempPostedDocBuffer."Remaining Amt. (LCY)" := "Remaining Amt. (LCY)";
+                    TempPostedDocBuffer."Original Document No." := "Original Document No.";
+                    OnBeforePostedDocBufferInsert(TempPostedDocBuffer, "Cartera Doc.", PmtOrd);
+                    TempPostedDocBuffer.Insert();
                 end;
 
                 trigger OnPostDataItem()
@@ -102,12 +102,12 @@ report 7000080 "Post Payment Order"
                 begin
                     GroupAmount := 0;
                     SumLCYAmt := 0;
-                    if not BGPOPostBuffer.Find('-') then
+                    if not TempBGPOPostBuffer.Find('-') then
                         exit;
 
                     GenJnlLine.LockTable();
-                    GenJnlLine.SetRange("Journal Template Name", TemplName);
-                    GenJnlLine.SetRange("Journal Batch Name", BatchName);
+                    GenJnlLine.SetRange("Journal Template Name", JournalTemplateName);
+                    GenJnlLine.SetRange("Journal Batch Name", JournalBatchName);
                     if GenJnlLine.FindLast() then begin
                         GenJnlLineNextNo := GenJnlLine."Line No.";
                         TransactionNo := GenJnlLine."Transaction No." + 1;
@@ -116,67 +116,67 @@ report 7000080 "Post Payment Order"
                     repeat
                         InsertGenJournalLine(
                           GenJnlLine."Account Type"::"G/L Account",
-                          BGPOPostBuffer.Account,
-                          -BGPOPostBuffer.Amount,
-                          BGPOPostBuffer."Global Dimension 1 Code",
-                          BGPOPostBuffer."Global Dimension 2 Code",
-                          BGPOPostBuffer."Dimension Set ID",
-                          BGPOPostBuffer."Entry No.",
+                          TempBGPOPostBuffer.Account,
+                          -TempBGPOPostBuffer.Amount,
+                          TempBGPOPostBuffer."Global Dimension 1 Code",
+                          TempBGPOPostBuffer."Global Dimension 2 Code",
+                          TempBGPOPostBuffer."Dimension Set ID",
+                          TempBGPOPostBuffer."Entry No.",
                           VendLedgEntry."Original Currency Factor");
 
                         SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
                         InsertGenJournalLine(
                           GenJnlLine."Account Type"::"G/L Account",
-                          BGPOPostBuffer."Balance Account",
-                          BGPOPostBuffer.Amount,
-                          BGPOPostBuffer."Global Dimension 1 Code",
-                          BGPOPostBuffer."Global Dimension 2 Code",
-                          BGPOPostBuffer."Dimension Set ID",
-                          BGPOPostBuffer."Entry No.",
+                          TempBGPOPostBuffer."Balance Account",
+                          TempBGPOPostBuffer.Amount,
+                          TempBGPOPostBuffer."Global Dimension 1 Code",
+                          TempBGPOPostBuffer."Global Dimension 2 Code",
+                          TempBGPOPostBuffer."Dimension Set ID",
+                          TempBGPOPostBuffer."Entry No.",
                           VendLedgEntry."Original Currency Factor");
 
                         SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
 
                         if CheckCurrFact("Cartera Doc.", PmtOrd) then
-                            if BGPOPostBuffer."Gain - Loss Amount (LCY)" <> 0 then begin
+                            if TempBGPOPostBuffer."Gain - Loss Amount (LCY)" <> 0 then begin
                                 TempCurrencyCode := PmtOrd."Currency Code";
                                 PmtOrd."Currency Code" := '';
-                                if BGPOPostBuffer."Gain - Loss Amount (LCY)" < 0 then begin
+                                if TempBGPOPostBuffer."Gain - Loss Amount (LCY)" < 0 then begin
                                     Currency.TestField("Realized Gains Acc.");
                                     InsertGenJournalLine(
                                       GenJnlLine."Account Type"::"G/L Account",
                                       Currency."Realized Gains Acc.",
-                                      BGPOPostBuffer."Gain - Loss Amount (LCY)",
-                                      BGPOPostBuffer."Global Dimension 1 Code",
-                                      BGPOPostBuffer."Global Dimension 2 Code",
-                                      BGPOPostBuffer."Dimension Set ID",
-                                      BGPOPostBuffer."Entry No.", 0);
+                                      TempBGPOPostBuffer."Gain - Loss Amount (LCY)",
+                                      TempBGPOPostBuffer."Global Dimension 1 Code",
+                                      TempBGPOPostBuffer."Global Dimension 2 Code",
+                                      TempBGPOPostBuffer."Dimension Set ID",
+                                      TempBGPOPostBuffer."Entry No.", 0);
                                 end else begin
                                     Currency.TestField("Realized Losses Acc.");
                                     InsertGenJournalLine(
                                       GenJnlLine."Account Type"::"G/L Account",
                                       Currency."Realized Losses Acc.",
-                                      BGPOPostBuffer."Gain - Loss Amount (LCY)",
-                                      BGPOPostBuffer."Global Dimension 1 Code",
-                                      BGPOPostBuffer."Global Dimension 2 Code",
-                                      BGPOPostBuffer."Dimension Set ID",
-                                      BGPOPostBuffer."Entry No.", 0);
+                                      TempBGPOPostBuffer."Gain - Loss Amount (LCY)",
+                                      TempBGPOPostBuffer."Global Dimension 1 Code",
+                                      TempBGPOPostBuffer."Global Dimension 2 Code",
+                                      TempBGPOPostBuffer."Dimension Set ID",
+                                      TempBGPOPostBuffer."Entry No.", 0);
                                 end;
                                 SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
                                 InsertGenJournalLine(
                                   GenJnlLine."Account Type"::"G/L Account",
-                                  BGPOPostBuffer."Balance Account",
-                                  -BGPOPostBuffer."Gain - Loss Amount (LCY)",
-                                  BGPOPostBuffer."Global Dimension 1 Code",
-                                  BGPOPostBuffer."Global Dimension 2 Code",
-                                  BGPOPostBuffer."Dimension Set ID",
-                                  BGPOPostBuffer."Entry No.", 0);
+                                  TempBGPOPostBuffer."Balance Account",
+                                  -TempBGPOPostBuffer."Gain - Loss Amount (LCY)",
+                                  TempBGPOPostBuffer."Global Dimension 1 Code",
+                                  TempBGPOPostBuffer."Global Dimension 2 Code",
+                                  TempBGPOPostBuffer."Dimension Set ID",
+                                  TempBGPOPostBuffer."Entry No.", 0);
                                 SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
                                 PmtOrd."Currency Code" := TempCurrencyCode;
                             end;
 
-                        GroupAmount := GroupAmount + BGPOPostBuffer.Amount;
-                    until BGPOPostBuffer.Next() = 0;
+                        GroupAmount := GroupAmount + TempBGPOPostBuffer.Amount;
+                    until TempBGPOPostBuffer.Next() = 0;
 
                     if PmtOrd."Currency Code" <> '' then begin
                         Currency.SetFilter(Code, PmtOrd."Currency Code");
@@ -198,8 +198,8 @@ report 7000080 "Post Payment Order"
                               Account,
                               -SumLCYAmt,
                               "Global Dimension 1 Code", "Global Dimension 2 Code",
-                              BGPOPostBuffer."Dimension Set ID",
-                              BGPOPostBuffer."Entry No.", 0);
+                              TempBGPOPostBuffer."Dimension Set ID",
+                              TempBGPOPostBuffer."Entry No.", 0);
                             PmtOrd."Currency Code" := TempCode;
                             PmtOrd."Posting Description" := TempText;
                         end;
@@ -264,7 +264,7 @@ report 7000080 "Post Payment Order"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(TemplName; TemplName)
+                    field(TemplName; JournalTemplateName)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Aux. Jnl. Template Name';
@@ -274,11 +274,11 @@ report 7000080 "Post Payment Order"
 
                         trigger OnValidate()
                         begin
-                            if TemplName = '' then
-                                BatchName := '';
+                            if JournalTemplateName = '' then
+                                JournalBatchName := '';
                         end;
                     }
-                    field(BatchName; BatchName)
+                    field(BatchName; JournalBatchName)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Aux. Jnl. Batch Name';
@@ -288,13 +288,13 @@ report 7000080 "Post Payment Order"
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
-                            if TemplName = '' then
+                            if JournalTemplateName = '' then
                                 exit;
 
-                            if GenJnlBatch.Get(TemplName, Text) then;
-                            GenJnlBatch.SetRange("Journal Template Name", TemplName);
+                            if GenJnlBatch.Get(JournalTemplateName, Text) then;
+                            GenJnlBatch.SetRange("Journal Template Name", JournalTemplateName);
                             if PAGE.RunModal(PAGE::"General Journal Batches", GenJnlBatch) = ACTION::LookupOK then
-                                BatchName := GenJnlBatch.Name;
+                                JournalBatchName := GenJnlBatch.Name;
                         end;
 
                         trigger OnValidate()
@@ -322,10 +322,10 @@ report 7000080 "Post Payment Order"
         SourceCode := SourceCodeSetup."Cartera Journal";
 
         if CurrReport.UseRequestPage then begin
-            if not GenJnlBatch.Get(TemplName, BatchName) then
+            if not GenJnlBatch.Get(JournalTemplateName, JournalBatchName) then
                 Error(Text1100000Lbl);
             ReasonCode := GenJnlBatch."Reason Code";
-            GenJnlTemplate.Get(TemplName);
+            GenJnlTemplate.Get(JournalTemplateName);
             SourceCode := GenJnlTemplate."Source Code";
         end;
     end;
@@ -337,9 +337,9 @@ report 7000080 "Post Payment Order"
         VendPostingGr: Record "Vendor Posting Group";
         VendLedgEntry: Record "Vendor Ledger Entry";
         SourceCodeSetup: Record "Source Code Setup";
-        PostedDocBuffer: Record "Posted Cartera Doc." temporary;
+        TempPostedDocBuffer: Record "Posted Cartera Doc." temporary;
         GenJnlLine: Record "Gen. Journal Line";
-        BGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
+        TempBGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
         PostedDoc: Record "Posted Cartera Doc.";
         PostedPmtOrd: Record "Posted Payment Order";
         FeeRange: Record "Fee Range";
@@ -356,8 +356,8 @@ report 7000080 "Post Payment Order"
         Text1100004Lbl: Label 'Residual adjust generated by rounding Amount';
         Text1100005Lbl: Label 'The Payment Order %1 was successfully posted.', Comment = '%1 = Payment order number';
         Window: Dialog;
-        BatchName: Code[10];
-        TemplName: Code[10];
+        JournalBatchName: Code[10];
+        JournalTemplateName: Code[10];
         ReasonCode: Code[10];
         Account: Code[20];
         TransactionNo: Integer;
@@ -381,11 +381,11 @@ report 7000080 "Post Payment Order"
         if CurrReport.UseRequestPage then begin
             Commit();
             GenJnlLine.Reset();
-            GenJnlTemplate.Get(TemplName);
+            GenJnlTemplate.Get(JournalTemplateName);
             GenJnlLine.FilterGroup := 2;
-            GenJnlLine.SetRange("Journal Template Name", TemplName);
+            GenJnlLine.SetRange("Journal Template Name", JournalTemplateName);
             GenJnlLine.FilterGroup := 0;
-            GenJnlManagement.SetName(BatchName, GenJnlLine);
+            GenJnlManagement.SetName(JournalBatchName, GenJnlLine);
             CarteraJnlForm.SetTableView(GenJnlLine);
             CarteraJnlForm.SetRecord(GenJnlLine);
             CarteraJnlForm.AllowClosing(true);
@@ -395,18 +395,19 @@ report 7000080 "Post Payment Order"
 
     local procedure UpdateTables()
     begin
-        PostedDocBuffer.Find('-');
+        TempPostedDocBuffer.Find('-');
         repeat
-            PostedDoc.Copy(PostedDocBuffer);
+            PostedDoc.Copy(TempPostedDocBuffer);
             PostedDoc.Insert();
             VendLedgEntry.Get(PostedDoc."Entry No.");
             VendLedgEntry."Document Situation" := VendLedgEntry."Document Situation"::"Posted BG/PO";
             VendLedgEntry."Document Status" := "ES Document Status".FromInteger(PostedDoc.Status.AsInteger() + 1);
             OnUpdateTablesOnBeforeVendLedgEntryModify(VendLedgEntry, PostedDoc, PmtOrd);
             VendLedgEntry.Modify();
-        until PostedDocBuffer.Next() = 0;
+        until TempPostedDocBuffer.Next() = 0;
 
         PmtOrd.CalcFields(Amount);
+        PostedPmtOrd.Init();
         PostedPmtOrd.TransferFields(PmtOrd);
         PostedPmtOrd."Payment Order Expenses Amt." := FeeRange.GetTotalPmtOrdCollExpensesAmt();
         PostedPmtOrd.Insert();
@@ -425,8 +426,8 @@ report 7000080 "Post Payment Order"
         GenJnlLine.Init();
         GenJnlLine."Line No." := GenJnlLineNextNo;
         GenJnlLine."Transaction No." := TransactionNo;
-        GenJnlLine."Journal Template Name" := TemplName;
-        GenJnlLine."Journal Batch Name" := BatchName;
+        GenJnlLine."Journal Template Name" := JournalTemplateName;
+        GenJnlLine."Journal Batch Name" := JournalBatchName;
         GenJnlLine."Posting Date" := PmtOrd."Posting Date";
         GenJnlLine."Document No." := PmtOrd."No.";
         GenJnlLine.Validate("Account Type", AccType);
@@ -461,8 +462,8 @@ report 7000080 "Post Payment Order"
 
     procedure InitReqForm(TemplName2: Code[10]; BatchName2: Code[10])
     begin
-        TemplName := TemplName2;
-        BatchName := BatchName2;
+        JournalTemplateName := TemplName2;
+        JournalBatchName := BatchName2;
     end;
 
     procedure GainLossManagement(Amount: Decimal; PostingDate3: Date; CurrencyCode: Code[10]): Decimal
@@ -503,13 +504,13 @@ report 7000080 "Post Payment Order"
 
     local procedure BatchNameOnAfterValidate()
     begin
-        if TemplName = '' then
-            BatchName := '';
+        if JournalTemplateName = '' then
+            JournalBatchName := '';
     end;
 
     local procedure BatchNameOnValidate()
     begin
-        if BatchName = '' then
+        if JournalBatchName = '' then
             exit;
     end;
 

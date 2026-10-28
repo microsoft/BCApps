@@ -215,8 +215,6 @@ page 7000004 "Docs. in BG Subform"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Find entries...';
                 Image = Navigate;
-                Promoted = true;
-                PromotedCategory = Process;
                 ToolTip = 'Find all entries and documents that exist for the document number and posting date on the selected entry or document.';
 
                 trigger OnAction()

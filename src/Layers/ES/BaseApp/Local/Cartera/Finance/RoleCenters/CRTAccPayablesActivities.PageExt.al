@@ -29,7 +29,11 @@ pageextension 7000075 "CRT Acc. Payables Activities" extends "Acc. Payables Acti
                     DrillDownPageID = "Posted Cartera Documents";
                     ToolTip = 'Specifies the payables documents that have been posted.';
                 }
+            }
 
+            cuegroup(CarteraActions)
+            {
+                Caption = 'Cartera Actions';
                 actions
                 {
                     action("New Payment Order")
