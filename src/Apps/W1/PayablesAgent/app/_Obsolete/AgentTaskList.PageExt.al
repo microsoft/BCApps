@@ -11,6 +11,9 @@ using System.Agents;
 
 pageextension 3305 AgentTaskList extends "Agent Task List"
 {
+    ObsoleteReason = 'Replaced by action in the PurchaseInvoices page';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
     actions
     {
         addlast(Processing)
