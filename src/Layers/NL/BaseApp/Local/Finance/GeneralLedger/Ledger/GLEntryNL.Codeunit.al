@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Reversal;
 codeunit 11441 "G/L Entry NL"
 {
     Access = Internal;
+    Permissions = TableData "G/L Entry" = m;
 
     [EventSubscriber(ObjectType::Table, Database::"G/L Entry", OnAfterUpdateDebitCredit, '', false, false)]
     local procedure OnAfterUpdateDebitCredit(var GLEntry: Record "G/L Entry"; Correction: Boolean)
