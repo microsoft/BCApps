@@ -39,9 +39,9 @@ codeunit 7000023 "CRTVendEntryApplyPostedEntries"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnAfterCheckInitialDocumentType', '', true, false)]
-    local procedure OnAfterCheckInitialDocumentType(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry")
+    local procedure OnAfterCheckInitialDocumentType(var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry")
     begin
-        if DtldVendLedgEntry."Initial Document Type" = DtldVendLedgEntry."Initial Document Type"::" " then
+        if DetailedVendorLedgEntry."Initial Document Type" = DetailedVendorLedgEntry."Initial Document Type"::" " then
             Error(UnapplyBlankedDocTypeErr);
     end;
 

@@ -1848,7 +1848,7 @@ table 21 "Cust. Ledger Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetAppliesToDocFilters(var Rec: Record "Cust. Ledger Entry"; var GenJnlLine: Record "Gen. Journal Line")
+    local procedure OnAfterSetAppliesToDocFilters(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GeneralJournalLine: Record "Gen. Journal Line")
     begin
     end;
 

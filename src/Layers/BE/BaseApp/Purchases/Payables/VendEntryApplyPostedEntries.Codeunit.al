@@ -451,7 +451,7 @@ codeunit 227 "VendEntry-Apply Posted Entries"
         if IsHandled then
             exit;
 
-        OnAfterCheckInitialDocumentType(DtldVEndLedgEntry);
+        OnAfterCheckInitialDocumentType(DtldVendLedgEntry);
     end;
 
     local procedure CheckPostingDate(ApplyUnapplyParameters: Record "Apply Unapply Parameters"; var MaxPostingDate: Date)
@@ -823,9 +823,9 @@ codeunit 227 "VendEntry-Apply Posted Entries"
     /// <summary>
     /// Raised after checking initial document Type
     /// </summary>
-    /// <param name="DtldVendLedgEntry">The detailed vendor ledger entry.</param>
+    /// <param name="DetailedVendorLedgEntry">The detailed vendor ledger entry.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCheckInitialDocumentType(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry")
+    local procedure OnAfterCheckInitialDocumentType(var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry")
     begin
     end;
 

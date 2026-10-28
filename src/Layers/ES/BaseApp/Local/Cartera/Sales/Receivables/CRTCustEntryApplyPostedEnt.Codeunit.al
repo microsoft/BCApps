@@ -42,9 +42,9 @@ codeunit 7000019 "CRTCustEntryApplyPostedEnt"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustEntry-Apply Posted Entries", 'OnAfterCheckInitialDocumentType', '', true, false)]
-    local procedure OnAfterCheckInitialDocumentType(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    local procedure OnAfterCheckInitialDocumentType(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     begin
-        if DtldCustLedgEntry."Initial Document Type" = DtldCustLedgEntry."Initial Document Type"::" " then
+        if DetailedCustLedgEntry."Initial Document Type" = DetailedCustLedgEntry."Initial Document Type"::" " then
             Error(UnapplyBlankedDocTypeErr);
     end;
 

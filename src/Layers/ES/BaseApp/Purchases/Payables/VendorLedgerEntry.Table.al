@@ -1293,7 +1293,7 @@ table 25 "Vendor Ledger Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetAppliesToDocFilters(var Rec: Record "Vendor Ledger Entry"; var GenJnlLine: Record "Gen. Journal Line")
+    local procedure OnAfterSetAppliesToDocFilters(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var GeneralJournalLine: Record "Gen. Journal Line")
     begin
     end;
 

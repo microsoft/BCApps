@@ -45,9 +45,9 @@ codeunit 7000088 "CRT Cust. Ledger Entry"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterSetAppliesToDocFilters, '', true, false)]
-    local procedure OnAfterSetAppliesToDocFilters(var Rec: Record "Cust. Ledger Entry"; var GenJnlLine: Record "Gen. Journal Line")
+    local procedure OnAfterSetAppliesToDocFilters(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GeneralJournalLine: Record "Gen. Journal Line")
     begin
-        Rec.SetRange("Bill No.", GenJnlLine."Applies-to Bill No.");
+        CustLedgerEntry.SetRange("Bill No.", GeneralJournalLine."Applies-to Bill No.");
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterClearDocumentFilters, '', true, false)]

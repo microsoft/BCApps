@@ -1080,9 +1080,9 @@ codeunit 226 "CustEntry-Apply Posted Entries"
     /// <summary>
     /// Raised after checking initial document Type
     /// </summary>
-    /// <param name="DtldCustLedgEntry">The detailed customer ledger entry.</param>
+    /// <param name="DetailedCustLedgEntry">The detailed customer ledger entry.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCheckInitialDocumentType(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry");
+    local procedure OnAfterCheckInitialDocumentType(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry");
     begin
     end;
 
