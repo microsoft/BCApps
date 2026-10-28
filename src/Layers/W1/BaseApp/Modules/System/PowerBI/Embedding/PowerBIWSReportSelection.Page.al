@@ -166,9 +166,9 @@ page 6322 "Power BI WS Report Selection"
             action(Services)
             {
                 ApplicationArea = All;
-                Caption = 'AppSource Apps';
+                Caption = 'Marketplace Apps';
                 Image = PowerBI;
-                ToolTip = 'Browse available apps from AppSource.';
+                ToolTip = 'Browse available apps from Marketplace.';
                 Visible = IsSaas;
 
                 trigger OnAction()
@@ -383,4 +383,3 @@ page 6322 "Power BI WS Report Selection"
         Session.LogMessage('0000F5B', StrSubstNo(FailedToLoadReportListTelemetryErr, GetLastErrorText(true)), Verbosity::Warning, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
     end;
 }
-
