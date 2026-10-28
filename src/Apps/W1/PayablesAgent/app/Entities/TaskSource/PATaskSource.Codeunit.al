@@ -113,6 +113,16 @@ codeunit 3340 "PA Task Source"
         exit(DraftBasedSource.GetAgentTaskExternalId());
     end;
 
+    internal procedure GetAgentTaskMessage(): Text
+    var
+        TaskMessageLbl: Label 'A new document has been received. Your task is to create a Purchase Invoice in Business Central.', Locked = true;
+    begin
+        RequireLoaded();
+        if LoadedVersion = "PA Version"::V1 then
+            exit(DraftBasedSource.GetAgentTaskMessage());
+        exit(TaskMessageLbl);
+    end;
+
     internal procedure BindAgentTask(AgentTaskId: BigInteger)
     var
         StoredTask: Record "Payables Agent Task";

@@ -406,11 +406,9 @@ codeunit 3343 "PA Setup"
         if not EDocumentService.Get(PayablesAgentEDocServiceTok) then begin
             EDocumentService.Code := PayablesAgentEDocServiceTok;
             EDocumentService.Insert(true);
-            SupportedType."E-Document Service Code" := EDocumentService.Code;
-            SupportedType."Source Document Type" := SupportedType."Source Document Type"::"Purchase Invoice";
-            SupportedType.Direction := SupportedType.Direction::Incoming;
-            SupportedType.Insert();
         end;
+        SupportedType.InsertDefaultIfMissing(EDocumentService.Code, "E-Document Type"::"Purchase Invoice", "E-Doc. Supp. Type Direction"::Incoming);
+        SupportedType.InsertDefaultIfMissing(EDocumentService.Code, "E-Document Type"::"Purchase Credit Memo", "E-Doc. Supp. Type Direction"::Incoming);
         EDocumentService.Validate("Automatic Import Processing", "E-Doc. Automatic Processing"::No);
         EDocumentService.Validate("Import Process", "E-Document Import Process"::"Version 2.0");
         Clear(EDocumentService."Import Start Time");

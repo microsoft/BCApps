@@ -31,7 +31,6 @@ codeunit 3345 "PA Task Intake"
         if not Source.CreateFromPdf(FileName, PdfInStream) then
             Error(SourceNotCreatedErr);
 
-        // Draft-based processing raises its compatibility intake event, which admits the source.
         if Source.GetVersion() = "PA Version"::V1 then begin
             SourceId := Source.GetId();
             DraftBasedIntake.ProcessIncomingSource(SourceId);
@@ -92,10 +91,8 @@ codeunit 3345 "PA Task Intake"
         ExternalId: Text[2048];
         TaskTitle: Text[150];
         MessageFrom: Text[250];
-        MessageText: Text;
         UploadTitleLbl: Label 'Uploaded document %1', Comment = '%1 = file name';
         EmailTitleLbl: Label 'Document from %1', Comment = '%1 = sender';
-        TaskMessageLbl: Label 'A new document has been received. Your task is to create a Purchase Invoice in Business Central.', Locked = true;
         RequiresReview: Boolean;
         ExcludeBilling: Boolean;
     begin
@@ -137,9 +134,8 @@ codeunit 3345 "PA Task Intake"
             MessageFrom := CopyStr(Source.GetEmailFrom(), 1, 250);
             TaskTitle := CopyStr(StrSubstNo(EmailTitleLbl, MessageFrom), 1, 150);
         end;
-        MessageText := TaskMessageLbl;
         AgentTaskMessageBuilder
-            .Initialize(MessageFrom, MessageText)
+            .Initialize(MessageFrom, Source.GetAgentTaskMessage())
             .SetRequiresReview(RequiresReview)
             .SetMessageExternalID(ExternalId);
         AgentTask := AgentTaskBuilder

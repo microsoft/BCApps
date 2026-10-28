@@ -26,6 +26,7 @@ codeunit 3305 "Payables Agent Upgrade"
         AlwaysUpdateAgentInformationOnUpgrade();
         UpdatePayablesAgentSetupToUseUserSecurityId();
         ReviewIncomingInvoiceToEmailReviewPolicy();
+        AllowCreditMemosOnAgentEDocumentService();
 #if not CLEAN30
         MigrateFinalizedEDocumentKPI();
 #endif
@@ -120,6 +121,22 @@ codeunit 3305 "Payables Agent Upgrade"
                 PayablesAgentSetup.Modify();
             end;
         UpgradeTag.SetUpgradeTag(GetMapEmailReviewPolicyTag());
+    end;
+
+    local procedure AllowCreditMemosOnAgentEDocumentService()
+    var
+        DraftBasedSetup: Codeunit "PA Draft Based Setup";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetAllowCreditMemosOnAgentEDocumentServiceTag()) then
+            exit;
+
+        DraftBasedSetup.AllowCreditMemosOnAgentEDocumentService();
+        UpgradeTag.SetUpgradeTag(GetAllowCreditMemosOnAgentEDocumentServiceTag());
+    end;
+
+    local procedure GetAllowCreditMemosOnAgentEDocumentServiceTag(): Code[250]
+    begin
+        exit('MS-650500-AllowCreditMemosOnAgentEDocumentService-20261013');
     end;
 
 #if not CLEAN30
@@ -224,6 +241,7 @@ codeunit 3305 "Payables Agent Upgrade"
     begin
         PerCompanyUpgradeTags.Add(GetUpdatePayablesAgentSetupToUseUserSecurityIdTag());
         PerCompanyUpgradeTags.Add(GetMapEmailReviewPolicyTag());
+        PerCompanyUpgradeTags.Add(GetAllowCreditMemosOnAgentEDocumentServiceTag());
 #if not CLEAN30
         PerCompanyUpgradeTags.Add(GetMigrateFinalizedEDocumentKPITag());
 #endif

@@ -30,7 +30,7 @@ A lot of the functionality that the Payables Agent feature provides is really pr
 
 After the E-Document processing pipeline has done it's best, the BC-agent-framework user defined in this app starts complementing the proposed values in the intermediate tables (known as the draft page).
 
-Once the user is satisfied with the values in the draft page, the agent proceeds with the E-Document finalization, which creates a Purchase Invoice.
+Once the user is satisfied with the values in the draft page, the agent proceeds with E-Document finalization, which creates a Purchase Invoice or, for a recognized vendor credit note, a Purchase Credit Memo. The E-Document pipeline owns credit-note classification, amount normalization and application to the referenced posted invoice.
 
 > Note: Within this version, there is an ECS experiment that skips the E-Document logic that fills in values and changes the agent prompt to do this logic itself instead. 
 
@@ -38,7 +38,7 @@ Once the user is satisfied with the values in the draft page, the agent proceeds
 
 In this version, the entity at the center is the Payables Agent Task. Defined in this AL app. There is no involvement of the E-Document framework.
 
-The agent task is created with direct information about its source, the agent user directly consults it, and creates the appropriate Purchase Invoice directly, without any draft page.
+The agent task is created with direct information about its source, the agent user directly consults it, and creates the appropriate Purchase Invoice directly, without any draft page. Credit memo creation is not supported in version 2.
 
 Base-block PDF text extraction uses only the bundled extraction instructions. A separate security prompt and Key Vault lookup are intentionally not introduced for extraction at this stage; agent runtime instruction assembly retains its existing security-prompt handling.
 
@@ -64,7 +64,8 @@ These are the high-level flows that can be found in this AL app:
 
 #### Patterns followed by flows
 
-- Single authoritative source: Rather than multiple variants that touch the same parts of the process, a single configurable entry point for the flow (when the initiation is owned by this app) that callers configure
+- S
+ingle authoritative source: Rather than multiple variants that touch the same parts of the process, a single configurable entry point for the flow (when the initiation is owned by this app) that callers configure
 - Encapsulation of flow parameters: Having a single wrapping object as parameter for the flow.
 
 ### Capabilities
@@ -165,7 +166,7 @@ Compatibility/
                 DemoGuide/
             Intake/                     V1 import operation and its admission subscriber
             Execution/
-                AgentWorkspace/
+                AgentWorkspace/                 V1 draft, purchase invoice and purchase credit memo customizations
         Entities/
             TaskSource/                 V1 E-Document source backing adapter
         Capabilities/

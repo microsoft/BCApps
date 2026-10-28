@@ -70,6 +70,14 @@ codeunit 3332 "PA Draft Based Task Source"
         exit(Format(LoadedEDocument."Entry No"));
     end;
 
+    internal procedure GetAgentTaskMessage(): Text
+    var
+        TaskMessageLbl: Label 'A new electronic document %1 has been received. Your task is to create the purchase document for it in Business Central: a Purchase Invoice, or a Purchase Credit Memo when the draft''s Document Type is Purchase Credit Memo.', Locked = true, Comment = '%1 = e-document entry number';
+    begin
+        RequireLoaded();
+        exit(StrSubstNo(TaskMessageLbl, GetAgentTaskExternalId()));
+    end;
+
     internal procedure GetSourceType(): Enum "PA Source Type"
     begin
         RequireLoaded();

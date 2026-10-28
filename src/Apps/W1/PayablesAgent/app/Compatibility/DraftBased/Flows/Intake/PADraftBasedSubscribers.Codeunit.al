@@ -64,7 +64,9 @@ codeunit 3312 "PA Draft Based Subscribers"
     var
         AgentTask: Record "Agent Task";
         AgentTaskID: BigInteger;
-        TitleLbl: Label 'Invoice %1 from %2', Comment = '%1 = invoice number, %2 = vendor name';
+        NewTitle: Text;
+        InvoiceTitleLbl: Label 'Invoice %1 from %2', Comment = '%1 = invoice number, %2 = vendor name';
+        CreditMemoTitleLbl: Label 'Credit memo %1 from %2', Comment = '%1 = credit memo number, %2 = vendor name';
     begin
         if PAV1V2Flag.IsV2Active() then
             exit;
@@ -74,11 +76,35 @@ codeunit 3312 "PA Draft Based Subscribers"
             exit;
         if not TryFindAgentTaskID(EDocument, AgentTaskID) then
             exit;
+        if not AgentTask.Get(AgentTaskID) then
+            exit;
 
-        if AgentTask.Get(AgentTaskID) then begin
-            AgentTask.Title := CopyStr(StrSubstNo(TitleLbl, EDocumentPurchaseHeader."Sales Invoice No.", EDocumentPurchaseHeader."Vendor Company Name"), 1, MaxStrLen(AgentTask.Title));
-            AgentTask.Modify(true);
-        end;
+        if IsCreditNote(EDocument) then
+            NewTitle := StrSubstNo(CreditMemoTitleLbl, EDocumentPurchaseHeader."Sales Invoice No.", EDocumentPurchaseHeader."Vendor Company Name")
+        else
+            NewTitle := StrSubstNo(InvoiceTitleLbl, EDocumentPurchaseHeader."Sales Invoice No.", EDocumentPurchaseHeader."Vendor Company Name");
+        NewTitle := CopyStr(NewTitle, 1, MaxStrLen(AgentTask.Title));
+        if AgentTask.Title = NewTitle then
+            exit;
+        AgentTask.Title := CopyStr(NewTitle, 1, MaxStrLen(AgentTask.Title));
+        AgentTask.Modify(true);
+    end;
+
+    local procedure IsCreditNote(EDocument: Record "E-Document"): Boolean
+    var
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
+        InStream: InStream;
+        StructuredData: Text;
+        SourceJsonObject: JsonObject;
+    begin
+        if not EDocDataStorage.Get(EDocument."Structured Data Entry No.") then
+            exit(false);
+        EDocDataStorage.GetTempBlob().CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(StructuredData);
+        if not SourceJsonObject.ReadFrom(StructuredData) then
+            exit(false);
+        exit(EDocMLLMSchemaHelper.IsCreditNote(SourceJsonObject));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. M365 Conn. Events", OnGetOutlookCategoryDescription, '', false, false)]

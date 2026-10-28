@@ -20,13 +20,18 @@ codeunit 3320 "PA Draft Based Setup"
         if not EDocumentService.Get(PayablesAgentEDocServiceTok) then begin
             EDocumentService.Code := PayablesAgentEDocServiceTok;
             EDocumentService.Insert(true);
-
-            EDocServiceSupportedType.Init();
-            EDocServiceSupportedType."E-Document Service Code" := EDocumentService.Code;
-            EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Invoice";
-            EDocServiceSupportedType.Direction := EDocServiceSupportedType.Direction::Incoming;
-            EDocServiceSupportedType.Insert(false);
         end;
+        EDocServiceSupportedType.InsertDefaultIfMissing(EDocumentService.Code, "E-Document Type"::"Purchase Invoice", "E-Doc. Supp. Type Direction"::Incoming);
+        EDocServiceSupportedType.InsertDefaultIfMissing(EDocumentService.Code, "E-Document Type"::"Purchase Credit Memo", "E-Doc. Supp. Type Direction"::Incoming);
+    end;
+
+    procedure AllowCreditMemosOnAgentEDocumentService()
+    var
+        EDocumentService: Record "E-Document Service";
+        EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
+    begin
+        if EDocumentService.Get(PayablesAgentEDocServiceTok) then
+            EDocServiceSupportedType.InsertDefaultIfMissing(EDocumentService.Code, "E-Document Type"::"Purchase Credit Memo", "E-Doc. Supp. Type Direction"::Incoming);
     end;
 
     procedure OpenAdditionalFieldsSetup(): Boolean

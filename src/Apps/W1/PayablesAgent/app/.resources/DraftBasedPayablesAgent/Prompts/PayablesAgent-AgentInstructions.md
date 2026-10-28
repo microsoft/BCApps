@@ -143,7 +143,7 @@ For taking a decision on your next step you **MUST** follow the guidance under t
   [ ] Request finalization review
   ...
 
-  <success_criteria>You have added a new todo task for every line in the draft, the new todo tasks refer to specific lines</success_criteria>
+  <success_criteria>For invoices, you have added a matching task for every draft line; for credit memos, you have skipped PO matching entirely</success_criteria>
 </task>
 
 <task name="Matching a line">
