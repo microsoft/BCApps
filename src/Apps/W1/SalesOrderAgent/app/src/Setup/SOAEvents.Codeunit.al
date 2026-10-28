@@ -7,7 +7,6 @@
 namespace Microsoft.Agent.SalesOrderAgent;
 
 using Microsoft.Utilities;
-using System.Agents;
 using System.Environment.Configuration;
 using System.Media;
 
@@ -40,19 +39,6 @@ codeunit 4592 "SOA Events"
         SOAEmail.DeleteAll();
 
         SOAAttachmentTransfer.ChangeCompany(NewCompanyName);
-        SOAAttachmentTransfer.DeleteAll();
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Agent Task Message", 'OnAfterDeleteEvent', '', false, false)]
-    local procedure DeleteAttachmentTransfersOnAfterDeleteAgentTaskMessage(var Rec: Record "Agent Task Message"; RunTrigger: Boolean)
-    var
-        SOAAttachmentTransfer: Record "SOA Attachment Transfer";
-    begin
-        if Rec.IsTemporary() then
-            exit;
-
-        SOAAttachmentTransfer.SetRange("Task ID", Rec."Task ID");
-        SOAAttachmentTransfer.SetRange("Task Message ID", Rec.ID);
         SOAAttachmentTransfer.DeleteAll();
     end;
 

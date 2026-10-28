@@ -50,34 +50,21 @@ codeunit 4600 "SOA Document Events"
 
         TelemetryDimensions.Add('TaskId', Format(AgentTaskID));
         repeat
-            if not WasTransferredByEmail(AgentTaskMessage) then begin
-                CopiedAttachments := 0;
-                AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskID);
-                AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessage.ID);
-                AgentTaskMessageAttachment.SetRange(Ignored, false);
-                if AgentTaskMessageAttachment.FindSet() then
-                    repeat
-                        if CopyAttachmentToDocument(AgentTaskMessageAttachment, Rec) then
-                            CopiedAttachments += 1;
-                    until AgentTaskMessageAttachment.Next() = 0;
-                if CopiedAttachments > 0 then begin
-                    TelemetryDimensions.Set('TaskMessageId', Format(AgentTaskMessage.ID));
-                    TelemetryDimensions.Set('CopiedAttachments', Format(CopiedAttachments, 0, 9));
-                    FeatureTelemetry.LogUsage('0000QF5', SOASetupCU.GetFeatureName(), AttachmentsTransferredToDocLbl, TelemetryDimensions);
-                end;
+            CopiedAttachments := 0;
+            AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskID);
+            AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessage.ID);
+            AgentTaskMessageAttachment.SetRange(Ignored, false);
+            if AgentTaskMessageAttachment.FindSet() then
+                repeat
+                    if CopyAttachmentToDocument(AgentTaskMessageAttachment, Rec) then
+                        CopiedAttachments += 1;
+                until AgentTaskMessageAttachment.Next() = 0;
+            if CopiedAttachments > 0 then begin
+                TelemetryDimensions.Set('TaskMessageId', Format(AgentTaskMessage.ID));
+                TelemetryDimensions.Set('CopiedAttachments', Format(CopiedAttachments, 0, 9));
+                FeatureTelemetry.LogUsage('0000QF5', SOASetupCU.GetFeatureName(), AttachmentsTransferredToDocLbl, TelemetryDimensions);
             end;
         until AgentTaskMessage.Next() = 0;
-    end;
-
-    local procedure WasTransferredByEmail(AgentTaskMessage: Record "Agent Task Message"): Boolean
-    var
-        SOAEmail: Record "SOA Email";
-    begin
-        // Legacy transfers have no destination identity. Preserve them without setting this flag for new transfers.
-        SOAEmail.SetRange("Task ID", AgentTaskMessage."Task ID");
-        SOAEmail.SetRange("Task Message ID", AgentTaskMessage.ID);
-        SOAEmail.SetRange("Attachment Transferred", true);
-        exit(not SOAEmail.IsEmpty());
     end;
 
     local procedure CopyAttachmentToDocument(AgentTaskMessageAttachment: Record "Agent Task Message Attachment"; SalesHeader: Record "Sales Header"): Boolean
