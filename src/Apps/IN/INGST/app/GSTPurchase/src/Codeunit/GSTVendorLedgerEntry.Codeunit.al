@@ -21,6 +21,7 @@ codeunit 18082 "GST Vendor Ledger Entry"
     begin
         if PurchaseHeader."GST Vendor Type" in ["GST Vendor Type"::Unregistered, "GST Vendor Type"::Import] then
             exit(true);
+
         if PurchaseHeader."GST Vendor Type" in ["GST Vendor Type"::Registered, "GST Vendor Type"::Unregistered, "GST Vendor Type"::SEZ] then begin
             PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
             PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
@@ -29,7 +30,9 @@ codeunit 18082 "GST Vendor Ledger Entry"
             PurchaseLine.SetRange("GST Reverse Charge", true);
             if PurchaseLine.Count() <> 0 then
                 exit(true);
+
         end;
+
         if PurchaseHeader."GST Vendor Type" = "GST Vendor Type"::SEZ then begin
             PurchaseLine.Reset();
             PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
@@ -138,16 +141,17 @@ codeunit 18082 "GST Vendor Ledger Entry"
     local procedure SetQtyToInvoiceToRecvdQty(var PurchaseLine: Record "Purchase Line"): Boolean
     var
         PurchaseHeader: Record "Purchase Header";
-
     begin
         if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
             exit(false);
         if PurchaseLine."Qty. Rcd. Not Invoiced" <= 0 then
             exit(false);
+
         PurchaseHeader.SetLoadFields("GST Vendor Type");
         if not PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
             exit(false);
-        if not (PurchaseHeader."GST Vendor Type" in [PurchaseHeader."GST Vendor Type"::Import, PurchaseHeader."GST Vendor Type"::SEZ]) then
+
+        if not IsImportOrSEZVendor(PurchaseHeader) then
             exit(false);
 
         PurchaseLine."Qty. to Invoice" := PurchaseLine."Qty. Rcd. Not Invoiced";
@@ -155,24 +159,28 @@ codeunit 18082 "GST Vendor Ledger Entry"
         exit(true);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeUpdatePurchLineBeforePost, '', false, false)]
-    local procedure IncludeQtyToReceiveOnReceiveAndInvoice(CommitIsSupressed: Boolean; RoundingLineInserted: Boolean; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; WhseReceive: Boolean; WhseShip: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnAfterCopyToTempLines, '', false, false)]
+    local procedure IncludeQtyToReceiveOnReceiveAndInvoice(var PurchaseHeader: Record "Purchase Header"; var TempPurchLine: Record "Purchase Line" temporary)
     begin
         if not (PurchaseHeader.Receive and PurchaseHeader.Invoice) then
             exit;
-        if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
+        if TempPurchLine."Document Type" <> TempPurchLine."Document Type"::Order then
             exit;
-        if not IsImportOrSEZvendor(PurchaseHeader) then
-            exit;
-        if PurchaseLine."Qty. to Receive" = 0 then
-            exit;
-        if PurchaseLine."Qty. to Invoice" <> PurchaseLine."Qty. Rcd. Not Invoiced" then
+        if not IsImportOrSEZVendor(PurchaseHeader) then
             exit;
 
-        PurchaseLine.InitQtyToInvoice();
+        TempPurchLine.SetFilter("Qty. to Receive", '<>0');
+        if TempPurchLine.FindSet() then
+            repeat
+                if TempPurchLine."Qty. to Invoice" = TempPurchLine."Qty. Rcd. Not Invoiced" then begin
+                    TempPurchLine.InitQtyToInvoice();
+                    TempPurchLine.Modify();
+                end;
+            until TempPurchLine.Next() = 0;
+        TempPurchLine.Reset();
     end;
 
-    local procedure IsImportOrSEZvendor(PurchaseHeader: Record "Purchase Header"): Boolean
+    local procedure IsImportOrSEZVendor(PurchaseHeader: Record "Purchase Header"): Boolean
     begin
         exit(PurchaseHeader."GST Vendor Type" in [PurchaseHeader."GST Vendor Type"::Import, PurchaseHeader."GST Vendor Type"::SEZ]);
     end;
