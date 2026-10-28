@@ -1658,7 +1658,7 @@ codeunit 134228 "ERM Close Income Statement"
         REPORT.Run(REPORT::"Close Income Statement");
     end;
 
-    local procedure RunCloseIncomeStatementForRetainedEarningsAccount(GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; RetainedEarningsAccountNo: Code[20]; PostToRetainedEarningsAcc: Option; ClosePerBusinessUnit: Boolean; UseDimensions: Boolean; DocumentNo: Code[20])
+    local procedure RunCloseIncomeStatementForRetainedEarningsAccount(GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; RetainedEarningsAccountNo: Code[20]; RetainedEarningsPosting: Option; ClosePerBusinessUnit: Boolean; UseDimensions: Boolean; DocumentNo: Code[20])
     begin
         LibraryVariableStorage.Enqueue(PostingDate);
         LibraryVariableStorage.Enqueue(GenJournalLine."Journal Template Name");
@@ -1667,7 +1667,7 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryVariableStorage.Enqueue(LibraryERM.CreateGLAccountNo());
         LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
         LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
-        LibraryVariableStorage.Enqueue(PostToRetainedEarningsAcc);
+        LibraryVariableStorage.Enqueue(RetainedEarningsPosting);
         LibraryVariableStorage.Enqueue(ClosePerBusinessUnit);
         LibraryVariableStorage.Enqueue(UseDimensions);
 
