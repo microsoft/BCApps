@@ -17,6 +17,8 @@ page 6915 "Exp. Report Line Per Diem API"
     PageType = API;
     ODataKeyFields = SystemId;
     SourceTable = "Expense Report Line Per Diem";
+    InsertAllowed = false;
+    DeleteAllowed = false;
     AboutText = 'Provides access to data from the Expense Report Line Per Diem table';
     layout
     {
