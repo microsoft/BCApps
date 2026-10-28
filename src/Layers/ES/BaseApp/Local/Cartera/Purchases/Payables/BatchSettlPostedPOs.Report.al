@@ -178,14 +178,14 @@ report 7000087 "Batch Settl. Posted POs"
                                 VendLedgEntry.Modify();
                             end;
                     end;
-                    if BGPOPostBuffer.Get('', '', VendLedgEntry."Entry No.") then begin
-                        BGPOPostBuffer.Amount := BGPOPostBuffer.Amount + "Remaining Amount";
-                        BGPOPostBuffer.Modify();
+                    if TempBGPOPostBuffer.Get('', '', VendLedgEntry."Entry No.") then begin
+                        TempBGPOPostBuffer.Amount := TempBGPOPostBuffer.Amount + "Remaining Amount";
+                        TempBGPOPostBuffer.Modify();
                     end else begin
-                        BGPOPostBuffer.Init();
-                        BGPOPostBuffer."Entry No." := VendLedgEntry."Entry No.";
-                        BGPOPostBuffer.Amount := BGPOPostBuffer.Amount + "Remaining Amount";
-                        BGPOPostBuffer.Insert();
+                        TempBGPOPostBuffer.Init();
+                        TempBGPOPostBuffer."Entry No." := VendLedgEntry."Entry No.";
+                        TempBGPOPostBuffer.Amount := TempBGPOPostBuffer.Amount + "Remaining Amount";
+                        TempBGPOPostBuffer.Insert();
                     end;
                 end;
 
@@ -198,7 +198,7 @@ report 7000087 "Batch Settl. Posted POs"
                     if (DocCount = 0) or (GroupAmount = 0) then
                         CurrReport.Skip();
 
-                    VendLedgEntry2.Get(BGPOPostBuffer."Entry No.");
+                    VendLedgEntry2.Get(TempBGPOPostBuffer."Entry No.");
                     GenJnlLineNextNo := GenJnlLineNextNo + 10000;
                     Clear(GenJnlLine);
                     GenJnlLine.Init();
@@ -405,7 +405,7 @@ report 7000087 "Batch Settl. Posted POs"
         GLSetup: Record "General Ledger Setup";
         VATPostingSetup: Record "VAT Posting Setup";
         VATEntry: Record "VAT Entry";
-        BGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
+        TempBGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
         TempNoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
         DocPost: Codeunit "Document-Post";
         CarteraManagement: Codeunit CarteraManagement;

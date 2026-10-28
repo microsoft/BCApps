@@ -337,14 +337,14 @@ report 7000009 "Payment Order - Test"
                                 VendPostingGr.Code));
 
                         BalanceAccNo := VendPostingGr."Bills Account";
-                        if BGPOPostBuffer.Get(AccountNo, BalanceAccNo) then begin
-                            BGPOPostBuffer.Amount := BGPOPostBuffer.Amount + "Remaining Amount";
-                            BGPOPostBuffer.Modify();
+                        if TempBGPOPostBuffer.Get(AccountNo, BalanceAccNo) then begin
+                            TempBGPOPostBuffer.Amount := TempBGPOPostBuffer.Amount + "Remaining Amount";
+                            TempBGPOPostBuffer.Modify();
                         end else begin
-                            BGPOPostBuffer.Account := AccountNo;
-                            BGPOPostBuffer."Balance Account" := BalanceAccNo;
-                            BGPOPostBuffer.Amount := "Remaining Amount";
-                            BGPOPostBuffer.Insert();
+                            TempBGPOPostBuffer.Account := AccountNo;
+                            TempBGPOPostBuffer."Balance Account" := BalanceAccNo;
+                            TempBGPOPostBuffer.Amount := "Remaining Amount";
+                            TempBGPOPostBuffer.Insert();
                         end;
                     end;
 
@@ -571,7 +571,7 @@ report 7000009 "Payment Order - Test"
         VendLedgEntry: Record "Vendor Ledger Entry";
         VendPostingGr: Record "Vendor Posting Group";
         DocPostBuffer: Record "Doc. Post. Buffer" temporary;
-        BGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
+        TempBGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
         FeeRange: Record "Fee Range";
         FormatAddress: Codeunit "Format Address";
         Text1100000Lbl: Label '%1 must be %2 in %3 %4.', Comment = '%1 = Field caption, %2 = Required value, %3 = Table caption, %4 = Record number';

@@ -133,14 +133,14 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                     CustLedgEntry."Document Status" := CustLedgEntry."Document Status"::Honored;
                     CustLedgEntry.Modify();
 
-                    if BGPOPostBuffer.Get('', '', CustLedgEntry."Entry No.") then begin
-                        BGPOPostBuffer.Amount := BGPOPostBuffer.Amount + "Remaining Amount";
-                        BGPOPostBuffer.Modify();
+                    if TempBGPOPostBuffer.Get('', '', CustLedgEntry."Entry No.") then begin
+                        TempBGPOPostBuffer.Amount := TempBGPOPostBuffer.Amount + "Remaining Amount";
+                        TempBGPOPostBuffer.Modify();
                     end else begin
-                        BGPOPostBuffer.Init();
-                        BGPOPostBuffer."Entry No." := CustLedgEntry."Entry No.";
-                        BGPOPostBuffer.Amount := BGPOPostBuffer.Amount + "Remaining Amount";
-                        BGPOPostBuffer.Insert();
+                        TempBGPOPostBuffer.Init();
+                        TempBGPOPostBuffer."Entry No." := CustLedgEntry."Entry No.";
+                        TempBGPOPostBuffer.Amount := TempBGPOPostBuffer.Amount + "Remaining Amount";
+                        TempBGPOPostBuffer.Insert();
                     end;
 
                     if (PostedBillGr."Dealing Type" = PostedBillGr."Dealing Type"::Discount) and
@@ -157,7 +157,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                         CurrReport.Skip();
 
                     if PostedBillGr.Factoring = PostedBillGr.Factoring::" " then begin
-                        CustLedgEntry2.Get(BGPOPostBuffer."Entry No.");
+                        CustLedgEntry2.Get(TempBGPOPostBuffer."Entry No.");
                         Clear(GenJnlLine);
                         GenJnlLine.Init();
                         GenJnlLineNextNo := GenJnlLineNextNo + 10000;
@@ -342,7 +342,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
         GLSetup: Record "General Ledger Setup";
         GLReg: Record "G/L Register";
         VATPostingSetup: Record "VAT Posting Setup";
-        BGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
+        TempBGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
         TempNoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
         DocPost: Codeunit "Document-Post";
         CarteraManagement: Codeunit CarteraManagement;
@@ -425,8 +425,8 @@ report 7000086 "Batch Settl. Posted Bill Grs."
         GenJnlLine."Shortcut Dimension 1 Code" := PostedDoc2."Global Dimension 1 Code";
         GenJnlLine."Shortcut Dimension 2 Code" := PostedDoc2."Global Dimension 2 Code";
         GenJnlLine."Dimension Set ID" := PostedDoc2."Dimension Set ID";
-        BGPOPostBuffer."Gain - Loss Amount (LCY)" := BGPOPostBuffer."Gain - Loss Amount (LCY)" + GenJnlLine.Amount;
-        BGPOPostBuffer.Modify();
+        TempBGPOPostBuffer."Gain - Loss Amount (LCY)" := TempBGPOPostBuffer."Gain - Loss Amount (LCY)" + GenJnlLine.Amount;
+        TempBGPOPostBuffer.Modify();
         OnBeforeGenJournalLineInsert(PostedDoc, GenJnlLine, VATPostingSetup, CustLedgEntry, CustLedgEntry, PostedBillGr);
         GenJnlLine.Insert();
         SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
@@ -440,7 +440,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
         case true of
             PostedDoc."Dealing Type" = PostedDoc."Dealing Type"::Discount:
                 begin
-                    CustLedgEntry2.Get(BGPOPostBuffer."Entry No.");
+                    CustLedgEntry2.Get(TempBGPOPostBuffer."Entry No.");
                     GenJnlLineNextNo := GenJnlLineNextNo + 10000;
                     Clear(GenJnlLine);
                     GenJnlLine.Init();
@@ -465,7 +465,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                     SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
                 end;
             else begin
-                CustLedgEntry2.Get(BGPOPostBuffer."Entry No.");
+                CustLedgEntry2.Get(TempBGPOPostBuffer."Entry No.");
                 GenJnlLineNextNo := GenJnlLineNextNo + 10000;
                 Clear(GenJnlLine);
                 GenJnlLine.Init();
