@@ -49,7 +49,7 @@ When capable-to-promise is active, also show unavailable items that can ship lat
 
 ## Send clarification and wait
 
-When clarification is needed, include the delivery-date disclosures and format the customer reply according to the active communication instructions. Submit the reply to the established recipient, marking the message as requiring a customer response.
+When clarification is needed, include the delivery-date disclosures in the customer reply. Submit the reply to the established recipient, marking the message as requiring a customer response.
 
 Retain the returned message identifier and wait for any required review/customer response; do not resend an existing pending or sent clarification. Record the customer's choice and search revised items again as needed. Do not treat a sent question as a resolved selection.
 

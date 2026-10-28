@@ -1,6 +1,6 @@
-# Format Outgoing Customer Messages
+# Apply Customer Communication Standards
 
-Prepare the final wording and HTML for every outgoing customer message, including replies, clarification questions, sales quote confirmations, and sales order confirmations. Apply after determining the business content and before submitting the message for review or delivery, including when a draft already exists.
+Apply company-specific communication requirements to every outgoing customer message, including clarification replies, sales quote confirmations, and sales order confirmations. These requirements govern tone, recipient language, HTML layout, presentation of document lines, and signature handling. They apply alongside business-process instructions, including to drafts already written in HTML, before submission for review or delivery.
 
 Use a formal tone, simple HTML, and the recipient's required language.
 

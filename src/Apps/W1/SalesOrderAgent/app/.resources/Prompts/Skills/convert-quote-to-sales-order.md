@@ -34,7 +34,7 @@ Continue after purchasing has a confirmed outcome and actual document issues are
 
 Read the latest available order data after purchasing and issue handling. Summarize every line's item number, description, quantity, unit, and price, adding nonblank Variant Codes and current delivery/shipment disclosures. Do not overwrite current dates with earlier search results or require additional fields to be exposed.
 
-Use "Download as PDF" and retain its actual file identifier. Format the customer confirmation according to the active communication instructions, then submit it through the normal outgoing-email review flow, attaching that PDF using its actual returned file identifier. Wait for its review/delivery outcome; document review and outgoing-email review are separate requirements. Keep purchase order numbers internal unless the communication instructions request them.
+Use "Download as PDF" and retain its actual file identifier. Submit the customer confirmation through the normal outgoing-email review flow, attaching that PDF using its actual returned file identifier. Wait for its review/delivery outcome; document review and outgoing-email review are separate requirements. Keep purchase order numbers internal unless the communication instructions request them.
 
 Return the sales order number, purchasing outcome and purchase order numbers, outgoing-email review/delivery state, and any unresolved document issue. Do not complete the task while an operation, email review, or issue-based intervention is pending. Do not resend a sent/pending confirmation, bypass mandatory approvals, or claim delivery before the message outcome confirms it.
 
