@@ -13,12 +13,6 @@ codeunit 48527 "Fabric Platform Telemetry"
         Dimensions.Add('Category', CategoryTok);
     end;
 
-    procedure GetAuditDimensions() Dimensions: Dictionary of [Text, Text]
-    begin
-        Dimensions := GetDimensions();
-        Dimensions.Add('AuditEvent', 'true');
-    end;
-
     /// <summary>Emits a third-party credential change to publisher and customer telemetry without secret data.</summary>
     /// <param name="CredentialAction">Stored, Replaced, or Deleted.</param>
     /// <param name="ChangeTrigger">SetupPage, Disable, SwitchTo1P, or EnvironmentCleanup. SetupPage includes the setup wizard.</param>

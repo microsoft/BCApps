@@ -2,6 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Fabric;
 using System.Reflection;
+using System.Telemetry;
 
 codeunit 48521 "Fabric Config Package Mgt"
 {
@@ -24,6 +25,7 @@ codeunit 48521 "Fabric Config Package Mgt"
     var
         PackageLine: Record "Fabric Config Package Line";
         TenantFabricTables: Record "Tenant Fabric Tables";
+        AuditLog: Codeunit "Audit Log";
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         NewTableCount: Integer;
@@ -61,12 +63,13 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg.Modify(true);
 
         Session.LogMessage('0000WBQ', 'Config package activated.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetPackageDimensions(Pkg."Code"));
-        Session.LogMessage('0000WBR', StrSubstNo(PackageActivatedAuditMsg, Pkg."Code", Pkg.Version), Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Telemetry.GetAuditDimensions());
+        AuditLog.LogAuditMessage(StrSubstNo(PackageActivatedAuditMsg, Pkg."Code", Pkg.Version), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
     end;
 
     internal procedure Deactivate(var Pkg: Record "Fabric Config Package")
     var
         PackageLine: Record "Fabric Config Package Line";
+        AuditLog: Codeunit "Audit Log";
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         KeptTableCount: Integer;
@@ -87,7 +90,7 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg.Modify(true);
 
         Session.LogMessage('0000WBS', 'Config package deactivated.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetPackageDimensions(Pkg."Code"));
-        Session.LogMessage('0000WBT', StrSubstNo(PackageDeactivatedAuditMsg, Pkg."Code"), Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Telemetry.GetAuditDimensions());
+        AuditLog.LogAuditMessage(StrSubstNo(PackageDeactivatedAuditMsg, Pkg."Code"), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
         if GuiAllowed() and (KeptTableCount > 0) then
             Message(TablesKeptByOtherPackageMsg, KeptTableCount);
     end;
@@ -96,6 +99,7 @@ codeunit 48521 "Fabric Config Package Mgt"
     var
         PackageLine: Record "Fabric Config Package Line";
         TenantFabricTables: Record "Tenant Fabric Tables";
+        AuditLog: Codeunit "Audit Log";
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         NewTableCount: Integer;
@@ -128,7 +132,7 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg.Modify(true);
 
         Session.LogMessage('0000WBU', 'Config package reapplied.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetPackageDimensions(Pkg."Code"));
-        Session.LogMessage('0000WBV', StrSubstNo(PackageReappliedAuditMsg, Pkg."Code", Pkg.Version), Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Telemetry.GetAuditDimensions());
+        AuditLog.LogAuditMessage(StrSubstNo(PackageReappliedAuditMsg, Pkg."Code", Pkg.Version), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
     end;
 
     internal procedure IsReapplyAvailable(var Pkg: Record "Fabric Config Package"): Boolean

@@ -4,6 +4,7 @@ using Microsoft.Utilities;
 using System.Environment;
 using System.Fabric;
 using System.Reflection;
+using System.Telemetry;
 
 codeunit 48520 "Fabric Platform Mgt"
 {
@@ -282,6 +283,7 @@ codeunit 48520 "Fabric Platform Mgt"
 
     internal procedure EnableExport()
     var
+        AuditLog: Codeunit "Audit Log";
         FabricExportManager: Codeunit "Fabric Export Manager";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         Telemetry: Codeunit "Fabric Platform Telemetry";
@@ -304,7 +306,7 @@ codeunit 48520 "Fabric Platform Mgt"
         end else
             CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
         Session.LogMessage('0000WC0', 'Fabric mirroring enable requested.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Telemetry.GetDimensions());
-        Session.LogMessage('0000WC1', 'Microsoft Fabric Open Mirroring - export enable requested.', Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Telemetry.GetAuditDimensions());
+        AuditLog.LogAuditMessage('Microsoft Fabric Open Mirroring - export enable requested.', SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
         if GuiAllowed() then
             Message(EnableRequestedMsg);
     end;
@@ -392,6 +394,7 @@ codeunit 48520 "Fabric Platform Mgt"
 
     internal procedure StartExport()
     var
+        AuditLog: Codeunit "Audit Log";
         FabricExportManager: Codeunit "Fabric Export Manager";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
@@ -413,7 +416,7 @@ codeunit 48520 "Fabric Platform Mgt"
         if not IsHandled then
             FabricExportManager.StartFabricExport();
         Session.LogMessage('0000WC2', 'Fabric mirroring start requested.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Telemetry.GetDimensions());
-        Session.LogMessage('0000WC3', 'Microsoft Fabric Open Mirroring - export start requested.', Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Telemetry.GetAuditDimensions());
+        AuditLog.LogAuditMessage('Microsoft Fabric Open Mirroring - export start requested.', SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
         if GuiAllowed() then
             Message(StartRequestedMsg);
     end;
@@ -431,6 +434,7 @@ codeunit 48520 "Fabric Platform Mgt"
 
     internal procedure StopExport()
     var
+        AuditLog: Codeunit "Audit Log";
         FabricExportManager: Codeunit "Fabric Export Manager";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         IsHandled: Boolean;
@@ -439,7 +443,7 @@ codeunit 48520 "Fabric Platform Mgt"
         if not IsHandled then
             FabricExportManager.StopFabricExport();
         Session.LogMessage('0000WC4', 'Fabric mirroring stop requested.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Telemetry.GetDimensions());
-        Session.LogMessage('0000WC5', 'Microsoft Fabric Open Mirroring - export stop requested.', Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Telemetry.GetAuditDimensions());
+        AuditLog.LogAuditMessage('Microsoft Fabric Open Mirroring - export stop requested.', SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
         if GuiAllowed() then
             Message(StopRequestedMsg);
     end;
@@ -451,6 +455,7 @@ codeunit 48520 "Fabric Platform Mgt"
 
     internal procedure DisableExport()
     var
+        AuditLog: Codeunit "Audit Log";
         FabricExportManager: Codeunit "Fabric Export Manager";
         FabricPlatformCredentialMgt: Codeunit "Fabric Platform Credential Mgt";
         Telemetry: Codeunit "Fabric Platform Telemetry";
@@ -461,7 +466,7 @@ codeunit 48520 "Fabric Platform Mgt"
             FabricExportManager.DisableFabricExport();
         FabricPlatformCredentialMgt.ClearClientSecret('Disable');
         Session.LogMessage('0000WC6', 'Fabric mirroring disable requested.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Telemetry.GetDimensions());
-        Session.LogMessage('0000WC7', 'Microsoft Fabric Open Mirroring - export disable requested.', Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Telemetry.GetAuditDimensions());
+        AuditLog.LogAuditMessage('Microsoft Fabric Open Mirroring - export disable requested.', SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
         if GuiAllowed() then
             Message(DisableRequestedMsg);
     end;
@@ -469,6 +474,7 @@ codeunit 48520 "Fabric Platform Mgt"
     internal procedure ResetTable(TableId: Integer)
     var
         TenantFabricExportDetails: Record "Tenant Fabric Export Details";
+        AuditLog: Codeunit "Audit Log";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         ResetCompanies: List of [Text];
         ResetBlockedErrorInfo: ErrorInfo;
@@ -497,7 +503,7 @@ codeunit 48520 "Fabric Platform Mgt"
             until TenantFabricExportDetails.Next() = 0;
 
         Session.LogMessage('0000WC8', 'Fabric mirroring table reset requested.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Telemetry.GetDimensions());
-        Session.LogMessage('0000WC9', 'Microsoft Fabric Open Mirroring - table reset requested.', Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Telemetry.GetAuditDimensions());
+        AuditLog.LogAuditMessage('Microsoft Fabric Open Mirroring - table reset requested.', SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
         if GuiAllowed() then
             if ResetCompanies.Count() > 0 then
                 Message(TableResetMsg, TableId)
