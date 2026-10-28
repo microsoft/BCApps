@@ -730,15 +730,19 @@ codeunit 134195 "ERM Multiple Posting Groups"
         CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
         LibraryERM.SetAddReportingCurrency(CurrencyCode);
 
+        // Generated posting-group codes fit the Code[10] alternative posting-group helper.
+        LibraryPurchase.CreateVendorPostingGroup(VendorPostingGroup);
+
         // Create purchase invoice, change vendor posting group and post
         LibraryPurchase.CreateVendor(Vendor);
         Vendor.Validate("Allow Multiple Posting Groups", true);
+        Vendor.Validate("Vendor Posting Group", VendorPostingGroup.Code);
         Vendor.Validate("Currency Code", CurrencyCode);
         Vendor.Modify();
-        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
         LibraryPurchase.CreatePurchaseDocumentWithItem(PurchaseHeader, PurchaseLine, "Purchase Document Type"::Invoice, Vendor."No.", '', 1, '', 0D);
         LibraryPurchase.CreateVendorPostingGroup(VendorPostingGroup2);
-        LibraryPurchase.CreateAltVendorPostingGroup(Vendor."Vendor Posting Group", VendorPostingGroup2.Code);
+        LibraryPurchase.CreateAltVendorPostingGroup(
+            CopyStr(VendorPostingGroup.Code, 1, 10), CopyStr(VendorPostingGroup2.Code, 1, 10));
         PurchaseHeader.Validate("Vendor Posting Group", VendorPostingGroup2.Code);
         PurchaseHeader.Modify();
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
