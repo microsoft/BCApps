@@ -65,7 +65,12 @@
                                 "type": "object",
                                 "minProperties": 1,
                                 "propertyNames": {"pattern":"^[A-Za-z][A-Za-z0-9]*$"},
-                                "additionalProperties": {"type":["string","boolean","number"]}
+                                "additionalProperties": {
+                                    "oneOf": [
+                                        {"type":"string","pattern":"^[A-Za-z_][A-Za-z0-9_]*$"},
+                                        {"type":"boolean"}
+                                    ]
+                                }
                             }
                         }
                     },

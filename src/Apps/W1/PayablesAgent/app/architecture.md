@@ -4,6 +4,8 @@
 
 Edits to this document are encouraged to be done by maintainers consciously deciding its shape. This is to maintain the mental model in the maintainers as well. Coding agents are encoraged to explicitly surface the planned edits of this document to the user.
 
+WIP
+
 ## Context: Business Central's Payables Agent
 
 The Payables Agent is a per-company BC-agent-runtime agent. It deals with the creation of Purchase Invoices in Business Central from arbitrary input.
@@ -196,12 +198,13 @@ Declarative objects directly bound to draft-based surfaces, such as profiles and
 
 ### Architectural static validations
 
-`architecture-rules.json` configures the app's dependency boundaries and other architectural conventions. `architecture-rules.schema.json` validates that configuration in the editor and at runtime. There are no external source catalogs. Run the checked-out gate with PowerShell 7:
+`architecture-rules.json` configures the app's dependency boundaries and other architectural conventions. `architecture-rules.schema.json` validates that configuration in the editor and at runtime. There are no external source catalogs. Run the checked-out scanner with PowerShell 7 (required for `Test-Json` JSON Schema validation and `ConvertFrom-Json -AsHashtable`). The lightweight change selector supports Windows PowerShell 5.1 as well as `pwsh`, like the surrounding pipeline scripts:
 
 ```powershell
 ./build/scripts/Test-PayablesAgentArchitecture.ps1
 ./build/scripts/Test-PayablesAgentArchitecture.ps1 -WarningsAsErrors
-Invoke-Pester ./build/scripts/tests/ALArchitectureRules.Test.ps1
+$architectureTests = Get-ChildItem ./build/scripts/tests/ALArchitecture*.Test.ps1
+Invoke-Pester -Script $architectureTests.FullName
 ```
 
 Paths above are repository-relative. CI runs the same entry point in PR validation (including merge queues) and Apps W1 builds, before AL-Go cache/skip decisions. Local editor/compiler builds do not run it automatically.
@@ -212,9 +215,9 @@ The checker masks comments and single-quoted strings, preserving line numbers. Q
 
 - **Local dependencies** (`check: dependencies`): `from` selects callers and `to` selects target objects by app-relative paths and optional object kinds. References are matched by **type and name**, so `Record "Payables Agent Task"` is not a dependency on the same-named codeunit. Explicit typed references/object constants, direct object-valued properties (`SourceTable`, navigation, `RoleCenter`, `Profile`), simple `TableRelation = Table[.Field]`, and extension/customization targets are recognized. A short `symbols` list of `{ kind, name }` can replace `to` for framework contracts such as task builders. There is no external source scan.
 - **External boundaries** (`check: namespaces`): namespace imports, declarations and fully qualified uses are a conservative proxy for an external dependency, even for unused imports. Prefixes include child namespaces, but not similarly named siblings. E-Document namespaces are checked separately from local dependencies. Other external boundaries can use the same check without adding catalogs.
-- **Object properties** (`check: properties`): require explicit, unconditional object-header properties. `Access = Internal` applies only to supporting kinds; `Extensible = false` applies to pages, tables and enums. Specific temporary table/page projections are pinned independently. Field/control properties cannot satisfy an object property requirement.
+- **Object properties** (`check: properties`): require explicit, unconditional object-header properties. `Access = Internal` applies only to supporting kinds; `Extensible = false` applies to pages, tables and enums. Specific temporary table/page projections are pinned independently. Values are booleans or simple unquoted AL identifiers, not general AL expressions. Field/control properties cannot satisfy an object property requirement.
 - **Code ownership** (`check: forbiddenCode`): small, named code-pattern policies reject explicit entity commits and interactive UI, and centralize telemetry emission. They examine code with comments, strings and quoted identifiers masked, not procedure bodies or a call graph.
-- **Development isolation** (`check: developmentOnly`): `_Development` files require a whole-file `#if DEVELOPMENT` wrapper, without an outer `#else`/`#elif` or code after its closing directive.
+- **Development isolation** (`check: developmentOnly`): `_Development` files require a whole-file `#if DEVELOPMENT` wrapper, without an outer `#else`/`#elseif` or code after its closing directive.
 - **Manifest policy** (`check: manifest`): restrict friend-app IDs, test-library dependencies and production preprocessor symbols.
 - **Placement** (`check: placement`): require the app namespace and approved owner paths. Existing `_Obsolete` paths are explicitly listed, preventing that directory from becoming a home for new code.
 

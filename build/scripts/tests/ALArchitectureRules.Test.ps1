@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See License.txt in the project root for license information.
 
-#requires -Version 7.0
+#Requires -Version 7.0
 Describe 'Lightweight AL architecture checks' {
     BeforeAll {
         Import-Module (Join-Path $PSScriptRoot '../ALArchitectureRules.psm1') -Force
@@ -38,7 +38,7 @@ Describe 'Lightweight AL architecture checks' {
 
     BeforeEach {
         $root = Join-Path $TestDrive ([Guid]::NewGuid().ToString('N'))
-        $layout = @{ App = (Join-Path $root 'App'); Rules = (Join-Path $root 'architecture-rules.json') }
+        $script:layout = @{ App = (Join-Path $root 'App'); Rules = (Join-Path $root 'architecture-rules.json') }
         Set-File 'Entities/Backing.Table.al' "namespace Demo;`ntable 50100 Backing`n{`n    Access = Internal;`n}"
         Set-File 'Entities/Backing.Codeunit.al' "namespace Demo;`ncodeunit 50101 Backing`n{`n    Access = Internal;`n}"
         Set-Caller ''
@@ -93,7 +93,7 @@ end;
     It 'accepts qualified identifiers without resolving using directives' {
         Set-Caller 'var R: Record Demo.Backing;'
         Assert-Value (Get-Result).Diagnostics.Count 1
-        Set-Caller 'var R: Record Other.Backing;' 'codeunit' "namespace Demo;`nusing Other;"
+        Set-Caller -Body 'var R: Record Other.Backing;' -Kind 'codeunit' -Preamble "namespace Demo;`nusing Other;"
         Assert-Value (Get-Result).Diagnostics.Count 0
     }
 
@@ -155,7 +155,7 @@ end;
 
     It 'checks external namespace imports even when unused and matches nested namespaces' {
         Set-Policy (New-Rule 'namespaces' @{ namespaces = @('External.Documents') })
-        Set-Caller '' 'codeunit' "namespace Demo;`nusing external.documents.Import;"
+        Set-Caller -Body '' -Kind 'codeunit' -Preamble "namespace Demo;`nusing external.documents.Import;"
         $result = Get-Result
         Assert-Value $result.Diagnostics.Count 1
         Assert-Value $result.Diagnostics[0].Line 2
@@ -171,7 +171,7 @@ end;
         Set-Policy (New-Rule 'namespaces' @{ namespaces = @('External.Documents') })
         Set-Caller '// using External.Documents;'
         Assert-Value (Get-Result).Diagnostics.Count 0
-        Set-Caller 'var L: Label ''External.Documents''; "External.Documents": Integer;' 'codeunit' "namespace Demo;`nusing External.DocumentsExtra;"
+        Set-Caller -Body 'var L: Label ''External.Documents''; "External.Documents": Integer;' -Kind 'codeunit' -Preamble "namespace Demo;`nusing External.DocumentsExtra;"
         Assert-Value (Get-Result).Diagnostics.Count 0
     }
 
@@ -233,17 +233,23 @@ end;
         Assert-Value (Get-Result).Diagnostics.Count 0
     }
 
-    It 'rejects outer else/elif branches, missing endif and code after a development guard' {
+    It 'rejects outer else/elseif branches, missing endif and code after a development guard' {
         Set-Policy (New-Rule 'developmentOnly' @{ symbol = 'DEVELOPMENT' })
-        foreach ($suffix in @("#else`n#endif", "#elif FEATURE`n#endif", '', "#endif`nvar R: Integer;")) {
+        foreach ($suffix in @("#else`n#endif", "#elseif FEATURE`n#endif", '', "#endif`nvar R: Integer;")) {
             Set-File 'Consumers/Caller.al' "#if DEVELOPMENT`nnamespace Demo;`ncodeunit 50104 Caller`n{ }`n$suffix"
             Assert-Value (Get-Result).Diagnostics.Count 1
         }
     }
 
+    It 'rejects a real AL elseif branch that would expose an object outside development' {
+        Set-Policy (New-Rule 'developmentOnly' @{ symbol = 'DEVELOPMENT' })
+        Set-File 'Consumers/Caller.al' "#if DEVELOPMENT`nnamespace Demo;`ncodeunit 50104 Caller`n{ }`n#elseif PRODUCTION`nnamespace Demo;`ncodeunit 50104 Caller`n{ }`n#endif"
+        Assert-Value (Get-Result).Diagnostics.Count 1
+    }
+
     It 'permits nested conditionals inside the whole-file development guard' {
         Set-Policy (New-Rule 'developmentOnly' @{ symbol = 'DEVELOPMENT' })
-        Set-File 'Consumers/Caller.al' "#if DEVELOPMENT`nnamespace Demo;`ncodeunit 50104 Caller`n{`n#if FEATURE`nvar R: Integer;`n#else`nvar S: Integer;`n#endif`n}`n#endif"
+        Set-File 'Consumers/Caller.al' "#if DEVELOPMENT`nnamespace Demo;`ncodeunit 50104 Caller`n{`n#if FEATURE`nvar R: Integer;`n#elseif OTHER_FEATURE`nvar T: Integer;`n#else`nvar S: Integer;`n#endif`n}`n#endif"
         Assert-Value (Get-Result).Diagnostics.Count 0
     }
 
@@ -260,7 +266,7 @@ end;
     It 'enforces placement and namespace without git or a second checkout' {
         Set-Policy (New-Rule 'placement' @{ allowedPaths = @('Consumers/Caller.al'); namespace = 'Demo' })
         Assert-Value (Get-Result).Diagnostics.Count 0
-        Set-Caller '' 'codeunit' 'namespace Other;'
+        Set-Caller -Body '' -Kind 'codeunit' -Preamble 'namespace Other;'
         Assert-Value (Get-Result).Diagnostics.Count 1
         Set-Policy (New-Rule 'placement' @{ allowedPaths = @('Approved/*'); namespace = 'Other' })
         Assert-Value (Get-Result).Diagnostics.Count 1
@@ -299,6 +305,13 @@ end;
             @{ version = 2; rules = @((New-Rule 'namespaces' @{ namespaces = @('External'); symbols = @(@{kind='table';name='X'}) })) }
         )) {
             $invalid | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $layout.Rules -Encoding UTF8
+            Assert-Failure { Get-Result }
+        }
+    }
+
+    It 'rejects property values the textual checker cannot interpret' {
+        foreach ($value in @(1.5, 'Temporary::Value', 'a quoted caption')) {
+            Set-Policy (New-Rule 'properties' @{ properties = @{ TableType = $value } })
             Assert-Failure { Get-Result }
         }
     }
@@ -347,7 +360,10 @@ end;
             $text = [IO.File]::ReadAllText((Join-Path $repo ".github/workflows/$workflow"))
             if ($text -notmatch '(?m)- name: Validate Payables Agent architecture\r?\n\s+shell: pwsh') { throw "Missing pwsh gate in $workflow" }
             if (-not $text.Contains('run: ./build/scripts/Test-PayablesAgentArchitecture.ps1')) { throw "Missing checked-out runner in $workflow" }
-            if ($workflow -eq 'PullRequestHandler.yaml' -and -not $text.Contains('Invoke-Pester ./build/scripts/tests/ALArchitectureRules.Test.ps1 -EnableExit')) { throw 'PR validation must test the checker itself.' }
+            if ($workflow -eq 'PullRequestHandler.yaml') {
+                if (-not $text.Contains('Invoke-Pester -Script $testFiles.FullName -PassThru')) { throw 'PR validation must test the checker itself using the shared runner pattern.' }
+                if (-not $text.Contains('$result.TotalCount -eq 0 -or $result.FailedCount -gt 0')) { throw 'PR validation must fail on failed or undiscovered tests.' }
+            }
             if ($workflow -eq '_BuildALGoProject.yaml' -and $text.IndexOf('Validate Payables Agent architecture') -gt $text.IndexOf('- name: Read settings')) { throw 'Architecture gate must precede settings/cache decisions.' }
         }
     }

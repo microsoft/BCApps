@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See License.txt in the project root for license information.
 
-#requires -Version 7.0
+#Requires -Version 7.0
 <#
 .SYNOPSIS
     Runs the app-owned Payables Agent architectural static checks without compiling AL.
@@ -20,12 +20,15 @@
     Exceptions need reasons and fail when stale. Errors and invalid configuration fail CI;
     -WarningsAsErrors also gates architectural cleanup warnings.
 
-    CI invokes this in PR validation and Apps W1 builds, before cache/skip decisions.
+    CI invokes this for relevant PA/checker/workflow changes (or an uncertain diff) in PR
+    validation and Apps W1 builds, before AL-Go cache/skip decisions. The shared change
+    selector also guards the PR Pester tests; direct local invocations here always scan.
     Requires PowerShell 7 (JSON Schema validation); local compiler builds invoke it separately.
 .EXAMPLE
     ./build/scripts/Test-PayablesAgentArchitecture.ps1 -WarningsAsErrors
 .EXAMPLE
-    Invoke-Pester ./build/scripts/tests/ALArchitectureRules.Test.ps1
+    $tests = Get-ChildItem ./build/scripts/tests/ALArchitecture*.Test.ps1
+    Invoke-Pester -Script $tests.FullName
 #>
 [CmdletBinding()]
 param(
@@ -36,7 +39,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-Set-StrictMode -Version Latest
+Set-StrictMode -Version 2.0
 Import-Module (Join-Path $PSScriptRoot 'ALArchitectureRules.psm1') -Force
 if ([string]::IsNullOrWhiteSpace($RulesPath)) { $RulesPath = Join-Path $AppRoot 'architecture-rules.json' }
 $result = Invoke-ALArchitectureRules -AppRoot $AppRoot -RulesPath $RulesPath
