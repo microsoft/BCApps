@@ -1980,6 +1980,7 @@ codeunit 144013 "ERM Payment Management"
     var
         GenJournalLine: Record "Gen. Journal Line";
         PaymentLine: Record "Payment Line FR";
+        Vendor: Record Vendor;
         SummarizePer: Option " ",Vendor,"Due date";
         VendorNo: array[2] of Code[20];
         DueDate: array[2] of Date;
@@ -1990,9 +1991,12 @@ codeunit 144013 "ERM Payment Management"
         // [SCENARIO 654495] "Suggest Vendor Payments" with "Summarize per" = "Due date" groups entries with the same due date when they are not consecutive.
         Initialize();
 
-        // [GIVEN] Vendor with posted Invoice "I1" with "Due Date" = "D1" and Invoice "I2" with "Due Date" = "D2"
+        // [GIVEN] Vendor without payment discount, with posted Invoice "I1" with "Due Date" = "D1" and Invoice "I2" with "Due Date" = "D2"
         VendorNo[1] := CreateVendor('');
         VendorNo[2] := VendorNo[1];
+        Vendor.Get(VendorNo[1]);
+        Vendor.Validate("Payment Terms Code", '');
+        Vendor.Modify(true);
         DueDate[1] := WorkDate() - LibraryRandom.RandIntInRange(10, 20);
         DueDate[2] := WorkDate() - LibraryRandom.RandInt(5);
         InvoiceAmount[1] := LibraryRandom.RandDecInRange(100, 200, 2);
