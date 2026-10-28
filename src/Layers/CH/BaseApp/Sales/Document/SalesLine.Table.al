@@ -62,6 +62,7 @@ using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
+using System.Security.User;
 using System.Utilities;
 
 /// <summary>
