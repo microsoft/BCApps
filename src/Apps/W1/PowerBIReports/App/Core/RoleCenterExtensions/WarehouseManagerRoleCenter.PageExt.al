@@ -129,6 +129,38 @@ pageextension 36962 "Warehouse Manager Role Center" extends "Warehouse Manager R
                     RunObject = page "PowerBI ABC Analysis";
                     Tooltip = 'Open the Power BI Report that performs an ABC analysis of your sales data, categorizing customers based on their contribution to total sales.';
                 }
+                action("Inventory Valuation Report (Power BI)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Inventory Valuation Report (Power BI)';
+                    Image = "PowerBI";
+                    RunObject = page "Inventory Valuation Report";
+                    Tooltip = 'Open a Power BI Report that offers a consolidated view of all inventory valuation report pages, conveniently embedded into a single page for easy access.';
+                }
+                action("Inventory Valuation Overview (Power BI)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Inventory Valuation Overview (Power BI)';
+                    Image = "PowerBI";
+                    RunObject = page "Inventory Valuation Overview";
+                    Tooltip = 'Open a Power BI Report that displays the inventory ending balance against the ending balance posted to the general ledger. Inventory value by location is plotted on a bar chart which is supported by inventory metrics such as increase quantity and decrease quantity.';
+                }
+                action("Inventory Valuation by Item (Power BI)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Inventory Valuation by Item (Power BI)';
+                    Image = "PowerBI";
+                    RunObject = page "Inventory Valuation by Item";
+                    Tooltip = 'Open a Power BI Report that features a Treemap that visualizes ending balance quantities by item category. It also includes a table matrix providing a detailed view of ending balances and showing fluctuations in inventory over the specified period.';
+                }
+                action("Inventory Valuation by Loc. (Power BI)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Inventory Valuation by Location (Power BI)';
+                    Image = "PowerBI";
+                    RunObject = page "Inventory Valuation by Loc.";
+                    Tooltip = 'Open a Power BI Report that features a Treemap that visualizes ending balance quantities by location. It also includes a table matrix providing a detailed view of ending balances and showing fluctuations in inventory over the specified period.';
+                }
             }
         }
     }
