@@ -13,7 +13,6 @@ codeunit 48521 "Fabric Config Package Mgt"
         TablesKeptByOtherPackageMsg: Label '%1 table(s) were not removed because they are also included in at least one other active package.', Comment = '%1 = number of tables retained';
         ImportMissingCodeErr: Label 'The package file does not contain a package code.';
         InvalidPackageFileErr: Label 'The file could not be read as a valid package definition.';
-        CategoryTok: Label 'MicrosoftFabricExport', Locked = true;
         PackageActivatedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 (v%2) activated.', Comment = '%1 = package code, %2 = version', Locked = true;
         PackageDeactivatedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 deactivated.', Comment = '%1 = package code', Locked = true;
         PackageReappliedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 reapplied (v%2).', Comment = '%1 = package code, %2 = version', Locked = true;
@@ -61,8 +60,8 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg.Validate("Last Activated Version", Pkg.Version);
         Pkg.Modify(true);
 
-        LogPackageEvent('0000VN1', 'Config package activated.', Pkg."Code");
-        Telemetry.LogAudit('0000VN2', StrSubstNo(PackageActivatedAuditMsg, Pkg."Code", Pkg.Version));
+        Session.LogMessage('0000WBQ', 'Config package activated.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetPackageDimensions(Pkg."Code"));
+        Session.LogMessage('0000WBR', StrSubstNo(PackageActivatedAuditMsg, Pkg."Code", Pkg.Version), Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Telemetry.GetAuditDimensions());
     end;
 
     internal procedure Deactivate(var Pkg: Record "Fabric Config Package")
@@ -87,8 +86,8 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg.Validate("Activated By", '');
         Pkg.Modify(true);
 
-        LogPackageEvent('0000VN3', 'Config package deactivated.', Pkg."Code");
-        Telemetry.LogAudit('0000VN4', StrSubstNo(PackageDeactivatedAuditMsg, Pkg."Code"));
+        Session.LogMessage('0000WBS', 'Config package deactivated.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetPackageDimensions(Pkg."Code"));
+        Session.LogMessage('0000WBT', StrSubstNo(PackageDeactivatedAuditMsg, Pkg."Code"), Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Telemetry.GetAuditDimensions());
         if GuiAllowed() and (KeptTableCount > 0) then
             Message(TablesKeptByOtherPackageMsg, KeptTableCount);
     end;
@@ -128,8 +127,8 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg.Validate("Last Activated Version", Pkg.Version);
         Pkg.Modify(true);
 
-        LogPackageEvent('0000VN5', 'Config package reapplied.', Pkg."Code");
-        Telemetry.LogAudit('0000VN6', StrSubstNo(PackageReappliedAuditMsg, Pkg."Code", Pkg.Version));
+        Session.LogMessage('0000WBU', 'Config package reapplied.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetPackageDimensions(Pkg."Code"));
+        Session.LogMessage('0000WBV', StrSubstNo(PackageReappliedAuditMsg, Pkg."Code", Pkg.Version), Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Telemetry.GetAuditDimensions());
     end;
 
     internal procedure IsReapplyAvailable(var Pkg: Record "Fabric Config Package"): Boolean
@@ -161,7 +160,7 @@ codeunit 48521 "Fabric Config Package Mgt"
         if Pkg.Active then
             ReapplyAfterRegister(Pkg, RemovedTableIds, PackageCode);
 
-        LogPackageEvent('0000VN7', StrSubstNo(PackageRegisteredViaCodeMsg, Version), PackageCode);
+        Session.LogMessage('0000WBW', StrSubstNo(PackageRegisteredViaCodeMsg, Version), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetPackageDimensions(PackageCode));
     end;
 
     local procedure UpsertPackageHeader(var Pkg: Record "Fabric Config Package"; PackageCode: Code[20]; Description: Text[100]; Version: Code[10]): Boolean
@@ -239,31 +238,25 @@ codeunit 48521 "Fabric Config Package Mgt"
     end;
 
     local procedure LogReapplySkipped(PackageCode: Code[20]; ErrorMessage: Text)
-    var
-        Telemetry: Codeunit "Fabric Platform Telemetry";
-        Dimensions: Dictionary of [Text, Text];
     begin
-        Dimensions.Add('PackageCode', PackageCode);
-        Telemetry.LogFailureEvent('0000VN8', StrSubstNo(PackageReapplySkippedMsg, ErrorMessage), Dimensions);
+        Session.LogMessage('0000WBX', StrSubstNo(PackageReapplySkippedMsg, ErrorMessage), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, GetPackageDimensions(PackageCode));
     end;
 
-    local procedure LogPackageEvent(EventId: Text; EventMessage: Text; PackageCode: Code[20])
+    local procedure GetPackageDimensions(PackageCode: Code[20]) Dimensions: Dictionary of [Text, Text]
     var
-        Dimensions: Dictionary of [Text, Text];
+        Telemetry: Codeunit "Fabric Platform Telemetry";
     begin
-        Dimensions.Add('Category', CategoryTok);
+        Dimensions := Telemetry.GetDimensions();
         Dimensions.Add('PackageCode', PackageCode);
-        Session.LogMessage(EventId, EventMessage, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     local procedure LogSkippedTableWarning(PackageCode: Code[20]; TableId: Integer)
     var
         Dimensions: Dictionary of [Text, Text];
     begin
-        Dimensions.Add('Category', CategoryTok);
-        Dimensions.Add('PackageCode', PackageCode);
+        Dimensions := GetPackageDimensions(PackageCode);
         Dimensions.Add('TableId', Format(TableId));
-        Session.LogMessage('0000VN9', 'Config package: skipped missing table — not found in AllObjWithCaption.', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
+        Session.LogMessage('0000WBY', 'Config package: skipped missing table — not found in AllObjWithCaption.', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     internal procedure ExportPackageToStream(var Pkg: Record "Fabric Config Package"; var OutStream: OutStream)
