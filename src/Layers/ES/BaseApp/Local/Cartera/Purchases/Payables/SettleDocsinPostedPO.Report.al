@@ -101,7 +101,7 @@ report 7000082 "Settle Docs. in Posted PO"
                             VendLedgEntry.Modify();
                             OnAfterCreateInvoiceGenJnlLine(
                               GenJnlLine, VendLedgEntry, PostedDoc, PostedPmtOrd, FromJnl, ExistsNoRealVAT, ExistVATEntry,
-                              IsRedrawn, FirstVATEntryNo, LastVATEntryNo, NoRealVATBuffer, BankAccPostBuffer);
+                              IsRedrawn, FirstVATEntryNo, LastVATEntryNo, TempNoRealVATBuffer, BankAccPostBuffer);
                         end;
                     "Document Type"::Bill:
                         begin
@@ -140,7 +140,7 @@ report 7000082 "Settle Docs. in Posted PO"
                             if GLSetup."Unrealized VAT" and ExistsNoRealVAT and (not IsRedrawn) then begin
                                 VendLedgEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
 
-                                OnBeforeVendUnrealizedVAT2(PostedDoc, GenJnlLine, VendLedgEntry, PostedPmtOrd, NoRealVATBuffer);
+                                OnBeforeVendUnrealizedVAT2(PostedDoc, GenJnlLine, VendLedgEntry, PostedPmtOrd, TempNoRealVATBuffer);
                                 CarteraManagement.VendUnrealizedVAT2(
                                   VendLedgEntry,
                                   VendLedgEntry."Remaining Amt. (LCY)",
@@ -148,27 +148,27 @@ report 7000082 "Settle Docs. in Posted PO"
                                   ExistVATEntry,
                                   FirstVATEntryNo,
                                   LastVATEntryNo,
-                                  NoRealVATBuffer,
+                                  TempNoRealVATBuffer,
                                   FromJnl,
                                   "Document No.");
 
                                 TempCurrCode := "Currency Code";
                                 "Currency Code" := '';
 
-                                if NoRealVATBuffer.Find('-') then begin
+                                if TempNoRealVATBuffer.Find('-') then begin
                                     repeat
                                         InsertGenJournalLine(
                                           GenJnlLine."Account Type"::"G/L Account",
-                                          NoRealVATBuffer.Account,
-                                          NoRealVATBuffer.Amount,
+                                          TempNoRealVATBuffer.Account,
+                                          TempNoRealVATBuffer.Amount,
                                           "Dimension Set ID");
                                         InsertGenJournalLine(
                                           GenJnlLine."Account Type"::"G/L Account",
-                                          NoRealVATBuffer."Balance Account",
-                                          -NoRealVATBuffer.Amount,
+                                          TempNoRealVATBuffer."Balance Account",
+                                          -TempNoRealVATBuffer.Amount,
                                           "Dimension Set ID");
-                                    until NoRealVATBuffer.Next() = 0;
-                                    NoRealVATBuffer.DeleteAll();
+                                    until TempNoRealVATBuffer.Next() = 0;
+                                    TempNoRealVATBuffer.DeleteAll();
                                 end;
 
                                 "Currency Code" := TempCurrCode;
@@ -179,7 +179,7 @@ report 7000082 "Settle Docs. in Posted PO"
                             VendLedgEntry.Modify();
                             OnAfterCreateBillGenJnlLine(
                               GenJnlLine, VendLedgEntry, PostedDoc, PostedPmtOrd, FromJnl, ExistsNoRealVAT, ExistVATEntry,
-                              IsRedrawn, FirstVATEntryNo, LastVATEntryNo, NoRealVATBuffer, BankAccPostBuffer);
+                              IsRedrawn, FirstVATEntryNo, LastVATEntryNo, TempNoRealVATBuffer, BankAccPostBuffer);
                         end;
                 end;
             end;
@@ -373,7 +373,7 @@ report 7000082 "Settle Docs. in Posted PO"
         VATPostingSetup: Record "VAT Posting Setup";
         VATEntry: Record "VAT Entry";
         BankAccPostBuffer: Record "BG/PO Post. Buffer" temporary;
-        NoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
+        TempNoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
         DocPost: Codeunit "Document-Post";
         CarteraManagement: Codeunit CarteraManagement;
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";

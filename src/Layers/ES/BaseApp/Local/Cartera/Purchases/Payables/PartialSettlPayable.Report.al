@@ -84,7 +84,7 @@ report 7000085 "Partial Settl. - Payable"
 
                             OnAfterInvoiceGenJnlLineInsert(
                               GenJnlLine, VendLedgEntry, PostedDoc, PostedPmtOrd, FromJnl, ExistsNoRealVAT,
-                              AppliedAmt, ExistVATEntry, FirstVATEntryNo, LastVATEntryNo, NoRealVATBuffer);
+                              AppliedAmt, ExistVATEntry, FirstVATEntryNo, LastVATEntryNo, TempNoRealVATBuffer);
                             if AppliedAmt = RemainingAmt then begin
                                 VendLedgEntry."Document Status" := VendLedgEntry."Document Status"::Honored;
                                 VendLedgEntry.Modify();
@@ -131,7 +131,7 @@ report 7000085 "Partial Settl. - Payable"
                                ExistsNoRealVAT and
                                (not IsRedrawn)
                             then begin
-                                OnBeforeVendUnrealizedVAT2(PostedDoc, GenJnlLine, VendLedgEntry, PostedPmtOrd, NoRealVATBuffer);
+                                OnBeforeVendUnrealizedVAT2(PostedDoc, GenJnlLine, VendLedgEntry, PostedPmtOrd, TempNoRealVATBuffer);
                                 CarteraManagement.VendUnrealizedVAT2(
                                   VendLedgEntry,
                                   -AppliedAmt,
@@ -139,22 +139,22 @@ report 7000085 "Partial Settl. - Payable"
                                   ExistVATEntry,
                                   FirstVATEntryNo,
                                   LastVATEntryNo,
-                                  NoRealVATBuffer,
+                                  TempNoRealVATBuffer,
                                   FromJnl,
                                   "Document No.");
-                                OnAfterVendUnrealizedVAT2(PostedDoc, GenJnlLine, VendLedgEntry, PostedPmtOrd, NoRealVATBuffer);
+                                OnAfterVendUnrealizedVAT2(PostedDoc, GenJnlLine, VendLedgEntry, PostedPmtOrd, TempNoRealVATBuffer);
 
-                                if NoRealVATBuffer.Find('-') then
+                                if TempNoRealVATBuffer.Find('-') then
                                     repeat
                                         InsertGenJournalLine(
                                           GenJnlLine."Account Type"::"G/L Account",
-                                          NoRealVATBuffer.Account,
-                                          NoRealVATBuffer.Amount);
+                                          TempNoRealVATBuffer.Account,
+                                          TempNoRealVATBuffer.Amount);
                                         InsertGenJournalLine(
                                           GenJnlLine."Account Type"::"G/L Account",
-                                          NoRealVATBuffer."Balance Account",
-                                          -NoRealVATBuffer.Amount);
-                                    until NoRealVATBuffer.Next() = 0;
+                                          TempNoRealVATBuffer."Balance Account",
+                                          -TempNoRealVATBuffer.Amount);
+                                    until TempNoRealVATBuffer.Next() = 0;
                             end;
 
                             if AppliedAmt = "Remaining Amount" then begin
@@ -398,7 +398,7 @@ report 7000085 "Partial Settl. - Payable"
         GLReg: Record "G/L Register";
         GLSetup: Record "General Ledger Setup";
         VATPostingSetup: Record "VAT Posting Setup";
-        NoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
+        TempNoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
         DocPost: Codeunit "Document-Post";
         CarteraManagement: Codeunit CarteraManagement;
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";

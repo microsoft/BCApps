@@ -95,7 +95,7 @@ report 7000087 "Batch Settl. Posted POs"
                                 SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
                                 OnAfterInvoiceGenJnlLineInsert(
                                   GenJnlLine, VendLedgEntry, PostedDoc, PostedPmtOrd,
-                                  FromJnl, ExistsNoRealVAT, ExistVATEntry, FirstVATEntryNo, LastVATEntryNo, NoRealVATBuffer);
+                                  FromJnl, ExistsNoRealVAT, ExistVATEntry, FirstVATEntryNo, LastVATEntryNo, TempNoRealVATBuffer);
                                 GroupAmount := GroupAmount + "Remaining Amount";
                                 GroupAmountLCY := GroupAmountLCY + "Remaining Amt. (LCY)";
                                 VendLedgEntry."Document Status" := VendLedgEntry."Document Status"::Honored;
@@ -144,7 +144,7 @@ report 7000087 "Batch Settl. Posted POs"
                                    (not IsRedrawn)
                                 then begin
                                     VendLedgEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
-                                    OnBeforeVendUnrealizedVAT2(PostedDoc, GenJnlLine, VendLedgEntry, PostedPmtOrd, NoRealVATBuffer);
+                                    OnBeforeVendUnrealizedVAT2(PostedDoc, GenJnlLine, VendLedgEntry, PostedPmtOrd, TempNoRealVATBuffer);
                                     CarteraManagement.VendUnrealizedVAT2(
                                       VendLedgEntry,
                                       VendLedgEntry."Remaining Amt. (LCY)",
@@ -152,23 +152,23 @@ report 7000087 "Batch Settl. Posted POs"
                                       ExistVATEntry,
                                       FirstVATEntryNo,
                                       LastVATEntryNo,
-                                      NoRealVATBuffer,
+                                      TempNoRealVATBuffer,
                                       FromJnl,
                                       "Document No.");
-                                    OnAfterVendUnrealizedVAT2(PostedDoc, GenJnlLine, VendLedgEntry, PostedPmtOrd, NoRealVATBuffer);
+                                    OnAfterVendUnrealizedVAT2(PostedDoc, GenJnlLine, VendLedgEntry, PostedPmtOrd, TempNoRealVATBuffer);
 
-                                    if NoRealVATBuffer.Find('-') then begin
+                                    if TempNoRealVATBuffer.Find('-') then begin
                                         repeat
                                             InsertGenJournalLine(
                                               GenJnlLine."Account Type"::"G/L Account",
-                                              NoRealVATBuffer.Account,
-                                              NoRealVATBuffer.Amount);
+                                              TempNoRealVATBuffer.Account,
+                                              TempNoRealVATBuffer.Amount);
                                             InsertGenJournalLine(
                                               GenJnlLine."Account Type"::"G/L Account",
-                                              NoRealVATBuffer."Balance Account",
-                                              -NoRealVATBuffer.Amount);
-                                        until NoRealVATBuffer.Next() = 0;
-                                        NoRealVATBuffer.DeleteAll();
+                                              TempNoRealVATBuffer."Balance Account",
+                                              -TempNoRealVATBuffer.Amount);
+                                        until TempNoRealVATBuffer.Next() = 0;
+                                        TempNoRealVATBuffer.DeleteAll();
                                     end;
                                 end;
 
@@ -406,7 +406,7 @@ report 7000087 "Batch Settl. Posted POs"
         VATPostingSetup: Record "VAT Posting Setup";
         VATEntry: Record "VAT Entry";
         BGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
-        NoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
+        TempNoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
         DocPost: Codeunit "Document-Post";
         CarteraManagement: Codeunit CarteraManagement;
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";

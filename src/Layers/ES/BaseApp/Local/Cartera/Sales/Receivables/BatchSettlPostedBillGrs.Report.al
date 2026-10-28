@@ -100,7 +100,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                        (not IsRedrawn)
                     then begin
                         CustLedgEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
-                        OnBeforeCustUnrealizedVAT2(PostedDoc, GenJnlLine, CustLedgEntry, PostedBillGr, NoRealVATBuffer);
+                        OnBeforeCustUnrealizedVAT2(PostedDoc, GenJnlLine, CustLedgEntry, PostedBillGr, TempNoRealVATBuffer);
                         CarteraManagement.CustUnrealizedVAT2(
                           CustLedgEntry,
                           CustLedgEntry."Remaining Amt. (LCY)",
@@ -108,23 +108,23 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                           ExistVATEntry,
                           FirstVATEntryNo,
                           LastVATEntryNo,
-                          NoRealVATBuffer,
+                          TempNoRealVATBuffer,
                           FromJnl,
                           "Document No.");
-                        OnAfterCustUnrealizedVAT2(PostedDoc, GenJnlLine, CustLedgEntry, PostedBillGr, NoRealVATBuffer);
+                        OnAfterCustUnrealizedVAT2(PostedDoc, GenJnlLine, CustLedgEntry, PostedBillGr, TempNoRealVATBuffer);
 
-                        if NoRealVATBuffer.Find('-') then begin
+                        if TempNoRealVATBuffer.Find('-') then begin
                             repeat
                                 InsertGenJournalLine(
                                   GenJnlLine."Account Type"::"G/L Account",
-                                  NoRealVATBuffer.Account,
-                                  NoRealVATBuffer.Amount);
+                                  TempNoRealVATBuffer.Account,
+                                  TempNoRealVATBuffer.Amount);
                                 InsertGenJournalLine(
                                   GenJnlLine."Account Type"::"G/L Account",
-                                  NoRealVATBuffer."Balance Account",
-                                  -NoRealVATBuffer.Amount);
-                            until NoRealVATBuffer.Next() = 0;
-                            NoRealVATBuffer.DeleteAll();
+                                  TempNoRealVATBuffer."Balance Account",
+                                  -TempNoRealVATBuffer.Amount);
+                            until TempNoRealVATBuffer.Next() = 0;
+                            TempNoRealVATBuffer.DeleteAll();
                         end;
                     end;
 
@@ -343,7 +343,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
         GLReg: Record "G/L Register";
         VATPostingSetup: Record "VAT Posting Setup";
         BGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
-        NoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
+        TempNoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
         DocPost: Codeunit "Document-Post";
         CarteraManagement: Codeunit CarteraManagement;
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";

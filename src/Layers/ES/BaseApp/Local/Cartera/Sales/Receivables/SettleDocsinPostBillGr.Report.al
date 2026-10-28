@@ -105,7 +105,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
                    (not IsRedrawn)
                 then begin
                     CustLedgEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
-                    OnBeforeCustUnrealizedVAT2(PostedDoc, GenJnlLine, CustLedgEntry, PostedBillGr, NoRealVATBuffer);
+                    OnBeforeCustUnrealizedVAT2(PostedDoc, GenJnlLine, CustLedgEntry, PostedBillGr, TempNoRealVATBuffer);
                     CarteraManagement.CustUnrealizedVAT2(
                       CustLedgEntry,
                       CustLedgEntry."Remaining Amt. (LCY)",
@@ -113,31 +113,31 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
                       ExistVATEntry,
                       FirstVATEntryNo,
                       LastVATEntryNo,
-                      NoRealVATBuffer,
+                      TempNoRealVATBuffer,
                       FromJnl,
                       "Document No.");
 
                     TempCurrCode := "Currency Code";
                     "Currency Code" := '';
 
-                    if NoRealVATBuffer.Find('-') then begin
+                    if TempNoRealVATBuffer.Find('-') then begin
                         repeat
                             InsertGenJournalLine(
                               GenJnlLine."Account Type"::"G/L Account",
-                              NoRealVATBuffer.Account,
-                              NoRealVATBuffer.Amount,
+                              TempNoRealVATBuffer.Account,
+                              TempNoRealVATBuffer.Amount,
                               "Global Dimension 1 Code",
                               "Global Dimension 2 Code",
                               "Dimension Set ID");
                             InsertGenJournalLine(
                               GenJnlLine."Account Type"::"G/L Account",
-                              NoRealVATBuffer."Balance Account",
-                              -NoRealVATBuffer.Amount,
+                              TempNoRealVATBuffer."Balance Account",
+                              -TempNoRealVATBuffer.Amount,
                               "Global Dimension 1 Code",
                               "Global Dimension 2 Code",
                               "Dimension Set ID");
-                        until NoRealVATBuffer.Next() = 0;
-                        NoRealVATBuffer.DeleteAll();
+                        until TempNoRealVATBuffer.Next() = 0;
+                        TempNoRealVATBuffer.DeleteAll();
                     end;
                     "Currency Code" := TempCurrCode;
                 end;
@@ -350,7 +350,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
         GLReg: Record "G/L Register";
         VATPostingSetup: Record "VAT Posting Setup";
         BankAccPostBuffer: Record "BG/PO Post. Buffer" temporary;
-        NoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
+        TempNoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
         DocPost: Codeunit "Document-Post";
         CarteraManagement: Codeunit CarteraManagement;
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";

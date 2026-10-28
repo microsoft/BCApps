@@ -133,26 +133,26 @@ report 7000097 "Reject Docs."
                       ExistVATEntry,
                       FirstVATEntryNo,
                       LastVATEntryNo,
-                      NoRealVATBuffer,
+                      TempNoRealVATBuffer,
                       FromJnl,
                       "Document No.");
 
                     TempCurrCode := "Currency Code";
                     "Currency Code" := '';
 
-                    if NoRealVATBuffer.Find('-') then
+                    if TempNoRealVATBuffer.Find('-') then
                         repeat
                             InsertGenJournalLine(
                               GenJnlLine."Account Type"::"G/L Account",
-                              NoRealVATBuffer.Account,
-                              -NoRealVATBuffer.Amount,
+                              TempNoRealVATBuffer.Account,
+                              -TempNoRealVATBuffer.Amount,
                               "Dimension Set ID");
                             InsertGenJournalLine(
                               GenJnlLine."Account Type"::"G/L Account",
-                              NoRealVATBuffer."Balance Account",
-                              NoRealVATBuffer.Amount,
+                              TempNoRealVATBuffer."Balance Account",
+                              TempNoRealVATBuffer.Amount,
                               "Dimension Set ID");
-                        until NoRealVATBuffer.Next() = 0;
+                        until TempNoRealVATBuffer.Next() = 0;
 
                     "Currency Code" := TempCurrCode;
                 end;
@@ -391,7 +391,7 @@ report 7000097 "Reject Docs."
         GLReg: Record "G/L Register";
         Currency: Record Currency;
         VATPostingSetup: Record "VAT Posting Setup";
-        NoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
+        TempNoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
         MemIntReg: Record "BG/PO Post. Buffer";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         DocPost: Codeunit "Document-Post";
