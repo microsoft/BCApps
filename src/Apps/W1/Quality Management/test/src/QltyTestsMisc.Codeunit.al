@@ -510,40 +510,48 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure ResolveFinishedByPerson_UserDoesNotExist()
     var
+        User: Record User;
         Employee: Record Employee;
         SalespersonPurchaser: Record "Salesperson/Purchaser";
-        FinishedByUserId: Code[50];
+        LibraryHumanResource: Codeunit "Library - Human Resource";
+        LibrarySales: Codeunit "Library - Sales";
         FinishedByUserName: Text;
         FinishedByTitle: Text;
         FinishedByEmail: Text;
         FinishedByPhone: Text;
     begin
-        // [SCENARIO] The saved user ID is shown on reports when the finishing user no longer exists, even if other people share the same code
+        // [SCENARIO] The saved user ID is shown on reports when the finishing user no longer exists, even if another person shares the same code
 
         Initialize();
 
-        // [GIVEN] A user ID that does not exist as a User
-        FinishedByUserId := 'QLTYDELETEDUSER';
-
-        // [GIVEN] An Employee and a Salesperson/Purchaser whose codes match the saved user ID
-        Employee.Init();
-        Employee."No." := CopyStr(FinishedByUserId, 1, MaxStrLen(Employee."No."));
-        Employee."First Name" := 'Other';
-        Employee."Last Name" := 'Employee';
+        // [GIVEN] An Employee and a Salesperson/Purchaser with names and job titles
+        LibraryHumanResource.CreateEmployee(Employee);
+        Employee.Validate("First Name", 'Other');
+        Employee.Validate("Last Name", 'Employee');
         Employee."Job Title" := 'Employee job title';
-        Employee.Insert(false);
+        Employee.Modify(false);
 
-        SalespersonPurchaser.Init();
-        SalespersonPurchaser.Code := CopyStr(FinishedByUserId, 1, MaxStrLen(SalespersonPurchaser.Code));
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
         SalespersonPurchaser.Name := 'Other Salesperson';
         SalespersonPurchaser."Job Title" := 'Salesperson job title';
-        SalespersonPurchaser.Insert(false);
+        SalespersonPurchaser.Modify(false);
 
-        // [WHEN] ResolveFinishedByPerson is called with the user ID
-        QltyInspectionUtility.ResolveFinishedByPerson(FinishedByUserId, FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+        // [GIVEN] No User exists with the Employee number or the Salesperson/Purchaser code as user name
+        User.SetFilter("User Name", '%1|%2', Employee."No.", SalespersonPurchaser.Code);
+        LibraryAssert.RecordIsEmpty(User);
 
-        // [THEN] The saved user ID is returned instead of the name of an unrelated person
-        LibraryAssert.AreEqual(FinishedByUserId, FinishedByUserName, 'The finished by name should fall back to the saved user ID.');
+        // [WHEN] ResolveFinishedByPerson is called with the Employee number as the saved user ID
+        QltyInspectionUtility.ResolveFinishedByPerson(Employee."No.", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+
+        // [THEN] The saved user ID is returned instead of the Employee name
+        LibraryAssert.AreEqual(Employee."No.", FinishedByUserName, 'The finished by name should fall back to the saved user ID, not the employee name.');
+        LibraryAssert.AreEqual(QualityInspectorTitleTok, FinishedByTitle, 'The finished by title should be the default quality inspector title.');
+
+        // [WHEN] ResolveFinishedByPerson is called with the Salesperson/Purchaser code as the saved user ID
+        QltyInspectionUtility.ResolveFinishedByPerson(SalespersonPurchaser.Code, FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+
+        // [THEN] The saved user ID is returned instead of the Salesperson/Purchaser name
+        LibraryAssert.AreEqual(SalespersonPurchaser.Code, FinishedByUserName, 'The finished by name should fall back to the saved user ID, not the salesperson name.');
         LibraryAssert.AreEqual(QualityInspectorTitleTok, FinishedByTitle, 'The finished by title should be the default quality inspector title.');
     end;
 
@@ -553,6 +561,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         User: Record User;
         UserSetup: Record "User Setup";
         SalespersonPurchaser: Record "Salesperson/Purchaser";
+        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         LibrarySales: Codeunit "Library - Sales";
         FinishedByUserName: Text;
         FinishedByTitle: Text;
@@ -567,21 +576,22 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] The current user has a full name
         PrepareCurrentUserAsFinishingUser(User, CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(User."Full Name")));
 
-        // [GIVEN] A Salesperson/Purchaser with a different name, a job title and an email address linked to the user in User Setup
-        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+        // [GIVEN] The current user is linked in User Setup to a Salesperson/Purchaser
+        if UserSetup.Get(User."User Name") then begin
+            LibrarySales.CreateSalesperson(SalespersonPurchaser);
+            UserSetup."Salespers./Purch. Code" := SalespersonPurchaser.Code;
+            UserSetup.Modify(false);
+        end else begin
+            LibraryDocumentApprovals.CreateUserSetup(UserSetup, User."User Name", '');
+            CreatedUserSetup := true;
+        end;
+
+        // [GIVEN] The linked Salesperson/Purchaser has a different name, a job title and an email address
+        SalespersonPurchaser.Get(UserSetup."Salespers./Purch. Code");
         SalespersonPurchaser.Name := 'Linked Salesperson';
         SalespersonPurchaser."Job Title" := 'Quality Lead';
         SalespersonPurchaser."E-Mail" := CopyStr(Any.Email(), 1, MaxStrLen(SalespersonPurchaser."E-Mail"));
         SalespersonPurchaser.Modify(false);
-
-        if not UserSetup.Get(User."User Name") then begin
-            UserSetup.Init();
-            UserSetup."User ID" := User."User Name";
-            UserSetup.Insert(false);
-            CreatedUserSetup := true;
-        end;
-        UserSetup."Salespers./Purch. Code" := SalespersonPurchaser.Code;
-        UserSetup.Modify(false);
 
         // [WHEN] ResolveFinishedByPerson is called with the User name
         QltyInspectionUtility.ResolveFinishedByPerson(User."User Name", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
