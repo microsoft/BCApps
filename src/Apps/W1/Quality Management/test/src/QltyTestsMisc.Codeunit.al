@@ -463,7 +463,6 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure ResolveFinishedByPerson_UserWithFullName()
     var
         User: Record User;
-        LibraryPermissions: Codeunit "Library - Permissions";
         FinishedByUserName: Text;
         FinishedByTitle: Text;
         FinishedByEmail: Text;
@@ -473,10 +472,8 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         Initialize();
 
-        // [GIVEN] A User record with a full name that differs from the user name
-        LibraryPermissions.CreateUser(User, '', false);
-        User."Full Name" := CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(User."Full Name"));
-        User.Modify(false);
+        // [GIVEN] The current user has a full name that differs from the user name
+        PrepareCurrentUserAsFinishingUser(User, CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(User."Full Name")));
 
         // [WHEN] ResolveFinishedByPerson is called with the User name
         QltyInspectionUtility.ResolveFinishedByPerson(User."User Name", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
@@ -490,7 +487,6 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure ResolveFinishedByPerson_UserWithBlankFullName()
     var
         User: Record User;
-        LibraryPermissions: Codeunit "Library - Permissions";
         FinishedByUserName: Text;
         FinishedByTitle: Text;
         FinishedByEmail: Text;
@@ -500,10 +496,8 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         Initialize();
 
-        // [GIVEN] A User record with a blank full name
-        LibraryPermissions.CreateUser(User, '', false);
-        User."Full Name" := '';
-        User.Modify(false);
+        // [GIVEN] The current user has a blank full name
+        PrepareCurrentUserAsFinishingUser(User, '');
 
         // [WHEN] ResolveFinishedByPerson is called with the User name
         QltyInspectionUtility.ResolveFinishedByPerson(User."User Name", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
@@ -516,25 +510,93 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure ResolveFinishedByPerson_UserDoesNotExist()
     var
+        Employee: Record Employee;
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
         FinishedByUserId: Code[50];
         FinishedByUserName: Text;
         FinishedByTitle: Text;
         FinishedByEmail: Text;
         FinishedByPhone: Text;
     begin
-        // [SCENARIO] The saved user ID is shown on reports when the finishing user no longer exists
+        // [SCENARIO] The saved user ID is shown on reports when the finishing user no longer exists, even if other people share the same code
 
         Initialize();
 
-        // [GIVEN] A user ID that does not exist in any person table
+        // [GIVEN] A user ID that does not exist as a User
         FinishedByUserId := 'QLTYDELETEDUSER';
+
+        // [GIVEN] An Employee and a Salesperson/Purchaser whose codes match the saved user ID
+        Employee.Init();
+        Employee."No." := CopyStr(FinishedByUserId, 1, MaxStrLen(Employee."No."));
+        Employee."First Name" := 'Other';
+        Employee."Last Name" := 'Employee';
+        Employee."Job Title" := 'Employee job title';
+        Employee.Insert(false);
+
+        SalespersonPurchaser.Init();
+        SalespersonPurchaser.Code := CopyStr(FinishedByUserId, 1, MaxStrLen(SalespersonPurchaser.Code));
+        SalespersonPurchaser.Name := 'Other Salesperson';
+        SalespersonPurchaser."Job Title" := 'Salesperson job title';
+        SalespersonPurchaser.Insert(false);
 
         // [WHEN] ResolveFinishedByPerson is called with the user ID
         QltyInspectionUtility.ResolveFinishedByPerson(FinishedByUserId, FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
 
-        // [THEN] The saved user ID is returned instead of a blank name
+        // [THEN] The saved user ID is returned instead of the name of an unrelated person
         LibraryAssert.AreEqual(FinishedByUserId, FinishedByUserName, 'The finished by name should fall back to the saved user ID.');
         LibraryAssert.AreEqual(QualityInspectorTitleTok, FinishedByTitle, 'The finished by title should be the default quality inspector title.');
+    end;
+
+    [Test]
+    procedure ResolveFinishedByPerson_UserWithLinkedSalesperson()
+    var
+        User: Record User;
+        UserSetup: Record "User Setup";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        LibrarySales: Codeunit "Library - Sales";
+        FinishedByUserName: Text;
+        FinishedByTitle: Text;
+        FinishedByEmail: Text;
+        FinishedByPhone: Text;
+        CreatedUserSetup: Boolean;
+    begin
+        // [SCENARIO] The finishing user's full name is kept when the user is linked to a Salesperson/Purchaser with a different name
+
+        Initialize();
+
+        // [GIVEN] The current user has a full name
+        PrepareCurrentUserAsFinishingUser(User, CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(User."Full Name")));
+
+        // [GIVEN] A Salesperson/Purchaser with a different name, a job title and an email address linked to the user in User Setup
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+        SalespersonPurchaser.Name := 'Linked Salesperson';
+        SalespersonPurchaser."Job Title" := 'Quality Lead';
+        SalespersonPurchaser."E-Mail" := CopyStr(Any.Email(), 1, MaxStrLen(SalespersonPurchaser."E-Mail"));
+        SalespersonPurchaser.Modify(false);
+
+        if not UserSetup.Get(User."User Name") then begin
+            UserSetup.Init();
+            UserSetup."User ID" := User."User Name";
+            UserSetup.Insert(false);
+            CreatedUserSetup := true;
+        end;
+        UserSetup."Salespers./Purch. Code" := SalespersonPurchaser.Code;
+        UserSetup.Modify(false);
+
+        // [WHEN] ResolveFinishedByPerson is called with the User name
+        QltyInspectionUtility.ResolveFinishedByPerson(User."User Name", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+
+        // [THEN] The user full name is returned, with the job title and email address of the linked Salesperson/Purchaser
+        LibraryAssert.AreEqual(User."Full Name", FinishedByUserName, 'The finished by name should be the user full name, not the salesperson name.');
+        LibraryAssert.AreEqual(SalespersonPurchaser."Job Title", FinishedByTitle, 'The finished by title should be the linked salesperson job title.');
+        LibraryAssert.AreEqual(SalespersonPurchaser."E-Mail", FinishedByEmail, 'The finished by email should be the linked salesperson email.');
+
+        if CreatedUserSetup then
+            UserSetup.Delete(false)
+        else begin
+            UserSetup."Salespers./Purch. Code" := '';
+            UserSetup.Modify(false);
+        end;
     end;
 
     [Test]
@@ -3033,6 +3095,22 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         IsInitialized := true;
+    end;
+
+    local procedure PrepareCurrentUserAsFinishingUser(var User: Record User; FullName: Text[80])
+    var
+        UserSetup: Record "User Setup";
+    begin
+        // Reuses the current user instead of creating a new one, because the test license limits the number of users.
+        User.SetRange("User Name", UserId());
+        LibraryAssert.IsTrue(User.FindFirst(), 'The current user should exist.');
+        User."Full Name" := FullName;
+        User.Modify(false);
+
+        if UserSetup.Get(User."User Name") then begin
+            UserSetup."Salespers./Purch. Code" := '';
+            UserSetup.Modify(false);
+        end;
     end;
 
     local procedure EnsureGenPostingSetupForAssemblyExists(AssemblyHeader: Record "Assembly Header")
