@@ -31,7 +31,11 @@ pageextension 7000016 "CRT Bookkeeper Activities" extends "Bookkeeper Activities
                     DrillDownPageID = "Posted Cartera Documents";
                     ToolTip = 'Specifies the receivables documents that have been posted.';
                 }
+            }
 
+            cuegroup(CarteraReceivablesActions)
+            {
+                Caption = 'Cartera Receivables Actions';
                 actions
                 {
                     action("New Bill Group")
@@ -73,7 +77,11 @@ pageextension 7000016 "CRT Bookkeeper Activities" extends "Bookkeeper Activities
                     DrillDownPageID = "Posted Cartera Documents";
                     ToolTip = 'Specifies the payables documents that have been posted.';
                 }
+            }
 
+            cuegroup(CarteraPayablesActions)
+            {
+                Caption = 'Cartera Payables Actions';
                 actions
                 {
                     action("New Payment Order")

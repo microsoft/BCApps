@@ -388,6 +388,7 @@ page 7000036 "Cartera Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Ledger E&ntries';
+                    Image = GLRegisters;
                     RunObject = Codeunit "Gen. Jnl.-Show Entries";
                     ShortCutKey = 'Ctrl+F7';
                     ToolTip = 'View the history of transactions that have been posted for the selected record.';
