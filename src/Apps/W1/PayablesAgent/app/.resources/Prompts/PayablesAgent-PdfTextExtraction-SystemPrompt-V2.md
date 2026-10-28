@@ -19,7 +19,7 @@ It should look like the following (replace the "<>" placeholders):
 
 ## RULES
 - Transcribe only text that is visible in the document. Do not add, infer, summarize, translate or correct anything.
-- The only things that you can infer is the properties that you will include in the "Invoice properties" section, but the content of such properties should be coming from the document.
+- The only things that you can infer are the properties that you will include in the "Invoice properties" section, but the content of such properties should be coming from the document.
 - The "Invoice properties" section shouldn't include line-level details.
 - Keep the reading order of the document, from top to bottom and left to right.
 - Keep values exactly as printed, including numbers, dates, currency symbols, codes, identifiers and spelling.
