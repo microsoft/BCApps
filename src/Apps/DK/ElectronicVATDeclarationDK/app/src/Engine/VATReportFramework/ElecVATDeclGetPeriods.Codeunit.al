@@ -66,40 +66,54 @@ codeunit 13610 "Elec. VAT Decl. Get Periods"
     local procedure GetFrequencyAwareVATReturnPeriods(ResponseText: Text; var TotalPeriodsFetched: Integer; var PeriodsInserted: Integer)
     var
         ElecVATDeclXml: Codeunit "Elec. VAT Decl. Xml";
-        PeriodXmlNodeList: XmlNodeList;
+        FrequencyXmlNodeList: XmlNodeList;
         ReportingFrequency: Enum "Elec. VAT Decl. Rep. Frequency";
     begin
-        PeriodXmlNodeList := ElecVATDeclXml.TryGetPeriodNodesFromResponseText(ResponseText);
-        TotalPeriodsFetched := PeriodXmlNodeList.Count();
+        FrequencyXmlNodeList := ElecVATDeclXml.GetFrequencyNodesFromResponseText(ResponseText);
+        TotalPeriodsFetched := CountDeadlines(FrequencyXmlNodeList);
 
-        InsertVATReturnPeriods(PeriodXmlNodeList, ReportingFrequency::Monthly, PeriodsInserted);
-        InsertVATReturnPeriods(PeriodXmlNodeList, ReportingFrequency::Quarterly, PeriodsInserted);
-        InsertVATReturnPeriods(PeriodXmlNodeList, ReportingFrequency::"Semi-Annual", PeriodsInserted);
+        // Shorter frequencies first, so that a frequency change does not trip the overlap check on periods inserted in the same run
+        InsertVATReturnPeriods(FrequencyXmlNodeList, ReportingFrequency::Monthly, PeriodsInserted);
+        InsertVATReturnPeriods(FrequencyXmlNodeList, ReportingFrequency::Quarterly, PeriodsInserted);
+        InsertVATReturnPeriods(FrequencyXmlNodeList, ReportingFrequency::"Semi-Annual", PeriodsInserted);
     end;
 
-    local procedure InsertVATReturnPeriods(PeriodXmlNodeList: XmlNodeList; ReportingFrequencyToInsert: Enum "Elec. VAT Decl. Rep. Frequency"; var PeriodsInserted: Integer)
+    local procedure CountDeadlines(FrequencyXmlNodeList: XmlNodeList) DeadlineCount: Integer
     var
         ElecVATDeclXml: Codeunit "Elec. VAT Decl. Xml";
-        DueDateXmlNode: XmlNode;
         FrequencyXmlNode: XmlNode;
-        PeriodXmlNode: XmlNode;
+    begin
+        foreach FrequencyXmlNode in FrequencyXmlNodeList do
+            DeadlineCount += ElecVATDeclXml.GetDeadlineNodesFromFrequencyNode(FrequencyXmlNode).Count();
+    end;
+
+    local procedure InsertVATReturnPeriods(FrequencyXmlNodeList: XmlNodeList; ReportingFrequencyToInsert: Enum "Elec. VAT Decl. Rep. Frequency"; var PeriodsInserted: Integer)
+    var
+        ElecVATDeclXml: Codeunit "Elec. VAT Decl. Xml";
+        DeadlineXmlNodeList: XmlNodeList;
+        DeadlineXmlNode: XmlNode;
+        FilingDateXmlNode: XmlNode;
+        FrequencyTypeCodeXmlNode: XmlNode;
+        FrequencyXmlNode: XmlNode;
         ReportingFrequency: Enum "Elec. VAT Decl. Rep. Frequency";
         DueDate: Date;
-        i: Integer;
     begin
-        for i := 1 to PeriodXmlNodeList.Count() do begin
-            PeriodXmlNodeList.Get(i, PeriodXmlNode);
-            if not ElecVATDeclXml.TryGetDueDateNodeFromPeriodNode(PeriodXmlNode, DueDateXmlNode) then
-                Error(DueDateNotFoundErr);
-            if not ElecVATDeclXml.TryGetFrequencyNodeFromPeriodNode(PeriodXmlNode, FrequencyXmlNode) then
-                Error(FrequencyNotFoundErr);
-            ReportingFrequency := GetReportingFrequency(FrequencyXmlNode.AsXmlElement().InnerText());
-            if ReportingFrequency <> ReportingFrequencyToInsert then
-                continue;
-            if not Evaluate(DueDate, DueDateXmlNode.AsXmlElement().InnerText()) then
-                Error(InvalidDueDateErr);
-            if InsertVATReturnPeriod(DueDate, ReportingFrequency) then
-                PeriodsInserted += 1;
+        foreach FrequencyXmlNode in FrequencyXmlNodeList do begin
+            DeadlineXmlNodeList := ElecVATDeclXml.GetDeadlineNodesFromFrequencyNode(FrequencyXmlNode);
+            if DeadlineXmlNodeList.Count() > 0 then begin
+                if not ElecVATDeclXml.TryGetFrequencyTypeCodeNodeFromFrequencyNode(FrequencyXmlNode, FrequencyTypeCodeXmlNode) then
+                    Error(FrequencyNotFoundErr);
+                ReportingFrequency := GetReportingFrequency(FrequencyTypeCodeXmlNode.AsXmlElement().InnerText());
+                if ReportingFrequency = ReportingFrequencyToInsert then
+                    foreach DeadlineXmlNode in DeadlineXmlNodeList do begin
+                        if not ElecVATDeclXml.TryGetFilingDateNodeFromDeadlineNode(DeadlineXmlNode, FilingDateXmlNode) then
+                            Error(DueDateNotFoundErr);
+                        if not Evaluate(DueDate, FilingDateXmlNode.AsXmlElement().InnerText(), 9) then
+                            Error(InvalidDueDateErr);
+                        if InsertVATReturnPeriod(DueDate, ReportingFrequency) then
+                            PeriodsInserted += 1;
+                    end;
+            end;
         end;
     end;
 
@@ -139,20 +153,22 @@ codeunit 13610 "Elec. VAT Decl. Get Periods"
         ActuallyInserted := true;
     end;
 
-    procedure GetReportingFrequency(FrequencyText: Text) ReportingFrequency: Enum "Elec. VAT Decl. Rep. Frequency"
+    procedure GetReportingFrequency(FrequencyTypeCode: Text) ReportingFrequency: Enum "Elec. VAT Decl. Rep. Frequency"
     var
-        NormalizedFrequency: Text;
+        FrequencyCode: Integer;
     begin
-        NormalizedFrequency := LowerCase(FrequencyText.Trim());
-        case true of
-            NormalizedFrequency.Contains('ned'):
-                exit(ReportingFrequency::Monthly);
-            NormalizedFrequency.Contains('alv'):
-                exit(ReportingFrequency::"Semi-Annual");
-            NormalizedFrequency.Contains('vartal'):
-                exit(ReportingFrequency::Quarterly);
-        end;
-        Error(UnsupportedFrequencyErr, FrequencyText);
+        // AngivelseFrekvensTypeCode values, as documented by SKAT for VirksomhedKalenderHent:
+        // 07 = monthly, 08 = quarterly, 09 = every 6 months. Other codes (none, weekly, yearly, ...) are not supported for VAT return periods.
+        if Evaluate(FrequencyCode, FrequencyTypeCode.Trim()) then
+            case FrequencyCode of
+                7:
+                    exit(ReportingFrequency::Monthly);
+                8:
+                    exit(ReportingFrequency::Quarterly);
+                9:
+                    exit(ReportingFrequency::"Semi-Annual");
+            end;
+        Error(UnsupportedFrequencyErr, FrequencyTypeCode);
     end;
 
     local procedure InsertVATReturnPeriod(DueDate: Date; ReportingFrequency: Enum "Elec. VAT Decl. Rep. Frequency") ActuallyInserted: Boolean

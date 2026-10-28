@@ -503,6 +503,25 @@ table 5601 "FA Ledger Entry"
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
                                                                                     "Global Dimension No." = const(8)));
         }
+        field(5865; "Derogatory Excluded"; Boolean)
+        {
+            Caption = 'Exclude Derogatory';
+            ToolTip = 'Specifies whether the entry is excluded from derogatory depreciation calculations.';
+            Editable = false;
+        }
+        field(5866; "Derogatory Source Entry No."; Integer)
+        {
+            Caption = 'Derogatory Source Entry No.';
+            ToolTip = 'Specifies the source fixed asset ledger entry linked to this derogatory entry.';
+            Editable = false;
+            TableRelation = "FA Ledger Entry"."Entry No.";
+        }
+        field(5867; "Legacy Derogatory Ambiguous"; Boolean)
+        {
+            Caption = 'Legacy Derogatory Ambiguous';
+            ToolTip = 'Specifies whether multiple matches prevented a unique historical derogatory link for this entry.';
+            Editable = false;
+        }
         field(6210; "Non-Ded. VAT FA Cost"; Boolean)
         {
             Caption = 'Non-Deductible VAT FA Cost';
@@ -525,11 +544,11 @@ table 5601 "FA Ledger Entry"
             SumIndexFields = Amount;
             IncludedFields = Amount;
         }
-        key(Key3; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "FA Posting Date", "Part of Book Value", "Reclassification Entry")
+        key(Key3; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "FA Posting Date", "Part of Book Value", "Reclassification Entry", "Derogatory Excluded")
         {
-            SumIndexFields = Amount;
+            SumIndexFields = Amount, "Debit Amount", "Credit Amount";
         }
-        key(Key4; "FA No.", "Depreciation Book Code", "Part of Book Value", "FA Posting Date")
+        key(Key4; "FA No.", "Depreciation Book Code", "Part of Book Value", "FA Posting Date", "Derogatory Excluded")
         {
             SumIndexFields = Amount;
         }
@@ -537,7 +556,7 @@ table 5601 "FA Ledger Entry"
         {
             SumIndexFields = Amount;
         }
-        key(Key6; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date")
+        key(Key6; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date", "Derogatory Excluded")
         {
             SumIndexFields = Amount;
         }
@@ -562,6 +581,9 @@ table 5601 "FA Ledger Entry"
         key(Key13; "FA No.", "FA Posting Group", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date", "Depr. Difference Posted")
         {
             SumIndexFields = Amount;
+        }
+        key(Key14; "Derogatory Source Entry No.", "Depreciation Book Code")
+        {
         }
     }
 
@@ -683,6 +705,8 @@ table 5601 "FA Ledger Entry"
                 FAJnlLine."FA Posting Type" := FAJnlLine."FA Posting Type"::"Salvage Value";
             "FA Posting Type"::"Bonus Depreciation":
                 FAJnlLine."FA Posting Type" := FAJnlLine."FA Posting Type"::"Bonus Depreciation";
+            "FA Posting Type"::Derogatory:
+                FAJnlLine."FA Posting Type" := FAJnlLine."FA Posting Type"::Derogatory;
             else
                 OnAfterConvertPostingTypeElse(FAJnlLine, Rec);
         end;

@@ -1,5 +1,5 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/88faf7e7845be73f3f531a58ba4289319387990c/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/20620d1a3676cecfa2d0bbba3ced4a89f0e08217/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps NO",
     "country":  "NO",
     "appFolders":  [
@@ -92,6 +92,7 @@
                        "../../../src/Apps/W1/Quality Management/app",
                        "../../../src/Apps/W1/Quality Management/Demo Data",
                        "../../../src/Apps/W1/RecommendedApps/app",
+                       "../../../src/Apps/W1/ReportFilenameManager/App",
                        "../../../src/Apps/W1/ReviewGLEntries/app",
                        "../../../src/Apps/W1/SAF-T/app",
                        "../../../src/Apps/W1/SalesAndInventoryForecast/app",
@@ -194,6 +195,7 @@
                         "../../../src/Apps/W1/Quality Management/test",
                         "../../../src/Apps/W1/Quality Management/Test Library",
                         "../../../src/Apps/W1/RecommendedApps/test",
+                        "../../../src/Apps/W1/ReportFilenameManager/Test",
                         "../../../src/Apps/W1/ReviewGLEntries/test",
                         "../../../src/Apps/W1/SAF-T/test",
                         "../../../src/Apps/W1/SalesAndInventoryForecast/test",

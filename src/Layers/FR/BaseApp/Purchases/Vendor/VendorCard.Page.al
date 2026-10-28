@@ -472,10 +472,14 @@ page 26 "Vendor Card"
                                 PaymentToleranceMgt.CalcTolVendLedgEntry(Rec);
                     end;
                 }
+#if not CLEAN30
                 field("Payment Balance (LCY)"; Rec."Balance (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the total value of your completed purchases from the vendor in the current fiscal year. It is calculated from amounts excluding VAT on all completed purchase invoices and credit memos.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '30.0';
 
                     trigger OnDrillDown()
                     var
@@ -489,6 +493,7 @@ page 26 "Vendor Card"
                         VendLedgEntry.DrillDownOnEntries(DtldVendLedgEntry);
                     end;
                 }
+#endif
 #if not CLEAN28
                 field("Payment in progress (LCY)"; Rec."Payment in progress (LCY)")
                 {

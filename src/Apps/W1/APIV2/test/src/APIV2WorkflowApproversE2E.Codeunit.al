@@ -2,6 +2,7 @@ codeunit 139920 "APIV2 - Workflow Approvers E2E"
 {
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 

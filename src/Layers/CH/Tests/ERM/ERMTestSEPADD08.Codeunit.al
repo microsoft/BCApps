@@ -776,6 +776,89 @@ codeunit 134429 "ERM Test SEPA DD 08"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure ExportFilteredTempEntryWithoutCurrentCollection()
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+        DirectDebitCollectionEntry: Record "Direct Debit Collection Entry";
+        TempExportEntry: Record "Direct Debit Collection Entry" temporary;
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustLedgEntry: Record "Cust. Ledger Entry";
+        SEPADDExportFile: Codeunit "SEPA DD-Export File";
+    begin
+        // [SCENARIO 653676] Export selects the collection from a filter on an unpositioned temporary entry.
+        Init();
+        CreateDirectDebitCollectionEntry(DirectDebitCollection, DirectDebitCollectionEntry, CustLedgEntry, SEPADirectDebitMandate);
+        AdjustEntryForExportCheck(DirectDebitCollectionEntry, 0);
+        TempExportEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
+        TempExportEntry.TestField("Direct Debit Collection No.", 0);
+
+        SEPADDExportFile.EnableExportToServerFile();
+        SEPADDExportFile.Run(TempExportEntry);
+
+        DirectDebitCollection.Find();
+        DirectDebitCollection.TestField(Status, DirectDebitCollection.Status::"File Created");
+        DirectDebitCollectionEntry.Find();
+        DirectDebitCollectionEntry.TestField(Status, DirectDebitCollectionEntry.Status::"File Created");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportUnfilteredCollectionEntry()
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+        DirectDebitCollectionEntry: Record "Direct Debit Collection Entry";
+        OtherCollection: Record "Direct Debit Collection";
+        OtherEntry: Record "Direct Debit Collection Entry";
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustLedgEntry: Record "Cust. Ledger Entry";
+        SEPADDExportFile: Codeunit "SEPA DD-Export File";
+    begin
+        // [SCENARIO 653676] A populated entry still exports without a collection-number filter.
+        Init();
+        CreateDirectDebitCollectionEntry(DirectDebitCollection, DirectDebitCollectionEntry, CustLedgEntry, SEPADirectDebitMandate);
+        AdjustEntryForExportCheck(DirectDebitCollectionEntry, 0);
+        CreateDirectDebitCollectionEntry(OtherCollection, OtherEntry, CustLedgEntry, SEPADirectDebitMandate);
+        OtherEntry."Mandate ID" := '';
+        OtherEntry.Modify();
+        DirectDebitCollectionEntry.Reset();
+
+        SEPADDExportFile.EnableExportToServerFile();
+        SEPADDExportFile.Run(DirectDebitCollectionEntry);
+
+        DirectDebitCollection.Find();
+        DirectDebitCollection.TestField(Status, DirectDebitCollection.Status::"File Created");
+        DirectDebitCollectionEntry.Find();
+        DirectDebitCollectionEntry.TestField(Status, DirectDebitCollectionEntry.Status::"File Created");
+        OtherCollection.Find();
+        OtherCollection.TestField(Status, OtherCollection.Status::New);
+        OtherEntry.Find();
+        OtherEntry.TestField(Status, OtherEntry.Status::New);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CallableCollectionValidationRetainsExistingErrors()
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+        DirectDebitCollectionEntry: Record "Direct Debit Collection Entry";
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustLedgEntry: Record "Cust. Ledger Entry";
+        SEPADDCheckLine: Codeunit "SEPA DD-Check Line";
+    begin
+        // [SCENARIO 653676] Directly callable validation appends errors without deleting the caller's errors.
+        Init();
+        CreateDirectDebitCollectionEntry(DirectDebitCollection, DirectDebitCollectionEntry, CustLedgEntry, SEPADirectDebitMandate);
+        DirectDebitCollectionEntry.InsertPaymentFileError('Originating document error');
+        DirectDebitCollectionEntry."Transfer Amount" := -1;
+
+        SEPADDCheckLine.CheckCollectionEntry(DirectDebitCollectionEntry);
+
+        VerifyExportError(DirectDebitCollectionEntry, 'Originating document error');
+        VerifyExportError(DirectDebitCollectionEntry, 'The amount must be positive.');
+    end;
+
+    [Test]
     [HandlerFunctions('SEPADDMandatesPageHandler')]
     [Scope('OnPrem')]
     procedure DirectDebitMandatePreferredBankAcc()

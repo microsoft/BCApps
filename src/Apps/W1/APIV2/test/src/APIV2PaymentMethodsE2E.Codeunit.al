@@ -3,6 +3,7 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -155,6 +156,8 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 

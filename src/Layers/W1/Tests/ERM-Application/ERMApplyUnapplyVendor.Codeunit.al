@@ -42,6 +42,7 @@
         DimBalanceErr: Label 'Wrong balance by Dimension.';
         OptionValue: Integer;
         AppliesToExtDocNoErr: Label 'Applies to Ext. Doc No. must be empty.';
+        RemAmtLCYChangedByUnapplyErr: Label 'Remaining Amt. (LCY) as of %1 must be the same as before the application.', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -1381,6 +1382,249 @@
     end;
 
     [Test]
+    procedure UnapplyFCYPaymentWithManualFactorBeforeLaterExchRateAdjmtKeepsBalances()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry";
+        PaymentVendorLedgerEntry: Record "Vendor Ledger Entry";
+        ERMApplyUnapplyVendor: Codeunit "ERM Apply Unapply Vendor";
+        PostingDate: array[3] of Date;
+        ExpectedRemainingAmtLCY: array[3] of Decimal;
+        CurrencyCode: Code[10];
+        LastDtldEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 1.0] [FCY] [Adjust Exchange Rate]
+        // [SCENARIO] Unapplying an FCY payment on a date before later exchange rate adjustments does not change the payment's LCY balance on any date.
+        Initialize();
+        BindSubscription(ERMApplyUnapplyVendor);
+
+        // [GIVEN] "Appln. between Currencies" = All
+        UpdatePurchaseAndPayableSetup(PurchasesPayablesSetup."Appln. between Currencies"::All);
+
+        // [GIVEN] Currency "EUR" with exchange rates 1.16, 1.167018 and 1.168121 on dates D1, D2 and D3
+        CurrencyCode := CreateCurrencyWithExchRatesOnThreeDates(PostingDate);
+
+        // [GIVEN] LCY invoice "I" of 27609.25 and EUR payment "P" of 27586 with manual currency factor 1.134468 (24316.24 LCY), both posted on D1
+        PostLCYInvoiceAndFCYPayment(
+          InvoiceVendorLedgerEntry, PaymentVendorLedgerEntry, PostingDate[1], CurrencyCode, -27609.25, 27586, 1.134468);
+
+        // [GIVEN] Exchange rates adjusted on D2 and D3, posting unrealized losses of 678.22 and 22.32 for "P"
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[2], PostingDate[2]);
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[3], PostingDate[3]);
+
+        // [GIVEN] "P" applied to "I" on D1
+        ApplyVendorLedgerEntry(
+          InvoiceVendorLedgerEntry."Document Type", PaymentVendorLedgerEntry."Document Type",
+          InvoiceVendorLedgerEntry."Document No.", PaymentVendorLedgerEntry."Document No.");
+        LastDtldEntryNo := GetLastDtldVendLedgEntryNo();
+
+        // [WHEN] Unapply "P" on D1
+        PostUnapplyVendLedgEntryOnDate(PaymentVendorLedgerEntry, PostingDate[1]);
+        UnbindSubscription(ERMApplyUnapplyVendor);
+
+        // [THEN] "Remaining Amt. (LCY)" of "P" is 24316.24 as of D1, 23638.02 as of D2 and 23615.70 as of D3, the same as before the application
+        ExpectedRemainingAmtLCY[1] := 24316.24;
+        ExpectedRemainingAmtLCY[2] := 23638.02;
+        ExpectedRemainingAmtLCY[3] := 23615.7;
+        VerifyVendLedgEntryRemAmtLCYOnDates(PaymentVendorLedgerEntry."Entry No.", PostingDate, ExpectedRemainingAmtLCY);
+
+        // [THEN] Unapply posts no unrealized gain or loss for "P"
+        VerifyNoUnrealizedGainLossDtldVendLedgEntryPosted(PaymentVendorLedgerEntry."Entry No.", LastDtldEntryNo);
+    end;
+
+    [Test]
+    procedure UnapplyFCYPaymentBeforeLaterExchRateAdjmtKeepsBalances()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry";
+        PaymentVendorLedgerEntry: Record "Vendor Ledger Entry";
+        ERMApplyUnapplyVendor: Codeunit "ERM Apply Unapply Vendor";
+        PostingDate: array[3] of Date;
+        RemainingAmtLCYBeforeApplication: array[3] of Decimal;
+        CurrencyCode: Code[10];
+        LastDtldEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 1.0] [FCY] [Adjust Exchange Rate]
+        // [SCENARIO] Unapplying an FCY payment posted at the standard exchange rate on a date before later exchange rate adjustments does not change the payment's LCY balance on any date.
+        Initialize();
+        BindSubscription(ERMApplyUnapplyVendor);
+
+        // [GIVEN] "Appln. between Currencies" = All
+        UpdatePurchaseAndPayableSetup(PurchasesPayablesSetup."Appln. between Currencies"::All);
+
+        // [GIVEN] Currency "EUR" with exchange rates 1.16, 1.167018 and 1.168121 on dates D1, D2 and D3
+        CurrencyCode := CreateCurrencyWithExchRatesOnThreeDates(PostingDate);
+
+        // [GIVEN] LCY invoice "I" of 30000 and EUR payment "P" of 25000 at the exchange rate of D1, both posted on D1
+        PostLCYInvoiceAndFCYPayment(
+          InvoiceVendorLedgerEntry, PaymentVendorLedgerEntry, PostingDate[1], CurrencyCode, -30000, 25000, 0);
+
+        // [GIVEN] Exchange rates adjusted on D2 and D3
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[2], PostingDate[2]);
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[3], PostingDate[3]);
+        GetVendLedgEntryRemAmtLCYOnDates(PaymentVendorLedgerEntry."Entry No.", PostingDate, RemainingAmtLCYBeforeApplication);
+
+        // [GIVEN] "P" applied to "I" on D1
+        ApplyVendorLedgerEntry(
+          InvoiceVendorLedgerEntry."Document Type", PaymentVendorLedgerEntry."Document Type",
+          InvoiceVendorLedgerEntry."Document No.", PaymentVendorLedgerEntry."Document No.");
+        LastDtldEntryNo := GetLastDtldVendLedgEntryNo();
+
+        // [WHEN] Unapply "P" on D1
+        PostUnapplyVendLedgEntryOnDate(PaymentVendorLedgerEntry, PostingDate[1]);
+        UnbindSubscription(ERMApplyUnapplyVendor);
+
+        // [THEN] "Remaining Amt. (LCY)" of "P" as of D1, D2 and D3 is the same as before the application
+        VerifyVendLedgEntryRemAmtLCYOnDates(PaymentVendorLedgerEntry."Entry No.", PostingDate, RemainingAmtLCYBeforeApplication);
+
+        // [THEN] Unapply posts no unrealized gain or loss for "P"
+        VerifyNoUnrealizedGainLossDtldVendLedgEntryPosted(PaymentVendorLedgerEntry."Entry No.", LastDtldEntryNo);
+    end;
+
+    [Test]
+    procedure UnapplyFCYPaymentAfterLastExchRateAdjmtPostsNoUnrealizedGainLoss()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry";
+        PaymentVendorLedgerEntry: Record "Vendor Ledger Entry";
+        ERMApplyUnapplyVendor: Codeunit "ERM Apply Unapply Vendor";
+        PostingDate: array[3] of Date;
+        CurrencyCode: Code[10];
+        LastDtldEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 1.0] [FCY] [Adjust Exchange Rate]
+        // [SCENARIO] Unapplying an FCY payment on the date of the last exchange rate adjustment posts no unrealized gain or loss.
+        Initialize();
+        BindSubscription(ERMApplyUnapplyVendor);
+
+        // [GIVEN] "Appln. between Currencies" = All
+        UpdatePurchaseAndPayableSetup(PurchasesPayablesSetup."Appln. between Currencies"::All);
+
+        // [GIVEN] Currency "EUR" with exchange rates 1.16, 1.167018 and 1.168121 on dates D1, D2 and D3
+        CurrencyCode := CreateCurrencyWithExchRatesOnThreeDates(PostingDate);
+
+        // [GIVEN] LCY invoice "I" of 27609.25 and EUR payment "P" of 27586 with manual currency factor 1.134468, both posted on D1
+        PostLCYInvoiceAndFCYPayment(
+          InvoiceVendorLedgerEntry, PaymentVendorLedgerEntry, PostingDate[1], CurrencyCode, -27609.25, 27586, 1.134468);
+
+        // [GIVEN] Exchange rates adjusted on D2 and D3
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[2], PostingDate[2]);
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[3], PostingDate[3]);
+
+        // [GIVEN] "P" applied to "I" on D1
+        ApplyVendorLedgerEntry(
+          InvoiceVendorLedgerEntry."Document Type", PaymentVendorLedgerEntry."Document Type",
+          InvoiceVendorLedgerEntry."Document No.", PaymentVendorLedgerEntry."Document No.");
+        LastDtldEntryNo := GetLastDtldVendLedgEntryNo();
+
+        // [WHEN] Unapply "P" on D3
+        PostUnapplyVendLedgEntryOnDate(PaymentVendorLedgerEntry, PostingDate[3]);
+        UnbindSubscription(ERMApplyUnapplyVendor);
+
+        // [THEN] "Remaining Amt. (LCY)" of "P" as of D3 is 23615.70, the same as before the application
+        VerifyVendLedgEntryRemAmtLCYOnDate(PaymentVendorLedgerEntry."Entry No.", PostingDate[3], 23615.7);
+
+        // [THEN] Unapply posts no unrealized gain or loss for "P"
+        VerifyNoUnrealizedGainLossDtldVendLedgEntryPosted(PaymentVendorLedgerEntry."Entry No.", LastDtldEntryNo);
+    end;
+
+    [Test]
+    procedure UnapplyPartiallyAppliedFCYPaymentBeforeLaterExchRateAdjmtsRevaluesEachDate()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry";
+        PaymentVendorLedgerEntry: Record "Vendor Ledger Entry";
+        ERMApplyUnapplyVendor: Codeunit "ERM Apply Unapply Vendor";
+        PostingDate: array[3] of Date;
+        ExpectedRemainingAmtLCY: array[3] of Decimal;
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 1.0] [FCY] [Adjust Exchange Rate]
+        // [SCENARIO] Unapplying an FCY payment that was partially applied before later exchange rate adjustments revalues the reopened amount on each adjustment date.
+        Initialize();
+        BindSubscription(ERMApplyUnapplyVendor);
+
+        // [GIVEN] "Appln. between Currencies" = All
+        UpdatePurchaseAndPayableSetup(PurchasesPayablesSetup."Appln. between Currencies"::All);
+
+        // [GIVEN] Currency "EUR" with exchange rates 1.16, 1.167018 and 1.168121 on dates D1, D2 and D3
+        CurrencyCode := CreateCurrencyWithExchRatesOnThreeDates(PostingDate);
+
+        // [GIVEN] LCY invoice "I" of 10000 and EUR payment "P" of 25000 at the exchange rate of D1, both posted on D1
+        PostLCYInvoiceAndFCYPayment(
+          InvoiceVendorLedgerEntry, PaymentVendorLedgerEntry, PostingDate[1], CurrencyCode, -10000, 25000, 0);
+
+        // [GIVEN] "P" applied to "I" on D1, leaving 13400 EUR of "P" open
+        ApplyVendorLedgerEntry(
+          InvoiceVendorLedgerEntry."Document Type", PaymentVendorLedgerEntry."Document Type",
+          InvoiceVendorLedgerEntry."Document No.", PaymentVendorLedgerEntry."Document No.");
+
+        // [GIVEN] Exchange rates adjusted on D2 and D3 for the open amount of "P"
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[2], PostingDate[2]);
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[3], PostingDate[3]);
+
+        // [WHEN] Unapply "P" on D1
+        PostUnapplyVendLedgEntryOnDate(PaymentVendorLedgerEntry, PostingDate[1]);
+        UnbindSubscription(ERMApplyUnapplyVendor);
+
+        // [THEN] "Remaining Amt. (LCY)" of "P" is 25000 EUR at the rate of each date: 21551.72 as of D1, 21422.12 as of D2 and 21401.89 as of D3
+        ExpectedRemainingAmtLCY[1] := 21551.72;
+        ExpectedRemainingAmtLCY[2] := 21422.12;
+        ExpectedRemainingAmtLCY[3] := 21401.89;
+        VerifyVendLedgEntryRemAmtLCYOnDates(PaymentVendorLedgerEntry."Entry No.", PostingDate, ExpectedRemainingAmtLCY);
+    end;
+
+    [Test]
+    procedure ReapplyAndUnapplyPartiallyAppliedFCYPaymentKeepsRevaluedBalances()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry";
+        PaymentVendorLedgerEntry: Record "Vendor Ledger Entry";
+        ERMApplyUnapplyVendor: Codeunit "ERM Apply Unapply Vendor";
+        PostingDate: array[3] of Date;
+        ExpectedRemainingAmtLCY: array[3] of Decimal;
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 1.0] [FCY] [Adjust Exchange Rate]
+        // [SCENARIO] Applying and unapplying an FCY payment again after its reopened amount was revalued keeps the LCY balance of each adjustment date.
+        Initialize();
+        BindSubscription(ERMApplyUnapplyVendor);
+
+        // [GIVEN] "Appln. between Currencies" = All
+        UpdatePurchaseAndPayableSetup(PurchasesPayablesSetup."Appln. between Currencies"::All);
+
+        // [GIVEN] Currency "EUR" with exchange rates 1.16, 1.167018 and 1.168121 on dates D1, D2 and D3
+        CurrencyCode := CreateCurrencyWithExchRatesOnThreeDates(PostingDate);
+
+        // [GIVEN] LCY invoice "I" of 10000 and EUR payment "P" of 25000 at the exchange rate of D1, both posted on D1
+        PostLCYInvoiceAndFCYPayment(
+          InvoiceVendorLedgerEntry, PaymentVendorLedgerEntry, PostingDate[1], CurrencyCode, -10000, 25000, 0);
+
+        // [GIVEN] "P" applied to "I" on D1, exchange rates adjusted on D2 and D3, then "P" unapplied on D1
+        ApplyVendorLedgerEntry(
+          InvoiceVendorLedgerEntry."Document Type", PaymentVendorLedgerEntry."Document Type",
+          InvoiceVendorLedgerEntry."Document No.", PaymentVendorLedgerEntry."Document No.");
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[2], PostingDate[2]);
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[3], PostingDate[3]);
+        PostUnapplyVendLedgEntryOnDate(PaymentVendorLedgerEntry, PostingDate[1]);
+
+        // [GIVEN] "P" applied to "I" again on D1
+        ApplyVendorLedgerEntry(
+          InvoiceVendorLedgerEntry."Document Type", PaymentVendorLedgerEntry."Document Type",
+          InvoiceVendorLedgerEntry."Document No.", PaymentVendorLedgerEntry."Document No.");
+
+        // [WHEN] Unapply "P" on D1 again
+        PostUnapplyVendLedgEntryOnDate(PaymentVendorLedgerEntry, PostingDate[1]);
+        UnbindSubscription(ERMApplyUnapplyVendor);
+
+        // [THEN] "Remaining Amt. (LCY)" of "P" is still 21551.72 as of D1, 21422.12 as of D2 and 21401.89 as of D3
+        ExpectedRemainingAmtLCY[1] := 21551.72;
+        ExpectedRemainingAmtLCY[2] := 21422.12;
+        ExpectedRemainingAmtLCY[3] := 21401.89;
+        VerifyVendLedgEntryRemAmtLCYOnDates(PaymentVendorLedgerEntry."Entry No.", PostingDate, ExpectedRemainingAmtLCY);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure RemainingAmountIsZeorBeforeAndAfterRunningExchRateAdjustmentReport()
     var
@@ -2037,6 +2281,81 @@
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
+    local procedure CreateCurrencyWithExchRatesOnThreeDates(var PostingDate: array[3] of Date) CurrencyCode: Code[10]
+    begin
+        PostingDate[1] := WorkDate();
+        PostingDate[2] := PostingDate[1] + 1;
+        PostingDate[3] := PostingDate[2] + 1;
+        CurrencyCode := CreateCurrencyAndExchangeRate(1.16, 1, PostingDate[1]);
+        CreateExchangeRate(CurrencyCode, 1.167018, 1, PostingDate[2]);
+        CreateExchangeRate(CurrencyCode, 1.168121, 1, PostingDate[3]);
+    end;
+
+    local procedure PostLCYInvoiceAndFCYPayment(var InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry"; var PaymentVendorLedgerEntry: Record "Vendor Ledger Entry"; PostingDate: Date; CurrencyCode: Code[10]; InvoiceAmount: Decimal; PaymentAmount: Decimal; PaymentCurrencyFactor: Decimal)
+    var
+        Vendor: Record Vendor;
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        SelectGenJournalBatch(GenJournalBatch);
+        CreateAndPostGenJnlLineWithCurrency(
+          GenJournalLine, GenJournalBatch, PostingDate, GenJournalLine."Document Type"::Invoice, Vendor."No.", '', InvoiceAmount);
+        LibraryERM.FindVendorLedgerEntry(InvoiceVendorLedgerEntry, InvoiceVendorLedgerEntry."Document Type"::Invoice, GenJournalLine."Document No.");
+
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
+          GenJournalLine."Account Type"::Vendor, Vendor."No.", PaymentAmount);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        // A zero factor keeps the exchange rate of the posting date
+        if PaymentCurrencyFactor <> 0 then
+            GenJournalLine.Validate("Currency Factor", PaymentCurrencyFactor);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        LibraryERM.FindVendorLedgerEntry(PaymentVendorLedgerEntry, PaymentVendorLedgerEntry."Document Type"::Payment, GenJournalLine."Document No.");
+    end;
+
+    local procedure PostUnapplyVendLedgEntryOnDate(VendorLedgerEntry: Record "Vendor Ledger Entry"; PostingDate: Date)
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        TempApplyUnapplyParameters: Record "Apply Unapply Parameters";
+        VendEntryApplyPostedEntries: Codeunit "VendEntry-Apply Posted Entries";
+    begin
+        DetailedVendorLedgEntry.SetRange("Vendor Ledger Entry No.", VendorLedgerEntry."Entry No.");
+        DetailedVendorLedgEntry.SetRange("Entry Type", DetailedVendorLedgEntry."Entry Type"::Application);
+        DetailedVendorLedgEntry.FindLast();
+        TempApplyUnapplyParameters."Document No." := VendorLedgerEntry."Document No.";
+        TempApplyUnapplyParameters."Posting Date" := PostingDate;
+        VendEntryApplyPostedEntries.PostUnApplyVendor(DetailedVendorLedgEntry, TempApplyUnapplyParameters);
+    end;
+
+    local procedure GetVendLedgEntryRemAmtLCYOnDates(VendorLedgerEntryNo: Integer; PostingDate: array[3] of Date; var RemainingAmtLCY: array[3] of Decimal)
+    var
+        Index: Integer;
+    begin
+        for Index := 1 to ArrayLen(PostingDate) do
+            RemainingAmtLCY[Index] := GetVendLedgEntryRemAmtLCYOnDate(VendorLedgerEntryNo, PostingDate[Index]);
+    end;
+
+    local procedure GetVendLedgEntryRemAmtLCYOnDate(VendorLedgerEntryNo: Integer; PostingDate: Date): Decimal
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        VendorLedgerEntry.Get(VendorLedgerEntryNo);
+        VendorLedgerEntry.SetRange("Date Filter", 0D, PostingDate);
+        VendorLedgerEntry.CalcFields("Remaining Amt. (LCY)");
+        exit(VendorLedgerEntry."Remaining Amt. (LCY)");
+    end;
+
+    local procedure GetLastDtldVendLedgEntryNo(): Integer
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        DetailedVendorLedgEntry.FindLast();
+        exit(DetailedVendorLedgEntry."Entry No.");
+    end;
+
     local procedure CreateAndModifyPurchaseLine(PurchaseHeader: Record "Purchase Header"): Decimal
     var
         PurchaseLine: Record "Purchase Line";
@@ -2665,6 +2984,39 @@
         VendLedgerEntry.FindFirst();
         VendLedgerEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
         VendLedgerEntry.TestField("Remaining Amt. (LCY)", Round(VendLedgerEntry."Remaining Amount" / VendLedgerEntry."Adjusted Currency Factor", 0.01));
+    end;
+
+    local procedure VerifyVendLedgEntryRemAmtLCYOnDates(VendorLedgerEntryNo: Integer; PostingDate: array[3] of Date; ExpectedRemainingAmtLCY: array[3] of Decimal)
+    var
+        Index: Integer;
+    begin
+        for Index := 1 to ArrayLen(PostingDate) do
+            VerifyVendLedgEntryRemAmtLCYOnDate(VendorLedgerEntryNo, PostingDate[Index], ExpectedRemainingAmtLCY[Index]);
+    end;
+
+    local procedure VerifyVendLedgEntryRemAmtLCYOnDate(VendorLedgerEntryNo: Integer; PostingDate: Date; ExpectedRemainingAmtLCY: Decimal)
+    begin
+        Assert.AreEqual(
+          ExpectedRemainingAmtLCY, GetVendLedgEntryRemAmtLCYOnDate(VendorLedgerEntryNo, PostingDate),
+          StrSubstNo(RemAmtLCYChangedByUnapplyErr, PostingDate));
+    end;
+
+    local procedure VerifyNoUnrealizedGainLossDtldVendLedgEntryPosted(VendorLedgerEntryNo: Integer; LastEntryNoBeforeUnapply: Integer)
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        DetailedVendorLedgEntry.SetRange("Vendor Ledger Entry No.", VendorLedgerEntryNo);
+        DetailedVendorLedgEntry.SetFilter("Entry No.", '>%1', LastEntryNoBeforeUnapply);
+        DetailedVendorLedgEntry.SetRange(
+          "Entry Type", DetailedVendorLedgEntry."Entry Type"::"Unrealized Loss", DetailedVendorLedgEntry."Entry Type"::"Unrealized Gain");
+        if DetailedVendorLedgEntry.FindSet() then
+            repeat
+                Assert.IsTrue(
+                  DetailedVendorLedgEntry.Unapplied,
+                  StrSubstNo(
+                    UnappliedErr, DetailedVendorLedgEntry.FieldCaption(Unapplied), DetailedVendorLedgEntry.Unapplied,
+                    DetailedVendorLedgEntry.TableCaption()));
+            until DetailedVendorLedgEntry.Next() = 0;
     end;
 
     [ConfirmHandler]

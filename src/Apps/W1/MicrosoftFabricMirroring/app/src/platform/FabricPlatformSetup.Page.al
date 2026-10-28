@@ -5,7 +5,7 @@ using System.Fabric;
 
 page 48511 "Fabric Platform Setup"
 {
-    Caption = 'Microsoft Fabric Mirroring Setup';
+    Caption = 'Microsoft Fabric Mirroring Setup (Preview)';
     PageType = Card;
     SourceTable = "Tenant Fabric Setup";
     UsageCategory = Administration;
@@ -153,50 +153,34 @@ page 48511 "Fabric Platform Setup"
             }
             group(Credentials)
             {
-                // Temporary: will be replaced by Microsoft first-party app authentication.
-                Caption = 'Workspace API Credentials';
+                Caption = 'Authentication';
 
-                field(ClientId; ClientIdValue)
+                field(UseCustomApp; UseCustomAppValue)
                 {
-                    Caption = 'Client ID';
-                    ShowMandatory = true;
-                    ToolTip = 'Specifies the Azure AD application (client) ID used for delegated workspace and Open Mirroring database browsing.';
+                    Caption = 'Use custom app registration';
+                    Visible = false;
+                    ToolTip = 'Specifies whether to authenticate with your own Microsoft Entra app registration instead of the Microsoft Business Central Fabric Export application. Switching this off deletes the stored client secret.';
 
                     trigger OnValidate()
                     var
                         CredMgt: Codeunit "Fabric Platform Credential Mgt";
                     begin
-                        CredMgt.SetClientId(ClientIdValue);
+                        if Rec."Export Enabled" then
+                            Error(CannotChangeWhileExportEnabledErr);
+                        CredMgt.SetCustomAppEnabled(UseCustomAppValue);
+                        if not UseCustomAppValue then
+                            Clear(ClientSecretValue);
                         CredMgt.ClearTokenCache();
+                        PrincipalIdValue := CopyStr(CredMgt.GetPrincipalId(), 1, MaxStrLen(PrincipalIdValue));
                         EnableActionEnabled := true;
                         CurrPage.Update(false);
-                    end;
-                }
-                field(ClientSecret; ClientSecretValue)
-                {
-                    Caption = 'Client Secret';
-                    ShowMandatory = true;
-                    ExtendedDatatype = Masked;
-                    ToolTip = 'Specifies the Azure AD client secret. Enter a new value to update the stored secret.';
-
-                    trigger OnValidate()
-                    var
-                        CredMgt: Codeunit "Fabric Platform Credential Mgt";
-                    begin
-                        if (ClientSecretValue <> '') and (ClientSecretValue <> ClientSecretSetLbl) then begin
-                            CredMgt.SetClientSecret(ClientSecretValue);
-                            CredMgt.ClearTokenCache();
-                            ClientSecretValue := ClientSecretSetLbl;
-                            EnableActionEnabled := true;
-                            CurrPage.Update(false);
-                        end;
                     end;
                 }
                 field(PrincipalId; PrincipalIdValue)
                 {
                     Caption = 'Principal ID';
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the object ID of the service principal in Azure AD. Used to grant the service principal Contributor access on the Fabric workspace.';
+                    ToolTip = 'Specifies the object ID of the Microsoft Entra enterprise application used to access the Fabric workspace. This is not the application (client) ID.';
 
                     trigger OnValidate()
                     var
@@ -204,6 +188,48 @@ page 48511 "Fabric Platform Setup"
                     begin
                         CredMgt.SetPrincipalId(PrincipalIdValue);
                     end;
+                }
+                group(CustomAppCredentials)
+                {
+                    ShowCaption = false;
+                    Visible = UseCustomAppValue;
+
+                    field(ClientId; ClientIdValue)
+                    {
+                        Caption = 'Client ID';
+                        ShowMandatory = true;
+                        ToolTip = 'Specifies the Microsoft Entra application (client) ID used for delegated workspace and Open Mirroring database browsing.';
+
+                        trigger OnValidate()
+                        var
+                            CredMgt: Codeunit "Fabric Platform Credential Mgt";
+                        begin
+                            CredMgt.SetClientId(ClientIdValue);
+                            CredMgt.ClearTokenCache();
+                            EnableActionEnabled := true;
+                            CurrPage.Update(false);
+                        end;
+                    }
+                    field(ClientSecret; ClientSecretValue)
+                    {
+                        Caption = 'Client Secret';
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        ToolTip = 'Specifies the client secret of the Microsoft Entra application. Enter a new value to update the stored secret.';
+
+                        trigger OnValidate()
+                        var
+                            CredMgt: Codeunit "Fabric Platform Credential Mgt";
+                        begin
+                            if (ClientSecretValue <> '') and (ClientSecretValue <> ClientSecretSetLbl) then begin
+                                CredMgt.SetClientSecret(ClientSecretValue);
+                                CredMgt.ClearTokenCache();
+                                ClientSecretValue := ClientSecretSetLbl;
+                                EnableActionEnabled := true;
+                                CurrPage.Update(false);
+                            end;
+                        end;
+                    }
                 }
             }
         }
@@ -256,6 +282,7 @@ page 48511 "Fabric Platform Setup"
                         if not Confirm(ResetConfirmQst, false) then
                             exit;
                         FabricPlatformMgt.DisableExport();
+                        Clear(ClientSecretValue);
                         CurrPage.Update(false);
                     end;
                 }
@@ -278,14 +305,13 @@ page 48511 "Fabric Platform Setup"
                     Caption = 'Add to workspace';
                     ApplicationArea = All;
                     Image = UserSetup;
-                    ToolTip = 'Grants the service principal (Principal ID) Contributor access on the selected Fabric workspace. Run this once after selecting the workspace.';
+                    ToolTip = 'Grants the service principal Contributor access on the selected Fabric workspace. Run this once after selecting the workspace.';
 
                     trigger OnAction()
                     var
                         AdminClient: Codeunit "Fabric Platform Admin Client";
-                        CredMgt: Codeunit "Fabric Platform Credential Mgt";
                     begin
-                        AdminClient.AddServicePrincipalToWorkspace(Rec."Fabric Workspace ID", CredMgt.GetPrincipalId());
+                        AdminClient.AddConnectionToWorkspace(Rec."Fabric Workspace ID");
                         Message(SPAddedToWorkspaceMsg, Rec."Fabric Workspace Name");
                     end;
                 }
@@ -360,7 +386,7 @@ page 48511 "Fabric Platform Setup"
                 }
                 action(ConfigPackages)
                 {
-                    Caption = 'Import/Export Configuration';
+                    Caption = 'Import/export configuration';
                     ApplicationArea = All;
                     Image = Setup;
                     RunObject = page "Fabric Config Packages";
@@ -373,7 +399,7 @@ page 48511 "Fabric Platform Setup"
 
                 action(ExportSummary)
                 {
-                    Caption = 'Fabric Synchronization Overview';
+                    Caption = 'Fabric synchronization overview';
                     ApplicationArea = All;
                     Image = History;
                     RunObject = page "Fabric Platform Export Summary";
@@ -381,7 +407,7 @@ page 48511 "Fabric Platform Setup"
                 }
                 action(ExportDetails)
                 {
-                    Caption = 'Fabric Synchronization Details';
+                    Caption = 'Fabric synchronization details';
                     ApplicationArea = All;
                     Image = ViewDetails;
                     RunObject = page "Fabric Platform Export Details";
@@ -427,7 +453,8 @@ page 48511 "Fabric Platform Setup"
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
     begin
         FabricPlatformMgt.EnsureSetup(Rec);
-        ClientIdValue := CopyStr(CredMgt.GetClientId(), 1, MaxStrLen(ClientIdValue));
+        ClientIdValue := CopyStr(CredMgt.GetCustomClientId(), 1, MaxStrLen(ClientIdValue));
+        UseCustomAppValue := CredMgt.IsCustomAppEnabled();
         PrincipalIdValue := CopyStr(CredMgt.GetPrincipalId(), 1, MaxStrLen(PrincipalIdValue));
         OpenMirroringNameValue := CopyStr(CredMgt.GetOpenMirroringDatabaseName(), 1, MaxStrLen(OpenMirroringNameValue));
         WorkspaceNameValue := CopyStr(Rec."Fabric Workspace Name", 1, MaxStrLen(WorkspaceNameValue));
@@ -459,12 +486,12 @@ page 48511 "Fabric Platform Setup"
         ErrInfo.Message(FabricDataInvalidErr);
         ErrInfo.DetailedMessage(DetailedMessage);
         ErrInfo.DataClassification(DataClassification::SystemMetadata);
-        ErrInfo.ErrorType(ErrorType::Internal);
     end;
 
     var
         NamespaceEditable: Boolean;
         EnableActionEnabled: Boolean;
+        UseCustomAppValue: Boolean;
         ClientIdValue: Text[250];
         PrincipalIdValue: Text[250];
         OpenMirroringNameValue: Text[250];
@@ -472,14 +499,14 @@ page 48511 "Fabric Platform Setup"
         [NonDebuggable]
         ClientSecretValue: Text[250];
         ClientSecretSetLbl: Label '*** secret stored ***', Locked = true;
-        NoWorkspacesFoundErr: Label 'No workspaces found. Verify the Client ID and Client Secret.';
+        NoWorkspacesFoundErr: Label 'No Microsoft Fabric workspaces were found. Ask your administrator to check that you have access to a workspace.';
         NoMirroredDatabasesFoundErr: Label 'No Open Mirroring databases found in the selected workspace.';
         WorkspaceIdInvalidErr: Label 'Fabric returned an invalid workspace ID: %1.', Comment = '%1 = workspace ID';
         MirroredDatabaseIdInvalidErr: Label 'Fabric returned an invalid Open Mirroring database ID: %1.', Comment = '%1 = Open Mirroring database ID';
         FabricDataInvalidErr: Label 'Microsoft Fabric returned unexpected data. Contact your administrator or Microsoft support if this continues.';
         CannotChangeWhileExportEnabledErr: Label 'You cannot change the Fabric workspace or Open Mirroring database while export is enabled. Disable export first.';
-        SPAddedToWorkspaceMsg: Label 'Service principal added as Contributor to workspace ''%1''.', Comment = '%1 = workspace name';
+        SPAddedToWorkspaceMsg: Label 'Service principal has Contributor access or higher on workspace ''%1''.', Comment = '%1 = workspace name';
         ValuePickedUpOnNextRunMsg: Label 'This change will take effect starting with the next export run.';
-        ResetConfirmQst: Label 'This removes the Fabric connection, resets all watermarks, and deletes all synchronization summary and detail log records. Do you want to continue?';
+        ResetConfirmQst: Label 'This removes the Fabric connection and stored client secret, resets all watermarks, and deletes all synchronization summary and detail log records. Reconnecting with a custom app requires entering its secret again. Do you want to continue?';
 
 }

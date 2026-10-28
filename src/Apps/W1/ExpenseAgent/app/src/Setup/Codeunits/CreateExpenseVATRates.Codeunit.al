@@ -28,15 +28,19 @@ codeunit 6975 "Create Expense VAT Rates"
 
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        RatesSkipped: Boolean;
 
     /// <summary>
     /// Inserts all default EU VAT rate rows. Skips rows whose
     /// (Country/Region Code + Expense Category + Expense Subcategory) combination already exists.
+    /// Returns false when a country has defaults but the VAT business posting group is not configured yet.
     /// </summary>
-    procedure InsertDefaultRates()
+    procedure InsertDefaultRates(): Boolean
     var
         CompanyInfo: Record "Company Information";
     begin
+        RatesSkipped := false;
+        ExpenseAgentSetup.GetRecordOnce();
         CompanyInfo.Get();
         case CompanyInfo."Country/Region Code" of
             'AT':
@@ -104,6 +108,7 @@ codeunit 6975 "Create Expense VAT Rates"
             'UA':
                 CreateVATRatesUA();
         end;
+        exit(not RatesSkipped);
     end;
 
     local procedure GetPurchaseVATAccount(VATPercent: Decimal): Code[20]
@@ -145,6 +150,12 @@ codeunit 6975 "Create Expense VAT Rates"
         PurchaseVATAccountNo: Code[20];
         SalesVATAccountNo: Code[20];
     begin
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Default VAT Bus. Posting Group" = '' then begin
+            RatesSkipped := true;
+            exit;
+        end;
+
         if not VATProductPostingGroup.Get(VATProdPostingGroup) then begin
             VATProductPostingGroup.Init();
             VATProductPostingGroup."Code" := VATProdPostingGroup;
@@ -152,7 +163,6 @@ codeunit 6975 "Create Expense VAT Rates"
             VATProductPostingGroup.Insert();
         end;
 
-        ExpenseAgentSetup.GetRecordOnce();
         PurchaseVATAccountNo := GetPurchaseVATAccount(VATPercent);
         SalesVATAccountNo := GetSalesVATAccount(VATPercent);
         if not VATPostingSetup.Get(ExpenseAgentSetup."Default VAT Bus. Posting Group", VATProdPostingGroup) then begin
@@ -173,16 +183,19 @@ codeunit 6975 "Create Expense VAT Rates"
             if VATPostingSetup.IsDirty() then
                 VATPostingSetup.Modify();
         end;
-
         if SubcategoryCode = '' then begin
-            ExpenseCategory.Get(CategoryCode);
+            // Default seeds can be partially present when categories are customer-owned.
+            // In that case, skip missing combinations instead of failing the full setup run.
+            if not ExpenseCategory.Get(CategoryCode) then
+                exit;
             ExpenseCategory.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
             ExpenseCategory.Validate("Default VAT %", VATPostingSetup."VAT %");
             if ExpenseCategory."Default VAT %" <> 0 then
                 ExpenseCategory.Validate("Default VAT Reclaim %", 100);
             ExpenseCategory.Modify();
         end else begin
-            ExpenseSubcategory.Get(CategoryCode, SubcategoryCode);
+            if not ExpenseSubcategory.Get(CategoryCode, SubcategoryCode) then
+                exit;
             ExpenseSubcategory.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
             ExpenseSubcategory.Validate("Default VAT %", VATPostingSetup."VAT %");
             if ExpenseSubcategory."Default VAT %" <> 0 then
