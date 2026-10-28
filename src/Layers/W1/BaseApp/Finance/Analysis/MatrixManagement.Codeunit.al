@@ -37,7 +37,7 @@ codeunit 9200 "Matrix Management"
         Text003: Label 'There are no Calendar entries within the filter.';
 #pragma warning restore AA0074
         RoundingFormatTxt: Label '<Precision,%1><Standard Format,0>%2', Locked = true;
-        NegativeInParenthesesFormatTxt: Label ';(#,##0.00)', Locked = true;
+        NegativeInParenthesesFormatTxt: Label ';(<Precision,%1><Standard Format,0>)', Locked = true;
 
     /// <summary>
     /// Sets up period-based column set for matrix reports with date filters and navigation.
@@ -704,7 +704,8 @@ codeunit 9200 "Matrix Management"
             NegativeAmountFormat::"Minus Sign":
                 Result := StrSubstNo(RoundingFormatTxt, AmountDecimal, '');
             NegativeAmountFormat::"Parentheses":
-                Result := StrSubstNo(RoundingFormatTxt, AmountDecimal, NegativeInParenthesesFormatTxt);
+                Result := StrSubstNo(
+                    RoundingFormatTxt, AmountDecimal, StrSubstNo(NegativeInParenthesesFormatTxt, AmountDecimal));
             else
                 OnFormatRoundingFactorNegativeFormatOnElse(AmountDecimal, NegativeAmountFormat, Result);
         end;
@@ -865,4 +866,3 @@ codeunit 9200 "Matrix Management"
     begin
     end;    
 }
-
