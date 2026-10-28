@@ -121,6 +121,7 @@ report 94 "Close Income Statement"
                     GlobalDimVal1: Code[20];
                     GlobalDimVal2: Code[20];
                     NewDimensionID: Integer;
+                    SourceCurrencyAmount: Decimal;
                 begin
                     GenJnlLine.Init();
                     GenJnlLine."Posting Date" := FiscYearClosingDate;
@@ -167,8 +168,12 @@ report 94 "Close Income Statement"
                                     GenJnlLine."Shortcut Dimension 2 Code" := GlobalDimVal2;
                                 OnPostDataItemOnAfterGenJnlLineDimUpdated(GenJnlLine, ClosePerGlobalDim1, ClosePerGlobalDim2, TempEntryNoAmountBuffer);
 
-                                HandleGenJnlLine();
+                                HandleGenJnlLine(TempEntryNoAmountBuffer."Source Currency Amount" <> 0);
+                                SourceCurrencyAmount := GenJnlLine."Source Currency Amount";
+                                if GLSetup."Additional Reporting Currency" <> '' then
+                                    GenJnlLine."Source Currency Amount" := -TempEntryNoAmountBuffer.Amount2;
                                 UpdateBalAcc();
+                                GenJnlLine."Source Currency Amount" := SourceCurrencyAmount;
                                 OnGLEntryOnPostDataItemOnAfterHandleGenJnlLine(GenJnlLine, TempEntryNoAmountBuffer);
                             end;
                         until TempEntryNoAmountBuffer.Next() = 0;
@@ -621,7 +626,10 @@ report 94 "Close Income Statement"
     /// <remarks>
     /// This includes setting up additional currency fields and calling the posting routine.
     /// </remarks>
-    local procedure HandleGenJnlLine()
+    local procedure HandleGenJnlLine(HasSourceCurrencyAmount: Boolean)
+    var
+        AdditionalCurrencyGenJnlLine: Record "Gen. Journal Line";
+        AdditionalCurrencyAmount: Decimal;
     begin
         OnBeforeHandleGenJnlLine(GenJnlLine);
 
@@ -629,20 +637,34 @@ report 94 "Close Income Statement"
           GenJnlLine."Additional-Currency Posting"::None;
         GenJnlLine."System-Created Entry" := true;
         if GLSetup."Additional Reporting Currency" <> '' then begin
-            if ZeroGenJnlAmount() then begin
+            if HasSourceCurrencyAmount and (GenJnlLine.Amount = 0) then begin
+                AdditionalCurrencyGenJnlLine := GenJnlLine;
+                AdditionalCurrencyAmount := -TempEntryNoAmountBuffer.Amount2;
+                GenJnlLine."Additional-Currency Posting" := GenJnlLine."Additional-Currency Posting"::"Amount Only";
+            end;
+            if ZeroGenJnlAmount() and not HasSourceCurrencyAmount then begin
                 GenJnlLine."Additional-Currency Posting" :=
                   GenJnlLine."Additional-Currency Posting"::"Additional-Currency Amount Only";
                 GenJnlLine.Validate(Amount, GenJnlLine."Source Currency Amount");
                 GenJnlLine."Source Currency Amount" := 0;
             end;
-            if (GenJnlLine.Amount <> 0) or (GenJnlLine."Source Curr. VAT Amount" <> 0) then
-                if not ((GenJnlLine.Amount = 0) and (GenJnlLine."Source Currency Amount" <> 0)) then
-                    GenJnlLine.Insert();
+            if (GenJnlLine.Amount <> 0) or (GenJnlLine."Source Currency Amount" <> 0) or
+               (GenJnlLine."Source Curr. VAT Amount" <> 0)
+            then
+                GenJnlLine.Insert();
         end else
             if not ZeroGenJnlAmount() or (GenJnlLine."Source Currency Code" <> '') or
                (GenJnlLine."Source Currency Amount" <> 0)
             then
                 GenJnlLine.Insert();
+
+        if AdditionalCurrencyAmount <> 0 then begin
+            GenJnlLine := AdditionalCurrencyGenJnlLine;
+            GenJnlLine."Line No." += 1;
+            GenJnlLine."Source Currency Amount" := AdditionalCurrencyAmount;
+            GenJnlLine."Source Curr. VAT Amount" := 0;
+            HandleGenJnlLine(false);
+        end;
     end;
 
     /// <summary>
@@ -810,8 +832,8 @@ report 94 "Close Income Statement"
                   GenJnlLine."Additional-Currency Posting"::None;
                 if GLSetup."Additional Reporting Currency" <> '' then begin
                     GenJnlLine."Source Currency Code" := GLSetup."Additional Reporting Currency";
-                    if (GenJnlLine.Amount = 0) and
-                       (GenJnlLine."Source Currency Amount" <> 0)
+                    if (BalLineBuffer.Amount = 0) and
+                       (BalLineBuffer."Additional-Currency Amount" <> 0)
                     then begin
                         GenJnlLine.Validate(Amount, -BalLineBuffer."Additional-Currency Amount");
                         GenJnlLine.Validate("Source Currency Amount", 0);

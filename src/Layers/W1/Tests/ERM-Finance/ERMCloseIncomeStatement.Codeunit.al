@@ -721,6 +721,117 @@ codeunit 134228 "ERM Close Income Statement"
     [Test]
     [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
     [Scope('OnPrem')]
+    procedure CloseIncomeStatementPostsSourceOnlyGroupWithAdditionalReportingCurrency()
+    begin
+        // [SCENARIO] A source-only closing amount does not become an additional-currency adjustment.
+        VerifyZeroLCYClosingAmountsWithAdditionalReportingCurrency(25, 0, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementPostsNegativeSourceOnlyGroupWithAdditionalReportingCurrency()
+    begin
+        // [SCENARIO] A negative source-only closing amount does not change the additional-currency balance.
+        VerifyZeroLCYClosingAmountsWithAdditionalReportingCurrency(-25, 0, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementPostsAdditionalCurrencyOnlyGroup()
+    begin
+        // [SCENARIO] A genuine additional-currency-only balance still creates an additional-currency adjustment.
+        VerifyZeroLCYClosingAmountsWithAdditionalReportingCurrency(0, 25, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementSeparatesSourceAndAdditionalCurrencyAmounts()
+    begin
+        // [SCENARIO] Zero-LCY groups close independent source and additional-currency balances.
+        VerifyZeroLCYClosingAmountsWithAdditionalReportingCurrency(25, 17, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementPreservesSourceOnlyAmountInAdditionalReportingCurrency()
+    begin
+        // [SCENARIO] Using the additional reporting currency as source currency does not create an ARC balance.
+        VerifyZeroLCYClosingAmountsWithAdditionalReportingCurrency(25, 0, true);
+    end;
+
+    local procedure VerifyZeroLCYClosingAmountsWithAdditionalReportingCurrency(SourceCurrencyAmount: Decimal; AdditionalCurrencyAmount: Decimal; UseAdditionalCurrencyAsSource: Boolean)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        SelectedDimension: Record "Selected Dimension";
+        GLAccountNo: Code[20];
+        RetainedEarningsAccountNo: Code[20];
+        SourceCurrencyCode: Code[10];
+        AdditionalCurrencyCode: Code[10];
+        DocumentNo: Code[20];
+        PostingDate: Date;
+        ExpectedEntryCount: Integer;
+    begin
+        Initialize();
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+        AdditionalCurrencyCode := CreateCurrency();
+        UpdateCurOnGeneralLedgerSetup(AdditionalCurrencyCode);
+        if SourceCurrencyAmount <> 0 then
+            if UseAdditionalCurrencyAsSource then
+                SourceCurrencyCode := AdditionalCurrencyCode
+            else
+                SourceCurrencyCode := CreateCurrency();
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::Customer, '', 0);
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
+        PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
+        InsertGLEntryForCloseIncome(
+            PostingDate, GLAccountNo, 0, AdditionalCurrencyAmount, SourceCurrencyCode, SourceCurrencyAmount, 0, 0, '', '', '');
+        LibraryFiscalYear.CloseFiscalYear();
+        PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
+        DocumentNo := LibraryUtility.GenerateGUID();
+        RetainedEarningsAccountNo := LibraryERM.CreateGLAccountNo();
+        SelectedDimension.SetRange("User ID", UserId);
+        SelectedDimension.SetRange("Object Type", 3);
+        SelectedDimension.SetRange("Object ID", REPORT::"Close Income Statement");
+        SelectedDimension.DeleteAll();
+
+        RunCloseIncomeStatement(
+            GenJournalLine, PostingDate, RetainedEarningsAccountNo,
+            PostToRetainedEarningsAcc::Details, false, false, DocumentNo);
+
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        ExpectedEntryCount := 1;
+        if (SourceCurrencyAmount <> 0) and (AdditionalCurrencyAmount <> 0) then
+            ExpectedEntryCount := 2;
+        Assert.RecordCount(GLEntry, ExpectedEntryCount);
+        GLEntry.CalcSums(Amount, "Source Currency Amount", "Additional-Currency Amount", "Source Currency VAT Amount");
+        Assert.AreEqual(0, GLEntry.Amount, 'Incorrect closing amount.');
+        Assert.AreEqual(-SourceCurrencyAmount, GLEntry."Source Currency Amount", 'Incorrect closing source currency amount.');
+        Assert.AreEqual(-AdditionalCurrencyAmount, GLEntry."Additional-Currency Amount", 'Incorrect closing additional-currency amount.');
+        Assert.AreEqual(0, GLEntry."Source Currency VAT Amount", 'Incorrect closing source currency VAT amount.');
+        GLEntry.SetRange("G/L Account No.", RetainedEarningsAccountNo);
+        GLEntry.SetRange("Bal. Account No.", GLAccountNo);
+        Assert.RecordCount(GLEntry, ExpectedEntryCount);
+        GLEntry.CalcSums(Amount, "Source Currency Amount", "Additional-Currency Amount");
+        Assert.AreEqual(0, GLEntry.Amount, 'Incorrect retained earnings amount.');
+        Assert.AreEqual(SourceCurrencyAmount, GLEntry."Source Currency Amount", 'Incorrect retained earnings source currency amount.');
+        Assert.AreEqual(AdditionalCurrencyAmount, GLEntry."Additional-Currency Amount", 'Incorrect retained earnings additional-currency amount.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
     procedure CloseIncomeStatementPostsSourceVATOnlyGroupWithAdditionalReportingCurrency()
     begin
         // [SCENARIO] A source-VAT-only group is posted when Additional Reporting Currency is enabled.
@@ -752,6 +863,15 @@ codeunit 134228 "ERM Close Income Statement"
     begin
         // [SCENARIO] Detailed closing preserves source VAT only on the income account.
         VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(false, 10, PostToRetainedEarningsAcc::Details);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementDoesNotCopySourceVATToDetailedRetainedEarningsWithAdditionalReportingCurrency()
+    begin
+        // [SCENARIO] Direct closing with additional reporting currency keeps source VAT off retained earnings.
+        VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(true, 10, PostToRetainedEarningsAcc::Details);
     end;
 
     local procedure VerifyCloseIncomeStatementPostsSourceVATOnlyGroup(UseAdditionalReportingCurrency: Boolean; ClosingAmount: Decimal; RetainedEarningsPosting: Option)

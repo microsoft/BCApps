@@ -348,6 +348,63 @@ codeunit 144054 "ERM ES Income Statement"
         Assert.AreEqual(0, GenJournalLine."Source Curr. VAT Amount", 'Incorrect balancing journal source currency VAT amount.');
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure ClosingSourceOnlyBalanceDoesNotChangeAdditionalCurrency()
+    var
+        Currency: Record Currency;
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        SelectedDimension: Record "Selected Dimension";
+        PostingDate: Date;
+    begin
+        // [SCENARIO] Spanish source-only closing groups do not create additional-currency adjustments on either account.
+        Initialize();
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+        CreateGLAccount(GLAccount);
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Additional Reporting Currency" := CreateCurrencyWithExchangeRate(GLAccount);
+        GeneralLedgerSetup.Modify();
+        LibraryERM.CreateCurrency(Currency);
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::Customer, '', 0);
+        PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
+        GLEntry.Init();
+        GLEntry."Entry No." := LibraryUtility.GetNewRecNo(GLEntry, GLEntry.FieldNo("Entry No."));
+        GLEntry."G/L Account No." := GLAccount."No.";
+        GLEntry."Posting Date" := PostingDate;
+        GLEntry."Source Currency Code" := Currency.Code;
+        GLEntry."Source Currency Amount" := 25;
+        GLEntry.Insert();
+        SelectedDimension.SetRange("User ID", UserId);
+        SelectedDimension.SetRange("Object Type", 3);
+        SelectedDimension.SetRange("Object ID", REPORT::"Close Income Statement");
+        SelectedDimension.DeleteAll();
+
+        LibraryFiscalYear.CloseFiscalYear();
+        CloseIncomeStatement(GenJournalLine);
+
+        GLEntry.SetRange("Posting Date", ClosingDate(CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true))));
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        Assert.AreEqual(0, GLEntry.Amount, 'Incorrect closing amount.');
+        Assert.AreEqual(-25, GLEntry."Source Currency Amount", 'Incorrect closing source currency amount.');
+        Assert.AreEqual(0, GLEntry."Additional-Currency Amount", 'Incorrect closing additional-currency amount.');
+        GLEntry.SetRange("G/L Account No.", GLAccount."Income Stmt. Bal. Acc.");
+        GLEntry.CalcSums(Amount, "Additional-Currency Amount");
+        Assert.AreEqual(0, GLEntry.Amount, 'Incorrect balancing amount.');
+        Assert.AreEqual(0, GLEntry."Additional-Currency Amount", 'Incorrect balancing additional-currency amount.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
