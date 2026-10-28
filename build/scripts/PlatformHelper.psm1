@@ -21,18 +21,27 @@ function Get-PlatformVersions {
     )
 
     if ($null -eq $script:PlatformVersionsCache -or $Force) {
-        try {
-            Write-Host "Fetching platform version index from $script:PlatformIndexUrl"
-            $response = Invoke-WebRequest -Uri $script:PlatformIndexUrl -ErrorAction Stop
-            $index = @($response.Content | ConvertFrom-Json)
-            if ($index.Count -gt 0 -and $index[0].PSObject.Properties['Version']) {
-                $script:PlatformVersionsCache = @($index | ForEach-Object { $_.Version })
-            } else {
-                $script:PlatformVersionsCache = $index
+        $maxAttempts = 3
+        for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            try {
+                Write-Host "Fetching platform version index from $script:PlatformIndexUrl (attempt $attempt of $maxAttempts)"
+                $response = Invoke-WebRequest -Uri $script:PlatformIndexUrl -ErrorAction Stop
+                $index = @($response.Content | ConvertFrom-Json)
+                if ($index.Count -gt 0 -and $index[0].PSObject.Properties['Version']) {
+                    $script:PlatformVersionsCache = @($index | ForEach-Object { $_.Version })
+                } else {
+                    $script:PlatformVersionsCache = $index
+                }
+                break
             }
-        }
-        catch {
-            throw "Failed to fetch platform version index from '$script:PlatformIndexUrl': $($_.Exception.Message)"
+            catch {
+                if ($attempt -eq $maxAttempts) {
+                    throw "Failed to fetch platform version index from '$script:PlatformIndexUrl': $($_.Exception.Message)"
+                }
+
+                Write-Warning "Failed to fetch platform version index (attempt $attempt of $maxAttempts). Retrying in 2 seconds."
+                Start-Sleep -Seconds 2
+            }
         }
     }
 
