@@ -31,6 +31,116 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
         SecurityAuditCertPasswordSaveFailedTxt: Label 'Failed to save Verifactu certificate password to isolated storage.', Locked = true;
         SecurityAuditCertDeletedTxt: Label 'Verifactu certificate and password deleted from isolated storage.', Locked = true;
         SecurityAuditSetupCleanedTxt: Label 'Verifactu setup deleted during environment cleanup.', Locked = true;
+        // DER-encoded OIDs from ETSI EN 319 412-5 (QcType) and ETSI EN 319 411-2 (QCP policies)
+        QcTypeESealOidTok: Label '060704008E46010602', Locked = true;
+        QcTypeESignOidTok: Label '060704008E46010601', Locked = true;
+        PolicyQcpLegalOidTok: Label '060704008BEC400101', Locked = true;
+        PolicyQcpLegalQscdOidTok: Label '060704008BEC400103', Locked = true;
+        PolicyQcpNaturalOidTok: Label '060704008BEC400100', Locked = true;
+        PolicyQcpNaturalQscdOidTok: Label '060704008BEC400102', Locked = true;
+        NaturalPersonSubjectPatternTok: Label '(^|[,+]\s*)(G|GN|GIVENNAME|SN|SURNAME|OID\.2\.5\.4\.42|OID\.2\.5\.4\.4)=', Locked = true;
+        HexDigitsTok: Label '0123456789ABCDEF', Locked = true;
+
+    /// <summary>
+    /// Returns true when the certificate is an electronic seal certificate (certificado de sello), which AEAT only accepts on dedicated endpoints.
+    /// Returns false when the certificate cannot be read.
+    /// </summary>
+    internal procedure IsSealCertificate(CertCode: Code[20]): Boolean
+    var
+        IsSeal: Boolean;
+    begin
+        if not TryGetIsSealCertificate(CertCode, IsSeal) then
+            exit(false);
+        exit(IsSeal);
+    end;
+
+    /// <summary>
+    /// Detects whether the certificate is an electronic seal certificate. Returns false when the certificate cannot be read.
+    /// </summary>
+    internal procedure TryGetIsSealCertificate(CertCode: Code[20]; var IsSeal: Boolean): Boolean
+    var
+        IsolatedCertificate: Record "Isolated Certificate";
+    begin
+        IsSeal := false;
+        if CertCode = '' then
+            exit(false);
+        if not IsolatedCertificate.Get(CertCode) then
+            exit(false);
+        exit(TryDetectSealCertificate(IsolatedCertificate, IsSeal));
+    end;
+
+    /// <summary>
+    /// Classifies a certificate by its eIDAS QcType or certificate policy OIDs. Falls back to the subject when neither is present:
+    /// certificates for natural persons (including legal entity representatives) carry a given name or surname, seal certificates do not.
+    /// </summary>
+    internal procedure IsSealCertificate(RawCertDataBase64: Text; Subject: Text): Boolean
+    var
+        Regex: Codeunit Regex;
+        CertDataHex: Text;
+    begin
+        CertDataHex := ConvertBase64ToHex(RawCertDataBase64);
+        if ContainsByteSequence(CertDataHex, QcTypeESealOidTok) or
+           ContainsByteSequence(CertDataHex, PolicyQcpLegalOidTok) or
+           ContainsByteSequence(CertDataHex, PolicyQcpLegalQscdOidTok)
+        then
+            exit(true);
+        if ContainsByteSequence(CertDataHex, QcTypeESignOidTok) or
+           ContainsByteSequence(CertDataHex, PolicyQcpNaturalOidTok) or
+           ContainsByteSequence(CertDataHex, PolicyQcpNaturalQscdOidTok)
+        then
+            exit(false);
+        exit(not Regex.IsMatch(UpperCase(Subject), NaturalPersonSubjectPatternTok));
+    end;
+
+    [TryFunction]
+    [NonDebuggable]
+    local procedure TryDetectSealCertificate(IsolatedCertificate: Record "Isolated Certificate"; var IsSeal: Boolean)
+    var
+        X509Certificate2: Codeunit X509Certificate2;
+        CertPassword: SecretText;
+        CertBase64, Subject : Text;
+    begin
+        CertBase64 := GetCertAsBase64String(IsolatedCertificate);
+        CertPassword := GetPasswordAsSecret(IsolatedCertificate);
+        X509Certificate2.GetCertificateSubject(CertBase64, CertPassword, Subject);
+        IsSeal := IsSealCertificate(X509Certificate2.GetRawCertDataAsBase64String(CertBase64, CertPassword), Subject);
+    end;
+
+    local procedure ConvertBase64ToHex(Base64Text: Text): Text
+    var
+        CertDataBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        HexBuilder: TextBuilder;
+        OutStr: OutStream;
+        InStr: InStream;
+        ByteValue: Byte;
+    begin
+        if Base64Text = '' then
+            exit('');
+        CertDataBlob.CreateOutStream(OutStr);
+        Base64Convert.FromBase64(Base64Text, OutStr);
+        CertDataBlob.CreateInStream(InStr);
+        while not InStr.EOS() do begin
+            InStr.Read(ByteValue);
+            HexBuilder.Append(CopyStr(HexDigitsTok, ByteValue div 16 + 1, 1));
+            HexBuilder.Append(CopyStr(HexDigitsTok, ByteValue mod 16 + 1, 1));
+        end;
+        exit(HexBuilder.ToText());
+    end;
+
+    local procedure ContainsByteSequence(HexText: Text; HexSequence: Text): Boolean
+    var
+        Position: Integer;
+    begin
+        Position := HexText.IndexOf(HexSequence);
+        while Position > 0 do begin
+            // Only matches that start on a byte boundary count.
+            if Position mod 2 = 1 then
+                exit(true);
+            Position := HexText.IndexOf(HexSequence, Position + 1);
+        end;
+        exit(false);
+    end;
 
     internal procedure GetIsolatedCertificate(CertCode: Code[20]; var CertText: SecretText; var CertPassword: SecretText): Boolean
     var

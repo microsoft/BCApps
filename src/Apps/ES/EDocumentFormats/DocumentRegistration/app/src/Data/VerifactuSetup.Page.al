@@ -56,6 +56,18 @@ page 10777 "Verifactu Setup"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the code of certificate.';
+
+                    trigger OnValidate()
+                    begin
+                        UpdateCertificateType();
+                    end;
+                }
+                field(CertificateType; CertificateTypeText)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Certificate Type';
+                    Editable = false;
+                    ToolTip = 'Specifies the type of the selected certificate, detected from the certificate itself. Documents signed with an electronic seal certificate are sent to the dedicated AEAT endpoint for seal certificates.';
                 }
             }
         }
@@ -68,6 +80,30 @@ page 10777 "Verifactu Setup"
             Rec.Init();
             Rec.Insert(true);
         end;
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateCertificateType();
+    end;
+
+    var
+        CertificateTypeText: Text;
+        PersonalCertificateTxt: Label 'Personal or representative';
+        SealCertificateTxt: Label 'Electronic seal';
+
+    local procedure UpdateCertificateType()
+    var
+        DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
+        IsSealCertificate: Boolean;
+    begin
+        CertificateTypeText := '';
+        if not DocRegistrationCertMgt.TryGetIsSealCertificate(Rec."Certificate Code", IsSealCertificate) then
+            exit;
+        if IsSealCertificate then
+            CertificateTypeText := SealCertificateTxt
+        else
+            CertificateTypeText := PersonalCertificateTxt;
     end;
 }
 
