@@ -1254,6 +1254,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
             // Store Entry No. to global variable for return:
             GLEntryNo := GLEntry."Entry No.";
             InitVAT(GenJnlLine, GLEntry, VATPostingSetup);
+            if Balancing and GenJnlLine."System-Created Entry" and
+               (GenJnlLine."Source Code" = SourceCodeSetup."Close Income Statement")
+            then
+                GLEntry."Source Currency VAT Amount" := 0;
             OrigGLEntryAmount := GLEntry.Amount;
             GLEntryCalcPropDeduction(GenJnlLine, GLEntry, VATPostingSetup);
             GLEntryAdjustPurchase(GLEntry, GenJnlLine, VATPostingSetup);
