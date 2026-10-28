@@ -1213,6 +1213,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
         GLRegister: Record "G/L Register";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         ExpenseNo: Code[20];
         PaymentNo: Code[20];
         TotalAmount: Decimal;
@@ -1221,6 +1222,9 @@ codeunit 134195 "ERM Multiple Posting Groups"
         // [SCENARIO 656785] Employee application and unapplication transfer both LCY and ACY between posting groups.
         Initialize();
         SetHRAllowMultiplePostingGroups(true);
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Journal Templ. Name Mandatory" := false;
+        GeneralLedgerSetup.Modify();
         LibraryERM.SetAddReportingCurrency(LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 0.5, 0.5));
         TotalAmount := LibraryRandom.RandIntInRange(100, 200) * 2;
 
