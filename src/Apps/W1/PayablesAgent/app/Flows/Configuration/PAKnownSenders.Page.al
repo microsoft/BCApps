@@ -2,18 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-
+#if not CLEAN27
+#pragma warning disable AS0050
+#endif
 namespace Microsoft.Agent.PayablesAgent;
 
 page 3313 "PA Known Senders"
 {
-#if not CLEAN27
-#pragma warning disable AS0050
-#endif
     Extensible = false;
-#if not CLEAN27
-#pragma warning restore AS0050
-#endif
     Caption = 'Payables Agent Known Senders', Comment = 'Payables Agent is a term, and should not be translated.';
     PageType = List;
     SourceTable = "PA Known Sender";
@@ -70,3 +66,6 @@ page 3313 "PA Known Senders"
         UnusedByFolderLbl: Label 'This list is currently unused. Emails arrive through the configured subfolder and are processed without consulting it.', Comment = '%1 = folder name';
         UnusedByPolicyLbl: Label 'This list doesn''t affect processing while review policy is set to ''%1''.', Comment = '%1 = review policy';
 }
+#if not CLEAN27
+#pragma warning restore AS0050
+#endif

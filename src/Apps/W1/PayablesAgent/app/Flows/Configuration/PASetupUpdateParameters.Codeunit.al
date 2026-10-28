@@ -49,9 +49,9 @@ codeunit 3321 "PA Setup Update Parameters" // TODO: how could it look if we made
     internal procedure InitializeFromStoredSetup()
     var
         Agent: Record Agent;
+        TempLoadedAgentSetupBuffer: Record "Agent Setup Buffer";
         StoredSetup: Codeunit "PA Setup";
         PayablesAgentMetadata: Codeunit "Payables Agent Metadata";
-        TempLoadedAgentSetupBuffer: Record "Agent Setup Buffer";
         AgentSetup: Codeunit "Agent Setup";
     begin
         if not SkipAgentConfiguration then begin

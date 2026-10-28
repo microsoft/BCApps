@@ -2,18 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-
+#if not CLEAN27
+#pragma warning disable AS0049
+#endif
 namespace Microsoft.Agent.PayablesAgent;
 
 enum 3303 "PA KPI Scenario"
 {
-#if not CLEAN27
-#pragma warning disable AS0049
-#endif
     Access = Internal;
-#if not CLEAN27
-#pragma warning restore AS0049
-#endif
     Extensible = false;
 
     value(0; "Agent Tasks Received")
@@ -41,3 +37,6 @@ enum 3303 "PA KPI Scenario"
         Caption = 'Purchase Invoices created by Agent';
     }
 }
+#if not CLEAN27
+#pragma warning restore AS0049
+#endif
