@@ -795,7 +795,7 @@ report 94 "Close Income Statement"
         GLAcc: Record "G/L Account";
         AmountACY: Decimal;
     begin
-        AmountACY := GenJnlLine."Source Currency Amount";
+        AmountACY := 0;
         if GLSetup."Additional Reporting Currency" <> '' then
             AmountACY := ClosingAmountsACY.Get(GenJnlLine."Line No.");
         GLAcc.Get(GenJnlLine."Account No.");

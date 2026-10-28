@@ -769,10 +769,11 @@ codeunit 134228 "ERM Close Income Statement"
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
-        AdditionalReportingCurrency: Code[10];
+        OriginalAdditionalReportingCurrency: Code[10];
         SourceCurrencyCode: Code[10];
         GLAccountNo: Code[20];
-        RetainedEarningsAccountNo: Code[20];
+        NetProfitAccountNo: Code[20];
+        NetLossAccountNo: Code[20];
         DocumentNo: Code[20];
         PostingDate: Date;
     begin
@@ -781,7 +782,7 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryFiscalYear.CloseFiscalYear();
         LibraryFiscalYear.CreateFiscalYear();
 
-        AdditionalReportingCurrency := UpdateCurOnGeneralLedgerSetup(CreateCurrency());
+        OriginalAdditionalReportingCurrency := UpdateCurOnGeneralLedgerSetup(CreateCurrency());
         SourceCurrencyCode := CreateCurrency();
         LibraryERM.SelectGenJnlBatch(GenJournalBatch);
         LibraryERM.ClearGenJournalLines(GenJournalBatch);
@@ -795,10 +796,9 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryFiscalYear.CloseFiscalYear();
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
         DocumentNo := LibraryUtility.GenerateGUID();
-        RetainedEarningsAccountNo := LibraryERM.CreateGLAccountNo();
-        RunCloseIncomeStatement(
-            GenJournalLine, PostingDate, RetainedEarningsAccountNo,
-            PostToRetainedEarningsAcc::Balance, false, false, DocumentNo);
+        RunCloseIncomeStatementForSourceVAT(
+            GenJournalLine, PostingDate, PostToRetainedEarningsAcc::Balance, false, false, DocumentNo,
+            NetProfitAccountNo, NetLossAccountNo);
 
         GLEntry.SetRange("Document No.", DocumentNo);
         GLEntry.SetRange("G/L Account No.", GLAccountNo);
@@ -809,7 +809,7 @@ codeunit 134228 "ERM Close Income Statement"
         Assert.AreEqual(SourceCurrencyCode, GLEntry."Source Currency Code", 'Incorrect source currency code.');
         Assert.AreEqual(-25, GLEntry."Source Currency Amount", 'Incorrect closing source currency amount.');
 
-        UpdateCurOnGeneralLedgerSetup(AdditionalReportingCurrency);
+        UpdateCurOnGeneralLedgerSetup(OriginalAdditionalReportingCurrency);
     end;
 
     [Test]
@@ -822,7 +822,8 @@ codeunit 134228 "ERM Close Income Statement"
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
         GLAccountNo: Code[20];
-        RetainedEarningsAccountNo: Code[20];
+        NetProfitAccountNo: Code[20];
+        NetLossAccountNo: Code[20];
         DocumentNo: Code[20];
         PostingDate: Date;
     begin
@@ -848,21 +849,77 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryFiscalYear.CloseFiscalYear();
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
         DocumentNo := LibraryUtility.GenerateGUID();
-        RetainedEarningsAccountNo := LibraryERM.CreateGLAccountNo();
-        RunCloseIncomeStatement(
-            GenJournalLine, PostingDate, RetainedEarningsAccountNo,
-            PostToRetainedEarningsAcc::Balance, false, false, DocumentNo);
+        RunCloseIncomeStatementForSourceVAT(
+            GenJournalLine, PostingDate, PostToRetainedEarningsAcc::Balance, false, false, DocumentNo,
+            NetProfitAccountNo, NetLossAccountNo);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         GLEntry.SetRange("Document No.", DocumentNo);
         Assert.RecordCount(GLEntry, 2);
         GLEntry.CalcSums("Source Currency Amount");
         Assert.AreEqual(0, GLEntry."Source Currency Amount", 'Closing source currency amounts are not balanced.');
-        GLEntry.SetRange("G/L Account No.", RetainedEarningsAccountNo);
+        GLEntry.SetRange("G/L Account No.", NetLossAccountNo);
         Assert.RecordCount(GLEntry, 1);
         GLEntry.FindFirst();
         Assert.AreEqual('', GLEntry."Source Currency Code", 'Incorrect retained earnings source currency code.');
         Assert.AreEqual(100, GLEntry."Source Currency Amount", 'Incorrect retained earnings source currency amount.');
+
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementBalancesExchangeGainSourceAmounts()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        GLAccountNo: Code[20];
+        SourceCurrencyCode: Code[10];
+        NetProfitAccountNo: Code[20];
+        NetLossAccountNo: Code[20];
+        DocumentNo: Code[20];
+        PostingDate: Date;
+    begin
+        // [SCENARIO] Net loss balances actual source amounts when an exchange gain has no source amount.
+        Initialize();
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+
+        UpdateCurOnGeneralLedgerSetup('');
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Check Source Curr. Consistency", true);
+        GeneralLedgerSetup.Modify(true);
+
+        SourceCurrencyCode := CreateCurrency();
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::Customer, '', 0);
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
+        PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
+        InsertGLEntryForCloseIncome(PostingDate, GLAccountNo, 100, 0, SourceCurrencyCode, 0, 0, 0, '', '', '');
+
+        LibraryFiscalYear.CloseFiscalYear();
+        PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
+        DocumentNo := LibraryUtility.GenerateGUID();
+        RunCloseIncomeStatementForSourceVAT(
+            GenJournalLine, PostingDate, PostToRetainedEarningsAcc::Balance, false, false, DocumentNo,
+            NetProfitAccountNo, NetLossAccountNo);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        GLEntry.SetRange("Document No.", DocumentNo);
+        Assert.RecordCount(GLEntry, 2);
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(0, GLEntry."Source Currency Amount", 'Closing source currency amounts are not balanced.');
+        GLEntry.SetRange("G/L Account No.", NetLossAccountNo);
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        Assert.AreEqual(100, GLEntry.Amount, 'Incorrect net loss amount.');
+        Assert.AreEqual(0, GLEntry."Source Currency Amount", 'Incorrect net loss source currency amount.');
 
         LibrarySetupStorage.Restore();
     end;

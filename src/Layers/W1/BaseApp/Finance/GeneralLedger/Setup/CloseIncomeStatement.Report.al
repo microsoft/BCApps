@@ -71,6 +71,7 @@ report 94 "Close Income Statement"
                         if not GroupSum() then begin
                             TotalAmount += Amount;
                             TotalAmountAddCurr += "Additional-Currency Amount";
+                            TotalSourceCurrencyAmount += "Source Currency Amount";
 
                             GetGLEntryDimensions("Entry No.", TempDimBuf, "Dimension Set ID");
                         end;
@@ -240,7 +241,7 @@ report 94 "Close Income Statement"
                     GenJnlLine."Additional-Currency Posting" :=
                       GenJnlLine."Additional-Currency Posting"::None;
                     GenJnlLine.Validate(Amount, TotalAmount);
-                    GenJnlLine."Source Currency Amount" := TotalAmount;
+                    GenJnlLine."Source Currency Amount" := TotalSourceCurrencyAmount;
                     GenJnlLine."Source Currency Code" := '';
                     GenJnlLine."Source Curr. VAT Amount" := 0;
                     OnGLAccountOnOnPostDataItemOnAfterGenJnlLinePopulateFields(GenJnlLine, RetainedEarningsGLAcc);
@@ -538,6 +539,7 @@ report 94 "Close Income Statement"
         ClosePerGlobalDimOnly: Boolean;
         TotalAmount: Decimal;
         TotalAmountAddCurr: Decimal;
+        TotalSourceCurrencyAmount: Decimal;
         ColumnDim: Text[250];
         NoOfAccounts: Integer;
         ThisAccountNo: Integer;
@@ -716,6 +718,7 @@ report 94 "Close Income Statement"
         GLEntrySource."Source Currency Amount" := GLEntry."Source Currency Amount";
         GLEntrySource."Source Currency VAT Amount" := GLEntry."Source Currency VAT Amount";
         TotalAmount += GLEntrySource.Amount;
+        TotalSourceCurrencyAmount += GLEntrySource."Source Currency Amount";
         GLEntry.CalcSums("Additional-Currency Amount");
         GLEntrySource."Additional-Currency Amount" := GLEntry."Additional-Currency Amount";
         TotalAmountAddCurr += GLEntrySource."Additional-Currency Amount";
