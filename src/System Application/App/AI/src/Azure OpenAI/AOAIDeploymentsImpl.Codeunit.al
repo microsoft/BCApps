@@ -24,6 +24,8 @@ codeunit 7769 "AOAI Deployments Impl"
         GPT41PreviewLbl: Label 'gpt-41-preview', Locked = true;
         GPT41MiniLatestLbl: Label 'gpt-41-mini-latest', Locked = true;
         GPT41MiniPreviewLbl: Label 'gpt-41-mini-preview', Locked = true;
+        GPT56CeresLatestLbl: Label 'gpt-56-ceres-latest', Locked = true;
+        GPT56CeresPreviewLbl: Label 'gpt-56-ceres-preview', Locked = true;
         DeprecatedDeployments: Dictionary of [Text, Date];
         DeprecationDatesInitialized: Boolean;
         DeprecationMessageLbl: Label 'We detected usage of the Azure OpenAI deployment "%1". This model is obsoleted starting %2 and the quality of your results might vary after that date. Check out codeunit 7768 AOAI Deployments to find the supported deployments.', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
@@ -67,6 +69,21 @@ codeunit 7769 "AOAI Deployments Impl"
     procedure GetGPT41MiniLatest(CallerModuleInfo: ModuleInfo): Text
     begin
         exit(GetDeploymentName(GPT41MiniLatestLbl));
+    end;
+
+    procedure GetGPT56CeresLatest(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT56CeresLatestLbl));
+    end;
+
+    procedure GetGPT56CeresPreview(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT56CeresPreviewLbl));
+    end;
+
+    procedure IsFileContentSupported(DeploymentName: Text): Boolean
+    begin
+        exit(DeploymentName in [GPT41MiniPreviewLbl, GPT56CeresPreviewLbl]);
     end;
 
     // Initializes dictionary of deprecated models
