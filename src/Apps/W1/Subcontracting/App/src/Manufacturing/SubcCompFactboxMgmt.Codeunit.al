@@ -84,6 +84,7 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
+        TotalQty: Decimal;
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -100,8 +101,12 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
         SetPurchaseLineFiltersForProdOrderComponent(PurchaseLine, ProdOrderComponent, ProdOrderRoutingLine);
-        PurchaseLine.CalcSums("Outstanding Qty. (Base)");
-        exit(PurchaseLine."Outstanding Qty. (Base)");
+        PurchaseLine.SetLoadFields("Outstanding Qty. (Base)");
+        if PurchaseLine.FindSet() then
+            repeat
+                TotalQty += PurchaseLine."Outstanding Qty. (Base)";
+            until PurchaseLine.Next() = 0;
+        exit(TotalQty);
     end;
 
     /// <summary>
@@ -139,6 +144,7 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
+        TotalQty: Decimal;
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -155,8 +161,12 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
         SetPurchaseLineFiltersForProdOrderComponent(PurchaseLine, ProdOrderComponent, ProdOrderRoutingLine);
-        PurchaseLine.CalcSums("Qty. Received (Base)");
-        exit(PurchaseLine."Qty. Received (Base)");
+        PurchaseLine.SetLoadFields("Qty. Received (Base)");
+        if PurchaseLine.FindSet() then
+            repeat
+                TotalQty += PurchaseLine."Qty. Received (Base)";
+            until PurchaseLine.Next() = 0;
+        exit(TotalQty);
     end;
 
     /// <summary>
@@ -186,31 +196,53 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
 
     local procedure SetPurchaseLineFiltersForProdOrderComponent(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
+        FilteredPurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.Reset();
+        PurchaseLine.ClearMarks();
+
+        FilteredPurchaseLine.SetRange("Document Type", FilteredPurchaseLine."Document Type"::Order);
+        FilteredPurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        FilteredPurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        FilteredPurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        FilteredPurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
+        FilteredPurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
+        FilteredPurchaseLine.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+
+        FilteredPurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        FilteredPurchaseLine.SetRange("Subc. Prod. Comp. Line No.", ProdOrderComponent."Line No.");
+        MarkPurchaseLines(PurchaseLine, FilteredPurchaseLine);
+
+        if IsLegacyPurchaseLineUnambiguous(ProdOrderComponent) then begin
+            FilteredPurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+            FilteredPurchaseLine.SetRange("Subc. Prod. Comp. Line No.", 0);
+            MarkPurchaseLines(PurchaseLine, FilteredPurchaseLine);
+        end;
+
+        PurchaseLine.MarkedOnly(true);
+    end;
+
+    local procedure MarkPurchaseLines(var PurchaseLine: Record "Purchase Line"; var FilteredPurchaseLine: Record "Purchase Line")
+    begin
+        if FilteredPurchaseLine.FindSet() then
+            repeat
+                PurchaseLine := FilteredPurchaseLine;
+                PurchaseLine.Mark(true);
+            until FilteredPurchaseLine.Next() = 0;
+    end;
+
+    // Legacy lines only store the shared routing reference, so they are attributable only when no other component matches.
+    local procedure IsLegacyPurchaseLineUnambiguous(ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    var
         MatchingProdOrderComponent: Record "Prod. Order Component";
     begin
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
-        PurchaseLine.SetRange("Subc. Prod. Comp. Line No.", ProdOrderComponent."Line No.");
-        PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
-        PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
-        PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
-        PurchaseLine.SetRange("Variant Code", ProdOrderComponent."Variant Code");
-        if not PurchaseLine.IsEmpty() then
-            exit;
-
         MatchingProdOrderComponent.SetRange(Status, ProdOrderComponent.Status);
         MatchingProdOrderComponent.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
         MatchingProdOrderComponent.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
         MatchingProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method");
         MatchingProdOrderComponent.SetRange("Item No.", ProdOrderComponent."Item No.");
         MatchingProdOrderComponent.SetRange("Variant Code", ProdOrderComponent."Variant Code");
-        if MatchingProdOrderComponent.Count() <> 1 then
-            exit;
-
-        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchaseLine.SetRange("Subc. Prod. Comp. Line No.", 0);
+        exit(MatchingProdOrderComponent.Count() = 1);
     end;
 
     local procedure GetProdOrderRtngLineFromProdOrderComp(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderComponent: Record "Prod. Order Component")

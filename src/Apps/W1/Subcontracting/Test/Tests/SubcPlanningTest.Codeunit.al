@@ -749,6 +749,8 @@ codeunit 139996 "Subc. Planning Test"
         ProductionOrder: Record "Production Order";
         PurchaseLine: Record "Purchase Line";
         PurchaseLineComp: Record "Purchase Line";
+        ExactPurchaseLineComp: Record "Purchase Line";
+        ExistingPurchaseLine: Record "Purchase Line";
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
@@ -765,6 +767,7 @@ codeunit 139996 "Subc. Planning Test"
         FamilyComponentQuantityErr: Label 'The Family component purchase quantity should be updated.';
         FamilyComponentDateErr: Label 'The Family component purchase date should be updated.';
         LegacyFamilyComponentOutstandingQuantityErr: Label 'An unambiguous legacy Family component purchase line should remain visible in the outstanding quantity.';
+        MixedFamilyComponentOutstandingQuantityErr: Label 'An unambiguous legacy Family component purchase line should be included together with exact-identity lines.';
     begin
         // [SCENARIO] A vendor-supplied component is rescheduled for a Family output whose production line number differs from the shared routing reference.
         Initialize();
@@ -826,6 +829,21 @@ codeunit 139996 "Subc. Planning Test"
             SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
             LegacyFamilyComponentOutstandingQuantityErr);
 
+        // Mixed identities: an exact-identity line must not hide the unambiguous legacy line.
+        ExactPurchaseLineComp := PurchaseLineComp;
+        ExistingPurchaseLine.SetRange("Document Type", PurchaseLineComp."Document Type");
+        ExistingPurchaseLine.SetRange("Document No.", PurchaseLineComp."Document No.");
+        ExistingPurchaseLine.FindLast();
+        ExactPurchaseLineComp."Line No." := ExistingPurchaseLine."Line No." + 10000;
+        ExactPurchaseLineComp."Subc. Prod. Order Line No." := ProdOrderLine."Line No.";
+        ExactPurchaseLineComp."Subc. Prod. Comp. Line No." := ProdOrderComponent."Line No.";
+        ExactPurchaseLineComp.Insert();
+        Assert.AreEqual(
+            PurchaseLineComp."Outstanding Qty. (Base)" + ExactPurchaseLineComp."Outstanding Qty. (Base)",
+            SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
+            MixedFamilyComponentOutstandingQuantityErr);
+        ExactPurchaseLineComp.Delete();
+
         ProdOrderLine.Validate(Quantity, InitialQuantity + 1);
         ProdOrderLine.Modify(true);
         ProdOrderComponent.FindFirst();
@@ -862,6 +880,7 @@ codeunit 139996 "Subc. Planning Test"
         SecondOutputItem: Record Item;
         MachineCenter: array[2] of Record "Machine Center";
         ProdOrderComponent: array[2] of Record "Prod. Order Component";
+        MovedProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: array[2] of Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ProductionOrder: Record "Production Order";
@@ -933,12 +952,19 @@ codeunit 139996 "Subc. Planning Test"
             ProdOrderComponent[2]."Item No.",
             FamilyOutputSharedComponentErr);
 
+        // Give the second output a different component line number than the first one.
+        MovedProdOrderComponent := ProdOrderComponent[2];
+        MovedProdOrderComponent."Line No." := ProdOrderComponent[1]."Line No." + 10000;
+        MovedProdOrderComponent.Insert();
+        ProdOrderComponent[2].Delete();
+        ProdOrderComponent[2].SetRange("Line No.", MovedProdOrderComponent."Line No.");
+        Assert.IsTrue(ProdOrderComponent[2].FindFirst(), FamilyOutputPurchaseLineErr);
+
         SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
         SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
         SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
 
-        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
-        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
         ProdOrderRoutingLine.FindFirst();
 
