@@ -307,7 +307,7 @@ codeunit 144054 "ERM ES Income Statement"
         GLAccountFilter: Record "G/L Account";
         GenJournalBatch: Record "Gen. Journal Batch";
         GLEntry: Record "G/L Entry";
-        CloseIncomeStatement: Report "Close Income Statement";
+        CloseIncomeStatement1: Report "Close Income Statement";
         FiscalYearStartDate: Date;
         FiscalYearEndDate: Date;
         i: Integer;
@@ -349,12 +349,12 @@ codeunit 144054 "ERM ES Income Statement"
 
         // [WHEN] Close only these income accounts.
         GLAccountFilter.SetFilter("No.", '%1|%2', IncomeGLAccount[1]."No.", IncomeGLAccount[2]."No.");
-        CloseIncomeStatement.SetTableView(GLAccountFilter);
-        CloseIncomeStatement.InitializeRequest(
+        CloseIncomeStatement1.SetTableView(GLAccountFilter);
+        CloseIncomeStatement1.InitializeRequest(
             FiscalYearEndDate, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
             GenJournalBatch.Name, GenJournalBatch.Name, false, false, false, BalanceGLAccount."No.");
-        CloseIncomeStatement.UseRequestPage(false);
-        CloseIncomeStatement.Run();
+        CloseIncomeStatement1.UseRequestPage(false);
+        CloseIncomeStatement1.Run();
 
         // [THEN] Exact historical ACY amounts are reversed, with one ACY-only balancing entry and no residual.
         VerifyClosingEntry(IncomeGLAccount[1]."No.", GenJournalBatch.Name, FiscalYearEndDate, 100, 300);
