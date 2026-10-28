@@ -1,4 +1,4 @@
-codeunit 137006 "SCM Put-away Templ. Empty Bin"
+codeunit 137933 "SCM Put-away Templ. Empty Bin"
 {
     Subtype = Test;
     TestPermissions = Disabled;
