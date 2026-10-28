@@ -229,6 +229,48 @@ jobs:
           baselineWorkflowSHA: ${{ inputs.baselineWorkflowSHA }}
           previousAppsPath: ${{ steps.DownloadPreviousRelease.outputs.PreviousAppsPath }}
 
+      - name: Prepare temporary dev AlTool
+        if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && env.runTestsInSeparateAction == 'True' && (inputs.buildMode == 'IntegrationTests' || inputs.buildMode == 'UncategorizedTests')
+        shell: pwsh
+        run: |
+          $zipPath = Join-Path $env:GITHUB_WORKSPACE 'build\tools\altool-dev-net10.zip'
+          $expectedHash = '095951C807E4E3A42559D4B66527F42974D484D32189D89538CB20DEB7FA42C9'
+          $expectedVersion = '30.0.0.0+14ef6c5c8aeb5bfd12b3ebf7b413750cb7ac8369'
+
+          if (-not (Test-Path -LiteralPath $zipPath -PathType Leaf)) {
+            throw "Temporary dev AlTool bundle was not found at '$zipPath'."
+          }
+
+          $actualHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToUpperInvariant()
+          if ($actualHash -ne $expectedHash) {
+            throw "Temporary dev AlTool bundle hash '$actualHash' does not match expected hash '$expectedHash'."
+          }
+
+          $destination = Join-Path $env:RUNNER_TEMP 'altool-dev-net10'
+          if (Test-Path -LiteralPath $destination) {
+            Remove-Item -LiteralPath $destination -Recurse -Force
+          }
+          Expand-Archive -LiteralPath $zipPath -DestinationPath $destination -Force
+
+          $alToolPath = Join-Path $destination 'altool.exe'
+          if (-not (Test-Path -LiteralPath $alToolPath -PathType Leaf)) {
+            throw "Temporary dev AlTool executable was not found at '$alToolPath'."
+          }
+
+          $versionOutput = @(& $alToolPath --version 2>&1)
+          $versionExitCode = $LASTEXITCODE
+          $actualVersion = ($versionOutput | ForEach-Object { "$_" }) -join [Environment]::NewLine
+          $actualVersion = $actualVersion.Trim()
+          if ($versionExitCode -ne 0) {
+            throw "Temporary dev AlTool version check failed with exit code $versionExitCode."
+          }
+          if ($actualVersion -ne $expectedVersion) {
+            throw "Temporary dev AlTool version '$actualVersion' does not match expected version '$expectedVersion'."
+          }
+
+          Add-Content -Encoding UTF8 -Path $env:GITHUB_ENV -Value "AlToolPath=$alToolPath"
+          Write-Host "::notice::Using temporary dev AlTool coverage build $actualVersion (ZIP SHA-256 $actualHash)."
+
       - name: Run Tests
         uses: spetersenms/AL-Go/Actions/RunTests@spetersen/separateTestActionCodeCoverage
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && env.runTestsInSeparateAction == 'True'
