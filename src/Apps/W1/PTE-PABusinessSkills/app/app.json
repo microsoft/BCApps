@@ -1,0 +1,27 @@
+{
+  "id": "67afa5a1-7805-4935-aaf1-d6407820affe",
+  "name": "PA Business Skills",
+  "publisher": "DefaultPublisher",
+  "version": "1.0.0.0",
+  "brief": "Record the purpose of a purchase invoice",
+  "description": "Adds an optional Purchase Purpose to purchase invoices and retains it as read-only information on posted purchase invoices. Does not change approvals, posting amounts, or accounting.",
+  "runtime": "30.0",
+  "target": "Cloud",
+  "dependencies": [],
+  "idRanges": [
+    {
+      "from": 50100,
+      "to": 50199
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "NoImplicitWith"
+  ],
+  "platform": "30.0.0.0",
+  "application": "30.0.0.0"
+}
