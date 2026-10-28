@@ -1234,6 +1234,9 @@ codeunit 134195 "ERM Multiple Posting Groups"
 
         // [GIVEN] An expense posted in LCY with the alternative posting group.
         LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.DeleteAll();
         LibraryERM.CreateGeneralJnlLine(
             GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
             GenJournalLine."Account Type"::Employee, Employee."No.", -TotalAmount);
