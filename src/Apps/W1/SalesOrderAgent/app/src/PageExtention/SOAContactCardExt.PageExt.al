@@ -6,7 +6,7 @@ namespace Microsoft.Agent.SalesOrderAgent;
 
 using Microsoft.CRM.Contact;
 
-pageextension 4412 "SOA Contact Card Ext" extends "Contact Card"
+pageextension 4413 "SOA Contact Card Ext" extends "Contact Card"
 {
     layout
     {
