@@ -356,8 +356,8 @@ table 7000005 "Bill Group"
         Text1100007Lbl: Label 'This bill group has already been printed. Proceed anyway?';
         Text1100008Lbl: Label 'The update has been interrupted by the user.';
         Text1100009Lbl: Label 'Bill Group';
-        Text1100010Lbl: Label ' is currently in use in a Posted Bill Group.';
-        Text1100011Lbl: Label ' is currently in use in a Closed Bill Group.';
+        Text1100010Lbl: Label 'is currently in use in a Posted Bill Group';
+        Text1100011Lbl: Label 'is currently in use in a Closed Bill Group';
         Text1100012Lbl: Label 'untitled';
         Option: Integer;
         SilentDirectDebitFormat: Option " ",Standard,N58;
@@ -402,9 +402,9 @@ table 7000005 "Bill Group"
     local procedure CheckNoNotUsed()
     begin
         if PostedBillGr.Get("No.") then
-            FieldError("No.", PostedBillGr."No." + Text1100010Lbl);
+            FieldError("No.", Text1100010Lbl);
         if ClosedBillGr.Get("No.") then
-            FieldError("No.", ClosedBillGr."No." + Text1100011Lbl);
+            FieldError("No.", Text1100011Lbl);
     end;
 
     [Scope('OnPrem')]

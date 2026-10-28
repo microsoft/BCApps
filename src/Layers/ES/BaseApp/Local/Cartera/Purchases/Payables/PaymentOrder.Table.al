@@ -313,8 +313,8 @@ table 7000020 "Payment Order"
         Text1100003Lbl: Label 'This payment order has already been printed. Proceed anyway?';
         Text1100004Lbl: Label 'The update has been interrupted by the user.';
         Text1100005Lbl: Label 'Payment Order';
-        Text1100006Lbl: Label ' is currently in use in a Posted Payment Order.';
-        Text1100007Lbl: Label ' is currently in use in a Closed Payment Order.';
+        Text1100006Lbl: Label 'is currently in use in a Posted Payment Order';
+        Text1100007Lbl: Label 'is currently in use in a Closed Payment Order';
         Text1100008Lbl: Label 'untitled';
         ExportAgainQst: Label 'The selected payment order has already been exported. Do you want to export again?';
 
@@ -354,9 +354,9 @@ table 7000020 "Payment Order"
     local procedure CheckNoNotUsed()
     begin
         if PostedPmtOrd.Get("No.") then
-            FieldError("No.", PostedPmtOrd."No." + Text1100006Lbl);
+            FieldError("No.", Text1100006Lbl);
         if ClosedPmtOrd.Get("No.") then
-            FieldError("No.", ClosedPmtOrd."No." + Text1100007Lbl);
+            FieldError("No.", Text1100007Lbl);
     end;
 
     [Scope('OnPrem')]

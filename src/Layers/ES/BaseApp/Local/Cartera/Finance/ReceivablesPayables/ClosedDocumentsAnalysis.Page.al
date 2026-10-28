@@ -95,9 +95,9 @@ page 7000044 "Closed Documents Analysis"
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = ClosedDoc."Currency Code";
                             AutoFormatType = 1;
-                            Caption = 'Rejected';
+                            Caption = 'Redrawn';
                             Editable = false;
-                            ToolTip = 'Specifies that the related payment is rejected.';
+                            ToolTip = 'Specifies that the related payment is recirculated because it was rejected when its due date arrived.';
                         }
                     }
                     group("Original Amt. (LCY)")
@@ -128,9 +128,9 @@ page 7000044 "Closed Documents Analysis"
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
                             AutoFormatExpression = '';
-                            Caption = 'Rejected';
+                            Caption = 'Redrawn';
                             Editable = false;
-                            ToolTip = 'Specifies that the related payment is rejected.';
+                            ToolTip = 'Specifies that the related payment is recirculated because it was rejected when its due date arrived.';
                         }
                     }
                 }

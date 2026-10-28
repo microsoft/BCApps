@@ -95,9 +95,9 @@ page 7000062 "Closed Pmt. Ord. Analysis"
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
                             AutoFormatExpression = '';
-                            Caption = 'Rejected';
+                            Caption = 'Redrawn';
                             Editable = false;
-                            ToolTip = 'Specifies that the related payment is rejected.';
+                            ToolTip = 'Specifies that the related payment is recirculated because it was rejected when its due date arrived.';
                         }
                     }
                 }

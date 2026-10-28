@@ -122,9 +122,9 @@ page 7000021 "Posted Bill Groups Analysis"
                             ApplicationArea = Basic, Suite;
                             AutoFormatExpression = Rec."Currency Code";
                             AutoFormatType = 1;
-                            Caption = 'Rejected';
+                            Caption = 'Redrawn';
                             Editable = false;
-                            ToolTip = 'Specifies that the related payment is rejected.';
+                            ToolTip = 'Specifies that the related payment is recirculated because it was rejected when its due date arrived.';
                         }
                     }
                     group("Amount (LCY)")
@@ -162,9 +162,9 @@ page 7000021 "Posted Bill Groups Analysis"
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
                             AutoFormatExpression = '';
-                            Caption = 'Rejected';
+                            Caption = 'Redrawn';
                             Editable = false;
-                            ToolTip = 'Specifies that the related payment is rejected.';
+                            ToolTip = 'Specifies that the related payment is recirculated because it was rejected when its due date arrived.';
                         }
                     }
                 }

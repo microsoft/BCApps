@@ -235,7 +235,7 @@ codeunit 7000022 "CRTNavigateCartera"
                     CarteraDoc.SetFilter("Original Document No.", DocNoFilter);
                     CarteraDoc.SetFilter("No.", CarteraDocNoFilter);
                     CarteraDoc.SetFilter("Posting Date", PostingDateFilter);
-                    Page.Run(0, CarteraDoc);
+                    Page.Run(Page::"Cartera Documents", CarteraDoc);
                     IsHandled := true;
                 end;
             Database::"Posted Cartera Doc.":
@@ -244,7 +244,7 @@ codeunit 7000022 "CRTNavigateCartera"
                     PostedCarteraDoc.SetFilter("Original Document No.", DocNoFilter);
                     PostedCarteraDoc.SetFilter("No.", CarteraDocNoFilter);
                     PostedCarteraDoc.SetFilter("Posting Date", PostingDateFilter);
-                    Page.Run(0, PostedCarteraDoc);
+                    Page.Run(Page::"Posted Cartera Documents", PostedCarteraDoc);
                     IsHandled := true;
                 end;
             Database::"Closed Cartera Doc.":
@@ -253,7 +253,7 @@ codeunit 7000022 "CRTNavigateCartera"
                     ClosedCarteraDoc.SetFilter("Original Document No.", DocNoFilter);
                     ClosedCarteraDoc.SetFilter("No.", CarteraDocNoFilter);
                     ClosedCarteraDoc.SetFilter("Posting Date", PostingDateFilter);
-                    Page.Run(0, ClosedCarteraDoc);
+                    Page.Run(Page::"Closed Cartera Documents", ClosedCarteraDoc);
                     IsHandled := true;
                 end;
             Database::"Posted Bill Group":
@@ -261,7 +261,7 @@ codeunit 7000022 "CRTNavigateCartera"
                     PostedBillGr.SetCurrentKey("No.");
                     PostedBillGr.SetFilter("No.", DocNoFilter);
                     PostedBillGr.SetFilter("Posting Date", PostingDateFilter);
-                    Page.Run(0, PostedBillGr);
+                    Page.Run(Page::"Posted Bill Groups List", PostedBillGr);
                     IsHandled := true;
                 end;
             Database::"Closed Bill Group":
@@ -269,7 +269,7 @@ codeunit 7000022 "CRTNavigateCartera"
                     ClosedBillGr.SetCurrentKey("No.");
                     ClosedBillGr.SetFilter("No.", DocNoFilter);
                     ClosedBillGr.SetFilter("Posting Date", PostingDateFilter);
-                    Page.Run(0, ClosedBillGr);
+                    Page.Run(Page::"Closed Bill Groups List", ClosedBillGr);
                     IsHandled := true;
                 end;
             Database::"Posted Payment Order":
@@ -277,7 +277,7 @@ codeunit 7000022 "CRTNavigateCartera"
                     PostedPmtOrd.SetCurrentKey("No.");
                     PostedPmtOrd.SetFilter("No.", DocNoFilter);
                     PostedPmtOrd.SetFilter("Posting Date", PostingDateFilter);
-                    Page.Run(0, PostedPmtOrd);
+                    Page.Run(Page::"Posted Payment Orders List", PostedPmtOrd);
                     IsHandled := true;
                 end;
             Database::"Closed Payment Order":
@@ -285,7 +285,7 @@ codeunit 7000022 "CRTNavigateCartera"
                     ClosedPmtOrd.SetCurrentKey("No.");
                     ClosedPmtOrd.SetFilter("No.", DocNoFilter);
                     ClosedPmtOrd.SetFilter("Posting Date", PostingDateFilter);
-                    Page.Run(0, ClosedPmtOrd);
+                    Page.Run(Page::"Closed Payment Orders List", ClosedPmtOrd);
                     IsHandled := true;
                 end;
         end;
