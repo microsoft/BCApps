@@ -38,19 +38,15 @@ codeunit 132684 "Azure OpenAI Test"
         LibraryAssert.AreEqual('gpt-56-ceres-preview', AOAIDeployments.GetGPT56CeresPreview(), 'The GPT-5.6 Ceres preview deployment name should be returned.');
     end;
 
-#if not CLEAN29
-#pragma warning disable AL0432
     [Test]
     procedure TestGPT55ChatDeploymentNames()
     var
         AOAIDeployments: Codeunit "AOAI Deployments";
     begin
-        // [SCENARIO] Obsolete GPT-5.5 chat getters preserve their deployment names for existing callers.
-        LibraryAssert.AreEqual('gpt-55-chat-latest', AOAIDeployments.GetGPT55ChatLatest(), 'The obsolete GPT-5.5 chat latest deployment name should be preserved.');
-        LibraryAssert.AreEqual('gpt-55-chat-preview', AOAIDeployments.GetGPT55ChatPreview(), 'The obsolete GPT-5.5 chat preview deployment name should be preserved.');
+        // [SCENARIO] GPT-5.5 chat getters preserve their deployment names for existing callers.
+        LibraryAssert.AreEqual('gpt-55-chat-latest', AOAIDeployments.GetGPT55ChatLatest(), 'The GPT-5.5 chat latest deployment name should be preserved.');
+        LibraryAssert.AreEqual('gpt-55-chat-preview', AOAIDeployments.GetGPT55ChatPreview(), 'The GPT-5.5 chat preview deployment name should be preserved.');
     end;
-#pragma warning restore AL0432
-#endif
 
     [Test]
     [HandlerFunctions('HandleCopilotNotAvailable')]
@@ -875,7 +871,7 @@ codeunit 132684 "Azure OpenAI Test"
         AOAIDeployments: Codeunit "AOAI Deployments";
         AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
     begin
-        // [SCENARIO] File content is accepted by supported preview deployments, including the obsolete GPT-5.5 chat preview.
+        // [SCENARIO] File content is accepted by supported preview deployments, including the GPT-5.5 chat preview.
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         AOAIChatMessages.AddUserMessage('Text message');
         AOAIUserMessage.AddFilePart('Test');
@@ -885,11 +881,7 @@ codeunit 132684 "Azure OpenAI Test"
         // [THEN] Supported preview deployments do not raise an error.
         AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT41MiniPreview());
         AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56CeresPreview());
-#if not CLEAN29
-#pragma warning disable AL0432
         AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT55ChatPreview());
-#pragma warning restore AL0432
-#endif
     end;
 
     [Test]

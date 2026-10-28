@@ -142,12 +142,10 @@ codeunit 7768 "AOAI Deployments"
         exit(AOAIDeploymentsImpl.GetGPT53ChatPreview(CallerModuleInfo));
     end;
 
-#if not CLEAN29
     /// <summary>
     /// Returns the name of the latest AOAI deployment model of GPT-5.5 chat.
     /// </summary>
     /// <returns>The deployment name.</returns>
-    [Obsolete('GPT-5.5 chat deployment name is no longer supported from 11 September 2026. Use GetGPT56CeresLatest instead (or GetGPT56CeresPreview for testing upcoming versions).', '29.0')]
     procedure GetGPT55ChatLatest(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -161,7 +159,6 @@ codeunit 7768 "AOAI Deployments"
     /// </summary>
     /// <remarks>Use GetGPT56CeresPreview when the chat messages contain file content parts.</remarks>
     /// <returns>The deployment name.</returns>
-    [Obsolete('GPT-5.5 chat deployment name is no longer supported from 11 September 2026. Use GetGPT56CeresLatest instead (or GetGPT56CeresPreview for testing upcoming versions).', '29.0')]
     procedure GetGPT55ChatPreview(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -169,7 +166,6 @@ codeunit 7768 "AOAI Deployments"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AOAIDeploymentsImpl.GetGPT55ChatPreview(CallerModuleInfo));
     end;
-#endif
 
     /// <summary>
     /// Returns the name of the latest AOAI deployment model of GPT-5.6 Ceres.
