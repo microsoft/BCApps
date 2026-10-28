@@ -555,6 +555,19 @@ codeunit 20508 "Subc. Price Management"
         exit(RequisitionLine."Direct Unit Cost");
     end;
 
+    // A requisition line cost is automatic when it equals either the price-aware calculated cost or the calculated fallback cost
+    // that the worksheet used before a subcontractor price became valid for the line's order date.
+    internal procedure IsAutomaticSubcCostForReqLine(RequisitionLine: Record "Requisition Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Boolean
+    var
+        AutomaticCost: Decimal;
+    begin
+        AutomaticCost := GetAutomaticSubcCostForReqLine(RequisitionLine, ProdOrderRoutingLine);
+        if RequisitionLine."Direct Unit Cost" = AutomaticCost then
+            exit(true);
+
+        exit(RequisitionLine."Direct Unit Cost" = GetNonPriceListDirectCost(ProdOrderRoutingLine));
+    end;
+
     procedure GetSubcPriceForPurchLine(var PurchaseLine: Record "Purchase Line")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";

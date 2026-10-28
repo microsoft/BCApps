@@ -17,6 +17,7 @@ profile "Payables Agent"
                      "PA EDoc Purchase Draft Subform",
                      "PA Inbound E-Documents",
                      "PA Purchase Invoice",
+                     "PA Purchase Credit Memo",
                      "PA Vendor Card",
                      "PA Vendors",
                      "PA Posted Purch. Doc.",

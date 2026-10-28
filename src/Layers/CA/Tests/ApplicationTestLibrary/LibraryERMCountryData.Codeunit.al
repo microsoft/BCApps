@@ -88,10 +88,8 @@ codeunit 131305 "Library - ERM Country Data"
     var
         ServiceContractAccountGroup: Record "Service Contract Account Group";
     begin
-        if ServiceContractAccountGroup.FindSet() then begin
-            ServiceContractAccountGroup.ModifyAll("Non-Prepaid Contract Acc.", CreateAndUpdateGLAccountWithNoVAT());
-            ServiceContractAccountGroup.ModifyAll("Prepaid Contract Acc.", CreateAndUpdateGLAccountWithNoVAT());
-        end;
+        if ServiceContractAccountGroup.FindSet() then
+            ServiceContractAccountGroup.ModifyAll("Non-Prepaid Contract Acc.", CreateAndUpdateGLAccountWithNoVAT(), "Prepaid Contract Acc.", CreateAndUpdateGLAccountWithNoVAT());
     end;
 
     procedure UpdateAccountInServiceCosts()

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Intrastat;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Sales.Document;
 
@@ -20,6 +21,12 @@ tableextension 31303 "Item Ledger Entry CZ" extends "Item Ledger Entry"
         {
             Caption = 'Physical Transfer';
             DataClassification = CustomerContent;
+        }
+        field(31310; "Country/Reg. of Orig. Code CZ"; Code[10])
+        {
+            Caption = 'Country/Region of Origin Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Country/Region";
         }
     }
 

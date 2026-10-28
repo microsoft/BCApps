@@ -10,7 +10,7 @@ pageextension 10058 "IRS 1099 Purch. Order" extends "Purchase Order"
 {
     layout
     {
-        addafter("Invoice Details")
+        addlast("Invoice Details")
         {
             field("IRS 1099 Reporting Period"; Rec."IRS 1099 Reporting Period")
             {

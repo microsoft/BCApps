@@ -380,6 +380,19 @@ table 5625 "Maintenance Ledger Entry"
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
                                                                                     "Global Dimension No." = const(8)));
         }
+        field(5865; "Derogatory Source Entry No."; Integer)
+        {
+            Caption = 'Derogatory Source Entry No.';
+            ToolTip = 'Specifies the source maintenance ledger entry linked to this derogatory entry.';
+            Editable = false;
+            TableRelation = "Maintenance Ledger Entry"."Entry No.";
+        }
+        field(5866; "Legacy Derogatory Ambiguous"; Boolean)
+        {
+            Caption = 'Legacy Derogatory Ambiguous';
+            ToolTip = 'Specifies whether multiple matches prevented a unique historical derogatory link for this entry.';
+            Editable = false;
+        }
     }
 
     keys
@@ -416,6 +429,9 @@ table 5625 "Maintenance Ledger Entry"
         key(Key9; "FA No.", "Depreciation Book Code", "Document No.")
         {
         }
+        key(Key10; "Derogatory Source Entry No.", "Depreciation Book Code")
+        {
+        }
     }
 
     fieldgroups
@@ -440,4 +456,3 @@ table 5625 "Maintenance Ledger Entry"
         DimMgt.ShowDimensionSet("Dimension Set ID", StrSubstNo('%1 %2', TableCaption(), "Entry No."));
     end;
 }
-

@@ -32,6 +32,23 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
     /// <param name="OptionalInTransitLocationCode">The optional in-transit location code.</param>
     /// <returns>True if a transfer line was created; otherwise, false.</returns>
     internal procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; DestinationLocationCode: Code[10]; OptionalInTransitLocationCode: Code[10]) DidSomething: Boolean
+    begin
+        exit(PerformDisposition(QltyInspectionHeader, OptionalSpecificQuantity, QltyQuantityBehavior, OptionalSourceLocationFilter, OptionalSourceBinFilter, DestinationLocationCode, '', OptionalInTransitLocationCode));
+    end;
+
+    /// <summary>
+    /// Creates a transfer order from a quality inspection and explicit disposition options.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to transfer.</param>
+    /// <param name="OptionalSpecificQuantity">The specific base quantity to transfer when required by the quantity behavior.</param>
+    /// <param name="QltyQuantityBehavior">The rule used to determine the transfer quantity.</param>
+    /// <param name="OptionalSourceLocationFilter">An optional source location filter.</param>
+    /// <param name="OptionalSourceBinFilter">An optional source bin filter.</param>
+    /// <param name="DestinationLocationCode">The destination location code.</param>
+    /// <param name="DestinationBinCode">The destination bin code.</param>
+    /// <param name="OptionalInTransitLocationCode">The optional in-transit location code.</param>
+    /// <returns>True if a transfer line was created; otherwise, false.</returns>
+    internal procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; DestinationLocationCode: Code[10]; DestinationBinCode: Code[20]; OptionalInTransitLocationCode: Code[10]) DidSomething: Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
     begin
@@ -41,6 +58,7 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
         TempInstructionQltyDispositionBuffer."Location Filter" := CopyStr(OptionalSourceLocationFilter, 1, MaxStrLen(TempInstructionQltyDispositionBuffer."Location Filter"));
         TempInstructionQltyDispositionBuffer."Bin Filter" := CopyStr(OptionalSourceBinFilter, 1, MaxStrLen(TempInstructionQltyDispositionBuffer."Bin Filter"));
         TempInstructionQltyDispositionBuffer."New Location Code" := DestinationLocationCode;
+        TempInstructionQltyDispositionBuffer."New Bin Code" := DestinationBinCode;
         TempInstructionQltyDispositionBuffer."In-Transit Location Code" := OptionalInTransitLocationCode;
         exit(PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
     end;
