@@ -146,7 +146,7 @@ The V1 matching-page Copilot path is obsolete behind `#if not CLEAN29`. The Matc
 
 *Updated: 2026-07-29 -- refreshed current model, capability registration, and historical matching behavior.*
 
-`EDocAIToolProcessor` is a reusable Copilot orchestrator used during import processing. It registers the E-Document Matching Assistance capability in SaaS, checks that the capability is active, configures Azure OpenAI with the latest GPT-4.1 chat deployment, and registers tools from `IEDocAISystem` implementations. The `Tools/` subfolder provides four tools:
+`EDocAIToolProcessor` is a reusable Copilot orchestrator used during import processing. It registers the E-Document Matching Assistance capability in SaaS, checks that the capability is active, configures Azure OpenAI with the latest GPT-5.6 Ceres chat deployment, and registers tools from `IEDocAISystem` implementations. The `Tools/` subfolder provides four tools:
 
 - **Historical matching** -- first tries direct history for the same vendor and product history; if unresolved lines remain, it builds a bounded historical candidate set and asks the model to choose matches.
 - **G/L account matching** -- proposes G/L accounts using company/vendor context, posting accounts, and line descriptions.
