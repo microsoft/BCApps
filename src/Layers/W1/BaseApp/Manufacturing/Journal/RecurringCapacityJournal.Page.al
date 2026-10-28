@@ -12,6 +12,7 @@ using Microsoft.Inventory.Posting;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.WorkCenter;
+using System.Automation;
 
 page 99000778 "Recurring Capacity Journal"
 {
@@ -29,25 +30,37 @@ page 99000778 "Recurring Capacity Journal"
     {
         area(content)
         {
-            field(CurrentJnlBatchName; CurrentJnlBatchName)
+            group(Control120)
             {
-                ApplicationArea = Manufacturing;
-                Caption = 'Batch Name';
-                Lookup = true;
-                ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the journal is based on.';
+                ShowCaption = false;
+                field(CurrentJnlBatchName; CurrentJnlBatchName)
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Batch Name';
+                    Lookup = true;
+                    ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the journal is based on.';
 
-                trigger OnLookup(var Text: Text): Boolean
-                begin
-                    CurrPage.SaveRecord();
-                    ItemJnlMgt.LookupName(CurrentJnlBatchName, Rec);
-                    CurrPage.Update(false);
-                end;
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        CurrPage.SaveRecord();
+                        ItemJnlMgt.LookupName(CurrentJnlBatchName, Rec);
+                        CurrPage.Update(false);
+                    end;
 
-                trigger OnValidate()
-                begin
-                    ItemJnlMgt.CheckName(CurrentJnlBatchName, Rec);
-                    CurrentJnlBatchNameOnAfterValidate();
-                end;
+                    trigger OnValidate()
+                    begin
+                        ItemJnlMgt.CheckName(CurrentJnlBatchName, Rec);
+                        CurrentJnlBatchNameOnAfterValidate();
+                    end;
+                }
+                field(ItemJnlBatchApprovalStatus; ItemJnlBatchApprovalStatus)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Approval Status';
+                    Editable = false;
+                    Visible = EnabledItemJnlBatchWorkflowsExist;
+                    ToolTip = 'Specifies the approval status for capacity journal batch.';
+                }
             }
             repeater(Control1)
             {
@@ -349,6 +362,15 @@ page 99000778 "Recurring Capacity Journal"
         }
         area(factboxes)
         {
+            part(WorkflowStatusBatch; "Workflow Status FactBox")
+            {
+                ApplicationArea = Suite;
+                Caption = 'Batch Workflows';
+                Editable = false;
+                Enabled = false;
+                ShowFilter = false;
+                Visible = ShowWorkflowStatusOnBatch;
+            }
             systempart(Control1900383207; Links)
             {
                 ApplicationArea = RecordLinks;
@@ -396,6 +418,21 @@ page 99000778 "Recurring Capacity Journal"
                     trigger OnAction()
                     begin
                         Rec.OpenItemTrackingLines(false);
+                    end;
+                }
+                action(Approvals)
+                {
+                    AccessByPermission = TableData "Approval Entry" = R;
+                    ApplicationArea = Suite;
+                    Caption = 'Approvals';
+                    Image = Approvals;
+                    ToolTip = 'View a list of the records that are waiting to be approved. For example, you can see who requested the record to be approved, when it was sent, and when it is due to be approved.';
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.ShowJournalApprovalEntries(Rec);
                     end;
                 }
             }
@@ -510,6 +547,119 @@ page 99000778 "Recurring Capacity Journal"
                     end;
                 }
             }
+            group("Request Approval")
+            {
+                Caption = 'Request Approval';
+                group(SendApprovalRequest)
+                {
+                    Caption = 'Send Approval Request';
+                    Image = SendApprovalRequest;
+                    action(SendApprovalRequestJournalBatch)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Journal Batch';
+                        Enabled = not OpenApprovalEntriesOnJnlBatchExist and CanRequestFlowApprovalForBatch and EnabledItemJnlBatchWorkflowsExist;
+                        Image = SendApprovalRequest;
+                        ToolTip = 'Send all journal lines for approval, also those that you may not see because of filters.';
+
+                        trigger OnAction()
+                        var
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        begin
+                            ApprovalsMgmt.TrySendJournalBatchApprovalRequest(Rec);
+                            SetControlAppearanceFromBatch();
+                        end;
+                    }
+                }
+                group(CancelApprovalRequest)
+                {
+                    Caption = 'Cancel Approval Request';
+                    Image = Cancel;
+                    action(CancelApprovalRequestJournalBatch)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Journal Batch';
+                        Enabled = CanCancelApprovalForJnlBatch or CanCancelFlowApprovalForBatch;
+                        Image = CancelApprovalRequest;
+                        ToolTip = 'Cancel sending all journal lines for approval, also those that you may not see because of filters.';
+
+                        trigger OnAction()
+                        var
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        begin
+                            ApprovalsMgmt.TryCancelJournalBatchApprovalRequest(Rec);
+                            SetControlAppearanceFromBatch();
+                        end;
+                    }
+                }
+            }
+            group(Approval)
+            {
+                Caption = 'Approval';
+                action(Approve)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Approve';
+                    Image = Approve;
+                    ToolTip = 'Approve the requested changes.';
+                    Visible = OpenApprovalEntriesExistForCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.ApproveItemJournalRequest(Rec);
+                    end;
+                }
+                action(Reject)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Reject';
+                    Image = Reject;
+                    ToolTip = 'Reject the approval request.';
+                    Visible = OpenApprovalEntriesExistForCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.RejectItemJournalRequest(Rec);
+                    end;
+                }
+                action(Delegate)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Delegate';
+                    Image = Delegate;
+                    ToolTip = 'Delegate the approval to a substitute approver.';
+                    Visible = OpenApprovalEntriesExistForCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.DelegateItemJournalRequest(Rec);
+                    end;
+                }
+                action(Comments)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Comments';
+                    Image = ViewComments;
+                    ToolTip = 'View or add comments for the record.';
+                    Visible = OpenApprovalEntriesExistForCurrUser or ApprovalEntriesExistSentByCurrentUser;
+
+                    trigger OnAction()
+                    var
+                        ItemJournalBatch: Record "Item Journal Batch";
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        if OpenApprovalEntriesOnJnlBatchExist then
+                            if ItemJournalBatch.Get(Rec."Journal Template Name", Rec."Journal Batch Name") then
+                                ApprovalsMgmt.GetApprovalComment(ItemJournalBatch);
+                    end;
+                }
+            }
         }
         area(Promoted)
         {
@@ -527,12 +677,67 @@ page 99000778 "Recurring Capacity Journal"
                 {
                 }
             }
+            group("Category_Request Approval")
+            {
+                Caption = 'Request Approval';
+
+                group("Category_Send Approval Request")
+                {
+                    Caption = 'Send Approval Request';
+
+                    actionref(SendApprovalRequestJournalBatch_Promoted; SendApprovalRequestJournalBatch)
+                    {
+                    }
+                }
+                group("Category_Cancel Approval Request")
+                {
+                    Caption = 'Cancel Approval Request';
+
+                    actionref(CancelApprovalRequestJournalBatch_Promoted; CancelApprovalRequestJournalBatch)
+                    {
+                    }
+                }
+            }
+            group(Category_Line)
+            {
+                Caption = 'Line';
+
+                actionref(Approvals_Promoted; Approvals)
+                {
+                }
+            }
+            group(Category_Category8)
+            {
+                Caption = 'Approve', Comment = 'Generated from the PromotedActionCategories property index 7.';
+
+                actionref(Approve_Promoted; Approve)
+                {
+                }
+                actionref(Reject_Promoted; Reject)
+                {
+                }
+                actionref(Comments_Promoted; Comments)
+                {
+                }
+                actionref(Delegate_Promoted; Delegate)
+                {
+                }
+            }
         }
     }
 
     trigger OnAfterGetCurrRecord()
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
     begin
         MfgItemJournalMgt.GetCapacity(Rec.Type, Rec."No.", CapDescription);
+
+        if ItemJournalBatch.Get(Rec.GetRangeMax("Journal Template Name"), CurrentJnlBatchName) then begin
+            ItemJournalBatch.SetApprovalStateForBatch(ItemJournalBatch, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnJnlBatchExist, CanCancelApprovalForJnlBatch, CanRequestFlowApprovalForBatch, CanCancelFlowApprovalForBatch, ApprovalEntriesExistSentByCurrentUser, EnabledItemJnlBatchWorkflowsExist);
+            ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.Page.SetFilterOnWorkflowRecord(ItemJournalBatch.RecordId());
+        end;
+
+        ApprovalMgmt.GetItemJnlBatchApprovalStatus(Rec, ItemJnlBatchApprovalStatus, EnabledItemJnlBatchWorkflowsExist);
     end;
 
     trigger OnAfterGetRecord()
@@ -547,6 +752,11 @@ page 99000778 "Recurring Capacity Journal"
         Clear(ShortcutDimCode);
     end;
 
+    trigger OnModifyRecord(): Boolean
+    begin
+        ApprovalMgmt.CleanItemJournalApprovalStatus(Rec, ItemJnlBatchApprovalStatus);
+    end;
+
     trigger OnOpenPage()
     var
         JnlSelected: Boolean;
@@ -556,20 +766,32 @@ page 99000778 "Recurring Capacity Journal"
         if Rec.IsOpenedFromBatch() then begin
             CurrentJnlBatchName := Rec."Journal Batch Name";
             ItemJnlMgt.OpenJnl(CurrentJnlBatchName, Rec);
+            SetControlAppearanceFromBatch();
             exit;
         end;
         ItemJnlMgt.TemplateSelection(PAGE::"Recurring Capacity Journal", 6, true, Rec, JnlSelected);
         if not JnlSelected then
             Error('');
         ItemJnlMgt.OpenJnl(CurrentJnlBatchName, Rec);
+        SetControlAppearanceFromBatch();
     end;
 
     var
         ItemJnlMgt: Codeunit ItemJnlManagement;
         MfgItemJournalMgt: Codeunit "Mfg. Item Journal Mgt.";
         ReportPrint: Codeunit "Test Report-Print";
+        ApprovalMgmt: Codeunit "Approvals Mgmt.";
         CapDescription: Text[100];
         CurrentJnlBatchName: Code[10];
+        ItemJnlBatchApprovalStatus: Text[20];
+        ApprovalEntriesExistSentByCurrentUser: Boolean;
+        OpenApprovalEntriesExistForCurrUser: Boolean;
+        OpenApprovalEntriesOnJnlBatchExist: Boolean;
+        EnabledItemJnlBatchWorkflowsExist: Boolean;
+        ShowWorkflowStatusOnBatch: Boolean;
+        CanCancelApprovalForJnlBatch: Boolean;
+        CanRequestFlowApprovalForBatch: Boolean;
+        CanCancelFlowApprovalForBatch: Boolean;
 
     protected var
         ShortcutDimCode: array[8] of Code[20];
@@ -586,7 +808,19 @@ page 99000778 "Recurring Capacity Journal"
     begin
         CurrPage.SaveRecord();
         ItemJnlMgt.SetName(CurrentJnlBatchName, Rec);
+        SetControlAppearanceFromBatch();
         CurrPage.Update(false);
+    end;
+
+    local procedure SetControlAppearanceFromBatch()
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        if not ItemJournalBatch.Get(Rec.GetRangeMax("Journal Template Name"), CurrentJnlBatchName) then
+            exit;
+
+        ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.Page.SetFilterOnWorkflowRecord(ItemJournalBatch.RecordId());
+        ItemJournalBatch.SetApprovalStateForBatch(ItemJournalBatch, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnJnlBatchExist, CanCancelApprovalForJnlBatch, CanRequestFlowApprovalForBatch, CanCancelFlowApprovalForBatch, ApprovalEntriesExistSentByCurrentUser, EnabledItemJnlBatchWorkflowsExist);
     end;
 
     procedure ItemNoOnAfterValidate()
