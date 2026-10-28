@@ -11,7 +11,13 @@ using System.Utilities;
 
 page 3307 "PA Demo Guide"
 {
+#if not CLEAN27
+#pragma warning disable AS0050
+#endif
     Extensible = false;
+#if not CLEAN27
+#pragma warning restore AS0050
+#endif
     PageType = NavigatePage;
     RefreshOnActivate = true;
     Caption = 'Payables Agent sample invoice guide', Comment = 'Payables Agent is a term, and should not be translated.';

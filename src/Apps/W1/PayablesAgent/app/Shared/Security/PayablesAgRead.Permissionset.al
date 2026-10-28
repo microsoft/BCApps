@@ -7,7 +7,6 @@ namespace Microsoft.Agent.PayablesAgent;
 
 permissionset 3305 "Payables Ag. - Read"
 {
-    Access = Internal;
     Caption = 'Payables Agent - Read', Comment = 'Payables Agent is a term, and should not be translated.';
     Assignable = true;
     Permissions =

@@ -18,7 +18,6 @@ using System.Utilities;
 
 permissionset 3303 "Payables Ag. - Run"
 {
-    Access = Internal;
     Caption = 'Payables Agent - Run', Comment = 'Payables Agent is a term, and should not be translated.';
     Assignable = true;
     IncludedPermissionSets =

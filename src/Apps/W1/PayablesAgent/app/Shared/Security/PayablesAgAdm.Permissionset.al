@@ -11,7 +11,6 @@ using System.Threading;
 
 permissionset 3304 "Payables Ag. - Adm."
 {
-    Access = Internal;
     Caption = 'Payables Agent - Administration', Comment = 'Payables Agent is a term, and should not be translated.';
     Assignable = true;
     IncludedPermissionSets =

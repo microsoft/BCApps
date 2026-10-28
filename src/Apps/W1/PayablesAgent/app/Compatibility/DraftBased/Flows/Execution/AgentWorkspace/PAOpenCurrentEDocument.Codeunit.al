@@ -10,7 +10,13 @@ using Microsoft.eServices.EDocument;
 // V1 page navigation uses the accepted task wrapper to resolve the current source.
 codeunit 3308 "PA Open Current E-Document"
 {
+#if not CLEAN27
+#pragma warning disable AS0049
+#endif
     Access = Internal;
+#if not CLEAN27
+#pragma warning restore AS0049
+#endif
     InherentEntitlements = X;
     InherentPermissions = X;
 

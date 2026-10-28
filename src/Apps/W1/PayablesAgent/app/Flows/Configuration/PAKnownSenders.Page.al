@@ -7,7 +7,13 @@ namespace Microsoft.Agent.PayablesAgent;
 
 page 3313 "PA Known Senders"
 {
+#if not CLEAN27
+#pragma warning disable AS0050
+#endif
     Extensible = false;
+#if not CLEAN27
+#pragma warning restore AS0050
+#endif
     Caption = 'Payables Agent Known Senders', Comment = 'Payables Agent is a term, and should not be translated.';
     PageType = List;
     SourceTable = "PA Known Sender";

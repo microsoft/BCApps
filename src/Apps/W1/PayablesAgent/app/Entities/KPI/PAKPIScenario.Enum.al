@@ -7,7 +7,13 @@ namespace Microsoft.Agent.PayablesAgent;
 
 enum 3303 "PA KPI Scenario"
 {
+#if not CLEAN27
+#pragma warning disable AS0049
+#endif
     Access = Internal;
+#if not CLEAN27
+#pragma warning restore AS0049
+#endif
     Extensible = false;
 
     value(0; "Agent Tasks Received")

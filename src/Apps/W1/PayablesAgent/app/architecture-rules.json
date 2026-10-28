@@ -200,6 +200,11 @@
                     "reason": "Authoritative task intake invokes the v1 import processing entry point after creating its source."
                 },
                 {
+                    "from": {"paths":["Flows/Upgrade/PayablesAgentUpgrade.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Flows/Configuration/PADraftBasedSetup.Codeunit.al",
+                    "reason": "The one-time migration delegates creation of the draft-based credit memo service type to its owner."
+                },
+                {
                     "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
                     "target": "Compatibility/DraftBased/TestSupport/PADraftBasedTestFixtures.Codeunit.al",
                     "reason": "The semantic fixture facade delegates draft-specific source construction, setup and scripted user actions to its compatibility fixture."
@@ -231,9 +236,9 @@
         {
             "id": "PA010",
             "check": "properties",
-            "description": "Objects are internal wherever AL supports object access.",
+            "description": "Implementation objects are internal; assignable permission sets remain public.",
             "severity": "error",
-            "from": {"paths":["*"],"kinds":["codeunit","table","enum","query","report","xmlport","interface","permissionset"]},
+            "from": {"paths":["*"],"kinds":["codeunit","table","enum","query","report","xmlport","interface"]},
             "properties": {"Access":"Internal"}
         },
         {

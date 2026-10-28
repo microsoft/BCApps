@@ -7,7 +7,13 @@ namespace Microsoft.Agent.PayablesAgent;
 
 page 3303 "Payables Agent RC"
 {
+#if not CLEAN27
+#pragma warning disable AS0050
+#endif
     Extensible = false;
+#if not CLEAN27
+#pragma warning restore AS0050
+#endif
     PageType = RoleCenter;
     Caption = 'Payables Agent', Locked = true;
     InherentEntitlements = X;
