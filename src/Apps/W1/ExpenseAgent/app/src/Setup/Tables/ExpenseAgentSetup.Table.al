@@ -726,6 +726,38 @@ table 6930 "Expense Agent Setup"
         }
     }
 
+    var
+        RecordHasBeenRead: Boolean;
+        NoRegisteredUserLbl: Label 'No registered user';
+        RegisteredUserLbl: Label '1 registered user';
+        RegisteredUsersLbl: Label '%1 registered users', Comment = '%1 is an integer value';
+        InvalidDayErr: Label '%1 must be between 1 and 31.', Comment = '%1 = Field Caption';
+        CannotUseMinHoursErr: Label 'Minimum Hours for Per Diem can only be set when Full Per-Diem Calculation is either %1 or %2.', Comment = '%1 - Enum value "24-hour Rolling Period", %2 - Enum value "Overnight Stay"';
+        InvalidPartialDaysRuleErr: Label 'Partial Day Rule can only be set to %1 when Full Per-Diem Calculation is either %2 or %3.', Comment = '%1 - Enum value "Flat Percentage Of Full Rate", %2 - Enum value "24-hour Rolling Period", %3 - Enum value "Overnight Stay"';
+        CopyEmployeesToExpenseUsersQst: Label 'Do you want to copy existing employees to expense users?';
+        DefaultSetupNotCreatedErr: Label 'You must create the default setup data before enabling the agent. Use the Apply Default Settings action to create it.';
+        MissingCategoryErr: Label 'You must ensure that %1 has values when %2 is enabled', Comment = '%1 is a table name, e.g. Category, %2 is a field name, e.g. Check categories';
+        CannotDisableApprovalWorkflowErr: Label 'You cannot disable approval workflow because there are expense reports pending approval. Please complete or cancel the approval process for those expense reports before disabling this feature.';
+        FeatureNameLbl: Label 'Expense Agent', Locked = true;
+        ClearNoreplyAccountQst: Label 'Do you want to clear the no-reply email account? The agent will no longer send welcome, reimbursement, approval or reminder emails until you configure one.';
+        ClearMailboxAccountQst: Label 'Do you want to clear the mailbox account? The agent will no longer process emailed receipts until you configure a mailbox.';
+        IncomingMailboxAccessFailedErr: Label 'The agent can''t use the selected Microsoft 365 mailbox for incoming receipts because the connection failed. Ask your Microsoft 365 administrator to check if you have permission to access the mailbox.';
+        OutgoingMailboxAccessFailedErr: Label 'The agent can''t use the selected Microsoft 365 mailbox for outgoing notifications because the connection failed. Ask your Microsoft 365 administrator to check if you have permission to access the noreply mailbox.';
+        MailboxAccessHttpRequestFailedErr: Label 'The agent can''t verify mailbox access because its settings don''t allow HTTP requests. Ask your administrator to update this setting and try again.';
+        DeactivateNoAccessWithUserQst: Label 'If you deactivate the agent, you won''t be able to reactivate it because you don''t have permission to the current mail account (activated by %1). Are you sure you want to continue?', Comment = '%1 = full name of the user who originally activated the agent.';
+        DeactivateNoAccessQst: Label 'If you deactivate the agent, you won''t be able to reactivate it because you don''t have permission to the current mail account. Are you sure you want to continue?';
+        CreateEmployeesForExpenseUsersQst: Label 'Turning on this setting will enable automatic creation of records in the Employee table. This may impact your HR setup in Business Central.\\Are you sure you want to enable this feature?';
+        UpdateDefaultsApproverQst: Label 'You have changed the default approver.\\Do you also want to change approver from %1 to %2 for all expense users who currently have %1 as approver?', Comment = '%1 and %2 are both person names.';
+        UpdatingDefaultApproversLbl: Label 'Updating approvers...';
+
+    procedure CompanyID(): Text
+    var
+        Company: Record Company;
+    begin
+        Company.Get(CompanyName());
+        exit(Format(Company.Id, 0, 4));  // Format as lowercase without braces, but preserving hyphens. Length = 36
+    end;
+
     /// <summary>
     /// Returns whether the agent background task should be scheduled for the current
     /// setup. The task runs when the agent is enabled and there is work with a usable
@@ -778,29 +810,6 @@ table 6930 "Expense Agent Setup"
         Rec."Enable Open Report Notif." := false;
     end;
 
-    var
-        RecordHasBeenRead: Boolean;
-        NoRegisteredUserLbl: Label 'No registered user';
-        RegisteredUserLbl: Label '1 registered user';
-        RegisteredUsersLbl: Label '%1 registered users', Comment = '%1 is an integer value';
-        InvalidDayErr: Label '%1 must be between 1 and 31.', Comment = '%1 = Field Caption';
-        CannotUseMinHoursErr: Label 'Minimum Hours for Per Diem can only be set when Full Per-Diem Calculation is either %1 or %2.', Comment = '%1 - Enum value "24-hour Rolling Period", %2 - Enum value "Overnight Stay"';
-        InvalidPartialDaysRuleErr: Label 'Partial Day Rule can only be set to %1 when Full Per-Diem Calculation is either %2 or %3.', Comment = '%1 - Enum value "Flat Percentage Of Full Rate", %2 - Enum value "24-hour Rolling Period", %3 - Enum value "Overnight Stay"';
-        CopyEmployeesToExpenseUsersQst: Label 'Do you want to copy existing employees to expense users?';
-        DefaultSetupNotCreatedErr: Label 'You must create the default setup data before enabling the agent. Use the Apply Default Settings action to create it.';
-        MissingCategoryErr: Label 'You must ensure that %1 has values when %2 is enabled', Comment = '%1 is a table name, e.g. Category, %2 is a field name, e.g. Check categories';
-        CannotDisableApprovalWorkflowErr: Label 'You cannot disable approval workflow because there are expense reports pending approval. Please complete or cancel the approval process for those expense reports before disabling this feature.';
-        FeatureNameLbl: Label 'Expense Agent', Locked = true;
-        ClearNoreplyAccountQst: Label 'Do you want to clear the no-reply email account? The agent will no longer send welcome, reimbursement, approval or reminder emails until you configure one.';
-        ClearMailboxAccountQst: Label 'Do you want to clear the mailbox account? The agent will no longer process emailed receipts until you configure a mailbox.';
-        IncomingMailboxAccessFailedErr: Label 'The agent can''t use the selected Microsoft 365 mailbox for incoming receipts because the connection failed. Ask your Microsoft 365 administrator to check if you have permission to access the mailbox.';
-        OutgoingMailboxAccessFailedErr: Label 'The agent can''t use the selected Microsoft 365 mailbox for outgoing notifications because the connection failed. Ask your Microsoft 365 administrator to check if you have permission to access the noreply mailbox.';
-        MailboxAccessHttpRequestFailedErr: Label 'The agent can''t verify mailbox access because its settings don''t allow HTTP requests. Ask your administrator to update this setting and try again.';
-        DeactivateNoAccessWithUserQst: Label 'If you deactivate the agent, you won''t be able to reactivate it because you don''t have permission to the current mail account (activated by %1). Are you sure you want to continue?', Comment = '%1 = full name of the user who originally activated the agent.';
-        DeactivateNoAccessQst: Label 'If you deactivate the agent, you won''t be able to reactivate it because you don''t have permission to the current mail account. Are you sure you want to continue?';
-        CreateEmployeesForExpenseUsersQst: Label 'Turning on this setting will enable automatic creation of records in the Employee table. This may impact your HR setup in Business Central.\\Are you sure you want to enable this feature?';
-        UpdateDefaultsApproverQst: Label 'You have changed the default approver.\\Do you also want to change approver from %1 to %2 for all expense users who currently have %1 as approver?', Comment = '%1 and %2 are both person names.';
-        UpdatingDefaultApproversLbl: Label 'Updating approvers...';
     internal procedure AssistEditNoreplyMailbox()
     var
         TempEmailAccount: Record "Email Account" temporary;

@@ -545,7 +545,7 @@ codeunit 6941 "EA Http Client"
 
     local procedure BuildErpConfigJson(): Text
     var
-        Company: Record Company;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         AzureADTenant: Codeunit "Azure AD Tenant";
         EnvironmentInformation: Codeunit "Environment Information";
         NavTenantSettingsHelper: DotNet NavTenantSettingsHelper;
@@ -554,9 +554,6 @@ codeunit 6941 "EA Http Client"
         JsonText: Text;
         IsEUDB: Boolean;
     begin
-        // Get current company
-        Company.Get(CompanyName());
-
         // Only the platform helper knows EUDB membership for SaaS environments;
         // on-prem/local dev defaults to false (mirrors FormatAzureRegion's SaaS gate).
         if EnvironmentInformation.IsSaaS() then
@@ -565,7 +562,7 @@ codeunit 6941 "EA Http Client"
         // Build configData object
         ConfigDataJsonObj.Add('tenant_id', AzureADTenant.GetAadTenantId());
         ConfigDataJsonObj.Add('environment_name', EnvironmentInformation.GetEnvironmentName());
-        ConfigDataJsonObj.Add('company_id', Format(Company.Id, 0, 4));  // Format as lowercase without braces
+        ConfigDataJsonObj.Add('company_id', ExpenseAgentSetup.CompanyID());  // Format as lowercase without braces, but preserving hyphens. Length = 36
         ConfigDataJsonObj.Add('location', FormatAzureRegion());
         ConfigDataJsonObj.Add('is_eudb', IsEUDB);
 

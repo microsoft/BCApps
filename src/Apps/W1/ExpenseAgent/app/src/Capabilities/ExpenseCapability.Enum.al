@@ -97,4 +97,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
+
+    /// <summary>
+    /// Expense Setup API has Company ID.
+    /// </summary>
+    value(10; ExpenseSetupHasCompanyID)
+    {
+        Caption = 'Expense Setup has Company ID', Locked = true;
+    }
 }
