@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Foundation.Calendar;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
@@ -537,9 +538,34 @@ codeunit 139996 "Subc. Planning Test"
 
     [Test]
     procedure VendorSuppliedCompQtyUpdatedOnPurchOrderReschedule()
+    begin
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>');
+    end;
+
+    [Test]
+    procedure VendorSuppliedCompItemVendorLeadTimeOnReschedule()
+    begin
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '<7D>', '<5D>', '<5D>');
+    end;
+
+    [Test]
+    procedure VendorSuppliedCompSKULeadTimeOnReschedule()
+    begin
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '<7D>', '', '<7D>');
+    end;
+
+    [Test]
+    procedure VendorSuppliedCompVendorLeadTimeOnReschedule()
+    begin
+        VerifyVendorSuppliedComponentCreationAndRescheduling('', '', '', '<20D>');
+    end;
+
+    local procedure VerifyVendorSuppliedComponentCreationAndRescheduling(ItemLeadTime: Text[30]; SKULeadTime: Text[30]; ItemVendorLeadTime: Text[30]; ExpectedLeadTime: Text[30])
     var
         Item: Record Item;
         ComponentItem: Record Item;
+        ItemVendor: Record "Item Vendor";
+        StockkeepingUnit: Record "Stockkeeping Unit";
         BaseCalendar: Record "Base Calendar";
         BaseCalendarChange: Record "Base Calendar Change";
         Location: Record Location;
@@ -570,7 +596,7 @@ codeunit 139996 "Subc. Planning Test"
         ExpectedRescheduledComponentCountErr: Label 'Rescheduling must update both matching vendor-supplied component lines.';
     begin
         // [SCENARIO 637496] Worksheet creation and rescheduling keep duplicate vendor-supplied components
-        // mapped to separate purchase lines with their own quantities and due dates.
+        // mapped to separate purchase lines with exact dates and standard purchase lead-time precedence.
 
         // [GIVEN] A subcontracting setup with a Vendor-Supplied component
         Initialize();
@@ -596,7 +622,10 @@ codeunit 139996 "Subc. Planning Test"
 #pragma warning restore AA0210
         ProdOrderComponent.FindFirst();
         ComponentItem.Get(ProdOrderComponent."Item No.");
-        Evaluate(ComponentItem."Lead Time Calculation", '<10D>');
+        Clear(ComponentItem."Lead Time Calculation");
+        if ItemLeadTime <> '' then
+            Evaluate(ComponentItem."Lead Time Calculation", ItemLeadTime);
+        Evaluate(ComponentItem."Safety Lead Time", '<3D>');
         ComponentItem.Modify(true);
         Location.Get(ProdOrderComponent."Location Code");
         BaseCalendar.Code := CopyStr(
@@ -608,6 +637,7 @@ codeunit 139996 "Subc. Planning Test"
         ComponentDueDate := CalcDate('<30D>', WorkDate());
         BaseCalendarChange.Validate(Date, CalcDate('<-2D>', ComponentDueDate));
         BaseCalendarChange.Description := 'Handling calendar test';
+        BaseCalendarChange.Nonworking := true;
         BaseCalendarChange.Insert(true);
         Evaluate(Location."Inbound Whse. Handling Time", '<2D>');
         Location."Base Calendar Code" := BaseCalendar.Code;
@@ -616,6 +646,19 @@ codeunit 139996 "Subc. Planning Test"
         Evaluate(Vendor."Lead Time Calculation", '<20D>');
         Vendor."Base Calendar Code" := BaseCalendar.Code;
         Vendor.Modify(true);
+        if SKULeadTime <> '' then begin
+            LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(
+                StockkeepingUnit, Location.Code, ComponentItem."No.", ProdOrderComponent."Variant Code");
+            Evaluate(StockkeepingUnit."Lead Time Calculation", SKULeadTime);
+            Evaluate(StockkeepingUnit."Safety Lead Time", '<3D>');
+            StockkeepingUnit.Modify(true);
+        end;
+        if ItemVendorLeadTime <> '' then begin
+            LibraryInventory.CreateItemVendor(ItemVendor, Vendor."No.", ComponentItem."No.");
+            ItemVendor.Validate("Variant Code", ProdOrderComponent."Variant Code");
+            Evaluate(ItemVendor."Lead Time Calculation", ItemVendorLeadTime);
+            ItemVendor.Modify(true);
+        end;
         ProdOrderComponent."Due Date" := ComponentDueDate;
         ProdOrderComponent.Modify(true);
 
@@ -652,7 +695,7 @@ codeunit 139996 "Subc. Planning Test"
             Assert.IsTrue(PurchaseLineComp.FindFirst(), InitialComponentPurchaseLineErr);
             Assert.AreEqual(ProdOrderComponent."Remaining Quantity", PurchaseLineComp.Quantity, ComponentPurchaseLineQuantityErr);
             Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLineComp."Expected Receipt Date", ComponentPurchaseLineDueDateErr);
-            AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent, PurchaseLineComp, Location, Vendor, BaseCalendar);
+            AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent, PurchaseLineComp, Location, Vendor, BaseCalendar, ExpectedLeadTime);
             ExpectedComponentCount += 1;
         until ProdOrderComponent.Next() = 0;
         Assert.AreEqual(2, ExpectedComponentCount, ExpectedVendorSuppliedComponentCountErr);
@@ -730,7 +773,7 @@ codeunit 139996 "Subc. Planning Test"
                 ProdOrderComponent."Due Date",
                 PurchaseLineComp."Expected Receipt Date",
                 RescheduledComponentPurchaseLineDateErr);
-            AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent, PurchaseLineComp, Location, Vendor, BaseCalendar);
+            AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent, PurchaseLineComp, Location, Vendor, BaseCalendar, ExpectedLeadTime);
             ExpectedComponentCount += 1;
         until ProdOrderComponent.Next() = 0;
         Assert.AreEqual(2, ExpectedComponentCount, ExpectedRescheduledComponentCountErr);
@@ -1036,29 +1079,39 @@ codeunit 139996 "Subc. Planning Test"
         end;
     end;
 
-    local procedure AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent: Record "Prod. Order Component"; PurchaseLine: Record "Purchase Line"; Location: Record Location; Vendor: Record Vendor; BaseCalendar: Record "Base Calendar")
+    local procedure AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent: Record "Prod. Order Component"; PurchaseLine: Record "Purchase Line"; Location: Record Location; Vendor: Record Vendor; BaseCalendar: Record "Base Calendar"; ExpectedLeadTime: Text[30])
     var
         CustomizedCalendarChange: array[2] of Record "Customized Calendar Change";
         CalendarManagement: Codeunit "Calendar Management";
         ExpectedPlannedReceiptDate: Date;
         ExpectedOrderDate: Date;
-        PlannedReceiptDateAssertMsg: Label 'Planned receipt date should include inbound handling time and the location calendar.';
-        OrderDateAssertMsg: Label 'Order date should use the item lead time ahead of the longer vendor lead time and respect the vendor and location calendars.';
+        ExpectedDateFormula: DateFormula;
+        SafetyLeadTimeAssertMsg: Label 'The component purchase line must use the explicit safety lead time.';
+        InboundHandlingTimeAssertMsg: Label 'The component purchase line must use the location inbound handling time.';
+        LeadTimeAssertMsg: Label 'Purchase lead time must follow Item Vendor, SKU, Item, then Vendor precedence.';
+        PlannedReceiptDateAssertMsg: Label 'Planned receipt date must include exactly three days safety lead time and two days inbound handling time with the location calendar.';
+        OrderDateAssertMsg: Label 'Order date must use the expected purchase lead time and respect the vendor and location calendars.';
     begin
+        Evaluate(ExpectedDateFormula, '<3D>');
+        Assert.AreEqual(ExpectedDateFormula, PurchaseLine."Safety Lead Time", SafetyLeadTimeAssertMsg);
+        Evaluate(ExpectedDateFormula, '<2D>');
+        Assert.AreEqual(ExpectedDateFormula, PurchaseLine."Inbound Whse. Handling Time", InboundHandlingTimeAssertMsg);
+        Evaluate(ExpectedDateFormula, ExpectedLeadTime);
+        Assert.AreEqual(ExpectedDateFormula, PurchaseLine."Lead Time Calculation", LeadTimeAssertMsg);
         CustomizedCalendarChange[1].SetSource(
             CustomizedCalendarChange[1]."Source Type"::Location, Location.Code, '', BaseCalendar.Code);
         ExpectedPlannedReceiptDate :=
-            CalendarManagement.CalcDateBOC2('<2D>', ProdOrderComponent."Due Date", CustomizedCalendarChange, false);
+            CalendarManagement.CalcDateBOC2('<5D>', ProdOrderComponent."Due Date", CustomizedCalendarChange, false);
         CustomizedCalendarChange[1].SetSource(
             CustomizedCalendarChange[1]."Source Type"::Vendor, Vendor."No.", '', BaseCalendar.Code);
         CustomizedCalendarChange[2].SetSource(
             CustomizedCalendarChange[2]."Source Type"::Location, Location.Code, '', BaseCalendar.Code);
 
-        Assert.IsTrue(
-            PurchaseLine."Planned Receipt Date" <= ExpectedPlannedReceiptDate,
+        Assert.AreEqual(
+            ExpectedPlannedReceiptDate, PurchaseLine."Planned Receipt Date",
             PlannedReceiptDateAssertMsg);
         ExpectedOrderDate :=
-            CalendarManagement.CalcDateBOC2('<10D>', PurchaseLine."Planned Receipt Date", CustomizedCalendarChange, true);
+            CalendarManagement.CalcDateBOC2(ExpectedLeadTime, ExpectedPlannedReceiptDate, CustomizedCalendarChange, true);
         Assert.AreEqual(
             ExpectedOrderDate,
             PurchaseLine."Order Date",

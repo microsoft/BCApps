@@ -60,7 +60,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ItemTrackingWasOpened: Boolean;
         UnitCostCalculation: Option Time,Units;
         ComponentExpectedReceiptDateAssertMsg: Label 'Expected Receipt Date must match the component Due Date.';
-        PlannedReceiptDateAssertMsg: Label 'Planned Receipt Date must be calculated no later than Expected Receipt Date.';
+        PlannedReceiptDateAssertMsg: Label 'Planned Receipt Date must include exactly three days safety lead time and two days inbound handling time with the location calendar.';
         ComponentOrderDateAssertMsg: Label 'Order Date must use the item lead time and configured calendars.';
         WorkDateOrderDateAssertMsg: Label 'Order Date must not be overwritten with Work Date.';
         ServiceLineExpectedReceiptDateAssertMsg: Label 'The service line must retain the routing operation ending date.';
@@ -1251,15 +1251,17 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         HomeLocation.Modify(true);
         ComponentItem.Get(ProdOrderComponent."Item No.");
         Evaluate(ComponentItem."Lead Time Calculation", '<10D>');
+        Evaluate(ComponentItem."Safety Lead Time", '<3D>');
         ComponentItem.Modify(true);
         ComponentDueDate := CalcDate('<30D>', WorkDate());
         BaseCalendarChange."Base Calendar Code" := BaseCalendar.Code;
         BaseCalendarChange.Validate(Date, CalcDate('<-2D>', ComponentDueDate));
         BaseCalendarChange.Description := 'Handling calendar test';
+        BaseCalendarChange.Nonworking := true;
         BaseCalendarChange.Insert(true);
         CustomizedCalendarChange[1].SetSource(
             CustomizedCalendarChange[1]."Source Type"::Location, HomeLocation.Code, '', BaseCalendar.Code);
-        ExpectedPlannedReceiptDate := CalendarManagement.CalcDateBOC2('<2D>', ComponentDueDate, CustomizedCalendarChange, false);
+        ExpectedPlannedReceiptDate := CalendarManagement.CalcDateBOC2('<5D>', ComponentDueDate, CustomizedCalendarChange, false);
         CustomizedCalendarChange[1].SetSource(
             CustomizedCalendarChange[1]."Source Type"::Vendor, Vendor."No.", '', BaseCalendar.Code);
         CustomizedCalendarChange[2].SetSource(
@@ -1283,8 +1285,8 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Assert.IsTrue(PurchaseLine.FindFirst(), ComponentPurchaseLineAssertMsg);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLine."Expected Receipt Date", ComponentExpectedReceiptDateAssertMsg);
-        Assert.IsTrue(PurchaseLine."Planned Receipt Date" <= ExpectedPlannedReceiptDate, PlannedReceiptDateAssertMsg);
-        ExpectedOrderDate := CalendarManagement.CalcDateBOC2('<10D>', PurchaseLine."Planned Receipt Date", CustomizedCalendarChange, true);
+        Assert.AreEqual(ExpectedPlannedReceiptDate, PurchaseLine."Planned Receipt Date", PlannedReceiptDateAssertMsg);
+        ExpectedOrderDate := CalendarManagement.CalcDateBOC2('<10D>', ExpectedPlannedReceiptDate, CustomizedCalendarChange, true);
         Assert.AreEqual(ExpectedOrderDate, PurchaseLine."Order Date", ComponentOrderDateAssertMsg);
         Assert.IsTrue(PurchaseLine."Order Date" <> WorkDate(), WorkDateOrderDateAssertMsg);
 
