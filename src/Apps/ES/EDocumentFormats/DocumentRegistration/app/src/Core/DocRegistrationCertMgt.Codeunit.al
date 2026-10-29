@@ -38,19 +38,6 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
         HexDigitsTok: Label '0123456789ABCDEF', Locked = true;
 
     /// <summary>
-    /// Returns true when the certificate is an electronic seal certificate (certificado de sello), which AEAT only accepts on dedicated endpoints.
-    /// Returns false when the certificate cannot be read.
-    /// </summary>
-    internal procedure IsSealCertificate(CertCode: Code[20]): Boolean
-    var
-        IsSeal: Boolean;
-    begin
-        if not TryGetIsSealCertificate(CertCode, IsSeal) then
-            exit(false);
-        exit(IsSeal);
-    end;
-
-    /// <summary>
     /// Detects whether the certificate is an electronic seal certificate. Returns false when the certificate cannot be read.
     /// </summary>
     internal procedure TryGetIsSealCertificate(CertCode: Code[20]; var IsSeal: Boolean): Boolean
@@ -77,23 +64,33 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
         CertDataHex: Text;
     begin
         CertDataHex := ConvertBase64ToHex(RawCertDataBase64);
-        exit(
-            ContainsByteSequence(CertDataHex, QcTypeESealOidTok) or
-            ContainsByteSequence(CertDataHex, PolicyQcpLegalOidTok) or
-            ContainsByteSequence(CertDataHex, PolicyQcpLegalQscdOidTok));
+        if ContainsByteSequence(CertDataHex, QcTypeESealOidTok) then
+            exit(true);
+        if ContainsByteSequence(CertDataHex, PolicyQcpLegalOidTok) then
+            exit(true);
+        exit(ContainsByteSequence(CertDataHex, PolicyQcpLegalQscdOidTok));
     end;
 
     [TryFunction]
     [NonDebuggable]
     local procedure TryDetectSealCertificate(IsolatedCertificate: Record "Isolated Certificate"; var IsSeal: Boolean)
+    begin
+        IsSeal := DetectSealCertificate(GetCertAsBase64String(IsolatedCertificate), GetPasswordAsSecret(IsolatedCertificate));
+    end;
+
+    [TryFunction]
+    [NonDebuggable]
+    local procedure TryDetectSealCertificateFromData(CertBase64: Text; CertPassword: SecretText; var IsSeal: Boolean)
+    begin
+        IsSeal := DetectSealCertificate(CertBase64, CertPassword);
+    end;
+
+    [NonDebuggable]
+    local procedure DetectSealCertificate(CertBase64: Text; CertPassword: SecretText): Boolean
     var
         X509Certificate2: Codeunit X509Certificate2;
-        CertPassword: SecretText;
-        CertBase64: Text;
     begin
-        CertBase64 := GetCertAsBase64String(IsolatedCertificate);
-        CertPassword := GetPasswordAsSecret(IsolatedCertificate);
-        IsSeal := IsSealCertificateData(X509Certificate2.GetRawCertDataAsBase64String(CertBase64, CertPassword));
+        exit(IsSealCertificateData(X509Certificate2.GetRawCertDataAsBase64String(CertBase64, CertPassword)));
     end;
 
     local procedure ConvertBase64ToHex(Base64Text: Text): Text
@@ -134,12 +131,29 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
 
     internal procedure GetIsolatedCertificate(CertCode: Code[20]; var CertText: SecretText; var CertPassword: SecretText): Boolean
     var
-        IsolatedCertificate: Record "Isolated Certificate";
+        IsSealCertificate: Boolean;
     begin
+        exit(GetIsolatedCertificate(CertCode, CertText, CertPassword, IsSealCertificate));
+    end;
+
+    /// <summary>
+    /// Loads the certificate and its password, and detects from the same data whether it is an electronic seal certificate.
+    /// IsSealCertificate is false when the certificate cannot be classified.
+    /// </summary>
+    [NonDebuggable]
+    internal procedure GetIsolatedCertificate(CertCode: Code[20]; var CertText: SecretText; var CertPassword: SecretText; var IsSealCertificate: Boolean): Boolean
+    var
+        IsolatedCertificate: Record "Isolated Certificate";
+        CertBase64: Text;
+    begin
+        IsSealCertificate := false;
         if not IsolatedCertificate.Get(CertCode) then
             exit(false);
         CertPassword := GetPasswordAsSecret(IsolatedCertificate);
-        CertText := SecretStrSubstNo(GetCertAsBase64String(IsolatedCertificate));
+        CertBase64 := GetCertAsBase64String(IsolatedCertificate);
+        CertText := SecretStrSubstNo(CertBase64);
+        if not TryDetectSealCertificateFromData(CertBase64, CertPassword, IsSealCertificate) then
+            IsSealCertificate := false;
         exit(true);
     end;
 

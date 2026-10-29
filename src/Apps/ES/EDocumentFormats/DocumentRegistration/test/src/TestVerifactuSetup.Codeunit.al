@@ -83,7 +83,7 @@ codeunit 148003 "Test Verifactu Setup"
     end;
 
     [Test]
-    procedure IsSealCertificateReturnsFalseWhenCertificateCannotBeRead()
+    procedure TryGetIsSealCertificateFailsWhenCertificateCannotBeRead()
     var
         IsolatedCertificate: Record "Isolated Certificate";
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
@@ -97,7 +97,6 @@ codeunit 148003 "Test Verifactu Setup"
         // [THEN] Detection reports failure and the certificate is not treated as a seal certificate
         Assert.IsFalse(DocRegistrationCertMgt.TryGetIsSealCertificate(CreateCertificate(IsolatedCertificate), IsSeal), 'Detection should fail without certificate data');
         Assert.IsFalse(IsSeal, 'IsSeal should be false when detection fails');
-        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificate(IsolatedCertificate.Code), 'Unreadable certificate should not be treated as seal certificate');
     end;
 
     [Test]

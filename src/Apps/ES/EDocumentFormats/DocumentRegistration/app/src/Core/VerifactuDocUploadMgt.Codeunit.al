@@ -55,7 +55,7 @@ codeunit 10777 "Verifactu Doc. Upload Mgt."
 
         Session.LogMessage('0000QWW', StrSubstNo(BatchSoapRequestMsg, RequestType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
 
-        CertificateEnabled := DocRegistrationCertMgt.GetIsolatedCertificate(VerifactuSetup."Certificate Code", CertText, CertPassword);
+        CertificateEnabled := DocRegistrationCertMgt.GetIsolatedCertificate(VerifactuSetup."Certificate Code", CertText, CertPassword, IsSealCertificate);
         if not CertificateEnabled then begin
             Session.LogMessage('0000QWX', NoCertificateTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             Session.LogSecurityAudit(FeatureNameTxt, SecurityOperationResult::Failure, StrSubstNo(SecurityAuditCertLoadFailedTxt, VerifactuSetup."Certificate Code"), AuditCategory::Authentication);
@@ -67,10 +67,7 @@ codeunit 10777 "Verifactu Doc. Upload Mgt."
         case RequestType of
             RequestType::DocumentRegistration,
             RequestType::DocumentCancelation:
-                begin
-                    IsSealCertificate := DocRegistrationCertMgt.IsSealCertificate(VerifactuSetup."Certificate Code");
-                    WebServiceUrl := VerifactuSetup.GetDocumentSubmissionEndpointUrl(IsSealCertificate);
-                end;
+                WebServiceUrl := VerifactuSetup.GetDocumentSubmissionEndpointUrl(IsSealCertificate);
             RequestType::QrCodeValidation:
                 WebServiceUrl := VerifactuSetup.GetQRCodeValidationEndpointUrl();
         end;
