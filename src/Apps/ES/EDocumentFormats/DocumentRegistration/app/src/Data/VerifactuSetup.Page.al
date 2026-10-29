@@ -56,6 +56,28 @@ page 10777 "Verifactu Setup"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the code of certificate.';
+
+                    trigger OnValidate()
+                    begin
+                        UpdateCertificateType();
+                    end;
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
+                    begin
+                        // Same as the table field lookup, which assigns the code without validation, but also refreshes the certificate type.
+                        DocRegistrationCertMgt.LookupCertificate(Rec."Certificate Code");
+                        UpdateCertificateType();
+                        exit(false);
+                    end;
+                }
+                field(CertificateType; CertificateTypeText)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Certificate Type';
+                    Editable = false;
+                    ToolTip = 'Specifies the type of the selected certificate, detected from the certificate itself. A certificate is treated as an electronic seal only when it identifies itself as one (eIDAS QcType eSeal or a legal person certificate policy). Documents signed with an electronic seal certificate are sent to the dedicated AEAT endpoint for seal certificates.';
                 }
             }
         }
@@ -68,6 +90,30 @@ page 10777 "Verifactu Setup"
             Rec.Init();
             Rec.Insert(true);
         end;
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateCertificateType();
+    end;
+
+    var
+        CertificateTypeText: Text;
+        PersonalCertificateTxt: Label 'Personal or representative';
+        SealCertificateTxt: Label 'Electronic seal';
+
+    local procedure UpdateCertificateType()
+    var
+        DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
+        IsSealCertificate: Boolean;
+    begin
+        CertificateTypeText := '';
+        if not DocRegistrationCertMgt.TryGetIsSealCertificate(Rec."Certificate Code", IsSealCertificate) then
+            exit;
+        if IsSealCertificate then
+            CertificateTypeText := SealCertificateTxt
+        else
+            CertificateTypeText := PersonalCertificateTxt;
     end;
 }
 
