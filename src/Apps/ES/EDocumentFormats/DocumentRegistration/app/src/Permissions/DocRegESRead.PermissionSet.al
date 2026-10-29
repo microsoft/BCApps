@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Verifactu;
 
-using System.Security.Encryption;
-
 permissionset 10777 DocRegESRead
 {
     Access = Public;
@@ -14,6 +12,5 @@ permissionset 10777 DocRegESRead
 
     Permissions = tabledata "Verifactu Setup" = R,
                   tabledata "Verifactu Document" = R,
-                  tabledata "Isolated Certificate" = R,
                   codeunit "Doc. Registration Cert. Mgt." = X;
 }
