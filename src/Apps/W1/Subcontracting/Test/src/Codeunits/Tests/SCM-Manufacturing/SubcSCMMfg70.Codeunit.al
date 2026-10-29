@@ -569,10 +569,7 @@ codeunit 149924 "Subc SCM Mfg. 70"
         SubcManagementLibrary.CalculateSubcontractOrder(WorkCenter);
 
         // [GIVEN] Find the Requisition Line of Production Order.
-        RequisitionLine.SetRange("No.", ProductionOrder."Source No.");
-        RequisitionLine.SetRange("Ref. Order Status", ProductionOrder.Status);
-        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
-        RequisitionLine.FindFirst();
+        FindRequisitionLineForProductionOrder(RequisitionLine, ProductionOrder);
 
         // [WHEN] Validate Item No. into different Item and Validate Work Center No.
         RequisitionLine.Validate("No.", Item[2]."No.");
@@ -1028,10 +1025,10 @@ codeunit 149924 "Subc SCM Mfg. 70"
 
     local procedure FindRequisitionLineForProductionOrder(var RequisitionLine: Record "Requisition Line"; ProductionOrder: Record "Production Order")
     begin
-        RequisitionLine.SetCurrentKey("Ref. Order Type", "Ref. Order Status", "Ref. Order No.", "Ref. Line No.");
         RequisitionLine.SetRange("No.", ProductionOrder."Source No.");
-        RequisitionLine.SetRange("Ref. Order Status", ProductionOrder.Status);
-        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        RequisitionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
         RequisitionLine.FindFirst();
     end;
 
@@ -1190,10 +1187,10 @@ codeunit 149924 "Subc SCM Mfg. 70"
     var
         RequisitionLine: Record "Requisition Line";
     begin
-        RequisitionLine.SetCurrentKey("Ref. Order Type", "Ref. Order Status", "Ref. Order No.", "Ref. Line No.");
         RequisitionLine.SetRange("No.", ProductionOrder."Source No.");
-        RequisitionLine.SetRange("Ref. Order Status", ProductionOrder.Status);
-        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        RequisitionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
         RequisitionLine.FindSet();
 
         Assert.AreEqual(OperationNo[1], RequisitionLine."Operation No.", StrSubstNo(OperationNoErr, OperationNo[1]));
