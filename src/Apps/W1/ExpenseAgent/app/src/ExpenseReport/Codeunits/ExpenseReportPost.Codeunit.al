@@ -251,6 +251,7 @@ codeunit 6987 "Expense Report-Post"
                 CreateSalesDocument(PostedExpenseReportHeader, PostedExpenseReportLine);
                 if PostedExpenseReportLine."Expense No." <> '' then
                     UpdateExpenseFromPostedExpenseReportLine(PostedExpenseReportLine);
+
                 if ExpenseReportLine.Refundable or (ExpenseReportLine."Reimbursement Type" <> ExpenseReportLine."Reimbursement Type"::"Employee Paid") then begin
                     InitExpenseLedgerEntry(GlobalExpenseLedgerEntry);
                     if ExpenseReportLine.Amount <> 0 then
