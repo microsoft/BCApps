@@ -8,20 +8,9 @@ codeunit 48527 "Fabric Platform Telemetry"
         CategoryTok: Label 'MicrosoftFabricExport', Locked = true;
         CredentialChangedMsg: Label 'Fabric 3P credential changed', Locked = true;
 
-    /// <summary>Emits a diagnostic trace to Application Insights (publisher telemetry).</summary>
-    procedure LogEvent(EventId: Text; Message: Text)
-    var
-        Dimensions: Dictionary of [Text, Text];
+    procedure GetDimensions() Dimensions: Dictionary of [Text, Text]
     begin
         Dimensions.Add('Category', CategoryTok);
-        Session.LogMessage(EventId, Message, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
-    end;
-
-    /// <summary>Emits a diagnostic trace with custom dimensions to Application Insights.</summary>
-    procedure LogEvent(EventId: Text; Message: Text; Dimensions: Dictionary of [Text, Text])
-    begin
-        Dimensions.Set('Category', CategoryTok);
-        Session.LogMessage(EventId, Message, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     /// <summary>Emits a third-party credential change to publisher and customer telemetry without secret data.</summary>
@@ -32,31 +21,10 @@ codeunit 48527 "Fabric Platform Telemetry"
     var
         Dimensions: Dictionary of [Text, Text];
     begin
-        Dimensions.Add('Category', CategoryTok);
+        Dimensions := GetDimensions();
         Dimensions.Add('Action', CredentialAction);
         Dimensions.Add('Trigger', ChangeTrigger);
         Dimensions.Add('ClientId', ClientId);
-        Session.LogMessage('0000VNO', CredentialChangedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
-    end;
-
-    /// <summary>Emits a customer-actionable operational failure, visible in tenant-level telemetry.</summary>
-    procedure LogFailureEvent(EventId: Text; Message: Text; Dimensions: Dictionary of [Text, Text])
-    begin
-        Dimensions.Set('Category', CategoryTok);
-        Session.LogMessage(EventId, Message, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
-    end;
-
-    /// <summary>
-    /// Emits an audit event describing a configuration change made by the current user.
-    /// Session.LogAuditMessage is OnPrem-only, so on the Cloud target these events are
-    /// recorded as publisher telemetry tagged with an AuditEvent dimension.
-    /// </summary>
-    procedure LogAudit(EventId: Text; Message: Text)
-    var
-        Dimensions: Dictionary of [Text, Text];
-    begin
-        Dimensions.Add('Category', CategoryTok);
-        Dimensions.Add('AuditEvent', 'true');
-        Session.LogMessage(EventId, Message, Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Dimensions);
+        Session.LogMessage('0000WCB', CredentialChangedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
     end;
 }

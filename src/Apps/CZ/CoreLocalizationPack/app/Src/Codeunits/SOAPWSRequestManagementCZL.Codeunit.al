@@ -11,6 +11,7 @@ codeunit 31031 "SOAP WS Request Management CZL"
 {
     var
         ResponseHttpResponseMessage: HttpResponseMessage;
+        RequestHttpRequestMessage: HttpRequestMessage;
         ResponseContentXmlDocument: XmlDocument;
         GlobalBasicUsername, GlobalBasicPassword, GlobalSoapAction, GlobalContentType : Text;
         GlobalStreamEncoding: TextEncoding;
@@ -36,21 +37,19 @@ codeunit 31031 "SOAP WS Request Management CZL"
         RequestHttpContent: HttpContent;
         RequestContentHttpHeaders: HttpHeaders;
         RequestHttpHeaders: HttpHeaders;
-        RequestHttpRequestMessage: HttpRequestMessage;
         RequestInStream: InStream;
         RequestOutStream: OutStream;
         ContentTypeTok: Label 'text/xml; charset=utf-8', Locked = true;
         Xml: Text;
     begin
         ClearLastError();
+        Clear(RequestHttpRequestMessage);
         Clear(ResponseHttpResponseMessage);
         Clear(ResponseContentXmlDocument);
         RequestTempBlob.CreateInStream(RequestInStream);
         RequestTempBlob.CreateOutStream(RequestOutStream);
-
         if not Uri.IsValidUri(ServiceUrl) then
             Error(InvalidUriErr);
-
         if not GlobalSkipCheckHttps then begin
             Uri.Init(ServiceUrl);
             if not Uri.IsSecureHttpUrl() then
@@ -124,7 +123,6 @@ codeunit 31031 "SOAP WS Request Management CZL"
         EnvelopeXmlDocument := XmlDocument.Create();
         XMLDOMManagement.AddRootElementWithPrefix(EnvelopeXmlDocument, 'Envelope', 'soap', SoapNamespaceTxt, EnvelopeXmlNode);
         XMLDOMManagement.AddElementWithPrefix(EnvelopeXmlNode, 'Header', '', 'soap', SoapNamespaceTxt, HeaderXmlNode);
-
         if (Username <> '') or (Password <> '') then begin
             XMLDOMManagement.AddElementWithPrefix(HeaderXmlNode, 'Security', '', 'wsse', SecurityExtensionNamespaceTxt, SecurityXmlNode);
             XMLDOMManagement.AddNamespaceDeclaration(SecurityXmlNode, 'wsu', SecurityUtilityNamespaceTxt);
@@ -195,6 +193,16 @@ codeunit 31031 "SOAP WS Request Management CZL"
     begin
         ContentXmlDocument.GetRoot(ContentXmlElement);
         exit(XMLDOMManagement.FindNodeWithNamespace(ContentXmlElement.AsXmlNode(), EnvelopePathTxt, 'soap', SoapNamespaceTxt, EnvelopeXmlNode));
+    end;
+
+    procedure GetHttpRequestMessage(): HttpRequestMessage
+    begin
+        exit(RequestHttpRequestMessage);
+    end;
+
+    procedure GetHttpResponseMessage(): HttpResponseMessage
+    begin
+        exit(ResponseHttpResponseMessage);
     end;
 
     procedure GetResponseAsText(): Text

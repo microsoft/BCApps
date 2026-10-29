@@ -12,19 +12,20 @@ using System.Utilities;
 table 31125 "EET Service Setup CZL"
 {
     Caption = 'EET Service Setup';
+    DataClassification = CustomerContent;
 
     fields
     {
         field(1; "Primary Key"; Code[10])
         {
             Caption = 'Primary Key';
-            DataClassification = CustomerContent;
+            AllowInCustomizations = Never;
         }
         field(2; "Service URL"; Text[250])
         {
             Caption = 'Service URL';
             ExtendedDatatype = URL;
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the address of the EET service that the data messages with the recorded sales are sent to.';
 
             trigger OnValidate()
             var
@@ -42,7 +43,6 @@ table 31125 "EET Service Setup CZL"
                             EETServiceMgtCZL.GetWebServicePlayGroundURLTxt():
                                 Confirmed := ConfirmManagement.GetResponse(NonproductionEnvironmentQst, false);
                         end;
-
                 if not Confirmed then
                     "Service URL" := xRec."Service URL";
             end;
@@ -50,25 +50,24 @@ table 31125 "EET Service Setup CZL"
         field(10; "Sales Regime"; Enum "EET Sales Regime CZL")
         {
             Caption = 'Sales Regime';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the simplified regime of sales is used. The simplified regime does not exist in the EET system version 2.0, therefore the field is not used.';
         }
         field(11; "Limit Response Time"; Integer)
         {
             Caption = 'Limit Response Time';
-            DataClassification = CustomerContent;
             InitValue = 2000;
             MinValue = 2000;
+            ToolTip = 'Specifies the time limit in milliseconds for a response from the EET service. If the limit is exceeded, the sale is not registered immediately and the data message is sent again later.';
         }
         field(12; "Appointing VAT Reg. No."; Text[20])
         {
             Caption = 'Appointing VAT Reg. No.';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the VAT registration number of the taxpayer who appointed you to report sales. The field was used in the EET system version 1.0. The field is replaced by the Authorizing Taxpayer ID field and it is no longer sent to the EET service.';
         }
         field(15; Enabled; Boolean)
         {
-
             Caption = 'Enabled';
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies if the service is enabled. When the service is enabled, a job queue entry that sends the EET entries to the service is created. The setup cannot be changed while the service is enabled.';
 
             trigger OnValidate()
             var
@@ -87,11 +86,62 @@ table 31125 "EET Service Setup CZL"
                     CancelJobQueueEntry();
             end;
         }
+#if not CLEANSCHEMA33
         field(17; "Certificate Code"; Code[10])
         {
             Caption = 'Certificate Code';
             TableRelation = "Certificate Code CZL";
-            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the certificate used to sign the data messages. It is used by every registrating unit and cash register that does not specify its own certificate.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'The field has been replaced by the Taxpayer Certificate Code field, because its length (10) did not match the length of the Code field (20) in the Certificate Code CZL table, so certificates with a longer code could not be selected.';
+        }
+#endif
+        field(18; "Taxpayer Certificate Code"; Code[20])
+        {
+            Caption = 'Taxpayer Certificate Code';
+            TableRelation = "Certificate Code CZL";
+            ToolTip = 'Specifies the certificate used to sign the data messages. It is used by every registrating unit and cash register that does not specify its own certificate.';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
+        field(30; "Taxpayer ID"; Code[20])
+        {
+            Caption = 'Taxpayer ID';
+            ToolTip = 'Specifies the registered identification number of your own company. It is used by every registrating unit that does not specify its own taxpayer.';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
+        field(35; "Authorizing Taxpayer ID"; Code[20])
+        {
+            Caption = 'Authorizing Taxpayer ID';
+            ToolTip = 'Specifies the registered identification number of the taxpayer authorizing you to report sales. Leave it blank to report your own sales. The value is only copied to new registrating units, it is not applied to existing ones.';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
+        field(36; "Multiple Taxpayer Auth."; Boolean)
+        {
+            Caption = 'Multiple Taxpayer Authorization';
+            ToolTip = 'Specifies whether the transaction is recorded on behalf of multiple taxpayers. The value is only copied to new registrating units, it is not applied to existing ones.';
+        }
+        field(40; "Request Log Level"; Enum "EET Message Log Level CZL")
+        {
+            Caption = 'Request Log Level';
+            ToolTip = 'Specifies when the data message that is sent to the EET service is saved to the status log of the EET entry. Errors and Warnings saves it only if the sending ended with an error or with a warning. All saves it every time. The message contains the taxpayer ID and the amount of the sale.';
+        }
+        field(41; "Response Log Level"; Enum "EET Message Log Level CZL")
+        {
+            Caption = 'Response Log Level';
+            ToolTip = 'Specifies when the response that is received from the EET service is saved to the status log of the EET entry. Errors and Warnings saves it only if the sending ended with an error or with a warning. All saves it every time.';
+        }
+        field(50; "Maximum Send Retries"; Integer)
+        {
+            Caption = 'Maximum Send Retries';
+            InitValue = 5;
+            MinValue = 0;
+            ToolTip = 'Specifies how many times the job queue entry sends an EET entry to the EET service again after the first sending failed because of a temporary error. The entry stays in the Send Pending status until the number of retries is reached. After that, or when the error cannot be solved by sending again, the entry stays in the Failure status and it is no longer sent automatically, you can send it manually. Enter 0 if the entries should not be sent again automatically.';
         }
     }
 
@@ -119,7 +169,6 @@ table 31125 "EET Service Setup CZL"
         URLOptionsQst: Label '&Production environment URL,&Non-production environment URL';
     begin
         TestField(Enabled, false);
-
         if not ShowDialog then begin
             EETServiceManagementCZL.SetURLToDefault(Rec);
             exit;
@@ -128,7 +177,6 @@ table 31125 "EET Service Setup CZL"
         Selection := 2;
         if GuiAllowed() then
             Selection := StrMenu(URLOptionsQst, Selection);
-
         case Selection of
             1:
                 Validate("Service URL", EETServiceManagementCZL.GetWebServiceURLTxt());
@@ -164,6 +212,31 @@ table 31125 "EET Service Setup CZL"
         JobQueueEntry.SetRange("Object ID to Run", Codeunit::"EET Send Entries To Serv. CZL");
         if JobQueueEntry.FindFirst() then
             Page.Run(Page::"Job Queue Entries", JobQueueEntry);
+    end;
+
+    procedure IsRequestMessageLogEnabled(EETStatus: Enum "EET Status CZL"): Boolean
+    begin
+        exit(IsMessageLogEnabled("Request Log Level", EETStatus));
+    end;
+
+    procedure IsResponseMessageLogEnabled(EETStatus: Enum "EET Status CZL"): Boolean
+    begin
+        exit(IsMessageLogEnabled("Response Log Level", EETStatus));
+    end;
+
+    local procedure IsMessageLogEnabled(EETMessageLogLevel: Enum "EET Message Log Level CZL"; EETStatus: Enum "EET Status CZL"): Boolean
+    begin
+        case EETMessageLogLevel of
+            EETMessageLogLevel::All:
+                exit(true);
+            EETMessageLogLevel::Disabled:
+                exit(false);
+            EETMessageLogLevel::Errors:
+                exit(EETStatus = EETStatus::Failure);
+            EETMessageLogLevel::ErrorsAndWarnings:
+                exit(EETStatus in [EETStatus::Failure, EETStatus::"Success with Warnings", EETStatus::"Verified with Warnings"]);
+        end;
+        exit(false);
     end;
 
     local procedure AreEETEntriesToSending(): Boolean
