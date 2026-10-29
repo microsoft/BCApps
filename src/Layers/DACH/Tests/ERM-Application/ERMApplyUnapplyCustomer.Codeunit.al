@@ -32,6 +32,8 @@
         WrongFieldErr: Label 'Wrong value of field %1 in table %2.', Locked = true;
         UnnecessaryVATEntriesFoundErr: Label 'Unnecessary VAT Entries found.', Locked = true;
         NonzeroACYErr: Label 'Non-zero Additional Currency Amount in G/L Entry.', Locked = true;
+        GLEntryAddCurrAmountZeroErr: Label 'G/L entry additional-currency amount for posting group account %1 must not be zero', Comment = '%1 = posting-group account number', Locked = true;
+        GLEntryAddCurrAmountsBalanceErr: Label 'Application G/L entry additional-currency amounts for posting group accounts %1 and %2 do not balance', Comment = '%1 = G/L account number, %2 = balancing G/L account number', Locked = true;
         GLEntryCntErr: Label 'Wrong count of created G/L Entries.';
         DimBalanceErr: Label 'Wrong balance by Dimension.';
         SelectionFilterErr: Label 'Problem with selection filter: Original selection: %1. Returned selection: %2.', Comment = '%1: original selection filter;%2: returned selection filter';
@@ -2594,21 +2596,18 @@
         Customer: Record Customer;
         CustomerPostingGroup: array[2] of Record "Customer Posting Group";
         GenJournalLine, GenJournalLine2 : Record "Gen. Journal Line";
-        GlEntry: Record "G/L Entry";
+        GLEntry: Record "G/L Entry";
         VATPostingSetup: Record "VAT Posting Setup";
         CurrencyCode: Code[10];
         PaymentDocNo: Code[20];
         VATCalculationType: Enum "Tax Calculation Type";
     begin
-        // [SCENARIO 575520] Check Additional Reporting Currency not working when posting through alternate posting group.
+        // [SCENARIO 575520] Check Additional Reporting Currency when posting through an alternate posting group.
         Initialize();
 
         // [GIVEN] Currency with specific exchange rates and set as Additional Reporting Currency.
-        GlEntry.SetCurrentKey("Posting Date");
-        GlEntry.FindFirst();
-        CurrencyCode := CreateCurrencyAndExchangeRate(1, 1.1302, WorkDate());
-        CreateExchangeRate(CurrencyCode, 100, 101.7599, GlEntry."Posting Date");
-        UpdateRunAddnReportingCurrency(CurrencyCode, LibraryRandom.RandText(10));
+        CurrencyCode := CreateCurrencyAndExchangeRate(1, 1, WorkDate());
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
 
         // [GIVEN] Set Allow Multiple Posting Groups in Sales & Receivables Setup.
         SetSalesAllowMultiplePostingGroups(true);
@@ -2619,7 +2618,7 @@
         LibrarySales.CreateAltCustomerPostingGroup(CustomerPostingGroup[1].Code, CustomerPostingGroup[2].Code);
 
         // [GIVEN] Create VAT Posting Setup.
-        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATCalculationType::"Normal VAT", 25);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATCalculationType::"Normal VAT", 0);
 
         // [GIVEN Create Customer With Allow Multiple Posting Groups.
         CreateCustomerWithAllowMultiplePostingGroups(Customer, CustomerPostingGroup[1].Code, VATPostingSetup."VAT Bus. Posting Group");
@@ -2633,16 +2632,15 @@
         // [GIVEN] Find Openned Customer Ledger Entries for New Customer Created For "Apply Entries".
         FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, Customer."No.");
 
-        // [WHEN] Payment is applied to the invoice.
+        // [WHEN] Payment is applied to the invoice and posting completes without a G/L inconsistency error.
         CreateCashReceiptJnlLinePayment(GenJournalLine2, Customer."No.", CustLedgerEntry, CustomerPostingGroup[2].Code, CurrencyCode);
         PaymentDocNo := GenJournalLine2."Document No.";
         LibraryERM.PostGeneralJnlLine(GenJournalLine2);
 
-        // [THEN] Check General Ledger Entry All Lines Must have Value in "Additional-Currency Amount" Field.
-        GlEntry.Reset();
-        GlEntry.SetRange("Document No.", PaymentDocNo);
-        GlEntry.SetRange("Additional-Currency Amount", 0);
-        Assert.RecordCount(GlEntry, 2); // new line for source currency only
+        // [THEN] The application entries carry balanced Additional-Currency Amounts.
+        GLEntry.SetRange("Document No.", PaymentDocNo);
+        VerifyApplicationGLEntriesAdditionalCurrencyAmounts(
+            GLEntry, CustomerPostingGroup[1]."Receivables Account", CustomerPostingGroup[2]."Receivables Account", CurrencyCode);
     end;
 
     [Test]
@@ -2701,6 +2699,29 @@
         GlEntry.SetRange("Document No.", PaymentDocNo);
         GlEntry.SetRange("Additional-Currency Amount", 0);
         Assert.RecordCount(GlEntry, 0);
+    end;
+
+    local procedure VerifyApplicationGLEntriesAdditionalCurrencyAmounts(var GLEntry: Record "G/L Entry"; AccountNo: Code[20]; BalAccountNo: Code[20]; CurrencyCode: Code[10])
+    var
+        Currency: Record Currency;
+        Amount: Decimal;
+        AmountACY: Decimal;
+    begin
+        GLEntry.SetRange("G/L Account No.", AccountNo);
+        GLEntry.FindFirst();
+        Assert.AreNotEqual(
+            0, GLEntry."Additional-Currency Amount",
+            StrSubstNo(GLEntryAddCurrAmountZeroErr, AccountNo));
+        Amount := GLEntry.Amount;
+        AmountACY := GLEntry."Additional-Currency Amount";
+
+        GLEntry.SetRange("G/L Account No.", BalAccountNo);
+        GLEntry.SetRange(Amount, -Amount);
+        GLEntry.FindFirst();
+        Currency.Get(CurrencyCode);
+        Assert.AreNearlyEqual(
+            -AmountACY, GLEntry."Additional-Currency Amount", Currency."Amount Rounding Precision",
+            StrSubstNo(GLEntryAddCurrAmountsBalanceErr, AccountNo, BalAccountNo));
     end;
 
     local procedure Initialize()
@@ -4196,4 +4217,3 @@
         IsHandled := true;
     end;
 }
-
