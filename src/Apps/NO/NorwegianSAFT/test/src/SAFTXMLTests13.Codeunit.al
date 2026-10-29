@@ -1693,7 +1693,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         Amount[2] := LibraryRandom.RandDec(100, 2);
         SAFTTestHelper.MockGLEntry(
             SAFTExportHeader."Ending Date", LibraryUtility.GenerateGUID(), '',
-            LastUsedTransactionNo + 2, 0, 0, '', '', 0, '', '', 0, Amount[2]);
+            LastUsedTransactionNo + 2, 0, 0, '', '', 0, '', '', 0, -Amount[2]);
 
         // [WHEN] Export G/L Entries to the XML file
         LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
@@ -1979,6 +1979,9 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         TempXMLBuffer.Next();
         VerifyChildElementsCount(TempChildXMLBuffer, TempXMLBuffer, 1);
         SAFTTestHelper.AssertCurrentElementValue(TempChildXMLBuffer, 'n1:Amount', SAFTTestHelper.FormatAmount(PaymentAmount));
+
+        // [THEN] Reversals contribute positive amounts on the opposite XML side, including in the control totals
+        VerifySelectionAmountTotals(SAFTExportHeader.ID, 1, 2 * PaymentAmount, 2 * PaymentAmount);
     end;
 
     [Test]
@@ -2058,6 +2061,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         VerifyChildElementsCount(TempChildXMLBuffer, TempXMLBuffer, 1);
         SAFTTestHelper.AssertCurrentElementValue(
             TempChildXMLBuffer, 'n1:Amount', SAFTTestHelper.FormatAmount(Abs(GenJournalLine."Amount (LCY)")));
+        VerifySelectionAmountTotals(SAFTExportHeader.ID, 1, Abs(GenJournalLine."Amount (LCY)"), Abs(GenJournalLine."Amount (LCY)"));
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2388,6 +2392,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         // [THEN] The fallback journal preserves all groups and lines
         Assert.ExpectedMessage(GenerateSAFTFileImmediatelyQst, LibraryVariableStorage.DequeueText());
         VerifySelectionTransactionCount(SAFTExportHeader, 1, 3, 4);
+        VerifySelectionAmountTotals(SAFTExportHeader.ID, 1, 400, 0);
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2412,6 +2417,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         // [THEN] The generated file contains no transactions or lines and reports zero
         Assert.ExpectedMessage(GenerateSAFTFileImmediatelyQst, LibraryVariableStorage.DequeueText());
         VerifySelectionTransactionCount(SAFTExportHeader, 1, 0, 0);
+        VerifySelectionAmountTotals(SAFTExportHeader.ID, 1, 0, 0);
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2488,6 +2494,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
 
         // [THEN] Both G/L files retain exact header values, positive credit magnitudes and metadata, and no excluded analysis
         VerifySelectionTransactionCount(SAFTExportHeader, 2, 3, 3);
+        VerifySelectionAmountTotals(SAFTExportHeader.ID, 2, 100, 200);
         SAFTExportLine.SetRange("Master Data", false);
         SAFTTestHelper.FindSAFTExportLine(SAFTExportLine, SAFTExportHeader.ID);
         repeat
@@ -2518,6 +2525,87 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         Assert.RecordCount(TempXMLBuffer, 1);
         VerifyChildElementsCount(TempChildXMLBuffer, TempXMLBuffer, 1);
         SAFTTestHelper.AssertCurrentElementValue(TempChildXMLBuffer, 'n1:Amount', '100');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CaptureConfirmationHandler')]
+    procedure AmountTotalsIncludeNegativeDebitAndCreditEntries()
+    var
+        SAFTExportHeader: Record "SAF-T Export Header";
+        GLAccount: Record "G/L Account";
+        SourceCode: Record "Source Code";
+    begin
+        // [FEATURE] [AI test 1.0] [Totals]
+        // [SCENARIO] Negative debit and credit entries contribute to the opposite XML side across journals.
+        Initialize();
+
+        // [GIVEN] Journals "J1", "J2" and "J3" contain ordinary and correction entries, including a blank source code
+        CreateTransactionCountSetup(SAFTExportHeader, GLAccount, SourceCode);
+        CreateAmountTotalsEntries(SAFTExportHeader, GLAccount."No.", SourceCode);
+
+        // [WHEN] Export a single transaction file
+        SAFTTestHelper.RunSAFTExport(SAFTExportHeader);
+
+        // [THEN] The control totals equal the debit and credit amounts in every journal
+        Assert.ExpectedMessage(GenerateSAFTFileImmediatelyQst, LibraryVariableStorage.DequeueText());
+        VerifySelectionAmountTotals(SAFTExportHeader.ID, 1, 120, 110);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CaptureConfirmationHandler')]
+    procedure AmountTotalsRepeatAcrossMonthlyFiles()
+    var
+        SAFTExportHeader: Record "SAF-T Export Header";
+        GLAccount: Record "G/L Account";
+        SourceCode: Record "Source Code";
+    begin
+        // [FEATURE] [AI test 1.0] [Totals]
+        // [SCENARIO] Each monthly file repeats the debit and credit sums of all transaction files in the selection.
+        Initialize();
+
+        // [GIVEN] Ordinary and correction entries in two months, plus entries outside the selection
+        CreateTransactionCountSetup(SAFTExportHeader, GLAccount, SourceCode);
+        SAFTExportHeader.Validate("Ending Date", CalcDate('<1M+CM>', SAFTExportHeader."Starting Date"));
+        SAFTExportHeader.Validate("Split By Month", true);
+        SAFTExportHeader.Modify(true);
+        CreateAmountTotalsEntries(SAFTExportHeader, GLAccount."No.", SourceCode);
+
+        // [WHEN] Export monthly transaction files
+        SAFTTestHelper.RunSAFTExport(SAFTExportHeader);
+
+        // [THEN] Both files repeat the entire selection totals without including outside-period entries
+        Assert.ExpectedMessage(GenerateSAFTFileImmediatelyQst, LibraryVariableStorage.DequeueText());
+        VerifySelectionAmountTotals(SAFTExportHeader.ID, 2, 120, 110);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CaptureConfirmationHandler')]
+    procedure AmountTotalsRepeatAcrossDailyFiles()
+    var
+        SAFTExportHeader: Record "SAF-T Export Header";
+        GLAccount: Record "G/L Account";
+        SourceCode: Record "Source Code";
+    begin
+        // [FEATURE] [AI test 1.0] [Totals]
+        // [SCENARIO] Each daily file repeats the debit and credit sums of the complete selection.
+        Initialize();
+
+        // [GIVEN] Ordinary and correction entries on two days separated by an empty day
+        CreateTransactionCountSetup(SAFTExportHeader, GLAccount, SourceCode);
+        SAFTExportHeader.Validate("Ending Date", SAFTExportHeader."Starting Date" + 2);
+        SAFTExportHeader.Validate("Split By Date", true);
+        SAFTExportHeader.Modify(true);
+        CreateAmountTotalsEntries(SAFTExportHeader, GLAccount."No.", SourceCode);
+
+        // [WHEN] Export daily transaction files
+        SAFTTestHelper.RunSAFTExport(SAFTExportHeader);
+
+        // [THEN] Both files repeat the entire selection totals, not just their own line amounts
+        Assert.ExpectedMessage(GenerateSAFTFileImmediatelyQst, LibraryVariableStorage.DequeueText());
+        VerifySelectionAmountTotals(SAFTExportHeader.ID, 2, 120, 110);
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2676,6 +2764,42 @@ codeunit 148110 "SAF-T XML Tests 1.3"
 
         CashReceiptJournal.OpenEdit();
         CashReceiptJournal.Post.Invoke();
+    end;
+
+    local procedure CreateAmountTotalsEntries(SAFTExportHeader: Record "SAF-T Export Header"; GLAccountNo: Code[20]; SourceCode: Record "Source Code")
+    var
+        SAFTSourceCode: Record "SAF-T Source Code";
+        SecondSourceCode: Record "Source Code";
+    begin
+        SAFTSourceCode.ModifyAll("Includes No Source Code", false);
+        CreateTransactionCountJournal(SAFTSourceCode, false);
+        LibraryERM.CreateSourceCode(SecondSourceCode);
+        SecondSourceCode.Validate("SAF-T Source Code", SAFTSourceCode.Code);
+        SecondSourceCode.Modify(true);
+        CreateTransactionCountJournal(SAFTSourceCode, true);
+        CreateTransactionCountJournal(SAFTSourceCode, false);
+
+        CreateAmountTotalsEntry(SAFTExportHeader."Starting Date", GLAccountNo, SourceCode.Code, 100, false);
+        CreateAmountTotalsEntry(SAFTExportHeader."Starting Date", GLAccountNo, SourceCode.Code, -70, false);
+        CreateAmountTotalsEntry(SAFTExportHeader."Ending Date", GLAccountNo, SecondSourceCode.Code, -40, true);
+        CreateAmountTotalsEntry(SAFTExportHeader."Ending Date", GLAccountNo, '', 20, true);
+        CreateAmountTotalsEntry(SAFTExportHeader."Ending Date", GLAccountNo, SourceCode.Code, 0, false);
+        CreateAmountTotalsEntry(SAFTExportHeader."Starting Date" - 1, GLAccountNo, SourceCode.Code, 900, false);
+        CreateAmountTotalsEntry(SAFTExportHeader."Ending Date" + 1, GLAccountNo, SecondSourceCode.Code, -800, false);
+    end;
+
+    local procedure CreateAmountTotalsEntry(PostingDate: Date; GLAccountNo: Code[20]; SourceCode: Code[10]; Amount: Decimal; IsCorrection: Boolean)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.Get(
+            SAFTTestHelper.MockGLEntry(
+                PostingDate, LibraryUtility.GenerateGUID(), GLAccountNo, GetLastUsedTransactionNo() + 1,
+                0, '', '', 0, '', SourceCode, Amount, 0));
+        GLEntry.UpdateDebitCredit(IsCorrection);
+#pragma warning disable AA0214
+        GLEntry.Modify(true);
+#pragma warning restore AA0214
     end;
 
     local procedure LoadAnalysisExportFiles(SAFTExportHeader: Record "SAF-T Export Header"; var TempMasterXMLBuffer: Record "XML Buffer" temporary; var TempGLEntryXMLBuffer: Record "XML Buffer" temporary)
@@ -3488,6 +3612,51 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         TempXMLBuffer.Next();
         VerifyChildElementsCount(TempChildXMLBuffer, TempXMLBuffer, 4);
         VerifyCurrencyAmountInfo(TempChildXMLBuffer, CurrencyCode, Amount, AmountLCY, ExchangeRate);
+    end;
+
+    local procedure VerifySelectionAmountTotals(ExportID: Integer; ExpectedFiles: Integer; ExpectedDebit: Decimal; ExpectedCredit: Decimal)
+    var
+        SAFTExportLine: Record "SAF-T Export Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TotalDebit: Decimal;
+        TotalCredit: Decimal;
+    begin
+#pragma warning disable AA0210
+        SAFTExportLine.SetRange("Master Data", false);
+#pragma warning restore AA0210
+        SAFTTestHelper.FindSAFTExportLine(SAFTExportLine, ExportID);
+        Assert.RecordCount(SAFTExportLine, ExpectedFiles);
+        repeat
+            SAFTTestHelper.LoadXMLBufferFromSAFTExportLine(TempXMLBuffer, SAFTExportLine);
+            TotalDebit += SumXMLLineAmounts(TempXMLBuffer, 'DebitAmount');
+            TotalCredit += SumXMLLineAmounts(TempXMLBuffer, 'CreditAmount');
+        until SAFTExportLine.Next() = 0;
+        Assert.AreEqual(ExpectedDebit, TotalDebit, 'Unexpected sum of exported debit amounts.');
+        Assert.AreEqual(ExpectedCredit, TotalCredit, 'Unexpected sum of exported credit amounts.');
+
+        SAFTExportLine.FindSet();
+        repeat
+            SAFTTestHelper.LoadXMLBufferFromSAFTExportLine(TempXMLBuffer, SAFTExportLine);
+            SAFTTestHelper.AssertCurrentValue(
+                TempXMLBuffer, '/n1:AuditFile/n1:GeneralLedgerEntries/n1:TotalDebit', SAFTTestHelper.FormatAmount(TotalDebit));
+            SAFTTestHelper.AssertCurrentValue(
+                TempXMLBuffer, '/n1:AuditFile/n1:GeneralLedgerEntries/n1:TotalCredit', SAFTTestHelper.FormatAmount(TotalCredit));
+        until SAFTExportLine.Next() = 0;
+    end;
+
+    local procedure SumXMLLineAmounts(var TempXMLBuffer: Record "XML Buffer" temporary; AmountNode: Text) TotalAmount: Decimal
+    var
+        Amount: Decimal;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.FindNodesByXPath(
+            TempXMLBuffer, '/n1:AuditFile/n1:GeneralLedgerEntries/n1:Journal/n1:Transaction/n1:Line/n1:' + AmountNode + '/n1:Amount');
+        if TempXMLBuffer.FindSet() then
+            repeat
+                Evaluate(Amount, TempXMLBuffer.Value, 9);
+                TotalAmount += Amount;
+            until TempXMLBuffer.Next() = 0;
+        TempXMLBuffer.Reset();
     end;
 
     local procedure CreateAndPostPaymentJnl(
