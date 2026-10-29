@@ -1172,6 +1172,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
         if not SAFTExportHeader."Export Currency Information" then
             exit;
         if GLEntry."Source Type" in [GLEntry."Source Type"::Customer, GLEntry."Source Type"::" "] then begin
+            CustLedgEntry.SetAutoCalcFields(Amount, "Amount (LCY)");
             CustLedgEntry.SetRange("Transaction No.", GLEntry."Transaction No.");
             CustLedgEntry.SetRange("Customer No.", GLEntry."Source No.");
             if not CustLedgEntry.FindFirst() then
@@ -1190,6 +1191,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
             exit;
         end;
         if GLEntry."Source Type" in [GLEntry."Source Type"::Vendor, GLEntry."Source Type"::" "] then begin
+            VendLedgEntry.SetAutoCalcFields(Amount, "Amount (LCY)");
             VendLedgEntry.SetRange("Transaction No.", GLEntry."Transaction No.");
             VendLedgEntry.SetRange("Vendor No.", GLEntry."Source No.");
             if not VendLedgEntry.FindFirst() then
