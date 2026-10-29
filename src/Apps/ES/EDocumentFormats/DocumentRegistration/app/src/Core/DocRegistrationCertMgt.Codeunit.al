@@ -60,6 +60,9 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
         IsSeal := false;
         if CertCode = '' then
             exit(false);
+        // Users without access to certificates can still open Verifactu Setup; the certificate type is then not detected.
+        if not IsolatedCertificate.ReadPermission() then
+            exit(false);
         if not IsolatedCertificate.Get(CertCode) then
             exit(false);
         exit(TryDetectSealCertificate(IsolatedCertificate, IsSeal));
