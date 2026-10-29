@@ -224,7 +224,7 @@ table 6900 Expense
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount (LCY)';
-            ToolTip = 'Specifies the total amount in the expense currency.';
+            ToolTip = 'Specifies the total amount in the local currency.';
             Editable = false;
             trigger OnValidate()
             begin

@@ -103,7 +103,6 @@ page 6927 "Expenses API"
                 field(amountLCY; Rec."Amount (LCY)")
                 {
                     Caption = 'Amount (LCY)';
-                    Editable = false;
                 }
                 field(currencyLCY; CurrencyLCYDisplay)
                 {

@@ -588,7 +588,7 @@ page 6988 "Expense"
                     Image = Cancel;
                     Enabled = (Rec.Status = Rec.Status::Open) and (Rec."Expense Report No." = '') and (Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt");
                     Visible = Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt";
-                    ToolTip = 'Remove the no receipt declaration, for example when the original receipt has been found.';
+                    ToolTip = 'Remove the No Receipt declaration, for example when the original receipt has been found.';
 
                     trigger OnAction()
                     var
