@@ -24,40 +24,69 @@ codeunit 148003 "Test Verifactu Setup"
         IsInitialized: Boolean;
         DisableSIIQst: Label 'SII setup will be disabled. Do you want to proceed?';
         DisableVerifactuQst: Label 'Verifactu setup will be disabled. Do you want to proceed?';
-        // Seal detection only searches the raw certificate bytes for eIDAS OIDs, so the tests use hex-encoded DER fragments
-        // of certificate extensions, not certificates.
-        QcStatementsESealTok: Label '301F3008060604008E4601013013060604008E4601063009060704008E46010602', Locked = true;
-        CertificatePoliciesQcpLegalQscdTok: Label '300B3009060704008BEC400103', Locked = true;
-        QcStatementsESignAndPoliciesQcpNaturalQscdTok: Label '301F3008060604008E4601013013060604008E4601063009060704008E46010601300B3009060704008BEC400102', Locked = true;
+        // Hex-encoded DER building blocks. The tests assemble minimal certificate structures from them (no keys, names or signatures),
+        // because seal detection only reads the QcStatements and CertificatePolicies extensions.
+        QcStatementsExtensionOidTok: Label '06082B06010505070103', Locked = true;
+        CertificatePoliciesExtensionOidTok: Label '0603551D20', Locked = true;
+        SubjectAltNameExtensionOidTok: Label '0603551D11', Locked = true;
+        ExtendedKeyUsageExtensionOidTok: Label '0603551D25', Locked = true;
         ExtendedKeyUsageClientAuthTok: Label '300A06082B06010505070302', Locked = true;
-        ESealOidNotOnByteBoundaryTok: Label 'A060704008E460106020', Locked = true;
+        QcComplianceStatementTok: Label '3008060604008E460101', Locked = true;
+        QcTypeStatementOidTok: Label '060604008E460106', Locked = true;
+        QcTypeESealOidTok: Label '060704008E46010602', Locked = true;
+        QcTypeESignOidTok: Label '060704008E46010601', Locked = true;
+        PolicyQcpLegalQscdOidTok: Label '060704008BEC400103', Locked = true;
+        PolicyQcpNaturalQscdOidTok: Label '060704008BEC400102', Locked = true;
+        SerialNumberTok: Label '020101', Locked = true;
+        CriticalTok: Label '0101FF', Locked = true;
+        SequenceTagTok: Label '30', Locked = true;
+        OctetStringTagTok: Label '04', Locked = true;
+        ExtensionsTagTok: Label 'A3', Locked = true;
         HexDigitsTok: Label '0123456789ABCDEF', Locked = true;
 
     [Test]
     procedure SealCertificateDetectedByESealQcType()
     var
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
+        CertificateHex: Text;
     begin
-        // [SCENARIO 656929] A certificate with the eIDAS QcType eSeal (0.4.0.1862.1.6.2) is detected as an electronic seal certificate
-        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(QcStatementsESealTok)), 'QcType eSeal certificate should be detected as seal certificate');
+        // [SCENARIO 656929] A certificate with the eIDAS QcType eSeal (0.4.0.1862.1.6.2) in its QcStatements extension is detected as an electronic seal certificate
+        // [GIVEN] A certificate with a large unrelated extension (long-form DER lengths) followed by a QcStatements extension with QcType eSeal
+        CertificateHex := CertificateWithExtensions(
+            CertificateExtension(SubjectAltNameExtensionOidTok, PadStr('', 400, '0')) +
+            CertificateExtension(QcStatementsExtensionOidTok, QcStatementsWithQcType(QcTypeESealOidTok)));
+
+        // [THEN] It is detected as a seal certificate
+        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(CertificateHex)), 'QcType eSeal certificate should be detected as seal certificate');
     end;
 
     [Test]
     procedure SealCertificateDetectedByQcpLegalPolicy()
     var
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
+        CertificateHex: Text;
     begin
         // [SCENARIO 656929] A certificate with the legal person policy QCP-l-qscd (0.4.0.194112.1.3) is detected as an electronic seal certificate
-        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(CertificatePoliciesQcpLegalQscdTok)), 'QCP-l-qscd certificate should be detected as seal certificate');
+        // [GIVEN] A certificate with a critical CertificatePolicies extension containing QCP-l-qscd
+        CertificateHex := CertificateWithExtensions(
+            DerElement(SequenceTagTok, CertificatePoliciesExtensionOidTok + CriticalTok + DerElement(OctetStringTagTok, CertificatePoliciesWith(PolicyQcpLegalQscdOidTok))));
+
+        // [THEN] It is detected as a seal certificate
+        Assert.IsTrue(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(CertificateHex)), 'QCP-l-qscd certificate should be detected as seal certificate');
     end;
 
     [Test]
     procedure RepresentativeCertificateNotDetectedAsSeal()
     var
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
+        CertificateHex: Text;
     begin
         // [SCENARIO 656929] A representative certificate with QcType eSign (0.4.0.1862.1.6.1) and policy QCP-n-qscd (0.4.0.194112.1.2) is not a seal certificate
-        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(QcStatementsESignAndPoliciesQcpNaturalQscdTok)), 'QcType eSign certificate should not be detected as seal certificate');
+        CertificateHex := CertificateWithExtensions(
+            CertificateExtension(QcStatementsExtensionOidTok, QcStatementsWithQcType(QcTypeESignOidTok)) +
+            CertificateExtension(CertificatePoliciesExtensionOidTok, CertificatePoliciesWith(PolicyQcpNaturalQscdOidTok)));
+
+        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(CertificateHex)), 'QcType eSign certificate should not be detected as seal certificate');
     end;
 
     [Test]
@@ -66,20 +95,42 @@ codeunit 148003 "Test Verifactu Setup"
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
     begin
         // [SCENARIO 656929] A certificate that does not identify itself as an electronic seal keeps using the standard endpoint
-        // [GIVEN] Certificate data without eIDAS QcType or certificate policy
+        // [GIVEN] A certificate without QcStatements or CertificatePolicies extensions
         // [THEN] It is not detected as a seal certificate
-        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(ExtendedKeyUsageClientAuthTok)), 'Certificate without eIDAS information should not be detected as seal certificate');
+        Assert.IsFalse(
+            DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(CertificateWithExtensions(CertificateExtension(ExtendedKeyUsageExtensionOidTok, ExtendedKeyUsageClientAuthTok)))),
+            'Certificate without eIDAS information should not be detected as seal certificate');
     end;
 
     [Test]
-    procedure SealOidNotOnByteBoundaryNotDetectedAsSeal()
+    procedure SealOidsOutsideQcExtensionsNotDetectedAsSeal()
     var
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
+        CertificateHex: Text;
     begin
-        // [SCENARIO 656929] Detection only matches complete OID bytes
-        // [GIVEN] Certificate data whose hex representation contains the eSeal OID shifted by half a byte
+        // [SCENARIO 656929] The eSeal and QCP-l-qscd OIDs only count inside the QcStatements and CertificatePolicies extensions
+        // [GIVEN] A certificate whose only extension is a subject alternative name that contains the eSeal and QCP-l-qscd OID bytes
+        CertificateHex := CertificateWithExtensions(
+            CertificateExtension(SubjectAltNameExtensionOidTok, DerElement(SequenceTagTok, QcTypeESealOidTok + PolicyQcpLegalQscdOidTok)));
+
         // [THEN] It is not detected as a seal certificate
-        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(ESealOidNotOnByteBoundaryTok)), 'OID bytes that are not on a byte boundary should not be matched');
+        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(CertificateHex)), 'Seal OIDs outside the QcStatements and CertificatePolicies extensions should be ignored');
+    end;
+
+    [Test]
+    procedure MalformedCertificateDataNotDetectedAsSeal()
+    var
+        DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
+        CertificateHex: Text;
+    begin
+        // [SCENARIO 656929] Certificate data that cannot be parsed keeps using the standard endpoint
+        // [GIVEN] A seal certificate structure that is truncated by two bytes
+        CertificateHex := CertificateWithExtensions(CertificateExtension(QcStatementsExtensionOidTok, QcStatementsWithQcType(QcTypeESealOidTok)));
+        CertificateHex := CopyStr(CertificateHex, 1, StrLen(CertificateHex) - 4);
+
+        // [THEN] Neither the truncated data nor empty data is detected as a seal certificate
+        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(HexToBase64(CertificateHex)), 'Truncated certificate data should not be detected as seal certificate');
+        Assert.IsFalse(DocRegistrationCertMgt.IsSealCertificateData(''), 'Empty certificate data should not be detected as seal certificate');
     end;
 
     [Test]
@@ -556,6 +607,44 @@ codeunit 148003 "Test Verifactu Setup"
         IsolatedCertificate.Scope := IsolatedCertificate.Scope::Company;
         IsolatedCertificate.Insert(true);
         exit(IsolatedCertificate.Code);
+    end;
+
+    local procedure CertificateWithExtensions(ExtensionsHex: Text): Text
+    begin
+        // Certificate ::= SEQUENCE { TBSCertificate ::= SEQUENCE { serialNumber, extensions [3] } }; other fields are not needed for seal detection.
+        exit(DerElement(SequenceTagTok, DerElement(SequenceTagTok, SerialNumberTok + DerElement(ExtensionsTagTok, DerElement(SequenceTagTok, ExtensionsHex)))));
+    end;
+
+    local procedure CertificateExtension(ExtensionOidHex: Text; ExtensionValueHex: Text): Text
+    begin
+        exit(DerElement(SequenceTagTok, ExtensionOidHex + DerElement(OctetStringTagTok, ExtensionValueHex)));
+    end;
+
+    local procedure QcStatementsWithQcType(QcTypeOidHex: Text): Text
+    begin
+        exit(DerElement(SequenceTagTok, QcComplianceStatementTok + DerElement(SequenceTagTok, QcTypeStatementOidTok + DerElement(SequenceTagTok, QcTypeOidHex))));
+    end;
+
+    local procedure CertificatePoliciesWith(PolicyOidHex: Text): Text
+    begin
+        exit(DerElement(SequenceTagTok, DerElement(SequenceTagTok, PolicyOidHex)));
+    end;
+
+    local procedure DerElement(TagHex: Text; ContentHex: Text): Text
+    var
+        ContentLength: Integer;
+    begin
+        ContentLength := StrLen(ContentHex) div 2;
+        if ContentLength < 128 then
+            exit(TagHex + ByteToHex(ContentLength) + ContentHex);
+        if ContentLength < 256 then
+            exit(TagHex + '81' + ByteToHex(ContentLength) + ContentHex);
+        exit(TagHex + '82' + ByteToHex(ContentLength div 256) + ByteToHex(ContentLength mod 256) + ContentHex);
+    end;
+
+    local procedure ByteToHex(Value: Integer): Text
+    begin
+        exit(CopyStr(HexDigitsTok, Value div 16 + 1, 1) + CopyStr(HexDigitsTok, Value mod 16 + 1, 1));
     end;
 
     local procedure HexToBase64(HexText: Text): Text
