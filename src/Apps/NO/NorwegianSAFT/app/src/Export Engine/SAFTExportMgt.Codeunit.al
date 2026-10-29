@@ -245,19 +245,17 @@ codeunit 10675 "SAF-T Export Mgt."
         Stream: InStream;
         ErrorMessage: Text;
     begin
-        with ActivityLog do begin
-            SetRange("Record ID", SAFTExportLine.RecordId());
-            if not FindLast() or (Status <> Status::Failed) then
-                exit;
-            CalcFields("Detailed Info");
-            if not "Detailed Info".HasValue() then
-                Session.LogMessage('0000M0J', NoErrorMessageErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SAFTExportTelemetryCategoryTxt);
-            "Detailed Info".CreateInStream(Stream);
-            Stream.ReadText(ErrorMessage);
-            if ErrorMessage = '' then
-                Session.LogMessage('0000M0K', NoErrorMessageErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SAFTExportTelemetryCategoryTxt);
-            Message(ErrorMessage);
-        end;
+        ActivityLog.SetRange("Record ID", SAFTExportLine.RecordId());
+        if not ActivityLog.FindLast() or (ActivityLog.Status <> ActivityLog.Status::Failed) then
+            exit;
+        ActivityLog.CalcFields("Detailed Info");
+        if not ActivityLog."Detailed Info".HasValue() then
+            Session.LogMessage('0000M0J', NoErrorMessageErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SAFTExportTelemetryCategoryTxt);
+        ActivityLog."Detailed Info".CreateInStream(Stream);
+        Stream.ReadText(ErrorMessage);
+        if ErrorMessage = '' then
+            Session.LogMessage('0000M0K', NoErrorMessageErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SAFTExportTelemetryCategoryTxt);
+        Message(ErrorMessage);
     end;
 
     procedure LogSuccess(SAFTExportLine: Record "SAF-T Export Line")
@@ -426,7 +424,7 @@ codeunit 10675 "SAF-T Export Mgt."
         LineNo += 1;
         SAFTExportLine.Validate("Line No.", LineNo);
         SAFTExportLine.Validate("Master Data", MasterData);
-        SAFTExportLine.Validate(Description, CopyStr(Description, 1, MaxStrLen(Description)));
+        SAFTExportLine.Validate(Description, CopyStr(Description, 1, MaxStrLen(SAFTExportLine.Description)));
         SAFTExportLine.Validate("Starting Date", StartingDate);
         SAFTExportLine.Validate("Ending Date", EndingDate);
         SAFTExportLine.Insert(true);
@@ -487,17 +485,15 @@ codeunit 10675 "SAF-T Export Mgt."
 
     procedure GenerateZipFile(SAFTExportHeader: Record "SAF-T Export Header")
     begin
-        with SAFTExportHeader do begin
-            if Status <> Status::Completed then
-                exit;
+        if SAFTExportHeader.Status <> SAFTExportHeader.Status::Completed then
+            exit;
 
-            ClearExportFiles(SAFTExportHeader);
-            if AllowedToExportIntoFolder() then begin
-                if not "Disable Zip File Generation" then
-                    GenerateZipFileFromSavedFiles(SAFTExportHeader);
-            end else
-                BuildZipFilesWithAllRelatedXmlFiles(SAFTExportHeader);
-        end;
+        ClearExportFiles(SAFTExportHeader);
+        if SAFTExportHeader.AllowedToExportIntoFolder() then begin
+            if not SAFTExportHeader."Disable Zip File Generation" then
+                GenerateZipFileFromSavedFiles(SAFTExportHeader);
+        end else
+            BuildZipFilesWithAllRelatedXmlFiles(SAFTExportHeader);
     end;
 
     procedure BuildZipFilesWithAllRelatedXmlFiles(SAFTExportHeader: Record "SAF-T Export Header")
