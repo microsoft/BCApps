@@ -140,11 +140,13 @@ codeunit 137510 "SMB Service Item"
     var
         Item: Record Item;
         ItemTrackingCode: Record "Item Tracking Code";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
     begin
         Initialize();
         CreateInvtItem(Item);
 
-        ItemTrackingCode.FindFirst();
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        ItemTrackingCode.TestField("Use Expiration Dates", false);
         Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
 
         // EXERCISE

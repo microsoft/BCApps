@@ -1028,11 +1028,12 @@ codeunit 137933 "Item Tracking Code Changes"
         LibraryInventory.CreateItem(Item);
         OriginalWorkDate := WorkDate();
         WorkDate(Today() - 7);
-        BeforeChange := CurrentDateTime();
+        // Round the bounds outward to allow for persisted DateTime precision.
+        BeforeChange := RoundDateTime(CurrentDateTime(), 1000, '<');
 
         CreateChangeLog(Item."No.", 0DT, '', 'NEW');
 
-        AfterChange := CurrentDateTime();
+        AfterChange := RoundDateTime(CurrentDateTime(), 1000, '>');
         WorkDate(OriginalWorkDate);
         ItemTrackingCodeChangeLog.SetRange("Item No.", Item."No.");
         ItemTrackingCodeChangeLog.FindFirst();
