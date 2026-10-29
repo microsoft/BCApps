@@ -5492,6 +5492,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         AccNo2: Code[20];
         AccNo3: Code[20];
         IsHandled: Boolean;
+        AmountAddCurr: Decimal;
     begin
         IsHandled := false;
         OnBeforePostDtldCVLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, Unapply, AdjAmount, IsHandled, AddCurrencyCode, MultiplePostingGroups);
@@ -5502,12 +5503,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
             DetailedCVLedgEntryBuffer."Entry Type"::"Initial Entry":
                 ;
             DetailedCVLedgEntryBuffer."Entry Type"::Application:
-                if MultiplePostingGroups then
+                if MultiplePostingGroups then begin
+                    if (AddCurrencyCode <> '') and (DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode) then
+                        AmountAddCurr := DetailedCVLedgEntryBuffer.Amount
+                    else
+                        AmountAddCurr := DetailedCVLedgEntryBuffer."Additional-Currency Amount";
                     CreateGLEntry(
                         GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)",
-                        DetailedCVLedgEntryBuffer."Additional-Currency Amount",
+                        AmountAddCurr,
                         DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
                         CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
+                end;
             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Loss",
             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Gain",
             DetailedCVLedgEntryBuffer."Entry Type"::"Realized Loss",
