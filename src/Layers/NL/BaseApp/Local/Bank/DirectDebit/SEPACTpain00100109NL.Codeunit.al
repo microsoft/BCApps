@@ -30,7 +30,7 @@ codeunit 11434 "SEPA CT pain.001.001.09 NL"
         if XmlRootElement.NamespaceUri() <> Pain00100109NamespaceTok then
             exit;
 
-        XmlRootElement.SetAttribute('xmlns:xsi', XmlSchemaInstanceNamespaceTok);
+        XmlRootElement.Add(XmlAttribute.CreateNamespaceDeclaration('xsi', XmlSchemaInstanceNamespaceTok));
         XmlNamespaceManager.AddNamespace('pain', Pain00100109NamespaceTok);
         if PaymentXmlDocument.SelectNodes(CreditorNameXPathTok, XmlNamespaceManager, CreditorNameNodes) then
             foreach CreditorNameNode in CreditorNameNodes do begin
