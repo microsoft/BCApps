@@ -6416,9 +6416,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 if MultiplePostingGroups then
                     CreateGLEntry(
                         GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)",
-                        GLCalcAddCurrency(
-                            DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Additional-Currency Amount", 0,
-                            DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode, GenJournalLine),
+                        DetailedCVLedgEntryBuffer."Additional-Currency Amount",
                         DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
                         CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Loss",
