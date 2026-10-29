@@ -67,6 +67,27 @@ codeunit 144200 "FatturaPA Test"
         DescriptionTxt: Label 'Description Text';
 
     [Test]
+    procedure PreviewRejectsBlankProgressiveNo()
+    var
+        SalesHeader: Record "Sales Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+    begin
+        // [SCENARIO] Missing preview number is rejected before posting preview or buffer changes.
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Invoice);
+
+        asserterror FatturaPAPreviewMgt.PreparePreview(
+            SalesHeader, '', TempFatturaHeader, TempFatturaLine);
+        Assert.ExpectedError('A preview progressive number must be supplied.');
+        Assert.IsTrue(TempFatturaHeader.IsEmpty(), 'Blank progressive must not prepare a header.');
+        Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Blank progressive must not prepare lines.');
+    end;
+
+    [Test]
     procedure PreviewXMLDoesNotAdvanceFatturaPANumberSeries()
     var
         SalesHeader: Record "Sales Header";
