@@ -165,7 +165,8 @@ table 18 Customer
         {
             Caption = 'City';
             OptimizeForTextSearch = true;
-            TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
             ValidateTableRelation = false;
@@ -216,7 +217,6 @@ table 18 Customer
                 OnBeforeValidateContact(IsHandled, Rec);
                 if IsHandled then
                     exit;
-
                 if RMSetup.Get() then
                     if RMSetup."Bus. Rel. Code for Customers" <> '' then
                         if (xRec.Contact = '') and (xRec."Primary Contact No." = '') and (Contact <> '') then begin
@@ -245,7 +245,6 @@ table 18 Customer
                 for i := 1 to StrLen("Phone No.") do
                     if Char.IsLetter("Phone No."[i]) then
                         FieldError("Phone No.", PhoneNoCannotContainLettersErr);
-
                 if (Rec."Phone No." <> xRec."Phone No.") then
                     SetForceUpdateContact(true);
 
@@ -531,7 +530,6 @@ table 18 Customer
             trigger OnValidate()
             begin
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
-
                 if "Country/Region Code" <> xRec."Country/Region Code" then
                     VATRegistrationValidation();
                 AltCustVATRegFacade.CheckCustomerConsistency(Rec);
@@ -644,7 +642,6 @@ table 18 Customer
             trigger OnValidate()
             begin
                 UpdatePaymentMethodId();
-
                 if "Payment Method Code" = '' then
                     exit;
 
@@ -1178,7 +1175,8 @@ table 18 Customer
         field(91; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
-            TableRelation = if ("Country/Region Code" = const('')) "Post Code"
+            TableRelation =
+            if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
             ValidateTableRelation = false;
@@ -1540,6 +1538,45 @@ table 18 Customer
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
             MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
+
+            trigger OnValidate()
+            var
+                CustLedgEntry: Record "Cust. Ledger Entry";
+                AccountingPeriod: Record "Accounting Period";
+                ICPartner: Record "IC Partner";
+                ConfirmManagement: Codeunit "Confirm Management";
+            begin
+                if xRec."IC Partner Code" <> "IC Partner Code" then begin
+                    if not CustLedgEntry.SetCurrentKey("Customer No.", Open) then
+                        CustLedgEntry.SetCurrentKey("Customer No.");
+                    CustLedgEntry.SetRange("Customer No.", "No.");
+                    CustLedgEntry.SetRange(Open, true);
+                    if CustLedgEntry.FindLast() then
+                        Error(Text012, FieldCaption("IC Partner Code"), TableCaption);
+
+                    CustLedgEntry.Reset();
+                    CustLedgEntry.SetCurrentKey("Customer No.", "Posting Date");
+                    CustLedgEntry.SetRange("Customer No.", "No.");
+                    AccountingPeriod.SetRange(Closed, false);
+                    if AccountingPeriod.FindFirst() then begin
+                        CustLedgEntry.SetFilter("Posting Date", '>=%1', AccountingPeriod."Starting Date");
+                        if CustLedgEntry.FindFirst() then
+                            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(Text011, TableCaption), true) then
+                                "IC Partner Code" := xRec."IC Partner Code";
+                    end;
+                end;
+                if "IC Partner Code" <> '' then begin
+                    ICPartner.Get("IC Partner Code");
+                    if (ICPartner."Customer No." <> '') and (ICPartner."Customer No." <> "No.") then
+                        Error(Text010, FieldCaption("IC Partner Code"), "IC Partner Code", TableCaption(), ICPartner."Customer No.");
+                    ICPartner."Customer No." := "No.";
+                    ICPartner.Modify();
+                end;
+                if (xRec."IC Partner Code" <> "IC Partner Code") and ICPartner.Get(xRec."IC Partner Code") then begin
+                    ICPartner."Customer No." := '';
+                    ICPartner.Modify();
+                end;
+            end;
         }
 #endif
         /// <summary>
@@ -1807,18 +1844,14 @@ table 18 Customer
                 Contact := '';
                 if "Primary Contact No." <> '' then begin
                     Cont.Get("Primary Contact No.");
-
                     if Rec."Contact Type" = Rec."Contact Type"::Company then
                         CheckCustomerContactRelation(Cont);
-
                     if Cont.Type = Cont.Type::Person then begin
                         Contact := Cont.Name;
                         exit;
                     end;
-
                     if Cont.Image.HasValue() then
                         CopyContactPicture(Cont);
-
                     if Cont."Phone No." <> '' then begin
                         "Phone No." := Cont."Phone No.";
                         UpdateMyCustomer(FieldNo("Phone No."));
@@ -1827,7 +1860,6 @@ table 18 Customer
                         "E-Mail" := Cont."E-Mail";
                     if Cont."Mobile Phone No." <> '' then
                         "Mobile Phone No." := Cont."Mobile Phone No.";
-
                 end else
                     if Image.HasValue() then
                         Clear(Image);
@@ -2396,7 +2428,6 @@ table 18 Customer
         OnBeforeInsert(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if "No." = '' then begin
             SalesSetup.Get();
             SalesSetup.TestField("Customer Nos.");
@@ -2409,13 +2440,10 @@ table 18 Customer
             while Customer.Get("No.") do
                 "No." := NoSeries.GetNextNo("No. Series");
         end;
-
         if "Invoice Disc. Code" = '' then
             "Invoice Disc. Code" := "No.";
-
         if (not (InsertFromContact or (InsertFromTemplate and (Contact <> '')) or IsTemporary)) or ForceUpdateContact then
             UpdateContFromCust.OnInsert(Rec);
-
         if "Salesperson Code" = '' then
             SetDefaultSalesperson();
 
@@ -2684,7 +2712,6 @@ table 18 Customer
                 ContactForLookup.SetRange("Company No.", ContactBusinessRelation."Contact No.")
         end else
             ContactForLookup.SetRange("Company No.", '');
-
         if "Primary Contact No." <> '' then
             if ContactForLookup.Get("Primary Contact No.") then;
         if Page.RunModal(0, ContactForLookup) = Action::LookupOK then begin
@@ -2717,10 +2744,8 @@ table 18 Customer
     begin
         if IsOnBeforeCheckBlockedCustHandled(Cust2, Source::Document, DocType, Shipment, Transaction) then
             exit;
-
         if Cust2."Privacy Blocked" then
             Cust2.CustPrivacyBlockedErrorMessage(Cust2, Transaction);
-
         if ((Cust2.Blocked = Cust2.Blocked::All) or
             ((Cust2.Blocked = Cust2.Blocked::Invoice) and
              (DocType in [DocType::Quote, DocType::Order, DocType::Invoice, DocType::"Blanket Order"])) or
@@ -2744,10 +2769,8 @@ table 18 Customer
     begin
         if IsOnBeforeCheckBlockedCustHandled(Cust2, Source::Journal, DocType, false, Transaction) then
             exit;
-
         if Cust2."Privacy Blocked" then
             Cust2.CustPrivacyBlockedErrorMessage(Cust2, Transaction);
-
         if (Cust2.Blocked = Cust2.Blocked::All) or
            ((Cust2.Blocked = Cust2.Blocked::Invoice) and (DocType in [DocType::Invoice, DocType::" "]))
         then
@@ -2786,7 +2809,6 @@ table 18 Customer
         OnBeforeCustBlockedErrorMessage(Cust2, Transaction, IsHandled);
         if IsHandled then
             exit;
-
         if Transaction then
             Action := Text004
         else
@@ -3043,7 +3065,6 @@ table 18 Customer
         OnBeforeCalcAvailableCreditCommon(Rec, CalledFromUI, CreditLimitLCY, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if CreditLimitLCY = 0 then
             exit(0);
         if CalledFromUI then
@@ -3070,7 +3091,6 @@ table 18 Customer
         CustLedgEntryRemainAmtQuery.SetFilter(Due_Date, '<%1', Today);
         CustLedgEntryRemainAmtQuery.SetFilter(Date_Filter, '..%1', Today);
         CustLedgEntryRemainAmtQuery.Open();
-
         if CustLedgEntryRemainAmtQuery.Read() then
             OverDueBalance := CustLedgEntryRemainAmtQuery.Sum_Remaining_Amt_LCY;
     end;
@@ -3164,10 +3184,8 @@ table 18 Customer
     begin
         if "Credit Limit (LCY)" = 0 then
             exit(0);
-
         if "Balance (LCY)" / "Credit Limit (LCY)" < 0 then
             exit(0);
-
         if "Balance (LCY)" / "Credit Limit (LCY)" > 1 then
             exit(10000);
 
@@ -3361,10 +3379,8 @@ table 18 Customer
         OnBeforeGetCustNoOpenCard(CustomerText, ShowCustomerCard, ShowCreateCustomerOption, CustomerNo, IsHandled);
         if IsHandled then
             exit(CustomerNo);
-
         if CustomerText = '' then
             exit('');
-
         if StrLen(CustomerText) <= MaxStrLen(Customer."No.") then
             if Customer.Get(CopyStr(CustomerText, 1, MaxStrLen(Customer."No."))) then
                 exit(Customer."No.");
@@ -3394,7 +3410,6 @@ table 18 Customer
 
         Customer.SetFilter(Name, CustomerFilterFromStart);
         OnGetCustNoOpenCardOnAfterOnAfterCustomerFilterFromStart(Customer);
-
         if Customer.FindFirst() then
             if Customer.Count() = 1 then
                 exit(Customer."No.");
@@ -3408,20 +3423,16 @@ table 18 Customer
         Customer.SetFilter("Phone No.", CustomerFilterContains);
         Customer.SetFilter("Post Code", CustomerFilterContains);
         OnGetCustNoOpenCardOnAfterSetCustomerFilters(Customer, CustomerFilterContains);
-
         if Customer.Count() = 0 then
             MarkCustomersWithSimilarName(Customer, CustomerText);
-
         if Customer.Count() = 1 then begin
             Customer.FindFirst();
             exit(Customer."No.");
         end;
-
         if not GuiAllowed() then
             Error(SelectCustErr);
 
         OnGetCustNoOpenCardOnAfterMarkCustomersWithSimilarName(Customer);
-
         if Customer.Count = 0 then begin
             if Customer.WritePermission then
                 if ShowCreateCustomerOption then
@@ -3438,14 +3449,12 @@ table 18 Customer
             Customer.Reset();
             NoFiltersApplied := true;
         end;
-
         if ShowCustomerCard then
             CustomerNo := PickCustomer(Customer, NoFiltersApplied)
         else begin
             LookupRequested := true;
             exit('');
         end;
-
         if CustomerNo <> '' then
             exit(CustomerNo);
 
@@ -3595,7 +3604,6 @@ table 18 Customer
         OnBeforeTestNoSeries(Rec, xRec, IsHandled);
         if IsHandled then
             exit;
-
         if "No." <> xRec."No." then
             if not Customer.Get(Rec."No.") then begin
                 SalesSetup.Get();
@@ -3655,41 +3663,50 @@ table 18 Customer
     /// <returns>True if contact update is needed; otherwise, false.</returns>
     procedure IsContactUpdateNeeded(): Boolean
     var
+        CustomerBeforeModify: Record Customer;
         CustContUpdate: Codeunit "CustCont-Update";
         UpdateNeeded: Boolean;
     begin
-        UpdateNeeded :=
-          (Name <> xRec.Name) or
-          ("Search Name" <> xRec."Search Name") or
-          ("Name 2" <> xRec."Name 2") or
-          (Address <> xRec.Address) or
-          ("Address 2" <> xRec."Address 2") or
-          (City <> xRec.City) or
-          ("Phone No." <> xRec."Phone No.") or
-          ("Mobile Phone No." <> xRec."Mobile Phone No.") or
-          ("Telex No." <> xRec."Telex No.") or
-          ("Territory Code" <> xRec."Territory Code") or
-          ("Currency Code" <> xRec."Currency Code") or
-          ("Language Code" <> xRec."Language Code") or
-          ("Salesperson Code" <> xRec."Salesperson Code") or
-          ("Country/Region Code" <> xRec."Country/Region Code") or
-          ("Fax No." <> xRec."Fax No.") or
-          ("Telex Answer Back" <> xRec."Telex Answer Back") or
-          ("Registration Number" <> xRec."Registration Number") or
-          ("VAT Registration No." <> xRec."VAT Registration No.") or
-          ("Post Code" <> xRec."Post Code") or
-          (County <> xRec.County) or
-          ("E-Mail" <> xRec."E-Mail") or
-          ("Home Page" <> xRec."Home Page") or
-          (Contact <> xRec.Contact);
+        CustomerBeforeModify.Copy(xRec);
 
+        // OnModify runs before the database write, so Get retrieves
+        // the persisted customer values from before the modification.
+        if not IsTemporary then begin
+            CustomerBeforeModify.Get("No.");
+            if CustomerBeforeModify.SystemRowVersion <> xRec.SystemRowVersion then
+                CustomerBeforeModify := xRec;
+        end;
+
+        UpdateNeeded :=
+          (Name <> CustomerBeforeModify.Name) or
+          ("Search Name" <> CustomerBeforeModify."Search Name") or
+          ("Name 2" <> CustomerBeforeModify."Name 2") or
+          (Address <> CustomerBeforeModify.Address) or
+          ("Address 2" <> CustomerBeforeModify."Address 2") or
+          (City <> CustomerBeforeModify.City) or
+          ("Phone No." <> CustomerBeforeModify."Phone No.") or
+          ("Mobile Phone No." <> CustomerBeforeModify."Mobile Phone No.") or
+          ("Telex No." <> CustomerBeforeModify."Telex No.") or
+          ("Territory Code" <> CustomerBeforeModify."Territory Code") or
+          ("Currency Code" <> CustomerBeforeModify."Currency Code") or
+          ("Language Code" <> CustomerBeforeModify."Language Code") or
+          ("Salesperson Code" <> CustomerBeforeModify."Salesperson Code") or
+          ("Country/Region Code" <> CustomerBeforeModify."Country/Region Code") or
+          ("Fax No." <> CustomerBeforeModify."Fax No.") or
+          ("Telex Answer Back" <> CustomerBeforeModify."Telex Answer Back") or
+          ("Registration Number" <> CustomerBeforeModify."Registration Number") or
+          ("VAT Registration No." <> CustomerBeforeModify."VAT Registration No.") or
+          ("Post Code" <> CustomerBeforeModify."Post Code") or
+          (County <> CustomerBeforeModify.County) or
+          ("E-Mail" <> CustomerBeforeModify."E-Mail") or
+          ("Home Page" <> CustomerBeforeModify."Home Page") or
+          (Contact <> CustomerBeforeModify.Contact);
         if not UpdateNeeded and not IsTemporary then
             UpdateNeeded := CustContUpdate.ContactNameIsBlank("No.");
-
         if ForceUpdateContact then
             UpdateNeeded := true;
 
-        OnBeforeIsContactUpdateNeeded(Rec, xRec, UpdateNeeded, ForceUpdateContact);
+        OnBeforeIsContactUpdateNeeded(Rec, CustomerBeforeModify, UpdateNeeded, ForceUpdateContact);
         exit(UpdateNeeded);
     end;
 
@@ -3701,7 +3718,6 @@ table 18 Customer
     begin
         if Blocked <> Blocked::" " then
             exit(true);
-
         if "Privacy Blocked" then
             exit(true);
 
@@ -3818,10 +3834,8 @@ table 18 Customer
         OnBeforeSetDefaultSalesperson(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if not UserSetup.Get(UserId) then
             exit;
-
         if UserSetup."Salespers./Purch. Code" <> '' then
             Validate("Salesperson Code", UserSetup."Salespers./Purch. Code");
     end;
@@ -3851,7 +3865,6 @@ table 18 Customer
         OnBeforeVATRegistrationValidation(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if not VATRegistrationNoFormat.Test("VAT Registration No.", "Country/Region Code", "No.", DATABASE::Customer) then
             exit;
 
@@ -3867,7 +3880,6 @@ table 18 Customer
                 ResultRecordRef.SetTable(Rec);
             end;
         end;
-
         if LogNotVerified then
             VATRegistrationLogMgt.LogCustomer(Rec);
     end;
@@ -3881,7 +3893,6 @@ table 18 Customer
         OnBeforeValidateEmail(Rec, IsHandled, xRec);
         if IsHandled then
             exit;
-
         if "E-Mail" = '' then
             exit;
         MailManagement.CheckValidEmailAddresses("E-Mail");
@@ -3947,7 +3958,6 @@ table 18 Customer
     begin
         if IsTemporary then
             exit;
-
         if not GraphMgtGeneralTools.IsApiEnabled() then
             exit;
 
@@ -4116,7 +4126,6 @@ table 18 Customer
         PaymentMethod.Get("Payment Method Code");
         if PaymentMethod."Direct Debit" and ("Payment Terms Code" = '') then
             Validate("Payment Terms Code", PaymentMethod."Direct Debit Pmt. Terms Code");
-
     end;
 
     /// <summary>
@@ -4161,7 +4170,6 @@ table 18 Customer
     begin
         if IsNullGuid("Tax Area ID") then
             exit;
-
         if GeneralLedgerSetup.UseVat() then begin
             VATBusinessPostingGroup.SetLoadFields(Code);
             VATBusinessPostingGroup.GetBySystemId("Tax Area ID");
@@ -4359,7 +4367,6 @@ table 18 Customer
             exit;
 
         VATRegistrationNo := DelChr(VATRegistrationNo);
-
         if CountryRegion.Get(CountryCode) and (CountryRegion."ISO Code" <> '') then
             if StrPos(VATRegistrationNo, CountryRegion."ISO Code") <> 1 then
                 VATRegistrationNo := CountryRegion."ISO Code" + VATRegistrationNo;
