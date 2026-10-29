@@ -161,3 +161,4 @@ codeunit 1233 "SEPA DD-Check Line"
     begin
     end;
 }
+
