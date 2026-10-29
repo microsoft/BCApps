@@ -74,9 +74,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
         NoSeriesBatch: Codeunit "No. Series - Batch";
         PostingSetupMgt: Codeunit PostingSetupManagement;
-#if not CLEAN30
-        ICGenJnlPostBatch: Codeunit "IC Gen. Jnl.-Post Batch";
-#endif
         Window: Dialog;
         GLRegNo: Integer;
         StartLineNo: Integer;
@@ -286,9 +283,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             if not PostGenJournalLine(GenJnlLine3, GenJnlLine, LineNo, TransNo) then
                 SkippedLine := true;
 
-#if not CLEAN30
-            OnProcessLinesOnAfterPostGenJournalLine(GenJnlLine3, ICGenJnlPostBatch.GetICPartnerCode(), ICGenJnlPostBatch.GetICTransactionNo(), LastTaxLineNo);
-#endif
             OnProcessLinesOnAfterPostGenJournalLine2(GenJnlLine3, LastTaxLineNo);
             ErrorMessageMgt.PopContext(ErrorContextElement);
         until GenJnlLine.Next() = 0;
@@ -1741,7 +1735,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             UnlinkIncDocFromGenJnlLine(GenJournalLine);
         end;
         OnAfterPostGenJnlLine(GenJnlLine5, SuppressCommit, GenJnlPostLine, IsPosted, GenJournalLine);
-
         OnAfterPostGenJnlLineIC(GenJnlTemplate, GenJournalLine, GenJnlLine5);
         if TransNo = 0 then
             TransNo := GenJnlPostLine.GetNextTransactionNo();
@@ -2512,18 +2505,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     begin
     end;
 
-#if not CLEAN30
-    internal procedure RunOnProcessICLinesOnBeforeHandledICInboxTransModify(var HandledICInboxTrans: Record Microsoft.Intercompany.Inbox."Handled IC Inbox Trans."; GenJournalLine: Record "Gen. Journal Line");
-    begin
-        OnProcessICLinesOnBeforeHandledICInboxTransModify(HandledICInboxTrans, GenJournalLine);
-    end;
-
-    [Obsolete('Moved to codeunit ICGenJnlPostBatch', '30.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnProcessICLinesOnBeforeHandledICInboxTransModify(var HandledICInboxTrans: Record Microsoft.Intercompany.Inbox."Handled IC Inbox Trans."; GenJournalLine: Record "Gen. Journal Line");
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCheckAllocationsOnAfterCalcShowAllocationsRecurringError(var GenJnlAllocation: Record "Gen. Jnl. Allocation"; var GenJournalLine: Record "Gen. Journal Line"; var ShowAllocationsRecurringError: Boolean)

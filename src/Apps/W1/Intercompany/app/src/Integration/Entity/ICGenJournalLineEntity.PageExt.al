@@ -14,16 +14,19 @@ pageextension 8556 "IC Gen. Journal Line Entity" extends "Gen. Journal Line Enti
             {
                 ApplicationArea = All;
                 Caption = 'IC Partner Code', Locked = true;
+                ToolTip = 'Specifies the code of the intercompany partner.';
             }
             field(icDirection; Rec."IC Direction")
             {
                 ApplicationArea = All;
                 Caption = 'IC Direction', Locked = true;
+                ToolTip = 'Specifies the direction of the intercompany transaction.';
             }
             field(icPartnerTransactionNumber; Rec."IC Partner Transaction No.")
             {
                 ApplicationArea = All;
                 Caption = 'IC Partner Transaction No.', Locked = true;
+                ToolTip = 'Specifies the transaction number assigned by the intercompany partner.';
             }
             field(icAccountType; Rec."IC Account Type")
             {

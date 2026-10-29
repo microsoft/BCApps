@@ -277,12 +277,12 @@ page 615 "IC Inbox Transactions"
 
                     trigger OnAction()
                     begin
-                        CurrPage.SetSelectionFilter(ICInboxTransaction);
-                        if ICInboxTransaction.FindSet() then
+                        CurrPage.SetSelectionFilter(SelectedICInboxTransaction);
+                        if SelectedICInboxTransaction.FindSet() then
                             repeat
-                                ICInboxTransaction."Line Action" := ICInboxTransaction."Line Action"::"No Action";
-                                ICInboxTransaction.Modify();
-                            until ICInboxTransaction.Next() = 0;
+                                SelectedICInboxTransaction."Line Action" := SelectedICInboxTransaction."Line Action"::"No Action";
+                                SelectedICInboxTransaction.Modify();
+                            until SelectedICInboxTransaction.Next() = 0;
                     end;
                 }
                 action(Accept)
@@ -297,16 +297,16 @@ page 615 "IC Inbox Transactions"
                     var
                         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
                     begin
-                        CurrPage.SetSelectionFilter(ICInboxTransaction);
-                        if ICInboxTransaction.FindSet() then
+                        CurrPage.SetSelectionFilter(SelectedICInboxTransaction);
+                        if SelectedICInboxTransaction.FindSet() then
                             repeat
-                                Rec.TestField("Transaction Source", ICInboxTransaction."Transaction Source"::"Created by Partner");
-                                ICInboxTransaction.Validate("Line Action", ICInboxTransaction."Line Action"::Accept);
-                                ICInboxTransaction.Modify();
-                            until ICInboxTransaction.Next() = 0;
+                                Rec.TestField("Transaction Source", SelectedICInboxTransaction."Transaction Source"::"Created by Partner");
+                                SelectedICInboxTransaction.Validate("Line Action", SelectedICInboxTransaction."Line Action"::Accept);
+                                SelectedICInboxTransaction.Modify();
+                            until SelectedICInboxTransaction.Next() = 0;
 
                         if ApplicationAreaMgmtFacade.IsFoundationEnabled() then
-                            RunInboxTransactions(ICInboxTransaction);
+                            RunInboxTransactions(SelectedICInboxTransaction);
                     end;
                 }
                 action("Return to IC Partner")
@@ -321,16 +321,16 @@ page 615 "IC Inbox Transactions"
                     var
                         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
                     begin
-                        CurrPage.SetSelectionFilter(ICInboxTransaction);
-                        if ICInboxTransaction.FindSet() then
+                        CurrPage.SetSelectionFilter(SelectedICInboxTransaction);
+                        if SelectedICInboxTransaction.FindSet() then
                             repeat
-                                Rec.TestField("Transaction Source", ICInboxTransaction."Transaction Source"::"Created by Partner");
-                                ICInboxTransaction."Line Action" := ICInboxTransaction."Line Action"::"Return to IC Partner";
-                                ICInboxTransaction.Modify();
-                            until ICInboxTransaction.Next() = 0;
+                                Rec.TestField("Transaction Source", SelectedICInboxTransaction."Transaction Source"::"Created by Partner");
+                                SelectedICInboxTransaction."Line Action" := SelectedICInboxTransaction."Line Action"::"Return to IC Partner";
+                                SelectedICInboxTransaction.Modify();
+                            until SelectedICInboxTransaction.Next() = 0;
 
                         if ApplicationAreaMgmtFacade.IsFoundationEnabled() then
-                            RunInboxTransactions(ICInboxTransaction);
+                            RunInboxTransactions(SelectedICInboxTransaction);
                     end;
                 }
                 action(Cancel)
@@ -345,15 +345,15 @@ page 615 "IC Inbox Transactions"
                     var
                         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
                     begin
-                        CurrPage.SetSelectionFilter(ICInboxTransaction);
-                        if ICInboxTransaction.FindSet() then
+                        CurrPage.SetSelectionFilter(SelectedICInboxTransaction);
+                        if SelectedICInboxTransaction.FindSet() then
                             repeat
-                                ICInboxTransaction."Line Action" := ICInboxTransaction."Line Action"::Cancel;
-                                ICInboxTransaction.Modify();
-                            until ICInboxTransaction.Next() = 0;
+                                SelectedICInboxTransaction."Line Action" := SelectedICInboxTransaction."Line Action"::Cancel;
+                                SelectedICInboxTransaction.Modify();
+                            until SelectedICInboxTransaction.Next() = 0;
 
                         if ApplicationAreaMgmtFacade.IsFoundationEnabled() then
-                            RunInboxTransactions(ICInboxTransaction);
+                            RunInboxTransactions(SelectedICInboxTransaction);
                     end;
                 }
             }
@@ -422,7 +422,7 @@ page 615 "IC Inbox Transactions"
     }
 
     var
-        ICInboxTransaction: Record "IC Inbox Transaction";
+        SelectedICInboxTransaction: Record "IC Inbox Transaction";
         PartnerFilter: Code[250];
         ShowLines: Option " ","Returned by Partner","Created by Partner";
         ShowAction: Option All,"No Action",Accept,"Return to IC Partner",Cancel;

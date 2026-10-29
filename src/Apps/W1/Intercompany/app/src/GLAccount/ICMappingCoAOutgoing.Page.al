@@ -59,13 +59,11 @@ page 628 "IC Mapping CoA Outgoing"
 
     trigger OnAfterGetRecord()
     begin
-        NameIndent := 0;
         FormatLine();
     end;
 
     var
         Emphasize: Boolean;
-        NameIndent: Integer;
 
     /// <summary>
     /// Returns the currently selected local G/L accounts from the page.
@@ -79,7 +77,6 @@ page 628 "IC Mapping CoA Outgoing"
 
     local procedure FormatLine()
     begin
-        NameIndent := Rec.Indentation;
         Emphasize := Rec."Account Type" <> Rec."Account Type"::Posting;
     end;
 }

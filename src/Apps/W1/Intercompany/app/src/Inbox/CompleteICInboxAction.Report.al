@@ -431,7 +431,10 @@ report 511 "Complete IC Inbox Action"
     protected var
         TempGenJnlLine: Record "Gen. Journal Line" temporary;
         ReplacePostingDate: Boolean;
+        // Preserve the protected variable name for report extensions.
+#pragma warning disable AA0204
         ReplaceDocPostingDate: Boolean;
+#pragma warning restore AA0204
         DocPostingDate: Date;
 
     local procedure GetGLSetup()

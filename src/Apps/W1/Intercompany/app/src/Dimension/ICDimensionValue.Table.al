@@ -134,9 +134,9 @@ table 412 "IC Dimension Value"
 
     local procedure UpdateMapToDimensionCode()
     var
-        ICDimension: Record "IC Dimension";
+        MappingICDimension: Record "IC Dimension";
     begin
-        ICDimension.Get("Dimension Code");
-        Validate("Map-to Dimension Code", ICDimension."Map-to Dimension Code");
+        MappingICDimension.Get("Dimension Code");
+        Validate("Map-to Dimension Code", MappingICDimension."Map-to Dimension Code");
     end;
 }

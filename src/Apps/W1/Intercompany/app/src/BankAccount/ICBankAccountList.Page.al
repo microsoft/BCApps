@@ -39,7 +39,10 @@ page 697 "IC Bank Account List"
                     ApplicationArea = Intercompany;
                     ToolTip = 'Specifies the name of the bank where the IC partner has the bank account.';
                 }
+                // Preserve table-level masking for supported card pages.
+#pragma warning disable AW0017
                 field(BankAccountNo; Rec."Bank Account No.")
+#pragma warning restore AW0017
                 {
                     ApplicationArea = Intercompany;
                     ToolTip = 'Specifies the number used by the IC partner''s bank for the bank account.';
