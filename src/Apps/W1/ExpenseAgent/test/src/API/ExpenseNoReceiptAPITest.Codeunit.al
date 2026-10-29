@@ -8,7 +8,7 @@ using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 using System.TestLibraries.Utilities;
 
-codeunit 148360 "Expense No Receipt API Test"
+codeunit 148363 "Expense No Receipt API Test"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
