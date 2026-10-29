@@ -22,10 +22,10 @@ table 7047 "Item Tracking Code Change Log"
             TableRelation = Item."No.";
             ToolTip = 'Specifies the item whose item tracking code was changed.';
         }
-        field(2; "Change Date"; Date)
+        field(2; "Change DateTime"; DateTime)
         {
-            Caption = 'Change Date';
-            ToolTip = 'Specifies the date when the item tracking code was changed.';
+            Caption = 'Change DateTime';
+            ToolTip = 'Specifies the actual date and time when the item tracking code was changed.';
         }
         field(3; "Previous Item Tracking Code"; Code[10])
         {
@@ -43,7 +43,7 @@ table 7047 "Item Tracking Code Change Log"
 
     keys
     {
-        key(PK; "Item No.", "Change Date")
+        key(PK; "Item No.", "Change DateTime")
         {
             Clustered = true;
         }
@@ -55,8 +55,8 @@ table 7047 "Item Tracking Code Change Log"
     trigger OnInsert()
     begin
         TestField("Item No.");
-        if "Change Date" = 0D then
-            "Change Date" := WorkDate();
+        if "Change DateTime" = 0DT then
+            "Change DateTime" := CurrentDateTime();
         if "Previous Item Tracking Code" = "New Item Tracking Code" then
             Error(TrackingCodesMustDifferErr);
     end;

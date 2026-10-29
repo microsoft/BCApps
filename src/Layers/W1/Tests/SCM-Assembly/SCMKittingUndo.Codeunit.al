@@ -2208,6 +2208,61 @@ codeunit 137097 "SCM Kitting - Undo"
 
     [Test]
     [HandlerFunctions('AssemblyDueDateMessageHandler')]
+    procedure UndoAssemblyWithUnchangedNonSpecificLotTracking()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        AsmItem: Record Item;
+        CompItem: Record Item;
+        BOMComponent: Record "BOM Component";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        AssemblyHeader: Record "Assembly Header";
+        PostedAssemblyHeader: Record "Posted Assembly Header";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        LotNo: Code[50];
+    begin
+        // [SCENARIO 435436] Assembly output with operation-specific lot tracking can be undone without changing its code.
+        Initialize();
+        LotNo := LibraryUtility.GenerateGUID();
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, false);
+        ItemTrackingCode.Validate("Lot Assembly Inbound Tracking", true);
+        ItemTrackingCode.Modify(true);
+        LibraryItemTracking.CreateItemWithItemTrackingCode(AsmItem, ItemTrackingCode);
+        AsmItem.Validate("Replenishment System", AsmItem."Replenishment System"::Assembly);
+        AsmItem.Modify(true);
+        LibraryInventory.CreateItem(CompItem);
+        AddComponentToAssemblyList(
+            BOMComponent, "BOM Component Type"::Item, CompItem."No.", AsmItem."No.", '', 0, CompItem."Base Unit of Measure", 1);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, CompItem."No.", '', '', 5);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        CreateAssemblyOrder(AssemblyHeader, AsmItem, '', '', '', WorkDate(), 5);
+        LibraryItemTracking.CreateAssemblyHeaderItemTracking(ReservationEntry, AssemblyHeader, '', LotNo, 5);
+        LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
+        FindPostedAssemblyHeaderNotReversed(PostedAssemblyHeader, AssemblyHeader."No.");
+        ItemLedgerEntry.SetRange("Item No.", AsmItem."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Assembly Output");
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField("Lot No.", LotNo);
+        ItemLedgerEntry.TestField(Quantity, 5);
+
+        LibraryAssembly.UndoPostedAssembly(PostedAssemblyHeader, false, '');
+
+        PostedAssemblyHeader.Get(PostedAssemblyHeader."No.");
+        Assert.IsTrue(PostedAssemblyHeader.Reversed, 'The posted assembly order should be reversed.');
+        ItemLedgerEntry.SetRange(Positive, false);
+        Assert.RecordCount(ItemLedgerEntry, 1);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField("Lot No.", LotNo);
+        ItemLedgerEntry.TestField(Quantity, -5);
+        AsmItem.CalcFields(Inventory);
+        AsmItem.TestField(Inventory, 0);
+        CompItem.CalcFields(Inventory);
+        CompItem.TestField(Inventory, 5);
+    end;
+
+    [Test]
+    [HandlerFunctions('AssemblyDueDateMessageHandler')]
     procedure UndoAssemblyIsAllowedWhenComponentTrackingChangedBeforePosting()
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -2228,7 +2283,7 @@ codeunit 137097 "SCM Kitting - Undo"
         AsmItem.Modify(true);
         LibraryInventory.CreateItem(CompItem);
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
-        CreateItemTrackingCodeChangeLog(CompItem."No.", WorkDate() - 1, ItemTrackingCode.Code, '');
+        CreateItemTrackingCodeChangeLog(CompItem."No.", CurrentDateTime() - 1000, ItemTrackingCode.Code, '');
         AddComponentToAssemblyList(
             BOMComponent, "BOM Component Type"::Item, CompItem."No.", AsmItem."No.", '', 0, CompItem."Base Unit of Measure", 1);
         LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, CompItem."No.", '', '', 1);
@@ -2565,13 +2620,13 @@ codeunit 137097 "SCM Kitting - Undo"
         Assert.IsTrue(WhseItemTrackingLine.IsEmpty(), WhseItemTrackingLinesShouldBeDeletedErr);
     end;
 
-    local procedure CreateItemTrackingCodeChangeLog(ItemNo: Code[20]; ChangeDate: Date; PreviousItemTrackingCode: Code[10]; NewItemTrackingCode: Code[10])
+    local procedure CreateItemTrackingCodeChangeLog(ItemNo: Code[20]; ChangeDateTime: DateTime; PreviousItemTrackingCode: Code[10]; NewItemTrackingCode: Code[10])
     var
         ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
     begin
         ItemTrackingCodeChangeLog.Init();
         ItemTrackingCodeChangeLog."Item No." := ItemNo;
-        ItemTrackingCodeChangeLog."Change Date" := ChangeDate;
+        ItemTrackingCodeChangeLog."Change DateTime" := ChangeDateTime;
         ItemTrackingCodeChangeLog."Previous Item Tracking Code" := PreviousItemTrackingCode;
         ItemTrackingCodeChangeLog."New Item Tracking Code" := NewItemTrackingCode;
         ItemTrackingCodeChangeLog.Insert(true);

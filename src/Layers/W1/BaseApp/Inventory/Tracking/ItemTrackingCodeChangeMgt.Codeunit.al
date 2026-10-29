@@ -6,6 +6,7 @@ namespace Microsoft.Inventory.Tracking;
 
 using Microsoft.Assembly.Document;
 using Microsoft.Inventory.Counting.Document;
+using Microsoft.Inventory.Counting.Recording;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
@@ -55,7 +56,6 @@ codeunit 7047 "Item Tracking Code Change Mgt."
         TestNoExpirationCalculation(Item);
         TestCostIsAdjustedAndPostedToGL(Item);
         TestNoOpenItemLedgerEntries(Item);
-        TestNoItemLedgerEntriesOnChangeDate(Item);
         TestNoReservationEntriesOrTrackingSpecifications(Item);
         TestNoDocumentLinesPreventingTrackingCodeChange(Item);
         TestNoJournalOrPlanningLines(Item);
@@ -121,17 +121,6 @@ codeunit 7047 "Item Tracking Code Change Mgt."
                     Item.FieldCaption("Item Tracking Code"), Item."No."));
     end;
 
-    local procedure TestNoItemLedgerEntriesOnChangeDate(Item: Record Item)
-    var
-        ItemLedgerEntry: Record "Item Ledger Entry";
-    begin
-        ItemLedgerEntry.SetCurrentKey("Item No.", "Posting Date");
-        ItemLedgerEntry.SetRange("Item No.", Item."No.");
-        ItemLedgerEntry.SetRange("Posting Date", WorkDate());
-        if not ItemLedgerEntry.IsEmpty() then
-            CollectError(StrSubstNo(ItemLedgerEntriesOnChangeDateErr, Item."No.", WorkDate()));
-    end;
-
     local procedure TestNoReservationEntriesOrTrackingSpecifications(Item: Record Item)
     var
         ReservationEntry: Record "Reservation Entry";
@@ -173,6 +162,19 @@ codeunit 7047 "Item Tracking Code Change Mgt."
         SalesLine.SetFilter("Return Qty. Rcd. Not Invd.", '<>0');
         if not SalesLine.IsEmpty() then
             CollectRecordsExistError(Item, SalesLine.TableCaption());
+
+        SalesLine.SetRange("Return Qty. Rcd. Not Invd.");
+        SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
+        SalesLine.SetFilter("Outstanding Qty. (Base)", '<>0');
+        SalesLine.SetFilter("Qty. Shipped (Base)", '<>0');
+        if not SalesLine.IsEmpty() then
+            CollectRecordsExistError(Item, SalesLine.TableCaption());
+
+        SalesLine.SetRange("Document Type", SalesLine."Document Type"::"Return Order");
+        SalesLine.SetRange("Qty. Shipped (Base)");
+        SalesLine.SetFilter("Return Qty. Received (Base)", '<>0');
+        if not SalesLine.IsEmpty() then
+            CollectRecordsExistError(Item, SalesLine.TableCaption());
     end;
 
     local procedure CheckPurchaseDocuments(Item: Record Item)
@@ -188,6 +190,19 @@ codeunit 7047 "Item Tracking Code Change Mgt."
 
         PurchaseLine.SetRange("Qty. Rcd. Not Invoiced");
         PurchaseLine.SetFilter("Return Qty. Shipped Not Invd.", '<>0');
+        if not PurchaseLine.IsEmpty() then
+            CollectRecordsExistError(Item, PurchaseLine.TableCaption());
+
+        PurchaseLine.SetRange("Return Qty. Shipped Not Invd.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetFilter("Outstanding Qty. (Base)", '<>0');
+        PurchaseLine.SetFilter("Qty. Received (Base)", '<>0');
+        if not PurchaseLine.IsEmpty() then
+            CollectRecordsExistError(Item, PurchaseLine.TableCaption());
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::"Return Order");
+        PurchaseLine.SetRange("Qty. Received (Base)");
+        PurchaseLine.SetFilter("Return Qty. Shipped (Base)", '<>0');
         if not PurchaseLine.IsEmpty() then
             CollectRecordsExistError(Item, PurchaseLine.TableCaption());
     end;
@@ -314,10 +329,15 @@ codeunit 7047 "Item Tracking Code Change Mgt."
     local procedure CheckPhysicalInventory(Item: Record Item)
     var
         PhysInvtOrderLine: Record "Phys. Invt. Order Line";
+        PhysInvtRecordLine: Record "Phys. Invt. Record Line";
     begin
         PhysInvtOrderLine.SetRange("Item No.", Item."No.");
         if not PhysInvtOrderLine.IsEmpty() then
             CollectRecordsExistError(Item, PhysInvtOrderLine.TableCaption());
+
+        PhysInvtRecordLine.SetRange("Item No.", Item."No.");
+        if not PhysInvtRecordLine.IsEmpty() then
+            CollectRecordsExistError(Item, PhysInvtRecordLine.TableCaption());
     end;
 
     local procedure CheckRequisitionLines(Item: Record Item)
@@ -420,19 +440,10 @@ codeunit 7047 "Item Tracking Code Change Mgt."
     begin
         ItemTrackingCodeChangeLog.Init();
         ItemTrackingCodeChangeLog.Validate("Item No.", ItemNo);
-        ItemTrackingCodeChangeLog.Validate("Change Date", WorkDate());
+        ItemTrackingCodeChangeLog.Validate("Change DateTime", CurrentDateTime());
         ItemTrackingCodeChangeLog.Validate("Previous Item Tracking Code", PreviousItemTrackingCode);
         ItemTrackingCodeChangeLog.Validate("New Item Tracking Code", NewItemTrackingCode);
         ItemTrackingCodeChangeLog.Insert(true);
-    end;
-
-    local procedure HasTrackingCodeChanges(ItemNo: Code[20]; PostingDate: Date): Boolean
-    var
-        ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
-    begin
-        ItemTrackingCodeChangeLog.SetRange("Item No.", ItemNo);
-        ItemTrackingCodeChangeLog.SetFilter("Change Date", '>%1', PostingDate);
-        exit(not ItemTrackingCodeChangeLog.IsEmpty());
     end;
 
     internal procedure IsLinkedApplicationAcrossTrackingPeriods(ItemNo: Code[20]; ItemLedgerEntryNo: Integer): Boolean
@@ -446,9 +457,6 @@ codeunit 7047 "Item Tracking Code Change Mgt."
             exit(false);
         if ItemLedgerEntry."Item No." <> ItemNo then
             exit(false);
-        if not HasTrackingCodeChanges(ItemNo, ItemLedgerEntry."Posting Date") then
-            exit(false);
-
         Item.Get(ItemNo);
         exit(GetTrackingCodeAtPosting(ItemLedgerEntry) <> Item."Item Tracking Code");
     end;
@@ -506,29 +514,37 @@ codeunit 7047 "Item Tracking Code Change Mgt."
             Clear(ItemTrackingCode);
 
         exit(
-            (ItemTrackingCode."SN Specific Tracking" = (ItemLedgerEntry."Serial No." <> '')) and
-            (ItemTrackingCode."Lot Specific Tracking" = (ItemLedgerEntry."Lot No." <> '')) and
-            (ItemTrackingCode."Package Specific Tracking" = (ItemLedgerEntry."Package No." <> '')));
+            ((not ItemTrackingCode."SN Specific Tracking") or (ItemLedgerEntry."Serial No." <> '')) and
+            ((not ItemTrackingCode."Lot Specific Tracking") or (ItemLedgerEntry."Lot No." <> '')) and
+            ((not ItemTrackingCode."Package Specific Tracking") or (ItemLedgerEntry."Package No." <> '')));
     end;
 
-    local procedure GetTrackingCodeAtPosting(ItemLedgerEntry: Record "Item Ledger Entry"): Code[10]
+    internal procedure GetTrackingCodeAtPosting(ItemLedgerEntry: Record "Item Ledger Entry"): Code[10]
     var
         Item: Record Item;
         ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
+        CreatedAt: DateTime;
     begin
-        Item.Get(ItemLedgerEntry."Item No.");
-        ItemTrackingCodeChangeLog.SetCurrentKey("Item No.", "Change Date");
-        ItemTrackingCodeChangeLog.SetRange("Item No.", ItemLedgerEntry."Item No.");
-        ItemTrackingCodeChangeLog.SetFilter("Change Date", '>%1', ItemLedgerEntry."Posting Date");
+        CreatedAt := ItemLedgerEntry.SystemCreatedAt;
+        if CreatedAt = 0DT then
+            CreatedAt := CurrentDateTime();
 
-        if ItemTrackingCodeChangeLog.FindFirst() then
+        Item.Get(ItemLedgerEntry."Item No.");
+        ItemTrackingCodeChangeLog.SetCurrentKey("Item No.", "Change DateTime");
+        ItemTrackingCodeChangeLog.SetRange("Item No.", ItemLedgerEntry."Item No.");
+        ItemTrackingCodeChangeLog.SetFilter("Change DateTime", '>=%1', CreatedAt);
+
+        if ItemTrackingCodeChangeLog.FindFirst() then begin
+            if ItemTrackingCodeChangeLog."Change DateTime" = CreatedAt then
+                Error(TrackingPeriodAmbiguousErr, Item."No.", ItemLedgerEntry."Entry No.", CreatedAt);
             exit(ItemTrackingCodeChangeLog."Previous Item Tracking Code");
+        end;
 
         exit(Item."Item Tracking Code");
     end;
 
     var
-        ItemLedgerEntriesOnChangeDateErr: Label 'You cannot change the Item Tracking Code for item %1 because item ledger entries exist with Posting Date %2.', Comment = '%1 = Item No., %2 = posting date';
+        TrackingPeriodAmbiguousErr: Label 'The item tracking code for item %1, item ledger entry %2, cannot be determined because its creation date and time %3 matches an item tracking code change.', Comment = '%1 = Item No., %2 = Item Ledger Entry No., %3 = creation date and time';
         MissingItemTrackingChangePermissionErr: Label 'You do not have permission to change the Item Tracking Code for item %1. The ITEM TRACKING CHANGE permission set must be assigned to you.', Comment = '%1 = Item No. Do not translate ITEM TRACKING CHANGE.';
         OpenItemLedgerEntriesExistErr: Label 'You cannot change %1 for item %2 because one or more open item ledger entries exist.', Comment = '%1 = Item Tracking Code field caption, %2 = Item No.';
         RecordsExistErr: Label 'You cannot change %1 for item %2 because one or more %3 records exist.', Comment = '%1 = Item Tracking Code field caption, %2 = Item No., %3 = table caption';

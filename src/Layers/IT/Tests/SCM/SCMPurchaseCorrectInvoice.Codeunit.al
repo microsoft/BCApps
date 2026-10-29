@@ -59,7 +59,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         Item.Get(Item."No.");
         Item."Item Tracking Code" := ItemTrackingCode.Code;
         Item.Modify();
-        CreateItemTrackingCodeChangeLog(Item."No.", WorkDate() + 1, '', ItemTrackingCode.Code);
+        CreateItemTrackingCodeChangeLog(Item."No.", CurrentDateTime() + 1000, '', ItemTrackingCode.Code);
 
         // [WHEN] Posted purchase invoice "PI" is cancelled.
         asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader);
@@ -1333,13 +1333,13 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         SellItem(Vendor, Item, Qty, PurchInvHeader);
     end;
 
-    local procedure CreateItemTrackingCodeChangeLog(ItemNo: Code[20]; ChangeDate: Date; PreviousItemTrackingCode: Code[10]; NewItemTrackingCode: Code[10])
+    local procedure CreateItemTrackingCodeChangeLog(ItemNo: Code[20]; ChangeDateTime: DateTime; PreviousItemTrackingCode: Code[10]; NewItemTrackingCode: Code[10])
     var
         ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
     begin
         ItemTrackingCodeChangeLog.Init();
         ItemTrackingCodeChangeLog."Item No." := ItemNo;
-        ItemTrackingCodeChangeLog."Change Date" := ChangeDate;
+        ItemTrackingCodeChangeLog."Change DateTime" := ChangeDateTime;
         ItemTrackingCodeChangeLog."Previous Item Tracking Code" := PreviousItemTrackingCode;
         ItemTrackingCodeChangeLog."New Item Tracking Code" := NewItemTrackingCode;
         ItemTrackingCodeChangeLog.Insert(true);

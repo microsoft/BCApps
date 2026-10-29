@@ -1877,6 +1877,8 @@ table 27 Item
                 if not ItemTrackingCode2.Get(xRec."Item Tracking Code") then
                     Clear(ItemTrackingCode2);
 
+                ItemTrackingCode2.TestField("Use Expiration Dates", false);
+
                 if ItemTrackingCodeChangeMgt.ShouldUseAdvancedValidation(Rec, ItemTrackingCode, ItemTrackingCode2) then
                     ItemTrackingCodeChangeMgt.ValidateItemTrackingCodeChangeAdvanced(Rec, ItemTrackingCode, ItemTrackingCode2)
                 else

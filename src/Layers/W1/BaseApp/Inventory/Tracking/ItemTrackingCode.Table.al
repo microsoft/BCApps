@@ -631,6 +631,8 @@ table 6502 "Item Tracking Code"
                 if not ItemLedgEntry.IsEmpty() then
                     Error(EntriesExistErr, Item."No.", CurrentFieldName);
             until Item.Next() = 0;
+
+        TestNotUsedAsPreviousTrackingCode();
     end;
 
     procedure TestRemoveSpecific(CurrentFieldName: Text)
@@ -645,6 +647,8 @@ table 6502 "Item Tracking Code"
                 if not ItemLedgEntry.IsEmpty() then
                     Error(EntriesExistErr, Item."No.", CurrentFieldName);
             until Item.Next() = 0;
+
+        TestNotUsedAsPreviousTrackingCode();
     end;
 
     local procedure TestRemoveSpecificSN(CurrentFieldName: Text)
@@ -661,6 +665,8 @@ table 6502 "Item Tracking Code"
                 if not ItemLedgEntry.IsEmpty() then
                     Error(EntriesExistErr, Item."No.", CurrentFieldname);
             until Item.Next() = 0;
+
+        TestNotUsedAsPreviousTrackingCode();
     end;
 
     local procedure TestDelete()
@@ -745,6 +751,8 @@ table 6502 "Item Tracking Code"
                 if not WarehouseEntry.IsEmpty() then
                     Error(WhseEntriesExistErr, CurrentFieldName, TrackedItem."No.");
             until TrackedItem.Next() = 0;
+
+        TestNotUsedAsPreviousTrackingCode();
     end;
 
     [IntegrationEvent(false, false)]

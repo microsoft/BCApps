@@ -57,7 +57,7 @@ codeunit 137019 "SCM Correct Invoice"
         Item.Get(Item."No.");
         Item."Item Tracking Code" := ItemTrackingCode.Code;
         Item.Modify();
-        CreateItemTrackingCodeChangeLog(Item."No.", WorkDate() + 1, '', ItemTrackingCode.Code);
+        CreateItemTrackingCodeChangeLog(Item."No.", CurrentDateTime() + 1000, '', ItemTrackingCode.Code);
 
         // [WHEN] Posted sales invoice "SI" is cancelled.
         asserterror CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader);
@@ -1524,13 +1524,13 @@ codeunit 137019 "SCM Correct Invoice"
         SellItem(Cust, Item, Qty, SalesInvoiceHeader);
     end;
 
-    local procedure CreateItemTrackingCodeChangeLog(ItemNo: Code[20]; ChangeDate: Date; PreviousItemTrackingCode: Code[10]; NewItemTrackingCode: Code[10])
+    local procedure CreateItemTrackingCodeChangeLog(ItemNo: Code[20]; ChangeDateTime: DateTime; PreviousItemTrackingCode: Code[10]; NewItemTrackingCode: Code[10])
     var
         ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
     begin
         ItemTrackingCodeChangeLog.Init();
         ItemTrackingCodeChangeLog."Item No." := ItemNo;
-        ItemTrackingCodeChangeLog."Change Date" := ChangeDate;
+        ItemTrackingCodeChangeLog."Change DateTime" := ChangeDateTime;
         ItemTrackingCodeChangeLog."Previous Item Tracking Code" := PreviousItemTrackingCode;
         ItemTrackingCodeChangeLog."New Item Tracking Code" := NewItemTrackingCode;
         ItemTrackingCodeChangeLog.Insert(true);

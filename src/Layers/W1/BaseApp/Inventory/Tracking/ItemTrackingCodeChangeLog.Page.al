@@ -16,7 +16,7 @@ page 7047 "Item Tracking Code Change Log"
     ModifyAllowed = false;
     PageType = List;
     SourceTable = "Item Tracking Code Change Log";
-    SourceTableView = sorting("Item No.", "Change Date") order(descending);
+    SourceTableView = sorting("Item No.", "Change DateTime") order(descending);
     UsageCategory = History;
 
     layout
@@ -29,9 +29,9 @@ page 7047 "Item Tracking Code Change Log"
                 {
                     ToolTip = 'Specifies the item whose item tracking code was changed.';
                 }
-                field("Change Date"; Rec."Change Date")
+                field("Change DateTime"; Rec."Change DateTime")
                 {
-                    ToolTip = 'Specifies the date when the item tracking code was changed.';
+                    ToolTip = 'Specifies the actual date and time when the item tracking code was changed.';
                 }
                 field("Previous Item Tracking Code"; Rec."Previous Item Tracking Code")
                 {
@@ -40,11 +40,6 @@ page 7047 "Item Tracking Code Change Log"
                 field("New Item Tracking Code"; Rec."New Item Tracking Code")
                 {
                     ToolTip = 'Specifies the item tracking code after the change.';
-                }
-                field(ChangedAt; Rec.SystemCreatedAt)
-                {
-                    Caption = 'Changed At';
-                    ToolTip = 'Specifies the date and time when the item tracking code was changed.';
                 }
                 field(ChangedBy; ChangedByUserName)
                 {
