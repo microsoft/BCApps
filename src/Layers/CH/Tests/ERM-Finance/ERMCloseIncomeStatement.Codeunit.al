@@ -1838,9 +1838,9 @@ codeunit 134228 "ERM Close Income Statement"
         CloseIncomeStatement(GenJournalLine, IncStr(GenJournalLine."Document No."));
     end;
 
-    local procedure RunCloseIncomeStatement(GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; RetainedEarningsAcc: Code[20]; PostToRetainedEarningsAcc: Option; ClosePerBusinessUnit: Boolean; UseDimensions: Boolean; DocumentNo: Code[20])
+    local procedure RunCloseIncomeStatement(GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; RetainedEarningsAcc: Code[20]; RetainedEarningsPosting: Option; ClosePerBusinessUnit: Boolean; UseDimensions: Boolean; DocumentNo: Code[20])
     begin
-        RunCloseIncomeStatement(GenJournalLine, PostingDate, RetainedEarningsAcc, PostToRetainedEarningsAcc, ClosePerBusinessUnit, UseDimensions, DocumentNo, '');
+        RunCloseIncomeStatement(GenJournalLine, PostingDate, RetainedEarningsAcc, RetainedEarningsPosting, ClosePerBusinessUnit, UseDimensions, DocumentNo, '');
     end;
 
     local procedure RunCloseIncomeStatement(GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; RetainedEarningsAcc: Code[20]; PostToRetainedEarningsAcc: Option; ClosePerBusinessUnit: Boolean; UseDimensions: Boolean; DocumentNo: Code[20]; GLAccountNo: Code[20])
