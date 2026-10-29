@@ -16,7 +16,7 @@ The Processing module orchestrates what happens to E-Documents between creation 
 
 **Message responses.** `E-Document Message` records store message payloads related to an existing E-Document, such as PEPPOL Order Responses. `EDocumentSubscribers.OnAfterReleaseSalesDoc()` creates an Accepted response for an inbound sales order when the document format reports a response message type. `EDocumentProcessing.SendOrderRejection()` builds the same kind of message with a Rejected response. Both paths use `IEDocResponseProvider` to ask the format which message applies, then `IEDocMessageBuilder` to build and persist the payload.
 
-**AI tools.** `EDocAIToolProcessor.Codeunit.al` is a generic Copilot orchestrator that registers the E-Document Matching Assistance capability in SaaS, configures Azure OpenAI with the latest GPT-4.1 chat deployment, registers AI tools as function calls, and processes responses. The `Tools/` subfolder provides implementations for historical matching, G/L account matching, deferral matching, and similar-description lookups. Historical matching now tries direct history before asking the model.
+**AI tools.** `EDocAIToolProcessor.Codeunit.al` is a generic Copilot orchestrator that registers the E-Document Matching Assistance capability in SaaS, configures Azure OpenAI with the GPT-5.6 Ceres latest chat deployment, registers AI tools as function calls, and processes responses. The `Tools/` subfolder provides implementations for historical matching, G/L account matching, deferral matching, and similar-description lookups. Historical matching now tries direct history before asking the model.
 
 ## Things to know
 
