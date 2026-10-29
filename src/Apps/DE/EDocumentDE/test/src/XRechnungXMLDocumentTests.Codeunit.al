@@ -2254,6 +2254,130 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
     #endregion
 
+    #region ExtensibilityEvents
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatUsesValuesFromBeforeInsertEvents()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        PartyName: Text[100];
+        CustomerName: Text[100];
+        ActualDeliveryDate: Date;
+        DeliveryCity: Text[30];
+        OrderReferenceID: Text[35];
+        SalesOrderID: Code[20];
+    begin
+        // [SCENARIO] Values passed back by subscribers of the buyer, delivery and order reference events of a sales invoice are exported instead of the document values
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] Subscribers pass back a buyer name, a registration name, an actual delivery date, a deliver-to city and the order references
+        GenerateEventOverrideValues(PartyName, CustomerName, ActualDeliveryDate, DeliveryCity, OrderReferenceID, SalesOrderID);
+        LibraryEDocDE.ClearXRechnungOverrides();
+        LibraryEDocDE.SetXRechnungValueOverrides(PartyName, CustomerName, ActualDeliveryDate, DeliveryCity, OrderReferenceID, SalesOrderID);
+
+        // [WHEN] Export XRechnung Electronic Document.
+        BindSubscription(LibraryEDocDE);
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The values passed back by the subscribers are exported
+        VerifyEventOverrideValues(TempXMLBuffer, '/ubl:Invoice', PartyName, CustomerName, ActualDeliveryDate, DeliveryCity, OrderReferenceID, SalesOrderID);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatKeepsElementsAddedByDeliveryAndOrderReferenceEvents()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DeliveryPartyName: Text[100];
+        DespatchDocumentID: Text[35];
+    begin
+        // [SCENARIO] A deliver-to party added to the delivery and a despatch advice reference added after the order reference of a sales invoice are exported at schema-valid positions
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] Subscribers add a deliver-to party (BT-70) to the delivery and a despatch advice reference (BT-16) after the order reference
+        DeliveryPartyName := CopyStr(LibraryUtility.GenerateRandomText(50), 1, MaxStrLen(DeliveryPartyName));
+        DespatchDocumentID := LibraryUtility.GenerateGUID();
+        LibraryEDocDE.ClearXRechnungOverrides();
+        LibraryEDocDE.SetXRechnungAddedElements(DeliveryPartyName, DespatchDocumentID);
+
+        // [WHEN] Export XRechnung Electronic Document, which validates it against the UBL schema.
+        BindSubscription(LibraryEDocDE);
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The deliver-to party is part of the delivery and the despatch advice reference directly follows the order reference
+        VerifyEventAddedElements(TempXMLBuffer, '/ubl:Invoice', DeliveryPartyName, DespatchDocumentID);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatUsesValuesFromBeforeInsertEvents()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        PartyName: Text[100];
+        CustomerName: Text[100];
+        ActualDeliveryDate: Date;
+        DeliveryCity: Text[30];
+        OrderReferenceID: Text[35];
+        SalesOrderID: Code[20];
+    begin
+        // [SCENARIO] Values passed back by subscribers of the buyer, delivery and order reference events of a sales cr. memo are exported instead of the document values
+        Initialize();
+
+        // [GIVEN] Create and Post sales cr. memo.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] Subscribers pass back a buyer name, a registration name, an actual delivery date, a deliver-to city and the order references
+        GenerateEventOverrideValues(PartyName, CustomerName, ActualDeliveryDate, DeliveryCity, OrderReferenceID, SalesOrderID);
+        LibraryEDocDE.ClearXRechnungOverrides();
+        LibraryEDocDE.SetXRechnungValueOverrides(PartyName, CustomerName, ActualDeliveryDate, DeliveryCity, OrderReferenceID, SalesOrderID);
+
+        // [WHEN] Export XRechnung Electronic Document.
+        BindSubscription(LibraryEDocDE);
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The values passed back by the subscribers are exported
+        VerifyEventOverrideValues(TempXMLBuffer, '/ns0:CreditNote', PartyName, CustomerName, ActualDeliveryDate, DeliveryCity, OrderReferenceID, SalesOrderID);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatKeepsElementsAddedByDeliveryAndOrderReferenceEvents()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DeliveryPartyName: Text[100];
+        DespatchDocumentID: Text[35];
+    begin
+        // [SCENARIO] A deliver-to party added to the delivery and a despatch advice reference added after the order reference of a sales cr. memo are exported at schema-valid positions
+        Initialize();
+
+        // [GIVEN] Create and Post sales cr. memo.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] Subscribers add a deliver-to party (BT-70) to the delivery and a despatch advice reference (BT-16) after the order reference
+        DeliveryPartyName := CopyStr(LibraryUtility.GenerateRandomText(50), 1, MaxStrLen(DeliveryPartyName));
+        DespatchDocumentID := LibraryUtility.GenerateGUID();
+        LibraryEDocDE.ClearXRechnungOverrides();
+        LibraryEDocDE.SetXRechnungAddedElements(DeliveryPartyName, DespatchDocumentID);
+
+        // [WHEN] Export XRechnung Electronic Document, which validates it against the UBL schema.
+        BindSubscription(LibraryEDocDE);
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The deliver-to party is part of the delivery and the despatch advice reference directly follows the order reference
+        VerifyEventAddedElements(TempXMLBuffer, '/ns0:CreditNote', DeliveryPartyName, DespatchDocumentID);
+    end;
+    #endregion
+
     #region PurchaseInvoice
     [Test]
     procedure ReleasePurchaseInvoiceInXRechnungFormat();
@@ -4902,6 +5026,68 @@ codeunit 13918 "XRechnung XML Document Tests"
         Assert.AreEqual(ServiceCrMemoHeader."Bill-to Address", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := ServiceDocumentAccountingCustomerPartyTok + '/cac:PostalAddress/cbc:CityName';
         Assert.AreEqual(ServiceCrMemoHeader."Bill-to City", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    local procedure GenerateEventOverrideValues(var PartyName: Text[100]; var CustomerName: Text[100]; var ActualDeliveryDate: Date; var DeliveryCity: Text[30]; var OrderReferenceID: Text[35]; var SalesOrderID: Code[20])
+    begin
+        PartyName := CopyStr(LibraryUtility.GenerateRandomText(50), 1, MaxStrLen(PartyName));
+        CustomerName := CopyStr(LibraryUtility.GenerateRandomText(50), 1, MaxStrLen(CustomerName));
+        ActualDeliveryDate := LibraryRandom.RandDate(30);
+        DeliveryCity := CopyStr(LibraryUtility.GenerateRandomText(20), 1, MaxStrLen(DeliveryCity));
+        OrderReferenceID := LibraryUtility.GenerateGUID();
+        SalesOrderID := LibraryUtility.GenerateGUID();
+    end;
+
+    local procedure VerifyEventOverrideValues(var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text; PartyName: Text; CustomerName: Text; ActualDeliveryDate: Date; DeliveryCity: Text; OrderReferenceID: Text; SalesOrderID: Text)
+    var
+        Path: Text;
+    begin
+        Path := DocumentTok + '/cac:AccountingCustomerParty/cac:Party/cac:PartyName/cbc:Name';
+        Assert.AreEqual(PartyName, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName';
+        Assert.AreEqual(CustomerName, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/cac:Delivery/cbc:ActualDeliveryDate';
+        Assert.AreEqual(FormatDate(ActualDeliveryDate), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:CityName';
+        Assert.AreEqual(DeliveryCity, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/cac:OrderReference/cbc:ID';
+        Assert.AreEqual(OrderReferenceID, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/cac:OrderReference/cbc:SalesOrderID';
+        Assert.AreEqual(SalesOrderID, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    local procedure VerifyEventAddedElements(var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text; DeliveryPartyName: Text; DespatchDocumentID: Text)
+    var
+        Path: Text;
+    begin
+        Path := DocumentTok + '/cac:Delivery/cac:DeliveryParty/cac:PartyName/cbc:Name';
+        Assert.AreEqual(DeliveryPartyName, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/cac:DespatchDocumentReference/cbc:ID';
+        Assert.AreEqual(DespatchDocumentID, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/cac:DespatchDocumentReference';
+        Assert.AreEqual(Path, GetNextSiblingPath(TempXMLBuffer, DocumentTok + '/cac:OrderReference'), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    local procedure GetNextSiblingPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
+    var
+        ParentEntryNo: Integer;
+        EntryNo: Integer;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, XPath);
+        if not TempXMLBuffer.FindFirst() then
+            Error('Node not found: %1', XPath);
+        ParentEntryNo := TempXMLBuffer."Parent Entry No.";
+        EntryNo := TempXMLBuffer."Entry No.";
+
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange("Parent Entry No.", ParentEntryNo);
+        TempXMLBuffer.SetFilter("Entry No.", '>%1', EntryNo);
+        if not TempXMLBuffer.FindFirst() then
+            Error('Node %1 has no following sibling', XPath);
+        exit(TempXMLBuffer.Path);
     end;
 
     local procedure VerifyPaymentMeans(var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
