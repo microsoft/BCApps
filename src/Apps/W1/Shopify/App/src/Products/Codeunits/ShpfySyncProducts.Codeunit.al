@@ -47,6 +47,7 @@ codeunit 30185 "Shpfy Sync Products"
         DialogMsg: Label '#1#########################', Locked = true;
         SyncInformationProgressLbl: Label 'Synchronizing information with Shopify.', Comment = 'Shopify is a product name.';
         FinishSyncProgressLbl: Label 'Finishing up synchronization with Shopify.', Comment = 'Shopify is a product name.';
+        NoProductVariantErr: Label 'No Shopify product variant is linked to this item. Synchronize products with Shopify, refresh the page, and try again.';
 
     /// <summary> 
     /// Export Items To Shopify.
@@ -142,7 +143,8 @@ codeunit 30185 "Shpfy Sync Products"
     var
         ShopifyProduct: Record "Shpfy Product";
     begin
-        ShopifyVariant.FindFirst();
+        if not ShopifyVariant.FindFirst() then
+            Error(NoProductVariantErr);
         ShopifyProduct.Get(ShopifyVariant."Product Id");
         if ShopifyProduct.URL <> '' then
             exit(ShopifyProduct.URL);
@@ -170,7 +172,8 @@ codeunit 30185 "Shpfy Sync Products"
         ShopifyProductsOverview: Page "Shpfy Products Overview";
         ProductIdFilter: Text;
     begin
-        ShopifyVariant.FindSet();
+        if not ShopifyVariant.FindSet() then
+            Error(NoProductVariantErr);
         repeat
             ProductIdFilter += Format(ShopifyVariant."Product Id") + '|';
         until ShopifyVariant.Next() = 0;
