@@ -26,8 +26,8 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 2. [ ] Memorize vendor details
 3. [ ] Ensure vendor is assigned to the draft
 4. [ ] Resolve unit of measure for all lines
-5. [ ] Add PO matching tasks for all lines
-6. [ ] Resolve line accounts for unmatched lines
+5. [ ] Resolve line accounts for unmatched lines
+6. [ ] Add PO matching tasks for all lines
 7. [ ] Request pre-finalization review
 8. [ ] Finalize draft invoice
 
@@ -172,7 +172,7 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 </task>
 
 <task name="Resolve line accounts for unmatched lines">
-  After PO matching, check each draft line. **Skip any line that already has a Type and No. assigned** — these were matched by the system during Prepare Draft and should not be changed or re-evaluated. Only lines where the No. field is empty need to be resolved.
+  Before PO matching, check each draft line. **Skip any line that already has a Type and No. assigned** — these were matched by the system during Prepare Draft and should not be changed or re-evaluated. Only lines where the No. field is empty need to be resolved.
 
   If all lines already have a No. assigned, mark this task as complete immediately without navigating to any lookup pages.
 
