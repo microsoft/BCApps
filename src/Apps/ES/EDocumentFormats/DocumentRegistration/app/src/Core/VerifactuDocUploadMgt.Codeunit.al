@@ -100,7 +100,7 @@ codeunit 10777 "Verifactu Doc. Upload Mgt."
         StatusCode := HttpResponse.HttpStatusCode;
         StatusDescription := HttpResponse.ReasonPhrase;
         if not (StatusCode in [200, 202]) then begin
-            Session.LogMessage('0000QWZ', StrSubstNo(CommunicationTelemetryErr, Format(StatusCode) + ' ' + StatusDescription), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt, 'SealCertificate', Format(IsSealCertificate));
+            Session.LogMessage('0000QWZ', StrSubstNo(CommunicationTelemetryErr, Format(StatusCode) + ' ' + StatusDescription), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameTxt, 'SealCertificate', Format(IsSealCertificate));
             if StatusCode in [401, 403] then
                 Session.LogSecurityAudit(FeatureNameTxt, SecurityOperationResult::Failure, StrSubstNo(SecurityAuditAEATUnauthorizedTxt, StatusCode, RequestType), AuditCategory::Authentication);
             ErrorText := StrSubstNo(CommunicationErr, Format(StatusCode) + ' ' + StatusDescription);
