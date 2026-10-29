@@ -1,7 +1,6 @@
 namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Finance.GeneralLedger.Preview;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Posting;
@@ -9,6 +8,8 @@ using Microsoft.Sales.Receivables;
 
 codeunit 12280 "FatturaPA Preview Collector"
 {
+    Access = Internal;
+
     procedure Collect(
         SalesHeader: Record "Sales Header";
         var TempVATEntry: Record "VAT Entry" temporary;
@@ -92,5 +93,5 @@ codeunit 12280 "FatturaPA Preview Collector"
     end;
 
     var
-        PostingPreviewFailedErr: Label 'Standard posting preview failed. %1';
+        PostingPreviewFailedErr: Label 'Standard posting preview failed. %1', Comment = '%1 = posting preview error text';
 }
