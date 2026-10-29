@@ -52,6 +52,7 @@ codeunit 18631 "Calc Normal Depreciation"
         else
             exit(false);
 
+        FiscalYearStartDate := FADateCalcSubscriber.GetFiscalYearStartDateInc(FADepBook."Depreciation Starting Date");
         DaysPutToUse := TillDate - FADepBook."Depreciation Starting Date" + 1;
         exit(
             (DaysPutToUse < ThresholdDays) and
