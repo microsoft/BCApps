@@ -1453,9 +1453,9 @@ codeunit 134195 "ERM Multiple Posting Groups"
         LibraryERM.FindEmployeeLedgerEntry(EmployeeLedgerEntry, DocumentType, DocumentNo);
         LibraryERM.SetApplyEmployeeEntry(EmployeeLedgerEntry, AmountToApply);
         LibraryERM.FindEmployeeLedgerEntry(EmployeeLedgerEntry2, DocumentType2, DocumentNo2);
+        EmployeeLedgerEntry2.SetAutoCalcFields("Remaining Amount");
         EmployeeLedgerEntry2.FindSet();
         repeat
-            EmployeeLedgerEntry2.CalcFields("Remaining Amount");
             EmployeeLedgerEntry2.Validate("Amount to Apply", EmployeeLedgerEntry2."Remaining Amount");
             EmployeeLedgerEntry2.Modify(true);
         until EmployeeLedgerEntry2.Next() = 0;
