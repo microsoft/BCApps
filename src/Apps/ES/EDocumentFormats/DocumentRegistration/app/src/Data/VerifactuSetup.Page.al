@@ -61,6 +61,16 @@ page 10777 "Verifactu Setup"
                     begin
                         UpdateCertificateType();
                     end;
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
+                    begin
+                        // Same as the table field lookup, which assigns the code without validation, but also refreshes the certificate type.
+                        DocRegistrationCertMgt.LookupCertificate(Rec."Certificate Code");
+                        UpdateCertificateType();
+                        exit(false);
+                    end;
                 }
                 field(CertificateType; CertificateTypeText)
                 {
