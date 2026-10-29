@@ -1,9 +1,9 @@
 {
     "id": "46efa2e4-0567-4657-82a2-48ae2d905d7c",
-    "name": "Microsoft Fabric Mirroring Tests",
+    "name": "Business Central Mirroring to Fabric Tests",
     "publisher": "Microsoft",
-    "brief": "Test extension for Microsoft Fabric Mirroring.",
-    "description": "AL test codeunits for the Microsoft Fabric Mirroring app.",
+    "brief": "Test extension for Business Central Mirroring to Fabric.",
+    "description": "AL test codeunits for the Business Central Mirroring to Fabric app.",
     "version": "30.0.0.0",
     "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
     "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -15,7 +15,7 @@
         {
             "id": "11c0c133-baf4-4e23-8e14-4ba647f86804",
             "publisher": "Microsoft",
-            "name": "Microsoft Fabric Mirroring",
+            "name": "Business Central Mirroring to Fabric (preview)",
             "version": "30.0.0.0"
         },
         {

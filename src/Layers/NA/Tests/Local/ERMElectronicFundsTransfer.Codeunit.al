@@ -3090,6 +3090,57 @@
         LibraryReportDataset.AssertElementWithValueNotExist('Text004', 'Unapplied Amount');
     end;
 
+    [Test]
+    [HandlerFunctions('ExportElectronicPaymentsWordLayoutRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure ExportPaymentJournalSortedByDocumentNo()
+    var
+        BankAccount: Record "Bank Account";
+        GenJournalLine: Record "Gen. Journal Line";
+        EFTExport: Record "EFT Export";
+        ERMElectronicFundsTransfer: Codeunit "ERM Electronic Funds Transfer";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
+        BulkVendorRemitReporting: Codeunit "Bulk Vendor Remit Reporting";
+        LastRemittanceAdviceNo: Code[20];
+    begin
+        // [SCENARIO 654023] Exporting payment journal lines sorted by "Document No." assigns one remittance advice no. per line
+        Initialize();
+
+        // [GIVEN] The test client type is set to Web and subscriptions are bound.
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Web);
+        BindSubscription(TestClientTypeSubscriber);
+        BindSubscription(ERMElectronicFundsTransfer);
+
+        // [GIVEN] 2 electronic payment journal lines
+        CreateExportReportSelection(Layout::Word);
+        CreateElectronicMultiplePaymentJournals(GenJournalLine);
+
+        // [GIVEN] Bank account "Last Remittance Advice No." sorts after the "Document No." of the journal lines
+        BankAccount.Get(GenJournalLine."Bal. Account No.");
+        LastRemittanceAdviceNo := CopyStr('ZZ' + LibraryUtility.GenerateGUID(), 1, MaxStrLen(LastRemittanceAdviceNo));
+        BankAccount."Last Remittance Advice No." := LastRemittanceAdviceNo;
+        BankAccount.Modify();
+        Commit();
+
+        // [GIVEN] Journal lines are sorted by "Document No."
+        GenJournalLine.Reset();
+        GenJournalLine.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+        GenJournalLine.SetCurrentKey("Document No.");
+
+        // [WHEN] Export the payment journal lines
+        BulkVendorRemitReporting.RunWithRecord(GenJournalLine);
+
+        // [THEN] 2 EFT Export records are created
+        EFTExport.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
+        EFTExport.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+        Assert.RecordCount(EFTExport, 2);
+
+        // [THEN] "Last Remittance Advice No." is incremented once per line
+        BankAccount.Get(BankAccount."No.");
+        BankAccount.TestField("Last Remittance Advice No.", IncStr(IncStr(LastRemittanceAdviceNo)));
+    end;
+
     local procedure Initialize()
     var
         EFTExport: Record "EFT Export";

@@ -14,8 +14,8 @@ codeunit 148006 "Library - EET CZL"
         EETBusinessPremisesCZL.Validate(Code, LibraryUtility.GenerateRandomCode(EETBusinessPremisesCZL.FieldNo(Code), DATABASE::"EET Business Premises CZL"));
         EETBusinessPremisesCZL.Insert(true);
 
-        EETBusinessPremisesCZL.Description := EETBusinessPremisesCZL.Code;
-        EETBusinessPremisesCZL.Identification := Identification2;
+        EETBusinessPremisesCZL."Extended Description" := EETBusinessPremisesCZL.Code;
+        EETBusinessPremisesCZL."Unit ID" := Identification2;
         EETBusinessPremisesCZL.Modify(true);
     end;
 
@@ -67,7 +67,7 @@ codeunit 148006 "Library - EET CZL"
         if not EETServiceSetupCZL.Get() then
             CreateEETServiceSetup(EETServiceSetupCZL);
 
-        EETServiceSetupCZL.Validate("Certificate Code", CertificateCode);
+        EETServiceSetupCZL.Validate("Taxpayer Certificate Code", CertificateCode);
         EETServiceSetupCZL.Modify();
     end;
 }
