@@ -245,10 +245,10 @@ page 7000065 "Posted Payment Orders Select."
 
                     trigger OnAction()
                     begin
-                        CurrPage.SetSelectionFilter(PostedPmtOrd2);
-                        if not PostedPmtOrd2.Find('=><') then
+                        CurrPage.SetSelectionFilter(SelectedPostedPaymentOrder);
+                        if not SelectedPostedPaymentOrder.Find('=><') then
                             exit;
-                        REPORT.RunModal(Report::"Batch Settl. Posted POs", true, false, PostedPmtOrd2);
+                        REPORT.RunModal(Report::"Batch Settl. Posted POs", true, false, SelectedPostedPaymentOrder);
                         UpdateStatistics();
                         CurrPage.Update(false);
                     end;
@@ -310,17 +310,19 @@ page 7000065 "Posted Payment Orders Select."
     trigger OnOpenPage()
     begin
         Rec.SetCurrentKey("Bank Account No.", "Posting Date", "Currency Code");
+#pragma warning disable AA0139
         CurrCodeFilter := Rec.GetFilter("Currency Code");
         BankAccFilter := Rec.GetFilter("Bank Account No.");
+#pragma warning restore AA0139
         UpdateStatistics();
     end;
 
     var
         PostedPmtOrd: Record "Posted Payment Order";
-        PostedPmtOrd2: Record "Posted Payment Order";
+        SelectedPostedPaymentOrder: Record "Posted Payment Order";
         Navigate: Page Navigate;
         CurrTotalAmountLCY: Decimal;
-        ShowCurrent: Boolean;
+        HasCurrentAmount: Boolean;
         CurrCodeFilter: Code[250];
         BankAccFilter: Code[250];
         CurrTotalAmountVisible: Boolean;
@@ -330,7 +332,7 @@ page 7000065 "Posted Payment Orders Select."
     begin
         PostedPmtOrd.Copy(Rec);
         CurrTotalAmountLCY := 0;
-        UpdateStatistics2(PostedPmtOrd, CurrTotalAmountLCY, ShowCurrent);
+        UpdateStatistics2(PostedPmtOrd, CurrTotalAmountLCY, HasCurrentAmount);
         CurrTotalAmountVisible := true;
     end;
 
@@ -339,7 +341,10 @@ page 7000065 "Posted Payment Orders Select."
         CurrPage.SetSelectionFilter(NewPostedPmtOrd);
     end;
 
+    // Preserve the published parameter name for compatibility.
+#pragma warning disable AA0245
     procedure UpdateStatistics2(var PostedPmtOrd2: Record "Posted Payment Order"; var CurrTotalAmount: Decimal; var ShowCurrent: Boolean)
+#pragma warning restore AA0245
     begin
         PostedPmtOrd2.SetCurrentKey("Bank Account No.", "Posting Date", "Currency Code");
         if PostedPmtOrd2.Find('-') then;
@@ -373,9 +378,11 @@ page 7000065 "Posted Payment Orders Select."
     var
         FilterTokens: Codeunit "Filter Tokens";
     begin
+#pragma warning disable AA0139
         FilterTokens.MakeDateFilter(DueDateFilter);
         Rec.SetFilter("Due Date Filter", DueDateFilter);
         DueDateFilter := Rec.GetFilter("Due Date Filter");
+#pragma warning restore AA0139
         CurrPage.Update(false);
         UpdateStatistics();
         Rec.SetFilter(Amount, '<>0');

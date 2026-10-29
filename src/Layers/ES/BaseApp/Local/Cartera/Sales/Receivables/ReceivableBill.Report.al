@@ -28,7 +28,7 @@ report 7000003 "Receivable Bill"
             column(BillNo_CustLedgEntry; "Bill No.")
             {
             }
-            column(DrawCity; DrawCity)
+            column(DrawCity; BillDrawCity)
             {
             }
             column(PrintAmt; PrintAmt)
@@ -39,7 +39,7 @@ report 7000003 "Receivable Bill"
             column(CurrencyCode; CurrencyCode)
             {
             }
-            column(DrawDate; Format(DrawDate))
+            column(DrawDate; Format(BillDrawDate))
             {
             }
             column(DueDate_CustLedgEntry; Format("Due Date"))
@@ -123,7 +123,7 @@ report 7000003 "Receivable Bill"
                 GLSetup.Get();
 
                 CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
-                if PrintAmountsInLCY then begin
+                if ShowAmountsInLCY then begin
                     FormatNoText(NumberText, "Remaining Amt. (LCY)");
                     CurrencyCode := GLSetup."LCY Code";
                 end else begin
@@ -143,7 +143,7 @@ report 7000003 "Receivable Bill"
                             CollectionAgent := Doc."Collection Agent";
                             AccountNo := Doc."Account No.";
                             if CustBankAcc.Get(AccountNo, Doc."Cust./Vendor Bank Acc. Code") then;
-                            if PrintAmountsInLCY then
+                            if ShowAmountsInLCY then
                                 PrintAmt := CustLedgEntry."Remaining Amt. (LCY)"
                             else
                                 PrintAmt := CustLedgEntry."Remaining Amount";
@@ -160,7 +160,7 @@ report 7000003 "Receivable Bill"
                             AccountNo := PostedDoc."Account No.";
                             if CustBankAcc.Get(AccountNo, PostedDoc."Cust./Vendor Bank Acc. Code") then;
                             PostedBillGr.Get(PostedDoc."Bill Gr./Pmt. Order No.");
-                            if PrintAmountsInLCY then
+                            if ShowAmountsInLCY then
                                 PrintAmt := PostedDoc."Amt. for Collection (LCY)"
                             else
                                 PrintAmt := PostedDoc."Amount for Collection";
@@ -169,11 +169,11 @@ report 7000003 "Receivable Bill"
                         end;
                 end;
 
-                if DrawDate = 0D then
+                if BillDrawDate = 0D then
                     if GroupPostingDate <> 0D then
-                        DrawDate := GroupPostingDate
+                        BillDrawDate := GroupPostingDate
                     else
-                        DrawDate := WorkDate();
+                        BillDrawDate := WorkDate();
 
                 Customer.Get(AccountNo);
                 FormatAddress.Customer(CustAddr, Customer);
@@ -194,19 +194,19 @@ report 7000003 "Receivable Bill"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(DrawDate; DrawDate)
+                    field(DrawDate; BillDrawDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Date of Drawing';
                         ToolTip = 'Specifies the creation date that will be printed on the bill. By default, the programs uses today''s date as the drawing date.';
                     }
-                    field(DrawCity; DrawCity)
+                    field(DrawCity; BillDrawCity)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'City of Drawing';
                         ToolTip = 'Specifies the city where your company is located. By default, the city defined in the Company Information window is used.';
                     }
-                    field(PrintAmountsInLCY; PrintAmountsInLCY)
+                    field(PrintAmountsInLCY; ShowAmountsInLCY)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Show Amounts in LCY';
@@ -223,9 +223,9 @@ report 7000003 "Receivable Bill"
         trigger OnOpenPage()
         begin
             CompanyInfo.Get();
-            DrawCity := CompanyInfo.City;
+            BillDrawCity := CompanyInfo.City;
 
-            DrawDate := WorkDate();
+            BillDrawDate := WorkDate();
         end;
     }
 
@@ -317,9 +317,9 @@ report 7000003 "Receivable Bill"
         AccountNo: Code[20];
         GroupPostingDate: Date;
         CurrencyTxt: Text[250];
-        DrawCity: Text[30];
-        DrawDate: Date;
-        PrintAmountsInLCY: Boolean;
+        BillDrawCity: Text[30];
+        BillDrawDate: Date;
+        ShowAmountsInLCY: Boolean;
         PrintAmt: Decimal;
         CurrencyCode: Code[10];
         NumberText: array[2] of Text[80];
@@ -330,7 +330,7 @@ report 7000003 "Receivable Bill"
         HundThousands: Integer;
         TenThousands: Integer;
         UnitsThousands: Integer;
-        Units: Integer;
+        UnitsDigit: Integer;
         DecimalPlaces: Integer;
         DecimalText: array[2] of Text[80];
         DecimalString: Text[15];
@@ -345,7 +345,7 @@ report 7000003 "Receivable Bill"
     [Scope('OnPrem')]
     procedure GetCurrencyCode(): Code[10]
     begin
-        if PrintAmountsInLCY then
+        if ShowAmountsInLCY then
             exit('');
 
         case CustLedgEntry."Document Situation" of
@@ -387,7 +387,7 @@ report 7000003 "Receivable Bill"
         Hundreds := Remainder div 100;
         Remainder := Remainder mod 100;
         Tens := Remainder div 10;
-        Units := Remainder mod 10;
+        UnitsDigit := Remainder mod 10;
         DecimalPlaces := StrLen(Format(No, 0, Text1100003Lbl));
         if DecimalPlaces > 0 then begin
             DecimalPlaces := DecimalPlaces - 1;
@@ -396,12 +396,14 @@ report 7000003 "Receivable Bill"
                 Decimals := Decimals * 10;
             DecimalString := TextNoDecimals(DecimalPlaces);
         end;
+#pragma warning disable AA0139
         AddToNoText(NoText, NoTextIndex, TextHundMilion(HundMilion, TenMilion, UnitsMilion, true));
         AddToNoText(NoText, NoTextIndex, TextTenUnitsMilion(HundMilion, TenMilion, UnitsMilion, true));
         AddToNoText(NoText, NoTextIndex, TextHundThousands(HundThousands, TenThousands, UnitsThousands, false));
         AddToNoText(NoText, NoTextIndex, TextTenUnitsThousands(HundThousands, TenThousands, UnitsThousands, false));
-        AddToNoText(NoText, NoTextIndex, TextHundreds(Hundreds, Tens, Units, false));
-        AddToNoText(NoText, NoTextIndex, TextTensUnits(Tens, Units, false));
+        AddToNoText(NoText, NoTextIndex, TextHundreds(Hundreds, Tens, UnitsDigit, false));
+        AddToNoText(NoText, NoTextIndex, TextTensUnits(Tens, UnitsDigit, false));
+#pragma warning restore AA0139
         if DecimalPlaces > 0 then begin
             FormatNoText(DecimalText, Decimals);
             AddToNoText(
@@ -425,7 +427,9 @@ report 7000003 "Receivable Bill"
         if (Hundreds = 0) and (Ten = 0) and (Units = 1) then
             exit(Text1100006Lbl);
         if (Ten <> 0) or (Units <> 0) then
+#pragma warning disable AA0139
             exit(TextTensUnits(Ten, Units, Masc) + Text1100005Lbl);
+#pragma warning restore AA0139
     end;
 
     [Scope('OnPrem')]
@@ -443,7 +447,9 @@ report 7000003 "Receivable Bill"
         if (Hundreds = 0) and (Ten = 0) and (Units = 1) then
             exit(Text1100007Lbl);
         if (Ten <> 0) or (Units <> 0) then
+#pragma warning disable AA0139
             exit(TextTensUnits(Ten, Units, Masc) + Text1100007Lbl);
+#pragma warning restore AA0139
     end;
 
     [Scope('OnPrem')]
@@ -522,48 +528,66 @@ report 7000003 "Receivable Bill"
                     5:
                         exit(Text1100031Lbl);
                     else
+#pragma warning disable AA0139
                         exit(Text1100032Lbl + TextUnits(Units, Masc));
+#pragma warning restore AA0139
                 end;
             2:
                 if Units = 0 then
                     exit(Text1100033Lbl)
                 else
+#pragma warning disable AA0139
                     exit(Text1100034Lbl + TextUnits(Units, Masc));
+#pragma warning restore AA0139
             3:
                 if Units = 0 then
                     exit(Text1100035Lbl)
                 else
+#pragma warning disable AA0139
                     exit(Text1100036Lbl + TextUnits(Units, Masc));
+#pragma warning restore AA0139
             4:
                 if Units = 0 then
                     exit(Text1100037Lbl)
                 else
+#pragma warning disable AA0139
                     exit(Text1100038Lbl + TextUnits(Units, Masc));
+#pragma warning restore AA0139
             5:
                 if Units = 0 then
                     exit(Text1100039Lbl)
                 else
+#pragma warning disable AA0139
                     exit(Text1100040Lbl + TextUnits(Units, Masc));
+#pragma warning restore AA0139
             6:
                 if Units = 0 then
                     exit(Text1100041Lbl)
                 else
+#pragma warning disable AA0139
                     exit(Text1100042Lbl + TextUnits(Units, Masc));
+#pragma warning restore AA0139
             7:
                 if Units = 0 then
                     exit(Text1100043Lbl)
                 else
+#pragma warning disable AA0139
                     exit(Text1100044Lbl + TextUnits(Units, Masc));
+#pragma warning restore AA0139
             8:
                 if Units = 0 then
                     exit(Text1100045Lbl)
                 else
+#pragma warning disable AA0139
                     exit(Text1100046Lbl + TextUnits(Units, Masc));
+#pragma warning restore AA0139
             9:
                 if Units = 0 then
                     exit(Text1100047Lbl)
                 else
+#pragma warning disable AA0139
                     exit(Text1100048Lbl + TextUnits(Units, Masc));
+#pragma warning restore AA0139
         end;
     end;
 
@@ -636,7 +660,9 @@ report 7000003 "Receivable Bill"
                 Error(Text1100067Lbl, AddText);
         end;
 
+#pragma warning disable AA0139
         NoText[NoTextIndex] := DelChr(NoText[NoTextIndex] + AddText, '<');
+#pragma warning restore AA0139
     end;
 }
 

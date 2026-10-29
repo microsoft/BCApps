@@ -96,7 +96,7 @@ report 7000012 "Closed Payment Order Listing"
                     column(ClosedPmtOrd__Currency_Code_; ClosedPmtOrd."Currency Code")
                     {
                     }
-                    column(PrintAmountsInLCY; PrintAmountsInLCY)
+                    column(PrintAmountsInLCY; ShowAmountsInLCY)
                     {
                     }
                     column(OutputNo; OutputNo)
@@ -283,7 +283,7 @@ report 7000012 "Closed Payment Order Listing"
                         trigger OnAfterGetRecord()
                         begin
                             Vendor.Get("Account No.");
-                            if PrintAmountsInLCY then
+                            if ShowAmountsInLCY then
                                 AmtForCollection := "Amt. for Collection (LCY)"
                             else
                                 AmtForCollection := "Amount for Collection";
@@ -305,7 +305,7 @@ report 7000012 "Closed Payment Order Listing"
 
                 trigger OnPreDataItem()
                 begin
-                    NoOfLoops := Abs(NoOfCopies) + 1;
+                    NoOfLoops := Abs(NumberOfCopies) + 1;
                     CopyText := '';
                     SetRange(Number, 1, NoOfLoops);
 
@@ -340,13 +340,13 @@ report 7000012 "Closed Payment Order Listing"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(NoOfCopies; NoOfCopies)
+                    field(NoOfCopies; NumberOfCopies)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'No. of Copies';
                         ToolTip = 'Specifies how many copies of the document to print.';
                     }
-                    field(PrintAmountsInLCY; PrintAmountsInLCY)
+                    field(PrintAmountsInLCY; ShowAmountsInLCY)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Show amounts in LCY';
@@ -375,9 +375,9 @@ report 7000012 "Closed Payment Order Listing"
         BankAccAddr: array[8] of Text[100];
         CompanyAddr: array[8] of Text[100];
         NoOfLoops: Integer;
-        NoOfCopies: Integer;
+        NumberOfCopies: Integer;
         CopyText: Text[30];
-        PrintAmountsInLCY: Boolean;
+        ShowAmountsInLCY: Boolean;
         AmtForCollection: Decimal;
         OutputNo: Integer;
         ClosedPmtOrd__No__CaptionLbl: Label 'Payment Order No.';
@@ -406,7 +406,7 @@ report 7000012 "Closed Payment Order Listing"
     [Scope('OnPrem')]
     procedure GetCurrencyCode(): Code[10]
     begin
-        if PrintAmountsInLCY then
+        if ShowAmountsInLCY then
             exit('');
 
         exit(ClosedDoc."Currency Code");

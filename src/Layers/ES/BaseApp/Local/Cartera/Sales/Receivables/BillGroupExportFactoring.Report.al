@@ -56,7 +56,9 @@ report 7000089 "Bill group - Export factoring"
                         RmgAmount := FormatNumber(Round("Remaining Amount" * 100, 1), 15);
 
                         TotalAmount := TotalAmount + "Remaining Amount";
+#pragma warning disable AA0139
                         CustPostCode := DelStr(Customer."Post Code", 1, StrPos(Customer."Post Code", '-'));
+#pragma warning restore AA0139
 
                         GetCurrencyCode("Cartera Doc.", CurrCode);
 
@@ -124,12 +126,14 @@ report 7000089 "Bill group - Export factoring"
                 if SilentMode then
                     FileManagement.CopyServerFile(ExternalFile, SilentModeFile, true)
                 else
+#pragma warning disable AA0139
                     Download(ExternalFile, '', 'C:', FilterLbl, ToFile);
+#pragma warning restore AA0139
             end;
 
             trigger OnPreDataItem()
             begin
-                if BankSuffix = '' then
+                if ExportBankSuffix = '' then
                     Error(Text1100000Lbl);
 
                 if not DocMisc.CheckBankSuffix(BankSuffixBankAcc, "Bank Account No.") then
@@ -141,7 +145,9 @@ report 7000089 "Bill group - Export factoring"
                     then
                         Error(Text1100003Lbl);
 
-                OutText := '03' + PadStr(BankSuffix, 5, '0') + NameCompany + Format(DeliveryDate, 0, Text1100004Lbl) + PadStr('', 189, ' ');
+#pragma warning disable AA0139
+                OutText := '03' + PadStr(ExportBankSuffix, 5, '0') + NameCompany + Format(ExportDeliveryDate, 0, Text1100004Lbl) + PadStr('', 189, ' ');
+#pragma warning restore AA0139
                 OutFile.Write(OutText);
             end;
         }
@@ -158,13 +164,13 @@ report 7000089 "Bill group - Export factoring"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(DeliveryDate; DeliveryDate)
+                    field(DeliveryDate; ExportDeliveryDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Delivery date';
                         ToolTip = 'Specifies a number to identify the operations declaration.';
                     }
-                    field(BankSuffix; BankSuffix)
+                    field(BankSuffix; ExportBankSuffix)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Suffix';
@@ -182,8 +188,10 @@ report 7000089 "Bill group - Export factoring"
                             Suffixes.Editable(false);
                             if Suffixes.RunModal() = ACTION::LookupOK then begin
                                 Suffixes.GetRecord(Suffix);
+#pragma warning disable AA0139
                                 BankSuffixBankAcc := Suffix."Bank Acc. Code";
-                                BankSuffix := Suffix.Suffix;
+#pragma warning restore AA0139
+                                ExportBankSuffix := Suffix.Suffix;
                             end;
                         end;
                     }
@@ -199,8 +207,8 @@ report 7000089 "Bill group - Export factoring"
         begin
             if ExternalFile = '' then
                 ExternalFile := 'C:\' + Text10702Lbl;
-            if DeliveryDate = 0D then
-                DeliveryDate := Today;
+            if ExportDeliveryDate = 0D then
+                ExportDeliveryDate := Today;
             "Bill Group".SetFilter(Factoring, '<>%1', "Bill Group".Factoring::" ");
         end;
     }
@@ -223,7 +231,9 @@ report 7000089 "Bill group - Export factoring"
     begin
         OutFile.TextMode := true;
         OutFile.WriteMode := true;
+#pragma warning disable AA0139
         ExternalFile := FileMgt.ServerTempFileName('');
+#pragma warning restore AA0139
         ToFile := Text10702Lbl;
         OutFile.Create(ExternalFile);
     end;
@@ -259,7 +269,7 @@ report 7000089 "Bill group - Export factoring"
         TotalDocCust: Integer;
         TotalAmount: Decimal;
         OutText: Text[250];
-        DeliveryDate: Date;
+        ExportDeliveryDate: Date;
         DocType: Text[2];
         RmgAmount: Text[15];
         NameCompany: Text[100];
@@ -268,7 +278,7 @@ report 7000089 "Bill group - Export factoring"
         CustPostCode: Text[5];
         CurrCode: Text[3];
         BankSuffixBankAcc: Code[10];
-        BankSuffix: Code[3];
+        ExportBankSuffix: Code[3];
         ToFile: Text[1024];
         FilterLbl: Label 'ASC Files (*.asc)|*.asc|All Files (*.*)|*.*';
         Text10702Lbl: Label 'FACTORING.ASC';
@@ -297,7 +307,9 @@ report 7000089 "Bill group - Export factoring"
 
     local procedure FormatNumber(Number: Decimal; Length: Integer): Text[15]
     begin
+#pragma warning disable AA0139
         exit(ConvertStr(Format(Number, Length, '<Integer>'), ' ', '0'));
+#pragma warning restore AA0139
     end;
 }
 

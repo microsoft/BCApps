@@ -73,8 +73,10 @@ page 35290 "Rec. Docs Analysis Fact Box"
 
     trigger OnOpenPage()
     begin
+#pragma warning disable AA0139
         CategoryFilter := Rec.GetFilter("Category Code");
         CurrencyFilter := Rec.GetFilter("Currency Code");
+#pragma warning restore AA0139
         UpdateStatistics();
     end;
 

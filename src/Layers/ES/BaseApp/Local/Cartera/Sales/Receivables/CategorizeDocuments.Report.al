@@ -21,7 +21,7 @@ report 7000095 "Categorize Documents"
 
             trigger OnPreDataItem()
             begin
-                ModifyAll("Category Code", CategoryCode);
+                ModifyAll("Category Code", DocumentCategoryCode);
                 CurrReport.Break();
             end;
         }
@@ -37,7 +37,7 @@ report 7000095 "Categorize Documents"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(CategoryCode; CategoryCode)
+                    field(CategoryCode; DocumentCategoryCode)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Category Code';
@@ -58,6 +58,6 @@ report 7000095 "Categorize Documents"
     }
 
     var
-        CategoryCode: Code[10];
+        DocumentCategoryCode: Code[10];
 }
 

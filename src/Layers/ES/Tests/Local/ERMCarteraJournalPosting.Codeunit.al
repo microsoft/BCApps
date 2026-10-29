@@ -482,8 +482,10 @@ codeunit 144013 "ERM Cartera Journal Posting"
     var
         PaymentMethod: Record "Payment Method";
     begin
+#pragma warning disable AA0210
         PaymentMethod.SetRange("Create Bills", CreateBills);
         PaymentMethod.SetRange("Invoices to Cartera", InvoicesToCartera);
+#pragma warning restore AA0210
         PaymentMethod.FindFirst();
         exit(PaymentMethod.Code);
     end;

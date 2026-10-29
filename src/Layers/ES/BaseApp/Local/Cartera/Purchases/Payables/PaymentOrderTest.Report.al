@@ -321,11 +321,11 @@ report 7000009 "Payment Order - Test"
                               "Entry No.");
 
                         if CheckOtherBanks then begin
-                            if DocPostBuffer.Find('+') then;
-                            DocPostBuffer."Entry No." := DocPostBuffer."Entry No." + 1;
-                            DocPostBuffer."No. of Days" := NoOfDays;
-                            DocPostBuffer.Amount := "Remaining Amt. (LCY)";
-                            DocPostBuffer.Insert();
+                            if TempDocPostBuffer.Find('+') then;
+                            TempDocPostBuffer."Entry No." := TempDocPostBuffer."Entry No." + 1;
+                            TempDocPostBuffer."No. of Days" := NoOfDays;
+                            TempDocPostBuffer.Amount := "Remaining Amt. (LCY)";
+                            TempDocPostBuffer.Insert();
                         end;
 
                         if VendPostingGr."Bills Account" = '' then
@@ -350,7 +350,7 @@ report 7000009 "Payment Order - Test"
 
                     trigger OnPreDataItem()
                     begin
-                        Clear(DocPostBuffer);
+                        Clear(TempDocPostBuffer);
 
                         if CalcExpenses then
                             FeeRange.InitPmtOrdCollExpenses(BankAcc2."Operation Fees Code", BankAcc2."Currency Code");
@@ -453,7 +453,7 @@ report 7000009 "Payment Order - Test"
                         if "No." = PmtOrd."Bank Account No." then
                             CurrReport.Skip();
 
-                        if not DocPostBuffer.Find('-') then
+                        if not TempDocPostBuffer.Find('-') then
                             CurrReport.Skip();
 
                         Clear(FeeRange);
@@ -464,9 +464,9 @@ report 7000009 "Payment Order - Test"
                             FeeRange.CalcCollExpensesAmt(
                               "Operation Fees Code",
                               "Currency Code",
-                              DocPostBuffer.Amount,
-                              DocPostBuffer."Entry No.");
-                        until DocPostBuffer.Next() = 0;
+                              TempDocPostBuffer.Amount,
+                              TempDocPostBuffer."Entry No.");
+                        until TempDocPostBuffer.Next() = 0;
                     end;
                 }
             }
@@ -560,9 +560,13 @@ report 7000009 "Payment Order - Test"
 
     trigger OnPreReport()
     begin
+#pragma warning disable AA0139
         PmtOrdFilter := PmtOrd.GetFilters();
+#pragma warning restore AA0139
         CheckOtherBanks := BankAcc.GetFilter("No.") <> '';
+#pragma warning disable AA0139
         BankAccNoFilter := BankAcc.GetFilter("No.");
+#pragma warning restore AA0139
     end;
 
     var
@@ -570,7 +574,7 @@ report 7000009 "Payment Order - Test"
         Vend: Record Vendor;
         VendLedgEntry: Record "Vendor Ledger Entry";
         VendPostingGr: Record "Vendor Posting Group";
-        DocPostBuffer: Record "Doc. Post. Buffer" temporary;
+        TempDocPostBuffer: Record "Doc. Post. Buffer" temporary;
         TempBGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
         FeeRange: Record "Fee Range";
         FormatAddress: Codeunit "Format Address";

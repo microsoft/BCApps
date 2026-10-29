@@ -106,6 +106,7 @@ table 7000005 "Bill Group"
                 end;
             end;
         }
+#pragma warning disable AA0232
         field(7; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -120,6 +121,7 @@ table 7000005 "Bill Group"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning restore AA0232
         field(8; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
@@ -414,7 +416,9 @@ table 7000005 "Bill Group"
     begin
         BillGr.Copy(Rec);
         CarteraReportSelection.SetRange(Usage, CarteraReportSelection.Usage::"Bill Group");
+#pragma warning disable AA0210
         CarteraReportSelection.SetFilter("Report ID", '<>0');
+#pragma warning restore AA0210
         CarteraReportSelection.Find('-');
         repeat
             REPORT.RunModal(CarteraReportSelection."Report ID", ShowRequestForm, false, BillGr);

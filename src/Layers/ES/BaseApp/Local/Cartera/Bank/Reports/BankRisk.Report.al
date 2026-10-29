@@ -32,7 +32,7 @@ report 7000005 "Bank - Risk"
             column(FORMAT_TODAY_0_4_; Format(Today, 0, 4))
             {
             }
-            column(PrintAmountsInLCY; PrintAmountsInLCY)
+            column(PrintAmountsInLCY; ShowAmountsInLCY)
             {
             }
             column(BankAcc_TABLECAPTION__________BankAccTableFilter; TableCaption + ': ' + BankAccTableFilter)
@@ -194,13 +194,13 @@ report 7000005 "Bank - Risk"
                 NonPostedDiscAmt := 0;
                 NonPostedDiscAmtLCY := 0;
 
-                if PrintAmountsInLCY then
+                if ShowAmountsInLCY then
                     CreditLimitForDiscLCY :=
                       CurrExchRate.ExchangeAmount("Credit Limit for Discount", "Currency Code", '', WorkDate());
                 BillGr.SetRange("Bank Account No.", "No.");
                 BillGr.SetRange("Dealing Type", DealingType::Discount);
                 if BillGr.FindSet() then
-                    if PrintAmountsInLCY then
+                    if ShowAmountsInLCY then
                         repeat
                             BillGr.CalcFields("Amount (LCY)");
                             NonPostedDiscAmtLCY := NonPostedDiscAmtLCY + BillGr."Amount (LCY)";
@@ -234,7 +234,7 @@ report 7000005 "Bank - Risk"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PrintAmountsInLCY; PrintAmountsInLCY)
+                    field(PrintAmountsInLCY; ShowAmountsInLCY)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Show amounts in LCY';
@@ -255,7 +255,9 @@ report 7000005 "Bank - Risk"
 
     trigger OnPreReport()
     begin
+#pragma warning disable AA0139
         BankAccTableFilter := BankAcc.GetFilters();
+#pragma warning restore AA0139
     end;
 
     var
@@ -264,7 +266,7 @@ report 7000005 "Bank - Risk"
         BankAccTableFilter: Code[250];
         NonPostedDiscAmt: Decimal;
         NonPostedDiscAmtLCY: Decimal;
-        PrintAmountsInLCY: Boolean;
+        ShowAmountsInLCY: Boolean;
         CreditLimitForDiscLCY: Decimal;
         DealingType: Option Collection,Discount;
         Bank___RiskCaptionLbl: Label 'Bank - Risk';

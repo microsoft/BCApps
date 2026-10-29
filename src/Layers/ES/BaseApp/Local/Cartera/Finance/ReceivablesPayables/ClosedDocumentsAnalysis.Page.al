@@ -157,7 +157,9 @@ page 7000044 "Closed Documents Analysis"
 
     trigger OnOpenPage()
     begin
+#pragma warning disable AA0139
         CurrencyFilter := Rec.GetFilter("Currency Code");
+#pragma warning restore AA0139
         UpdateStatistics();
     end;
 

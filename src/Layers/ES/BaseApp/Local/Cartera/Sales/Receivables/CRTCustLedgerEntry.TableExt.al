@@ -124,7 +124,9 @@ tableextension 7000089 "CRT Cust. Ledger Entry" extends "Cust. Ledger Entry"
     begin
         CustLedgEntry.Copy(Rec);
         CarteraReportSelection.SetRange(Usage, CarteraReportSelection.Usage::Bill);
+#pragma warning disable AA0210
         CarteraReportSelection.SetFilter("Report ID", '<>0');
+#pragma warning restore AA0210
         CarteraReportSelection.Find('-');
         repeat
             REPORT.RunModal(CarteraReportSelection."Report ID", ShowRequestForm, false, CustLedgEntry);

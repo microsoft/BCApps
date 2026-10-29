@@ -2667,7 +2667,9 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         // [GIVEN] Delete the line for Bill No = 2
         GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
         GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+#pragma warning disable AA0210
         GenJournalLine.SetRange("Applies-to Bill No.", '2');
+#pragma warning restore AA0210
         GenJournalLine.FindFirst();
         GenJournalLine.Delete(true);
 

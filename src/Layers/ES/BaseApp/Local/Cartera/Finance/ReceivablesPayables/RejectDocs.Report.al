@@ -63,7 +63,7 @@ report 7000097 "Reject Docs."
                     BankAcc.Get(PostedDoc."Bank Account No.");
                     BankAcc.TestField("Bank Acc. Posting Group");
                     BankAccPostingGr.Get(BankAcc."Bank Acc. Posting Group");
-                    if IncludeExpenses then begin
+                    if IncludeRejectionExpenses then begin
                         BankAcc.TestField("Operation Fees Code");
                         FeeRange.InitRejExpenses(
                           BankAcc."Operation Fees Code",
@@ -88,11 +88,11 @@ report 7000097 "Reject Docs."
                 if ArePostedDocs then begin
                     PostedDoc.Get(PostedDoc.Type::Receivable, "Entry No.");
                     PostedDoc.Status := PostedDoc.Status::Rejected;
-                    PostedDoc."Honored/Rejtd. at Date" := PostingDate;
+                    PostedDoc."Honored/Rejtd. at Date" := DocumentPostingDate;
                     PostedDoc.Modify();
                     "Document Status" := "Document Status"::Rejected;
                     Modify();
-                    if IncludeExpenses then
+                    if IncludeRejectionExpenses then
                         FeeRange.CalcRejExpensesAmt(
                           BankAcc."Operation Fees Code",
                           BankAcc."Currency Code",
@@ -100,9 +100,10 @@ report 7000097 "Reject Docs."
                           "Entry No.");
                 end else begin
                     Doc.Get(Doc.Type::Receivable, "Entry No.");
+                    ClosedDoc.Init();
                     ClosedDoc.TransferFields(Doc);
                     ClosedDoc.Status := ClosedDoc.Status::Rejected;
-                    ClosedDoc."Honored/Rejtd. at Date" := PostingDate;
+                    ClosedDoc."Honored/Rejtd. at Date" := DocumentPostingDate;
                     ClosedDoc."Bill Gr./Pmt. Order No." := '';
                     ClosedDoc."Remaining Amount" := Doc."Remaining Amount";
                     ClosedDoc."Remaining Amt. (LCY)" := Doc."Remaining Amt. (LCY)";
@@ -120,7 +121,7 @@ report 7000097 "Reject Docs."
                   "Remaining Amount",
                   "Remaining Amt. (LCY)",
                   EntryType::Rejection,
-                  PostingDate);
+                  DocumentPostingDate);
 
                 if GLSetup."Unrealized VAT" and
                    ExistsNoRealVAT and
@@ -129,7 +130,7 @@ report 7000097 "Reject Docs."
                     CarteraManagement.CustUnrealizedVAT2(
                       CustLedgEntry,
                       "Remaining Amt. (LCY)",
-                      GenJnlLine,
+                      TempGenJnlLine,
                       ExistVATEntry,
                       FirstVATEntryNo,
                       LastVATEntryNo,
@@ -143,12 +144,12 @@ report 7000097 "Reject Docs."
                     if TempNoRealVATBuffer.Find('-') then
                         repeat
                             InsertGenJournalLine(
-                              GenJnlLine."Account Type"::"G/L Account",
+                              TempGenJnlLine."Account Type"::"G/L Account",
                               TempNoRealVATBuffer.Account,
                               -TempNoRealVATBuffer.Amount,
                               "Dimension Set ID");
                             InsertGenJournalLine(
-                              GenJnlLine."Account Type"::"G/L Account",
+                              TempGenJnlLine."Account Type"::"G/L Account",
                               TempNoRealVATBuffer."Balance Account",
                               TempNoRealVATBuffer.Amount,
                               "Dimension Set ID");
@@ -157,23 +158,23 @@ report 7000097 "Reject Docs."
                     "Currency Code" := TempCurrCode;
                 end;
 
-                if IncludeExpenses and ArePostedDocs then begin
+                if IncludeRejectionExpenses and ArePostedDocs then begin
                     CurrDescription := Text1100006Lbl;
                     CurrDocNo := PostedBillGr."No.";
                     CurrDocNo2 := '';
-                    if (FeeRange.GetTotalRejExpensesAmt() <> 0) or (UseJournal = UseJournal::AuxJournal) then begin
+                    if (FeeRange.GetTotalRejExpensesAmt() <> 0) or (JournalPostingMode = JournalPostingMode::AuxJournal) then begin
                         BankAccPostingGr.TestField("Rejection Expenses Acc.");
                         NoRegs := FeeRange.NoRegRejExpenses();
                         for i := 0 to NoRegs - 1 do begin
                             FeeRange.GetRejExpensesAmt(MemIntReg, i);
                             Get(MemIntReg."Entry No.");
                             InsertGenJournalLine(
-                              GenJnlLine."Account Type"::"G/L Account",
+                              TempGenJnlLine."Account Type"::"G/L Account",
                               BankAccPostingGr."Rejection Expenses Acc.",
                               MemIntReg.Amount,
                               "Dimension Set ID");
                             InsertGenJournalLine(
-                              GenJnlLine."Account Type"::"Bank Account",
+                              TempGenJnlLine."Account Type"::"Bank Account",
                               BankAcc."No.",
                               -MemIntReg.Amount,
                               "Dimension Set ID");
@@ -192,17 +193,17 @@ report 7000097 "Reject Docs."
                 PostedDoc2: Record "Posted Cartera Doc.";
                 SkipMessage: Boolean;
             begin
-                if GenJnlLine.Find('-') then
+                if TempGenJnlLine.Find('-') then
                     repeat
                         if ArePostedDocs then begin
-                            PostedDoc2.SetRange("Document No.", GenJnlLine."Document No.");
+                            PostedDoc2.SetRange("Document No.", TempGenJnlLine."Document No.");
                             if PostedDoc2.Find('-') then
                                 repeat
                                     PostedBillGr.Get(PostedDoc2."Bill Gr./Pmt. Order No.");
-                                    DocPost.CloseBillGroupIfEmpty(PostedBillGr, PostingDate);
+                                    DocPost.CloseBillGroupIfEmpty(PostedBillGr, DocumentPostingDate);
                                 until PostedDoc2.Next() = 0;
                         end;
-                    until GenJnlLine.Next() = 0;
+                    until TempGenJnlLine.Next() = 0;
 
                 PostGenJournal();
                 if ExistVATEntry then begin
@@ -222,13 +223,13 @@ report 7000097 "Reject Docs."
 
             trigger OnPreDataItem()
             begin
-                DocPost.CheckPostingDate(PostingDate);
+                DocPost.CheckPostingDate(DocumentPostingDate);
 
                 Find('-');
                 ArePostedDocs := "Document Situation" = "Document Situation"::"Posted BG/PO";
 
-                if UseJournal = UseJournal::AuxJournal then begin
-                    GenJnlBatch.Get(TemplName, BatchName);
+                if JournalPostingMode = JournalPostingMode::AuxJournal then begin
+                    GenJnlBatch.Get(TemplName, JournalBatchName);
                     ReasonCode := GenJnlBatch."Reason Code";
                     GenJnlTemplate.Get(TemplName);
                     SourceCode := GenJnlTemplate."Source Code";
@@ -269,19 +270,19 @@ report 7000097 "Reject Docs."
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PostingDate; PostingDate)
+                    field(PostingDate; DocumentPostingDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Posting Date';
                         ToolTip = 'Specifies the posting date.';
                     }
-                    field(IncludeExpenses; IncludeExpenses)
+                    field(IncludeExpenses; IncludeRejectionExpenses)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Include Expenses';
                         ToolTip = 'Specifies if you want to include the expenses resulting from document rejections. If expenses are included, the amount will be calculated as it was defined under fees for the operation called Rejection Expenses.';
                     }
-                    field(UseJournal; UseJournal)
+                    field(UseJournal; JournalPostingMode)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Post';
@@ -290,8 +291,8 @@ report 7000097 "Reject Docs."
 
                         trigger OnValidate()
                         begin
-                            if UseJournal = UseJournal::Direct then begin
-                                BatchName := '';
+                            if JournalPostingMode = JournalPostingMode::Direct then begin
+                                JournalBatchName := '';
                                 TemplName := '';
                             end;
                         end;
@@ -310,13 +311,13 @@ report 7000097 "Reject Docs."
                             trigger OnValidate()
                             begin
                                 if TemplName = '' then
-                                    BatchName := ''
+                                    JournalBatchName := ''
                                 else
-                                    if UseJournal = UseJournal::Direct then
+                                    if JournalPostingMode = JournalPostingMode::Direct then
                                         Error(Text1100008Lbl);
                             end;
                         }
-                        field(BatchName; BatchName)
+                        field(BatchName; JournalBatchName)
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Batch Name';
@@ -331,13 +332,13 @@ report 7000097 "Reject Docs."
                                 if GenJnlBatch.Get(TemplName, Text) then;
                                 GenJnlBatch.SetRange("Journal Template Name", TemplName);
                                 if PAGE.RunModal(PAGE::"General Journal Batches", GenJnlBatch) = ACTION::LookupOK then
-                                    BatchName := GenJnlBatch.Name;
+                                    JournalBatchName := GenJnlBatch.Name;
                             end;
 
                             trigger OnValidate()
                             begin
                                 if TemplName = '' then
-                                    BatchName := '';
+                                    JournalBatchName := '';
                             end;
                         }
                     }
@@ -351,7 +352,7 @@ report 7000097 "Reject Docs."
 
         trigger OnOpenPage()
         begin
-            PostingDate := WorkDate();
+            DocumentPostingDate := WorkDate();
         end;
     }
 
@@ -361,12 +362,12 @@ report 7000097 "Reject Docs."
 
     trigger OnPreReport()
     begin
-        OnBeforeOnPreReport(PostingDate, IncludeExpenses, UseJournal, TemplName, BatchName);
+        OnBeforeOnPreReport(DocumentPostingDate, IncludeRejectionExpenses, JournalPostingMode, TemplName, JournalBatchName);
 
         GLSetup.Get();
 
-        if UseJournal = UseJournal::AuxJournal then begin
-            if not GenJnlBatch.Get(TemplName, BatchName) then
+        if JournalPostingMode = JournalPostingMode::AuxJournal then begin
+            if not GenJnlBatch.Get(TemplName, JournalBatchName) then
                 Error(Text1100000Lbl);
             ReasonCode := GenJnlBatch."Reason Code";
             GenJnlTemplate.Get(TemplName);
@@ -378,7 +379,7 @@ report 7000097 "Reject Docs."
         GenJnlTemplate: Record "Gen. Journal Template";
         GenJnlBatch: Record "Gen. Journal Batch";
         PostedBillGr: Record "Posted Bill Group";
-        GenJnlLine: Record "Gen. Journal Line" temporary;
+        TempGenJnlLine: Record "Gen. Journal Line" temporary;
         BankAcc: Record "Bank Account";
         SourceCodeSetup: Record "Source Code Setup";
         CustPostingGr: Record "Customer Posting Group";
@@ -408,15 +409,15 @@ report 7000097 "Reject Docs."
         Text1100007Lbl: Label '%1 documents have been rejected.', Comment = '%1 = Number of documents rejected';
         Text1100008Lbl: Label 'This field must be blank for Direct Posting.';
         Window: Dialog;
-        IncludeExpenses: Boolean;
-        PostingDate: Date;
+        IncludeRejectionExpenses: Boolean;
+        DocumentPostingDate: Date;
         PostingDate2: Date;
         TransactionNo: Integer;
         CurrDescription: Text[250];
         CurrDocNo: Code[20];
         CurrDocNo2: Code[20];
-        UseJournal: Option Direct,AuxJournal;
-        BatchName: Code[10];
+        JournalPostingMode: Option Direct,AuxJournal;
+        JournalBatchName: Code[10];
         TemplName: Code[10];
         Discount: Boolean;
         SourceCode: Code[10];
@@ -444,7 +445,7 @@ report 7000097 "Reject Docs."
         CustPostingGr.Get(CustLedgEntry."Customer Posting Group");
         CustPostingGr.TestField("Rejected Bills Acc.");
         InsertGenJournalLine(
-          GenJnlLine."Account Type"::"G/L Account",
+          TempGenJnlLine."Account Type"::"G/L Account",
           CustPostingGr."Rejected Bills Acc.",
           RemainingAmt,
           CustLedgEntry."Dimension Set ID");
@@ -460,7 +461,7 @@ report 7000097 "Reject Docs."
             CustPostingGr.TestField("Bills Account");
             BalanceAccNo := CustPostingGr."Bills Account";
         end;
-        OnAfterGetBillsBalanceAccNo(GenJnlLine, CustLedgEntry, BalanceAccNo);
+        OnAfterGetBillsBalanceAccNo(TempGenJnlLine, CustLedgEntry, BalanceAccNo);
 
         PostingDate2 := 0D;
         GainLossAmt := 0;
@@ -473,13 +474,13 @@ report 7000097 "Reject Docs."
 
             GainLossAmt := CarteraManagement.GetGainLoss(
                 PostingDate2,
-                PostingDate,
+                DocumentPostingDate,
                 RemainingAmt,
                 CustLedgEntry."Currency Code");
         end;
 
         InsertGenJournalLine(
-          GenJnlLine."Account Type"::"G/L Account",
+          TempGenJnlLine."Account Type"::"G/L Account",
           BalanceAccNo,
           -RemainingAmt,
           CustLedgEntry."Dimension Set ID");
@@ -490,20 +491,20 @@ report 7000097 "Reject Docs."
             if GainLossAmt > 0 then begin
                 Currency.TestField("Realized Gains Acc.");
                 InsertGenJournalLine(
-                  GenJnlLine."Account Type"::"G/L Account",
+                  TempGenJnlLine."Account Type"::"G/L Account",
                   Currency."Realized Gains Acc.",
                   -GainLossAmt,
                   CustLedgEntry."Dimension Set ID");
             end else begin
                 Currency.TestField("Realized Losses Acc.");
                 InsertGenJournalLine(
-                  GenJnlLine."Account Type"::"G/L Account",
+                  TempGenJnlLine."Account Type"::"G/L Account",
                   Currency."Realized Losses Acc.",
                   -GainLossAmt,
                   CustLedgEntry."Dimension Set ID");
             end;
             InsertGenJournalLine(
-              GenJnlLine."Account Type"::"G/L Account",
+              TempGenJnlLine."Account Type"::"G/L Account",
               BalanceAccNo,
               GainLossAmt,
               CustLedgEntry."Dimension Set ID");
@@ -514,13 +515,13 @@ report 7000097 "Reject Docs."
         if Discount then begin
             BankAccPostingGr.TestField("Liabs. for Disc. Bills Acc.");
             InsertGenJournalLine(
-              GenJnlLine."Account Type"::"G/L Account",
+              TempGenJnlLine."Account Type"::"G/L Account",
               BankAccPostingGr."Liabs. for Disc. Bills Acc.",
               RemainingAmt,
               CustLedgEntry."Dimension Set ID");
 
             InsertGenJournalLine(
-              GenJnlLine."Account Type"::"Bank Account",
+              TempGenJnlLine."Account Type"::"Bank Account",
               BankAcc."No.",
               -RemainingAmt,
               CustLedgEntry."Dimension Set ID");
@@ -545,14 +546,14 @@ report 7000097 "Reject Docs."
                 PostingDate2 := CarteraManagement.GetLastDate(CustLedgEntry."Currency Code", CustLedgEntry."Posting Date", Type::Receivable);
             GainLossAmt := CarteraManagement.GetGainLoss(
                 PostingDate2,
-                PostingDate,
+                DocumentPostingDate,
                 RemainingAmt,
                 CustLedgEntry."Currency Code");
         end;
 
         if ArePostedDocs then begin
             InsertGenJournalLine(
-              GenJnlLine."Account Type"::"G/L Account",
+              TempGenJnlLine."Account Type"::"G/L Account",
               CustPostingGr."Rejected Factoring Acc.",
               RemainingAmt,
               CustLedgEntry."Dimension Set ID");
@@ -565,7 +566,7 @@ report 7000097 "Reject Docs."
                     BalanceAccNo := CustPostingGr."Factoring for Collection Acc.";
                 end;
             InsertGenJournalLine(
-              GenJnlLine."Account Type"::"G/L Account",
+              TempGenJnlLine."Account Type"::"G/L Account",
               BalanceAccNo,
               -RemainingAmt,
               CustLedgEntry."Dimension Set ID");
@@ -577,20 +578,20 @@ report 7000097 "Reject Docs."
             if GainLossAmt > 0 then begin
                 Currency.TestField("Realized Gains Acc.");
                 InsertGenJournalLine(
-                  GenJnlLine."Account Type"::"G/L Account",
+                  TempGenJnlLine."Account Type"::"G/L Account",
                   Currency."Realized Gains Acc.",
                   -GainLossAmt,
                   CustLedgEntry."Dimension Set ID");
             end else begin
                 Currency.TestField("Realized Losses Acc.");
                 InsertGenJournalLine(
-                  GenJnlLine."Account Type"::"G/L Account",
+                  TempGenJnlLine."Account Type"::"G/L Account",
                   Currency."Realized Losses Acc.",
                   -GainLossAmt,
                   CustLedgEntry."Dimension Set ID");
             end;
             InsertGenJournalLine(
-              GenJnlLine."Account Type"::"G/L Account",
+              TempGenJnlLine."Account Type"::"G/L Account",
               BalanceAccNo,
               GainLossAmt,
               CustLedgEntry."Dimension Set ID");
@@ -601,13 +602,13 @@ report 7000097 "Reject Docs."
         if Discount then begin
             BankAccPostingGr.TestField("Liabs. for Factoring Acc.");
             InsertGenJournalLine(
-              GenJnlLine."Account Type"::"G/L Account",
+              TempGenJnlLine."Account Type"::"G/L Account",
               BankAccPostingGr."Liabs. for Factoring Acc.",
               DocPost.FindDisctdAmt(RemainingAmt, CustLedgEntry."Customer No.", BankAcc."No."),
               CustLedgEntry."Dimension Set ID");
 
             InsertGenJournalLine(
-              GenJnlLine."Account Type"::"Bank Account",
+              TempGenJnlLine."Account Type"::"Bank Account",
               BankAcc."No.",
               -DocPost.FindDisctdAmt(RemainingAmt, CustLedgEntry."Customer No.", BankAcc."No."),
               CustLedgEntry."Dimension Set ID");
@@ -618,69 +619,69 @@ report 7000097 "Reject Docs."
     begin
         GenJnlLineNextNo := GenJnlLineNextNo + 10000;
 
-        Clear(GenJnlLine);
-        GenJnlLine.Init();
-        GenJnlLine."Line No." := GenJnlLineNextNo;
-        GenJnlLine."Posting Date" := PostingDate;
-        if UseJournal = UseJournal::AuxJournal then begin
-            GenJnlLine."Journal Template Name" := TemplName;
-            GenJnlLine."Journal Batch Name" := BatchName;
+        Clear(TempGenJnlLine);
+        TempGenJnlLine.Init();
+        TempGenJnlLine."Line No." := GenJnlLineNextNo;
+        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+        if JournalPostingMode = JournalPostingMode::AuxJournal then begin
+            TempGenJnlLine."Journal Template Name" := TemplName;
+            TempGenJnlLine."Journal Batch Name" := JournalBatchName;
         end;
-        GenJnlLine."Document No." := CurrDocNo;
-        GenJnlLine."Bill No." := CurrDocNo2;
-        GenJnlLine.Validate("Account Type", AccType);
-        GenJnlLine.Validate("Account No.", AccNo);
-        GenJnlLine.Description := CopyStr(CurrDescription, 1, MaxStrLen(GenJnlLine.Description));
-        GenJnlLine.Validate("Currency Code", CustLedgEntry."Currency Code");
-        GenJnlLine.Validate(Amount, Amount2);
-        if AccType = GenJnlLine."Account Type"::"G/L Account" then begin
-            GenJnlLine."Source No." := CustLedgEntry."Customer No.";
-            GenJnlLine."Source Type" := GenJnlLine."Source Type"::Customer;
+        TempGenJnlLine."Document No." := CurrDocNo;
+        TempGenJnlLine."Bill No." := CurrDocNo2;
+        TempGenJnlLine.Validate("Account Type", AccType);
+        TempGenJnlLine.Validate("Account No.", AccNo);
+        TempGenJnlLine.Description := CopyStr(CurrDescription, 1, MaxStrLen(TempGenJnlLine.Description));
+        TempGenJnlLine.Validate("Currency Code", CustLedgEntry."Currency Code");
+        TempGenJnlLine.Validate(Amount, Amount2);
+        if AccType = TempGenJnlLine."Account Type"::"G/L Account" then begin
+            TempGenJnlLine."Source No." := CustLedgEntry."Customer No.";
+            TempGenJnlLine."Source Type" := TempGenJnlLine."Source Type"::Customer;
         end;
-        GenJnlLine."Source Code" := SourceCode;
-        GenJnlLine."Reason Code" := ReasonCode;
-        GenJnlLine."Dimension Set ID" :=
-          CarteraManagement.GetCombinedDimSetID(GenJnlLine, DimSetID);
-        if UseJournal = UseJournal::AuxJournal then
-            GenJnlLine."System-Created Entry" := false
+        TempGenJnlLine."Source Code" := SourceCode;
+        TempGenJnlLine."Reason Code" := ReasonCode;
+        TempGenJnlLine."Dimension Set ID" :=
+          CarteraManagement.GetCombinedDimSetID(TempGenJnlLine, DimSetID);
+        if JournalPostingMode = JournalPostingMode::AuxJournal then
+            TempGenJnlLine."System-Created Entry" := false
         else
-            GenJnlLine."System-Created Entry" := true;
-        GenJnlLine.Insert();
+            TempGenJnlLine."System-Created Entry" := true;
+        TempGenJnlLine.Insert();
     end;
 
     local procedure PostGenJournal()
     var
         GenJnlLine2: Record "Gen. Journal Line";
-        GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+        GenJnlPostLineForPosting: Codeunit "Gen. Jnl.-Post Line";
         LastLineNo: Integer;
     begin
-        OnBeforePostGenJournal(GenJnlLine, CustLedgEntry);
+        OnBeforePostGenJournal(TempGenJnlLine, CustLedgEntry);
         Window.Close();
 
-        if not GenJnlLine.Find('-') then
+        if not TempGenJnlLine.Find('-') then
             exit;
 
-        if UseJournal = UseJournal::AuxJournal then begin
+        if JournalPostingMode = JournalPostingMode::AuxJournal then begin
             GenJnlLine2.LockTable();
             GenJnlLine2.SetRange("Journal Template Name", TemplName);
-            GenJnlLine2.SetRange("Journal Batch Name", BatchName);
+            GenJnlLine2.SetRange("Journal Batch Name", JournalBatchName);
             if GenJnlLine2.FindLast() then begin
                 LastLineNo := GenJnlLine2."Line No.";
                 TransactionNo := GenJnlLine2."Transaction No." + 1;
             end;
             repeat
-                GenJnlLine2 := GenJnlLine;
+                GenJnlLine2 := TempGenJnlLine;
                 GenJnlLine2."Line No." := GenJnlLine2."Line No." + LastLineNo;
                 GenJnlLine2."Transaction No." := TransactionNo;
                 GenJnlLine2.Insert();
-            until GenJnlLine.Next() = 0;
+            until TempGenJnlLine.Next() = 0;
             Commit();
             GenJnlLine2.Reset();
             GenJnlTemplate.Get(TemplName);
             GenJnlLine2.FilterGroup := 2;
             GenJnlLine2.SetRange("Journal Template Name", TemplName);
             GenJnlLine2.FilterGroup := 0;
-            GenJnlManagement.SetName(BatchName, GenJnlLine2);
+            GenJnlManagement.SetName(JournalBatchName, GenJnlLine2);
             CarteraJnlForm.SetTableView(GenJnlLine2);
             CarteraJnlForm.SetRecord(GenJnlLine2);
             CarteraJnlForm.AllowClosing(true);
@@ -688,9 +689,9 @@ report 7000097 "Reject Docs."
         end
         else
             repeat
-                GenJnlLine2 := GenJnlLine;
-                GenJnlPostLine.RunWithCheck(GenJnlLine2);
-            until GenJnlLine.Next() = 0;
+                GenJnlLine2 := TempGenJnlLine;
+                GenJnlPostLineForPosting.RunWithCheck(GenJnlLine2);
+            until TempGenJnlLine.Next() = 0;
     end;
 
     [IntegrationEvent(false, false)]

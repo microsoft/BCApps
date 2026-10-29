@@ -74,6 +74,7 @@ table 7000022 "Closed Payment Order"
             FieldClass = FlowFilter;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
+#pragma warning disable AA0232
         field(16; "Amount Grouped"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -87,6 +88,7 @@ table 7000022 "Closed Payment Order"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning restore AA0232
         field(18; "Status Filter"; Enum "Cartera Document Status")
         {
             Caption = 'Status Filter';
@@ -162,7 +164,9 @@ table 7000022 "Closed Payment Order"
     begin
         ClosedPmtOrd.Copy(Rec);
         CarteraReportSelection.SetRange(Usage, CarteraReportSelection.Usage::"Closed Payment Order");
+#pragma warning disable AA0210
         CarteraReportSelection.SetFilter("Report ID", '<>0');
+#pragma warning restore AA0210
         CarteraReportSelection.Find('-');
         repeat
             REPORT.RunModal(CarteraReportSelection."Report ID", ShowRequestForm, false, ClosedPmtOrd);

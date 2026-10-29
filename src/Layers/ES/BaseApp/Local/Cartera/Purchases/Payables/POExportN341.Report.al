@@ -91,7 +91,7 @@ report 7000060 "PO - Export N34.1"
                     column(PayeeAddress_8_; PayeeAddress[8])
                     {
                     }
-                    column(STRSUBSTNO_Text1100003_PayeeCCC_VendBankAccCode__ExportAmount_; StrSubstNo(BankInfoLbl, PayeeCCC, VendBankAccCode, ExportAmount))
+                    column(STRSUBSTNO_Text1100003_PayeeCCC_VendBankAccCode__ExportAmount_; StrSubstNo(BankInfoLbl, PayeeCCC, '', ExportAmount))
                     {
                     }
                     column(ExportAmount; ExportAmount)
@@ -112,7 +112,7 @@ report 7000060 "PO - Export N34.1"
                     column(LastRemittanceAdvNo; LastRemittanceAdvNo)
                     {
                     }
-                    column(DeliveryDate; Format(DeliveryDate))
+                    column(DeliveryDate; Format(ExportDeliveryDate))
                     {
                     }
                     column(OutputNo; OutputNo)
@@ -217,7 +217,9 @@ report 7000060 "PO - Export N34.1"
 
                             if (CopyTxt = '') and not CurrReport.Preview then begin
                                 Vendor.Get("Account No.");
+#pragma warning disable AA0139
                                 VATRegVend := Vendor."VAT Registration No.";
+#pragma warning restore AA0139
                                 VATRegVend := VATRegVend + PadStr('', MaxStrLen(VATRegVend) - StrLen(VATRegVend), ' ');
 
                                 if (ActualTransferType <> "Transfer Type") and
@@ -235,7 +237,7 @@ report 7000060 "PO - Export N34.1"
                                         begin
                                             ActualTransferType := "Transfer Type"::National;
                                             ElectPmtMgmt.InsertDomesticTransferBlock(
-                                              DocType, PmtOrderConcept, ExpensesCode, VATRegVend,
+                                              DocType, PaymentOrderConcept, ExportExpensesCode, VATRegVend,
                                               ElectPmtMgmt.EuroAmount(ExportAmount), PayeeCCC, Vendor.Name);
                                             TotalDoc10Vend := TotalDoc10Vend + 1;
                                             TotalAmountNAC := TotalAmountNAC + ExportAmount;
@@ -244,7 +246,7 @@ report 7000060 "PO - Export N34.1"
                                         begin
                                             ActualTransferType := "Transfer Type"::International;
                                             ElectPmtMgmt.InsertInterTransferBlock(
-                                              PmtOrderConcept, ExpensesCode, ExpensesCodeValueInter, VATRegVend, IBAN,
+                                              PaymentOrderConcept, ExportExpensesCode, ShareInternationalExpenses, VATRegVend, IBAN,
                                               ElectPmtMgmt.EuroAmount(ExportAmount),
                                               Format(VendorBankAccount."Country/Region Code"), SwiftCode, Vendor.Name);
                                             TotalDoc33Vend := TotalDoc33Vend + 1;
@@ -258,12 +260,14 @@ report 7000060 "PO - Export N34.1"
                                 else
                                     DocumentType := DocumentType::Invoice;
                                 if DocType = '4' then
-                                    ElectPmtMgmt.InsertIntoCheckLedger(BankAccount."No.", DeliveryDate, DocumentType, "Document No.",
+                                    ElectPmtMgmt.InsertIntoCheckLedger(BankAccount."No.", ExportDeliveryDate, DocumentType, "Document No.",
                                       Description, "Payment Order"."Bank Account No.", ExportAmount, RecordId);
                             end;
                         end;
                         "Elect. Pmts Exported" := true;
+#pragma warning disable AA0139
                         "Export File Name" := EPayExportFilePath;
+#pragma warning restore AA0139
                         "Document No." := BankAccount."Last Remittance Advice No.";
                         Modify();
                         PreviousAccountNo := "Account No.";
@@ -281,7 +285,7 @@ report 7000060 "PO - Export N34.1"
                                 ConvertStr(PadStr(VendorBankAccount1."CCC Bank Branch No.", 4, ' '), ' ', '0') +
                                 PadStr(VendorBankAccount1."CCC Control Digits", 2, ' ') +
                                 ConvertStr(PadStr(VendorBankAccount1."CCC Bank Account No.", 10, ' '), ' ', '0'),
-                                VendBankAccCode,
+                                '',
                                 Format(-ExportAmount));
                         end;
                     end;
@@ -319,7 +323,7 @@ report 7000060 "PO - Export N34.1"
 
                 trigger OnPreDataItem()
                 begin
-                    SetRange(Number, 1, NoOfCopies + 1);
+                    SetRange(Number, 1, NumberOfCopies + 1);
 
                     OutputNo := 1;
                 end;
@@ -345,12 +349,14 @@ report 7000060 "PO - Export N34.1"
                   CCCBankNo, CCCBankBranchNo, CCCControlDigits, CCCAccNo);
 
                 if (CopyTxt = '') and not CurrReport.Preview then begin
-                    if CheckErrors then
+                    if CheckExportErrors then
                         Relat := '1'
                     else
                         Relat := '0';
 
+#pragma warning disable AA0139
                     ElectPmtMgmt.GetLastEPayFileCreation(EPayExportFilePath, BankAccount);
+#pragma warning restore AA0139
 
                     if BankAccount."Last Remittance Advice No." <> '' then
                         BankAccount."Last Remittance Advice No." := IncStr(BankAccount."Last Remittance Advice No.")
@@ -365,7 +371,7 @@ report 7000060 "PO - Export N34.1"
                         LastRemittanceAdvNo := Text1100001Lbl;
 
                 if not CurrReport.Preview then begin
-                    ElectPmtMgmt.InsertHeaderRecType1(DeliveryDate, "Posting Date",
+                    ElectPmtMgmt.InsertHeaderRecType1(ExportDeliveryDate, "Posting Date",
                       CCCBankNo + CCCBankBranchNo + CCCControlDigits + CCCAccNo, Relat);
                     ElectPmtMgmt.InsertHeaderRecType2();
                     ElectPmtMgmt.InsertHeaderRecType3();
@@ -388,39 +394,39 @@ report 7000060 "PO - Export N34.1"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(DeliveryDate; DeliveryDate)
+                    field(DeliveryDate; ExportDeliveryDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Delivery Date';
                         ToolTip = 'Specifies a number to identify the operations declaration.';
                     }
-                    field(ExpensesCode; ExpensesCode)
+                    field(ExpensesCode; ExportExpensesCode)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Expenses Code';
                         OptionCaption = 'Payer,Payee';
                         ToolTip = 'Specifies who is responsible for the payment expenses, the payer or the payee.';
                     }
-                    field(PmtOrderConcept; PmtOrderConcept)
+                    field(PmtOrderConcept; PaymentOrderConcept)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Payment Order Concept';
                         OptionCaption = 'Payroll,Retirement Payroll,Others';
                         ToolTip = 'Specifies the payment order concept.';
                     }
-                    field(CheckErrors; CheckErrors)
+                    field(CheckErrors; CheckExportErrors)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Relation';
                         ToolTip = 'Specifies if you want the bank to send you a detailed list of all transfer charges. Deselect the check box if you want a simple total of charges for all the transfers made.';
                     }
-                    field(NoOfCopies; NoOfCopies)
+                    field(NoOfCopies; NumberOfCopies)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Number Of Copies';
                         ToolTip = 'Specifies the number of additional copies of the remittance advice that will be printed by this process. One document is always printed so that it can be mailed to the payee.';
                     }
-                    field(ExpensesCodeValueInter; ExpensesCodeValueInter)
+                    field(ExpensesCodeValueInter; ShareInternationalExpenses)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Shared (Only International Transf.)';
@@ -436,8 +442,8 @@ report 7000060 "PO - Export N34.1"
 
         trigger OnOpenPage()
         begin
-            if DeliveryDate = 0D then
-                DeliveryDate := Today;
+            if ExportDeliveryDate = 0D then
+                ExportDeliveryDate := Today;
         end;
     }
 
@@ -473,19 +479,18 @@ report 7000060 "PO - Export N34.1"
         DocMisc: Codeunit "Document-Misc";
         FormatAddr: Codeunit "Format Address";
         ElectPmtMgmt: Codeunit "Elect. Pmts Management";
-        CheckErrors: Boolean;
-        ExpensesCodeValueInter: Boolean;
-        VendBankAccCode: Code[20];
+        CheckExportErrors: Boolean;
+        ShareInternationalExpenses: Boolean;
         DocType: Code[10];
         CopyTxt: Code[10];
-        DeliveryDate: Date;
+        ExportDeliveryDate: Date;
         TotalDoc10Vend: Decimal;
         TotalDoc33Vend: Decimal;
         TotalAmountInter: Decimal;
         ExportAmount: Decimal;
-        NoOfCopies: Integer;
-        ExpensesCode: Option Payer,Payee;
-        PmtOrderConcept: Option Payroll,RetPayroll,Others;
+        NumberOfCopies: Integer;
+        ExportExpensesCode: Option Payer,Payee;
+        PaymentOrderConcept: Option Payroll,RetPayroll,Others;
         ActualTransferType: Option National,International,Special;
         DocumentType: Enum "Gen. Journal Document Type";
         VATRegVend: Text[12];

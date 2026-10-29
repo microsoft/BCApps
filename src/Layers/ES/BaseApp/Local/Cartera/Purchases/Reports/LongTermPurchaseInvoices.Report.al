@@ -259,7 +259,9 @@ report 10741 "Long Term Purchase Invoices"
     procedure GetVendorName(VendorNo: Code[20])
     begin
         if Vendor.Get(VendorNo) then
+#pragma warning disable AA0139
             VendorName := Vendor.Name;
+#pragma warning restore AA0139
     end;
 
     [Scope('OnPrem')]

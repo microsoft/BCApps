@@ -36,7 +36,7 @@ page 35303 "Bank Account Information FB"
                     Doc.SetCurrentKey(Type, "Bill Gr./Pmt. Order No.", "Category Code");
                     Doc.SetRange(Type, Doc.Type::Receivable);
                     Doc.SetRange("Bill Gr./Pmt. Order No.", CurrBillGr."No.");
-                    Doc.SetFilter("Category Code", CategoryFilter);
+                    Doc.SetFilter("Category Code", '');
                     PAGE.RunModal(0, Doc);
                 end;
 
@@ -45,7 +45,10 @@ page 35303 "Bank Account Information FB"
                     CurrBillGrAmountOnAfterValidat();
                 end;
             }
+            // Preserve the published control name for compatibility.
+#pragma warning disable AA0100
             field("CurrBillGr.""Currency Code"""; CurrBillGr."Currency Code")
+#pragma warning restore AA0100
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Curr. Bill Gr.Currency Code';
@@ -53,7 +56,10 @@ page 35303 "Bank Account Information FB"
                 TableRelation = Currency;
                 ToolTip = 'Specifies the currency of the bill groups amount. ';
             }
+            // Preserve the published control name for compatibility.
+#pragma warning disable AA0100
             field("CurrBillGr.""Amount (LCY)"""; CurrBillGr."Amount (LCY)")
+#pragma warning restore AA0100
             {
                 ApplicationArea = Basic, Suite;
                 AutoFormatType = 1;
@@ -66,7 +72,7 @@ page 35303 "Bank Account Information FB"
                     Doc.SetCurrentKey(Type, "Bill Gr./Pmt. Order No.", "Category Code");
                     Doc.SetRange(Type, Doc.Type::Receivable);
                     Doc.SetRange("Bill Gr./Pmt. Order No.", CurrBillGr."No.");
-                    Doc.SetFilter("Category Code", CategoryFilter);
+                    Doc.SetFilter("Category Code", '');
                     PAGE.RunModal(0, Doc);
                 end;
 
@@ -89,7 +95,7 @@ page 35303 "Bank Account Information FB"
 
     trigger OnOpenPage()
     begin
-        CurrBillGr.SetFilter("Category Filter", CategoryFilter);
+        CurrBillGr.SetFilter("Category Filter", '');
         CurrBillGr.CalcFields(Amount, "Amount (LCY)");
         if Rec.Get(CurrBillGr."Bank Account No.") then;
     end;
@@ -97,18 +103,17 @@ page 35303 "Bank Account Information FB"
     var
         Doc: Record "Cartera Doc.";
         CurrBillGr: Record "Bill Group";
-        CategoryFilter: Code[250];
 
     local procedure CurrBillGrAmountOnAfterValidat()
     begin
-        CurrBillGr.SetFilter("Category Filter", CategoryFilter);
+        CurrBillGr.SetFilter("Category Filter", '');
         CurrBillGr.CalcFields(Amount);
         CurrPage.Update(false);
     end;
 
     local procedure CurrBillGrAmountLCYOnAfterVali()
     begin
-        CurrBillGr.SetFilter("Category Filter", CategoryFilter);
+        CurrBillGr.SetFilter("Category Filter", '');
         CurrBillGr.CalcFields(Amount);
         CurrPage.Update(false);
     end;

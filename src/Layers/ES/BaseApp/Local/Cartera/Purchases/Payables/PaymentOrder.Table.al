@@ -86,6 +86,7 @@ table 7000020 "Payment Order"
         {
             Caption = 'Posting Description';
         }
+#pragma warning disable AA0232
         field(7; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -100,6 +101,7 @@ table 7000020 "Payment Order"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning restore AA0232
         field(8; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
@@ -366,7 +368,9 @@ table 7000020 "Payment Order"
     begin
         PmtOrd.Copy(Rec);
         CarteraReportSelection.SetRange(Usage, CarteraReportSelection.Usage::"Payment Order");
+#pragma warning disable AA0210
         CarteraReportSelection.SetFilter("Report ID", '<>0');
+#pragma warning restore AA0210
         CarteraReportSelection.Find('-');
         repeat
             REPORT.RunModal(CarteraReportSelection."Report ID", ShowRequestForm, false, PmtOrd);

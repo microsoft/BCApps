@@ -124,8 +124,8 @@ report 7000099 "Post Bill Group"
                         exit;
 
                     GenJnlLine.LockTable();
-                    GenJnlLine.SetRange("Journal Template Name", TemplName);
-                    GenJnlLine.SetRange("Journal Batch Name", BatchName);
+                    GenJnlLine.SetRange("Journal Template Name", JournalTemplateName);
+                    GenJnlLine.SetRange("Journal Batch Name", JournalBatchName);
                     if GenJnlLine.FindLast() then begin
                         GenJnlLineNextNo := GenJnlLine."Line No.";
                         TransactionNo := GenJnlLine."Transaction No." + 1;
@@ -368,7 +368,7 @@ report 7000099 "Post Bill Group"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(TemplName; TemplName)
+                    field(TemplName; JournalTemplateName)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Aux. Jnl. Template Name';
@@ -378,11 +378,11 @@ report 7000099 "Post Bill Group"
 
                         trigger OnValidate()
                         begin
-                            if TemplName = '' then
-                                BatchName := '';
+                            if JournalTemplateName = '' then
+                                JournalBatchName := '';
                         end;
                     }
-                    field(BatchName; BatchName)
+                    field(BatchName; JournalBatchName)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Aux. Jnl. Batch Name';
@@ -392,13 +392,13 @@ report 7000099 "Post Bill Group"
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
-                            if TemplName = '' then
+                            if JournalTemplateName = '' then
                                 exit;
 
-                            if GenJnlBatch.Get(TemplName, Text) then;
-                            GenJnlBatch.SetRange("Journal Template Name", TemplName);
+                            if GenJnlBatch.Get(JournalTemplateName, Text) then;
+                            GenJnlBatch.SetRange("Journal Template Name", JournalTemplateName);
                             if PAGE.RunModal(PAGE::"General Journal Batches", GenJnlBatch) = ACTION::LookupOK then
-                                BatchName := GenJnlBatch.Name;
+                                JournalBatchName := GenJnlBatch.Name;
                         end;
 
                         trigger OnValidate()
@@ -426,10 +426,10 @@ report 7000099 "Post Bill Group"
         SourceCode := SourceCodeSetup."Cartera Journal";
 
         if CurrReport.UseRequestPage then begin
-            if not GenJnlBatch.Get(TemplName, BatchName) then
+            if not GenJnlBatch.Get(JournalTemplateName, JournalBatchName) then
                 Error(Text1100000Lbl);
             ReasonCode := GenJnlBatch."Reason Code";
-            GenJnlTemplate.Get(TemplName);
+            GenJnlTemplate.Get(JournalTemplateName);
             SourceCode := GenJnlTemplate."Source Code";
         end;
     end;
@@ -465,8 +465,8 @@ report 7000099 "Post Bill Group"
         Text1100008Lbl: Label 'Bank Bill Group %1 was successfully posted for discount.', Comment = '%1 = Bill group number';
         Text1100009Lbl: Label ' Customer No. %1', Comment = '%1 = Customer number';
         Window: Dialog;
-        BatchName: Code[10];
-        TemplName: Code[10];
+        JournalBatchName: Code[10];
+        JournalTemplateName: Code[10];
         ReasonCode: Code[10];
         Account: Code[20];
         TransactionNo: Integer;
@@ -493,11 +493,11 @@ report 7000099 "Post Bill Group"
         if CurrReport.UseRequestPage then begin
             Commit();
             GenJnlLine.Reset();
-            GenJnlTemplate.Get(TemplName);
+            GenJnlTemplate.Get(JournalTemplateName);
             GenJnlLine.FilterGroup := 2;
-            GenJnlLine.SetRange("Journal Template Name", TemplName);
+            GenJnlLine.SetRange("Journal Template Name", JournalTemplateName);
             GenJnlLine.FilterGroup := 0;
-            CarteraJnlForm.SetJnlBatchName(BatchName);
+            CarteraJnlForm.SetJnlBatchName(JournalBatchName);
             CarteraJnlForm.SetTableView(GenJnlLine);
             CarteraJnlForm.SetRecord(GenJnlLine);
             CarteraJnlForm.AllowClosing(true);
@@ -518,6 +518,7 @@ report 7000099 "Post Bill Group"
         until TempPostedDocBuffer.Next() = 0;
 
         BillGr.CalcFields(Amount);
+        PostedBillGr.Init();
         PostedBillGr.TransferFields(BillGr);
         PostedBillGr."Collection Expenses Amt." := FeeRange.GetTotalCollExpensesAmt();
         PostedBillGr."Discount Expenses Amt." := FeeRange.GetTotalDiscExpensesAmt();
@@ -534,7 +535,7 @@ report 7000099 "Post Bill Group"
         BillGr.Delete();
     end;
 
-    local procedure InsertGenJournalLine(AccType: Enum "Gen. Journal Account Type"; AccNo: Code[20]; Amount2: Decimal; Text: Text[250]; CustLedgEntry: Record "Cust. Ledger Entry"; CurrFactor: Decimal)
+    local procedure InsertGenJournalLine(AccType: Enum "Gen. Journal Account Type"; AccNo: Code[20]; Amount2: Decimal; Text: Text[250]; CustLedgerEntry: Record "Cust. Ledger Entry"; CurrFactor: Decimal)
     begin
         GenJnlLineNextNo := GenJnlLineNextNo + 10000;
 
@@ -542,14 +543,16 @@ report 7000099 "Post Bill Group"
         GenJnlLine.Init();
         GenJnlLine."Line No." := GenJnlLineNextNo;
         GenJnlLine."Transaction No." := TransactionNo;
-        GenJnlLine."Journal Template Name" := TemplName;
-        GenJnlLine."Journal Batch Name" := BatchName;
+        GenJnlLine."Journal Template Name" := JournalTemplateName;
+        GenJnlLine."Journal Batch Name" := JournalBatchName;
         GenJnlLine."Posting Date" := BillGr."Posting Date";
         GenJnlLine."Document No." := BillGr."No.";
         GenJnlLine."System-Created Entry" := true;
         GenJnlLine.Validate("Account Type", AccType);
         GenJnlLine.Validate("Account No.", AccNo);
+#pragma warning disable AA0139
         GenJnlLine.Description := Text;
+#pragma warning restore AA0139
         if BillGr."Currency Code" <> '' then begin
             GenJnlLine.Validate("Currency Code", BillGr."Currency Code");
             GenJnlLine."Source Currency Code" := BillGr."Currency Code";
@@ -560,16 +563,16 @@ report 7000099 "Post Bill Group"
         GenJnlLine.Validate(Amount, Amount2);
         GenJnlLine."Source Code" := SourceCode;
         GenJnlLine."Reason Code" := ReasonCode;
-        GenJnlLine."Shortcut Dimension 1 Code" := CustLedgEntry."Global Dimension 1 Code";
-        GenJnlLine."Shortcut Dimension 2 Code" := CustLedgEntry."Global Dimension 2 Code";
+        GenJnlLine."Shortcut Dimension 1 Code" := CustLedgerEntry."Global Dimension 1 Code";
+        GenJnlLine."Shortcut Dimension 2 Code" := CustLedgerEntry."Global Dimension 2 Code";
         GenJnlLine."Dimension Set ID" :=
-            CarteraManagement.GetDimSetIDFromCustPostDocBuffer(GenJnlLine, CustLedgEntry, TempPostedDocBuffer);
+            CarteraManagement.GetDimSetIDFromCustPostDocBuffer(GenJnlLine, CustLedgerEntry, TempPostedDocBuffer);
         if AccType = GenJnlLine."Account Type"::"G/L Account" then begin
-            GenJnlLine."Source No." := CustLedgEntry."Customer No.";
+            GenJnlLine."Source No." := CustLedgerEntry."Customer No.";
             GenJnlLine."Source Type" := GenJnlLine."Source Type"::Customer;
         end;
 
-        OnBeforeGenJournalLineInsert(GenJnlLine, CustLedgEntry);
+        OnBeforeGenJournalLineInsert(GenJnlLine, CustLedgerEntry);
         if CurrReport.UseRequestPage then
             GenJnlLine.Insert()
         else
@@ -579,8 +582,8 @@ report 7000099 "Post Bill Group"
     [Scope('OnPrem')]
     procedure InitReqForm(TemplName2: Code[10]; BatchName2: Code[10])
     begin
-        TemplName := TemplName2;
-        BatchName := BatchName2;
+        JournalTemplateName := TemplName2;
+        JournalBatchName := BatchName2;
     end;
 
     [Scope('OnPrem')]
@@ -755,13 +758,13 @@ report 7000099 "Post Bill Group"
 
     local procedure BatchNameOnAfterValidate()
     begin
-        if TemplName = '' then
-            BatchName := '';
+        if JournalTemplateName = '' then
+            JournalBatchName := '';
     end;
 
     local procedure BatchNameOnValidate()
     begin
-        if BatchName = '' then
+        if JournalBatchName = '' then
             exit;
     end;
 

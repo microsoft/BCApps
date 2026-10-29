@@ -17,6 +17,8 @@ codeunit 7000008 "Document-Edit"
     TableNo = "Cartera Doc.";
 
     trigger OnRun()
+    var
+        CarteraDoc: Record "Cartera Doc.";
     begin
         CarteraDoc := Rec;
         CarteraDoc.LockTable();
@@ -33,9 +35,6 @@ codeunit 7000008 "Document-Edit"
         CarteraDoc.Modify();
         Rec := CarteraDoc;
     end;
-
-    var
-        CarteraDoc: Record "Cartera Doc.";
 
     [Scope('OnPrem')]
     procedure EditDueDate(CarteraDoc: Record "Cartera Doc.")

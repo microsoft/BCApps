@@ -44,6 +44,7 @@ table 7000006 "Posted Bill Group"
             Caption = 'Dealing Type';
             Editable = false;
         }
+#pragma warning disable AA0232
         field(7; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -59,6 +60,7 @@ table 7000006 "Posted Bill Group"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning restore AA0232
         field(8; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';

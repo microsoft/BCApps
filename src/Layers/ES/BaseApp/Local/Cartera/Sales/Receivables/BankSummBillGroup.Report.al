@@ -36,7 +36,7 @@ report 7000004 "Bank - Summ. Bill Group"
             column(BankAccTableFilter; BankAccTableFilter)
             {
             }
-            column(PrintAmountsInLCY; PrintAmountsInLCY)
+            column(PrintAmountsInLCY; ShowAmountsInLCY)
             {
             }
             column(BankAcc__No__; "No.")
@@ -165,7 +165,7 @@ report 7000004 "Bank - Summ. Bill Group"
                   BankAddr, Name, "Name 2", '', Address, "Address 2",
                   City, "Post Code", County, "Country/Region Code");
 
-                if PrintAmountsInLCY then begin
+                if ShowAmountsInLCY then begin
                     PostedBillAmt := "Posted Receiv Bills Amt. (LCY)";
                     ClosedBillAmt := "Closed Receiv Bills Amt. (LCY)";
                 end else begin
@@ -193,7 +193,7 @@ report 7000004 "Bank - Summ. Bill Group"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PrintAmountsInLCY; PrintAmountsInLCY)
+                    field(PrintAmountsInLCY; ShowAmountsInLCY)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Show amounts in LCY';
@@ -214,14 +214,16 @@ report 7000004 "Bank - Summ. Bill Group"
 
     trigger OnPreReport()
     begin
+#pragma warning disable AA0139
         BankAccTableFilter := BankAcc.GetFilters();
+#pragma warning restore AA0139
     end;
 
     var
         FormatAddress: Codeunit "Format Address";
         BankAddr: array[8] of Text[100];
         BankAccTableFilter: Text[250];
-        PrintAmountsInLCY: Boolean;
+        ShowAmountsInLCY: Boolean;
         ClosedBillAmt: Decimal;
         PostedBillAmt: Decimal;
         Bank___Summ__Bill_GroupCaptionLbl: Label 'Bank - Summ. Bill Group';
@@ -236,7 +238,7 @@ report 7000004 "Bank - Summ. Bill Group"
     [Scope('OnPrem')]
     procedure GetCurrencyCode(): Code[10]
     begin
-        if PrintAmountsInLCY then
+        if ShowAmountsInLCY then
             exit('');
 
         exit(BankAcc."Currency Code");

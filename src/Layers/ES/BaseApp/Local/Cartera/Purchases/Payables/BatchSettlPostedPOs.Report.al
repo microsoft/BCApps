@@ -50,7 +50,7 @@ report 7000087 "Batch Settl. Posted POs"
                     BankAcc.Get(PostedPmtOrd."Bank Account No.");
                     Delay := BankAcc."Delay for Notices";
 
-                    if DueOnly and (PostingDate < "Due Date" + Delay) then
+                    if OnlyDueDocuments and (DocumentPostingDate < "Due Date" + Delay) then
                         CurrReport.Skip();
 
                     TotalDocCount := TotalDocCount + 1;
@@ -65,36 +65,36 @@ report 7000087 "Batch Settl. Posted POs"
                         "Document Type"::Invoice, "Document Type"::"Credit Memo":
                             begin
                                 GenJnlLineNextNo := GenJnlLineNextNo + 10000;
-                                Clear(GenJnlLine);
-                                GenJnlLine.Init();
-                                GenJnlLine."Line No." := GenJnlLineNextNo;
-                                GenJnlLine."Posting Date" := PostingDate;
-                                GenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
-                                GenJnlLine."Document Date" := GenJnlLine."Document Date";
-                                GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::Vendor);
+                                Clear(TempGenJnlLine);
+                                TempGenJnlLine.Init();
+                                TempGenJnlLine."Line No." := GenJnlLineNextNo;
+                                TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                                TempGenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
+                                TempGenJnlLine."Document Date" := TempGenJnlLine."Document Date";
+                                TempGenJnlLine.Validate("Account Type", TempGenJnlLine."Account Type"::Vendor);
                                 VendLedgEntry.Get(PostedDoc."Entry No.");
-                                OnBeforeValidateInvoiceAccountNo(PostedDoc, GenJnlLine, VATPostingSetup, VendLedgEntry, FromJnl, ExistsNoRealVAT);
-                                GenJnlLine.Validate("Account No.", VendLedgEntry."Vendor No.");
-                                GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-                                GenJnlLine.Description := CopyStr(
+                                OnBeforeValidateInvoiceAccountNo(PostedDoc, TempGenJnlLine, VATPostingSetup, VendLedgEntry, FromJnl, ExistsNoRealVAT);
+                                TempGenJnlLine.Validate("Account No.", VendLedgEntry."Vendor No.");
+                                TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
+                                TempGenJnlLine.Description := CopyStr(
                                     StrSubstNo(Text1100004Lbl, PostedDoc."Document No."),
-                                    1, MaxStrLen(GenJnlLine.Description));
-                                GenJnlLine."Document No." := PostedPmtOrd."No.";
-                                GenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
-                                GenJnlLine.Validate(Amount, PostedDoc."Remaining Amount");
-                                GenJnlLine."Applies-to Doc. Type" := VendLedgEntry."Document Type";
-                                GenJnlLine."Applies-to Doc. No." := VendLedgEntry."Document No.";
-                                GenJnlLine."Applies-to Bill No." := VendLedgEntry."Bill No.";
-                                GenJnlLine."Source Code" := SourceCode;
-                                GenJnlLine."System-Created Entry" := true;
-                                GenJnlLine."Shortcut Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
-                                GenJnlLine."Shortcut Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
-                                GenJnlLine."Dimension Set ID" := VendLedgEntry."Dimension Set ID";
-                                OnBeforeGenJournalLineInsert(PostedDoc, GenJnlLine, VATPostingSetup, VendLedgEntry, VendLedgEntry, PostedPmtOrd);
-                                GenJnlLine.Insert();
-                                SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
+                                    1, MaxStrLen(TempGenJnlLine.Description));
+                                TempGenJnlLine."Document No." := PostedPmtOrd."No.";
+                                TempGenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
+                                TempGenJnlLine.Validate(Amount, PostedDoc."Remaining Amount");
+                                TempGenJnlLine."Applies-to Doc. Type" := VendLedgEntry."Document Type";
+                                TempGenJnlLine."Applies-to Doc. No." := VendLedgEntry."Document No.";
+                                TempGenJnlLine."Applies-to Bill No." := VendLedgEntry."Bill No.";
+                                TempGenJnlLine."Source Code" := SourceCode;
+                                TempGenJnlLine."System-Created Entry" := true;
+                                TempGenJnlLine."Shortcut Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
+                                TempGenJnlLine."Shortcut Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
+                                TempGenJnlLine."Dimension Set ID" := VendLedgEntry."Dimension Set ID";
+                                OnBeforeGenJournalLineInsert(PostedDoc, TempGenJnlLine, VATPostingSetup, VendLedgEntry, VendLedgEntry, PostedPmtOrd);
+                                TempGenJnlLine.Insert();
+                                SumLCYAmt := SumLCYAmt + TempGenJnlLine."Amount (LCY)";
                                 OnAfterInvoiceGenJnlLineInsert(
-                                  GenJnlLine, VendLedgEntry, PostedDoc, PostedPmtOrd,
+                                  TempGenJnlLine, VendLedgEntry, PostedDoc, PostedPmtOrd,
                                   FromJnl, ExistsNoRealVAT, ExistVATEntry, FirstVATEntryNo, LastVATEntryNo, TempNoRealVATBuffer);
                                 GroupAmount := GroupAmount + "Remaining Amount";
                                 GroupAmountLCY := GroupAmountLCY + "Remaining Amt. (LCY)";
@@ -104,14 +104,14 @@ report 7000087 "Batch Settl. Posted POs"
                         "Document Type"::Bill:
                             begin
                                 GenJnlLineNextNo := GenJnlLineNextNo + 10000;
-                                Clear(GenJnlLine);
-                                GenJnlLine.Init();
-                                GenJnlLine."Line No." := GenJnlLineNextNo;
-                                GenJnlLine."Posting Date" := PostingDate;
-                                GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-                                GenJnlLine."Document No." := PostedPmtOrd."No.";
-                                GenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
-                                GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::Vendor);
+                                Clear(TempGenJnlLine);
+                                TempGenJnlLine.Init();
+                                TempGenJnlLine."Line No." := GenJnlLineNextNo;
+                                TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                                TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
+                                TempGenJnlLine."Document No." := PostedPmtOrd."No.";
+                                TempGenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
+                                TempGenJnlLine.Validate("Account Type", TempGenJnlLine."Account Type"::Vendor);
                                 VendLedgEntry.Get(PostedDoc."Entry No.");
 
                                 if GLSetup."Unrealized VAT" then begin
@@ -121,50 +121,50 @@ report 7000087 "Batch Settl. Posted POs"
                                     ExistsNoRealVAT := GenJnlPostLine.VendFindVATSetup(VATPostingSetup, VendLedgEntry, FromJnl);
                                 end;
 
-                                GenJnlLine.Validate("Account No.", VendLedgEntry."Vendor No.");
-                                GenJnlLine.Description := CopyStr(
+                                TempGenJnlLine.Validate("Account No.", VendLedgEntry."Vendor No.");
+                                TempGenJnlLine.Description := CopyStr(
                                     StrSubstNo(Text1100005Lbl, PostedDoc."Document No.", PostedDoc."No."),
-                                    1, MaxStrLen(GenJnlLine.Description));
-                                GenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
-                                GenJnlLine.Validate(Amount, PostedDoc."Remaining Amount");
-                                GenJnlLine."Applies-to Doc. Type" := VendLedgEntry."Document Type";
-                                GenJnlLine."Applies-to Doc. No." := VendLedgEntry."Document No.";
-                                GenJnlLine."Applies-to Bill No." := VendLedgEntry."Bill No.";
-                                GenJnlLine."Source Code" := SourceCode;
-                                GenJnlLine."System-Created Entry" := true;
-                                GenJnlLine."Shortcut Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
-                                GenJnlLine."Shortcut Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
-                                GenJnlLine."Dimension Set ID" := VendLedgEntry."Dimension Set ID";
-                                GenJnlLine."Posting Group" := VendLedgEntry."Vendor Posting Group";
-                                OnBeforeGenJournalLineInsert(PostedDoc, GenJnlLine, VATPostingSetup, VendLedgEntry, VendLedgEntry, PostedPmtOrd);
-                                GenJnlLine.Insert();
-                                SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
+                                    1, MaxStrLen(TempGenJnlLine.Description));
+                                TempGenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
+                                TempGenJnlLine.Validate(Amount, PostedDoc."Remaining Amount");
+                                TempGenJnlLine."Applies-to Doc. Type" := VendLedgEntry."Document Type";
+                                TempGenJnlLine."Applies-to Doc. No." := VendLedgEntry."Document No.";
+                                TempGenJnlLine."Applies-to Bill No." := VendLedgEntry."Bill No.";
+                                TempGenJnlLine."Source Code" := SourceCode;
+                                TempGenJnlLine."System-Created Entry" := true;
+                                TempGenJnlLine."Shortcut Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
+                                TempGenJnlLine."Shortcut Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
+                                TempGenJnlLine."Dimension Set ID" := VendLedgEntry."Dimension Set ID";
+                                TempGenJnlLine."Posting Group" := VendLedgEntry."Vendor Posting Group";
+                                OnBeforeGenJournalLineInsert(PostedDoc, TempGenJnlLine, VATPostingSetup, VendLedgEntry, VendLedgEntry, PostedPmtOrd);
+                                TempGenJnlLine.Insert();
+                                SumLCYAmt := SumLCYAmt + TempGenJnlLine."Amount (LCY)";
                                 if GLSetup."Unrealized VAT" and
                                    ExistsNoRealVAT and
                                    (not IsRedrawn)
                                 then begin
                                     VendLedgEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
-                                    OnBeforeVendUnrealizedVAT2(PostedDoc, GenJnlLine, VendLedgEntry, PostedPmtOrd, TempNoRealVATBuffer);
+                                    OnBeforeVendUnrealizedVAT2(PostedDoc, TempGenJnlLine, VendLedgEntry, PostedPmtOrd, TempNoRealVATBuffer);
                                     CarteraManagement.VendUnrealizedVAT2(
                                       VendLedgEntry,
                                       VendLedgEntry."Remaining Amt. (LCY)",
-                                      GenJnlLine,
+                                      TempGenJnlLine,
                                       ExistVATEntry,
                                       FirstVATEntryNo,
                                       LastVATEntryNo,
                                       TempNoRealVATBuffer,
                                       FromJnl,
                                       "Document No.");
-                                    OnAfterVendUnrealizedVAT2(PostedDoc, GenJnlLine, VendLedgEntry, PostedPmtOrd, TempNoRealVATBuffer);
+                                    OnAfterVendUnrealizedVAT2(PostedDoc, TempGenJnlLine, VendLedgEntry, PostedPmtOrd, TempNoRealVATBuffer);
 
                                     if TempNoRealVATBuffer.Find('-') then begin
                                         repeat
                                             InsertGenJournalLine(
-                                              GenJnlLine."Account Type"::"G/L Account",
+                                              TempGenJnlLine."Account Type"::"G/L Account",
                                               TempNoRealVATBuffer.Account,
                                               TempNoRealVATBuffer.Amount);
                                             InsertGenJournalLine(
-                                              GenJnlLine."Account Type"::"G/L Account",
+                                              TempGenJnlLine."Account Type"::"G/L Account",
                                               TempNoRealVATBuffer."Balance Account",
                                               -TempNoRealVATBuffer.Amount);
                                         until TempNoRealVATBuffer.Next() = 0;
@@ -200,28 +200,28 @@ report 7000087 "Batch Settl. Posted POs"
 
                     VendLedgEntry2.Get(TempBGPOPostBuffer."Entry No.");
                     GenJnlLineNextNo := GenJnlLineNextNo + 10000;
-                    Clear(GenJnlLine);
-                    GenJnlLine.Init();
-                    GenJnlLine."Line No." := GenJnlLineNextNo;
-                    GenJnlLine."Posting Date" := PostingDate;
-                    GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-                    GenJnlLine."Document No." := PostedPmtOrd."No.";
-                    GenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
-                    GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::"Bank Account");
-                    GenJnlLine.Validate("Account No.", BankAcc."No.");
-                    GenJnlLine.Description := CopyStr(StrSubstNo(Text1100009Lbl, PostedPmtOrd."No."), 1, MaxStrLen(GenJnlLine.Description));
-                    GenJnlLine.Validate("Currency Code", PostedPmtOrd."Currency Code");
-                    GenJnlLine.Validate(Amount, -GroupAmount);
-                    GenJnlLine."Source Code" := SourceCode;
-                    GenJnlLine."System-Created Entry" := true;
-                    DimesionSetIds[1] := GenJnlLine."Dimension Set ID";
+                    Clear(TempGenJnlLine);
+                    TempGenJnlLine.Init();
+                    TempGenJnlLine."Line No." := GenJnlLineNextNo;
+                    TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                    TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
+                    TempGenJnlLine."Document No." := PostedPmtOrd."No.";
+                    TempGenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
+                    TempGenJnlLine.Validate("Account Type", TempGenJnlLine."Account Type"::"Bank Account");
+                    TempGenJnlLine.Validate("Account No.", BankAcc."No.");
+                    TempGenJnlLine.Description := CopyStr(StrSubstNo(Text1100009Lbl, PostedPmtOrd."No."), 1, MaxStrLen(TempGenJnlLine.Description));
+                    TempGenJnlLine.Validate("Currency Code", PostedPmtOrd."Currency Code");
+                    TempGenJnlLine.Validate(Amount, -GroupAmount);
+                    TempGenJnlLine."Source Code" := SourceCode;
+                    TempGenJnlLine."System-Created Entry" := true;
+                    DimesionSetIds[1] := TempGenJnlLine."Dimension Set ID";
                     DimesionSetIds[2] := VendLedgEntry."Dimension Set ID";
-                    GenJnlLine."Shortcut Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
-                    GenJnlLine."Shortcut Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
-                    GenJnlLine.Validate("Dimension Set ID", DimensionManagement.GetCombinedDimensionSetID(DimesionSetIds, VendLedgEntry."Global Dimension 1 Code", VendLedgEntry."Global Dimension 2 Code"));
-                    OnBeforeGenJournalLineInsert(PostedDoc, GenJnlLine, VATPostingSetup, VendLedgEntry, VendLedgEntry2, PostedPmtOrd);
-                    GenJnlLine.Insert();
-                    SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
+                    TempGenJnlLine."Shortcut Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
+                    TempGenJnlLine."Shortcut Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
+                    TempGenJnlLine.Validate("Dimension Set ID", DimensionManagement.GetCombinedDimensionSetID(DimesionSetIds, VendLedgEntry."Global Dimension 1 Code", VendLedgEntry."Global Dimension 2 Code"));
+                    OnBeforeGenJournalLineInsert(PostedDoc, TempGenJnlLine, VATPostingSetup, VendLedgEntry, VendLedgEntry2, PostedPmtOrd);
+                    TempGenJnlLine.Insert();
+                    SumLCYAmt := SumLCYAmt + TempGenJnlLine."Amount (LCY)";
 
                     if PostedPmtOrd."Currency Code" <> '' then
                         if SumLCYAmt <> 0 then begin
@@ -235,33 +235,33 @@ report 7000087 "Batch Settl. Posted POs"
                                 Acct := Currency."Residual Losses Account";
                             end;
                             GenJnlLineNextNo := GenJnlLineNextNo + 10000;
-                            Clear(GenJnlLine);
-                            GenJnlLine.Init();
-                            GenJnlLine."Line No." := GenJnlLineNextNo;
-                            GenJnlLine."Posting Date" := PostingDate;
-                            GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-                            GenJnlLine."Document No." := PostedPmtOrd."No.";
-                            GenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
-                            GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::"G/L Account");
-                            GenJnlLine.Validate("Account No.", Acct);
-                            GenJnlLine.Description := Text1100010Lbl;
-                            GenJnlLine.Validate("Currency Code", '');
-                            GenJnlLine.Validate(Amount, -SumLCYAmt);
-                            DimesionSetIds[1] := GenJnlLine."Dimension Set ID";
+                            Clear(TempGenJnlLine);
+                            TempGenJnlLine.Init();
+                            TempGenJnlLine."Line No." := GenJnlLineNextNo;
+                            TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                            TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
+                            TempGenJnlLine."Document No." := PostedPmtOrd."No.";
+                            TempGenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
+                            TempGenJnlLine.Validate("Account Type", TempGenJnlLine."Account Type"::"G/L Account");
+                            TempGenJnlLine.Validate("Account No.", Acct);
+                            TempGenJnlLine.Description := Text1100010Lbl;
+                            TempGenJnlLine.Validate("Currency Code", '');
+                            TempGenJnlLine.Validate(Amount, -SumLCYAmt);
+                            DimesionSetIds[1] := TempGenJnlLine."Dimension Set ID";
                             DimesionSetIds[2] := VendLedgEntry."Dimension Set ID";
-                            GenJnlLine."Shortcut Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
-                            GenJnlLine."Shortcut Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
-                            GenJnlLine.Validate("Dimension Set ID", DimensionManagement.GetCombinedDimensionSetID(DimesionSetIds, VendLedgEntry."Global Dimension 1 Code", VendLedgEntry."Global Dimension 2 Code"));
-                            GenJnlLine."Source Code" := SourceCode;
-                            GenJnlLine."System-Created Entry" := true;
-                            OnBeforeGenJournalLineInsert(PostedDoc, GenJnlLine, VATPostingSetup, VendLedgEntry, VendLedgEntry2, PostedPmtOrd);
-                            GenJnlLine.Insert();
+                            TempGenJnlLine."Shortcut Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
+                            TempGenJnlLine."Shortcut Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
+                            TempGenJnlLine.Validate("Dimension Set ID", DimensionManagement.GetCombinedDimensionSetID(DimesionSetIds, VendLedgEntry."Global Dimension 1 Code", VendLedgEntry."Global Dimension 2 Code"));
+                            TempGenJnlLine."Source Code" := SourceCode;
+                            TempGenJnlLine."System-Created Entry" := true;
+                            OnBeforeGenJournalLineInsert(PostedDoc, TempGenJnlLine, VATPostingSetup, VendLedgEntry, VendLedgEntry2, PostedPmtOrd);
+                            TempGenJnlLine.Insert();
                         end;
 
-                    DocPost.PostSettlement(GenJnlLine);
-                    GenJnlLine.DeleteAll();
+                    DocPost.PostSettlement(TempGenJnlLine);
+                    TempGenJnlLine.DeleteAll();
 
-                    DocPost.ClosePmtOrdIfEmpty(PostedPmtOrd, PostingDate);
+                    DocPost.ClosePmtOrdIfEmpty(PostedPmtOrd, DocumentPostingDate);
 
                     if (Counter > 1) and GLSetup."Unrealized VAT" and
                        ExistVATEntry and ExistInvoice
@@ -327,7 +327,7 @@ report 7000087 "Batch Settl. Posted POs"
 
             trigger OnPreDataItem()
             begin
-                DocPost.CheckPostingDate(PostingDate);
+                DocPost.CheckPostingDate(DocumentPostingDate);
 
                 SourceCodeSetup.Get();
                 SourceCode := SourceCodeSetup."Cartera Journal";
@@ -359,14 +359,14 @@ report 7000087 "Batch Settl. Posted POs"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PostingDate; PostingDate)
+                    field(PostingDate; DocumentPostingDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Posting Date';
                         NotBlank = true;
                         ToolTip = 'Specifies the posting date.';
                     }
-                    field(DueOnly; DueOnly)
+                    field(DueOnly; OnlyDueDocuments)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Due bills only';
@@ -387,7 +387,7 @@ report 7000087 "Batch Settl. Posted POs"
 
     trigger OnInitReport()
     begin
-        PostingDate := WorkDate();
+        DocumentPostingDate := WorkDate();
     end;
 
     trigger OnPreReport()
@@ -397,7 +397,7 @@ report 7000087 "Batch Settl. Posted POs"
 
     var
         SourceCodeSetup: Record "Source Code Setup";
-        GenJnlLine: Record "Gen. Journal Line" temporary;
+        TempGenJnlLine: Record "Gen. Journal Line" temporary;
         VendLedgEntry: Record "Vendor Ledger Entry";
         BankAcc: Record "Bank Account";
         Currency: Record Currency;
@@ -420,8 +420,8 @@ report 7000087 "Batch Settl. Posted POs"
         Text1100010Lbl: Label 'Residual adjust generated by rounding Amount';
         Text1100011Lbl: Label 'Payable document settlement %1/%2', Comment = '%1 = Document number, %2 = Bill number';
         Window: Dialog;
-        PostingDate: Date;
-        DueOnly: Boolean;
+        DocumentPostingDate: Date;
+        OnlyDueDocuments: Boolean;
         SupressWindows: Boolean;
         Delay: Decimal;
         SourceCode: Code[10];
@@ -449,39 +449,39 @@ report 7000087 "Batch Settl. Posted POs"
     begin
         GenJnlLineNextNo := GenJnlLineNextNo + 10000;
 
-        Clear(GenJnlLine);
-        GenJnlLine.Init();
-        GenJnlLine."Line No." := GenJnlLineNextNo;
-        GenJnlLine."Posting Date" := PostingDate;
-        GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-        GenJnlLine."Document No." := PostedPmtOrd."No.";
-        GenJnlLine."Account Type" := AccType;
-        GenJnlLine."Account No." := AccNo;
+        Clear(TempGenJnlLine);
+        TempGenJnlLine.Init();
+        TempGenJnlLine."Line No." := GenJnlLineNextNo;
+        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+        TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
+        TempGenJnlLine."Document No." := PostedPmtOrd."No.";
+        TempGenJnlLine."Account Type" := AccType;
+        TempGenJnlLine."Account No." := AccNo;
         if PostedDoc."Document Type" = PostedDoc."Document Type"::Bill then
-            GenJnlLine.Description := CopyStr(
+            TempGenJnlLine.Description := CopyStr(
                 StrSubstNo(Text1100011Lbl, PostedDoc."Document No.", PostedDoc."No."),
-                1, MaxStrLen(GenJnlLine.Description))
+                1, MaxStrLen(TempGenJnlLine.Description))
         else
-            GenJnlLine.Description := CopyStr(
+            TempGenJnlLine.Description := CopyStr(
                 StrSubstNo(Text1100011Lbl, PostedDoc."Document No.", PostedDoc."No."),
-                1, MaxStrLen(GenJnlLine.Description));
-        GenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
-        GenJnlLine.Validate(Amount, -Amount2);
-        GenJnlLine."Applies-to Doc. Type" := VendLedgEntry."Document Type";
-        GenJnlLine."Applies-to Doc. No." := '';
-        GenJnlLine."Applies-to Bill No." := VendLedgEntry."Bill No.";
-        GenJnlLine."Source Code" := SourceCode;
-        GenJnlLine."System-Created Entry" := true;
-        GenJnlLine."Shortcut Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
-        GenJnlLine."Shortcut Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
-        GenJnlLine."Dimension Set ID" := VendLedgEntry."Dimension Set ID";
-        OnBeforeGenJournalLineInsert(PostedDoc, GenJnlLine, VATPostingSetup, VendLedgEntry, VendLedgEntry, PostedPmtOrd);
-        GenJnlLine.Insert();
+                1, MaxStrLen(TempGenJnlLine.Description));
+        TempGenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
+        TempGenJnlLine.Validate(Amount, -Amount2);
+        TempGenJnlLine."Applies-to Doc. Type" := VendLedgEntry."Document Type";
+        TempGenJnlLine."Applies-to Doc. No." := '';
+        TempGenJnlLine."Applies-to Bill No." := VendLedgEntry."Bill No.";
+        TempGenJnlLine."Source Code" := SourceCode;
+        TempGenJnlLine."System-Created Entry" := true;
+        TempGenJnlLine."Shortcut Dimension 1 Code" := VendLedgEntry."Global Dimension 1 Code";
+        TempGenJnlLine."Shortcut Dimension 2 Code" := VendLedgEntry."Global Dimension 2 Code";
+        TempGenJnlLine."Dimension Set ID" := VendLedgEntry."Dimension Set ID";
+        OnBeforeGenJournalLineInsert(PostedDoc, TempGenJnlLine, VATPostingSetup, VendLedgEntry, VendLedgEntry, PostedPmtOrd);
+        TempGenJnlLine.Insert();
     end;
 
     procedure SetPostingDate(NewPostingDate: Date)
     begin
-        PostingDate := NewPostingDate;
+        DocumentPostingDate := NewPostingDate;
     end;
 
     procedure SetSupressWindows(NewSupressWindows: Boolean)

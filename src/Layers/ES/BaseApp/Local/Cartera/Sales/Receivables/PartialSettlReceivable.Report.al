@@ -51,14 +51,14 @@ report 7000084 "Partial Settl.- Receivable"
                 Window.Update(1, DocCount);
 
                 GenJnlLineNextNo := GenJnlLineNextNo + 10000;
-                Clear(GenJnlLine);
-                GenJnlLine.Init();
-                GenJnlLine."Line No." := GenJnlLineNextNo;
-                GenJnlLine."Posting Date" := PostingDate;
-                GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-                GenJnlLine."Document No." := PostedBillGr."No.";
-                GenJnlLine."Reason Code" := PostedBillGr."Reason Code";
-                GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::Customer);
+                Clear(TempGenJnlLine);
+                TempGenJnlLine.Init();
+                TempGenJnlLine."Line No." := GenJnlLineNextNo;
+                TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
+                TempGenJnlLine."Document No." := PostedBillGr."No.";
+                TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
+                TempGenJnlLine.Validate("Account Type", TempGenJnlLine."Account Type"::Customer);
                 CustLedgEntry.Get(PostedDoc."Entry No.");
 
                 if GLSetup."Unrealized VAT" and (PostedDoc."Document Type" = PostedDoc."Document Type"::Bill) then begin
@@ -68,51 +68,51 @@ report 7000084 "Partial Settl.- Receivable"
                     ExistsNoRealVAT := GenJnlPostLine.CustFindVATSetup(VATPostingSetup, CustLedgEntry, FromJnl);
                 end;
 
-                OnBeforeValidateAccountNo(PostedDoc, GenJnlLine, VATPostingSetup, CustLedgEntry, FromJnl, ExistsNoRealVAT);
-                GenJnlLine.Validate("Account No.", CustLedgEntry."Customer No.");
+                OnBeforeValidateAccountNo(PostedDoc, TempGenJnlLine, VATPostingSetup, CustLedgEntry, FromJnl, ExistsNoRealVAT);
+                TempGenJnlLine.Validate("Account No.", CustLedgEntry."Customer No.");
                 if PostedDoc."Document Type" = PostedDoc."Document Type"::Bill then
-                    GenJnlLine.Description := CopyStr(StrSubstNo(Text1100001Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
+                    TempGenJnlLine.Description := CopyStr(StrSubstNo(Text1100001Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(TempGenJnlLine.Description))
                 else
-                    GenJnlLine.Description := CopyStr(StrSubstNo(Text1100002Lbl, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
-                GenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
-                GenJnlLine.Validate(Amount, -AppliedAmt);
-                GenJnlLine."Applies-to Doc. Type" := CustLedgEntry."Document Type";
-                GenJnlLine."Applies-to Doc. No." := CustLedgEntry."Document No.";
-                GenJnlLine."Applies-to Bill No." := CustLedgEntry."Bill No.";
-                GenJnlLine."Source Code" := SourceCode;
-                GenJnlLine."System-Created Entry" := true;
-                GenJnlLine."Dimension Set ID" :=
-                  CarteraManagement.GetCombinedDimSetID(GenJnlLine, CustLedgEntry."Dimension Set ID");
-                OnBeforeInsertGenJournalLine(PostedDoc, GenJnlLine, VATPostingSetup, CustLedgEntry, PostedBillGr);
-                GenJnlLine.Insert();
-                SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
+                    TempGenJnlLine.Description := CopyStr(StrSubstNo(Text1100002Lbl, PostedDoc."Document No."), 1, MaxStrLen(TempGenJnlLine.Description));
+                TempGenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
+                TempGenJnlLine.Validate(Amount, -AppliedAmt);
+                TempGenJnlLine."Applies-to Doc. Type" := CustLedgEntry."Document Type";
+                TempGenJnlLine."Applies-to Doc. No." := CustLedgEntry."Document No.";
+                TempGenJnlLine."Applies-to Bill No." := CustLedgEntry."Bill No.";
+                TempGenJnlLine."Source Code" := SourceCode;
+                TempGenJnlLine."System-Created Entry" := true;
+                TempGenJnlLine."Dimension Set ID" :=
+                  CarteraManagement.GetCombinedDimSetID(TempGenJnlLine, CustLedgEntry."Dimension Set ID");
+                OnBeforeInsertGenJournalLine(PostedDoc, TempGenJnlLine, VATPostingSetup, CustLedgEntry, PostedBillGr);
+                TempGenJnlLine.Insert();
+                SumLCYAmt := SumLCYAmt + TempGenJnlLine."Amount (LCY)";
 
                 if ("Document Type" = "Document Type"::Bill) and
                    GLSetup."Unrealized VAT" and
                    ExistsNoRealVAT and
                    (not IsRedrawn)
                 then begin
-                    OnBeforeCustUnrealizedVAT2(PostedDoc, GenJnlLine, CustLedgEntry, PostedBillGr, TempNoRealVATBuffer);
+                    OnBeforeCustUnrealizedVAT2(PostedDoc, TempGenJnlLine, CustLedgEntry, PostedBillGr, TempNoRealVATBuffer);
                     CarteraManagement.CustUnrealizedVAT2(
                       CustLedgEntry,
                       AppliedAmt,
-                      GenJnlLine,
+                      TempGenJnlLine,
                       ExistVATEntry,
                       FirstVATEntryNo,
                       LastVATEntryNo,
                       TempNoRealVATBuffer,
                       FromJnl,
                       "Document No.");
-                    OnAfterCustUnrealizedVAT2(PostedDoc, GenJnlLine, CustLedgEntry, PostedBillGr, TempNoRealVATBuffer);
+                    OnAfterCustUnrealizedVAT2(PostedDoc, TempGenJnlLine, CustLedgEntry, PostedBillGr, TempNoRealVATBuffer);
 
                     if TempNoRealVATBuffer.Find('-') then
                         repeat
                             InsertGenJournalLine(
-                              GenJnlLine."Account Type"::"G/L Account",
+                              TempGenJnlLine."Account Type"::"G/L Account",
                               TempNoRealVATBuffer.Account,
                               -TempNoRealVATBuffer.Amount);
                             InsertGenJournalLine(
-                              GenJnlLine."Account Type"::"G/L Account",
+                              TempGenJnlLine."Account Type"::"G/L Account",
                               TempNoRealVATBuffer."Balance Account",
                               TempNoRealVATBuffer.Amount);
                         until TempNoRealVATBuffer.Next() = 0;
@@ -137,38 +137,36 @@ report 7000084 "Partial Settl.- Receivable"
             trigger OnPostDataItem()
             begin
                 if DocCount = 0 then
-                    Error(
-                      Text1100003Lbl +
-                      Text1100004Lbl);
+                    Error(NoReceivableDocumentsToSettleErr);
 
                 if PostedBillGr.Factoring = PostedBillGr.Factoring::" " then begin
                     if "Dealing Type" = "Dealing Type"::Discount then begin
                         GenJnlLineNextNo := GenJnlLineNextNo + 10000;
-                        Clear(GenJnlLine);
-                        GenJnlLine.Init();
-                        GenJnlLine."Line No." := GenJnlLineNextNo;
-                        GenJnlLine."Posting Date" := PostingDate;
-                        GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-                        GenJnlLine."Document No." := PostedBillGr."No.";
-                        GenJnlLine."Reason Code" := PostedBillGr."Reason Code";
+                        Clear(TempGenJnlLine);
+                        TempGenJnlLine.Init();
+                        TempGenJnlLine."Line No." := GenJnlLineNextNo;
+                        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                        TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
+                        TempGenJnlLine."Document No." := PostedBillGr."No.";
+                        TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
                         BankAcc.TestField("Bank Acc. Posting Group");
                         BankAccPostingGr.Get(BankAcc."Bank Acc. Posting Group");
-                        GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::"G/L Account");
+                        TempGenJnlLine.Validate("Account Type", TempGenJnlLine."Account Type"::"G/L Account");
                         BankAccPostingGr.TestField("Liabs. for Disc. Bills Acc.");
-                        GenJnlLine.Validate("Account No.", BankAccPostingGr."Liabs. for Disc. Bills Acc.");
+                        TempGenJnlLine.Validate("Account No.", BankAccPostingGr."Liabs. for Disc. Bills Acc.");
                         if PostedDoc."Document Type" = PostedDoc."Document Type"::Bill then
-                            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100001Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
+                            TempGenJnlLine.Description := CopyStr(StrSubstNo(Text1100001Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(TempGenJnlLine.Description))
                         else
-                            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100002Lbl, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
-                        GenJnlLine.Validate("Currency Code", PostedBillGr."Currency Code");
-                        GenJnlLine.Validate(Amount, AppliedAmt);
-                        GenJnlLine."Source Code" := SourceCode;
-                        GenJnlLine."System-Created Entry" := true;
-                        GenJnlLine."Dimension Set ID" :=
-                          CarteraManagement.GetCombinedDimSetID(GenJnlLine, DimSetID);
-                        OnBeforeInsertGenJournalLine(PostedDoc, GenJnlLine, VATPostingSetup, CustLedgEntry, PostedBillGr);
-                        GenJnlLine.Insert();
-                        SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
+                            TempGenJnlLine.Description := CopyStr(StrSubstNo(Text1100002Lbl, PostedDoc."Document No."), 1, MaxStrLen(TempGenJnlLine.Description));
+                        TempGenJnlLine.Validate("Currency Code", PostedBillGr."Currency Code");
+                        TempGenJnlLine.Validate(Amount, AppliedAmt);
+                        TempGenJnlLine."Source Code" := SourceCode;
+                        TempGenJnlLine."System-Created Entry" := true;
+                        TempGenJnlLine."Dimension Set ID" :=
+                          CarteraManagement.GetCombinedDimSetID(TempGenJnlLine, DimSetID);
+                        OnBeforeInsertGenJournalLine(PostedDoc, TempGenJnlLine, VATPostingSetup, CustLedgEntry, PostedBillGr);
+                        TempGenJnlLine.Insert();
+                        SumLCYAmt := SumLCYAmt + TempGenJnlLine."Amount (LCY)";
                     end else
                         BankAmtBuffer := BankAmtBuffer + AppliedAmt;
                 end else
@@ -189,31 +187,31 @@ report 7000084 "Partial Settl.- Receivable"
                             Acct := Currency."Residual Losses Account";
                         end;
                         GenJnlLineNextNo := GenJnlLineNextNo + 10000;
-                        Clear(GenJnlLine);
-                        GenJnlLine.Init();
-                        GenJnlLine."Line No." := GenJnlLineNextNo;
-                        GenJnlLine."Posting Date" := PostingDate;
-                        GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-                        GenJnlLine."Document No." := PostedBillGr."No.";
-                        GenJnlLine."Reason Code" := PostedBillGr."Reason Code";
-                        GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::"G/L Account");
-                        GenJnlLine.Validate("Account No.", Acct);
-                        GenJnlLine.Description := Text1100005Lbl;
-                        GenJnlLine.Validate("Currency Code", '');
-                        GenJnlLine.Validate(Amount, -SumLCYAmt);
-                        GenJnlLine."Source Code" := SourceCode;
-                        GenJnlLine."System-Created Entry" := true;
-                        GenJnlLine."Dimension Set ID" :=
-                          CarteraManagement.GetCombinedDimSetID(GenJnlLine, CustLedgEntry."Dimension Set ID");
-                        OnBeforeInsertGenJournalLine(PostedDoc, GenJnlLine, VATPostingSetup, CustLedgEntry, PostedBillGr);
-                        GenJnlLine.Insert();
+                        Clear(TempGenJnlLine);
+                        TempGenJnlLine.Init();
+                        TempGenJnlLine."Line No." := GenJnlLineNextNo;
+                        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                        TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
+                        TempGenJnlLine."Document No." := PostedBillGr."No.";
+                        TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
+                        TempGenJnlLine.Validate("Account Type", TempGenJnlLine."Account Type"::"G/L Account");
+                        TempGenJnlLine.Validate("Account No.", Acct);
+                        TempGenJnlLine.Description := Text1100005Lbl;
+                        TempGenJnlLine.Validate("Currency Code", '');
+                        TempGenJnlLine.Validate(Amount, -SumLCYAmt);
+                        TempGenJnlLine."Source Code" := SourceCode;
+                        TempGenJnlLine."System-Created Entry" := true;
+                        TempGenJnlLine."Dimension Set ID" :=
+                          CarteraManagement.GetCombinedDimSetID(TempGenJnlLine, CustLedgEntry."Dimension Set ID");
+                        OnBeforeInsertGenJournalLine(PostedDoc, TempGenJnlLine, VATPostingSetup, CustLedgEntry, PostedBillGr);
+                        TempGenJnlLine.Insert();
                     end;
 
-                DocPost.PostSettlement(GenJnlLine);
+                DocPost.PostSettlement(TempGenJnlLine);
 
                 CustLedgEntry.Get("Entry No.");
                 Get(Type, "Entry No.");
-                "Honored/Rejtd. at Date" := PostingDate;
+                "Honored/Rejtd. at Date" := DocumentPostingDate;
                 "Remaining Amount" := RemainingAmt2;
                 "Remaining Amt. (LCY)" := Round(CurrExchRate.ExchangeAmtFCYToLCY(
                       CustLedgEntry."Posting Date",
@@ -231,12 +229,12 @@ report 7000084 "Partial Settl.- Receivable"
                     Status := Status::Open;
                     CustLedgEntry.Open := true;
                 end;
-                OnBeforeModifyPostedDoc(PostedDoc, GenJnlLine, CustLedgEntry, PostedBillGr);
+                OnBeforeModifyPostedDoc(PostedDoc, TempGenJnlLine, CustLedgEntry, PostedBillGr);
                 CustLedgEntry.Modify();
                 Modify();
                 PostedBillGr.Modify();
 
-                DocPost.CloseBillGroupIfEmpty(PostedBillGr, PostingDate);
+                DocPost.CloseBillGroupIfEmpty(PostedBillGr, DocumentPostingDate);
 
                 Window.Close();
 
@@ -247,7 +245,7 @@ report 7000084 "Partial Settl.- Receivable"
                     GLReg.Modify();
                 end;
 
-                OnAfterPostedDocOnPostDataItem(PostedDoc, GenJnlLine, CustLedgEntry, PostedBillGr);
+                OnAfterPostedDocOnPostDataItem(PostedDoc, TempGenJnlLine, CustLedgEntry, PostedBillGr);
 
                 Commit();
                 Message(
@@ -257,7 +255,7 @@ report 7000084 "Partial Settl.- Receivable"
 
             trigger OnPreDataItem()
             begin
-                DocPost.CheckPostingDate(PostingDate);
+                DocPost.CheckPostingDate(DocumentPostingDate);
 
                 SourceCodeSetup.Get();
                 SourceCode := SourceCodeSetup."Cartera Journal";
@@ -284,7 +282,7 @@ report 7000084 "Partial Settl.- Receivable"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PostingDate; PostingDate)
+                    field(PostingDate; DocumentPostingDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Posting Date';
@@ -298,7 +296,7 @@ report 7000084 "Partial Settl.- Receivable"
                             CustLedgEntry2.Get(CustLedgEntryNo);
                             if CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice then begin
                                 CustLedgEntry2.CalcFields("Remaining Amount");
-                                if PostingDate > CustLedgEntry2."Pmt. Discount Date" then
+                                if DocumentPostingDate > CustLedgEntry2."Pmt. Discount Date" then
                                     RemainingAmt := CustLedgEntry2."Remaining Amount"
                                 else
                                     RemainingAmt := CustLedgEntry2."Remaining Amount" - CustLedgEntry2."Remaining Pmt. Disc. Possible";
@@ -309,13 +307,13 @@ report 7000084 "Partial Settl.- Receivable"
                     field(RemainingAmount; RemainingAmt)
                     {
                         ApplicationArea = Basic, Suite;
-                        AutoFormatExpression = CurrencyCode;
+                        AutoFormatExpression = DocumentCurrencyCode;
                         AutoFormatType = 1;
                         Caption = 'Remaining Amount';
                         Editable = false;
                         ToolTip = 'Specifies the pending, unpaid amount.';
                     }
-                    field(CurrencyCode; CurrencyCode)
+                    field(CurrencyCode; DocumentCurrencyCode)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Currency Code';
@@ -326,7 +324,7 @@ report 7000084 "Partial Settl.- Receivable"
                     field(SettledAmount; AppliedAmt)
                     {
                         ApplicationArea = Basic, Suite;
-                        AutoFormatExpression = CurrencyCode;
+                        AutoFormatExpression = DocumentCurrencyCode;
                         AutoFormatType = 1;
                         Caption = 'Settled Amount';
                         Editable = true;
@@ -355,10 +353,10 @@ report 7000084 "Partial Settl.- Receivable"
 
     trigger OnInitReport()
     begin
-        PostingDate := WorkDate();
+        DocumentPostingDate := WorkDate();
         RemainingAmt := 0;
         AppliedAmt := 0;
-        CurrencyCode := '';
+        DocumentCurrencyCode := '';
     end;
 
     trigger OnPreReport()
@@ -369,7 +367,7 @@ report 7000084 "Partial Settl.- Receivable"
     var
         SourceCodeSetup: Record "Source Code Setup";
         PostedBillGr: Record "Posted Bill Group";
-        GenJnlLine: Record "Gen. Journal Line" temporary;
+        TempGenJnlLine: Record "Gen. Journal Line" temporary;
         CustLedgEntry: Record "Cust. Ledger Entry";
         BankAccPostingGr: Record "Bank Account Posting Group";
         BankAcc: Record "Bank Account";
@@ -385,8 +383,7 @@ report 7000084 "Partial Settl.- Receivable"
         Text1100000Lbl: Label ' Partially settling receivable documents      #1######', Comment = '#1 = Number of documents partially settled';
         Text1100001Lbl: Label 'Partial Bill settlement %1/%2', Comment = '%1 = Document number, %2 = Bill number';
         Text1100002Lbl: Label 'Partial Document settlement %1', Comment = '%1 = Document number';
-        Text1100003Lbl: Label 'No receivable documents have been found that can be settled. \';
-        Text1100004Lbl: Label 'Please check that the selection is not empty and at least one receivable document is open.';
+        NoReceivableDocumentsToSettleErr: Label 'No receivable documents have been found that can be settled. \Please check that the selection is not empty and at least one receivable document is open.';
         Text1100005Lbl: Label 'Residual adjust generated by rounding Amount';
         Text1100006Lbl: Label '%1 receivable documents totaling %2 have been partially settled in Bill Group %3 by an amount of %4.', Comment = '%1 = Number of documents partially settled, %2 = Remaining amount, %3 = Bill group number, %4 = Applied amount';
         Text1100007Lbl: Label 'The maximum permitted value is %1', Comment = '%1 = Remaining amount available for settlement';
@@ -394,14 +391,14 @@ report 7000084 "Partial Settl.- Receivable"
         Text1100009Lbl: Label 'Partial receivable document settlement %1/%2', Comment = '%1 = Document number, %2 = Bill number';
         Text1100010Lbl: Label 'Partial receivable document settlement %1', Comment = '%1 = Document number';
         Window: Dialog;
-        PostingDate: Date;
+        DocumentPostingDate: Date;
         SourceCode: Code[10];
         Acct: Code[20];
         DocCount: Integer;
         GenJnlLineNextNo: Integer;
         TotalDisctdAmt: Decimal;
         RemainingAmt: Decimal;
-        CurrencyCode: Code[10];
+        DocumentCurrencyCode: Code[10];
         AppliedAmt: Decimal;
         RemainingAmt2: Decimal;
         BankAmtBuffer: Decimal;
@@ -436,28 +433,28 @@ report 7000084 "Partial Settl.- Receivable"
 
         TotalDisctdAmt := TotalDisctdAmt + DisctedAmt;
 
-        Clear(GenJnlLine);
-        GenJnlLine.Init();
-        GenJnlLine."Line No." := GenJnlLineNextNo;
-        GenJnlLine."Posting Date" := PostingDate;
-        GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-        GenJnlLine."Document No." := PostedBillGr."No.";
-        GenJnlLine."Reason Code" := PostedBillGr."Reason Code";
+        Clear(TempGenJnlLine);
+        TempGenJnlLine.Init();
+        TempGenJnlLine."Line No." := GenJnlLineNextNo;
+        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+        TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
+        TempGenJnlLine."Document No." := PostedBillGr."No.";
+        TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
         BankAcc.TestField("Bank Acc. Posting Group");
         BankAccPostingGr.Get(BankAcc."Bank Acc. Posting Group");
-        GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::"G/L Account");
+        TempGenJnlLine.Validate("Account Type", TempGenJnlLine."Account Type"::"G/L Account");
         BankAccPostingGr.TestField("Liabs. for Factoring Acc.");
-        GenJnlLine.Validate("Account No.", BankAccPostingGr."Liabs. for Factoring Acc.");
-        GenJnlLine.Description := CopyStr(StrSubstNo(Text1100008Lbl, PostedDoc2."Document No.", PostedDoc2."Account No."), 1, MaxStrLen(GenJnlLine.Description));
-        GenJnlLine.Validate("Currency Code", PostedBillGr."Currency Code");
-        GenJnlLine.Validate(Amount, DisctedAmt);
-        GenJnlLine."Source Code" := SourceCode;
-        GenJnlLine."System-Created Entry" := true;
-        GenJnlLine."Dimension Set ID" :=
-          CarteraManagement.GetCombinedDimSetID(GenJnlLine, PostedDoc2."Dimension Set ID");
-        OnBeforeInsertGenJournalLine(PostedDoc, GenJnlLine, VATPostingSetup, CustLedgEntry, PostedBillGr);
-        GenJnlLine.Insert();
-        SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
+        TempGenJnlLine.Validate("Account No.", BankAccPostingGr."Liabs. for Factoring Acc.");
+        TempGenJnlLine.Description := CopyStr(StrSubstNo(Text1100008Lbl, PostedDoc2."Document No.", PostedDoc2."Account No."), 1, MaxStrLen(TempGenJnlLine.Description));
+        TempGenJnlLine.Validate("Currency Code", PostedBillGr."Currency Code");
+        TempGenJnlLine.Validate(Amount, DisctedAmt);
+        TempGenJnlLine."Source Code" := SourceCode;
+        TempGenJnlLine."System-Created Entry" := true;
+        TempGenJnlLine."Dimension Set ID" :=
+          CarteraManagement.GetCombinedDimSetID(TempGenJnlLine, PostedDoc2."Dimension Set ID");
+        OnBeforeInsertGenJournalLine(PostedDoc, TempGenJnlLine, VATPostingSetup, CustLedgEntry, PostedBillGr);
+        TempGenJnlLine.Insert();
+        SumLCYAmt := SumLCYAmt + TempGenJnlLine."Amount (LCY)";
     end;
 
     local procedure FactBankAccounting()
@@ -470,7 +467,7 @@ report 7000084 "Partial Settl.- Receivable"
 
     procedure SetInitValue(Amount: Decimal; CurrCode: Code[10]; EntryNo: Integer)
     begin
-        CurrencyCode := CurrCode;
+        DocumentCurrencyCode := CurrCode;
         RemainingAmt := Amount;
         AppliedAmt := RemainingAmt;
         CustLedgEntryNo := EntryNo;
@@ -479,61 +476,61 @@ report 7000084 "Partial Settl.- Receivable"
     local procedure BankAccounting(BankAmt: Decimal)
     begin
         GenJnlLineNextNo := GenJnlLineNextNo + 10000;
-        Clear(GenJnlLine);
-        GenJnlLine.Init();
-        GenJnlLine."Line No." := GenJnlLineNextNo;
-        GenJnlLine."Posting Date" := PostingDate;
-        GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
-        GenJnlLine."Document No." := PostedBillGr."No.";
-        GenJnlLine."Reason Code" := PostedBillGr."Reason Code";
+        Clear(TempGenJnlLine);
+        TempGenJnlLine.Init();
+        TempGenJnlLine."Line No." := GenJnlLineNextNo;
+        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+        TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
+        TempGenJnlLine."Document No." := PostedBillGr."No.";
+        TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
         BankAcc.TestField("Bank Acc. Posting Group");
         BankAccPostingGr.Get(BankAcc."Bank Acc. Posting Group");
-        GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::"Bank Account");
-        GenJnlLine.Validate("Account No.", BankAcc."No.");
+        TempGenJnlLine.Validate("Account Type", TempGenJnlLine."Account Type"::"Bank Account");
+        TempGenJnlLine.Validate("Account No.", BankAcc."No.");
         if PostedDoc."Document Type" = PostedDoc."Document Type"::Bill then
-            GenJnlLine.Description := CopyStr(StrSubstNo(
-                  Text1100001Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
+            TempGenJnlLine.Description := CopyStr(StrSubstNo(
+                  Text1100001Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(TempGenJnlLine.Description))
         else
-            GenJnlLine.Description := CopyStr(StrSubstNo(
-                  Text1100002Lbl, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
-        GenJnlLine.Validate("Currency Code", PostedBillGr."Currency Code");
-        GenJnlLine.Validate(Amount, BankAmt);
-        GenJnlLine."Source Code" := SourceCode;
-        GenJnlLine."System-Created Entry" := true;
-        GenJnlLine."Dimension Set ID" :=
-          CarteraManagement.GetCombinedDimSetID(GenJnlLine, DimSetID);
-        OnBeforeInsertGenJournalLine(PostedDoc, GenJnlLine, VATPostingSetup, CustLedgEntry, PostedBillGr);
-        GenJnlLine.Insert();
-        SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
+            TempGenJnlLine.Description := CopyStr(StrSubstNo(
+                  Text1100002Lbl, PostedDoc."Document No."), 1, MaxStrLen(TempGenJnlLine.Description));
+        TempGenJnlLine.Validate("Currency Code", PostedBillGr."Currency Code");
+        TempGenJnlLine.Validate(Amount, BankAmt);
+        TempGenJnlLine."Source Code" := SourceCode;
+        TempGenJnlLine."System-Created Entry" := true;
+        TempGenJnlLine."Dimension Set ID" :=
+          CarteraManagement.GetCombinedDimSetID(TempGenJnlLine, DimSetID);
+        OnBeforeInsertGenJournalLine(PostedDoc, TempGenJnlLine, VATPostingSetup, CustLedgEntry, PostedBillGr);
+        TempGenJnlLine.Insert();
+        SumLCYAmt := SumLCYAmt + TempGenJnlLine."Amount (LCY)";
     end;
 
     local procedure InsertGenJournalLine(AccType: Enum "Gen. Journal Account Type"; AccNo: Code[20]; Amount2: Decimal)
     begin
         GenJnlLineNextNo := GenJnlLineNextNo + 10000;
 
-        Clear(GenJnlLine);
-        GenJnlLine.Init();
-        GenJnlLine."Line No." := GenJnlLineNextNo;
-        GenJnlLine."Posting Date" := PostingDate;
-        GenJnlLine."Document No." := PostedBillGr."No.";
-        GenJnlLine."Reason Code" := PostedBillGr."Reason Code";
-        GenJnlLine."Account Type" := AccType;
-        GenJnlLine.Validate("Account No.", AccNo);
+        Clear(TempGenJnlLine);
+        TempGenJnlLine.Init();
+        TempGenJnlLine."Line No." := GenJnlLineNextNo;
+        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+        TempGenJnlLine."Document No." := PostedBillGr."No.";
+        TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
+        TempGenJnlLine."Account Type" := AccType;
+        TempGenJnlLine.Validate("Account No.", AccNo);
         if PostedDoc."Document Type" = PostedDoc."Document Type"::Bill then
-            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100009Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(GenJnlLine.Description))
+            TempGenJnlLine.Description := CopyStr(StrSubstNo(Text1100009Lbl, PostedDoc."Document No.", PostedDoc."No."), 1, MaxStrLen(TempGenJnlLine.Description))
         else
-            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100010Lbl, PostedDoc."Document No."), 1, MaxStrLen(GenJnlLine.Description));
-        GenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
-        GenJnlLine.Validate(Amount, Amount2);
-        GenJnlLine."Applies-to Doc. Type" := CustLedgEntry."Document Type";
-        GenJnlLine."Applies-to Doc. No." := '';
-        GenJnlLine."Applies-to Bill No." := CustLedgEntry."Bill No.";
-        GenJnlLine."Source Code" := SourceCode;
-        GenJnlLine."System-Created Entry" := true;
-        GenJnlLine."Dimension Set ID" :=
-          CarteraManagement.GetCombinedDimSetID(GenJnlLine, CustLedgEntry."Dimension Set ID");
-        OnBeforeInsertGenJournalLine(PostedDoc, GenJnlLine, VATPostingSetup, CustLedgEntry, PostedBillGr);
-        GenJnlLine.Insert();
+            TempGenJnlLine.Description := CopyStr(StrSubstNo(Text1100010Lbl, PostedDoc."Document No."), 1, MaxStrLen(TempGenJnlLine.Description));
+        TempGenJnlLine.Validate("Currency Code", PostedDoc."Currency Code");
+        TempGenJnlLine.Validate(Amount, Amount2);
+        TempGenJnlLine."Applies-to Doc. Type" := CustLedgEntry."Document Type";
+        TempGenJnlLine."Applies-to Doc. No." := '';
+        TempGenJnlLine."Applies-to Bill No." := CustLedgEntry."Bill No.";
+        TempGenJnlLine."Source Code" := SourceCode;
+        TempGenJnlLine."System-Created Entry" := true;
+        TempGenJnlLine."Dimension Set ID" :=
+          CarteraManagement.GetCombinedDimSetID(TempGenJnlLine, CustLedgEntry."Dimension Set ID");
+        OnBeforeInsertGenJournalLine(PostedDoc, TempGenJnlLine, VATPostingSetup, CustLedgEntry, PostedBillGr);
+        TempGenJnlLine.Insert();
     end;
 
     [IntegrationEvent(false, false)]

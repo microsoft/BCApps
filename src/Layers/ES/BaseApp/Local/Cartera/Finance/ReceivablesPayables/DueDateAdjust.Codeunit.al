@@ -132,6 +132,8 @@ codeunit 10700 "Due Date-Adjust"
     end;
 
     local procedure AdjustToPaymentDay(var PaymentDay: Record "Payment Day"; DueDate: Date; DirectionText: Text[1]; FindText: Text[1]; Sign: Text[1]): Date
+    var
+        PaymentDayFormulaTok: Label '<%1D%2>', Locked = true, Comment = '%1 = sign, %2 = day of the month';
     begin
         if (CalcDate('<CM>', DueDate) = DueDate) and PaymentDay.Get(PaymentDay."Table Name", PaymentDay.Code, 31) then
             exit(DueDate);
@@ -139,9 +141,9 @@ codeunit 10700 "Due Date-Adjust"
         if PaymentDay.Find('=') then
             exit(DueDate);
         if PaymentDay.Find(DirectionText) then
-            exit(CalcDate(StrSubstNo('<%1D%2>', Sign, PaymentDay."Day of the month"), DueDate));
+            exit(CalcDate(StrSubstNo(PaymentDayFormulaTok, Sign, PaymentDay."Day of the month"), DueDate));
         if PaymentDay.Find(FindText) then
-            exit(CalcDate(StrSubstNo('<%1D%2>', Sign, PaymentDay."Day of the month"), DueDate));
+            exit(CalcDate(StrSubstNo(PaymentDayFormulaTok, Sign, PaymentDay."Day of the month"), DueDate));
         exit(DueDate)
     end;
 

@@ -46,7 +46,7 @@ report 7000092 "Bill group - Export N19"
                     CustCCCControlDigits := CustBankAcc."CCC Control Digits";
                     CustCCCAccNo := CustBankAcc."CCC Bank Account No.";
 
-                    if CheckErrors then begin
+                    if CheckExportErrors then begin
                         DocMisc.CheckControlDigit(CustCCCControlDigits, CustCCCBankCode, CustCCCAccNo, CustCCCBankBranchNo);
                         if (CustBankAcc."CCC Control Digits" <> CustCCCControlDigits) and
                            (CustCCCControlDigits <> '**')
@@ -70,8 +70,10 @@ report 7000092 "Bill group - Export N19"
                     CustAddress[3] := CopyStr(Customer.City, 1, 30);
                     CustAddress[4] := CopyStr(Customer."Post Code", 1, 30);
                     CustNoNIF := Customer."VAT Registration No.";
+#pragma warning disable AA0139
                     AdditionalInfo := Text1100008Lbl + "Document No." + '/' + "No.";
                     AdditionalInfo2 := "Document No." + '/' + "No.";
+#pragma warning restore AA0139
 
                     TotalDocs := TotalDocs + 1;
                     TotalDocsCust := TotalDocsCust + 1;
@@ -83,12 +85,16 @@ report 7000092 "Bill group - Export N19"
                             if IsEuro then
                                 DocAmount := EuroAmount("Remaining Amt. (LCY)")
                             else
+#pragma warning disable AA0139
                                 DocAmount := ConvertStr(Format("Remaining Amount", 10, Text1100009Lbl), ' ', '0');
+#pragma warning restore AA0139
                         LCY = LCY::Other:
                             if IsEuro then
                                 DocAmount := EuroAmount("Remaining Amount")
                             else
+#pragma warning disable AA0139
                                 DocAmount := ConvertStr(Format("Remaining Amount", 10, Text1100009Lbl), ' ', '0');
+#pragma warning restore AA0139
                     end;
 
                     RegisterCode2 := RegisterCode + 6;
@@ -96,7 +102,7 @@ report 7000092 "Bill group - Export N19"
 
                     Clear(OutText);
                     OutText :=
-                      RegisterString + '80' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(BankSuffix, 3, ' ') +
+                      RegisterString + '80' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(ExportBankSuffix, 3, ' ') +
                       PadStr(Format(CustNoNIF), 12, ' ') + PadStr(Format(Customer.Name), 40, ' ') +
                       ConvertStr(PadStr(CustCCCBankCode, 4, ' '), ' ', '0') + ConvertStr(PadStr(CustCCCBankBranchNo, 4, ' '), ' ', '0') +
                       PadStr(CustCCCControlDigits, 2, ' ') + ConvertStr(PadStr(CustCCCAccNo, 10, ' '), ' ', '0') +
@@ -119,7 +125,9 @@ report 7000092 "Bill group - Export N19"
                             end else begin
                                 "Bill Group".CalcFields(Amount);
                                 TotalAmount := "Bill Group".Amount + TotalAmount;
+#pragma warning disable AA0139
                                 BillGrAmount := ConvertStr(Format("Bill Group".Amount, 10, Text1100006Lbl), ' ', '0')
+#pragma warning restore AA0139
                             end;
                         LCY = LCY::Other:
                             if IsEuro then begin
@@ -129,7 +137,9 @@ report 7000092 "Bill group - Export N19"
                             end else begin
                                 "Bill Group".CalcFields(Amount);
                                 TotalAmount := "Bill Group".Amount + TotalAmount;
+#pragma warning disable AA0139
                                 BillGrAmount := ConvertStr(Format("Bill Group".Amount, 10, Text1100006Lbl), ' ', '0')
+#pragma warning restore AA0139
                             end;
                     end;
 
@@ -137,7 +147,7 @@ report 7000092 "Bill group - Export N19"
                     DLDACurrency();
 
                     OutText :=
-                      RegisterString + '80' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(BankSuffix, 3, ' ') + PadStr('', 12, ' ') +
+                      RegisterString + '80' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(ExportBankSuffix, 3, ' ') + PadStr('', 12, ' ') +
                       PadStr('', 40, ' ') + PadStr('', 20, ' ') + BillGrAmount + PadStr('', 6, ' ') +
                       ConvertStr(Format(TotalDocsCust, 10, Text1100006Lbl), ' ', '0') + ConvertStr(Format(TotalPrintedCust, 10, Text1100006Lbl), ' ', '0') +
                       PadStr('', 20, ' ') + PadStr('', 18, ' ');
@@ -165,17 +175,17 @@ report 7000092 "Bill group - Export N19"
                 DLDACurrency();
 
                 Clear(OutText);
-                if ChargDate <> 0D then
+                if ChargeDate <> 0D then
                     OutText :=
-                      RegisterString + '80' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(BankSuffix, 3, ' ') +
-                      Format(WorkDate(), 6, 5) + Format(ChargDate, 6, 5) + PadStr(CompanyInfo.Name, 40, ' ') +
+                      RegisterString + '80' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(ExportBankSuffix, 3, ' ') +
+                      Format(WorkDate(), 6, 5) + Format(ChargeDate, 6, 5) + PadStr(CompanyInfo.Name, 40, ' ') +
                       ConvertStr(CCCBankNo, ' ', '0') + ConvertStr(CCCBankBranchNo, ' ', '0') +
                       ConvertStr(CCCControlDigits, ' ', '0') + ConvertStr(CCCAccNo, ' ', '0') +
                       PadStr('', 8, ' ') + '01' + PadStr('', 10, ' ') + PadStr('', 40, ' ') + PadStr('', 14, ' ')
                 else begin
                     DateMaxEfe := DateMax();
                     OutText :=
-                      RegisterString + '80' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(BankSuffix, 3, ' ') +
+                      RegisterString + '80' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(ExportBankSuffix, 3, ' ') +
                       Format(WorkDate(), 6, 5) + Format(DateMaxEfe, 6, 5) + PadStr(CompanyInfo.Name, 40, ' ') +
                       ConvertStr(CCCBankNo, ' ', '0') + ConvertStr(CCCBankBranchNo, ' ', '0') +
                       ConvertStr(CCCControlDigits, ' ', '0') + ConvertStr(CCCAccNo, ' ', '0') +
@@ -199,17 +209,21 @@ report 7000092 "Bill group - Export N19"
                 if IsEuro then
                     GeneralTotal := EuroAmount(TotalAmount)
                 else
+#pragma warning disable AA0139
                     GeneralTotal := ConvertStr(Format(TotalAmount, 10, Text1100006Lbl), ' ', '0');
+#pragma warning restore AA0139
 
                 OutText :=
-                  RegisterString + '80' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(BankSuffix, 3, ' ') + PadStr('', 12, ' ') +
+                  RegisterString + '80' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(ExportBankSuffix, 3, ' ') + PadStr('', 12, ' ') +
                   PadStr('', 40, ' ') + '0001' + PadStr('', 16, ' ') + GeneralTotal + PadStr('', 6, ' ') +
                   ConvertStr(Format(TotalDocs, 10, Text1100006Lbl), ' ', '0') + ConvertStr(Format(TotalPrinted, 10, Text1100006Lbl), ' ', '0') +
                   PadStr('', 20, ' ') + PadStr('', 18, ' ');
                 OutFile.Write(OutText);
                 OutFile.Close();
                 if not SilentMode then
+#pragma warning disable AA0139
                     Download(ExternalFile, '', 'C:', FilterLbl, ToFile)
+#pragma warning restore AA0139
                 else
                     FileMgt.CopyServerFile(ExternalFile, SilentFile, true);
             end;
@@ -221,11 +235,11 @@ report 7000092 "Bill group - Export N19"
                 Find('-');
                 BankAcc.Get("Bank Account No.");
 
-                if BankSuffix = '' then
+                if ExportBankSuffix = '' then
                     Error(Text1100000Lbl);
 
                 if BankSuffixBankAcc = '' then begin
-                    Suffix.SetRange(Suffix, BankSuffix);
+                    Suffix.SetRange(Suffix, ExportBankSuffix);
                     if Suffix.FindFirst() then
                         BankSuffixBankAcc := Suffix."Bank Acc. Code";
                 end;
@@ -246,7 +260,7 @@ report 7000092 "Bill group - Export N19"
 
                 Clear(OutText);
                 OutText :=
-                  RegisterString + '80' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(BankSuffix, 3, ' ') +
+                  RegisterString + '80' + Format(CompanyInfo."VAT Registration No.", 9) + PadStr(ExportBankSuffix, 3, ' ') +
                   Format(WorkDate(), 6, 5) + PadStr('', 6, ' ') +
                   PadStr(CompanyInfo.Name, 40, ' ') + PadStr('', 20, ' ') + ConvertStr(BankAcc."CCC Bank No.", ' ', '0') +
                   ConvertStr(BankAcc."CCC Bank Branch No.", ' ', '0') + PadStr('', 12, ' ') + PadStr('', 40, ' ') + PadStr('', 14, ' ');
@@ -266,19 +280,19 @@ report 7000092 "Bill group - Export N19"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(ChargDate; ChargDate)
+                    field(ChargDate; ChargeDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Charging Date';
                         ToolTip = 'Specifies the date you want the bank to make the charge.';
                     }
-                    field(CheckErrors; CheckErrors)
+                    field(CheckErrors; CheckExportErrors)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Check Errors';
                         ToolTip = 'Specifies if you want error messages when sending the norms to magnetic media.';
                     }
-                    field(BankSuffix; BankSuffix)
+                    field(BankSuffix; ExportBankSuffix)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Suffix';
@@ -297,7 +311,7 @@ report 7000092 "Bill group - Export N19"
                             if Suffixes.RunModal() = ACTION::LookupOK then begin
                                 Suffixes.GetRecord(Suffix);
                                 BankSuffixBankAcc := Suffix."Bank Acc. Code";
-                                BankSuffix := Suffix.Suffix;
+                                ExportBankSuffix := Suffix.Suffix;
                             end;
                         end;
                     }
@@ -336,7 +350,9 @@ report 7000092 "Bill group - Export N19"
 
         OutFile.TextMode := true;
         OutFile.WriteMode := true;
+#pragma warning disable AA0139
         ExternalFile := FileMgt.ServerTempFileName('');
+#pragma warning restore AA0139
         ToFile := Text10702Lbl;
         OutFile.Create(ExternalFile);
     end;
@@ -362,7 +378,7 @@ report 7000092 "Bill group - Export N19"
         Text1100010Lbl: Label 'DEVOL.';
         OutFile: File;
         ExternalFile: Text[1024];
-        CheckErrors: Boolean;
+        CheckExportErrors: Boolean;
         VATRegNo: Text[9];
         CCCBankNo: Text[4];
         CustCCCBankCode: Text[4];
@@ -382,7 +398,7 @@ report 7000092 "Bill group - Export N19"
         TotalPrinted: Decimal;
         TotalAmount: Decimal;
         OutText: Text[162];
-        ChargDate: Date;
+        ChargeDate: Date;
         RegisterCode: Integer;
         RegisterCode2: Integer;
         RegisterString: Text[2];
@@ -393,7 +409,7 @@ report 7000092 "Bill group - Export N19"
         DateMaxEfe: Date;
         IsEuro: Boolean;
         LCY: Option Euro,Other;
-        BankSuffix: Code[3];
+        ExportBankSuffix: Code[3];
         BankSuffixBankAcc: Code[20];
         ToFile: Text[1024];
         FilterLbl: Label 'ASC Files (*.asc)|*.asc|All Files (*.*)|*.*';
@@ -415,6 +431,7 @@ report 7000092 "Bill group - Export N19"
     var
         TextAmount: Text[15];
     begin
+#pragma warning disable AA0139
         TextAmount := ConvertStr(Format(Amount), ' ', '0');
         if StrPos(TextAmount, ',') = 0 then
             TextAmount := TextAmount + '00'
@@ -432,21 +449,22 @@ report 7000092 "Bill group - Export N19"
             TextAmount := '0' + TextAmount;
 
         exit(TextAmount);
+#pragma warning restore AA0139
     end;
 
     [Scope('OnPrem')]
-    procedure DateMax() Datemax: Date
+    procedure DateMax() MaxDueDate: Date
     begin
         Doc2.SetRange(Type, 0);
         Doc2.SetRange("Bill Gr./Pmt. Order No.", "Bill Group"."No.");
         Doc2.Find('-');
-        Datemax := Doc2."Due Date";
+        MaxDueDate := Doc2."Due Date";
         repeat
-            if Datemax < Doc2."Due Date" then
-                Datemax := Doc2."Due Date";
+            if MaxDueDate < Doc2."Due Date" then
+                MaxDueDate := Doc2."Due Date";
         until Doc2.Next() = 0;
         Doc2.Reset();
-        exit(Datemax);
+        exit(MaxDueDate);
     end;
 
     [Scope('OnPrem')]

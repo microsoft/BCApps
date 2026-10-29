@@ -40,7 +40,7 @@ report 7000096 "Redraw Receivable Bills"
                 Clear(FeeRange);
                 Clear(FinanceChargeTerms);
 
-                if NewDueDate < "Due Date" then
+                if RedrawDueDate < "Due Date" then
                     Error(
                       Text1100003Lbl,
                       FieldCaption("Due Date"),
@@ -100,7 +100,7 @@ report 7000096 "Redraw Receivable Bills"
                             FeeRange.CalcDiscInterestsAmt(
                               BankAcc."Operation Fees Code",
                               BankAcc."Currency Code",
-                              NewDueDate - "Due Date",
+                              RedrawDueDate - "Due Date",
                               AmtForCollection,
                               "Entry No.");
                         end else
@@ -122,12 +122,14 @@ report 7000096 "Redraw Receivable Bills"
                           Customer."Fin. Charge Terms Code",
                           "Currency Code",
                           AmtForCollection,
-                          NewDueDate - "Due Date");
+                          RedrawDueDate - "Due Date");
                     end;
                 end;
 
                 if StrPos(GenJnlLine."Bill No.", '-') = 0 then
+#pragma warning disable AA0139
                     DocNo := CustLedgEntry."Bill No." + '-1'
+#pragma warning restore AA0139
                 else
                     DocNo := IncStr(GenJnlLine."Bill No.");
                 TempCustLedgEntryInit(CustLedgEntry, DocNo, NewDocAmount, NewDocAmountLCY);
@@ -135,21 +137,21 @@ report 7000096 "Redraw Receivable Bills"
                 if ArePostedDocs then begin
                     PostedDoc.Get(
                       PostedDoc.Type::Receivable, CustLedgEntry."Entry No.");
-                    if NewPmtMethod = '' then
+                    if RedrawPaymentMethodCode = '' then
                         GenJnlLine."Payment Method Code" := PostedDoc."Payment Method Code"
                     else
-                        GenJnlLine."Payment Method Code" := NewPmtMethod;
+                        GenJnlLine."Payment Method Code" := RedrawPaymentMethodCode;
                     GenJnlLine."Recipient Bank Account" := PostedDoc."Cust./Vendor Bank Acc. Code";
                 end else begin
                     ClosedDoc.Get(
                       ClosedDoc.Type::Receivable, CustLedgEntry."Entry No.");
-                    if NewPmtMethod = '' then
+                    if RedrawPaymentMethodCode = '' then
                         GenJnlLine."Payment Method Code" := ClosedDoc."Payment Method Code"
                     else
-                        GenJnlLine."Payment Method Code" := NewPmtMethod;
+                        GenJnlLine."Payment Method Code" := RedrawPaymentMethodCode;
                     GenJnlLine."Recipient Bank Account" := ClosedDoc."Cust./Vendor Bank Acc. Code";
                 end;
-                GenJnlLine."Due Date" := NewDueDate;
+                GenJnlLine."Due Date" := RedrawDueDate;
                 InsertGenJnlLine(
                   GenJnlLine."Account Type"::Customer,
                   CustLedgEntry."Customer No.",
@@ -269,7 +271,7 @@ report 7000096 "Redraw Receivable Bills"
                       NewDocAmount,
                       NewDocAmountLCY,
                       EntryType::Redrawal,
-                      PostingDate);
+                      DocumentPostingDate);
             end;
 
             trigger OnPostDataItem()
@@ -311,7 +313,7 @@ report 7000096 "Redraw Receivable Bills"
                 GenJnlTemplate.Get(TemplName);
                 SourceCode := GenJnlTemplate."Source Code";
 
-                DocPost.CheckPostingDate(PostingDate);
+                DocPost.CheckPostingDate(DocumentPostingDate);
 
                 Window.Open(
                   Text1100002Lbl);
@@ -391,19 +393,19 @@ report 7000096 "Redraw Receivable Bills"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PostingDate; PostingDate)
+                    field(PostingDate; DocumentPostingDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Posting Date';
                         ToolTip = 'Specifies the date the batch job of redrawn bills is posted. By default, today''s date is used.';
                     }
-                    field(NewDueDate; NewDueDate)
+                    field(NewDueDate; RedrawDueDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'New Due Date';
                         ToolTip = 'Specifies the new due date we want to define for the new bill that will be created by redrawing.';
                     }
-                    field(NewPmtMethod; NewPmtMethod)
+                    field(NewPmtMethod; RedrawPaymentMethodCode)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'New Payment Method';
@@ -486,8 +488,8 @@ report 7000096 "Redraw Receivable Bills"
 
         trigger OnOpenPage()
         begin
-            OnBeforeOnOpenRequestPagePage(PostingDate, NewDueDate, NewPmtMethod, IncludeDiscCollExpenses, IncludeRejExpenses, IncludeFinanceCharges, TemplName, BatchName);
-            PostingDate := WorkDate();
+            OnBeforeOnOpenRequestPagePage(DocumentPostingDate, RedrawDueDate, RedrawPaymentMethodCode, IncludeDiscCollExpenses, IncludeRejExpenses, IncludeFinanceCharges, TemplName, BatchName);
+            DocumentPostingDate := WorkDate();
             TemplName := '';
             BatchName := '';
         end;
@@ -502,9 +504,9 @@ report 7000096 "Redraw Receivable Bills"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeOnPreReport(PostingDate, NewDueDate, NewPmtMethod, IncludeDiscCollExpenses, IncludeRejExpenses, IncludeFinanceCharges, TemplName, BatchName, IsHandled);
+        OnBeforeOnPreReport(DocumentPostingDate, RedrawDueDate, RedrawPaymentMethodCode, IncludeDiscCollExpenses, IncludeRejExpenses, IncludeFinanceCharges, TemplName, BatchName, IsHandled);
         if not IsHandled then begin
-            if NewDueDate = 0D then
+            if RedrawDueDate = 0D then
                 Error(Text1100000Lbl);
 
             if not GenJnlBatch.Get(TemplName, BatchName) then
@@ -551,7 +553,7 @@ report 7000096 "Redraw Receivable Bills"
         ArePostedDocs: Boolean;
         Discount: Boolean;
         IsOpenBill: Boolean;
-        PostingDate: Date;
+        DocumentPostingDate: Date;
         BillGrPostingDate: Date;
         BatchName: Code[10];
         TemplName: Code[10];
@@ -563,8 +565,8 @@ report 7000096 "Redraw Receivable Bills"
         DocCount: Integer;
         Account: Code[20];
         DocNo: Code[20];
-        NewDueDate: Date;
-        NewPmtMethod: Code[10];
+        RedrawDueDate: Date;
+        RedrawPaymentMethodCode: Code[10];
         AmtForCollection: Decimal;
         SumLCYAmt: Decimal;
         EntryType: Option " ","Initial Entry",Application,"Unrealized Loss","Unrealized Gain","Realized Loss","Realized Gain","Payment Discount","Payment Discount (VAT Excl.)","Payment Discount (VAT Adjustment)","Appln. Rounding","Correction of Remaining Amount",,,,,,,,,Settlement,Rejection,Redrawal,Expenses;
@@ -578,7 +580,7 @@ report 7000096 "Redraw Receivable Bills"
         GenJnlLine."Transaction No." := TransactionNo;
         GenJnlLine."Journal Template Name" := TemplName;
         GenJnlLine."Journal Batch Name" := BatchName;
-        GenJnlLine."Posting Date" := PostingDate;
+        GenJnlLine."Posting Date" := DocumentPostingDate;
         GenJnlLine."Source Code" := SourceCode;
         GenJnlLine."Reason Code" := ReasonCode;
     end;
@@ -604,7 +606,7 @@ report 7000096 "Redraw Receivable Bills"
           CarteraManagement.GetCombinedDimSetID(GenJnlLine, CustLedgEntry."Dimension Set ID");
         if GenJnlLine."Account Type" = GenJnlLine."Account Type"::Customer then
             GenJnlLine.Validate("Direct Debit Mandate ID", CustLedgEntry."Direct Debit Mandate ID");
-        OnBeforeGenJnlLineInsert(GenJnlLine, CustLedgEntry, NewPmtMethod);
+        OnBeforeGenJnlLineInsert(GenJnlLine, CustLedgEntry, RedrawPaymentMethodCode);
         GenJnlLine.Insert();
     end;
 
@@ -653,7 +655,7 @@ report 7000096 "Redraw Receivable Bills"
                     Type::Receivable);
                 GainLossAmt := CarteraManagement.GetGainLoss(
                     PostingDate2,
-                    PostingDate,
+                    DocumentPostingDate,
                     PostedDoc."Original Amount",
                     CustLedgEntry."Currency Code");
             end else begin
@@ -662,7 +664,7 @@ report 7000096 "Redraw Receivable Bills"
                     );
                 GainLossAmt := CarteraManagement.GetGainLoss(
                     PostingDate2,
-                    PostingDate,
+                    DocumentPostingDate,
                     ClosedDoc."Original Amount",
                     CustLedgEntry."Currency Code");
             end;
@@ -739,7 +741,7 @@ report 7000096 "Redraw Receivable Bills"
             repeat
                 DtldCustLedgEntry.Reset();
                 DtldCustLedgEntry.SetRange("Entry Type", EntryType::"Initial Entry");
-                DtldCustLedgEntry.SetRange("Posting Date", PostingDate);
+                DtldCustLedgEntry.SetRange("Posting Date", DocumentPostingDate);
                 DtldCustLedgEntry.SetRange("Document Type", TempCVLedgEntryBuf."Document Type"::Bill);
                 DtldCustLedgEntry.SetRange("Document No.", TempCVLedgEntryBuf."Document No.");
                 DtldCustLedgEntry.SetRange("Customer No.", TempCVLedgEntryBuf."CV No.");
@@ -757,7 +759,7 @@ report 7000096 "Redraw Receivable Bills"
                           ExpAmount,
                           ExpAmountLCY,
                           EntryType::Expenses,
-                          PostingDate);
+                          DocumentPostingDate);
                         DtldCustLedgEntry.Modify();
                     end;
                 end;

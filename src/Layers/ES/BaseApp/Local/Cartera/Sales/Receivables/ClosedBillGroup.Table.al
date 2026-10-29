@@ -79,6 +79,7 @@ table 7000007 "Closed Bill Group"
             FieldClass = FlowFilter;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
+#pragma warning disable AA0232
         field(16; "Amount Grouped"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -92,6 +93,7 @@ table 7000007 "Closed Bill Group"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning restore AA0232
         field(18; "Status Filter"; Enum "Cartera Document Status")
         {
             Caption = 'Status Filter';

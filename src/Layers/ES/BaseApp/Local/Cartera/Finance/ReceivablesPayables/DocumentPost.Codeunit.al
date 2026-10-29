@@ -55,10 +55,8 @@ codeunit 7000006 "Document-Post"
         Text1100014Err: Label 'Do you want to post the journal lines?';
         Text1100016Err: Label 'The journal lines were successfully posted.';
         Text1100017Err: Label 'The journal lines were successfully posted. You are now in the %1 journal.', Comment = '%1=Journal Name';
-        Text1100101Err: Label ' Remove it from its bill group and try again.';
-        Text1100102Err: Label '%1 cannot be unapplied, since it is included in a bill group.', Comment = '%1=Document Description';
-        Text1100103Err: Label ' Remove it from its payment order and try again.';
-        Text1100104Err: Label '%1 cannot be unapplied, since it is included in a payment order.', Comment = '%1 = Document description';
+        CannotUnapplyBillGroupErr: Label '%1 cannot be unapplied, since it is included in a bill group. Remove it from its bill group and try again.', Comment = '%1 = Document description';
+        CannotUnapplyPaymentOrderErr: Label '%1 cannot be unapplied, since it is included in a payment order. Remove it from its payment order and try again.', Comment = '%1 = Document description';
 
         CarteraDocBillGroupErr: Label 'A grouped document cannot be settled from a journal.\Remove Document %1/%2 from Group/Pmt. Order %3 and try again.', Comment = '%1=Document Number,%2=Bill number,%3=Bill Group number.';
 
@@ -914,6 +912,7 @@ codeunit 7000006 "Document-Post"
     begin
         if CurrCode <> '' then begin
             GLSetup.Get();
+#pragma warning disable AA0139
             exit(
               Round(
                 CurrExchRate.ExchangeAmtLCYToFCY(
@@ -922,6 +921,7 @@ codeunit 7000006 "Document-Post"
                   AppliedAmountLCY,
                   CurrExchRate.ExchangeRate(PostingDate, CurrCode)),
                 GLSetup."Amount Rounding Precision"));
+#pragma warning restore AA0139
         end;
         exit(AppliedAmountLCY);
     end;
@@ -1029,7 +1029,7 @@ codeunit 7000006 "Document-Post"
             if ClosedCarteraDoc."Bill Gr./Pmt. Order No." <> '' then
                 InBillGroup := true;
         if InBillGroup then
-            Error(Text1100102Err + Text1100101Err, CustLedgEntry.Description);
+            Error(CannotUnapplyBillGroupErr, CustLedgEntry.Description);
         CustLedgEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
         if not DocLock then begin
             DocLock := true;
@@ -1113,7 +1113,7 @@ codeunit 7000006 "Document-Post"
             if ClosedCarteraDoc."Bill Gr./Pmt. Order No." <> '' then
                 InBillGroup := true;
         if InBillGroup then
-            Error(Text1100103Err + Text1100104Err, VendLedgEntry.Description);
+            Error(CannotUnapplyPaymentOrderErr, VendLedgEntry.Description);
         VendLedgEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
         if not DocLock then begin
             DocLock := true;

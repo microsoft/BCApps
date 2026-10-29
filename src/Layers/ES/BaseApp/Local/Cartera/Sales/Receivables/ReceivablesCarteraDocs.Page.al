@@ -406,7 +406,9 @@ page 7000001 "Receivables Cartera Docs"
 
     trigger OnOpenPage()
     begin
+#pragma warning disable AA0139
         CategoryFilter := Rec.GetFilter("Category Code");
+#pragma warning restore AA0139
         UpdateStatistics();
     end;
 

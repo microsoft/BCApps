@@ -207,6 +207,7 @@ page 7000076 "Docs. in Posted PO Subform"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Total Settlement';
                         Ellipsis = true;
+                        Image = SettleOpenTransactions;
                         ToolTip = 'View posted documents that were settled fully.';
 
                         trigger OnAction()
@@ -219,6 +220,7 @@ page 7000076 "Docs. in Posted PO Subform"
                         ApplicationArea = Basic, Suite;
                         Caption = 'P&artial Settlement';
                         Ellipsis = true;
+                        Image = SettleOpenTransactions;
                         ToolTip = 'View posted documents that were settled partially.';
 
                         trigger OnAction()
@@ -266,12 +268,10 @@ page 7000076 "Docs. in Posted PO Subform"
         PostedDoc: Record "Posted Cartera Doc.";
         VendLedgEntry: Record "Vendor Ledger Entry";
         CarteraManagement: Codeunit CarteraManagement;
-        Text1100000Lbl: Label 'No documents have been found that can be settled. \';
-        Text1100001Lbl: Label 'Please check that at least one open document was selected.';
-        Text1100004Lbl: Label 'No documents have been found that can be redrawn. \';
-        Text1100005Lbl: Label 'Please check that at least one rejected or honored document was selected.';
+        NoDocumentsToSettleErr: Label 'No documents have been found that can be settled. \Please check that at least one open document was selected.';
+        NoDocumentsToRedrawErr: Label 'No documents have been found that can be redrawn. \Please check that at least one rejected or honored document was selected.';
         Text1100006Lbl: Label 'Only bills can be redrawn.';
-        Text1100007Lbl: Label 'Please check that one open document was selected.';
+        NoDocumentToPartiallySettleErr: Label 'No documents have been found that can be settled. \Please check that one open document was selected.';
         Text1100008Lbl: Label 'Only one open document can be selected';
 
     local procedure CategorizeDocs()
@@ -294,9 +294,7 @@ page 7000076 "Docs. in Posted PO Subform"
 
         PostedDoc.SetRange(Status, PostedDoc.Status::Open);
         if not PostedDoc.Find('-') then
-            Error(
-              Text1100000Lbl +
-              Text1100001Lbl);
+            Error(NoDocumentsToSettleErr);
 
         REPORT.RunModal(REPORT::"Settle Docs. in Posted PO", true, false, PostedDoc);
         CurrPage.Update(false);
@@ -310,9 +308,7 @@ page 7000076 "Docs. in Posted PO Subform"
 
         PostedDoc.SetFilter(Status, '<>%1', PostedDoc.Status::Open);
         if not PostedDoc.Find('-') then
-            Error(
-              Text1100004Lbl +
-              Text1100005Lbl);
+            Error(NoDocumentsToRedrawErr);
 
         PostedDoc.SetFilter("Document Type", '<>%1', PostedDoc."Document Type"::Bill);
         if PostedDoc.Find('-') then
@@ -346,9 +342,7 @@ page 7000076 "Docs. in Posted PO Subform"
 
         PostedDoc.SetRange(Status, PostedDoc.Status::Open);
         if not PostedDoc.Find('-') then
-            Error(
-              Text1100000Lbl +
-              Text1100007Lbl);
+            Error(NoDocumentToPartiallySettleErr);
         if PostedDoc.Count > 1 then
             Error(Text1100008Lbl);
 

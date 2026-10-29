@@ -29,9 +29,13 @@ report 7000093 "Bill group - Export N32"
 
                 trigger OnAfterGetRecord()
                 begin
+#pragma warning disable AA0139
                     DocNo := CopyStr("Document No.", 1, 10) + '/' + "No.";
+#pragma warning restore AA0139
 
+#pragma warning disable AA0139
                     DocType := DocMisc.DocType("Payment Method Code");
+#pragma warning restore AA0139
 
                     CustLedgEntry.Get("Entry No.");
 
@@ -54,7 +58,9 @@ report 7000093 "Bill group - Export N32"
                     CustAddress[3] := Customer.City;
                     CustAddress[4] := Customer."Post Code";
 
+#pragma warning disable AA0139
                     AdditionalInfo := Text1100009Lbl + "Document No." + '/' + "No.";
+#pragma warning restore AA0139
 
                     if Accepted = Accepted::Yes then
                         IsAccepted := '1'
@@ -70,7 +76,9 @@ report 7000093 "Bill group - Export N32"
                                 DocAmount := DelStr(EuroAmount("Remaining Amt. (LCY)"), 1, 1);
                                 TotalAmount := TotalAmount + "Remaining Amt. (LCY)";
                             end else begin
+#pragma warning disable AA0139
                                 DocAmount := ConvertStr(Format("Remaining Amount", 9, Text1100010Lbl), ' ', '0');
+#pragma warning restore AA0139
                                 TotalAmount := TotalAmount + "Remaining Amount";
                             end;
                         LCY = LCY::Other:
@@ -78,7 +86,9 @@ report 7000093 "Bill group - Export N32"
                                 if IsEuro then
                                     DocAmount := DelStr(EuroAmount("Remaining Amount"), 1, 1)
                                 else
+#pragma warning disable AA0139
                                     DocAmount := ConvertStr(Format("Remaining Amount", 9, Text1100010Lbl), ' ', '0');
+#pragma warning restore AA0139
                                 TotalAmount := TotalAmount + "Remaining Amount";
                             end;
                     end;
@@ -114,7 +124,9 @@ report 7000093 "Bill group - Export N32"
                                 BillGrAmount := EuroAmount("Bill Group"."Amount (LCY)")
                             end else begin
                                 "Bill Group".CalcFields(Amount);
+#pragma warning disable AA0139
                                 BillGrAmount := ConvertStr(Format("Bill Group".Amount, 10, Text1100006Lbl), ' ', '0')
+#pragma warning restore AA0139
                             end;
                         LCY = LCY::Other:
                             if IsEuro then begin
@@ -122,7 +134,9 @@ report 7000093 "Bill group - Export N32"
                                 BillGrAmount := EuroAmount("Bill Group".Amount)
                             end else begin
                                 "Bill Group".CalcFields(Amount);
+#pragma warning disable AA0139
                                 BillGrAmount := ConvertStr(Format("Bill Group".Amount, 10, Text1100006Lbl), ' ', '0')
+#pragma warning restore AA0139
                             end;
                     end;
 
@@ -156,7 +170,7 @@ report 7000093 "Bill group - Export N32"
                 Clear(OutText);
                 OutText :=
                   '11' + RegisterString + '  ' + Format(WorkDate(), 6, 5) + PadStr(ConvertStr(BillGrNo, ' ', '0'), 4, '0') +
-                  PadStr('', 12, ' ') + PadStr(VATRegNo, 9, ' ') + PadStr(BankSuffix, 6, ' ') + PrintedDocs2 + PadStr('', 21, ' ') +
+                  PadStr('', 12, ' ') + PadStr(VATRegNo, 9, ' ') + PadStr(ExportBankSuffix, 6, ' ') + PrintedDocs2 + PadStr('', 21, ' ') +
                   ConvertStr(CCCBankNo, ' ', '0') + ConvertStr(CCCBankBranchNo, ' ', '0') +
                   ConvertStr(CCCControlDigits, ' ', '0') + ConvertStr(CCCAccNo, ' ', '0') +
                   ConvertStr(CCCBankNo, ' ', '0') + ConvertStr(CCCBankBranchNo, ' ', '0') +
@@ -192,7 +206,9 @@ report 7000093 "Bill group - Export N32"
                 if SilentMode then
                     FileMgt.CopyServerFile(ExternalFile, SilentModeFileName, true)
                 else
+#pragma warning disable AA0139
                     Download(ExternalFile, '', 'C:', FilterLbl, ToFile);
+#pragma warning restore AA0139
             end;
 
             trigger OnPreDataItem()
@@ -201,11 +217,11 @@ report 7000093 "Bill group - Export N32"
 
                 Find('-');
 
-                if BankSuffix = '' then
+                if ExportBankSuffix = '' then
                     Error(Text1100000Lbl);
 
                 if BankSuffixBankAcc = '' then begin
-                    Suffix.SetRange(Suffix, BankSuffix);
+                    Suffix.SetRange(Suffix, ExportBankSuffix);
                     if Suffix.FindFirst() then
                         BankSuffixBankAcc := Suffix."Bank Acc. Code";
                 end;
@@ -260,19 +276,19 @@ report 7000093 "Bill group - Export N32"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(WithExpenses; WithExpenses)
+                    field(WithExpenses; IncludeBillExpenses)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'With Expenses';
                         ToolTip = 'Specifies if you want the bills included in the bill group to show expenses. Deselect the check box (default option) when the bills included will be without expenses.';
                     }
-                    field(PrintedDocs; PrintedDocs)
+                    field(PrintedDocs; AttachPrintedBills)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Printed Bills Attached';
                         ToolTip = 'Specifies if the printed bill will be attached to the export.';
                     }
-                    field(BankSuffix; BankSuffix)
+                    field(BankSuffix; ExportBankSuffix)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Suffix';
@@ -291,7 +307,7 @@ report 7000093 "Bill group - Export N32"
                             if Suffixes.RunModal() = ACTION::LookupOK then begin
                                 Suffixes.GetRecord(Suffix);
                                 BankSuffixBankAcc := Suffix."Bank Acc. Code";
-                                BankSuffix := Suffix.Suffix;
+                                ExportBankSuffix := Suffix.Suffix;
                             end;
                         end;
                     }
@@ -324,19 +340,21 @@ report 7000093 "Bill group - Export N32"
     var
         FileMgt: Codeunit "File Management";
     begin
-        if WithExpenses then
+        if IncludeBillExpenses then
             Expenses := '1'
         else
             Expenses := '0';
 
-        if PrintedDocs then
+        if AttachPrintedBills then
             PrintedDocs2 := '0'
         else
             PrintedDocs2 := '1';
 
         OutFile.TextMode := true;
         OutFile.WriteMode := true;
+#pragma warning disable AA0139
         ExternalFile := FileMgt.ServerTempFileName('');
+#pragma warning restore AA0139
         ToFile := Text10702Lbl;
         OutFile.Create(ExternalFile);
 
@@ -365,8 +383,8 @@ report 7000093 "Bill group - Export N32"
         Text1100010Lbl: Label '<Integer>', Locked = true;
         OutFile: File;
         ExternalFile: Text[1024];
-        WithExpenses: Boolean;
-        PrintedDocs: Boolean;
+        IncludeBillExpenses: Boolean;
+        AttachPrintedBills: Boolean;
         VATRegNo: Text[9];
         CCCBankNo: Text[4];
         Customer2: Text[4];
@@ -397,7 +415,7 @@ report 7000093 "Bill group - Export N32"
         RegisterString: Text[2];
         IsEuro: Boolean;
         LCY: Option Euro,Other;
-        BankSuffix: Code[3];
+        ExportBankSuffix: Code[3];
         BankSuffixBankAcc: Code[20];
         ToFile: Text[1024];
         FilterLbl: Label 'ASC Files (*.asc)|*.asc|All Files (*.*)|*.*';
@@ -410,6 +428,7 @@ report 7000093 "Bill group - Export N32"
     var
         TextAmount: Text[15];
     begin
+#pragma warning disable AA0139
         TextAmount := ConvertStr(Format(Amount), ' ', '0');
         if StrPos(TextAmount, ',') = 0 then
             TextAmount := TextAmount + '00'
@@ -428,6 +447,7 @@ report 7000093 "Bill group - Export N32"
             TextAmount := '0' + TextAmount;
 
         exit(TextAmount);
+#pragma warning restore AA0139
     end;
 
     [Scope('OnPrem')]

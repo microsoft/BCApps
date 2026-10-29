@@ -185,20 +185,26 @@ codeunit 7000007 "Document-Misc"
         CarteraSetup.Get();
         if CarteraSetup."CCC Ctrl Digits Check String" <> '' then
             if CustCCCControlDigits <> '' then begin
+#pragma warning disable AA0139
                 if CalcControlDigit(CustCCCBankBranchNo + Cust2, CustCCCAccNo) <> CustCCCControlDigits then begin
+#pragma warning restore AA0139
                     MessageTxt := StrSubstNo(
                         Text1100005Lbl,
                         CustBankAcc.FieldCaption("CCC Control Digits"));
                     if not Confirm(MessageTxt) then
                         CustCCCControlDigits := '**'
                     else
+#pragma warning disable AA0139
                         CustCCCControlDigits := CalcControlDigit(CustCCCBankBranchNo + Cust2, CustCCCAccNo);
+#pragma warning restore AA0139
                 end
             end else
                 if not Confirm(Text1100006Lbl) then
                     CustCCCControlDigits := '**'
                 else
+#pragma warning disable AA0139
                     CustCCCControlDigits := CalcControlDigit(CustCCCBankBranchNo + Cust2, CustCCCAccNo)
+#pragma warning restore AA0139
         else
             if CustCCCControlDigits = '' then
                 CustCCCControlDigits := '**';
@@ -210,6 +216,7 @@ codeunit 7000007 "Document-Misc"
     begin
         GLEntry.SetCurrentKey("G/L Account No.", Description);
         GLEntry.SetRange("G/L Account No.", AccNo);
+#pragma warning disable AA0139
         if TypeDoc = TypeDoc::Bill then
             Description2 := CopyStr(
                 StrSubstNo(Text1100007Lbl, DocNo, BillNo),
@@ -224,6 +231,7 @@ codeunit 7000007 "Document-Misc"
                 Description2 := CopyStr(
                     StrSubstNo(Text1100009Lbl, DocNo),
                     1, MaxStrLen(GLEntry.Description));
+#pragma warning restore AA0139
         GLEntry.SetRange(Description, Description2);
     end;
 

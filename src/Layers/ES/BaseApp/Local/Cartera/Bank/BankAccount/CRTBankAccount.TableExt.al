@@ -48,6 +48,7 @@ tableextension 7000080 "CRT Bank Account" extends "Bank Account"
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
             ValidateTableRelation = true;
         }
+#pragma warning disable AA0232
         field(7000005; "Posted Receiv. Bills Rmg. Amt."; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -66,6 +67,7 @@ tableextension 7000080 "CRT Bank Account" extends "Bank Account"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning restore AA0232
         field(7000006; "Posted Receiv. Bills Amt."; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";

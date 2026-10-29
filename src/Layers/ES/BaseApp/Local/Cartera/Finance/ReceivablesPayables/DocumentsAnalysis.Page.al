@@ -108,8 +108,10 @@ page 7000019 "Documents Analysis"
 
     trigger OnOpenPage()
     begin
+#pragma warning disable AA0139
         CategoryFilter := Rec.GetFilter("Category Code");
         CurrencyFilter := Rec.GetFilter("Currency Code");
+#pragma warning restore AA0139
         UpdateStatistics();
     end;
 

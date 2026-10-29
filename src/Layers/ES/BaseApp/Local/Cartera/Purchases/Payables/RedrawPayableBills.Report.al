@@ -39,9 +39,9 @@ report 7000083 "Redraw Payable Bills"
                 CheckUnrealizedVAT(VendLedgEntry);
 
                 IsHandled := false;
-                OnAfterGetVendorLedgerEntryOnBeforeCheckNewDueDate(VendLedgEntry, NewDueDate, IsHandled);
+                OnAfterGetVendorLedgerEntryOnBeforeCheckNewDueDate(VendLedgEntry, RedrawDueDate, IsHandled);
                 if not IsHandled then
-                    if NewDueDate < "Due Date" then begin
+                    if RedrawDueDate < "Due Date" then begin
                         Window.Close();
                         Error(
                         Text1100002Lbl,
@@ -57,18 +57,18 @@ report 7000083 "Redraw Payable Bills"
                 GenJnlLineInit();
                 CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
                 if "Remaining Amount" <> 0 then begin // open bill
-                    CarteraManagement.CreatePayableDocPayment(GenJnlLine, VendLedgEntry);
+                    CarteraManagement.CreatePayableDocPayment(TempGenJnlLine, VendLedgEntry);
                     IsOpenBill := true;
                 end else begin // settled bill
-                    CarteraManagement.ReversePayableDocPayment(GenJnlLine, VendLedgEntry);
+                    CarteraManagement.ReversePayableDocPayment(TempGenJnlLine, VendLedgEntry);
                     IsOpenBill := false;
                 end;
 
-                GenJnlLine.Insert();
+                TempGenJnlLine.Insert();
 
-                SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
-                NewDocAmount := -GenJnlLine.Amount;
-                NewDocAmountLCY := -GenJnlLine."Amount (LCY)";
+                SumLCYAmt := SumLCYAmt + TempGenJnlLine."Amount (LCY)";
+                NewDocAmount := -TempGenJnlLine.Amount;
+                NewDocAmountLCY := -TempGenJnlLine."Amount (LCY)";
 
                 Vendor.Get("Vendor No.");
                 Vendor.TestField("Vendor Posting Group");
@@ -89,39 +89,41 @@ report 7000083 "Redraw Payable Bills"
                 "Document Status" := "Document Status"::Redrawn;
                 Modify();
 
-                if StrPos(GenJnlLine."Bill No.", '-') = 0 then
+                if StrPos(TempGenJnlLine."Bill No.", '-') = 0 then
+#pragma warning disable AA0139
                     DocNo := VendLedgEntry."Bill No." + '-1'
+#pragma warning restore AA0139
                 else
-                    DocNo := IncStr(GenJnlLine."Bill No.");
+                    DocNo := IncStr(TempGenJnlLine."Bill No.");
                 GenJnlLineInit();
 
                 if ArePostedDocs then begin
                     PostedDoc.Get(
                       PostedDoc.Type::Payable, VendLedgEntry."Entry No.");
-                    if NewPmtMethod = '' then
-                        GenJnlLine."Payment Method Code" := PostedDoc."Payment Method Code"
+                    if RedrawPaymentMethodCode = '' then
+                        TempGenJnlLine."Payment Method Code" := PostedDoc."Payment Method Code"
                     else
-                        GenJnlLine."Payment Method Code" := NewPmtMethod;
-                    GenJnlLine."Recipient Bank Account" := PostedDoc."Cust./Vendor Bank Acc. Code";
+                        TempGenJnlLine."Payment Method Code" := RedrawPaymentMethodCode;
+                    TempGenJnlLine."Recipient Bank Account" := PostedDoc."Cust./Vendor Bank Acc. Code";
                 end else begin
                     ClosedDoc.Get(
                       ClosedDoc.Type::Payable, VendLedgEntry."Entry No.");
-                    if NewPmtMethod = '' then
-                        GenJnlLine."Payment Method Code" := ClosedDoc."Payment Method Code"
+                    if RedrawPaymentMethodCode = '' then
+                        TempGenJnlLine."Payment Method Code" := ClosedDoc."Payment Method Code"
                     else
-                        GenJnlLine."Payment Method Code" := NewPmtMethod;
-                    GenJnlLine."Recipient Bank Account" := ClosedDoc."Cust./Vendor Bank Acc. Code";
+                        TempGenJnlLine."Payment Method Code" := RedrawPaymentMethodCode;
+                    TempGenJnlLine."Recipient Bank Account" := ClosedDoc."Cust./Vendor Bank Acc. Code";
                 end;
-                GenJnlLine."Due Date" := NewDueDate;
-                GenJnlLine."External Document No." := VendLedgEntry."External Document No.";
+                TempGenJnlLine."Due Date" := RedrawDueDate;
+                TempGenJnlLine."External Document No." := VendLedgEntry."External Document No.";
                 InsertGenJnlLine(
-                  GenJnlLine."Account Type"::Vendor,
+                  TempGenJnlLine."Account Type"::Vendor,
                   VendLedgEntry."Vendor No.",
-                  GenJnlLine."Document Type"::Bill,
+                  TempGenJnlLine."Document Type"::Bill,
                   NewDocAmount,
                   StrSubstNo(Text1100003Lbl, VendLedgEntry."Document No.", DocNo), DocNo);
 
-                SumLCYAmt := SumLCYAmt + GenJnlLine."Amount (LCY)";
+                SumLCYAmt := SumLCYAmt + TempGenJnlLine."Amount (LCY)";
 
                 if "Currency Code" <> '' then begin
                     Currency.SetFilter(Code, "Currency Code");
@@ -137,7 +139,7 @@ report 7000083 "Redraw Payable Bills"
                         VendLedgEntry."Currency Code" := '';
                         GenJnlLineInit();
                         InsertGenJnlLine(
-                          GenJnlLine."Account Type"::"G/L Account",
+                          TempGenJnlLine."Account Type"::"G/L Account",
                           Account,
                           "Gen. Journal Document Type"::" ",
                           -SumLCYAmt,
@@ -152,12 +154,12 @@ report 7000083 "Redraw Payable Bills"
                       NewDocAmount,
                       NewDocAmountLCY,
                       EntryType::Redrawal,
-                      PostingDate);
+                      DocumentPostingDate);
             end;
 
             trigger OnPostDataItem()
             var
-                GenJnlLine2: Record "Gen. Journal Line" temporary;
+                TempGenJnlLine2: Record "Gen. Journal Line" temporary;
                 GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
             begin
                 Window.Close();
@@ -166,11 +168,11 @@ report 7000083 "Redraw Payable Bills"
                     PostedPmtOrd.Modify()
                 else
                     ClosedPmtOrd.Modify();
-                if GenJnlLine.Find('-') then
+                if TempGenJnlLine.Find('-') then
                     repeat
-                        GenJnlLine2 := GenJnlLine;
-                        GenJnlPostLine.Run(GenJnlLine2);
-                    until GenJnlLine.Next() = 0;
+                        TempGenJnlLine2 := TempGenJnlLine;
+                        GenJnlPostLine.Run(TempGenJnlLine2);
+                    until TempGenJnlLine.Next() = 0;
 
                 Commit();
 
@@ -183,18 +185,18 @@ report 7000083 "Redraw Payable Bills"
                 SourceCodeSetup.Get();
                 SourceCode := SourceCodeSetup."Cartera Journal";
 
-                DocPost.CheckPostingDate(PostingDate);
+                DocPost.CheckPostingDate(DocumentPostingDate);
 
                 Window.Open(
                   Text1100001Lbl);
 
                 DocCount := 0;
 
-                if GenJnlLine.Find('+') then
-                    GenJnlLineNextNo := GenJnlLine."Line No." + 10000
+                if TempGenJnlLine.Find('+') then
+                    GenJnlLineNextNo := TempGenJnlLine."Line No." + 10000
                 else
                     GenJnlLineNextNo := 10000;
-                TransactionNo := GenJnlLine."Transaction No." + 1;
+                TransactionNo := TempGenJnlLine."Transaction No." + 1;
 
                 Clear(PmtOrdPostingDate);
                 Find('-');
@@ -233,19 +235,19 @@ report 7000083 "Redraw Payable Bills"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PostingDate; PostingDate)
+                    field(PostingDate; DocumentPostingDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Posting Date';
                         ToolTip = 'Specifies the posting date.';
                     }
-                    field(NewDueDate; NewDueDate)
+                    field(NewDueDate; RedrawDueDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'New Due Date';
                         ToolTip = 'Specifies the new due date we want to define for the new bill that will be created by redrawing.';
                     }
-                    field(NewPmtMethod; NewPmtMethod)
+                    field(NewPmtMethod; RedrawPaymentMethodCode)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'New Payment Method';
@@ -262,7 +264,7 @@ report 7000083 "Redraw Payable Bills"
 
         trigger OnOpenPage()
         begin
-            PostingDate := WorkDate();
+            DocumentPostingDate := WorkDate();
         end;
     }
 
@@ -272,14 +274,14 @@ report 7000083 "Redraw Payable Bills"
 
     trigger OnPreReport()
     begin
-        if NewDueDate = 0D then
+        if RedrawDueDate = 0D then
             Error(Text1100000Lbl);
     end;
 
     var
         Vendor: Record Vendor;
         VendPostingGr: Record "Vendor Posting Group";
-        GenJnlLine: Record "Gen. Journal Line" temporary;
+        TempGenJnlLine: Record "Gen. Journal Line" temporary;
         PostedDoc: Record "Posted Cartera Doc.";
         ClosedDoc: Record "Closed Cartera Doc.";
         PostedPmtOrd: Record "Posted Payment Order";
@@ -299,7 +301,7 @@ report 7000083 "Redraw Payable Bills"
         Window: Dialog;
         TransactionNo: Integer;
         ArePostedDocs: Boolean;
-        PostingDate: Date;
+        DocumentPostingDate: Date;
         PmtOrdPostingDate: Date;
         SourceCode: Code[10];
         ReasonCode: Code[10];
@@ -309,23 +311,23 @@ report 7000083 "Redraw Payable Bills"
         DocCount: Integer;
         Account: Code[20];
         DocNo: Code[20];
-        NewDueDate: Date;
-        NewPmtMethod: Code[10];
+        RedrawDueDate: Date;
+        RedrawPaymentMethodCode: Code[10];
         SumLCYAmt: Decimal;
         IsOpenBill: Boolean;
         EntryType: Option " ","Initial Entry",Application,"Unrealized Loss","Unrealized Gain","Realized Loss","Realized Gain","Payment Discount","Payment Discount (VAT Excl.)","Payment Discount (VAT Adjustment)","Appln. Rounding","Correction of Remaining Amount",,,,,,,,,Settlement,Rejection,Redrawal,Expenses;
 
     local procedure GenJnlLineInit()
     begin
-        Clear(GenJnlLine);
-        GenJnlLine.Init();
-        GenJnlLine."Line No." := GenJnlLineNextNo;
+        Clear(TempGenJnlLine);
+        TempGenJnlLine.Init();
+        TempGenJnlLine."Line No." := GenJnlLineNextNo;
         GenJnlLineNextNo := GenJnlLineNextNo + 10000;
-        GenJnlLine."Transaction No." := TransactionNo;
-        GenJnlLine."Posting Date" := PostingDate;
-        GenJnlLine."Source Code" := SourceCode;
-        GenJnlLine."Reason Code" := ReasonCode;
-        GenJnlLine."System-Created Entry" := true;
+        TempGenJnlLine."Transaction No." := TransactionNo;
+        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+        TempGenJnlLine."Source Code" := SourceCode;
+        TempGenJnlLine."Reason Code" := ReasonCode;
+        TempGenJnlLine."System-Created Entry" := true;
     end;
 
     local procedure InsertGenJnlLine(AccountType2: Enum "Gen. Journal Account Type"; AccountNo2: Code[20]; DocumentType2: Enum "Gen. Journal Document Type"; Amount2: Decimal; Description2: Text[250]; DocNo2: Code[20])
@@ -333,23 +335,23 @@ report 7000083 "Redraw Payable Bills"
         PreservedDueDate: Date;
         PreservedPaymentMethodCode: Code[10];
     begin
-        GenJnlLine."Account Type" := AccountType2;
-        PreservedDueDate := GenJnlLine."Due Date";
-        PreservedPaymentMethodCode := GenJnlLine."Payment Method Code";
-        GenJnlLine.Validate("Account No.", AccountNo2);
-        GenJnlLine."Due Date" := PreservedDueDate;
-        GenJnlLine."Payment Method Code" := PreservedPaymentMethodCode;
-        GenJnlLine."Document Type" := DocumentType2;
-        GenJnlLine."Document No." := VendLedgEntry."Document No.";
-        GenJnlLine."Bill No." := DocNo2;
-        GenJnlLine.Description := CopyStr(Description2, 1, MaxStrLen(GenJnlLine.Description));
-        GenJnlLine.Validate("Currency Code", VendLedgEntry."Currency Code");
-        GenJnlLine.Validate(Amount, Amount2);
-        GenJnlLine."Dimension Set ID" :=
-          CarteraManagement.GetCombinedDimSetID(GenJnlLine, VendLedgEntry."Dimension Set ID");
+        TempGenJnlLine."Account Type" := AccountType2;
+        PreservedDueDate := TempGenJnlLine."Due Date";
+        PreservedPaymentMethodCode := TempGenJnlLine."Payment Method Code";
+        TempGenJnlLine.Validate("Account No.", AccountNo2);
+        TempGenJnlLine."Due Date" := PreservedDueDate;
+        TempGenJnlLine."Payment Method Code" := PreservedPaymentMethodCode;
+        TempGenJnlLine."Document Type" := DocumentType2;
+        TempGenJnlLine."Document No." := VendLedgEntry."Document No.";
+        TempGenJnlLine."Bill No." := DocNo2;
+        TempGenJnlLine.Description := CopyStr(Description2, 1, MaxStrLen(TempGenJnlLine.Description));
+        TempGenJnlLine.Validate("Currency Code", VendLedgEntry."Currency Code");
+        TempGenJnlLine.Validate(Amount, Amount2);
+        TempGenJnlLine."Dimension Set ID" :=
+          CarteraManagement.GetCombinedDimSetID(TempGenJnlLine, VendLedgEntry."Dimension Set ID");
 
-        OnBeforeInsertGenJnlLine(GenJnlLine, VendLedgEntry, NewPmtMethod);
-        GenJnlLine.Insert();
+        OnBeforeInsertGenJnlLine(TempGenJnlLine, VendLedgEntry, RedrawPaymentMethodCode);
+        TempGenJnlLine.Insert();
     end;
 
     [Scope('OnPrem')]
@@ -380,19 +382,19 @@ report 7000083 "Redraw Payable Bills"
         if GLEntry.Find('-') then begin
             GainLossAmt := 0;
             GLEntry.CalcSums(Amount);
-            GainLossAmt := (GenJnlLine."Amount (LCY)" + GLEntry.Amount);
+            GainLossAmt := (TempGenJnlLine."Amount (LCY)" + GLEntry.Amount);
         end else begin
             PostingDate2 := 0D;
             GainLossAmt := 0;
             if ArePostedDocs then begin
                 PostingDate2 :=
                   CarteraManagement.GetLastDate(VendLedgEntry."Currency Code", PostedDoc."Honored/Rejtd. at Date", Type::Payable);
-                GainLossAmt := CarteraManagement.GetGainLoss(PostingDate2, PostingDate, PostedDoc."Original Amount", VendLedgEntry.
+                GainLossAmt := CarteraManagement.GetGainLoss(PostingDate2, DocumentPostingDate, PostedDoc."Original Amount", VendLedgEntry.
                     "Currency Code");
             end else begin
                 PostingDate2 :=
                   CarteraManagement.GetLastDate(VendLedgEntry."Currency Code", ClosedDoc."Honored/Rejtd. at Date", Type::Payable);
-                GainLossAmt := CarteraManagement.GetGainLoss(PostingDate2, PostingDate, ClosedDoc."Original Amount", VendLedgEntry.
+                GainLossAmt := CarteraManagement.GetGainLoss(PostingDate2, DocumentPostingDate, ClosedDoc."Original Amount", VendLedgEntry.
                     "Currency Code");
             end;
         end;
@@ -404,7 +406,7 @@ report 7000083 "Redraw Payable Bills"
                 Currency.TestField("Realized Gains Acc.");
                 GenJnlLineInit();
                 InsertGenJnlLine(
-                  GenJnlLine."Account Type"::"G/L Account",
+                  TempGenJnlLine."Account Type"::"G/L Account",
                   Currency."Realized Gains Acc.",
                   "Gen. Journal Document Type"::" ",
                   GainLossAmt,
@@ -417,7 +419,7 @@ report 7000083 "Redraw Payable Bills"
                 Currency.TestField("Realized Losses Acc.");
                 GenJnlLineInit();
                 InsertGenJnlLine(
-                  GenJnlLine."Account Type"::"G/L Account",
+                  TempGenJnlLine."Account Type"::"G/L Account",
                   Currency."Realized Losses Acc.",
                   "Gen. Journal Document Type"::" ",
                   GainLossAmt,
@@ -431,7 +433,7 @@ report 7000083 "Redraw Payable Bills"
 
             BankAccPostingGr.Get(BankAcc."Bank Acc. Posting Group");
             InsertGenJnlLine(
-              GenJnlLine."Account Type"::"G/L Account",
+              TempGenJnlLine."Account Type"::"G/L Account",
               BankAccPostingGr."G/L Account No.",
               "Gen. Journal Document Type"::" ",
               -GainLossAmt,

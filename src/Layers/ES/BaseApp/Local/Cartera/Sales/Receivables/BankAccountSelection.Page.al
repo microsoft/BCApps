@@ -46,7 +46,10 @@ page 7000018 "Bank Account Selection"
                         CategoryFilterOnAfterValidate();
                     end;
                 }
+                // Preserve the published control name for compatibility.
+#pragma warning disable AA0100
                 field("CurrBillGr.""Dealing Type"""; CurrBillGr."Dealing Type")
+#pragma warning restore AA0100
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Dealing Type';
@@ -142,7 +145,10 @@ page 7000018 "Bank Account Selection"
                     group("Curr. Bill Gr.Currency Code")
                     {
                         Caption = 'Curr. Bill Gr.Currency Code';
+                        // Preserve the published control name for compatibility.
+#pragma warning disable AA0100
                         field("CurrBillGr.""Currency Code"""; CurrBillGr."Currency Code")
+#pragma warning restore AA0100
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Curr. Bill Gr.Currency Code';
@@ -154,7 +160,10 @@ page 7000018 "Bank Account Selection"
                     group("Curr. Bill Gr. Amt. (LCY)")
                     {
                         Caption = 'Curr. Bill Gr. Amt. (LCY)';
+                        // Preserve the published control name for compatibility.
+#pragma warning disable AA0100
                         field("CurrBillGr.""Amount (LCY)"""; CurrBillGr."Amount (LCY)")
+#pragma warning restore AA0100
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
@@ -212,6 +221,7 @@ page 7000018 "Bank Account Selection"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Ledger E&ntries';
+                    Image = BankAccountLedger;
                     RunObject = Page "Bank Account Ledger Entries";
                     RunPageLink = "Bank Account No." = field("No.");
                     RunPageView = sorting("Bank Account No.", "Posting Date");
@@ -256,6 +266,7 @@ page 7000018 "Bank Account Selection"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'St&atements';
+                    Image = List;
                     RunObject = Page "Bank Account Statement List";
                     RunPageLink = "Bank Account No." = field("No.");
                     ToolTip = 'View statements for selected bank accounts. For each bank transaction, the report shows a description, an applied amount, a statement amount, and other information.';
@@ -277,6 +288,7 @@ page 7000018 "Bank Account Selection"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = '&Operation Fees';
+                    Image = Costs;
                     RunObject = Page "Operation Fees";
                     RunPageLink = Code = field("Operation Fees Code"),
                                   "Currency Code" = field("Currency Code");
@@ -333,6 +345,7 @@ page 7000018 "Bank Account Selection"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Payment O&rders';
+                    Image = Payment;
                     RunObject = Page "Payment Orders List";
                     RunPageLink = "Bank Account No." = field("No.");
                     RunPageView = sorting("Bank Account No.");
@@ -426,7 +439,9 @@ page 7000018 "Bank Account Selection"
         CurrBillGr.Copy(CurrBillGr2);
         CurrBillGr.SetFilter("Category Filter", CategoryFilter);
         CurrBillGr.CalcFields(Amount, "Amount (LCY)", "Bank Account Name");
+#pragma warning disable AA0139
         Caption := StrSubstNo('%1 %2 %3', CurrBillGr2."No.", CurrBillGr2."Bank Account Name", CurrBillGr2.TableCaption());
+#pragma warning restore AA0139
         if (CurrBillGr."Currency Code" <> '') or
            (CurrBillGr."Bank Account No." <> '')
         then
@@ -440,7 +455,9 @@ page 7000018 "Bank Account Selection"
         CurrPmtOrd.Copy(CurrPmtOrd2);
         CurrPmtOrd.SetFilter("Category Filter", CategoryFilter);
         CurrPmtOrd.CalcFields(Amount, "Amount (LCY)", "Bank Account Name");
+#pragma warning disable AA0139
         Caption := StrSubstNo('%1 %2 %3', CurrPmtOrd2."No.", CurrPmtOrd2."Bank Account Name", CurrPmtOrd2.TableCaption());
+#pragma warning restore AA0139
         if (CurrPmtOrd."Currency Code" <> '') or
            (CurrPmtOrd."Bank Account No." <> '')
         then

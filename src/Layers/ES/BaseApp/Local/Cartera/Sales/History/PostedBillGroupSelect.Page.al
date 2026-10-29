@@ -254,10 +254,10 @@ page 7000064 "Posted Bill Group Select."
 
                     trigger OnAction()
                     begin
-                        CurrPage.SetSelectionFilter(PostedBillGr2);
-                        if not PostedBillGr2.Find('=><') then
+                        CurrPage.SetSelectionFilter(SelectedPostedBillGroup);
+                        if not SelectedPostedBillGroup.Find('=><') then
                             exit;
-                        REPORT.RunModal(REPORT::"Batch Settl. Posted Bill Grs.", true, false, PostedBillGr2);
+                        REPORT.RunModal(REPORT::"Batch Settl. Posted Bill Grs.", true, false, SelectedPostedBillGroup);
                         UpdateStatistics();
                         CurrPage.Update(false);
                     end;
@@ -319,17 +319,19 @@ page 7000064 "Posted Bill Group Select."
     trigger OnOpenPage()
     begin
         Rec.SetCurrentKey("Bank Account No.", "Posting Date", "Currency Code");
+#pragma warning disable AA0139
         CurrCodeFilter := Rec.GetFilter("Currency Code");
         BankAccFilter := Rec.GetFilter("Bank Account No.");
+#pragma warning restore AA0139
         UpdateStatistics();
     end;
 
     var
         PostedBillGr: Record "Posted Bill Group";
-        PostedBillGr2: Record "Posted Bill Group";
+        SelectedPostedBillGroup: Record "Posted Bill Group";
         Navigate: Page Navigate;
         CurrTotalAmountLCY: Decimal;
-        ShowCurrent: Boolean;
+        HasCurrentAmount: Boolean;
         CurrCodeFilter: Code[250];
         BankAccFilter: Code[250];
         CurrTotalAmountVisible: Boolean;
@@ -339,7 +341,7 @@ page 7000064 "Posted Bill Group Select."
     begin
         PostedBillGr.Copy(Rec);
         CurrTotalAmountLCY := 0;
-        UpdateStatistics2(PostedBillGr, CurrTotalAmountLCY, ShowCurrent);
+        UpdateStatistics2(PostedBillGr, CurrTotalAmountLCY, HasCurrentAmount);
         CurrTotalAmountVisible := true;
     end;
 
@@ -348,7 +350,10 @@ page 7000064 "Posted Bill Group Select."
         CurrPage.SetSelectionFilter(NewPostedBillGr);
     end;
 
+    // Preserve the published parameter name for compatibility.
+#pragma warning disable AA0245
     procedure UpdateStatistics2(var PostedBillGr2: Record "Posted Bill Group"; var CurrTotalAmount: Decimal; var ShowCurrent: Boolean)
+#pragma warning restore AA0245
     begin
         PostedBillGr2.SetCurrentKey("Bank Account No.", "Posting Date", "Currency Code");
         if PostedBillGr2.Find('-') then;
@@ -382,9 +387,11 @@ page 7000064 "Posted Bill Group Select."
     var
         FilterTokens: Codeunit "Filter Tokens";
     begin
+#pragma warning disable AA0139
         FilterTokens.MakeDateFilter(DueDateFilter);
         Rec.SetFilter("Due Date Filter", DueDateFilter);
         DueDateFilter := Rec.GetFilter("Due Date Filter");
+#pragma warning restore AA0139
         CurrPage.Update(false);
         UpdateStatistics();
         Rec.SetFilter(Amount, '<>0');

@@ -104,7 +104,7 @@ report 7000001 "Posted Bill Group Listing"
                     column(OutputNo; OutputNo)
                     {
                     }
-                    column(PrintAmountsInLCY; PrintAmountsInLCY)
+                    column(PrintAmountsInLCY; ShowAmountsInLCY)
                     {
                     }
                     column(PageLoop_Number; Number)
@@ -294,7 +294,7 @@ report 7000001 "Posted Bill Group Listing"
                         trigger OnAfterGetRecord()
                         begin
                             Customer.Get("Account No.");
-                            if PrintAmountsInLCY then
+                            if ShowAmountsInLCY then
                                 AmtForCollection := "Amt. for Collection (LCY)"
                             else
                                 AmtForCollection := "Amount for Collection";
@@ -316,7 +316,7 @@ report 7000001 "Posted Bill Group Listing"
 
                 trigger OnPreDataItem()
                 begin
-                    NoOfLoops := Abs(NoOfCopies) + 1;
+                    NoOfLoops := Abs(NumberOfCopies) + 1;
                     CopyText := '';
                     SetRange(Number, 1, NoOfLoops);
                     OutputNo := 1;
@@ -359,13 +359,13 @@ report 7000001 "Posted Bill Group Listing"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(NoOfCopies; NoOfCopies)
+                    field(NoOfCopies; NumberOfCopies)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'No. of Copies';
                         ToolTip = 'Specifies how many copies of the document to print.';
                     }
-                    field(PrintAmountsInLCY; PrintAmountsInLCY)
+                    field(PrintAmountsInLCY; ShowAmountsInLCY)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Show amounts in LCY';
@@ -400,9 +400,9 @@ report 7000001 "Posted Bill Group Listing"
         CompanyAddr: array[8] of Text[100];
         Operation: Text[80];
         NoOfLoops: Integer;
-        NoOfCopies: Integer;
+        NumberOfCopies: Integer;
         CopyText: Text[30];
-        PrintAmountsInLCY: Boolean;
+        ShowAmountsInLCY: Boolean;
         AmtForCollection: Decimal;
         FactoringType: Text[30];
         OutputNo: Integer;
@@ -431,7 +431,7 @@ report 7000001 "Posted Bill Group Listing"
     [Scope('OnPrem')]
     procedure GetCurrencyCode(): Code[10]
     begin
-        if PrintAmountsInLCY then
+        if ShowAmountsInLCY then
             exit('');
 
         exit(PostedDoc."Currency Code");

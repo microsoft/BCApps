@@ -342,7 +342,9 @@ page 7000003 "Cartera Documents"
 
     trigger OnOpenPage()
     begin
+#pragma warning disable AA0139
         CategoryFilter := Rec.GetFilter("Category Code");
+#pragma warning restore AA0139
     end;
 
     var

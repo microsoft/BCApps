@@ -139,6 +139,7 @@ page 7000004 "Docs. in BG Subform"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Insert';
                     Ellipsis = true;
+                    Image = Add;
                     ToolTip = 'Insert a bill group or payment order.';
 
                     trigger OnAction()

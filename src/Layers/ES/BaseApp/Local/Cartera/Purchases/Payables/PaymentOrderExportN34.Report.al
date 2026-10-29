@@ -37,10 +37,11 @@ report 7000090 "Payment order - Export N34"
                     TestField("Account No.");
                     Vendor.Get("Account No.");
 
+#pragma warning disable AA0139
                     VATRegVend := Vendor."VAT Registration No.";
+#pragma warning restore AA0139
                     VATRegVend := PadStr('', MaxStrLen(VATRegVend) - StrLen(VATRegVend), ' ') + VATRegVend;
                     RmgAmount := PadStr('', MaxStrLen(RmgAmount) - StrLen(RmgAmount), '0') + RmgAmount;
-
                     case true of
                         LCY = LCY::Euro:
                             if IsEuro then begin
@@ -59,7 +60,6 @@ report 7000090 "Payment order - Export N34"
                                 TotalAmount := TotalAmount + "Remaining Amount" * 100;
                             end;
                     end;
-
                     if DocType2 = '4' then begin
                         VendBankAccCode := "Cust./Vendor Bank Acc. Code";
                         if VendBankAcc.Get("Account No.", VendBankAccCode) then begin
@@ -90,7 +90,6 @@ report 7000090 "Payment order - Export N34"
                     VendCCCAccNo := PadStr('', MaxStrLen(VendCCCAccNo) - StrLen(VendCCCAccNo), '0') + VendCCCAccNo;
                     VendCCCControlDigits := PadStr('', MaxStrLen(VendCCCControlDigits) - StrLen(VendCCCControlDigits), '0')
                       + VendCCCControlDigits;
-
                     if IsEuro then
                         if DocType2 = '4' then
                             DocType := '57'
@@ -125,7 +124,6 @@ report 7000090 "Payment order - Export N34"
                         OutFile.Write(OutText);
 
                         TotalReg := TotalReg + 1;
-
                         if Vendor."Address 2" <> '' then begin
                             OutText := '06' + DocType + VATRegNo + VATRegVend + '013' + PadStr(Vendor."Address 2", 36, ' ')
                               + PadStr('', 7, ' ');
@@ -159,14 +157,13 @@ report 7000090 "Payment order - Export N34"
 
                 CCCControlDigits := BankAcc."CCC Control Digits";
                 CCCControlDigits := PadStr('', MaxStrLen(CCCControlDigits) - StrLen(CCCControlDigits), '0') + CCCControlDigits;
-
                 if "Posting Date" = 0D then
                     PostDate := PadStr('', 6, '0')
                 else
                     PostDate := Format("Posting Date", 0, Text1100002Lbl);
 
                 OutText := '03' + RegisterString + VATRegNo + PadStr('', 12, ' ') + '001' +
-                  Format(DeliveryDate, 0, Text1100002Lbl) + PostDate +
+                  Format(ExportDeliveryDate, 0, Text1100002Lbl) + PostDate +
                   CCCBankNo + CCCBankBranchNo + CCCAccNo + Relat + PadStr('', 3, ' ') + CCCControlDigits + PadStr('', 7, ' ');
                 OutFile.Write(OutText);
 
@@ -228,7 +225,7 @@ report 7000090 "Payment order - Export N34"
                         Caption = 'Relation';
                         ToolTip = 'Specifies if you want the bank to send you a detailed list of all transfer charges. Deselect the check box if you want a simple total of charges for all the transfers made.';
                     }
-                    field(DeliveryDate; DeliveryDate)
+                    field(DeliveryDate; ExportDeliveryDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Delivery Date';
@@ -246,8 +243,8 @@ report 7000090 "Payment order - Export N34"
         begin
             if ExternalFile = '' then
                 ExternalFile := 'C:\' + Text10702Lbl;
-            if DeliveryDate = 0D then
-                DeliveryDate := Today;
+            if ExportDeliveryDate = 0D then
+                ExportDeliveryDate := Today;
         end;
     }
 
@@ -259,8 +256,10 @@ report 7000090 "Payment order - Export N34"
     begin
         CompanyInfo.Get();
         CompanyInfo.TestField("VAT Registration No.");
+#pragma warning disable AA0139
         VATRegNo := InsStr(PadStr('', MaxStrLen(VATRegNo) - StrLen(CompanyInfo."VAT Registration No."), ' '),
             CompanyInfo."VAT Registration No.", 1 + MaxStrLen(VATRegNo) - StrLen(CompanyInfo."VAT Registration No."));
+#pragma warning restore AA0139
         SilentMode := false;
     end;
 
@@ -272,12 +271,16 @@ report 7000090 "Payment order - Export N34"
                 if IsEuro then
                     DocAmount := EuroAmount(TotalAmount)
                 else
+#pragma warning disable AA0139
                     DocAmount := ConvertStr(Format(TotalAmount, 12, Text1100000Lbl), ' ', '0');
+#pragma warning restore AA0139
             LCY = LCY::Other:
                 if IsEuro then
                     DocAmount := EuroAmount(TotalAmount)
                 else
+#pragma warning disable AA0139
                     DocAmount := ConvertStr(Format(TotalAmount, 12, Text1100000Lbl), ' ', '0');
+#pragma warning restore AA0139
         end;
 
         OutText := '08' + RegisterString + VATRegNo + PadStr('', 15, ' ') +
@@ -288,20 +291,21 @@ report 7000090 "Payment order - Export N34"
         OutFile.Write(OutText);
 
         OutFile.Close();
-
         if SilentMode then
             FileMgt.CopyServerFile(ExternalFile, SilentModeFileName, true)
         else
+#pragma warning disable AA0139
             Download(ExternalFile, '', 'C:', FilterLbl, ToFile);
+#pragma warning restore AA0139
     end;
 
     trigger OnPreReport()
-    var
-        FileMgt: Codeunit "File Management";
     begin
         OutFile.TextMode := true;
         OutFile.WriteMode := true;
+#pragma warning disable AA0139
         ExternalFile := FileMgt.ServerTempFileName('');
+#pragma warning restore AA0139
         ToFile := Text10702Lbl;
         OutFile.Create(ExternalFile);
     end;
@@ -334,7 +338,7 @@ report 7000090 "Payment order - Export N34"
         TotalDocVend: Decimal;
         TotalAmount: Decimal;
         OutText: Text[85];
-        DeliveryDate: Date;
+        ExportDeliveryDate: Date;
         Relat: Text[1];
         DocType2: Code[10];
         DocType: Text[2];
@@ -357,6 +361,7 @@ report 7000090 "Payment order - Export N34"
     var
         TextAmount: Text[15];
     begin
+#pragma warning disable AA0139
         TextAmount := ConvertStr(Format(Amount), ' ', '0');
         if StrPos(TextAmount, ',') = 0 then
             TextAmount := TextAmount + '00'
@@ -369,11 +374,11 @@ report 7000090 "Payment order - Export N34"
             TextAmount := TextAmount
         else
             TextAmount := DelChr(TextAmount, '=', '.');
-
         while StrLen(TextAmount) < 12 do
             TextAmount := '0' + TextAmount;
 
         exit(TextAmount);
+#pragma warning restore AA0139
     end;
 
     [Scope('OnPrem')]

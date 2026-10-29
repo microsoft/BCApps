@@ -84,7 +84,9 @@ page 7000058 "Post. Pmt. Ord. Maturity Lin."
 
     trigger OnFindRecord(Which: Text): Boolean
     begin
+#pragma warning disable AA0139
         exit(PeriodPageManagement.FindDate(Which, Rec, PeriodLength));
+#pragma warning restore AA0139
     end;
 
     trigger OnNextRecord(Steps: Integer): Integer

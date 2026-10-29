@@ -393,11 +393,11 @@ report 7000008 "Bill Group - Test"
                         end;
 
                         if CheckOtherBanks then begin
-                            if DocPostBuffer.Find('+') then;
-                            DocPostBuffer."Entry No." := DocPostBuffer."Entry No." + 1;
-                            DocPostBuffer."No. of Days" := NoOfDays;
-                            DocPostBuffer.Amount := "Remaining Amt. (LCY)";
-                            DocPostBuffer.Insert();
+                            if TempDocPostBuffer.Find('+') then;
+                            TempDocPostBuffer."Entry No." := TempDocPostBuffer."Entry No." + 1;
+                            TempDocPostBuffer."No. of Days" := NoOfDays;
+                            TempDocPostBuffer.Amount := "Remaining Amt. (LCY)";
+                            TempDocPostBuffer.Insert();
                         end;
 
                         if CustPostingGr."Bills Account" = '' then
@@ -443,7 +443,7 @@ report 7000008 "Bill Group - Test"
 
                     trigger OnPreDataItem()
                     begin
-                        Clear(DocPostBuffer);
+                        Clear(TempDocPostBuffer);
 
                         if CalcExpenses then begin
                             if (BillGr."Dealing Type" = BillGr."Dealing Type"::Discount) and
@@ -806,7 +806,7 @@ report 7000008 "Bill Group - Test"
                             RiskIncGr := "Posted Receiv. Bills Rmg. Amt.";
                         CreditLimitExceeded := RiskIncGr > "Credit Limit for Discount";
 
-                        if not DocPostBuffer.Find('-') then
+                        if not TempDocPostBuffer.Find('-') then
                             CurrReport.Skip();
 
                         Clear(FeeRange);
@@ -819,24 +819,24 @@ report 7000008 "Bill Group - Test"
                                 FeeRange.CalcDiscExpensesAmt(
                                   "Operation Fees Code",
                                   "Currency Code",
-                                  DocPostBuffer.Amount,
-                                  DocPostBuffer."Entry No.");
+                                  TempDocPostBuffer.Amount,
+                                  TempDocPostBuffer."Entry No.");
                                 FeeRange.CalcDiscInterestsAmt(
                                   "Operation Fees Code",
                                   "Currency Code",
                                   NoOfDays,
-                                  DocPostBuffer.Amount,
-                                  DocPostBuffer."Entry No.");
-                            until DocPostBuffer.Next() = 0;
+                                  TempDocPostBuffer.Amount,
+                                  TempDocPostBuffer."Entry No.");
+                            until TempDocPostBuffer.Next() = 0;
                         end else begin
                             FeeRange.InitCollExpenses("Operation Fees Code", "Currency Code");
                             repeat
                                 FeeRange.CalcCollExpensesAmt(
                                   "Operation Fees Code",
                                   "Currency Code",
-                                  DocPostBuffer.Amount,
-                                  DocPostBuffer."Entry No.");
-                            until DocPostBuffer.Next() = 0;
+                                  TempDocPostBuffer.Amount,
+                                  TempDocPostBuffer."Entry No.");
+                            until TempDocPostBuffer.Next() = 0;
                         end;
                     end;
                 }
@@ -955,9 +955,13 @@ report 7000008 "Bill Group - Test"
 
     trigger OnPreReport()
     begin
+#pragma warning disable AA0139
         BillGrFilter := BillGr.GetFilters();
+#pragma warning restore AA0139
         CheckOtherBanks := BankAcc.GetFilter("No.") <> '';
+#pragma warning disable AA0139
         BankAccNoFilter := BankAcc.GetFilter("No.");
+#pragma warning restore AA0139
     end;
 
     var
@@ -965,7 +969,7 @@ report 7000008 "Bill Group - Test"
         Cust: Record Customer;
         CustLedgEntry: Record "Cust. Ledger Entry";
         CustPostingGr: Record "Customer Posting Group";
-        DocPostBuffer: Record "Doc. Post. Buffer" temporary;
+        TempDocPostBuffer: Record "Doc. Post. Buffer" temporary;
         TempBGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
         BankAccPostingGr: Record "Bank Account Posting Group";
         FeeRange: Record "Fee Range";

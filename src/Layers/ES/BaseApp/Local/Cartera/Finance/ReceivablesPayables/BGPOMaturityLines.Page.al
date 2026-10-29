@@ -86,7 +86,9 @@ page 7000032 "BG/PO Maturity Lines"
 
     trigger OnFindRecord(Which: Text): Boolean
     begin
+#pragma warning disable AA0139
         exit(PeriodPageManagement.FindDate(Which, Rec, PeriodLength));
+#pragma warning restore AA0139
     end;
 
     trigger OnNextRecord(Steps: Integer): Integer

@@ -47,6 +47,7 @@ page 7000067 "Posted Bills"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Status Filter';
                     Editable = StatusFilterEditable;
+                    OptionCaption = 'Open,Honored,Rejected,All';
                     ToolTip = 'Specifies a filter for the status of bills that will be included.';
 
                     trigger OnValidate()
@@ -314,7 +315,7 @@ page 7000067 "Posted Bills"
 
                         PostedCarteraDoc.SetRange(Status, PostedCarteraDoc.Status::Open);
                         if not PostedCarteraDoc.Find('-') then
-                            Error(Text1100000Err + Text1100001Err);
+                            Error(NoBillsToSettleErr);
 
                         if PostedCarteraDoc.Type = PostedCarteraDoc.Type::Receivable then
                             REPORT.RunModal(REPORT::"Settle Docs. in Post. Bill Gr.", true, false, PostedCarteraDoc)
@@ -450,15 +451,13 @@ page 7000067 "Posted Bills"
         ClasFilterEditable: Boolean;
         StatusFilterEditable: Boolean;
 
-        Text1100000Err: Label 'No bills have been found that can be settled. \';
-        Text1100001Err: Label 'Please check that at least one open bill was selected.';
+        NoBillsToSettleErr: Label 'No bills have been found that can be settled. \Please check that at least one open bill was selected.';
         Text1100002Err: Label 'Related to Bill,Related to Bill Group';
         Text1100003Err: Label 'Open|Honored|Rejected';
         Text1100004Err: Label 'Only Receivable Bills can be printed.';
         Text1100005Err: Label 'Only Receivable Bills can be rejected.';
-        Text1100006Err: Label 'No bills have been found that can be rejected. \';
-        Text1100007Err: Label 'No bills have been found that can be redrawn. \';
-        Text1100008Err: Label 'Please check that at least one rejected or honored bill was selected.';
+        NoBillsToRejectErr: Label 'No bills have been found that can be rejected. \Please check that at least one open bill was selected.';
+        NoBillsToRedrawErr: Label 'No bills have been found that can be redrawn. \Please check that at least one rejected or honored bill was selected.';
         Text1100009Err: Label 'Only bills can be redrawn.';
 
     [Scope('OnPrem')]
@@ -525,7 +524,7 @@ page 7000067 "Posted Bills"
 
         PostedCarteraDoc.SetRange(Status, PostedCarteraDoc.Status::Open);
         if not PostedCarteraDoc.Find('-') then
-            Error(Text1100006Err + Text1100001Err);
+            Error(NoBillsToRejectErr);
         CustLedgEntry.Reset();
         repeat
             CustLedgEntry.Get(PostedCarteraDoc."Entry No.");
@@ -545,9 +544,7 @@ page 7000067 "Posted Bills"
 
         PostedCarteraDoc.SetFilter(Status, '<>%1', PostedCarteraDoc.Status::Open);
         if not PostedCarteraDoc.Find('-') then
-            Error(
-              Text1100007Err +
-              Text1100008Err);
+            Error(NoBillsToRedrawErr);
 
         PostedCarteraDoc.SetFilter("Document Type", '<>%1', PostedCarteraDoc."Document Type"::Bill);
         if PostedCarteraDoc.Find('-') then

@@ -259,7 +259,9 @@ report 10740 "Long Term Sales Invoices"
     procedure GetCustomerName(CustomerNo: Code[20])
     begin
         if Customer.Get(CustomerNo) then
+#pragma warning disable AA0139
             CustomerName := Customer.Name;
+#pragma warning restore AA0139
     end;
 
     [Scope('OnPrem')]

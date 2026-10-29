@@ -18,7 +18,9 @@ codeunit 7000086 "CRT Vendor Ledger Entry"
     begin
         Rec.CheckBillSituation();
         if PaymentTerms.Get(Rec."Payment Terms Code") then
+#pragma warning disable AA0139
             PaymentTerms.VerifyMaxNoDaysTillDueDate(Rec."Due Date", Rec."Document Date", Rec.FieldCaption("Due Date"));
+#pragma warning restore AA0139
         if Rec."Document Situation" <> Rec."Document Situation"::" " then
             DocMisc.UpdatePayableDueDate(Rec);
     end;

@@ -32,7 +32,10 @@ page 7000030 "Documents Maturity Lines"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the name of the period shown on the line.';
                 }
+                // Preserve the published control name for compatibility.
+#pragma warning disable AA0100
                 field("Doc.""Remaining Amt. (LCY)"""; Doc."Remaining Amt. (LCY)")
+#pragma warning restore AA0100
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
@@ -61,7 +64,9 @@ page 7000030 "Documents Maturity Lines"
 
     trigger OnFindRecord(Which: Text): Boolean
     begin
+#pragma warning disable AA0139
         exit(PeriodPageManagement.FindDate(Which, Rec, PeriodLength));
+#pragma warning restore AA0139
     end;
 
     trigger OnNextRecord(Steps: Integer): Integer

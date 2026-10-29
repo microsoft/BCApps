@@ -53,7 +53,7 @@ page 7000071 "Bank Cat. Posted Payable Bills"
 
                     trigger OnValidate()
                     begin
-                        SetColumns(SetWanted::Initial);
+                        SetColumns(ColumnSetDirection::Initial);
                     end;
                 }
                 field(ColumnSet; ColumnSet)
@@ -96,7 +96,7 @@ page 7000071 "Bank Cat. Posted Payable Bills"
 
                 trigger OnAction()
                 begin
-                    SetColumns(SetWanted::Next);
+                    SetColumns(ColumnSetDirection::Next);
                 end;
             }
             action("Previous Set")
@@ -108,7 +108,7 @@ page 7000071 "Bank Cat. Posted Payable Bills"
 
                 trigger OnAction()
                 begin
-                    SetColumns(SetWanted::Previous);
+                    SetColumns(ColumnSetDirection::Previous);
                 end;
             }
         }
@@ -133,10 +133,12 @@ page 7000071 "Bank Cat. Posted Payable Bills"
 
     trigger OnOpenPage()
     begin
-        SetColumns(SetWanted::Initial);
+        SetColumns(ColumnSetDirection::Initial);
         if Rec.HasFilter then begin
+#pragma warning disable AA0139
             CategoryFilter := Rec.GetFilter("Category Filter");
             StatusFilter := Rec.GetFilter("Status Filter");
+#pragma warning restore AA0139
             if Evaluate(StatusFilterOption, StatusFilter) then;
         end;
     end;
@@ -146,7 +148,7 @@ page 7000071 "Bank Cat. Posted Payable Bills"
         CategoryFilter: Code[20];
         StatusFilterOption: Option Open,Honored,Rejected,All;
         PeriodType: Enum "Analysis Period Type";
-        SetWanted: Option Initial,Previous,Same,Next;
+        ColumnSetDirection: Option Initial,Previous,Same,Next;
         MatrixColumnCaptions: array[32] of Text[1024];
         ColumnSet: Text[1024];
         PKFirstRecInCurrSet: Text[100];
@@ -158,8 +160,10 @@ page 7000071 "Bank Cat. Posted Payable Bills"
     var
         MatrixMgt: Codeunit "Matrix Management";
     begin
+#pragma warning disable AA0139
         MatrixMgt.GeneratePeriodMatrixData(SetWanted, 32, false, PeriodType, '',
           PKFirstRecInCurrSet, MatrixColumnCaptions, ColumnSet, CurrSetLength, MatrixRecords);
+#pragma warning restore AA0139
     end;
 }
 

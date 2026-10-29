@@ -133,6 +133,7 @@ page 7000075 "Docs. in PO Subform"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Insert';
                     Ellipsis = true;
+                    Image = Add;
                     ToolTip = 'Insert a bill group or payment order.';
 
                     trigger OnAction()

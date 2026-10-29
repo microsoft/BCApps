@@ -96,7 +96,7 @@ report 7000010 "Payment Order Listing"
                     column(PmtOrd__Currency_Code_; PmtOrd."Currency Code")
                     {
                     }
-                    column(PrintAmountsInLCY; PrintAmountsInLCY)
+                    column(PrintAmountsInLCY; ShowAmountsInLCY)
                     {
                     }
                     column(OutputNo; OutputNo)
@@ -272,7 +272,7 @@ report 7000010 "Payment Order Listing"
                         begin
                             Vend.Get("Account No.");
 
-                            if PrintAmountsInLCY then
+                            if ShowAmountsInLCY then
                                 PmtOrdAmount := "Remaining Amt. (LCY)"
                             else
                                 PmtOrdAmount := "Remaining Amount";
@@ -295,7 +295,7 @@ report 7000010 "Payment Order Listing"
 
                 trigger OnPreDataItem()
                 begin
-                    NoOfLoops := Abs(NoOfCopies) + 1;
+                    NoOfLoops := Abs(NumberOfCopies) + 1;
                     CopyText := '';
                     SetRange(Number, 1, NoOfLoops);
                     OutputNo := 1;
@@ -332,13 +332,13 @@ report 7000010 "Payment Order Listing"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(NoOfCopies; NoOfCopies)
+                    field(NoOfCopies; NumberOfCopies)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'No. of Copies';
                         ToolTip = 'Specifies how many copies of the document to print.';
                     }
-                    field(PrintAmountsInLCY; PrintAmountsInLCY)
+                    field(PrintAmountsInLCY; ShowAmountsInLCY)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Show amounts in LCY';
@@ -368,9 +368,9 @@ report 7000010 "Payment Order Listing"
         BankAccAddr: array[8] of Text[100];
         CompanyAddr: array[8] of Text[100];
         NoOfLoops: Integer;
-        NoOfCopies: Integer;
+        NumberOfCopies: Integer;
         CopyText: Text[30];
-        PrintAmountsInLCY: Boolean;
+        ShowAmountsInLCY: Boolean;
         PmtOrdAmount: Decimal;
         OutputNo: Integer;
         PmtOrd__No__CaptionLbl: Label 'Payment Order No.';
@@ -398,7 +398,7 @@ report 7000010 "Payment Order Listing"
     [Scope('OnPrem')]
     procedure GetCurrencyCode(): Code[10]
     begin
-        if PrintAmountsInLCY then
+        if ShowAmountsInLCY then
             exit('');
 
         exit("Cartera Doc."."Currency Code");
