@@ -6112,7 +6112,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 begin
                     if MultiplePostingGroups then
                         CreateGLEntry(
-                            GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)", 0, DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
+                            GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount, DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
                             CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
                     PostDtldCVApplicationEntry(GenJournalLine, DetailedCVLedgEntryBuffer);
                 end;
