@@ -3,13 +3,10 @@ namespace Microsoft.EServices.EDocument;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.VAT.Ledger;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.History;
-using Microsoft.Finance.ReceivablesPayables;
 
 codeunit 12285 "FatturaPA Preview Mgt."
 {
@@ -32,7 +29,7 @@ codeunit 12285 "FatturaPA Preview Mgt."
     begin
         ValidateSource(SalesHeader);
         if PreviewProgressiveNo = '' then
-            Error('A preview progressive number must be supplied.');
+            Error(PreviewProgressiveNoRequiredErr);
 
         TempFatturaHeader.DeleteAll();
         TempFatturaLine.DeleteAll();
@@ -427,5 +424,6 @@ codeunit 12285 "FatturaPA Preview Mgt."
     end;
 
     var
-        UnsupportedDocumentTypeErr: Label 'FatturaPA preview supports Sales Orders, Sales Invoices and Sales Credit Memos. Current document type: %1.';
+        PreviewProgressiveNoRequiredErr: Label 'A preview progressive number must be supplied.';
+        UnsupportedDocumentTypeErr: Label 'FatturaPA preview supports Sales Orders, Sales Invoices and Sales Credit Memos. Current document type: %1.', Comment = '%1 = sales document type';
 }
