@@ -19,7 +19,7 @@ codeunit 144079 "SEPA.08 DD Functional Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
-        LibraryXMLRead: Codeunit "Library - XML Read";
+        LibraryXMLRead: Codeunit "Library - XML Read OnServer";
         SEPAPartnerType: Option ,Company,Person;
         UnexpectedEmptyNodeErr: Label 'Unexpected empty value for node <%1> of subtree <%2>.';
         OneToManyNotAllowedErr: Label 'You cannot export a SEPA customer payment that is applied to multiple documents.';
@@ -650,7 +650,9 @@ codeunit 144079 "SEPA.08 DD Functional Test"
         File: File;
     begin
         DirectDebitCollection.CreateRecord(PaymentHeader."No.", PaymentHeader."Account No.", PaymentHeader."Partner Type");
+#pragma warning disable AL0432
         DirectDebitCollection."Source Table ID" := DATABASE::"Payment Header";
+#pragma warning restore AL0432
         DirectDebitCollection.Modify();
         DirectDebitCollectionEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
         ExportedFilePath := TemporaryPath + LibraryUtility.GenerateGUID() + '.xml';

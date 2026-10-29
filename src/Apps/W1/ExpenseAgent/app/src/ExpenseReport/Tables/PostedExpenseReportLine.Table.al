@@ -505,6 +505,9 @@ table 6916 "Posted Expense Report Line"
         key(SpendRequestExpenseUser; "Spend Request No.", "Expense User No.")
         {
         }
+        key(CreditCardFeedNo; "Credit Card Feed No.")
+        {
+        }
     }
 
     var
