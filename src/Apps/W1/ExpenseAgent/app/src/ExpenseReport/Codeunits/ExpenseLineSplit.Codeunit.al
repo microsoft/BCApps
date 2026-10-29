@@ -287,7 +287,7 @@ codeunit 7140 "Expense Line Split"
         NewExpenseReportLine."Split from Line No." := GetOriginalLineNo(SourceExpenseReportLine);
 
         NewExpenseReportLine.SetSkipRuleApplication(false);
-        NewExpenseReportLine.ApplyRule(false, true);
+        NewExpenseReportLine.ApplyRule(true, false);
         NewExpenseReportLine.Modify(true);
 
         // The receipt covers both lines, so the new line keeps a copy of it.
