@@ -213,7 +213,7 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
         FilteredPurchaseLine.SetRange("Subc. Prod. Comp. Line No.", ProdOrderComponent."Line No.");
         MarkPurchaseLines(PurchaseLine, FilteredPurchaseLine);
 
-        if IsLegacyPurchaseLineUnambiguous(ProdOrderComponent) then begin
+        if IsLegacyPurchaseLineUnambiguous(ProdOrderComponent, ProdOrderRoutingLine) then begin
             FilteredPurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
             FilteredPurchaseLine.SetRange("Subc. Prod. Comp. Line No.", 0);
             MarkPurchaseLines(PurchaseLine, FilteredPurchaseLine);
@@ -231,10 +231,11 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
             until FilteredPurchaseLine.Next() = 0;
     end;
 
-    // Legacy lines only store the shared routing reference, so they are attributable only when no other component matches.
-    local procedure IsLegacyPurchaseLineUnambiguous(ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    local procedure IsLegacyPurchaseLineUnambiguous(ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Boolean
     var
         MatchingProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        MatchingComponentCount: Integer;
     begin
         MatchingProdOrderComponent.SetRange(Status, ProdOrderComponent.Status);
         MatchingProdOrderComponent.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
@@ -242,7 +243,18 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
         MatchingProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method");
         MatchingProdOrderComponent.SetRange("Item No.", ProdOrderComponent."Item No.");
         MatchingProdOrderComponent.SetRange("Variant Code", ProdOrderComponent."Variant Code");
-        exit(MatchingProdOrderComponent.Count() = 1);
+        ProdOrderLine.SetRange(Status, ProdOrderComponent.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        ProdOrderLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        if ProdOrderLine.FindSet() then
+            repeat
+                MatchingProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+                MatchingComponentCount += MatchingProdOrderComponent.Count();
+                if MatchingComponentCount > 1 then
+                    exit(false);
+            until ProdOrderLine.Next() = 0;
+        exit(MatchingComponentCount = 1);
     end;
 
     local procedure GetProdOrderRtngLineFromProdOrderComp(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderComponent: Record "Prod. Order Component")

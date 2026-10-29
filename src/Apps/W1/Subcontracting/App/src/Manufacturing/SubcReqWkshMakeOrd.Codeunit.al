@@ -199,14 +199,13 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                 PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", ProdOrderComponent."Line No.");
                 FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
                 ShouldModifyPurchaseLine := false;
-                if not FoundPurchaseLineComp then begin
+                if not FoundPurchaseLineComp and IsLegacyComponentPurchaseLineUnambiguous(ProdOrderComponent, ProdOrderRoutingLine) then begin
                     PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", 0);
                     FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
-                    if not FoundPurchaseLineComp then
-                        if IsLegacyComponentPurchaseLineUnambiguous(ProdOrderComponent) then begin
-                            PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Routing Reference No.");
-                            FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
-                        end;
+                    if not FoundPurchaseLineComp then begin
+                        PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Routing Reference No.");
+                        FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
+                    end;
                     if FoundPurchaseLineComp then begin
                         PurchaseLineComp."Subc. Prod. Order Line No." := RequisitionLine."Prod. Order Line No.";
                         PurchaseLineComp."Subc. Prod. Comp. Line No." := ProdOrderComponent."Line No.";
@@ -227,18 +226,29 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
             until ProdOrderComponent.Next() = 0;
     end;
 
-    local procedure IsLegacyComponentPurchaseLineUnambiguous(ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    local procedure IsLegacyComponentPurchaseLineUnambiguous(ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Boolean
     var
         MatchingProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        MatchingComponentCount: Integer;
     begin
-        // A legacy line only stores the shared routing reference, so it is unambiguous only when
-        // no other component (on any output or component line) matches the same item and variant.
         MatchingProdOrderComponent.SetRange(Status, ProdOrderComponent.Status);
         MatchingProdOrderComponent.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
         MatchingProdOrderComponent.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
         MatchingProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method");
         MatchingProdOrderComponent.SetRange("Item No.", ProdOrderComponent."Item No.");
         MatchingProdOrderComponent.SetRange("Variant Code", ProdOrderComponent."Variant Code");
-        exit(MatchingProdOrderComponent.Count() = 1);
+        ProdOrderLine.SetRange(Status, ProdOrderComponent.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        ProdOrderLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        if ProdOrderLine.FindSet() then
+            repeat
+                MatchingProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+                MatchingComponentCount += MatchingProdOrderComponent.Count();
+                if MatchingComponentCount > 1 then
+                    exit(false);
+            until ProdOrderLine.Next() = 0;
+        exit(MatchingComponentCount = 1);
     end;
 }
