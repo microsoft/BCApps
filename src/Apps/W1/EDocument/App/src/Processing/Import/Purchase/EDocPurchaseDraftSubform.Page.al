@@ -530,7 +530,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
     var
         FeatureConfiguration: Codeunit "Feature Configuration";
     begin
-        AgentDrivenLineMatchingEnabled := FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok;
+        // LOCAL TEST ONLY - DO NOT COMMIT: force agent-driven line matching
+        AgentDrivenLineMatchingEnabled := true or (FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok);
     end;
 
     local procedure SetDimensionsVisibility()

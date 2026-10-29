@@ -20,7 +20,8 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     var
         FeatureConfiguration: Codeunit "Feature Configuration";
     begin
-        if FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok then
+        // LOCAL TEST ONLY - DO NOT COMMIT: force agent-driven line matching
+        if true or (FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok) then
             exit("E-Document Type"::"Purchase Invoice");
 
         PrepareDraftHelper.PrepareDraft(EDocument, EDocImportParameters);
