@@ -53,9 +53,11 @@ codeunit 18631 "Calc Normal Depreciation"
             exit(false);
 
         DaysPutToUse := TillDate - FADepBook."Depreciation Starting Date" + 1;
-        exit((DaysPutToUse < ThresholdDays) and (FiscalYearStartDate = FADateCalcSubscriber.GetFiscalYearStartDateInc(FAPostingDate)) and
-        (FADepBook."FA Book Type" = FADepBook."FA Book Type"::"Income Tax") and
-        (FiscalYearStartDate = FADateCalcSubscriber.GetFiscalYearStartDateInc(TillDate)));
+        exit(
+            (DaysPutToUse < ThresholdDays) and
+            (FiscalYearStartDate = FADateCalcSubscriber.GetFiscalYearStartDateInc(FAPostingDate)) and
+            (FADepBook."FA Book Type" = FADepBook."FA Book Type"::"Income Tax") and
+            (FiscalYearStartDate = FADateCalcSubscriber.GetFiscalYearStartDateInc(TillDate)));
     end;
 
     local procedure CheckDisposal(FANo: Code[20]; DeprBookCode: Code[20]): Boolean

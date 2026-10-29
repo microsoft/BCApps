@@ -424,7 +424,7 @@ codeunit 18632 "Depr Calculation Subscribers"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Normal Depreciation", 'OnAfterCalcDB1Amount', '', false, false)]
-    local procedure OnAfterCalcDB1Amount(DeprInFiscalYear: Decimal; DBPercent: Decimal; Sign: Integer; BookValue: Decimal; var Result: Decimal; FADepreciationBook: Record "FA Depreciation Book")
+    local procedure OnAfterCalcDB1Amount(DBPercent: Decimal; BookValue: Decimal; Sign: Integer; DeprInFiscalYear: Decimal; var Result: Decimal; FADepreciationBook: Record "FA Depreciation Book")
     var
         DeprBook: Record "Depreciation Book";
         OpeningBookValue: Decimal;
