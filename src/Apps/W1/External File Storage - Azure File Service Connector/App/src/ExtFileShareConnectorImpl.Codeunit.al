@@ -122,7 +122,7 @@ codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage
         AFSOperationResponse: Codeunit "AFS Operation Response";
     begin
         InitFileClient(AccountId, AFSFileClient);
-        AFSOperationResponse := AFSFileClient.RenameFile(TargetPath, SourcePath);
+        AFSOperationResponse := AFSFileClient.RenameFile(SourcePath, TargetPath);
         if not AFSOperationResponse.IsSuccessful() then
             Error(AFSOperationResponse.GetError());
     end;
