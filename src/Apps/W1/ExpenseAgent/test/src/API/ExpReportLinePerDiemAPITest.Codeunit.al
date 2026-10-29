@@ -6,7 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 
-codeunit 148350 "Exp. Report Per Diem API Test"
+codeunit 148296 "Exp. Report Per Diem API Test"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
