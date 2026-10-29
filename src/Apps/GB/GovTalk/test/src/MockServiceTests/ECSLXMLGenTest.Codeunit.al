@@ -264,6 +264,7 @@ codeunit 144029 "ECSL XML Gen. Test"
         VATEntry.Insert(true);
     end;
 
+#if not CLEAN27
     local procedure CreateGroupedRegressionVATEntries(var VATEntry: Record "VAT Entry"; var OtherVATEntry: Record "VAT Entry"): Decimal
     begin
         // These bases round to 301 together, but to 300 when rounded separately.
@@ -271,6 +272,7 @@ codeunit 144029 "ECSL XML Gen. Test"
         CreateRegressionVATEntry(OtherVATEntry, VATEntry."VAT Registration No.", -200.4);
         exit(301);
     end;
+#endif
 
     local procedure CreatePriorECSLRelation(VATEntry: Record "VAT Entry"; Rejected: Boolean)
     var
