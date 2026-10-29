@@ -5021,6 +5021,109 @@ codeunit 136302 "Job Consumption Purchase"
             StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost"), GLEntry.Amount));
     end;
 
+    [Test]
+    [HandlerFunctions('PurchaseOrderStatisticsSetInvDiscountInvoicingPageHandler')]
+    procedure JobLedgerEntryTotalCostForGLAccLinesInSharedVATGroupWithChangedInvDiscAmountToInvoicePricesInclVAT()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        PurchCalcDiscByType: Codeunit "Purch - Calc Disc. By Type";
+        PurchaseOrder: TestPage "Purchase Order";
+        GLAccountNo: array[3] of Code[20];
+        ExpectedAmount: array[3] of Decimal;
+        DocumentNo: Code[20];
+        TotalGLAmount: Decimal;
+        TotalJobCost: Decimal;
+        Index: Integer;
+    begin
+        // [FEATURE] [G/L Account] [Invoice Discount] [Prices Including VAT] [Rounding]
+        // [SCENARIO 642385] Project ledger entries of G/L Account lines sharing a VAT group follow the VAT rounding allocated between the lines when prices include VAT
+        Initialize();
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Calc. Inv. Discount", false);
+        PurchasesPayablesSetup.Validate("Discount Posting", PurchasesPayablesSetup."Discount Posting"::"No Discounts");
+        PurchasesPayablesSetup.Modify(true);
+
+        // [GIVEN] Purchase order with "Prices Including VAT" and three G/L Account lines with different G/L accounts sharing a VAT group with "VAT %" = 20, linked to a project task
+        // [GIVEN] Each line has Quantity = 10, "Direct Unit Cost" = 0.50 and invoice discount = 1.00
+        LibraryJob.CreateJob(Job);
+        LibraryJob.CreateJobTask(Job, JobTask);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Order,
+            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        PurchaseHeader.Validate("Prices Including VAT", true);
+        PurchaseHeader.Modify(true);
+        for Index := 1 to ArrayLen(GLAccountNo) do begin
+            GLAccountNo[Index] := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Purchase);
+            LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo[Index], 10);
+            PurchaseLine.Validate("Direct Unit Cost", 0.5);
+            PurchaseLine.Validate("Allow Invoice Disc.", true);
+            PurchaseLine.Validate("Job No.", JobTask."Job No.");
+            PurchaseLine.Validate("Job Task No.", JobTask."Job Task No.");
+            PurchaseLine.Modify(true);
+        end;
+        PurchCalcDiscByType.ApplyInvDiscBasedOnAmt(3, PurchaseHeader);
+
+        // [GIVEN] "Qty. to Invoice" = 2 on each line and invoice discount on the Invoicing tab of purchase order statistics changed to 0
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.FindSet();
+        repeat
+            PurchaseLine.TestField("Inv. Discount Amount", 1);
+            PurchaseLine.Validate("Qty. to Invoice", 2);
+            PurchaseLine.Modify(true);
+        until PurchaseLine.Next() = 0;
+        LibraryVariableStorage.Enqueue(0);
+        PurchaseOrder.OpenEdit();
+        PurchaseOrder.GotoRecord(PurchaseHeader);
+        PurchaseOrder.PurchaseOrderStatistics.Invoke();
+        PurchaseOrder.Close();
+        LibraryVariableStorage.AssertEmpty();
+
+        // [WHEN] Receive and invoice the purchase order
+        PurchaseHeader.Find();
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The invoiced amount including VAT 3.00 with VAT 0.50 is allocated between the G/L accounts as 0.83, 0.84 and 0.83
+        // [THEN] Project ledger entry "Total Cost (LCY)" and "Total Cost" of each line are equal to the G/L entry amount of its G/L account
+        ExpectedAmount[1] := 0.83;
+        ExpectedAmount[2] := 0.84;
+        ExpectedAmount[3] := 0.83;
+        for Index := 1 to ArrayLen(GLAccountNo) do begin
+            GLEntry.SetRange("Document No.", DocumentNo);
+            GLEntry.SetRange("G/L Account No.", GLAccountNo[Index]);
+            GLEntry.FindFirst();
+            Assert.AreEqual(
+                ExpectedAmount[Index], GLEntry.Amount, StrSubstNo(ValueMustMatchErr, GLEntry.FieldCaption(Amount), ExpectedAmount[Index]));
+
+            JobLedgerEntry.SetRange("Document No.", DocumentNo);
+            JobLedgerEntry.SetRange("Job No.", JobTask."Job No.");
+            JobLedgerEntry.SetRange("No.", GLAccountNo[Index]);
+            JobLedgerEntry.FindFirst();
+            Assert.AreEqual(
+                GLEntry.Amount, JobLedgerEntry."Total Cost (LCY)",
+                StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), GLEntry.Amount));
+            Assert.AreEqual(
+                GLEntry.Amount, JobLedgerEntry."Total Cost",
+                StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost"), GLEntry.Amount));
+
+            TotalGLAmount += GLEntry.Amount;
+            TotalJobCost += JobLedgerEntry."Total Cost (LCY)";
+        end;
+
+        // [THEN] Total cost of the project ledger entries is equal to the total G/L amount 2.50
+        Assert.AreEqual(2.5, TotalGLAmount, StrSubstNo(ValueMustMatchErr, GLEntry.FieldCaption(Amount), 2.5));
+        Assert.AreEqual(
+            TotalGLAmount, TotalJobCost, StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), TotalGLAmount));
+    end;
+
     local procedure Initialize()
     var
         WarehouseEmployee: Record "Warehouse Employee";

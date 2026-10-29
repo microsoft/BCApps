@@ -6271,14 +6271,23 @@ codeunit 90 "Purch.-Post"
         then
             exit(false);
 
-        // Calculate from the invoiced amount without rounding, so that the project totals match the invoiced amount.
-        // "VAT Difference" is an amount of the invoiced line, so it is spread over "Qty. to Invoice" to deduct it once from the total.
-        JobUnitCostToInvoice :=
-            CalcJobUnitCostFromDiscAmountPerQty(
-                PurchHeader, PurchLine2,
-                (PurchLine2."Line Discount Amount" + PurchLine2."Inv. Discount Amount") / PurchLine2."Qty. to Invoice",
-                PurchLine2."VAT Difference" / PurchLine2."Qty. to Invoice");
+        // Calculate from the divided amount without rounding, so that the project totals match the invoiced amount.
+        JobUnitCostToInvoice := CalcJobUnitCostFromDividedAmount(PurchHeader, PurchLine2);
         exit(true);
+    end;
+
+    local procedure CalcJobUnitCostFromDividedAmount(PurchHeader: Record "Purchase Header"; PurchLine2: Record "Purchase Line"): Decimal
+    var
+        InvoicedVATDifference: Decimal;
+    begin
+        // PurchLine2.Amount is the net amount posted to G/L for "Qty. to Invoice". With prices including VAT, DivideAmount
+        // allocates the VAT of the VAT group, including its rounding and "VAT Difference", between the lines.
+        // As in UpdateUnitCost of the purchase line, "Indirect Cost %" does not apply to the VAT difference, which is deducted once.
+        if PurchHeader."Prices Including VAT" then
+            InvoicedVATDifference := PurchLine2."VAT Difference";
+        exit(
+            ((PurchLine2.Amount + InvoicedVATDifference) * (1 + PurchLine2."Indirect Cost %" / 100) - InvoicedVATDifference) /
+            PurchLine2."Qty. to Invoice");
     end;
 
     local procedure CalcJobUnitCostFromDiscAmountPerQty(PurchHeader: Record "Purchase Header"; PurchLine2: Record "Purchase Line"; DiscountAmountPerQty: Decimal; UnitCostVATDifference: Decimal) UnitCost: Decimal
