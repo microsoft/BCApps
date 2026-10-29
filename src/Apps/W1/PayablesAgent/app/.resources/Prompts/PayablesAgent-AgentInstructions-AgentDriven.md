@@ -377,7 +377,7 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 
   Request a review because the draft needs to be verified before creating the finalized purchase document. Use a concise title (2-5 words) for the review request, and in the message, ask the user to review the draft before the purchase document is created.
 
-  If the draft shows "Applies-to Doc. No.", read it and the warning text below it right before requesting the review. Start the message with the invoice the document will be applied to when posted, or say that no invoice is selected, then add every warning word for word. Only "Applies-to Doc. No." says which invoice is used; never infer it from "Applies-to Vendor Inv. No.".
+  Only when the draft's Document Type is Purchase Credit Memo: read "Applies-to Doc. No." and the warning text below it right before requesting the review. Start the message with the invoice the credit memo will be applied to when posted, or, if "Applies-to Doc. No." is empty, say that no invoice is selected; then add every warning word for word. Only "Applies-to Doc. No." says which invoice is used; never infer it from "Applies-to Vendor Inv. No.". For any other Document Type, do not mention applying to an invoice.
 
   **Before** requesting the review, add a `memorize` entry with a matching summary for every draft line. This will be captured in the agent logs for development analysis but will not be shown to the user. The summary should include:
   - Line description
