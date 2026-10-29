@@ -1,7 +1,6 @@
 namespace Microsoft.FabricExport;
 
 using System.Azure.Identity;
-using System.Azure.KeyVault;
 using System.Security.Authentication;
 using System.Security.Encryption;
 
@@ -10,8 +9,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     Access = Internal;
 
     var
-        FabricMirroringAppIdAKVSecretNameLbl: Label 'FabricMirroringAppId', Locked = true;
-        MissingClientIdTelemetryTxt: Label 'The Microsoft Fabric Mirroring client ID has not been initialized.', Locked = true;
         ClientIdRequiredErr: Label 'Client ID must be filled in before acquiring a Fabric API token.';
         TenantIdRequiredErr: Label 'Microsoft Entra tenant ID could not be determined.';
         FabricApiTokenErr: Label 'Failed to acquire a Microsoft Fabric API token. Sign in again and verify that admin consent was granted.';
@@ -77,23 +74,6 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         if IsolatedStorage.Get('FabricPlat.ClientId', DataScope::Module, Value) then
             exit(Value);
         exit('');
-    end;
-
-    /// <summary>Returns the client ID of the active app: the Microsoft first-party app unless a custom app registration is enabled.</summary>
-    [NonDebuggable]
-    internal procedure GetClientId(): Text
-    var
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        FabricPlatformTelemetry: Codeunit "Fabric Platform Telemetry";
-        Dimensions: Dictionary of [Text, Text];
-        ClientId: Text;
-    begin
-        if IsCustomAppEnabled() then
-            exit(GetCustomClientId());
-        if not AzureKeyVault.GetAzureKeyVaultSecret(FabricMirroringAppIdAKVSecretNameLbl, ClientId) then
-            FabricPlatformTelemetry.LogFailureEvent('0000VNM', MissingClientIdTelemetryTxt, Dimensions)
-        else
-            exit(ClientId);
     end;
 
     internal procedure GetTenantId(): Text
@@ -239,7 +219,7 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         OAuthAuthorityUrl: Text;
         RedirectUrl: Text;
     begin
-        if GetClientId() = '' then
+        if GetCustomClientId() = '' then
             Error(ClientIdRequiredErr);
         AuthorityTenantId := GetTenantId();
         if AuthorityTenantId = '' then
@@ -250,7 +230,7 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         OAuth2.GetDefaultRedirectUrl(RedirectUrl);
 
         OAuth2.AcquireTokenByAuthorizationCode(
-            GetClientId(),
+            GetCustomClientId(),
             GetClientSecretSecure(),
             OAuthAuthorityUrl,
             RedirectUrl,
