@@ -182,6 +182,7 @@ codeunit 144013 "ERM Payment Management"
     [HandlerFunctions('PaymentClassListModalPageHandler,SuggestCustomerPaymentsRequestPageHandler,ConfirmHandlerTrue')]
     procedure PostCustomerInvoiceAndCreditMemoWithOppositeEntries()
     var
+        Customer: Record Customer;
         GenJournalLine: Record "Gen. Journal Line";
         PaymentClass: Record "Payment Class FR";
         PaymentHeader: Record "Payment Header FR";
@@ -200,6 +201,9 @@ codeunit 144013 "ERM Payment Management"
 
         Amount := LibraryRandom.RandDecInRange(100, 1000, 2);
         CustomerNo := CreateCustomer('');
+        Customer.Get(CustomerNo);
+        Customer.Validate("Payment Terms Code", '');
+        Customer.Modify(true);
         CreateAndPostGeneralJournal(
             GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo,
             GenJournalLine."Document Type"::Invoice, Amount, WorkDate());

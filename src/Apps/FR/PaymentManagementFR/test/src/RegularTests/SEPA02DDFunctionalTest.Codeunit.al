@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
+using Microsoft.Sales.Setup;
 using System.TestLibraries.Utilities;
 
 codeunit 144022 "SEPA.02 DD Functional Test"
@@ -820,7 +821,14 @@ codeunit 144022 "SEPA.02 DD Functional Test"
     end;
 
     local procedure CreateDirectDebitMandate(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; CustomerNo: Code[20]; CustomerBankAccountCode: Code[20])
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
+        SalesReceivablesSetup.Get();
+        if SalesReceivablesSetup."Direct Debit Mandate Nos." = '' then
+            LibraryUtility.UpdateSetupNoSeriesCode(
+                Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Direct Debit Mandate Nos."));
+
         SEPADirectDebitMandate.Init();
         SEPADirectDebitMandate."Customer No." := CustomerNo;
         SEPADirectDebitMandate."Customer Bank Account Code" := CustomerBankAccountCode;
