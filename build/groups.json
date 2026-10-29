@@ -6964,7 +6964,7 @@
     ]
   },
   {
-    "name": "Microsoft Fabric Mirroring",
+    "name": "Business Central Mirroring to Fabric",
     "groups": [
       {
         "name": "AllExtensions"
@@ -6986,7 +6986,7 @@
     ]
   },
   {
-    "name": "Microsoft Fabric Mirroring Tests",
+    "name": "Business Central Mirroring to Fabric Tests",
     "groups": [
       {
         "name": "AllExtensions"
