@@ -32,6 +32,8 @@
         WrongFieldErr: Label 'Wrong value of field %1 in table %2.', Locked = true;
         UnnecessaryVATEntriesFoundErr: Label 'Unnecessary VAT Entries found.', Locked = true;
         NonzeroACYErr: Label 'Non-zero Additional Currency Amount in G/L Entry.', Locked = true;
+        GLEntryAddCurrAmountZeroErr: Label 'G/L entry additional-currency amount for posting group account %1 must not be zero', Comment = '%1 = posting-group account number', Locked = true;
+        GLEntryAddCurrAmountsBalanceErr: Label 'Application G/L entry additional-currency amounts for posting group accounts %1 and %2 do not balance', Comment = '%1 = G/L account number, %2 = balancing G/L account number', Locked = true;
         GLEntryCntErr: Label 'Wrong count of created G/L Entries.';
         DimBalanceErr: Label 'Wrong balance by Dimension.';
         SelectionFilterErr: Label 'Problem with selection filter: Original selection: %1. Returned selection: %2.', Comment = '%1: original selection filter;%2: returned selection filter';
@@ -2709,7 +2711,7 @@
         GLEntry.FindFirst();
         Assert.AreNotEqual(
             0, GLEntry."Additional-Currency Amount",
-            StrSubstNo('G/L entry additional-currency amount for posting group account %1 must not be zero', AccountNo));
+            StrSubstNo(GLEntryAddCurrAmountZeroErr, AccountNo));
         Amount := GLEntry.Amount;
         AmountACY := GLEntry."Additional-Currency Amount";
 
@@ -2719,7 +2721,7 @@
         Currency.Get(CurrencyCode);
         Assert.AreNearlyEqual(
             -AmountACY, GLEntry."Additional-Currency Amount", Currency."Amount Rounding Precision",
-            StrSubstNo('Application G/L entry additional-currency amounts for posting group accounts %1 and %2 do not balance', AccountNo, BalAccountNo));
+            StrSubstNo(GLEntryAddCurrAmountsBalanceErr, AccountNo, BalAccountNo));
     end;
 
     local procedure Initialize()
