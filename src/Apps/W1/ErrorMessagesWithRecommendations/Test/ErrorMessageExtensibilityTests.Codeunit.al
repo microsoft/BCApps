@@ -472,7 +472,7 @@ codeunit 139621 ErrorMessageExtensibilityTests
         GenJournalBatch.Modify(true);
 
         LibraryERM.CreateGeneralJnlLine(GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer, CustomerNo, -100);
-        GenJournalLine.Validate("Posting Date", Today() + 5);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 5);
         GenJournalLine.Modify();
     end;
 
@@ -521,7 +521,7 @@ codeunit 139621 ErrorMessageExtensibilityTests
         LibrarySales: Codeunit "Library - Sales";
     begin
         LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, CustomerNo);
-        SalesHeader.Validate("Posting Date", Today());
+        SalesHeader.Validate("Posting Date", WorkDate());
         SalesHeader.Modify();
         exit(LibrarySales.PostSalesDocument(SalesHeader, false, true));
     end;
