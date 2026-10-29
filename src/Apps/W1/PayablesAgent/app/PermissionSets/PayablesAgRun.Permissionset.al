@@ -38,6 +38,7 @@ permissionset 3303 "Payables Ag. - Run"
         // Missing permissions to create purchase documents
         tabledata "Error Message" = IMD,
         tabledata "Purch. Inv. Entity Aggregate" = IMD,
+        tabledata "Purch. Cr. Memo Entity Buffer" = IMD,
         tabledata "Document Attachment" = IMD,
         tabledata "Deferral Header" = IMD,
         tabledata "Deferral Line" = IMD,

@@ -9,7 +9,7 @@
   "usePsSessionForBc28": true,
   "gitHubRunner": "windows-latest",
   "githubRunnerShell": "pwsh",
-  "artifact": "bcinsider/Sandbox/30.0.56420.0//latest",
+  "artifact": "bcinsider/Sandbox/30.0.57008.0//latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "30.0",
@@ -144,6 +144,22 @@
   "enablePerTenantExtensionCop": true,
   "enableUICop": true,
   "enableCodeAnalyzersOnTestApps": true,
+  "BCQuality": {
+    "version": "1.9",
+    "enabledLayers": [
+      "microsoft"
+    ]
+  },
+  "CodeReviewAgent": {
+    "enabled": true,
+    "branches": [
+      "main"
+    ],
+    "excludedAuthors": [
+      "business-central-bot[bot]",
+      "dependabot[bot]"
+    ]
+  },
   "rulesetFile": "../../../src/rulesets/base.ruleset.json",
   "skipUpgrade": true,
   "fullBuildPatterns": [

@@ -18,5 +18,6 @@ permissionsetextension 10835 LOCAL extends LOCAL
                   tabledata "Payment Post. Buffer FR" = RIMD,
                   tabledata "Payment Status FR" = RIMD,
                   tabledata "Payment Step FR" = RIMD,
-                  tabledata "Payment Step Ledger FR" = RIMD;
+                  tabledata "Payment Step Ledger FR" = RIMD,
+                  tabledata "Unreal. CV Ledg. Buffer FR" = RIMD;
 }

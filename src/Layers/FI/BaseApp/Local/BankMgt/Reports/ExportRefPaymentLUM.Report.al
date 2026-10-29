@@ -156,8 +156,7 @@ report 32000004 "Export Ref. Payment -  LUM"
             end;
             RefPmtExport.Reset();
             RefPmtExport.SetRange("Foreign Payment", true);
-            RefPmtExport.ModifyAll(Transferred, true);
-            RefPmtExport.ModifyAll("Applied Payments", false);
+            RefPmtExport.ModifyAll(Transferred, true, "Applied Payments", false);
             RefPmtExport.Modify();
         end else
             Message(Text1090006);

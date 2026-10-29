@@ -153,7 +153,9 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
             if (SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::Order, SalesHeader."Document Type"::"Credit Memo"]) and
                Customer.Get(SalesHeader."Bill-to Customer No.")
             then
-                if (Customer.GLN + Customer."VAT Registration No.") = '' then
+                if ((Customer.GLN + Customer."VAT Registration No.") = '') and
+                   not (Customer."Use Reg. No. in E-Document" and (Customer."Registration Number" <> ''))
+                then
                     Error(MissingCustGLNOrVATRegNoErr, Customer."No.");
 
         if SalesHeader."Document Type" = SalesHeader."Document Type"::"Credit Memo" then

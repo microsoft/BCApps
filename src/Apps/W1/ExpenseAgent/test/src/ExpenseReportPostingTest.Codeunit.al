@@ -3560,6 +3560,8 @@ codeunit 148302 "Expense Report Posting Test"
 
         // [GIVEN] A policy for the category and a non-compliant evaluation captured on the line, then the line is marked evaluated.
         LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'No alcohol on company expenses.');
+        CreatePolicyEnforcedItemization(ExpenseReportLine);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         LibraryExpense.CreateExpensePolicyEvaluation(
             ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Receipt includes alcohol.', false);
 
@@ -3753,6 +3755,15 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicy.Enabled := true;
         ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicy.Insert(true);
+        CreatePolicyEnforcedItemization(ExpenseReportLine);
+    end;
+
+    local procedure CreatePolicyEnforcedItemization(var ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+    begin
+        LibraryExpense.CreateExpenseReportLineItemization(ExpenseReportLineItem, ExpenseReportLine, ExpenseReportLine."Expense Category", '', WorkDate(), 0, 1);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
     end;
 
     [Test]
@@ -3793,6 +3804,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicy.Enabled := true;
         ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicy.Insert(true);
+        CreatePolicyEnforcedItemization(ExpenseReportLine);
 
         ExpensePolicyEvaluation.Init();
         ExpensePolicyEvaluation."Subject System Id" := ExpenseReportLine.SystemId;
@@ -3831,6 +3843,8 @@ codeunit 148302 "Expense Report Posting Test"
 
         // [THEN] The posted line carries only the current policy evaluation.
         FindPostedExpenseReportLine(PostedExpenseReportLine, ExpenseUser);
+        Assert.AreEqual(true, PostedExpenseReportLine.IsItemizationRequired(), 'The posted line must retain policy-driven itemization applicability.');
+        Assert.AreEqual(true, PostedExpenseReportLine.IsEnforcedItemizationRequired(), 'The posted line must retain policy-driven itemization enforcement.');
         Assert.AreEqual(ExpenseReportLine."Policies Evaluated At", PostedExpenseReportLine."Policies Evaluated At", 'The posted line must preserve when policies were evaluated.');
         Assert.AreEqual("Expense Policy Status"::Flagged, PostedExpenseReportLine."Policy Status At Posting", 'The posted line must preserve the Flagged status.');
         Assert.AreEqual("Expense Policy Status"::Flagged, PostedExpenseReportLine.GetPolicyStatus(), 'The posted status accessor must return the posting snapshot.');
@@ -3894,6 +3908,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicy.Enabled := true;
         ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicy.Insert(true);
+        CreatePolicyEnforcedItemization(ExpenseReportLine);
 
         ExpenseReportHeader.PerformManualRelease();
         LibraryVariableStorage.Enqueue(StrSubstNo(CanPostExpenseReportQst, ExpenseReportHeader."No."));
