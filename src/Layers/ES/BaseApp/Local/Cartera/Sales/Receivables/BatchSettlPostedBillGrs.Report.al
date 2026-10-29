@@ -48,7 +48,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                     Delay := BankAcc."Delay for Notices";
                     OnReadPostedBillGroupOnAfterSetDelay(BankAcc, Delay, PostedBillGr);
 
-                    if OnlyDueDocuments and (DocumentPostingDate < "Due Date" + Delay) then
+                    if DueOnly and (PostingDate < "Due Date" + Delay) then
                         CurrReport.Skip();
 
                     TotalDocCount := TotalDocCount + 1;
@@ -60,7 +60,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                     Clear(TempGenJnlLine);
                     TempGenJnlLine.Init();
                     TempGenJnlLine."Line No." := GenJnlLineNextNo;
-                    TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                    TempGenJnlLine."Posting Date" := PostingDate;
                     TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
                     TempGenJnlLine."Document No." := PostedBillGr."No.";
                     TempGenJnlLine.Validate("Account Type", TempGenJnlLine."Account Type"::Customer);
@@ -162,7 +162,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                         TempGenJnlLine.Init();
                         GenJnlLineNextNo := GenJnlLineNextNo + 10000;
                         TempGenJnlLine."Line No." := GenJnlLineNextNo;
-                        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                        TempGenJnlLine."Posting Date" := PostingDate;
                         TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
                         TempGenJnlLine."Document No." := PostedBillGr."No.";
                         if "Dealing Type" = "Dealing Type"::Discount then begin
@@ -204,7 +204,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                             Clear(TempGenJnlLine);
                             TempGenJnlLine.Init();
                             TempGenJnlLine."Line No." := GenJnlLineNextNo;
-                            TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                            TempGenJnlLine."Posting Date" := PostingDate;
                             TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
                             TempGenJnlLine."Document No." := PostedBillGr."No.";
                             TempGenJnlLine.Validate("Account Type", TempGenJnlLine."Account Type"::"G/L Account");
@@ -220,11 +220,11 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                             TempGenJnlLine.Insert();
                         end;
 
-                    OnPostDataItemPostedDocOnBeforePostSettlement(TempGenJnlLine, PostedBillGr, DocumentPostingDate);
+                    OnPostDataItemPostedDocOnBeforePostSettlement(TempGenJnlLine, PostedBillGr, PostingDate);
                     DocPost.PostSettlement(TempGenJnlLine);
                     TempGenJnlLine.DeleteAll();
 
-                    DocPost.CloseBillGroupIfEmpty(PostedBillGr, DocumentPostingDate);
+                    DocPost.CloseBillGroupIfEmpty(PostedBillGr, PostingDate);
 
                     if ExistVATEntry then begin
                         GLReg.FindLast();
@@ -267,7 +267,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
 
             trigger OnPreDataItem()
             begin
-                DocPost.CheckPostingDate(DocumentPostingDate);
+                DocPost.CheckPostingDate(PostingDate);
 
                 SourceCodeSetup.Get();
                 SourceCode := SourceCodeSetup."Cartera Journal";
@@ -296,14 +296,14 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PostingDate; DocumentPostingDate)
+                    field(PostingDate; PostingDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Posting Date';
                         NotBlank = true;
                         ToolTip = 'Specifies the posting date.';
                     }
-                    field(DueOnly; OnlyDueDocuments)
+                    field(DueOnly; DueOnly)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Due bills only';
@@ -324,7 +324,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
 
     trigger OnInitReport()
     begin
-        DocumentPostingDate := WorkDate();
+        PostingDate := WorkDate();
     end;
 
     trigger OnPreReport()
@@ -377,8 +377,11 @@ report 7000086 "Batch Settl. Posted Bill Grs."
         IsRedrawn: Boolean;
 
     protected var
-        DocumentPostingDate: Date;
-        OnlyDueDocuments: Boolean;
+        // Preserve the published protected variable names for report extensions.
+#pragma warning disable AA0204
+        PostingDate: Date;
+        DueOnly: Boolean;
+#pragma warning restore AA0204
 
     [Scope('OnPrem')]
     procedure DiscFactLiabs(PostedDoc2: Record "Posted Cartera Doc.")
@@ -406,7 +409,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
         Clear(TempGenJnlLine);
         TempGenJnlLine.Init();
         TempGenJnlLine."Line No." := GenJnlLineNextNo;
-        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+        TempGenJnlLine."Posting Date" := PostingDate;
         TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
         TempGenJnlLine."Document No." := PostedBillGr."No.";
         BankAcc.TestField("Bank Acc. Posting Group");
@@ -445,7 +448,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                     Clear(TempGenJnlLine);
                     TempGenJnlLine.Init();
                     TempGenJnlLine."Line No." := GenJnlLineNextNo;
-                    TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                    TempGenJnlLine."Posting Date" := PostingDate;
                     TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
                     TempGenJnlLine."Document No." := PostedBillGr."No.";
                     BankAcc.TestField("Bank Acc. Posting Group");
@@ -470,7 +473,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
                 Clear(TempGenJnlLine);
                 TempGenJnlLine.Init();
                 TempGenJnlLine."Line No." := GenJnlLineNextNo;
-                TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                TempGenJnlLine."Posting Date" := PostingDate;
                 TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
                 TempGenJnlLine."Document No." := PostedBillGr."No.";
                 BankAcc.TestField("Bank Acc. Posting Group");
@@ -499,7 +502,7 @@ report 7000086 "Batch Settl. Posted Bill Grs."
         Clear(TempGenJnlLine);
         TempGenJnlLine.Init();
         TempGenJnlLine."Line No." := GenJnlLineNextNo;
-        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+        TempGenJnlLine."Posting Date" := PostingDate;
         TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
         TempGenJnlLine."Document No." := PostedBillGr."No.";
         TempGenJnlLine."Account Type" := AccType;
