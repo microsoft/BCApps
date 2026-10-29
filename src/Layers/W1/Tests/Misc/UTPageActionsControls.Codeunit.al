@@ -4808,7 +4808,7 @@ codeunit 134341 "UT Page Actions & Controls"
         case FieldRef.Type of
             FieldType::Code:
                 FieldRef.Value := LibraryUtility.GenerateGUID();
-            FieldType::Integer:
+            FieldType::Integer, FieldType::BigInteger:
                 FieldRef.Value := LibraryUtility.GetNewRecNo(RecRef, FieldRef.Number);
         end;
         RecRef.Insert();
