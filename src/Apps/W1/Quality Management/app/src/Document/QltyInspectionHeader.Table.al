@@ -1029,16 +1029,14 @@ table 20405 "Qlty. Inspection Header"
     procedure CreateReinspection(var ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        Proceed: Boolean;
+        ConfirmManagement: Codeunit "Confirm Management";
+        ConfirmQuestion: Text;
     begin
-        if not GuiAllowed() then
-            Proceed := true
+        if Rec.Status = Rec.Status::Open then
+            ConfirmQuestion := StrSubstNo(FinishAndCreateReinspectionQst, Rec.GetFriendlyIdentifier())
         else
-            if Rec.Status = Rec.Status::Open then
-                Proceed := Confirm(StrSubstNo(FinishAndCreateReinspectionQst, Rec.GetFriendlyIdentifier()))
-            else
-                Proceed := Confirm(CreateReinspectionQst);
-        if not Proceed then
+            ConfirmQuestion := CreateReinspectionQst;
+        if not ConfirmManagement.GetResponseOrDefault(ConfirmQuestion) then
             exit;
 
         if Rec.Status = Rec.Status::Open then
