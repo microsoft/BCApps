@@ -299,7 +299,8 @@ codeunit 3307 "Payables Agent Setup"
     var
         FeatureConfiguration: Codeunit "Feature Configuration";
     begin
-        exit(FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok);
+        // LOCAL TEST ONLY - DO NOT COMMIT: force agent-driven line matching
+        exit(true or (FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok));
     end;
 
     /// <summary>
