@@ -535,6 +535,71 @@
     "method": "PostedPurchaseRetShipmentOpenPostedCreditMemoLines"
   },
   {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PageGeneralLedgerEntriesFields"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "FilteredGeneralLedgerEntriesPageIsOpenedOnTopMostRecord"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "FilteredResourceLedgerEntriesPageIsOpenedOnTopMostRecord"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "FilteredCustomerLedgerEntriesPageIsOpenedOnTopMostRecord"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "FilteredVendorLedgerEntriesPageIsOpenedOnTopMostRecord"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "FilteredCheckLedgerEntriesPageIsOpenedOnToMostRecord"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "FilteredItemLedgerEntriesPageIsOpenedOnTopMostRecord"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "FilteredGeneralLedgerEntriesPageOpensPassedRecord"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "FilteredResourceLedgerEntriesPageOpensPassedRecord"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "FilteredCustomerLedgerEntriesPageOpensPassedRecord"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "FilteredVendorLedgerEntriesPageOpensPassedRecord"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "FilteredCheckLedgerEntriesPageOpensPassedRecord"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "FilteredItemLedgerEntriesPageOpensPassedRecord"
+  },
+  {
     "codeunitId": 134346,
     "codeunitName": "Skipped Document Lines",
     "method": "T100_CopySalesDocWithBlockedItem"

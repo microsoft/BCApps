@@ -10455,6 +10455,11 @@
     "method": "PaymentLineAccountDimension"
   },
   {
+    "codeunitId": 144046,
+    "codeunitName": "ERM Employee Name",
+    "method": "BlankSecondFamilyNameShouldGiveNoErrorWhenImportEmployeePicture"
+  },
+  {
     "codeunitId": 144048,
     "codeunitName": "Sales Document VAT Amount",
     "method": "BlanketSalesOrderVATAmountIsNotZero"
@@ -12023,6 +12028,16 @@
     "codeunitId": 144071,
     "codeunitName": "UT PAG ABBREV",
     "method": "WorkCtrGroupCalendarWithPeriodTypeMonth"
+  },
+  {
+    "codeunitId": 144072,
+    "codeunitName": "ERM Miscellaneous ES",
+    "method": "NonDeductibleVATOnPurchasesInvoiceBookReport"
+  },
+  {
+    "codeunitId": 144072,
+    "codeunitName": "ERM Miscellaneous ES",
+    "method": "TwoRowsPrintedWithNonDedtVATInPurchInvBookReportForTwoVATEntriesHavingSamePurchInvHdrNo"
   },
   {
     "codeunitId": 144073,
@@ -14798,6 +14813,31 @@
     "codeunitId": 144118,
     "codeunitName": "E-Invoice Reminder",
     "method": "ValidateEInvReminderFile"
+  },
+  {
+    "codeunitId": 144122,
+    "codeunitName": "ERM Purchase VAT EC Calculate",
+    "method": "PostedPurchCrMemoNormalVATWithCurrency"
+  },
+  {
+    "codeunitId": 144122,
+    "codeunitName": "ERM Purchase VAT EC Calculate",
+    "method": "PurchaseInvoicePaymentUnrealizedVAT"
+  },
+  {
+    "codeunitId": 144122,
+    "codeunitName": "ERM Purchase VAT EC Calculate",
+    "method": "ECAmountOnPurchasePrepmtDocTestReportForSecondPrepayment"
+  },
+  {
+    "codeunitId": 144122,
+    "codeunitName": "ERM Purchase VAT EC Calculate",
+    "method": "VATEntryGLEntryAmountsOnPostedPurchaseInvoicePriceInclVAT"
+  },
+  {
+    "codeunitId": 144122,
+    "codeunitName": "ERM Purchase VAT EC Calculate",
+    "method": "PurchaseInvoicePriceInclVATECPageStatistics"
   },
   {
     "codeunitId": 144123,
@@ -20624,10 +20664,43 @@
     "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
   },
   {
+    "codeunitId": 147312,
+    "codeunitName": "SEPA DD Integration Test - ES",
+    "method": "*".
+    "bug": "ES: Error: The operation cannot complete because it uses a feature that is not supported (.NET Framework Interoperability.)"
+  },
+  {
     "codeunitId": 144519,
     "codeunitName": "ERM Tax Calc Mgt.",
     "method": "*",
     "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 147529,
+    "codeunitName": "SIIDocumentTests",
+    "method": "*",
+    "bug": "ES: Error: Assert.IsTrue failed. Could not find a part of the path 'C:\Program Files\Microsoft Dynamics NAV\GDL\ES\App\Test\SiiXmlSchema\SuministroLR.xsd'."
+  },
+  {
+    "codeunitId": 147531,
+    "codeunitName": "Cartera Recv. Installments",
+    "method": "ApplyCrMemoToCarteraDocWithMultipleInstallments"
+  },
+  {
+    "codeunitId": 147531,
+    "codeunitName": "Cartera Recv. Installments",
+    "method": "ApplyCrMemoToCarteraDocWithMultipleInstallmentsUnrealizedVAT"
+  },
+  {
+    "codeunitId": 147531,
+    "codeunitName": "Cartera Recv. Installments",
+    "method": "ValueOfRemainingAmountLCYStatWhenApplyAndUnApplyOfCustomerLedgerEntry"
+  },
+  {
+    "codeunitId": 147590,
+    "codeunitName": "Test VAT Statement",
+    "method": "*".
+    "bug": "ES: Error: The operation cannot complete because it uses a feature that is not supported (.NET Framework Interoperability.)"
   },
   {
     "codeunitId": 144021,
