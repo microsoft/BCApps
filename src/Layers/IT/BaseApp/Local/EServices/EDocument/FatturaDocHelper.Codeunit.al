@@ -358,7 +358,7 @@ codeunit 12184 "Fattura Doc. Helper"
     /// Keep the posted rule: the fiscal codes are set only if both setup
     /// records exist. Return PaymentMethod for posted-header validation.
     /// </summary>
-    procedure PopulateFatturaPaymentCodes(
+    internal procedure PopulateFatturaPaymentCodes(
         var TempFatturaHeader: Record "Fattura Header" temporary;
         var PaymentMethod: Record "Payment Method")
     var
@@ -571,7 +571,7 @@ codeunit 12184 "Fattura Doc. Helper"
     /// Maps a resolved application to FatturaPA fiscal metadata in both posted
     /// export and preview. The caller determines which ledger entry is applied.
     /// </summary>
-    procedure PopulateAppliedDocumentInformation(
+    internal procedure PopulateAppliedDocumentInformation(
         var TempFatturaHeader: Record "Fattura Header" temporary;
         AppliedCustLedgerEntry: Record "Cust. Ledger Entry")
     var
@@ -701,7 +701,7 @@ codeunit 12184 "Fattura Doc. Helper"
     /// Sets fiscal identity for a preview without initializing document-type setup
     /// or obtaining a real transmission progressive number.
     /// </summary>
-    procedure PopulatePreviewHeaderFiscalIdentity(
+    internal procedure PopulatePreviewHeaderFiscalIdentity(
         var TempFatturaHeader: Record "Fattura Header" temporary;
         Customer: Record Customer;
         FatturaDocType: Variant)
@@ -770,7 +770,7 @@ codeunit 12184 "Fattura Doc. Helper"
     /// This excludes synthetic split-payment lines, which reduce the receivable
     /// but must not reduce ImportoTotaleDocumento.
     /// </summary>
-    procedure GetPreviewSalesDocumentTotal(
+    internal procedure GetPreviewSalesDocumentTotal(
         SalesHeader: Record "Sales Header";
         TempFatturaHeader: Record "Fattura Header" temporary): Decimal
     var
@@ -1081,7 +1081,7 @@ codeunit 12184 "Fattura Doc. Helper"
     /// Adds an existing sales shipment reference using its authoritative header
     /// metadata. Used by both posted export and unposted invoice preview.
     /// </summary>
-    procedure InsertSalesShipmentReference(
+    internal procedure InsertSalesShipmentReference(
         var TempShptFatturaLine: Record "Fattura Line" temporary;
         ShipmentNo: Code[20];
         FatturaLineNo: Integer;
@@ -1101,7 +1101,7 @@ codeunit 12184 "Fattura Doc. Helper"
         exit(true);
     end;
 
-    procedure CollectOrderShipmentReferences(
+    internal procedure CollectOrderShipmentReferences(
         var TempShptFatturaLine: Record "Fattura Line" temporary;
         OrderNo: Code[20];
         OrderLineNo: Integer;
@@ -1164,7 +1164,7 @@ codeunit 12184 "Fattura Doc. Helper"
     /// Groups source VAT entries using the same aggregation applied to posted VAT entries.
     /// The caller supplies either posted entries or entries captured by posting preview.
     /// </summary>
-    procedure AggregateFatturaVATEntries(
+    internal procedure AggregateFatturaVATEntries(
         var SourceVATEntries: Record "VAT Entry" temporary;
         var AggregatedVATEntries: Record "VAT Entry" temporary)
     var
@@ -1211,7 +1211,7 @@ codeunit 12184 "Fattura Doc. Helper"
     /// Reuses the standard order and shipment buffer writers for information
     /// already available on the unposted source document.
     /// </summary>
-    procedure BuildPreviewOrderShipmentBuffers(
+    internal procedure BuildPreviewOrderShipmentBuffers(
         var TempFatturaLine: Record "Fattura Line" temporary;
         var TempShipmentBuffer: Record "Fattura Line" temporary;
         TempFatturaHeader: Record "Fattura Header" temporary)
@@ -1224,7 +1224,7 @@ codeunit 12184 "Fattura Doc. Helper"
     /// Applies the same VAT-entry override and company setup fallback used
     /// by posted export, without querying persisted VAT entries.
     /// </summary>
-    procedure PopulatePreviewTaxRepresentative(
+    internal procedure PopulatePreviewTaxRepresentative(
         var TempFatturaHeader: Record "Fattura Header" temporary;
         var TempVATEntry: Record "VAT Entry" temporary)
     begin
@@ -1424,7 +1424,7 @@ codeunit 12184 "Fattura Doc. Helper"
     /// Prorates an existing source invoice discount to the quantity being
     /// invoiced. Posted documents already contain the invoiced line discount.
     /// </summary>
-    procedure ProrateFatturaInvoiceDiscount(
+    internal procedure ProrateFatturaInvoiceDiscount(
         SourceInvoiceDiscount: Decimal;
         SourceQuantity: Decimal;
         InvoicedQuantity: Decimal;
@@ -1435,7 +1435,7 @@ codeunit 12184 "Fattura Doc. Helper"
         exit(Round(SourceInvoiceDiscount * InvoicedQuantity / SourceQuantity, AmountRoundingPrecision));
     end;
 
-    procedure ShouldIncludePreviewSalesLine(
+    internal procedure ShouldIncludePreviewSalesLine(
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         EffectiveQuantity: Decimal): Boolean
@@ -1463,7 +1463,7 @@ codeunit 12184 "Fattura Doc. Helper"
         exit(not IsSplitPaymentLine(LineRecRef));
     end;
 
-    procedure InsertPreviewSalesLine(
+    internal procedure InsertPreviewSalesLine(
         var TempFatturaLine: Record "Fattura Line" temporary;
         var DocLineNo: Integer;
         TempFatturaHeader: Record "Fattura Header" temporary;
@@ -1530,7 +1530,7 @@ codeunit 12184 "Fattura Doc. Helper"
     /// Shared commercial-line calculation for posted exports and preview.
     /// Caller supplies its source-specific quantity, monetary values and line metadata.
     /// </summary>
-    procedure PopulateFatturaLineAmounts(
+    internal procedure PopulateFatturaLineAmounts(
         var TempFatturaLine: Record "Fattura Line" temporary;
         TempFatturaHeader: Record "Fattura Header" temporary;
         Quantity: Decimal;
@@ -1592,7 +1592,7 @@ codeunit 12184 "Fattura Doc. Helper"
     /// <summary>
     /// Applies the standard Italian VAT summary rules to a posting-preview VAT entry.
     /// </summary>
-    procedure InsertPreviewVATFatturaLine(
+    internal procedure InsertPreviewVATFatturaLine(
         var TempFatturaLine: Record "Fattura Line" temporary;
         TempVATEntry: Record "VAT Entry" temporary;
         CustomerNo: Code[20];
@@ -1614,7 +1614,7 @@ codeunit 12184 "Fattura Doc. Helper"
         TempFatturaLine.Reset();
     end;
 
-    procedure InsertPaymentFatturaLine(
+    internal procedure InsertPaymentFatturaLine(
         var TempFatturaLine: Record "Fattura Line" temporary;
         DueDate: Date;
         Amount: Decimal)
@@ -1635,7 +1635,7 @@ codeunit 12184 "Fattura Doc. Helper"
         TempFatturaLine.Reset();
     end;
 
-    procedure ExchangePreviewAmountToLCY(TempFatturaHeader: Record "Fattura Header" temporary; Amount: Decimal): Decimal
+    internal procedure ExchangePreviewAmountToLCY(TempFatturaHeader: Record "Fattura Header" temporary; Amount: Decimal): Decimal
     begin
         exit(ExchangeToLCYAmount(TempFatturaHeader, Amount));
     end;
@@ -1722,7 +1722,7 @@ codeunit 12184 "Fattura Doc. Helper"
         exit(false);
     end;
 
-    procedure IsSplitVATSetup(VATPostingSetup: Record "VAT Posting Setup"): Boolean
+    internal procedure IsSplitVATSetup(VATPostingSetup: Record "VAT Posting Setup"): Boolean
     var
         ReversedVATPostingSetup: Record "VAT Posting Setup";
     begin

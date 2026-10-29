@@ -67,6 +67,62 @@ codeunit 144200 "FatturaPA Test"
         DescriptionTxt: Label 'Description Text';
 
     [Test]
+    procedure PreviewPaymentRowsAggregateInitialEntries()
+    var
+        TempCustLedgEntry: Record "Cust. Ledger Entry" temporary;
+        TempDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        PreviewAccounting: Codeunit "FatturaPA Preview Accounting";
+    begin
+        // [SCENARIO] Multiple installments aggregate initial entries per ledger entry only.
+        TempCustLedgEntry.Init();
+        TempCustLedgEntry."Entry No." := 101;
+        TempCustLedgEntry."Due Date" := DMY2Date(15, 1, 2026);
+        TempCustLedgEntry.Insert();
+        TempCustLedgEntry.Init();
+        TempCustLedgEntry."Entry No." := 102;
+        TempCustLedgEntry."Due Date" := DMY2Date(15, 2, 2026);
+        TempCustLedgEntry.Insert();
+
+        TempDtldCustLedgEntry.Init();
+        TempDtldCustLedgEntry."Entry No." := 1;
+        TempDtldCustLedgEntry."Cust. Ledger Entry No." := 101;
+        TempDtldCustLedgEntry."Entry Type" := TempDtldCustLedgEntry."Entry Type"::"Initial Entry";
+        TempDtldCustLedgEntry.Amount := 50;
+        TempDtldCustLedgEntry.Insert();
+        TempDtldCustLedgEntry.Init();
+        TempDtldCustLedgEntry."Entry No." := 2;
+        TempDtldCustLedgEntry."Cust. Ledger Entry No." := 101;
+        TempDtldCustLedgEntry."Entry Type" := TempDtldCustLedgEntry."Entry Type"::"Initial Entry";
+        TempDtldCustLedgEntry.Amount := 25;
+        TempDtldCustLedgEntry.Insert();
+        TempDtldCustLedgEntry.Init();
+        TempDtldCustLedgEntry."Entry No." := 3;
+        TempDtldCustLedgEntry."Cust. Ledger Entry No." := 102;
+        TempDtldCustLedgEntry."Entry Type" := TempDtldCustLedgEntry."Entry Type"::"Initial Entry";
+        TempDtldCustLedgEntry.Amount := 40;
+        TempDtldCustLedgEntry.Insert();
+        TempDtldCustLedgEntry.Init();
+        TempDtldCustLedgEntry."Entry No." := 4;
+        TempDtldCustLedgEntry."Cust. Ledger Entry No." := 102;
+        TempDtldCustLedgEntry."Entry Type" := TempDtldCustLedgEntry."Entry Type"::Application;
+        TempDtldCustLedgEntry.Amount := -5;
+        TempDtldCustLedgEntry.Insert();
+
+        PreviewAccounting.AddPaymentRows(TempFatturaLine, TempCustLedgEntry, TempDtldCustLedgEntry);
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Payment);
+        Assert.AreEqual(2, TempFatturaLine.Count(), 'Expected one payment row per ledger entry.');
+        TempFatturaLine.SetRange("Line No.", 1);
+        Assert.IsTrue(TempFatturaLine.FindFirst(), 'First payment row missing.');
+        Assert.AreEqual(DMY2Date(15, 1, 2026), TempFatturaLine."Due Date", 'First due date differs.');
+        Assert.AreEqual(75, TempFatturaLine.Amount, 'Both initial entries must contribute.');
+        TempFatturaLine.SetRange("Line No.", 2);
+        Assert.IsTrue(TempFatturaLine.FindFirst(), 'Second payment row missing.');
+        Assert.AreEqual(DMY2Date(15, 2, 2026), TempFatturaLine."Due Date", 'Second due date differs.');
+        Assert.AreEqual(40, TempFatturaLine.Amount, 'Applications must not change initial payment amount.');
+    end;
+
+    [Test]
     procedure PreviewRejectsBlankProgressiveNo()
     var
         SalesHeader: Record "Sales Header";
@@ -88,6 +144,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewXMLDoesNotAdvanceFatturaPANumberSeries()
     var
         SalesHeader: Record "Sales Header";
@@ -123,6 +180,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedInvoiceFatturaPAValues()
     var
         SalesHeader: Record "Sales Header";
@@ -148,6 +206,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedCreditMemoFatturaPAValues()
     var
         SalesHeader: Record "Sales Header";
@@ -161,6 +220,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedInvoiceWithExtendedText()
     var
         SalesHeader: Record "Sales Header";
@@ -262,6 +322,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedInvoiceWithMultipleVATRates()
     var
         SalesHeader: Record "Sales Header";
@@ -301,6 +362,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedInvoiceWithSplitPayment()
     var
         SalesHeader: Record "Sales Header";
@@ -312,6 +374,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedInvoiceWithUnrealizedVAT()
     var
         SalesHeader: Record "Sales Header";
@@ -325,6 +388,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedPartiallyInvoicedSalesOrder()
     var
         SalesHeader: Record "Sales Header";
@@ -351,6 +415,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedPartiallyInvoicedOrderWithInvoiceDiscount()
     var
         SalesHeader: Record "Sales Header";
@@ -400,6 +465,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewIncludesCalculatedInvoiceDiscount()
     var
         SalesHeader: Record "Sales Header";
@@ -428,6 +494,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewIncludesKnownCustomerOrderMetadata()
     var
         FatturaProjectInfo: Record "Fattura Project Info";
@@ -488,6 +555,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedInvoiceFromGetShipmentLines()
     var
         SalesHeader: Record "Sales Header";
@@ -534,6 +602,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedInvoiceCustomerOrderReferences()
     var
         SalesHeader: Record "Sales Header";
@@ -550,6 +619,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedOrderWithExistingShipmentReferences()
     var
         SalesHeader: Record "Sales Header";
@@ -592,6 +662,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewUsesRemainingShipmentAfterOtherShipmentInvoicedFirst()
     var
         SalesHeader: Record "Sales Header";
@@ -710,6 +781,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewOmitsUndoneShipmentAndUsesReplacement()
     var
         SalesHeader: Record "Sales Header";
@@ -791,6 +863,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedTwoShipmentsForOneInvoiceLine()
     var
         SalesHeader: Record "Sales Header";
@@ -861,6 +934,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewMatchesPostedShipmentsAcrossTwoInvoiceLines()
     var
         SalesHeader: Record "Sales Header";
@@ -915,6 +989,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewCreditMemoIncludesKnownAppliedInvoice()
     var
         SalesHeader: Record "Sales Header";
@@ -964,6 +1039,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewCreditMemoWithoutApplicationDoesNotInventInvoice()
     var
         SalesHeader: Record "Sales Header";
@@ -983,6 +1059,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewOmitsFullyInvoicedHistoricalShipment()
     var
         SalesHeader: Record "Sales Header";
@@ -1213,6 +1290,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PrepareAndSerializeUnpostedFatturaPAInvoice()
     var
         SalesHeader: Record "Sales Header";
@@ -1247,6 +1325,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PrepareAndSerializeUnpostedFatturaPACreditMemo()
     var
         SalesHeader: Record "Sales Header";
@@ -1259,6 +1338,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PrepareAndSerializeUnpostedFatturaPAOrder()
     var
         SalesHeader: Record "Sales Header";
@@ -1297,6 +1377,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreparePreviewDoesNotConsumeFatturaPANumberSeries()
     var
         SalesHeader: Record "Sales Header";
