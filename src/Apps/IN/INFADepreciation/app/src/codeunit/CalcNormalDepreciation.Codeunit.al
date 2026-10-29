@@ -36,7 +36,7 @@ codeunit 18631 "Calc Normal Depreciation"
         FADateCalcSubscriber: Codeunit "Fixed Asset Date Calculation";
         FAPostingDate: Date;
         FiscalYearStartDate: Date;
-        ReferenceDate: Date;
+        DaysPutToUse: Integer;
     begin
         if FADepBook."FA Book Type" <> "Fixed Asset Book Type"::"Income Tax" then
             exit(false);
@@ -52,13 +52,10 @@ codeunit 18631 "Calc Normal Depreciation"
         else
             exit(false);
 
-        FiscalYearStartDate := FADateCalcSubscriber.GetFiscalYearStartDateInc(FADepBook."Depreciation Starting Date");
-        ReferenceDate := FiscalYearStartDate + ThresholdDays;
-        exit(
-          (FADepBook."Depreciation Starting Date" > ReferenceDate) and
-          (FiscalYearStartDate = FADateCalcSubscriber.GetFiscalYearStartDateInc(FAPostingDate)) and
-          (FADepBook."FA Book Type" = FADepBook."FA Book Type"::"Income Tax") and
-          (FiscalYearStartDate = FADateCalcSubscriber.GetFiscalYearStartDateInc(TillDate)));
+        DaysPutToUse := TillDate - FADepBook."Depreciation Starting Date" + 1;
+        exit((DaysPutToUse < ThresholdDays) and (FiscalYearStartDate = FADateCalcSubscriber.GetFiscalYearStartDateInc(FAPostingDate)) and
+        (FADepBook."FA Book Type" = FADepBook."FA Book Type"::"Income Tax") and
+        (FiscalYearStartDate = FADateCalcSubscriber.GetFiscalYearStartDateInc(TillDate)));
     end;
 
     local procedure CheckDisposal(FANo: Code[20]; DeprBookCode: Code[20]): Boolean
