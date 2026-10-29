@@ -13,6 +13,7 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Setup;
+using System.Text;
 using System.Utilities;
 
 report 1002 "Post Inventory Cost to G/L"
@@ -233,8 +234,17 @@ report 1002 "Post Inventory Cost to G/L"
                     }
 
                     trigger OnAfterGetRecord()
+                    var
+                        CostFullyPostedToGL: Boolean;
                     begin
-                        GetItemValueEntry("Value Entry No.");
+                        if not GetItemValueEntry("Value Entry No.") then begin
+                            // The value entry no longer exists, so there is nothing to post for this entry.
+                            AddPostValueEntryToDelete("Value Entry No.");
+                            CurrReport.Skip();
+                        end;
+                        // Evaluate before buffering, because BufferInvtPosting updates the posted amounts of ItemValueEntry in memory.
+                        CostFullyPostedToGL := IsCostFullyPostedToGL(ItemValueEntry);
+
                         if ItemValueEntry."Item Ledger Entry No." = 0 then begin
                             TempCapValueEntry."Entry No." := ItemValueEntry."Entry No.";
                             TempCapValueEntry."Order Type" := ItemValueEntry."Order Type";
@@ -245,16 +255,21 @@ report 1002 "Post Inventory Cost to G/L"
                         if (ItemValueEntry."Item Ledger Entry No." = 0) or not ItemValueEntry.Inventoriable or
                            ((ItemValueEntry."Cost Amount (Actual)" = 0) and (ItemValueEntry."Cost Amount (Expected)" = 0) and
                             (ItemValueEntry."Cost Amount (Actual) (ACY)" = 0) and (ItemValueEntry."Cost Amount (Expected) (ACY)" = 0))
-                        then
+                        then begin
+                            if (ItemValueEntry."Item Ledger Entry No." <> 0) and CostFullyPostedToGL then
+                                AddPostValueEntryToDelete("Value Entry No.");
                             CurrReport.Skip();
+                        end;
 
                         if not InvtPostToGL.BufferInvtPosting(ItemValueEntry) then begin
                             InsertValueEntryNoBuf(ItemValueEntry);
+                            if CostFullyPostedToGL then
+                                AddPostValueEntryToDelete("Value Entry No.");
                             CurrReport.Skip();
                         end;
 
                         UpdateAmounts();
-                        Mark(true);
+                        AddPostValueEntryToDelete("Value Entry No.");
                         if Post and (PostMethod = PostMethod::"per Entry") then
                             PostEntryToGL(ItemValueEntry);
 
@@ -266,10 +281,8 @@ report 1002 "Post Inventory Cost to G/L"
 
                     trigger OnPostDataItem()
                     begin
-                        if Post then begin
-                            MarkedOnly(true);
-                            DeleteAll();
-                        end;
+                        if Post then
+                            DeletePostValueEntriesToGL();
                         if GuiAllowed then
                             Window.Close();
                     end;
@@ -354,17 +367,22 @@ report 1002 "Post Inventory Cost to G/L"
                     }
 
                     trigger OnAfterGetRecord()
+                    var
+                        CostFullyPostedToGL: Boolean;
                     begin
                         CapValueEntry.Get(TempCapValueEntry."Entry No.");
                         if TempCapValueEntry.Next() = 0 then;
+                        // Evaluate before buffering, because BufferInvtPosting updates the posted amounts of CapValueEntry in memory.
+                        CostFullyPostedToGL := IsCostFullyPostedToGL(CapValueEntry);
                         if not InvtPostToGL.BufferInvtPosting(CapValueEntry) then begin
                             InsertValueEntryNoBuf(CapValueEntry);
+                            if CostFullyPostedToGL then
+                                AddPostValueEntryToDelete(CapValueEntry."Entry No.");
                             CurrReport.Skip();
                         end;
 
                         UpdateAmounts();
-                        PostValueEntryToGL.Get(CapValueEntry."Entry No.");
-                        PostValueEntryToGL.Mark(true);
+                        AddPostValueEntryToDelete(CapValueEntry."Entry No.");
                         if Post and (PostMethod = PostMethod::"per Entry") then
                             PostEntryToGL(CapValueEntry);
 
@@ -377,10 +395,8 @@ report 1002 "Post Inventory Cost to G/L"
                     trigger OnPostDataItem()
                     begin
                         TempCapValueEntry.DeleteAll();
-                        if Post then begin
-                            PostValueEntryToGL.MarkedOnly(true);
-                            PostValueEntryToGL.DeleteAll();
-                        end;
+                        if Post then
+                            DeletePostValueEntriesToGL();
                     end;
 
                     trigger OnPreDataItem()
@@ -748,6 +764,7 @@ report 1002 "Post Inventory Cost to G/L"
         TempInvtPostBuf: Record "Invt. Posting Buffer" temporary;
         TempCapValueEntry: Record "Value Entry" temporary;
         TempValueEntry: Record "Value Entry" temporary;
+        TempPostValueEntryToGLToDelete: Record "Post Value Entry to G/L" temporary;
         ItemValueEntry: Record "Value Entry";
         CapValueEntry: Record "Value Entry";
         GenJnlBatch: Record "Gen. Journal Batch";
@@ -841,10 +858,91 @@ report 1002 "Post Inventory Cost to G/L"
         NewPost := Post;
     end;
 
-    local procedure GetItemValueEntry(EntryNo: Integer)
+    local procedure GetItemValueEntry(EntryNo: Integer): Boolean
     begin
-        ItemValueEntry.Get(EntryNo);
+        if not ItemValueEntry.Get(EntryNo) then
+            exit(false);
         OnAfterGetItemValueEntry(ItemValueEntry);
+        exit(true);
+    end;
+
+    local procedure IsCostFullyPostedToGL(ValueEntry: Record "Value Entry"): Boolean
+    var
+        PostValueEntryToGLCheck: Record "Post Value Entry to G/L";
+    begin
+        exit(PostValueEntryToGLCheck.IsFullyPostedToGL(ValueEntry, InvtSetup."Expected Cost Posting to G/L"));
+    end;
+
+    local procedure AddPostValueEntryToDelete(ValueEntryNo: Integer)
+    begin
+        if TempPostValueEntryToGLToDelete.Get(ValueEntryNo) then
+            exit;
+        TempPostValueEntryToGLToDelete.Init();
+        TempPostValueEntryToGLToDelete."Value Entry No." := ValueEntryNo;
+        TempPostValueEntryToGLToDelete.Insert();
+    end;
+
+    local procedure DeletePostValueEntriesToGL()
+    var
+        SelectionFilterManagement: Codeunit SelectionFilterManagement;
+        ValueEntryNoFilter: TextBuilder;
+        FromValueEntryNo: Integer;
+        ToValueEntryNo: Integer;
+        NoOfFilterParameters: Integer;
+        MaxNoOfFilterParameters: Integer;
+    begin
+        // Marks are not used, because DeleteAll on many marked records can skip records. The processed entries are deleted by filters instead.
+        // A range in the filter only contains consecutive numbers that were all processed. Gaps are never bridged, because entry numbers come from
+        // a sequence and an entry in a gap may be committed later by another session.
+        // A single number takes one SQL parameter and a range takes two, so each filter is kept within the maximum number of parameters in a SQL query.
+        if not TempPostValueEntryToGLToDelete.FindSet() then
+            exit;
+
+        MaxNoOfFilterParameters := SelectionFilterManagement.GetMaximumNumberOfParametersInSQLQuery();
+        FromValueEntryNo := TempPostValueEntryToGLToDelete."Value Entry No.";
+        ToValueEntryNo := FromValueEntryNo;
+        while TempPostValueEntryToGLToDelete.Next() <> 0 do
+            if TempPostValueEntryToGLToDelete."Value Entry No." = ToValueEntryNo + 1 then
+                ToValueEntryNo := TempPostValueEntryToGLToDelete."Value Entry No."
+            else begin
+                AddRangeToDeleteFilter(ValueEntryNoFilter, NoOfFilterParameters, MaxNoOfFilterParameters, FromValueEntryNo, ToValueEntryNo);
+                FromValueEntryNo := TempPostValueEntryToGLToDelete."Value Entry No.";
+                ToValueEntryNo := FromValueEntryNo;
+            end;
+        AddRangeToDeleteFilter(ValueEntryNoFilter, NoOfFilterParameters, MaxNoOfFilterParameters, FromValueEntryNo, ToValueEntryNo);
+        DeletePostValueEntriesToGLByFilter(ValueEntryNoFilter.ToText());
+
+        TempPostValueEntryToGLToDelete.DeleteAll();
+    end;
+
+    local procedure AddRangeToDeleteFilter(var ValueEntryNoFilter: TextBuilder; var NoOfFilterParameters: Integer; MaxNoOfFilterParameters: Integer; FromValueEntryNo: Integer; ToValueEntryNo: Integer)
+    var
+        NoOfRangeParameters: Integer;
+    begin
+        NoOfRangeParameters := 1;
+        if ToValueEntryNo <> FromValueEntryNo then
+            NoOfRangeParameters := 2;
+
+        if NoOfFilterParameters + NoOfRangeParameters > MaxNoOfFilterParameters then begin
+            DeletePostValueEntriesToGLByFilter(ValueEntryNoFilter.ToText());
+            ValueEntryNoFilter.Clear();
+            NoOfFilterParameters := 0;
+        end;
+
+        if ValueEntryNoFilter.Length() > 0 then
+            ValueEntryNoFilter.Append('|');
+        ValueEntryNoFilter.Append(Format(FromValueEntryNo, 0, 9));
+        if ToValueEntryNo <> FromValueEntryNo then
+            ValueEntryNoFilter.Append('..' + Format(ToValueEntryNo, 0, 9));
+        NoOfFilterParameters += NoOfRangeParameters;
+    end;
+
+    local procedure DeletePostValueEntriesToGLByFilter(ValueEntryNoFilter: Text)
+    var
+        PostValueEntryToGLToDelete: Record "Post Value Entry to G/L";
+    begin
+        PostValueEntryToGLToDelete.SetFilter("Value Entry No.", ValueEntryNoFilter);
+        PostValueEntryToGLToDelete.DeleteAll();
     end;
 
     local procedure GetDimText(var DimSetEntry: Record "Dimension Set Entry")
