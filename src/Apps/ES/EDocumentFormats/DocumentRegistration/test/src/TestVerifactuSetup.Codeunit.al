@@ -26,6 +26,7 @@ codeunit 148003 "Test Verifactu Setup"
         DisableVerifactuQst: Label 'Verifactu setup will be disabled. Do you want to proceed?';
         // Hex-encoded DER building blocks. The tests assemble minimal certificate structures from them (no keys, names or signatures),
         // because seal detection only reads the QcStatements and CertificatePolicies extensions.
+#pragma warning disable AA0240 // DER-encoded bytes, not phone numbers
         QcStatementsExtensionOidTok: Label '06082B06010505070103', Locked = true;
         CertificatePoliciesExtensionOidTok: Label '0603551D20', Locked = true;
         SubjectAltNameExtensionOidTok: Label '0603551D11', Locked = true;
@@ -37,6 +38,7 @@ codeunit 148003 "Test Verifactu Setup"
         QcTypeESignOidTok: Label '060704008E46010601', Locked = true;
         PolicyQcpLegalQscdOidTok: Label '060704008BEC400103', Locked = true;
         PolicyQcpNaturalQscdOidTok: Label '060704008BEC400102', Locked = true;
+#pragma warning restore AA0240
         SerialNumberTok: Label '020101', Locked = true;
         CriticalTok: Label '0101FF', Locked = true;
         SequenceTagTok: Label '30', Locked = true;

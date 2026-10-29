@@ -33,12 +33,14 @@ codeunit 10771 "Doc. Registration Cert. Mgt."
         SecurityAuditSetupCleanedTxt: Label 'Verifactu setup deleted during environment cleanup.', Locked = true;
         // DER-encoded OIDs (tag, length and value): extension OIDs from RFC 5280 / RFC 3739, QcType from ETSI EN 319 412-5,
         // legal person policies (QCP-l / QCP-l-qscd) from ETSI EN 319 411-2
+#pragma warning disable AA0240 // DER-encoded OID bytes, not phone numbers
         QcStatementsExtensionOidTok: Label '06082B06010505070103', Locked = true;
         CertificatePoliciesExtensionOidTok: Label '0603551D20', Locked = true;
         QcTypeStatementOidTok: Label '060604008E460106', Locked = true;
         QcTypeESealOidTok: Label '060704008E46010602', Locked = true;
         PolicyQcpLegalOidTok: Label '060704008BEC400101', Locked = true;
         PolicyQcpLegalQscdOidTok: Label '060704008BEC400103', Locked = true;
+#pragma warning restore AA0240
         SequenceTagTok: Label '30', Locked = true;
         ObjectIdentifierTagTok: Label '06', Locked = true;
         OctetStringTagTok: Label '04', Locked = true;
