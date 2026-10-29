@@ -16,9 +16,17 @@ Describe 'Temporary dev AlTool workflow preparation' {
             $script:runTestsStepName,
             [System.StringComparison]::Ordinal
         )
+        $script:signStepIndex = $script:workflow.IndexOf(
+            '- name: Sign',
+            [System.StringComparison]::Ordinal
+        )
         $script:prepareStep = $script:workflow.Substring(
             $script:prepareStepIndex,
             $script:runTestsStepIndex - $script:prepareStepIndex
+        )
+        $script:runTestsStep = $script:workflow.Substring(
+            $script:runTestsStepIndex,
+            $script:signStepIndex - $script:runTestsStepIndex
         )
     }
 
@@ -53,7 +61,7 @@ Describe 'Temporary dev AlTool workflow preparation' {
             'build\tools\altool-dev-net10.zip'
         ))
         $script:prepareStep | Should -Match 'Get-FileHash.+SHA256'
-        $script:prepareStep | Should -Match '095951C807E4E3A42559D4B66527F42974D484D32189D89538CB20DEB7FA42C9'
+        $script:prepareStep | Should -Match 'F1B264A3D3F8D90CAD31C5FE1596E33A4CAF359D07B7944B8136C4CC795AA817'
         $script:prepareStep | Should -Match ([regex]::Escape(
             '30.0.0.0+14ef6c5c8aeb5bfd12b3ebf7b413750cb7ac8369'
         ))
@@ -73,5 +81,12 @@ Describe 'Temporary dev AlTool workflow preparation' {
         $script:prepareStep | Should -Match ([regex]::Escape(
             'Add-Content -Encoding UTF8 -Path $env:GITHUB_ENV -Value "AlToolPath=$alToolPath"'
         ))
+    }
+
+    It 'exposes only downloaded regular apps to the Run Tests dev coverage path' {
+        $script:runTestsStep | Should -Match ([regex]::Escape(
+            '_devAlToolCoverageAppsJson: ''${{ steps.DownloadProjectDependencies.outputs.DownloadedApps }}'''
+        ))
+        $script:runTestsStep | Should -Not -Match '_devAlToolCoverageAppsJson:.*DownloadedTestApps'
     }
 }

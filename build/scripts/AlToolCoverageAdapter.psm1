@@ -56,6 +56,102 @@ function Test-BcAppsCoverageString {
     return $value
 }
 
+function Get-BcAppsDevCoverageAppPaths {
+    param(
+        [Parameter(Mandatory = $true)]
+        [hashtable]$Parameters
+    )
+
+    $appsJsonPath = "$env:_devAlToolCoverageAppsJson"
+    if ([string]::IsNullOrWhiteSpace($appsJsonPath)) {
+        return @()
+    }
+
+    if (-not (Test-Path -LiteralPath $appsJsonPath -PathType Leaf)) {
+        throw "Temporary dev AlTool coverage app list '$appsJsonPath' does not exist."
+    }
+
+    $applicationIds = @(
+        Get-BcAppsCoverageParameterValue -Parameters $Parameters -Name "codeCoverageApplicationIds"
+    )
+    if ($applicationIds.Count -eq 0) {
+        throw "Temporary dev AlTool coverage requires at least one regular source-root application ID."
+    }
+
+    $requiredApplicationIds = @{}
+    foreach ($applicationId in $applicationIds) {
+        $normalizedApplicationId = "$applicationId".Trim().ToLowerInvariant()
+        if ([string]::IsNullOrWhiteSpace($normalizedApplicationId)) {
+            throw "Temporary dev AlTool coverage received a blank regular source-root application ID."
+        }
+        $requiredApplicationIds[$normalizedApplicationId] = $true
+    }
+
+    try {
+        $downloadedApps = Get-Content -LiteralPath $appsJsonPath -Raw -Encoding UTF8 -ErrorAction Stop |
+            ConvertFrom-Json -ErrorAction Stop
+    }
+    catch {
+        throw "Failed to read temporary dev AlTool coverage app list '$appsJsonPath'. Error: $($_.Exception.Message)"
+    }
+
+    $candidatePaths = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase
+    )
+    $selectedPackages = @{}
+    foreach ($downloadedApp in $downloadedApps) {
+        $downloadedAppPath = "$downloadedApp".Trim()
+        if ($downloadedAppPath.StartsWith("(") -and $downloadedAppPath.EndsWith(")")) {
+            $downloadedAppPath = $downloadedAppPath.Substring(1, $downloadedAppPath.Length - 2)
+        }
+        if ([string]::IsNullOrWhiteSpace($downloadedAppPath)) {
+            throw "Temporary dev AlTool coverage app list '$appsJsonPath' contains a blank path."
+        }
+        if (-not [System.IO.Path]::IsPathRooted($downloadedAppPath)) {
+            throw "Temporary dev AlTool coverage app path '$downloadedAppPath' must be absolute."
+        }
+
+        $fullDownloadedAppPath = [System.IO.Path]::GetFullPath($downloadedAppPath)
+        if (-not $candidatePaths.Add($fullDownloadedAppPath)) {
+            continue
+        }
+        if (-not $fullDownloadedAppPath.EndsWith(".app", [System.StringComparison]::OrdinalIgnoreCase) -or
+            -not (Test-Path -LiteralPath $fullDownloadedAppPath -PathType Leaf)) {
+            throw "Temporary dev AlTool coverage app path '$fullDownloadedAppPath' must be an existing .app file."
+        }
+
+        try {
+            $appJson = Get-AppJsonFromAppFile -appFile $fullDownloadedAppPath
+            $packageApplicationId = "$($appJson.id)".Trim().ToLowerInvariant()
+            if ([string]::IsNullOrWhiteSpace($packageApplicationId)) {
+                throw "The package manifest does not contain an app ID."
+            }
+        }
+        catch {
+            throw "Failed to read temporary dev AlTool coverage package '$fullDownloadedAppPath'. Error: $($_.Exception.Message)"
+        }
+
+        if (-not $requiredApplicationIds.ContainsKey($packageApplicationId)) {
+            continue
+        }
+        if ($selectedPackages.ContainsKey($packageApplicationId)) {
+            throw "Temporary dev AlTool coverage found duplicate packages for application ID '$packageApplicationId': '$($selectedPackages[$packageApplicationId])' and '$fullDownloadedAppPath'."
+        }
+        $selectedPackages[$packageApplicationId] = $fullDownloadedAppPath
+    }
+
+    $sortedApplicationIds = [string[]]@($requiredApplicationIds.Keys)
+    [System.Array]::Sort($sortedApplicationIds, [System.StringComparer]::Ordinal)
+    $coverageAppPaths = @()
+    foreach ($applicationId in $sortedApplicationIds) {
+        if (-not $selectedPackages.ContainsKey($applicationId)) {
+            throw "Temporary dev AlTool coverage package for application ID '$applicationId' was not found in '$appsJsonPath'."
+        }
+        $coverageAppPaths += "$($selectedPackages[$applicationId])"
+    }
+    return @($coverageAppPaths)
+}
+
 function Assert-BcAppsCoverageParameters {
     param(
         [Parameter(Mandatory = $true)]
@@ -178,6 +274,11 @@ function Invoke-BcAppsCoverageAwareTestRun {
     $runner = Get-Command Invoke-AlToolTestRun `
         -Module ([System.IO.Path]::GetFileNameWithoutExtension($modulePath)) `
         -ErrorAction Stop
+    $coverageAppPaths = @(Get-BcAppsDevCoverageAppPaths -Parameters $Parameters)
+    if ($coverageAppPaths.Count -gt 0 -and
+        -not $runner.Parameters.ContainsKey("CoverageAppPaths")) {
+        throw "The action-owned AlTool runner does not support temporary dev coverage app packages."
+    }
 
     $tenant = if (
         $Parameters.ContainsKey("tenant") -and
@@ -190,22 +291,27 @@ function Invoke-BcAppsCoverageAwareTestRun {
     }
 
     $coverageIsComplete = $null
-    $passed = [bool](& $runner `
-        -ContainerName "$($Parameters["containerName"])" `
-        -Credential $Parameters["credential"] `
-        -ExtensionId "$($Parameters["extensionId"])" `
-        -AppName "$($Parameters["appName"])" `
-        -Tenant $tenant `
-        -CompanyName "$($Parameters["companyName"])" `
-        -JUnitResultFileName "$($Parameters["JUnitResultFileName"])" `
-        -TestType $validated.TestType `
-        -DisabledTests $validated.DisabledTests `
-        -AlToolPath "$($Parameters["codeCoverageAlToolPath"])" `
-        -CoverageMode "$($Parameters["codeCoverageMode"])" `
-        -CoverageFormats $validated.Formats `
-        -CoverageSourceRoots $validated.SourceRoots `
-        -CoverageOutputPath "$($Parameters["codeCoverageOutputPath"])" `
-        -CoverageIsComplete ([ref]$coverageIsComplete))
+    $runnerParameters = @{
+        ContainerName = "$($Parameters["containerName"])"
+        Credential = $Parameters["credential"]
+        ExtensionId = "$($Parameters["extensionId"])"
+        AppName = "$($Parameters["appName"])"
+        Tenant = $tenant
+        CompanyName = "$($Parameters["companyName"])"
+        JUnitResultFileName = "$($Parameters["JUnitResultFileName"])"
+        TestType = $validated.TestType
+        DisabledTests = $validated.DisabledTests
+        AlToolPath = "$($Parameters["codeCoverageAlToolPath"])"
+        CoverageMode = "$($Parameters["codeCoverageMode"])"
+        CoverageFormats = $validated.Formats
+        CoverageSourceRoots = $validated.SourceRoots
+        CoverageOutputPath = "$($Parameters["codeCoverageOutputPath"])"
+        CoverageIsComplete = [ref]$coverageIsComplete
+    }
+    if ($coverageAppPaths.Count -gt 0) {
+        $runnerParameters.CoverageAppPaths = @($coverageAppPaths)
+    }
+    $passed = [bool](& $runner @runnerParameters)
 
     $Parameters["codeCoverageIsComplete"] = $coverageIsComplete
     Assert-BcAppsCoverageResult -Parameters $Parameters -Formats $validated.Formats

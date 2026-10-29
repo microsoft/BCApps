@@ -1,4 +1,13 @@
 BeforeAll {
+    function Get-AppJsonFromAppFile {
+        param(
+            [Parameter(Mandatory = $true)]
+            [string]$appFile
+        )
+
+        return Get-Content -LiteralPath $appFile -Raw -Encoding UTF8 | ConvertFrom-Json
+    }
+
     $modulePath = Join-Path $PSScriptRoot "../AlToolCoverageAdapter.psm1"
     Import-Module $modulePath -Force
 
@@ -24,6 +33,7 @@ function Invoke-AlToolTestRun {
         [string]$CoverageMode,
         [string[]]$CoverageFormats,
         [string[]]$CoverageSourceRoots,
+        [string[]]$CoverageAppPaths,
         [string]$CoverageOutputPath,
         [ref]$CoverageIsComplete
     )
@@ -56,6 +66,7 @@ function Invoke-AlToolTestRun {
         mode = $CoverageMode
         formats = @($CoverageFormats)
         sourceRoots = @($CoverageSourceRoots)
+        appPaths = @($CoverageAppPaths)
         outputPath = $CoverageOutputPath
     } | ConvertTo-Json -Depth 20 |
         Set-Content -LiteralPath $env:BCAPPS_ALTOOL_CAPTURE
@@ -109,16 +120,65 @@ Export-ModuleMember -Function Invoke-AlToolTestRun
             codeCoverageIsComplete = $null
         }
     }
+
+    function Set-TestCoverageApps {
+        param(
+            [Parameter(Mandatory = $true)]
+            [string]$Root,
+            [Parameter(Mandatory = $true)]
+            [hashtable]$Parameters
+        )
+
+        $appOneId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        $appTwoId = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+        $unrelatedId = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+        $appOnePath = Join-Path $Root "AppOne.app"
+        $appTwoPath = Join-Path $Root "AppTwo.app"
+        $unrelatedPath = Join-Path $Root "Unrelated.app"
+        @{ id = $appOneId } | ConvertTo-Json -Compress |
+            Set-Content -LiteralPath $appOnePath -Encoding UTF8
+        @{ id = $appTwoId } | ConvertTo-Json -Compress |
+            Set-Content -LiteralPath $appTwoPath -Encoding UTF8
+        @{ id = $unrelatedId } | ConvertTo-Json -Compress |
+            Set-Content -LiteralPath $unrelatedPath -Encoding UTF8
+
+        $appsJsonPath = Join-Path $Root "DownloadedApps.json"
+        @(
+            "($appTwoPath)",
+            $unrelatedPath,
+            $appOnePath,
+            $appTwoPath
+        ) | ConvertTo-Json -Compress |
+            Set-Content -LiteralPath $appsJsonPath -Encoding UTF8
+        $env:_devAlToolCoverageAppsJson = $appsJsonPath
+        $Parameters.codeCoverageApplicationIds = @(
+            $appTwoId.ToUpperInvariant(),
+            $appOneId
+        )
+
+        return @{
+            AppOneId = $appOneId
+            AppOnePath = $appOnePath
+            AppTwoId = $appTwoId
+            AppTwoPath = $appTwoPath
+            AppsJsonPath = $appsJsonPath
+        }
+    }
 }
 
 Describe "BCApps per-app AL-Go coverage adapter" {
     BeforeEach {
+        Mock -ModuleName AlToolCoverageAdapter Get-AppJsonFromAppFile {
+            param([string]$appFile)
+            return Get-Content -LiteralPath $appFile -Raw -Encoding UTF8 | ConvertFrom-Json
+        }
         $env:BCAPPS_ALTOOL_CAPTURE = Join-Path $TestDrive "altool-capture.json"
         Remove-Item -LiteralPath $env:BCAPPS_ALTOOL_CAPTURE -Force -ErrorAction SilentlyContinue
         $env:BCAPPS_ALTOOL_RESULT = "true"
         $env:BCAPPS_ALTOOL_COMPLETE = "true"
         Remove-Item Env:\BCAPPS_ALTOOL_SKIP_FORMAT -ErrorAction SilentlyContinue
         Remove-Item Env:\BCAPPS_ALTOOL_NO_COMPLETENESS -ErrorAction SilentlyContinue
+        Remove-Item Env:\_devAlToolCoverageAppsJson -ErrorAction SilentlyContinue
     }
 
     AfterEach {
@@ -127,6 +187,7 @@ Describe "BCApps per-app AL-Go coverage adapter" {
         Remove-Item Env:\BCAPPS_ALTOOL_COMPLETE -ErrorAction SilentlyContinue
         Remove-Item Env:\BCAPPS_ALTOOL_SKIP_FORMAT -ErrorAction SilentlyContinue
         Remove-Item Env:\BCAPPS_ALTOOL_NO_COMPLETENESS -ErrorAction SilentlyContinue
+        Remove-Item Env:\_devAlToolCoverageAppsJson -ErrorAction SilentlyContinue
         Remove-Module AlToolTestRunner -Force -ErrorAction SilentlyContinue
     }
 
@@ -134,6 +195,7 @@ Describe "BCApps per-app AL-Go coverage adapter" {
         $root = Join-Path $TestDrive "supported"
         New-Item -ItemType Directory -Path $root -Force | Out-Null
         $parameters = Get-TestParameterSet -Root $root
+        $coverageApps = Set-TestCoverageApps -Root $root -Parameters $parameters
 
         Invoke-BcAppsCoverageAwareTestRun -Parameters $parameters |
             Should -BeTrue
@@ -153,6 +215,10 @@ Describe "BCApps per-app AL-Go coverage adapter" {
         $capture.mode | Should -Be "line"
         @($capture.formats) | Should -Be @("bc-json", "cobertura")
         @($capture.sourceRoots) | Should -Be @($parameters.codeCoverageSourceRoots)
+        @($capture.appPaths) | Should -Be @(
+            $coverageApps.AppOnePath,
+            $coverageApps.AppTwoPath
+        )
         $capture.outputPath | Should -Be $parameters.codeCoverageOutputPath
         Test-Path -LiteralPath $parameters.JUnitResultFileName -PathType Leaf |
             Should -BeTrue
@@ -182,6 +248,8 @@ Describe "BCApps per-app AL-Go coverage adapter" {
         Test-Path -LiteralPath (
             Join-Path $parameters.codeCoverageOutputPath "coverage.bc.json"
         ) -PathType Leaf | Should -BeTrue
+        (Get-Content -LiteralPath $env:BCAPPS_ALTOOL_CAPTURE -Raw |
+            ConvertFrom-Json).appPaths | Should -BeNullOrEmpty
     }
 
     It "propagates an incomplete coverage result independently of test success" {
@@ -252,6 +320,68 @@ Describe "BCApps per-app AL-Go coverage adapter" {
         {
             Invoke-BcAppsCoverageAwareTestRun -Parameters $parameters
         } | Should -Throw "*missing required coverage field 'codeCoverageAlToolPath'*"
+    }
+
+    It "fails closed when a required dev coverage package is missing" {
+        $root = Join-Path $TestDrive "missing-coverage-app"
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $parameters = Get-TestParameterSet -Root $root
+        $coverageApps = Set-TestCoverageApps -Root $root -Parameters $parameters
+        $parameters.codeCoverageApplicationIds += "dddddddd-dddd-dddd-dddd-dddddddddddd"
+
+        {
+            Invoke-BcAppsCoverageAwareTestRun -Parameters $parameters
+        } | Should -Throw "*package for application ID 'dddddddd-dddd-dddd-dddd-dddddddddddd' was not found*"
+        Test-Path -LiteralPath $coverageApps.AppOnePath -PathType Leaf | Should -BeTrue
+    }
+
+    It "fails closed when the dev package list is present without application IDs" {
+        $root = Join-Path $TestDrive "missing-coverage-app-ids"
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $parameters = Get-TestParameterSet -Root $root
+        $null = Set-TestCoverageApps -Root $root -Parameters $parameters
+        $parameters.Remove("codeCoverageApplicationIds")
+
+        {
+            Invoke-BcAppsCoverageAwareTestRun -Parameters $parameters
+        } | Should -Throw "*missing required coverage field 'codeCoverageApplicationIds'*"
+    }
+
+    It "fails closed when distinct dev coverage packages have the same app ID" {
+        $root = Join-Path $TestDrive "duplicate-coverage-app"
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $parameters = Get-TestParameterSet -Root $root
+        $coverageApps = Set-TestCoverageApps -Root $root -Parameters $parameters
+        $duplicatePath = Join-Path $root "Duplicate.app"
+        @{ id = $coverageApps.AppOneId } | ConvertTo-Json -Compress |
+            Set-Content -LiteralPath $duplicatePath -Encoding UTF8
+        @(
+            $coverageApps.AppOnePath,
+            $duplicatePath,
+            $coverageApps.AppTwoPath
+        ) | ConvertTo-Json -Compress |
+            Set-Content -LiteralPath $coverageApps.AppsJsonPath -Encoding UTF8
+
+        {
+            Invoke-BcAppsCoverageAwareTestRun -Parameters $parameters
+        } | Should -Throw "*duplicate packages for application ID '$($coverageApps.AppOneId)'*"
+    }
+
+    It "fails closed when a dev coverage package path is not an existing app file" {
+        $root = Join-Path $TestDrive "invalid-coverage-app"
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $parameters = Get-TestParameterSet -Root $root
+        $parameters.codeCoverageApplicationIds = @(
+            "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        )
+        $appsJsonPath = Join-Path $root "DownloadedApps.json"
+        @((Join-Path $root "Missing.app")) | ConvertTo-Json -Compress |
+            Set-Content -LiteralPath $appsJsonPath -Encoding UTF8
+        $env:_devAlToolCoverageAppsJson = $appsJsonPath
+
+        {
+            Invoke-BcAppsCoverageAwareTestRun -Parameters $parameters
+        } | Should -Throw "*must be an existing .app file*"
     }
 
     It "fails closed when a source root is not absolute" {
