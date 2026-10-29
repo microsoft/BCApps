@@ -27,8 +27,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         VendorPostingGroupMatchErr: Label 'G/L Entry Bill Account Not Matching with Purchase Invoice Vendor Posting Group Bill Account';
         VendorPostingGroupErr: Label 'Vendor Posting Group must be %1 in %2.', Comment = '%1= Value ,%2=Table Name';
         AltPostingGroupNotFilledInErr: Label 'You cannot change the value %1 to %2 because Alternative Employee Posting Group has not been filled in.', Comment = '%1 = posting group, %2 = alt. posting group';
-        GLEntryAmountErr: Label 'G/L entry amount %1 for posting group %2 is not correct', Locked = true;
-        GLEntryAddCurrAmountErr: Label 'G/L entry additional currency amount %1 for posting group %2 is not correct', Locked = true;
+        GLEntryAmountErr: Label 'G/L entry amount %1 for posting group %2 is not correct', Comment = '%1 = G/L entry amount, %2 = posting-group account number', Locked = true;
+        GLEntryAddCurrAmountErr: Label 'G/L entry additional currency amount %1 for posting group %2 is not correct', Comment = '%1 = additional-currency G/L entry amount, %2 = posting-group account number', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
