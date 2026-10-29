@@ -10,7 +10,7 @@ using Microsoft.Bank.Reports;
 using Microsoft.Utilities;
 using System.Privacy;
 
-codeunit 10845 "FR Financial Schedule Mgt."
+codeunit 10847 "FR Financial Schedule Mgt."
 {
     TableNo = "FR Financial Schedule Line";
 

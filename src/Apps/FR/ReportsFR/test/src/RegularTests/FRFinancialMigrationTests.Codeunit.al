@@ -16,7 +16,7 @@ using System.Upgrade;
 using System.Utilities;
 
 #pragma warning disable AL0432, AS0105
-codeunit 148007 "FR Financial Migration Tests"
+codeunit 148013 "FR Financial Migration Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;

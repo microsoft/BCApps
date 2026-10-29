@@ -9,7 +9,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
-codeunit 148004 "FR Financial Schedule Tests"
+codeunit 148010 "FR Financial Schedule Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
