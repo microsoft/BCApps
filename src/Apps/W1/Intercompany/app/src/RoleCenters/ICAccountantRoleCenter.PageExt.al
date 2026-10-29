@@ -31,21 +31,21 @@ pageextension 8405 "IC Accountant Role Center" extends "Accountant Role Center"
     {
         addafter(Dimensions)
         {
-            action(Partners)
+            action(ICPartners)
             {
                 ApplicationArea = Intercompany;
                 Caption = 'Partners';
                 RunObject = Page "IC Partner List";
                 ToolTip = 'Set up each company or department within the group of companies as an intercompany partner of type Vendor or Customer. Intercompany partners can then be inserted on regular sales and purchase documents or journal lines that are exchanged through the intercompany inbox/outbox system and posted to agreed accounts in an intercompany chart of accounts.';
             }
-            action(Action171)
+            action(ICChartOfAccounts)
             {
                 ApplicationArea = Intercompany;
                 Caption = 'IC Chart of Accounts';
                 RunObject = Page "IC Chart of Accounts";
                 ToolTip = 'Manage intercompany transactions within your group of companies in an aligned chart of accounts that uses the same account numbers and settings. In the setup phase, the parent company of the group can create a simplified version of their own chart of accounts and exports it to an XML file that each subsidiary can quickly implement.';
             }
-            action(Action173)
+            action(ICDimensions)
             {
                 ApplicationArea = Intercompany;
                 Caption = 'Intercompany Dimensions';

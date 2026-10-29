@@ -360,7 +360,6 @@ table 79 "Company Information"
 #if not CLEANSCHEMA25
         field(43; "IC Inbox Details"; Text[250])
         {
-            AccessByPermission = TableData "IC G/L Account" = R;
             Caption = 'IC Inbox Details';
             ObsoleteReason = 'Replaced by the same field from "IC Setup" table.';
             ObsoleteState = Removed;

@@ -579,11 +579,21 @@ table 12403 "Gen. Journal Line Archive"
             Caption = 'Bal. VAT Difference';
             Editable = false;
         }
+#if not CLEANSCHEMA30
         field(113; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
             Editable = false;
+            ObsoleteReason = 'Intercompany functionality has been moved to the Intercompany app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
         field(114; "IC Direction"; Option)
         {
             Caption = 'IC Direction';
