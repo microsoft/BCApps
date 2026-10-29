@@ -65,7 +65,7 @@ page 7100 "Contact Sync"
                             ContactTxt: Text;
                         begin
                             ContactTxt := ContactRec.TableCaption();
-                            FilterPageBuilder.AddTable('Contact', Database::Contact);
+                            FilterPageBuilder.AddTable(ContactTxt, Database::Contact);
                             FilterPageBuilder.ADdField(ContactTxt, ContactRec."Territory Code");
                             FilterPageBuilder.ADdField(ContactTxt, ContactRec."Company No.");
                             FilterPageBuilder.ADdField(ContactTxt, ContactRec."Salesperson Code");
@@ -75,10 +75,10 @@ page 7100 "Contact Sync"
                             FilterPageBuilder.ADdField(ContactTxt, ContactRec."Country/Region Code");
 
                             if ContactFilterText <> '' then
-                                FilterPageBuilder.SetView('Contact', ContactFilterText);
+                                FilterPageBuilder.SetView(ContactTxt, ContactFilterText);
 
                             if FilterPageBuilder.RunModal() then begin
-                                ContactFilterText := FilterPageBuilder.GetView('Contact', false);
+                                ContactFilterText := FilterPageBuilder.GetView(ContactTxt, false);
 
                                 ContactRec.SetView(ContactFilterText);
                                 Message(TotalRecordsMessageLbl, ContactRec.Count);
