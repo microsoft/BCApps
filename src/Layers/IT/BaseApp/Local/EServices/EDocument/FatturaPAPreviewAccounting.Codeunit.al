@@ -1,12 +1,13 @@
 namespace Microsoft.EServices.EDocument;
 
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Sales.Receivables;
 
 codeunit 12281 "FatturaPA Preview Accounting"
 {
+    Access = Internal;
+
     procedure AddVATRows(
         var TempFatturaLine: Record "Fattura Line" temporary;
         var TempVATEntry: Record "VAT Entry" temporary;
@@ -16,6 +17,7 @@ codeunit 12281 "FatturaPA Preview Accounting"
         FatturaDocHelper: Codeunit "Fattura Doc. Helper";
         AggregatedVATEntries: Record "VAT Entry" temporary;
         VATPostingSetup: Record "VAT Posting Setup";
+        TempVATPostingSetup: Record "VAT Posting Setup" temporary;
         IsSplitPayment: Boolean;
         VATEntryCount: Integer;
     begin
@@ -23,8 +25,12 @@ codeunit 12281 "FatturaPA Preview Accounting"
         TempVATEntry.SetRange(Type, TempVATEntry.Type::Sale);
         if TempVATEntry.FindSet() then
             repeat
-                VATPostingSetup.Get(TempVATEntry."VAT Bus. Posting Group", TempVATEntry."VAT Prod. Posting Group");
-                if FatturaDocHelper.IsSplitVATSetup(VATPostingSetup) then
+                if not TempVATPostingSetup.Get(TempVATEntry."VAT Bus. Posting Group", TempVATEntry."VAT Prod. Posting Group") then begin
+                    VATPostingSetup.Get(TempVATEntry."VAT Bus. Posting Group", TempVATEntry."VAT Prod. Posting Group");
+                    TempVATPostingSetup := VATPostingSetup;
+                    TempVATPostingSetup.Insert();
+                end;
+                if FatturaDocHelper.IsSplitVATSetup(TempVATPostingSetup) then
                     IsSplitPayment := true;
             until TempVATEntry.Next() = 0;
 
@@ -44,39 +50,32 @@ codeunit 12281 "FatturaPA Preview Accounting"
         var TempCustLedgEntry: Record "Cust. Ledger Entry" temporary;
         var TempDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary)
     var
+        InitialEntryAmounts: Dictionary of [Integer, Decimal];
         Amount: Decimal;
         FatturaDocHelper: Codeunit "Fattura Doc. Helper";
     begin
+        // Aggregate the initial detailed entries once; a separate scan for each
+        // customer ledger entry repeats work for multi-installment documents.
+        TempDtldCustLedgEntry.Reset();
+        TempDtldCustLedgEntry.SetRange(
+            "Entry Type",
+            TempDtldCustLedgEntry."Entry Type"::"Initial Entry");
+        if TempDtldCustLedgEntry.FindSet() then
+            repeat
+                if not InitialEntryAmounts.Get(TempDtldCustLedgEntry."Cust. Ledger Entry No.", Amount) then
+                    Amount := 0;
+                InitialEntryAmounts.Set(
+                    TempDtldCustLedgEntry."Cust. Ledger Entry No.",
+                    Amount + TempDtldCustLedgEntry.Amount);
+            until TempDtldCustLedgEntry.Next() = 0;
+
         TempCustLedgEntry.Reset();
         if TempCustLedgEntry.FindSet() then
             repeat
-                Amount := GetInitialEntryAmount(
-                    TempCustLedgEntry."Entry No.",
-                    TempDtldCustLedgEntry);
-
+                if not InitialEntryAmounts.Get(TempCustLedgEntry."Entry No.", Amount) then
+                    Amount := 0;
                 FatturaDocHelper.InsertPaymentFatturaLine(
                     TempFatturaLine, TempCustLedgEntry."Due Date", Amount);
             until TempCustLedgEntry.Next() = 0;
     end;
-
-    local procedure GetInitialEntryAmount(
-        CustLedgEntryNo: Integer;
-        var TempDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary): Decimal
-    var
-        Total: Decimal;
-    begin
-        TempDtldCustLedgEntry.Reset();
-        TempDtldCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgEntryNo);
-        TempDtldCustLedgEntry.SetRange(
-            "Entry Type",
-            TempDtldCustLedgEntry."Entry Type"::"Initial Entry");
-
-        if TempDtldCustLedgEntry.FindSet() then
-            repeat
-                Total += TempDtldCustLedgEntry.Amount;
-            until TempDtldCustLedgEntry.Next() = 0;
-
-        exit(Total);
-    end;
-
 }
