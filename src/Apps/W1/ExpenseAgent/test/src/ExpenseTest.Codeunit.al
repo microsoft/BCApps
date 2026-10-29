@@ -319,6 +319,68 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
+    procedure NoVATBusinessPostingGroupsDoesNotFailCountryVATRatesDefaults()
+    var
+        CompanyInformation: Record "Company Information";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 653962] Sales Tax countries (CA/US) without VAT business posting groups can create country VAT rate defaults.
+        Initialize();
+
+        // [GIVEN] No VAT posting setup or VAT business posting group exists, a country without VAT defaults is set, and the expense default is blank.
+        VATPostingSetup.DeleteAll();
+        VATBusinessPostingGroup.DeleteAll();
+        SetUnsupportedCountryCode(CompanyInformation);
+        CompanyInformation."Country/Region Code" := 'CA';
+        CompanyInformation.Modify();
+        ClearDefaultVATBusinessPostingGroup(ExpenseAgentSetup);
+
+        // [WHEN] Create the country VAT rate defaults.
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        // [THEN] No error occurs, the default stays blank and VAT rates are marked as applied.
+        ExpenseAgentSetup.Get();
+        Assert.AreEqual('', ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
+        Assert.IsTrue(ExpenseAgentSetup."VAT Rates Applied", ExpenseAgentSetup.FieldCaption("VAT Rates Applied"));
+    end;
+
+    [Test]
+    procedure VATCountryWithoutBusinessPostingGroupCanApplyRatesLater()
+    var
+        CompanyInformation: Record "Company Information";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        Initialize();
+        VATPostingSetup.DeleteAll();
+        VATBusinessPostingGroup.DeleteAll();
+        CompanyInformation.Get();
+        CompanyInformation."Country/Region Code" := 'DE';
+        CompanyInformation.Modify();
+        ClearDefaultVATBusinessPostingGroup(ExpenseAgentSetup);
+
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        ExpenseAgentSetup.Get();
+        Assert.IsFalse(ExpenseAgentSetup."VAT Rates Applied", 'VAT rates must remain pending until a VAT business posting group is available.');
+        Assert.AreEqual('', ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
+        Assert.IsTrue(VATPostingSetup.IsEmpty(), 'No VAT posting setup must be created with a blank business posting group.');
+
+        ExpenseAgentSetup.CreateExpenseCategoriesDefaults();
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        ExpenseAgentSetup.Get();
+        Assert.IsTrue(ExpenseAgentSetup."VAT Rates Applied", 'VAT rates must be applied when a VAT business posting group becomes available.');
+        Assert.AreEqual(VATBusinessPostingGroup.Code, ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
+        Assert.IsFalse(VATPostingSetup.IsEmpty(), 'The later setup run must create VAT posting rates for the business posting group.');
+    end;
+
+    [Test]
     procedure NoBeUpdatedInExpenseManuallyIfManualNosIsTrue()
     var
         Expense: Record Expense;
@@ -422,8 +484,8 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create Expense.
         CreateExpense(Expense, true, CurrencyCode, LibraryRandom.RandInt(100));
-        Expense.Validate("Merchant Name", LibraryRandom.RandText(20));
-        Expense.Validate("Expense Ext. Doc. No.", LibraryRandom.RandText(20));
+        Expense.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
+        Expense.Validate("Expense Ext. Doc. No.", CopyStr(LibraryRandom.RandText(20), 1, 30));
 
         // [GIVEN] Release Expense.
         ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
@@ -3082,7 +3144,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create Expense with Expense Category.
         LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', Amount);
-        Expense.Validate("Merchant Name", LibraryRandom.RandText(10));
+        Expense.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
         Expense.Modify();
 
         // [WHEN] Open Expense Page.
@@ -3605,7 +3667,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Get Company Information.
         CompanyInformation.Get();
-        CompanyInformation.Validate(Name, LibraryRandom.RandText(10));
+        CompanyInformation.Validate(Name, CopyStr(LibraryRandom.RandText(10), 1, 100));
         CompanyInformation.Modify();
 
         // [GIVEN] Find "Post Code".
@@ -3677,7 +3739,7 @@ codeunit 148305 "Expense Test"
         LibraryVariableStorage.Enqueue(1);
 
         // [GIVEN] Enqueue expected Message text.
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, 0, Expense.Amount));
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, '0.00', Expense.Amount));
 
         // [WHEN] Open Expense Itemization Page.
         ExpensePage.OpenEdit();
@@ -4065,13 +4127,13 @@ codeunit 148305 "Expense Test"
         Commit();
 
         // [WHEN] Update Participant Name.
-        asserterror ExpenseParticipant.validate("Participant Name", LibraryRandom.RandText(10));
+        asserterror ExpenseParticipant.validate("Participant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Organization.
-        asserterror ExpenseParticipant.validate("Participant Organization", LibraryRandom.RandText(10));
+        asserterror ExpenseParticipant.validate("Participant Organization", CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
@@ -4083,13 +4145,13 @@ codeunit 148305 "Expense Test"
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Title.
-        asserterror ExpenseParticipant.validate("Participant Title", LibraryRandom.RandText(10));
+        asserterror ExpenseParticipant.validate("Participant Title", CopyStr(LibraryRandom.RandText(10), 1, 30));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Email.
-        asserterror ExpenseParticipant.validate("Participant Email", LibraryRandom.RandText(10));
+        asserterror ExpenseParticipant.validate("Participant Email", CopyStr(LibraryRandom.RandText(10), 1, 80));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
@@ -4943,7 +5005,7 @@ codeunit 148305 "Expense Test"
         Expense.PerformManualRelease();
 
         // [WHEN] Validate Description in Expense Itemization.
-        asserterror ExpenseItemization[1].Validate(Description, LibraryRandom.RandText(10));
+        asserterror ExpenseItemization[1].Validate(Description, CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that the Status is Open if Itemization is updated.
         Assert.ExpectedTestFieldError(Expense.FieldCaption(Status), Format(Expense.Status::Open));
@@ -5796,7 +5858,6 @@ codeunit 148305 "Expense Test"
         ExpensePerDiem.FindFirst();
 
         CalculatedPerDiemAmount := ExpensePerDiem."Original Per Diem Amount";
-
         if (ExpensePerDiem.Breakfast) and (ExpensePerDiem."Breakfast Reduction Percent" <> 0) then
             TotalReductionPercent += ExpensePerDiem."Breakfast Reduction Percent";
         if (ExpensePerDiem.Lunch) and (ExpensePerDiem."Lunch Reduction Percent" <> 0) then

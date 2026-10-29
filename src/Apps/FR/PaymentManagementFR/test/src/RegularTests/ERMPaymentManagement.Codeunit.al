@@ -112,6 +112,9 @@ codeunit 144013 "ERM Payment Management"
 
     trigger OnRun()
     begin
+#if not CLEAN28
+        BindSubscription(this);
+#endif
     end;
 
     var
@@ -661,6 +664,7 @@ codeunit 144013 "ERM Payment Management"
         SellToCustomerNo: Code[20];
     begin
         // Verify that Posting of Payment Slip of Customer with error is not possible.
+        Initialize();
 
         // Setup
 
@@ -683,6 +687,7 @@ codeunit 144013 "ERM Payment Management"
         BuyFromVendorNo: Code[20];
     begin
         // Verify that Posting of Payment Slip of of Vendor with error is not possible.
+        Initialize();
 
         // Setup
 
