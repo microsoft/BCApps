@@ -5248,9 +5248,9 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
     },
-    "Microsoft Fabric Mirroring": {
+    "Business Central Mirroring to Fabric": {
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\MicrosoftFabricMirroring\\app",
-      "dvdFolder": "Applications\\Microsoft Fabric Mirroring\\Source",
+      "dvdFolder": "Applications\\Business Central Mirroring to Fabric\\Source",
       "hasTranslations": true,
       "installOnEnvironmentUpdate": false,
       "supportedCountries": "All",
@@ -5259,9 +5259,9 @@
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
-    "Microsoft Fabric Mirroring Tests": {
+    "Business Central Mirroring to Fabric Tests": {
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\MicrosoftFabricMirroring\\test",
-      "dvdFolder": "Applications\\Microsoft Fabric Mirroring\\Test",
+      "dvdFolder": "Applications\\Business Central Mirroring to Fabric\\Test",
       "supportedCountries": "All",
       "isTest": true,
       "runStaticCodeAnalysis": true,

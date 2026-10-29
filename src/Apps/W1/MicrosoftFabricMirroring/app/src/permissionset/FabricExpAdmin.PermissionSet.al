@@ -21,6 +21,7 @@ permissionset 48530 "Fabric Exp Admin"
         tabledata "Tenant Fabric Table Fields" = RIMD,
         tabledata "Tenant Fabric Tables" = RM,
         codeunit "Fabric Config Package Mgt" = X,
+        codeunit "Fabric Env. Cleanup Subs." = X,
         codeunit "Fabric Field Validation" = X,
         codeunit "Fabric Install" = X,
         codeunit "Fabric Platform Admin Client" = X,

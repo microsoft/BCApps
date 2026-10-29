@@ -171,6 +171,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntryNo: Integer;
         UseCurrFactorOnly: Boolean;
         NonAddCurrCodeOccured: Boolean;
+        SkipAddCurrResiduals: Boolean;
         FADimAlreadyChecked: Boolean;
         OverrideDimErr: Boolean;
         JobLine: Boolean;
@@ -7788,13 +7789,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
         exit(OldAddCurrAmount);
     end;
 
+    internal procedure SetSkipAddCurrResiduals(NewSkipAddCurrResiduals: Boolean)
+    begin
+        SkipAddCurrResiduals := NewSkipAddCurrResiduals;
+    end;
+
     local procedure HandleAddCurrResidualGLEntry(GenJnlLine: Record "Gen. Journal Line"; GLEntry2: Record "G/L Entry")
     var
         GLAcc: Record "G/L Account";
         GLEntry: Record "G/L Entry";
         IsHandled: Boolean;
     begin
-        if AddCurrencyCode = '' then
+        if SkipAddCurrResiduals or (AddCurrencyCode = '') then
             exit;
 
         TotalAddCurrAmount := TotalAddCurrAmount + GLEntry2."Additional-Currency Amount";

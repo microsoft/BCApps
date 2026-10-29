@@ -7,6 +7,7 @@ namespace Microsoft.Peppol.DE;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Company;
 using Microsoft.Peppol;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 
 /// <summary>
@@ -138,6 +139,7 @@ codeunit 37403 "PEPPOL30 DE Party Info" implements "PEPPOL Party Info Provider"
     procedure GetAccountingCustomerPartyLegalEntityBIS(SalesHeader: Record "Sales Header"; var CustPartyLegalEntityRegName: Text; var CustPartyLegalEntityCompanyID: Text; var CustPartyLegalEntityIDSchemeID: Text)
     begin
         StandardProvider.GetAccountingCustomerPartyLegalEntityBIS(SalesHeader, CustPartyLegalEntityRegName, CustPartyLegalEntityCompanyID, CustPartyLegalEntityIDSchemeID);
+        SetCustomerRegistrationNoAsLegalEntityFallback(SalesHeader, CustPartyLegalEntityCompanyID, CustPartyLegalEntityIDSchemeID);
     end;
 
     procedure GetAccountingCustomerPartyContact(SalesHeader: Record "Sales Header"; var CustContactID: Text; var CustContactName: Text; var CustContactTelephone: Text; var CustContactTelefax: Text; var CustContactElectronicMail: Text)
@@ -178,6 +180,31 @@ codeunit 37403 "PEPPOL30 DE Party Info" implements "PEPPOL Party Info Provider"
             (CompanyInformation."Registration No." <> '') and
             (CompanyInformation.GLN = '') and
             (CompanyInformation."VAT Registration No." = ''));
+    end;
+
+    local procedure SetCustomerRegistrationNoAsLegalEntityFallback(SalesHeader: Record "Sales Header"; var PartyLegalEntityCompanyID: Text; var PartyLegalEntitySchemeID: Text)
+    var
+        Customer: Record Customer;
+    begin
+        if PartyLegalEntityCompanyID <> '' then
+            exit;
+
+        Customer.SetLoadFields("Registration Number", "Use Reg. No. in E-Document", GLN, "VAT Registration No.");
+        if not Customer.Get(SalesHeader."Bill-to Customer No.") then
+            exit;
+        if not CanUseCustomerRegistrationNo(Customer) then
+            exit;
+        PartyLegalEntityCompanyID := Customer."Registration Number";
+        PartyLegalEntitySchemeID := '';
+    end;
+
+    local procedure CanUseCustomerRegistrationNo(Customer: Record Customer): Boolean
+    begin
+        exit(
+            Customer."Use Reg. No. in E-Document" and
+            (Customer."Registration Number" <> '') and
+            (Customer.GLN = '') and
+            (Customer."VAT Registration No." = ''));
     end;
 
     var
