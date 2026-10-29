@@ -87,7 +87,6 @@ codeunit 10675 "SAF-T Export Mgt."
         SAFTGLEntryByTrans: Query "SAF-T G/L Entry By Trans.";
     begin
         SAFTExportHeader."Number of G/L Entries" := 0;
-
         if SAFTExportHeader.Version in [SAFTExportHeader.Version::"1.30", SAFTExportHeader.Version::"1.40"] then begin
             GenerateSAFT13File.CalculateDebitCreditTotals(SAFTExportHeader);
             SAFTExportHeader."Number of G/L Entries" := GenerateSAFT13File.CountTransactions(SAFTExportHeader);
