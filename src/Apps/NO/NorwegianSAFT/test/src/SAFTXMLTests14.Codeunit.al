@@ -255,23 +255,14 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         VATEntry.SetRange("Document No.", DocumentNo);
         VATEntry.SetRange(Type, VATEntry.Type::Sale);
         VATEntry.FindFirst();
-        if UseForeignCurrency then begin
-            // Posting does not populate these fields; provide the foreign-currency export scenario explicitly.
-            VATEntry."Source Currency Code" := Currency.Code;
-            VATEntry."Source Currency VAT Amount" := VATEntry.Amount * SalesHeader."Currency Factor";
-            VATEntry."Source Currency VAT Base" := VATEntry.Base * SalesHeader."Currency Factor";
-            VATEntry."Source Currency Factor" := SalesHeader."Currency Factor";
-            VATEntry.Modify();
-        end;
-        VATEntry.TestField("Source Currency Code", Currency.Code);
         Assert.AreEqual(UseForeignCurrency ? 50 : 25, Abs(VATEntry.Amount), 'Unexpected posted tax amount.');
         Assert.AreEqual(UseForeignCurrency ? 200 : 100, Abs(VATEntry.Base), 'Unexpected posted tax base.');
-        if UseForeignCurrency then
-            Assert.AreEqual(25, Abs(VATEntry."Source Currency VAT Amount"), 'Unexpected foreign-currency tax amount.');
 
         ExportEntries(TempXMLBuffer, SAFTExportHeader, GeneralLedgerSetup."LCY Code");
 
-        VerifyTaxStructure(TempXMLBuffer, VATEntry, DocumentType = DocumentType::"Credit Memo", UseForeignCurrency);
+        VerifyTaxStructure(
+            TempXMLBuffer, VATEntry, DocumentType = DocumentType::"Credit Memo", UseForeignCurrency,
+            UseForeignCurrency ? Currency.Code : '', UseForeignCurrency ? 25 : 0);
     end;
 
     local procedure VerifySourceCurrencyTaxAmount(SourceCurrencyCode: Code[10])
@@ -301,11 +292,11 @@ codeunit 148111 "SAF-T XML Tests 1.4"
 
         ExportEntries(TempXMLBuffer, SAFTExportHeader, GeneralLedgerSetup."LCY Code");
 
-        VerifyTaxStructure(TempXMLBuffer, VATEntry, true, SourceCurrencyCode <> 'NOK');
+        VerifyTaxStructure(TempXMLBuffer, VATEntry, true, SourceCurrencyCode <> 'NOK', SourceCurrencyCode, 0.000123456789012345);
         AssertSingleValue(TempXMLBuffer, TaxInformationXPathLbl + '/n1:DebitTaxAmount/n1:CurrencyAmount', '0.000123456789012345');
     end;
 
-    local procedure VerifyTaxStructure(var TempXMLBuffer: Record "XML Buffer" temporary; VATEntry: Record "VAT Entry"; IsDebit: Boolean; ExpectNOKAmount: Boolean)
+    local procedure VerifyTaxStructure(var TempXMLBuffer: Record "XML Buffer" temporary; VATEntry: Record "VAT Entry"; IsDebit: Boolean; ExpectNOKAmount: Boolean; SourceCurrencyCode: Code[10]; SourceCurrencyVATAmount: Decimal)
     var
         AmountNode: Text;
         NOKAmountNode: Text;
@@ -318,10 +309,10 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         AssertSingleValue(TempXMLBuffer, TaxInformationXPathLbl + '/n1:' + AmountNode + '/n1:Amount', Format(Abs(VATEntry.Amount), 0, 9));
         AssertNoNodes(TempXMLBuffer, TaxInformationXPathLbl + '/n1:' + OppositeAmountNode);
         AssertNoNodes(TempXMLBuffer, TaxInformationXPathLbl + '/n1:TaxAmount');
-        if VATEntry."Source Currency Code" <> '' then begin
-            AssertSingleValue(TempXMLBuffer, TaxInformationXPathLbl + '/n1:' + AmountNode + '/n1:CurrencyCode', VATEntry."Source Currency Code");
+        if SourceCurrencyCode <> '' then begin
+            AssertSingleValue(TempXMLBuffer, TaxInformationXPathLbl + '/n1:' + AmountNode + '/n1:CurrencyCode', SourceCurrencyCode);
             AssertSingleValue(TempXMLBuffer, TaxInformationXPathLbl + '/n1:' + AmountNode + '/n1:CurrencyAmount',
-                Format(Abs(VATEntry."Source Currency VAT Amount"), 0, 9));
+                Format(Abs(SourceCurrencyVATAmount), 0, 9));
         end else begin
             AssertNoNodes(TempXMLBuffer, TaxInformationXPathLbl + '/n1:' + AmountNode + '/n1:CurrencyCode');
             AssertNoNodes(TempXMLBuffer, TaxInformationXPathLbl + '/n1:' + AmountNode + '/n1:CurrencyAmount');
