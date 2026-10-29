@@ -44,7 +44,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
                 BankAcc.Get(PostedBillGr."Bank Account No.");
                 Delay := BankAcc."Delay for Notices";
 
-                if OnlyDueDocuments and (DocumentPostingDate < "Due Date" + Delay) then
+                if OnlyDueDocuments and (PostingDate < "Due Date" + Delay) then
                     CurrReport.Skip();
 
                 DocCount := DocCount + 1;
@@ -54,7 +54,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
                 Clear(TempGenJnlLine);
                 TempGenJnlLine.Init();
                 TempGenJnlLine."Line No." := GenJnlLineNextNo;
-                TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                TempGenJnlLine."Posting Date" := PostingDate;
                 TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
                 TempGenJnlLine."Document No." := PostedBillGr."No.";
                 TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
@@ -170,7 +170,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
                     Error(NoReceivableDocumentsErr);
                 end;
                 IsHandled := false;
-                OnPostDataItemOnBeforeBankAccPostBufferLoop(TempBankAccPostBuffer, PostedDoc, PostedBillGr, TempGenJnlLine, GenJnlLineNextNo, SumLCYAmt, DocumentPostingDate, SourceCode, IsHandled);
+                OnPostDataItemOnBeforeBankAccPostBufferLoop(TempBankAccPostBuffer, PostedDoc, PostedBillGr, TempGenJnlLine, GenJnlLineNextNo, SumLCYAmt, PostingDate, SourceCode, IsHandled);
                 if not IsHandled and TempBankAccPostBuffer.Find('-') then
                     repeat
                         CustLedgEntry2.Get(TempBankAccPostBuffer."Entry No.");
@@ -182,7 +182,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
                             Clear(TempGenJnlLine);
                             TempGenJnlLine.Init();
                             TempGenJnlLine."Line No." := GenJnlLineNextNo;
-                            TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                            TempGenJnlLine."Posting Date" := PostingDate;
                             TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
                             TempGenJnlLine."Document No." := PostedBillGr."No.";
                             TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
@@ -232,7 +232,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
                         Clear(TempGenJnlLine);
                         TempGenJnlLine.Init();
                         TempGenJnlLine."Line No." := GenJnlLineNextNo;
-                        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                        TempGenJnlLine."Posting Date" := PostingDate;
                         TempGenJnlLine."Document No." := PostedBillGr."No.";
                         TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
                         TempGenJnlLine.Validate("Account Type", TempGenJnlLine."Account Type"::"G/L Account");
@@ -251,9 +251,9 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
                     end;
 
                 PostedBillGr.Modify();
-                OnBeforePostSettlementForPostedBillGroup(TempGenJnlLine, PostedBillGr, DocumentPostingDate);
-                DocPost.PostSettlementForPostedBillGroup(TempGenJnlLine, DocumentPostingDate);
-                OnAfterPostSettlementForPostedBillGroup(TempGenJnlLine, PostedBillGr, DocumentPostingDate);
+                OnBeforePostSettlementForPostedBillGroup(TempGenJnlLine, PostedBillGr, PostingDate);
+                DocPost.PostSettlementForPostedBillGroup(TempGenJnlLine, PostingDate);
+                OnAfterPostSettlementForPostedBillGroup(TempGenJnlLine, PostedBillGr, PostingDate);
 
                 Window.Close();
 
@@ -272,7 +272,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
 
             trigger OnPreDataItem()
             begin
-                DocPost.CheckPostingDate(DocumentPostingDate);
+                DocPost.CheckPostingDate(PostingDate);
 
                 SourceCodeSetup.Get();
                 SourceCode := SourceCodeSetup."Cartera Journal";
@@ -298,7 +298,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PostingDate; DocumentPostingDate)
+                    field(PostingDate; PostingDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Posting Date';
@@ -326,7 +326,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
 
     trigger OnInitReport()
     begin
-        DocumentPostingDate := WorkDate();
+        PostingDate := WorkDate();
     end;
 
     trigger OnPreReport()
@@ -380,7 +380,10 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
         HidePrintDialog: Boolean;
 
     protected var
-        DocumentPostingDate: Date;
+        // Preserve the published protected variable name for report extensions.
+#pragma warning disable AA0204
+        PostingDate: Date;
+#pragma warning restore AA0204
 
     [Scope('OnPrem')]
     procedure DiscFactLiabs(PostedDoc2: Record "Posted Cartera Doc.")
@@ -409,7 +412,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
         Clear(TempGenJnlLine);
         TempGenJnlLine.Init();
         TempGenJnlLine."Line No." := GenJnlLineNextNo;
-        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+        TempGenJnlLine."Posting Date" := PostingDate;
         TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
         TempGenJnlLine."Document No." := PostedBillGr."No.";
         TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
@@ -448,7 +451,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
                         Clear(TempGenJnlLine);
                         TempGenJnlLine.Init();
                         TempGenJnlLine."Line No." := GenJnlLineNextNo;
-                        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                        TempGenJnlLine."Posting Date" := PostingDate;
                         TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
                         TempGenJnlLine."Document No." := PostedBillGr."No.";
                         TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
@@ -477,7 +480,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
                         Clear(TempGenJnlLine);
                         TempGenJnlLine.Init();
                         TempGenJnlLine."Line No." := GenJnlLineNextNo;
-                        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+                        TempGenJnlLine."Posting Date" := PostingDate;
                         TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
                         TempGenJnlLine."Document No." := PostedBillGr."No.";
                         TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
@@ -507,7 +510,7 @@ report 7000098 "Settle Docs. in Post. Bill Gr."
         Clear(TempGenJnlLine);
         TempGenJnlLine.Init();
         TempGenJnlLine."Line No." := GenJnlLineNextNo;
-        TempGenJnlLine."Posting Date" := DocumentPostingDate;
+        TempGenJnlLine."Posting Date" := PostingDate;
         TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
         TempGenJnlLine."Document No." := PostedBillGr."No.";
         TempGenJnlLine."Reason Code" := PostedBillGr."Reason Code";
