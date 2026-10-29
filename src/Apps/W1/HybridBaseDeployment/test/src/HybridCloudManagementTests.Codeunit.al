@@ -831,6 +831,88 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         Assert.IsFalse(GetDidValiationErrorFailTheMigration(), 'The migration should NOT be in a failed state.');
     end;
 
+    [Test]
+    procedure TestTenantMediaWarningChecksReadableCount()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        TenantMedia: Record "Tenant Media";
+        TenantMediaWarning: Codeunit "Tenant Media Warning";
+        TenantMediaCount: Integer;
+    begin
+        Initialize();
+        TenantMediaCount := TenantMedia.Count();
+        if not HybridCompanyStatus.Get() then
+            HybridCompanyStatus.Insert();
+
+        HybridCompanyStatus."Tenant Media Count" := TenantMediaCount + 1;
+        HybridCompanyStatus.Modify();
+        Assert.IsTrue(TenantMediaWarning.CheckWarning(), 'A decreased media count should produce a warning.');
+
+        HybridCompanyStatus."Tenant Media Count" := TenantMediaCount;
+        HybridCompanyStatus.Modify();
+        Assert.IsFalse(TenantMediaWarning.CheckWarning(), 'An unchanged media count should not produce a warning.');
+    end;
+
+    [Test]
+    procedure TestTenantMediaWarningSkipsUnreadableCount()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        TenantMedia: Record "Tenant Media";
+        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+        TenantMediaWarning: Codeunit "Tenant Media Warning";
+        WarningDetected: Boolean;
+    begin
+        // [SCENARIO 657194] An unavailable media count does not fail the warning check.
+        Initialize();
+        if not HybridCompanyStatus.Get() then
+            HybridCompanyStatus.Insert();
+        HybridCompanyStatus."Tenant Media Count" := 1;
+        HybridCompanyStatus.Modify();
+
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.PushPermissionSetWithoutDefaults('HBD - Read');
+        Assert.IsFalse(TenantMedia.ReadPermission(), 'Tenant Media must be unreadable for this test.');
+
+        WarningDetected := TenantMediaWarning.CheckWarning();
+
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+        Assert.IsFalse(WarningDetected, 'An unavailable media count should not produce a media-loss warning.');
+    end;
+
+    [Test]
+    procedure TestRunReplicationPreservesUnreadableMediaCount()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        HybridReplicationSummary: Record "Hybrid Replication Summary";
+        TenantMedia: Record "Tenant Media";
+        HybridDeployment: Codeunit "Hybrid Deployment";
+        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+        ExpectedRunId: Text;
+        RunId: Text;
+        ExpectedTenantMediaCount: Integer;
+    begin
+        // [SCENARIO 657194] Replication can be retried without overwriting an unreadable media count.
+        Initialize();
+        LibraryHybridManagement.SetExpectedRunId(ExpectedRunId);
+        ExpectedTenantMediaCount := TenantMedia.Count() + 1;
+
+        HybridDeployment.RunReplication(RunId, HybridReplicationSummary.ReplicationType::Normal);
+        HybridCompanyStatus.Get();
+        Assert.AreEqual(ExpectedTenantMediaCount, HybridCompanyStatus."Tenant Media Count", 'A readable media count should be saved before replication.');
+
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.PushPermissionSetWithoutDefaults('HBD Media Count Test');
+        Assert.IsFalse(TenantMedia.ReadPermission(), 'Tenant Media must be unreadable for this test.');
+
+        Clear(RunId);
+        HybridDeployment.RunReplication(RunId, HybridReplicationSummary.ReplicationType::Normal);
+
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+        Assert.AreEqual(ExpectedRunId, RunId, 'Replication should start when the media count is unavailable.');
+        HybridCompanyStatus.Get();
+        Assert.AreEqual(ExpectedTenantMediaCount, HybridCompanyStatus."Tenant Media Count", 'An unavailable media count should not overwrite the saved count.');
+    end;
+
     local procedure GetDidValiationErrorFailTheMigration(): Boolean
     var
         IntelligentCloudSetup: Record "Intelligent Cloud Setup";

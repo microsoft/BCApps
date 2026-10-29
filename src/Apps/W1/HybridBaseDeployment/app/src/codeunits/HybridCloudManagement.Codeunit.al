@@ -132,6 +132,7 @@ codeunit 4001 "Hybrid Cloud Management"
         ValidSqlReplacementTok: Label '___', Locked = true;
         SourceTableMetadataNotFoundErr: Label 'Source table metadata not found for table ID %1.', Comment = '%1 - Table ID';
         DestinationTableMetadataNotFoundErr: Label 'Destination table metadata not found for table ID %1.', Comment = '%1 - Table ID';
+        TenantMediaCountUnavailableLbl: Label 'Tenant Media count could not be read. Skipping the media count check.', Locked = true;
 
     procedure CanHandleNotification(SubscriptionId: Text; ProductId: Text): Boolean
     var
@@ -1634,16 +1635,37 @@ codeunit 4001 "Hybrid Cloud Management"
         AddWebhookSubscription(ServiceSubscriptionId, ServiceClientState);
     end;
 
+    internal procedure GetTenantMediaCount(var TenantMediaCount: Integer): Boolean
+    begin
+        if TryGetTenantMediaCount(TenantMediaCount) then
+            exit(true);
+
+        Session.LogMessage('0000WE6', TenantMediaCountUnavailableLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
+        ClearLastError();
+        exit(false);
+    end;
+
+    [TryFunction]
+    local procedure TryGetTenantMediaCount(var TenantMediaCount: Integer)
+    var
+        TenantMedia: Record "Tenant Media";
+    begin
+        TenantMediaCount := TenantMedia.Count();
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Hybrid Deployment", 'OnBeforeRunReplication', '', false, false)]
     local procedure SaveTenantMediaCountOnBeforeRunReplication()
     var
         HybridCompanyStatus: Record "Hybrid Company Status";
-        TenantMedia: Record "Tenant Media";
+        TenantMediaCount: Integer;
     begin
+        if not GetTenantMediaCount(TenantMediaCount) then
+            exit;
+
         if not HybridCompanyStatus.Get() then
             HybridCompanyStatus.Insert();
 
-        HybridCompanyStatus."Tenant Media Count" := TenantMedia.Count() + 1;
+        HybridCompanyStatus."Tenant Media Count" := TenantMediaCount + 1;
         HybridCompanyStatus.Modify();
     end;
 
