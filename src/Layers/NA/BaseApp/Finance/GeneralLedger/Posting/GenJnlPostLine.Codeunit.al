@@ -4376,6 +4376,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
             AccNo := GetCustDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer)
         else
             AccNo := GetDtldCustLedgEntryAccNo(GenJournalLine, DetailedCVLedgEntryBuffer, CustPostingGr, OriginalTransactionNo, true);
+        if MultiplePostingGroups and (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application) then
+            DetailedCVLedgEntryBuffer."Additional-Currency Amount" := CalcOriginalApplicationAddCurrAmount(OriginalTransactionNo, AccNo);
         DetailedCVLedgEntryBuffer."Gen. Posting Type" := DetailedCVLedgEntryBuffer."Gen. Posting Type"::Sale;
         PostDtldCVLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, AdjAmount, true);
     end;
@@ -5508,6 +5510,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
             AccNo := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer)
         else
             AccNo := GetDtldVendLedgEntryAccNo(GenJournalLine, DetailedCVLedgEntryBuffer, VendPostingGr, OriginalTransactionNo, true);
+        if MultiplePostingGroups and (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application) then
+            DetailedCVLedgEntryBuffer."Additional-Currency Amount" := CalcOriginalApplicationAddCurrAmount(OriginalTransactionNo, AccNo);
         DetailedCVLedgEntryBuffer."Gen. Posting Type" := DetailedCVLedgEntryBuffer."Gen. Posting Type"::Purchase;
         PostDtldCVLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, AdjAmount, true);
     end;
@@ -5619,8 +5623,28 @@ codeunit 12 "Gen. Jnl.-Post Line"
             AccNo := GetEmplDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer)
         else
             AccNo := GetDtldEmplLedgEntryAccNo(GenJournalLine, DetailedCVLedgEntryBuffer, EmplPostingGr, OriginalTransactionNo, true);
+        if MultiplePostingGroups and (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application) then
+            DetailedCVLedgEntryBuffer."Additional-Currency Amount" := CalcOriginalApplicationAddCurrAmount(OriginalTransactionNo, AccNo);
         DetailedCVLedgEntryBuffer."Gen. Posting Type" := DetailedCVLedgEntryBuffer."Gen. Posting Type"::Purchase;
         PostDtldCVLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, AdjAmount, true);
+    end;
+
+    local procedure CalcOriginalApplicationAddCurrAmount(OriginalTransactionNo: Integer; AccountNo: Code[20]): Decimal
+    var
+        GLEntry: Record "G/L Entry";
+        AmountAddCurr: Decimal;
+    begin
+        if (AddCurrencyCode = '') or (OriginalTransactionNo = 0) or (AccountNo = '') then
+            exit(0);
+
+        GLEntry.SetCurrentKey("Transaction No.");
+        GLEntry.SetRange("Transaction No.", OriginalTransactionNo);
+        GLEntry.SetRange("G/L Account No.", AccountNo);
+        if GLEntry.FindSet() then
+            repeat
+                AmountAddCurr += GLEntry."Additional-Currency Amount";
+            until GLEntry.Next() = 0;
+        exit(-AmountAddCurr);
     end;
 
     local procedure GetDtldEmplLedgEntryAccNo(GenJnlLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; EmplPostingGr: Record "Employee Posting Group"; OriginalTransactionNo: Integer; Unapply: Boolean) AccountNo: Code[20]
@@ -5768,6 +5792,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         EmployeePostingGroup: Record "Employee Posting Group";
         AccNo2: Code[20];
         AccNo3: Code[20];
+        AmountAddCurr: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -5779,10 +5804,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
             DetailedCVLedgEntryBuffer."Entry Type"::"Initial Entry":
                 ;
             DetailedCVLedgEntryBuffer."Entry Type"::Application:
-                if MultiplePostingGroups then
+                if MultiplePostingGroups then begin
+                    if Unapply then
+                        AmountAddCurr := DetailedCVLedgEntryBuffer."Additional-Currency Amount"
+                    else
+                        if DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode then
+                            AmountAddCurr := DetailedCVLedgEntryBuffer.Amount
+                        else
+                            AmountAddCurr := CalcLCYToAddCurr(DetailedCVLedgEntryBuffer."Amount (LCY)");
                     CreateGLEntry(
-                        GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount, DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
+                        GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)", AmountAddCurr, DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
                         CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
+                end;
             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Loss",
             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Gain",
             DetailedCVLedgEntryBuffer."Entry Type"::"Realized Loss",

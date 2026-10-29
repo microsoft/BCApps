@@ -2602,11 +2602,11 @@
         PaymentDocNo: Code[20];
         VATCalculationType: Enum "Tax Calculation Type";
     begin
-        // [SCENARIO 575520] Check Additional Reporting Currency when posting through an alternate posting group.
+        // [SCENARIO 575520] Check mixed-currency application with Additional Reporting Currency through an alternate posting group.
         Initialize();
 
         // [GIVEN] Currency with specific exchange rates and set as Additional Reporting Currency.
-        CurrencyCode := CreateCurrencyAndExchangeRate(1, 1, WorkDate());
+        CurrencyCode := CreateCurrencyAndExchangeRate(0.5, 1, WorkDate());
         LibraryERM.SetAddReportingCurrency(CurrencyCode);
 
         // [GIVEN] Set Allow Multiple Posting Groups in Sales & Receivables Setup.
@@ -2625,7 +2625,6 @@
 
         // [GIVEN] Create Cash Receipt Journal Invoice Line for the customer And Post.
         CreateCashReceiptJnlLine(GenJournalLine, Customer."No.");
-        GenJournalLine.Validate("Currency Code", CurrencyCode);
         GenJournalLine.Modify(true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
@@ -2634,6 +2633,8 @@
 
         // [WHEN] Payment is applied to the invoice and posting completes without a G/L inconsistency error.
         CreateCashReceiptJnlLinePayment(GenJournalLine2, Customer."No.", CustLedgerEntry, CustomerPostingGroup[2].Code, CurrencyCode);
+        GenJournalLine2.Validate(Amount, -CustLedgerEntry."Remaining Amount" / 2);
+        GenJournalLine2.Modify(true);
         PaymentDocNo := GenJournalLine2."Document No.";
         LibraryERM.PostGeneralJnlLine(GenJournalLine2);
 

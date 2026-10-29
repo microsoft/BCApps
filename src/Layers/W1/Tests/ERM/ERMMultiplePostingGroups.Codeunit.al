@@ -526,6 +526,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
         Customer: Record Customer;
         CustomerPostingGroup: Record "Customer Posting Group";
         CustomerPostingGroup2: Record "Customer Posting Group";
+        Currency: Record Currency;
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
         GLEntry: Record "G/L Entry";
@@ -543,12 +544,14 @@ codeunit 134195 "ERM Multiple Posting Groups"
 
         SetSalesAllowMultiplePostingGroups(true);
         CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 0.5, 0.5);
+        Currency.Get(CurrencyCode);
+        Currency.Validate("Amount Rounding Precision", 0.00001);
+        Currency.Modify();
         LibraryERM.SetAddReportingCurrency(CurrencyCode);
 
         // Create sales invoice, change customer posting group and post
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Allow Multiple Posting Groups", true);
-        Customer.Validate("Currency Code", CurrencyCode);
         Customer.Modify();
         CustomerPostingGroup.Get(Customer."Customer Posting Group");
         LibrarySales.CreateSalesDocumentWithItem(SalesHeader, SalesLine, "Sales Document Type"::Invoice, Customer."No.", '', 1, '', 0D);
@@ -570,7 +573,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
         LibraryERM.SelectGenJnlBatch(GenJournalBatch);
         LibraryERM.CreateGeneralJnlLine(
             GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
-            GenJournalLine."Account Type"::Customer, Customer."No.", -TotalAmount);
+            GenJournalLine."Account Type"::Customer, Customer."No.", -TotalAmount / 2);
         GenJournalLine.Validate("Currency Code", CurrencyCode);
         GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
         GenJournalLine.Modify();
@@ -581,17 +584,22 @@ codeunit 134195 "ERM Multiple Posting Groups"
         LastGLRegNo := GLRegister."No.";
 
         // Apply payment to invoice - should post 2 G/L entries between Receivables accounts
-        ApplyAndPostCustomerEntry(PaymentNo, InvoiceNo, -TotalAmount, "Gen. Journal Document Type"::Payment, "Gen. Journal Document Type"::Invoice);
+        ApplyAndPostCustomerEntry(PaymentNo, InvoiceNo, -TotalAmount / 2, "Gen. Journal Document Type"::Payment, "Gen. Journal Document Type"::Invoice);
 
         // Verify posted apply G/L entries
         GLRegister.Get(LastGLRegNo + 1);
         GLEntry.Reset();
         GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
         Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", -TotalAmount * 2, -TotalAmount);
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", TotalAmount * 2, TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", -TotalAmount, -TotalAmount / 2);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", TotalAmount, TotalAmount / 2);
 
-        // Unapply payment - should post 2 reversal G/L entries between Receivables accounts
+        // Simulate an application posted before ACY transfer amounts were added.
+        GLEntry.Reset();
+        GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        GLEntry.ModifyAll("Additional-Currency Amount", 0);
+
+        // Unapply payment - should reverse the two zero-ACY G/L entries between Receivables accounts.
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
         LibraryERM.UnapplyCustomerLedgerEntry(CustLedgerEntry);
 
@@ -600,8 +608,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         GLEntry.Reset();
         GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
         Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", TotalAmount * 2, TotalAmount);
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", -TotalAmount * 2, -TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", TotalAmount, 0);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", -TotalAmount, 0);
     end;
 
     [Test]
