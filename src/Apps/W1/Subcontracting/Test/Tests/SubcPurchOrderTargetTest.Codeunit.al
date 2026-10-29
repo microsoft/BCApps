@@ -839,6 +839,32 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
     end;
 
     [Test]
+    procedure ClearingTargetWithNonSimulatedStatusClearsOrderReference()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        RequisitionLine: Record "Requisition Line";
+        Worksheet: TestPage "Subc. Subcontracting Worksheet";
+    begin
+        // [GIVEN] A code-assigned target whose Ref. Order Status is not Simulated.
+        Initialize();
+        CreateTargetedSuggestion(RequisitionLine, PurchaseHeader);
+        RequisitionLine."Ref. Order Status" := RequisitionLine."Ref. Order Status"::Released;
+        RequisitionLine.Modify(true);
+        Assert.IsTrue(RequisitionLine.HasPurchaseOrderTarget(), 'The line must count as a target.');
+        OpenWorksheetAtLine(Worksheet, RequisitionLine);
+
+        // [WHEN] Clearing the selected order on the worksheet line.
+        Worksheet.ClearPurchaseOrder.Invoke();
+
+        // [THEN] The order reference is removed and the status is reset.
+        RequisitionLine.Get(RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", RequisitionLine."Line No.");
+        Assert.AreEqual('', RequisitionLine."Ref. Order No.", 'The assigned order should be cleared.');
+        Assert.AreEqual(RequisitionLine."Ref. Order Status"::Simulated, RequisitionLine."Ref. Order Status", 'Ref. Order Status');
+        Assert.IsFalse(RequisitionLine.HasPurchaseOrderTarget(), 'The line must no longer count as a target.');
+        Worksheet.Close();
+    end;
+
+    [Test]
     [HandlerFunctions('SelectPurchaseOrderHandler')]
     procedure ShowPurchaseOrderAvailabilityFollowsAssignAndClear()
     var

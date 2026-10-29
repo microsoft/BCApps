@@ -1548,7 +1548,6 @@ table 246 "Requisition Line"
     begin
         if ("Ref. Order Type" <> "Ref. Order Type"::Purchase) or
            ("Ref. Order No." = '') or
-           ("Ref. Order Status" <> "Ref. Order Status"::Simulated) or
            ("Ref. Line No." <> 0)
         then
             exit;
