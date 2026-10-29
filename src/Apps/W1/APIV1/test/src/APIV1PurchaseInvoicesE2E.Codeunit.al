@@ -3,6 +3,8 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -34,6 +36,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     [Test]

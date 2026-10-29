@@ -552,6 +552,8 @@ report 7000099 "Post Bill Group"
         GenJnlLine.Description := Text;
         if BillGr."Currency Code" <> '' then begin
             GenJnlLine.Validate("Currency Code", BillGr."Currency Code");
+            GenJnlLine."Source Currency Code" := BillGr."Currency Code";
+            GenJnlLine."Source Currency Amount" := Amount2;
             if CurrFactor <> 0 then
                 GenJnlLine.Validate("Currency Factor", CurrFactor);
         end;

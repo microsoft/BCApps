@@ -62,14 +62,13 @@ table 6930 "Expense Agent Setup"
 
             trigger OnValidate()
             begin
-                if not "Enable Agent" then
+                if not Rec."Enable Agent" then
                     RemoveAllScheduledTasks();
+
                 if Rec."Enable Agent" then
                     CheckBeforeEnablingAgent();
-
                 if (not xRec."Enable Agent") and Rec."Enable Agent" then
                     LogAgentEnabledTelemetry();
-
                 if xRec."Enable Agent" and (not Rec."Enable Agent") then
                     LogAgentDisabledTelemetry();
             end;
@@ -222,16 +221,13 @@ table 6930 "Expense Agent Setup"
                 FeatureTelemetry: Codeunit "Feature Telemetry";
             begin
                 FeatureTelemetry.LogUptake('0000TEA', GetFeatureName(), Enum::"Feature Uptake Status"::Used);
-
                 if "Full Per-Diem Calculation" = "Full Per-Diem Calculation"::None then begin
                     "Partial Day Rules" := "Partial Day Rules"::"Flat Percentage Of Full Rate";
                     "Minimum Hours for Per Diem" := 0;
                     "Min Hours for Partial Per Diem" := 0;
                 end;
-
                 if not (Rec."Full Per-Diem Calculation" in [Enum::"Exp. Full Per Diem Calculation"::"24-hour Rolling Period", Enum::"Exp. Full Per Diem Calculation"::"Overnight Stay"]) then
                     Rec.Validate("Minimum Hours for Per Diem", 0);
-
                 case "Full Per-Diem Calculation" of
                     "Full Per-Diem Calculation"::"Full Calendar Day":
                         "Partial Day Rules" := "Partial Day Rules"::"Flat Percentage Of Full Rate";
@@ -446,7 +442,6 @@ table 6930 "Expense Agent Setup"
             begin
                 if Rec."Enable Approval Workflow" then
                     Rec.TestField("Enable Agent", false);
-
                 if (not Rec."Enable Approval Workflow") and xRec."Enable Approval Workflow" then
                     CheckBeforeDisableApprovalWorkflow();
             end;
@@ -473,7 +468,6 @@ table 6930 "Expense Agent Setup"
                 if Rec."Day In A Month" <> 0 then
                     if (Rec."Day In A Month" < 1) or (Rec."Day In A Month" > 31) then
                         Error(InvalidDayErr, Rec.FieldCaption("Day In A Month"));
-
                 if not IsNullGuid(xRec.SystemId) then
                     if xRec."Day In A Month" <> Rec."Day In A Month" then
                         Rec.TestField("When to Create Expense Reports", "Expense Report Frequency"::Monthly);
@@ -511,7 +505,6 @@ table 6930 "Expense Agent Setup"
                 if Rec."Notif. Day In A Month" <> 0 then
                     if (Rec."Notif. Day In A Month" < 1) or (Rec."Notif. Day In A Month" > 31) then
                         Error(InvalidDayErr, Rec.FieldCaption("Notif. Day In A Month"));
-
                 if not IsNullGuid(xRec.SystemId) then
                     if xRec."Notif. Day In A Month" <> Rec."Notif. Day In A Month" then
                         Rec.TestField("Open Report Notif. Freq.", "Expense Report Frequency"::Monthly);
@@ -604,7 +597,7 @@ table 6930 "Expense Agent Setup"
             Caption = 'Default Approver No.';
             ToolTip = 'Specifies the expense user who by default is set as approver.';
             DataClassification = CustomerContent;
-            TableRelation = "Expense User";
+            TableRelation = "Expense User" where("Can Approve" = const(true), "Unlimited Approval" = const(true));
 
             trigger OnValidate()
             var
@@ -708,6 +701,40 @@ table 6930 "Expense Agent Setup"
                 end;
             end;
         }
+        field(123; "Corp Card Create Mode"; Enum "EA Corp Card Create Mode")
+        {
+            Caption = 'Corp Card Create Mode';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies how expense entries are created from imported corporate card transactions.';
+        }
+        field(124; "Corp Card Date Match Window"; Integer)
+        {
+            Caption = 'Corp Card Date Match Window (Days)';
+            DataClassification = SystemMetadata;
+            MinValue = 0;
+            ToolTip = 'Specifies the date tolerance, in days, used to match corporate card transactions to expenses.';
+        }
+        field(125; "Corp Card Amount Tolerance"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Corp Card Amount Tolerance';
+            DataClassification = SystemMetadata;
+            MinValue = 0;
+            ToolTip = 'Specifies the amount tolerance used to match corporate card transactions to expenses.';
+        }
+        field(126; "Corp Card Auto Create Draft"; Boolean)
+        {
+            Caption = 'Corp Card Auto Create Draft';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether draft expenses are automatically created when imported corporate card transactions are not matched.';
+        }
+        field(127; "Corp Card Default Provider"; Code[20])
+        {
+            Caption = 'Corp Card Default Provider';
+            DataClassification = SystemMetadata;
+            TableRelation = "EA Corp Card Provider".Code;
+            ToolTip = 'Specifies the default provider used for corporate card imports.';
+        }
         field(150; "Use Canary Endpoint"; Boolean)
         {
             Caption = 'Canary';
@@ -800,8 +827,6 @@ table 6930 "Expense Agent Setup"
         CreateEmployeesForExpenseUsersQst: Label 'Turning on this setting will enable automatic creation of records in the Employee table. This may impact your HR setup in Business Central.\\Are you sure you want to enable this feature?';
         UpdateDefaultsApproverQst: Label 'You have changed the default approver.\\Do you also want to change approver from %1 to %2 for all expense users who currently have %1 as approver?', Comment = '%1 and %2 are both person names.';
         UpdatingDefaultApproversLbl: Label 'Updating approvers...';
-        XDOMESTICTxt: Label 'DOMESTIC'; // DOMESTIC VAT Business Posting Group used as default for all rates created by this codeunit
-
 
     internal procedure AssistEditNoreplyMailbox()
     var
@@ -810,7 +835,6 @@ table 6930 "Expense Agent Setup"
     begin
         if not CheckMailboxExists() then
             Page.RunModal(Page::"Email Account Wizard");
-
         if not CheckMailboxExists() then
             exit;
 
@@ -843,7 +867,6 @@ table 6930 "Expense Agent Setup"
     begin
         if not CheckMailboxExists() then
             Page.RunModal(Page::"Email Account Wizard");
-
         if not CheckMailboxExists() then
             exit;
 
@@ -904,11 +927,9 @@ table 6930 "Expense Agent Setup"
         EmailAccount.GetAllAccounts(false, TempEmailAccount);
         if TempEmailAccount.IsEmpty() then
             exit(false);
-
         if TempEmailAccount.FindSet() then
             repeat
                 IConnector := TempEmailAccount.Connector;
-
                 if IConnector is "Email Connector v4" then
                     exit(true);
             until TempEmailAccount.Next() = 0;
@@ -1086,6 +1107,7 @@ table 6930 "Expense Agent Setup"
     internal procedure CreatePostingGroupsDefaults()
     var
         Employee: Record Employee;
+        EmployeePostingGroup: Record "Employee Posting Group";
         ExpenseUser: Record "Expense User";
         CreateExpenseCategories: Codeunit "Create Expense Categories";
     begin
@@ -1098,12 +1120,17 @@ table 6930 "Expense Agent Setup"
             Rec."Posting Groups Applied" := true;
             Rec.Modify();
         end;
-
         if GuiAllowed and ExpenseUser.IsEmpty() then
             if Confirm(CopyEmployeesToExpenseUsersQst, false) then begin
-                Employee.SetLoadFields("No.", "First Name", "Middle Name", "Last Name", "Job Title", "E-Mail", "Company E-Mail");
+                Employee.SetLoadFields("No.", "First Name", "Middle Name", "Last Name", "Job Title", "E-Mail", "Company E-Mail", "Employee Posting Group");
                 if Employee.FindSet() then
                     repeat
+                        if Employee."Employee Posting Group" = '' then
+                            if EmployeePostingGroup.FindFirst() then begin
+                                Employee."Employee Posting Group" := EmployeePostingGroup.Code;
+                                Employee.Modify();
+                            end;
+
                         ExpenseUser.SetRange("Employee No.", Employee."No.");
                         if not ExpenseUser.FindFirst() then begin
                             ExpenseUser.Init();
@@ -1180,19 +1207,37 @@ table 6930 "Expense Agent Setup"
     internal procedure CreateCountryVATRatesDefaults()
     var
         CreateExpenseCountryVATRates: Codeunit "Create Expense VAT Rates";
+        DefaultVATBusinessPostingGroup: Code[20];
     begin
         Rec.GetRecordOnce();
         if Rec."Default VAT Bus. Posting Group" = '' then begin
-            Rec."Default VAT Bus. Posting Group" := XDOMESTICTxt;
-            Rec.Modify();
+            DefaultVATBusinessPostingGroup := GetDefaultVATBusinessPostingGroup();
+            if DefaultVATBusinessPostingGroup <> '' then begin
+                Rec.Validate("Default VAT Bus. Posting Group", DefaultVATBusinessPostingGroup);
+                Rec.Modify();
+            end;
         end;
-
-        CreateExpenseCountryVATRates.InsertDefaultRates();
-
+        if not CreateExpenseCountryVATRates.InsertDefaultRates() then
+            exit;
         if not Rec."VAT Rates Applied" then begin
             Rec."VAT Rates Applied" := true;
             Rec.Modify();
         end;
+    end;
+
+    local procedure GetDefaultVATBusinessPostingGroup(): Code[20]
+    var
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        VATPostingSetup.SetFilter("VAT Bus. Posting Group", '<>%1', '');
+        if VATPostingSetup.FindSet() then
+            repeat
+                if VATBusinessPostingGroup.Get(VATPostingSetup."VAT Bus. Posting Group") then
+                    exit(VATBusinessPostingGroup.Code);
+            until VATPostingSetup.Next() = 0;
+        if VATBusinessPostingGroup.FindFirst() then
+            exit(VATBusinessPostingGroup.Code);
     end;
 
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense Agent Setup", 'X')]

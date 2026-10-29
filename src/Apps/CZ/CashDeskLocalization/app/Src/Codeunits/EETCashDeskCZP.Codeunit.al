@@ -36,7 +36,7 @@ codeunit 31114 "EET Cash Desk CZP" implements "EET Cash Register CZL"
         Page.Run(Page::"Posted Cash Document CZP", PostedCashDocumentHdrCZP);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"EET Cash Register CZL", 'OnAfterValidateEvent', 'Cash Register No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"EET Cash Register CZL", OnAfterValidateEvent, 'Cash Register No.', false, false)]
     local procedure CheckCashDeskOnAfterValidateCashRegisterNo(var Rec: Record "EET Cash Register CZL"; var xRec: Record "EET Cash Register CZL")
     begin
         if Rec.IsTemporary then
@@ -47,7 +47,7 @@ codeunit 31114 "EET Cash Desk CZP" implements "EET Cash Register CZL"
             CheckCashDesk(Rec."Cash Register No.");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"EET Entry CZL", 'OnBeforeInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"EET Entry CZL", OnBeforeInsertEvent, '', false, false)]
     local procedure CheckCashDeskOnBeforeInsertEETEntry(var Rec: Record "EET Entry CZL")
     begin
         if Rec.IsTemporary then

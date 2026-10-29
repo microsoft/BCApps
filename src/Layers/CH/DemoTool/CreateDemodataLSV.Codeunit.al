@@ -219,8 +219,7 @@ codeunit 161558 "Create Demodata LSV"
         LSVJournalLine.DeleteAll();
         CustLedgerEntry.SetCurrentKey("LSV No.");
         CustLedgerEntry.SetFilter("LSV No.", '>%1', 0);
-        CustLedgerEntry.ModifyAll("On Hold", '');
-        CustLedgerEntry.ModifyAll("LSV No.", 0);
+        CustLedgerEntry.ModifyAll("On Hold", '', "LSV No.", 0);
     end;
 
     procedure FillJournal()
