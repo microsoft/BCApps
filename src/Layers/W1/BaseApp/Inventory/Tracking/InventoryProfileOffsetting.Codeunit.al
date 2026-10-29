@@ -90,6 +90,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
         LocationMandatoryTxt: Label 'Location is mandatory.';
         MissingStockkeepingUnitTxt: Label 'Missing stockkeeping unit.';
         MinimalSupplyPlannedTxt: Label '%1: %2 The item is planned to cover the exact demand.', Comment = '%1: Attention, %2: Reason';
+        ReorderQtyMustBePositiveErr: Label 'must be greater than 0 when %1 is %2', Comment = '%1 = Reordering Policy field caption, %2 = Reordering Policy value';
         PlanToDate: Date;
         OverflowLevel: Decimal;
         ExceedROPqty: Decimal;
@@ -2769,25 +2770,29 @@ codeunit 99000854 "Inventory Profile Offsetting"
                 end;
             TempSKU."Reordering Policy"::"Fixed Reorder Qty.":
                 begin
-                    if TempSKU."Reorder Quantity" = 0 then
+                    if TempSKU."Reorder Quantity" <= 0 then
                         if SKU.Get(TempSKU."Location Code", TempSKU."Item No.", TempSKU."Variant Code") then begin
                             if PlanningResiliency then
                                 ReqLine.SetResiliencyError(
                                   StrSubstNo(
-                                    Text004, SKU.FieldCaption("Reorder Quantity"), 0, SKU.TableCaption(),
+                                    Text004, SKU.FieldCaption("Reorder Quantity"), SKU."Reorder Quantity", SKU.TableCaption(),
                                     SKU."Location Code", SKU."Item No.", SKU."Variant Code",
                                     SKU.FieldCaption("Reordering Policy"), SKU."Reordering Policy"),
                                   Database::"Stockkeeping Unit", SKU.GetPosition());
                             TempSKU.TestField("Reorder Quantity");
+                            if TempSKU."Reorder Quantity" < 0 then
+                                SKU.FieldError("Reorder Quantity", StrSubstNo(ReorderQtyMustBePositiveErr, SKU.FieldCaption("Reordering Policy"), SKU."Reordering Policy"));
                         end else
                             if Item.Get(TempSKU."Item No.") then begin
                                 if PlanningResiliency then
                                     ReqLine.SetResiliencyError(
                                       StrSubstNo(
-                                        Text005, Item.FieldCaption("Reorder Quantity"), 0, Item.TableCaption(),
+                                        Text005, Item.FieldCaption("Reorder Quantity"), Item."Reorder Quantity", Item.TableCaption(),
                                         Item."No.", Item.FieldCaption("Reordering Policy"), Item."Reordering Policy"),
                                       Database::Item, Item.GetPosition());
                                 Item.TestField("Reorder Quantity");
+                                if Item."Reorder Quantity" < 0 then
+                                    Item.FieldError("Reorder Quantity", StrSubstNo(ReorderQtyMustBePositiveErr, Item.FieldCaption("Reordering Policy"), Item."Reordering Policy"));
                             end;
 
                     QtyToOrder := TempSKU."Reorder Quantity";

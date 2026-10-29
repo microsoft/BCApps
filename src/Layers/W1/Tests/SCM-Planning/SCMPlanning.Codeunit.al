@@ -34,6 +34,7 @@ codeunit 137020 "SCM Planning"
         SalesHeaderMustNotBeFoundErr: Label 'Sales Header must not be found.';
         ActionMessageShouldBeNewErr: Label 'Action Message should be New';
         PlannedQtyShouldNotExceedSafetyStockErr: Label 'Planned quantity should not exceed safety stock quantity.';
+        ReorderQtyMustBePositiveErr: Label 'must be greater than 0 when %1 is %2', Comment = '%1 = Reordering Policy field caption, %2 = Reordering Policy value';
 
     local procedure GlobalSetup()
     begin
@@ -4815,6 +4816,33 @@ codeunit 137020 "SCM Planning"
 
         // [THEN] Error 'Reorder Quantity must have a value in Item: No.=1000. It cannot be zero or empty.'
         Assert.ExpectedTestFieldError(Item.FieldCaption("Reorder Quantity"), '');
+    end;
+
+    [Test]
+    [HandlerFunctions('CalculatePlanPlanWkshRequestPageHandlerWithStopAndShowFirstError')]
+    [Scope('OnPrem')]
+    procedure FixedReorderPlanningWhenReorderQtyNegativeAndStopAndShowFirstError()
+    var
+        Item: Record Item;
+    begin
+        // [SCENARIO 651103] Planning with Fixed Reorder Qty. and a negative Reorder Quantity reports a clear error instead of an internal one.
+        Initialize();
+
+        // [GIVEN] Item with Reordering Policy = Fixed Reorder Qty., Reorder Point = 20 and Reorder Quantity = -5 stored before the field got MinValue = 0
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Fixed Reorder Qty.");
+        Item.Validate("Reorder Point", LibraryRandom.RandIntInRange(10, 20));
+        Item."Reorder Quantity" := -LibraryRandom.RandInt(10);
+        Item.Modify(true);
+        Commit();
+
+        // [WHEN] Calculate Regenerative Plan with Stop and Show First Error enabled
+        asserterror CalcRegenPlanWithStopAndShowFirstError(Item, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+
+        // [THEN] Error 'Reorder Quantity must be greater than 0 when Reordering Policy is Fixed Reorder Qty. in Item No.=...'
+        Assert.ExpectedError(Item.FieldCaption("Reorder Quantity"));
+        Assert.ExpectedError(
+            StrSubstNo(ReorderQtyMustBePositiveErr, Item.FieldCaption("Reordering Policy"), Item."Reordering Policy"));
     end;
 
     [Test]
