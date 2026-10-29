@@ -2406,19 +2406,19 @@ Public Shared strSubNo As String
 Public Function SetGlobal(ByVal CusCap As String,ByVal ComName As String,ByVal Today As String,ByVal UserCap As String,ByVal SubNo As String)
      if CusCap &lt;&gt; "" then
           strCusCap = CusCap
-     end if
+     end if 
     if ComName &lt;&gt; "" then
           strComName = ComName
-    end if
+    end if 
     if Today &lt;&gt; "" then
           strToday = Today
-    end if
+    end if 
     if UserCap &lt;&gt; "" then
           strUserCap = UserCap
-    end if
+    end if 
     if SubNo &lt;&gt; "" then
          strSubNo = SubNo
-    end if
+    end if 
 End Function
 
 Public shared headStr As String

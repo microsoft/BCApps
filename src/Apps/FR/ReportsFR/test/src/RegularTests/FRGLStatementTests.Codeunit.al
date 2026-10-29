@@ -11,7 +11,7 @@ using Microsoft.Finance.GeneralLedger.Review;
 using System.IO;
 using System.Utilities;
 
-codeunit 148005 "FR GL Statement Tests"
+codeunit 148011 "FR GL Statement Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;

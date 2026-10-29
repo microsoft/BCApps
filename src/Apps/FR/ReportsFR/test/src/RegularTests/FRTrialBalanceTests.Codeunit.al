@@ -12,7 +12,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using System.IO;
 using System.Utilities;
 
-codeunit 148006 "FR Trial Balance Tests"
+codeunit 148012 "FR Trial Balance Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;

@@ -159,3 +159,4 @@ codeunit 144051 "Report Layout - Local FR"
         CustomerJournal.SaveAsPdf(FomatFileName(CustomerJournal.Caption));
     end;
 }
+

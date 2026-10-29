@@ -175,7 +175,7 @@ page 9001 "Accounting Manager Role Center"
                 ObsoleteReason = 'Moved to Reports FR app';
                 ObsoleteTag = '30.0';
             }
-#endif
+#endif            
             action("&Account Schedule")
             {
                 ApplicationArea = Basic, Suite;

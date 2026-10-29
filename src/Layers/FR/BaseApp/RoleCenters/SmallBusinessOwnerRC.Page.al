@@ -232,7 +232,7 @@ page 9020 "Small Business Owner RC"
                 ObsoleteReason = 'Moved to Reports FR app';
                 ObsoleteTag = '30.0';
             }
-#endif
+#endif            
             action("Trial Balance by &Period")
             {
                 ApplicationArea = Basic, Suite;

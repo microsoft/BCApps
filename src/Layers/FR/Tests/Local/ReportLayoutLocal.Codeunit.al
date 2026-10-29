@@ -64,7 +64,7 @@ codeunit 144001 "Report Layout - Local"
         Initialize();
         REPORT.Run(REPORT::"G/L Trial Balance");
     end;
-#endif
+#endif    
 
 #if not CLEAN28
     [Test]

@@ -221,3 +221,4 @@ report 10827 "Bank Acc. Trial Balance"
         CreditCaption_Control1120036Lbl: Label 'Credit';
         Grand_totalCaptionLbl: Label 'Grand total';
 }
+

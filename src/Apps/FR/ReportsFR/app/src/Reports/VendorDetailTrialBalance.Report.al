@@ -472,3 +472,4 @@ report 10835 "Vendor Detail Trial Balance"
         Previous_pageCaptionLbl: Label 'Previous page';
         Current_pageCaptionLbl: Label 'Current page';
 }
+

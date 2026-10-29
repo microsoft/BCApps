@@ -117,7 +117,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 Image = "Report";
                 RunObject = Report "Customer - Summary Aging Simp.";
             }
-#if not CLEAN28
+#if not CLEAN28            
             action("Customer Trial Balan&ce")
             {
                 ApplicationArea = Basic, Suite;
@@ -139,7 +139,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 ObsoleteReason = 'Moved to Reports FR app';
                 ObsoleteTag = '30.0';
             }
-#endif
+#endif            
             action("Cus&tomer/Item Sales")
             {
                 ApplicationArea = Basic, Suite;

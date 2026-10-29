@@ -26,7 +26,7 @@ using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Upgrade;
 using System.Utilities;
 
-codeunit 148008 "FR Financial Integration Tests"
+codeunit 148014 "FR Financial Integration Tests"
 {
     Subtype = Test;
     TestPermissions = NonRestrictive;

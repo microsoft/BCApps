@@ -102,7 +102,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 Image = "Report";
                 RunObject = Report "Vendor - Balance to Date";
             }
-#if not CLEAN28
+#if not CLEAN28            
             action("Vendor Trial Balance")
             {
                 ApplicationArea = Basic, Suite;
@@ -125,7 +125,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ObsoleteReason = 'Moved to Reports FR app';
                 ObsoleteTag = '30.0';
             }
-#endif
+#endif 
 #if not CLEAN28
             action("Vendor - &Summary Aging")
             {
