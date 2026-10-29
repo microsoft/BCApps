@@ -396,7 +396,6 @@ codeunit 6201 "Non-Ded. VAT Impl."
             VATAmountLine."Non-Deductible VAT Amount" += VATAmountLine."Deductible VAT Amount";
             VATAmountLine."Deductible VAT Amount" := 0;
         end;
-
     end;
 
     procedure CopyNonDedVATFromPurchInvLineToVATAmountLine(var VATAmountLine: Record "VAT Amount Line"; PurchInvLine: Record "Purch. Inv. Line")
@@ -696,7 +695,6 @@ codeunit 6201 "Non-Ded. VAT Impl."
     begin
         if not IsNonDeductibleVATEnabled() then
             exit;
-
         if PurchaseLine."Non-Deductible VAT %" = 100 then begin
             PurchaseLine."Non-Deductible VAT Base" := PurchaseLine."VAT Base Amount";
             PurchaseLine."Non-Deductible VAT Amount" := PurchaseLine."Amount Including VAT" - PurchaseLine."VAT Base Amount";
@@ -792,9 +790,14 @@ codeunit 6201 "Non-Ded. VAT Impl."
             GenJournalLine.Validate(
                 "Non-Deductible VAT Base LCY",
                 Round(GenJournalLine."VAT Base Amount (LCY)" * GetNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
-            GenJournalLine.Validate(
-                "Non-Deductible VAT Amount LCY",
-                Round((GenJournalLine."Amount (LCY)" - GenJournalLine."VAT Base Amount (LCY)") * GetNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
+            if GenJournalLine."VAT Calculation Type" = GenJournalLine."VAT Calculation Type"::"Reverse Charge VAT" then
+                GenJournalLine.Validate(
+                    "Non-Deductible VAT Amount LCY",
+                    Round(GenJournalLine."Non-Deductible VAT Base LCY" * VATPostingSetup."VAT %" / 100, Currency."Amount Rounding Precision"))
+            else
+                GenJournalLine.Validate(
+                    "Non-Deductible VAT Amount LCY",
+                    Round((GenJournalLine."Amount (LCY)" - GenJournalLine."VAT Base Amount (LCY)") * GetNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
             exit;
         end;
         GenJournalLine.Validate(
@@ -998,7 +1001,6 @@ codeunit 6201 "Non-Ded. VAT Impl."
     begin
         if not IsNonDeductibleVATEnabled() then
             exit;
-
         if NonDeductiblePct = 0 then
             exit;
 
@@ -1024,7 +1026,6 @@ codeunit 6201 "Non-Ded. VAT Impl."
     begin
         if NonDeductiblePercent = 0 then
             exit(0);
-
         if NonDeductiblePercent = 100 then
             exit(Amount);
 
@@ -1121,7 +1122,6 @@ codeunit 6201 "Non-Ded. VAT Impl."
     begin
         if not IsNonDeductibleVATEnabled() then
             exit;
-
         if NonDeductibleVATPct = 0 then
             exit;
 
