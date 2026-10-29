@@ -791,7 +791,7 @@ codeunit 134228 "ERM Close Income Statement"
             GenJournalLine."Account Type"::Customer, '', 0);
         GLAccountNo := LibraryERM.CreateGLAccountNo();
         PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
-        InsertGLEntryForCloseIncome(PostingDate, GLAccountNo, 0, 0, SourceCurrencyCode, 25, 0, 0, '', '', '');
+        InsertGLEntryForCloseIncome(PostingDate, GLAccountNo, 0, 0, SourceCurrencyCode, 25, 0);
 
         LibraryFiscalYear.CloseFiscalYear();
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
@@ -844,7 +844,7 @@ codeunit 134228 "ERM Close Income Statement"
             GenJournalLine."Account Type"::Customer, '', 0);
         GLAccountNo := LibraryERM.CreateGLAccountNo();
         PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
-        InsertGLEntryForCloseIncome(PostingDate, GLAccountNo, 100, 0, '', 100, 0, 0, '', '', '');
+        InsertGLEntryForCloseIncome(PostingDate, GLAccountNo, 100, 0, '', 100, 0);
 
         LibraryFiscalYear.CloseFiscalYear();
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
@@ -901,7 +901,7 @@ codeunit 134228 "ERM Close Income Statement"
             GenJournalLine."Account Type"::Customer, '', 0);
         GLAccountNo := LibraryERM.CreateGLAccountNo();
         PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
-        InsertGLEntryForCloseIncome(PostingDate, GLAccountNo, 100, 0, SourceCurrencyCode, 0, 0, 0, '', '', '');
+        InsertGLEntryForCloseIncome(PostingDate, GLAccountNo, 100, 0, SourceCurrencyCode, 0, 0);
 
         LibraryFiscalYear.CloseFiscalYear();
         PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
