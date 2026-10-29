@@ -774,7 +774,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
                 GLEntryVATEntryLink.SetRange("G/L Entry No.", GLEntry."Entry No.");
                 if GLEntryVATEntryLink.FindFirst() then begin
                     VATEntry.Get(GLEntryVATEntryLink."VAT Entry No.");
-                    ExportTaxInformation(VATEntry);
+                    ExportTaxInformation(VATEntry, CurrencyCode, GLEntry."Source Currency VAT Amount");
                 end;
             end;
             SAFTXMLHelper.AppendXMLNode('ReferenceNumber', GLEntry."External Document No.");
@@ -809,7 +809,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
         SAFTXMLHelper.AppendXMLNode('GLPostingDate', FormatDate(GLEntry."Posting Date"));
     end;
 
-    local procedure ExportTaxInformation(VATEntry: Record 254)
+    local procedure ExportTaxInformation(VATEntry: Record 254; CurrencyCode: Code[10]; SourceCurrencyVATAmount: Decimal)
     var
         VATPostingSetup: Record "VAT Posting Setup";
         GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
@@ -841,9 +841,9 @@ codeunit 10695 "Generate SAF-T 1.4 File"
             TaxAmountNode := IsDebitVATAmount ? 'DebitTaxAmount' : 'CreditTaxAmount';
             SAFTXMLHelper.AddNewXMLNode(TaxAmountNode, '');
             SAFTXMLHelper.AppendXMLNode('Amount', FormatAmount(Abs(VATEntry.Amount)));
-            if VATEntry."Source Currency Code" <> '' then begin
-                SAFTXMLHelper.AppendXMLNode('CurrencyCode', VATEntry."Source Currency Code");
-                SAFTXMLHelper.AppendXMLNode('CurrencyAmount', FormatAmountSAFlongmonetary(Abs(VATEntry."Source Currency VAT Amount")));
+            if CurrencyCode <> '' then begin
+                SAFTXMLHelper.AppendXMLNode('CurrencyCode', CurrencyCode);
+                SAFTXMLHelper.AppendXMLNode('CurrencyAmount', FormatAmountSAFlongmonetary(Abs(SourceCurrencyVATAmount)));
             end;
             SAFTXMLHelper.FinalizeXMLNode();
             ExportNOKTaxAmount(VATEntry, IsDebitVATAmount);
