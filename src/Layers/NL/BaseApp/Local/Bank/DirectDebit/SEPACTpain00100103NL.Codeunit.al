@@ -26,7 +26,7 @@ codeunit 11433 "SEPA CT pain.001.001.03 NL"
         if XmlRootElement.NamespaceUri() <> Pain00100103NamespaceTok then
             exit;
 
-        XmlRootElement.SetAttribute('xmlns:xsi', XmlSchemaInstanceNamespaceTok);
+        XmlRootElement.Add(XmlAttribute.CreateNamespaceDeclaration('xsi', XmlSchemaInstanceNamespaceTok));
         TempBlob.CreateOutStream(XmlOutStream, TextEncoding::UTF8);
         PaymentXmlDocument.WriteTo(XmlOutStream);
     end;
