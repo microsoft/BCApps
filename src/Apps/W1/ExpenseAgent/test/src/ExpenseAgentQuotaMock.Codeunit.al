@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using System.AI;
 
-codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
+codeunit 148297 "Expense Agent Quota Mock" implements "Expense Agent Quota"
 {
     Access = Internal;
 
