@@ -1139,8 +1139,7 @@ codeunit 134191 "WF Demo Inc. Doc. Approvals"
         ApprovalEntry: Record "Approval Entry";
     begin
         LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, IncomingDocument.RecordId);
-        ApprovalEntry.ModifyAll("Sender ID", UserSetup."Approver ID", true);
-        ApprovalEntry.ModifyAll("Approver ID", UserSetup."User ID", true);
+        ApprovalEntry.ModifyAll("Sender ID", UserSetup."Approver ID", "Approver ID", UserSetup."User ID", true);
     end;
 
     local procedure VerifyApprovalEntry(ApprovalEntry: Record "Approval Entry"; SenderId: Code[50]; ApproverId: Code[50]; Status: Enum "Approval Status")

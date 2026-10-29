@@ -285,6 +285,7 @@ table 5612 "FA Depreciation Book"
             trigger OnValidate()
             begin
                 ModifyDeprFields();
+                CheckFAPostingGroupChangeAfterAcquisition();
             end;
         }
         field(14; "Depreciation Ending Date"; Date)
@@ -346,7 +347,8 @@ table 5612 "FA Depreciation Book"
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "Part of Book Value" = const(true),
-                                                              "FA Posting Date" = field("FA Posting Date Filter")));
+                                                              "FA Posting Date" = field("FA Posting Date Filter"),
+                                                              "Derogatory Excluded" = const(false)));
             Caption = 'Book Value';
             ToolTip = 'Specifies the book value for the fixed asset.';
             Editable = false;
@@ -879,6 +881,26 @@ table 5612 "FA Depreciation Book"
                     FieldError("Default FA Depreciation Book", OnlyOneDefaultDeprBookErr);
             end;
         }
+        field(5865; "Derogatory Amount"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
+            CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
+                                                              "Depreciation Book Code" = field("Depreciation Book Code"),
+                                                              "FA Posting Category" = const(" "),
+                                                              "FA Posting Type" = const(Derogatory),
+                                                              "FA Posting Date" = field("FA Posting Date Filter"),
+                                                              "Derogatory Excluded" = const(false)));
+            Caption = 'Derogatory';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the total derogatory depreciation for the fixed asset.';
+        }
+        field(5866; "Last Derogatory"; Date)
+        {
+            Caption = 'Last Derogatory Date';
+            ToolTip = 'Specifies the FA posting date of the last posted derogatory depreciation.';
+        }
     }
 
     keys
@@ -991,6 +1013,7 @@ table 5612 "FA Depreciation Book"
         BonusDepreciationAlreadyAppliedErr: Label 'The bonus depreciation has already been applied for this depreciation book. This change is making the fixed asset not eligible for bonus depreciation.';
         BonusDepreciationTurnedOnErr: Label 'You must uncheck Use Bonus Depreciation, because this change is making the fixed asset not eligible for bonus depreciation.';
         BonusDeprPctExceedsMaxErr: Label 'The bonus depreciation percentage cannot exceed the applicable maximum of %1%.', Comment = '%1 = maximum percentage';
+        CannotChangeFAPostingGroupAfterAcquisitionErr: Label 'You cannot change the %1 for fixed asset %2 because acquisition cost has already been posted in depreciation book %3. To move the fixed asset to another posting group, use the FA reclassification journal, or turn on the %4 toggle for the depreciation book.', Comment = '%1 = FA Posting Group field caption, %2 = fixed asset number, %3 = depreciation book code, %4 = Allow Changes in Depr. Fields field caption';
 
     protected var
         FA: Record "Fixed Asset";
@@ -1060,6 +1083,26 @@ table 5612 "FA Depreciation Book"
             end;
 
         OnAfterModifyDeprFields(Rec);
+    end;
+
+    local procedure CheckFAPostingGroupChangeAfterAcquisition()
+    var
+        FADepreciationBook: Record "FA Depreciation Book";
+    begin
+        // Compare with the stored record, because acquisition cost has already been posted to the G/L accounts of the stored posting group.
+        if not FADepreciationBook.Get("FA No.", "Depreciation Book Code") then
+            exit;
+        if (FADepreciationBook."Last Acquisition Cost Date" = 0D) or
+           (FADepreciationBook."FA Posting Group" = '') or
+           (FADepreciationBook."FA Posting Group" = "FA Posting Group")
+        then
+            exit;
+
+        DeprBook.Get("Depreciation Book Code");
+        if not DeprBook."Allow Changes in Depr. Fields" then
+            Error(
+              CannotChangeFAPostingGroupAfterAcquisitionErr, FieldCaption("FA Posting Group"), "FA No.",
+              "Depreciation Book Code", DeprBook.FieldCaption("Allow Changes in Depr. Fields"));
     end;
 
     internal procedure BonusDepreciationApplied(): Boolean
@@ -1343,6 +1386,7 @@ table 5612 "FA Depreciation Book"
         FALedgerEntry.SetRange("FA No.", "FA No.");
         FALedgerEntry.SetRange("Depreciation Book Code", "Depreciation Book Code");
         FALedgerEntry.SetRange("Part of Book Value", true);
+        FALedgerEntry.SetRange("Derogatory Excluded", false);
         OnAfterSetBookValueFiltersOnFALedgerEntry(FALedgerEntry);
     end;
 

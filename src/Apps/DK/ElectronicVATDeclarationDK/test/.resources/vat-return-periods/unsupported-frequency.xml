@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Weekly frequency (code 05) with a deadline. -->
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+<env:Body>
+<urn:VirksomhedKalenderHent_O xmlns:urn="urn:oio:skat:nemvirksomhed:ws:1.0.0" xmlns:urn1="urn:oio:skat:nemvirksomhed:1.0.0">
+  <ns:HovedOplysningerSvar xmlns:ns="http://rep.oio.dk/skat.dk/basis/kontekst/xml/schemas/2006/09/01/">
+    <ns:TransaktionIdentifikator>00000000-0000-0000-0000-000000000000</ns:TransaktionIdentifikator>
+    <ns:ServiceIdentifikator>NTSE</ns:ServiceIdentifikator>
+    <ns:TransaktionTid>2026-10-07T12:24:09.125Z</ns:TransaktionTid>
+    <ns:SvarStruktur/>
+  </ns:HovedOplysningerSvar>
+  <ns:VirksomhedSENummerIdentifikator xmlns:ns="http://rep.oio.dk/skat.dk/motor/class/virksomhed/xml/schemas/20080401/">12345678</ns:VirksomhedSENummerIdentifikator>
+  <urn1:PligtKode>63</urn1:PligtKode>
+  <urn:AngivelseFrekvensListe>
+    <urn:AngivelseFrekvens>
+      <urn1:AngivelseFrekvensForholdGyldigFraDate>2025-01-01</urn1:AngivelseFrekvensForholdGyldigFraDate>
+      <urn1:AngivelseFrekvensTypeCode>05</urn1:AngivelseFrekvensTypeCode>
+      <urn:AngivelseBetalingFristDatoListe>
+        <urn:AngivelseBetalingFristDato>
+          <urn1:AngivelseFristKalenderFristDato>2026-09-01</urn1:AngivelseFristKalenderFristDato>
+          <urn1:AngivelseFristKalenderBetalingDato>2026-09-01</urn1:AngivelseFristKalenderBetalingDato>
+        </urn:AngivelseBetalingFristDato>
+      </urn:AngivelseBetalingFristDatoListe>
+    </urn:AngivelseFrekvens>
+  </urn:AngivelseFrekvensListe>
+</urn:VirksomhedKalenderHent_O>
+</env:Body>
+</env:Envelope>

@@ -148,7 +148,7 @@ report 20501 "Subc. Create Transf. Order"
             TransferHeader."Transfer-to Post Code" := Vendor."Post Code";
             TransferHeader."Transfer-to City" := Vendor.City;
             TransferHeader."Transfer-to County" := Vendor.County;
-            TransferHeader."Trsf.-from Country/Region Code" := Vendor."Country/Region Code";
+            TransferHeader."Trsf.-to Country/Region Code" := Vendor."Country/Region Code";
 
             OnInsertTransferHeaderOnBeforeModify(TransferHeader, Vendor, "Purchase Header");
             TransferHeader.Modify();

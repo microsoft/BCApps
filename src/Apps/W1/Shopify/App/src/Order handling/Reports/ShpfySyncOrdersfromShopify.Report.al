@@ -136,6 +136,8 @@ report 30104 "Shpfy Sync Orders from Shopify"
             end else begin
                 SelectLatestVersion();
                 ShopifyOrderHeader.Get(ShopifyOrderHeader."Shopify Order Id");
+                if ShopifyOrderHeader."Has Error" then
+                    exit;
                 ShopifyOrderHeader."Has Error" := false;
                 ShopifyOrderHeader."Error Message" := '';
                 ShopifyOrderHeader.Processed := true;
