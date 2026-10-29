@@ -808,7 +808,7 @@ codeunit 134228 "ERM Close Income Statement"
         RetainedEarningsAccountNo := LibraryERM.CreateGLAccountNo();
         RunCloseIncomeStatement(
             GenJournalLine, PostingDate, RetainedEarningsAccountNo,
-            PostToRetainedEarningsAcc::Balance, false, false, DocumentNo);
+            PostToRetainedEarningsAcc::Balance, false, false, DocumentNo, GLAccountNo);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         GLEntry.SetRange("Document No.", DocumentNo);
@@ -865,7 +865,7 @@ codeunit 134228 "ERM Close Income Statement"
         RetainedEarningsAccountNo := LibraryERM.CreateGLAccountNo();
         RunCloseIncomeStatement(
             GenJournalLine, PostingDate, RetainedEarningsAccountNo,
-            PostToRetainedEarningsAcc::Balance, false, false, DocumentNo);
+            PostToRetainedEarningsAcc::Balance, false, false, DocumentNo, GLAccountNo);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         GLEntry.SetRange("Document No.", DocumentNo);
@@ -1840,6 +1840,13 @@ codeunit 134228 "ERM Close Income Statement"
 
     local procedure RunCloseIncomeStatement(GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; RetainedEarningsAcc: Code[20]; PostToRetainedEarningsAcc: Option; ClosePerBusinessUnit: Boolean; UseDimensions: Boolean; DocumentNo: Code[20])
     begin
+        RunCloseIncomeStatement(GenJournalLine, PostingDate, RetainedEarningsAcc, PostToRetainedEarningsAcc, ClosePerBusinessUnit, UseDimensions, DocumentNo, '');
+    end;
+
+    local procedure RunCloseIncomeStatement(GenJournalLine: Record "Gen. Journal Line"; PostingDate: Date; RetainedEarningsAcc: Code[20]; PostToRetainedEarningsAcc: Option; ClosePerBusinessUnit: Boolean; UseDimensions: Boolean; DocumentNo: Code[20]; GLAccountNo: Code[20])
+    var
+        GLAccount: Record "G/L Account";
+    begin
         // Enqueue values for CloseIncomeStatementRequestPageHandler.
         LibraryVariableStorage.Enqueue(PostingDate);
         LibraryVariableStorage.Enqueue(GenJournalLine."Journal Template Name");
@@ -1851,7 +1858,11 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryVariableStorage.Enqueue(UseDimensions);
 
         Commit();  // commit requires to run report.
-        REPORT.Run(REPORT::"Close Income Statement");
+        if GLAccountNo <> '' then begin
+            GLAccount.SetRange("No.", GLAccountNo);
+            REPORT.Run(REPORT::"Close Income Statement", true, false, GLAccount);
+        end else
+            REPORT.Run(REPORT::"Close Income Statement");
     end;
 
     local procedure SelectDimForCloseIncomeStatement(var DimSetEntry: Record "Dimension Set Entry")

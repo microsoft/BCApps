@@ -865,12 +865,12 @@ report 94 "Close Income Statement"
     local procedure AddSourceCurrencyFields(): Boolean
     begin
         GenJnlLine."Source Currency Code" := TempEntryNoAmountBuffer."Source Currency Code";
+        GenJnlLine."Source Currency Amount" := -(TempEntryNoAmountBuffer."Source Currency Amount");
         GenJnlLine."Source Curr. VAT Amount" := -(TempEntryNoAmountBuffer."Source Currency VAT Amount");
 
         if TempEntryNoAmountBuffer."Source Currency Amount" = 0 then
             exit(false);
 
-        GenJnlLine."Source Currency Amount" := -(TempEntryNoAmountBuffer."Source Currency Amount");
         exit(true);
     end;
 
