@@ -6,20 +6,15 @@ namespace Microsoft.Inventory.Item;
 
 /// <summary>
 /// Extends Item Templ. Card with Intercompany-specific controls.
-/// Adds the Common Item No. field used to map items across intercompany partners.
+/// Configures the Common Item No. field retained on the base page for compatibility.
 /// </summary>
 pageextension 8516 ICItemTemplCard extends "Item Templ. Card"
 {
     layout
     {
-        addafter("Automatic Ext. Texts")
+        modify("Common Item No.")
         {
-            field("Common Item No."; Rec."Common Item No.")
-            {
-                ApplicationArea = Intercompany;
-                Importance = Additional;
-                Visible = false;
-            }
+            Visible = false;
         }
     }
 }

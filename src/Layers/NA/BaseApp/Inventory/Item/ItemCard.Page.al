@@ -156,6 +156,12 @@ page 30 "Item Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field("Common Item No."; Rec."Common Item No.")
+                {
+                    ApplicationArea = Intercompany;
+                    Importance = Additional;
+                    Visible = false;
+                }
                 field("Purchasing Code"; Rec."Purchasing Code")
                 {
                     ApplicationArea = Basic, Suite;
