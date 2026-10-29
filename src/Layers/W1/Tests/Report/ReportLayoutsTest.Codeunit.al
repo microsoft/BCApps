@@ -33,7 +33,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.Close();
 
         // Assert - Layout Exists
-        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
 
         Assert.AreEqual(NewLayoutNameTxt, TenantReportLayout.Name, 'Incorrect layout name.');
 
@@ -65,7 +65,7 @@ codeunit 139595 "Report Layouts Test"
 
         // Assert - Layout Exists for current company
 
-        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
 
         Assert.AreEqual(NewLayoutNameTxt, TenantReportLayout.Name, 'Incorrect layout name.');
 
@@ -109,7 +109,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
         ReportLayoutsPage.NewLayout.Invoke();
 
-        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
 
         Assert.AreEqual(NewLayoutNameTxt, TenantReportLayout.Name, 'Incorrect layout name.');
 
@@ -117,7 +117,7 @@ codeunit 139595 "Report Layouts Test"
 
         // Act - Delete the layout
 
-        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+        ReportLayoutList.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid);
         ReportLayoutsPage.GoToRecord(ReportLayoutList);
 
         // Replace the text with new text
@@ -125,7 +125,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.ReplaceLayout.Invoke();
 
         // Assert - Layout exists and contains new contents
-        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+        ReportLayoutList.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid);
 
         TempBlob.CreateOutStream(ReplacedLayoutOutStream, TextEncoding::UTF8);
         ReportLayoutList.Layout.ExportStream(ReplacedLayoutOutStream);
@@ -156,7 +156,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
         ReportLayoutsPage.NewLayout.Invoke();
 
-        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
 
         Assert.AreEqual(NewLayoutNameTxt, TenantReportLayout.Name, 'Incorrect layout name.');
 
@@ -164,20 +164,20 @@ codeunit 139595 "Report Layouts Test"
 
         // Act - Set a selection
 
-        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+        ReportLayoutList.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid);
         ReportLayoutsPage.GoToRecord(ReportLayoutList);
 
         ReportLayoutsPage.DefaulLayoutSelection.Invoke();
 
         // Assert - Selection is added
-        Assert.IsTrue(TenantReportLayoutSelection.Get(139595, CompanyName(), EmptyGuid), 'A selection should have been set but was not');
+        Assert.IsTrue(TenantReportLayoutSelection.Get(Report::TestReportLayoutsReport, CompanyName(), EmptyGuid), 'A selection should have been set but was not');
         Assert.AreEqual(NewLayoutNameTxt, TenantReportLayoutSelection."Layout Name", 'The inserted layout name does not match the layout.');
 
         // Act - Edit the layout to change its name
         ReportLayoutsPage.EditLayout.Invoke();
 
         // Assert 
-        Assert.IsTrue(TenantReportLayoutSelection.Get(139595, CompanyName(), EmptyGuid), 'A selection should have been set but was not');
+        Assert.IsTrue(TenantReportLayoutSelection.Get(Report::TestReportLayoutsReport, CompanyName(), EmptyGuid), 'A selection should have been set but was not');
         Assert.AreEqual(EditedLayoutNameTxt, TenantReportLayoutSelection."Layout Name", 'The inserted layout name does not match the layout.');
     end;
 
@@ -202,14 +202,14 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
         ReportLayoutsPage.NewLayout.Invoke();
 
-        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'A layout should exist in the Tenant Report Layout table.');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'A layout should exist in the Tenant Report Layout table.');
 
         Assert.AreEqual(NewLayoutNameTxt, TenantReportLayout.Name, 'Incorrect layout name.');
 
         Assert.AreEqual('', TenantReportLayout."Company Name", 'A layout should exist for all companies.');
 
         // Act - Set a selection
-        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+        ReportLayoutList.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid);
         ReportLayoutsPage.GoToRecord(ReportLayoutList);
 
         // Act -  Validate the layout
@@ -626,9 +626,6 @@ codeunit 139595 "Report Layouts Test"
         asserterror ReportLayoutsPage.NewLayout.Invoke();
         Assert.ExpectedError(ExpectedError);
         ReportLayoutsPage.Close();
-
-        TenantReportLayout.SetRange("Report ID", Report::TestReportLayoutsReport);
-        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure ReplaceLayoutTestCore(LayoutFormat: Text; FileName: Text; AvailableInAllCompanies: Boolean)
@@ -735,7 +732,8 @@ codeunit 139595 "Report Layouts Test"
         if UpdateLayout then begin
             Assert.IsTrue(ExportedBlob.HasValue(), 'The updated export must contain a layout.');
             AssertLayoutCanBePrepared(LayoutFormat, ExportedBlob);
-        end;
+        end else
+            AssertBlobEquals(OriginalBlob, ExportedBlob);
 
         UnbindSubscription(ReportLayoutsTest);
     end;
@@ -861,9 +859,8 @@ codeunit 139595 "Report Layouts Test"
         ValidationResult: Boolean;
     begin
         ValidationResult := Report.ValidateAndPrepareLayout(Report::TestReportLayoutsReport, LayoutBlob.CreateInStream(TextEncoding::UTF8), PreparedStream, GetFileTestLayoutType(LayoutFormat));
-        //   'The layout must be valid for the current report dataset.');
         if not ValidationResult then
-            Error('The layout could not be prepared. ' + GetLastErrorText());
+            Error(LayoutCouldNotBePreparedErr, GetLastErrorText());
     end;
 
     local procedure AssertBlobEquals(ExpectedBlob: Codeunit "Temp Blob"; ActualBlob: Codeunit "Temp Blob")
@@ -893,6 +890,7 @@ codeunit 139595 "Report Layouts Test"
         Assert.AreEqual(OriginalLayout.ExcelLayoutMultipleDataSheets, TenantReportLayout.ExcelLayoutMultipleDataSheets, 'The Excel sheet configuration must not change.');
         Assert.AreEqual(OriginalLayout."MIME Type", TenantReportLayout."MIME Type", 'The MIME type must not change.');
         TenantReportLayout.Layout.ExportStream(ActualBlob.CreateOutStream(TextEncoding::UTF8));
+        AssertBlobEquals(OriginalBlob, ActualBlob);
     end;
 
     [ModalPageHandler]
@@ -1011,7 +1009,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
         ReportLayoutsPage.NewLayout.Invoke();
 
-        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
 
         Assert.AreEqual(NewLayoutNameTxt, TenantReportLayout.Name, 'Incorrect layout name.');
 
@@ -1023,7 +1021,7 @@ codeunit 139595 "Report Layouts Test"
 
         // Assert - Layout has been changed
 
-        Assert.IsTrue(TenantReportLayout.Get(139595, EditedLayoutNameTxt, EmptyGuid), 'Edited layout should exist');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, EditedLayoutNameTxt, EmptyGuid), 'Edited layout should exist');
 
         Assert.AreEqual(EditedLayoutNameTxt, TenantReportLayout.Description, 'Description was not edited properly.');
 
@@ -1096,14 +1094,14 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
         ReportLayoutsPage.NewLayout.Invoke();
 
-        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
 
         Assert.AreEqual(NewLayoutNameTxt, TenantReportLayout.Name, 'Incorrect layout name.');
 
         Assert.AreEqual('', TenantReportLayout."Company Name", 'Layout should exist for all companies.');
 
         // Act - Set a selection
-        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+        ReportLayoutList.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid);
         ReportLayoutsPage.GoToRecord(ReportLayoutList);
 
         // Act - Show the info dialog
@@ -1130,7 +1128,7 @@ codeunit 139595 "Report Layouts Test"
 
         Assert.AreEqual('Yes', ReportLayoutNewDialog.AvailableInAllCompanies.Value, 'The available in all companies toggle should be on by default.');
 
-        ReportLayoutNewDialog.ReportID.Value := '139595';
+        ReportLayoutNewDialog.ReportID.Value := format(Report::TestReportLayoutsReport);
         ReportLayoutNewDialog.OK().Invoke();
     end;
 
@@ -1144,7 +1142,7 @@ codeunit 139595 "Report Layouts Test"
         Assert.AreEqual('Yes', ReportLayoutNewDialog.AvailableInAllCompanies.Value, 'The available in all companies toggle should be on by default.');
         ReportLayoutNewDialog.AvailableInAllCompanies.SetValue(false);
 
-        ReportLayoutNewDialog.ReportID.Value := '139595';
+        ReportLayoutNewDialog.ReportID.Value := format(Report::TestReportLayoutsReport);
         ReportLayoutNewDialog.OK().Invoke();
     end;
 
@@ -1158,7 +1156,7 @@ codeunit 139595 "Report Layouts Test"
 
         Assert.AreEqual('Yes', ReportLayoutNewDialog.AvailableInAllCompanies.Value, 'The available in all companies toggle should be on by default.');
 
-        ReportLayoutNewDialog.ReportID.Value := '139595';
+        ReportLayoutNewDialog.ReportID.Value := format(Report::TestReportLayoutsReport);
         ReportLayoutNewDialog.OK().Invoke();
     end;
 
@@ -1272,10 +1270,10 @@ codeunit 139595 "Report Layouts Test"
         TenantReportLayout: Record "Tenant Report Layout";
         TenantReportLayoutOverride: Record "Tenant Report Layout Override";
     begin
-        TenantReportLayout.SetRange("Report ID", 139595);
+        TenantReportLayout.SetRange("Report ID", Report::TestReportLayoutsReport);
         TenantReportLayout.DeleteAll();
 
-        TenantReportLayoutOverride.SetRange("Report ID", 139595);
+        TenantReportLayoutOverride.SetRange("Report ID", Report::TestReportLayoutsReport);
         TenantReportLayoutOverride.DeleteAll();
 
         // A test failing between Enqueue and Dequeue would otherwise leak into the next one.
@@ -1329,7 +1327,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.Close();
 
         // Assert - Layout status should be Draft
-        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
         Assert.AreEqual(
             Enum::"Report Layout Status"::Draft,
             TenantReportLayout."Layout Status",
@@ -1357,7 +1355,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.NewLayout.Invoke();
 
         // Navigate to the new layout
-        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+        ReportLayoutList.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid);
         ReportLayoutsPage.GoToRecord(ReportLayoutList);
 
         // Act - Set status to Approved
@@ -1365,7 +1363,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.Close();
 
         // Assert - Status should be Approved in the tenant table
-        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist.');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'Layout should exist.');
         Assert.AreEqual(
             Enum::"Report Layout Status"::Approved,
             TenantReportLayout."Layout Status",
@@ -1393,7 +1391,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.NewLayout.Invoke();
 
         // Navigate to the new layout
-        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+        ReportLayoutList.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid);
         ReportLayoutsPage.GoToRecord(ReportLayoutList);
 
         // Act - Set status to Retired
@@ -1401,7 +1399,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.Close();
 
         // Assert - Status should be Retired in the tenant table
-        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist.');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'Layout should exist.');
         Assert.AreEqual(
             Enum::"Report Layout Status"::Retired,
             TenantReportLayout."Layout Status",
@@ -1428,14 +1426,14 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
         ReportLayoutsPage.NewLayout.Invoke();
 
-        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+        ReportLayoutList.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid);
         ReportLayoutsPage.GoToRecord(ReportLayoutList);
 
         // Act - Set to Approved then back to Draft
         ReportLayoutsPage.SetApproved.Invoke();
 
         // Verify intermediate state
-        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist.');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'Layout should exist.');
         Assert.AreEqual(
             Enum::"Report Layout Status"::Approved,
             TenantReportLayout."Layout Status",
@@ -1445,7 +1443,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.Close();
 
         // Assert - Status should be back to Draft
-        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist.');
+        Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'Layout should exist.');
         Assert.AreEqual(
             Enum::"Report Layout Status"::Draft,
             TenantReportLayout."Layout Status",
@@ -1468,9 +1466,9 @@ codeunit 139595 "Report Layouts Test"
         // Init - remove any tenant layouts/overrides for the test report
         EnsureNewLayoutsAreCleaned();
 
-        // The test report (139595) ships an RDLC layout via its rendering section, so it surfaces in
+        // The test report (Report::TestReportLayoutsReport) ships an RDLC layout via its rendering section, so it surfaces in
         // Report Layout List as an extension-installed layout (User Defined = false).
-        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
@@ -1483,7 +1481,7 @@ codeunit 139595 "Report Layouts Test"
 
         // Assert - a global override carries the Approved status...
         Assert.IsTrue(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
             'A global override record should have been created for the extension layout.');
         Assert.IsTrue(TenantReportLayoutOverride."Override Layout Status", 'The Override Layout Status flag should be set.');
         Assert.AreEqual(
@@ -1491,11 +1489,11 @@ codeunit 139595 "Report Layouts Test"
             TenantReportLayoutOverride."Layout Status",
             'The override should carry the Approved status.');
         Assert.IsFalse(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
             'No company-specific override should have been created.');
 
         // ...and no copy was made into the tenant table.
-        TenantReportLayout.SetRange("Report ID", 139595);
+        TenantReportLayout.SetRange("Report ID", Report::TestReportLayoutsReport);
         Assert.IsTrue(TenantReportLayout.IsEmpty(), 'No copy should have been created in Tenant Report Layout.');
     end;
 
@@ -1519,14 +1517,14 @@ codeunit 139595 "Report Layouts Test"
         // registered and an unexpected prompt would fail this test.
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
         // Seed the STATUS field specifically: the table is field-granular, so scope is resolved from
         // "Override Layout Status" and a description-only row would not establish it.
         TenantReportLayoutOverride.Init();
-        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Report ID" := Report::TestReportLayoutsReport;
         TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
         TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
         TenantReportLayoutOverride."Company Name" := '';
@@ -1542,7 +1540,7 @@ codeunit 139595 "Report Layouts Test"
 
         // Assert - the GLOBAL override carries the Approved status; no company-specific override was created
         Assert.IsTrue(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
             'The global override should still exist.');
         Assert.IsTrue(TenantReportLayoutOverride."Override Layout Status", 'Override Layout Status should be set on the global override.');
         Assert.AreEqual(
@@ -1550,7 +1548,7 @@ codeunit 139595 "Report Layouts Test"
             TenantReportLayoutOverride."Layout Status",
             'The global override should carry the Approved status.');
         Assert.IsFalse(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
             'No company-specific override should have been created for a global-scope layout.');
     end;
 
@@ -1569,13 +1567,13 @@ codeunit 139595 "Report Layouts Test"
         // all-companies and updates the global row.
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
         // Global row owns the STATUS...
         TenantReportLayoutOverride.Init();
-        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Report ID" := Report::TestReportLayoutsReport;
         TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
         TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
         TenantReportLayoutOverride."Company Name" := '';
@@ -1585,7 +1583,7 @@ codeunit 139595 "Report Layouts Test"
 
         // ...while a company row owns only the DESCRIPTION.
         TenantReportLayoutOverride.Init();
-        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Report ID" := Report::TestReportLayoutsReport;
         TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
         TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
         TenantReportLayoutOverride."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutOverride."Company Name"));
@@ -1601,7 +1599,7 @@ codeunit 139595 "Report Layouts Test"
 
         // Assert - the GLOBAL row took the new status...
         Assert.IsTrue(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
             'The global override should still exist.');
         Assert.AreEqual(
             Enum::"Report Layout Status"::Approved,
@@ -1610,7 +1608,7 @@ codeunit 139595 "Report Layouts Test"
 
         // ...and the company row still overrides only the description, with no forked status.
         Assert.IsTrue(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
             'The company-specific description override should still exist.');
         Assert.IsFalse(
             TenantReportLayoutOverride."Override Layout Status",
@@ -1631,12 +1629,12 @@ codeunit 139595 "Report Layouts Test"
         // (no ConfirmHandler is registered, so an unexpected Confirm would fail this test).
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
         TenantReportLayoutOverride.Init();
-        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Report ID" := Report::TestReportLayoutsReport;
         TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
         TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
         TenantReportLayoutOverride."Company Name" := '';
@@ -1652,7 +1650,7 @@ codeunit 139595 "Report Layouts Test"
 
         // Assert - the existing GLOBAL row now carries both overrides...
         Assert.IsTrue(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
             'The global override should still exist.');
         Assert.IsTrue(TenantReportLayoutOverride."Override Layout Status", 'The Override Layout Status flag should be set.');
         Assert.AreEqual(
@@ -1663,7 +1661,7 @@ codeunit 139595 "Report Layouts Test"
 
         // ...and no company-specific row was created.
         Assert.IsFalse(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
             'No company-specific override should have been created.');
     end;
 
@@ -1683,12 +1681,12 @@ codeunit 139595 "Report Layouts Test"
         // company-scoped option would build on.
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
         TenantReportLayoutOverride.Init();
-        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Report ID" := Report::TestReportLayoutsReport;
         TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
         TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
         TenantReportLayoutOverride."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutOverride."Company Name"));
@@ -1704,14 +1702,14 @@ codeunit 139595 "Report Layouts Test"
 
         // Assert - the COMPANY row took the new status, and nothing went global
         Assert.IsTrue(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
             'The company-specific override should still exist.');
         Assert.AreEqual(
             Enum::"Report Layout Status"::Approved,
             TenantReportLayoutOverride."Layout Status",
             'The company override should have taken the Approved status.');
         Assert.IsFalse(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
             'No global override should have been created when this company already owns the status.');
     end;
 
@@ -1738,7 +1736,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutList.FindFirst();
 
         TenantReportLayoutOverride.Init();
-        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Report ID" := Report::TestReportLayoutsReport;
         TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
         TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
         TenantReportLayoutOverride."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutOverride."Company Name"));
@@ -1779,7 +1777,7 @@ codeunit 139595 "Report Layouts Test"
 
         // One layout already carries a GLOBAL status override; the other has none. Both are global scope.
         TenantReportLayoutOverride.Init();
-        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Report ID" := Report::TestReportLayoutsReport;
         TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
         TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
         TenantReportLayoutOverride."Company Name" := '';
@@ -1797,7 +1795,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutList.FindSet();
         repeat
             Assert.IsTrue(
-                TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+                TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
                 StrSubstNo(GlobalOverrideMissingErr, ReportLayoutList."Name"));
             Assert.AreEqual(
                 Enum::"Report Layout Status"::Approved,
@@ -1836,14 +1834,14 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutList.FindSet();
         repeat
             Assert.IsTrue(
-                TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+                TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
                 StrSubstNo(GlobalOverrideMissingErr, ReportLayoutList."Name"));
             Assert.AreEqual(
                 Enum::"Report Layout Status"::Retired,
                 TenantReportLayoutOverride."Layout Status",
                 StrSubstNo(GlobalOverrideRetiredErr, ReportLayoutList."Name"));
             Assert.IsFalse(
-                TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+                TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
                 StrSubstNo(CompanyOverrideUnexpectedErr, ReportLayoutList."Name"));
         until ReportLayoutList.Next() = 0;
     end;
@@ -1862,13 +1860,13 @@ codeunit 139595 "Report Layouts Test"
         // the guarantee the design leans on when treating obsoleting as a grave act.
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
         // Make the layout obsolete via a global override, the way the everyday edit path would.
         TenantReportLayoutOverride.Init();
-        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Report ID" := Report::TestReportLayoutsReport;
         TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
         TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
         TenantReportLayoutOverride."Company Name" := '';
@@ -1887,7 +1885,7 @@ codeunit 139595 "Report Layouts Test"
             LibraryVariableStorage.DequeueBoolean(),
             'Mark layout as obsolete must be locked once the layout is already obsolete.');
         Assert.IsTrue(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
             'The global obsolete override should still exist.');
         Assert.IsTrue(TenantReportLayoutOverride.IsObsolete, 'The layout must still be obsolete.');
         LibraryVariableStorage.AssertEmpty();
@@ -1908,7 +1906,7 @@ codeunit 139595 "Report Layouts Test"
         // same layout in every company, so its description is overridden tenant-wide by default.
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
@@ -1920,15 +1918,15 @@ codeunit 139595 "Report Layouts Test"
 
         // Assert - a GLOBAL description override exists (and no company-specific one), no tenant copy
         Assert.IsTrue(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
             'A global override record should have been created.');
         Assert.IsTrue(TenantReportLayoutOverride."Override Description", 'The Override Description flag should be set.');
         Assert.AreEqual(EditedLayoutNameTxt, TenantReportLayoutOverride.Description, 'The override should carry the edited description.');
         Assert.IsFalse(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
             'An everyday edit must not create a company-specific override.');
 
-        TenantReportLayout.SetRange("Report ID", 139595);
+        TenantReportLayout.SetRange("Report ID", Report::TestReportLayoutsReport);
         Assert.IsTrue(TenantReportLayout.IsEmpty(), 'No copy should have been created in Tenant Report Layout.');
     end;
 
@@ -1946,7 +1944,7 @@ codeunit 139595 "Report Layouts Test"
         // (one-way IsObsolete) instead of copying the layout.
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
@@ -1958,12 +1956,12 @@ codeunit 139595 "Report Layouts Test"
 
         // Assert - a global obsolete override exists, no tenant copy
         Assert.IsTrue(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
             'A global override record should have been created.');
         Assert.IsTrue(TenantReportLayoutOverride."Override IsObsolete", 'The Override IsObsolete flag should be set.');
         Assert.IsTrue(TenantReportLayoutOverride.IsObsolete, 'The override should mark the layout obsolete.');
 
-        TenantReportLayout.SetRange("Report ID", 139595);
+        TenantReportLayout.SetRange("Report ID", Report::TestReportLayoutsReport);
         Assert.IsTrue(TenantReportLayout.IsEmpty(), 'No copy should have been created in Tenant Report Layout.');
     end;
 
@@ -1980,7 +1978,7 @@ codeunit 139595 "Report Layouts Test"
         // (no silent global override for a no-op edit).
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
@@ -1989,7 +1987,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.EditLayout.Invoke();
         ReportLayoutsPage.Close();
 
-        TenantReportLayoutOverride.SetRange("Report ID", 139595);
+        TenantReportLayoutOverride.SetRange("Report ID", Report::TestReportLayoutsReport);
         Assert.IsTrue(TenantReportLayoutOverride.IsEmpty(), 'A no-op edit must not create any override.');
     end;
 
@@ -2039,7 +2037,7 @@ codeunit 139595 "Report Layouts Test"
         // NOT from the override-scope control — and writes no override record.
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
@@ -2052,11 +2050,11 @@ codeunit 139595 "Report Layouts Test"
         // Assert - the dialog defaulted to all companies, the copy is a GLOBAL tenant layout, no override
         Assert.AreEqual('Yes', LibraryVariableStorage.DequeueText(), 'A copy should default to all companies.');
         Assert.IsTrue(
-            TenantReportLayout.Get(139595, EditedLayoutNameTxt, EmptyGuid),
+            TenantReportLayout.Get(Report::TestReportLayoutsReport, EditedLayoutNameTxt, EmptyGuid),
             'The copy should exist in Tenant Report Layout under its new name.');
         Assert.AreEqual('', TenantReportLayout."Company Name", 'The copy should be available in all companies by default.');
 
-        TenantReportLayoutOverride.SetRange("Report ID", 139595);
+        TenantReportLayoutOverride.SetRange("Report ID", Report::TestReportLayoutsReport);
         Assert.IsTrue(TenantReportLayoutOverride.IsEmpty(), 'Copying must not write an override record.');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -2075,7 +2073,7 @@ codeunit 139595 "Report Layouts Test"
         // edit writes an all-companies override - the dialog would contradict what is written.
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
@@ -2090,10 +2088,10 @@ codeunit 139595 "Report Layouts Test"
             'Yes', LibraryVariableStorage.DequeueText(),
             'Unticking Save Changes to a Copy must restore the all-companies scope shown in the dialog.');
         Assert.IsTrue(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
             'A global override should have been written.');
         Assert.IsFalse(
-            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            TenantReportLayoutOverride.Get(Report::TestReportLayoutsReport, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
             'No company-specific override should exist.');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -2125,13 +2123,13 @@ codeunit 139595 "Report Layouts Test"
         // tenant layout - otherwise the copy is stuck obsolete and the old copy flow regresses.
         EnsureNewLayoutsAreCleaned();
 
-        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
 
         // Make the layout resolve to obsolete, the way the everyday edit path would
         TenantReportLayoutOverride.Init();
-        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Report ID" := Report::TestReportLayoutsReport;
         TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
         TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
         TenantReportLayoutOverride."Company Name" := '';
@@ -2150,7 +2148,7 @@ codeunit 139595 "Report Layouts Test"
             LibraryVariableStorage.DequeueBoolean(),
             'Mark layout as obsolete must be editable again once Save Changes to a Copy is selected.');
         Assert.IsTrue(
-            TenantReportLayout.Get(139595, EditedLayoutNameTxt, EmptyGuid),
+            TenantReportLayout.Get(Report::TestReportLayoutsReport, EditedLayoutNameTxt, EmptyGuid),
             'The copy should exist in Tenant Report Layout under its new name.');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -2193,6 +2191,7 @@ codeunit 139595 "Report Layouts Test"
         GlobalOverrideApprovedErr: Label 'The global override for %1 should carry the Approved status.', Comment = '%1 = layout name';
         GlobalOverrideRetiredErr: Label 'The global override for %1 should carry the Retired status.', Comment = '%1 = layout name';
         CompanyOverrideUnexpectedErr: Label 'No company-specific override should exist for layout %1.', Comment = '%1 = layout name';
+        LayoutCouldNotBePreparedErr: Label 'The layout could not be prepared. %1', Comment = '%1 = layout validation error';
         InsertedLayoutContextTxt: Text;
         UploadedLayoutFileName: Text;
         ExportedLayoutFileName: Text;
