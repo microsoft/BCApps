@@ -1694,7 +1694,7 @@ codeunit 6971 "Create Expense GL Account"
         if SearchDescription = '' then
             exit('');
         SearchDescription := ConvertStr(SearchDescription, ' ', '*');
-        SearchDescription := '@*' + SearchDescription + '*'; // ignore case, any position in text
+        SearchDescription := '''@*' + SearchDescription.Replace('''', '''''') + '*'''; // ignore case, any position in text
 
         GLAccount.SetRange("Account Category", AccountCategory);
         GLAccount.SetRange("Account Type", GLAccount."Account Type"::Posting);
