@@ -21,26 +21,30 @@ codeunit 12285 "FatturaPA Preview Mgt."
         var TempFatturaHeader: Record "Fattura Header" temporary;
         var TempFatturaLine: Record "Fattura Line" temporary)
     var
+        SourceSalesHeader: Record "Sales Header";
         PreviewCollector: Codeunit "FatturaPA Preview Collector";
         PreviewAccounting: Codeunit "FatturaPA Preview Accounting";
         TempVATEntry: Record "VAT Entry" temporary;
         TempCustLedgEntry: Record "Cust. Ledger Entry" temporary;
         TempDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary;
     begin
-        ValidateSource(SalesHeader);
+        // Always use the stored source, never uncommitted fields or a temporary caller record.
+        // This Get also applies the caller's normal Sales Header read permissions.
+        SourceSalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        ValidateSource(SourceSalesHeader);
         if PreviewProgressiveNo = '' then
             Error(PreviewProgressiveNoRequiredErr);
 
         TempFatturaHeader.DeleteAll();
         TempFatturaLine.DeleteAll();
 
-        BuildHeader(SalesHeader, PreviewProgressiveNo, TempFatturaHeader);
-        BuildDocumentLines(SalesHeader, TempFatturaLine);
-        BuildSourceReferences(SalesHeader, TempFatturaHeader, TempFatturaLine);
+        BuildHeader(SourceSalesHeader, PreviewProgressiveNo, TempFatturaHeader);
+        BuildDocumentLines(SourceSalesHeader, TempFatturaLine);
+        BuildSourceReferences(SourceSalesHeader, TempFatturaHeader, TempFatturaLine);
 
         // Use the real posting engine for accounting output.
         PreviewCollector.Collect(
-            SalesHeader,
+            SourceSalesHeader,
             TempVATEntry,
             TempCustLedgEntry,
             TempDtldCustLedgEntry);
@@ -50,18 +54,18 @@ codeunit 12285 "FatturaPA Preview Mgt."
         PreviewAccounting.AddVATRows(
             TempFatturaLine,
             TempVATEntry,
-            SalesHeader."Bill-to Customer No.",
-            SalesHeader."Document Type" <> SalesHeader."Document Type"::"Credit Memo");
-        if (SalesHeader."Payment Method Code" <> '') and (SalesHeader."Payment Terms Code" <> '') then
+            SourceSalesHeader."Bill-to Customer No.",
+            SourceSalesHeader."Document Type" <> SourceSalesHeader."Document Type"::"Credit Memo");
+        if (SourceSalesHeader."Payment Method Code" <> '') and (SourceSalesHeader."Payment Terms Code" <> '') then
             PreviewAccounting.AddPaymentRows(
                 TempFatturaLine,
                 TempCustLedgEntry,
                 TempDtldCustLedgEntry);
 
-        if SalesHeader."Document Type" = SalesHeader."Document Type"::Order then
+        if SourceSalesHeader."Document Type" = SourceSalesHeader."Document Type"::Order then
             SetPreviewDocumentTotal(TempFatturaHeader, TempDtldCustLedgEntry)
         else
-            SetPreviewDocumentTotalFromSource(SalesHeader, TempFatturaHeader);
+            SetPreviewDocumentTotalFromSource(SourceSalesHeader, TempFatturaHeader);
     end;
 
     local procedure PopulateTaxRepresentative(

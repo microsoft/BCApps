@@ -145,6 +145,97 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewReloadsPersistedSalesHeaderInsteadOfUnsavedFields()
+    var
+        SalesHeader: Record "Sales Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Caller-only changes to a sales header must not affect the preview.
+        Initialize();
+        CustomerNo := CreateCustomer();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CustomerNo, SalesHeader."Document Type"::Invoice);
+        SalesHeader."Customer Purchase Order No." := 'STORED-PO';
+        SalesHeader.Modify(true);
+        Commit(); // Posting preview reads the committed document.
+
+        SalesHeader."Bill-to Customer No." := 'NOT-A-CUSTOMER';
+        SalesHeader."Customer Purchase Order No." := 'CALLER-ONLY';
+        FatturaPAPreviewMgt.PreparePreview(
+            SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+
+        TempFatturaHeader.Reset();
+        Assert.IsTrue(TempFatturaHeader.FindFirst(), 'Persisted-source preview header missing.');
+        Assert.AreEqual(CustomerNo, TempFatturaHeader."Customer No",
+            'Preview trusted the caller-only bill-to customer.');
+        Assert.AreEqual('STORED-PO', TempFatturaHeader."Customer Purchase Order No.",
+            'Preview trusted the caller-only purchase order reference.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewReloadsPersistedSalesHeaderWhenCallerIsTemporary()
+    var
+        SalesHeader: Record "Sales Header";
+        TempSalesHeader: Record "Sales Header" temporary;
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] A temporary record with a real document key cannot override stored fields.
+        Initialize();
+        CustomerNo := CreateCustomer();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CustomerNo, SalesHeader."Document Type"::Invoice);
+        SalesHeader."Customer Purchase Order No." := 'STORED-PO';
+        SalesHeader.Modify(true);
+        Commit(); // Posting preview reads the committed document.
+
+        TempSalesHeader := SalesHeader;
+        TempSalesHeader.Insert();
+        TempSalesHeader."Bill-to Customer No." := 'NOT-A-CUSTOMER';
+        TempSalesHeader."Customer Purchase Order No." := 'TEMP-ONLY';
+        TempSalesHeader.Modify();
+
+        FatturaPAPreviewMgt.PreparePreview(
+            TempSalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+
+        TempFatturaHeader.Reset();
+        Assert.IsTrue(TempFatturaHeader.FindFirst(), 'Persisted-source preview header missing.');
+        Assert.AreEqual(CustomerNo, TempFatturaHeader."Customer No",
+            'Temporary caller record replaced the stored bill-to customer.');
+        Assert.AreEqual('STORED-PO', TempFatturaHeader."Customer Purchase Order No.",
+            'Temporary caller record replaced the stored purchase order reference.');
+    end;
+
+    [Test]
+    procedure PreviewRejectsSalesHeaderWithoutPersistedDocument()
+    var
+        SalesHeader: Record "Sales Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+    begin
+        // [SCENARIO] Caller-provided fields cannot create a preview for a nonexistent document.
+        SalesHeader.Init();
+        SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
+        SalesHeader."No." := '!MISSING-BCAPPS13014';
+
+        asserterror FatturaPAPreviewMgt.PreparePreview(
+            SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        Assert.ExpectedError('Sales Header');
+        Assert.IsTrue(TempFatturaHeader.IsEmpty(), 'Missing document unexpectedly generated a header.');
+        Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Missing document unexpectedly generated lines.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PreviewXMLDoesNotAdvanceFatturaPANumberSeries()
     var
         SalesHeader: Record "Sales Header";
