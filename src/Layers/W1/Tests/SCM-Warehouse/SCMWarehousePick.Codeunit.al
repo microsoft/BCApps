@@ -3146,7 +3146,7 @@ codeunit 137055 "SCM Warehouse Pick"
     procedure BasicWarehousePickAfterPickToNonDefaultShipmentBin()
     begin
         // [SCENARIO 653921] Unshipped stock in a non-default basic warehouse shipment bin does not block picking free stock.
-        VerifyBasicWarehousePickAfterRegisteredPick(false, false, false);
+        VerifyBasicWarehousePickAfterRegisteredPick(false, false, false, false);
     end;
 
     [Test]
@@ -3154,7 +3154,7 @@ codeunit 137055 "SCM Warehouse Pick"
     procedure BasicWarehousePickAfterPickToDefaultShipmentBin()
     begin
         // [SCENARIO 653921] Picking free stock still succeeds when the earlier pick uses the default shipment bin.
-        VerifyBasicWarehousePickAfterRegisteredPick(true, false, false);
+        VerifyBasicWarehousePickAfterRegisteredPick(true, false, false, false);
     end;
 
     [Test]
@@ -3163,7 +3163,7 @@ codeunit 137055 "SCM Warehouse Pick"
     procedure BasicWarehousePickAfterShipmentDeletedStockInShipmentBin()
     begin
         // [SCENARIO 653921] Picked stock left in a non-default basic warehouse shipment bin after the shipment is deleted does not block picking free stock.
-        VerifyBasicWarehousePickAfterRegisteredPick(false, true, false);
+        VerifyBasicWarehousePickAfterRegisteredPick(false, true, false, false);
     end;
 
     [Test]
@@ -3172,10 +3172,19 @@ codeunit 137055 "SCM Warehouse Pick"
     procedure BasicWarehousePickAfterShipmentDeletedStockReturnedToStorage()
     begin
         // [SCENARIO 653921] Reserved stock returned to storage after the shipment is deleted is not picked for a competing order.
-        VerifyBasicWarehousePickAfterRegisteredPick(false, true, true);
+        VerifyBasicWarehousePickAfterRegisteredPick(false, true, true, false);
     end;
 
-    local procedure VerifyBasicWarehousePickAfterRegisteredPick(UseDefaultShipmentBin: Boolean; DeleteFirstShipment: Boolean; ReturnStockToPickBin: Boolean)
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTrue')]
+    [Scope('OnPrem')]
+    procedure BasicWarehousePickAfterShipmentDeletedStockReturnedWithOtherLiveShipment()
+    begin
+        // [SCENARIO 653921] Another order's live stock in an alternate shipment bin does not credit reserved stock that was returned to storage.
+        VerifyBasicWarehousePickAfterRegisteredPick(false, true, true, true);
+    end;
+
+    local procedure VerifyBasicWarehousePickAfterRegisteredPick(UseDefaultShipmentBin: Boolean; DeleteFirstShipment: Boolean; ReturnStockToPickBin: Boolean; AddOtherLiveShipment: Boolean)
     var
         Location: Record Location;
         WarehouseEmployee: Record "Warehouse Employee";
@@ -3183,21 +3192,27 @@ codeunit 137055 "SCM Warehouse Pick"
         DefaultShipmentBin: Record Bin;
         FirstShipmentBin: Record Bin;
         SecondShipmentBin: Record Bin;
+        OtherShipmentBin: Record Bin;
         Item: Record Item;
         ItemTrackingCode: Record "Item Tracking Code";
         FirstSalesHeader: Record "Sales Header";
         SecondSalesHeader: Record "Sales Header";
+        OtherSalesHeader: Record "Sales Header";
         FirstSalesLine: Record "Sales Line";
         SecondSalesLine: Record "Sales Line";
+        OtherSalesLine: Record "Sales Line";
         FirstWarehouseShipmentHeader: Record "Warehouse Shipment Header";
         SecondWarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        OtherWarehouseShipmentHeader: Record "Warehouse Shipment Header";
         ReservationEntry: Record "Reservation Entry";
         LotNo: Code[50];
         SecondQty: Decimal;
+        OtherQty: Decimal;
+        FreeQtyInPickBin: Decimal;
     begin
         Initialize();
 
-        // [GIVEN] A basic FEFO warehouse with blank bin types, a default shipment bin and two alternate shipment bins.
+        // [GIVEN] A basic FEFO warehouse with blank bin types, a default shipment bin and three alternate shipment bins.
         LibraryWarehouse.CreateLocationWMS(Location, true, false, true, true, true);
         Location.Validate("Pick According to FEFO", true);
         Location.Modify(true);
@@ -3206,6 +3221,7 @@ codeunit 137055 "SCM Warehouse Pick"
         LibraryWarehouse.CreateBin(DefaultShipmentBin, Location.Code, 'SHIP', '', '');
         LibraryWarehouse.CreateBin(FirstShipmentBin, Location.Code, 'SD1', '', '');
         LibraryWarehouse.CreateBin(SecondShipmentBin, Location.Code, 'SD2', '', '');
+        LibraryWarehouse.CreateBin(OtherShipmentBin, Location.Code, 'SD3', '', '');
         Location.Validate("Shipment Bin Code", DefaultShipmentBin.Code);
         Location.Modify(true);
         if UseDefaultShipmentBin then
@@ -3275,6 +3291,25 @@ codeunit 137055 "SCM Warehouse Pick"
             FirstSalesLine.TestField("Reserved Qty. (Base)", 60);
         end;
 
+        FreeQtyInPickBin := 40;
+        if AddOtherLiveShipment then begin
+            // [GIVEN] Another order for 10 is picked from the free stock into SD3 and its shipment stays open.
+            OtherQty := 10;
+            LibrarySales.CreateSalesDocumentWithItem(
+                OtherSalesHeader, OtherSalesLine, OtherSalesHeader."Document Type"::Order,
+                LibrarySales.CreateCustomerNo(), Item."No.", OtherQty, Location.Code, WorkDate());
+            LibrarySales.ReleaseSalesDocument(OtherSalesHeader);
+            LibraryWarehouse.CreateWhseShipmentFromSO(OtherSalesHeader);
+            FindWarehouseShipmentHeader(OtherWarehouseShipmentHeader, OtherSalesHeader."No.");
+            UpdateShipmentBinOnWhseShipment(OtherWarehouseShipmentHeader, OtherShipmentBin.Code);
+            LibraryWarehouse.CreatePick(OtherWarehouseShipmentHeader);
+            VerifyRepickLotLines(OtherSalesLine, LotNo, PickBin, OtherQty, OtherShipmentBin.Code);
+            RegisterWarehouseActivity(OtherSalesHeader."No.", "Warehouse Activity Type"::Pick);
+            FreeQtyInPickBin -= OtherQty;
+            VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", LotNo, 100 - OtherQty);
+            VerifyQuantityOnBin(Location.Code, OtherShipmentBin.Code, Item."No.", LotNo, OtherQty);
+        end;
+
         // [GIVEN] A second, unreserved order requires units in SD2; it requests more than the free stock when reserved stock is back in COOL1.
         SecondQty := 30;
         if ReturnStockToPickBin then
@@ -3298,11 +3333,13 @@ codeunit 137055 "SCM Warehouse Pick"
         FirstSalesLine.CalcFields("Reserved Qty. (Base)");
         FirstSalesLine.TestField("Reserved Qty. (Base)", 60);
         if ReturnStockToPickBin then begin
-            VerifyRepickLotLines(SecondSalesLine, LotNo, PickBin, 40, SecondShipmentBin.Code);
-            VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", LotNo, 100);
+            // [THEN] The returned reserved stock is not credited by the other order's stock in SD3, so only free units are picked.
+            VerifyRepickLotLines(SecondSalesLine, LotNo, PickBin, FreeQtyInPickBin, SecondShipmentBin.Code);
+            VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", LotNo, 100 - OtherQty);
             VerifyQuantityOnBin(Location.Code, FirstShipmentBin.Code, Item."No.", LotNo, 0);
+            VerifyQuantityOnBin(Location.Code, OtherShipmentBin.Code, Item."No.", LotNo, OtherQty);
         end else begin
-            VerifyRepickLotLines(SecondSalesLine, LotNo, PickBin, 30, SecondShipmentBin.Code);
+            VerifyRepickLotLines(SecondSalesLine, LotNo, PickBin, SecondQty, SecondShipmentBin.Code);
             if not DeleteFirstShipment then
                 VerifyRepickShipmentLine(FirstSalesLine, FirstWarehouseShipmentHeader, 60);
             VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", LotNo, 40);
