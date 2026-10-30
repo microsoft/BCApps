@@ -29,6 +29,19 @@ codeunit 6132 "E-Document Log"
         EDocTelemetryGetLogFailureLbl: Label 'E-Document Blog Log Failure', Locked = true;
 
 
+    internal procedure LogTelemetry(EventId: Text; Message: Text; EventVerbosity: Verbosity; EventDataClassification: DataClassification; EventTelemetryScope: TelemetryScope; CustomDimensions: Dictionary of [Text, Text])
+    var
+        Telemetry: Codeunit Telemetry;
+    begin
+        Telemetry.LogMessage(EventId, Message, EventVerbosity, EventDataClassification, EventTelemetryScope, CustomDimensions);
+        OnAfterLogTelemetry(EventId, Message, EventVerbosity, EventDataClassification, EventTelemetryScope, CustomDimensions);
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnAfterLogTelemetry(EventId: Text; Message: Text; EventVerbosity: Verbosity; EventDataClassification: DataClassification; EventTelemetryScope: TelemetryScope; CustomDimensions: Dictionary of [Text, Text])
+    begin
+    end;
+
     internal procedure SetFields(EDocument: Record "E-Document")
     var
         EDocumentService: Record "E-Document Service";

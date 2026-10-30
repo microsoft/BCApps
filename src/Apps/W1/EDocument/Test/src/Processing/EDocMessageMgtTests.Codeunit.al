@@ -11,6 +11,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using System.TestLibraries.Upgrade;
+using System.TestLibraries.Utilities;
 using System.Threading;
 using System.Upgrade;
 using System.Utilities;
@@ -27,6 +28,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         EDocImplState: Codeunit "E-Doc. Impl. State";
         LibraryEDoc: Codeunit "Library - E-Document";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
 
     [Test]
@@ -261,6 +263,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         BindSubscription(EDocImplState);
         EDocImplState.SetEnableHttpData();
         EDocImplState.SetThrowIntegrationRuntimeError();
+        EDocImplState.EnableMessageTelemetry();
         Commit();
 
         // [WHEN] The response polling background job runs
@@ -274,6 +277,9 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         Assert.IsTrue(EDocMessage."Last Error".Contains('TEST'), 'The connector error must be stored.');
         EDocumentIntegrationLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
         Assert.RecordCount(EDocumentIntegrationLog, 1);
+        Assert.AreEqual(1, EDocImplState.GetMessageTelemetryCount('0000LC8'), 'Emit exactly one polling failure.');
+        Assert.AreEqual(0, EDocImplState.GetMessageTelemetryCount('0000LC7'), 'A polling failure is not a send failure.');
+        Assert.AreEqual(0, EDocImplState.GetMessageTelemetryCount('0000W3L'), 'A connector failure is not a scheduling failure.');
     end;
 
     [Test]
@@ -308,6 +314,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         BindSubscription(EDocImplState);
         EDocImplState.SetEnableHttpData();
         EDocImplState.SetThrowIntegrationRuntimeError();
+        EDocImplState.EnableMessageTelemetry();
         Commit();
 
         // [WHEN] The message send background job runs
@@ -321,6 +328,9 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         Assert.IsTrue(EDocMessage."Last Error".Contains('TEST'), 'The connector error must be stored.');
         EDocumentIntegrationLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
         Assert.RecordCount(EDocumentIntegrationLog, 1);
+        Assert.AreEqual(1, EDocImplState.GetMessageTelemetryCount('0000LC7'), 'Emit exactly one send failure.');
+        Assert.AreEqual(0, EDocImplState.GetMessageTelemetryCount('0000LC8'), 'A send failure is not a polling failure.');
+        Assert.AreEqual(0, EDocImplState.GetMessageTelemetryCount('0000W3L'), 'A connector failure is not a scheduling failure.');
     end;
 
     [Test]
@@ -760,6 +770,618 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         Assert.AreEqual(0, EDocPaymentOccurrence."Retry Count", 'An active lease must prevent another processing attempt.');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure QueueMessagePreparationFailureIsRetryable()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] Preparation failure persists a retryable error on the original message.
+        Initialize(Customer);
+
+        // [GIVEN] Message "M" and a scheduler that fails before enqueueing.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Created);
+        EDocImplState.SetSchedulingFailure(Codeunit::"E-Doc. Message Send Job");
+        EDocImplState.EnableMessageTelemetry();
+        BindSubscription(EDocImplState);
+
+        // [WHEN] Message "M" is queued.
+        EDocumentMessageAPI.QueueMessage(EDocMessage."Entry No.");
+
+        // [THEN] The same message remains recoverable and telemetry does not claim success.
+        VerifySchedulingFailure(EDocument, EDocMessage, EDocMessage.Status::Error, 'SendScheduling', 'TEST SCHEDULING FAILURE');
+        UnbindSubscription(EDocImplState);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure QueueMessageEnqueueFailureIsRetryable()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] Enqueue failure has durable diagnostics without a scheduling-success event.
+        Initialize(Customer);
+
+        // [GIVEN] Message "M" whose job cannot be inserted.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Created);
+        EDocImplState.SetEnqueueFailure(Codeunit::"E-Doc. Message Send Job");
+        EDocImplState.EnableMessageTelemetry();
+        BindSubscription(EDocImplState);
+
+        // [WHEN] Message "M" is queued.
+        EDocumentMessageAPI.QueueMessage(EDocMessage."Entry No.");
+
+        // [THEN] The same message retains the enqueue failure.
+        VerifySchedulingFailure(EDocument, EDocMessage, EDocMessage.Status::Error, 'SendScheduling', 'TEST ENQUEUE FAILURE');
+        UnbindSubscription(EDocImplState);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure SendRetryPreparationFailureKeepsMessage()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] A failed manual send retry does not duplicate the child or payload.
+        Initialize(Customer);
+
+        // [GIVEN] Failed message "M" and a failing scheduler.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Error);
+        EDocImplState.SetSchedulingFailure(Codeunit::"E-Doc. Message Send Job");
+        EDocImplState.EnableMessageTelemetry();
+        BindSubscription(EDocImplState);
+
+        // [WHEN] Sending is retried.
+        EDocumentMessageAPI.RetryMessage(EDocMessage."Entry No.");
+
+        // [THEN] Message "M" retains its payload and remains retryable.
+        VerifySchedulingFailure(EDocument, EDocMessage, EDocMessage.Status::Error, 'SendScheduling', 'TEST SCHEDULING FAILURE');
+        UnbindSubscription(EDocImplState);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure ResponseRetryPreparationFailureKeepsResponseError()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] A failed response retry never queues another send.
+        Initialize(Customer);
+
+        // [GIVEN] Response-error message "M" and a failing poll scheduler.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::"Response Error");
+        EDocImplState.SetSchedulingFailure(Codeunit::"E-Doc. Message Response Job");
+        EDocImplState.EnableMessageTelemetry();
+        BindSubscription(EDocImplState);
+
+        // [WHEN] Polling is retried.
+        EDocumentMessageAPI.RetryMessage(EDocMessage."Entry No.");
+
+        // [THEN] Message "M" remains a response error, with no send job.
+        VerifySchedulingFailure(EDocument, EDocMessage, EDocMessage.Status::"Response Error", 'ResponseScheduling', 'TEST SCHEDULING FAILURE');
+        UnbindSubscription(EDocImplState);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure AcceptedSendWithPollingScheduleFailureKeepsResponseError()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] Scheduling failure after an accepted send must not become a send error.
+        Initialize(Customer);
+
+        // [GIVEN] Queued message "M", an asynchronous connector, and a failing poll scheduler.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Queued);
+        JobQueueEntry."Record ID to Process" := EDocMessage.RecordId();
+        EDocImplState.SetIsAsync();
+        EDocImplState.SetSchedulingFailure(Codeunit::"E-Doc. Message Response Job");
+        EDocImplState.EnableMessageTelemetry();
+        BindSubscription(EDocImplState);
+        Commit();
+
+        // [WHEN] The send worker accepts the message and attempts to schedule its response.
+        Assert.IsTrue(Codeunit.Run(Codeunit::"E-Doc. Message Send Job", JobQueueEntry), 'An accepted send must not be reported as a send failure.');
+
+        // [THEN] Only response scheduling failed.
+        VerifySchedulingFailure(EDocument, EDocMessage, EDocMessage.Status::"Response Error", 'ResponseScheduling', 'TEST SCHEDULING FAILURE');
+        Assert.AreEqual(0, EDocImplState.GetMessageTelemetryCount('0000LC7'), 'Do not emit a send-failure event after an accepted send.');
+        EDocImplState.SetSchedulingFailure(0);
+        EDocImplState.SetOnGetResponseSuccess();
+        EDocumentMessageAPI.RetryMessage(EDocMessage."Entry No.");
+        JobQueueEntry.SetRange("Record ID to Process", EDocMessage.RecordId());
+        JobQueueEntry.FindFirst();
+        Assert.AreEqual(Codeunit::"E-Doc. Message Response Job", JobQueueEntry."Object ID to Run", 'Retry must poll an already accepted send.');
+        Commit();
+        Assert.IsTrue(Codeunit.Run(Codeunit::"E-Doc. Message Response Job", JobQueueEntry), 'The repaired response worker must succeed.');
+        Assert.AreEqual(1, EDocImplState.GetMessageSendCount(), 'Response recovery must never resend the accepted message.');
+        UnbindSubscription(EDocImplState);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PendingPollSchedulingFailureKeepsResponseError()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] A pending poll whose next job cannot be scheduled remains recoverable.
+        Initialize(Customer);
+
+        // [GIVEN] Pending message "M" and a scheduler that cannot enqueue another poll.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::"Pending Response");
+        EDocImplState.SetSchedulingFailure(Codeunit::"E-Doc. Message Response Job");
+        EDocImplState.EnableMessageTelemetry();
+        BindSubscription(EDocImplState);
+
+        // [WHEN] The connector still has no response.
+        EDocumentMessageAPI.PollMessageResponse(EDocMessage."Entry No.");
+
+        // [THEN] The original message is a response error, never a new send.
+        VerifySchedulingFailure(EDocument, EDocMessage, EDocMessage.Status::"Response Error", 'ResponseScheduling', 'TEST SCHEDULING FAILURE');
+        UnbindSubscription(EDocImplState);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure RepairedSchedulerRetriesOriginalMessage()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        OriginalDataStorageEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] Repairing setup permits retry with truthful scheduling telemetry and the original payload.
+        Initialize(Customer);
+
+        // [GIVEN] Message "M" failed once during scheduling.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Created);
+        OriginalDataStorageEntryNo := EDocMessage."Data Storage Entry No.";
+        EDocImplState.SetSchedulingFailure(Codeunit::"E-Doc. Message Send Job");
+        EDocImplState.EnableMessageTelemetry();
+        BindSubscription(EDocImplState);
+        EDocumentMessageAPI.QueueMessage(EDocMessage."Entry No.");
+        EDocImplState.SetSchedulingFailure(0);
+
+        // [WHEN] The user retries after setup is repaired.
+        EDocumentMessageAPI.RetryMessage(EDocMessage."Entry No.");
+
+        // [THEN] One actual job is scheduled for the same payload.
+        JobQueueEntry.SetRange("Record ID to Process", EDocMessage.RecordId());
+        Assert.RecordCount(JobQueueEntry, 1);
+        JobQueueEntry.FindFirst();
+        Assert.AreEqual(Format(JobQueueEntry.ID), EDocImplState.GetScheduledJobId(), 'Success telemetry must contain the persisted queue ID.');
+        Assert.AreEqual(1, EDocImplState.GetMessageTelemetryCount('0000LC6'), 'Only successful enqueue emits scheduling success.');
+        EDocMessage.Get(EDocMessage."Entry No.");
+        Assert.AreEqual('TEST SCHEDULING FAILURE', EDocMessage."Last Error", 'Retry alone must retain the last diagnostic.');
+        Commit();
+
+        // [WHEN] The repaired send worker succeeds.
+        Assert.IsTrue(Codeunit.Run(Codeunit::"E-Doc. Message Send Job", JobQueueEntry), 'The retry must send successfully.');
+
+        // [THEN] Success clears the error without replacing the child or resetting its failure history.
+        EDocMessage.Get(EDocMessage."Entry No.");
+        Assert.AreEqual(EDocMessage.Status::Sent, EDocMessage.Status, 'The original message must be sent.');
+        Assert.AreEqual('', EDocMessage."Last Error", 'Successful delivery must clear the last error.');
+        Assert.AreEqual(1, EDocMessage."Retry Count", 'Successful delivery must retain failure history.');
+        Assert.AreEqual(OriginalDataStorageEntryNo, EDocMessage."Data Storage Entry No.", 'Retry must retain the original payload.');
+        UnbindSubscription(EDocImplState);
+    end;
+
+    [Test]
+    procedure MessageErrorInfoRetainsServiceNavigation()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        MessageErrorInfo: ErrorInfo;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] Raw connector errors retain safe classification and actionable service context.
+        Initialize(Customer);
+
+        // [GIVEN] Message "M" belongs to a configured service.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Error);
+
+        // [WHEN] A connector error is wrapped for the user.
+        MessageErrorInfo := EDocMessageMgt.CreateMessageErrorInfo(EDocMessage, 'Customer-specific diagnostic');
+
+        // [THEN] The error retains its text and service navigation without classifying it as metadata.
+        Assert.AreEqual(Format(DataClassification::CustomerContent), Format(MessageErrorInfo.DataClassification), 'Connector text is customer content.');
+        Assert.IsTrue(EDocumentService.RecordId() = MessageErrorInfo.RecordId, 'The error must navigate to the message service.');
+        Assert.AreEqual(Page::"E-Document Service", MessageErrorInfo.PageNo, 'The error must open the service setup.');
+        Assert.AreEqual('Customer-specific diagnostic', MessageErrorInfo.Message, 'The connector diagnostic must be retained.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [TestPermissions(TestPermissions::Restrictive)]
+    procedure MessageUserCanRetryAndRunResponseWorker()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        WorkerSucceeded: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] A basic user with message and job-queue roles can retry polling without SUPER or an extra response-runner grant.
+        Initialize(Customer);
+
+        // [GIVEN] Response-error message "M" and a connector with a completed response.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::"Response Error");
+        EDocImplState.SetOnGetResponseSuccess();
+        BindSubscription(EDocImplState);
+        Commit();
+        SetMessageUserPermissions();
+
+        // [WHEN] The user retries polling and the scheduled response worker runs.
+        EDocumentMessageAPI.RetryMessage(EDocMessage."Entry No.");
+        EDocMessage.Get(EDocMessage."Entry No.");
+        Assert.AreEqual(EDocMessage.Status::"Pending Response", EDocMessage.Status, EDocMessage."Last Error");
+        JobQueueEntry.SetRange("Record ID to Process", EDocMessage.RecordId());
+        JobQueueEntry.FindFirst();
+        Commit();
+        WorkerSucceeded := Codeunit.Run(Codeunit::"E-Doc. Message Response Job", JobQueueEntry);
+        LibraryLowerPermission.StopLoggingNAVPermissions();
+
+        // [THEN] The original child is sent by a response job, not a new send job.
+        Assert.IsTrue(WorkerSucceeded, 'The response worker must run with the normal message and job-queue roles.');
+        Assert.AreEqual(Codeunit::"E-Doc. Message Response Job", JobQueueEntry."Object ID to Run", 'A response retry must not queue a send.');
+        EDocMessage.Get(EDocMessage."Entry No.");
+        Assert.AreEqual(EDocMessage.Status::Sent, EDocMessage.Status, 'Polling must complete the original child.');
+        UnbindSubscription(EDocImplState);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [TestPermissions(TestPermissions::Restrictive)]
+    procedure MessageUserCanRetryAndRunSendWorker()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        WorkerSucceeded: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] A basic user with message and job-queue roles can retry sending without SUPER.
+        Initialize(Customer);
+
+        // [GIVEN] Failed message "M" and a functioning connector.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Error);
+        BindSubscription(EDocImplState);
+        Commit();
+        SetMessageUserPermissions();
+
+        // [WHEN] The user retries sending and the scheduled send worker runs.
+        EDocumentMessageAPI.RetryMessage(EDocMessage."Entry No.");
+        EDocMessage.Get(EDocMessage."Entry No.");
+        Assert.AreEqual(EDocMessage.Status::Queued, EDocMessage.Status, EDocMessage."Last Error");
+        JobQueueEntry.SetRange("Record ID to Process", EDocMessage.RecordId());
+        JobQueueEntry.FindFirst();
+        Commit();
+        WorkerSucceeded := Codeunit.Run(Codeunit::"E-Doc. Message Send Job", JobQueueEntry);
+        LibraryLowerPermission.StopLoggingNAVPermissions();
+
+        // [THEN] The original child is sent using the normal roles.
+        Assert.IsTrue(WorkerSucceeded, 'The send worker must run with the normal message and job-queue roles.');
+        Assert.AreEqual(Codeunit::"E-Doc. Message Send Job", JobQueueEntry."Object ID to Run", 'A send retry must queue a send job.');
+        EDocMessage.Get(EDocMessage."Entry No.");
+        Assert.AreEqual(EDocMessage.Status::Sent, EDocMessage.Status, 'Sending must complete the original child.');
+        UnbindSubscription(EDocImplState);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageServicePageHandler')]
+    procedure MessageFactBoxOpensSelectedService()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        EDocumentPage: TestPage "E-Document";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] A failed message opens its own service configuration.
+        Initialize(Customer);
+
+        // [GIVEN] Failed message "M" is selected in the Messages FactBox.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Error);
+        EDocumentPage.OpenView();
+        EDocumentPage.GoToRecord(EDocument);
+        EDocumentPage.EDocMessages.GoToRecord(EDocMessage);
+
+        // [WHEN] The user opens the message's service.
+        EDocumentPage.EDocMessages.OpenService.Invoke();
+        EDocumentPage.Close();
+
+        // [THEN] The service page shows the selected message's service.
+        Assert.AreEqual(EDocMessage.Service, LibraryVariableStorage.DequeueText(), 'Navigation must open the selected message service.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageIntegrationLogsPageHandler')]
+    procedure MessageFactBoxFiltersIntegrationLogs()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        OtherEDocument: Record "E-Document";
+        OtherService: Record "E-Document Service";
+        EDocMessage: Record "E-Document Message";
+        EDocumentIntegrationLog: Record "E-Document Integration Log";
+        EDocumentPage: TestPage "E-Document";
+        ExpectedLogEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] Message diagnostics exclude logs for other parent documents and services.
+        Initialize(Customer);
+
+        // [GIVEN] Message "M" and communication logs for two different parent documents.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Error);
+        CreateOutgoingEDocument(OtherEDocument);
+        EDocumentIntegrationLog.Init();
+        EDocumentIntegrationLog."E-Doc. Entry No" := EDocument."Entry No";
+        EDocumentIntegrationLog."Service Code" := EDocumentService.Code;
+        EDocumentIntegrationLog.Insert();
+        ExpectedLogEntryNo := EDocumentIntegrationLog."Entry No.";
+        EDocumentIntegrationLog.Init();
+        EDocumentIntegrationLog."Entry No." := 0;
+        EDocumentIntegrationLog."E-Doc. Entry No" := OtherEDocument."Entry No";
+        EDocumentIntegrationLog."Service Code" := EDocumentService.Code;
+        EDocumentIntegrationLog.Insert();
+        OtherService.Init();
+        OtherService.Code := CopyStr(Format(CreateGuid()), 1, MaxStrLen(OtherService.Code));
+        OtherService.Insert();
+        EDocumentIntegrationLog.Init();
+        EDocumentIntegrationLog."Entry No." := 0;
+        EDocumentIntegrationLog."E-Doc. Entry No" := EDocument."Entry No";
+        EDocumentIntegrationLog."Service Code" := OtherService.Code;
+        EDocumentIntegrationLog.Insert();
+        EDocumentPage.OpenView();
+        EDocumentPage.GoToRecord(EDocument);
+        EDocumentPage.EDocMessages.GoToRecord(EDocMessage);
+
+        // [WHEN] The user opens communication logs for message "M".
+        EDocumentPage.EDocMessages.OpenIntegrationLogs.Invoke();
+        EDocumentPage.Close();
+
+        // [THEN] Only its parent document's matching service log is shown.
+        Assert.AreEqual(ExpectedLogEntryNo, LibraryVariableStorage.DequeueInteger(), 'Only logs for the selected message parent must be shown.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure LongConnectorErrorIsTruncatedAndExcludedFromTelemetry()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+        ConnectorError: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] Long customer-bearing diagnostics stay local and are truncated only for storage.
+        Initialize(Customer);
+
+        // [GIVEN] Queued message "M" and a connector returning a long private diagnostic.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Queued);
+        ConnectorError := 'PRIVATE-DIAGNOSTIC-' + PadStr('', MaxStrLen(EDocMessage."Last Error") + 50, 'X');
+        EDocImplState.SetMessageConnectorError(ConnectorError);
+        EDocImplState.EnableMessageTelemetry();
+        BindSubscription(EDocImplState);
+        JobQueueEntry."Record ID to Process" := EDocMessage.RecordId();
+        Commit();
+
+        // [WHEN] The send worker fails.
+        Assert.IsFalse(Codeunit.Run(Codeunit::"E-Doc. Message Send Job", JobQueueEntry), 'The connector error must not become a successful send.');
+
+        // [THEN] The local error is bounded and no custom telemetry contains the private diagnostic.
+        EDocMessage.Get(EDocMessage."Entry No.");
+        Assert.AreEqual(CopyStr(ConnectorError, 1, MaxStrLen(EDocMessage."Last Error")), EDocMessage."Last Error", 'Persist the diagnostic up to the field capacity.');
+        Assert.IsFalse(EDocImplState.GetMessageTelemetryText().Contains('PRIVATE-DIAGNOSTIC-'), 'Customer content must not enter custom telemetry.');
+        Assert.AreEqual(1, EDocImplState.GetMessageTelemetryCount('0000LC7'), 'Emit exactly one worker failure.');
+        UnbindSubscription(EDocImplState);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CompletedResponseWithPendingStatusIsRejected()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] A true response result cannot carry Pending Response status.
+        Initialize(Customer);
+
+        // [GIVEN] Pending message "M" and an inconsistent completed response.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::"Pending Response");
+        EDocImplState.SetOnGetResponseSuccess();
+        EDocImplState.SetMessageResponseStatus("E-Document Service Status"::"Pending Response");
+        Commit();
+
+        // [WHEN] The response worker polls message "M".
+        // [THEN] The invalid contract becomes a recoverable response error.
+        VerifyInvalidResponseRejected(EDocMessage);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PendingResponseWithSentStatusIsRejected()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] A false response result cannot carry Sent status.
+        Initialize(Customer);
+
+        // [GIVEN] Pending message "M" and an inconsistent incomplete response.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::"Pending Response");
+        EDocImplState.SetMessageResponseStatus("E-Document Service Status"::Sent);
+        Commit();
+
+        // [WHEN] The response worker polls message "M".
+        // [THEN] The invalid contract becomes a recoverable response error.
+        VerifyInvalidResponseRejected(EDocMessage);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [TestPermissions(TestPermissions::Restrictive)]
+    procedure RetryWithoutErrorLogPermissionsRetainsActionableFailure()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] Denied scheduling leaves an actionable failure and does not enqueue a retry.
+        Initialize(Customer);
+
+        // [GIVEN] Failed message "M" and a user without the base error-log write permissions.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Error);
+        Commit();
+        LibraryLowerPermission.StartLoggingNAVPermissions();
+        LibraryLowerPermission.SetExactPermissionSet('E-Doc. Core - User');
+        LibraryLowerPermission.AddPermissionSet('D365 Basic - Read');
+        LibraryLowerPermission.AddPermissionSet('Job Queue - Admin');
+
+        // [WHEN] The user retries without the error-log permissions required for scheduling.
+        EDocumentMessageAPI.RetryMessage(EDocMessage."Entry No.");
+        LibraryLowerPermission.StopLoggingNAVPermissions();
+
+        // [THEN] The child retains the permission diagnostic and remains retryable without a queued job.
+        EDocMessage.Get(EDocMessage."Entry No.");
+        Assert.AreEqual(EDocMessage.Status::Error, EDocMessage.Status, 'Denied scheduling must remain retryable.');
+        Assert.IsTrue(EDocMessage."Last Error".Contains('Error Message Register'), EDocMessage."Last Error");
+        Assert.IsTrue(EDocMessage."Last Error".Contains('Permissions'), 'Retain the missing error-log permissions diagnostic.');
+        Assert.AreEqual(1, EDocMessage."Retry Count", 'Count the denied scheduling attempt exactly once.');
+        Assert.AreNotEqual(0DT, EDocMessage."Last Attempt At", 'Record the denied scheduling attempt.');
+        JobQueueEntry.SetRange("Record ID to Process", EDocMessage.RecordId());
+        Assert.RecordCount(JobQueueEntry, 0);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure UnsupportedConnectorRetainsActionableFailure()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] A service without message support must report a retryable failure, never success.
+        Initialize(Customer);
+
+        // [GIVEN] Queued message "M" belongs to a service with no message connector.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Queued);
+        Clear(EDocumentService."Service Integration V2");
+        EDocumentService.Modify();
+        JobQueueEntry."Record ID to Process" := EDocMessage.RecordId();
+        Commit();
+
+        // [WHEN] The send worker tries the unsupported connector.
+        Assert.IsFalse(Codeunit.Run(Codeunit::"E-Doc. Message Send Job", JobQueueEntry), 'An unsupported connector must fail explicitly.');
+
+        // [THEN] The child has an actionable service-specific error.
+        EDocMessage.Get(EDocMessage."Entry No.");
+        Assert.AreEqual(EDocMessage.Status::Error, EDocMessage.Status, 'Unsupported transport must not report Sent.');
+        Assert.AreEqual(StrSubstNo('E-Document service %1 does not support sending E-Document messages.', EDocumentService.Code), EDocMessage."Last Error", 'The failure must identify the service and unsupported operation.');
+    end;
+
+    [Test]
+    procedure RetryActionOnlyEnablesForFailedOutgoingMessages()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] Retry is enabled only for failed outgoing sends and polls.
+        Initialize(Customer);
+
+        // [GIVEN] Message "M" is shown in the Messages FactBox.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Created);
+
+        // [WHEN] The message direction and transport state vary.
+        // [THEN] Only the two recoverable outgoing states allow retry.
+        VerifyRetryEnabled(EDocMessage, EDocMessage.Status::Created, EDocMessage.Direction::Outgoing, false);
+        VerifyRetryEnabled(EDocMessage, EDocMessage.Status::Queued, EDocMessage.Direction::Outgoing, false);
+        VerifyRetryEnabled(EDocMessage, EDocMessage.Status::"Pending Response", EDocMessage.Direction::Outgoing, false);
+        VerifyRetryEnabled(EDocMessage, EDocMessage.Status::Sent, EDocMessage.Direction::Outgoing, false);
+        VerifyRetryEnabled(EDocMessage, EDocMessage.Status::Error, EDocMessage.Direction::Outgoing, true);
+        VerifyRetryEnabled(EDocMessage, EDocMessage.Status::"Response Error", EDocMessage.Direction::Outgoing, true);
+        VerifyRetryEnabled(EDocMessage, EDocMessage.Status::Error, EDocMessage.Direction::Incoming, false);
+        VerifyRetryEnabled(EDocMessage, EDocMessage.Status::"Response Error", EDocMessage.Direction::Incoming, false);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure RepeatedRetryDoesNotDuplicateScheduledSend()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] A second retry cannot enqueue another job for an already queued message.
+        Initialize(Customer);
+
+        // [GIVEN] Failed message "M" has already been retried.
+        CreateMessageWithStatus(EDocument, EDocMessage, EDocMessage.Status::Error);
+        EDocumentMessageAPI.RetryMessage(EDocMessage."Entry No.");
+        Commit();
+
+        // [WHEN] The retry request is repeated.
+        asserterror EDocumentMessageAPI.RetryMessage(EDocMessage."Entry No.");
+
+        // [THEN] The repeated request is rejected and only the original retry job exists.
+        Assert.ExpectedError('Status must be equal to ''Error''');
+        Assert.ExpectedErrorCode('TestField');
+        JobQueueEntry.SetRange("Record ID to Process", EDocMessage.RecordId());
+        Assert.RecordCount(JobQueueEntry, 1);
+    end;
+
     local procedure Initialize(var Customer: Record Customer)
     var
         EDocument: Record "E-Document";
@@ -769,7 +1391,8 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     begin
         if UnbindSubscription(EDocImplState) then;
         Clear(EDocImplState);
-        LibraryLowerPermission.SetOutsideO365Scope();
+        LibraryVariableStorage.Clear();
+        LibraryLowerPermission.StopLoggingNAVPermissions();
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         JobQueueEntry.SetFilter(
             "Object ID to Run", '%1|%2|%3', Codeunit::"E-Doc. Message Send Job",
@@ -787,6 +1410,85 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         EDocumentService.DeleteAll();
         LibraryEDoc.SetupStandardSalesScenario(
             Customer, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::Mock);
+    end;
+
+    local procedure VerifyRetryEnabled(var EDocMessage: Record "E-Document Message"; MessageStatus: Enum "E-Doc. Message Status"; Direction: Enum "E-Document Direction"; ExpectedEnabled: Boolean)
+    var
+        EDocument: Record "E-Document";
+        EDocumentPage: TestPage "E-Document";
+    begin
+        EDocMessage.Status := MessageStatus;
+        EDocMessage.Direction := Direction;
+        EDocMessage.Modify();
+        EDocument.Get(EDocMessage."E-Document Entry No.");
+        EDocumentPage.OpenView();
+        EDocumentPage.GoToRecord(EDocument);
+        EDocumentPage.EDocMessages.GoToRecord(EDocMessage);
+        Assert.AreEqual(ExpectedEnabled, EDocumentPage.EDocMessages.Retry.Enabled(), 'Retry eligibility must match the message state and direction.');
+        EDocumentPage.Close();
+    end;
+
+    local procedure VerifyInvalidResponseRejected(EDocMessage: Record "E-Document Message")
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        EDocImplState.EnableMessageTelemetry();
+        BindSubscription(EDocImplState);
+        JobQueueEntry."Record ID to Process" := EDocMessage.RecordId();
+        Assert.IsFalse(Codeunit.Run(Codeunit::"E-Doc. Message Response Job", JobQueueEntry), 'An inconsistent response must fail.');
+        EDocMessage.Get(EDocMessage."Entry No.");
+        Assert.AreEqual(EDocMessage.Status::"Response Error", EDocMessage.Status, 'The invalid response must remain recoverable.');
+        Assert.AreEqual(1, EDocMessage."Retry Count", 'Count the invalid response exactly once.');
+        Assert.AreNotEqual('', EDocMessage."Last Error", 'Retain the invalid-contract diagnostic.');
+        Assert.AreEqual(1, EDocImplState.GetMessageTelemetryCount('0000LC8'), 'Emit one response failure.');
+        UnbindSubscription(EDocImplState);
+    end;
+
+    local procedure SetMessageUserPermissions()
+    begin
+        LibraryLowerPermission.StartLoggingNAVPermissions();
+        LibraryLowerPermission.SetExactPermissionSet('E-Doc. Core - User');
+        LibraryLowerPermission.AddPermissionSet('D365 BASIC');
+        LibraryLowerPermission.AddPermissionSet('Job Queue - Admin');
+        LibraryLowerPermission.AddPermissionSet('E-Doc. Message Test');
+    end;
+
+    local procedure CreateMessageWithStatus(var EDocument: Record "E-Document"; var EDocMessage: Record "E-Document Message"; MessageStatus: Enum "E-Doc. Message Status")
+    begin
+        CreateOutgoingEDocument(EDocument);
+        EDocMessage.Get(CreatePendingMessage(EDocument));
+        EDocMessage.Status := MessageStatus;
+        EDocMessage.Modify();
+    end;
+
+    local procedure VerifySchedulingFailure(OriginalEDocument: Record "E-Document"; OriginalMessage: Record "E-Document Message"; ExpectedStatus: Enum "E-Doc. Message Status"; ExpectedStage: Text; ExpectedError: Text)
+    var
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        EDocMessage.Get(OriginalMessage."Entry No.");
+        Assert.AreEqual(ExpectedStatus, EDocMessage.Status, 'The message must retain the correct retryable status.');
+        Assert.AreEqual(OriginalMessage."Data Storage Entry No.", EDocMessage."Data Storage Entry No.", 'Scheduling must not replace the payload.');
+        Assert.AreEqual(OriginalMessage."Retry Count" + 1, EDocMessage."Retry Count", 'Count the failed attempt exactly once.');
+        Assert.AreEqual(ExpectedError, EDocMessage."Last Error", 'Retain the original scheduler diagnostic.');
+        Assert.AreNotEqual(0DT, EDocMessage."Last Attempt At", 'Record the failed attempt time.');
+        EDocMessage.SetRange("E-Document Entry No.", OriginalEDocument."Entry No");
+        Assert.RecordCount(EDocMessage, 1);
+        JobQueueEntry.SetRange("Record ID to Process", OriginalMessage.RecordId());
+        Assert.RecordCount(JobQueueEntry, 0);
+        EDocument.Get(OriginalEDocument."Entry No");
+        Assert.AreEqual(OriginalEDocument.Status, EDocument.Status, 'Child-message failure must not change invoice status.');
+        Assert.AreEqual(1, EDocImplState.GetMessageTelemetryCount('0000W3L'), 'Emit one scheduling-failure event.');
+        Assert.AreEqual(0, EDocImplState.GetMessageTelemetryCount('0000LC6'), 'Failed enqueue must not emit success.');
+        Assert.IsFalse(EDocImplState.GetMessageTelemetryText().Contains(ExpectedError), 'Raw diagnostics must not be sent to telemetry.');
+        Dimensions := EDocImplState.GetSchedulingTelemetryDimensions();
+        Assert.AreEqual(ExpectedStage, Dimensions.Get('Stage'), 'Identify the failed scheduling stage.');
+        Assert.AreEqual(Format(OriginalMessage."Entry No.", 0, 9), Dimensions.Get('MessageEntryNo'), 'Correlate telemetry to the existing child.');
+        Assert.AreEqual(Format(DataClassification::SystemMetadata), Dimensions.Get('TestClassification'), 'New telemetry contains metadata only.');
+        Assert.AreEqual(Format(TelemetryScope::All), Dimensions.Get('TestScope'), 'Actionable scheduling failures belong in environment telemetry.');
+        Assert.AreEqual(Format(Verbosity::Error), Dimensions.Get('TestVerbosity'), 'Scheduling failure must be an error event.');
     end;
 
     local procedure CreatePaymentOccurrenceScenario(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
@@ -884,5 +1586,22 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         EDocMessage.Status := EDocMessage.Status::"Pending Response";
         EDocMessage.Modify();
         exit(MessageEntryNo);
+    end;
+
+    [PageHandler]
+    procedure MessageServicePageHandler(var EDocumentServicePage: TestPage "E-Document Service")
+    begin
+        LibraryVariableStorage.Enqueue(EDocumentServicePage.Code.Value);
+        EDocumentServicePage.Close();
+    end;
+
+    [PageHandler]
+    procedure MessageIntegrationLogsPageHandler(var EDocumentIntegrationLogs: TestPage "E-Document Integration Logs")
+    begin
+        if EDocumentIntegrationLogs.First() then
+            repeat
+                LibraryVariableStorage.Enqueue(EDocumentIntegrationLogs."Entry No.".AsInteger());
+            until not EDocumentIntegrationLogs.Next();
+        EDocumentIntegrationLogs.Close();
     end;
 }

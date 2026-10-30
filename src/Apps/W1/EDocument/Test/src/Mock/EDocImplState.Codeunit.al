@@ -10,6 +10,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
+using System.Threading;
 using System.Utilities;
 
 codeunit 139630 "E-Doc. Impl. State"
@@ -30,6 +31,129 @@ codeunit 139630 "E-Doc. Impl. State"
 #endif
         LocalHttpResponse: HttpResponseMessage;
         ActionStatus: Enum "E-Document Service Status";
+        SchedulingFailureCodeunitId: Integer;
+        EnqueueFailureCodeunitId: Integer;
+        CaptureMessageTelemetry: Boolean;
+        MessageTelemetryCounts: Dictionary of [Text, Integer];
+        SchedulingTelemetryDimensions: Dictionary of [Text, Text];
+        ScheduledJobId: Text;
+        MessageTelemetryText: TextBuilder;
+        MessageConnectorError: Text;
+        OverrideMessageResponseStatus: Boolean;
+        MessageResponseStatus: Enum "E-Document Service Status";
+        MessageSendCount: Integer;
+
+    internal procedure SetMessageConnectorError(ErrorText: Text)
+    begin
+        MessageConnectorError := ErrorText;
+    end;
+
+    internal procedure SetMessageResponseStatus(ServiceStatus: Enum "E-Document Service Status")
+    begin
+        OverrideMessageResponseStatus := true;
+        MessageResponseStatus := ServiceStatus;
+    end;
+
+    internal procedure GetMessageSendCount(): Integer
+    begin
+        exit(MessageSendCount);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Integration Mock V2", 'OnAfterSendMessage', '', false, false)]
+    local procedure OnAfterSendMessage(MessageContext: Codeunit "E-Doc. Message Context")
+    begin
+        MessageSendCount += 1;
+        if MessageConnectorError <> '' then
+            Error(MessageConnectorError);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Integration Mock V2", 'OnAfterGetMessageResponse', '', false, false)]
+    local procedure OnAfterGetMessageResponse(MessageContext: Codeunit "E-Doc. Message Context")
+    begin
+        if OverrideMessageResponseStatus then
+            MessageContext.Status().SetStatus(MessageResponseStatus);
+        if MessageConnectorError <> '' then
+            Error(MessageConnectorError);
+    end;
+
+    internal procedure SetSchedulingFailure(CodeunitId: Integer)
+    begin
+        SchedulingFailureCodeunitId := CodeunitId;
+    end;
+
+    internal procedure SetEnqueueFailure(CodeunitId: Integer)
+    begin
+        EnqueueFailureCodeunitId := CodeunitId;
+    end;
+
+    internal procedure EnableMessageTelemetry()
+    begin
+        CaptureMessageTelemetry := true;
+    end;
+
+    internal procedure GetMessageTelemetryCount(EventId: Text): Integer
+    var
+        EventCount: Integer;
+    begin
+        if not MessageTelemetryCounts.Get(EventId, EventCount) then
+            EventCount := 0;
+        exit(EventCount);
+    end;
+
+    internal procedure GetSchedulingTelemetryDimensions(): Dictionary of [Text, Text]
+    begin
+        exit(SchedulingTelemetryDimensions);
+    end;
+
+    internal procedure GetScheduledJobId(): Text
+    begin
+        exit(ScheduledJobId);
+    end;
+
+    internal procedure GetMessageTelemetryText(): Text
+    begin
+        exit(MessageTelemetryText.ToText());
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Document Log", 'OnAfterLogTelemetry', '', false, false)]
+    local procedure OnAfterLogTelemetry(EventId: Text; Message: Text; EventVerbosity: Verbosity; EventDataClassification: DataClassification; EventTelemetryScope: TelemetryScope; CustomDimensions: Dictionary of [Text, Text])
+    var
+        EventCount: Integer;
+        DimensionName: Text;
+    begin
+        if not CaptureMessageTelemetry or not (EventId in ['0000LC6', '0000LC7', '0000LC8', '0000W3L']) then
+            exit;
+        if not MessageTelemetryCounts.Get(EventId, EventCount) then
+            EventCount := 0;
+        MessageTelemetryCounts.Set(EventId, EventCount + 1);
+        MessageTelemetryText.Append(Message);
+        foreach DimensionName in CustomDimensions.Keys() do
+            MessageTelemetryText.Append(CustomDimensions.Get(DimensionName));
+        if EventId = '0000W3L' then begin
+            Clear(SchedulingTelemetryDimensions);
+            foreach DimensionName in CustomDimensions.Keys() do
+                SchedulingTelemetryDimensions.Add(DimensionName, CustomDimensions.Get(DimensionName));
+            SchedulingTelemetryDimensions.Set('TestVerbosity', Format(EventVerbosity));
+            SchedulingTelemetryDimensions.Set('TestClassification', Format(EventDataClassification));
+            SchedulingTelemetryDimensions.Set('TestScope', Format(EventTelemetryScope));
+        end;
+        if EventId = '0000LC6' then
+            ScheduledJobId := CustomDimensions.Get('Job Queue Id');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Document Background Jobs", 'OnBeforeScheduleEDocumentJob', '', false, false)]
+    local procedure OnBeforeScheduleMessageJob(CodeunitId: Integer; JobRecordId: RecordId)
+    begin
+        if (SchedulingFailureCodeunitId <> 0) and (CodeunitId = SchedulingFailureCodeunitId) then
+            Error('TEST SCHEDULING FAILURE');
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Job Queue Entry", 'OnBeforeInsertEvent', '', false, false)]
+    local procedure OnBeforeInsertMessageJob(var Rec: Record "Job Queue Entry"; RunTrigger: Boolean)
+    begin
+        if (EnqueueFailureCodeunitId <> 0) and (Rec."Object ID to Run" = EnqueueFailureCodeunitId) and not Rec.IsTemporary() then
+            Error('TEST ENQUEUE FAILURE');
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Export", 'OnAfterCreateEDocument', '', false, false)]
     local procedure OnAfterCreateEDocument(var EDocument: Record "E-Document")

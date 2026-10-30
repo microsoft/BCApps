@@ -169,12 +169,11 @@ codeunit 6433 "E-Doc. Message Mgt."
             ConnectorErrorText := GetLastErrorText();
             if ConnectorErrorText = '' then
                 ConnectorErrorText := StrSubstNo(MessageSendingErr, MessageEntryNo);
-            ConnectorErrorInfo := ErrorInfo.Create(ConnectorErrorText);
+            ConnectorErrorInfo := CreateMessageErrorInfo(EDocMessage, ConnectorErrorText);
             EDocumentLog.InsertIntegrationLog(
                 EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
             Commit();
             ConnectorErrorInfo.DetailedMessage := StrSubstNo(MessageSendingErr, MessageEntryNo);
-            ConnectorErrorInfo.DataClassification := DataClassification::SystemMetadata;
             Error(ConnectorErrorInfo);
         end;
         if not (EDocMessageContext.Status().GetStatus() in ["E-Document Service Status"::Sent, "E-Document Service Status"::"Pending Response"]) then begin
@@ -230,12 +229,11 @@ codeunit 6433 "E-Doc. Message Mgt."
             ConnectorErrorText := GetLastErrorText();
             if ConnectorErrorText = '' then
                 ConnectorErrorText := StrSubstNo(MessageResponseErr, MessageEntryNo);
-            ConnectorErrorInfo := ErrorInfo.Create(ConnectorErrorText);
+            ConnectorErrorInfo := CreateMessageErrorInfo(EDocMessage, ConnectorErrorText);
             EDocumentLog.InsertIntegrationLog(
                 EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
             Commit();
             ConnectorErrorInfo.DetailedMessage := StrSubstNo(MessageResponseErr, MessageEntryNo);
-            ConnectorErrorInfo.DataClassification := DataClassification::SystemMetadata;
             Error(ConnectorErrorInfo);
         end;
 
@@ -244,7 +242,7 @@ codeunit 6433 "E-Doc. Message Mgt."
                 EDocumentLog.InsertIntegrationLog(
                     EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
                 Commit();
-                Error(MessageResponseStatusErr, MessageEntryNo, EDocMessageContext.Status().GetStatus());
+                RaiseInvalidResponseStatus(MessageEntryNo, EDocMessageContext.Status().GetStatus());
             end;
             EDocMessage.Status := EDocMessage.Status::Sent;
         end else begin
@@ -252,7 +250,7 @@ codeunit 6433 "E-Doc. Message Mgt."
                 EDocumentLog.InsertIntegrationLog(
                     EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
                 Commit();
-                Error(MessageResponseStatusErr, MessageEntryNo, EDocMessageContext.Status().GetStatus());
+                RaiseInvalidResponseStatus(MessageEntryNo, EDocMessageContext.Status().GetStatus());
             end;
             EDocMessage.Status := EDocMessage.Status::"Pending Response";
         end;
@@ -316,15 +314,70 @@ codeunit 6433 "E-Doc. Message Mgt."
     local procedure SetMessageSchedulingError(var EDocMessage: Record "E-Document Message"; ErrorStatus: Enum "E-Doc. Message Status")
     var
         SchedulingError: Text;
+        SchedulingErrorCode: Text;
     begin
         SchedulingError := GetLastErrorText();
+        SchedulingErrorCode := GetLastErrorCode();
         EDocMessage.Get(EDocMessage."Entry No.");
+        if SchedulingError = '' then
+            SchedulingError := StrSubstNo(MessageSchedulingErr, EDocMessage."Entry No.");
         EDocMessage.Status := ErrorStatus;
         EDocMessage."Last Attempt At" := CurrentDateTime();
         EDocMessage."Retry Count" += 1;
         EDocMessage."Last Error" := CopyStr(SchedulingError, 1, MaxStrLen(EDocMessage."Last Error"));
         EDocMessage.Modify();
+        LogMessageSchedulingFailure(EDocMessage, SchedulingErrorCode);
         ClearLastError();
+    end;
+
+    local procedure LogMessageSchedulingFailure(EDocMessage: Record "E-Document Message"; ErrorCode: Text)
+    var
+        EDocumentLog: Codeunit "E-Document Log";
+        TelemetryDimensions: Dictionary of [Text, Text];
+        CodeunitId: Integer;
+        Stage: Text;
+    begin
+        if EDocMessage.Status = EDocMessage.Status::"Response Error" then begin
+            CodeunitId := Codeunit::"E-Doc. Message Response Job";
+            Stage := 'ResponseScheduling';
+        end else begin
+            CodeunitId := Codeunit::"E-Doc. Message Send Job";
+            Stage := 'SendScheduling';
+        end;
+        TelemetryDimensions.Add('MessageEntryNo', Format(EDocMessage."Entry No.", 0, 9));
+        TelemetryDimensions.Add('EDocumentEntryNo', Format(EDocMessage."E-Document Entry No.", 0, 9));
+        TelemetryDimensions.Add('MessageType', Format(EDocMessage."Message Type".AsInteger(), 0, 9));
+        TelemetryDimensions.Add('CodeunitId', Format(CodeunitId, 0, 9));
+        TelemetryDimensions.Add('Stage', Stage);
+        TelemetryDimensions.Add('Status', Format(EDocMessage.Status.AsInteger(), 0, 9));
+        TelemetryDimensions.Add('RetryCount', Format(EDocMessage."Retry Count", 0, 9));
+        TelemetryDimensions.Add('ErrorCode', ErrorCode);
+        EDocumentLog.LogTelemetry('0000W3L', MessageSchedulingFailureTelemetryLbl, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
+    end;
+
+    internal procedure CreateMessageErrorInfo(EDocMessage: Record "E-Document Message"; ErrorText: Text): ErrorInfo
+    var
+        EDocumentService: Record "E-Document Service";
+        MessageErrorInfo: ErrorInfo;
+    begin
+        MessageErrorInfo := ErrorInfo.Create(ErrorText);
+        MessageErrorInfo.DataClassification := DataClassification::CustomerContent;
+        if EDocumentService.Get(EDocMessage.Service) then begin
+            MessageErrorInfo.RecordId := EDocumentService.RecordId();
+            MessageErrorInfo.PageNo := Page::"E-Document Service";
+            MessageErrorInfo.AddNavigationAction(ShowEDocumentServiceLbl);
+        end;
+        exit(MessageErrorInfo);
+    end;
+
+    local procedure RaiseInvalidResponseStatus(MessageEntryNo: Integer; ServiceStatus: Enum "E-Document Service Status")
+    var
+        ResponseErrorInfo: ErrorInfo;
+    begin
+        ResponseErrorInfo.ErrorType := ErrorType::Internal;
+        ResponseErrorInfo.Message := StrSubstNo(MessageResponseStatusErr, MessageEntryNo, ServiceStatus);
+        ResponseErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        Error(ResponseErrorInfo);
     end;
 
     procedure RetryMessage(MessageEntryNo: Integer)
@@ -443,6 +496,9 @@ codeunit 6433 "E-Doc. Message Mgt."
         MessagePayloadErr: Label 'E-Document message %1 does not contain a payload.', Comment = '%1 = E-Document message entry number';
         MessageSendingErr: Label 'E-Document message %1 could not be sent.', Comment = '%1 = E-Document message entry number';
         MessageResponseErr: Label 'A response for E-Document message %1 could not be retrieved.', Comment = '%1 = E-Document message entry number';
+        MessageSchedulingErr: Label 'Background processing could not be scheduled for E-Document message %1. Check the job queue setup and retry the message.', Comment = '%1 = E-Document message entry number';
+        MessageSchedulingFailureTelemetryLbl: Label 'E-Document child message background scheduling failed', Locked = true;
+        ShowEDocumentServiceLbl: Label 'Open E-Document Service';
         MessageSendingDetailedErr: Label 'The E-Document message integration returned status %1.', Comment = '%1 = integration status';
         MessageResponseStatusErr: Label 'The connector returned invalid response status %2 for E-Document message %1.', Comment = '%1 = message entry number, %2 = connector status';
         ExternalDocumentIDRequiredErr: Label 'An external document ID is required.';

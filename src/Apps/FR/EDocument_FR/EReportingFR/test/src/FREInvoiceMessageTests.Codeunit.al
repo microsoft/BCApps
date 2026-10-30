@@ -17,6 +17,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
+using System.TestLibraries.Utilities;
 using System.Threading;
 using System.Utilities;
 
@@ -43,6 +44,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
 
     [Test]
     procedure PaymentApplicationCreatesCollectedPayload()
@@ -1523,6 +1526,220 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert.ExpectedErrorCode('Dialog');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure BuyerAcceptanceCompletesAsynchronously()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] An accepted invoice is sent once and its original lifecycle message completes through polling.
+        Initialize();
+
+        // [GIVEN] Incoming invoice "I" uses an asynchronous message connector.
+        CreateIncomingEDocument(EDocument);
+        ConfigureAsyncMessageService(EDocument);
+
+        // [WHEN] The buyer accepts invoice "I".
+        FREInvoiceMessageMgt.AcceptInvoice(EDocument);
+
+        // [THEN] Polling completes the original Accepted child without changing the invoice or resending.
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Accepted);
+        Assert.RecordCount(FREInvoiceMessage, 1);
+        FREInvoiceMessage.FindFirst();
+        VerifyAsyncMessageLifecycle(EDocument, FREInvoiceMessage, "E-Doc. Response Type"::Accepted, '205');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure BuyerRefusalCompletesAsynchronously()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] A refused invoice preserves its reason and linkage throughout asynchronous delivery.
+        Initialize();
+
+        // [GIVEN] Incoming invoice "I" uses an asynchronous message connector.
+        CreateIncomingEDocument(EDocument);
+        ConfigureAsyncMessageService(EDocument);
+
+        // [WHEN] The buyer refuses invoice "I".
+        FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', 'Invoice disputed.');
+
+        // [THEN] Polling completes the original Refused child without changing its reason or resending.
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Refused);
+        Assert.RecordCount(FREInvoiceMessage, 1);
+        FREInvoiceMessage.FindFirst();
+        VerifyAsyncMessageLifecycle(EDocument, FREInvoiceMessage, "E-Doc. Response Type"::Refused, '210');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [TestPermissions(TestPermissions::Restrictive)]
+    procedure CollectedSendRetryPreservesPaymentAndVATUnderUserRole()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        OriginalMessage: Record "FR E-Invoice Message";
+        OriginalVAT: Record "FR E-Invoice Message VAT";
+        OriginalOccurrence: Record "E-Doc. Payment Occurrence";
+        JobQueueEntry: Record "Job Queue Entry";
+        SenderMock: Codeunit "FR E-Doc. Msg. Sender Mock";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        PayloadBefore: Text;
+        WorkerSucceeded: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] The French user role retries a Collected message without replacing its XML, payment, or VAT data.
+        Initialize();
+
+        // [GIVEN] Payment "P" has a Collected message whose connector fails.
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
+        ConfigureAsyncMessageService(EDocument);
+        SenderMock.CaptureScheduledMessageJobs();
+        SenderMock.SetReportSuccess(false);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
+        FindMessage(OriginalMessage, EDocument, OriginalMessage.Type::Collected);
+        GetPaymentSnapshots(OriginalMessage, OriginalVAT, OriginalOccurrence);
+        SenderMock.GetScheduledJob(JobQueueEntry);
+        Commit();
+        Assert.IsFalse(Codeunit.Run(JobQueueEntry."Object ID to Run", JobQueueEntry), 'The first send must fail.');
+        Assert.AreEqual("E-Doc. Message Status"::Error, EDocumentMessageAPI.GetMessageStatus(OriginalMessage."E-Document Message Entry No."), 'The send failure must be retryable.');
+        PayloadBefore := SenderMock.GetLastPayloadBase64();
+        SenderMock.SetReportSuccess(true);
+        LibraryLowerPermission.StartLoggingNAVPermissions();
+        LibraryLowerPermission.SetExactPermissionSet('E-Reporting FR User');
+        LibraryLowerPermission.AddPermissionSet('D365 BASIC');
+        LibraryLowerPermission.AddPermissionSet('Job Queue - Admin');
+        LibraryLowerPermission.AddPermissionSet('FR Message Test');
+
+        // [WHEN] The French user retries sending and the connector completes its response.
+        EDocumentMessageAPI.RetryMessage(OriginalMessage."E-Document Message Entry No.");
+        SenderMock.GetScheduledJob(JobQueueEntry);
+        Commit();
+        WorkerSucceeded := Codeunit.Run(JobQueueEntry."Object ID to Run", JobQueueEntry);
+        SenderMock.SetResponseReceived();
+        EDocumentMessageAPI.PollMessageResponse(OriginalMessage."E-Document Message Entry No.");
+        LibraryLowerPermission.StopLoggingNAVPermissions();
+
+        // [THEN] Recovery retains the original payment history and payload.
+        Assert.IsTrue(WorkerSucceeded, 'The send worker must succeed with the French user and job-queue roles.');
+        VerifyPaymentMessageRecovery(EDocument, OriginalMessage, OriginalVAT, OriginalOccurrence, PayloadBefore, 1);
+        Assert.AreEqual(2, SenderMock.GetSendCount(), 'Only the failed send and explicit retry must send.');
+        Assert.AreEqual(1, SenderMock.GetPollCount(), 'The accepted retry must complete by polling.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure NegativeCollectedPollRetryPreservesPaymentAndVAT()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        ReversalEntry: Record "Detailed Cust. Ledg. Entry";
+        OriginalMessage: Record "FR E-Invoice Message";
+        OriginalVAT: Record "FR E-Invoice Message VAT";
+        OriginalOccurrence: Record "E-Doc. Payment Occurrence";
+        JobQueueEntry: Record "Job Queue Entry";
+        SenderMock: Codeunit "FR E-Doc. Msg. Sender Mock";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        PayloadBefore: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] Retrying a Negative Collected response preserves its reversal and VAT data without resending.
+        Initialize();
+
+        // [GIVEN] Reversal "R" has an accepted asynchronous message whose response polling fails.
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
+        ConfigureAsyncMessageService(EDocument);
+        SenderMock.CaptureScheduledMessageJobs();
+        CreateDetailedLedgerEntry(ReversalEntry, DetailedCustLedgEntry."Cust. Ledger Entry No.", DetailedCustLedgEntry."Applied Cust. Ledger Entry No.", -120);
+        ProcessPaymentUnapplication(EDocument, DetailedCustLedgEntry, ReversalEntry);
+        FindMessage(OriginalMessage, EDocument, OriginalMessage.Type::"Negative Collected");
+        GetPaymentSnapshots(OriginalMessage, OriginalVAT, OriginalOccurrence);
+        SenderMock.GetScheduledJob(JobQueueEntry);
+        Commit();
+        Assert.IsTrue(Codeunit.Run(JobQueueEntry."Object ID to Run", JobQueueEntry), 'The initial send must be accepted.');
+        PayloadBefore := SenderMock.GetLastPayloadBase64();
+        SenderMock.SetResponseFailure(true);
+        SenderMock.GetScheduledJob(JobQueueEntry);
+        Commit();
+        Assert.IsFalse(Codeunit.Run(JobQueueEntry."Object ID to Run", JobQueueEntry), 'The first response poll must fail.');
+        Assert.AreEqual("E-Doc. Message Status"::"Response Error", EDocumentMessageAPI.GetMessageStatus(OriginalMessage."E-Document Message Entry No."), 'The response failure must remain distinct from a send failure.');
+        SenderMock.SetResponseFailure(false);
+        SenderMock.SetResponseReceived();
+
+        // [WHEN] The user retries polling the original child.
+        EDocumentMessageAPI.RetryMessage(OriginalMessage."E-Document Message Entry No.");
+        SenderMock.GetScheduledJob(JobQueueEntry);
+        Commit();
+        Assert.IsTrue(Codeunit.Run(JobQueueEntry."Object ID to Run", JobQueueEntry), 'The response retry must succeed.');
+
+        // [THEN] The reversal and its complete payload remain unchanged, with no resend.
+        VerifyPaymentMessageRecovery(EDocument, OriginalMessage, OriginalVAT, OriginalOccurrence, PayloadBefore, 2);
+        Assert.AreEqual(1, SenderMock.GetSendCount(), 'A response retry must never resend the reversal.');
+        Assert.AreEqual(2, SenderMock.GetPollCount(), 'Only the failed poll and its explicit retry must run.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('ParentEDocumentHandler')]
+    procedure LifecycleHistoryOpensParentMessageDiagnostics()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        LifecycleHistory: TestPage "FR E-Invoice Messages";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647423] French lifecycle history opens the canonical parent card and message diagnostics.
+        Initialize();
+
+        // [GIVEN] Invoice "I" has a Collected lifecycle message.
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
+        FindMessage(FREInvoiceMessage, EDocument, FREInvoiceMessage.Type::Collected);
+        LifecycleHistory.OpenView();
+        LifecycleHistory.GoToRecord(FREInvoiceMessage);
+
+        // [WHEN] The user opens the parent from lifecycle history.
+        LifecycleHistory.OpenEDocument.Invoke();
+        LifecycleHistory.Close();
+
+        // [THEN] The selected parent and its queued child are visible.
+        Assert.AreEqual(EDocument."Document No.", LibraryVariableStorage.DequeueText(), 'Navigation must open the selected lifecycle message parent.');
+        Assert.AreEqual(Format("E-Doc. Message Status"::Queued), LibraryVariableStorage.DequeueText(), 'The canonical Messages FactBox must show delivery status.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure Initialize()
+    var
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        SenderMock: Codeunit "FR E-Doc. Msg. Sender Mock";
+    begin
+        LibraryLowerPermission.StopLoggingNAVPermissions();
+        LibraryVariableStorage.Clear();
+        SenderMock.Reset();
+        EDocPaymentOccurrence.DeleteAll();
+        FREInvoiceMessage.DeleteAll();
+        EnsureService();
+        EnsureCompanyInformation();
+        GeneralLedgerSetup.Get();
+        if not GeneralLedgerSetup."Unrealized VAT" then begin
+            GeneralLedgerSetup."Unrealized VAT" := true;
+            GeneralLedgerSetup.Modify();
+        end;
+    end;
+
     local procedure BuildLifecycleXml(InvoiceID: Text; Status: Text; ReasonCode: Text; ReasonDescription: Text): Text
     var
         XmlText: TextBuilder;
@@ -1748,21 +1965,94 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert.AreEqual(ExpectedRole, XmlNode.AsXmlElement().InnerText(), 'The trade-party role is incorrect.');
     end;
 
-    local procedure Initialize()
-    var
-        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
-        FREInvoiceMessage: Record "FR E-Invoice Message";
-        GeneralLedgerSetup: Record "General Ledger Setup";
+    local procedure GetPaymentSnapshots(FRMessage: Record "FR E-Invoice Message"; var OriginalVAT: Record "FR E-Invoice Message VAT"; var OriginalOccurrence: Record "E-Doc. Payment Occurrence")
     begin
-        EDocPaymentOccurrence.DeleteAll();
-        FREInvoiceMessage.DeleteAll();
-        EnsureService();
-        EnsureCompanyInformation();
-        GeneralLedgerSetup.Get();
-        if not GeneralLedgerSetup."Unrealized VAT" then begin
-            GeneralLedgerSetup."Unrealized VAT" := true;
-            GeneralLedgerSetup.Modify();
-        end;
+        OriginalVAT.SetRange("Message Entry No.", FRMessage."Entry No.");
+        Assert.RecordCount(OriginalVAT, 1);
+        OriginalVAT.FindFirst();
+        OriginalOccurrence.SetRange("E-Document Entry No.", FRMessage."E-Document Entry No.");
+        OriginalOccurrence.SetRange("Source Occurrence ID", FRMessage."Source Occurrence ID");
+        Assert.RecordCount(OriginalOccurrence, 1);
+        OriginalOccurrence.FindFirst();
+    end;
+
+    local procedure VerifyPaymentMessageRecovery(OriginalEDocument: Record "E-Document"; OriginalMessage: Record "FR E-Invoice Message"; OriginalVAT: Record "FR E-Invoice Message VAT"; OriginalOccurrence: Record "E-Doc. Payment Occurrence"; PayloadBefore: Text; ExpectedMessageCount: Integer)
+    var
+        EDocument: Record "E-Document";
+        FRMessage: Record "FR E-Invoice Message";
+        MessageVAT: Record "FR E-Invoice Message VAT";
+        PaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        SenderMock: Codeunit "FR E-Doc. Msg. Sender Mock";
+    begin
+        Assert.AreEqual("E-Doc. Message Status"::Sent, EDocumentMessageAPI.GetMessageStatus(OriginalMessage."E-Document Message Entry No."), 'Recovery must complete the original child.');
+        Assert.AreEqual(PayloadBefore, SenderMock.GetLastPayloadBase64(), 'A retry must preserve every payload byte.');
+        Assert.AreEqual(PayloadBefore, SenderMock.GetLastPollPayloadBase64(), 'Polling must use the same stored payload.');
+        FRMessage.Get(OriginalMessage."Entry No.");
+        Assert.AreEqual(OriginalMessage."E-Document Message Entry No.", FRMessage."E-Document Message Entry No.", 'Retry must not replace the transport child.');
+        Assert.IsTrue(OriginalMessage."Source Occurrence ID" = FRMessage."Source Occurrence ID", 'The source payment occurrence must be preserved.');
+        Assert.AreEqual(OriginalMessage."Original Entry No.", FRMessage."Original Entry No.", 'The reversal linkage must be preserved.');
+        Assert.AreEqual(OriginalMessage.Amount, FRMessage.Amount, 'The frozen payment amount must be preserved.');
+        FRMessage.SetRange("E-Document Entry No.", OriginalEDocument."Entry No");
+        Assert.RecordCount(FRMessage, ExpectedMessageCount);
+        MessageVAT.SetRange("Message Entry No.", OriginalMessage."Entry No.");
+        Assert.RecordCount(MessageVAT, 1);
+        MessageVAT.Get(OriginalVAT."Message Entry No.", OriginalVAT."Line No.");
+        Assert.AreEqual(OriginalVAT.Amount, MessageVAT.Amount, 'The frozen VAT allocation must be preserved.');
+        Assert.AreEqual(OriginalVAT."VAT %", MessageVAT."VAT %", 'The frozen VAT rate must be preserved.');
+        Assert.AreEqual(OriginalVAT."VAT Category Code", MessageVAT."VAT Category Code", 'The VAT category must be preserved.');
+        Assert.AreEqual(OriginalVAT."Currency Code", MessageVAT."Currency Code", 'The VAT currency must be preserved.');
+        PaymentOccurrence.Get(OriginalOccurrence."Entry No.");
+        Assert.AreEqual(OriginalOccurrence.Status, PaymentOccurrence.Status, 'Transport retries must not restart occurrence processing.');
+        Assert.AreEqual(OriginalOccurrence."Retry Count", PaymentOccurrence."Retry Count", 'Transport retries must not affect occurrence retry history.');
+        EDocument.Get(OriginalEDocument."Entry No");
+        Assert.AreEqual(OriginalEDocument.Status, EDocument.Status, 'Child-message recovery must not change invoice status.');
+    end;
+
+    local procedure ConfigureAsyncMessageService(EDocument: Record "E-Document")
+    var
+        EDocumentService: Record "E-Document Service";
+        SenderMock: Codeunit "FR E-Doc. Msg. Sender Mock";
+    begin
+        EDocumentService.Get(EDocument.Service);
+        EDocumentService."Service Integration V2" := EDocumentService."Service Integration V2"::"FR Message Mock";
+        EDocumentService.Modify();
+        SenderMock.Reset();
+        SenderMock.SetAsyncResponse();
+    end;
+
+    local procedure VerifyAsyncMessageLifecycle(OriginalEDocument: Record "E-Document"; OriginalFRMessage: Record "FR E-Invoice Message"; ExpectedResponseType: Enum "E-Doc. Response Type"; ExpectedStatusCode: Text)
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        SenderMock: Codeunit "FR E-Doc. Msg. Sender Mock";
+        PayloadBefore: Text;
+        MessageEntryNo: Integer;
+    begin
+        MessageEntryNo := OriginalFRMessage."E-Document Message Entry No.";
+        EDocumentMessageAPI.SendMessage(MessageEntryNo);
+        Assert.AreEqual("E-Doc. Message Status"::"Pending Response", EDocumentMessageAPI.GetMessageStatus(MessageEntryNo), 'The accepted send must await the connector response.');
+        PayloadBefore := SenderMock.GetLastPayloadBase64();
+
+        EDocumentMessageAPI.PollMessageResponse(MessageEntryNo);
+        Assert.AreEqual("E-Doc. Message Status"::"Pending Response", EDocumentMessageAPI.GetMessageStatus(MessageEntryNo), 'An incomplete response must remain pending.');
+        SenderMock.SetResponseReceived();
+        EDocumentMessageAPI.PollMessageResponse(MessageEntryNo);
+
+        Assert.AreEqual("E-Doc. Message Status"::Sent, EDocumentMessageAPI.GetMessageStatus(MessageEntryNo), 'A completed response must finish the original child.');
+        Assert.AreEqual(ExpectedResponseType, SenderMock.GetLastResponseType(), 'The connector must receive the French lifecycle response type.');
+        AssertPayloadStatus(SenderMock.GetLastPayload(), ExpectedStatusCode);
+        Assert.AreEqual(1, SenderMock.GetSendCount(), 'Polling must not resend the lifecycle message.');
+        Assert.AreEqual(2, SenderMock.GetPollCount(), 'The same message must be polled until completion.');
+        Assert.AreEqual(PayloadBefore, SenderMock.GetLastPollPayloadBase64(), 'Polling must preserve every byte of the stored lifecycle payload.');
+        FREInvoiceMessage.Get(OriginalFRMessage."Entry No.");
+        Assert.AreEqual(MessageEntryNo, FREInvoiceMessage."E-Document Message Entry No.", 'The French history must retain the original child link.');
+        Assert.AreEqual(OriginalFRMessage."Reason Code", FREInvoiceMessage."Reason Code", 'Polling must retain the lifecycle reason.');
+        FREInvoiceMessage.SetRange("E-Document Entry No.", OriginalEDocument."Entry No");
+        Assert.RecordCount(FREInvoiceMessage, 1);
+        EDocument.Get(OriginalEDocument."Entry No");
+        Assert.AreEqual(OriginalEDocument.Status, EDocument.Status, 'Transport completion must not change the parent invoice status.');
     end;
 
     local procedure EnsureCompanyInformation()
@@ -1785,6 +2075,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
             EDocumentService.Insert();
         end;
         EDocumentService."Document Format" := EDocumentService."Document Format"::"Peppol BIS 3.0 FR";
+        Clear(EDocumentService."Service Integration V2");
         EDocumentService."FR Sender Platform ID" := 'TEST-PLATFORM';
         EDocumentService."FR Sender Platform Scheme" := '0238';
         EDocumentService."FR Sender Platform Name" := 'Test Platform';
@@ -2151,5 +2442,13 @@ codeunit 148151 "FR E-Invoice Message Tests"
         if VATEntry.FindLast() then
             exit(VATEntry."Entry No." + 1);
         exit(1);
+    end;
+
+    [PageHandler]
+    procedure ParentEDocumentHandler(var EDocumentPage: TestPage "E-Document")
+    begin
+        LibraryVariableStorage.Enqueue(EDocumentPage."Document No.".Value);
+        LibraryVariableStorage.Enqueue(EDocumentPage.EDocMessages.Status.Value);
+        EDocumentPage.Close();
     end;
 }
