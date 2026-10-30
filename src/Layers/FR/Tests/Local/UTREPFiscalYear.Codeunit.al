@@ -1,6 +1,7 @@
+#if not CLEAN28
 codeunit 144072 "UT REP Fiscal Year"
 {
-    //   1-3. Purpose of these test cases to verify different error messages on OnPreDataItem Date Trigger for Report 10800 (G/L Journal).
+    //   1-3. Purpose of these test cases to verify different error messages on OnPreDataItem Date Trigger for Report 10800 (G/L Journal).  
     //   4-5. Purpose of these test cases to verify different error messages on OnPreDataItem GL Account trigger for Report 10803 (G/L Trial Balance).
     //   6-9. Purpose of these test cases to verify different error message on OnPreDataItem GL Account trigger for Report 10804 (G/L Detail Trial Balance).
     // 10-16. Purpose of these test cases to verify different error message on OnPreDataItemDate trigger for Report 10801 (Journals).
@@ -12,13 +13,16 @@ codeunit 144072 "UT REP Fiscal Year"
     // OnPreDataItemDateGLJournalPeriodStartFieldBlankErr, OnPreDataItemDateGLJournalSpecifyPeriodStartErr, OnPreDataItemDateGLJournalPeriodStartFirstDayErr   151794
     // OnPreDataItemGLAccGLTrialBalanceDateFilterErr, OnPreDataItemGLAccGLTrialBalanceStartDateErr                                                             151796
     // OnPreDataItemGLAccGLDetailTrialBalanceDateFilterErr, OnPreDataItemGLAccGLDetailTrialBalanceStartDateErr                                                 151797
-    // OnPreDataItemGLAccGLDetailTrialBalanceWrongStartDateErr, OnPreDataItemGLAccGLDetailTrialBalanceEndDateErr                                               151797
+    // OnPreDataItemGLAccGLDetailTrialBalanceWrongStartDateErr, OnPreDataItemGLAccGLDetailTrialBalanceEndDateErr                                               151797    
     // OnPreDataItemDateJournalsPeriodStartFieldBlankErr, OnPreDataItemDateJournalsSpecifyPeriodStartErr, OnPreDataItemDateJournalsPeriodStartDateErr          151795
     // OnPreDataItemDateJournalsPeriodEndDateErr, OnValidatePostingDateJournalsDocumentNoErr,OnValidatePostingDateJournalsPostingDateErr                       151795
     // OnPreDataItemDateJournalsPeriodTypeFieldBlankErr                                                                                                        151795
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to Reports FR app';
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     begin
@@ -465,4 +469,4 @@ codeunit 144072 "UT REP Fiscal Year"
         Journals.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
-
+#endif

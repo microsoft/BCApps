@@ -1,3 +1,4 @@
+#if not CLEAN30
 codeunit 144009 "UT Balance Sheet"
 {
     // 1. Purpose of the test is to validate Account Schedule Page through Page FR Account Schedule Names.
@@ -523,3 +524,4 @@ codeunit 144009 "UT Balance Sheet"
     end;
 }
 
+#endif
