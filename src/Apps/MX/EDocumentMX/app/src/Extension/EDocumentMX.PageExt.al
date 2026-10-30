@@ -201,7 +201,7 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
                 Caption = 'Payment Complement Occurrences';
                 ToolTip = 'Shows the CFDI payment complement occurrences linked to this e-document.';
                 Image = Payment;
-                Visible = Rec.Direction = Rec.Direction::Outgoing;
+                Visible = IsCFDIDocument;
                 RunObject = page "E-Doc. Payment Occurrences MX";
                 RunPageLink = "E-Document Entry No." = field("Entry No");
             }
@@ -211,7 +211,7 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
                 Caption = 'Print CFDI';
                 ToolTip = 'Prints the CFDI electronic document as a PDF.';
                 Image = Print;
-                Visible = Rec.Direction = Rec.Direction::Outgoing;
+                Visible = IsCFDIDocument;
 
                 trigger OnAction()
                 var
@@ -226,7 +226,7 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
                 Caption = 'Mark as Canceled';
                 ToolTip = 'Manually marks this CFDI document as canceled in Business Central without contacting the PAC. Use this when the document is already canceled in SAT but the status has not been updated here.';
                 Image = Cancel;
-                Visible = Rec.Direction = Rec.Direction::Outgoing;
+                Visible = IsCFDIDocument;
 
                 trigger OnAction()
                 var
@@ -238,17 +238,13 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
                     if not Confirm(MarkAsCanceledConfirmQst, false) then
                         exit;
 
-                    EDocumentServiceStatus.SetRange("E-Document Entry No", Rec."Entry No");
-                    case EDocumentServiceStatus.Count() of
+                    EDocumentService.SetFilter(Code, GetLinkedCFDIServiceFilter());
+                    case EDocumentService.Count() of
                         0:
                             Error(NoLinkedServiceErr);
                         1:
-                            begin
-                                EDocumentServiceStatus.FindFirst();
-                                EDocumentService.Get(EDocumentServiceStatus."E-Document Service Code");
-                            end;
+                            EDocumentService.FindFirst();
                         else begin
-                            EDocumentService.SetFilter(Code, GetLinkedServiceFilter(EDocumentServiceStatus));
                             EDocumentServices.SetTableView(EDocumentService);
                             EDocumentServices.LookupMode := true;
                             if EDocumentServices.RunModal() <> Action::LookupOK then
@@ -283,7 +279,8 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
         else
             FiscalInvoiceNumberPAC := CopyStr(Rec."Source Details", 1, MaxStrLen(FiscalInvoiceNumberPAC));
 
-        CFDIDataVisible := EDocCFDIDataMX.IsSupportedSource(Rec);
+        IsCFDIDocument := (Rec.Direction = Rec.Direction::Outgoing) and (GetLinkedCFDIServiceFilter() <> '''''');
+        CFDIDataVisible := IsCFDIDocument and EDocCFDIDataMX.IsSupportedSource(Rec);
         CFDIDataEditable := CFDIDataVisible and (FiscalInvoiceNumberPAC = '');
         CartaPorteVisible := CFDIDataVisible and EDocCFDIDataMX.IsCartaPorte(Rec);
         TransportOperatorCount := 0;
@@ -291,19 +288,29 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
             TransportOperatorCount := EDocCFDIDataMX.CountTransportOperators(Rec);
     end;
 
-    local procedure GetLinkedServiceFilter(var EDocumentServiceStatus: Record "E-Document Service Status") ServiceFilter: Text
+    local procedure GetLinkedCFDIServiceFilter() ServiceFilter: Text
+    var
+        EDocumentService: Record "E-Document Service";
+        EDocumentServiceStatus: Record "E-Document Service Status";
     begin
+        EDocumentServiceStatus.SetRange("E-Document Entry No", Rec."Entry No");
         if EDocumentServiceStatus.FindSet() then
             repeat
-                if ServiceFilter <> '' then
-                    ServiceFilter += '|';
-                ServiceFilter += '''' + EDocumentServiceStatus."E-Document Service Code" + '''';
+                if EDocumentService.Get(EDocumentServiceStatus."E-Document Service Code") then
+                    if EDocumentService."Document Format" = EDocumentService."Document Format"::CFDI then begin
+                        if ServiceFilter <> '' then
+                            ServiceFilter += '|';
+                        ServiceFilter += '''' + EDocumentServiceStatus."E-Document Service Code" + '''';
+                    end;
             until EDocumentServiceStatus.Next() = 0;
+        if ServiceFilter = '' then
+            ServiceFilter := '''''';
     end;
 
     var
         FiscalInvoiceNumberPAC: Text[50];
         TransportOperatorCount: Integer;
+        IsCFDIDocument: Boolean;
         CFDIDataVisible: Boolean;
         CFDIDataEditable: Boolean;
         CartaPorteVisible: Boolean;

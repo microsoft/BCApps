@@ -60,7 +60,7 @@
   "features": [
     "TranslationFile"
   ],
-  "target": "Cloud",
+  "target": "OnPrem",
   "resourceExposurePolicy": {
     "allowDebugging": true,
     "allowDownloadingSource": true,

@@ -5,7 +5,6 @@
 namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Sales.History;
 using Microsoft.Service.History;
@@ -24,7 +23,6 @@ codeunit 3364 "EDoc CFDI Print MX"
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         SalesShipmentHeader: Record "Sales Shipment Header";
         TransferShipmentHeader: Record "Transfer Shipment Header";
-        ReportSelections: Record "Report Selections";
         CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
         EDocCartaPortePrintBuffer: Codeunit "EDoc Carta Porte Print Buffer";
         EDocCFDIDataMX: Codeunit "EDoc CFDI Data MX";
@@ -57,19 +55,13 @@ codeunit 3364 "EDoc CFDI Print MX"
                 begin
                     RecordRef.SetTable(ServiceInvoiceHeader);
                     ServiceInvoiceHeader.SetRecFilter();
-                    ReportSelections.SetRange(Usage, ReportSelections.Usage::"SM.Invoice");
-                    ReportSelections.SetFilter("Report ID", '<>0');
-                    if ReportSelections.FindFirst() then
-                        Report.RunModal(ReportSelections."Report ID", true, false, ServiceInvoiceHeader);
+                    Report.RunModal(Report::"EDoc CFDI Service Invoice MX", true, false, ServiceInvoiceHeader);
                 end;
             Database::"Service Cr.Memo Header":
                 begin
                     RecordRef.SetTable(ServiceCrMemoHeader);
                     ServiceCrMemoHeader.SetRecFilter();
-                    ReportSelections.SetRange(Usage, ReportSelections.Usage::"SM.Credit Memo");
-                    ReportSelections.SetFilter("Report ID", '<>0');
-                    if ReportSelections.FindFirst() then
-                        Report.RunModal(ReportSelections."Report ID", true, false, ServiceCrMemoHeader);
+                    Report.RunModal(Report::"EDoc CFDI Service Cr. Memo MX", true, false, ServiceCrMemoHeader);
                 end;
             Database::"Sales Shipment Header":
                 begin

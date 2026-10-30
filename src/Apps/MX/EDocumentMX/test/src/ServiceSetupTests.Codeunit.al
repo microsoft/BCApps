@@ -58,6 +58,36 @@ codeunit 148755 "E-Document Service Setup Tests"
         Assert.AreEqual(SupportedType.Direction::Incoming, SupportedType.Direction, 'Purchase Credit Memo must be supported for incoming documents only.');
     end;
 
+    [Test]
+    procedure CFDIFormatDoesNotDuplicateSupportedTypesOnReconfigure()
+    var
+        EDocumentService: Record "E-Document Service";
+        SupportedType: Record "E-Doc. Service Supported Type";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Reconfiguring the CFDI format should not duplicate the supported source document types
+        Initialize();
+
+        // [GIVEN] A new CFDI service
+        EDocumentService.Code := 'MX-RECONFIG';
+        EDocumentService.Insert();
+
+        // [WHEN] The service is set to CFDI twice
+        EDocumentService.Validate("Document Format", EDocumentService."Document Format"::CFDI);
+        EDocumentService.Modify();
+        EDocumentService.Validate("Document Format", EDocumentService."Document Format"::CFDI);
+        EDocumentService.Modify();
+
+        // [THEN] Each supported source document type is still unique for the service
+        SupportedType.SetRange("E-Document Service Code", EDocumentService.Code);
+        SupportedType.SetRange("Source Document Type", "E-Document Type"::"Sales Invoice");
+        Assert.RecordCount(SupportedType, 1);
+        SupportedType.SetRange("Source Document Type", "E-Document Type"::"Sales Shipment");
+        Assert.RecordCount(SupportedType, 1);
+        SupportedType.SetRange("Source Document Type", "E-Document Type"::"Purchase Invoice");
+        Assert.RecordCount(SupportedType, 1);
+    end;
+
     local procedure Initialize()
     var
         EDocumentService: Record "E-Document Service";

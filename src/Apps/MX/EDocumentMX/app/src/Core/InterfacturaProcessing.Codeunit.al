@@ -435,9 +435,9 @@ codeunit 3355 "Interfactura Processing"
             if ErrorText = '' then
                 ErrorText := StrSubstNo(CommunicationErr, ResultCode);
         end else begin
-            StampedXml := '<root>' + ResultNode.AsXmlElement().InnerXml() + '</root>';
-            if not TryGetStampedDateTime(StampedXml, ClearanceDateTime) then
-                ClearanceDateTime := CurrentDateTime();
+            if not GetStampedComprobanteXml(XmlDoc, ResultNode, StampedXml) then
+                StampedXml := ResultNode.AsXmlElement().InnerXml();
+            ClearanceDateTime := CurrentDateTime();
 
             SaveStampedCFDI(EDocument, StampedXml);
         end;
@@ -476,24 +476,19 @@ codeunit 3355 "Interfactura Processing"
         exit(Attribute.Value());
     end;
 
-    local procedure TryGetStampedDateTime(StampedXml: Text; var StampedDateTime: DateTime): Boolean
+    local procedure GetStampedComprobanteXml(XmlDoc: XmlDocument; ResultNode: XmlNode; var StampedXml: Text): Boolean
     var
-        XmlDoc: XmlDocument;
-        XmlNamespaceManager: XmlNamespaceManager;
-        TimbreNode: XmlNode;
-        StampedDateTimeTxt: Text;
+        NamespaceManager: XmlNamespaceManager;
+        ComprobanteNode: XmlNode;
+        ComprobanteXml: Text;
     begin
-        if not TryReadXml(StampedXml, XmlDoc) then
+        NamespaceManager.NameTable(XmlDoc.NameTable());
+        NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
+        if not ResultNode.SelectSingleNode('cfdi:Comprobante', NamespaceManager, ComprobanteNode) then
             exit(false);
-
-        XmlNamespaceManager.NameTable(XmlDoc.NameTable());
-        XmlNamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
-        XmlNamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
-        if not XmlDoc.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', XmlNamespaceManager, TimbreNode) then
-            exit(false);
-
-        StampedDateTimeTxt := GetXmlAttribute(TimbreNode, 'FechaTimbrado');
-        exit(Evaluate(StampedDateTime, StampedDateTimeTxt, 9));
+        ComprobanteNode.WriteTo(ComprobanteXml);
+        StampedXml := '<?xml version="1.0" encoding="UTF-8"?>' + ComprobanteXml;
+        exit(true);
     end;
 
     procedure SaveStampedCFDI(var EDocument: Record "E-Document"; StampedXml: Text)

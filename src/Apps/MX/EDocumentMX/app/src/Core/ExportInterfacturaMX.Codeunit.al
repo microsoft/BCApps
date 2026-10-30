@@ -535,79 +535,6 @@ codeunit 3354 "Export Interfactura MX"
         ParentNode.Add(CfdiRelacionadosNode.AsXmlNode());
     end;
 
-    local procedure AddForeignTradeComplementNode(var ParentNode: XmlElement; DocumentHeader: Record "Sales Invoice Header"; IsCartaporte: Boolean)
-    var
-        Customer: Record Customer;
-        Location: Record Location;
-        Item: Record Item;
-        UOM: Record "Unit of Measure";
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        ComplementoNode: XmlElement;
-        ComercioExteriorNode: XmlNode;
-        EmisorNode: XmlNode;
-        DomicilioNode: XmlNode;
-        ReceptorNode: XmlNode;
-        MercanciasNode: XmlNode;
-        MercanciaNode: XmlNode;
-        ParentXmlNode: XmlNode;
-        CurrencyFactor: Decimal;
-        SumUSD: Decimal;
-        LineCount: Integer;
-        LineNo: Integer;
-    begin
-        if IsCartaporte then
-            exit;
-
-        GetCustomer(Customer, DocumentHeader."Bill-to Customer No.", false);
-        SalesInvoiceLine.SetRange("Document No.", DocumentHeader."No.");
-        LineCount := SalesInvoiceLine.Count();
-        if LineCount = 0 then
-            exit;
-
-        ComplementoNode := XmlElement.Create('Complemento');
-        ParentXmlNode := ComplementoNode.AsXmlNode();
-        CFDIXMLHelperMX.AddElementCCE(ParentXmlNode, 'ComercioExterior', '', CFDIComercioExteriorNamespaceTxt, ComercioExteriorNode);
-        ComercioExteriorNode.AsXmlElement().SetAttribute('Version', '2.0');
-        ComercioExteriorNode.AsXmlElement().SetAttribute('ClaveDePedimento', 'A1');
-        ComercioExteriorNode.AsXmlElement().SetAttribute('CertificadoOrigen', '0');
-        ComercioExteriorNode.AsXmlElement().SetAttribute('Incoterm', DocumentHeader."SAT International Trade Term");
-        CurrencyFactor := (1 / DocumentHeader."Currency Factor") * DocumentHeader."Exchange Rate USD";
-        ComercioExteriorNode.AsXmlElement().SetAttribute('TipoCambioUSD', FormatDecimal(DocumentHeader."Exchange Rate USD", 6));
-        ComercioExteriorNode.AsXmlElement().SetAttribute('TotalUSD', FormatDecimal(DocumentHeader.Amount * CurrencyFactor, 2));
-
-        CFDIXMLHelperMX.AddElementCCE(ComercioExteriorNode, 'Emisor', '', CFDIComercioExteriorNamespaceTxt, EmisorNode);
-        CFDIXMLHelperMX.AddElementCCE(EmisorNode, 'Domicilio', '', CFDIComercioExteriorNamespaceTxt, DomicilioNode);
-        Location.Get(DocumentHeader."Location Code");
-        CFDIXMLHelperMX.AddNodeDomicilio(Location."SAT Address ID", Location.Address, DomicilioNode);
-
-        CFDIXMLHelperMX.AddElementCCE(ComercioExteriorNode, 'Receptor', '', CFDIComercioExteriorNamespaceTxt, ReceptorNode);
-        if (Customer."Country/Region Code" <> 'MEX') and (Customer."RFC No." = 'XEXX010101000') then
-            ReceptorNode.AsXmlElement().SetAttribute('NumRegIdTrib', Customer."VAT Registration No.");
-        CFDIXMLHelperMX.AddElementCCE(ReceptorNode, 'Domicilio', '', CFDIComercioExteriorNamespaceTxt, DomicilioNode);
-        CFDIXMLHelperMX.AddNodeDomicilio(DocumentHeader."SAT Address ID", DocumentHeader."Bill-to Address", DomicilioNode);
-
-        CFDIXMLHelperMX.AddElementCCE(ComercioExteriorNode, 'Mercancias', '', CFDIComercioExteriorNamespaceTxt, MercanciasNode);
-        if SalesInvoiceLine.FindSet() then
-            repeat
-                LineNo += 1;
-                CFDIXMLHelperMX.AddElementCCE(MercanciasNode, 'Mercancia', '', CFDIComercioExteriorNamespaceTxt, MercanciaNode);
-                MercanciaNode.AsXmlElement().SetAttribute('NoIdentificacion', SalesInvoiceLine."No.");
-                if Item.Get(SalesInvoiceLine."No.") and (Item."Tariff No." <> '') then
-                    MercanciaNode.AsXmlElement().SetAttribute('FraccionArancelaria', DelChr(Item."Tariff No."));
-                MercanciaNode.AsXmlElement().SetAttribute('CantidadAduana', Format(SalesInvoiceLine.Quantity, 0, 9));
-                UOM.Get(SalesInvoiceLine."Unit of Measure Code");
-                MercanciaNode.AsXmlElement().SetAttribute('UnidadAduana', UOM."SAT Customs Unit");
-                MercanciaNode.AsXmlElement().SetAttribute('ValorUnitarioAduana', FormatDecimal(SalesInvoiceLine.Amount / SalesInvoiceLine.Quantity, 6));
-                if LineNo <> LineCount then begin
-                    MercanciaNode.AsXmlElement().SetAttribute('ValorDolares', FormatDecimal(SalesInvoiceLine.Amount / DocumentHeader."Exchange Rate USD", 4));
-                    SumUSD += SalesInvoiceLine.Amount / DocumentHeader."Exchange Rate USD";
-                end else
-                    MercanciaNode.AsXmlElement().SetAttribute('ValorDolares', FormatDecimal(DocumentHeader.Amount / DocumentHeader."Exchange Rate USD" - SumUSD, 4));
-            until SalesInvoiceLine.Next() = 0;
-
-        ParentNode.Add(ComplementoNode.AsXmlNode());
-    end;
-
     local procedure BuildCreditMemoNode(var RootNode: XmlElement; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line")
     var
         Customer: Record Customer;
@@ -1834,6 +1761,7 @@ codeunit 3354 "Export Interfactura MX"
         DomicilioNode: XmlNode;
         LineAmount: Decimal;
         SumUSD: Decimal;
+        CurrencyFactor: Decimal;
         LineCount: Integer;
         OriginLocationCode: Code[10];
     begin
@@ -1880,9 +1808,10 @@ codeunit 3354 "Export Interfactura MX"
                 CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'UnidadAduana', UOM."SAT Customs Unit");
                 LineAmount := SalesLine.Quantity * SalesLine."Unit Price";
                 if (SalesHeader."Exchange Rate USD" <> 0) and (SalesLine.Quantity <> 0) then begin
-                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorUnitarioAduana', FormatDecimal(SalesLine."Unit Price" / SalesHeader."Exchange Rate USD", 6));
-                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', FormatDecimal(LineAmount / SalesHeader."Exchange Rate USD", 4));
-                    SumUSD += LineAmount / SalesHeader."Exchange Rate USD";
+                    CurrencyFactor := GetUSDConversionFactor(SalesHeader."Currency Factor", SalesHeader."Exchange Rate USD");
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorUnitarioAduana', FormatDecimal(Round(SalesLine."Unit Price" * CurrencyFactor, 0.000001, '<'), 6));
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', FormatDecimal(Round(LineAmount * CurrencyFactor, 0.0001), 4));
+                    SumUSD += Round(LineAmount * CurrencyFactor, 0.0001);
                 end else begin
                     CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorUnitarioAduana', '0');
                     CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', '0');
@@ -1907,6 +1836,7 @@ codeunit 3354 "Export Interfactura MX"
         DomicilioNode: XmlNode;
         LineAmount: Decimal;
         SumUSD: Decimal;
+        CurrencyFactor: Decimal;
         LineCount: Integer;
         OriginLocationCode: Code[10];
     begin
@@ -1952,9 +1882,10 @@ codeunit 3354 "Export Interfactura MX"
                 CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'UnidadAduana', UOM."SAT Customs Unit");
                 LineAmount := SalesShipmentLine.Quantity * SalesShipmentLine."Unit Price";
                 if (SalesShipmentHeader."Exchange Rate USD" <> 0) and (SalesShipmentLine.Quantity <> 0) then begin
-                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorUnitarioAduana', FormatDecimal(SalesShipmentLine."Unit Price" / SalesShipmentHeader."Exchange Rate USD", 6));
-                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', FormatDecimal(LineAmount / SalesShipmentHeader."Exchange Rate USD", 4));
-                    SumUSD += LineAmount / SalesShipmentHeader."Exchange Rate USD";
+                    CurrencyFactor := GetUSDConversionFactor(SalesShipmentHeader."Currency Factor", SalesShipmentHeader."Exchange Rate USD");
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorUnitarioAduana', FormatDecimal(Round(SalesShipmentLine."Unit Price" * CurrencyFactor, 0.000001, '<'), 6));
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', FormatDecimal(Round(LineAmount * CurrencyFactor, 0.0001), 4));
+                    SumUSD += Round(LineAmount * CurrencyFactor, 0.0001);
                 end else begin
                     CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorUnitarioAduana', '0');
                     CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', '0');
@@ -2804,7 +2735,7 @@ codeunit 3354 "Export Interfactura MX"
         end else
             CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'CertificadoOrigen', '0');
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'Incoterm', DocumentHeader."SAT International Trade Term");
-        CurrencyFactor := (1 / DocumentHeader."Currency Factor") * DocumentHeader."Exchange Rate USD";
+        CurrencyFactor := GetUSDConversionFactor(DocumentHeader."Currency Factor", DocumentHeader."Exchange Rate USD");
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'TipoCambioUSD', FormatDecimal(DocumentHeader."Exchange Rate USD", 6));
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'TotalUSD', FormatDecimal(DocumentHeader.Amount * CurrencyFactor, 2));
 
@@ -2830,13 +2761,21 @@ codeunit 3354 "Export Interfactura MX"
                 CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'CantidadAduana', Format(TempDocumentLineCCE.Quantity, 0, 9));
                 UOM.Get(TempDocumentLineCCE."Unit of Measure Code");
                 CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'UnidadAduana', UOM."SAT Customs Unit");
-                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorUnitarioAduana', FormatDecimal(TempDocumentLineCCE.Amount / TempDocumentLineCCE.Quantity, 6));
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorUnitarioAduana',
+                    FormatDecimal(Round(TempDocumentLineCCE.Amount / TempDocumentLineCCE.Quantity * CurrencyFactor, 0.000001, '<'), 6));
                 if LineNo <> LineCount then begin
-                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', FormatDecimal(TempDocumentLineCCE.Amount / DocumentHeader."Exchange Rate USD", 4));
-                    SumUSD += TempDocumentLineCCE.Amount / DocumentHeader."Exchange Rate USD";
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', FormatDecimal(Round(TempDocumentLineCCE.Amount * CurrencyFactor, 0.0001), 4));
+                    SumUSD += Round(TempDocumentLineCCE.Amount * CurrencyFactor, 0.0001);
                 end else
-                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', FormatDecimal(DocumentHeader.Amount / DocumentHeader."Exchange Rate USD" - SumUSD, 4));
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', FormatDecimal(Round(DocumentHeader.Amount * CurrencyFactor, 0.0001) - SumUSD, 4));
             until TempDocumentLineCCE.Next() = 0;
+    end;
+
+    local procedure GetUSDConversionFactor(DocumentCurrencyFactor: Decimal; ExchangeRateUSD: Decimal): Decimal
+    begin
+        if DocumentCurrencyFactor = 0 then
+            DocumentCurrencyFactor := 1;
+        exit(Round(1 / DocumentCurrencyFactor, 0.000001) / ExchangeRateUSD);
     end;
 
     local procedure AddNodeCartaPorteUbicacion(TipoUbicacion: Text; Location: Record Location; LocationPrefix: Text[2]; RFCNo: Text; ForeignRegId: Text; ResidenciaFiscal: Text; FechaHoraSalidaLlegada: Text; DistanciaRecorrida: Text; var XMLDoc: XmlDocument; XMLCurrNode: XmlNode; XMLNewChild: XmlNode)
@@ -3096,6 +3035,9 @@ codeunit 3354 "Export Interfactura MX"
     var
         LocalElementName: Text;
     begin
+        if LowerCase(ElementName).StartsWith('cce20:') then
+            exit(false);
+
         LocalElementName := LowerCase(GetXmlLocalName(ElementName));
 
         case LocalElementName of
@@ -3819,10 +3761,10 @@ codeunit 3354 "Export Interfactura MX"
     local procedure EncodeString(InputText: Text): Text
     var
         TypeHelper: Codeunit "Type Helper";
-        DotNetRegex: DotNet Regex;
+        Regex: Codeunit Regex;
     begin
         InputText := DelChr(InputText, '<>');
-        InputText := DotNetRegex.Replace(InputText, '\s+', ' ');
+        InputText := Regex.Replace(InputText, '\s+', ' ');
         exit(TypeHelper.HtmlEncode(InputText));
     end;
 

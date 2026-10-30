@@ -21,9 +21,6 @@ codeunit 3369 "EDoc CFDI Read Draft MX" implements IStructuredFormatReader
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         CFDIImport: Codeunit "EDoc CFDI Import MX";
     begin
-        // ParseBasicInfo populates the local EDocument copy (vendor, date, amounts, UUID, document type).
-        // Do NOT call EDocument.Modify() here — the framework calls it after ReadIntoDraft returns
-        // to save "Process Draft Impl.", and a prior Modify() would advance the timestamp causing a conflict.
         CFDIImport.ParseBasicInfo(EDocument, TempBlob);
         CFDIImport.ParseLines(EDocument, TempBlob);
 
@@ -43,9 +40,7 @@ codeunit 3369 "EDoc CFDI Read Draft MX" implements IStructuredFormatReader
         EDocumentPurchaseHeader."Sub Total" := EDocument."Amount Excl. VAT";
         EDocumentPurchaseHeader.Total := EDocument."Amount Incl. VAT";
         EDocumentPurchaseHeader."Currency Code" := EDocument."Currency Code";
-        // "Sales Invoice No." (field 5) is mapped by the framework to PurchaseHeader."Vendor Invoice No."
         EDocumentPurchaseHeader."Sales Invoice No." := EDocument."Incoming E-Document No.";
-        // MX extension field — carries the UUID to the subscriber that sets PurchaseHeader."Fiscal Invoice Number PAC"
         EDocumentPurchaseHeader."Fiscal Invoice Number PAC" := CopyStr(
             EDocument."Source Details", 1, MaxStrLen(EDocumentPurchaseHeader."Fiscal Invoice Number PAC"));
         EDocumentPurchaseHeader.Modify();
@@ -53,5 +48,32 @@ codeunit 3369 "EDoc CFDI Read Draft MX" implements IStructuredFormatReader
 
     procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
     begin
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"E-Document", OnBeforeModifyEvent, '', false, false)]
+    local procedure FillFromDraftOnBeforeEDocumentModify(var Rec: Record "E-Document"; var xRec: Record "E-Document"; RunTrigger: Boolean)
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        if Rec.Direction <> Rec.Direction::Incoming then
+            exit;
+        if Rec."Read into Draft Impl." <> "E-Doc. Read into Draft"::"CFDI MX" then
+            exit;
+        if Rec."Source Details" <> '' then
+            exit;
+        if not EDocumentPurchaseHeader.Get(Rec."Entry No") then
+            exit;
+
+        Rec."Source Details" := EDocumentPurchaseHeader."Fiscal Invoice Number PAC";
+        if Rec."Incoming E-Document No." = '' then
+            Rec."Incoming E-Document No." := EDocumentPurchaseHeader."Sales Invoice No.";
+        if Rec."Amount Excl. VAT" = 0 then
+            Rec."Amount Excl. VAT" := EDocumentPurchaseHeader."Sub Total";
+        if Rec."Amount Incl. VAT" = 0 then
+            Rec."Amount Incl. VAT" := EDocumentPurchaseHeader.Total;
+        if Rec."Currency Code" = '' then
+            Rec."Currency Code" := EDocumentPurchaseHeader."Currency Code";
     end;
 }

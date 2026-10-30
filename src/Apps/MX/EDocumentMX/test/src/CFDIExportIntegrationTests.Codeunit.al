@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
@@ -26,6 +27,8 @@ codeunit 148754 "CFDI Export Integration Tests"
     EventSubscriberInstance = Manual;
     Permissions = tabledata "E-Document" = rimd,
                   tabledata "E-Document Service" = rimd,
+                  tabledata "E-Doc. Service Supported Type" = rimd,
+                  tabledata "Document Sending Profile" = rimd,
                   tabledata "MX Connection Setup" = rimd,
                   tabledata "Company Information" = rm,
                   tabledata Customer = rimd,
@@ -42,6 +45,7 @@ codeunit 148754 "CFDI Export Integration Tests"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         ExportInterfactura: Codeunit "Export Interfactura MX";
+        CFDIServiceCodeTok: Label 'MX-CFDI-TEST', Locked = true;
 
     [Test]
     procedure SalesInvoiceCreatesCFDIIngresoXML()
@@ -61,7 +65,7 @@ codeunit 148754 "CFDI Export Integration Tests"
         DocumentNo := CreateAndPostSalesInvoice();
         SalesInvoiceHeader.Get(DocumentNo);
         SetMexicanInvoiceData(SalesInvoiceHeader);
-        EDocument := CreateEDocument(SalesInvoiceHeader.RecordId(), "E-Document Type"::"Sales Invoice");
+        EDocument := CreateEDocumentThroughExport(SalesInvoiceHeader.RecordId(), "E-Document Type"::"Sales Invoice");
         SourceHeader.GetTable(SalesInvoiceHeader);
         SetPostedInvoiceLines(SourceLines, DocumentNo);
 
@@ -93,7 +97,7 @@ codeunit 148754 "CFDI Export Integration Tests"
         DocumentNo := CreateAndPostSalesCreditMemo();
         SalesCrMemoHeader.Get(DocumentNo);
         SetMexicanCreditMemoData(SalesCrMemoHeader);
-        EDocument := CreateEDocument(SalesCrMemoHeader.RecordId(), "E-Document Type"::"Sales Credit Memo");
+        EDocument := CreateEDocumentThroughExport(SalesCrMemoHeader.RecordId(), "E-Document Type"::"Sales Credit Memo");
         SourceHeader.GetTable(SalesCrMemoHeader);
         SetPostedCreditMemoLines(SourceLines, DocumentNo);
 
@@ -126,7 +130,7 @@ codeunit 148754 "CFDI Export Integration Tests"
         SalesInvoiceHeader.Get(DocumentNo);
         SetMexicanInvoiceData(SalesInvoiceHeader);
         PostedExportCode := SalesInvoiceHeader."CFDI Export Code";
-        EDocument := CreateEDocument(SalesInvoiceHeader.RecordId(), "E-Document Type"::"Sales Invoice");
+        EDocument := CreateEDocumentThroughExport(SalesInvoiceHeader.RecordId(), "E-Document Type"::"Sales Invoice");
         EDocument."CFDI Export Code" := '02';
         EDocument.Modify();
         SourceHeader.GetTable(SalesInvoiceHeader);
@@ -149,7 +153,7 @@ codeunit 148754 "CFDI Export Integration Tests"
         DocumentNo: Code[20];
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO] A posted invoice keeps the relevant CFDI data when the E-Document is created
+        // [SCENARIO] Creating the E-Document for a posted invoice copies the relevant CFDI data from the invoice
         Initialize();
 
         // [GIVEN] A posted sales invoice with CFDI values
@@ -158,25 +162,53 @@ codeunit 148754 "CFDI Export Integration Tests"
         SalesInvoiceHeader."CFDI Export Code" := '02';
         SalesInvoiceHeader."Exchange Rate USD" := 17.5;
         SalesInvoiceHeader."CFDI Certificate of Origin No." := 'CO-001';
+        SalesInvoiceHeader."Foreign Trade" := true;
+        SalesInvoiceHeader."SAT International Trade Term" := 'FOB';
         SalesInvoiceHeader.Modify();
 
-        // [WHEN] An E-Document is created for the invoice
-        EDocument.Init();
-        EDocument."Document Record ID" := SalesInvoiceHeader.RecordId();
-        EDocument."Document Type" := "E-Document Type"::"Sales Invoice";
-        EDocument."CFDI Export Code" := SalesInvoiceHeader."CFDI Export Code";
-        EDocument."CFDI Exchange Rate USD" := SalesInvoiceHeader."Exchange Rate USD";
-        EDocument."CFDI Cert. of Origin No." := SalesInvoiceHeader."CFDI Certificate of Origin No.";
-        EDocument.Insert();
+        // [WHEN] The E-Document is created for the invoice through the E-Document export
+        EDocument := CreateEDocumentThroughExport(SalesInvoiceHeader.RecordId(), "E-Document Type"::"Sales Invoice");
 
         // [THEN] The E-Document stores the CFDI values of the posted invoice
         Assert.AreEqual('02', EDocument."CFDI Export Code", 'The export code was not copied.');
         Assert.AreEqual(17.5, EDocument."CFDI Exchange Rate USD", 'The USD exchange rate was not copied.');
         Assert.AreEqual('CO-001', EDocument."CFDI Cert. of Origin No.", 'The certificate of origin was not copied.');
+        Assert.IsTrue(EDocument."CFDI Foreign Trade", 'The foreign trade flag was not copied.');
+        Assert.AreEqual('FOB', EDocument."CFDI Intl. Trade Term", 'The international trade term was not copied.');
     end;
 
     [Test]
-    procedure SalesShipmentCreatesCFDIIngresoXML()
+    procedure CartaPorteDataIsCopiedWhenEDocumentIsCreated()
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        EDocument: Record "E-Document";
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Creating the E-Document for a posted shipment copies the Carta Porte data from the shipment
+        Initialize();
+
+        // [GIVEN] A posted sales shipment with Carta Porte values
+        DocumentNo := CreateAndPostSalesShipment();
+        SalesShipmentHeader.Get(DocumentNo);
+        SetMexicanShipmentData(SalesShipmentHeader);
+        SalesShipmentHeader."SAT Customs Regime" := 'EXD';
+        SalesShipmentHeader.Modify();
+
+        // [WHEN] The E-Document is created for the shipment through the E-Document export
+        EDocument := CreateEDocumentThroughExport(SalesShipmentHeader.RecordId(), "E-Document Type"::"Sales Shipment");
+
+        // [THEN] The E-Document stores the Carta Porte values of the posted shipment
+        Assert.AreEqual(SalesShipmentHeader."Transit-from Date/Time", EDocument."CFDI Transit-from Date/Time", 'The transit start date/time was not copied.');
+        Assert.AreEqual(SalesShipmentHeader."Transit Hours", EDocument."CFDI Transit Hours", 'The transit hours were not copied.');
+        Assert.AreEqual(SalesShipmentHeader."Transit Distance", EDocument."CFDI Transit Distance", 'The transit distance was not copied.');
+        Assert.AreEqual(SalesShipmentHeader."SAT Transport Type", EDocument."CFDI Transport Type", 'The transport type was not copied.');
+        Assert.AreEqual(SalesShipmentHeader."SAT Address ID", EDocument."CFDI SAT Address ID", 'The SAT address was not copied.');
+        Assert.AreEqual('EXD', EDocument."CFDI Customs Regime", 'The customs regime was not copied.');
+    end;
+
+    [Test]
+    procedure SalesShipmentCreatesCFDITrasladoXML()
     var
         SalesShipmentHeader: Record "Sales Shipment Header";
         SalesShipmentLine: Record "Sales Shipment Line";
@@ -204,8 +236,7 @@ codeunit 148754 "CFDI Export Integration Tests"
             SalesShipmentHeader."SAT Address ID" := CreateSATAddress();
         SalesShipmentHeader.Modify();
         SetMexicanShipmentData(SalesShipmentHeader);
-        EDocument := CreateEDocument(SalesShipmentHeader.RecordId(), "E-Document Type"::"Sales Shipment");
-        CopyShipmentCFDIDataToEDocument(EDocument, SalesShipmentHeader);
+        EDocument := CreateEDocumentThroughExport(SalesShipmentHeader.RecordId(), "E-Document Type"::"Sales Shipment");
         SourceHeader.GetTable(SalesShipmentHeader);
         SalesShipmentLine.SetRange("Document No.", DocumentNo);
         SourceLines.GetTable(SalesShipmentLine);
@@ -217,6 +248,77 @@ codeunit 148754 "CFDI Export Integration Tests"
         Assert.AreEqual('T', GetAttribute(TempBlob, 'TipoDeComprobante'), 'The CFDI document type for shipments is incorrect.');
         Assert.IsTrue(XmlContains(TempBlob, 'cfdi:Emisor'), 'The issuer node is missing.');
         Assert.IsTrue(XmlContains(TempBlob, 'cfdi:Receptor'), 'The receiver node is missing.');
+    end;
+
+    [Test]
+    procedure CartaPorteDataCorrectedOnEDocumentIsExported()
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        EDocument: Record "E-Document";
+        TempBlob: Codeunit "Temp Blob";
+        SourceHeader: RecordRef;
+        SourceLines: RecordRef;
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] A Carta Porte value corrected on the E-Document is exported, and the posted shipment is not changed
+        Initialize();
+
+        // [GIVEN] A posted sales shipment with a transit distance of 100 and its E-Document corrected to 250
+        DocumentNo := CreateAndPostSalesShipment();
+        SalesShipmentHeader.Get(DocumentNo);
+        SetMexicanShipmentData(SalesShipmentHeader);
+        SalesShipmentHeader."Transit Distance" := 100;
+        SalesShipmentHeader.Modify();
+        EDocument := CreateEDocumentThroughExport(SalesShipmentHeader.RecordId(), "E-Document Type"::"Sales Shipment");
+        EDocument."CFDI Transit Distance" := 250;
+        EDocument.Modify();
+        SourceHeader.GetTable(SalesShipmentHeader);
+        SalesShipmentLine.SetRange("Document No.", DocumentNo);
+        SourceLines.GetTable(SalesShipmentLine);
+
+        // [WHEN] The shipment is exported
+        ExportInterfactura.Export(SourceHeader, SourceLines, EDocument, TempBlob, false);
+
+        // [THEN] The XML uses the E-Document value and the posted shipment keeps its own value
+        Assert.AreEqual('250.000000', GetCartaPorteAttribute(TempBlob, 'CartaPorte', 'TotalDistRec'), 'The transit distance from the E-Document was not used.');
+        SalesShipmentHeader.Get(DocumentNo);
+        Assert.AreEqual(100, SalesShipmentHeader."Transit Distance", 'The posted shipment must not be modified.');
+    end;
+
+    [Test]
+    procedure SalesOrderCreatesCFDIIngresoXML()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        EDocument: Record "E-Document";
+        TempBlob: Codeunit "Temp Blob";
+        OrderNo: Code[20];
+        SourceHeader: RecordRef;
+        SourceLines: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] A sales order is exported as a CFDI ingreso document
+        Initialize();
+
+        // [GIVEN] A sales order with Mexican issuer and customer data
+        OrderNo := CreateSalesOrder();
+        SalesHeader.Get("Sales Document Type"::Order, OrderNo);
+        SetMexicanCustomerDataOnSalesHeader(SalesHeader);
+        EDocument := CreateEDocumentThroughExport(SalesHeader.RecordId(), "E-Document Type"::"Sales Order");
+        SourceHeader.GetTable(SalesHeader);
+        SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
+        SalesLine.SetRange("Document No.", OrderNo);
+        SourceLines.GetTable(SalesLine);
+
+        // [WHEN] The order is exported
+        ExportInterfactura.Export(SourceHeader, SourceLines, EDocument, TempBlob, false);
+
+        // [THEN] The XML identifies a traslado document and contains the mandatory CFDI nodes
+        Assert.AreEqual('T', GetAttribute(TempBlob, 'TipoDeComprobante'), 'The CFDI document type for a sales order export is incorrect.');
+        Assert.IsTrue(XmlContains(TempBlob, 'cfdi:Emisor'), 'The issuer node is missing for the sales order export.');
+        Assert.IsTrue(XmlContains(TempBlob, 'cfdi:Receptor'), 'The receiver node is missing for the sales order export.');
     end;
 
     [Test]
@@ -277,9 +379,11 @@ codeunit 148754 "CFDI Export Integration Tests"
     var
         CompanyInformation: Record "Company Information";
         EDocumentService: Record "E-Document Service";
+        DocumentSendingProfile: Record "Document Sending Profile";
     begin
         if BindSubscription(this) then;
         EDocumentService.DeleteAll();
+        DocumentSendingProfile.DeleteAll();
         CompanyInformation.Get();
         CompanyInformation.Validate("RFC Number", 'MME910620Q85');
         CompanyInformation.Modify();
@@ -383,6 +487,58 @@ codeunit 148754 "CFDI Export Integration Tests"
         SalesLine.Validate("Location Code", Location.Code);
         SalesLine.Modify(true);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, false));
+    end;
+
+    local procedure CreateSalesOrder(): Code[20]
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        Location: Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        SetMexicanCustomerData(Customer);
+        Customer.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Description := 'Sales order item';
+        Item.Modify();
+
+        LibraryWarehouse.CreateLocation(Location);
+        Location."SAT Address ID" := CreateSATAddress();
+        Location.Modify();
+        CreateInventorySetup(Item, Location.Code);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Location Code", Location.Code);
+        SalesHeader.Validate("Document Date", WorkDate());
+        SalesHeader.Validate("Posting Date", WorkDate());
+        SalesHeader.Validate("Shipment Date", WorkDate());
+        SalesHeader.Validate("Order Date", WorkDate());
+        SalesHeader."SAT Address ID" := Location."SAT Address ID";
+        SalesHeader."Ship-to Address" := 'Calle Destino 200';
+        SalesHeader."Transit-from Date/Time" := CreateDateTime(WorkDate(), 080000T);
+        SalesHeader."Transit Hours" := 2;
+        SalesHeader."Transit Distance" := 100;
+        SalesHeader."SAT Transport Type" := '01';
+        SetPostingPaymentData(SalesHeader);
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Modify(true);
+
+        exit(SalesHeader."No.");
+    end;
+
+    local procedure SetMexicanCustomerDataOnSalesHeader(var SalesHeader: Record "Sales Header")
+    var
+        Customer: Record Customer;
+    begin
+        Customer.Get(SalesHeader."Sell-to Customer No.");
+        SetMexicanCustomerData(Customer);
+        Customer.Modify();
     end;
 
     local procedure SetMexicanInvoiceData(var SalesInvoiceHeader: Record "Sales Invoice Header")
@@ -510,39 +666,40 @@ codeunit 148754 "CFDI Export Integration Tests"
         SalesHeader.Modify(true);
     end;
 
-    local procedure CreateEDocument(DocumentRecordId: RecordId; DocumentType: Enum "E-Document Type") EDocument: Record "E-Document"
+    local procedure CreateEDocumentThroughExport(DocumentRecordId: RecordId; DocumentType: Enum "E-Document Type") EDocument: Record "E-Document"
+    var
+        EDocumentService: Record "E-Document Service";
+        EDocExport: Codeunit "E-Doc. Export";
+        SourceHeader: RecordRef;
     begin
-        EDocument.Init();
-        EDocument."Document Record ID" := DocumentRecordId;
-        EDocument."Document Type" := DocumentType;
-        EDocument.Insert(true);
+        CreateCFDIService(EDocumentService);
+        SourceHeader.Open(DocumentRecordId.TableNo());
+        SourceHeader.Get(DocumentRecordId);
+        Assert.IsTrue(EDocExport.CreateEDocument(EDocument, SourceHeader, EDocumentService, DocumentType), 'The E-Document was not created for the source document.');
+        EDocument.Reset();
+        EDocument.SetRange("Document Record ID", DocumentRecordId);
+        EDocument.FindFirst();
     end;
 
-    local procedure CopyShipmentCFDIDataToEDocument(var EDocument: Record "E-Document"; SalesShipmentHeader: Record "Sales Shipment Header")
+    local procedure CreateCFDIService(var EDocumentService: Record "E-Document Service")
+    var
+        DocSendingProfile: Record "Document Sending Profile";
     begin
-        EDocument."CFDI Export Code" := SalesShipmentHeader."CFDI Export Code";
-        EDocument."CFDI Exchange Rate USD" := SalesShipmentHeader."Exchange Rate USD";
-        EDocument."CFDI Foreign Trade" := SalesShipmentHeader."Foreign Trade";
-        EDocument."CFDI SAT Address ID" := SalesShipmentHeader."SAT Address ID";
-        EDocument."CFDI Intl. Trade Term" := SalesShipmentHeader."SAT International Trade Term";
-        EDocument."CFDI Transport Type" := SalesShipmentHeader."SAT Transport Type";
-        EDocument."CFDI Transit-from Date/Time" := SalesShipmentHeader."Transit-from Date/Time";
-        EDocument."CFDI Transit Hours" := SalesShipmentHeader."Transit Hours";
-        EDocument."CFDI Transit Distance" := SalesShipmentHeader."Transit Distance";
-        EDocument."CFDI Vehicle Code" := SalesShipmentHeader."Vehicle Code";
-        EDocument."CFDI Trailer 1" := SalesShipmentHeader."Trailer 1";
-        EDocument."CFDI Trailer 2" := SalesShipmentHeader."Trailer 2";
-        EDocument."CFDI Customs Regime" := SalesShipmentHeader."SAT Customs Regime";
-        EDocument."CFDI Transfer Reason" := SalesShipmentHeader."SAT Transfer Reason";
-        EDocument."CFDI SAT ISTMO" := SalesShipmentHeader."SAT ISTMO";
-        EDocument."CFDI ISTMO Polo Origen" := SalesShipmentHeader."SAT ISTMO Polo Origen";
-        EDocument."CFDI ISTMO Polo Destino" := SalesShipmentHeader."SAT ISTMO Polo Destino";
-        EDocument."CFDI Insurer Name" := SalesShipmentHeader."Insurer Name";
-        EDocument."CFDI Insurer Policy Number" := SalesShipmentHeader."Insurer Policy Number";
-        EDocument."CFDI Medical Insurer Name" := SalesShipmentHeader."Medical Insurer Name";
-        EDocument."CFDI Medical Ins. Policy No." := SalesShipmentHeader."Medical Ins. Policy Number";
-        EDocument."CFDI Weight Unit Of Measure" := SalesShipmentHeader."SAT Weight Unit Of Measure";
-        EDocument.Modify();
+        if not EDocumentService.Get(CFDIServiceCodeTok) then begin
+            if not DocSendingProfile.Get(CFDIServiceCodeTok) then begin
+                DocSendingProfile.Init();
+                DocSendingProfile.Code := CFDIServiceCodeTok;
+                DocSendingProfile.Description := 'CFDI Test Profile';
+                DocSendingProfile.Default := true;
+                DocSendingProfile.Insert();
+            end;
+            EDocumentService.Init();
+            EDocumentService.Code := CFDIServiceCodeTok;
+            EDocumentService.Insert();
+            EDocumentService.Validate("Document Format", EDocumentService."Document Format"::CFDI);
+            EDocumentService.Modify();
+        end;
+        EDocumentService.SetRecFilter();
     end;
 
     local procedure SetPostedInvoiceLines(var SourceLines: RecordRef; DocumentNo: Code[20])
@@ -587,6 +744,24 @@ codeunit 148754 "CFDI Export Integration Tests"
         NamespaceManager.NameTable(Document.NameTable());
         NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
         exit(Document.SelectSingleNode('//' + XPath, NamespaceManager, FoundNode));
+    end;
+
+    local procedure GetCartaPorteAttribute(var TempBlob: Codeunit "Temp Blob"; ElementName: Text; AttributeName: Text): Text
+    var
+        Document: XmlDocument;
+        NamespaceManager: XmlNamespaceManager;
+        FoundNode: XmlNode;
+        Attribute: XmlAttribute;
+        InStream: InStream;
+    begin
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        XmlDocument.ReadFrom(InStream, Document);
+        NamespaceManager.NameTable(Document.NameTable());
+        NamespaceManager.AddNamespace('cartaporte31', 'http://www.sat.gob.mx/CartaPorte31');
+        Assert.IsTrue(Document.SelectSingleNode('//cartaporte31:' + ElementName, NamespaceManager, FoundNode), 'The Carta Porte node ' + ElementName + ' is missing.');
+        if FoundNode.AsXmlElement().Attributes().Get(AttributeName, Attribute) then
+            exit(Attribute.Value());
+        exit('');
     end;
 
     [PageHandler]

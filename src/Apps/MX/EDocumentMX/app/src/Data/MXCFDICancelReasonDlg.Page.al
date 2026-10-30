@@ -5,6 +5,7 @@
 namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.Sales.Receivables;
 
 page 3367 "MX CFDI Cancel Reason Dlg"
 {
@@ -53,6 +54,9 @@ page 3367 "MX CFDI Cancel Reason Dlg"
                         CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
                         UUID: Text;
                     begin
+                        if ForPaymentComplement then
+                            exit(LookupPaymentComplement(Text));
+
                         EDocument.SetRange(Direction, EDocument.Direction::Outgoing);
                         EDocuments.SetTableView(EDocument);
                         EDocuments.LookupMode := true;
@@ -89,6 +93,34 @@ page 3367 "MX CFDI Cancel Reason Dlg"
             Error(SubstitutionDocRequiredErr);
     end;
 
+    procedure SetPaymentComplement(CanceledComplementEntryNo: Integer)
+    begin
+        ForPaymentComplement := true;
+        ExcludedComplementEntryNo := CanceledComplementEntryNo;
+    end;
+
+    local procedure LookupPaymentComplement(var Text: Text): Boolean
+    var
+        Complement: Record "MX Payment Complement";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        MXPaymentComplements: Page "MX Payment Complements";
+    begin
+        Complement.SetFilter("Entry No.", '<>%1', ExcludedComplementEntryNo);
+        Complement.SetFilter("Stamped UUID", '<>%1', '');
+        Complement.SetFilter("Cancellation Status", '<>%1', Complement."Cancellation Status"::Canceled);
+        MXPaymentComplements.SetTableView(Complement);
+        MXPaymentComplements.LookupMode := true;
+        if MXPaymentComplements.RunModal() <> Action::LookupOK then
+            exit(false);
+        MXPaymentComplements.GetRecord(Complement);
+        SubstitutionDocumentNo := '';
+        if CustLedgerEntry.Get(Complement."Payment Entry No.") then
+            SubstitutionDocumentNo := CustLedgerEntry."Document No.";
+        SubstitutionUUID := Complement."Stamped UUID";
+        Text := SubstitutionDocumentNo;
+        exit(true);
+    end;
+
     procedure GetReasonCode(): Code[10]
     begin
         exit(CancellationReasonCode);
@@ -104,6 +136,8 @@ page 3367 "MX CFDI Cancel Reason Dlg"
         SubstitutionDocumentNo: Text[50];
         SubstitutionUUID: Text[50];
         SubstitutionRequired: Boolean;
+        ForPaymentComplement: Boolean;
+        ExcludedComplementEntryNo: Integer;
         CancellationReasonRequiredErr: Label 'You must select a cancellation reason before proceeding.';
         SubstitutionDocRequiredErr: Label 'A substitution document is required for this cancellation reason. Use the lookup to select a stamped CFDI document.';
         SubstitutionDocNotStampedErr: Label 'The selected document has not been stamped and does not have a UUID. Select a document with a stamped CFDI.';

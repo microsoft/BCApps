@@ -45,6 +45,7 @@ codeunit 3374 "MX Payment Compl. Cancel"
             if not Confirm(CancelQst, false) then
                 exit;
 
+        CancelReasonDlg.SetPaymentComplement(Complement."Entry No.");
         if CancelReasonDlg.RunModal() <> Action::OK then
             exit;
         Complement."Cancellation Reason Code" := CancelReasonDlg.GetReasonCode();

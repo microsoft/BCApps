@@ -16,6 +16,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Sales.History;
 using System;
 using System.Reflection;
+using System.Text;
 using System.Utilities;
 
 report 3367 "EDoc CFDI Carta Porte MX"
@@ -297,8 +298,7 @@ report 3367 "EDoc CFDI Carta Porte MX"
             var
                 SalesShipmentHeader: Record "Sales Shipment Header";
                 TransferShipmentHeader: Record "Transfer Shipment Header";
-                Convert: DotNet Convert;
-                Encoding: DotNet Encoding;
+                Base64Convert: Codeunit "Base64 Convert";
             begin
                 case "Document Table ID" of
                     DATABASE::"Sales Shipment Header":
@@ -317,9 +317,9 @@ report 3367 "EDoc CFDI Carta Porte MX"
                         end;
                 end;
 
-                OriginalStringBase64Text := Convert.ToBase64String(Encoding.UTF8.GetBytes(OriginalStringTextUnbounded));
-                DigitalSignatureBase64Text := Convert.ToBase64String(Encoding.UTF8.GetBytes(DigitalSignatureTextUnbounded));
-                DigitalSignaturePACBase64Text := Convert.ToBase64String(Encoding.UTF8.GetBytes(DigitalSignaturePACTextUnbounded));
+                OriginalStringBase64Text := Base64Convert.ToBase64(OriginalStringTextUnbounded, TextEncoding::UTF8);
+                DigitalSignatureBase64Text := Base64Convert.ToBase64(DigitalSignatureTextUnbounded, TextEncoding::UTF8);
+                DigitalSignaturePACBase64Text := Base64Convert.ToBase64(DigitalSignaturePACTextUnbounded, TextEncoding::UTF8);
 
                 Clear(LocationFrom);
                 Clear(LocationTo);
