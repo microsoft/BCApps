@@ -4,10 +4,10 @@ name: Copilot PR Review Runner
 # lives in microsoft/BC-ALAgents. All orchestration (PR resolution,
 # BCQuality clone+filter, running the Copilot CLI, rendering and posting
 # findings, plus the default BCQuality policy and reviewer behaviour) is
-# implemented in the engine. This repository supplies only the trigger and the
-# few inputs it customizes (it tracks the engine's latest release); everything
-# else inherits the engine template defaults. To diverge, pass the matching
-# `with:` input.
+# implemented in the engine. This repository owns the trigger and explicit root
+# and leaf model choices. The workflow and engine share a deliberate immutable
+# commit pin to prevent drift; update both refs together. All other inputs
+# inherit the engine template defaults. To diverge, pass the matching `with:` input.
 #
 # Security model is preserved by the reusable workflow: the review job is
 # read-only and runs the model on the untrusted diff; a separate publish job
@@ -36,8 +36,9 @@ permissions:
 jobs:
   review:
     if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
-    uses: microsoft/BC-ALAgents/.github/workflows/review.yml@latest
+    uses: microsoft/BC-ALAgents/.github/workflows/review.yml@03239afe611a3eff490002eba0e4098b48099ba3
     with:
       target_repo: ${{ github.repository }}
-      engine_ref: latest
-
+      engine_ref: 03239afe611a3eff490002eba0e4098b48099ba3
+      copilot_model: gpt-5.6-sol
+      copilot_leaf_model: gpt-5.6-luna
