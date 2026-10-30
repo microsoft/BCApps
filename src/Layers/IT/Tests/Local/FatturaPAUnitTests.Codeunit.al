@@ -67,6 +67,37 @@ codeunit 144208 "FatturaPA Unit Tests"
     end;
 
     [Test]
+    procedure FatturaFileNameUsesVATRegistrationNoWhenFiscalCodeIsBlank()
+    var
+        CompanyInformation: Record "Company Information";
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+        ProgressiveNo: Code[10];
+        ExpectedFileName: Text;
+    begin
+        // [SCENARIO] FatturaPA file name uses VAT Registration No. when company Fiscal Code is blank
+
+        Initialize();
+
+        // [GIVEN] Company Information with blank Fiscal Code and a VAT Registration No.
+        CompanyInformation.Get();
+        CompanyInformation."Fiscal Code" := '';
+        CompanyInformation."VAT Registration No." := CopyStr(LibraryUtility.GenerateRandomNumericText(11), 1, MaxStrLen(CompanyInformation."VAT Registration No."));
+        CompanyInformation.Modify();
+
+        // [GIVEN] A FatturaPA progressive number
+        ProgressiveNo := CopyStr(LibraryUtility.GenerateRandomText(10), 1, MaxStrLen(ProgressiveNo));
+
+        // [WHEN] The FatturaPA file name is generated
+        ExpectedFileName :=
+          CompanyInformation."Country/Region Code" + CompanyInformation."VAT Registration No." + '_' +
+          PadStr('', 10 - StrLen(DelChr(ProgressiveNo, '=', ',?;.:/-_ ')), '0') +
+          CopyStr(DelChr(ProgressiveNo, '=', ',?;.:/-_ '), 1, 10);
+
+        // [THEN] VAT Registration No. is used as the transmitter identifier
+        Assert.AreEqual(ExpectedFileName, FatturaDocHelper.GetFileName(ProgressiveNo), '');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure MultipleExtendedTextFattuesLines()
     var
