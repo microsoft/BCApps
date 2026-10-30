@@ -431,6 +431,7 @@ codeunit 12184 "Fattura Doc. Helper"
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(Address), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
         if (Customer."Country/Region Code" = CompanyInformation."Country/Region Code") and
+           (Customer."Post Code" <> '') and
            not IsValidFatturaPACAP(Customer."Post Code")
         then
             ErrorMessage.LogMessage(Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error, InvalidCAPErr);
@@ -482,7 +483,7 @@ codeunit 12184 "Fattura Doc. Helper"
           CompanyInformation, CompanyInformation.FieldNo("Company Type"), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo(Address), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
-        if not IsValidFatturaPACAP(CompanyInformation."Post Code") then
+        if (CompanyInformation."Post Code" <> '') and not IsValidFatturaPACAP(CompanyInformation."Post Code") then
             ErrorMessage.LogMessage(CompanyInformation, CompanyInformation.FieldNo("Post Code"), ErrorMessage."Message Type"::Error, InvalidCAPErr);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo(City), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo("REA No."), ErrorMessage."Message Type"::Error);

@@ -1314,6 +1314,10 @@ codeunit 144200 "FatturaPA Test"
         // [WHEN] The document is exported to FatturaPA
         asserterror ElectronicDocumentFormat.SendElectronically(
           TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+        // Error Message.ShowErrorMessages(true) deliberately rolls back with Error('').
+        // The page handler separately verifies the exact invalid-CAP diagnostic.
+        Assert.ExpectedError('');
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -1349,6 +1353,81 @@ codeunit 144200 "FatturaPA Test"
         // [THEN] The existing error-message handler verifies the CAP validation error
         asserterror ElectronicDocumentFormat.SendElectronically(
           TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+        // Error Message.ShowErrorMessages(true) deliberately rolls back with Error('').
+        // The page handler separately verifies the exact invalid-CAP diagnostic.
+        Assert.ExpectedError('');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BlankDomesticCustomerCAPLogsOnlyRequiredFieldError()
+    var
+        CompanyInformation: Record "Company Information";
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempErrorMessage: Record "Error Message" temporary;
+        HeaderRecRef: RecordRef;
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [SCENARIO] A missing domestic customer CAP should not also log a format error.
+        Initialize();
+        CompanyInformation.Get();
+        Customer.Get(CreateCustomer());
+        Customer."Country/Region Code" := CompanyInformation."Country/Region Code";
+        Customer."Post Code" := '';
+        Customer.Modify();
+
+        SalesInvoiceHeader.Init();
+        SalesInvoiceHeader."Bill-to Customer No." := Customer."No.";
+        HeaderRecRef.GetTable(SalesInvoiceHeader);
+
+        FatturaDocHelper.CheckMandatoryFields(HeaderRecRef, TempErrorMessage);
+
+        TempErrorMessage.SetRange("Record ID", Customer.RecordId());
+        TempErrorMessage.SetRange("Field Number", Customer.FieldNo("Post Code"));
+        TempErrorMessage.SetRange("Message Type", TempErrorMessage."Message Type"::Error);
+        Assert.AreEqual(1, TempErrorMessage.Count(),
+            'Blank customer Post Code must log only the existing required-field error.');
+        Assert.IsTrue(TempErrorMessage.FindFirst(), 'Missing customer Post Code error was not logged.');
+        Assert.IsFalse(
+            TempErrorMessage.Message = 'The Post Code must contain exactly five numeric characters for FatturaPA.',
+            'Blank customer Post Code unexpectedly logged the CAP format error.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BlankCompanyCAPLogsOnlyRequiredFieldError()
+    var
+        CompanyInformation: Record "Company Information";
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempErrorMessage: Record "Error Message" temporary;
+        HeaderRecRef: RecordRef;
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [SCENARIO] A missing company CAP should not also log a format error.
+        Initialize();
+        Customer.Get(CreateCustomer());
+        CompanyInformation.Get();
+        CompanyInformation."Post Code" := '';
+        CompanyInformation.Modify();
+
+        SalesInvoiceHeader.Init();
+        SalesInvoiceHeader."Bill-to Customer No." := Customer."No.";
+        HeaderRecRef.GetTable(SalesInvoiceHeader);
+
+        FatturaDocHelper.CheckMandatoryFields(HeaderRecRef, TempErrorMessage);
+
+        TempErrorMessage.SetRange("Record ID", CompanyInformation.RecordId());
+        TempErrorMessage.SetRange("Field Number", CompanyInformation.FieldNo("Post Code"));
+        TempErrorMessage.SetRange("Message Type", TempErrorMessage."Message Type"::Error);
+        Assert.AreEqual(1, TempErrorMessage.Count(),
+            'Blank company Post Code must log only the existing required-field error.');
+        Assert.IsTrue(TempErrorMessage.FindFirst(), 'Missing company Post Code error was not logged.');
+        Assert.IsFalse(
+            TempErrorMessage.Message = 'The Post Code must contain exactly five numeric characters for FatturaPA.',
+            'Blank company Post Code unexpectedly logged the CAP format error.');
     end;
 
     [PageHandler]
