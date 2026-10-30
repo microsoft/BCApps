@@ -60,6 +60,7 @@ codeunit 6950 "Expense Agent Privacy Subs."
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Agent Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Agent Status");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Team");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Spend Limit");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Approval Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Agent Access Control");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Activity Log Entry");

@@ -166,6 +166,52 @@ page 6949 "Expense User"
                     ApplicationArea = Basic, Suite;
                 }
             }
+            group("Spending Limit Information")
+            {
+                Caption = 'Spending Limit Information';
+
+                field("Spending Limit Per User"; Rec."Spending Limit Per User")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Available Spend Limit (LCY)"; AvailableSpendLimitLCY)
+                {
+                    Caption = 'Available Spend Limit (LCY)';
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    BlankZero = true;
+                    ToolTip = 'Specifies the applicable expense spend limit in local currency.';
+                }
+                field("Current Spending (LCY)"; CurrentSpendingLCY)
+                {
+                    Caption = 'Current Spending (LCY)';
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    BlankZero = true;
+                    ToolTip = 'Specifies the amount already spent in the applicable period, in local currency.';
+                }
+                field("Available To Use (LCY)"; AvailableToUseLCY)
+                {
+                    Caption = 'Available To Use (LCY)';
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    BlankZero = true;
+                    ToolTip = 'Specifies the remaining amount available to spend in local currency.';
+                }
+                field("Spend Limit Payment Method"; SpendLimitPaymentMethodCode)
+                {
+                    Caption = 'Spend Limit Payment Method';
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    ToolTip = 'Specifies the payment method of the spend limit used for this summary. Blank means all payment methods.';
+                }
+            }
             part(ExpenseApprovalSetup; "Expense Approval Setups Part")
             {
                 ApplicationArea = Basic, Suite;
@@ -304,9 +350,15 @@ page 6949 "Expense User"
         SetControlAppearance();
     end;
 
+    trigger OnAfterGetRecord()
+    begin
+        UpdateSpendLimitInformation();
+    end;
+
     trigger OnAfterGetCurrRecord()
     begin
         SetControlAppearance();
+        UpdateSpendLimitInformation();
     end;
 
     var
@@ -314,6 +366,10 @@ page 6949 "Expense User"
         IsCreateEmployeeVisible: Boolean;
         IsDeletingExpenseUser: Boolean;
         AlternateApproverName: Text[100];
+        AvailableSpendLimitLCY: Decimal;
+        CurrentSpendingLCY: Decimal;
+        AvailableToUseLCY: Decimal;
+        SpendLimitPaymentMethodCode: Code[10];
         CloseWithoutEmployeeNoQst: Label '%1 is blank. The expense user will not be linked to an employee.\\Are you sure you want to exit?', Comment = '%1 = Employee No. field caption';
 
     local procedure SetCodeFieldVisible()
@@ -337,5 +393,12 @@ page 6949 "Expense User"
         AlternateApproverName := '';
         if ExpenseUser.Get(ExpenseReportApprovalMgmt.GetActiveAlternateApproverNo(Rec."No.", WorkDate())) then
             AlternateApproverName := ExpenseUser."Name";
+    end;
+
+    local procedure UpdateSpendLimitInformation()
+    var
+        ExpenseSpendLimitMgt: Codeunit "Expense Spend Limit Mgt.";
+    begin
+        ExpenseSpendLimitMgt.GetExpenseUserSpendLimitInfo(Rec, AvailableSpendLimitLCY, CurrentSpendingLCY, AvailableToUseLCY, SpendLimitPaymentMethodCode);
     end;
 }

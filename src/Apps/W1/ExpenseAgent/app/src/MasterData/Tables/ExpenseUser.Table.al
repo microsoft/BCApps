@@ -242,6 +242,14 @@ table 6923 "Expense User"
                     CheckIfApproverIsDefaultApprover();
             end;
         }
+        field(62; "Spending Limit Per User"; Boolean)
+        {
+            Caption = 'Spending Limit Per User';
+            ToolTip = 'Specifies whether an expense spend limit is configured for this Expense User.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = exist("Expense Spend Limit" where("Spend Limit Type" = const(User), "Limit For" = field("No.")));
+        }
     }
 
     keys
@@ -292,12 +300,18 @@ table 6923 "Expense User"
     trigger OnDelete()
     var
         ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseSpendLimit: Record "Expense Spend Limit";
     begin
         CheckExpenseUserCanBeDeleted();
         CheckExpenseUserIsDefaultApprover();
         CheckExpenseUserIsApprover();
         if ExpenseApprovalSetup.Get(Rec."No.") then
             ExpenseApprovalSetup.Delete();
+
+        ExpenseSpendLimit.SetRange("Spend Limit Type", ExpenseSpendLimit."Spend Limit Type"::User);
+        ExpenseSpendLimit.SetRange("Limit For", Rec."No.");
+        if not ExpenseSpendLimit.IsEmpty() then
+            ExpenseSpendLimit.DeleteAll();
     end;
 
     trigger OnInsert()
