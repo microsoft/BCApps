@@ -261,6 +261,13 @@ table 380 "Detailed Vendor Ledg. Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
+        field(96; "Application G/L Entry No."; Integer)
+        {
+            Caption = 'Application G/L Entry No.';
+            Editable = false;
+            TableRelation = "G/L Entry";
+            ToolTip = 'Specifies the G/L entry that transfers the application amount between posting groups.';
+        }
         field(7000004; "Excluded from calculation"; Boolean)
         {
             Caption = 'Excluded from calculation';
@@ -410,4 +417,3 @@ table 380 "Detailed Vendor Ledg. Entry"
     begin
     end;
 }
-

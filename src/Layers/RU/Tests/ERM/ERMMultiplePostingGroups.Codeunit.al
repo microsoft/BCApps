@@ -521,6 +521,79 @@ codeunit 134195 "ERM Multiple Posting Groups"
     [Test]
     [Scope('OnPrem')]
     procedure CheckSalesInvoiceApplyUnapplyMultiplePostingGroups()
+    begin
+        CheckSalesInvoiceApplyUnapplyACY(false, false, false, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyLegacyCustomerPostingGroupTransferWithZeroACY()
+    begin
+        CheckSalesInvoiceApplyUnapplyACY(true, true, false, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyCustomerPostingGroupTransferWithoutGLEntryLink()
+    begin
+        CheckSalesInvoiceApplyUnapplyACY(true, false, false, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyCustomerTransferUsesExactGLEntryLink()
+    begin
+        CheckSalesInvoiceApplyUnapplyACY(false, false, true, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyAmbiguousLegacyCustomerTransferFails()
+    begin
+        CheckSalesInvoiceApplyUnapplyACY(true, false, true, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyCustomerTransferAfterPostingGroupAccountsChange()
+    begin
+        CheckSalesInvoiceApplyUnapplyACY(false, false, false, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyLegacyCustomerZeroACYAfterPostingGroupAccountsChange()
+    begin
+        CheckSalesInvoiceApplyUnapplyACY(true, true, false, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyLegacyCustomerNonzeroACYAfterPostingGroupAccountsChange()
+    begin
+        CheckSalesInvoiceApplyUnapplyACY(true, false, false, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyLegacyCustomerOnlineApplicationWithZeroACY()
+    begin
+        CheckSalesInvoiceApplyUnapplyACY(true, true, false, false, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyLegacyCustomerOnlineZeroACYAfterAccountsChange()
+    begin
+        CheckSalesInvoiceApplyUnapplyACY(true, true, false, true, true);
+    end;
+
+    local procedure CheckSalesInvoiceApplyUnapplyACY(RemoveGLEntryLink: Boolean; LegacyZeroACY: Boolean; AddAmbiguousGLEntry: Boolean; ChangePostingGroupAccounts: Boolean)
+    begin
+        CheckSalesInvoiceApplyUnapplyACY(RemoveGLEntryLink, LegacyZeroACY, AddAmbiguousGLEntry, ChangePostingGroupAccounts, false);
+    end;
+
+    local procedure CheckSalesInvoiceApplyUnapplyACY(RemoveGLEntryLink: Boolean; LegacyZeroACY: Boolean; AddAmbiguousGLEntry: Boolean; ChangePostingGroupAccounts: Boolean; OnlineApplication: Boolean)
     var
         Customer: Record Customer;
         CustomerPostingGroup: Record "Customer Posting Group";
@@ -536,6 +609,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
         PaymentNo: Code[20];
         CurrencyCode: Code[10];
         TotalAmount: Decimal;
+        ExpectedAmountACY: Decimal;
         LastGLRegNo: Integer;
     begin
         Initialize();
@@ -572,6 +646,11 @@ codeunit 134195 "ERM Multiple Posting Groups"
             GenJournalLine."Account Type"::Customer, Customer."No.", -TotalAmount);
         GenJournalLine.Validate("Currency Code", CurrencyCode);
         GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        if OnlineApplication then begin
+            GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+            GenJournalLine.Validate("Applies-to Doc. No.", InvoiceNo);
+            GenJournalLine.TestField("Posting Group", CustomerPostingGroup.Code);
+        end;
         GenJournalLine.Modify();
         PaymentNo := GenJournalLine."Document No.";
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
@@ -580,18 +659,41 @@ codeunit 134195 "ERM Multiple Posting Groups"
         LastGLRegNo := GLRegister."No.";
 
         // Apply payment to invoice - should post 2 G/L entries between Receivables accounts
-        ApplyAndPostCustomerEntry(PaymentNo, InvoiceNo, -TotalAmount, "Gen. Journal Document Type"::Payment, "Gen. Journal Document Type"::Invoice);
+        if OnlineApplication then
+            LastGLRegNo -= 1
+        else
+            ApplyAndPostCustomerEntry(PaymentNo, InvoiceNo, -TotalAmount, "Gen. Journal Document Type"::Payment, "Gen. Journal Document Type"::Invoice);
 
         // Verify posted apply G/L entries
         GLRegister.Get(LastGLRegNo + 1);
+        if OnlineApplication then
+            LimitOnlineApplicationRegister(GLRegister, true);
         GLEntry.Reset();
         GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
         Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
         VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", -TotalAmount * 2, -TotalAmount);
         VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", TotalAmount * 2, TotalAmount);
 
+        ExpectedAmountACY := TotalAmount;
+        if RemoveGLEntryLink then
+            PrepareLegacyApplication(GLRegister, true, LegacyZeroACY);
+        if LegacyZeroACY then
+            ExpectedAmountACY := 0;
+        if AddAmbiguousGLEntry then
+            AddAmbiguousApplicationGLEntry(GLRegister);
+        if ChangePostingGroupAccounts then begin
+            ChangePostingGroupAccount(true, CustomerPostingGroup.Code);
+            ChangePostingGroupAccount(true, CustomerPostingGroup2.Code);
+        end;
+        ChangeACYExchangeRate(CurrencyCode);
+
         // Unapply payment - should post 2 reversal G/L entries between Receivables accounts
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
+        if RemoveGLEntryLink and AddAmbiguousGLEntry then begin
+            asserterror LibraryERM.UnapplyCustomerLedgerEntry(CustLedgerEntry);
+            Assert.ExpectedError('The original application G/L entry cannot be identified uniquely');
+            exit;
+        end;
         LibraryERM.UnapplyCustomerLedgerEntry(CustLedgerEntry);
 
         // Verify posted unapply G/L entries
@@ -599,8 +701,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         GLEntry.Reset();
         GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
         Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", TotalAmount * 2, TotalAmount);
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", -TotalAmount * 2, -TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", TotalAmount * 2, ExpectedAmountACY);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", -TotalAmount * 2, -ExpectedAmountACY);
     end;
 
     [Test]
@@ -663,6 +765,79 @@ codeunit 134195 "ERM Multiple Posting Groups"
     [Test]
     [Scope('OnPrem')]
     procedure CheckPurchInvoiceApplyUnapplyMultiplePostingGroups()
+    begin
+        CheckPurchInvoiceApplyUnapplyACY(false, false, false, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyLegacyVendorPostingGroupTransferWithZeroACY()
+    begin
+        CheckPurchInvoiceApplyUnapplyACY(true, true, false, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyVendorPostingGroupTransferWithoutGLEntryLink()
+    begin
+        CheckPurchInvoiceApplyUnapplyACY(true, false, false, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyVendorTransferUsesExactGLEntryLink()
+    begin
+        CheckPurchInvoiceApplyUnapplyACY(false, false, true, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyAmbiguousLegacyVendorTransferFails()
+    begin
+        CheckPurchInvoiceApplyUnapplyACY(true, false, true, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyVendorTransferAfterPostingGroupAccountsChange()
+    begin
+        CheckPurchInvoiceApplyUnapplyACY(false, false, false, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyLegacyVendorZeroACYAfterPostingGroupAccountsChange()
+    begin
+        CheckPurchInvoiceApplyUnapplyACY(true, true, false, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyLegacyVendorNonzeroACYAfterPostingGroupAccountsChange()
+    begin
+        CheckPurchInvoiceApplyUnapplyACY(true, false, false, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyLegacyVendorOnlineApplicationWithZeroACY()
+    begin
+        CheckPurchInvoiceApplyUnapplyACY(true, true, false, false, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnapplyLegacyVendorOnlineZeroACYAfterAccountsChange()
+    begin
+        CheckPurchInvoiceApplyUnapplyACY(true, true, false, true, true);
+    end;
+
+    local procedure CheckPurchInvoiceApplyUnapplyACY(RemoveGLEntryLink: Boolean; LegacyZeroACY: Boolean; AddAmbiguousGLEntry: Boolean; ChangePostingGroupAccounts: Boolean)
+    begin
+        CheckPurchInvoiceApplyUnapplyACY(RemoveGLEntryLink, LegacyZeroACY, AddAmbiguousGLEntry, ChangePostingGroupAccounts, false);
+    end;
+
+    local procedure CheckPurchInvoiceApplyUnapplyACY(RemoveGLEntryLink: Boolean; LegacyZeroACY: Boolean; AddAmbiguousGLEntry: Boolean; ChangePostingGroupAccounts: Boolean; OnlineApplication: Boolean)
     var
         Vendor: Record Vendor;
         VendorPostingGroup: Record "Vendor Posting Group";
@@ -678,6 +853,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
         PaymentNo: Code[20];
         CurrencyCode: Code[10];
         TotalAmount: Decimal;
+        ExpectedAmountACY: Decimal;
         LastGLRegNo: Integer;
     begin
         Initialize();
@@ -718,6 +894,11 @@ codeunit 134195 "ERM Multiple Posting Groups"
             GenJournalLine."Account Type"::Vendor, Vendor."No.", TotalAmount);
         GenJournalLine.Validate("Currency Code", CurrencyCode);
         GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        if OnlineApplication then begin
+            GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+            GenJournalLine.Validate("Applies-to Doc. No.", InvoiceNo);
+            GenJournalLine.TestField("Posting Group", VendorPostingGroup.Code);
+        end;
         GenJournalLine.Modify();
         PaymentNo := GenJournalLine."Document No.";
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
@@ -726,18 +907,41 @@ codeunit 134195 "ERM Multiple Posting Groups"
         LastGLRegNo := GLRegister."No.";
 
         // Apply payment to invoice - should post 2 G/L entries between Payables accounts
-        ApplyAndPostVendorEntry(PaymentNo, InvoiceNo, TotalAmount, "Gen. Journal Document Type"::Payment, "Gen. Journal Document Type"::Invoice);
+        if OnlineApplication then
+            LastGLRegNo -= 1
+        else
+            ApplyAndPostVendorEntry(PaymentNo, InvoiceNo, TotalAmount, "Gen. Journal Document Type"::Payment, "Gen. Journal Document Type"::Invoice);
 
         // Verify posted apply G/L entries
         GLRegister.Get(LastGLRegNo + 1);
+        if OnlineApplication then
+            LimitOnlineApplicationRegister(GLRegister, false);
         GLEntry.Reset();
         GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
         Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
         VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup2."Payables Account", TotalAmount * 2, TotalAmount);
         VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup."Payables Account", -TotalAmount * 2, -TotalAmount);
 
+        ExpectedAmountACY := TotalAmount;
+        if RemoveGLEntryLink then
+            PrepareLegacyApplication(GLRegister, false, LegacyZeroACY);
+        if LegacyZeroACY then
+            ExpectedAmountACY := 0;
+        if AddAmbiguousGLEntry then
+            AddAmbiguousApplicationGLEntry(GLRegister);
+        if ChangePostingGroupAccounts then begin
+            ChangePostingGroupAccount(false, VendorPostingGroup.Code);
+            ChangePostingGroupAccount(false, VendorPostingGroup2.Code);
+        end;
+        ChangeACYExchangeRate(CurrencyCode);
+
         // Unapply payment - should post 2 reversal G/L entries between Payables accounts
         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
+        if RemoveGLEntryLink and AddAmbiguousGLEntry then begin
+            asserterror LibraryERM.UnapplyVendorLedgerEntry(VendorLedgerEntry);
+            Assert.ExpectedError('The original application G/L entry cannot be identified uniquely');
+            exit;
+        end;
         LibraryERM.UnapplyVendorLedgerEntry(VendorLedgerEntry);
 
         // Verify posted unapply G/L entries
@@ -745,8 +949,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         GLEntry.Reset();
         GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
         Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup2."Payables Account", -TotalAmount * 2, -TotalAmount);
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup."Payables Account", TotalAmount * 2, TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup2."Payables Account", -TotalAmount * 2, -ExpectedAmountACY);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup."Payables Account", TotalAmount * 2, ExpectedAmountACY);
     end;
 
     [Test]
@@ -1242,6 +1446,335 @@ codeunit 134195 "ERM Multiple Posting Groups"
         Assert.RecordCount(GLEntry, 2);
         VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, EmployeePostingGroup2."Payables Account", -TotalAmount, -TotalAmount / 2);
         VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, EmployeePostingGroup."Payables Account", TotalAmount, TotalAmount / 2);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyCustomerACYPaymentToLCYInvoiceAcrossPostingGroups()
+    begin
+        CheckCrossCurrencyApplicationACY(true, true, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyCustomerACYPaymentToFCYInvoiceAcrossPostingGroups()
+    begin
+        CheckCrossCurrencyApplicationACY(true, true, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyCustomerLCYPaymentToACYInvoiceAcrossPostingGroups()
+    begin
+        CheckCrossCurrencyApplicationACY(true, false, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyCustomerFCYPaymentToACYInvoiceAcrossPostingGroups()
+    begin
+        CheckCrossCurrencyApplicationACY(true, false, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyVendorACYPaymentToLCYInvoiceAcrossPostingGroups()
+    begin
+        CheckCrossCurrencyApplicationACY(false, true, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyVendorACYPaymentToFCYInvoiceAcrossPostingGroups()
+    begin
+        CheckCrossCurrencyApplicationACY(false, true, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyVendorLCYPaymentToACYInvoiceAcrossPostingGroups()
+    begin
+        CheckCrossCurrencyApplicationACY(false, false, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyVendorFCYPaymentToACYInvoiceAcrossPostingGroups()
+    begin
+        CheckCrossCurrencyApplicationACY(false, false, true);
+    end;
+
+    local procedure CheckCrossCurrencyApplicationACY(IsCustomer: Boolean; PaymentInACY: Boolean; UseOtherCurrency: Boolean)
+    var
+        Customer: Record Customer;
+        Vendor: Record Vendor;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        OtherCustomerPostingGroup: Record "Customer Posting Group";
+        VendorPostingGroup: Record "Vendor Posting Group";
+        OtherVendorPostingGroup: Record "Vendor Posting Group";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        GLRegister: Record "G/L Register";
+        AccountType: Enum "Gen. Journal Account Type";
+        AccountNo: Code[20];
+        PaymentPostingGroup: Code[20];
+        InvoicePostingGroup: Code[20];
+        PaymentGLAccount: Code[20];
+        InvoiceGLAccount: Code[20];
+        ACYCode: Code[10];
+        OtherCurrencyCode: Code[10];
+        PaymentCurrencyCode: Code[10];
+        InvoiceCurrencyCode: Code[10];
+        PaymentNo: Code[20];
+        InvoiceNo: Code[20];
+        PaymentAmount: Decimal;
+        InvoiceAmount: Decimal;
+        Sign: Integer;
+    begin
+        // [SCENARIO] Cross-currency applications transfer equal and opposite ACY and reverse the posted amounts.
+        Initialize();
+        ACYCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 0.5, 0.5);
+        LibraryERM.SetAddReportingCurrency(ACYCode);
+        if UseOtherCurrency then
+            OtherCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 0.25, 0.25);
+        PaymentCurrencyCode := OtherCurrencyCode;
+        InvoiceCurrencyCode := ACYCode;
+        PaymentAmount := 200;
+        if UseOtherCurrency then
+            PaymentAmount := 50;
+        InvoiceAmount := 100;
+        if PaymentInACY then begin
+            PaymentCurrencyCode := ACYCode;
+            InvoiceCurrencyCode := OtherCurrencyCode;
+            InvoiceAmount := PaymentAmount;
+            PaymentAmount := 100;
+        end;
+
+        if IsCustomer then begin
+            SetSalesAllowMultiplePostingGroups(true);
+            LibrarySales.SetApplnBetweenCurrencies(SalesReceivablesSetup."Appln. between Currencies"::All);
+            LibrarySales.CreateCustomer(Customer);
+            Customer.Validate("Allow Multiple Posting Groups", true);
+            Customer.Validate("Payment Terms Code", '');
+            Customer.Modify(true);
+            CustomerPostingGroup.Get(Customer."Customer Posting Group");
+            LibrarySales.CreateCustomerPostingGroup(OtherCustomerPostingGroup);
+            LibrarySales.CreateAltCustomerPostingGroup(CustomerPostingGroup.Code, OtherCustomerPostingGroup.Code);
+            AccountType := AccountType::Customer;
+            AccountNo := Customer."No.";
+            PaymentPostingGroup := CustomerPostingGroup.Code;
+            InvoicePostingGroup := OtherCustomerPostingGroup.Code;
+            PaymentGLAccount := CustomerPostingGroup."Receivables Account";
+            InvoiceGLAccount := OtherCustomerPostingGroup."Receivables Account";
+            Sign := 1;
+        end else begin
+            SetPurchAllowMultiplePostingGroups(true);
+            LibraryPurchase.SetApplnBetweenCurrencies(PurchasesPayablesSetup."Appln. between Currencies"::All);
+            LibraryPurchase.CreateVendorPostingGroup(VendorPostingGroup);
+            LibraryPurchase.CreateVendorPostingGroup(OtherVendorPostingGroup);
+            LibraryPurchase.CreateAltVendorPostingGroup(
+                CopyStr(VendorPostingGroup.Code, 1, 10), CopyStr(OtherVendorPostingGroup.Code, 1, 10));
+            LibraryPurchase.CreateVendor(Vendor);
+            Vendor.Validate("Vendor Posting Group", VendorPostingGroup.Code);
+            Vendor.Validate("Allow Multiple Posting Groups", true);
+            Vendor.Validate("Payment Terms Code", '');
+            Vendor.Modify(true);
+            AccountType := AccountType::Vendor;
+            AccountNo := Vendor."No.";
+            PaymentPostingGroup := VendorPostingGroup.Code;
+            InvoicePostingGroup := OtherVendorPostingGroup.Code;
+            PaymentGLAccount := VendorPostingGroup."Payables Account";
+            InvoiceGLAccount := OtherVendorPostingGroup."Payables Account";
+            Sign := -1;
+        end;
+
+        InvoiceNo := PostPostingGroupJournalEntry(
+            AccountType, AccountNo, "Gen. Journal Document Type"::Invoice, InvoicePostingGroup, InvoiceCurrencyCode, Sign * InvoiceAmount);
+        PaymentNo := PostPostingGroupJournalEntry(
+            AccountType, AccountNo, "Gen. Journal Document Type"::Payment, PaymentPostingGroup, PaymentCurrencyCode, -Sign * PaymentAmount);
+
+        if IsCustomer then
+            ApplyAndPostCustomerEntry(
+                PaymentNo, InvoiceNo, -PaymentAmount, "Gen. Journal Document Type"::Payment, "Gen. Journal Document Type"::Invoice)
+        else
+            ApplyAndPostVendorEntry(
+                PaymentNo, InvoiceNo, PaymentAmount, "Gen. Journal Document Type"::Payment, "Gen. Journal Document Type"::Invoice);
+
+        GLRegister.FindLast();
+        VerifyACYTransferRegister(GLRegister, InvoiceGLAccount, PaymentGLAccount, -Sign * 200, -Sign * 100);
+        VerifyApplicationGLEntryLinks(GLRegister, IsCustomer);
+
+        ChangeACYExchangeRate(ACYCode);
+        if IsCustomer then begin
+            LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
+            LibraryERM.UnapplyCustomerLedgerEntry(CustLedgerEntry);
+        end else begin
+            LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
+            LibraryERM.UnapplyVendorLedgerEntry(VendorLedgerEntry);
+        end;
+        GLRegister.FindLast();
+        VerifyACYTransferRegister(GLRegister, InvoiceGLAccount, PaymentGLAccount, Sign * 200, Sign * 100);
+    end;
+
+    local procedure PostPostingGroupJournalEntry(AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; PostingGroup: Code[20]; CurrencyCode: Code[10]; Amount: Decimal): Code[20]
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        DocumentNo: Code[20];
+    begin
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            DocumentType, AccountType, AccountNo, Amount);
+        GenJournalLine.Validate("Posting Group", PostingGroup);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        DocumentNo := LibraryUtility.GenerateGUID();
+        GenJournalLine."Document No." := DocumentNo;
+        GenJournalLine."External Document No." := DocumentNo;
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        exit(DocumentNo);
+    end;
+
+    local procedure VerifyACYTransferRegister(GLRegister: Record "G/L Register"; InvoiceGLAccount: Code[20]; PaymentGLAccount: Code[20]; InvoiceAmountLCY: Decimal; InvoiceAmountACY: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        Assert.RecordCount(GLEntry, 2);
+        GLEntry.CalcSums(Amount, "Additional-Currency Amount");
+        Assert.AreEqual(0, GLEntry.Amount, 'The application must balance in LCY.');
+        Assert.AreEqual(0, GLEntry."Additional-Currency Amount", 'The application must balance in ACY.');
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, InvoiceGLAccount, InvoiceAmountLCY, InvoiceAmountACY);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, PaymentGLAccount, -InvoiceAmountLCY, -InvoiceAmountACY);
+    end;
+
+    local procedure VerifyApplicationGLEntryLinks(GLRegister: Record "G/L Register"; IsCustomer: Boolean)
+    var
+        GLEntry: Record "G/L Entry";
+        ApplicationGLEntry: Record "G/L Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        GLEntry.Get(GLRegister."From Entry No.");
+        if IsCustomer then begin
+            DetailedCustLedgEntry.SetRange("Transaction No.", GLEntry."Transaction No.");
+            DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
+            Assert.RecordCount(DetailedCustLedgEntry, 2);
+            DetailedCustLedgEntry.FindSet();
+            repeat
+                DetailedCustLedgEntry.TestField("Application G/L Entry No.");
+                ApplicationGLEntry.Get(DetailedCustLedgEntry."Application G/L Entry No.");
+                ApplicationGLEntry.TestField(Amount, DetailedCustLedgEntry."Amount (LCY)");
+                ApplicationGLEntry.TestField("Transaction No.", DetailedCustLedgEntry."Transaction No.");
+            until DetailedCustLedgEntry.Next() = 0;
+        end else begin
+            DetailedVendorLedgEntry.SetRange("Transaction No.", GLEntry."Transaction No.");
+            DetailedVendorLedgEntry.SetRange("Entry Type", DetailedVendorLedgEntry."Entry Type"::Application);
+            Assert.RecordCount(DetailedVendorLedgEntry, 2);
+            DetailedVendorLedgEntry.FindSet();
+            repeat
+                DetailedVendorLedgEntry.TestField("Application G/L Entry No.");
+                ApplicationGLEntry.Get(DetailedVendorLedgEntry."Application G/L Entry No.");
+                ApplicationGLEntry.TestField(Amount, DetailedVendorLedgEntry."Amount (LCY)");
+                ApplicationGLEntry.TestField("Transaction No.", DetailedVendorLedgEntry."Transaction No.");
+            until DetailedVendorLedgEntry.Next() = 0;
+        end;
+    end;
+
+    local procedure LimitOnlineApplicationRegister(var GLRegister: Record "G/L Register"; IsCustomer: Boolean)
+    var
+        GLEntry: Record "G/L Entry";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        GLEntry.Get(GLRegister."From Entry No.");
+        GLEntry.TestField("System-Created Entry", true);
+        GLEntry.TestField("Additional-Currency Amount");
+        if IsCustomer then begin
+            CustLedgerEntry.Get(GLEntry."Entry No.");
+            CustLedgerEntry.TestField("Document Type", CustLedgerEntry."Document Type"::Payment);
+            CustLedgerEntry.TestField("Transaction No.", GLEntry."Transaction No.");
+        end else begin
+            VendorLedgerEntry.Get(GLEntry."Entry No.");
+            VendorLedgerEntry.TestField("Document Type", VendorLedgerEntry."Document Type"::Payment);
+            VendorLedgerEntry.TestField("Transaction No.", GLEntry."Transaction No.");
+        end;
+        // Exclude the reserved initial entry and the journal balancing entry, retaining the two transfers.
+        GLRegister."From Entry No." += 1;
+        GLRegister."To Entry No." -= 1;
+    end;
+
+    local procedure PrepareLegacyApplication(GLRegister: Record "G/L Register"; IsCustomer: Boolean; ZeroACY: Boolean)
+    var
+        GLEntry: Record "G/L Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        VerifyApplicationGLEntryLinks(GLRegister, IsCustomer);
+        GLEntry.Get(GLRegister."From Entry No.");
+        if IsCustomer then begin
+            DetailedCustLedgEntry.SetRange("Transaction No.", GLEntry."Transaction No.");
+            DetailedCustLedgEntry.ModifyAll("Application G/L Entry No.", 0);
+        end else begin
+            DetailedVendorLedgEntry.SetRange("Transaction No.", GLEntry."Transaction No.");
+            DetailedVendorLedgEntry.ModifyAll("Application G/L Entry No.", 0);
+        end;
+        if ZeroACY then begin
+            // Reproduce the historical posting, not just a newly calculated unapplication buffer.
+            GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+            GLEntry.ModifyAll("Additional-Currency Amount", 0);
+            GLEntry.ModifyAll("Add.-Currency Debit Amount", 0);
+            GLEntry.ModifyAll("Add.-Currency Credit Amount", 0);
+        end;
+    end;
+
+    local procedure AddAmbiguousApplicationGLEntry(GLRegister: Record "G/L Register")
+    var
+        GLEntry: Record "G/L Entry";
+        OtherGLEntry: Record "G/L Entry";
+    begin
+        GLEntry.Get(GLRegister."From Entry No.");
+        OtherGLEntry := GLEntry;
+        GLEntry.FindLast();
+        OtherGLEntry."Entry No." := GLEntry."Entry No." + 1;
+        OtherGLEntry."Additional-Currency Amount" += 1;
+        OtherGLEntry.UpdateDebitCredit(false);
+        OtherGLEntry.Insert();
+    end;
+
+    local procedure ChangePostingGroupAccount(IsCustomer: Boolean; PostingGroupCode: Code[20])
+    var
+        CustomerPostingGroup: Record "Customer Posting Group";
+        VendorPostingGroup: Record "Vendor Posting Group";
+    begin
+        if IsCustomer then begin
+            CustomerPostingGroup.Get(PostingGroupCode);
+            CustomerPostingGroup.Validate("Receivables Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
+            CustomerPostingGroup.Modify(true);
+        end else begin
+            VendorPostingGroup.Get(PostingGroupCode);
+            VendorPostingGroup.Validate("Payables Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
+            VendorPostingGroup.Modify(true);
+        end;
+    end;
+
+    local procedure ChangeACYExchangeRate(CurrencyCode: Code[10])
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+    begin
+        CurrencyExchangeRate.SetRange("Currency Code", CurrencyCode);
+        CurrencyExchangeRate.SetRange("Starting Date", WorkDate());
+        CurrencyExchangeRate.FindFirst();
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", 4);
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", 4);
+        CurrencyExchangeRate.Modify(true);
     end;
 
     local procedure Initialize()
