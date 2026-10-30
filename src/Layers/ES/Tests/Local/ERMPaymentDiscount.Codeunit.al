@@ -863,6 +863,148 @@ codeunit 144076 "ERM Payment Discount"
         end;
     end;
 
+    [Test]
+    [HandlerFunctions('SalesPaymentDiscountStatisticsPageHandler')]
+    [Scope('OnPrem')]
+    procedure SalesPaymentDiscountWithPricesIncludingVAT()
+    begin
+        VerifySalesPaymentDiscountTotals(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('SalesPaymentDiscountStatisticsPageHandler')]
+    [Scope('OnPrem')]
+    procedure SalesPaymentDiscountWithPricesExcludingVAT()
+    begin
+        VerifySalesPaymentDiscountTotals(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchasePaymentDiscountStatisticsPageHandler')]
+    [Scope('OnPrem')]
+    procedure PurchasePaymentDiscountWithPricesIncludingVAT()
+    begin
+        VerifyPurchasePaymentDiscountTotals(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchasePaymentDiscountStatisticsPageHandler')]
+    [Scope('OnPrem')]
+    procedure PurchasePaymentDiscountWithPricesExcludingVAT()
+    begin
+        VerifyPurchasePaymentDiscountTotals(false);
+    end;
+
+    local procedure VerifySalesPaymentDiscountTotals(PricesIncludingVAT: Boolean)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        CustomerNo: Code[20];
+        UnitPrice: Decimal;
+        CalculationNo: Integer;
+    begin
+        // [SCENARIO 656928] Payment discount reduces VAT-inclusive sales totals and statistics.
+        Initialize();
+        SetupVATPostingSetupAndItem(VATPostingSetup, Item);
+        CustomerNo := LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group");
+        SetupPaymentDiscountOnLines();
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Prices Including VAT", PricesIncludingVAT);
+        SalesHeader.Validate("Payment Discount %", 20);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        UnitPrice := 1000;
+        if PricesIncludingVAT then
+            UnitPrice := 1200;
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+
+        for CalculationNo := 1 to 2 do begin
+            CODEUNIT.Run(CODEUNIT::"Sales-Calc. Discount", SalesLine);
+            SalesLine.Find();
+            SalesLine.TestField("Pmt. Discount Amount", UnitPrice * 0.2);
+            SalesLine.TestField(Amount, 800);
+            SalesLine.TestField("VAT Base Amount", 800);
+            SalesLine.TestField("Amount Including VAT", 960);
+        end;
+
+        EnqueuePaymentDiscountStatistics(PricesIncludingVAT, UnitPrice);
+        PAGE.Run(PAGE::"Sales Statistics", SalesHeader);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure VerifyPurchasePaymentDiscountTotals(PricesIncludingVAT: Boolean)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VendorNo: Code[20];
+        UnitCost: Decimal;
+        CalculationNo: Integer;
+    begin
+        // [SCENARIO 656928] Payment discount reduces VAT-inclusive purchase totals and statistics.
+        Initialize();
+        SetupVATPostingSetupAndItem(VATPostingSetup, Item);
+        VendorNo := LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group");
+        SetupPaymentDiscountOnLines();
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        PurchaseHeader.Validate("Prices Including VAT", PricesIncludingVAT);
+        PurchaseHeader.Validate("Payment Discount %", 20);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        UnitCost := 1000;
+        if PricesIncludingVAT then
+            UnitCost := 1200;
+        PurchaseLine.Validate("Direct Unit Cost", UnitCost);
+        PurchaseLine.Modify(true);
+
+        for CalculationNo := 1 to 2 do begin
+            CODEUNIT.Run(CODEUNIT::"Purch.-Calc.Discount", PurchaseLine);
+            PurchaseLine.Find();
+            PurchaseLine.TestField("Pmt. Discount Amount", UnitCost * 0.2);
+            PurchaseLine.TestField(Amount, 800);
+            PurchaseLine.TestField("VAT Base Amount", 800);
+            PurchaseLine.TestField("Amount Including VAT", 960);
+        end;
+
+        EnqueuePaymentDiscountStatistics(PricesIncludingVAT, UnitCost);
+        PAGE.Run(PAGE::"Purchase Statistics", PurchaseHeader);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure SetupVATPostingSetupAndItem(var VATPostingSetup: Record "VAT Posting Setup"; var Item: Record Item)
+    begin
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+    end;
+
+    local procedure SetupPaymentDiscountOnLines()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        UpdateGeneralLedgerSetup(
+          GeneralLedgerSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines",
+          GeneralLedgerSetup."Discount Calculation"::"Line Disc. * Inv. Disc. * Payment Disc.");
+    end;
+
+    local procedure EnqueuePaymentDiscountStatistics(PricesIncludingVAT: Boolean; LineAmount: Decimal)
+    begin
+        LibraryVariableStorage.Enqueue(LineAmount);
+        LibraryVariableStorage.Enqueue(LineAmount * 0.2);
+        if PricesIncludingVAT then begin
+            LibraryVariableStorage.Enqueue(960);
+            LibraryVariableStorage.Enqueue(800);
+        end else begin
+            LibraryVariableStorage.Enqueue(800);
+            LibraryVariableStorage.Enqueue(960);
+        end;
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -1328,6 +1470,30 @@ codeunit 144076 "ERM Payment Discount"
         Assert.AreEqual(ExpectedPmtDiscGivenAmount, PmtDiscGivenAmount, '');
     end;
 #endif
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure SalesPaymentDiscountStatisticsPageHandler(var SalesStatistics: TestPage "Sales Statistics")
+    begin
+        SalesStatistics.Amount.AssertEquals(LibraryVariableStorage.DequeueDecimal());
+        SalesStatistics.PmtDiscGivenAmount.AssertEquals(LibraryVariableStorage.DequeueDecimal());
+        SalesStatistics.TotalAmount1.AssertEquals(LibraryVariableStorage.DequeueDecimal());
+        SalesStatistics.TotalAmount2.AssertEquals(LibraryVariableStorage.DequeueDecimal());
+        SalesStatistics.VATAmount.AssertEquals(160);
+        SalesStatistics.OK().Invoke();
+    end;
+
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure PurchasePaymentDiscountStatisticsPageHandler(var PurchaseStatistics: TestPage "Purchase Statistics")
+    begin
+        PurchaseStatistics.Amount.AssertEquals(LibraryVariableStorage.DequeueDecimal());
+        PurchaseStatistics."TotalPurchLine.""Pmt. Discount Amount""".AssertEquals(LibraryVariableStorage.DequeueDecimal());
+        PurchaseStatistics.TotalAmount1.AssertEquals(LibraryVariableStorage.DequeueDecimal());
+        PurchaseStatistics.TotalAmount2.AssertEquals(LibraryVariableStorage.DequeueDecimal());
+        PurchaseStatistics.VATAmount.AssertEquals(160);
+        PurchaseStatistics.OK().Invoke();
+    end;
+
     [PageHandler]
     [Scope('OnPrem')]
     procedure ServiceStatisticsPageHandler(var ServiceStatistics: TestPage "Service Statistics")
