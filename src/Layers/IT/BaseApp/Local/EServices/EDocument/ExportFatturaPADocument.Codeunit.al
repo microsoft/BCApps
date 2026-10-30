@@ -583,8 +583,9 @@ codeunit 12179 "Export FatturaPA Document"
     var
         BankAccount: Record "Bank Account";
     begin
-        if BankAccount.Get(TempFatturaHeader."Company Bank Account Code") then
-            exit(BankAccount.IBAN);
+        if TempFatturaHeader."Company Bank Account Code" <> '' then
+            if BankAccount.Get(TempFatturaHeader."Company Bank Account Code") then
+                exit(BankAccount.IBAN);
 
         exit(CompanyInformation.IBAN);
     end;

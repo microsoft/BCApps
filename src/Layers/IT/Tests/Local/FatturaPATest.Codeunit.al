@@ -428,6 +428,40 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ExportServiceInvoiceWithoutDocumentBankAccountUsesCompanyIBAN()
+    var
+        CompanyInformation: Record "Company Information";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Service] [Invoice] [Payment]
+        Initialize();
+
+        // [GIVEN] Company Information has an IBAN and the posted Service Invoice has no selected bank account
+        CompanyInformation.Get();
+        CompanyInformation.IBAN := 'IT60X0542811101000000123456';
+        CompanyInformation.Modify();
+        ServiceInvoiceHeader.Get(
+          CreateAndPostServiceInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
+        ServiceInvoiceHeader.TestField("Company Bank Account Code", '');
+        ServiceInvoiceHeader.SetRecFilter();
+
+        // [WHEN] The service invoice is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, ServiceInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] The existing Company Information IBAN fallback is preserved
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer, '/p:FatturaElettronica/FatturaElettronicaBody/DatiPagamento/DettaglioPagamento/IBAN',
+          CompanyInformation.IBAN);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceBatch()
     var
         ElectronicDocumentFormat: Record "Electronic Document Format";
