@@ -946,6 +946,95 @@ codeunit 134658 "Edit Posted Documents"
         SalesInvoiceHeader.TestField("Dispute Status", '');
     end;
 
+    [Test]
+    procedure SwitchDisputeStatusFromOverwriteToNonOverwriteOnVendorLedgerEntryClearsOnHold()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DisputeStatus: Code[10];
+    begin
+        // [SCENARIO 651756] Replacing a dispute status with "Overwrite on hold" by one without it clears On Hold on the vendor ledger entry.
+        Initialize();
+
+        // [GIVEN] Vendor ledger entry of a posted purchase invoice with a dispute status with "Overwrite on hold" = true.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        VendorLedgerEntry."Dispute Status" := CreateDisputeStatusCode(true);
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", MarkedAsOnHoldLbl);
+
+        // [WHEN] Set a dispute status with "Overwrite on hold" = false.
+        DisputeStatus := CreateDisputeStatusCode(false);
+        VendorLedgerEntry."Dispute Status" := DisputeStatus;
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+
+        // [THEN] On Hold is cleared and the new dispute status is set on the entry and the posted purchase invoice.
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", '');
+        VendorLedgerEntry.TestField("Dispute Status", DisputeStatus);
+        PurchInvHeader.Find();
+        PurchInvHeader.TestField("Dispute Status", DisputeStatus);
+    end;
+
+    [Test]
+    procedure SwitchDisputeStatusFromNonOverwriteToOverwriteOnVendorLedgerEntrySetsOnHold()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DisputeStatus: Code[10];
+    begin
+        // [SCENARIO 651756] Replacing a dispute status without "Overwrite on hold" by one with it puts the vendor ledger entry on hold.
+        Initialize();
+
+        // [GIVEN] Vendor ledger entry of a posted purchase invoice with a dispute status with "Overwrite on hold" = false.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        VendorLedgerEntry."Dispute Status" := CreateDisputeStatusCode(false);
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", '');
+
+        // [WHEN] Set a dispute status with "Overwrite on hold" = true.
+        DisputeStatus := CreateDisputeStatusCode(true);
+        VendorLedgerEntry."Dispute Status" := DisputeStatus;
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+
+        // [THEN] The vendor ledger entry is on hold.
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", MarkedAsOnHoldLbl);
+        VendorLedgerEntry.TestField("Dispute Status", DisputeStatus);
+    end;
+
+    [Test]
+    procedure RemoveDisputeStatusWithOverwriteOnHoldKeepsManualOnHoldOnVendorLedgerEntry()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        ManualOnHold: Code[3];
+    begin
+        // [SCENARIO 651756] Removing a dispute status with "Overwrite on hold" keeps a manually entered On Hold code other than 'X'.
+        Initialize();
+
+        // [GIVEN] Vendor ledger entry of a posted purchase invoice with a dispute status with "Overwrite on hold" = true.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        VendorLedgerEntry."Dispute Status" := CreateDisputeStatusCode(true);
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+        VendorLedgerEntry.Find();
+
+        // [WHEN] Change On Hold to a manual code and remove the dispute status.
+        ManualOnHold := 'MAN';
+        VendorLedgerEntry."On Hold" := ManualOnHold;
+        VendorLedgerEntry."Dispute Status" := '';
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+
+        // [THEN] The manual On Hold code is kept.
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", ManualOnHold);
+        VendorLedgerEntry.TestField("Dispute Status", '');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Edit Posted Documents");
@@ -1094,7 +1183,7 @@ codeunit 134658 "Edit Posted Documents"
         LibraryVariableStorage.Enqueue(PurchInvHeader."ID Type");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Succeeded Company Name");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Succeeded VAT Registration No.");
-        LibraryVariableStorage.Enqueue(PurchInvHeader."Dispute Status");  
+        LibraryVariableStorage.Enqueue(PurchInvHeader."Dispute Status");
     end;
 
     local procedure PrepareEnqueueValuesForEditableFieldsPostedPurchaseCreditMemo(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
