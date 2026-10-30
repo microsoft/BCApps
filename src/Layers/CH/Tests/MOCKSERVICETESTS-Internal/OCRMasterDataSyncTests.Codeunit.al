@@ -5,6 +5,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
 
     trigger OnRun()
     begin
@@ -16,9 +17,10 @@ codeunit 135098 "OCR Master Data Sync Tests"
         LibraryPurchase: Codeunit "Library - Purchase";
         OCRMasterDataSyncEvents: Codeunit "OCR Master Data Sync Events";
         TaskDisabled: Boolean;
+        OCRMockServiceUrlTxt: Label 'https://localhost:8080/OCR/', Locked = true;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestServiceEnablingCreatesSyncJob()
     begin
@@ -35,7 +37,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestServiceDisablingDeletesSyncJob()
     begin
@@ -52,7 +54,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestSyncEnablingCreatesSyncJob()
     begin
@@ -69,7 +71,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestSyncDisablingDeletesSyncJob()
     begin
@@ -86,7 +88,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestVendorCreationCreatesSyncJob()
     var
@@ -106,7 +108,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestVendorModificationCreatesSyncJob()
     var
@@ -128,7 +130,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestVendorDeletionCreatesSyncJob()
     var
@@ -149,7 +151,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestVendorBankAccountCreationCreatesSyncJob()
     var
@@ -173,7 +175,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestVendorBankAccountModificationCreatesSyncJob()
     var
@@ -198,7 +200,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestVendorBankAccountDeletionCreatesSyncJob()
     var
@@ -222,7 +224,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestSyncRequestContainsVendorNumber()
     var
@@ -246,7 +248,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestSyncRequestContainsAccountNumber()
     var
@@ -279,7 +281,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestSyncRequestContainsERSAccountNumber()
     var
@@ -312,7 +314,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
+    [HandlerFunctions('ConfirmHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestSyncRequestContainsSWIFTAndIBAN()
     var
@@ -347,7 +349,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestSyncInPortions()
     var
@@ -386,7 +388,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestSuccessSyncUpdatesLastSyncTime()
     var
@@ -408,7 +410,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestErrorInSyncResponseLeavesLastSyncTimeUnchanged()
     begin
@@ -417,12 +419,12 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestNoSyncResponseLeavesLastSyncTimeUnchanged()
     begin
         TestSyncFailureLeavesLastSyncTimeUnchanged(
-          '/rso_timeout', 'A call to System.Net.HttpWebRequest.GetResponse failed with this message: The remote server returned an error: (408) Request Time-out. Synchronization failed.');
+          '/rso_timeout', 'The remote server returned an error: (408) Request Time-out. Synchronization failed.');
     end;
 
     local procedure TestSyncFailureLeavesLastSyncTimeUnchanged(FailureUrlToken: Text; ExpectedError: Text)
@@ -447,7 +449,7 @@ codeunit 135098 "OCR Master Data Sync Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes')]
+    [HandlerFunctions('ConfirmHandler,ConsentConfirmYes,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestNewSyncJobNotCreatedIfAnotherSyncJobReady()
     var
@@ -685,5 +687,12 @@ codeunit 135098 "OCR Master Data Sync Tests"
     procedure ConsentConfirmYes(var CustConsentConfirmation: TestPage "Cust. Consent Confirmation")
     begin
         CustConsentConfirmation.Accept.Invoke();
+    end;
+
+    [HttpClientHandler]
+    procedure OCRMockServiceHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        // Only requests to the local OCR mock service may leave the test; any other outbound request stays blocked.
+        exit(Request.Path.StartsWith(OCRMockServiceUrlTxt));
     end;
 }
