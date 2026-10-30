@@ -81,6 +81,99 @@ codeunit 148356 EACorpCardImportBasicTests
     end;
 
     [Test]
+    procedure Camt053ImportMapsTransactionsAndRefunds()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+    begin
+        Initialize();
+
+        ImportXmlFeed(Enum::"EA Corp Card Feed Type"::CAMT053, '', GetCamtPayload(false), CorpCardStatement);
+
+        AssertCamtTransactions(CorpCardStatement);
+    end;
+
+    [Test]
+    procedure Camt054ImportMapsNotificationTransactionsAndRefunds()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+    begin
+        Initialize();
+
+        ImportXmlFeed(Enum::"EA Corp Card Feed Type"::CAMT054, '', GetCamtPayload(true), CorpCardStatement);
+
+        AssertCamtTransactions(CorpCardStatement);
+    end;
+
+    [Test]
+    procedure DataExchangeFeedPreservesConfiguredCamtDefinition()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+    begin
+        Initialize();
+
+        ImportXmlFeed(Enum::"EA Corp Card Feed Type"::DataExch, 'EACCAMT054', GetCamtPayload(true), CorpCardStatement);
+
+        AssertCamtTransactions(CorpCardStatement);
+    end;
+
+    [Test]
+    procedure IsoFeedImportsConfiguredNotificationXml()
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+    begin
+        Initialize();
+
+        ImportXmlFeed(
+            Enum::"EA Corp Card Feed Type"::ISO20022, '',
+            '<Document><Notification><Transaction>' +
+                '<ProviderTransId>ISO-001</ProviderTransId><CardLast4>0001</CardLast4>' +
+                '<TransDate>2026-06-02</TransDate><PostingDate>2026-06-03</PostingDate>' +
+                '<Amount>19.63</Amount><CurrencyCode>USD</CurrencyCode>' +
+                '<MerchantRaw>Contoso Air</MerchantRaw><MCC>4511</MCC><Country>US</Country>' +
+            '</Transaction></Notification></Document>', CorpCardStatement);
+
+        Assert.AreEqual(1, CorpCardStatement.Imported, 'The notification XML must import its transaction.');
+        Assert.AreEqual(0, CorpCardStatement.Rejected, 'The mapped transaction must pass validation.');
+        CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
+        CorpCardTrans.FindFirst();
+        Assert.AreEqual('ISO-001', CorpCardTrans."Provider Trans Id", 'The provider transaction reference must be mapped.');
+        Assert.AreEqual('CORPCARD-0001', CorpCardTrans."Card Id", 'The imported last four digits must identify the configured card.');
+        Assert.AreEqual(19.63, CorpCardTrans.Amount, 'The XML amount must be mapped.');
+        Assert.AreEqual('USD', CorpCardTrans."Currency Code", 'The foreign currency must be retained.');
+        Assert.AreEqual(DMY2Date(2, 6, 2026), CorpCardTrans."Trans Date", 'The transaction date must be mapped.');
+        Assert.AreEqual(DMY2Date(3, 6, 2026), CorpCardTrans."Posting Date", 'The posting date must be mapped.');
+    end;
+
+    [Test]
+    procedure ScheduledImportSkipsAdditionalFileFeedTypes()
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
+        FeedTypes: List of [Enum "EA Corp Card Feed Type"];
+        FeedType: Enum "EA Corp Card Feed Type";
+    begin
+        Initialize();
+        CorpCardProvider.ModifyAll(Enabled, false);
+        CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
+        CorpCardProvider.Enabled := true;
+        FeedTypes.Add(FeedType::ISO20022);
+        FeedTypes.Add(FeedType::CAMT053);
+        FeedTypes.Add(FeedType::CAMT054);
+
+        foreach FeedType in FeedTypes do begin
+            CorpCardProvider."Feed Type" := FeedType;
+            CorpCardProvider.Modify(true);
+
+            CorpCardFeedMgt.RunAllEnabledProviders();
+        end;
+
+        CorpCardStatement.SetRange("Provider Code", CorpCardProvider.Code);
+        Assert.IsTrue(CorpCardStatement.IsEmpty(), 'File-based feeds must not create statements without an uploaded file.');
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure SourceInjectionIsScopedToBoundHelper()
     var
@@ -329,6 +422,31 @@ codeunit 148356 EACorpCardImportBasicTests
     end;
 
     [Test]
+    procedure EnhancedMatchDoesNotMatchOnExpenseUserAlone()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        EnhancedMatchMgt: Codeunit "EA Corp Card Enh. Match Mgt";
+        MatchedExpenseNo: Code[20];
+    begin
+        Initialize();
+        InitializeValidTransaction(CorpCardTrans);
+        CorpCard.Get(CorpCardTrans."Card Id");
+        CorpCardTrans."Merchant Norm" := 'Bluebird Cafe';
+        CorpCardTrans.Amount := 1234;
+        CorpCardTrans."Currency Code" := UsdCurrencyCodeTok;
+        LibraryExpense.CreateExpense(Expense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, UsdCurrencyCodeTok, 1);
+        Expense.Validate("Merchant Name", 'Contoso Air');
+        Expense.Modify(true);
+
+        EnhancedMatchMgt.InitializeCardCache();
+
+        Assert.IsFalse(EnhancedMatchMgt.EnhancedMatchTransaction(CorpCardTrans, MatchedExpenseNo), 'An expense for the same user must not match without matching transaction details.');
+        Assert.AreEqual('', MatchedExpenseNo, 'An unrelated expense must not be selected by the employee-only fallback.');
+    end;
+
+    [Test]
     procedure FuzzyMatchReusesCandidatesWithoutRematchingLinkedExpenses()
     var
         CorpCard: Record "EA Corp Card";
@@ -422,6 +540,111 @@ codeunit 148356 EACorpCardImportBasicTests
 
         Assert.IsFalse(CorpCardValidateMgt.ValidateTrans(CorpCardTrans, ValidationReason), 'A blocked card must produce a row validation failure rather than aborting the import.');
         Assert.AreEqual('The corporate card is blocked.', ValidationReason, 'The validation failure must identify the blocked card.');
+    end;
+
+    local procedure ImportXmlFeed(FeedType: Enum "EA Corp Card Feed Type"; DataExchDefCode: Code[20]; SourcePayload: Text; var CorpCardStatement: Record "EA Corp Card Statement")
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+        CorpCardProvReg: Codeunit "EA Corp Card Prov Reg";
+        CorpCardProviderImpl: Interface "EA Corp Card Provider";
+    begin
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."LCY Code" := EuroCurrencyCodeTok;
+        GeneralLedgerSetup.Modify(true);
+        CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
+        CorpCardProvider."Feed Type" := FeedType;
+        CorpCardProvider."Data Exch Def Code" := DataExchDefCode;
+        CorpCardProvider."Data Exch Map Code" := '';
+        CorpCardProvider.Modify(true);
+        CreateCorpCardSetup.EnsureDataExchangeForProvider(CorpCardProvider);
+        CorpCardTestLib.SetProviderSourcePayload(CorpCardProvider.Code, SourcePayload, 'Statement.xml');
+        CorpCardTestLib.CreateStatement(CorpCardStatement, CorpCardProvider.Code, '', 0, CorpCardStatement.Status::Importing);
+        CorpCardProvReg.ResolveProvider(CorpCardProvider, CorpCardProviderImpl);
+
+        BindSubscription(CorpCardTestLib);
+        CorpCardProviderImpl.Download(CorpCardStatement);
+        CorpCardProviderImpl.ParseToStaging(CorpCardStatement."Statement Entry No.");
+        UnbindSubscription(CorpCardTestLib);
+        CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
+    end;
+
+    local procedure AssertCamtTransactions(CorpCardStatement: Record "EA Corp Card Statement")
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+    begin
+        Assert.AreEqual(3, CorpCardStatement.Imported, 'Each transaction detail must create a separate transaction, including details within the same entry.');
+        Assert.AreEqual(0, CorpCardStatement.Rejected, 'All mapped CAMT transactions must pass validation.');
+        CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
+        Assert.AreEqual(3, CorpCardTrans.Count(), 'The imported counter must match the staged transactions.');
+        CorpCardTrans.FindSet();
+        repeat
+            Assert.AreEqual('0001', CorpCardTrans."Card Last 4", 'The last four digits must be extracted from remittance information.');
+            Assert.AreEqual('CORPCARD-0001', CorpCardTrans."Card Id", 'Remittance information must resolve the configured card, not supply an internal card ID.');
+            Assert.AreEqual('USD', CorpCardTrans."Currency Code", 'The currency attribute must be mapped independently of the amount.');
+            Assert.AreEqual('Contoso Air', CorpCardTrans."Merchant Raw", 'The creditor name must be mapped.');
+            Assert.AreEqual('4511', CorpCardTrans.MCC, 'The merchant category must be extracted from additional information.');
+            Assert.AreEqual('US', CorpCardTrans.Country, 'The creditor country must be mapped.');
+            Assert.AreEqual(DMY2Date(2, 6, 2026), CorpCardTrans."Trans Date", 'The value date must be read from the containing entry.');
+            Assert.AreEqual(DMY2Date(3, 6, 2026), CorpCardTrans."Posting Date", 'The booking date must be read from the containing entry.');
+            case CorpCardTrans."Provider Trans Id" of
+                'CAMT-001':
+                    Assert.AreEqual(19.63, CorpCardTrans.Amount, 'A debit must be a positive card expense.');
+                'CAMT-002':
+                    Assert.AreEqual(42.50, CorpCardTrans.Amount, 'A second detail in the same entry must retain its own amount.');
+                'CAMT-003':
+                    Assert.AreEqual(-5, CorpCardTrans.Amount, 'A credit must be a negative card expense.');
+                else
+                    Assert.Fail('Unexpected CAMT transaction reference.');
+            end;
+        until CorpCardTrans.Next() = 0;
+    end;
+
+    local procedure GetCamtPayload(IsNotification: Boolean): Text
+    var
+        MessageTag: Text;
+        GroupTag: Text;
+        MessageNumber: Text;
+    begin
+        if IsNotification then begin
+            MessageTag := 'BkToCstmrDbtCdtNtfctn';
+            GroupTag := 'Ntfctn';
+            MessageNumber := '054';
+        end else begin
+            MessageTag := 'BkToCstmrStmt';
+            GroupTag := 'Stmt';
+            MessageNumber := '053';
+        end;
+
+        exit(
+            '<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.' + MessageNumber + '.001.08">' +
+                '<' + MessageTag + '><' + GroupTag + '>' +
+                    '<Ntry><Amt Ccy="USD">62.13</Amt><CdtDbtInd>DBIT</CdtDbtInd>' +
+                        '<BookgDt><Dt>2026-06-03</Dt></BookgDt><ValDt><Dt>2026-06-02</Dt></ValDt>' +
+                        '<NtryDtls>' +
+                            GetCamtTransactionPayload('CAMT-001', '19.63') +
+                            GetCamtTransactionPayload('CAMT-002', '42.50') +
+                        '</NtryDtls>' +
+                    '</Ntry>' +
+                    '<Ntry><Amt Ccy="USD">5.00</Amt><CdtDbtInd>CRDT</CdtDbtInd>' +
+                        '<BookgDt><Dt>2026-06-03</Dt></BookgDt><ValDt><Dt>2026-06-02</Dt></ValDt>' +
+                        '<NtryDtls>' + GetCamtTransactionPayload('CAMT-003', '5.00') + '</NtryDtls>' +
+                    '</Ntry>' +
+                '</' + GroupTag + '></' + MessageTag + '>' +
+            '</Document>');
+    end;
+
+    local procedure GetCamtTransactionPayload(ProviderTransId: Text; AmountText: Text): Text
+    begin
+        exit(
+            '<TxDtls>' +
+                '<Refs><EndToEndId>' + ProviderTransId + '</EndToEndId></Refs>' +
+                '<AmtDtls><TxAmt><Amt Ccy="USD">' + AmountText + '</Amt></TxAmt></AmtDtls>' +
+                '<RltdPties><Cdtr><Pty><Nm>Contoso Air</Nm><PstlAdr><Ctry>US</Ctry></PstlAdr></Pty></Cdtr></RltdPties>' +
+                '<RmtInf><Ustrd>CardLast4=0001</Ustrd></RmtInf>' +
+                '<AddtlTxInf>MCC=4511; Test transaction</AddtlTxInf>' +
+            '</TxDtls>');
     end;
 
     local procedure InitializeValidTransaction(var CorpCardTrans: Record "EA Corp Card Trans")
