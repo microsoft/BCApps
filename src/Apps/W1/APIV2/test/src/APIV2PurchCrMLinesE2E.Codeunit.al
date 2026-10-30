@@ -3,7 +3,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -27,6 +27,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         LineTypeFieldNameTxt: Label 'lineType';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestFailsOnIDAbsense()
     var
         ResponseText: Text;
@@ -50,6 +51,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCreditMemoLineDirectly()
     var
         PurchaseLine: Record "Purchase Line";
@@ -83,6 +85,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCreditMemoLines()
     var
         PurchaseLine: Record "Purchase Line";
@@ -113,6 +116,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCreditMemoLinesDirectlyWithDocumentIdFilter()
     var
         PurchaseLine: Record "Purchase Line";
@@ -145,6 +149,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPostedCreditMemoLines()
     var
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
@@ -174,6 +179,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemoLines()
     var
         Item: Record "Item";
@@ -207,6 +213,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemoLineWithSequence()
     var
         Item: Record "Item";
@@ -246,6 +253,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCreditMemoLines()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -286,6 +294,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCreditMemoLineFailsOnSequenceIdOrDocumentIdChange()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -331,6 +340,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
 
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteCreditMemoLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -363,6 +373,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletePostedCreditMemoLine()
     var
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
@@ -391,6 +402,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateLineThroughPageAndAPI()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -441,6 +453,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGettingLinesWithDifferentTypes()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -467,6 +480,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostingBlankLineDefaultsToCommentType()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -504,6 +518,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostingCommentLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -543,6 +558,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheIdToAccountChangesLineType()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -575,6 +591,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheIdToItemChangesLineType()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -615,6 +632,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheTypeBlanksIds()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -646,6 +664,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemoLinesWithItemVariant()
     var
         Item: Record "Item";
@@ -687,6 +706,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostCreditMemoLinesWithWrongItemVariant()
     var
         Item1: Record "Item";
@@ -991,6 +1011,13 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         PurchaseLineComment.Type := PurchaseLineComment.Type::" ";
         PurchaseLineComment.Description := 'Thank you for your business!';
         PurchaseLineComment.Modify();
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 
     local procedure Initialize()

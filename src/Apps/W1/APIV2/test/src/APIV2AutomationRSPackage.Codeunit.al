@@ -3,7 +3,7 @@ codeunit 139831 "APIV2 - Automation RS Package"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -38,6 +38,7 @@ codeunit 139831 "APIV2 - Automation RS Package"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateRSPackage()
     var
         PackageCode: Code[20];
@@ -66,6 +67,7 @@ codeunit 139831 "APIV2 - Automation RS Package"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestUploadRSPackageFile()
     var
         ConfigPackage: Record "Config. Package";
@@ -103,6 +105,7 @@ codeunit 139831 "APIV2 - Automation RS Package"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestImportRSPackage()
     var
         ConfigPackage: Record "Config. Package";
@@ -153,6 +156,7 @@ codeunit 139831 "APIV2 - Automation RS Package"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestImportWrongRSPackage()
     var
         ConfigPackage: Record "Config. Package";
@@ -202,6 +206,7 @@ codeunit 139831 "APIV2 - Automation RS Package"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestApplyRSPackage()
     var
         ConfigPackage: Record "Config. Package";
@@ -332,6 +337,13 @@ codeunit 139831 "APIV2 - Automation RS Package"
     begin
         ConfigPackage.Validate(Code, SamplePackageCode);
         ConfigPackage.Insert(true);
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

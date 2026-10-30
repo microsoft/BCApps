@@ -2,7 +2,7 @@ codeunit 139917 "APIV2 - Approval Entries E2E"
 {
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -15,6 +15,7 @@ codeunit 139917 "APIV2 - Approval Entries E2E"
 
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetApprovalEntries()
     var
         ApprovalEntry: Record "Approval Entry";
@@ -44,5 +45,12 @@ codeunit 139917 "APIV2 - Approval Entries E2E"
             Assert.ExpectedError('Request failed with error: ' + GetLastErrorText());
 
         Assert.IsTrue(LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', ApprovalEntryId), 'Could not find approval entry');
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

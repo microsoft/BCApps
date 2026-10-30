@@ -3,7 +3,7 @@ codeunit 139869 "APIV2 - Cust. Ret. Reasons E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -33,6 +33,7 @@ codeunit 139869 "APIV2 - Cust. Ret. Reasons E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetReasonCode()
     var
         ReasonCode: Record "Reason Code";
@@ -54,6 +55,7 @@ codeunit 139869 "APIV2 - Cust. Ret. Reasons E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateReasonCode()
     var
         ReasonCode: Record "Reason Code";
@@ -79,6 +81,7 @@ codeunit 139869 "APIV2 - Cust. Ret. Reasons E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyReasonCode()
     var
         ReasonCode: Record "Reason Code";
@@ -109,6 +112,7 @@ codeunit 139869 "APIV2 - Cust. Ret. Reasons E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteReasonCode()
     var
         ReasonCode: Record "Reason Code";
@@ -154,5 +158,12 @@ codeunit 139869 "APIV2 - Cust. Ret. Reasons E2E"
     begin
         LibraryERM.CreateReasonCode(ReasonCode);
         Commit();
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

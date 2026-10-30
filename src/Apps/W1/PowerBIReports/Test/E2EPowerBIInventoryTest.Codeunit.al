@@ -44,7 +44,7 @@ using System.Utilities;
 codeunit 139877 "E2E PowerBI Inventory Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     Access = Internal;
 
@@ -69,6 +69,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         ResponseEmptyErr: Label 'Response should not be empty.';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetZones()
     var
         Zone: Record Zone;
@@ -109,6 +110,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetBins()
     var
         Bin: Record Bin;
@@ -152,6 +154,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSalesLines()
     var
         SalesHeader: Record "Sales Header";
@@ -210,6 +213,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSalesLinesOutsideFilter()
     var
         SalesLine: Record "Sales Line";
@@ -248,6 +252,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPurchLines()
     var
         PurchHeader: Record "Purchase Header";
@@ -306,6 +311,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPurchLinesOutsideFilter()
     var
         PurchLine: Record "Purchase Line";
@@ -344,6 +350,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetReqLines()
     var
         SalesHeader: Record "Sales Header";
@@ -456,6 +463,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetTransferLines()
     var
         TransferHeader: Record "Transfer Header";
@@ -508,6 +516,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetTransferLinesOutsideFilter()
     var
         TransferLine: Record "Transfer Line";
@@ -536,6 +545,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetServiceLines()
     var
         ServiceHeader: Record "Service Header";
@@ -589,6 +599,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetServiceLinesOutsideFilter()
     var
         ServiceLine: Record "Service Line";
@@ -626,6 +637,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetItemLedgerEntries()
     var
         SalesHeader: Record "Sales Header";
@@ -707,6 +719,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetWhseActivityLines()
     var
         Item: Record Item;
@@ -764,6 +777,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetWhseEntries()
     var
         Item: Record Item;
@@ -846,6 +860,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestFromBinWhseJournalLines()
     var
         Item1: Record Item;
@@ -895,6 +910,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestToBinWhseJournalLines()
     var
         Item1: Record Item;
@@ -972,6 +988,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInventoryValue()
     var
         Item: Record Item;
@@ -1034,6 +1051,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInventoryValueOutsideFilter()
     var
         ValueEntry: Record "Value Entry";
@@ -1064,6 +1082,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetAssemblyHeaders()
     var
         AssemblyHeader: Record "Assembly Header";
@@ -1113,6 +1132,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetAssemblyHeaderOutsideFilter()
     var
         AssemblyHeader: Record "Assembly Header";
@@ -1140,6 +1160,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetAssemblyLines()
     var
         AssemblyHeader: Record "Assembly Header";
@@ -1185,6 +1206,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetAssemblyLineOutsideFilter()
     var
         AssemblyHeader: Record "Assembly Header";
@@ -1219,6 +1241,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetJobPlanningLines()
     var
         Item1: Record Item;
@@ -1275,6 +1298,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetJobPlanningLineOutsideFilter()
     var
         JobPlanningLine: Record "Job Planning Line";
@@ -1317,6 +1341,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetProdOrderLines()
     var
         Item: Record Item;
@@ -1382,6 +1407,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetProdOrderLineOutsideFilter()
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -1410,6 +1436,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetProdOrderCompLines()
     var
         Item: Record Item;
@@ -1480,6 +1507,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetProdOrderCompLineOutsideFilter()
     var
         ProdOrderComp: Record "Prod. Order Component";
@@ -1508,6 +1536,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPlanningCompLines()
     var
         Item1: Record Item;
@@ -1567,6 +1596,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPlanningCompLineOutsideFilter()
     var
         PlanningComponent: Record "Planning Component";
@@ -1605,5 +1635,12 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         Assert.IsTrue(JObject.ReadFrom(Response), 'Invalid response format.');
         Assert.IsTrue(JObject.Get('value', JToken), 'Value token not found.');
         Assert.AreEqual(0, JToken.AsArray().Count(), 'Response contains data outside of the filter.');
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

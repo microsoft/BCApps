@@ -3,7 +3,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -61,6 +61,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
 
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetQuotes()
     var
         SalesHeader: Record "Sales Header";
@@ -95,6 +96,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostQuotes()
     var
         SalesHeader: Record "Sales Header";
@@ -143,6 +145,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostQuoteWithCurrency()
     var
         SalesHeader: Record "Sales Header";
@@ -187,6 +190,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyQuotes()
     begin
         Initialize();
@@ -195,6 +199,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestEmptyModifyQuotes()
     begin
         Initialize();
@@ -203,6 +208,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPartialModifyQuotes()
     begin
         Initialize();
@@ -290,6 +296,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteQuotes()
     var
         SalesHeader: Record "Sales Header";
@@ -329,6 +336,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateQuoteThroughPageAndAPI()
     var
         PageSalesHeader: Record "Sales Header";
@@ -395,6 +403,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetQuotesAppliesDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -423,6 +432,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetQuotesRedistributesDiscountAmt()
     var
         SalesHeader: Record "Sales Header";
@@ -461,6 +471,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyQuoteSetManualDiscount()
     var
         Customer: Record "Customer";
@@ -509,6 +520,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestClearingManualDiscounts()
     var
         Customer: Record "Customer";
@@ -562,6 +574,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionSendQuote()
     var
@@ -599,6 +612,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionMakeInvoiceFromQuote()
     var
@@ -659,6 +673,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionMakeOrderFromQuote()
     var
@@ -903,4 +918,11 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     end;
 
 
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 }

@@ -9,7 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148333 "Expense Agent Setup API Test"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -23,6 +23,7 @@ codeunit 148333 "Expense Agent Setup API Test"
         EmailAddressTok: Label 'emailAddress', Locked = true;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure EmailAddressFieldIsExposedThroughAPI()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -70,5 +71,12 @@ codeunit 148333 "Expense Agent Setup API Test"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Agent Setup API Test");
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

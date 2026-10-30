@@ -3,7 +3,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -63,6 +63,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInvoices()
     var
         InvoiceID1: Text;
@@ -93,6 +94,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInvoiceFromPostedOrderCorrectOrderIdAndNo()
     var
         SalesHeader: Record "Sales Header";
@@ -137,6 +139,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoices()
     var
         SalesHeader: Record "Sales Header";
@@ -192,6 +195,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceWithCurrency()
     var
         SalesHeader: Record "Sales Header";
@@ -240,6 +244,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceWithEmail()
     var
         SalesHeader: Record "Sales Header";
@@ -293,6 +298,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
 
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceWithDates()
     var
         SalesHeader: Record "Sales Header";
@@ -348,6 +354,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyInvoices()
     begin
         Initialize();
@@ -356,6 +363,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestEmptyModifyInvoices()
     begin
         Initialize();
@@ -364,6 +372,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPartialModifyInvoices()
     begin
         Initialize();
@@ -446,6 +455,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyingWithBlankIdEmptiesTheCodeAndTheId()
     var
         Customer: Record "Customer";
@@ -517,6 +527,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyInvoiceNumberForDraftInvoice()
     var
         SalesHeader: Record "Sales Header";
@@ -541,6 +552,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteInvoice()
     var
         SalesHeader: Record "Sales Header";
@@ -572,6 +584,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateInvoiceThroughPageAndAPI()
     var
         PageSalesHeader: Record "Sales Header";
@@ -646,6 +659,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInvoicesAppliesDiscountPct()
     var
         SalesHeader: Record "Sales Header";
@@ -677,6 +691,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInvoicesRedistributesDiscountAmt()
     var
         SalesHeader: Record "Sales Header";
@@ -717,6 +732,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceFailsWithoutCustomerNoOrId()
     var
         Currency: Record "Currency";
@@ -743,6 +759,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyInvoiceSetManualDiscount()
     var
         Customer: Record "Customer";
@@ -791,6 +808,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestClearingManualDiscounts()
     var
         Customer: Record "Customer";
@@ -844,6 +862,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionPostInvoice()
     var
@@ -898,6 +917,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionPostAndSendInvoice()
     var
@@ -940,6 +960,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionCancelInvoice()
     var
@@ -978,6 +999,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionCancelAndSendInvoice()
     var
@@ -1020,6 +1042,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionSendPostedInvoice()
     var
@@ -1054,6 +1077,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionSendDraftInvoice()
     var
@@ -1088,6 +1112,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionSendCancelledInvoice()
     var
@@ -1122,6 +1147,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestActionMakeCorrectiveCreditMemo()
     var
@@ -1176,6 +1202,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetSalesInvoiceFromDraftId()
     var
@@ -1440,6 +1467,13 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         LibraryGraphMgt.VerifyIDInJson(ResponseText);
     end;
 
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 
     local procedure Initialize()
     begin

@@ -1,7 +1,7 @@
 codeunit 139745 "APIV1 - Journal Lines E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
@@ -24,6 +24,7 @@ codeunit 139745 "APIV1 - Journal Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateJournalLineWithOverridenDefaultDimension()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -70,6 +71,7 @@ codeunit 139745 "APIV1 - Journal Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateJournalLineWithDimensionsOnAccountWithDimensionSetup()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -121,6 +123,7 @@ codeunit 139745 "APIV1 - Journal Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateJournalLineWithoutDimensionsOnAccountWithDimensionSetup()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -160,6 +163,7 @@ codeunit 139745 "APIV1 - Journal Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateJournalLineWithDisabledCopyVATSetup()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -282,5 +286,12 @@ codeunit 139745 "APIV1 - Journal Lines E2E"
     begin
         GenJournalLine.Get(JournalTemplateName, JournalBatchName, LineNo);
         Assert.AreEqual(GenJournalLine."VAT Prod. Posting Group", '', VATProdPostingGroupBlankMsg);
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

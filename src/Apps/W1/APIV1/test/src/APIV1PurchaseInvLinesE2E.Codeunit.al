@@ -3,7 +3,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -45,6 +45,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestFailsOnIDAbsense()
     var
         ResponseText: Text;
@@ -67,6 +68,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInvoiceLineDirectly()
     var
         PurchaseLine: Record "Purchase Line";
@@ -102,6 +104,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInvoiceLines()
     var
         PurchaseLine: Record "Purchase Line";
@@ -138,6 +141,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetInvoiceLinesDirectlyWithDocumentIdFilter()
     var
         PurchaseLine: Record "Purchase Line";
@@ -169,6 +173,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetPostedInvoiceLines()
     var
         PurchInvLine: Record "Purch. Inv. Line";
@@ -204,6 +209,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceLines()
     var
         Item: Record "Item";
@@ -247,6 +253,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceLineWithSequence()
     var
         Item: Record "Item";
@@ -293,6 +300,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyInvoiceLines()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -343,6 +351,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyInvoiceLineFailsOnSequenceIdOrDocumentIdChange()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -397,6 +406,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteInvoiceLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -436,6 +446,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletePostedInvoiceLine()
     var
         PurchInvHeader: Record "Purch. Inv. Header";
@@ -471,6 +482,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateLineThroughPageAndAPI()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -546,6 +558,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestInsertingLineUpdatesInvoiceDiscountPct()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -585,6 +598,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyingLineUpdatesInvoiceDiscountPct()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -631,6 +645,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineRemovesInvoiceDiscountPct()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -674,6 +689,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestInsertingLineKeepsInvoiceDiscountAmt()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -707,6 +723,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostingBlankLineDefaultsToItemType()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -743,6 +760,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostingCommentLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -781,6 +799,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheTypeBlanksIds()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -820,6 +839,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceLinesWithItemVariant()
     var
         Item: Record "Item";
@@ -867,6 +887,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostInvoiceLinesWithWrongItemVariant()
     var
         Item1: Record "Item";
@@ -1081,6 +1102,13 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
     begin
         NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 
