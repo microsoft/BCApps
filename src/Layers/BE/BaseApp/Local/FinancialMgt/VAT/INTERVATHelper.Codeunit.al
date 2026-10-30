@@ -6,8 +6,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+#if not CLEAN30
 using System;
-using System.Xml;
+#endif
+using System.Utilities;
 
 codeunit 11308 "INTERVAT Helper"
 {
@@ -19,13 +21,15 @@ codeunit 11308 "INTERVAT Helper"
     var
         Text001: Label 'http://www.minfin.fgov.be/InputCommon', Locked = true;
         Text002: Label 'The email address "%1" is invalid.';
-        XMLDOMMgt: Codeunit "XML DOM Management";
 
+#if not CLEAN30
+    [Obsolete('Use AddElementDeclarant with an XmlElement parameter instead.', '30.0')]
     procedure AddElementDeclarant(XMLCurrNode: DotNet XmlNode; SequenceNumber: Integer)
     begin
         AddElementDeclarantCustom(XMLCurrNode, SequenceNumber, '');
     end;
 
+    [Obsolete('Use AddElementDeclarant with an XmlElement parameter instead.', '30.0')]
     procedure AddElementDeclarant(XMLCurrNode: DotNet XmlNode; SequenceNumber: Integer; Comment: Text)
     begin
         AddElementDeclarantCustom(XMLCurrNode, SequenceNumber, Comment);
@@ -40,34 +44,154 @@ codeunit 11308 "INTERVAT Helper"
         DeclarantReference: Text[250];
     begin
         CompanyInformation.Get();
-        XMLDOMMgt.AddElement(XMLCurrNode, 'Declarant', '', XMLCurrNode.NamespaceURI, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, 'Declarant', '', XMLCurrNode.NamespaceURI, XMLNewChild);
         XMLCurrNode := XMLNewChild;
-        XMLDOMMgt.AddElement(
+        AddDotNetElement(
           XMLCurrNode, 'common:VATNumber', RemoveNonNumericCharacters(CompanyInformation."Enterprise No."), Text001, XMLNewChild);
-        XMLDOMMgt.AddElement(XMLCurrNode, 'common:Name', CompanyInformation.Name, Text001, XMLNewChild);
-        XMLDOMMgt.AddElement(XMLCurrNode, 'common:Street', CompanyInformation.Address, Text001, XMLNewChild);
-        XMLDOMMgt.AddElement(
+        AddDotNetElement(XMLCurrNode, 'common:Name', CompanyInformation.Name, Text001, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, 'common:Street', CompanyInformation.Address, Text001, XMLNewChild);
+        AddDotNetElement(
           XMLCurrNode, 'common:PostCode', RemoveNonNumericCharacters(CompanyInformation."Post Code"), Text001, XMLNewChild);
 
-        XMLDOMMgt.AddElement(XMLCurrNode, 'common:City', CompanyInformation.City, Text001, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, 'common:City', CompanyInformation.City, Text001, XMLNewChild);
         if Country.Get(CompanyInformation."Country/Region Code") then
-            XMLDOMMgt.AddElement(XMLCurrNode, 'common:CountryCode', Country."ISO Code", Text001, XMLNewChild);
+            AddDotNetElement(XMLCurrNode, 'common:CountryCode', Country."ISO Code", Text001, XMLNewChild);
 
         if CompanyInformation."E-Mail" <> '' then
             if IsValidEMailAddress(CompanyInformation."E-Mail") then
-                XMLDOMMgt.AddElement(XMLCurrNode, 'common:EmailAddress', CompanyInformation."E-Mail", Text001, XMLNewChild)
+                AddDotNetElement(XMLCurrNode, 'common:EmailAddress', CompanyInformation."E-Mail", Text001, XMLNewChild)
             else
                 Error(Text002, CompanyInformation."E-Mail");
 
         if CompanyInformation."Phone No." <> '' then
-            XMLDOMMgt.AddElement(XMLCurrNode, 'common:Phone', GetValidPhoneNumber(CompanyInformation."Phone No."), Text001, XMLNewChild);
+            AddDotNetElement(XMLCurrNode, 'common:Phone', GetValidPhoneNumber(CompanyInformation."Phone No."), Text001, XMLNewChild);
         if Comment <> '' then
-            XMLDOMMgt.AddElement(XMLCurrNode, 'common:Comment', Comment, Text001, XMLNewChild);
+            AddDotNetElement(XMLCurrNode, 'common:Comment', Comment, Text001, XMLNewChild);
 
         DeclarantReference := GetDeclarantReference(SequenceNumber);
 
         ParentNode := XMLCurrNode.ParentNode;
-        XMLDOMMgt.AddAttribute(ParentNode, 'DeclarantReference', DeclarantReference);
+        AddDotNetAttribute(ParentNode, 'DeclarantReference', DeclarantReference);
+    end;
+
+    local procedure AddDotNetElement(var XMLNode: DotNet XmlNode; NodeName: Text; NodeText: Text; NameSpace: Text; var CreatedXMLNode: DotNet XmlNode)
+    begin
+        CreatedXMLNode := XMLNode.OwnerDocument.CreateNode('element', NodeName, NameSpace);
+        if NodeText <> '' then
+            CreatedXMLNode.InnerText := NodeText;
+        XMLNode.AppendChild(CreatedXMLNode);
+    end;
+
+    local procedure AddDotNetAttribute(var XMLNode: DotNet XmlNode; Name: Text; NodeValue: Text)
+    var
+        XMLNewAttributeNode: DotNet XmlNode;
+    begin
+        XMLNewAttributeNode := XMLNode.OwnerDocument.CreateAttribute(Name);
+        if NodeValue <> '' then
+            XMLNewAttributeNode.Value := NodeValue;
+        XMLNode.Attributes.SetNamedItem(XMLNewAttributeNode);
+    end;
+#endif
+
+    /// <summary>
+    /// Adds the Declarant element, built from the company information, as a child of the specified element
+    /// and sets the DeclarantReference attribute on the specified element.
+    /// The 'common' prefix for the http://www.minfin.fgov.be/InputCommon namespace must be declared on an ancestor element.
+    /// </summary>
+    procedure AddElementDeclarant(ParentElement: XmlElement; SequenceNumber: Integer)
+    begin
+        AddDeclarantElement(ParentElement, SequenceNumber, '');
+    end;
+
+    /// <summary>
+    /// Adds the Declarant element, built from the company information and the specified comment, as a child of the specified element
+    /// and sets the DeclarantReference attribute on the specified element.
+    /// The 'common' prefix for the http://www.minfin.fgov.be/InputCommon namespace must be declared on an ancestor element.
+    /// </summary>
+    procedure AddElementDeclarant(ParentElement: XmlElement; SequenceNumber: Integer; Comment: Text)
+    begin
+        AddDeclarantElement(ParentElement, SequenceNumber, Comment);
+    end;
+
+    local procedure AddDeclarantElement(ParentElement: XmlElement; SequenceNumber: Integer; Comment: Text)
+    var
+        CompanyInformation: Record "Company Information";
+        Country: Record "Country/Region";
+        DeclarantElement: XmlElement;
+    begin
+        CompanyInformation.Get();
+        DeclarantElement := XmlElement.Create('Declarant', ParentElement.NamespaceUri());
+        ParentElement.Add(DeclarantElement);
+        AddChildElement(DeclarantElement, 'VATNumber', RemoveNonNumericCharacters(CompanyInformation."Enterprise No."), Text001);
+        AddChildElement(DeclarantElement, 'Name', CompanyInformation.Name, Text001);
+        AddChildElement(DeclarantElement, 'Street', CompanyInformation.Address, Text001);
+        AddChildElement(DeclarantElement, 'PostCode', RemoveNonNumericCharacters(CompanyInformation."Post Code"), Text001);
+
+        AddChildElement(DeclarantElement, 'City', CompanyInformation.City, Text001);
+        if Country.Get(CompanyInformation."Country/Region Code") then
+            AddChildElement(DeclarantElement, 'CountryCode', Country."ISO Code", Text001);
+
+        if CompanyInformation."E-Mail" <> '' then
+            if IsValidEMailAddress(CompanyInformation."E-Mail") then
+                AddChildElement(DeclarantElement, 'EmailAddress', CompanyInformation."E-Mail", Text001)
+            else
+                Error(Text002, CompanyInformation."E-Mail");
+
+        if CompanyInformation."Phone No." <> '' then
+            AddChildElement(DeclarantElement, 'Phone', GetValidPhoneNumber(CompanyInformation."Phone No."), Text001);
+        if Comment <> '' then
+            AddChildElement(DeclarantElement, 'Comment', Comment, Text001);
+
+        ParentElement.SetAttribute('DeclarantReference', GetDeclarantReference(SequenceNumber));
+    end;
+
+    local procedure AddChildElement(ParentElement: XmlElement; LocalName: Text; Value: Text; NamespaceUri: Text)
+    var
+        ChildElement: XmlElement;
+    begin
+        ChildElement := XmlElement.Create(LocalName, NamespaceUri);
+        if Value <> '' then
+            ChildElement.Add(XmlText.Create(Value));
+        ParentElement.Add(ChildElement);
+    end;
+
+    /// <summary>
+    /// Writes an INTERVAT document to the specified stream as UTF-8 without a byte order mark.
+    /// </summary>
+    internal procedure WriteDocument(XmlDoc: XmlDocument; var TargetOutStream: OutStream)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        RootElement: XmlElement;
+        ChildElement: XmlElement;
+        ChildNode: XmlNode;
+        XmlOutStream: OutStream;
+        XmlInStream: InStream;
+    begin
+        // The INTERVAT files have always redeclared the default namespace on each child of the root element.
+        XmlDoc.GetRoot(RootElement);
+        foreach ChildNode in RootElement.GetChildElements() do begin
+            ChildElement := ChildNode.AsXmlElement();
+            ChildElement.Add(XmlAttribute.Create('xmlns', ChildElement.NamespaceUri()));
+        end;
+
+        TempBlob.CreateOutStream(XmlOutStream);
+        XmlDoc.WriteTo(XmlOutStream);
+        TempBlob.CreateInStream(XmlInStream);
+        CopyWithoutByteOrderMark(XmlInStream, TargetOutStream);
+    end;
+
+    local procedure CopyWithoutByteOrderMark(var SourceInStream: InStream; var TargetOutStream: OutStream)
+    var
+        Bytes: array[3] of Byte;
+        BytesRead: Integer;
+        i: Integer;
+    begin
+        for i := 1 to 3 do
+            BytesRead += SourceInStream.Read(Bytes[i]);
+        if not ((BytesRead = 3) and (Bytes[1] = 239) and (Bytes[2] = 187) and (Bytes[3] = 191)) then
+            for i := 1 to BytesRead do
+                TargetOutStream.Write(Bytes[i]);
+        CopyStream(TargetOutStream, SourceInStream);
     end;
 
     procedure GetDeclarantReference(SequenceNumber: Integer): Text[250]
@@ -100,6 +224,8 @@ codeunit 11308 "INTERVAT Helper"
         exit(DelChr(InputString, '=', DelChr(InputString, '=', '0123456789')));
     end;
 
+#if not CLEAN30
+    [Obsolete('Create the native XmlDocument with XmlDocument.ReadFrom, including the <?xml version="1.0" encoding="UTF-8"?> declaration, instead.', '30.0')]
     procedure AddProcessingInstruction(var XMLDocOut: DotNet XmlDocument; XMLFirstNode: DotNet XmlNode)
     var
         ProcessingInstruction: DotNet XmlProcessingInstruction;
@@ -107,6 +233,7 @@ codeunit 11308 "INTERVAT Helper"
         ProcessingInstruction := XMLDocOut.CreateProcessingInstruction('xml', 'version="1.0" encoding="UTF-8"');
         XMLDocOut.InsertBefore(ProcessingInstruction, XMLFirstNode);
     end;
+#endif
 
     procedure IsValidEMailAddress(EMailAddress: Text[80]): Boolean
     var
@@ -146,6 +273,8 @@ codeunit 11308 "INTERVAT Helper"
         exit(RemoveNonNumericCharacters(Phone));
     end;
 
+#if not CLEAN30
+    [Obsolete('Use AddElementPeriod with an XmlElement parameter instead.', '30.0')]
     procedure AddElementPeriod(XMLCurrNode: DotNet XmlNode; ChoicePeriodType: Option Month,Quarter; Period: Integer; Year: Integer; PeriodName: Text[30])
     var
         XMLNewChild: DotNet XmlNode;
@@ -153,15 +282,35 @@ codeunit 11308 "INTERVAT Helper"
         if PeriodName = '' then
             PeriodName := 'Period';
 
-        XMLDOMMgt.AddElement(XMLCurrNode, PeriodName, '', XMLCurrNode.NamespaceURI, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, PeriodName, '', XMLCurrNode.NamespaceURI, XMLNewChild);
 
         XMLCurrNode := XMLNewChild;
         if ChoicePeriodType = ChoicePeriodType::Quarter then
-            XMLDOMMgt.AddElement(XMLCurrNode, 'Quarter', Format(Period), XMLCurrNode.NamespaceURI, XMLNewChild)
+            AddDotNetElement(XMLCurrNode, 'Quarter', Format(Period), XMLCurrNode.NamespaceURI, XMLNewChild)
         else
-            XMLDOMMgt.AddElement(XMLCurrNode, 'Month', Format(Period), XMLCurrNode.NamespaceURI, XMLNewChild);
+            AddDotNetElement(XMLCurrNode, 'Month', Format(Period), XMLCurrNode.NamespaceURI, XMLNewChild);
 
-        XMLDOMMgt.AddElement(XMLCurrNode, 'Year', Format(Year), XMLCurrNode.NamespaceURI, XMLNewChild);
+        AddDotNetElement(XMLCurrNode, 'Year', Format(Year), XMLCurrNode.NamespaceURI, XMLNewChild);
+    end;
+#endif
+
+    /// <summary>
+    /// Adds a period element (named Period unless another name is specified) with the month or quarter and the year
+    /// as a child of the specified element. The period element is returned.
+    /// </summary>
+    procedure AddElementPeriod(ParentElement: XmlElement; ChoicePeriodType: Option Month,Quarter; Period: Integer; Year: Integer; PeriodName: Text[30]) PeriodElement: XmlElement
+    begin
+        if PeriodName = '' then
+            PeriodName := 'Period';
+
+        PeriodElement := XmlElement.Create(PeriodName, ParentElement.NamespaceUri());
+        ParentElement.Add(PeriodElement);
+        if ChoicePeriodType = ChoicePeriodType::Quarter then
+            AddChildElement(PeriodElement, 'Quarter', Format(Period), PeriodElement.NamespaceUri())
+        else
+            AddChildElement(PeriodElement, 'Month', Format(Period), PeriodElement.NamespaceUri());
+
+        AddChildElement(PeriodElement, 'Year', Format(Year), PeriodElement.NamespaceUri());
     end;
 
     procedure GetXMLAmountRepresentation(Amount: Decimal): Text[100]
