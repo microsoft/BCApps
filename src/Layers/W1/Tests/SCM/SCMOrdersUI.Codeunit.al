@@ -21,6 +21,7 @@ codeunit 137929 "SCM Orders UI"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryService: Codeunit "Library - Service";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
@@ -112,7 +113,8 @@ codeunit 137929 "SCM Orders UI"
         CreateSalesOrderWithItemAndItemChargeLines(SalesHeader, LibraryRandom.RandDec(10, 2));
 
         // [WHEN] Change "Sell-to Customer No." on the sales header.
-        SalesHeader.Validate("Sell-to Customer No.", LibrarySales.CreateCustomerNo());
+        SalesHeader.Validate(
+          "Sell-to Customer No.", LibrarySales.CreateCustomerWithVATBusPostingGroup(SalesHeader."VAT Bus. Posting Group"));
 
         // [THEN] The warning of re-creating lines includes a message about cleared charge assignment amount.
         Assert.ExpectedMessage(ConfirmChangeMsg, LibraryVariableStorage.DequeueText());
@@ -138,7 +140,8 @@ codeunit 137929 "SCM Orders UI"
         CreateSalesOrderWithItemAndItemChargeLines(SalesHeader, 0);
 
         // [WHEN] Change "Sell-to Customer No." on the sales header.
-        SalesHeader.Validate("Sell-to Customer No.", LibrarySales.CreateCustomerNo());
+        SalesHeader.Validate(
+          "Sell-to Customer No.", LibrarySales.CreateCustomerWithVATBusPostingGroup(SalesHeader."VAT Bus. Posting Group"));
 
         // [THEN] The warning of re-creating lines does not mention charge assignment.
         Assert.ExpectedMessage(ConfirmChangeMsg, LibraryVariableStorage.DequeueText());
@@ -163,7 +166,8 @@ codeunit 137929 "SCM Orders UI"
         CreatePurchaseOrderWithItemAndItemChargeLines(PurchaseHeader, LibraryRandom.RandDec(10, 2));
 
         // [WHEN] Change "Buy-from Vendor No." on the purchase header.
-        PurchaseHeader.Validate("Buy-from Vendor No.", LibraryPurchase.CreateVendorNo());
+        PurchaseHeader.Validate(
+          "Buy-from Vendor No.", LibraryPurchase.CreateVendorWithVATBusPostingGroup(PurchaseHeader."VAT Bus. Posting Group"));
 
         // [THEN] The warning of re-creating lines includes a message about cleared charge assignment amount.
         Assert.ExpectedMessage(ConfirmChangeMsg, LibraryVariableStorage.DequeueText());
@@ -188,7 +192,8 @@ codeunit 137929 "SCM Orders UI"
         CreatePurchaseOrderWithItemAndItemChargeLines(PurchaseHeader, 0);
 
         // [WHEN] Change "Buy-from Vendor No." on the purchase header.
-        PurchaseHeader.Validate("Buy-from Vendor No.", LibraryPurchase.CreateVendorNo());
+        PurchaseHeader.Validate(
+          "Buy-from Vendor No.", LibraryPurchase.CreateVendorWithVATBusPostingGroup(PurchaseHeader."VAT Bus. Posting Group"));
 
         // [THEN] The warning of re-creating lines does not mention charge assignment.
         Assert.ExpectedMessage(ConfirmChangeMsg, LibraryVariableStorage.DequeueText());
@@ -1503,15 +1508,21 @@ codeunit 137929 "SCM Orders UI"
         SalesLine: Record "Sales Line";
         SalesLineForItemCharge: Record "Sales Line";
         ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)";
+        VATPostingSetup: Record "VAT Posting Setup";
     begin
         LibraryNotificationMgt.DisableMyNotification(SalesHeader.GetModifyCustomerAddressNotificationId());
         LibraryNotificationMgt.DisableMyNotification(SalesHeader.GetModifyBillToCustomerAddressNotificationId());
 
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
         LibraryInventory.CreateItemCharge(ItemCharge);
+        ItemCharge.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        ItemCharge.Modify(true);
 
         LibrarySales.CreateSalesDocumentWithItem(
-          SalesHeader, SalesLine, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo(),
-          LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10), '', WorkDate());
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Order,
+          LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"),
+          LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"),
+          LibraryRandom.RandInt(10), '', WorkDate());
         LibrarySales.CreateSalesLine(
           SalesLineForItemCharge, SalesHeader, SalesLineForItemCharge.Type::"Charge (Item)", ItemCharge."No.", 1);
         SalesLineForItemCharge.Validate("Unit Price", AmountToAssign);
@@ -1529,15 +1540,21 @@ codeunit 137929 "SCM Orders UI"
         PurchaseLine: Record "Purchase Line";
         PurchaseLineForItemCharge: Record "Purchase Line";
         ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+        VATPostingSetup: Record "VAT Posting Setup";
     begin
         LibraryNotificationMgt.DisableMyNotification(PurchaseHeader.GetModifyVendorAddressNotificationId());
         LibraryNotificationMgt.DisableMyNotification(PurchaseHeader.GetModifyPayToVendorAddressNotificationId());
 
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
         LibraryInventory.CreateItemCharge(ItemCharge);
+        ItemCharge.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        ItemCharge.Modify(true);
 
         LibraryPurchase.CreatePurchaseDocumentWithItem(
-          PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo(),
-          LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10), '', WorkDate());
+          PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order,
+          LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"),
+          LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"),
+          LibraryRandom.RandInt(10), '', WorkDate());
         LibraryPurchase.CreatePurchaseLine(
           PurchaseLineForItemCharge, PurchaseHeader, PurchaseLineForItemCharge.Type::"Charge (Item)", ItemCharge."No.", 1);
         PurchaseLineForItemCharge.Validate("Direct Unit Cost", AmountToAssign);

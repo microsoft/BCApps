@@ -159,6 +159,9 @@ codeunit 137510 "SMB Service Item"
           StrSubstNo('%1 must be %2 when Type is %3',
             Item.FieldName("Item Tracking Code"), '', Item.Type::Service));
 
+        // Preserve the tracking-code fixture across the expected-error rollback.
+        Commit();
+
         // Check that it is not possible set an item tracking code
         asserterror Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
         Assert.ExpectedTestFieldError(Item.FieldCaption(Type), '');
