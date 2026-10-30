@@ -21,6 +21,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         PrincipalIdRequiredErr: Label 'Principal ID is missing. Ask your Microsoft Entra administrator for the object ID of the enterprise application, enter it on the Fabric setup page, and try again.';
         ReadPrincipalIdSetupInstructionsLbl: Label 'Read setup instructions';
         PrincipalIdSetupHelpUrlTok: Label 'https://go.microsoft.com/fwlink/?LinkId=2386618', Locked = true;
+        AddSPTokenErr: Label 'Service principal could not be added to the Fabric workspace. Add it directly in Fabric with Contributor role.';
         AddSPTransportErr: Label 'Failed to add service principal to workspace: transport error.';
         AddSPHttpGenericErr: Label 'Failed to add service principal to workspace. Contact your administrator if the problem persists.';
         AddSPHttpStatusErr: Label 'Failed to add service principal to workspace. HTTP %1.', Comment = '%1 = HTTP status code';
@@ -143,7 +144,6 @@ codeunit 48526 "Fabric Platform Admin Client"
 
     procedure AddServicePrincipalToWorkspace(WorkspaceId: Text; PrincipalId: Text)
     var
-        CredMgt: Codeunit "Fabric Platform Credential Mgt";
         HttpClient: Codeunit "Fabric Platform Http Client";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         RestClientResult: Codeunit "Rest Client";
@@ -165,7 +165,8 @@ codeunit 48526 "Fabric Platform Admin Client"
         if WorkspaceIdForUrl = '' then
             Error(WorkspaceRequiredForSPErr);
 
-        AccessToken := CredMgt.AcquireFabricApiTokenDelegated();
+        if not TryAcquireWorkspaceWriteToken(AccessToken) then
+            Error(CreateAddSPTokenErrorInfo(GetLastErrorText()));
 
         PrincipalObj.Add('id', PrincipalId);
         PrincipalObj.Add('type', 'ServicePrincipal');
@@ -188,6 +189,15 @@ codeunit 48526 "Fabric Platform Admin Client"
             exit;
         end;
         Error(CreateAddSPHttpErrorInfo(Resp.GetHttpStatusCode()));
+    end;
+
+    [TryFunction]
+    [NonDebuggable]
+    local procedure TryAcquireWorkspaceWriteToken(var AccessToken: SecretText)
+    var
+        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+    begin
+        AccessToken := CredMgt.AcquireFabricApiTokenDelegated(true);
     end;
 
     local procedure HasRequiredWorkspaceRole(WorkspaceId: Text; PrincipalId: Text; AccessToken: SecretText): Boolean
@@ -299,6 +309,14 @@ codeunit 48526 "Fabric Platform Admin Client"
     internal procedure OpenPrincipalIdSetupHelp(ErrInfo: ErrorInfo)
     begin
         Hyperlink(PrincipalIdSetupHelpUrlTok);
+    end;
+
+    local procedure CreateAddSPTokenErrorInfo(DetailedMessage: Text) ErrInfo: ErrorInfo
+    begin
+        ErrInfo.Message(AddSPTokenErr);
+        ErrInfo.DetailedMessage(DetailedMessage);
+        ErrInfo.DataClassification(DataClassification::CustomerContent);
+        ErrInfo.AddAction(ReadPrincipalIdSetupInstructionsLbl, Codeunit::"Fabric Platform Admin Client", 'OpenPrincipalIdSetupHelp');
     end;
 
     local procedure CreateRetrieveWorkspacesHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
