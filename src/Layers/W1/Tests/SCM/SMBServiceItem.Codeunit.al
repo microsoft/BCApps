@@ -140,11 +140,13 @@ codeunit 137510 "SMB Service Item"
     var
         Item: Record Item;
         ItemTrackingCode: Record "Item Tracking Code";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
     begin
         Initialize();
         CreateInvtItem(Item);
 
-        ItemTrackingCode.FindFirst();
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        ItemTrackingCode.TestField("Use Expiration Dates", false);
         Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
 
         // EXERCISE
@@ -156,6 +158,9 @@ codeunit 137510 "SMB Service Item"
           '', Item."Item Tracking Code",
           StrSubstNo('%1 must be %2 when Type is %3',
             Item.FieldName("Item Tracking Code"), '', Item.Type::Service));
+
+        // Preserve the tracking-code fixture across the expected-error rollback.
+        Commit();
 
         // Check that it is not possible set an item tracking code
         asserterror Item.Validate("Item Tracking Code", ItemTrackingCode.Code);

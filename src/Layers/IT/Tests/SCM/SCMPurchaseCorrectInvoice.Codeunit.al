@@ -36,6 +36,39 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         ConfirmDialogErr: Label 'Expected confirm dialog was not shown';
         QuantityMustBeRevertedErr: Label 'Quantity Received and Invoiced must be reverted to 0';
         QuantityMustBeRestoredErr: Label 'Qty. to Receive and Invoice must be restored to original values';
+        TrackingCodeChangedCancelCorrectErr: Label 'You cannot cancel or correct posted purchase invoice %2 because the item tracking code for item %1 has changed since the item was posted.', Comment = '%1 = Item No., %2 = Posted Purchase Invoice No.';
+
+    [Test]
+    procedure CancelPostedPurchaseInvoiceIsBlockedAfterTrackingCodeChange()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        Vendor: Record Vendor;
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] A posted purchase invoice cannot be cancelled automatically after a later tracking-code change.
+        Initialize();
+
+        // [GIVEN] Posted purchase invoice "PI" for untracked item "I".
+        CreateAndPostPurchaseInvForNewItemAndVendor(Item, Vendor, 1, 1, PurchInvHeader);
+
+        // [GIVEN] Item "I" is later changed to lot tracking.
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        Item.Get(Item."No.");
+        Item."Item Tracking Code" := ItemTrackingCode.Code;
+        Item.Modify();
+        CreateItemTrackingCodeChangeLog(Item."No.", CurrentDateTime() + 1000, '', ItemTrackingCode.Code);
+
+        // [WHEN] Posted purchase invoice "PI" is cancelled.
+        asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader);
+
+        // [THEN] Automatic cancellation is blocked and directs the user to a manual corrective credit memo.
+        Assert.ExpectedError(
+            StrSubstNo(TrackingCodeChangedCancelCorrectErr, Item."No.", PurchInvHeader."No."));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
 
     [Test]
     [Scope('OnPrem')]
@@ -1300,6 +1333,18 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         SellItem(Vendor, Item, Qty, PurchInvHeader);
     end;
 
+    local procedure CreateItemTrackingCodeChangeLog(ItemNo: Code[20]; ChangeDateTime: DateTime; PreviousItemTrackingCode: Code[10]; NewItemTrackingCode: Code[10])
+    var
+        ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
+    begin
+        ItemTrackingCodeChangeLog.Init();
+        ItemTrackingCodeChangeLog."Item No." := ItemNo;
+        ItemTrackingCodeChangeLog."Change DateTime" := ChangeDateTime;
+        ItemTrackingCodeChangeLog."Previous Item Tracking Code" := PreviousItemTrackingCode;
+        ItemTrackingCodeChangeLog."New Item Tracking Code" := NewItemTrackingCode;
+        ItemTrackingCodeChangeLog.Insert(true);
+    end;
+
     local procedure CreateAndPostPurchInvWithCustomAmount(var PurchInvHeader: Record "Purch. Inv. Header"; UnitCost: Decimal)
     var
         Item: Record Item;
@@ -1626,11 +1671,9 @@ codeunit 137025 "SCM Purchase Correct Invoice"
     begin
         ItemTrackingSummary.OK().Invoke();
     end;
-
     [PageHandler]
     procedure PurchaseCreditMemoPageHandler(var PurchaseCreditMemo: TestPage "Purchase Credit Memo")
     begin
         PurchaseCreditMemo.Close();
     end;
 }
-

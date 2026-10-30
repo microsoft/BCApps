@@ -1210,6 +1210,7 @@ codeunit 22 "Item Jnl.-Post Line"
         ItemLedgEntry2: Record "Item Ledger Entry";
         ValueEntry: Record "Value Entry";
         InventoryPeriod: Record "Inventory Period";
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
         CostApplication: Boolean;
         IsHandled: Boolean;
     begin
@@ -1224,6 +1225,15 @@ codeunit 22 "Item Jnl.-Post Line"
             InventoryPeriod.ShowError(ItemLedgEntry."Posting Date");
 
         GlobalItemTrackingCode.Code := Item."Item Tracking Code";
+        if ApplyWith = 0 then
+            ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
+                ItemLedgEntry."Item No.", ItemLedgEntry."Entry No.", GlobalItemTrackingCode.Code)
+        else
+            if not ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
+                 ItemLedgEntry."Item No.", ApplyWith, GlobalItemTrackingCode.Code)
+            then
+                ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
+                    ItemLedgEntry."Item No.", ItemLedgEntry."Entry No.", GlobalItemTrackingCode.Code);
         OnReApplyOnBeforeGetItemTrackingSetup(Item, GlobalItemTrackingCode);
         ItemTrackingMgt.GetItemTrackingSetup(
             GlobalItemTrackingCode, ItemJnlLine."Entry Type",
@@ -1811,18 +1821,32 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     local procedure TestFirstApplyItemLedgerEntryTracking(ItemLedgEntry: Record "Item Ledger Entry"; OldItemLedgEntry: Record "Item Ledger Entry"; ItemTrackingCode: Record "Item Tracking Code");
+    var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+        SkipTrackingValidation: Boolean;
     begin
         OnBeforeTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry, OldItemLedgEntry, ItemTrackingCode);
 
-        if ItemTrackingCode."SN Specific Tracking" then
-            OldItemLedgEntry.TestField("Serial No.", ItemLedgEntry."Serial No.");
-        if ItemLedgEntry."Drop Shipment" and (OldItemLedgEntry."Serial No." <> '') then
-            OldItemLedgEntry.TestField("Serial No.", ItemLedgEntry."Serial No.");
+        if ItemLedgEntry.Positive then
+            SkipTrackingValidation :=
+                ItemTrackingCodeChangeMgt.IsReturnApplicationAcrossTrackingPeriods(
+                    ItemLedgEntry, OldItemLedgEntry, ItemJnlLine."Applies-from Entry")
+        else
+            SkipTrackingValidation :=
+                ItemTrackingCodeChangeMgt.IsReturnApplicationAcrossTrackingPeriods(
+                    ItemLedgEntry, OldItemLedgEntry, ItemLedgEntry."Applies-to Entry");
 
-        if ItemTrackingCode."Lot Specific Tracking" then
-            OldItemLedgEntry.TestField("Lot No.", ItemLedgEntry."Lot No.");
-        if ItemLedgEntry."Drop Shipment" and (OldItemLedgEntry."Lot No." <> '') then
-            OldItemLedgEntry.TestField("Lot No.", ItemLedgEntry."Lot No.");
+        if not SkipTrackingValidation then begin
+            if ItemTrackingCode."SN Specific Tracking" then
+                OldItemLedgEntry.TestField("Serial No.", ItemLedgEntry."Serial No.");
+            if ItemLedgEntry."Drop Shipment" and (OldItemLedgEntry."Serial No." <> '') then
+                OldItemLedgEntry.TestField("Serial No.", ItemLedgEntry."Serial No.");
+
+            if ItemTrackingCode."Lot Specific Tracking" then
+                OldItemLedgEntry.TestField("Lot No.", ItemLedgEntry."Lot No.");
+            if ItemLedgEntry."Drop Shipment" and (OldItemLedgEntry."Lot No." <> '') then
+                OldItemLedgEntry.TestField("Lot No.", ItemLedgEntry."Lot No.");
+        end;
 
         OnAfterTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry, OldItemLedgEntry, ItemTrackingCode);
     end;
@@ -3897,6 +3921,7 @@ codeunit 22 "Item Jnl.-Post Line"
             SignFactor := ItemJnlLine2.Signed(1);
 
         GlobalItemTrackingCode.Code := Item."Item Tracking Code";
+        ResolveTrackingCodeForLinkedApplication(ItemJnlLine2, TrackingSpecExists, GlobalItemTrackingCode.Code);
         OnSetupSplitJnlLineOnBeforeGetItemTrackingSetup(ItemJnlLine2, TrackingSpecExists, CalledFromAdjustment, Item, GlobalItemTrackingCode);
         ItemTrackingMgt.GetItemTrackingSetup(
             GlobalItemTrackingCode, ItemJnlLine."Entry Type",
@@ -3994,6 +4019,48 @@ codeunit 22 "Item Jnl.-Post Line"
             ItemJnlLine2, TempSplitItemJnlLine, ItemJnlLineOrigin, TempTrackingSpecification,
             TrackingSpecExists, CalledFromAdjustment, PostponeReservationHandling, PostItemJnlLine);
         exit(PostItemJnlLine);
+    end;
+
+    local procedure ResolveTrackingCodeForLinkedApplication(ItemJnlLine2: Record "Item Journal Line"; TrackingSpecExists: Boolean; var ItemTrackingCode: Code[10]): Boolean
+    var
+        TempTrackingSpecification2: Record "Tracking Specification" temporary;
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+    begin
+        if ItemJnlLine2."Entry Type" in [
+            ItemJnlLine2."Entry Type"::Purchase,
+            ItemJnlLine2."Entry Type"::Sale]
+        then
+            exit(false);
+
+        if ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
+             ItemJnlLine2."Item No.", ItemJnlLine2."Applies-from Entry", ItemTrackingCode)
+        then
+            exit(true);
+        if ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
+             ItemJnlLine2."Item No.", ItemJnlLine2."Applies-to Entry", ItemTrackingCode)
+        then
+            exit(true);
+        if not TrackingSpecExists then
+            exit(false);
+
+        TempTrackingSpecification2.Copy(TempTrackingSpecification, true);
+        if TempTrackingSpecification2.FindSet() then
+            repeat
+                if ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
+                     ItemJnlLine2."Item No.", TempTrackingSpecification2."Appl.-from Item Entry", ItemTrackingCode)
+                then
+                    exit(true);
+                if ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
+                     ItemJnlLine2."Item No.", TempTrackingSpecification2."Appl.-to Item Entry", ItemTrackingCode)
+                then
+                    exit(true);
+                if ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
+                     ItemJnlLine2."Item No.", TempTrackingSpecification2."Item Ledger Entry No.", ItemTrackingCode)
+                then
+                    exit(true);
+            until TempTrackingSpecification2.Next() = 0;
+
+        exit(false);
     end;
 
     local procedure InsertTempSplitItemJnlLine(ItemJnlLine2: Record "Item Journal Line"; var PostItemJnlLine: Boolean)
@@ -5752,6 +5819,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// <returns>True if created split item journal line needs to be posted, otherwise false.</returns>
     procedure SetupTempSplitItemJnlLine(ItemJnlLine2: Record "Item Journal Line"; SignFactor: Integer; var NonDistrQuantity: Decimal; var NonDistrAmount: Decimal; var NonDistrAmountACY: Decimal; var NonDistrDiscountAmount: Decimal; Invoice: Boolean): Boolean
     var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
         FloatingFactor: Decimal;
         PostItemJnlLine: Boolean;
         IsHandled: Boolean;
@@ -5812,8 +5880,16 @@ codeunit 22 "Item Jnl.-Post Line"
         if TempTrackingSpecification.Correction or CheckDropShipmentForSetupTempSplitItemJnlLine(TempSplitItemJnlLine) or IsServUndoConsumption then
             TempSplitItemJnlLine."Applies-to Entry" := TempTrackingSpecification."Item Ledger Entry No."
         else
-            TempSplitItemJnlLine."Applies-to Entry" := TempTrackingSpecification."Appl.-to Item Entry";
-        TempSplitItemJnlLine."Applies-from Entry" := TempTrackingSpecification."Appl.-from Item Entry";
+            if (TempTrackingSpecification."Appl.-to Item Entry" <> 0) or
+               not ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+                   ItemJnlLine2."Item No.", ItemJnlLine2."Applies-to Entry")
+            then
+                TempSplitItemJnlLine."Applies-to Entry" := TempTrackingSpecification."Appl.-to Item Entry";
+        if (TempTrackingSpecification."Appl.-from Item Entry" <> 0) or
+           not ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+               ItemJnlLine2."Item No.", ItemJnlLine2."Applies-from Entry")
+        then
+            TempSplitItemJnlLine."Applies-from Entry" := TempTrackingSpecification."Appl.-from Item Entry";
 
         OnBeforeInsertSetupTempSplitItemJnlLine(TempTrackingSpecification, TempSplitItemJnlLine, PostItemJnlLine, ItemJnlLine2, SignFactor, FloatingFactor);
 

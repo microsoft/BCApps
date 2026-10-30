@@ -1575,7 +1575,7 @@ codeunit 80 "Sales-Post"
     /// <param name="QtyToBeInvoicedBase">The base quantity of the Item to be invoiced.</param>
     /// <param name="ItemLedgShptEntryNo">Item Shipment Entry No. to be assigned to the Item Journal Line.</param>
     /// <param name="ItemChargeNo">Item Charge No. to be assigned to the Item Journal Line.</param>
-    /// <param name="TrackingSpecification">Tracking Specification for the sales line. This parameter is exposed through events, but isn't directly used in the procedure</param>
+    /// <param name="TrackingSpecification">Tracking specification containing the sales line tracking and application information.</param>
     /// <param name="IsATO">A flag indicating whether the Item is Assemble-to-order.</param>
     /// <returns>The Item Shipment Entry No. assigned to the Item Journal Line.</returns>
     procedure PostItemJnlLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: Integer; ItemChargeNo: Code[20]; TrackingSpecification: Record "Tracking Specification"; IsATO: Boolean) Result: Integer
@@ -1987,6 +1987,7 @@ codeunit 80 "Sales-Post"
     /// <param name="TrackingSpecification">Tracking Specification for the sales line. This parameter is exposed through events, but isn't directly used in the procedure</param>
     procedure PostItemJnlLineBeforePost(var ItemJnlLine: Record "Item Journal Line"; SalesLine: Record "Sales Line"; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var PostWhseJnlLine: Boolean; QtyToBeShippedBase: Decimal; TrackingSpecification: Record "Tracking Specification")
     var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
         CheckApplFromItemEntry: Boolean;
         IsHandled: Boolean;
     begin
@@ -2017,7 +2018,13 @@ codeunit 80 "Sales-Post"
                   SalesLine, ItemJnlLine, -QtyToBeShippedBase, TempTrackingSpecification, CheckApplFromItemEntry);
 
             if CheckApplFromItemEntry and SalesLine.IsInventoriableItem() then
-                SalesLine.TestField("Appl.-from Item Entry");
+                if ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+                    SalesLine."No.", TrackingSpecification."Appl.-from Item Entry")
+                then begin
+                    ItemJnlLine."Applies-from Entry" := TrackingSpecification."Appl.-from Item Entry";
+                    CheckApplFromItemEntry := false;
+                end else
+                    SalesLine.TestField("Appl.-from Item Entry");
         end;
 
         OnAfterPostItemJnlLineBeforePost(ItemJnlLine, SalesLine, QtyToBeShippedBase, ItemJnlPostLine, CheckApplFromItemEntry, TrackingSpecification);

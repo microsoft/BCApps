@@ -631,6 +631,8 @@ table 6502 "Item Tracking Code"
                 if not ItemLedgEntry.IsEmpty() then
                     Error(EntriesExistErr, Item."No.", CurrentFieldName);
             until Item.Next() = 0;
+
+        TestNotUsedAsPreviousTrackingCode();
     end;
 
     procedure TestRemoveSpecific(CurrentFieldName: Text)
@@ -645,6 +647,8 @@ table 6502 "Item Tracking Code"
                 if not ItemLedgEntry.IsEmpty() then
                     Error(EntriesExistErr, Item."No.", CurrentFieldName);
             until Item.Next() = 0;
+
+        TestNotUsedAsPreviousTrackingCode();
     end;
 
     local procedure TestRemoveSpecificSN(CurrentFieldName: Text)
@@ -661,6 +665,8 @@ table 6502 "Item Tracking Code"
                 if not ItemLedgEntry.IsEmpty() then
                     Error(EntriesExistErr, Item."No.", CurrentFieldname);
             until Item.Next() = 0;
+
+        TestNotUsedAsPreviousTrackingCode();
     end;
 
     local procedure TestDelete()
@@ -669,6 +675,18 @@ table 6502 "Item Tracking Code"
         Item.SetRange("Item Tracking Code", Code);
         if not Item.IsEmpty() then
             Error(Text002, TableCaption(), Code);
+
+        TestNotUsedAsPreviousTrackingCode();
+    end;
+
+    local procedure TestNotUsedAsPreviousTrackingCode()
+    var
+        ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
+        TrackingCodeUsedInChangeLogErr: Label 'You cannot modify or delete %1 %2 because it was previously used in one or more %3 entries.', Comment = '%1 = Item Tracking Code table caption, %2 = Item Tracking Code, %3 = Item Tracking Code Change Log table caption';
+    begin
+        ItemTrackingCodeChangeLog.SetRange("Previous Item Tracking Code", Code);
+        if not ItemTrackingCodeChangeLog.IsEmpty() then
+            Error(TrackingCodeUsedInChangeLogErr, TableCaption(), Code, ItemTrackingCodeChangeLog.TableCaption());
     end;
 
     local procedure ValidateUseExpirationDates()
@@ -733,6 +751,8 @@ table 6502 "Item Tracking Code"
                 if not WarehouseEntry.IsEmpty() then
                     Error(WhseEntriesExistErr, CurrentFieldName, TrackedItem."No.");
             until TrackedItem.Next() = 0;
+
+        TestNotUsedAsPreviousTrackingCode();
     end;
 
     [IntegrationEvent(false, false)]

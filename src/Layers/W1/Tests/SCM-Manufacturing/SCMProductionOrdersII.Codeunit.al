@@ -147,6 +147,7 @@ codeunit 137072 "SCM Production Orders II"
         UnitCostMustBeEqualErr: Label '%1 must be correct in %2', Comment = '%1 =Field Name %2 = Table Name';
         PostingReverseEntriesQst: Label 'To reverse these entries, correcting entries will be posted.\Do you want to reverse the entries?';
         QtyMustBeEqualErr: Label 'Quantity must be equal after reverse production entry';
+        TrackingInformationCannotBeDeterminedErr: Label 'The required tracking information cannot be determined automatically.';
         ReservedQtyErr: Label 'Reserved Qty. (Base) on component line %1 is incorrect.', Comment = '%1 = Prod. Order Component Line No.';
         InvtReservedQtyErr: Label 'Quantity reserved from inventory on component line %1 is incorrect.', Comment = '%1 = Prod. Order Component Line No.';
 
@@ -7618,6 +7619,201 @@ codeunit 137072 "SCM Production Orders II"
     end;
 
     [Test]
+    [HandlerFunctions('ProductionJnlPageHandler2,ConfirmHandler,MessageHandlerNoText')]
+    procedure ReverseProductionConsumptionIsBlockedAfterComponentChangedFromBlankToLotTracking()
+    var
+        CompItem: Record Item;
+        FGItem: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+        OriginalConsumptionEntryNo: Integer;
+    begin
+        // [FEATURE] [Item Tracking Code Change]
+        // [SCENARIO] Reverse production consumption is blocked after lot tracking is enabled for a historically untracked component.
+        Initialize();
+
+        // [GIVEN] An untracked component is fully consumed by a released production order.
+        LibraryInventory.CreateItem(CompItem);
+        CompItem.Validate("Unit Cost", 1);
+        CompItem.Modify(true);
+        CreateAndPostItemJournalLine(CompItem."No.", 1, '', '', false);
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1);
+        CreateItemWithProductionBOM(FGItem, ProductionBOMHeader."No.");
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, FGItem."No.", 1, '', '');
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        CreateAndPostProductionJournal(ProductionOrder, ProdOrderLine."Line No.");
+
+        ItemLedgerEntry.SetRange("Item No.", CompItem."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
+        ItemLedgerEntry.FindFirst();
+        OriginalConsumptionEntryNo := ItemLedgerEntry."Entry No.";
+        CompItem.CalcFields(Inventory);
+        CompItem.TestField(Inventory, 0);
+
+        // [GIVEN] Lot tracking is represented as enabled after the historical consumption was created.
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        CompItem.Get(CompItem."No.");
+        CompItem."Item Tracking Code" := ItemTrackingCode.Code;
+        CompItem.Modify();
+        CreateItemTrackingCodeChangeLog(CompItem."No.", ItemLedgerEntry.SystemCreatedAt + 1000, '', ItemTrackingCode.Code);
+
+        // [WHEN] The historical consumption entry is reversed.
+        ItemLedgerEntry.SetRange("Entry No.", OriginalConsumptionEntryNo);
+        asserterror UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+        // [THEN] Reversal is blocked before posting because the required lot cannot be determined.
+        Assert.ExpectedError(TrackingInformationCannotBeDeterminedErr);
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    [HandlerFunctions('ProductionJnlPageHandler,ConfirmHandler,MessageHandlerNoText')]
+    procedure ReverseProductionOutputIsBlockedAfterProducedItemChangedFromBlankToLotTracking()
+    var
+        CompItem: Record Item;
+        FGItem: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] Reverse production output is blocked after lot tracking is enabled for the produced item.
+        Initialize();
+
+        // [GIVEN] An untracked item is produced by released production order "PO".
+        LibraryInventory.CreateItem(CompItem);
+        CreateAndPostItemJournalLine(CompItem."No.", 1, '', '', false);
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1);
+        CreateItemWithProductionBOM(FGItem, ProductionBOMHeader."No.");
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, FGItem."No.", 1, '', '');
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        CreateAndPostProductionJournal(ProductionOrder, ProdOrderLine."Line No.");
+        ItemLedgerEntry.SetRange("Item No.", FGItem."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.FindFirst();
+
+        // [GIVEN] Lot tracking is enabled for the produced item without a historical change-log entry.
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        FGItem.Get(FGItem."No.");
+        FGItem."Item Tracking Code" := ItemTrackingCode.Code;
+        FGItem.Modify();
+
+        // [WHEN] The historical output entry is reversed.
+        ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
+        asserterror UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+        // [THEN] Reversal is blocked before posting because the required lot cannot be determined.
+        Assert.ExpectedError(TrackingInformationCannotBeDeterminedErr);
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandlerNoText')]
+    procedure ReverseProductionOutputWithUnchangedNonSpecificLotTracking()
+    var
+        CompItem: Record Item;
+        FGItem: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        ReservationEntry: Record "Reservation Entry";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+        LotNo: Code[50];
+    begin
+        // [SCENARIO 435436] Production output with operation-specific lot tracking can be reversed without changing its code.
+        Initialize();
+        LotNo := LibraryUtility.GenerateGUID();
+        LibraryInventory.CreateItem(CompItem);
+        CreateAndPostItemJournalLine(CompItem."No.", 1, '', '', false);
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1);
+        CreateItemWithProductionBOM(FGItem, ProductionBOMHeader."No.");
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, false);
+        ItemTrackingCode.Validate("Lot Manuf. Inbound Tracking", true);
+        ItemTrackingCode.Modify(true);
+        FGItem.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        FGItem.Modify(true);
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, FGItem."No.", 1, '', '');
+        CreateOutputJournalWithExlpodeRouting(ItemJournalLine, ProductionOrder."No.");
+        ItemJournalLine.Validate("Output Quantity", 1);
+        ItemJournalLine.Modify(true);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, 1);
+        LibraryInventory.PostItemJournalLine(OutputItemJournalBatch."Journal Template Name", OutputItemJournalBatch.Name);
+        ItemLedgerEntry.SetRange("Item No.", FGItem."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField("Lot No.", LotNo);
+        ItemLedgerEntry.TestField(Quantity, 1);
+
+        ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
+        UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+        ItemLedgerEntry.SetRange("Entry No.");
+        ItemLedgerEntry.SetRange(Positive, false);
+        Assert.RecordCount(ItemLedgerEntry, 1);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField("Lot No.", LotNo);
+        ItemLedgerEntry.TestField(Quantity, -1);
+        FGItem.CalcFields(Inventory);
+        FGItem.TestField(Inventory, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ProductionJnlPageHandler2,ConfirmHandler,MessageHandlerNoText')]
+    procedure ReverseProductionConsumptionIsAllowedWhenTrackingChangedBeforePosting()
+    var
+        CompItem: Record Item;
+        FGItem: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] Reverse production consumption remains allowed when the tracking change predates posting.
+        Initialize();
+
+        // [GIVEN] Untracked component "C" whose latest tracking change predates production posting.
+        LibraryInventory.CreateItem(CompItem);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        CreateItemTrackingCodeChangeLog(CompItem."No.", CurrentDateTime() - 1000, ItemTrackingCode.Code, '');
+        CreateAndPostItemJournalLine(CompItem."No.", 1, '', '', false);
+
+        // [GIVEN] Released production order "PO" consumes component "C".
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1);
+        CreateItemWithProductionBOM(FGItem, ProductionBOMHeader."No.");
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, FGItem."No.", 1, '', '');
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        CreateAndPostProductionJournal(ProductionOrder, ProdOrderLine."Line No.");
+        ItemLedgerEntry.SetRange("Item No.", CompItem."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
+        ItemLedgerEntry.FindFirst();
+
+        // [WHEN] The historical consumption entry is reversed.
+        ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
+        UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+        // [THEN] A positive reversing consumption entry is posted.
+        VerifyReversedConsumption(CompItem."No.", 1);
+    end;
+
+    [Test]
     [HandlerFunctions('ProductionJnlPageHandler,ConfirmHandler,MessageHandlerNoText')]
     procedure PutAwayTemplateEvaluationForProductionOutput()
     var
@@ -10851,6 +11047,30 @@ codeunit 137072 "SCM Production Orders II"
         ItemLedgerEntry.FindFirst();
 
         Assert.AreEqual(0.001, ItemLedgerEntry.Quantity, QtyMustBeEqualErr);
+    end;
+
+    local procedure CreateItemTrackingCodeChangeLog(ItemNo: Code[20]; ChangeDateTime: DateTime; PreviousItemTrackingCode: Code[10]; NewItemTrackingCode: Code[10])
+    var
+        ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
+    begin
+        ItemTrackingCodeChangeLog.Init();
+        ItemTrackingCodeChangeLog."Item No." := ItemNo;
+        ItemTrackingCodeChangeLog."Change DateTime" := ChangeDateTime;
+        ItemTrackingCodeChangeLog."Previous Item Tracking Code" := PreviousItemTrackingCode;
+        ItemTrackingCodeChangeLog."New Item Tracking Code" := NewItemTrackingCode;
+        ItemTrackingCodeChangeLog.Insert(true);
+    end;
+
+    local procedure VerifyReversedConsumption(ItemNo: Code[20]; ExpectedQuantity: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
+        ItemLedgerEntry.SetRange(Positive, true);
+        Assert.RecordCount(ItemLedgerEntry, 1);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField(Quantity, ExpectedQuantity);
     end;
 
     local procedure FindPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; ItemNo: Code[20])
