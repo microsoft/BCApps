@@ -774,7 +774,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
                 GLEntryVATEntryLink.SetRange("G/L Entry No.", GLEntry."Entry No.");
                 if GLEntryVATEntryLink.FindFirst() then begin
                     VATEntry.Get(GLEntryVATEntryLink."VAT Entry No.");
-                    ExportTaxInformation(VATEntry, CurrencyCode, GLEntry."Source Currency VAT Amount");
+                    ExportTaxInformation(VATEntry, GLEntry."Source Currency Code", GLEntry."Source Currency VAT Amount");
                 end;
             end;
             SAFTXMLHelper.AppendXMLNode('ReferenceNumber', GLEntry."External Document No.");
@@ -821,6 +821,11 @@ codeunit 10695 "Generate SAF-T 1.4 File"
         if not (VATEntry.Type in [VATEntry.Type::Sale, VATEntry.Type::Purchase]) then
             exit;
 
+        if VATEntry."Source Currency Code" <> '' then begin
+            CurrencyCode := VATEntry."Source Currency Code";
+            SourceCurrencyVATAmount := VATEntry."Source Currency VAT Amount";
+        end;
+
         VATPostingSetup.get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
         SAFTXMLHelper.AddNewXMLNode('TaxInformation', '');
         SAFTXMLHelper.AppendXMLNode('TaxType', 'MVA');
@@ -846,16 +851,16 @@ codeunit 10695 "Generate SAF-T 1.4 File"
                 SAFTXMLHelper.AppendXMLNode('CurrencyAmount', FormatAmountSAFlongmonetary(SourceCurrencyVATAmount));
             end;
             SAFTXMLHelper.FinalizeXMLNode();
-            ExportNOKTaxAmount(VATEntry, IsDebitVATAmount);
+            ExportNOKTaxAmount(VATEntry, IsDebitVATAmount, CurrencyCode);
         end;
         SAFTXMLHelper.FinalizeXMLNode();
     end;
 
-    local procedure ExportNOKTaxAmount(VATEntry: Record "VAT Entry"; IsDebitVATAmount: Boolean)
+    local procedure ExportNOKTaxAmount(VATEntry: Record "VAT Entry"; IsDebitVATAmount: Boolean; CurrencyCode: Code[10])
     var
         TaxAmountNode: Text;
     begin
-        if VATEntry."Source Currency Code" in ['', 'NOK'] then
+        if CurrencyCode in ['', 'NOK'] then
             exit;
 
         TaxAmountNode := IsDebitVATAmount ? 'DebitNOKTaxAmount' : 'CreditNOKTaxAmount';
