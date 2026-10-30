@@ -1538,45 +1538,6 @@ table 18 Customer
             ObsoleteState = Moved;
             ObsoleteTag = '30.0';
             MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
-
-            trigger OnValidate()
-            var
-                CustLedgEntry: Record "Cust. Ledger Entry";
-                AccountingPeriod: Record "Accounting Period";
-                ICPartner: Record "IC Partner";
-                ConfirmManagement: Codeunit "Confirm Management";
-            begin
-                if xRec."IC Partner Code" <> "IC Partner Code" then begin
-                    if not CustLedgEntry.SetCurrentKey("Customer No.", Open) then
-                        CustLedgEntry.SetCurrentKey("Customer No.");
-                    CustLedgEntry.SetRange("Customer No.", "No.");
-                    CustLedgEntry.SetRange(Open, true);
-                    if CustLedgEntry.FindLast() then
-                        Error(Text012, FieldCaption("IC Partner Code"), TableCaption);
-
-                    CustLedgEntry.Reset();
-                    CustLedgEntry.SetCurrentKey("Customer No.", "Posting Date");
-                    CustLedgEntry.SetRange("Customer No.", "No.");
-                    AccountingPeriod.SetRange(Closed, false);
-                    if AccountingPeriod.FindFirst() then begin
-                        CustLedgEntry.SetFilter("Posting Date", '>=%1', AccountingPeriod."Starting Date");
-                        if CustLedgEntry.FindFirst() then
-                            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(Text011, TableCaption), true) then
-                                "IC Partner Code" := xRec."IC Partner Code";
-                    end;
-                end;
-                if "IC Partner Code" <> '' then begin
-                    ICPartner.Get("IC Partner Code");
-                    if (ICPartner."Customer No." <> '') and (ICPartner."Customer No." <> "No.") then
-                        Error(Text010, FieldCaption("IC Partner Code"), "IC Partner Code", TableCaption(), ICPartner."Customer No.");
-                    ICPartner."Customer No." := "No.";
-                    ICPartner.Modify();
-                end;
-                if (xRec."IC Partner Code" <> "IC Partner Code") and ICPartner.Get(xRec."IC Partner Code") then begin
-                    ICPartner."Customer No." := '';
-                    ICPartner.Modify();
-                end;
-            end;
         }
 #endif
         /// <summary>
