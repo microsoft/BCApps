@@ -583,22 +583,33 @@ report 86 "Adjust Add. Reporting Currency"
     /// <param name="AddCurrAmount">Amount in additional reporting currency</param>
     procedure InsertGLEntry(PostingDate: Date; DocumentDate: Date; DocumentType: Integer; DocumentNo: Code[20]; GLAccountNo: Code[20]; ReasonCode: Code[10]; AddCurrAmount: Decimal)
     var
+        CurrentGLSetup: Record "General Ledger Setup";
+        GLTransaction: Record "G/L Transaction";
         AccountingPeriodMgt: Codeunit "Accounting Period Mgt.";
+        UseConcurrentPosting: Boolean;
     begin
+        CurrentGLSetup.Get();
+        UseConcurrentPosting := CurrentGLSetup.UseConcurrentPosting();
         if NextEntryNo = 0 then begin
             GLEntry2.GetLastEntry(LastEntryNo, NextTransactionNo);
-            NextEntryNo := LastEntryNo + 1;
-            NextTransactionNo += 1;
+            if UseConcurrentPosting then begin
+                NextEntryNo := GLEntry2.GetNextEntryNo();
+                NextTransactionNo := GLTransaction.GetNextTransactionNo();
+            end else begin
+                NextEntryNo := LastEntryNo + 1;
+                NextTransactionNo += 1;
+            end;
 
             FiscalYearStartDate := AccountingPeriodMgt.GetPeriodStartingDate();
 
-            GLReg.LockTable();
-            if GLReg.FindLast() then;
             GLReg.Initialize(
-                GLReg."No." + 1, 0, 0, SourceCodeSetup."Adjust Add. Reporting Currency",
+                GLReg.GetNextRegisterNo(not UseConcurrentPosting), 0, 0, SourceCodeSetup."Adjust Add. Reporting Currency",
                 GenJnlBatch.Name, GenJnlBatch."Journal Template Name");
         end else
-            NextEntryNo := NextEntryNo + 1;
+            if UseConcurrentPosting then
+                NextEntryNo := GLEntry2.GetNextEntryNo()
+            else
+                NextEntryNo := NextEntryNo + 1;
 
         GLEntry2.Init();
         GLEntry2."Posting Date" := PostingDate;
@@ -621,6 +632,7 @@ report 86 "Adjust Add. Reporting Currency"
         GLEntry2."Journal Batch Name" := GenJnlBatch.Name;
         GLEntry2."Reason Code" := ReasonCode;
         GLEntry2."Entry No." := NextEntryNo;
+        GLEntry2."G/L Register No." := GLReg."No.";
         GLEntry2."Transaction No." := NextTransactionNo;
         GLEntry2."G/L Account No." := GLAccountNo;
         GLEntry2.Amount := 0;
@@ -638,6 +650,11 @@ report 86 "Adjust Add. Reporting Currency"
         end;
         OnInsertGLEntryOnBeforeGLEntryInsert(GLEntry2);
         GLEntry2.Insert();
+        if UseConcurrentPosting then begin
+            GLTransaction.InsertFromGLEntry(GLEntry2, GLReg);
+            if GLReg."From Entry No." = 0 then
+                GLReg."From Entry No." := GLEntry2."Entry No.";
+        end;
 
         GLReg."To Entry No." := GLEntry2."Entry No.";
     end;

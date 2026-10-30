@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -141,6 +141,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         FALedgEntry."Derogatory Excluded" := CalcExcludeDerogatory(FALedgEntry);
 #endif
         DerogatoryPostingMgt.ValidateDerogatoryLink(FALedgEntry);
+        FALedgEntry."G/L Register No." := GLRegisterNo;
         FALedgEntry.Insert(true);
         FeatureTelemetry.LogUsage('0000H4F', 'Fixed Asset', 'Insert FA Ledger Entry');
         OnInsertFAOnAfterInsertFALedgEntry(FALedgEntry, FALedgEntry3);
@@ -230,6 +231,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         if MaintenanceLedgEntry."G/L Entry No." > 0 then
             FAInsertGLAcc.InsertMaintenanceAccNo(MaintenanceLedgEntry);
         DerogatoryPostingMgt.ValidateDerogatoryLink(MaintenanceLedgEntry);
+        MaintenanceLedgEntry."G/L Register No." := GLRegisterNo;
         MaintenanceLedgEntry.Insert(true);
         SetMaintenanceLastDate(MaintenanceLedgEntry);
         InsertRegister("FA Register Called From"::Maintenance, NextMaintenanceEntryNo);
@@ -608,6 +610,7 @@ codeunit 5600 "FA Insert Ledger Entry"
                 FALedgEntry3."FA No./Budgeted FA No." := '';
                 FALedgEntry3."Derogatory Source Entry No." := DerogatorySourceEntryNo;
                 OnInsertReverseEntryOnBeforeInsertFALedgEntry(FALedgEntry3);
+                FALedgEntry3."G/L Register No." := GLRegisterNo;
                 FALedgEntry3.Insert(true);
                 OnInsertReverseEntryOnBeforeFACheckConsistency(FALedgEntry3);
                 CODEUNIT.Run(CODEUNIT::"FA Check Consistency", FALedgEntry3);
@@ -668,6 +671,7 @@ codeunit 5600 "FA Insert Ledger Entry"
             MaintenanceLedgEntry3."FA No./Budgeted FA No." := '';
             MaintenanceLedgEntry3."Derogatory Source Entry No." := DerogatorySourceEntryNo;
             OnInsertReverseEntryOnBeforeInsertMaintenanceLedgerEntry(MaintenanceLedgEntry3);
+            MaintenanceLedgEntry3."G/L Register No." := GLRegisterNo;
             MaintenanceLedgEntry3.Insert();
             InsertRegister("FA Register Called From"::Maintenance, NextMaintenanceEntryNo);
             InsertMaintRevEntryForDerog(FAEntryType, MaintenanceLedgEntry3);

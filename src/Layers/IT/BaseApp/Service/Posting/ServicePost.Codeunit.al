@@ -626,7 +626,7 @@ codeunit 5980 "Service-Post"
     begin
         ServiceLine.LockTable();
 
-        if not InvSetup.OptimGLEntLockForMultiuserEnv() then begin
+        if not InvSetup.OptimGLEntLockForMultiuserEnv() and not GLSetup.UseConcurrentPosting() then begin
             GLEntry.LockTable();
             OnLockTablesOnBeforeGLEntryFindLast(GLEntry);
             GLEntry.GetLastEntryNo();

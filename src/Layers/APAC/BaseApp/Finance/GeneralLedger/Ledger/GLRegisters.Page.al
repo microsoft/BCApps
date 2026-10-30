@@ -221,6 +221,7 @@ page 116 "G/L Registers"
                         EmployeeLedgerEntry: Record "Employee Ledger Entry";
                     begin
                         EmployeeLedgerEntry.SetRange("Entry No.", Rec."From Entry No.", Rec."To Entry No.");
+                        EmployeeLedgerEntry.SetFilter("G/L Register No.", '0|%1', Rec."No.");
                         PAGE.Run(PAGE::"Employee Ledger Entries", EmployeeLedgerEntry);
                     end;
                 }
@@ -501,6 +502,7 @@ page 116 "G/L Registers"
         if GLRegister."Source Code" <> SourceCodeSetup."Payment Reconciliation Journal" then
             exit(false);
         BankAccountLedgerEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        BankAccountLedgerEntry.SetFilter("G/L Register No.", '0|%1', GLRegister."No.");
         if not BankAccountLedgerEntry.FindFirst() then
             exit(false);
         if (BankAccountLedgerEntry."Bank Account No." = '') or (BankAccountLedgerEntry."Statement No." = '') then
