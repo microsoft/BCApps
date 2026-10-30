@@ -2377,7 +2377,7 @@ codeunit 7312 "Create Pick"
 
         WhseItemTrackingFEFO.SetSource(CurrSourceType, CurrSourceSubType, CurrSourceNo, CurrSourceLineNo, CurrSourceSubLineNo);
         WhseItemTrackingFEFO.SetCalledFromMovementWksh(CalledFromMoveWksh);
-        if IsPickByExactRequestedUnitOfMeasure() then
+        if IsPickByExactRequestedUnitOfMeasure(ItemNo, VariantCode, UnitofMeasureCode) then
             WhseItemTrackingFEFO.CreateEntrySummaryFEFO(CurrLocation, ItemNo, VariantCode, UnitofMeasureCode, HasExpiryDate)
         else
             WhseItemTrackingFEFO.CreateEntrySummaryFEFO(CurrLocation, ItemNo, VariantCode, HasExpiryDate);
@@ -2452,9 +2452,10 @@ codeunit 7312 "Create Pick"
         end;
     end;
 
-    local procedure IsPickByExactRequestedUnitOfMeasure(): Boolean
+    local procedure IsPickByExactRequestedUnitOfMeasure(ItemNo: Code[20]; VariantCode: Code[10]; UnitOfMeasureCode: Code[10]) Result: Boolean
     begin
-        exit(CurrLocation."Directed Put-away and Pick" and (not CurrLocation."Allow Breakbulk"));
+        Result := CurrLocation."Directed Put-away and Pick" and (not CurrLocation."Allow Breakbulk");
+        OnAfterIsPickByExactRequestedUnitOfMeasure(CurrLocation, ItemNo, VariantCode, UnitOfMeasureCode, Result);
     end;
 
     procedure ItemTrackedQuantity(WhseItemTrackingSetup: Record "Item Tracking Setup"): Decimal
@@ -4221,6 +4222,11 @@ codeunit 7312 "Create Pick"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateTempItemTrkgLines(Location: Record Location; ItemNo: Code[20]; VariantCode: Code[10]; var TotalQtytoPickBase: Decimal; HasExpiryDate: Boolean; var IsHandled: Boolean; var WhseItemTrackingFEFO: Codeunit "Whse. Item Tracking FEFO"; WhseShptLine: Record "Warehouse Shipment Line"; WhseWkshLine: Record "Whse. Worksheet Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsPickByExactRequestedUnitOfMeasure(Location: Record Location; ItemNo: Code[20]; VariantCode: Code[10]; UnitOfMeasureCode: Code[10]; var Result: Boolean)
     begin
     end;
 
