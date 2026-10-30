@@ -16,7 +16,7 @@ codeunit 6384 "Graph Client"
 {
     Access = Internal;
 
-    internal procedure InitializeWebRequest(Url: Text; Method: Text; ReturnType: Text; var HttpRequestMessage: HttpRequestMessage)
+    internal procedure InitializeWebRequest(Url: Text; Method: Text; ReturnType: Text; var HttpRequestMessage: HttpRequestMessage; var ClientRequestId: Text)
     var
         GraphAuthentication: Codeunit "Graph Authentication";
         HttpHeaders: HttpHeaders;
@@ -32,11 +32,16 @@ codeunit 6384 "Graph Client"
             Error(SignInAgainErr);
         end;
 
+        // Graph and SharePoint record client-request-id in their logs, which lets ODSP correlate a failing call (including redirects) with our telemetry.
+        ClientRequestId := Format(CreateGuid(), 0, 4).ToLower();
+
         HttpRequestMessage.Method(Method);
         HttpRequestMessage.SetRequestUri(Url);
         HttpRequestMessage.GetHeaders(HttpHeaders);
         if ReturnType <> '' then
             HttpHeaders.Add('Accept', ReturnType);
+        HttpHeaders.Add('client-request-id', ClientRequestId);
+        HttpHeaders.Add('return-client-request-id', 'true');
         HttpHeaders.Add('Authorization', SecretStrSubstNo('Bearer %1', Token));
     end;
 
@@ -49,18 +54,19 @@ codeunit 6384 "Graph Client"
         HttpResponseMessage: HttpResponseMessage;
         ResponseBody: Text;
         ErrorDetails: Text;
+        ClientRequestId: Text;
     begin
-        InitializeWebRequest(FolderUrl, 'GET', 'application/json', HttpRequestMessage);
+        InitializeWebRequest(FolderUrl, 'GET', 'application/json', HttpRequestMessage, ClientRequestId);
 
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
-            Session.LogMessage('0000VST', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('0000VST', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetTelemetryDimensions(ClientRequestId));
             Error(RequestFailedErr, GetLastErrorText());
         end;
 
         HttpResponseMessage.Content.ReadAs(ResponseBody);
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
             ErrorDetails := ResponseBody;
-            Session.LogMessage('0000OB5', StrSubstNo(GraphStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('0000OB5', StrSubstNo(GraphStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetTelemetryDimensions(ClientRequestId, HttpResponseMessage));
 
             CheckNoAccessError(HttpResponseMessage.HttpStatusCode(), ErrorDetails);
             Error(UnexpectedStatusCodeErr, HttpResponseMessage.HttpStatusCode());
@@ -72,29 +78,35 @@ codeunit 6384 "Graph Client"
 
     [TryFunction]
     [NonDebuggable]
-    procedure GetFileContent(SiteId: Text; var TempDocumentSharing: Record "Document Sharing" temporary)
+    procedure GetFileContent(DriveId: Text; var TempDocumentSharing: Record "Document Sharing" temporary)
     var
         TempBlob: Codeunit "Temp Blob";
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
+        HttpHeaders: HttpHeaders;
         FileUrl: Text;
         ErrorDetails: Text;
+        ClientRequestId: Text;
         InStream: InStream;
         OutStream: OutStream;
+        TelemetryDimensions: Dictionary of [Text, Text];
     begin
-        FileUrl := GetGraphItemByIdUrl(SiteId, TempDocumentSharing."Item Id") + '/content';
+        FileUrl := GetGraphItemByIdUrl(DriveId, TempDocumentSharing."Item Id") + '/content';
 
-        InitializeWebRequest(FileUrl, 'GET', '', HttpRequestMessage);
+        InitializeWebRequest(FileUrl, 'GET', '', HttpRequestMessage, ClientRequestId);
+        // Return the content directly instead of redirecting to a pre-authenticated (tempauth) SharePoint URL; tempauth URLs are being retired.
+        HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Prefer', 'noredirect');
 
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
-            Session.LogMessage('0000VSU', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('0000VSU', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetTelemetryDimensions(ClientRequestId));
             Error(RequestFailedErr, GetLastErrorText());
         end;
 
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
             HttpResponseMessage.Content.ReadAs(ErrorDetails);
-            Session.LogMessage('0000OB6', StrSubstNo(GraphStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('0000OB6', StrSubstNo(GraphStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetTelemetryDimensions(ClientRequestId, HttpResponseMessage));
 
             CheckNoAccessError(HttpResponseMessage.HttpStatusCode(), ErrorDetails);
             Error(UnexpectedStatusCodeErr, HttpResponseMessage.HttpStatusCode());
@@ -103,10 +115,11 @@ codeunit 6384 "Graph Client"
         HttpResponseMessage.Content.ReadAs(InStream);
         TempBlob.CreateOutStream(OutStream);
         CopyStream(OutStream, InStream);
+        TelemetryDimensions := GetTelemetryDimensions(ClientRequestId, HttpResponseMessage);
         if TempBlob.Length() = 0 then
-            Session.LogMessage('0000OB7', GraphEmptyFileTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl)
+            Session.LogMessage('0000OB7', GraphEmptyFileTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions)
         else begin
-            Session.LogMessage('0000OB8', StrSubstNo(GraphFileTelemetryMsg, TempBlob.Length()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('0000OB8', StrSubstNo(GraphFileTelemetryMsg, TempBlob.Length()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
             TempDocumentSharing.Data.CreateOutStream(OutStream);
             TempBlob.CreateInStream(InStream);
             CopyStream(OutStream, InStream);
@@ -115,7 +128,7 @@ codeunit 6384 "Graph Client"
 
     [TryFunction]
     [NonDebuggable]
-    procedure MoveDriveItem(SiteId: Text; ItemId: Text; NewFolderId: Text)
+    procedure MoveDriveItem(DriveId: Text; ItemId: Text; NewFolderId: Text)
     var
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
@@ -125,32 +138,61 @@ codeunit 6384 "Graph Client"
         ResponseBody: Text;
         ItemUrl: Text;
         BodyTxt: Text;
+        ClientRequestId: Text;
     begin
-        ItemUrl := GetGraphItemByIdUrl(SiteId, ItemId);
+        ItemUrl := GetGraphItemByIdUrl(DriveId, ItemId);
         BodyTxt := '{ "parentReference": { "id": "' + NewFolderId + '" } }';
-        InitializeWebRequest(ItemUrl, 'PATCH', '', HttpRequestMessage);
+        InitializeWebRequest(ItemUrl, 'PATCH', '', HttpRequestMessage, ClientRequestId);
         HttpContent.WriteFrom(BodyTxt);
         HttpContent.GetHeaders(HttpContentHeaders);
         HttpContentHeaders.Remove('Content-Type');
         HttpContentHeaders.Add('Content-Type', 'application/json');
         HttpRequestMessage.Content(HttpContent);
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
-            Session.LogMessage('0000VSV', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('0000VSV', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetTelemetryDimensions(ClientRequestId));
             Error(RequestFailedErr, GetLastErrorText());
         end;
 
         HttpResponseMessage.Content.ReadAs(ResponseBody);
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
-            Session.LogMessage('0000N7U', StrSubstNo(GraphStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('0000N7U', StrSubstNo(GraphStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, GetTelemetryDimensions(ClientRequestId, HttpResponseMessage));
 
             CheckNoAccessError(HttpResponseMessage.HttpStatusCode(), ResponseBody);
             Error(UnexpectedStatusCodeErr, HttpResponseMessage.HttpStatusCode());
         end;
     end;
 
-    local procedure GetGraphItemByIdUrl(SiteId: Text; ItemId: Text): Text
+    local procedure GetGraphItemByIdUrl(DriveId: Text; ItemId: Text): Text
     begin
-        exit(StrSubstNo(GraphItemUrlTxt, SiteId, ItemId));
+        exit(StrSubstNo(GraphItemUrlTxt, DriveId, ItemId));
+    end;
+
+    local procedure GetTelemetryDimensions(ClientRequestId: Text): Dictionary of [Text, Text]
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions.Add('Category', CategoryLbl);
+        TelemetryDimensions.Add('ClientRequestId', ClientRequestId);
+        exit(TelemetryDimensions);
+    end;
+
+    local procedure GetTelemetryDimensions(ClientRequestId: Text; var HttpResponseMessage: HttpResponseMessage): Dictionary of [Text, Text]
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions := GetTelemetryDimensions(ClientRequestId);
+        TelemetryDimensions.Add('HttpStatusCode', Format(HttpResponseMessage.HttpStatusCode()));
+        TelemetryDimensions.Add('RequestId', GetResponseHeaderValue(HttpResponseMessage, 'request-id'));
+        TelemetryDimensions.Add('SPRequestGuid', GetResponseHeaderValue(HttpResponseMessage, 'SPRequestGuid'));
+        exit(TelemetryDimensions);
+    end;
+
+    local procedure GetResponseHeaderValue(var HttpResponseMessage: HttpResponseMessage; HeaderName: Text): Text
+    var
+        Values: array[10] of Text;
+    begin
+        if HttpResponseMessage.Headers().GetValues(HeaderName, Values) then
+            exit(Values[1]);
     end;
 
     local procedure CheckNoAccessError(HttpStatusCode: Integer; HttpErrorDetails: Text)
@@ -165,7 +207,7 @@ codeunit 6384 "Graph Client"
 
     var
         EnvironmentInformation: Codeunit "Environment Information";
-        GraphItemUrlTxt: Label 'https://graph.microsoft.com/v1.0/sites/%1/drive/items/%2', Locked = true;
+        GraphItemUrlTxt: Label 'https://graph.microsoft.com/v1.0/drives/%1/items/%2', Locked = true;
         EmptyTokenTelemetryMsg: Label 'No Microsoft 365 access token received', Locked = true;
         AvailableOnlyOnSaaSErr: Label 'This functionality is available only when running on Business Central Online environment.';
         SignInAgainErr: Label 'No access token is available. You must sign in to the target resource with the correct credentials. If the problem persists, open a Business Central support request.';
