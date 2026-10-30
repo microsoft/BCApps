@@ -524,10 +524,11 @@ page 6408 "Workflow - Customer Entity"
                     ApplicationArea = All;
                     Caption = 'Pmt. Tolerance (LCY)', Locked = true;
                 }
-                field(icPartnerCode; Rec."IC Partner Code")
+                field(icPartnerCode; ICPartnerCode)
                 {
                     ApplicationArea = All;
                     Caption = 'IC Partner Code', Locked = true;
+                    ToolTip = 'Specifies the customer''s intercompany partner code.';
                 }
                 field(refunds; Rec.Refunds)
                 {
@@ -786,5 +787,7 @@ page 6408 "Workflow - Customer Entity"
     actions
     {
     }
-}
 
+    protected var
+        ICPartnerCode: Code[20];
+}

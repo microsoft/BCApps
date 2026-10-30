@@ -2,15 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Inbox;
 
-using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
 
 /// <summary>
 /// Archives journal line details for processed intercompany inbox transactions.
@@ -20,6 +15,10 @@ table 421 "Handled IC Inbox Jnl. Line"
 {
     Caption = 'Handled IC Inbox Jnl. Line';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -38,7 +37,6 @@ table 421 "Handled IC Inbox Jnl. Line"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Line number for sequencing journal lines within the handled transaction.
@@ -65,15 +63,6 @@ table 421 "Handled IC Inbox Jnl. Line"
         {
             Caption = 'Account No.';
             Editable = false;
-            TableRelation = if ("Account Type" = const("G/L Account")) "IC G/L Account"
-            else
-            if ("Account Type" = const(Customer)) Customer
-            else
-            if ("Account Type" = const(Vendor)) Vendor
-            else
-            if ("Account Type" = const("IC Partner")) "IC Partner"
-            else
-            if ("Account Type" = const("Bank Account")) "Bank Account";
         }
         /// <summary>
         /// Transaction amount for this handled journal line in the specified currency.
@@ -176,12 +165,5 @@ table 421 "Handled IC Inbox Jnl. Line"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        DimMgt: Codeunit DimensionManagement;
-    begin
-        DimMgt.DeleteICJnlDim(
-          DATABASE::"Handled IC Inbox Jnl. Line", "Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
 }
+#endif

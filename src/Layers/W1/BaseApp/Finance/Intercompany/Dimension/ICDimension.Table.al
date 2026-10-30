@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Dimension;
 
 using Microsoft.Finance.Dimension;
@@ -14,8 +15,11 @@ table 411 "IC Dimension"
 {
     Caption = 'IC Dimension';
     DataCaptionFields = "Code", Name;
-    LookupPageID = "IC Dimension List";
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -48,14 +52,6 @@ table 411 "IC Dimension"
         {
             Caption = 'Map-to Dimension Code';
             TableRelation = Dimension;
-
-            trigger OnValidate()
-            begin
-                if "Map-to Dimension Code" <> xRec."Map-to Dimension Code" then begin
-                    ICDimensionValue.SetRange("Dimension Code", Code);
-                    ICDimensionValue.ModifyAll("Map-to Dimension Code", "Map-to Dimension Code", "Map-to Dimension Value Code", '');
-                end;
-            end;
         }
     }
 
@@ -73,43 +69,5 @@ table 411 "IC Dimension"
         {
         }
     }
-
-    trigger OnDelete()
-    var
-        ICDimValue: Record "IC Dimension Value";
-    begin
-        RemoveDimensionMappings();
-        ICDimValue.SetRange("Dimension Code", Code);
-        ICDimValue.DeleteAll();
-    end;
-
-    var
-        ICDimensionValue: Record "IC Dimension Value";
-
-    local procedure RemoveDimensionMappings()
-    var
-        Dimension: Record Dimension;
-        DimensionValue: Record "Dimension Value";
-    begin
-        Dimension.SetRange("Map-to IC Dimension Code", Rec."Code");
-        if not Dimension.IsEmpty() then begin
-            Dimension.FindSet();
-            repeat
-                DimensionValue.SetRange("Dimension Code", Dimension.Code);
-                if not DimensionValue.IsEmpty() then begin
-                    DimensionValue.FindSet();
-                    repeat
-                        if DimensionValue."Map-to IC Dimension Code" <> '' then begin
-                            DimensionValue."Map-to IC Dimension Code" := '';
-                            DimensionValue."Map-to IC Dimension Value Code" := '';
-                            DimensionValue.Modify();
-                        end;
-                    until DimensionValue.Next() = 0;
-                end;
-                Dimension."Map-to IC Dimension Code" := '';
-                Dimension.Modify();
-            until Dimension.Next() = 0;
-        end;
-    end;
 }
-
+#endif

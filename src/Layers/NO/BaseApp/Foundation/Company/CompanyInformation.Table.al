@@ -10,7 +10,6 @@ using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.Enums;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Utilities;
@@ -55,7 +54,8 @@ table 79 "Company Information"
         {
             Caption = 'City';
             ToolTip = 'Specifies the company''s city.';
-            TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
             ValidateTableRelation = false;
@@ -190,7 +190,8 @@ table 79 "Company Information"
         {
             Caption = 'Ship-to City';
             ToolTip = 'Specifies the city of the company''s ship-to address.';
-            TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Ship-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Ship-to Country/Region Code"));
             ValidateTableRelation = false;
@@ -232,7 +233,8 @@ table 79 "Company Information"
         {
             Caption = 'Post Code';
             ToolTip = 'Specifies the postal code.';
-            TableRelation = if ("Country/Region Code" = const('')) "Post Code".Code
+            TableRelation =
+            if ("Country/Region Code" = const('')) "Post Code".Code
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".Code where("Country/Region Code" = field("Country/Region Code"));
             ValidateTableRelation = false;
@@ -262,7 +264,8 @@ table 79 "Company Information"
         {
             Caption = 'Ship-to Post Code';
             ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
-            TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code".Code
+            TableRelation =
+            if ("Ship-to Country/Region Code" = const('')) "Post Code".Code
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code".Code where("Country/Region Code" = field("Ship-to Country/Region Code"));
             ValidateTableRelation = false;
@@ -357,7 +360,6 @@ table 79 "Company Information"
 #if not CLEANSCHEMA25
         field(43; "IC Inbox Details"; Text[250])
         {
-            AccessByPermission = TableData "IC G/L Account" = R;
             Caption = 'IC Inbox Details';
             ObsoleteReason = 'Replaced by the same field from "IC Setup" table.';
             ObsoleteState = Removed;
@@ -599,7 +601,6 @@ table 79 "Company Information"
         I: Integer;
     begin
         OnBeforeCheckIBAN(IBANCode);
-
         if IBANCode = '' then
             exit;
         OriginalIBANCode := IBANCode;
@@ -752,6 +753,7 @@ table 79 "Company Information"
         end;
         exit(TextBuilder.ToText());
     end;
+
     local procedure GetTextEncoding(): TextEncoding
     begin
         exit(TextEncoding::UTF8);
@@ -775,7 +777,6 @@ table 79 "Company Information"
         OnBeforeGetVATRegistrationNumberLbl(Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if "VAT Registration No." = '' then
             exit('');
         exit(FieldCaption("VAT Registration No."));
@@ -867,10 +868,8 @@ table 79 "Company Information"
     begin
         if ("Phone No." <> '') and ("E-Mail" <> '') then
             exit(StrSubstNo(ContactUsFullTxt, "Phone No.", "E-Mail"));
-
         if "Phone No." <> '' then
             exit(StrSubstNo(ContactUsShortTxt, "Phone No."));
-
         if "E-Mail" <> '' then
             exit(StrSubstNo(ContactUsShortTxt, "E-Mail"));
 
@@ -896,7 +895,6 @@ table 79 "Company Information"
             exit;
 
         VATRegistrationNo := DelChr(VATRegistrationNo);
-
         if CountryRegion.Get(CountryCode) and (CountryRegion."ISO Code" <> '') then
             if StrPos(VATRegistrationNo, CountryRegion."ISO Code") <> 1 then
                 VATRegistrationNo := CountryRegion."ISO Code" + VATRegistrationNo;

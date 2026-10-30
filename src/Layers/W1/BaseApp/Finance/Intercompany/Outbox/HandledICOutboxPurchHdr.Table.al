@@ -2,12 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Purchases.Vendor;
 
@@ -23,6 +22,10 @@ table 432 "Handled IC Outbox Purch. Hdr"
 {
     Caption = 'Handled IC Outbox Purch. Hdr';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -219,7 +222,6 @@ table 432 "Handled IC Outbox Purch. Hdr"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Unique transaction number identifying this intercompany outbox transaction.
@@ -276,18 +278,5 @@ table 432 "Handled IC Outbox Purch. Hdr"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        HndlICOutboxPurchLine: Record "Handled IC Outbox Purch. Line";
-        DimMgt: Codeunit DimensionManagement;
-    begin
-        HndlICOutboxPurchLine.SetRange("IC Partner Code", "IC Partner Code");
-        HndlICOutboxPurchLine.SetRange("IC Transaction No.", "IC Transaction No.");
-        HndlICOutboxPurchLine.SetRange("Transaction Source", "Transaction Source");
-        if HndlICOutboxPurchLine.FindFirst() then
-            HndlICOutboxPurchLine.DeleteAll(true);
-        DimMgt.DeleteICDocDim(
-          DATABASE::"Handled IC Outbox Purch. Hdr", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
-    end;
 }
+#endif

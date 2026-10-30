@@ -27,6 +27,11 @@
   ],
   "internalsVisibleTo": [
     {
+      "id": "74676280-1b87-43cc-8ca2-3b2b17a5b81d",
+      "name": "Intercompany",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "6992416f-3f39-4d3c-8242-3fff61350bea",
       "name": "Business Central Cloud Migration - Previous Release",
       "publisher": "Microsoft"

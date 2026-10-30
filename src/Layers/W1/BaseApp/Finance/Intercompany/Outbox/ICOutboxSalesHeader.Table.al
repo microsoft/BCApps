@@ -2,12 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Sales.Customer;
 
@@ -24,6 +23,10 @@ table 426 "IC Outbox Sales Header"
 {
     Caption = 'IC Outbox Sales Header';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -192,7 +195,6 @@ table 426 "IC Outbox Sales Header"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Intercompany transaction number linking this header to the parent transaction.
@@ -249,18 +251,5 @@ table 426 "IC Outbox Sales Header"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        ICOutboxSalesLine: Record "IC Outbox Sales Line";
-        DimMgt: Codeunit DimensionManagement;
-    begin
-        ICOutboxSalesLine.SetRange("IC Partner Code", "IC Partner Code");
-        ICOutboxSalesLine.SetRange("IC Transaction No.", "IC Transaction No.");
-        ICOutboxSalesLine.SetRange("Transaction Source", "Transaction Source");
-        if ICOutboxSalesLine.FindFirst() then
-            ICOutboxSalesLine.DeleteAll(true);
-        DimMgt.DeleteICDocDim(
-          DATABASE::"IC Outbox Sales Header", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
-    end;
 }
+#endif

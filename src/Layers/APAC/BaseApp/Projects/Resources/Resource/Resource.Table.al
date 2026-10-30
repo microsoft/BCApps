@@ -18,7 +18,6 @@ using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using Microsoft.Integration.Dataverse;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Projects.Project.Planning;
@@ -578,12 +577,18 @@ table 156 Resource
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
             end;
         }
+#if not CLEANSCHEMA30
         field(60; "IC Partner Purch. G/L Acc. No."; Code[20])
         {
             Caption = 'IC Partner Purch. G/L Acc. No.';
+            DataClassification = CustomerContent;
             ToolTip = 'Specifies the intercompany g/l account number in your partner''s company that the amount for this resource is posted to.';
-            TableRelation = "IC G/L Account";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         field(61; "Unit Group Exists"; Boolean)
         {
             CalcFormula = exist("Unit Group" where("Source Id" = field(SystemId),

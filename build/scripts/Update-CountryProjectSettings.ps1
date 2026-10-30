@@ -4,7 +4,8 @@
 .DESCRIPTION
     This script uses ALAppBuild.psm1's BuildMetadataProvider to determine which apps
     (W1 and country-specific) are supported in each country, then updates each country's
-    .AL-Go/settings.json with the correct appFolders and testFolders.
+    .AL-Go/settings.json with the correct appFolders, testFolders, and country
+    preprocessorSymbols. Other existing preprocessor symbols are preserved.
 
     App inclusion is determined by groups.json (via BuildMetadataProvider::GetApplicationsInGroup)
     and country support is checked via projects.json metadata (supportedCountries/unsupportedCountries),
@@ -57,6 +58,7 @@ $script:countriesNeedingUpdate = @()
 $ErrorActionPreference = "Stop"
 
 Import-Module (Join-Path $PSScriptRoot "EnlistmentHelperFunctions.psm1") -Force
+Import-Module (Join-Path $PSScriptRoot "CountryPreprocessorSymbols.psm1") -Force
 $RepoRoot = Get-BaseFolder
 
 $ErrorActionPreference = "Stop"
@@ -157,6 +159,7 @@ function Get-AppFoldersForCountry {
 
     $appFolders = @()
     $testFolders = @()
+    $preprocessorSymbols = @()
 
     foreach ($metadata in $allApps) {
         # For GDL projects use AppJsonPath's parent (ProjectFolder points to the generated dir)
@@ -173,8 +176,10 @@ function Get-AppFoldersForCountry {
 
         if ($metadata.IsTest -and $metadata.ApplicationName -notin $appsNotPublished -and $relativePath -notin $ExcludedAppFolders) {
             $testFolders += $relativePath
+            $preprocessorSymbols += $metadata.CountryPreprocessorSymbols
         } elseif ($relativePath -notin $ExcludedAppFolders) {
             $appFolders += $relativePath
+            $preprocessorSymbols += $metadata.CountryPreprocessorSymbols
         }
     }
 
@@ -182,8 +187,9 @@ function Get-AppFoldersForCountry {
     $appFolders += $script:AdditionalAppFolders
 
     return @{
-        AppFolders  = $appFolders | Sort-Object -Unique
-        TestFolders = $testFolders | Sort-Object -Unique
+        AppFolders  = @($appFolders | Sort-Object -Unique)
+        TestFolders = @($testFolders | Sort-Object -Unique)
+        PreprocessorSymbols = @($preprocessorSymbols | Sort-Object -Unique)
     }
 }
 
@@ -208,15 +214,22 @@ function Update-CountrySettings {
 
     $currentAppFolders = @($settings.appFolders)
     $currentTestFolders = @($settings.testFolders)
+    $currentPreprocessorSymbols = @($settings.preprocessorSymbols | Where-Object { $_ })
 
     $newAppFolders = $apps.AppFolders
     $newTestFolders = $apps.TestFolders
+    $declaredCountrySymbols = @(Get-CountryPreprocessorSymbols -AllApplications)
+    $newPreprocessorSymbols = @(
+        @($currentPreprocessorSymbols | Where-Object { $_ -notin $declaredCountrySymbols }) +
+        @($apps.PreprocessorSymbols) | Sort-Object -Unique
+    )
 
     # Check if changes are needed
     $appFoldersChanged = (Compare-Object $currentAppFolders $newAppFolders -SyncWindow 0) -ne $null
     $testFoldersChanged = (Compare-Object $currentTestFolders $newTestFolders -SyncWindow 0) -ne $null
+    $preprocessorSymbolsChanged = (Compare-Object $currentPreprocessorSymbols $newPreprocessorSymbols -SyncWindow 0) -ne $null
 
-    if (-not $appFoldersChanged -and -not $testFoldersChanged) {
+    if (-not $appFoldersChanged -and -not $testFoldersChanged -and -not $preprocessorSymbolsChanged) {
         Write-Host "  No changes needed for $Country" -ForegroundColor Green
         return
     }
@@ -263,9 +276,18 @@ function Update-CountrySettings {
     }
 
     # Apply changes (skip if validating)
-    if (-not $Validate -and $PSCmdlet.ShouldProcess($settingsPath, "Update appFolders and testFolders")) {
+    if ($preprocessorSymbolsChanged) {
+        Write-Host "  PreprocessorSymbols: $($newPreprocessorSymbols -join ', ')" -ForegroundColor Yellow
+    }
+
+    if (-not $Validate -and $PSCmdlet.ShouldProcess($settingsPath, "Update appFolders, testFolders, and preprocessorSymbols")) {
         $settings.appFolders = $newAppFolders
         $settings.testFolders = $newTestFolders
+        if ($newPreprocessorSymbols.Count -gt 0) {
+            $settings | Add-Member -NotePropertyName preprocessorSymbols -NotePropertyValue $newPreprocessorSymbols -Force
+        } else {
+            $settings.PSObject.Properties.Remove('preprocessorSymbols')
+        }
 
         $newContent = $settings | ConvertTo-Json -Depth 10
 

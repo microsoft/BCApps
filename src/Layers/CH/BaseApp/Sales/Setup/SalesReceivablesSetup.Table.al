@@ -680,24 +680,30 @@ table 311 "Sales & Receivables Setup"
             TableRelation = "Gen. Journal Template" where(Type = filter(Sales));
             ToolTip = 'Specifies which general journal template to use for sales credit memos.';
         }
-        /// <summary>
-        /// Specifies the intercompany journal template used for posting intercompany sales invoices.
-        /// </summary>
+#if not CLEANSCHEMA30
         field(205; "IC Sales Invoice Template Name"; Code[10])
         {
             Caption = 'IC Sales Invoice Template Name';
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies the intercompany journal template to use for sales invoices.';
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the intercompany journal template used for posting intercompany sales credit memos.
-        /// </summary>
+#endif
+#if not CLEANSCHEMA30
         field(206; "IC Sales Cr. Memo Templ. Name"; Code[10])
         {
             Caption = 'IC Sales Cr. Memo Template Name';
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies the intercompany journal template to use for sales credit memos.';
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// Specifies the general journal template used for posting finance charge memos.
         /// </summary>

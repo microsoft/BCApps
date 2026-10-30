@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,8 +24,6 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Shipping;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
@@ -450,7 +448,8 @@ table 5107 "Sales Header Archive"
         field(55; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account";
         }
@@ -948,53 +947,75 @@ table 5107 "Sales Header Archive"
             AutoFormatExpression = "Currency Code";
             Caption = 'Invoice Discount Value';
         }
-        /// <summary>
-        /// Indicates whether the document should be sent to an intercompany partner.
-        /// </summary>
+#if not CLEANSCHEMA30
         field(123; "Send IC Document"; Boolean)
         {
             Caption = 'Send IC Document';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the intercompany processing status of the document.
-        /// </summary>
-        field(124; "IC Status"; Enum "Sales Document IC Status")
+#endif
+#if not CLEANSCHEMA30
+        field(124; "IC Status"; Enum Microsoft.Intercompany.Setup."Sales Document IC Status")
         {
             Caption = 'IC Status';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the intercompany partner code for the sell-to customer in intercompany transactions.
-        /// </summary>
+#endif
+#if not CLEANSCHEMA30
         field(125; "Sell-to IC Partner Code"; Code[20])
         {
             Caption = 'Sell-to IC Partner Code';
+            DataClassification = CustomerContent;
             Editable = false;
-            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the intercompany partner code for the bill-to customer in intercompany transactions.
-        /// </summary>
+#endif
+#if not CLEANSCHEMA30
         field(126; "Bill-to IC Partner Code"; Code[20])
         {
             Caption = 'Bill-to IC Partner Code';
+            DataClassification = CustomerContent;
             Editable = false;
-            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the document number used by the intercompany partner to reference this transaction.
-        /// </summary>
+#endif
+#if not CLEANSCHEMA30
         field(127; "IC Reference Document No."; Code[20])
         {
             Caption = 'IC Reference Document No.';
+            DataClassification = CustomerContent;
             Editable = false;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the direction of the intercompany transaction, either outgoing or incoming.
-        /// </summary>
-        field(129; "IC Direction"; Enum "IC Direction Type")
+#endif
+#if not CLEANSCHEMA30
+        field(129; "IC Direction"; Enum Microsoft.Intercompany.Setup."IC Direction Type")
         {
             Caption = 'IC Direction';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// Specifies the percentage of the order amount that must be prepaid before processing.
         /// </summary>
@@ -1656,7 +1677,6 @@ table 5107 "Sales Header Archive"
         OnBeforeSetSecurityFilterOnRespCenter(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if UserSetupMgt.GetSalesFilter() <> '' then begin
             FilterGroup(2);
             SetRange("Responsibility Center", UserSetupMgt.GetSalesFilter());

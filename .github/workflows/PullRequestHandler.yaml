@@ -221,7 +221,8 @@ jobs:
   
       - uses: microsoft/BCApps/.github/actions/TestObsoleteTagPreprocessors@main
   
-      - uses: microsoft/BCApps/.github/actions/TestObjectIdsAndManifests@main
+      # Keep table-move exceptions in sync with the checked-out sources.
+      - uses: ./.github/actions/TestObjectIdsAndManifests
   
       - uses: microsoft/BCApps/.github/actions/VerifyMiappSync@main
   

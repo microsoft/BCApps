@@ -12,7 +12,6 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Intercompany.GLAccount;
 
 table 10721 "Historic G/L Account"
 {
@@ -406,7 +405,6 @@ table 10721 "Historic G/L Account"
         {
             Caption = 'Default IC Partner G/L Acc. No';
             Editable = false;
-            TableRelation = "IC G/L Account"."No.";
         }
         field(10700; "Income Stmt. Bal. Acc."; Code[20])
         {

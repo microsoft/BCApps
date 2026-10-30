@@ -48,6 +48,99 @@
     ]
   },
   {
+    "name": "Manufacturing",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": false
+      },
+      {
+        "name": "ApplicationModules"
+      },
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": false
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": false
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": false
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": false
+      }
+    ]
+  },
+  {
+    "name": "Service Management",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": false
+      },
+      {
+        "name": "ApplicationModules"
+      },
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": false
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": false
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": false
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": false
+      }
+    ]
+  },
+  {
+    "name": "Intercompany",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": false
+      },
+      {
+        "name": "ApplicationModules"
+      },
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": false
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": false
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": false
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": false
+      }
+    ]
+  },
+  {
     "name": "Application",
     "groups": [
       {
@@ -6908,31 +7001,6 @@
     ]
   },
   {
-    "name": "Manufacturing",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": false
-      },
-      {
-        "name": "Financials",
-        "doNotInstall": false
-      },
-      {
-        "name": "FinancialsExtensions",
-        "doNotInstall": false
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": false
-      },
-      {
-        "name": "OnPremExtensions",
-        "doNotInstall": false
-      }
-    ]
-  },
-  {
     "name": "Manufacturing Tests",
     "groups": [
       {
@@ -6998,31 +7066,6 @@
       {
         "name": "OnPremExtensions",
         "doNotInstall": true
-      }
-    ]
-  },
-  {
-    "name": "Service Management",
-    "groups": [
-      {
-        "name": "AllExtensions",
-        "doNotInstall": false
-      },
-      {
-        "name": "Financials",
-        "doNotInstall": false
-      },
-      {
-        "name": "FinancialsExtensions",
-        "doNotInstall": false
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": false
-      },
-      {
-        "name": "OnPremExtensions",
-        "doNotInstall": false
       }
     ]
   },

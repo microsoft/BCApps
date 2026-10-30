@@ -18,7 +18,6 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
@@ -607,20 +606,28 @@ table 113 "Sales Invoice Line"
             Caption = 'VAT Identifier';
             Editable = false;
         }
-        /// <summary>
-        /// Specifies the type of intercompany partner reference.
-        /// </summary>
-        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
+#if not CLEANSCHEMA30
+        field(107; "IC Partner Ref. Type"; Enum Microsoft.Intercompany.Partner."IC Partner Reference Type")
         {
             Caption = 'IC Partner Ref. Type';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the intercompany partner reference code.
-        /// </summary>
+#endif
+#if not CLEANSCHEMA30
         field(108; "IC Partner Reference"; Code[20])
         {
             Caption = 'IC Partner Reference';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// Indicates whether this is a prepayment line.
         /// </summary>
@@ -629,15 +636,18 @@ table 113 "Sales Invoice Line"
             Caption = 'Prepayment Line';
             Editable = false;
         }
-        /// <summary>
-        /// Specifies the intercompany partner code for intercompany transactions.
-        /// </summary>
+#if not CLEANSCHEMA30
         field(130; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
+            DataClassification = CustomerContent;
             ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
-            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// Specifies the date when the line was posted.
         /// </summary>
@@ -645,14 +655,18 @@ table 113 "Sales Invoice Line"
         {
             Caption = 'Posting Date';
         }
-        /// <summary>
-        /// Specifies the item reference number for intercompany transactions.
-        /// </summary>
+#if not CLEANSCHEMA30
         field(138; "IC Item Reference No."; Code[50])
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'IC Item Reference No.';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// Specifies the payment discount amount for the line.
         /// </summary>

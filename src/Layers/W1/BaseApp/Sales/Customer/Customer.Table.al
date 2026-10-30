@@ -32,7 +32,6 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.Graph;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
@@ -1529,14 +1528,16 @@ table 18 Customer
             Editable = false;
             FieldClass = FlowField;
         }
-        /// <summary>
-        /// Specifies the intercompany partner code for transactions between related companies.
-        /// </summary>
+#if not CLEANSCHEMA30
         field(119; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
-            TableRelation = "IC Partner";
+            DataClassification = CustomerContent;
             ToolTip = 'Specifies the customer''s intercompany partner code.';
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
             trigger OnValidate()
             var
@@ -1577,6 +1578,7 @@ table 18 Customer
                 end;
             end;
         }
+#endif
         /// <summary>
         /// Contains the total refund amounts for this customer within the date filter.
         /// </summary>
@@ -2374,9 +2376,6 @@ table 18 Customer
         key(Key20; "Partner Type", "Country/Region Code")
         {
         }
-        key(Key22; "IC Partner Code")
-        {
-        }
     }
 
     fieldgroups
@@ -2529,9 +2528,6 @@ table 18 Customer
         Text005: Label 'create';
 #pragma warning disable AA0470
         Text006: Label 'You cannot %1 this type of document when Customer %2 is blocked with type %3';
-        Text010: Label 'The %1 %2 has been assigned to %3 %4.\The same %1 cannot be entered on more than one %3. Enter another code.';
-        Text011: Label 'Reconciling IC transactions may be difficult if you change IC Partner Code because this %1 has ledger entries in a fiscal year that has not yet been closed.\ Do you still want to change the IC Partner Code?';
-        Text012: Label 'You cannot change the contents of the %1 field because this %2 has one or more open ledger entries.';
         Text015: Label 'You cannot delete %1 %2 because there is at least one %3 associated to this customer.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
@@ -2883,6 +2879,15 @@ table 18 Customer
                 Method := SalesSetup."Price Calculation Method";
             end;
         end;
+    end;
+
+    /// <summary>
+    /// Gets the partner code for the specified customer
+    /// </summary>
+    /// <returns></returns>
+    procedure GetPartnerCode() PartnerCode: Code[20]
+    begin
+        OnGetPartnerCode(Rec, PartnerCode);
     end;
 
     /// <summary>
@@ -5055,4 +5060,13 @@ table 18 Customer
     begin
     end;
 
+    /// <summary>
+    /// Raised on getting partner code
+    /// </summary>
+    /// <param name="Rec"></param>
+    /// <param name="PartnerCode"></param>
+    [IntegrationEvent(false, false)]
+    local procedure OnGetPartnerCode(var Rec: Record Customer; var PartnerCode: Code[20])
+    begin
+    end;
 }

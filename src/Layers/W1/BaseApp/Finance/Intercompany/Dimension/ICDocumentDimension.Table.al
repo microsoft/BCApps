@@ -2,10 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Dimension;
 
-using Microsoft.Finance.Dimension;
-using Microsoft.Intercompany.Partner;
 using System.Reflection;
 
 /// <summary>
@@ -16,6 +15,10 @@ table 442 "IC Document Dimension"
 {
     Caption = 'IC Document Dimension';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -41,7 +44,6 @@ table 442 "IC Document Dimension"
         field(3; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Source of the transaction indicating whether rejected by current company or created by current company.
@@ -66,14 +68,6 @@ table 442 "IC Document Dimension"
         {
             Caption = 'Dimension Code';
             NotBlank = true;
-            TableRelation = "IC Dimension";
-
-            trigger OnValidate()
-            begin
-                if not DimMgt.CheckICDim("Dimension Code") then
-                    Error(DimMgt.GetDimErr());
-                "Dimension Value Code" := '';
-            end;
         }
         /// <summary>
         /// Intercompany dimension value code specifying the actual dimension value for this document dimension entry.
@@ -82,13 +76,6 @@ table 442 "IC Document Dimension"
         {
             Caption = 'Dimension Value Code';
             NotBlank = true;
-            TableRelation = "IC Dimension Value".Code where("Dimension Code" = field("Dimension Code"));
-
-            trigger OnValidate()
-            begin
-                if not DimMgt.CheckICDimValue("Dimension Code", "Dimension Value Code") then
-                    Error(DimMgt.GetDimErr());
-            end;
         }
     }
 
@@ -103,30 +90,5 @@ table 442 "IC Document Dimension"
     fieldgroups
     {
     }
-
-    var
-        DimMgt: Codeunit DimensionManagement;
-
-    /// <summary>
-    /// Opens the IC Document Dimensions page to view dimensions for a specific intercompany transaction.
-    /// </summary>
-    /// <param name="TableID">Table identifier for the document type</param>
-    /// <param name="TransactionNo">Transaction number for filtering</param>
-    /// <param name="PartnerCode">Intercompany partner code for filtering</param>
-    /// <param name="TransactionSource">Transaction source for filtering</param>
-    /// <param name="LineNo">Line number for filtering</param>
-    procedure ShowDimensions(TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer)
-    var
-        ICDocDimensions: Page "IC Document Dimensions";
-    begin
-        SetRange("Table ID", TableID);
-        SetRange("Transaction No.", TransactionNo);
-        SetRange("IC Partner Code", PartnerCode);
-        SetRange("Transaction Source", TransactionSource);
-        SetRange("Line No.", LineNo);
-        Clear(ICDocDimensions);
-        ICDocDimensions.SetTableView(Rec);
-        ICDocDimensions.RunModal();
-    end;
 }
-
+#endif

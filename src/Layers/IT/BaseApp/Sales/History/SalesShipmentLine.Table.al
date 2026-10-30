@@ -20,7 +20,6 @@ using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
@@ -551,22 +550,28 @@ table 111 "Sales Shipment Line"
             Caption = 'Unit Cost';
             Editable = false;
         }
-        /// <summary>
-        /// Specifies the type of intercompany partner reference.
-        /// </summary>
-        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
+#if not CLEANSCHEMA30
+        field(107; "IC Partner Ref. Type"; Enum Microsoft.Intercompany.Partner."IC Partner Reference Type")
         {
             Caption = 'IC Partner Ref. Type';
             DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the intercompany partner reference code.
-        /// </summary>
+#endif
+#if not CLEANSCHEMA30
         field(108; "IC Partner Reference"; Code[20])
         {
             Caption = 'IC Partner Reference';
             DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// Specifies the date when the line was posted.
         /// </summary>
@@ -574,14 +579,18 @@ table 111 "Sales Shipment Line"
         {
             Caption = 'Posting Date';
         }
-        /// <summary>
-        /// Specifies the item reference number for intercompany transactions.
-        /// </summary>
+#if not CLEANSCHEMA30
         field(138; "IC Item Reference No."; Code[50])
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'IC Item Reference No.';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// Specifies the unique identifier for the dimension set applied to this line.
         /// </summary>

@@ -439,10 +439,11 @@ page 6410 "Workflow - Vendor Entity"
                     ApplicationArea = All;
                     Caption = 'Pmt. Tolerance (LCY)', Locked = true;
                 }
-                field(icPartnerCode; Rec."IC Partner Code")
+                field(icPartnerCode; ICPartnerCode)
                 {
                     ApplicationArea = All;
                     Caption = 'IC Partner Code', Locked = true;
+                    ToolTip = 'Specifies the vendor''s intercompany partner code.';
                 }
                 field(refunds; Rec.Refunds)
                 {
@@ -686,5 +687,7 @@ page 6410 "Workflow - Vendor Entity"
     actions
     {
     }
-}
 
+    protected var
+        ICPartnerCode: Code[20];
+}

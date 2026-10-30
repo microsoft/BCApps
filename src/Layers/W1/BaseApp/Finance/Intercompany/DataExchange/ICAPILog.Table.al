@@ -2,9 +2,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.DataExchange;
-
-using System.Reflection;
 
 table 444 "IC API Log"
 {
@@ -12,6 +11,10 @@ table 444 "IC API Log"
     Caption = 'IC API Log';
     DataClassification = CustomerContent;
     ReplicateData = false;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -68,68 +71,5 @@ table 444 "IC API Log"
             Clustered = true;
         }
     }
-
-    internal procedure GetRequestURIAsText(): Text
-    var
-        TypeHelper: Codeunit "Type Helper";
-        InStream: InStream;
-    begin
-        Rec.CalcFields("Request URI");
-        if not Rec."Request URI".HasValue() then
-            exit('');
-        Rec."Request URI".CreateInStream(InStream, TextEncoding::UTF8);
-        exit(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.LFSeparator()));
-    end;
-
-    internal procedure GetRequestBodyAsText(): Text
-    var
-        TypeHelper: Codeunit "Type Helper";
-        InStream: InStream;
-    begin
-        Rec.CalcFields("Request Body");
-        if not Rec."Request Body".HasValue() then
-            exit('');
-        Rec."Request Body".CreateInStream(InStream, TextEncoding::UTF8);
-        exit(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.LFSeparator()));
-    end;
-
-    internal procedure GetResponseBodyAsText(): Text
-    var
-        TypeHelper: Codeunit "Type Helper";
-        InStream: InStream;
-    begin
-        Rec.CalcFields("Response Body");
-        if not Rec."Response Body".HasValue() then
-            exit('');
-        Rec."Response Body".CreateInStream(InStream, TextEncoding::UTF8);
-        exit(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.LFSeparator()));
-    end;
-
-    internal procedure LogEntry(PartnerCode: Code[20]; DirectionValue: Option; MethodValue: Text; Uri: Text; RequestContent: Text; ResponseContent: Text; StatusCodeValue: Integer)
-    var
-        OutStream: OutStream;
-    begin
-        Clear(Rec);
-        Rec."IC Partner Code" := PartnerCode;
-        Rec.Direction := DirectionValue;
-        Rec.Method := CopyStr(MethodValue, 1, MaxStrLen(Rec.Method));
-        Rec."Request URI Preview" := CopyStr(Uri, 1, MaxStrLen(Rec."Request URI Preview"));
-        Rec."Status Code" := StatusCodeValue;
-        Rec.Insert(true);
-
-        Rec."Request URI".CreateOutStream(OutStream, TextEncoding::UTF8);
-        OutStream.WriteText(Uri);
-
-        if RequestContent <> '' then begin
-            Rec."Request Body".CreateOutStream(OutStream, TextEncoding::UTF8);
-            OutStream.WriteText(RequestContent);
-        end;
-
-        if ResponseContent <> '' then begin
-            Rec."Response Body".CreateOutStream(OutStream, TextEncoding::UTF8);
-            OutStream.WriteText(ResponseContent);
-        end;
-
-        Rec.Modify();
-    end;
 }
+#endif
