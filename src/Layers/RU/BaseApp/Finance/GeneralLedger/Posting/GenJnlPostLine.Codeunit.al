@@ -2499,7 +2499,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CostAccountingSetup: Record "Cost Accounting Setup";
         TransferGlEntriesToCA: Codeunit "Transfer GL Entries to CA";
         CorrespManagement: Codeunit "G/L Corresp. Management";
+        BalanceCheckProvider: Interface "Gen. Jnl. Balance Check Provider";
         BalAccNo: Code[20];
+        IsBalanceCheckProviderInitialized: Boolean;
         IsTransactionConsistentExternal: Boolean;
     begin
         OnBeforeFinishPosting(GenJournalLine, TempGLEntryBuf);
@@ -2514,7 +2516,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         OnAfterSettingIsTransactionConsistent(GenJournalLine, IsTransactionConsistentExternal);
 
+        IsBalanceCheckProviderInitialized := false;
+        OnFinishPostingOnBeforeInitializeBalanceCheckProvider(GenJournalLine, BalanceCheckProvider, IsBalanceCheckProviderInitialized);
+        if IsBalanceCheckProviderInitialized then begin
+            BalanceCheckProvider.Initialize(GenJournalLine);
+            if TempGLEntryBuf.FindSet() then
+                repeat
+                    BalanceCheckProvider.CollectGLEntry(TempGLEntryBuf);
+                until TempGLEntryBuf.Next() = 0;
+        end;
+
         IsTransactionConsistent := IsTransactionConsistent and IsTransactionConsistentExternal;
+        if IsBalanceCheckProviderInitialized then
+            IsTransactionConsistent := IsTransactionConsistent and BalanceCheckProvider.IsTransactionConsistent();
 
         if TempGLEntryBuf.FindSet() then begin
             SourceCodeSetup.Get();
@@ -12045,6 +12059,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterSettingIsTransactionConsistent(GenJournalLine: Record "Gen. Journal Line"; var IsTransactionConsistent: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFinishPostingOnBeforeInitializeBalanceCheckProvider(GenJournalLine: Record "Gen. Journal Line"; var BalanceCheckProvider: Interface "Gen. Jnl. Balance Check Provider"; var IsInitialized: Boolean)
     begin
     end;
 
