@@ -291,6 +291,7 @@ table 1382 "Item Templ."
             Caption = 'Reorder Quantity';
             ToolTip = 'Specifies a standard lot size quantity to be used for all order proposals.';
             DecimalPlaces = 0 : 5;
+            MinValue = 0;
 
             trigger OnValidate()
             begin
