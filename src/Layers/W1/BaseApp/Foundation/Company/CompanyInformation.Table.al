@@ -97,6 +97,7 @@ table 79 "Company Information"
         field(11; "Giro No."; Text[20])
         {
             Caption = 'Giro No.';
+            MaskType = Concealed;
             ToolTip = 'Specifies the company''s giro number.';
         }
         field(12; "Bank Name"; Text[100])

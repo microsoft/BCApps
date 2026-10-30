@@ -26,7 +26,7 @@ report 11404 "Create Elec. ICP Declaration"
                 DataItemTableView = sorting(Number) where(Number = filter(0 | 1 | 2));
                 dataitem("VAT Entry"; "VAT Entry")
                 {
-                    DataItemTableView = sorting(Type, "Country/Region Code", "VAT Registration No.", "EU 3-Party Trade", "VAT Bus. Posting Group", "VAT Prod. Posting Group", "VAT Calculation Type", "Document Type", "Posting Date") where(Type = const(Sale), "VAT Calculation Type" = const("Reverse Charge VAT"), "Document Type" = filter(Invoice | "Credit Memo"));
+                    DataItemTableView = sorting(Type, "Country/Region Code", "VAT Registration No.", "VAT Bus. Posting Group", "VAT Prod. Posting Group", "Posting Date") where(Type = const(Sale), "VAT Calculation Type" = const("Reverse Charge VAT"), "Document Type" = filter(Invoice | "Credit Memo"));
                     RequestFilterFields = "VAT Bus. Posting Group", "VAT Prod. Posting Group";
 
                     trigger OnAfterGetRecord()
