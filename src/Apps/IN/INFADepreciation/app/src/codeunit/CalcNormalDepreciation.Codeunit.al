@@ -37,6 +37,7 @@ codeunit 18631 "Calc Normal Depreciation"
         FAPostingDate: Date;
         FiscalYearStartDate: Date;
         DaysPutToUse: Integer;
+        CheckDate: Date;
     begin
         if FADepBook."FA Book Type" <> "Fixed Asset Book Type"::"Income Tax" then
             exit(false);
@@ -53,7 +54,11 @@ codeunit 18631 "Calc Normal Depreciation"
             exit(false);
 
         FiscalYearStartDate := FADateCalcSubscriber.GetFiscalYearStartDateInc(FADepBook."Depreciation Starting Date");
-        DaysPutToUse := TillDate - FADepBook."Depreciation Starting Date" + 1;
+        if FADepBook."Depreciation Method" = FADepBook."Depreciation Method"::"Declining-Balance 1" then
+            CheckDate := TillDate
+        else
+            CheckDate := FADateCalcSubscriber.GetFiscalYearEndDateInc(TillDate);
+        DaysPutToUse := CheckDate - FADepBook."Depreciation Starting Date" + 1;
         exit(
             (DaysPutToUse < ThresholdDays) and
             (FiscalYearStartDate = FADateCalcSubscriber.GetFiscalYearStartDateInc(FAPostingDate)) and
