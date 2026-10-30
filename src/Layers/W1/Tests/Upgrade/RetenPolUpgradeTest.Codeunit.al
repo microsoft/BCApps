@@ -480,16 +480,25 @@ codeunit 135952 "Reten. Pol. Upgrade Test"
     local procedure CreatePreFixRetentionPolicySetup(var RetentionPolicySetup: Record "Retention Policy Setup"; TableId: Integer)
     var
         RetentionPolicySetupLine: Record "Retention Policy Setup Line";
-        RetentionPolicyTestLibrary: Codeunit "Retention Policy Test Library";
+        RetentionPolicySetupLineRecRef: RecordRef;
     begin
         // Before the fix the table was allowed without default table filters, so existing policies have no system-defined (locked) lines.
         CreateDefaultRetentionPolicySetup(RetentionPolicySetup, TableId);
         RetentionPolicySetupLine.SetRange("Table ID", TableId);
         while RetentionPolicySetupLine.FindFirst() do begin
-            RetentionPolicyTestLibrary.SetLockedFieldOnRetentionPolicySetupLine(RetentionPolicySetupLine, false);
-            RetentionPolicySetupLine.Delete(true);
+            // The Locked field is internal to the Retention Policy module, so clear it through a RecordRef to allow the delete.
+            RetentionPolicySetupLineRecRef.GetTable(RetentionPolicySetupLine);
+            RetentionPolicySetupLineRecRef.Field(LockedFieldNo()).Value := false;
+            RetentionPolicySetupLineRecRef.Delete(true);
+            RetentionPolicySetupLineRecRef.Close();
         end;
         RetentionPolicySetup.Get(TableId);
+    end;
+
+    local procedure LockedFieldNo(): Integer
+    begin
+        // Field 12 "Locked" in table 3902 "Retention Policy Setup Line"
+        exit(12);
     end;
 
     local procedure CreatePreFixAllRecordsRetentionPolicy(TableId: Integer; RetentionPeriodCode: Code[20]; DateFieldNo: Integer; Enabled: Boolean)
