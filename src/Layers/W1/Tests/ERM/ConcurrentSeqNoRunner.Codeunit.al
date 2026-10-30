@@ -26,8 +26,10 @@ codeunit 134083 "Concurrent Seq. No. Runner"
         ConcurrentSeqTestBuffer.SetRange("Allocation Index", 0);
         ConcurrentSeqTestBuffer.SetRange(Ready, true);
         TimeoutAt := CurrentDateTime() + 30000;
-        while (ConcurrentSeqTestBuffer.Count() < 2) and (CurrentDateTime() < TimeoutAt) do
+        while (ConcurrentSeqTestBuffer.Count() < 2) and (CurrentDateTime() < TimeoutAt) do begin
             Sleep(100);
+            SelectLatestVersion();
+        end;
         if ConcurrentSeqTestBuffer.Count() < 2 then
             Error(BarrierTimedOutErr);
         for AllocationIndex := 1 to Rec.GetNoOfAllocationsPerSession() do begin

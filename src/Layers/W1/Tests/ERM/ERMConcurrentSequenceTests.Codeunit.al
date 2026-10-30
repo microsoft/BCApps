@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Test;
 
+using Microsoft.Finance.GeneralLedger.Ledger;
+
 codeunit 134291 "ERM Concurrent Sequence Tests"
 {
     Subtype = Test;
@@ -19,6 +21,7 @@ codeunit 134291 "ERM Concurrent Sequence Tests"
     procedure GLRegisterGetNextEntryNoIsUniqueAndGapFreeAcrossSessions()
     var
         ConcurrentSeqTestBuffer: Record "Concurrent Seq. Test Buffer";
+        GLRegister: Record "G/L Register";
         RunId: Guid;
         FirstSessionId: Integer;
         SecondSessionId: Integer;
@@ -28,6 +31,9 @@ codeunit 134291 "ERM Concurrent Sequence Tests"
     begin
         // [FEATURE] [G/L Register] [Sequence] [Concurrent Posting]
         // [SCENARIO] Overlapping G/L Register entry number allocations from separate sessions are unique and gap-free.
+
+        // [GIVEN] The G/L Register sequence is initialized before concurrent allocation
+        GLRegister.GetNextEntryNo();
 
         // [GIVEN] Two background sessions waiting at the same allocation barrier
         RunId := CreateGuid();
@@ -52,6 +58,8 @@ codeunit 134291 "ERM Concurrent Sequence Tests"
         Assert.IsFalse(IsSessionActive(SecondSessionId), 'The second concurrent sequence allocation session timed out');
 
         // [THEN] All allocated numbers are present, unique, and gap-free
+        SelectLatestVersion();
+        ConcurrentSeqTestBuffer.Reset();
         ExpectedResultCount := 2 * ConcurrentSeqTestBuffer.GetNoOfAllocationsPerSession();
         ConcurrentSeqTestBuffer.SetRange("Run ID", RunId);
         ConcurrentSeqTestBuffer.SetFilter("Allocation Index", '>0');
