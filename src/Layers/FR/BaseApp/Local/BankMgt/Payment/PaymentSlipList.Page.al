@@ -5,6 +5,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using System.Environment.Configuration;
 using System.Telemetry;
 
 page 10870 "Payment Slip List"
@@ -73,9 +74,15 @@ page 10870 "Payment Slip List"
 
     trigger OnOpenPage()
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         FRPaymentSlipTok: Label 'FR Create Payment Slips', Locked = true;
     begin
+        if FeatureKeyManagement.IsPaymentManagementEnabled() then begin
+            Page.Run(10846); // Payment Slip List FR
+            Error('');
+        end;
+
         FeatureTelemetry.LogUptake('1000HP0', FRPaymentSlipTok, Enum::"Feature Uptake Status"::Discovered);
     end;
 }
