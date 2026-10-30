@@ -1756,10 +1756,7 @@ codeunit 90 "Purch.-Post"
         if IsHandled then
             exit;
 
-        if (QtyToBeInvoicedBase <> 0) and (PurchaseLine.Type = PurchaseLine.Type::Item) then
-            Factor := QtyToBeInvoicedBase / PurchaseLine."Qty. to Invoice (Base)"
-        else
-            Factor := QtyToBeInvoiced / PurchaseLine."Qty. to Invoice";
+        Factor := QtyToBeInvoiced / PurchaseLine."Qty. to Invoice";
         OnPostItemJnlLineOnAfterSetFactor(PurchaseLine, Factor, GenJnlLineExtDocNo, ItemJnlLine);
         if TaxOption = TaxOption::SalesTax then
             TotalSalesTaxToExpense := PurchaseLine."Tax To Be Expensed"

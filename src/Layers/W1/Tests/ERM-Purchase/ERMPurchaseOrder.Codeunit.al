@@ -1779,7 +1779,6 @@ codeunit 134327 "ERM Purchase Order"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure PartialInvoicesUsePostedReceiptBaseQuantities()
     var
         Item: Record Item;
@@ -1788,8 +1787,11 @@ codeunit 134327 "ERM Purchase Order"
         PurchaseItemUnitOfMeasure: Record "Item Unit of Measure";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        ValueEntry: Record "Value Entry";
         ReceiptQuantities: array[6] of Decimal;
         InvoiceQuantities: array[4] of Decimal;
+        PostedInvoiceNos: array[4] of Code[20];
         PurchaseOrderNo: Code[20];
         PurchaseLineNo: Integer;
         Index: Integer;
@@ -1809,8 +1811,11 @@ codeunit 134327 "ERM Purchase Order"
 
         // [GIVEN] A purchase order for 500 TON.
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateVendor());
+        PurchaseHeader.Validate("Prices Including VAT", false);
+        PurchaseHeader.Modify(true);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 500);
         PurchaseLine.Validate("Unit of Measure Code", PurchaseItemUnitOfMeasure.Code);
+        PurchaseLine.Validate("Direct Unit Cost", 135);
         PurchaseLine.Modify(true);
         PurchaseOrderNo := PurchaseHeader."No.";
         PurchaseLineNo := PurchaseLine."Line No.";
@@ -1844,10 +1849,22 @@ codeunit 134327 "ERM Purchase Order"
             PurchaseLine.Validate("Qty. to Receive", 0);
             PurchaseLine.Validate("Qty. to Invoice", InvoiceQuantities[Index]);
             PurchaseLine.Modify(true);
-            LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+            PostedInvoiceNos[Index] := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
         end;
 
-        // [THEN] All six receipt item ledger entries are fully invoiced for 67500 PCS in total.
+        // [THEN] All receipts are fully invoiced for 67500 PCS and each invoice's item costs equal its net amount.
+        PurchInvHeader.Get(PostedInvoiceNos[2]);
+        PurchInvHeader.CalcFields(Amount);
+        Assert.AreEqual(32097.87, PurchInvHeader.Amount, 'Unexpected net amount for the invoice covering three receipts.');
+        for Index := 1 to ArrayLen(PostedInvoiceNos) do begin
+            PurchInvHeader.Get(PostedInvoiceNos[Index]);
+            PurchInvHeader.CalcFields(Amount);
+            ValueEntry.SetRange("Item No.", Item."No.");
+            ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+            ValueEntry.SetRange("Document No.", PostedInvoiceNos[Index]);
+            ValueEntry.CalcSums("Cost Amount (Actual)");
+            Assert.AreEqual(PurchInvHeader.Amount, ValueEntry."Cost Amount (Actual)", 'The total item cost must equal the net invoice amount.');
+        end;
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Purchase);
         ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Purchase Receipt");
