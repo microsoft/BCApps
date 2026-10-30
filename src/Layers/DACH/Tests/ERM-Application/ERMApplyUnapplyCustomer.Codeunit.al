@@ -2641,8 +2641,9 @@
         // [THEN] Check General Ledger Entry All Lines Must have Value in "Additional-Currency Amount" Field.
         GlEntry.Reset();
         GlEntry.SetRange("Document No.", PaymentDocNo);
+        Assert.RecordIsNotEmpty(GlEntry);
         GlEntry.SetRange("Additional-Currency Amount", 0);
-        Assert.RecordCount(GlEntry, 2); // new line for source currency only
+        Assert.RecordCount(GlEntry, 0);
     end;
 
     [Test]
