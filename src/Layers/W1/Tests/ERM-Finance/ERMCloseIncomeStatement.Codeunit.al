@@ -958,7 +958,7 @@ codeunit 134228 "ERM Close Income Statement"
         SelectedDimension.DeleteAll();
         RunCloseIncomeStatement(
             GenJournalLine, PostingDate, RetainedEarningsAccountNo,
-            RetainedEarningsPosting, false, false, DocumentNo);
+            RetainedEarningsPosting, false, false, DocumentNo, GLAccountNo);
 
         if not UseAdditionalReportingCurrency then begin
             if ClosingAmount = 0 then begin
@@ -1063,7 +1063,7 @@ codeunit 134228 "ERM Close Income Statement"
         DocumentNo := LibraryUtility.GenerateGUID();
         RunCloseIncomeStatement(
             GenJournalLine, PostingDate, LibraryERM.CreateGLAccountNo(),
-            PostToRetainedEarningsAcc::Balance, true, true, DocumentNo);
+            PostToRetainedEarningsAcc::Balance, true, true, DocumentNo, GLAccountNo);
 
         // [THEN] Each business-unit and global-dimension-2 group has its own consolidated closing amount.
         VerifyCloseIncomeJournalLine(

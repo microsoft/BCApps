@@ -631,7 +631,7 @@ codeunit 134228 "ERM Close Income Statement"
         DocumentNo := LibraryUtility.GenerateGUID();
         RunCloseIncomeStatementForSourceVAT(
             GenJournalLine, PostingDate, RetainedEarningsPosting, false, false, DocumentNo,
-            NetProfitAccountNo, NetLossAccountNo);
+            NetProfitAccountNo, NetLossAccountNo, GLAccountNo);
 
         if not UseAdditionalReportingCurrency then begin
             if ClosingAmount <> 0 then begin
