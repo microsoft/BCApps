@@ -84,6 +84,7 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
+        TotalQty: Decimal;
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -99,15 +100,13 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
-        PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
-        PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
-        PurchaseLine.CalcSums("Outstanding Qty. (Base)");
-        exit(PurchaseLine."Outstanding Qty. (Base)");
+        SetPurchaseLineFiltersForProdOrderComponent(PurchaseLine, ProdOrderComponent, ProdOrderRoutingLine);
+        PurchaseLine.SetLoadFields("Outstanding Qty. (Base)");
+        if PurchaseLine.FindSet() then
+            repeat
+                TotalQty += PurchaseLine."Outstanding Qty. (Base)";
+            until PurchaseLine.Next() = 0;
+        exit(TotalQty);
     end;
 
     /// <summary>
@@ -132,13 +131,7 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
-        PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
-        PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
+        SetPurchaseLineFiltersForProdOrderComponent(PurchaseLine, ProdOrderComponent, ProdOrderRoutingLine);
         Page.Run(Page::"Purchase Lines", PurchaseLine);
     end;
 
@@ -151,6 +144,7 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
+        TotalQty: Decimal;
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -166,15 +160,13 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
-        PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
-        PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
-        PurchaseLine.CalcSums("Qty. Received (Base)");
-        exit(PurchaseLine."Qty. Received (Base)");
+        SetPurchaseLineFiltersForProdOrderComponent(PurchaseLine, ProdOrderComponent, ProdOrderRoutingLine);
+        PurchaseLine.SetLoadFields("Qty. Received (Base)");
+        if PurchaseLine.FindSet() then
+            repeat
+                TotalQty += PurchaseLine."Qty. Received (Base)";
+            until PurchaseLine.Next() = 0;
+        exit(TotalQty);
     end;
 
     /// <summary>
@@ -198,14 +190,71 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
             exit;
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
-        PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
-        PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
+        SetPurchaseLineFiltersForProdOrderComponent(PurchaseLine, ProdOrderComponent, ProdOrderRoutingLine);
         Page.Run(Page::"Purchase Lines", PurchaseLine);
+    end;
+
+    local procedure SetPurchaseLineFiltersForProdOrderComponent(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    var
+        FilteredPurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.Reset();
+        PurchaseLine.ClearMarks();
+
+        FilteredPurchaseLine.SetRange("Document Type", FilteredPurchaseLine."Document Type"::Order);
+        FilteredPurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        FilteredPurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        FilteredPurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        FilteredPurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
+        FilteredPurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
+        FilteredPurchaseLine.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+
+        FilteredPurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        FilteredPurchaseLine.SetRange("Subc. Prod. Comp. Line No.", ProdOrderComponent."Line No.");
+        MarkPurchaseLines(PurchaseLine, FilteredPurchaseLine);
+
+        if IsLegacyPurchaseLineUnambiguous(ProdOrderComponent, ProdOrderRoutingLine) then begin
+            FilteredPurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+            FilteredPurchaseLine.SetRange("Subc. Prod. Comp. Line No.", 0);
+            MarkPurchaseLines(PurchaseLine, FilteredPurchaseLine);
+        end;
+
+        PurchaseLine.MarkedOnly(true);
+    end;
+
+    local procedure MarkPurchaseLines(var PurchaseLine: Record "Purchase Line"; var FilteredPurchaseLine: Record "Purchase Line")
+    begin
+        if FilteredPurchaseLine.FindSet() then
+            repeat
+                PurchaseLine := FilteredPurchaseLine;
+                PurchaseLine.Mark(true);
+            until FilteredPurchaseLine.Next() = 0;
+    end;
+
+    local procedure IsLegacyPurchaseLineUnambiguous(ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Boolean
+    var
+        MatchingProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        MatchingComponentCount: Integer;
+    begin
+        MatchingProdOrderComponent.SetRange(Status, ProdOrderComponent.Status);
+        MatchingProdOrderComponent.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        MatchingProdOrderComponent.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
+        MatchingProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method");
+        MatchingProdOrderComponent.SetRange("Item No.", ProdOrderComponent."Item No.");
+        MatchingProdOrderComponent.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+        ProdOrderLine.SetRange(Status, ProdOrderComponent.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        ProdOrderLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        if ProdOrderLine.FindSet() then
+            repeat
+                MatchingProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+                MatchingComponentCount += MatchingProdOrderComponent.Count();
+                if MatchingComponentCount > 1 then
+                    exit(false);
+            until ProdOrderLine.Next() = 0;
+        exit(MatchingComponentCount = 1);
     end;
 
     local procedure GetProdOrderRtngLineFromProdOrderComp(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderComponent: Record "Prod. Order Component")
