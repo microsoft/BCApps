@@ -657,6 +657,15 @@ page 9027 "Accountant Role Center"
                                         Recurring = const(false));
                     ToolTip = 'Post any sales-related transaction directly to a customer, bank, or general ledger account instead of using dedicated documents. You can post all types of financial sales transactions, including payments, refunds, and finance charge amounts. Note that you cannot post item quantities with a sales journal.';
                 }
+                action(ICGeneralJournals)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'IC General Journals';
+                    RunObject = Page "General Journal Batches";
+                    RunPageView = where("Template Type" = const(Intercompany),
+                                        Recurring = const(false));
+                    ToolTip = 'Post intercompany transactions. IC general journal lines must contain either an IC partner account or a customer or vendor account that has been assigned an intercompany partner code.';
+                }
                 action(PostedGeneralJournals)
                 {
                     ApplicationArea = Basic, Suite;

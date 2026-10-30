@@ -585,6 +585,15 @@ page 9001 "Accounting Manager Role Center"
                     RunObject = Page "EB Payment Journal Batches";
                     ToolTip = 'Open the list of payment journals where you can register payments to vendors.';
                 }
+                action(ICGeneralJournals)
+                {
+                    ApplicationArea = Intercompany;
+                    Caption = 'IC General Journals';
+                    RunObject = Page "General Journal Batches";
+                    RunPageView = where("Template Type" = const(Intercompany),
+                                        Recurring = const(false));
+                    ToolTip = 'Post intercompany transactions. IC general journal lines must contain either an IC partner account or a customer or vendor account that has been assigned an intercompany partner code.';
+                }
                 action(GeneralJournals)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1093,4 +1102,3 @@ page 9001 "Accounting Manager Role Center"
         }
     }
 }
-
