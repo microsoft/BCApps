@@ -4419,9 +4419,11 @@ codeunit 136603 "ERM RS Package Operations"
     var
         ConfigPackage: Array[2] of Record "Config. Package";
         ConfigPackageTable: Array[2] of Record "Config. Package Table";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XmlNodeList: DotNet XmlNodeList;
-        XMLDocument: DotNet XmlDocument;
+        PackageXML: XmlDocument;
+        XmlNodeList: XmlNodeList;
+        MediaBufferListElement: XmlElement;
+        MediaBufferNode: XmlNode;
+        FoundNode: XmlNode;
         ItemFilter: Text[250];
         FilePath: Text;
     begin
@@ -4454,8 +4456,10 @@ codeunit 136603 "ERM RS Package Operations"
         ExportToXML(ConfigPackage[2].Code, ConfigPackageTable[2], FilePath);
 
         // [THEN] Package contains Config. Media Buffer records only for Config. Package "2"
-        XMLDOMManagement.LoadXMLDocumentFromFile(FilePath, XMLDocument);
-        XMLDOMManagement.FindNodes(XmlDocument.DocumentElement, '/DataList/ConfigMediaBufferList', XmlNodeList);
+        ConfigXMLExchange.LoadXMLDocumentFromFile(FilePath, PackageXML);
+        PackageXML.SelectNodes('/DataList/ConfigMediaBufferList', XmlNodeList);
+        XmlNodeList.Get(1, FoundNode);
+        MediaBufferListElement := FoundNode.AsXmlElement();
 
         // <ConfigMediaBufferList>
         // <TableID>8630</TableID>
@@ -4464,9 +4468,12 @@ codeunit 136603 "ERM RS Package Operations"
         //  .. 
         // <ConfigMediaBuffer>
         // </ConfigMediaBufferList>
-        Assert.AreEqual(2, XmlNodeList.Item(0).ChildNodes.Count, ''); // 2 nodes TableID and ConfigMediaBuffer for Config. Package "2"
-        Assert.AreEqual(FORMAT(Database::"Config. Media Buffer"), XmlNodeList.ItemOf(0).SelectSingleNode('TableID').InnerText, '');
-        Assert.AreEqual(ConfigPackage[2].Code, XmlNodeList.Item(0).ChildNodes.Item(1).SelectSingleNode('PackageCode').InnerText, '');
+        Assert.AreEqual(2, MediaBufferListElement.GetChildElements().Count(), ''); // 2 nodes TableID and ConfigMediaBuffer for Config. Package "2"
+        MediaBufferListElement.SelectSingleNode('TableID', FoundNode);
+        Assert.AreEqual(FORMAT(Database::"Config. Media Buffer"), FoundNode.AsXmlElement().InnerText(), '');
+        MediaBufferListElement.GetChildElements().Get(2, MediaBufferNode);
+        MediaBufferNode.SelectSingleNode('PackageCode', FoundNode);
+        Assert.AreEqual(ConfigPackage[2].Code, FoundNode.AsXmlElement().InnerText(), '');
     end;
 
     [Test]
@@ -4841,11 +4848,10 @@ codeunit 136603 "ERM RS Package Operations"
 
     local procedure ImportPackageXMLNew(PackageCode: Code[20]; XMLDataFile: text)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDocument: XmlDocument;
+        PackageXML: XmlDocument;
     begin
-        XMLDOMManagement.LoadXMLDocumentFromFile(XMLDataFile, XMLDocument);
-        ConfigXMLExchange.ImportPackageXMLDocument(XMLDocument, PackageCode);
+        ConfigXMLExchange.LoadXMLDocumentFromFile(XMLDataFile, PackageXML);
+        ConfigXMLExchange.ImportPackageXMLDocument(PackageXML, PackageCode);
     end;
 
 
