@@ -82,6 +82,7 @@ codeunit 148305 "Expense Test"
         PDFTestContentLbl: Label 'PDF test content';
         OnlyMyExpenseExpectedErr: Label 'Expense %1 should be visible after Show My Expenses is invoked.', Comment = '%1 = Expense No. that should be the only row';
         ExpenseVendorNosShouldBeSetErr: Label 'Expense Vendor Nos. should be set when no. series defaults are created.';
+        OnlyBCUserCanApproveErr: Label 'Expense user %2 cannot be an approver because no user in Business Central has %1 as their Microsoft 365 authentication email. Make sure a Business Central user exists whose Microsoft 365 authentication email matches the expense user''s email.', Comment = '%1 = Email, %2 = Expense User No.';
 
     [Test]
     procedure NoCannotBeUpdatedInExpenseManuallyIfManualNosIsFalse()
@@ -3065,11 +3066,11 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create a BC user with email.
         UserEmail := LibraryUtility.GenerateRandomEmail();
-        CreateAndUpdateUserWithEmail(CurrentUserSetup."User ID", UserEmail);
+        CreateAndUpdateUserWithEmail(CurrentUserSetup."User ID", UpperCase(UserEmail));
 
         // [GIVEN] Create Expense User with Email.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
-        ExpenseUser.Validate("E-mail", UserEmail);
+        ExpenseUser.Validate("E-mail", LowerCase(UserEmail));
         ExpenseUser.Modify();
 
         // [GIVEN] Delete all Expenses.
@@ -5640,6 +5641,60 @@ codeunit 148305 "Expense Test"
         Assert.IsTrue(
             ExpenseAttachmentMgt.HasPDFAttachment(Database::"Expense Report Line", ExpenseReportLine."Document No.", ExpenseReportLine."Line No."),
             HasPDFAttachmentShouldBeTrueErr);
+    end;
+
+    [Test]
+    procedure ApproverMustMatchBusinessCentralAuthenticationEmail()
+    var
+        User: Record User;
+        ExpenseUser: Record "Expense User";
+        UserName: Code[50];
+        UserEmail: Text[80];
+    begin
+        // [SCENARIO 652243] A matching contact email alone does not allow a Business Central user to be an expense approver.
+        Initialize();
+
+        // [GIVEN] A Business Central user whose contact email matches but authentication email does not.
+        UserName := CopyStr(LibraryRandom.RandText(50), 1, 50);
+        UserEmail := UserName + '@example.com';
+        User.Init();
+        User."User Security ID" := CreateGuid();
+        User."User Name" := UserName;
+        User."Contact Email" := UserEmail;
+        User.Insert(true);
+
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser.Validate("E-mail", UserEmail);
+
+        // [WHEN] The expense user is enabled as an approver.
+        asserterror ExpenseUser.Validate("Can Approve", true);
+
+        // [THEN] The error explains that the Microsoft 365 authentication email must match.
+        Assert.ExpectedError(StrSubstNo(OnlyBCUserCanApproveErr, UserEmail, ExpenseUser."No."));
+    end;
+
+    [Test]
+    procedure ApproverEmailMatchingIsCaseInsensitive()
+    var
+        ExpenseUser: Record "Expense User";
+        UserName: Code[50];
+        UserEmail: Text[80];
+    begin
+        // [SCENARIO 652243] An expense user email matches a Business Central authentication email regardless of casing.
+        Initialize();
+
+        // [GIVEN] A Business Central user's authentication email is lowercase.
+        UserName := CopyStr(LibraryRandom.RandText(50), 1, 50);
+        UserEmail := UserName + '@example.com';
+        CreateUserWithEmail(UserName, LowerCase(UserEmail));
+
+        // [WHEN] An expense user with the same email in uppercase is enabled as an approver.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser.Validate("E-mail", UpperCase(UserEmail));
+        ExpenseUser.Validate("Can Approve", true);
+
+        // [THEN] The matching Business Central user is assigned for approvals.
+        Assert.AreEqual(UserName, ExpenseUser."User Id For Approvals", 'The approval user ID should match the Business Central user.');
     end;
 
     local procedure Initialize()
