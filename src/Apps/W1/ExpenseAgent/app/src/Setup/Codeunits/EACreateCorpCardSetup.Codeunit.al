@@ -903,20 +903,6 @@ codeunit 7442 "EA Create Corp Card Setup"
         exit(DataExchDefCode = CorpCardCamt054DataExchDefCodeTok);
     end;
 
-    local procedure IsXmlFileName(SourceFileName: Text): Boolean
-    var
-        StartPos: Integer;
-    begin
-        if SourceFileName = '' then
-            exit(false);
-
-        StartPos := StrLen(SourceFileName) - 3;
-        if StartPos < 1 then
-            StartPos := 1;
-
-        exit(LowerCase(CopyStr(SourceFileName, StartPos, 4)) = '.xml');
-    end;
-
     local procedure EnsureDataExchDefinition(DataExchDefCode: Code[20]; IsXml: Boolean)
     var
         DataExchDef: Record "Data Exch. Def";

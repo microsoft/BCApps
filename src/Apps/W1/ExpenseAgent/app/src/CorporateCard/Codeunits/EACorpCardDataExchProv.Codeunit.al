@@ -874,7 +874,4 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
     local procedure OnAfterAck(StatementEntryNo: Integer)
     begin
     end;
-
-    var
-        Level3DetailLineCodeTok: Label 'L3DTL', MaxLength = 20, Locked = true;
 }
