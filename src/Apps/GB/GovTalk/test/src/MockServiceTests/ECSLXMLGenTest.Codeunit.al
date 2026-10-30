@@ -7,6 +7,7 @@ namespace Microsoft.Finance.VAT.GovTalk;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using System;
 using System.TestLibraries.Environment;
@@ -19,6 +20,7 @@ codeunit 144029 "ECSL XML Gen. Test"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = Uncategorized;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -26,6 +28,13 @@ codeunit 144029 "ECSL XML Gen. Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryUtility: Codeunit "Library - Utility";
+        RegressionCountryCode: Code[10];
+        RegressionReportVersion: Code[10];
+#if not CLEAN27
+        GovTalkFeatureEnabled: Boolean;
+#endif
         MonthsTok: Label 'Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec';
 
     [Test]
@@ -126,6 +135,242 @@ codeunit 144029 "ECSL XML Gen. Test"
         ECSLVATReportLine.DeleteAll();
         VATReportHeader.DeleteAll();
         VATEntry.DeleteAll();
+    end;
+
+#if not CLEAN27
+    [Test]
+    procedure ECSLSuggestLinesCountsEntryOnceWithoutGovTalk()
+    var
+        VATEntry: Record "VAT Entry";
+        OtherVATEntry: Record "VAT Entry";
+        VATReportHeader: Record "VAT Report Header";
+        ECSalesListSuggestLines: Codeunit "EC Sales List Suggest Lines";
+        ExpectedTotalValue: Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653360] With GovTalk disabled, repeated query rows contribute each VAT entry once and rounding applies to the group.
+        Initialize();
+
+        // [GIVEN] GovTalk is disabled and two entries for customer "C" have a combined fractional base.
+        GovTalkFeatureEnabled := false;
+        ExpectedTotalValue := CreateGroupedRegressionVATEntries(VATEntry, OtherVATEntry);
+
+        // [GIVEN] Entry "A" has relations to two rejected reports and report "R" has no lines.
+        CreatePriorECSLRelation(VATEntry, true);
+        CreatePriorECSLRelation(VATEntry, true);
+        CreateRegressionReport(VATReportHeader);
+
+        // [WHEN] Suggest lines for report "R".
+        ECSalesListSuggestLines.Run(VATReportHeader);
+
+        // [THEN] One grouped line contains each entry once and is rounded after aggregation.
+        VerifyRegressionLine(VATReportHeader, VATEntry, ExpectedTotalValue, 2);
+        VerifyRegressionRelation(VATReportHeader, OtherVATEntry);
+        UnbindSubscription(this);
+    end;
+#endif
+
+    [Test]
+    procedure ECSLSuggestLinesIncludesRejectedVATEntry()
+    var
+        VATEntry: Record "VAT Entry";
+        VATReportHeader: Record "VAT Report Header";
+        ECSalesListSuggestLines: Codeunit "EC Sales List Suggest Lines";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653360] With GovTalk enabled, an entry related only to rejected reports can be reported again.
+        Initialize();
+
+        // [GIVEN] Entry "A" for customer "C" has relations to two rejected reports.
+        CreateRegressionVATEntry(VATEntry, LibraryUtility.GenerateGUID(), -125);
+        CreatePriorECSLRelation(VATEntry, true);
+        CreatePriorECSLRelation(VATEntry, true);
+        CreateRegressionReport(VATReportHeader);
+
+        // [WHEN] Suggest lines for report "R".
+        ECSalesListSuggestLines.Run(VATReportHeader);
+
+        // [THEN] The entry contributes once and has exactly one new relation.
+        VerifyRegressionLine(VATReportHeader, VATEntry, 125, 1);
+        UnbindSubscription(this);
+    end;
+
+    [Test]
+    procedure ECSLSuggestLinesExcludesAcceptedVATEntry()
+    var
+        VATEntry: Record "VAT Entry";
+        VATReportHeader: Record "VAT Report Header";
+        ECSalesListSuggestLines: Codeunit "EC Sales List Suggest Lines";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653360] With GovTalk enabled, any accepted prior report excludes an entry even when another prior report was rejected.
+        Initialize();
+
+        // [GIVEN] Entry "A" for customer "C" has relations to a rejected and an accepted report.
+        CreateRegressionVATEntry(VATEntry, LibraryUtility.GenerateGUID(), -125);
+        CreatePriorECSLRelation(VATEntry, true);
+        CreatePriorECSLRelation(VATEntry, false);
+        CreateRegressionReport(VATReportHeader);
+
+        // [WHEN] Suggest lines for report "R".
+        ECSalesListSuggestLines.Run(VATReportHeader);
+
+        // [THEN] Neither a line nor a relation is created for the entry.
+        VerifyRegressionReportIsEmpty(VATReportHeader);
+        UnbindSubscription(this);
+    end;
+
+    local procedure Initialize()
+    var
+        CountryRegion: Record "Country/Region";
+        VATReportsConfiguration: Record "VAT Reports Configuration";
+    begin
+        if UnbindSubscription(this) then;
+
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion.Validate("EU Country/Region Code", 'DE');
+        CountryRegion.Modify(true);
+        RegressionCountryCode := CountryRegion.Code;
+
+        VATReportsConfiguration.Init();
+        VATReportsConfiguration."VAT Report Type" := VATReportsConfiguration."VAT Report Type"::"EC Sales List";
+        VATReportsConfiguration."VAT Report Version" := LibraryUtility.GenerateGUID();
+        VATReportsConfiguration.Validate("Suggest Lines Codeunit ID", Codeunit::"EC Sales List Suggest Lines");
+        VATReportsConfiguration.Insert(true);
+        RegressionReportVersion := VATReportsConfiguration."VAT Report Version";
+#if not CLEAN27
+        GovTalkFeatureEnabled := true;
+#endif
+        BindSubscription(this);
+    end;
+
+    local procedure CreateRegressionReport(var VATReportHeader: Record "VAT Report Header")
+    begin
+        InitReportHeader(VATReportHeader, CalcDate('<-CM>', WorkDate()), CalcDate('<CM>', WorkDate()));
+        VATReportHeader.Validate("VAT Report Version", RegressionReportVersion);
+        VATReportHeader.Modify(true);
+    end;
+
+    local procedure CreateRegressionVATEntry(var VATEntry: Record "VAT Entry"; VATRegistrationNo: Text[20]; BaseAmount: Decimal)
+    begin
+        VATEntry.Init();
+        VATEntry."Entry No." := LibraryUtility.GetNewRecNo(VATEntry, VATEntry.FieldNo("Entry No."));
+        VATEntry.Type := VATEntry.Type::Sale;
+        VATEntry."Posting Date" := WorkDate();
+        VATEntry."VAT Reporting Date" := WorkDate();
+        VATEntry.Validate("Country/Region Code", RegressionCountryCode);
+        VATEntry.Validate("VAT Registration No.", VATRegistrationNo);
+        VATEntry.Base := BaseAmount;
+        VATEntry.Insert(true);
+    end;
+
+#if not CLEAN27
+    local procedure CreateGroupedRegressionVATEntries(var VATEntry: Record "VAT Entry"; var OtherVATEntry: Record "VAT Entry"): Decimal
+    begin
+        // These bases round to 301 together, but to 300 when rounded separately.
+        CreateRegressionVATEntry(VATEntry, LibraryUtility.GenerateGUID(), -100.4);
+        CreateRegressionVATEntry(OtherVATEntry, VATEntry."VAT Registration No.", -200.4);
+        exit(301);
+    end;
+#endif
+
+    local procedure CreatePriorECSLRelation(VATEntry: Record "VAT Entry"; Rejected: Boolean)
+    var
+        VATReportHeader: Record "VAT Report Header";
+        ECSLVATReportLine: Record "ECSL VAT Report Line";
+        ECSLVATReportLineRelation: Record "ECSL VAT Report Line Relation";
+        GovTalkMessagePart: Record "GovTalk Msg. Parts";
+    begin
+        CreateRegressionReport(VATReportHeader);
+        GovTalkMessagePart.Init();
+        GovTalkMessagePart."Part Id" := CreateGuid();
+        GovTalkMessagePart.Validate("Report No.", VATReportHeader."No.");
+        GovTalkMessagePart.Validate("VAT Report Config. Code", GovTalkMessagePart."VAT Report Config. Code"::"EC Sales List");
+        GovTalkMessagePart.Status := GovTalkMessagePart.Status::Rejected;
+        VATReportHeader.Status := VATReportHeader.Status::Rejected;
+        if not Rejected then begin
+            GovTalkMessagePart.Status := GovTalkMessagePart.Status::Accepted;
+            VATReportHeader.Status := VATReportHeader.Status::Accepted;
+        end;
+        GovTalkMessagePart.Insert(true);
+        VATReportHeader.Modify(true);
+
+        ECSLVATReportLine.Init();
+        ECSLVATReportLine.Validate("Report No.", VATReportHeader."No.");
+        ECSLVATReportLine."Line No." := 1;
+        ECSLVATReportLine."Country Code" := VATEntry."Country/Region Code";
+        ECSLVATReportLine."Customer VAT Reg. No." := VATEntry."VAT Registration No.";
+        ECSLVATReportLine."Total Value Of Supplies" := -VATEntry.Base;
+        ECSLVATReportLine."XML Part Id GB" := GovTalkMessagePart."Part Id";
+#if not CLEAN27
+        SetLegacyRegressionLineStatus(ECSLVATReportLine, GovTalkMessagePart);
+#endif
+        ECSLVATReportLine.Insert(true);
+
+        ECSLVATReportLineRelation.Init();
+        ECSLVATReportLineRelation."VAT Entry No." := VATEntry."Entry No.";
+        ECSLVATReportLineRelation."ECSL Report No." := ECSLVATReportLine."Report No.";
+        ECSLVATReportLineRelation."ECSL Line No." := ECSLVATReportLine."Line No.";
+        ECSLVATReportLineRelation.Insert(true);
+    end;
+
+#if not CLEAN27
+#pragma warning disable AL0432
+    local procedure SetLegacyRegressionLineStatus(var ECSLVATReportLine: Record "ECSL VAT Report Line"; GovTalkMessagePart: Record "GovTalk Msg. Parts")
+    var
+        GovTalkMessageParts: Record "GovTalk Message Parts";
+    begin
+        // Non-CLEAN BaseApp still checks the legacy status before the GovTalk subscriber.
+        GovTalkMessageParts.Init();
+        GovTalkMessageParts."Part Id" := GovTalkMessagePart."Part Id";
+        GovTalkMessageParts.Validate("Report No.", GovTalkMessagePart."Report No.");
+        GovTalkMessageParts.Validate("VAT Report Config. Code", GovTalkMessageParts."VAT Report Config. Code"::"EC Sales List");
+        GovTalkMessageParts.Status := GovTalkMessagePart.Status;
+        GovTalkMessageParts.Insert(true);
+        ECSLVATReportLine."XML Part Id" := GovTalkMessagePart."Part Id";
+    end;
+#pragma warning restore AL0432
+#endif
+
+    local procedure VerifyRegressionLine(VATReportHeader: Record "VAT Report Header"; VATEntry: Record "VAT Entry"; ExpectedTotalValue: Decimal; ExpectedRelationCount: Integer)
+    var
+        ECSLVATReportLine: Record "ECSL VAT Report Line";
+        ECSLVATReportLineRelation: Record "ECSL VAT Report Line Relation";
+    begin
+        ECSLVATReportLine.SetRange("Report No.", VATReportHeader."No.");
+        Assert.RecordCount(ECSLVATReportLine, 1);
+        ECSLVATReportLine.FindFirst();
+        Assert.AreEqual(VATEntry."Country/Region Code", ECSLVATReportLine."Country Code", 'Unexpected ECSL country.');
+        Assert.AreEqual(VATEntry."VAT Registration No.", ECSLVATReportLine."Customer VAT Reg. No.", 'Unexpected ECSL customer.');
+        Assert.AreEqual(ECSLVATReportLine."Transaction Indicator"::"B2B Goods", ECSLVATReportLine."Transaction Indicator", 'Unexpected ECSL transaction indicator.');
+        Assert.AreEqual(ExpectedTotalValue, ECSLVATReportLine."Total Value Of Supplies", 'Each VAT entry must contribute once before group rounding.');
+        ECSLVATReportLineRelation.SetRange("ECSL Report No.", VATReportHeader."No.");
+        Assert.RecordCount(ECSLVATReportLineRelation, ExpectedRelationCount);
+        VerifyRegressionRelation(VATReportHeader, VATEntry);
+    end;
+
+    local procedure VerifyRegressionRelation(VATReportHeader: Record "VAT Report Header"; VATEntry: Record "VAT Entry")
+    var
+        ECSLVATReportLine: Record "ECSL VAT Report Line";
+        ECSLVATReportLineRelation: Record "ECSL VAT Report Line Relation";
+    begin
+        ECSLVATReportLineRelation.SetRange("ECSL Report No.", VATReportHeader."No.");
+        ECSLVATReportLineRelation.SetRange("VAT Entry No.", VATEntry."Entry No.");
+        Assert.RecordCount(ECSLVATReportLineRelation, 1);
+        ECSLVATReportLineRelation.FindFirst();
+        ECSLVATReportLine.Get(ECSLVATReportLineRelation."ECSL Report No.", ECSLVATReportLineRelation."ECSL Line No.");
+        Assert.AreEqual(VATEntry."VAT Registration No.", ECSLVATReportLine."Customer VAT Reg. No.", 'The relation must reference the generated customer line.');
+    end;
+
+    local procedure VerifyRegressionReportIsEmpty(VATReportHeader: Record "VAT Report Header")
+    var
+        ECSLVATReportLine: Record "ECSL VAT Report Line";
+        ECSLVATReportLineRelation: Record "ECSL VAT Report Line Relation";
+    begin
+        ECSLVATReportLine.SetRange("Report No.", VATReportHeader."No.");
+        Assert.RecordIsEmpty(ECSLVATReportLine);
+        ECSLVATReportLineRelation.SetRange("ECSL Report No.", VATReportHeader."No.");
+        Assert.RecordIsEmpty(ECSLVATReportLineRelation);
     end;
 
     local procedure InitReportHeader(var VATReportHeader: Record "VAT Report Header"; StartDate: Date; EndDate: Date)
@@ -259,5 +504,19 @@ codeunit 144029 "ECSL XML Gen. Test"
         GovTalkSetup.Password := CreateGuid();
         GovTalkSetup.Modify();
     end;
-}
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EC Sales List Suggest Lines", 'OnPopulateVatEntryLinesOnAfterEUVATEntriesSetFilters', '', false, false)]
+    local procedure FilterRegressionVATEntries(var VATReportHeader: Record "VAT Report Header"; EUVATEntries: Query "EU VAT Entries")
+    begin
+        // Limit this instance to its own country without deleting or changing posted demo entries.
+        EUVATEntries.SetRange(CountryCode, RegressionCountryCode);
+    end;
+
+#if not CLEAN27
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::GovTalk, OnAfterCheckFeatureEnabled, '', false, false)]
+    local procedure SetGovTalkFeatureEnabled(var IsEnabled: Boolean)
+    begin
+        IsEnabled := GovTalkFeatureEnabled;
+    end;
+#endif
+}
