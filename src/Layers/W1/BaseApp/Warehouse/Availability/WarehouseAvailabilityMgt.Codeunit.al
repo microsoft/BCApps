@@ -980,7 +980,6 @@ codeunit 7314 "Warehouse Availability Mgt."
     local procedure CalcQtyOnShipmentBins(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"): Decimal
     var
         WarehouseEntry: Record "Warehouse Entry";
-        WarehouseShipmentLine: Record "Warehouse Shipment Line";
         BinType: Record "Bin Type";
         Location: Record Location;
         Bin: Record Bin;
@@ -1011,20 +1010,37 @@ codeunit 7314 "Warehouse Availability Mgt."
                 if not DefaultBinAlreadyCounted then
                     QtyOnShipmentBins += CalcQtyOnBin(LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup);
             end;
-        
-        if QtyOnShipmentBins = 0 then begin
-            WarehouseShipmentLine.SetLoadFields("Bin Code");
-            WarehouseShipmentLine.SetRange("Item No.", ItemNo);
-            WarehouseShipmentLine.SetRange("Location Code", LocationCode);
-            WarehouseShipmentLine.SetRange("Variant Code", VariantCode);
-            WarehouseShipmentLine.SetFilter("Bin Code", '<>%1&<>%2', '', Location."Shipment Bin Code");
-            WarehouseShipmentLine.SetFilter("Qty. Picked (Base)", '>%1', 0);
-            if WarehouseShipmentLine.FindSet() then
-                repeat
-                    QtyOnShipmentBins += CalcQtyOnBin(LocationCode, WarehouseShipmentLine."Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup);
-                until (QtyOnShipmentBins <> 0) or (WarehouseShipmentLine.Next() = 0);
-        end;
+
+        if QtyOnShipmentBins = 0 then
+            QtyOnShipmentBins := CalcQtyOnRegisteredPickDestinationBins(LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup);
         exit(QtyOnShipmentBins);
+    end;
+
+    local procedure CalcQtyOnRegisteredPickDestinationBins(LocationCode: Code[10]; DefaultShipmentBinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup") QtyOnBins: Decimal
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+        CheckedBins: List of [Code[20]];
+    begin
+        // Registered pick place entries remain after the warehouse shipment is deleted, so use them to find destination bins.
+        WarehouseEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
+        WarehouseEntry.SetLoadFields("Bin Code");
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Variant Code", VariantCode);
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
+        WarehouseEntry.SetRange("Reference Document", WarehouseEntry."Reference Document"::Pick);
+        WarehouseEntry.SetRange("Whse. Document Type", WarehouseEntry."Whse. Document Type"::Shipment);
+        WarehouseEntry.SetRange("Source Type", 37); // Database::Sales Line
+        WarehouseEntry.SetFilter(Quantity, '>%1', 0);
+        WarehouseEntry.SetFilter("Bin Code", '<>%1&<>%2', '', DefaultShipmentBinCode);
+        WarehouseEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
+        if WarehouseEntry.FindSet() then
+            repeat
+                if not CheckedBins.Contains(WarehouseEntry."Bin Code") then begin
+                    CheckedBins.Add(WarehouseEntry."Bin Code");
+                    QtyOnBins += CalcQtyOnBin(LocationCode, WarehouseEntry."Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup);
+                end;
+            until (QtyOnBins <> 0) or (WarehouseEntry.Next() = 0);
     end;
 
     [IntegrationEvent(false, false)]

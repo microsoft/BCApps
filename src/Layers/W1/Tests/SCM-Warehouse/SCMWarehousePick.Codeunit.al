@@ -3146,7 +3146,7 @@ codeunit 137055 "SCM Warehouse Pick"
     procedure BasicWarehousePickAfterPickToNonDefaultShipmentBin()
     begin
         // [SCENARIO 653921] Unshipped stock in a non-default basic warehouse shipment bin does not block picking free stock.
-        VerifyBasicWarehousePickAfterRegisteredPick(false);
+        VerifyBasicWarehousePickAfterRegisteredPick(false, false, false);
     end;
 
     [Test]
@@ -3154,10 +3154,28 @@ codeunit 137055 "SCM Warehouse Pick"
     procedure BasicWarehousePickAfterPickToDefaultShipmentBin()
     begin
         // [SCENARIO 653921] Picking free stock still succeeds when the earlier pick uses the default shipment bin.
-        VerifyBasicWarehousePickAfterRegisteredPick(true);
+        VerifyBasicWarehousePickAfterRegisteredPick(true, false, false);
     end;
 
-    local procedure VerifyBasicWarehousePickAfterRegisteredPick(UseDefaultShipmentBin: Boolean)
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTrue')]
+    [Scope('OnPrem')]
+    procedure BasicWarehousePickAfterShipmentDeletedStockInShipmentBin()
+    begin
+        // [SCENARIO 653921] Picked stock left in a non-default basic warehouse shipment bin after the shipment is deleted does not block picking free stock.
+        VerifyBasicWarehousePickAfterRegisteredPick(false, true, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTrue')]
+    [Scope('OnPrem')]
+    procedure BasicWarehousePickAfterShipmentDeletedStockReturnedToStorage()
+    begin
+        // [SCENARIO 653921] Reserved stock returned to storage after the shipment is deleted is not picked for a competing order.
+        VerifyBasicWarehousePickAfterRegisteredPick(false, true, true);
+    end;
+
+    local procedure VerifyBasicWarehousePickAfterRegisteredPick(UseDefaultShipmentBin: Boolean; DeleteFirstShipment: Boolean; ReturnStockToPickBin: Boolean)
     var
         Location: Record Location;
         WarehouseEmployee: Record "Warehouse Employee";
@@ -3175,6 +3193,7 @@ codeunit 137055 "SCM Warehouse Pick"
         SecondWarehouseShipmentHeader: Record "Warehouse Shipment Header";
         ReservationEntry: Record "Reservation Entry";
         LotNo: Code[50];
+        SecondQty: Decimal;
     begin
         Initialize();
 
@@ -3236,10 +3255,33 @@ codeunit 137055 "SCM Warehouse Pick"
             VerifyQuantityOnBin(Location.Code, DefaultShipmentBin.Code, Item."No.", LotNo, 0);
         VerifyQuantityOnBin(Location.Code, SecondShipmentBin.Code, Item."No.", LotNo, 0);
 
-        // [GIVEN] A second, unreserved order requires 30 units in SD2.
+        if DeleteFirstShipment then begin
+            // [GIVEN] The first warehouse shipment is deleted without posting; registered pick history remains.
+            FirstWarehouseShipmentHeader.Find();
+            FirstWarehouseShipmentHeader.Status := FirstWarehouseShipmentHeader.Status::Open;
+            FirstWarehouseShipmentHeader.Modify();
+            FirstWarehouseShipmentHeader.Delete(true);
+            Assert.IsFalse(FirstWarehouseShipmentHeader.Find(), 'The first warehouse shipment must be deleted.');
+
+            if ReturnStockToPickBin then begin
+                // [GIVEN] The picked lot is reclassified from the first shipment bin back to COOL1.
+                ReclassifyLotBetweenBins(Item."No.", Location.Code, FirstShipmentBin.Code, PickBin.Code, LotNo, CalcDate('<1M>', WorkDate()), 60);
+                VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", LotNo, 100);
+                VerifyQuantityOnBin(Location.Code, FirstShipmentBin.Code, Item."No.", LotNo, 0);
+            end;
+
+            FirstSalesLine.Find();
+            FirstSalesLine.CalcFields("Reserved Qty. (Base)");
+            FirstSalesLine.TestField("Reserved Qty. (Base)", 60);
+        end;
+
+        // [GIVEN] A second, unreserved order requires units in SD2; it requests more than the free stock when reserved stock is back in COOL1.
+        SecondQty := 30;
+        if ReturnStockToPickBin then
+            SecondQty := 50;
         LibrarySales.CreateSalesDocumentWithItem(
             SecondSalesHeader, SecondSalesLine, SecondSalesHeader."Document Type"::Order,
-            LibrarySales.CreateCustomerNo(), Item."No.", 30, Location.Code, WorkDate());
+            LibrarySales.CreateCustomerNo(), Item."No.", SecondQty, Location.Code, WorkDate());
         SecondSalesLine.TestField(Reserve, SecondSalesLine.Reserve::Never);
         SecondSalesLine.CalcFields("Reserved Qty. (Base)");
         SecondSalesLine.TestField("Reserved Qty. (Base)", 0);
@@ -3248,15 +3290,46 @@ codeunit 137055 "SCM Warehouse Pick"
         FindWarehouseShipmentHeader(SecondWarehouseShipmentHeader, SecondSalesHeader."No.");
         UpdateShipmentBinOnWhseShipment(SecondWarehouseShipmentHeader, SecondShipmentBin.Code);
 
-        // [WHEN] Create Pick is run while the first shipment remains unposted.
+        // [WHEN] Create Pick is run for the second order.
         LibraryWarehouse.CreatePick(SecondWarehouseShipmentHeader);
 
-        // [THEN] Exactly 30 units of the same lot are picked from COOL1 to SD2, without changing the first shipment.
-        VerifyRepickLotLines(SecondSalesLine, LotNo, PickBin, 30, SecondShipmentBin.Code);
-        VerifyRepickShipmentLine(FirstSalesLine, FirstWarehouseShipmentHeader, 60);
-        VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", LotNo, 40);
-        VerifyQuantityOnBin(Location.Code, FirstShipmentBin.Code, Item."No.", LotNo, 60);
+        // [THEN] Only free units of the same lot are picked from COOL1 to SD2; the first order's reservation and stock are untouched.
+        FirstSalesLine.Find();
+        FirstSalesLine.CalcFields("Reserved Qty. (Base)");
+        FirstSalesLine.TestField("Reserved Qty. (Base)", 60);
+        if ReturnStockToPickBin then begin
+            VerifyRepickLotLines(SecondSalesLine, LotNo, PickBin, 40, SecondShipmentBin.Code);
+            VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", LotNo, 100);
+            VerifyQuantityOnBin(Location.Code, FirstShipmentBin.Code, Item."No.", LotNo, 0);
+        end else begin
+            VerifyRepickLotLines(SecondSalesLine, LotNo, PickBin, 30, SecondShipmentBin.Code);
+            if not DeleteFirstShipment then
+                VerifyRepickShipmentLine(FirstSalesLine, FirstWarehouseShipmentHeader, 60);
+            VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", LotNo, 40);
+            VerifyQuantityOnBin(Location.Code, FirstShipmentBin.Code, Item."No.", LotNo, 60);
+        end;
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure ReclassifyLotBetweenBins(ItemNo: Code[20]; LocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; LotNo: Code[50]; ExpirationDate: Date; Quantity: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+        LibraryInventory.CreateItemJournalLine(
+            ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+            ItemJournalLine."Entry Type"::Transfer, ItemNo, Quantity);
+        ItemJournalLine.Validate("Location Code", LocationCode);
+        ItemJournalLine.Validate("Bin Code", FromBinCode);
+        ItemJournalLine.Validate("New Location Code", LocationCode);
+        ItemJournalLine.Validate("New Bin Code", ToBinCode);
+        ItemJournalLine.Modify(true);
+        LibraryItemTracking.CreateItemReclassJnLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, Quantity);
+        ReservationEntry.Validate("New Lot No.", LotNo);
+        ReservationEntry.Validate("New Expiration Date", ExpirationDate);
+        ReservationEntry.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
     end;
 
     local procedure Initialize()
