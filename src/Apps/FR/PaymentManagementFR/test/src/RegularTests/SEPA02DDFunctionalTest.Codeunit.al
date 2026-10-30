@@ -25,6 +25,9 @@ codeunit 144022 "SEPA.02 DD Functional Test"
 
     trigger OnRun()
     begin
+#if not CLEAN28
+        BindSubscription(this);
+#endif
     end;
 
     var
