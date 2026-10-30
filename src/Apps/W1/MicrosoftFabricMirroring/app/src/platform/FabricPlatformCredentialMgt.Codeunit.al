@@ -185,12 +185,19 @@ codeunit 48524 "Fabric Platform Credential Mgt"
     /// </summary>
     [NonDebuggable]
     procedure AcquireFabricApiTokenDelegated(): SecretText
+    begin
+        exit(AcquireFabricApiTokenDelegated(false));
+    end;
+
+    [NonDebuggable]
+    procedure AcquireFabricApiTokenDelegated(RequireWriteAccess: Boolean): SecretText
     var
         OAuth2: Codeunit OAuth2;
         LookupState: Codeunit "Fabric Platform Lookup State";
         AccessToken: SecretText;
         RedirectUrl: Text;
         Scopes: List of [Text];
+        IsHandled: Boolean;
     begin
         // Test-injection seam: unit tests pre-seed a token to bypass the platform flow.
         if LookupState.HasFabricApiToken() then
@@ -199,9 +206,15 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         if IsCustomAppEnabled() then
             exit(AcquireFabricApiTokenWithCustomApp());
 
-        Scopes.Add('https://api.fabric.microsoft.com/Workspace.ReadWrite.All');
-        OAuth2.GetDefaultRedirectUrl(RedirectUrl);
-        OAuth2.AcquireOnBehalfOfToken(RedirectUrl, Scopes, AccessToken);
+        if RequireWriteAccess then
+            Scopes.Add('https://api.fabric.microsoft.com/Workspace.ReadWrite.All')
+        else
+            Scopes.Add('https://api.fabric.microsoft.com/Workspace.Read.All');
+        OnBeforeAcquireFabricApiTokenDelegated(Scopes, AccessToken, IsHandled);
+        if not IsHandled then begin
+            OAuth2.GetDefaultRedirectUrl(RedirectUrl);
+            OAuth2.AcquireOnBehalfOfToken(RedirectUrl, Scopes, AccessToken);
+        end;
         if AccessToken.IsEmpty() then
             Error(FabricApiTokenErr);
         exit(AccessToken);
@@ -259,5 +272,10 @@ codeunit 48524 "Fabric Platform Credential Mgt"
             exit(Value);
 #pragma warning restore LC0043
         exit(EmptySecret);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeAcquireFabricApiTokenDelegated(Scopes: List of [Text]; var AccessToken: SecretText; var IsHandled: Boolean)
+    begin
     end;
 }

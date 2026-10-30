@@ -861,6 +861,29 @@ codeunit 140012 "Test FAB Platform"
     end;
 
     [Test]
+    procedure GetWorkspacesUsesReadOnlyScope()
+    var
+        TempBuffer: Record "Name/Value Buffer" temporary;
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+    begin
+        Initialize();
+        FabricPrivacyNotice.Approve();
+        PlatformTestSub.SetMockFabricTokenAcquisition('');
+        PlatformTestSub.AddMockHttpResponse(200, '{"value":[]}', 'GET', 'https://api.fabric.microsoft.com/v1/workspaces');
+        BindSubscription(PlatformTestSub);
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        AdminClient.GetWorkspaces(TempBuffer);
+
+        PlatformTestSub.AssertRequestedFabricTokenScope('https://api.fabric.microsoft.com/Workspace.Read.All');
+        PlatformTestSub.AssertHttpRequestsComplete();
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
     procedure GetWorkspacesShowsHttpFailureMessage()
     var
         TempBuffer: Record "Name/Value Buffer" temporary;
@@ -959,11 +982,8 @@ codeunit 140012 "Test FAB Platform"
     [Test]
     procedure AddServicePrincipalToWorkspaceSucceeds()
     var
-        CredMgt: Codeunit "Fabric Platform Credential Mgt";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
-        Token: SecretText;
-        SampleTokenLbl: Label 'sample-token0', Locked = true;
         Success: Boolean;
     begin
         //[SCENARIO] AddServicePrincipalToWorkspace succeeds on a successful Fabric response
@@ -971,10 +991,8 @@ codeunit 140012 "Test FAB Platform"
         Initialize();
         //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
         FabricPrivacyNotice.Approve();
-        //[GIVEN] A cached Fabric API token so no real OAuth flow is triggered
-        CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
-        Token := SecretStrSubstNo(SampleTokenLbl);
-        LookupState.SetFabricApiToken(Token, 3600);
+        //[GIVEN] Write permission is available for the delegated token
+        PlatformTestSub.SetMockFabricTokenAcquisition('');
         //[GIVEN] The HTTP handler is mocked to return a successful role assignment response
         BindSubscription(PlatformTestSub);
         PlatformTestSub.SetMockHttpResponse(200, '{}');
@@ -987,6 +1005,38 @@ codeunit 140012 "Test FAB Platform"
 
         //[THEN] The call completes without error
         Assert.IsTrue(Success, 'Expected AddServicePrincipalToWorkspace to succeed on a 200 response.');
+        PlatformTestSub.AssertRequestedFabricTokenScope('https://api.fabric.microsoft.com/Workspace.ReadWrite.All');
+        PlatformTestSub.AssertHttpRequestsComplete();
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
+    procedure WriteTokenFailureShowsManualSetupAndAllowsBrowsing()
+    var
+        TempBuffer: Record "Name/Value Buffer" temporary;
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+    begin
+        Initialize();
+        FabricPrivacyNotice.Approve();
+        PlatformTestSub.SetMockFabricTokenAcquisition('The requested scope has not been granted.');
+        BindSubscription(PlatformTestSub);
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        asserterror AdminClient.AddServicePrincipalToWorkspace('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222');
+
+        Assert.ExpectedError('add the service principal directly in Fabric with the Contributor role.');
+        PlatformTestSub.AssertRequestedFabricTokenScope('https://api.fabric.microsoft.com/Workspace.ReadWrite.All');
+
+        PlatformTestSub.SetMockFabricTokenAcquisition('');
+        PlatformTestSub.AddMockHttpResponse(200, '{"value":[]}', 'GET', 'https://api.fabric.microsoft.com/v1/workspaces');
+
+        AdminClient.GetWorkspaces(TempBuffer);
+
+        PlatformTestSub.AssertRequestedFabricTokenScope('https://api.fabric.microsoft.com/Workspace.Read.All');
+        PlatformTestSub.AssertHttpRequestsComplete();
         UnbindSubscription(PlatformTestSub);
     end;
 

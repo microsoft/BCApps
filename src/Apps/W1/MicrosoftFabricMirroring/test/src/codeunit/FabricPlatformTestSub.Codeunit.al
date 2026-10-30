@@ -14,6 +14,9 @@ codeunit 140010 "Fabric Platform Test Sub" implements "Http Client Handler"
         StopCalled: Boolean;
         DisableCalled: Boolean;
         TestConnectionCalled: Boolean;
+        MockFabricTokenAcquisition: Boolean;
+        FabricTokenAcquisitionError: Text;
+        RequestedFabricTokenScopes: List of [Text];
         MockStatusCodes: List of [Integer];
         MockResponseBodies: List of [Text];
         ExpectedHttpMethods: List of [Text];
@@ -28,6 +31,9 @@ codeunit 140010 "Fabric Platform Test Sub" implements "Http Client Handler"
         StopCalled := false;
         DisableCalled := false;
         TestConnectionCalled := false;
+        MockFabricTokenAcquisition := false;
+        Clear(FabricTokenAcquisitionError);
+        Clear(RequestedFabricTokenScopes);
         Clear(MockStatusCodes);
         Clear(MockResponseBodies);
         Clear(ExpectedHttpMethods);
@@ -58,6 +64,19 @@ codeunit 140010 "Fabric Platform Test Sub" implements "Http Client Handler"
     procedure WasTestConnectionCalled(): Boolean
     begin
         exit(TestConnectionCalled);
+    end;
+
+    procedure SetMockFabricTokenAcquisition(ErrorMessage: Text)
+    begin
+        MockFabricTokenAcquisition := true;
+        FabricTokenAcquisitionError := ErrorMessage;
+        Clear(RequestedFabricTokenScopes);
+    end;
+
+    procedure AssertRequestedFabricTokenScope(ExpectedScope: Text)
+    begin
+        Assert.AreEqual(1, RequestedFabricTokenScopes.Count(), 'Expected exactly one delegated Fabric API scope.');
+        Assert.AreEqual(ExpectedScope, RequestedFabricTokenScopes.Get(1), 'Unexpected delegated Fabric API scope.');
     end;
 
     /// <summary>Configures the mocked HTTP response returned to the next Fabric Platform Http Client caller.</summary>
@@ -118,6 +137,20 @@ codeunit 140010 "Fabric Platform Test Sub" implements "Http Client Handler"
             exit;
         HttpClientHandler := this;
         IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Fabric Platform Credential Mgt", OnBeforeAcquireFabricApiTokenDelegated, '', false, false)]
+    local procedure OnBeforeAcquireFabricApiTokenDelegated(Scopes: List of [Text]; var AccessToken: SecretText; var IsHandled: Boolean)
+    var
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
+    begin
+        if not MockFabricTokenAcquisition then
+            exit;
+        RequestedFabricTokenScopes := Scopes;
+        IsHandled := true;
+        if FabricTokenAcquisitionError <> '' then
+            Error(FabricTokenAcquisitionError);
+        AccessToken := SecretStrSubstNo(SampleTokenLbl);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Fabric Platform Mgt", OnBeforeEnableExport, '', false, false)]
