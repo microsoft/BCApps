@@ -37,6 +37,7 @@ codeunit 148157 "Service Object Test"
         NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption';
         CurrentPeriodErr: Label 'Current Period cannot be used for The Date Formula.';
         ComplexFormulaErr: Label 'The Date Formula cannot be complex.';
+        EndUserCustomerChangeNotAllowedErr: Label 'The End-User cannot be changed because at least one Subscription Line is already linked to a contract.';
         IsInitialized: Boolean;
 
     #region Tests
@@ -1103,19 +1104,31 @@ codeunit 148157 "Service Object Test"
     procedure ExpectErrorOnChangeEndUserIfServiceObjectIsLinkedToContract()
     var
         Customer: Record Customer;
-        Customer2: Record Customer;
-        Item: Record Item;
+        CustomerContract: Record "Customer Subscription Contract";
+        CustomerPriceGroup: Record "Customer Price Group";
+        NewEndUserCustomer: Record Customer;
         ServiceObject: Record "Subscription Header";
     begin
+        // [SCENARIO] The End-User of a Subscription cannot be changed while its Subscription Lines are linked to a contract
         Initialize();
 
-        SetupServiceObjectWithServiceCommitment(Item, ServiceObject, false, false);
-        ServiceObject.SetHideValidationDialog(false);
-        ContractTestLibrary.CreateCustomer(Customer);
-        ServiceObject."End-User Customer No." := Customer."No.";
-        ServiceObject.Modify(false);
-        ContractTestLibrary.CreateCustomer(Customer2);
-        asserterror ServiceObject.Validate("End-User Customer No.", Customer2."No.");
+        // [GIVEN] A Subscription whose Subscription Lines are linked to a contract of a customer in LCY
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
+
+        // [GIVEN] Another customer with its own Customer Price Group
+        ContractTestLibrary.CreateCustomer(NewEndUserCustomer);
+        LibrarySales.CreateCustomerPriceGroup(CustomerPriceGroup);
+        NewEndUserCustomer.Validate("Customer Price Group", CustomerPriceGroup.Code);
+        NewEndUserCustomer.Modify(false);
+
+        // [WHEN] The End-User is changed to that customer without a confirmation dialog
+        ServiceObject.Get(ServiceObject."No.");
+        ServiceObject.SetHideValidationDialog(true);
+        asserterror ServiceObject.Validate("End-User Customer No.", NewEndUserCustomer."No.");
+
+        // [THEN] The change is rejected because the Subscription Lines are linked to a contract
+        Assert.ExpectedError(EndUserCustomerChangeNotAllowedErr);
     end;
 
     [Test]
