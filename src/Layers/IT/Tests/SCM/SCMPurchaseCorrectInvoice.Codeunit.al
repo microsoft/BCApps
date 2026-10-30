@@ -1427,9 +1427,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
     begin
         Assert.IsTrue(CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader), ItemChargeMustBeReversedErr);
-        PurchCrMemoHeader.SetRange("Applies-to Doc. Type", PurchCrMemoHeader."Applies-to Doc. Type"::Invoice);
-        PurchCrMemoHeader.SetRange("Applies-to Doc. No.", PurchInvHeader."No.");
-        PurchCrMemoHeader.FindFirst();
+        LibrarySmallBusiness.FindPurchCorrectiveCrMemo(PurchCrMemoHeader, PurchInvHeader);
         exit(PurchCrMemoHeader."No.");
     end;
 
