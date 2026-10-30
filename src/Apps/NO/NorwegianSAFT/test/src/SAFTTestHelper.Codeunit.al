@@ -18,10 +18,15 @@ codeunit 148099 "SAF-T Test Helper"
         UnexpectedElementValueErr: Label 'Unexpected element value for element %1. Expected element value: %2. Actual element value: %3.', Comment = '%1=XML Element Name;%2=Expected XML Element Value;%3=Actual XML element Value';
 
     procedure SetupSAFT(var SAFTMappingRange: Record "SAF-T Mapping Range"; MappingType: Enum "SAF-T Mapping Type"; NumberOfMasterDataRecords: Integer): Code[20]
+    begin
+        exit(SetupSAFT(SAFTMappingRange, MappingType, NumberOfMasterDataRecords, true));
+    end;
+
+    procedure SetupSAFT(var SAFTMappingRange: Record "SAF-T Mapping Range"; MappingType: Enum "SAF-T Mapping Type"; NumberOfMasterDataRecords: Integer; UpdateLCYCode: Boolean): Code[20]
     var
         SAFTMappingHelper: Codeunit "SAF-T Mapping Helper";
     begin
-        SetupMasterData(NumberOfMasterDataRecords);
+        SetupMasterData(NumberOfMasterDataRecords, UpdateLCYCode);
         InsertSAFTMappingRangeFullySetup(
             SAFTMappingRange, MappingType, GetWorkDateInYearWithNoGLEntries(),
             CalcDate('<CY>', GetWorkDateInYearWithNoGLEntries()));
@@ -30,10 +35,15 @@ codeunit 148099 "SAF-T Test Helper"
     end;
 
     procedure SetupMasterData(NumberOfMasterDataRecords: Integer)
+    begin
+        SetupMasterData(NumberOfMasterDataRecords, true);
+    end;
+
+    local procedure SetupMasterData(NumberOfMasterDataRecords: Integer; UpdateLCYCode: Boolean)
     var
         TempGLAccount: Record "G/L Account" temporary;
     begin
-        SetupCompanyInformation();
+        SetupCompanyInformation(UpdateLCYCode);
         RemoveGLAccData();
         SetupGLAccounts(TempGLAccount, TempGLAccount."Income/Balance"::"Income Statement", NumberOfMasterDataRecords);
         SetupGLAccounts(TempGLAccount, TempGLAccount."Income/Balance"::"Balance Sheet", NumberOfMasterDataRecords);
@@ -45,7 +55,7 @@ codeunit 148099 "SAF-T Test Helper"
     var
         TempGLAccount: Record "G/L Account" temporary;
     begin
-        SetupCompanyInformation();
+        SetupCompanyInformation(true);
         RemoveGLAccData();
         SetupGLAccounts(TempGLAccount, TempGLAccount."Income/Balance"::"Balance Sheet", 1);
         // Use same G/L accounts for customer and vendor posting to avoid creation of new accounts
@@ -402,7 +412,7 @@ codeunit 148099 "SAF-T Test Helper"
         DimSetID := LibraryDimension.CreateDimSet(0, DimValue."Dimension Code", DimValue.Code);
     end;
 
-    local procedure SetupCompanyInformation()
+    local procedure SetupCompanyInformation(UpdateLCYCode: Boolean)
     var
         Employee: Record Employee;
         CompanyInformation: Record "Company Information";
@@ -433,10 +443,12 @@ codeunit 148099 "SAF-T Test Helper"
         CompanyInformation.Validate("Post Code", PostCode.Code);
         CompanyInformation.Validate(City, PostCode.City);
         CompanyInformation.Modify(true);
-        GeneralLedgerSetup.Get();
-        GeneralLedgerSetup."LCY Code" := '';        // to avoid error on updating LCY Code
-        GeneralLedgerSetup.Validate("LCY Code", LibraryUtility.GenerateGUID());
-        GeneralLedgerSetup.Modify();
+        if UpdateLCYCode then begin
+            GeneralLedgerSetup.Get();
+            GeneralLedgerSetup."LCY Code" := '';        // to avoid error on updating LCY Code
+            GeneralLedgerSetup.Validate("LCY Code", LibraryUtility.GenerateGUID());
+            GeneralLedgerSetup.Modify();
+        end;
     end;
 
     local procedure SetupVATPostingSetupMapping()

@@ -48,7 +48,7 @@ table 10676 "SAF-T Mapping Range"
             begin
                 CheckDateConsistency();
                 if "Starting Date" = 0D then
-                    "Range Type" := 0
+                    "Range Type" := "Range Type"::None
                 else begin
                     "Accounting Period" := 0D;
                     "Range Type" := "Range Type"::"Date Range";
@@ -64,7 +64,7 @@ table 10676 "SAF-T Mapping Range"
             begin
                 CheckDateConsistency();
                 if "Ending Date" = 0D then
-                    "Range Type" := 0
+                    "Range Type" := "Range Type"::None
                 else begin
                     "Accounting Period" := 0D;
                     "Range Type" := "Range Type"::"Date Range";
@@ -88,7 +88,7 @@ table 10676 "SAF-T Mapping Range"
                 AccountingPeriod: Record "Accounting Period";
             begin
                 if "Accounting Period" = 0D then
-                    "Range Type" := 0
+                    "Range Type" := "Range Type"::None
                 else begin
                     "Range Type" := "Range Type"::"Accounting Period";
                     AccountingPeriod.get("Accounting Period");

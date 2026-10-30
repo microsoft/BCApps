@@ -46,7 +46,7 @@ codeunit 10677 "SAF-T Export Check"
         case SAFTExportHeader.Version of
             SAFTExportHeader.Version::"1.20":
                 SAFTMappingHelper.VerifyMappingIsDone(SAFTExportHeader."Mapping Range Code");
-            SAFTExportHeader.Version::"1.30":
+            SAFTExportHeader.Version::"1.30", SAFTExportHeader.Version::"1.40":
                 SAFTMappingHelper.VerifyMapping13IsDone(SAFTExportHeader."Mapping Range Code");
         end;
     end;

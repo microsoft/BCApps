@@ -758,7 +758,7 @@ codeunit 10673 "Generate SAF-T File"
         SAFTXMLHelper.AppendXMLNode('PeriodYear', format(Date2DMY(GLEntry."Posting Date", 3)));
         SAFTXMLHelper.AppendXMLNode('TransactionDate', FormatDate(GLEntry."Document Date"));
         SAFTXMLHelper.AppendXMLNode('SourceID', GetSAFTMiddle1Text(GLEntry."User ID"));
-        if GLEntry."Document Type" = 0 then
+        if GLEntry."Document Type" = GLEntry."Document Type"::" " then
             TransactionTypeValue := BlankTxt
         else
             TransactionTypeValue := Format(GLEntry."Document Type");
