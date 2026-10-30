@@ -4,6 +4,7 @@ using Microsoft.Utilities;
 using System.Environment;
 using System.Fabric;
 using System.Reflection;
+using System.Telemetry;
 
 codeunit 48520 "Fabric Platform Mgt"
 {
@@ -12,7 +13,8 @@ codeunit 48520 "Fabric Platform Mgt"
     Permissions = tabledata "Fabric Table Claim" = RIMD,
                   tabledata "Tenant Fabric Companies" = RIMD,
                   tabledata "Tenant Fabric Export Details" = RM,
-                  tabledata "Tenant Fabric Tables" = RIMD;
+                  tabledata "Tenant Fabric Tables" = RIMD,
+                  tabledata "Tenant Fabric Setup" = RM;
 
     var
         MaxTablesErr: Label 'A maximum of %1 tables can be exported to Microsoft Fabric. Remove a table before adding another.', Comment = '%1 = maximum number of tables';
@@ -36,9 +38,9 @@ codeunit 48520 "Fabric Platform Mgt"
         ClientSecretRequiredErr: Label 'Client Secret must be filled in on the Fabric Platform Setup page before enabling mirroring.';
         NoCompanyEnabledErr: Label 'At least one company must be enabled for export before starting synchronization.';
         NoTableSelectedErr: Label 'At least one table must be selected for export before starting synchronization.';
-        OpenFabricSetupLbl: Label 'Open Fabric Platform Setup';
-        OpenFabricCompaniesLbl: Label 'Open Fabric Platform Companies';
-        OpenFabricTablesLbl: Label 'Open Fabric Platform Tables';
+        OpenFabricSetupLbl: Label 'Open Fabric platform setup';
+        OpenFabricCompaniesLbl: Label 'Open Fabric platform companies';
+        OpenFabricTablesLbl: Label 'Open Fabric platform tables';
         StopSynchronizationLbl: Label 'Stop synchronization';
         SetupRequiredTitleLbl: Label 'Setup required';
         SetupRequiredDetailedMsg: Label 'Open the Fabric Platform Setup page, fill in the missing value described above, and run Enable mirroring again.';
@@ -63,6 +65,24 @@ codeunit 48520 "Fabric Platform Mgt"
         TenantFabricSetup.Validate("Fabric Data Namespace", 'BusinessCentral');
         TenantFabricSetup.Validate("Fabric Logging Namespace", 'BusinessCentral_log');
         TenantFabricSetup.Insert(true);
+    end;
+
+    internal procedure ClearCopiedEnvironmentConfiguration()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        FabricPlatformCredentialMgt: Codeunit "Fabric Platform Credential Mgt";
+    begin
+        FabricPlatformCredentialMgt.ClearEnvironmentCredentials();
+        // Never call the platform disable operation with a copied connection to the source Fabric destination.
+        if TenantFabricSetup.FindSet(true) then
+            repeat
+                TenantFabricSetup."Export Enabled" := false;
+                TenantFabricSetup."Setup Complete" := false;
+                Clear(TenantFabricSetup."Fabric Workspace ID");
+                Clear(TenantFabricSetup."Fabric Workspace Name");
+                Clear(TenantFabricSetup."Fabric Lakehouse ID");
+                TenantFabricSetup.Modify(false);
+            until TenantFabricSetup.Next() = 0;
     end;
 
     internal procedure HasSetup(): Boolean
@@ -263,12 +283,11 @@ codeunit 48520 "Fabric Platform Mgt"
 
     internal procedure EnableExport()
     var
+        AuditLog: Codeunit "Audit Log";
         FabricExportManager: Codeunit "Fabric Export Manager";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
-        ClientId: Guid;
-        ClientIdText: Text;
         IsHandled: Boolean;
     begin
         CheckEnableNotOnCooldown(CredMgt);
@@ -276,25 +295,38 @@ codeunit 48520 "Fabric Platform Mgt"
         // Privacy approval is a compliance gate and must not be skippable via the seam below.
         FabricPrivacyNotice.EnsureApproved();
 
-        // Delegated auth overload: Microsoft first-party authentication is not yet available.
         OnBeforeEnableExport(IsHandled);
         if not IsHandled then begin
-            ClientIdText := CredMgt.GetClientId();
-            if ClientIdText = '' then
-                Error(CreateSetupErrorInfo(ClientIdRequiredErr));
-            if not Evaluate(ClientId, ClientIdText) then
-                Error(CreateSetupErrorInfo(StrSubstNo(ClientIdInvalidErr, ClientIdText)));
-            if not CredMgt.IsClientSecretSet() then
-                Error(CreateSetupErrorInfo(ClientSecretRequiredErr));
-            // Only a validated request starts the cooldown, so a failed validation can be retried immediately.
-            CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
-            FabricExportManager.EnableFabricExport(ClientId, CredMgt.GetClientSecret());
+            if CredMgt.IsCustomAppEnabled() then
+                EnableExportWithCustomApp(CredMgt)
+            else begin
+                CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
+                FabricExportManager.EnableFabricExport();
+            end;
         end else
             CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
-        Telemetry.LogEvent('0000VNB', 'Fabric mirroring enable requested.');
-        Telemetry.LogAudit('0000VNC', 'Microsoft Fabric Open Mirroring - export enable requested.');
+        Session.LogMessage('0000WC0', 'Fabric mirroring enable requested.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Telemetry.GetDimensions());
+        AuditLog.LogAuditMessage('Microsoft Fabric Open Mirroring - export enable requested.', SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
         if GuiAllowed() then
             Message(EnableRequestedMsg);
+    end;
+
+    local procedure EnableExportWithCustomApp(var CredMgt: Codeunit "Fabric Platform Credential Mgt")
+    var
+        FabricExportManager: Codeunit "Fabric Export Manager";
+        ClientId: Guid;
+        ClientIdText: Text;
+    begin
+        ClientIdText := CredMgt.GetCustomClientId();
+        if ClientIdText = '' then
+            Error(CreateSetupErrorInfo(ClientIdRequiredErr));
+        if not Evaluate(ClientId, ClientIdText) then
+            Error(CreateSetupErrorInfo(StrSubstNo(ClientIdInvalidErr, ClientIdText)));
+        if not CredMgt.IsClientSecretSet() then
+            Error(CreateSetupErrorInfo(ClientSecretRequiredErr));
+        // Only a validated request starts the cooldown, so a failed validation can be retried immediately.
+        CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
+        FabricExportManager.EnableFabricExport(ClientId, CredMgt.GetClientSecret());
     end;
 
     local procedure CheckEnableNotOnCooldown(var CredMgt: Codeunit "Fabric Platform Credential Mgt")
@@ -362,6 +394,7 @@ codeunit 48520 "Fabric Platform Mgt"
 
     internal procedure StartExport()
     var
+        AuditLog: Codeunit "Audit Log";
         FabricExportManager: Codeunit "Fabric Export Manager";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
@@ -382,8 +415,8 @@ codeunit 48520 "Fabric Platform Mgt"
         OnBeforeStartExport(IsHandled);
         if not IsHandled then
             FabricExportManager.StartFabricExport();
-        Telemetry.LogEvent('0000VND', 'Fabric mirroring start requested.');
-        Telemetry.LogAudit('0000VNE', 'Microsoft Fabric Open Mirroring - export start requested.');
+        Session.LogMessage('0000WC2', 'Fabric mirroring start requested.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Telemetry.GetDimensions());
+        AuditLog.LogAuditMessage('Microsoft Fabric Open Mirroring - export start requested.', SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
         if GuiAllowed() then
             Message(StartRequestedMsg);
     end;
@@ -401,6 +434,7 @@ codeunit 48520 "Fabric Platform Mgt"
 
     internal procedure StopExport()
     var
+        AuditLog: Codeunit "Audit Log";
         FabricExportManager: Codeunit "Fabric Export Manager";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         IsHandled: Boolean;
@@ -408,8 +442,8 @@ codeunit 48520 "Fabric Platform Mgt"
         OnBeforeStopExport(IsHandled);
         if not IsHandled then
             FabricExportManager.StopFabricExport();
-        Telemetry.LogEvent('0000VNF', 'Fabric mirroring stop requested.');
-        Telemetry.LogAudit('0000VNG', 'Microsoft Fabric Open Mirroring - export stop requested.');
+        Session.LogMessage('0000WC4', 'Fabric mirroring stop requested.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Telemetry.GetDimensions());
+        AuditLog.LogAuditMessage('Microsoft Fabric Open Mirroring - export stop requested.', SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
         if GuiAllowed() then
             Message(StopRequestedMsg);
     end;
@@ -421,15 +455,18 @@ codeunit 48520 "Fabric Platform Mgt"
 
     internal procedure DisableExport()
     var
+        AuditLog: Codeunit "Audit Log";
         FabricExportManager: Codeunit "Fabric Export Manager";
+        FabricPlatformCredentialMgt: Codeunit "Fabric Platform Credential Mgt";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         IsHandled: Boolean;
     begin
         OnBeforeDisableExport(IsHandled);
         if not IsHandled then
             FabricExportManager.DisableFabricExport();
-        Telemetry.LogEvent('0000VNH', 'Fabric mirroring disable requested.');
-        Telemetry.LogAudit('0000VNI', 'Microsoft Fabric Open Mirroring - export disable requested.');
+        FabricPlatformCredentialMgt.ClearClientSecret('Disable');
+        Session.LogMessage('0000WC6', 'Fabric mirroring disable requested.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Telemetry.GetDimensions());
+        AuditLog.LogAuditMessage('Microsoft Fabric Open Mirroring - export disable requested.', SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
         if GuiAllowed() then
             Message(DisableRequestedMsg);
     end;
@@ -437,6 +474,7 @@ codeunit 48520 "Fabric Platform Mgt"
     internal procedure ResetTable(TableId: Integer)
     var
         TenantFabricExportDetails: Record "Tenant Fabric Export Details";
+        AuditLog: Codeunit "Audit Log";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         ResetCompanies: List of [Text];
         ResetBlockedErrorInfo: ErrorInfo;
@@ -464,8 +502,8 @@ codeunit 48520 "Fabric Platform Mgt"
                 end;
             until TenantFabricExportDetails.Next() = 0;
 
-        Telemetry.LogEvent('0000VNK', 'Fabric mirroring table reset requested.');
-        Telemetry.LogAudit('0000VNL', 'Microsoft Fabric Open Mirroring - table reset requested.');
+        Session.LogMessage('0000WC8', 'Fabric mirroring table reset requested.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Telemetry.GetDimensions());
+        AuditLog.LogAuditMessage('Microsoft Fabric Open Mirroring - table reset requested.', SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 6, 0, Telemetry.GetDimensions());
         if GuiAllowed() then
             if ResetCompanies.Count() > 0 then
                 Message(TableResetMsg, TableId)
@@ -489,32 +527,32 @@ codeunit 48520 "Fabric Platform Mgt"
         // A subscriber must explicitly confirm success; skipping the probe no longer implies it.
         if not IsSuccess then
             exit;
-        Telemetry.LogEvent('0000VNJ', 'Fabric connection test succeeded.');
+        Session.LogMessage('0000WCA', 'Fabric connection test succeeded.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Telemetry.GetDimensions());
         if GuiAllowed() then
             Message(TestConnectionSuccessMsg);
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     local procedure OnBeforeEnableExport(var IsHandled: Boolean)
     begin
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     local procedure OnBeforeStartExport(var IsHandled: Boolean)
     begin
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     local procedure OnBeforeStopExport(var IsHandled: Boolean)
     begin
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     local procedure OnBeforeDisableExport(var IsHandled: Boolean)
     begin
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     local procedure OnBeforeTestConnection(var IsHandled: Boolean; var IsSuccess: Boolean)
     begin
     end;

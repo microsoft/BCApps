@@ -4,16 +4,134 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Foundation.Navigate;
+using Microsoft.Foundation.Task;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
+using System.Automation;
 
 page 6933 "Expense Management Role Center"
 {
     Caption = 'Expense Management';
     PageType = RoleCenter;
 
+    layout
+    {
+        area(RoleCenter)
+        {
+            part(Activities; "EA Expense Mgmt Activities")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part("User Tasks Activities"; "User Tasks Activities")
+            {
+                ApplicationArea = Suite;
+            }
+            part(ApprovalsActivities; "Approvals Activities")
+            {
+                ApplicationArea = Suite;
+            }
+            systempart(MyNotes; MyNotes)
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+        }
+    }
+
     actions
     {
+        area(Embedding)
+        {
+            action("Expenses Embedding")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Expenses';
+                Image = Document;
+                RunObject = Page Expenses;
+                ToolTip = 'View and manage expenses.';
+            }
+            action("Expense Reports Embedding")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Expense Reports';
+                Image = Document;
+                RunObject = Page "Expense Reports";
+                ToolTip = 'View and manage expense reports.';
+            }
+            action("Manager Expense Reports")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Reports to Approve';
+                Image = Approvals;
+                RunObject = Page "Manager Expense Reports";
+                ToolTip = 'View expense reports that are waiting for your approval.';
+            }
+            action("Posted Expense Reports Embedding")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Posted Expense Reports';
+                Image = PostedOrder;
+                RunObject = Page "Posted Expense Reports";
+                ToolTip = 'View posted expense reports.';
+            }
+            action("Expense Users Embedding")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Expense Users';
+                Image = Users;
+                RunObject = Page "Expense Users";
+                ToolTip = 'View and manage expense users.';
+            }
+            action("Travel Requests")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Travel Requests';
+                Image = Order;
+                RunObject = Page "Travel Request List";
+                ToolTip = 'View and manage travel requests.';
+            }
+        }
+        area(Processing)
+        {
+            group(New)
+            {
+                Caption = 'New';
+
+                action("New Expense")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Expense';
+                    Image = NewDocument;
+                    RunObject = Page Expense;
+                    RunPageMode = Create;
+                    ToolTip = 'Create a new expense.';
+                }
+                action("New Expense Report")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Expense Report';
+                    Image = NewDocument;
+                    RunObject = Page "Expense Report";
+                    RunPageMode = Create;
+                    ToolTip = 'Create a new expense report.';
+                }
+            }
+            group(History)
+            {
+                Caption = 'History';
+
+                action("Find entries")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Find entries...';
+                    Image = Navigate;
+                    RunObject = Page Navigate;
+                    ShortCutKey = 'Ctrl+Alt+Q';
+                    ToolTip = 'Find entries and documents that exist for the document number and posting date on the selected document.';
+                }
+            }
+        }
         area(Sections)
         {
             group("Expense Management")
@@ -190,6 +308,53 @@ page 6933 "Expense Management Role Center"
                         ApplicationArea = Basic, Suite;
                         RunObject = Page "Employee Posting Groups";
                         ToolTip = 'Setup employee posting groups.';
+                    }
+                }
+                group("Corporate Card")
+                {
+                    Caption = 'Corporate Card';
+
+                    action("Corp Card Dashboard")
+                    {
+                        Caption = 'Corporate Card Dashboard';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "EA Corp Card Dashboard";
+                        ToolTip = 'View corporate card import statistics and recent batches.';
+                    }
+                    action("Corp Card Providers")
+                    {
+                        Caption = 'Corporate Card Providers';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "EA Corp Card Providers";
+                        ToolTip = 'Manage corporate card providers and scheduling.';
+                    }
+                    action("Corporate Cards")
+                    {
+                        Caption = 'Corporate Cards';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "EA Corp Card Cards";
+                        ToolTip = 'View and manage corporate cards.';
+                    }
+                    action("Corp Card Setup")
+                    {
+                        Caption = 'Corporate Card Setup';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "Expense Agent Setup";
+                        ToolTip = 'Configure corporate card import parameters.';
+                    }
+                    action("Merchant Normalization Rules")
+                    {
+                        Caption = 'Merchant Normalization Rules';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "EA Corp Card Merchant Rules";
+                        ToolTip = 'Set up text patterns for merchant name normalization. Matching is not case-sensitive, and asterisks (*) can be used around the text.';
+                    }
+                    action("MCC Code Mappings")
+                    {
+                        Caption = 'MCC Code Mappings';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "EA Corp Card MCC Map";
+                        ToolTip = 'Map merchant category codes to expense categories.';
                     }
                 }
             }

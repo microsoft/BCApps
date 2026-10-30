@@ -6,7 +6,9 @@ namespace Microsoft.Finance.CashDesk;
 
 using Microsoft.Finance;
 using Microsoft.Finance.GeneralLedger.Posting;
+#if not CLEAN30
 using Microsoft.Finance.VAT.Ledger;
+#endif
 using Microsoft.Sales.Receivables;
 
 codeunit 31083 "EET Management CZP"
@@ -16,7 +18,7 @@ codeunit 31083 "EET Management CZP"
 
     var
         EETManagementCZL: Codeunit "EET Management CZL";
-        MoreEETLinesDeniedErr: Label 'Cash document %1 %2 cannot contain more then one EET line.', Comment = '%1 = Cash Document Type;%2 = Cash Document No.';
+        LinesWithDifferentCustomersErr: Label 'There are lines with different customers.';
         EntryDescriptionTxt: Label '%1 %2', Comment = '%1 = Applied Document Type;%2 = Applied Document No.';
 
     local procedure CheckEETTransaction(CashDocumentHeaderCZP: Record "Cash Document Header CZP"): Boolean
@@ -27,13 +29,13 @@ codeunit 31083 "EET Management CZP"
     procedure CheckCashDocument(var CashDocumentHeaderCZP: Record "Cash Document Header CZP")
     var
         CashDocumentLineCZP: Record "Cash Document Line CZP";
+        CustomerNo: Code[20];
         NoOfLines: Integer;
         IsHandled: Boolean;
     begin
         OnBeforeCheckCashDocument(CashDocumentHeaderCZP, IsHandled);
         if IsHandled then
             exit;
-
         if not CheckEETTransaction(CashDocumentHeaderCZP) then
             exit;
 
@@ -63,15 +65,18 @@ codeunit 31083 "EET Management CZP"
         if CashDocumentLineCZP.FindFirst() then
             CashDocumentLineCZP.TestField("Account Type", CashDocumentLineCZP."Account Type"::Customer);
 
-        // If there is a line with customer account type then number of lines must be only one
+        // Each line with customer account type must not exceed the original amount of the applied customer ledger entry and must belong to the same customer.
         CashDocumentLineCZP.SetRange("Cash Desk Event");
         CashDocumentLineCZP.SetRange("Account Type", CashDocumentLineCZP."Account Type"::Customer);
-        if CashDocumentLineCZP.FindFirst() then begin
-            if NoOfLines > 1 then
-                Error(MoreEETLinesDeniedErr, CashDocumentLineCZP."Document Type", CashDocumentLineCZP."Cash Document No.");
-
-            CheckLineWithAppliedDocument(CashDocumentLineCZP, GetAppliedDocumentAmount(CashDocumentLineCZP));
-        end;
+        if CashDocumentLineCZP.FindSet() then begin
+            CustomerNo := CashDocumentLineCZP."Account No.";
+            repeat
+                if CashDocumentLineCZP."Account No." <> CustomerNo then
+                    Error(LinesWithDifferentCustomersErr);
+                if CashDocumentLineCZP."Applies-To Doc. No." <> '' then
+                    CheckLineWithAppliedDocument(CashDocumentLineCZP, GetAppliedDocumentAmount(CashDocumentLineCZP));
+            until CashDocumentLineCZP.Next() = 0;
+        end
     end;
 
     local procedure CheckLineWithAppliedDocument(CashDocumentLineCZP: Record "Cash Document Line CZP"; AppliedDocumentAmount: Decimal)
@@ -81,9 +86,6 @@ codeunit 31083 "EET Management CZP"
         OnBeforeCheckLineWithAppliedDocument(CashDocumentLineCZP, AppliedDocumentAmount, IsHandled);
         if IsHandled then
             exit;
-
-        CashDocumentLineCZP.TestField("Account Type", CashDocumentLineCZP."Account Type"::Customer);
-        CashDocumentLineCZP.TestField("Applies-To Doc. No.");
         if CashDocumentLineCZP."Amount Including VAT" > AppliedDocumentAmount then
             CashDocumentLineCZP.TestField("Amount Including VAT", AppliedDocumentAmount);
     end;
@@ -96,7 +98,6 @@ codeunit 31083 "EET Management CZP"
         OnBeforeGetAppliedDocumentAmount(CashDocumentLineCZP, AppliedDocumentAmount, IsHandled);
         if IsHandled then
             exit(AppliedDocumentAmount);
-
         if FindCustLedgerEntryForAppliedDocument(CashDocumentLineCZP, CustLedgerEntry) then
             AppliedDocumentAmount := CalculateOriginalAmount(CustLedgerEntry, false);
 
@@ -115,8 +116,8 @@ codeunit 31083 "EET Management CZP"
 
     procedure CreateEETEntry(CashDocumentHeaderCZP: Record "Cash Document Header CZP"; PostedCashDocumentHdrCZP: Record "Posted Cash Document Hdr. CZP"): Integer
     var
-        TempVATEntry: Record "VAT Entry" temporary;
         CashDocumentLineCZP: Record "Cash Document Line CZP";
+        PostedCashDocumentLineCZP: Record "Posted Cash Document Line CZP";
         EETCashRegisterCZL: Record "EET Cash Register CZL";
         EETEntryCZL: Record "EET Entry CZL";
         IsHandled: Boolean;
@@ -136,94 +137,40 @@ codeunit 31083 "EET Management CZP"
         EETEntryCZL."Business Premises Code" := EETCashRegisterCZL."Business Premises Code";
         EETEntryCZL."Cash Register Code" := EETCashRegisterCZL.Code;
 
-        CashDocumentHeaderCZP.CalcFields("Amount Including VAT (LCY)");
-        EETEntryCZL."Total Sales Amount" := -CashDocumentHeaderCZP.SignAmount() * CashDocumentHeaderCZP."Amount Including VAT (LCY)";
-        EETEntryCZL."Amount Exempted From VAT" := EETEntryCZL."Total Sales Amount";
-
         SetFilterCashDocumentLine(CashDocumentHeaderCZP, CashDocumentLineCZP);
-        CashDocumentLineCZP.FindFirst();
-
-        EETEntryCZL."Applied Document Type" := GetAppliedDocumentType(CashDocumentLineCZP);
-        EETEntryCZL."Applied Document No." := GetAppliedDocumentNo(CashDocumentLineCZP);
-
-        CollectVATEntries(EETEntryCZL, CashDocumentHeaderCZP, CashDocumentLineCZP, PostedCashDocumentHdrCZP, TempVATEntry);
-
-        TempVATEntry.Reset();
-        if TempVATEntry.FindSet() then begin
-            EETEntryCZL."Amount Exempted From VAT" := 0;
-            repeat
-                EETEntryCZL.CalculateAmounts(TempVATEntry);
-            until TempVATEntry.Next() = 0;
+        CashDocumentLineCZP.SetFilter("Applies-To Doc. No.", '<>%1', '');
+        if CashDocumentLineCZP.Count() = 1 then begin
+            CashDocumentLineCZP.FindFirst();
+            EETEntryCZL."Applied Document Type" := GetAppliedDocumentType(CashDocumentLineCZP);
+            EETEntryCZL."Applied Document No." := GetAppliedDocumentNo(CashDocumentLineCZP);
         end;
 
-        EETEntryCZL.RoundAmounts();
+        // Calculate amounts
+        PostedCashDocumentHdrCZP.CalcFields("Amount Including VAT (LCY)");
+        EETEntryCZL."Total Sales Amount" := -CashDocumentHeaderCZP.SignAmount() * PostedCashDocumentHdrCZP."Amount Including VAT (LCY)";
 
+        PostedCashDocumentLineCZP.Reset();
+        PostedCashDocumentLineCZP.SetRange("Cash Desk No.", PostedCashDocumentHdrCZP."Cash Desk No.");
+        PostedCashDocumentLineCZP.SetRange("Cash Document No.", PostedCashDocumentHdrCZP."No.");
+        PostedCashDocumentLineCZP.SetFilter("Amount Type", '<>%1', PostedCashDocumentLineCZP."Amount Type"::" ");
+        PostedCashDocumentLineCZP.SetLoadFields("Amount Type", "Amount Including VAT (LCY)");
+        if PostedCashDocumentLineCZP.FindSet() then
+            repeat
+                case PostedCashDocumentLineCZP."Amount Type" of
+                    PostedCashDocumentLineCZP."Amount Type"::Settlement:
+                        EETEntryCZL."Amt. For Subseq. Draw/Settle" += -CashDocumentHeaderCZP.SignAmount() * PostedCashDocumentLineCZP."Amount Including VAT (LCY)";
+                    PostedCashDocumentLineCZP."Amount Type"::Drawing:
+                        EETEntryCZL."Amt. Subseq. Drawn/Settled" += -CashDocumentHeaderCZP.SignAmount() * PostedCashDocumentLineCZP."Amount Including VAT (LCY)";
+                end;
+            until PostedCashDocumentLineCZP.Next() = 0;
+
+        EETEntryCZL.RoundAmounts();
         if EETEntryCZL."Applied Document No." <> '' then
             EETEntryCZL.Description := StrSubstNo(EntryDescriptionTxt, EETEntryCZL."Applied Document Type", EETEntryCZL."Applied Document No.");
 
         OnCreateEETEntryOnBeforeInsertEETEntry(CashDocumentHeaderCZP, PostedCashDocumentHdrCZP, EETEntryCZL);
         EETEntryCZL.Insert(true);
         exit(EETEntryCZL."Entry No.");
-    end;
-
-    local procedure CollectVATEntries(EETEntryCZL: Record "EET Entry CZL"; CashDocumentHeaderCZP: Record "Cash Document Header CZP"; CashDocumentLineCZP: Record "Cash Document Line CZP"; PostedCashDocumentHdrCZP: Record "Posted Cash Document Hdr. CZP"; var TempVATEntry: Record "VAT Entry" temporary)
-    var
-        RoundingCashDocumentLineCZP: Record "Cash Document Line CZP";
-        CustLedgerEntry: Record "Cust. Ledger Entry";
-        VATEntry: Record "VAT Entry";
-        AppliedDocumentAmount: Decimal;
-        PartialPaymentFactor: Decimal;
-        RoundingAmount: Decimal;
-        IsHandled: Boolean;
-    begin
-        TempVATEntry.Reset();
-        TempVATEntry.DeleteAll();
-
-        OnBeforeCollectVATEntries(EETEntryCZL, CashDocumentHeaderCZP, CashDocumentLineCZP, TempVATEntry, IsHandled);
-        if IsHandled then
-            exit;
-
-        case true of
-            CashDocumentLineCZP.IsInvoicePayment(),
-            CashDocumentLineCZP.IsCreditMemoRefund():
-                begin
-                    FindCustLedgerEntryForAppliedDocument(CashDocumentLineCZP, CustLedgerEntry);
-                    AppliedDocumentAmount := CalculateOriginalAmount(CustLedgerEntry, true);
-                    SetFilterVATEntry(CustLedgerEntry."Document No.", CustLedgerEntry."Posting Date", VATEntry);
-                end;
-        end;
-
-        // Collect VAT entries of applied documents
-        if VATEntry.HasFilter() then begin
-            PartialPaymentFactor := 1;
-            CashDocumentHeaderCZP.FindRoundingLine(RoundingCashDocumentLineCZP);
-            RoundingAmount := CashDocumentHeaderCZP.SignAmount() * RoundingCashDocumentLineCZP."Amount Including VAT (LCY)";
-            if (AppliedDocumentAmount <> 0) and (AppliedDocumentAmount <> (CashDocumentHeaderCZP."Amount Including VAT (LCY)" - RoundingAmount)) then
-                PartialPaymentFactor := (CashDocumentHeaderCZP."Amount Including VAT (LCY)" - RoundingAmount) / AppliedDocumentAmount;
-
-            if VATEntry.FindSet() then
-                repeat
-                    TempVATEntry.Init();
-                    TempVATEntry := VATEntry;
-                    TempVATEntry.Base := TempVATEntry.GetVATBaseCZL() * PartialPaymentFactor;
-                    TempVATEntry.Amount := TempVATEntry.GetVATAmountCZL() * PartialPaymentFactor;
-                    TempVATEntry.Insert();
-                until VATEntry.Next() = 0;
-        end;
-
-        // Collect VAT entries of cash document
-        VATEntry.Reset();
-        SetFilterVATEntry(PostedCashDocumentHdrCZP."No.", PostedCashDocumentHdrCZP."Posting Date", VATEntry);
-        if VATEntry.FindSet() then
-            repeat
-                TempVATEntry.Init();
-                TempVATEntry := VATEntry;
-                TempVATEntry.Base := TempVATEntry.GetVATBaseCZL();
-                TempVATEntry.Amount := TempVATEntry.GetVATAmountCZL();
-                TempVATEntry.Insert();
-            until VATEntry.Next() = 0;
-
-        OnAfterCollectVATEntries(EETEntryCZL, CashDocumentHeaderCZP, CashDocumentLineCZP, TempVATEntry);
     end;
 
     local procedure GetAppliedDocumentType(CashDocumentLineCZP: Record "Cash Document Line CZP") EETAppliedDocumentTypeCZL: Enum "EET Applied Document Type CZL"
@@ -270,15 +217,6 @@ codeunit 31083 "EET Management CZP"
         CustLedgerEntry.SetRange("Currency Code", CashDocumentLineCZP."Currency Code");
     end;
 
-    local procedure SetFilterVATEntry(DocumentNo: Code[20]; PostingDate: Date; var VATEntry: Record "VAT Entry")
-    begin
-        VATEntry.SetCurrentKey("Document No.", "Posting Date");
-        VATEntry.SetRange("Document No.", DocumentNo);
-        VATEntry.SetRange("Posting Date", PostingDate);
-        if VATEntry.FindLast() then
-            VATEntry.SetRange("Transaction No.", VATEntry."Transaction No.");
-    end;
-
     procedure CheckCashDocumentAction(CashDeskNo: Code[20]; CashDocumentAction: Enum "Cash Document Action CZP")
     var
         EETCashRegisterCZL: Record "EET Cash Register CZL";
@@ -286,7 +224,6 @@ codeunit 31083 "EET Management CZP"
     begin
         if CashDeskNo = '' then
             exit;
-
         if (CashDocumentAction in [CashDocumentAction::Release, CashDocumentAction::"Release and Print", CashDocumentAction::"Release and Send"]) and
            EETCashRegisterCZL.FindByCashRegisterNo("EET Cash Register Type CZL"::"Cash Desk", CashDeskNo)
         then
@@ -303,19 +240,19 @@ codeunit 31083 "EET Management CZP"
         exit(PostedCashDocumentHdrCZP."EET Entry No." <> 0);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", 'OnBeforePostCashDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", OnBeforePostCashDoc, '', false, false)]
     local procedure CheckCashDocumentOnBeforePostCashDoc(var CashDocumentHeaderCZP: Record "Cash Document Header CZP")
     begin
         CheckCashDocument(CashDocumentHeaderCZP);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", 'OnBeforeDeleteAfterPosting', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", OnBeforeDeleteAfterPosting, '', false, false)]
     local procedure CreateEETEntryOnBeforeDeleteAfterPosting(var CashDocumentHeaderCZP: Record "Cash Document Header CZP"; var PostedCashDocumentHdrCZP: Record "Posted Cash Document Hdr. CZP")
     begin
         TryCreateEETEntry(CashDocumentHeaderCZP, PostedCashDocumentHdrCZP);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", 'OnAfterFinalizePosting', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", OnAfterFinalizePosting, '', false, false)]
     local procedure SendEntryToServiceOnAfterFinalizePosting(var CashDocumentHeaderCZP: Record "Cash Document Header CZP"; var PostedCashDocumentHdrCZP: Record "Posted Cash Document Hdr. CZP"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     var
         EETEntryCZL: Record "EET Entry CZL";
@@ -326,7 +263,7 @@ codeunit 31083 "EET Management CZP"
         EETManagementCZL.TrySendEntryToService(EETEntryCZL);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", 'OnAfterFinalizePostingPreview', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Document-Post CZP", OnAfterFinalizePostingPreview, '', false, false)]
     local procedure SendEntryToVerificationOnAfterFinalizePostingPreview(var CashDocumentHeaderCZP: Record "Cash Document Header CZP"; var PostedCashDocumentHdrCZP: Record "Posted Cash Document Hdr. CZP"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     var
         EETEntryCZL: Record "EET Entry CZL";
@@ -373,17 +310,20 @@ codeunit 31083 "EET Management CZP"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnGetAppliedDocumentNo(CashDocumentLineCZP: Record "Cash Document Line CZP"; var AppliedDocumentNo: Code[20]);
+    begin
+    end;
+#if not CLEAN30
+    [Obsolete('This event is not used anymore and will be removed in future versions.', '30.0')]
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeCollectVATEntries(EETEntryCZL: Record "EET Entry CZL"; CashDocumentHeaderCZP: Record "Cash Document Header CZP"; CashDocumentLineCZP: Record "Cash Document Line CZP"; var TempVATEntry: Record "VAT Entry" temporary; var IsHandled: Boolean);
     begin
     end;
 
+    [Obsolete('This event is not used anymore and will be removed in future versions.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterCollectVATEntries(EETEntryCZL: Record "EET Entry CZL"; CashDocumentHeaderCZP: Record "Cash Document Header CZP"; CashDocumentLineCZP: Record "Cash Document Line CZP"; var TempVATEntry: Record "VAT Entry" temporary);
     begin
     end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnGetAppliedDocumentNo(CashDocumentLineCZP: Record "Cash Document Line CZP"; var AppliedDocumentNo: Code[20]);
-    begin
-    end;
+#endif
 }
