@@ -7,6 +7,7 @@ namespace Microsoft.Finance.GST.Purchase;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GST.Base;
+using Microsoft.Inventory;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
@@ -119,5 +120,68 @@ codeunit 18082 "GST Vendor Ledger Entry"
                     VendorLedgerEntry."GST Reverse Charge" := true
                 else
                     VendorLedgerEntry."GST Reverse Charge" := GenJournalLine."GST Group Type" = GenJournalLine."GST Group Type"::Service;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnInitQtyToReceive2OnBeforeCalcInvDiscToInvoice, '', false, false)]
+    local procedure UpdateInvoicedQty(var PurchaseLine: Record "Purchase Line")
+    begin
+        SetQtyToInvoiceToRecvdQty(PurchaseLine);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", OnUpdatePurchLineOnBeforePurchLineModify, '', false, false)]
+    local procedure UpdateInvoicedQtyOnUndoReceipt(var PurchLine: Record "Purchase Line")
+    begin
+        if not SetQtyToInvoiceToRecvdQty(PurchLine) then
+            exit;
+
+        PurchLine.CalcInvDiscToInvoice();
+        PurchLine.CalcPrepaymentToDeduct();
+    end;
+
+    local procedure SetQtyToInvoiceToRecvdQty(var PurchaseLine: Record "Purchase Line"): Boolean
+    var
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
+            exit(false);
+        if PurchaseLine."Qty. Rcd. Not Invoiced" <= 0 then
+            exit(false);
+
+        PurchaseHeader.SetLoadFields("GST Vendor Type");
+        if not PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
+            exit(false);
+
+        if not IsImportOrSEZVendor(PurchaseHeader) then
+            exit(false);
+
+        PurchaseLine."Qty. to Invoice" := PurchaseLine."Qty. Rcd. Not Invoiced";
+        PurchaseLine."Qty. to Invoice (Base)" := PurchaseLine."Qty. Rcd. Not Invoiced (Base)";
+        exit(true);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnAfterCopyToTempLines, '', false, false)]
+    local procedure IncludeQtyToReceiveOnReceiveAndInvoice(var PurchaseHeader: Record "Purchase Header"; var TempPurchLine: Record "Purchase Line" temporary)
+    begin
+        if not (PurchaseHeader.Receive and PurchaseHeader.Invoice) then
+            exit;
+        if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
+            exit;
+        if not IsImportOrSEZVendor(PurchaseHeader) then
+            exit;
+
+        TempPurchLine.SetFilter("Qty. to Receive", '<>0');
+        if TempPurchLine.FindSet() then
+            repeat
+                if TempPurchLine."Qty. to Invoice" = TempPurchLine."Qty. Rcd. Not Invoiced" then begin
+                    TempPurchLine.InitQtyToInvoice();
+                    TempPurchLine.Modify();
+                end;
+            until TempPurchLine.Next() = 0;
+        TempPurchLine.Reset();
+    end;
+
+    local procedure IsImportOrSEZVendor(PurchaseHeader: Record "Purchase Header"): Boolean
+    begin
+        exit(PurchaseHeader."GST Vendor Type" in [PurchaseHeader."GST Vendor Type"::Import, PurchaseHeader."GST Vendor Type"::SEZ]);
     end;
 }
