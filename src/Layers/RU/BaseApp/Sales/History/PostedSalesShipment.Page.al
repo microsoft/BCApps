@@ -595,13 +595,16 @@ page 130 "Posted Sales Shipment"
                 }
                 action(Invoices)
                 {
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Invoices';
                     Image = SalesInvoice;
-                    ToolTip = 'View a list of ongoing sales invoices for the shipment.';
+                    ToolTip = 'View the posted sales invoices that the items on this shipment were invoiced with. If only one invoice is related to the shipment, it opens directly.';
 
                     trigger OnAction()
+                    var
+                        SalesShipmentInvoiceLink: Codeunit "Sales Shipment-Invoice Link";
                     begin
-                        Rec.FindInvoices(Rec);
+                        SalesShipmentInvoiceLink.ShowInvoicesForShipment(Rec);
                     end;
                 }
                 action(CertificateOfSupplyDetails)
@@ -847,4 +850,3 @@ page 130 "Posted Sales Shipment"
     begin
     end;
 }
-

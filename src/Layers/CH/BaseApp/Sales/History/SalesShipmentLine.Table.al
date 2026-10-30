@@ -1352,16 +1352,15 @@ table 111 "Sales Shipment Line"
     end;
 
     /// <summary>
-    /// Opens a page displaying the invoice lines for this shipment line.
+    /// Opens the posted sales invoices that this shipment line was invoiced with.
+    /// When the line was invoiced by exactly one invoice, that invoice opens directly.
+    /// Otherwise the related posted sales invoice lines are shown in a list.
     /// </summary>
     procedure ShowItemSalesInvLines()
     var
-        TempSalesInvLine: Record "Sales Invoice Line" temporary;
+        SalesShipmentInvoiceLink: Codeunit "Sales Shipment-Invoice Link";
     begin
-        if Type = Type::Item then begin
-            GetSalesInvLines(TempSalesInvLine);
-            PAGE.RunModal(PAGE::"Posted Sales Invoice Lines", TempSalesInvLine);
-        end;
+        SalesShipmentInvoiceLink.ShowInvoicesForShipmentLine(Rec);
     end;
 
     local procedure InitCurrency(CurrencyCode: Code[10])
