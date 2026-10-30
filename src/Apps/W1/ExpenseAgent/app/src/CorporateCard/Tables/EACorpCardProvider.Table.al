@@ -131,7 +131,7 @@ table 7426 "EA Corp Card Provider"
 
     internal procedure IsFileBasedImport(): Boolean
     begin
-        exit("Feed Type" in ["Feed Type"::DataExch, "Feed Type"::CSV, "Feed Type"::XML]);
+        exit("Feed Type" in ["Feed Type"::DataExch, "Feed Type"::CSV, "Feed Type"::ISO20022, "Feed Type"::XML, "Feed Type"::CAMT053, "Feed Type"::CAMT054]);
     end;
 
     local procedure CheckSettlementAccountsDiffer()

@@ -48,7 +48,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         EnsureCorpCardBankAccount();
         EnsureCorpCardProviders();
 
-        CorpCardProvider.SetFilter(Code, '%1|%2', CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok);
+        CorpCardProvider.SetFilter(Code, '%1|%2|%3|%4|%5', CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok, CorpCardIsoProviderCodeTok, CorpCardCamt053ProviderCodeTok, CorpCardCamt054ProviderCodeTok);
         if CorpCardProvider.FindSet() then
             repeat
                 EnsureDataExchangeForProvider(CorpCardProvider);
@@ -283,6 +283,21 @@ codeunit 7442 "EA Create Corp Card Setup"
             EnsureDataExchLineAndColumns(CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok, true);
             EnsureDataExchMapping(CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok);
             EnsureFieldMappings(CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok);
+
+            EnsureDataExchDefinition(CorpCardIsoDataExchDefCodeTok, true);
+            EnsureDataExchLineAndColumns(CorpCardIsoDataExchDefCodeTok, CorpCardIsoDataExchLineCodeTok, true);
+            EnsureDataExchMapping(CorpCardIsoDataExchDefCodeTok, CorpCardIsoDataExchLineCodeTok);
+            EnsureFieldMappings(CorpCardIsoDataExchDefCodeTok, CorpCardIsoDataExchLineCodeTok);
+
+            EnsureDataExchDefinition(CorpCardCamt053DataExchDefCodeTok, true);
+            EnsureDataExchLineAndColumns(CorpCardCamt053DataExchDefCodeTok, CorpCardCamt053DataExchLineCodeTok, true);
+            EnsureDataExchMapping(CorpCardCamt053DataExchDefCodeTok, CorpCardCamt053DataExchLineCodeTok);
+            EnsureFieldMappings(CorpCardCamt053DataExchDefCodeTok, CorpCardCamt053DataExchLineCodeTok);
+
+            EnsureDataExchDefinition(CorpCardCamt054DataExchDefCodeTok, true);
+            EnsureDataExchLineAndColumns(CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok, true);
+            EnsureDataExchMapping(CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok);
+            EnsureFieldMappings(CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok);
         end;
     end;
 
@@ -378,6 +393,9 @@ codeunit 7442 "EA Create Corp Card Setup"
     begin
         EnsureCorpCardProvider(CorpCardCsvProviderCodeTok, CorpCardCsvProviderDescriptionLbl, Enum::"EA Corp Card Feed Type"::CSV, CorpCardCsvDataExchDefCodeTok, CorpCardCsvDataExchLineCodeTok);
         EnsureCorpCardProvider(CorpCardXmlProviderCodeTok, CorpCardXmlProviderDescriptionLbl, Enum::"EA Corp Card Feed Type"::XML, CorpCardXmlDataExchDefCodeTok, CorpCardXmlDataExchLineCodeTok);
+        EnsureCorpCardProvider(CorpCardIsoProviderCodeTok, CorpCardIsoProviderDescriptionLbl, Enum::"EA Corp Card Feed Type"::ISO20022, CorpCardIsoDataExchDefCodeTok, CorpCardIsoDataExchLineCodeTok);
+        EnsureCorpCardProvider(CorpCardCamt053ProviderCodeTok, CorpCardCamt053ProviderDescriptionLbl, Enum::"EA Corp Card Feed Type"::CAMT053, CorpCardCamt053DataExchDefCodeTok, CorpCardCamt053DataExchLineCodeTok);
+        EnsureCorpCardProvider(CorpCardCamt054ProviderCodeTok, CorpCardCamt054ProviderDescriptionLbl, Enum::"EA Corp Card Feed Type"::CAMT054, CorpCardCamt054DataExchDefCodeTok, CorpCardCamt054DataExchLineCodeTok);
     end;
 
     local procedure EnsureCorpCardProvider(ProviderCode: Code[20]; Description: Text[100]; FeedType: Enum "EA Corp Card Feed Type"; DataExchDefCode: Code[20]; DataExchLineCode: Code[20])
@@ -803,12 +821,27 @@ codeunit 7442 "EA Create Corp Card Setup"
 
     local procedure IsManagedProviderCode(ProviderCode: Code[20]): Boolean
     begin
-        exit(ProviderCode in [CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok]);
+        exit(ProviderCode in [CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok, CorpCardIsoProviderCodeTok, CorpCardCamt053ProviderCodeTok, CorpCardCamt054ProviderCodeTok]);
     end;
 
     local procedure ResolveDefaultDataExchByFeedType(CorpCardProvider: Record "EA Corp Card Provider"; var DesiredDefCode: Code[20]; var DesiredLineCode: Code[20])
     begin
         case CorpCardProvider."Feed Type" of
+            CorpCardProvider."Feed Type"::CAMT053:
+                begin
+                    DesiredDefCode := CorpCardCamt053DataExchDefCodeTok;
+                    DesiredLineCode := CorpCardCamt053DataExchLineCodeTok;
+                end;
+            CorpCardProvider."Feed Type"::CAMT054:
+                begin
+                    DesiredDefCode := CorpCardCamt054DataExchDefCodeTok;
+                    DesiredLineCode := CorpCardCamt054DataExchLineCodeTok;
+                end;
+            CorpCardProvider."Feed Type"::ISO20022:
+                begin
+                    DesiredDefCode := CorpCardIsoDataExchDefCodeTok;
+                    DesiredLineCode := CorpCardIsoDataExchLineCodeTok;
+                end;
             CorpCardProvider."Feed Type"::XML:
                 begin
                     DesiredDefCode := CorpCardXmlDataExchDefCodeTok;
@@ -820,34 +853,54 @@ codeunit 7442 "EA Create Corp Card Setup"
                     DesiredLineCode := CorpCardCsvDataExchLineCodeTok;
                 end;
             else
-                if IsXmlDefinitionCode(CorpCardProvider."Data Exch Def Code") then begin
-                    DesiredDefCode := CorpCardXmlDataExchDefCodeTok;
-                    DesiredLineCode := CorpCardXmlDataExchLineCodeTok;
-                end else begin
-                    DesiredDefCode := CorpCardCsvDataExchDefCodeTok;
-                    DesiredLineCode := CorpCardCsvDataExchLineCodeTok;
+                begin
+                    DesiredDefCode := CorpCardProvider."Data Exch Def Code";
+                    case DesiredDefCode of
+                        CorpCardCamt053DataExchDefCodeTok:
+                            DesiredLineCode := CorpCardCamt053DataExchLineCodeTok;
+                        CorpCardCamt054DataExchDefCodeTok:
+                            DesiredLineCode := CorpCardCamt054DataExchLineCodeTok;
+                        CorpCardIsoDataExchDefCodeTok:
+                            DesiredLineCode := CorpCardIsoDataExchLineCodeTok;
+                        CorpCardXmlDataExchDefCodeTok:
+                            DesiredLineCode := CorpCardXmlDataExchLineCodeTok;
+                        else begin
+                            DesiredDefCode := CorpCardCsvDataExchDefCodeTok;
+                            DesiredLineCode := CorpCardCsvDataExchLineCodeTok;
+                        end;
+                    end;
                 end;
         end;
     end;
 
     local procedure IsKnownDefaultDefinition(DataExchDefCode: Code[20]): Boolean
     begin
-        exit(DataExchDefCode in [CorpCardCsvDataExchDefCodeTok, CorpCardXmlDataExchDefCodeTok]);
+        exit(DataExchDefCode in [CorpCardCsvDataExchDefCodeTok, CorpCardXmlDataExchDefCodeTok, CorpCardIsoDataExchDefCodeTok, CorpCardCamt053DataExchDefCodeTok, CorpCardCamt054DataExchDefCodeTok]);
     end;
 
     local procedure IsKnownDefaultLineCode(LineCode: Code[20]): Boolean
     begin
-        exit(LineCode in [CorpCardCsvDataExchLineCodeTok, CorpCardXmlDataExchLineCodeTok]);
+        exit(LineCode in [CorpCardCsvDataExchLineCodeTok, CorpCardXmlDataExchLineCodeTok, CorpCardIsoDataExchLineCodeTok, CorpCardCamt053DataExchLineCodeTok, CorpCardCamt054DataExchLineCodeTok]);
     end;
 
     local procedure IsXmlDefinitionCode(DataExchDefCode: Code[20]): Boolean
     begin
-        exit(DataExchDefCode = CorpCardXmlDataExchDefCodeTok);
+        exit((DataExchDefCode = CorpCardXmlDataExchDefCodeTok) or (DataExchDefCode = CorpCardIsoDataExchDefCodeTok) or (DataExchDefCode = CorpCardCamt053DataExchDefCodeTok) or (DataExchDefCode = CorpCardCamt054DataExchDefCodeTok));
     end;
 
     local procedure IsXmlFeedType(FeedType: Enum "EA Corp Card Feed Type"): Boolean
     begin
-        exit(FeedType = FeedType::XML);
+        exit(FeedType in [FeedType::XML, FeedType::ISO20022, FeedType::CAMT053, FeedType::CAMT054]);
+    end;
+
+    local procedure IsCamtDefinitionCode(DataExchDefCode: Code[20]): Boolean
+    begin
+        exit((DataExchDefCode = CorpCardCamt053DataExchDefCodeTok) or (DataExchDefCode = CorpCardCamt054DataExchDefCodeTok));
+    end;
+
+    local procedure IsCamt054DefinitionCode(DataExchDefCode: Code[20]): Boolean
+    begin
+        exit(DataExchDefCode = CorpCardCamt054DataExchDefCodeTok);
     end;
 
     local procedure EnsureDataExchDefinition(DataExchDefCode: Code[20]; IsXml: Boolean)
@@ -858,10 +911,19 @@ codeunit 7442 "EA Create Corp Card Setup"
         if not DataExchDef.Get(DataExchDefCode) then begin
             DataExchDef.Init();
             DataExchDef.Code := DataExchDefCode;
-            if IsXml then
-                DataExchDef.Name := CorpCardXmlDataExchDefNameLbl
+            if DataExchDefCode = CorpCardCamt053DataExchDefCodeTok then
+                DataExchDef.Name := CorpCardCamt053DataExchDefNameLbl
             else
-                DataExchDef.Name := CorpCardCsvDataExchDefNameLbl;
+                if DataExchDefCode = CorpCardCamt054DataExchDefCodeTok then
+                    DataExchDef.Name := CorpCardCamt054DataExchDefNameLbl
+                else
+                    if DataExchDefCode = CorpCardIsoDataExchDefCodeTok then
+                        DataExchDef.Name := CorpCardIsoDataExchDefNameLbl
+                    else
+                        if IsXml then
+                            DataExchDef.Name := CorpCardXmlDataExchDefNameLbl
+                        else
+                            DataExchDef.Name := CorpCardCsvDataExchDefNameLbl;
             if IsXml then
                 DataExchDef."Header Lines" := 0
             else
@@ -872,16 +934,34 @@ codeunit 7442 "EA Create Corp Card Setup"
             exit;
         end;
 
-        if IsXml then begin
-            if DataExchDef.Name <> CorpCardXmlDataExchDefNameLbl then begin
-                DataExchDef.Name := CorpCardXmlDataExchDefNameLbl;
+        if DataExchDefCode = CorpCardCamt053DataExchDefCodeTok then begin
+            if DataExchDef.Name <> CorpCardCamt053DataExchDefNameLbl then begin
+                DataExchDef.Name := CorpCardCamt053DataExchDefNameLbl;
                 IsModified := true;
             end;
         end else
-            if DataExchDef.Name <> CorpCardCsvDataExchDefNameLbl then begin
-                DataExchDef.Name := CorpCardCsvDataExchDefNameLbl;
-                IsModified := true;
-            end;
+            if DataExchDefCode = CorpCardCamt054DataExchDefCodeTok then begin
+                if DataExchDef.Name <> CorpCardCamt054DataExchDefNameLbl then begin
+                    DataExchDef.Name := CorpCardCamt054DataExchDefNameLbl;
+                    IsModified := true;
+                end;
+            end else
+                if DataExchDefCode = CorpCardIsoDataExchDefCodeTok then begin
+                    if DataExchDef.Name <> CorpCardIsoDataExchDefNameLbl then begin
+                        DataExchDef.Name := CorpCardIsoDataExchDefNameLbl;
+                        IsModified := true;
+                    end;
+                end else
+                    if IsXml then begin
+                        if DataExchDef.Name <> CorpCardXmlDataExchDefNameLbl then begin
+                            DataExchDef.Name := CorpCardXmlDataExchDefNameLbl;
+                            IsModified := true;
+                        end;
+                    end else
+                        if DataExchDef.Name <> CorpCardCsvDataExchDefNameLbl then begin
+                            DataExchDef.Name := CorpCardCsvDataExchDefNameLbl;
+                            IsModified := true;
+                        end;
 
         if ApplyTemplateDefaults(DataExchDef, IsXml) then
             IsModified := true;
@@ -1030,9 +1110,16 @@ codeunit 7442 "EA Create Corp Card Setup"
 
     local procedure EnsureDataExchLineAndColumns(DataExchDefCode: Code[20]; LineDefCode: Code[20]; IsXml: Boolean)
     var
+        DataExchColumnDef: Record "Data Exch. Column Def";
         DataExchLineDef: Record "Data Exch. Line Def";
+        ColumnCount: Integer;
         IsModified: Boolean;
     begin
+        if IsCamtDefinitionCode(DataExchDefCode) then
+            ColumnCount := 11
+        else
+            ColumnCount := 10;
+
         DataExchLineDef.Reset();
         DataExchLineDef.SetRange("Data Exch. Def Code", DataExchDefCode);
         DataExchLineDef.SetRange(Code, LineDefCode);
@@ -1040,32 +1127,80 @@ codeunit 7442 "EA Create Corp Card Setup"
             DataExchLineDef.Init();
             DataExchLineDef."Data Exch. Def Code" := DataExchDefCode;
             DataExchLineDef.Code := LineDefCode;
-            if IsXml then
-                DataExchLineDef.Name := CorpCardXmlDataExchLineNameLbl
+            if DataExchDefCode = CorpCardCamt053DataExchDefCodeTok then
+                DataExchLineDef.Name := CorpCardCamt053DataExchLineNameLbl
             else
-                DataExchLineDef.Name := CorpCardCsvDataExchLineNameLbl;
-            DataExchLineDef."Column Count" := 10;
-            if IsXml then
-                DataExchLineDef."Data Line Tag" := CorpCardXmlDataLineTagLbl;
+                if DataExchDefCode = CorpCardCamt054DataExchDefCodeTok then
+                    DataExchLineDef.Name := CorpCardCamt054DataExchLineNameLbl
+                else
+                    if DataExchDefCode = CorpCardIsoDataExchDefCodeTok then
+                        DataExchLineDef.Name := CorpCardIsoDataExchLineNameLbl
+                    else
+                        if IsXml then
+                            DataExchLineDef.Name := CorpCardXmlDataExchLineNameLbl
+                        else
+                            DataExchLineDef.Name := CorpCardCsvDataExchLineNameLbl;
+            DataExchLineDef."Column Count" := ColumnCount;
+            case DataExchDefCode of
+                CorpCardCamt053DataExchDefCodeTok:
+                    DataExchLineDef."Data Line Tag" := CorpCardCamt053DataLineTagLbl;
+                CorpCardCamt054DataExchDefCodeTok:
+                    DataExchLineDef."Data Line Tag" := CorpCardCamt054DataLineTagLbl;
+                CorpCardIsoDataExchDefCodeTok:
+                    DataExchLineDef."Data Line Tag" := CorpCardIsoDataLineTagLbl;
+                else
+                    if IsXml then
+                        DataExchLineDef."Data Line Tag" := CorpCardXmlDataLineTagLbl;
+            end;
             DataExchLineDef.Insert(true);
         end else begin
-            if IsXml then begin
-                if DataExchLineDef."Data Line Tag" <> CorpCardXmlDataLineTagLbl then begin
-                    DataExchLineDef."Data Line Tag" := CorpCardXmlDataLineTagLbl;
+            if DataExchDefCode = CorpCardCamt053DataExchDefCodeTok then begin
+                if DataExchLineDef."Data Line Tag" <> CorpCardCamt053DataLineTagLbl then begin
+                    DataExchLineDef."Data Line Tag" := CorpCardCamt053DataLineTagLbl;
                     IsModified := true;
                 end;
-                if DataExchLineDef.Name <> CorpCardXmlDataExchLineNameLbl then begin
-                    DataExchLineDef.Name := CorpCardXmlDataExchLineNameLbl;
+                if DataExchLineDef.Name <> CorpCardCamt053DataExchLineNameLbl then begin
+                    DataExchLineDef.Name := CorpCardCamt053DataExchLineNameLbl;
                     IsModified := true;
                 end;
             end else
-                if DataExchLineDef.Name <> CorpCardCsvDataExchLineNameLbl then begin
-                    DataExchLineDef.Name := CorpCardCsvDataExchLineNameLbl;
-                    IsModified := true;
-                end;
+                if DataExchDefCode = CorpCardCamt054DataExchDefCodeTok then begin
+                    if DataExchLineDef."Data Line Tag" <> CorpCardCamt054DataLineTagLbl then begin
+                        DataExchLineDef."Data Line Tag" := CorpCardCamt054DataLineTagLbl;
+                        IsModified := true;
+                    end;
+                    if DataExchLineDef.Name <> CorpCardCamt054DataExchLineNameLbl then begin
+                        DataExchLineDef.Name := CorpCardCamt054DataExchLineNameLbl;
+                        IsModified := true;
+                    end;
+                end else
+                    if DataExchDefCode = CorpCardIsoDataExchDefCodeTok then begin
+                        if DataExchLineDef."Data Line Tag" <> CorpCardIsoDataLineTagLbl then begin
+                            DataExchLineDef."Data Line Tag" := CorpCardIsoDataLineTagLbl;
+                            IsModified := true;
+                        end;
+                        if DataExchLineDef.Name <> CorpCardIsoDataExchLineNameLbl then begin
+                            DataExchLineDef.Name := CorpCardIsoDataExchLineNameLbl;
+                            IsModified := true;
+                        end;
+                    end else
+                        if IsXml then begin
+                            if DataExchLineDef."Data Line Tag" <> CorpCardXmlDataLineTagLbl then begin
+                                DataExchLineDef."Data Line Tag" := CorpCardXmlDataLineTagLbl;
+                                IsModified := true;
+                            end;
+                            if DataExchLineDef.Name <> CorpCardXmlDataExchLineNameLbl then begin
+                                DataExchLineDef.Name := CorpCardXmlDataExchLineNameLbl;
+                                IsModified := true;
+                            end;
+                        end else
+                            if DataExchLineDef.Name <> CorpCardCsvDataExchLineNameLbl then begin
+                                DataExchLineDef.Name := CorpCardCsvDataExchLineNameLbl;
+                                IsModified := true;
+                            end;
 
-            if DataExchLineDef."Column Count" <> 10 then begin
-                DataExchLineDef."Column Count" := 10;
+            if DataExchLineDef."Column Count" <> ColumnCount then begin
+                DataExchLineDef."Column Count" := ColumnCount;
                 IsModified := true;
             end;
 
@@ -1073,24 +1208,72 @@ codeunit 7442 "EA Create Corp Card Setup"
                 DataExchLineDef.Modify(true);
         end;
 
-        EnsureColumnDef(DataExchDefCode, LineDefCode, 1, 'ProviderTransId', ResolveXmlPath(IsXml, 'ProviderTransId'));
-        EnsureColumnDef(DataExchDefCode, LineDefCode, 2, 'CardLast4', ResolveXmlPath(IsXml, 'CardLast4'));
-        EnsureColumnDef(DataExchDefCode, LineDefCode, 3, 'TransDate', ResolveXmlPath(IsXml, 'TransDate'));
-        EnsureColumnDef(DataExchDefCode, LineDefCode, 4, 'PostingDate', ResolveXmlPath(IsXml, 'PostingDate'));
-        EnsureColumnDef(DataExchDefCode, LineDefCode, 5, 'Amount', ResolveXmlPath(IsXml, 'Amount'));
-        EnsureColumnDef(DataExchDefCode, LineDefCode, 6, 'CurrencyCode', ResolveXmlPath(IsXml, 'CurrencyCode'));
-        EnsureColumnDef(DataExchDefCode, LineDefCode, 7, 'MerchantRaw', ResolveXmlPath(IsXml, 'MerchantRaw'));
-        EnsureColumnDef(DataExchDefCode, LineDefCode, 8, 'MCC', ResolveXmlPath(IsXml, 'MCC'));
-        EnsureColumnDef(DataExchDefCode, LineDefCode, 9, 'Country', ResolveXmlPath(IsXml, 'Country'));
-        EnsureColumnDef(DataExchDefCode, LineDefCode, 10, 'Notes', ResolveXmlPath(IsXml, 'Notes'));
+        EnsureColumnDef(DataExchDefCode, LineDefCode, 1, 'ProviderTransId', ResolveXmlPath(DataExchDefCode, IsXml, 'ProviderTransId'));
+        EnsureColumnDef(DataExchDefCode, LineDefCode, 2, 'CardLast4', ResolveXmlPath(DataExchDefCode, IsXml, 'CardLast4'));
+        EnsureColumnDef(DataExchDefCode, LineDefCode, 3, 'TransDate', ResolveXmlPath(DataExchDefCode, IsXml, 'TransDate'));
+        EnsureColumnDef(DataExchDefCode, LineDefCode, 4, 'PostingDate', ResolveXmlPath(DataExchDefCode, IsXml, 'PostingDate'));
+        EnsureColumnDef(DataExchDefCode, LineDefCode, 5, 'Amount', ResolveXmlPath(DataExchDefCode, IsXml, 'Amount'));
+        EnsureColumnDef(DataExchDefCode, LineDefCode, 6, 'CurrencyCode', ResolveXmlPath(DataExchDefCode, IsXml, 'CurrencyCode'));
+        EnsureColumnDef(DataExchDefCode, LineDefCode, 7, 'MerchantRaw', ResolveXmlPath(DataExchDefCode, IsXml, 'MerchantRaw'));
+        EnsureColumnDef(DataExchDefCode, LineDefCode, 8, 'MCC', ResolveXmlPath(DataExchDefCode, IsXml, 'MCC'));
+        EnsureColumnDef(DataExchDefCode, LineDefCode, 9, 'Country', ResolveXmlPath(DataExchDefCode, IsXml, 'Country'));
+        EnsureColumnDef(DataExchDefCode, LineDefCode, 10, 'Notes', ResolveXmlPath(DataExchDefCode, IsXml, 'Notes'));
+        if IsCamtDefinitionCode(DataExchDefCode) then begin
+            EnsureColumnDef(DataExchDefCode, LineDefCode, 11, 'CreditDebitIndicator', ResolveXmlPath(DataExchDefCode, IsXml, 'CreditDebitIndicator'));
+            DataExchColumnDef.Get(DataExchDefCode, LineDefCode, 11);
+            // Card purchases are positive expenses; credits represent refunds.
+            if DataExchColumnDef."Negative-Sign Identifier" <> 'CRDT' then begin
+                DataExchColumnDef."Negative-Sign Identifier" := 'CRDT';
+                DataExchColumnDef.Modify(true);
+            end;
+        end;
     end;
 
-    local procedure ResolveXmlPath(IsXml: Boolean; NodeName: Text[250]): Text[250]
+    local procedure ResolveXmlPath(DataExchDefCode: Code[20]; IsXml: Boolean; NodeName: Text[250]): Text[250]
+    var
+        EntryPath: Text[100];
+        PathSuffix: Text[150];
     begin
         if not IsXml then
             exit('');
 
-        exit(CopyStr(CorpCardXmlDataLineTagLbl + '/' + NodeName, 1, MaxStrLen(NodeName)));
+        if not IsCamtDefinitionCode(DataExchDefCode) then begin
+            if DataExchDefCode = CorpCardIsoDataExchDefCodeTok then
+                exit(CopyStr(CorpCardIsoDataLineTagLbl + '/' + NodeName, 1, MaxStrLen(NodeName)));
+            exit(CopyStr(CorpCardXmlDataLineTagLbl + '/' + NodeName, 1, MaxStrLen(NodeName)));
+        end;
+
+        if IsCamt054DefinitionCode(DataExchDefCode) then
+            EntryPath := '/Document/BkToCstmrDbtCdtNtfctn/Ntfctn/Ntry'
+        else
+            EntryPath := '/Document/BkToCstmrStmt/Stmt/Ntry';
+
+        case NodeName of
+            'ProviderTransId':
+                PathSuffix := '/NtryDtls/TxDtls/Refs/EndToEndId';
+            'CardLast4':
+                PathSuffix := '/NtryDtls/TxDtls/RmtInf/Ustrd';
+            'TransDate':
+                PathSuffix := '/ValDt/Dt';
+            'PostingDate':
+                PathSuffix := '/BookgDt/Dt';
+            'Amount':
+                PathSuffix := '/NtryDtls/TxDtls/AmtDtls/TxAmt/Amt';
+            'CurrencyCode':
+                PathSuffix := '/NtryDtls/TxDtls/AmtDtls/TxAmt/Amt/@Ccy';
+            'MerchantRaw':
+                PathSuffix := '/NtryDtls/TxDtls/RltdPties/Cdtr//Nm';
+            'MCC':
+                PathSuffix := '/NtryDtls/TxDtls/AddtlTxInf';
+            'Country':
+                PathSuffix := '/NtryDtls/TxDtls/RltdPties/Cdtr//PstlAdr/Ctry';
+            'Notes':
+                PathSuffix := '/NtryDtls/TxDtls/AddtlTxInf';
+            'CreditDebitIndicator':
+                PathSuffix := '/CdtDbtInd';
+        end;
+
+        exit(CopyStr(EntryPath + PathSuffix, 1, MaxStrLen(NodeName)));
     end;
 
     local procedure EnsureColumnDef(DataExchDefCode: Code[20]; LineDefCode: Code[20]; ColumnNo: Integer; ColumnName: Text[250]; PathTxt: Text[250])
@@ -1198,6 +1381,8 @@ codeunit 7442 "EA Create Corp Card Setup"
         EnsureFieldMapping(DataExchDefCode, LineDefCode, 7, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo("Merchant Raw"));
         EnsureFieldMapping(DataExchDefCode, LineDefCode, 8, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo(MCC));
         EnsureFieldMapping(DataExchDefCode, LineDefCode, 9, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo(Country));
+        if IsCamtDefinitionCode(DataExchDefCode) then
+            EnsureFieldMapping(DataExchDefCode, LineDefCode, 11, Database::"EA Corp Card Trans", CorpCardTrans.FieldNo(Amount));
     end;
 
     local procedure EnsureFieldMapping(DataExchDefCode: Code[20]; LineDefCode: Code[20]; ColumnNo: Integer; TableId: Integer; FieldId: Integer)
@@ -1224,18 +1409,39 @@ codeunit 7442 "EA Create Corp Card Setup"
     var
         CorpCardCsvProviderCodeTok: Label 'CORPCARDCSV', MaxLength = 20, Locked = true;
         CorpCardXmlProviderCodeTok: Label 'CORPCARDXML', MaxLength = 20, Locked = true;
+        CorpCardIsoProviderCodeTok: Label 'CORPCARDISO', MaxLength = 20, Locked = true;
+        CorpCardCamt053ProviderCodeTok: Label 'CORPCAMT053', MaxLength = 20, Locked = true;
+        CorpCardCamt054ProviderCodeTok: Label 'CORPCAMT054', MaxLength = 20, Locked = true;
         CorpCardCsvDataExchDefCodeTok: Label 'EACCARDCSV', MaxLength = 20, Locked = true;
         CorpCardCsvDataExchLineCodeTok: Label 'TRANS', MaxLength = 20, Locked = true;
         CorpCardXmlDataExchDefCodeTok: Label 'EACCARDXML', MaxLength = 20, Locked = true;
         CorpCardXmlDataExchLineCodeTok: Label 'TRANSXML', MaxLength = 20, Locked = true;
+        CorpCardIsoDataExchDefCodeTok: Label 'EACCARDISO', MaxLength = 20, Locked = true;
+        CorpCardIsoDataExchLineCodeTok: Label 'TRANSISO', MaxLength = 20, Locked = true;
+        CorpCardCamt053DataExchDefCodeTok: Label 'EACCAMT053', MaxLength = 20, Locked = true;
+        CorpCardCamt053DataExchLineCodeTok: Label 'TRANSCAMT', MaxLength = 20, Locked = true;
+        CorpCardCamt054DataExchDefCodeTok: Label 'EACCAMT054', MaxLength = 20, Locked = true;
+        CorpCardCamt054DataExchLineCodeTok: Label 'TRNCAMT054', MaxLength = 20, Locked = true;
         CorpCardCsvDataExchDefNameLbl: Label 'Corporate Card CSV Import';
         CorpCardXmlDataExchDefNameLbl: Label 'Corporate Card XML Import';
+        CorpCardIsoDataExchDefNameLbl: Label 'Corporate Card ISO20022 Import';
+        CorpCardCamt053DataExchDefNameLbl: Label 'Corporate Card CAMT053 Import';
+        CorpCardCamt054DataExchDefNameLbl: Label 'Corporate Card CAMT054 Import';
         CorpCardCsvDataExchLineNameLbl: Label 'Transactions';
         CorpCardXmlDataExchLineNameLbl: Label 'Transactions';
+        CorpCardIsoDataExchLineNameLbl: Label 'ISO20022 Transactions';
+        CorpCardCamt053DataExchLineNameLbl: Label 'CAMT053 Transactions';
+        CorpCardCamt054DataExchLineNameLbl: Label 'CAMT054 Transactions';
         CorpCardXmlDataLineTagLbl: Label '/CorporateCardTransactions/Transaction', Locked = true;
+        CorpCardCamt053DataLineTagLbl: Label '/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls', Locked = true;
+        CorpCardCamt054DataLineTagLbl: Label '/Document/BkToCstmrDbtCdtNtfctn/Ntfctn/Ntry/NtryDtls/TxDtls', Locked = true;
+        CorpCardIsoDataLineTagLbl: Label '/Document/Notification/Transaction', Locked = true;
         CorpCardDataExchMappingNameLbl: Label 'Corp Card Transaction Mapping';
         CorpCardCsvProviderDescriptionLbl: Label 'Corporate Card CSV Provider';
         CorpCardXmlProviderDescriptionLbl: Label 'Corporate Card XML Provider';
+        CorpCardIsoProviderDescriptionLbl: Label 'Corporate Card ISO20022 Provider';
+        CorpCardCamt053ProviderDescriptionLbl: Label 'Corporate Card CAMT053 Provider';
+        CorpCardCamt054ProviderDescriptionLbl: Label 'Corporate Card CAMT054 Provider';
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
         CorpCardSampleFirstTransIdTok: Label 'TXN00001', MaxLength = 50, Locked = true;
         CorpCardSampleSettlementNoTok: Label 'CSV-SAMPLE-SETTLEMENT-%1', Comment = '%1 = settlement sequence number', MaxLength = 50, Locked = true;
