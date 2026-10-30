@@ -64,6 +64,29 @@ codeunit 9026 "User Login Time Tracker"
     end;
 
     /// <summary>
+    /// Returns the last login DateTime of the current user for the current company.
+    /// </summary>
+    /// <returns>The last login DateTime of the current user, or 0DT if the user login cannot be found.</returns>
+    procedure GetLastLoginDateTime(): DateTime
+    var
+        UserLoginTimeTrackerImpl: Codeunit "User Login Time Tracker Impl.";
+    begin
+        exit(UserLoginTimeTrackerImpl.GetLastLoginDateTime(UserSecurityId()));
+    end;
+
+    /// <summary>
+    /// Returns the last login DateTime of a user for the current company.
+    /// </summary>
+    /// <param name="UserSecurityID">The security ID of the user.</param>
+    /// <returns>The last login DateTime of a user, or 0DT if the user login cannot be found.</returns>
+    procedure GetLastLoginDateTime(UserSecurityID: Guid): DateTime
+    var
+        UserLoginTimeTrackerImpl: Codeunit "User Login Time Tracker Impl.";
+    begin
+        exit(UserLoginTimeTrackerImpl.GetLastLoginDateTime(UserSecurityID));
+    end;
+
+    /// <summary>
     /// Returns the penultimate login DateTime of the current user for the current company.
     /// </summary>
     /// <returns>The penultimate login DateTime of the current user, or 0DT if the user login cannot be found.</returns>
@@ -108,4 +131,3 @@ codeunit 9026 "User Login Time Tracker"
         UserLoginTimeTrackerImpl.CreateEnvironmentLoginInfo();
     end;
 }
-
