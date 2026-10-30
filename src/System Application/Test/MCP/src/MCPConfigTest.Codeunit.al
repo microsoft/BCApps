@@ -23,6 +23,7 @@ codeunit 130130 "MCP Config Test"
         Assert: Codeunit "Library Assert";
         MCPConfig: Codeunit "MCP Config";
         MCPConfigTestLibrary: Codeunit "MCP Config Test Library";
+        ExpectedConfigurationName: Text[100];
         ConfigurationWithMissingAgentJsonTxt: Label '{"name":"Imported configuration","enableAgents":true,"tools":[],"agents":[{"agentId":"%1"}]}', Locked = true;
 
     #region Configurations
@@ -1054,6 +1055,180 @@ codeunit 130130 "MCP Config Test"
     #region Warnings
 
     [Test]
+    procedure TestEmptyConfigurationWarningRespectsReadOnlyDiscovery()
+    var
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, true, true, false);
+        AssertEmptyConfigurationWarning(ConfigId, 1);
+
+        MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, true);
+        AssertEmptyConfigurationWarning(ConfigId, 0);
+
+        MCPConfig.EnableDynamicToolMode(ConfigId, false);
+        AssertEmptyConfigurationWarning(ConfigId, 1);
+    end;
+
+    [Test]
+    procedure TestEmptyConfigurationWarningIgnoresDisabledAPITools()
+    var
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        CreateMCPConfigTool(ConfigId);
+        MCPConfig.EnableAPITools(ConfigId, false);
+
+        AssertEmptyConfigurationWarning(ConfigId, 1);
+    end;
+
+    [Test]
+    procedure TestNoEmptyConfigurationWarningForConfiguredAPITools()
+    var
+        ConfigId: Guid;
+        OtherConfigId: Guid;
+        ToolId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, false, false);
+        OtherConfigId := CreateMCPConfig(false, false, false, false);
+        CreateMCPConfigTool(OtherConfigId);
+        AssertEmptyConfigurationWarning(ConfigId, 1);
+
+        ToolId := CreateMCPConfigTool(ConfigId);
+        MCPConfig.AllowRead(ToolId, false);
+        AssertEmptyConfigurationWarning(ConfigId, 0);
+    end;
+
+    [Test]
+    procedure TestEmptyConfigurationWarningRespectsDataQueryTools()
+    var
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, false, false);
+        MCPConfig.EnableAPITools(ConfigId, false);
+        AssertEmptyConfigurationWarning(ConfigId, 1);
+
+        MCPConfig.EnableDataQueryTools(ConfigId, true);
+        AssertEmptyConfigurationWarning(ConfigId, 0);
+
+        MCPConfig.EnableDataQueryTools(ConfigId, false);
+        AssertEmptyConfigurationWarning(ConfigId, 1);
+    end;
+
+    [Test]
+    procedure TestNoEmptyConfigurationWarningForConfiguredAgents()
+    var
+        ConfigId: Guid;
+        OtherConfigId: Guid;
+        AgentId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, false, false);
+        MCPConfig.EnableAPITools(ConfigId, false);
+        MCPConfig.EnableAgents(ConfigId, true);
+        OtherConfigId := CreateMCPConfig(false, false, false, false);
+        AgentId := CreateGuid();
+        InsertConfigurationAgent(OtherConfigId, AgentId, 'Configured agent');
+        AssertEmptyConfigurationWarning(ConfigId, 1);
+
+        InsertConfigurationAgent(ConfigId, AgentId, 'Configured agent');
+        AssertEmptyConfigurationWarning(ConfigId, 0);
+
+        MCPConfig.EnableAgents(ConfigId, false);
+        AssertEmptyConfigurationWarning(ConfigId, 1);
+    end;
+
+    [Test]
+    procedure TestNoEmptyConfigurationWarningForSystemDefault()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        EnsureSystemDefaultExists();
+        MCPConfiguration.Get('');
+
+        AssertEmptyConfigurationWarning(MCPConfiguration.SystemId, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('EmptyConfigurationCardHandler')]
+    procedure TestEmptyConfigurationRecommendedActionDoesNotGrantAccess()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        TempMCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, true, false, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        ExpectedConfigurationName := MCPConfiguration.Name;
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
+#pragma warning disable AA0210
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Empty Configuration");
+#pragma warning restore AA0210
+        TempMCPConfigWarning.FindFirst();
+
+        MCPConfig.ApplyRecommendedAction(TempMCPConfigWarning);
+
+        Assert.RecordCount(TempMCPConfigWarning, 1);
+        AssertEmptyConfigurationWarning(ConfigId, 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('EmptyConfigurationWarningListHandler')]
+    procedure TestValidateEmptyConfigurationShowsWarning()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, true, true, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        MCPConfigCard.Validate.Invoke();
+
+        MCPConfigCard.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SkipConfigurationWarningReview')]
+    procedure TestActivateEmptyConfigurationCanSkipWarningReview()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, true, true, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        MCPConfigCard.Active.SetValue(true);
+        MCPConfigCard.Close();
+
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.Active, 'An empty configuration can be activated after skipping warning review.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ReviewConfigurationWarnings,EmptyConfigurationWarningListHandler')]
+    procedure TestActivateEmptyConfigurationCanReviewWarnings()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, true, true, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        MCPConfigCard.Active.SetValue(true);
+        MCPConfigCard.Close();
+
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.Active, 'Reviewing warnings should leave the configuration inactive.');
+    end;
+
+    [Test]
     procedure TestFindMissingObjectWarningsForConfiguration()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
@@ -1943,6 +2118,18 @@ codeunit 130130 "MCP Config Test"
 
     #region Helpers
 
+    local procedure AssertEmptyConfigurationWarning(ConfigId: Guid; ExpectedCount: Integer)
+    var
+        TempMCPConfigWarning: Record "MCP Config Warning";
+    begin
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
+#pragma warning disable AA0210
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Empty Configuration");
+#pragma warning restore AA0210
+        TempMCPConfigWarning.SetRange("Config Id", ConfigId);
+        Assert.RecordCount(TempMCPConfigWarning, ExpectedCount);
+    end;
+
     local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowCreateUpdateDeleteTools: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -2069,6 +2256,32 @@ codeunit 130130 "MCP Config Test"
     #endregion
 
     #region Handlers
+
+    [PageHandler]
+    procedure EmptyConfigurationCardHandler(var MCPConfigCard: TestPage "MCP Config Card")
+    begin
+        MCPConfigCard.Name.AssertEquals(ExpectedConfigurationName);
+    end;
+
+    [PageHandler]
+    procedure EmptyConfigurationWarningListHandler(var MCPConfigWarningList: TestPage "MCP Config Warning List")
+    begin
+        MCPConfigWarningList."Warning Message".AssertEquals('This configuration does not expose any usable tools.');
+    end;
+
+    [ConfirmHandler]
+    procedure SkipConfigurationWarningReview(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.AreEqual('The configuration is invalid and may not work as expected. Do you want to review warnings before activating?', Question, 'Unexpected confirmation.');
+        Reply := false;
+    end;
+
+    [ConfirmHandler]
+    procedure ReviewConfigurationWarnings(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.AreEqual('The configuration is invalid and may not work as expected. Do you want to review warnings before activating?', Question, 'Unexpected confirmation.');
+        Reply := true;
+    end;
 
 
     [ModalPageHandler]

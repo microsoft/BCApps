@@ -61,6 +61,7 @@ codeunit 6974 "Cancel Posted Expense Report"
     local procedure Cancel(var PostedExpenseReportHeader: Record "Posted Expense Report Header")
     var
         PostedExpenseReportLine: Record "Posted Expense Report Line";
+        CorpCardPostMgt: Codeunit "EA Corp Card Post Mgt";
         ReversalTransactionNo: Integer;
     begin
         if PostedExpenseReportHeader.Canceled then
@@ -76,6 +77,7 @@ codeunit 6974 "Cancel Posted Expense Report"
                 ReverseExpenseLedgerEntries(PostedExpenseReportHeader, PostedExpenseReportLine, ReversalTransactionNo);
                 ReverseJobLedgerEntry(PostedExpenseReportHeader, PostedExpenseReportLine);
                 ReleaseRelatedExpense(PostedExpenseReportLine);
+                CorpCardPostMgt.HandleCanceledPostedExpense(PostedExpenseReportLine, PostedExpenseReportHeader);
                 PostedExpenseReportLine."Is Canceled" := true;
                 PostedExpenseReportLine.Modify();
             until PostedExpenseReportLine.Next() = 0;

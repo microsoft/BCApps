@@ -14,6 +14,7 @@ using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Resources.Journal;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Projects.Resources.Setup;
+using Microsoft.Utilities;
 using System.Security.User;
 using System.Utilities;
 
@@ -42,6 +43,8 @@ codeunit 950 "Time Sheet Management"
         JobPlanningLinesNotFoundErr: Label 'Could not find project planning lines.';
         CreateLinesQst: Label 'Do you want to create lines from project planning (%1)?', Comment = '%1 - number';
         PageDataCaptionTxt: Label '%1 (%2)', Comment = '%1 - start date, %2 - Description,';
+        CopiedLinesWithClearedCodesMsg: Label 'The work type or cause of absence on %1 copied line(s) no longer exists and was left blank. Review these lines before you submit the time sheet.', Comment = '%1 - number of lines';
+        NoOfCopiedLinesWithClearedCodes: Integer;
 
     procedure IsUserTimeSheetAdmin(UserId: Text): Boolean
     var
@@ -443,6 +446,7 @@ codeunit 950 "Time Sheet Management"
         NextLineNo: Integer;
         IsArchive: Boolean;
     begin
+        NoOfCopiedLinesWithClearedCodes := 0;
         TimeSheetLines.LookupMode := true;
         TimeSheetLines.Editable(false);
         TimeSheetLines.SetForTimeSheetHeader(ToTimeSheetHeader);
@@ -488,6 +492,8 @@ codeunit 950 "Time Sheet Management"
                         CopyTimeSheetLine(ToTimeSheetHeader, TempTimeSheetLine, CopyComments, NextLineNo)
                 end;
             until TempTimeSheetLine.Next() = 0;
+
+        SendCopiedLinesWithClearedCodesNotification();
     end;
 
     local procedure CheckUserWantAllLinesFromOneTimeSheetHeader(var TempTimeSheetLine: Record "Time Sheet Line" temporary) ContinueProcessing: Boolean
@@ -582,6 +588,7 @@ codeunit 950 "Time Sheet Management"
         LineNo: Integer;
         IsHandled: Boolean;
     begin
+        NoOfCopiedLinesWithClearedCodes := 0;
         LineNo := ToTimeSheetHeader.GetLastLineNo();
 
         FromTimeSheetHeader.Get(ToTimeSheetHeader."No.");
@@ -599,6 +606,7 @@ codeunit 950 "Time Sheet Management"
                 until FromTimeSheetLine.Next() = 0;
         end;
 
+        SendCopiedLinesWithClearedCodesNotification();
         OnAfterCopyPrevTimeSheetLines();
     end;
 
@@ -606,6 +614,8 @@ codeunit 950 "Time Sheet Management"
     var
         ToTimeSheetLine: Record "Time Sheet Line";
         IsHandled: Boolean;
+        CauseOfAbsenceCleared: Boolean;
+        WorkTypeCleared: Boolean;
     begin
         IsHandled := false;
         OnBeforeCopyTimeSheetLine(ToTimeSheetHeader, FromTimeSheetLine, CopyComments, NextLineNo, IsHandled);
@@ -617,20 +627,16 @@ codeunit 950 "Time Sheet Management"
             ToTimeSheetLine."Line No." := NextLineNo;
             ToTimeSheetLine."Time Sheet Starting Date" := ToTimeSheetHeader."Starting Date";
             ToTimeSheetLine.Type := FromTimeSheetLine.Type;
-            case ToTimeSheetLine.Type of
-                ToTimeSheetLine.Type::Job:
-                    begin
-                        ToTimeSheetLine.Validate("Job No.", FromTimeSheetLine."Job No.");
-                        ToTimeSheetLine.Validate("Job Task No.", FromTimeSheetLine."Job Task No.");
-                    end;
-                ToTimeSheetLine.Type::Absence:
-                    ToTimeSheetLine.Validate("Cause of Absence Code", FromTimeSheetLine."Cause of Absence Code");
+            if ToTimeSheetLine.Type = ToTimeSheetLine.Type::Job then begin
+                ToTimeSheetLine.Validate("Job No.", FromTimeSheetLine."Job No.");
+                ToTimeSheetLine.Validate("Job Task No.", FromTimeSheetLine."Job Task No.");
             end;
+            CopyExistingCauseOfAbsenceAndWorkType(ToTimeSheetLine, FromTimeSheetLine."Cause of Absence Code", FromTimeSheetLine."Work Type Code", CauseOfAbsenceCleared, WorkTypeCleared);
             ToTimeSheetLine.Description := FromTimeSheetLine.Description;
             ToTimeSheetLine.Chargeable := FromTimeSheetLine.Chargeable;
-            ToTimeSheetLine."Work Type Code" := FromTimeSheetLine."Work Type Code";
             OnBeforeToTimeSheetLineInsert(ToTimeSheetLine, FromTimeSheetLine);
             ToTimeSheetLine.Insert();
+            CountCopiedLineWithClearedCodes(ToTimeSheetLine, CauseOfAbsenceCleared, WorkTypeCleared);
 
             CopyTimeSheetLineDetails(ToTimeSheetLine, FromTimeSheetLine);
 
@@ -685,6 +691,8 @@ codeunit 950 "Time Sheet Management"
     var
         ToTimeSheetLine: Record "Time Sheet Line";
         IsHandled: Boolean;
+        CauseOfAbsenceCleared: Boolean;
+        WorkTypeCleared: Boolean;
     begin
         IsHandled := false;
         OnBeforeCopyTimeSheetLineArchive(ToTimeSheetHeader, FromTimeSheetLineArchive, CopyComments, NextLineNo, IsHandled);
@@ -696,20 +704,16 @@ codeunit 950 "Time Sheet Management"
             ToTimeSheetLine."Line No." := NextLineNo;
             ToTimeSheetLine."Time Sheet Starting Date" := ToTimeSheetHeader."Starting Date";
             ToTimeSheetLine.Type := FromTimeSheetLineArchive.Type;
-            case ToTimeSheetLine.Type of
-                ToTimeSheetLine.Type::Job:
-                    begin
-                        ToTimeSheetLine.Validate("Job No.", FromTimeSheetLineArchive."Job No.");
-                        ToTimeSheetLine.Validate("Job Task No.", FromTimeSheetLineArchive."Job Task No.");
-                    end;
-                ToTimeSheetLine.Type::Absence:
-                    ToTimeSheetLine.Validate("Cause of Absence Code", FromTimeSheetLineArchive."Cause of Absence Code");
+            if ToTimeSheetLine.Type = ToTimeSheetLine.Type::Job then begin
+                ToTimeSheetLine.Validate("Job No.", FromTimeSheetLineArchive."Job No.");
+                ToTimeSheetLine.Validate("Job Task No.", FromTimeSheetLineArchive."Job Task No.");
             end;
+            CopyExistingCauseOfAbsenceAndWorkType(ToTimeSheetLine, FromTimeSheetLineArchive."Cause of Absence Code", FromTimeSheetLineArchive."Work Type Code", CauseOfAbsenceCleared, WorkTypeCleared);
             ToTimeSheetLine.Description := FromTimeSheetLineArchive.Description;
             ToTimeSheetLine.Chargeable := FromTimeSheetLineArchive.Chargeable;
-            ToTimeSheetLine."Work Type Code" := FromTimeSheetLineArchive."Work Type Code";
             OnCopyTimeSheetLineArchiveOnBeforeToTimeSheetLineInsert(ToTimeSheetLine, FromTimeSheetLineArchive);
             ToTimeSheetLine.Insert();
+            CountCopiedLineWithClearedCodes(ToTimeSheetLine, CauseOfAbsenceCleared, WorkTypeCleared);
 
             CopyTimeSheetLineArchiveDetails(ToTimeSheetLine, FromTimeSheetLineArchive);
 
@@ -760,6 +764,53 @@ codeunit 950 "Time Sheet Management"
                 ToTimeSheetCommentLine."Time Sheet Line No." := ToTimeSheetLine."Line No.";
                 ToTimeSheetCommentLine.Insert();
             until TimeSheetCmtLineArchive.Next() = 0;
+    end;
+
+    local procedure CopyExistingCauseOfAbsenceAndWorkType(var ToTimeSheetLine: Record "Time Sheet Line"; CauseOfAbsenceCode: Code[10]; WorkTypeCode: Code[10]; var CauseOfAbsenceCleared: Boolean; var WorkTypeCleared: Boolean)
+    var
+        CauseOfAbsence: Record "Cause of Absence";
+        WorkType: Record "Work Type";
+    begin
+        if (ToTimeSheetLine.Type = ToTimeSheetLine.Type::Absence) and (CauseOfAbsenceCode <> '') then begin
+            CauseOfAbsence.SetRange(Code, CauseOfAbsenceCode);
+            CauseOfAbsenceCleared := CauseOfAbsence.IsEmpty();
+            if not CauseOfAbsenceCleared then
+                ToTimeSheetLine.Validate("Cause of Absence Code", CauseOfAbsenceCode);
+        end;
+
+        if WorkTypeCode <> '' then begin
+            WorkType.SetRange(Code, WorkTypeCode);
+            WorkTypeCleared := WorkType.IsEmpty();
+            if not WorkTypeCleared then
+                ToTimeSheetLine."Work Type Code" := WorkTypeCode;
+        end;
+    end;
+
+    local procedure CountCopiedLineWithClearedCodes(ToTimeSheetLine: Record "Time Sheet Line"; CauseOfAbsenceCleared: Boolean; WorkTypeCleared: Boolean)
+    begin
+        // Subscribers to the insert events may have filled in the cleared values
+        if (CauseOfAbsenceCleared and (ToTimeSheetLine."Cause of Absence Code" = '')) or
+           (WorkTypeCleared and (ToTimeSheetLine."Work Type Code" = ''))
+        then
+            NoOfCopiedLinesWithClearedCodes += 1;
+    end;
+
+    local procedure SendCopiedLinesWithClearedCodesNotification()
+    var
+        CopiedLinesNotification: Notification;
+    begin
+        if NoOfCopiedLinesWithClearedCodes = 0 then
+            exit;
+
+        CopiedLinesNotification.Id := GetCopiedLinesWithClearedCodesNotificationId();
+        CopiedLinesNotification.Message := StrSubstNo(CopiedLinesWithClearedCodesMsg, NoOfCopiedLinesWithClearedCodes);
+        CopiedLinesNotification.Scope := NotificationScope::LocalScope;
+        CopiedLinesNotification.Send();
+    end;
+
+    local procedure GetCopiedLinesWithClearedCodesNotificationId(): Guid
+    begin
+        exit('d23bcf27-786e-4dd4-9185-2cedc5475b30');
     end;
 
     procedure CalcPrevTimeSheetLines(ToTimeSheetHeader: Record "Time Sheet Header") LinesQty: Integer
