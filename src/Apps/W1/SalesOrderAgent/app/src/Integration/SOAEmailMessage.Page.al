@@ -417,7 +417,6 @@ page 4404 "SOA Email Message"
         else
             SOAFiltersImpl.RecallMissingContactNotification();
 
-        // Outgoing content is already generated for the resolved customer, so changing the contact there would only create inconsistencies.
         if (Rec.Type = Rec.Type::Input) and (ContactCount >= 2) then
             SOAFiltersImpl.ShowDuplicateContactNotification(EmailAddress, ContactCount, Rec."Task ID", GetInputTaskMessageID())
         else
