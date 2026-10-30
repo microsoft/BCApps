@@ -934,6 +934,63 @@ codeunit 134826 "UT Contact Table"
         Assert.ExpectedErrorCode('TestValidation');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorEmailIsSynchronizedWithContactWhenModifiedProgrammatically()
+    var
+        Vendor: Record Vendor;
+        VendorToModify: Record Vendor;
+        Contact: Record Contact;
+        ContBusRel: Record "Contact Business Relation";
+        VendorEmail: Text[80];
+    begin
+        // [SCENARIO 651180] A contact is updated when a vendor is modified programmatically
+
+        // [GIVEN] A vendor with an associated contact
+        Vendor.Init();
+        Vendor.Insert(true);
+        Contact.Get(GetContactNoFromContBusRelations(ContBusRel."Link to Table"::Vendor, Vendor."No."));
+
+        // [WHEN] The vendor's email address is updated through a separately loaded record
+        VendorEmail := LibraryUtility.GenerateRandomEmail();
+        VendorToModify.Get(Vendor."No.");
+        VendorToModify.Validate("E-Mail", VendorEmail);
+        VendorToModify.Modify(true);
+
+        // [THEN] The associated contact has the updated email address
+        Contact.Get(Contact."No.");
+        Contact.TestField("E-Mail", VendorEmail);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BankAccountEmailIsSynchronizedWithContactWhenModifiedProgrammatically()
+    var
+        BankAccount: Record "Bank Account";
+        BankAccountToModify: Record "Bank Account";
+        Contact: Record Contact;
+        ContBusRel: Record "Contact Business Relation";
+        BankAccountEmail: Text[80];
+    begin
+        // [SCENARIO 651180] A contact is updated when a bank account is modified programmatically
+
+        // [GIVEN] A bank account with an associated contact
+        BankAccount.Init();
+        BankAccount.IBAN := LibraryUtility.GenerateGUID();
+        BankAccount.Insert(true);
+        Contact.Get(GetContactNoFromContBusRelations(ContBusRel."Link to Table"::"Bank Account", BankAccount."No."));
+
+        // [WHEN] The bank account's email address is updated through a separately loaded record
+        BankAccountEmail := LibraryUtility.GenerateRandomEmail();
+        BankAccountToModify.Get(BankAccount."No.");
+        BankAccountToModify.Validate("E-Mail", BankAccountEmail);
+        BankAccountToModify.Modify(true);
+
+        // [THEN] The associated contact has the updated email address
+        Contact.Get(Contact."No.");
+        Contact.TestField("E-Mail", BankAccountEmail);
+    end;
+
     local procedure GetContactNoFromContBusRelations(LinkOption: Enum "Contact Business Relation Link To Table"; CodeNo: Code[20]): Code[20]
     var
         ContactBusinessRelation: Record "Contact Business Relation";

@@ -4,6 +4,7 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -61,6 +62,8 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create Sales Quotes and use a GET method to retrieve them
 
         // [GIVEN] 2 quotes in the table
@@ -99,7 +102,11 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         QuoteJSON: Text;
         QuoteExists: Boolean;
     begin
+        Initialize();
+
         // [SCENARIO] Create sales quotes JSON and use HTTP POST to create them
+
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
 
         // [GIVEN] a customer
         LibrarySales.CreateCustomerWithAddress(SellToCustomer);
@@ -144,6 +151,8 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         CurrencyCode: Code[10];
         QuoteExists: Boolean;
     begin
+        Initialize();
+
         // [SCENARIO] Create sales quote with specific currency set and use HTTP POST to create it
 
         // [GIVEN] a quote with a non-LCY currencyCode set
@@ -175,18 +184,24 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
     [Test]
     procedure TestModifyQuotes()
     begin
+        Initialize();
+
         TestMultipleModifyQuotes(false, false);
     end;
 
     [Test]
     procedure TestEmptyModifyQuotes()
     begin
+        Initialize();
+
         TestMultipleModifyQuotes(true, false);
     end;
 
     [Test]
     procedure TestPartialModifyQuotes()
     begin
+        Initialize();
+
         TestMultipleModifyQuotes(false, true);
     end;
 
@@ -270,6 +285,8 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create sales quotes and use HTTP DELETE to delete them
 
         // [GIVEN] 2 quotes in the table
@@ -316,7 +333,10 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         QuoteJSON: Text;
         QuoteExists: Boolean;
     begin
+        Initialize();
+
         // [SCENARIO] Create a quote both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         // [GIVEN] a customer
@@ -370,6 +390,8 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         TargetURL: Text;
         DiscountPct: Decimal;
     begin
+        Initialize();
+
         // [SCENARIO] When a quote is created, the GET Method should update the quote and assign a total
         // [GIVEN] a quote without totals assigned
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(SalesHeader, DiscountPct, SalesHeader."Document Type"::Quote);
@@ -399,6 +421,8 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         DiscountAmt: Decimal;
         InvDiscAmount: Decimal;
     begin
+        Initialize();
+
         // [SCENARIO] When a quote is created, the GET Method should update the quote and redistribute the discount amount
 
         // [GIVEN] a quote with discount amount that should be redistributed
@@ -436,6 +460,8 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         ResponseText: Text;
         QuoteID: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create Sales Quote, use a PATCH method to change it and then verify the changes
         LibrarySales.CreateCustomerWithAddress(Customer);
 
@@ -482,6 +508,8 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         ResponseText: Text;
         QuoteID: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Clearing manually set discount
 
         // [GIVEN] an item with unit price and unit cost
@@ -530,6 +558,8 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can send a sales quote through the API.
         InitializeForSending();
 
@@ -573,6 +603,8 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         InvoiceEmailAddress: Text;
         InvoiceEmailSubject: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can convert a sales quote to a sales invoice through the API.
 
         // [GIVEN] Sales quote exists
@@ -631,6 +663,8 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         OrderEmailAddress: Text;
         OrderEmailSubject: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can convert a sales quote to a sales order through the API.
 
         // [GIVEN] Sales quote exists
@@ -848,4 +882,9 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
     end;
 
 
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+    end;
 }

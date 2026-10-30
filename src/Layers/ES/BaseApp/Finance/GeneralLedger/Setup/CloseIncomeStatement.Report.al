@@ -53,7 +53,6 @@ report 94 "Close Income Statement"
                     TempDimBuf: Record "Dimension Buffer" temporary;
                     TempDimBuf2: Record "Dimension Buffer" temporary;
                     DimensionBufferID: Integer;
-                    RowOffset: Integer;
                 begin
                     EntryCount := EntryCount + 1;
                     if CurrentDateTime - LastWindowUpdateDateTime > 1000 then begin
@@ -62,7 +61,10 @@ report 94 "Close Income Statement"
                     end;
 
                     if GroupSum() then begin
-                        CalcSumsInFilter("G/L Entry", RowOffset);
+                        if not CalcSumsInFilter("G/L Entry") then begin
+                            CurrReport.Skip();
+                            exit;
+                        end;
                         GetGLEntryDimensions("Entry No.", TempDimBuf, "Dimension Set ID");
                     end;
 
@@ -97,10 +99,8 @@ report 94 "Close Income Statement"
                         if TempEntryNoAmountBuffer.Find() then begin
                             TempEntryNoAmountBuffer.Amount := TempEntryNoAmountBuffer.Amount + Amount;
                             TempEntryNoAmountBuffer.Amount2 := TempEntryNoAmountBuffer.Amount2 + "Additional-Currency Amount";
-                            if "Source Currency Code" <> '' then begin
-                                TempEntryNoAmountBuffer."Source Currency Amount" := TempEntryNoAmountBuffer."Source Currency Amount" + "Source Currency Amount";
-                                TempEntryNoAmountBuffer."Source Currency VAT Amount" := TempEntryNoAmountBuffer."Source Currency VAT Amount" + "Source Currency VAT Amount";
-                            end;
+                            TempEntryNoAmountBuffer."Source Currency Amount" := TempEntryNoAmountBuffer."Source Currency Amount" + "Source Currency Amount";
+                            TempEntryNoAmountBuffer."Source Currency VAT Amount" := TempEntryNoAmountBuffer."Source Currency VAT Amount" + "Source Currency VAT Amount";
                             TempEntryNoAmountBuffer.Modify();
                         end else begin
                             TempEntryNoAmountBuffer.Amount := Amount;
@@ -112,9 +112,6 @@ report 94 "Close Income Statement"
                         end;
                         OnGLEntryOnAfterGetRecordOnAfterEntryNoAmountBuf(TempEntryNoAmountBuffer, "G/L Entry");
                     end;
-
-                    if GroupSum() then
-                        Next(RowOffset);
                 end;
 
                 trigger OnPostDataItem()
@@ -150,8 +147,10 @@ report 94 "Close Income Statement"
                                 GenJnlLine."Reason Code" := GenJnlBatch."Reason Code";
                                 GenJnlLine.Validate(Amount, -TempEntryNoAmountBuffer.Amount);
                                 GenJnlLine."System-Created Entry" := true;
-                                if not AddSourceCurrencyFields() then
-                                    GenJnlLine."Source Currency Amount" := -TempEntryNoAmountBuffer.Amount2;
+                                if not AddSourceCurrencyFields() then begin
+                                    GenJnlLine."Source Currency Amount" := 0;
+                                    GenJnlLine."Source Curr. VAT Amount" := 0;
+                                end;
                                 GenJnlLine."Business Unit Code" := TempEntryNoAmountBuffer."Business Unit Code";
 
                                 TempDimBuf2.DeleteAll();
@@ -166,7 +165,7 @@ report 94 "Close Income Statement"
                                     GenJnlLine."Shortcut Dimension 2 Code" := GlobalDimVal2;
                                 OnPostDataItemOnAfterGenJnlLineDimUpdated(GenJnlLine, ClosePerGlobalDim1, ClosePerGlobalDim2, TempEntryNoAmountBuffer);
 
-                                HandleGenJnlLine();
+                                HandleGenJnlLine(-TempEntryNoAmountBuffer.Amount2);
                                 UpdateBalAcc();
                                 OnGLEntryOnPostDataItemOnAfterHandleGenJnlLine(GenJnlLine, TempEntryNoAmountBuffer);
                             end;
@@ -177,6 +176,11 @@ report 94 "Close Income Statement"
 
                 trigger OnPreDataItem()
                 begin
+                    AddLoadFields(
+                        Amount, "Additional-Currency Amount", "Dimension Set ID",
+                        "Business Unit Code", "Global Dimension 1 Code", "Global Dimension 2 Code",
+                        "Source Currency Code", "Source Currency Amount", "Source Currency VAT Amount");
+
                     Window.Update(2, Text013);
                     Window.Update(3, 0);
 
@@ -400,8 +404,10 @@ report 94 "Close Income Statement"
 
     trigger OnPostReport()
     var
+        CloseIncStmtACYHandler: Codeunit "Close Inc. Stmt. ACY Handler";
         UpdateAnalysisView: Codeunit "Update Analysis View";
         IsHandled: Boolean;
+        UseClosedACYAmount: Boolean;
     begin
         InsBalLines();
 
@@ -419,12 +425,24 @@ report 94 "Close Income Statement"
 
         NoOfRecords := GenJnlLine.Count();
         Window.Update(1, LineCount);
+        GenJnlPostLine.SetSkipAddCurrResiduals(GLSetup."Additional Reporting Currency" <> '');
         repeat
             GenJnlLine2 := GenJnlLine;
             LineCount := LineCount + 1;
             Window.Update(2, Round(LineCount / NoOfRecords * 10000, 1));
+            UseClosedACYAmount :=
+                (GLSetup."Additional Reporting Currency" <> '') and
+                (GenJnlLine2."Additional-Currency Posting" = GenJnlLine2."Additional-Currency Posting"::None);
+            if UseClosedACYAmount then begin
+                CloseIncStmtACYHandler.SetAmounts(
+                    GenJnlLine2."Amount (LCY)", ClosingAmountsACY.Get(GenJnlLine2."Line No."));
+                BindSubscription(CloseIncStmtACYHandler);
+            end;
             GenJnlPostLine.Run(GenJnlLine2);
+            if UseClosedACYAmount then
+                UnbindSubscription(CloseIncStmtACYHandler);
         until GenJnlLine.Next() = 0;
+        GenJnlPostLine.SetSkipAddCurrResiduals(false);
         UpdateAnalysisView.UpdateAll(0, true);
     end;
 
@@ -510,6 +528,7 @@ report 94 "Close Income Statement"
         EntryNo: Integer;
         GroupEntryNos: Dictionary of [Text, Integer];
         EntryNoDimensionIds: Dictionary of [Text, Integer];
+        ProcessedGLEntryGroups: Dictionary of [Text, Boolean];
 #pragma warning disable AA0074
         Text000: Label 'Enter the ending date for the fiscal year.';
         Text001: Label 'Enter a Document No.';
@@ -539,6 +558,7 @@ report 94 "Close Income Statement"
         LastWindowUpdateDateTime: DateTime;
         GenJnlLine2: Record "Gen. Journal Line";
         BalLineBuffer: Record "Inc. Stmt. Clos. Buffer" temporary;
+        ClosingAmountsACY: Dictionary of [Integer, Decimal];
         LineCount: Integer;
         NoOfRecords: Integer;
         Text1100100: Label 'Posting lines         #1###### @2@@@@@@@@@@@@@';
@@ -615,35 +635,40 @@ report 94 "Close Income Statement"
     /// <remarks>
     /// This includes setting up additional currency fields and calling the posting routine.
     /// </remarks>
-    local procedure HandleGenJnlLine()
+    /// <param name="AmountACY">Closed amount in the additional reporting currency</param>
+    local procedure HandleGenJnlLine(AmountACY: Decimal)
     begin
         OnBeforeHandleGenJnlLine(GenJnlLine);
 
+        // ES buffers the journal lines before posting, so keep their ACY amounts separately.
+        ClosingAmountsACY.Add(GenJnlLine."Line No.", AmountACY);
         GenJnlLine."Additional-Currency Posting" :=
           GenJnlLine."Additional-Currency Posting"::None;
         if GLSetup."Additional Reporting Currency" <> '' then begin
-            if ZeroGenJnlAmount() then begin
+            if (GenJnlLine.Amount = 0) and (AmountACY <> 0) then begin
                 GenJnlLine."Additional-Currency Posting" :=
                   GenJnlLine."Additional-Currency Posting"::"Additional-Currency Amount Only";
-                GenJnlLine.Validate(Amount, GenJnlLine."Source Currency Amount");
+                GenJnlLine.Validate(Amount, AmountACY);
                 GenJnlLine."Source Currency Amount" := 0;
+                GenJnlLine."Source Curr. VAT Amount" := 0;
             end;
             if GenJnlLine.Amount <> 0 then
-                if not ((GenJnlLine.Amount = 0) and (GenJnlLine."Source Currency Amount" <> 0)) then
+                if not ZeroGenJnlAmount(AmountACY) then
                     GenJnlLine.Insert();
         end else
-            if not ZeroGenJnlAmount() then
+            if not ZeroGenJnlAmount(AmountACY) then
                 GenJnlLine.Insert();
     end;
 
     /// <summary>
-    /// Calculates the sum of amounts in the G/L Entry record based on the current filter.
+    /// Calculates each filtered G/L Entry group's amounts once, regardless of dataitem ordering.
     /// </summary>
     /// <param name="GLEntrySource">Source G/L Entry record</param>
-    /// <param name="Offset">Row offset for the calculation</param>
-    local procedure CalcSumsInFilter(var GLEntrySource: Record "G/L Entry"; var Offset: Integer)
+    /// <returns>True if this group was summed; false if it was already processed.</returns>
+    local procedure CalcSumsInFilter(var GLEntrySource: Record "G/L Entry"): Boolean
     var
         GLEntry: Record "G/L Entry";
+        GroupFilter: Text;
     begin
         GLEntry.CopyFilters(GLEntrySource);
         GLEntry.SetRange("Source Currency Code", GLEntrySource."Source Currency Code");
@@ -657,15 +682,23 @@ report 94 "Close Income Statement"
                 GLEntry.SetRange("Global Dimension 2 Code", GLEntrySource."Global Dimension 2 Code");
         end;
 
-        GLEntry.CalcSums(Amount);
+        // Source currency groups can be interleaved, so a filtered count cannot be used to skip dataitem rows.
+        GroupFilter := GLEntry.GetView(false);
+        if ProcessedGLEntryGroups.ContainsKey(GroupFilter) then
+            exit(false);
+        ProcessedGLEntryGroups.Add(GroupFilter, true);
+
+        GLEntry.CalcSums(Amount, "Source Currency Amount", "Source Currency VAT Amount");
         GLEntrySource.Amount := GLEntry.Amount;
+        GLEntrySource."Source Currency Amount" := GLEntry."Source Currency Amount";
+        GLEntrySource."Source Currency VAT Amount" := GLEntry."Source Currency VAT Amount";
         TotalAmount += GLEntrySource.Amount;
         if GLSetup."Additional Reporting Currency" <> '' then begin
             GLEntry.CalcSums("Additional-Currency Amount");
             GLEntrySource."Additional-Currency Amount" := GLEntry."Additional-Currency Amount";
             TotalAmountAddCurr += GLEntrySource."Additional-Currency Amount";
         end;
-        Offset := GLEntry.Count - 1;
+        exit(true);
     end;
 
     /// <summary>
@@ -764,7 +797,11 @@ report 94 "Close Income Statement"
     procedure UpdateBalAcc()
     var
         GLAcc: Record "G/L Account";
+        AmountACY: Decimal;
     begin
+        AmountACY := GenJnlLine."Source Currency Amount";
+        if GLSetup."Additional Reporting Currency" <> '' then
+            AmountACY := ClosingAmountsACY.Get(GenJnlLine."Line No.");
         GLAcc.Get(GenJnlLine."Account No.");
         if not BalLineBuffer.Get(GLAcc."Income Stmt. Bal. Acc.") then begin
             GLAcc.TestField("Income Stmt. Bal. Acc.");
@@ -776,7 +813,7 @@ report 94 "Close Income Statement"
                 BalLineBuffer.Amount := 0;
             end else begin
                 BalLineBuffer.Amount := GenJnlLine.Amount;
-                BalLineBuffer."Additional-Currency Amount" := GenJnlLine."Source Currency Amount";
+                BalLineBuffer."Additional-Currency Amount" := AmountACY;
             end;
             BalLineBuffer.Insert();
         end else begin
@@ -787,7 +824,7 @@ report 94 "Close Income Statement"
             else begin
                 BalLineBuffer.Amount := BalLineBuffer.Amount + GenJnlLine.Amount;
                 BalLineBuffer."Additional-Currency Amount" :=
-                  GenJnlLine."Source Currency Amount" + BalLineBuffer."Additional-Currency Amount";
+                  AmountACY + BalLineBuffer."Additional-Currency Amount";
             end;
             BalLineBuffer.Modify();
         end;
@@ -805,9 +842,10 @@ report 94 "Close Income Statement"
                 GenJnlLine."Additional-Currency Posting" :=
                   GenJnlLine."Additional-Currency Posting"::None;
                 if GLSetup."Additional Reporting Currency" <> '' then begin
+                    ClosingAmountsACY.Add(GenJnlLine."Line No.", -BalLineBuffer."Additional-Currency Amount");
                     GenJnlLine."Source Currency Code" := GLSetup."Additional Reporting Currency";
-                    if (GenJnlLine.Amount = 0) and
-                       (GenJnlLine."Source Currency Amount" <> 0)
+                    if (BalLineBuffer.Amount = 0) and
+                       (BalLineBuffer."Additional-Currency Amount" <> 0)
                     then begin
                         GenJnlLine.Validate(Amount, -BalLineBuffer."Additional-Currency Amount");
                         GenJnlLine.Validate("Source Currency Amount", 0);
@@ -838,9 +876,9 @@ report 94 "Close Income Statement"
         RetainedEarningsGLAcc."No." := RetainedAccNo;
     end;
 
-    local procedure ZeroGenJnlAmount(): Boolean
+    local procedure ZeroGenJnlAmount(AmountACY: Decimal): Boolean
     begin
-        exit((GenJnlLine.Amount = 0) and (GenJnlLine."Source Currency Amount" <> 0))
+        exit((GenJnlLine.Amount = 0) and ((GenJnlLine."Source Currency Amount" <> 0) or (AmountACY <> 0)))
     end;
 
     local procedure GroupSum(): Boolean
@@ -909,6 +947,7 @@ report 94 "Close Income Statement"
     begin
         Clear(GroupEntryNos);
         Clear(EntryNoDimensionIds);
+        Clear(ProcessedGLEntryGroups);
         EntryNo := 0;
     end;
 
@@ -1012,4 +1051,3 @@ report 94 "Close Income Statement"
     begin
     end;
 }
-

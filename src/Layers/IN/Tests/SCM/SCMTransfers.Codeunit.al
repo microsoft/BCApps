@@ -4289,6 +4289,242 @@
         Assert.AreEqual(FromLocation.Code, PurchaseLine."Location Code", LocationCodeSameErr);
     end;
 
+    [Test]
+    [HandlerFunctions('CreateInvtPickRequestPageHandler,MessageHandler')]
+    procedure DirectPutAwayWithPreassignedLot()
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Inventory Put-away] [Item Tracking]
+        // [SCENARIO] A direct put-away posts the lot assigned on the transfer line.
+        Initialize();
+
+        // [GIVEN] Transfer "T" with two units assigned to lot "A".
+        CreateDirectPutAwayTransfer(TransferHeader);
+        CreateTrackedPutAwayTransferLine(TransferHeader, TransferLine, "Item Tracking Type"::"Lot No.", 'LOT-A', 2, true);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        Commit();
+        CreateDirectTransferPutAway(TransferHeader, WarehouseActivityHeader);
+        EnterDirectPutAwayTracking(TransferLine, "Item Tracking Type"::"Lot No.", 'LOT-A');
+
+        // [WHEN] The destination put-away is posted.
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, true);
+
+        // [THEN] Transfer "T" completes with the correct destination lot and quantity.
+        VerifyCompletedTrackedPutAway(TransferLine, "Item Tracking Type"::"Lot No.", 'LOT-A');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateInvtPickRequestPageHandler,MessageHandler')]
+    procedure DirectPutAwayWithPreassignedSerial()
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Inventory Put-away] [Item Tracking]
+        // [SCENARIO] A direct put-away posts the serial number assigned on the transfer line.
+        Initialize();
+
+        // [GIVEN] Transfer "T" with one unit assigned to serial number "A".
+        CreateDirectPutAwayTransfer(TransferHeader);
+        CreateTrackedPutAwayTransferLine(TransferHeader, TransferLine, "Item Tracking Type"::"Serial No.", 'SERIAL-A', 1, true);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        Commit();
+        CreateDirectTransferPutAway(TransferHeader, WarehouseActivityHeader);
+        EnterDirectPutAwayTracking(TransferLine, "Item Tracking Type"::"Serial No.", 'SERIAL-A');
+
+        // [WHEN] The destination put-away is posted.
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, true);
+
+        // [THEN] Transfer "T" completes with the correct destination serial number.
+        VerifyCompletedTrackedPutAway(TransferLine, "Item Tracking Type"::"Serial No.", 'SERIAL-A');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateInvtPickRequestPageHandler,MessageHandler')]
+    procedure DirectPutAwayWithPreassignedPackage()
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Inventory Put-away] [Item Tracking]
+        // [SCENARIO] A direct put-away posts the package assigned on the transfer line.
+        Initialize();
+
+        // [GIVEN] Transfer "T" with four units assigned to package "A".
+        CreateDirectPutAwayTransfer(TransferHeader);
+        CreateTrackedPutAwayTransferLine(TransferHeader, TransferLine, "Item Tracking Type"::"Package No.", 'PACKAGE-A', 4, true);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        Commit();
+        CreateDirectTransferPutAway(TransferHeader, WarehouseActivityHeader);
+        EnterDirectPutAwayTracking(TransferLine, "Item Tracking Type"::"Package No.", 'PACKAGE-A');
+
+        // [WHEN] The destination put-away is posted.
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, true);
+
+        // [THEN] Transfer "T" completes with the correct destination package and quantity.
+        VerifyCompletedTrackedPutAway(TransferLine, "Item Tracking Type"::"Package No.", 'PACKAGE-A');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateInvtPickRequestPageHandler,MessageHandler')]
+    procedure DirectPutAwayWithEnteredLot()
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Inventory Put-away] [Item Tracking]
+        // [SCENARIO] A lot entered on the destination put-away is carried to the direct transfer.
+        Initialize();
+
+        // [GIVEN] Transfer "T" has two units of lot-tracked inventory without assigned tracking.
+        CreateDirectPutAwayTransfer(TransferHeader);
+        CreateTrackedPutAwayTransferLine(TransferHeader, TransferLine, "Item Tracking Type"::"Lot No.", 'LOT-A', 2, false);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        Commit();
+        CreateDirectTransferPutAway(TransferHeader, WarehouseActivityHeader);
+        VerifyPutAwayTracking(TransferLine, "Item Tracking Type"::"Lot No.", '');
+
+        // [WHEN] Lot "A" is validated on the put-away line and the put-away is posted.
+        EnterDirectPutAwayTracking(TransferLine, "Item Tracking Type"::"Lot No.", 'LOT-A');
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, true);
+
+        // [THEN] Transfer "T" completes with the entered lot and quantity.
+        VerifyCompletedTrackedPutAway(TransferLine, "Item Tracking Type"::"Lot No.", 'LOT-A');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateInvtPickRequestPageHandler,MessageHandler')]
+    procedure DirectPutAwayWithEnteredSerial()
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Inventory Put-away] [Item Tracking]
+        // [SCENARIO] A serial number entered on the destination put-away is carried to the direct transfer.
+        Initialize();
+
+        // [GIVEN] Transfer "T" has one serial-tracked unit without assigned tracking.
+        CreateDirectPutAwayTransfer(TransferHeader);
+        CreateTrackedPutAwayTransferLine(TransferHeader, TransferLine, "Item Tracking Type"::"Serial No.", 'SERIAL-A', 1, false);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        Commit();
+        CreateDirectTransferPutAway(TransferHeader, WarehouseActivityHeader);
+        VerifyPutAwayTracking(TransferLine, "Item Tracking Type"::"Serial No.", '');
+
+        // [WHEN] Serial number "A" is validated on the put-away line and the put-away is posted.
+        EnterDirectPutAwayTracking(TransferLine, "Item Tracking Type"::"Serial No.", 'SERIAL-A');
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, true);
+
+        // [THEN] Transfer "T" completes with the entered serial number.
+        VerifyCompletedTrackedPutAway(TransferLine, "Item Tracking Type"::"Serial No.", 'SERIAL-A');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateInvtPickRequestPageHandler,MessageHandler')]
+    procedure DirectPutAwayWithEnteredPackage()
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Inventory Put-away] [Item Tracking]
+        // [SCENARIO] A package entered on the destination put-away is carried to the direct transfer.
+        Initialize();
+
+        // [GIVEN] Transfer "T" has four package-tracked units without assigned tracking.
+        CreateDirectPutAwayTransfer(TransferHeader);
+        CreateTrackedPutAwayTransferLine(TransferHeader, TransferLine, "Item Tracking Type"::"Package No.", 'PACKAGE-A', 4, false);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        Commit();
+        CreateDirectTransferPutAway(TransferHeader, WarehouseActivityHeader);
+        VerifyPutAwayTracking(TransferLine, "Item Tracking Type"::"Package No.", '');
+
+        // [WHEN] Package "A" is validated on the put-away line and the put-away is posted.
+        EnterDirectPutAwayTracking(TransferLine, "Item Tracking Type"::"Package No.", 'PACKAGE-A');
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, true);
+
+        // [THEN] Transfer "T" completes with the entered package and quantity.
+        VerifyCompletedTrackedPutAway(TransferLine, "Item Tracking Type"::"Package No.", 'PACKAGE-A');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateInvtPickRequestPageHandler,MessageHandler')]
+    procedure DirectPutAwayWithReplacedLot()
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Inventory Put-away] [Item Tracking]
+        // [SCENARIO] Replacing a put-away lot does not post the old transfer tracking.
+        Initialize();
+
+        // [GIVEN] Transfer "T" is assigned lot "A", with replacement lot "B" also in stock.
+        CreateDirectPutAwayTransfer(TransferHeader);
+        CreateTrackedPutAwayTransferLine(TransferHeader, TransferLine, "Item Tracking Type"::"Lot No.", 'LOT-A', 2, true);
+        PostPutAwayTrackedInventory(TransferLine, "Item Tracking Type"::"Lot No.", 'LOT-B');
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        Commit();
+        CreateDirectTransferPutAway(TransferHeader, WarehouseActivityHeader);
+        EnterDirectPutAwayTracking(TransferLine, "Item Tracking Type"::"Lot No.", 'LOT-A');
+
+        // [WHEN] Lot "A" is replaced with "B" through put-away field validation and posted.
+        EnterDirectPutAwayTracking(TransferLine, "Item Tracking Type"::"Lot No.", 'LOT-B');
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, true);
+
+        // [THEN] Only lot "B" is transferred, with no outstanding outbound tracking quantities.
+        VerifyCompletedTrackedPutAway(TransferLine, "Item Tracking Type"::"Lot No.", 'LOT-B');
+        ItemLedgerEntry.SetRange("Item No.", TransferLine."Item No.");
+        ItemLedgerEntry.SetRange("Location Code", TransferLine."Transfer-to Code");
+        ItemLedgerEntry.SetRange("Lot No.", 'LOT-A');
+        Assert.RecordIsEmpty(ItemLedgerEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateInvtPickRequestPageHandler,MessageHandler')]
+    procedure DirectPutAwayWithMixedTrackedLines()
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferLine: array[4] of Record "Transfer Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Inventory Put-away] [Item Tracking]
+        // [SCENARIO] Mixed put-away tracking stays isolated by transfer source line.
+        Initialize();
+
+        // [GIVEN] Transfer "T" has two lines for the same lot-tracked item, plus serial and package items.
+        CreateDirectPutAwayTransfer(TransferHeader);
+        CreateTrackedPutAwayTransferLine(TransferHeader, TransferLine[1], "Item Tracking Type"::"Lot No.", 'LOT-A', 2, true);
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine[2], TransferLine[1]."Item No.", 3);
+        PostPutAwayTrackedInventory(TransferLine[2], "Item Tracking Type"::"Lot No.", 'LOT-B');
+        CreateTrackedPutAwayTransferLine(TransferHeader, TransferLine[3], "Item Tracking Type"::"Serial No.", 'SERIAL-A', 1, true);
+        CreateTrackedPutAwayTransferLine(TransferHeader, TransferLine[4], "Item Tracking Type"::"Package No.", 'PACKAGE-A', 4, false);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        Commit();
+        CreateDirectTransferPutAway(TransferHeader, WarehouseActivityHeader);
+        EnterDirectPutAwayTracking(TransferLine[1], "Item Tracking Type"::"Lot No.", 'LOT-A');
+        EnterDirectPutAwayTracking(TransferLine[3], "Item Tracking Type"::"Serial No.", 'SERIAL-A');
+
+        // [WHEN] Missing tracking is entered and the four-line put-away is posted.
+        EnterDirectPutAwayTracking(TransferLine[2], "Item Tracking Type"::"Lot No.", 'LOT-B');
+        EnterDirectPutAwayTracking(TransferLine[4], "Item Tracking Type"::"Package No.", 'PACKAGE-A');
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, true);
+
+        // [THEN] Each source line posts its own tracking and quantity without cross-line reservations.
+        VerifyCompletedTrackedPutAway(TransferLine[1], "Item Tracking Type"::"Lot No.", 'LOT-A');
+        VerifyCompletedTrackedPutAway(TransferLine[2], "Item Tracking Type"::"Lot No.", 'LOT-B');
+        VerifyCompletedTrackedPutAway(TransferLine[3], "Item Tracking Type"::"Serial No.", 'SERIAL-A');
+        VerifyCompletedTrackedPutAway(TransferLine[4], "Item Tracking Type"::"Package No.", 'PACKAGE-A');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -5863,6 +6099,172 @@
             until WarehouseActivityLine.Next() = 0;
     end;
 
+    local procedure CreateDirectPutAwayTransfer(var TransferHeader: Record "Transfer Header")
+    var
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        LocationFromCode: Code[10];
+        LocationToCode: Code[10];
+    begin
+        EnableDirectTransfersInInventorySetup();
+        CreateLocations(LocationFromCode, LocationToCode);
+        Location.Get(LocationToCode);
+        Location.Validate("Require Put-away", true);
+        Location.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, LocationToCode, false);
+        LibraryInventory.CreateTransferHeader(TransferHeader, LocationFromCode, LocationToCode, '');
+        TransferHeader.Validate("Direct Transfer", true);
+        TransferHeader.Validate("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
+        TransferHeader.Modify(true);
+    end;
+
+    local procedure CreateTrackedPutAwayTransferLine(TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; TrackingType: Enum "Item Tracking Type"; TrackingNo: Code[50]; Quantity: Decimal; Preassigned: Boolean)
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        TempItemTrackingSetup: Record "Item Tracking Setup";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        LibraryItemTracking.CreateItemTrackingCode(
+            ItemTrackingCode, TrackingType = TrackingType::"Serial No.", TrackingType = TrackingType::"Lot No.", TrackingType = TrackingType::"Package No.");
+        ItemTrackingCode.Validate("SN Warehouse Tracking", TrackingType = TrackingType::"Serial No.");
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", TrackingType = TrackingType::"Lot No.");
+        ItemTrackingCode.Validate("Package Warehouse Tracking", TrackingType = TrackingType::"Package No.");
+        ItemTrackingCode.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", Quantity);
+        PostPutAwayTrackedInventory(TransferLine, TrackingType, TrackingNo);
+        if Preassigned then begin
+            SetPutAwayTrackingSetup(TempItemTrackingSetup, TrackingType, TrackingNo);
+            LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, TempItemTrackingSetup, Quantity);
+        end;
+    end;
+
+    local procedure PostPutAwayTrackedInventory(TransferLine: Record "Transfer Line"; TrackingType: Enum "Item Tracking Type"; TrackingNo: Code[50])
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        TempItemTrackingSetup: Record "Item Tracking Setup";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        SetPutAwayTrackingSetup(TempItemTrackingSetup, TrackingType, TrackingNo);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(
+            ItemJournalLine, TransferLine."Item No.", TransferLine."Transfer-from Code", '', TransferLine.Quantity);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(
+            ReservationEntry, ItemJournalLine, TempItemTrackingSetup, TransferLine."Quantity (Base)");
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure SetPutAwayTrackingSetup(var TempItemTrackingSetup: Record "Item Tracking Setup"; TrackingType: Enum "Item Tracking Type"; TrackingNo: Code[50])
+    begin
+        Clear(TempItemTrackingSetup);
+        case TrackingType of
+            TrackingType::"Serial No.":
+                TempItemTrackingSetup."Serial No." := TrackingNo;
+            TrackingType::"Lot No.":
+                TempItemTrackingSetup."Lot No." := TrackingNo;
+            TrackingType::"Package No.":
+                TempItemTrackingSetup."Package No." := TrackingNo;
+        end;
+    end;
+
+    local procedure CreateDirectTransferPutAway(var TransferHeader: Record "Transfer Header"; var WarehouseActivityHeader: Record "Warehouse Activity Header")
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        TransferHeader.CreateInvtPutAwayPick();
+        TransferLine.SetRange("Document No.", TransferHeader."No.");
+        TransferLine.FindFirst();
+        Assert.IsTrue(
+            LibraryWarehouse.FindWhseActivityBySourceDoc(
+                WarehouseActivityHeader, Database::"Transfer Line", 1, TransferHeader."No.", TransferLine."Line No."),
+            'The destination inventory put-away was not created.');
+        LibraryWarehouse.AutoFillQtyInventoryActivity(WarehouseActivityHeader);
+    end;
+
+    local procedure FindDirectPutAwayLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; TransferLine: Record "Transfer Line")
+    begin
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Put-away");
+        WarehouseActivityLine.SetSourceFilter(Database::"Transfer Line", 1, TransferLine."Document No.", TransferLine."Line No.", 0, true);
+        Assert.RecordCount(WarehouseActivityLine, 1);
+        WarehouseActivityLine.FindFirst();
+    end;
+
+    local procedure EnterDirectPutAwayTracking(TransferLine: Record "Transfer Line"; TrackingType: Enum "Item Tracking Type"; TrackingNo: Code[50])
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        FindDirectPutAwayLine(WarehouseActivityLine, TransferLine);
+        case TrackingType of
+            TrackingType::"Serial No.":
+                WarehouseActivityLine.Validate("Serial No.", TrackingNo);
+            TrackingType::"Lot No.":
+                WarehouseActivityLine.Validate("Lot No.", TrackingNo);
+            TrackingType::"Package No.":
+                WarehouseActivityLine.Validate("Package No.", TrackingNo);
+        end;
+        WarehouseActivityLine.Modify(true);
+        VerifyPutAwayTracking(TransferLine, TrackingType, TrackingNo);
+    end;
+
+    local procedure VerifyPutAwayTracking(TransferLine: Record "Transfer Line"; TrackingType: Enum "Item Tracking Type"; TrackingNo: Code[50])
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        TempItemTrackingSetup: Record "Item Tracking Setup";
+    begin
+        FindDirectPutAwayLine(WarehouseActivityLine, TransferLine);
+        SetPutAwayTrackingSetup(TempItemTrackingSetup, TrackingType, TrackingNo);
+        Assert.AreEqual(TempItemTrackingSetup."Lot No.", WarehouseActivityLine."Lot No.", 'Unexpected put-away lot.');
+        Assert.AreEqual(TempItemTrackingSetup."Serial No.", WarehouseActivityLine."Serial No.", 'Unexpected put-away serial number.');
+        Assert.AreEqual(TempItemTrackingSetup."Package No.", WarehouseActivityLine."Package No.", 'Unexpected put-away package.');
+        Assert.AreEqual(TransferLine."Quantity (Base)", WarehouseActivityLine."Qty. to Handle (Base)", 'Unexpected put-away quantity.');
+    end;
+
+    local procedure VerifyCompletedTrackedPutAway(TransferLine: Record "Transfer Line"; TrackingType: Enum "Item Tracking Type"; TrackingNo: Code[50])
+    var
+        TransferHeader: Record "Transfer Header";
+        DirectTransHeader: Record "Direct Trans. Header";
+        DirectTransLine: Record "Direct Trans. Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        TempItemTrackingSetup: Record "Item Tracking Setup";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        TransferHeader.SetRange("No.", TransferLine."Document No.");
+        Assert.RecordIsEmpty(TransferHeader);
+#pragma warning disable AA0210
+        DirectTransHeader.SetRange("Transfer Order No.", TransferLine."Document No.");
+#pragma warning restore AA0210
+        Assert.RecordCount(DirectTransHeader, 1);
+        DirectTransHeader.FindFirst();
+        DirectTransLine.Get(DirectTransHeader."No.", TransferLine."Line No.");
+        Assert.AreEqual(TransferLine."Item No.", DirectTransLine."Item No.", 'Unexpected posted transfer item.');
+        Assert.AreEqual(TransferLine."Quantity (Base)", DirectTransLine."Quantity (Base)", 'Unexpected posted source-line quantity.');
+        SetPutAwayTrackingSetup(TempItemTrackingSetup, TrackingType, TrackingNo);
+        ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Direct Transfer");
+        ItemLedgerEntry.SetRange("Document No.", DirectTransHeader."No.");
+        ItemLedgerEntry.SetRange("Document Line No.", TransferLine."Line No.");
+        ItemLedgerEntry.SetRange("Item No.", TransferLine."Item No.");
+        ItemLedgerEntry.SetRange("Location Code", TransferLine."Transfer-to Code");
+        ItemLedgerEntry.SetRange(Positive, true);
+        Assert.RecordCount(ItemLedgerEntry, 1);
+        ItemLedgerEntry.FindFirst();
+        Assert.AreEqual(TransferLine."Quantity (Base)", ItemLedgerEntry.Quantity, 'Unexpected destination quantity.');
+        Assert.AreEqual(TempItemTrackingSetup."Lot No.", ItemLedgerEntry."Lot No.", 'Unexpected destination lot.');
+        Assert.AreEqual(TempItemTrackingSetup."Serial No.", ItemLedgerEntry."Serial No.", 'Unexpected destination serial number.');
+        Assert.AreEqual(TempItemTrackingSetup."Package No.", ItemLedgerEntry."Package No.", 'Unexpected destination package.');
+        ReservationEntry.SetRange("Source Type", Database::"Transfer Line");
+        ReservationEntry.SetRange("Source Subtype", 0, 1);
+        ReservationEntry.SetRange("Source ID", TransferLine."Document No.");
+        ReservationEntry.SetRange("Source Ref. No.", TransferLine."Line No.");
+        ReservationEntry.SetFilter("Qty. to Handle (Base)", '<>0');
+        Assert.RecordIsEmpty(ReservationEntry);
+        ReservationEntry.SetRange("Qty. to Handle (Base)");
+        ReservationEntry.SetFilter("Qty. to Invoice (Base)", '<>0');
+        Assert.RecordIsEmpty(ReservationEntry);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure SetVariantMandatoryInInventorySetup()
     var
         InventorySetup: Record "Inventory Setup";
@@ -6157,4 +6559,3 @@
         PurchaseOrder.Close();
     end;
 }
-

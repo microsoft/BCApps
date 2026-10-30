@@ -120,8 +120,7 @@ codeunit 101168 "Create Job G/L Accounts"
         if not TryGetGLAccountNoRange(GLAccount, FromGLAccountNo, ToGLAccountNo) then
             exit;
 
-        GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", false);
-        GLAccount.ModifyAll("Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
+        GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", "Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
     end;
 
     [TryFunction]

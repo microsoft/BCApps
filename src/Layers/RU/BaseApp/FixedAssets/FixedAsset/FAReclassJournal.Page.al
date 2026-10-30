@@ -162,6 +162,11 @@ page 5636 "FA Reclass. Journal"
                     ApplicationArea = FixedAssets;
                     Visible = false;
                 }
+                field("Reclass. Derogatory"; Rec."Reclass. Derogatory")
+                {
+                    ApplicationArea = FixedAssets;
+                    Visible = false;
+                }
                 field("Insert Bal. Account"; Rec."Insert Bal. Account")
                 {
                     ApplicationArea = FixedAssets;
