@@ -539,28 +539,34 @@ codeunit 139996 "Subc. Planning Test"
     [Test]
     procedure VendorSuppliedCompQtyUpdatedOnPurchOrderReschedule()
     begin
-        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>');
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', false);
     end;
 
     [Test]
     procedure VendorSuppliedCompItemVendorLeadTimeOnReschedule()
     begin
-        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '<7D>', '<5D>', '<5D>');
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '<7D>', '<5D>', '<5D>', false);
     end;
 
     [Test]
     procedure VendorSuppliedCompSKULeadTimeOnReschedule()
     begin
-        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '<7D>', '', '<7D>');
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '<7D>', '', '<7D>', false);
     end;
 
     [Test]
     procedure VendorSuppliedCompVendorLeadTimeOnReschedule()
     begin
-        VerifyVendorSuppliedComponentCreationAndRescheduling('', '', '', '<20D>');
+        VerifyVendorSuppliedComponentCreationAndRescheduling('', '', '', '<20D>', false);
     end;
 
-    local procedure VerifyVendorSuppliedComponentCreationAndRescheduling(ItemLeadTime: Text[30]; SKULeadTime: Text[30]; ItemVendorLeadTime: Text[30]; ExpectedLeadTime: Text[30])
+    [Test]
+    procedure AmbiguousLegacyDuplicateComponentsInReverseOrderAreNotMigrated()
+    begin
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', true);
+    end;
+
+    local procedure VerifyVendorSuppliedComponentCreationAndRescheduling(ItemLeadTime: Text[30]; SKULeadTime: Text[30]; ItemVendorLeadTime: Text[30]; ExpectedLeadTime: Text[30]; ReverseLegacyLines: Boolean)
     var
         Item: Record Item;
         ComponentItem: Record Item;
@@ -577,6 +583,8 @@ codeunit 139996 "Subc. Planning Test"
         ProdOrderComponent2: Record "Prod. Order Component";
         PurchaseLine: Record "Purchase Line";
         PurchaseLineComp: Record "Purchase Line";
+        OriginalPurchaseLine: array[2] of Record "Purchase Line";
+        LegacyPurchaseLine: array[2] of Record "Purchase Line";
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
@@ -585,6 +593,7 @@ codeunit 139996 "Subc. Planning Test"
         ComponentDueDate: Date;
         InitialQty: Decimal;
         NewQty: Decimal;
+        ComponentIndex: Integer;
         ExpectedComponentCount: Integer;
         InitialComponentPurchaseLineErr: Label 'Each vendor-supplied component must have its own purchase line after initial PO creation.';
         ComponentPurchaseLineQuantityErr: Label 'The component purchase line quantity should match its production component.';
@@ -697,24 +706,24 @@ codeunit 139996 "Subc. Planning Test"
             Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLineComp."Expected Receipt Date", ComponentPurchaseLineDueDateErr);
             AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent, PurchaseLineComp, Location, Vendor, BaseCalendar, ExpectedLeadTime);
             ExpectedComponentCount += 1;
+            OriginalPurchaseLine[ExpectedComponentCount] := PurchaseLineComp;
         until ProdOrderComponent.Next() = 0;
         Assert.AreEqual(2, ExpectedComponentCount, ExpectedVendorSuppliedComponentCountErr);
 
-        // Simulate component purchase lines created before the component identity was stored.
-        PurchaseLineComp.Reset();
-        PurchaseLineComp.SetRange("Document Type", PurchaseLine."Document Type");
-        PurchaseLineComp.SetRange("Document No.", PurchaseLine."Document No.");
-        PurchaseLineComp.SetRange(Type, PurchaseLineComp.Type::Item);
-#pragma warning disable AA0210
-        PurchaseLineComp.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
-#pragma warning restore AA0210
-        PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
-        PurchaseLineComp.SetRange("Subc. Operation No.", RequisitionLine."Operation No.");
-        if PurchaseLineComp.FindSet() then
-            repeat
+        if ReverseLegacyLines then begin
+            Assert.AreEqual(
+                RequisitionLine."Prod. Order Line No.", RequisitionLine."Routing Reference No.",
+                'This regression requires a non-Family routing reference equal to the output line number.');
+            for ComponentIndex := 1 to 2 do
+                OriginalPurchaseLine[ComponentIndex].Delete();
+            for ComponentIndex := 1 to 2 do begin
+                PurchaseLineComp := OriginalPurchaseLine[ComponentIndex];
+                PurchaseLineComp."Line No." := OriginalPurchaseLine[3 - ComponentIndex]."Line No.";
                 PurchaseLineComp."Subc. Prod. Comp. Line No." := 0;
-                PurchaseLineComp.Modify();
-            until PurchaseLineComp.Next() = 0;
+                PurchaseLineComp.Insert();
+                LegacyPurchaseLine[ComponentIndex] := PurchaseLineComp;
+            end;
+        end;
 
         // [WHEN] The production order quantity is increased and refreshed
         NewQty := InitialQty + LibraryRandom.RandIntInRange(3, 7);
@@ -749,6 +758,25 @@ codeunit 139996 "Subc. Planning Test"
             'Requisition line should have a Change Qty or Reschedule action message.');
 
         SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        if ReverseLegacyLines then begin
+            for ComponentIndex := 1 to 2 do begin
+                PurchaseLineComp.Get(
+                    LegacyPurchaseLine[ComponentIndex]."Document Type",
+                    LegacyPurchaseLine[ComponentIndex]."Document No.",
+                    LegacyPurchaseLine[ComponentIndex]."Line No.");
+                Assert.AreEqual(0, PurchaseLineComp."Subc. Prod. Comp. Line No.", 'Ambiguous legacy component identity must remain unknown.');
+                Assert.AreEqual(
+                    LegacyPurchaseLine[ComponentIndex]."Subc. Prod. Order Line No.", PurchaseLineComp."Subc. Prod. Order Line No.",
+                    'Ambiguous legacy output identity must remain unchanged.');
+                Assert.AreEqual(LegacyPurchaseLine[ComponentIndex].Quantity, PurchaseLineComp.Quantity, 'Ambiguous legacy quantity must remain unchanged.');
+                Assert.AreEqual(LegacyPurchaseLine[ComponentIndex]."Order Date", PurchaseLineComp."Order Date", 'Ambiguous legacy order date must remain unchanged.');
+                Assert.AreEqual(LegacyPurchaseLine[ComponentIndex]."Expected Receipt Date", PurchaseLineComp."Expected Receipt Date", 'Ambiguous legacy due date must remain unchanged.');
+                Assert.AreEqual(LegacyPurchaseLine[ComponentIndex]."Planned Receipt Date", PurchaseLineComp."Planned Receipt Date", 'Ambiguous legacy planned date must remain unchanged.');
+                Assert.AreEqual(LegacyPurchaseLine[ComponentIndex]."Requested Receipt Date", PurchaseLineComp."Requested Receipt Date", 'Ambiguous legacy requested date must remain unchanged.');
+            end;
+            exit;
+        end;
 
         // [THEN] Rescheduling updates each component's own purchase line quantity and dates
         ExpectedComponentCount := 0;
