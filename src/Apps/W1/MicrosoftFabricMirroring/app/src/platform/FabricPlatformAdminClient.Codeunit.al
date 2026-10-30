@@ -21,7 +21,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         PrincipalIdRequiredErr: Label 'Principal ID is missing. Ask your Microsoft Entra administrator for the object ID of the enterprise application, enter it on the Fabric setup page, and try again.';
         ReadPrincipalIdSetupInstructionsLbl: Label 'Read setup instructions';
         PrincipalIdSetupHelpUrlTok: Label 'https://go.microsoft.com/fwlink/?LinkId=2386618', Locked = true;
-        AddSPTokenErr: Label 'Failed to acquire permission to add the service principal to the Fabric workspace. Sign in again and verify admin consent, or add the service principal directly in Fabric with the Contributor role.';
+        AddSPTokenErr: Label 'Service principal could not be added to the Fabric workspace. Add it directly in Fabric with Contributor role.';
         AddSPTransportErr: Label 'Failed to add service principal to workspace: transport error.';
         AddSPHttpGenericErr: Label 'Failed to add service principal to workspace. Contact your administrator if the problem persists.';
         AddSPHttpStatusErr: Label 'Failed to add service principal to workspace. HTTP %1.', Comment = '%1 = HTTP status code';
