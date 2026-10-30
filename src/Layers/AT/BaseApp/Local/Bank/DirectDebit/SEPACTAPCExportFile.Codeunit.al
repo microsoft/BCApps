@@ -7,10 +7,8 @@ namespace Microsoft.Bank.DirectDebit;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.GeneralLedger.Journal;
-using System;
 using System.IO;
 using System.Utilities;
-using System.Xml;
 
 codeunit 11100 "SEPA CT APC-Export File"
 {
@@ -43,16 +41,14 @@ codeunit 11100 "SEPA CT APC-Export File"
     [Scope('OnPrem')]
     procedure PostProcessXMLDocument(var TempBlob: Codeunit "Temp Blob"; XMLPortID: Integer)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLDoc: DotNet XmlDocument;
-        XMLNsMgr: DotNet XmlNamespaceManager;
+        XMLDoc: XmlDocument;
+        XMLNsMgr: XmlNamespaceManager;
         InStr: InStream;
-        OutStr: OutStream;
     begin
         TempBlob.CreateInStream(InStr);
 
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, XMLDoc);
-        XMLNsMgr := XMLNsMgr.XmlNamespaceManager(XMLDoc.NameTable);
+        XmlDocument.ReadFrom(InStr, XMLDoc);
+        XMLNsMgr.NameTable(XMLDoc.NameTable());
         case XMLPortID of
             XMLPort::"SEPA CT pain.001.001.09":
                 XMLNsMgr.AddNamespace('ns', 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.09');
@@ -60,26 +56,58 @@ codeunit 11100 "SEPA CT APC-Export File"
                 XMLNsMgr.AddNamespace('ns', 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03');
         end;
         ApplyApcRequirements(XMLDoc, XMLNsMgr);
+        RemoveWhitespaceNodes(XMLDoc);
 
         Clear(TempBlob);
-        TempBlob.CreateOutStream(OutStr);
-        XMLDoc.Save(OutStr);
+        WriteXMLDocument(XMLDoc, TempBlob);
     end;
 
-    local procedure ApplyApcRequirements(var XMLDoc: DotNet XmlDocument; XMLNsMgr: DotNet XmlNamespaceManager)
+    local procedure ApplyApcRequirements(var XMLDoc: XmlDocument; XMLNsMgr: XmlNamespaceManager)
     var
-        NodeList: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
-        i: Integer;
+        NodeList: XmlNodeList;
+        XMLNode: XmlNode;
     begin
         // Remove all PstlAdr nodes
-        NodeList := XMLDoc.DocumentElement.SelectNodes('//ns:PstlAdr', XMLNsMgr);
-        for i := 1 to NodeList.Count do
-            NodeList.Item(i - 1).ParentNode.RemoveChild(NodeList.Item(i - 1));
+        if XMLDoc.SelectNodes('//ns:PstlAdr', XMLNsMgr, NodeList) then
+            foreach XMLNode in NodeList do
+                XMLNode.Remove();
 
         // Remove Nm from InitgPty
-        XMLNode := XMLDoc.DocumentElement.SelectSingleNode('//ns:InitgPty/ns:Nm', XMLNsMgr);
-        if not IsNull(XMLNode) then
-            XMLNode.ParentNode.RemoveChild(XMLNode);
+        if XMLDoc.SelectSingleNode('//ns:InitgPty/ns:Nm', XMLNsMgr, XMLNode) then
+            XMLNode.Remove();
+    end;
+
+    local procedure RemoveWhitespaceNodes(var XMLDoc: XmlDocument)
+    var
+        NodeList: XmlNodeList;
+        XMLNode: XmlNode;
+        WhitespaceChars: Text[4];
+    begin
+        // The document is written with indentation, so the whitespace-only text nodes kept by ReadFrom are dropped first.
+        WhitespaceChars[1] := 32;
+        WhitespaceChars[2] := 9;
+        WhitespaceChars[3] := 10;
+        WhitespaceChars[4] := 13;
+        if XMLDoc.SelectNodes('//text()', NodeList) then
+            foreach XMLNode in NodeList do
+                RemoveIfWhitespace(XMLNode, WhitespaceChars);
+        NodeList := XMLDoc.GetChildNodes();
+        foreach XMLNode in NodeList do
+            RemoveIfWhitespace(XMLNode, WhitespaceChars);
+    end;
+
+    local procedure RemoveIfWhitespace(var XMLNode: XmlNode; WhitespaceChars: Text)
+    begin
+        if XMLNode.IsXmlText() then
+            if DelChr(XMLNode.AsXmlText().Value(), '=', WhitespaceChars) = '' then
+                XMLNode.Remove();
+    end;
+
+    local procedure WriteXMLDocument(var XMLDoc: XmlDocument; var TempBlob: Codeunit "Temp Blob")
+    var
+        OutStr: OutStream;
+    begin
+        TempBlob.CreateOutStream(OutStr);
+        XMLDoc.WriteTo(OutStr);
     end;
 }
