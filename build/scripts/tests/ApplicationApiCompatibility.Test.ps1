@@ -535,6 +535,151 @@ Describe 'Application API compatibility prototype' {
             $state.AcceptedMoves[1].Accepted | Should -BeTrue
         }
 
+        It 'recognizes part-removal diagnostics accompanying an unchanged whole-page move' {
+            $page.Controls = @(@{ Name = 'Activities'; Kind = 'Part'; TypeDefinition = @{ Name = 'Page'; Subtype = @{ Id = 9071; Name = 'Intercompany Activities' } } })
+            $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections @{
+                Namespaces = @(@{ Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page) })
+            }
+            Write-ApiDestination
+            $gate = New-ApiGateLayout
+            Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message "The part with name 'Activities' defined in Page 'IC API Log Entries' was found in the previous version, but is missing in the current extension."
+            Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+            $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+            $state.AcceptedMoves.Count | Should -Be 2
+            $state.AcceptedMoves[1].Accepted | Should -BeTrue
+        }
+
+        Context 'Page parts relocated into Application page extensions' {
+            BeforeAll {
+                function Write-PartApiPackages {
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $partOldCollections
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections $partCurrentCollections
+                    $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $partDestinationCollections
+                }
+            }
+
+            BeforeEach {
+                $part = @{
+                    Name = 'Intercompany Activities'
+                    Kind = 'Part'
+                    TypeDefinition = @{ Name = 'Page'; Subtype = @{ Id = 9071; Name = 'Intercompany Activities' } }
+                    Properties = @(@{ Name = 'ApplicationArea'; Value = 'Intercompany' })
+                }
+                $newPart = $part | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $oldHost = @{
+                    Id = 9027
+                    Name = 'Accountant Role Center'
+                    Controls = @(@{ Name = 'rolecenter'; Kind = 'Area'; Controls = @($part) })
+                }
+                $currentHost = $oldHost | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $currentHost.Controls[0].Controls = @()
+                $oldTarget = @{
+                    Id = 9071
+                    Name = 'Intercompany Activities'
+                    Properties = @(@{ Name = 'PageType'; Value = 'CardPart' })
+                    Methods = @(@{ Name = 'GetCount'; ReturnTypeDefinition = @{ Name = 'Integer' } })
+                }
+                $newTarget = $oldTarget | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $partExtension = @{
+                    Id = 8405
+                    Name = 'IC Accountant Role Center'
+                    TargetObject = 'Accountant Role Center'
+                    ControlChanges = @(@{ Name = 'Control1902304208'; Controls = @($newPart) })
+                }
+                $partOldCollections = @{ Namespaces = @(@{ Name = 'Migration.PartProbe'; Pages = @($page, $oldHost, $oldTarget) }) }
+                $partCurrentCollections = @{ Namespaces = @(@{ Name = 'Migration.PartProbe'; Pages = @($currentHost) }) }
+                $partDestinationCollections = @{
+                    Namespaces = @(@{ Name = 'Migration.PartProbe'; Pages = @($page, $newTarget); PageExtensions = @($partExtension) })
+                }
+                $partMessage = "The part with name 'Intercompany Activities' defined in Page 'Accountant Role Center' was found in the previous version, but is missing in the current extension."
+            }
+
+            It 'reconciles an unchanged part using a <Reference> host reference' -TestCases @(
+                @{ Reference = 'simple'; Kind = 'Part'; Suffix = '' },
+                @{ Reference = 'qualified'; Kind = 6; Suffix = ' This will break dependent extensions.' }
+            ) {
+                param($Reference, $Kind, $Suffix)
+                $part.Kind = $Kind
+                $newPart.Kind = $Kind
+                if ($Reference -eq 'qualified') { $partExtension.TargetObject = 'Migration.PartProbe."Accountant Role Center"' }
+                Write-PartApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message "$partMessage$Suffix"
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $partMove = @($state.AcceptedMoves | Where-Object RuleId -EQ 'AS0032')
+                $partMove.Count | Should -Be 1
+                $partMove[0].Accepted | Should -BeTrue
+                $partMove[0].PartName | Should -Be 'Intercompany Activities'
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Not -Match 'warning AS0032'
+                Get-Content -LiteralPath (Join-Path $gate.Root "Originals\$([System.IO.Path]::GetFileName($gate.SourceLog)).txt") -Raw |
+                    Should -Match 'warning AS0032'
+                $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
+                @($alerts.issues | Where-Object ruleId -EQ 'AS0032').Count | Should -Be 0
+                @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
+            }
+
+            It 'rejects a part relocation when <Failure>' -TestCases @(
+                @{ Failure = 'the part is deleted' },
+                @{ Failure = 'the part is renamed' },
+                @{ Failure = 'the control is no longer a part' },
+                @{ Failure = 'the target page changes' },
+                @{ Failure = 'part properties change' },
+                @{ Failure = 'the host page changes' },
+                @{ Failure = 'the host namespace changes' },
+                @{ Failure = 'the host reference is ambiguous' },
+                @{ Failure = 'two extensions provide the part' },
+                @{ Failure = 'the target page is missing' },
+                @{ Failure = 'the target page contract changes' },
+                @{ Failure = 'the provider is not exposed' },
+                @{ Failure = 'the part stays in the source app' }
+            ) {
+                param($Failure)
+                switch ($Failure) {
+                    'the part is deleted' { $partExtension.ControlChanges = @() }
+                    'the part is renamed' { $newPart.Name = 'Renamed activities' }
+                    'the control is no longer a part' { $newPart.Kind = 'Field' }
+                    'the target page changes' { $newPart.TypeDefinition.Subtype.Id = 9072 }
+                    'part properties change' { $newPart.Properties[0].Value = 'Basic' }
+                    'the host page changes' {
+                        $partExtension.TargetObject = 'Other Role Center'
+                        $partCurrentCollections.Namespaces[0].Pages += @{ Id = 9028; Name = 'Other Role Center' }
+                    }
+                    'the host namespace changes' { $partCurrentCollections.Namespaces[0].Name = 'Migration.Other' }
+                    'the host reference is ambiguous' {
+                        $partCurrentCollections.Namespaces += @{ Name = 'Migration.Other'; Pages = @(@{ Id = 9028; Name = 'Accountant Role Center' }) }
+                    }
+                    'two extensions provide the part' {
+                        $duplicate = $partExtension | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                        $duplicate.Id = 8406
+                        $duplicate.Name = 'Duplicate part provider'
+                        $partDestinationCollections.Namespaces[0].PageExtensions += $duplicate
+                    }
+                    'the target page is missing' { $partDestinationCollections.Namespaces[0].Pages = @($page) }
+                    'the target page contract changes' { $newTarget.Methods[0].ReturnTypeDefinition.Name = 'Text' }
+                    'the provider is not exposed' {
+                        $script:currentApplication = New-ApiTestPackage -Name 'Application' -Id $applicationId -Propagate $true -Dependencies @($script:currentBase)
+                    }
+                    'the part stays in the source app' {
+                        $partCurrentCollections.Namespaces[0].PageExtensions = @($partExtension)
+                        $partDestinationCollections.Namespaces[0].PageExtensions = @()
+                    }
+                }
+                Write-PartApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $partMessage
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $partMove = @($state.AcceptedMoves | Where-Object RuleId -EQ 'AS0032')
+                $partMove.Count | Should -Be 1
+                $partMove[0].Accepted | Should -BeFalse
+                $partMove[0].Reason | Should -Not -BeNullOrEmpty
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0032'
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            }
+        }
+
         It 'still rejects <RuleId> member removals from objects that have not moved' -TestCases @(
             @{ RuleId = 'AS0018'; Message = "Procedure 'Process(Text)' has been removed in 'Table Gen. Journal Line'. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure." },
             @{ RuleId = 'AS0031'; Message = "The action with name 'Partners' defined in Page 'Accountant Role Center' was found in the previous version, but is missing in the current extension. This will break dependent extensions." },

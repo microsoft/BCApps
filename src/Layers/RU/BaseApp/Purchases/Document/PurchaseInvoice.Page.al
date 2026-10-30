@@ -1973,7 +1973,6 @@ page 51 "Purchase Invoice"
 
     trigger OnOpenPage()
     var
-        PurchaseHeader: Record "Purchase Header";
         EnvironmentInfo: Codeunit "Environment Information";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
