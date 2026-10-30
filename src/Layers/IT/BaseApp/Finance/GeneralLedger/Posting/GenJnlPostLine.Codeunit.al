@@ -4578,7 +4578,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         (DtldCVLedgEntryBuf."VAT Amount (LCY)" <> 0)) or
                        ((AddCurrencyCode <> '') and (DtldCVLedgEntryBuf."Additional-Currency Amount" <> 0))
                     then
-                        PostDtldCustLedgEntry(GenJnlLine, DtldCVLedgEntryBuf, CustPostingGr, AdjAmount, DtldCustLedgEntry);
+                        PostDtldCustLedgEntry(GenJnlLine, DtldCVLedgEntryBuf, CustPostingGr, AdjAmount);
             until DtldCVLedgEntryBuf.Next() = 0;
         end;
 
@@ -4596,23 +4596,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DtldCVLedgEntryBuf.DeleteAll();
     end;
 
-    local procedure PostDtldCustLedgEntry(GenJournalLine: Record "Gen. Journal Line"; DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; CustPostingGr: Record "Customer Posting Group"; var AdjAmount: array[4] of Decimal; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    local procedure PostDtldCustLedgEntry(GenJournalLine: Record "Gen. Journal Line"; DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; CustPostingGr: Record "Customer Posting Group"; var AdjAmount: array[4] of Decimal)
     var
         AccNo: Code[20];
-        ApplicationGLEntryNo: Integer;
     begin
         if MultiplePostingGroups and (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application) then
             AccNo := GetCustDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer)
         else
             AccNo := GetDtldCustLedgEntryAccNo(GenJournalLine, DetailedCVLedgEntryBuffer, CustPostingGr, 0, false);
-        PostDtldCVLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, AdjAmount, false, ApplicationGLEntryNo);
-        if ApplicationGLEntryNo <> 0 then begin
-            DetailedCustLedgEntry."Application G/L Entry No." := ApplicationGLEntryNo;
-            DetailedCustLedgEntry.Modify();
-        end;
+        PostDtldCVLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, AdjAmount, false);
     end;
 
-    local procedure PostDtldCustLedgEntryUnapply(GenJournalLine: Record "Gen. Journal Line"; DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; CustPostingGr: Record "Customer Posting Group"; OriginalTransactionNo: Integer; OriginalGLEntryNo: Integer)
+    local procedure PostDtldCustLedgEntryUnapply(GenJournalLine: Record "Gen. Journal Line"; DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; CustPostingGr: Record "Customer Posting Group"; OriginalTransactionNo: Integer)
     var
         AdjAmount: array[4] of Decimal;
         AccNo: Code[20];
@@ -4623,17 +4618,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if IsHandled then
             exit;
 
+        if MultiplePostingGroups and (AddCurrencyCode <> '') and
+           (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application)
+        then
+            SetApplicationAmountsForUnapply(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, OriginalTransactionNo);
+
         if (DetailedCVLedgEntryBuffer."Amount (LCY)" = 0) and
            (DetailedCVLedgEntryBuffer."VAT Amount (LCY)" = 0) and
-           ((AddCurrencyCode = '') or (DetailedCVLedgEntryBuffer."Additional-Currency Amount" = 0)) and
-           (OriginalGLEntryNo = 0)
+           ((AddCurrencyCode = '') or (DetailedCVLedgEntryBuffer."Additional-Currency Amount" = 0))
         then
             exit;
 
         if MultiplePostingGroups and (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application) then begin
-            if (AddCurrencyCode <> '') or (OriginalGLEntryNo <> 0) then
-                SetApplicationAmountsForUnapply(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, OriginalTransactionNo, OriginalGLEntryNo)
-            else
+            if AddCurrencyCode = '' then
                 AccNo := GetCustDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
         end
         else
@@ -5577,7 +5574,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         (DetailedCVLedgEntryBuffer."VAT Amount (LCY)" <> 0)) or
                        ((AddCurrencyCode <> '') and (DetailedCVLedgEntryBuffer."Additional-Currency Amount" <> 0))
                     then
-                        PostDtldVendLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, VendPostingGr, AdjAmount, DetailedVendorLedgEntry);
+                        PostDtldVendLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, VendPostingGr, AdjAmount);
                 OnPostDtldVendLedgEntriesOnAfterPostDtldVendLedgEntry(DetailedCVLedgEntryBuffer, DetailedVendorLedgEntry, LedgEntryInserted);
             until DetailedCVLedgEntryBuffer.Next() = 0;
         end;
@@ -5594,23 +5591,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DetailedCVLedgEntryBuffer.DeleteAll();
     end;
 
-    local procedure PostDtldVendLedgEntry(GenJournalLine: Record "Gen. Journal Line"; DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; VendPostingGr: Record "Vendor Posting Group"; var AdjAmount: array[4] of Decimal; var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry")
+    local procedure PostDtldVendLedgEntry(GenJournalLine: Record "Gen. Journal Line"; DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; VendPostingGr: Record "Vendor Posting Group"; var AdjAmount: array[4] of Decimal)
     var
         AccNo: Code[20];
-        ApplicationGLEntryNo: Integer;
     begin
         if MultiplePostingGroups and (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application) then
             AccNo := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer)
         else
             AccNo := GetDtldVendLedgEntryAccNo(GenJournalLine, DetailedCVLedgEntryBuffer, VendPostingGr, 0, false);
-        PostDtldCVLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, AdjAmount, false, ApplicationGLEntryNo);
-        if ApplicationGLEntryNo <> 0 then begin
-            DetailedVendorLedgEntry."Application G/L Entry No." := ApplicationGLEntryNo;
-            DetailedVendorLedgEntry.Modify();
-        end;
+        PostDtldCVLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, AdjAmount, false);
     end;
 
-    local procedure PostDtldVendLedgEntryUnapply(GenJournalLine: Record "Gen. Journal Line"; DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; VendPostingGr: Record "Vendor Posting Group"; OriginalTransactionNo: Integer; OriginalGLEntryNo: Integer)
+    local procedure PostDtldVendLedgEntryUnapply(GenJournalLine: Record "Gen. Journal Line"; DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; VendPostingGr: Record "Vendor Posting Group"; OriginalTransactionNo: Integer)
     var
         AccNo: Code[20];
         AdjAmount: array[4] of Decimal;
@@ -5621,17 +5613,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if IsHandled then
             exit;
 
+        if MultiplePostingGroups and (AddCurrencyCode <> '') and
+           (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application)
+        then
+            SetApplicationAmountsForUnapply(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, OriginalTransactionNo);
+
         if (DetailedCVLedgEntryBuffer."Amount (LCY)" = 0) and
            (DetailedCVLedgEntryBuffer."VAT Amount (LCY)" = 0) and
-           ((AddCurrencyCode = '') or (DetailedCVLedgEntryBuffer."Additional-Currency Amount" = 0)) and
-           (OriginalGLEntryNo = 0)
+           ((AddCurrencyCode = '') or (DetailedCVLedgEntryBuffer."Additional-Currency Amount" = 0))
         then
             exit;
 
         if MultiplePostingGroups and (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application) then begin
-            if (AddCurrencyCode <> '') or (OriginalGLEntryNo <> 0) then
-                SetApplicationAmountsForUnapply(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, OriginalTransactionNo, OriginalGLEntryNo)
-            else
+            if AddCurrencyCode = '' then
                 AccNo := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
         end
         else
@@ -5892,13 +5886,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// <param name="Unapply">Flag if the posting is for unapplication.</param>
     procedure PostDtldCVLedgEntry(GenJournalLine: Record "Gen. Journal Line"; DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; AccNo: Code[20]; var AdjAmount: array[4] of Decimal; Unapply: Boolean)
     var
-        ApplicationGLEntryNo: Integer;
-    begin
-        PostDtldCVLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, AdjAmount, Unapply, ApplicationGLEntryNo);
-    end;
-
-    local procedure PostDtldCVLedgEntry(GenJournalLine: Record "Gen. Journal Line"; DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; AccNo: Code[20]; var AdjAmount: array[4] of Decimal; Unapply: Boolean; var ApplicationGLEntryNo: Integer)
-    var
         CustomerPostingGroup: Record "Customer Posting Group";
         EmployeePostingGroup: Record "Employee Posting Group";
         AccNo2: Code[20];
@@ -5906,7 +5893,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         IsHandled: Boolean;
         AmountAddCurr: Decimal;
     begin
-        ApplicationGLEntryNo := 0;
         IsHandled := false;
         OnBeforePostDtldCVLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, Unapply, AdjAmount, IsHandled, AddCurrencyCode, MultiplePostingGroups);
         if IsHandled then
@@ -5918,7 +5904,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             DetailedCVLedgEntryBuffer."Entry Type"::Application:
                 if MultiplePostingGroups then
                     if GenJournalLine."Account Type" in [GenJournalLine."Account Type"::Customer, GenJournalLine."Account Type"::Vendor] then
-                        ApplicationGLEntryNo := CreateApplicationGLEntry(
+                        CreateApplicationGLEntry(
                             GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)",
                             DetailedCVLedgEntryBuffer."Additional-Currency Amount",
                             CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"))
@@ -6020,7 +6006,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             AdjAmount, NextEntryNo, AddCurrencyCode, MultiplePostingGroups);
     end;
 
-    local procedure CreateApplicationGLEntry(GenJnlLine: Record "Gen. Journal Line"; AccNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal; AmountSrcCurr: Decimal): Integer
+    local procedure CreateApplicationGLEntry(GenJnlLine: Record "Gen. Journal Line"; AccNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal; AmountSrcCurr: Decimal)
     var
         GLEntry: Record "G/L Entry";
     begin
@@ -6031,29 +6017,25 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnCreateGLEntryOnBeforeInsertGLEntry(GenJnlLine, GLEntry, VATEntry);
         InsertGLEntry(GenJnlLine, GLEntry, true);
         OnAfterCreateGLEntry(GenJnlLine, GLEntry, NextEntryNo);
-        exit(GLEntry."Entry No.");
     end;
 
-    local procedure SetApplicationAmountsForUnapply(GenJnlLine: Record "Gen. Journal Line"; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; var AccNo: Code[20]; OriginalTransactionNo: Integer; OriginalGLEntryNo: Integer)
+    local procedure SetApplicationAmountsForUnapply(GenJnlLine: Record "Gen. Journal Line"; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; var AccNo: Code[20]; OriginalTransactionNo: Integer)
     var
         GLEntry: Record "G/L Entry";
         OriginalAccountNo: Code[20];
         AmountAddCurr: Decimal;
         ApplicationEntryFound: Boolean;
     begin
-        if OriginalGLEntryNo <> 0 then begin
-            GLEntry.Get(OriginalGLEntryNo);
-            GLEntry.TestField("Transaction No.", OriginalTransactionNo);
-            GLEntry.TestField(Amount, -DetailedCVLedgEntryBuffer."Amount (LCY)");
-            GLEntry.TestField("Source No.", GenJnlLine."Account No.");
-            AccNo := GLEntry."G/L Account No.";
-            DetailedCVLedgEntryBuffer."Additional-Currency Amount" := -GLEntry."Additional-Currency Amount";
-            exit;
-        end;
-
-        // Older detailed entries have no individual G/L link. Never recalculate their posted ACY.
-        if OriginalTransactionNo = 0 then
+        // Never recalculate posted ACY, including historical zero amounts.
+        if OriginalTransactionNo = 0 then begin
+            // SetZeroTransNo clears the transaction when no G/L amounts were posted.
+            if (DetailedCVLedgEntryBuffer."Amount (LCY)" = 0) and
+               (DetailedCVLedgEntryBuffer."VAT Amount (LCY)" = 0) and
+               (DetailedCVLedgEntryBuffer."Additional-Currency Amount" = 0)
+            then
+                exit;
             Error(ApplicationGLEntryErr, OriginalTransactionNo, DetailedCVLedgEntryBuffer."CV Ledger Entry No.", -DetailedCVLedgEntryBuffer."Amount (LCY)");
+        end;
         GLEntry.SetCurrentKey("Transaction No.");
         GLEntry.SetRange("Transaction No.", OriginalTransactionNo);
         GLEntry.SetRange(Amount, -DetailedCVLedgEntryBuffer."Amount (LCY)");
@@ -6065,21 +6047,27 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 GLEntry.SetRange("Source Type", GLEntry."Source Type"::Vendor);
         end;
         GLEntry.SetRange("Source No.", GenJnlLine."Account No.");
-        if not GLEntry.FindSet() then
+        if GLEntry.FindSet() then
+            repeat
+                if not IsInitialCVGLEntry(GLEntry) then
+                    if not ApplicationEntryFound then begin
+                        OriginalAccountNo := GLEntry."G/L Account No.";
+                        AmountAddCurr := GLEntry."Additional-Currency Amount";
+                        ApplicationEntryFound := true;
+                    end else
+                        // Posting-group accounts can change. Every transfer candidate must agree on the original account and ACY.
+                        if (GLEntry."G/L Account No." <> OriginalAccountNo) or (GLEntry."Additional-Currency Amount" <> AmountAddCurr) then
+                            Error(ApplicationGLEntryErr, OriginalTransactionNo, DetailedCVLedgEntryBuffer."CV Ledger Entry No.", -DetailedCVLedgEntryBuffer."Amount (LCY)");
+            until GLEntry.Next() = 0;
+        if not ApplicationEntryFound then begin
+            // Historical applications with no posted amounts have no transfer G/L entries.
+            if (DetailedCVLedgEntryBuffer."Amount (LCY)" = 0) and
+               (DetailedCVLedgEntryBuffer."VAT Amount (LCY)" = 0) and
+               (DetailedCVLedgEntryBuffer."Additional-Currency Amount" = 0)
+            then
+                exit;
             Error(ApplicationGLEntryErr, OriginalTransactionNo, DetailedCVLedgEntryBuffer."CV Ledger Entry No.", -DetailedCVLedgEntryBuffer."Amount (LCY)");
-        repeat
-            if not IsInitialCVGLEntry(GLEntry) then
-                if not ApplicationEntryFound then begin
-                    OriginalAccountNo := GLEntry."G/L Account No.";
-                    AmountAddCurr := GLEntry."Additional-Currency Amount";
-                    ApplicationEntryFound := true;
-                end else
-                    // Posting-group accounts can change. Every transfer candidate must agree on the original account and ACY.
-                    if (GLEntry."G/L Account No." <> OriginalAccountNo) or (GLEntry."Additional-Currency Amount" <> AmountAddCurr) then
-                        Error(ApplicationGLEntryErr, OriginalTransactionNo, DetailedCVLedgEntryBuffer."CV Ledger Entry No.", -DetailedCVLedgEntryBuffer."Amount (LCY)");
-        until GLEntry.Next() = 0;
-        if not ApplicationEntryFound then
-            Error(ApplicationGLEntryErr, OriginalTransactionNo, DetailedCVLedgEntryBuffer."CV Ledger Entry No.", -DetailedCVLedgEntryBuffer."Amount (LCY)");
+        end;
         AccNo := OriginalAccountNo;
         DetailedCVLedgEntryBuffer."Additional-Currency Amount" := -AmountAddCurr;
     end;
@@ -6697,8 +6685,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 end;
 
                 PostDtldCustLedgEntryUnapply(
-                  GenJournalLineToPost, DetailedCVLedgEntryBuffer, CustomerPostingGroup, DetailedCustLedgEntry2."Transaction No.",
-                  DetailedCustLedgEntry2."Application G/L Entry No.");
+                  GenJournalLineToPost, DetailedCVLedgEntryBuffer, CustomerPostingGroup, DetailedCustLedgEntry2."Transaction No.");
 
                 OnUnapplyCustLedgEntryOnBeforeUpdateDetailedCustLedgEntry(DetailedCustLedgEntry2, DetailedCVLedgEntryBuffer);
 
@@ -6887,8 +6874,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             end;
 
             PostDtldVendLedgEntryUnapply(
-              GenJournalLineToPost, DetailedCVLedgEntryBuffer, VendorPostingGroup, DetailedVendorLedgEntry2."Transaction No.",
-              DetailedVendorLedgEntry2."Application G/L Entry No.");
+              GenJournalLineToPost, DetailedCVLedgEntryBuffer, VendorPostingGroup, DetailedVendorLedgEntry2."Transaction No.");
 
             OnUnapplyVendLedgEntryOnBeforeUpdateDetailedVendLedgEntry2(DetailedVendorLedgEntry2, DetailedCVLedgEntryBuffer);
 

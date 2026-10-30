@@ -381,13 +381,6 @@ table 379 "Detailed Cust. Ledg. Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
-        field(96; "Application G/L Entry No."; Integer)
-        {
-            Caption = 'Application G/L Entry No.';
-            Editable = false;
-            TableRelation = "G/L Entry";
-            ToolTip = 'Specifies the G/L entry that transfers the application amount between posting groups.';
-        }
         field(10700; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
@@ -593,3 +586,4 @@ table 379 "Detailed Cust. Ledg. Entry"
     begin
     end;
 }
+
