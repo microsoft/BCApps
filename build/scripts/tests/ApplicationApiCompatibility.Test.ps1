@@ -680,16 +680,167 @@ Describe 'Application API compatibility prototype' {
             }
         }
 
-        It 'still rejects <RuleId> member removals from objects that have not moved' -TestCases @(
-            @{ RuleId = 'AS0018'; Message = "Procedure 'Process(Text)' has been removed in 'Table Gen. Journal Line'. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure." },
-            @{ RuleId = 'AS0031'; Message = "The action with name 'Partners' defined in Page 'Accountant Role Center' was found in the previous version, but is missing in the current extension. This will break dependent extensions." },
-            @{ RuleId = 'AS0032'; Message = "The field with name 'icPartnerCode' defined in Page 'Workflow - Customer Entity' was found in the previous version, but is missing in the current extension. This will break dependent extensions." },
-            @{ RuleId = 'AS0106'; Message = "The variable 'ShortcutDimCode' of type 'array[8] of Code[20]' defined in Page 'Unmoved Page' was found in the previous version, but is missing in the current extension. This will break dependent extensions." }
+        Context 'Actions relocated into Application page extensions' {
+            BeforeAll {
+                function Write-ActionApiPackages {
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $actionOldCollections
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections $actionCurrentCollections
+                    $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $actionDestinationCollections
+                }
+            }
+
+            BeforeEach {
+                $group = @{
+                    Name = 'Group3'
+                    Kind = 'Group'
+                    Properties = @(@{ Name = 'Caption'; Value = 'Intercompany' })
+                    Actions = @(@{
+                        Name = 'General Journals'
+                        Kind = 'Action'
+                        Properties = @(@{ Name = 'RunObject'; Value = 'Page "IC General Journal"' })
+                    })
+                }
+                $newGroup = $group | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $standalone = $group.Actions[0] | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $standalone.Name = 'General Journals2'
+                $newStandalone = $standalone | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $oldHost = @{
+                    Id = 9041
+                    Name = 'Finance Manager Role Center'
+                    Actions = @(@{ Name = 'sections'; Kind = 'Area'; Actions = @($group, $standalone) })
+                }
+                $currentHost = $oldHost | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $currentHost.Actions[0].Actions = @()
+                $actionExtension = @{
+                    Id = 8406
+                    Name = 'IC Finance Manager RC'
+                    TargetObject = 'Finance Manager Role Center'
+                    ActionChanges = @(
+                        @{ Name = 'Group2'; Actions = @($newGroup) },
+                        @{ Name = 'Recurring Journals'; Actions = @($newStandalone) }
+                    )
+                }
+                $actionOldCollections = @{ Namespaces = @(@{ Name = 'Migration.ActionProbe'; Pages = @($page, $oldHost) }) }
+                $actionCurrentCollections = @{ Namespaces = @(@{ Name = 'Migration.ActionProbe'; Pages = @($currentHost) }) }
+                $actionDestinationCollections = @{
+                    Namespaces = @(@{ Name = 'Migration.ActionProbe'; Pages = @($page); PageExtensions = @($actionExtension) })
+                }
+                $groupMessage = "The action group with name 'Group3' defined in Page 'Finance Manager Role Center' was found in the previous version, but is missing in the current extension."
+                $childMessage = "The action with name 'General Journals' defined in Page 'Finance Manager Role Center' was found in the previous version, but is missing in the current extension."
+                $standaloneMessage = "The action with name 'General Journals2' defined in Page 'Finance Manager Role Center' was found in the previous version, but is missing in the current extension."
+            }
+
+            It 'reconciles an unchanged group, its child action and a standalone action with <Encoding> kinds' -TestCases @(
+                @{ Encoding = 'string'; Suffix = '' },
+                @{ Encoding = 'numeric'; Suffix = ' This will break dependent extensions.' }
+            ) {
+                param($Encoding, $Suffix)
+                if ($Encoding -eq 'numeric') {
+                    $group.Kind = $newGroup.Kind = 1
+                    $group.Actions[0].Kind = $newGroup.Actions[0].Kind = 2
+                    $standalone.Kind = $newStandalone.Kind = 2
+                }
+                Write-ActionApiPackages
+                $gate = New-ApiGateLayout
+                foreach ($message in @($groupMessage, $childMessage, $standaloneMessage)) {
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message "$message$Suffix"
+                }
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $moves = @($state.AcceptedMoves | Where-Object RuleId -EQ 'AS0031')
+                $moves.Count | Should -Be 3
+                @($moves | Where-Object { -not $_.Accepted }).Count | Should -Be 0
+                ($moves | Where-Object ActionName -EQ 'Group3').ActionKind | Should -Be 'ActionGroup'
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Not -Match 'warning AS0031'
+                Get-Content -LiteralPath (Join-Path $gate.Root "Originals\$([System.IO.Path]::GetFileName($gate.SourceLog)).txt") -Raw |
+                    Should -Match 'warning AS0031'
+                $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
+                @($alerts.issues | Where-Object ruleId -EQ 'AS0031').Count | Should -Be 0
+                @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
+            }
+
+            It 'recognizes an action-group diagnostic accompanying an unchanged whole-page move' {
+                $actionCurrentCollections.Namespaces[0].Pages = @()
+                $actionDestinationCollections.Namespaces[0].Pages += $oldHost
+                $actionDestinationCollections.Namespaces[0].PageExtensions = @()
+                Write-ActionApiPackages
+                $gate = New-ApiGateLayout -Id $oldHost.Id -Name $oldHost.Name
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message $groupMessage
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $state.AcceptedMoves.Count | Should -Be 2
+                @($state.AcceptedMoves | Where-Object { -not $_.Accepted }).Count | Should -Be 0
+            }
+
+            It 'rejects action relocations when <Failure>' -TestCases @(
+                @{ Failure = 'the group is missing' },
+                @{ Failure = 'the group is renamed' },
+                @{ Failure = 'the member kind changes' },
+                @{ Failure = 'a child action is missing' },
+                @{ Failure = 'a child action target changes' },
+                @{ Failure = 'the group properties change' },
+                @{ Failure = 'the host page changes' },
+                @{ Failure = 'two extensions provide the group' },
+                @{ Failure = 'the provider is not exposed' },
+                @{ Failure = 'the group stays in the source app' },
+                @{ Failure = 'the standalone action is missing' }
+            ) {
+                param($Failure)
+                $message = $groupMessage
+                switch ($Failure) {
+                    'the group is missing' { $actionExtension.ActionChanges[0].Actions = @() }
+                    'the group is renamed' { $newGroup.Name = 'Renamed group' }
+                    'the member kind changes' { $newGroup.Kind = 'Action' }
+                    'a child action is missing' { $newGroup.Actions = @() }
+                    'a child action target changes' { $newGroup.Actions[0].Properties[0].Value = 'Page "Different Journal"' }
+                    'the group properties change' { $newGroup.Properties[0].Value = 'Changed caption' }
+                    'the host page changes' {
+                        $actionExtension.TargetObject = 'Other Role Center'
+                        $actionCurrentCollections.Namespaces[0].Pages += @{ Id = 9042; Name = 'Other Role Center' }
+                    }
+                    'two extensions provide the group' {
+                        $duplicate = $actionExtension | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                        $duplicate.Id = 8408
+                        $duplicate.Name = 'Duplicate action provider'
+                        $actionDestinationCollections.Namespaces[0].PageExtensions += $duplicate
+                    }
+                    'the provider is not exposed' {
+                        $script:currentApplication = New-ApiTestPackage -Name 'Application' -Id $applicationId -Propagate $true -Dependencies @($script:currentBase)
+                    }
+                    'the group stays in the source app' {
+                        $actionCurrentCollections.Namespaces[0].PageExtensions = @($actionExtension)
+                        $actionDestinationCollections.Namespaces[0].PageExtensions = @()
+                    }
+                    'the standalone action is missing' {
+                        $actionExtension.ActionChanges[1].Actions = @()
+                        $message = $standaloneMessage
+                    }
+                }
+                Write-ActionApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message $message
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $moves = @($state.AcceptedMoves | Where-Object RuleId -EQ 'AS0031')
+                $moves.Count | Should -Be 1
+                $moves[0].Accepted | Should -BeFalse
+                $moves[0].Reason | Should -Not -BeNullOrEmpty
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0031'
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            }
+        }
+
+        It 'still rejects <RuleId> member removals without a verified replacement' -TestCases @(
+            @{ RuleId = 'AS0018'; ExpectedFailure = '*not part of a whole-object move*'; Message = "Procedure 'Process(Text)' has been removed in 'Table Gen. Journal Line'. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure." },
+            @{ RuleId = 'AS0031'; ExpectedFailure = '*not verified*'; Message = "The action with name 'Partners' defined in Page 'Accountant Role Center' was found in the previous version, but is missing in the current extension. This will break dependent extensions." },
+            @{ RuleId = 'AS0032'; ExpectedFailure = '*not part of a whole-object move*'; Message = "The field with name 'icPartnerCode' defined in Page 'Workflow - Customer Entity' was found in the previous version, but is missing in the current extension. This will break dependent extensions." },
+            @{ RuleId = 'AS0106'; ExpectedFailure = '*not part of a whole-object move*'; Message = "The variable 'ShortcutDimCode' of type 'array[8] of Code[20]' defined in Page 'Unmoved Page' was found in the previous version, but is missing in the current extension. This will break dependent extensions." }
         ) {
-            param($RuleId, $Message)
+            param($RuleId, $Message, $ExpectedFailure)
             $gate = New-ApiGateLayout
             Add-ApiMemberDiagnostic -Gate $gate -RuleId $RuleId -Message $Message
-            { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not part of a whole-object move*'
+            { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw $ExpectedFailure
             Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match "warning ${RuleId}:"
         }
 

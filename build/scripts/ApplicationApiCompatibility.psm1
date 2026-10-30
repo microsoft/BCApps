@@ -134,22 +134,28 @@ function Get-ApplicationApiContractHash {
     }
 }
 
-function Add-ApplicationApiPageParts {
+function Add-ApplicationApiPageMembers {
     param(
-        [System.Text.Json.JsonElement] $Controls,
-        [string[]] $PartNames,
+        [System.Text.Json.JsonElement] $Elements,
+        [string[]] $MemberNames,
+        [ValidateSet('Controls', 'Actions')] [string] $ChildrenProperty,
         [string] $OwnerKey,
         [string] $OwnerId,
         [string] $PageReference,
         [hashtable] $Snapshot
     )
 
-    foreach ($control in $Controls.EnumerateArray()) {
+    $collection = if ($ChildrenProperty -eq 'Controls') { 'PageParts' } else { 'PageActions' }
+    foreach ($control in $Elements.EnumerateArray()) {
         $name = $control.GetProperty('Name').GetString()
-        if ($name -cin $PartNames) {
+        if ($name -cin $MemberNames) {
             $kind = $control.GetProperty('Kind')
-            $isPart = ($kind.ValueKind -eq [System.Text.Json.JsonValueKind]::String -and $kind.GetString() -ceq 'Part') -or
-                ($kind.ValueKind -eq [System.Text.Json.JsonValueKind]::Number -and $kind.GetInt32() -eq 6)
+            $kindValue = if ($kind.ValueKind -eq [System.Text.Json.JsonValueKind]::String) { $kind.GetString() } else { [string]$kind.GetInt32() }
+            $memberKind = if ($ChildrenProperty -eq 'Controls' -and $kindValue -cin @('Part', '6')) { 'Part' }
+                elseif ($ChildrenProperty -eq 'Actions' -and $kindValue -cin @('Group', '1')) { 'ActionGroup' }
+                elseif ($ChildrenProperty -eq 'Actions' -and $kindValue -cin @('Action', '2')) { 'Action' }
+                else { 'Unsupported' }
+            $isPart = $memberKind -eq 'Part'
             $type = [System.Text.Json.JsonElement]::new()
             $subtype = [System.Text.Json.JsonElement]::new()
             $target = [System.Text.Json.JsonElement]::new()
@@ -158,9 +164,10 @@ function Add-ApplicationApiPageParts {
                 $type.TryGetProperty('Subtype', [ref]$subtype) -and $subtype.TryGetProperty('Id', [ref]$target)) {
                 $targetId = $target.GetInt32()
             }
-            $Snapshot.PageParts.Add([PSCustomObject]@{
+            $Snapshot[$collection].Add([PSCustomObject]@{
                 Name = $name
                 IsPart = $isPart
+                MemberKind = $memberKind
                 OwnerKey = $OwnerKey
                 OwnerId = $OwnerId
                 PageReference = $PageReference
@@ -169,9 +176,9 @@ function Add-ApplicationApiPageParts {
             })
         }
         $children = [System.Text.Json.JsonElement]::new()
-        if ($control.TryGetProperty('Controls', [ref]$children)) {
-            Add-ApplicationApiPageParts -Controls $children -PartNames $PartNames -OwnerKey $OwnerKey `
-                -OwnerId $OwnerId -PageReference $PageReference -Snapshot $Snapshot
+        if ($control.TryGetProperty($ChildrenProperty, [ref]$children)) {
+            Add-ApplicationApiPageMembers -Elements $children -MemberNames $MemberNames -ChildrenProperty $ChildrenProperty `
+                -OwnerKey $OwnerKey -OwnerId $OwnerId -PageReference $PageReference -Snapshot $Snapshot
         }
     }
 }
@@ -184,7 +191,8 @@ function Add-ApplicationApiSymbols {
         [hashtable] $Snapshot,
         [hashtable] $Names,
         [hashtable] $SymbolKeys,
-        [string[]] $PartNames
+        [string[]] $PartNames,
+        [string[]] $ActionNames
     )
 
     $objectCollections = @(
@@ -198,7 +206,7 @@ function Add-ApplicationApiSymbols {
                 $name = $child.GetProperty('Name').GetString()
                 $childNamespace = if ($Namespace) { "$Namespace.$name" } else { $name }
                 Add-ApplicationApiSymbols -Element $child -Namespace $childNamespace -Package $Package -Snapshot $Snapshot `
-                    -Names $Names -SymbolKeys $SymbolKeys -PartNames $PartNames
+                    -Names $Names -SymbolKeys $SymbolKeys -PartNames $PartNames -ActionNames $ActionNames
             }
         }
         elseif ($property.Name -in @('Tables', 'TableExtensions')) {
@@ -215,32 +223,38 @@ function Add-ApplicationApiSymbols {
                 $key = if ($namedIdentity) { "$($property.Name):${Namespace}:$name" } elseif ($hasId) { "$($property.Name):$($id.GetInt32())" } else { '' }
                 $nameSelector = "$($property.Name):Name:$name"
                 $selected = $SymbolKeys.Count -eq 0 -or $SymbolKeys.ContainsKey($key) -or $SymbolKeys.ContainsKey($nameSelector)
-                $inspectParts = $PartNames.Count -gt 0 -and $property.Name -cin @('Pages', 'PageExtensions')
-                if (-not $selected -and -not $inspectParts) { continue }
+                $inspectMembers = ($PartNames.Count -gt 0 -or $ActionNames.Count -gt 0) -and $property.Name -cin @('Pages', 'PageExtensions')
+                if (-not $selected -and -not $inspectMembers) { continue }
                 $properties = [System.Text.Json.JsonElement]::new()
                 if ($symbol.TryGetProperty('Properties', [ref]$properties)) {
                     $access = @($properties.EnumerateArray() | Where-Object { $_.GetProperty('Name').GetString() -ceq 'Access' })
                     if ($access.Count -eq 1 -and $access[0].GetProperty('Value').GetString() -ieq 'Internal') { continue }
                 }
-                $partCount = $Snapshot.PageParts.Count
-                if ($inspectParts) {
-                    $controls = [System.Text.Json.JsonElement]::new()
-                    if ($property.Name -ceq 'Pages' -and $symbol.TryGetProperty('Controls', [ref]$controls)) {
-                        Add-ApplicationApiPageParts -Controls $controls -PartNames $PartNames -OwnerKey $key `
-                            -OwnerId $Package.Id -PageReference ([string]$id.GetInt32()) -Snapshot $Snapshot
-                    }
-                    elseif ($property.Name -ceq 'PageExtensions' -and $symbol.TryGetProperty('ControlChanges', [ref]$controls)) {
-                        foreach ($change in $controls.EnumerateArray()) {
-                            $additions = [System.Text.Json.JsonElement]::new()
-                            if ($change.TryGetProperty('Controls', [ref]$additions)) {
-                                Add-ApplicationApiPageParts -Controls $additions -PartNames $PartNames -OwnerKey $key `
-                                    -OwnerId $Package.Id -PageReference $symbol.GetProperty('TargetObject').GetString() -Snapshot $Snapshot
+                $memberCount = $Snapshot.PageParts.Count + $Snapshot.PageActions.Count
+                if ($inspectMembers) {
+                    foreach ($childrenProperty in @('Controls', 'Actions')) {
+                        $memberNames = if ($childrenProperty -eq 'Controls') { $PartNames } else { $ActionNames }
+                        if (-not $memberNames) { continue }
+                        $containers = @($symbol)
+                        if ($property.Name -ceq 'PageExtensions') {
+                            $changesName = if ($childrenProperty -eq 'Controls') { 'ControlChanges' } else { 'ActionChanges' }
+                            $changes = [System.Text.Json.JsonElement]::new()
+                            if (-not $symbol.TryGetProperty($changesName, [ref]$changes)) { continue }
+                            $containers = @($changes.EnumerateArray())
+                        }
+                        foreach ($container in $containers) {
+                            $children = [System.Text.Json.JsonElement]::new()
+                            if ($container.TryGetProperty($childrenProperty, [ref]$children)) {
+                                $pageReference = if ($property.Name -ceq 'Pages') { [string]$id.GetInt32() } else { $symbol.GetProperty('TargetObject').GetString() }
+                                Add-ApplicationApiPageMembers -Elements $children -MemberNames $memberNames -ChildrenProperty $childrenProperty `
+                                    -OwnerKey $key -OwnerId $Package.Id -PageReference $pageReference -Snapshot $Snapshot
                             }
                         }
                     }
                 }
-                # Part checks also need all potential host and target pages, not just diagnostic owners.
-                if (-not $selected -and $property.Name -ceq 'PageExtensions' -and $Snapshot.PageParts.Count -eq $partCount) { continue }
+                # Member checks also need potential host/target pages, not just diagnostic owners.
+                if (-not $selected -and $property.Name -ceq 'PageExtensions' -and
+                    ($Snapshot.PageParts.Count + $Snapshot.PageActions.Count) -eq $memberCount) { continue }
                 if (-not $hasId -and -not $namedIdentity) {
                     $Snapshot.ReviewRequired.Add("$($Package.Name): unsupported ID-less $($property.Name) '$name'.")
                     continue
@@ -307,7 +321,8 @@ function Get-ApplicationApiSnapshot {
         [Parameter(Mandatory)] [string] $ApplicationPackagePath,
         [Parameter(Mandatory)] [AllowEmptyCollection()] [string[]] $DependencyPackagePaths,
         [string[]] $SymbolKeys = @(),
-        [string[]] $PartNames = @()
+        [string[]] $PartNames = @(),
+        [string[]] $ActionNames = @()
     )
 
     $index = @{}
@@ -329,6 +344,7 @@ function Get-ApplicationApiSnapshot {
         Packages = @{}
         Symbols = @{}
         PageParts = [System.Collections.Generic.List[object]]::new()
+        PageActions = [System.Collections.Generic.List[object]]::new()
         SchemaObjects = [System.Collections.Generic.List[string]]::new()
         ReviewRequired = [System.Collections.Generic.List[string]]::new()
     }
@@ -356,7 +372,7 @@ function Get-ApplicationApiSnapshot {
                 }
             }
             Add-ApplicationApiSymbols -Element $symbols -Namespace '' -Package $package -Snapshot $snapshot `
-                -Names $names -SymbolKeys $selectedKeys -PartNames $PartNames
+                -Names $names -SymbolKeys $selectedKeys -PartNames $PartNames -ActionNames $ActionNames
         }
         finally {
             $loaded.Document.Dispose()
