@@ -37,7 +37,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [No tax] [Invoice]
         // [SCENARIO 229401] XML has node "PrestacionServicios" for non taxable amount if only line with No Taxable VAT exists in Sales Invoice
@@ -65,7 +65,7 @@ codeunit 147523 "SII Documents With EU Service"
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
         NonTaxableAmount: Decimal;
     begin
@@ -105,7 +105,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ExpectedVATAmount: Decimal;
     begin
         // [FEATURE] [Sales] [Invoice]
@@ -134,7 +134,7 @@ codeunit 147523 "SII Documents With EU Service"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 225611] XML has node for VAT Amount given Sales invoice with both Normal VAT and EC
@@ -167,7 +167,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ExpectedVATAmount: Decimal;
     begin
         // [FEATURE] [Sales] [Credit Memo]
@@ -196,7 +196,7 @@ codeunit 147523 "SII Documents With EU Service"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 225621] XML has node for VAT Amount excluding EC Amount given Sales Credit Memo with both Normal VAT and EC
@@ -229,7 +229,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ExpectedVATAmount: Decimal;
     begin
         // [FEATURE] [Sales] [Credit Memo]
@@ -259,7 +259,7 @@ codeunit 147523 "SII Documents With EU Service"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 225621] XML has node for VAT Amount excluding EC Amount given Sales Credit Memo with "Correction Type" = Replacement and with both Normal VAT and EC
@@ -294,7 +294,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ExpectedVATAmount: Decimal;
     begin
         // [FEATURE] [Purchase] [Invoice]
@@ -323,7 +323,7 @@ codeunit 147523 "SII Documents With EU Service"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 225611] XML has node for VAT Amount given Purchase invoice with both Normal VAT and EC
@@ -355,7 +355,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ExpectedECAmount: Decimal;
     begin
         // [FEATURE] [Purchase]
@@ -383,7 +383,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ExpectedVATAmount: Decimal;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
@@ -413,7 +413,7 @@ codeunit 147523 "SII Documents With EU Service"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 225621] XML has node for VAT Amount excluding EC Amount given Purchase Credit Memo with both Normal VAT and EC
@@ -447,7 +447,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ExpectedVATAmount: Decimal;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
@@ -479,7 +479,7 @@ codeunit 147523 "SII Documents With EU Service"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 225621] XML has node for VAT Amount excluding EC Amount given Purchase Credit Memo with "Correction Type" = Replacement and with both Normal VAT and EC
@@ -516,7 +516,7 @@ codeunit 147523 "SII Documents With EU Service"
         ServiceHeader: Record "Service Header";
         ServiceInvoiceHeader: Record "Service Invoice Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [No tax] [Invoice]
         // [SCENARIO 229401] XML has node "PrestacionServicios" for non taxable amount if only line with No Taxable VAT exists in Service Invoice
@@ -547,7 +547,7 @@ codeunit 147523 "SII Documents With EU Service"
         ServiceHeader: Record "Service Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [No tax] [Credit Memo]
         // [SCENARIO 229401] XML has node "PrestacionServicios" for non taxable amount if only line with No Taxable VAT exists in Service Credit Memo
@@ -578,7 +578,7 @@ codeunit 147523 "SII Documents With EU Service"
         SalesHeader: Record "Sales Header";
         VATEntry: Record "VAT Entry";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 232971] There are two XML nodes for each VAT Entry for Sales Invoice with multiple lines where lines has different "VAT Identifier" but same "VAT %"
@@ -606,7 +606,7 @@ codeunit 147523 "SII Documents With EU Service"
         SalesHeader: Record "Sales Header";
         VATEntry: Record "VAT Entry";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 232971] There are two XML nodes for each VAT Entry for Sales Credit Memo with Type = "Replacement" and multiple lines where lines has different "VAT Identifier" but same "VAT %"
@@ -635,7 +635,7 @@ codeunit 147523 "SII Documents With EU Service"
         SalesHeader: Record "Sales Header";
         VATEntry: Record "VAT Entry";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 232971] There are two XML nodes for each VAT Entry for Sales Credit Memo with Type = "Difference" and multiple lines where lines has different "VAT Identifier" but same "VAT %"
@@ -664,7 +664,7 @@ codeunit 147523 "SII Documents With EU Service"
         PurchaseHeader: Record "Purchase Header";
         VATEntry: Record "VAT Entry";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 232971] There are two XML nodes for each VAT Entry for Purchase Invoice with multiple lines where lines has different "VAT Identifier" but same "VAT %"
@@ -692,7 +692,7 @@ codeunit 147523 "SII Documents With EU Service"
         PurchaseHeader: Record "Purchase Header";
         VATEntry: Record "VAT Entry";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 232971] There are two XML nodes for each VAT Entry for Purchase Credit Memo with Type = "Replacement" and multiple lines where lines has different "VAT Identifier" but same "VAT %"
@@ -721,7 +721,7 @@ codeunit 147523 "SII Documents With EU Service"
         PurchaseHeader: Record "Purchase Header";
         VATEntry: Record "VAT Entry";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 232971] There are two XML nodes for each VAT Entry for Purchase Credit Memo with Type = "Difference" and multiple lines where lines has different "VAT Identifier" but same "VAT %"
@@ -751,7 +751,7 @@ codeunit 147523 "SII Documents With EU Service"
         ServiceInvoiceHeader: Record "Service Invoice Header";
         VATEntry: Record "VAT Entry";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service]
         // [SCENARIO 232971] There are two XML nodes for each VAT Entry for Service Invoice with multiple lines where lines has different "VAT Identifier" but same "VAT %"
@@ -785,7 +785,7 @@ codeunit 147523 "SII Documents With EU Service"
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         VATEntry: Record "VAT Entry";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 232971] There are two XML nodes for each VAT Entry for Service Credit Memo and multiple lines where lines has different "VAT Identifier" but same "VAT %"
@@ -818,7 +818,7 @@ codeunit 147523 "SII Documents With EU Service"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 294162] XML has node for VAT Amount excluding EC Amount given Sales Invoice with Domestic Customer, both Normal VAT and EU Service and same VAT rate
@@ -850,7 +850,7 @@ codeunit 147523 "SII Documents With EU Service"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 294162] XML has node for VAT Amount excluding EC Amount given Sales Credit Memo with Domestic Customer, both Normal VAT and EU Service and same VAT rate
@@ -881,7 +881,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 294162] Multiple XML has nodes for VAT Amount given Sales Invoice with Foreign Customer, both Normal VAT and EC and same VAT rate
@@ -913,7 +913,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 294162] Multiple XML has nodes for VAT Amount given Sales Credit Memo with Foreign Customer, both Normal VAT and EC and same VAT rate
@@ -945,7 +945,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 294162] XML has node for VAT Amount excluding EC Amount given Sales Invoice with Domestic Customer, both Normal VAT and EU Service and different VAT rate
@@ -976,7 +976,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 294162] XML has node for VAT Amount excluding EC Amount given Sales Credit Memo with Domestic Customer, both Normal VAT and EU Service and different VAT rate
@@ -1007,7 +1007,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 294162] Multiple XML has nodes for VAT Amount given Sales Invoice with Foreign Customer, both Normal VAT and EC and different VAT rate
@@ -1040,7 +1040,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 294162] Multiple XML has nodes for VAT Amount given Sales Credit Memo with Foreign Customer, both Normal VAT and EC and different VAT rate
@@ -1073,7 +1073,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         UnitPriceArray: array[3] of Decimal;
     begin
         // [FEATURE] [Sales] [Invoice]
@@ -1108,7 +1108,7 @@ codeunit 147523 "SII Documents With EU Service"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         UnitPriceArray: array[3] of Decimal;
     begin
         // [FEATURE] [Sales] [Credit Memo]
@@ -1146,7 +1146,7 @@ codeunit 147523 "SII Documents With EU Service"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VATClause: Record "VAT Clause";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
     begin
         // [FEATURE] [Sales] [Exemption] [Credit Memo]
@@ -1190,7 +1190,7 @@ codeunit 147523 "SII Documents With EU Service"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 375398] CuotaDeducible is zero in the XML file for Purchase invoice with EC for version 1.1bis
@@ -1572,7 +1572,7 @@ codeunit 147523 "SII Documents With EU Service"
         exit(ServiceHeader."No.");
     end;
 
-    local procedure VerifyMultipleVATEntiesInXMLDetails(var XMLDoc: DotNet XmlDocument; Type: Enum "General Posting Type"; DocNo: Code[20]; BaseNode: Text; NodeName: Text; Sign: Integer)
+    local procedure VerifyMultipleVATEntiesInXMLDetails(var XMLDoc: XmlDocument; Type: Enum "General Posting Type"; DocNo: Code[20]; BaseNode: Text; NodeName: Text; Sign: Integer)
     var
         VATEntry: Record "VAT Entry";
         ExpectedECAmount: Decimal;
@@ -1588,7 +1588,7 @@ codeunit 147523 "SII Documents With EU Service"
           XMLDoc, BaseNode, '/sii:CuotaRecargoEquivalencia', SIIXMLCreator.FormatNumber(ExpectedECAmount));
     end;
 
-    local procedure VerifyMultipleVATEntiesInOneXMLNode(var XMLDoc: DotNet XmlDocument; Type: Enum "General Posting Type"; DocNo: Code[20]; BaseNode: Text; NodeName: Text; Sign: Integer)
+    local procedure VerifyMultipleVATEntiesInOneXMLNode(var XMLDoc: XmlDocument; Type: Enum "General Posting Type"; DocNo: Code[20]; BaseNode: Text; NodeName: Text; Sign: Integer)
     var
         VATEntry: Record "VAT Entry";
     begin
@@ -1598,7 +1598,7 @@ codeunit 147523 "SII Documents With EU Service"
           XMLDoc, BaseNode, NodeName, SIIXMLCreator.FormatNumber(Sign * VATEntry.Amount));
     end;
 
-    local procedure VerifySalesVATEntiesInDiffVATTypeXMLNodes(var XMLDoc: DotNet XmlDocument; DocNo: Code[20]; FirstVATTypeNodeName: Text[50]; SecondVATTypeNodeName: Text[50])
+    local procedure VerifySalesVATEntiesInDiffVATTypeXMLNodes(var XMLDoc: XmlDocument; DocNo: Code[20]; FirstVATTypeNodeName: Text[50]; SecondVATTypeNodeName: Text[50])
     var
         VATEntry: Record "VAT Entry";
     begin
@@ -1612,7 +1612,7 @@ codeunit 147523 "SII Documents With EU Service"
           SIIXMLCreator.FormatNumber(-VATEntry.Amount));
     end;
 
-    local procedure VerifySalesVATEntiesInDiffVATRateXMLNodes(var XMLDoc: DotNet XmlDocument; DocNo: Code[20])
+    local procedure VerifySalesVATEntiesInDiffVATRateXMLNodes(var XMLDoc: XmlDocument; DocNo: Code[20])
     var
         VATEntry: Record "VAT Entry";
     begin
@@ -1624,7 +1624,7 @@ codeunit 147523 "SII Documents With EU Service"
           XMLDoc, XPathSalesBaseImponibleTok, '[2]/sii:CuotaRepercutida', SIIXMLCreator.FormatNumber(-VATEntry.Amount));
     end;
 
-    local procedure VerifyVATBaseOfMultipleVATEntiesInXMLDetails(var XMLDoc: DotNet XmlDocument; Type: Enum "General Posting Type"; DocNo: Code[20]; BaseNode: Text; NodeName: Text; Sign: Integer)
+    local procedure VerifyVATBaseOfMultipleVATEntiesInXMLDetails(var XMLDoc: XmlDocument; Type: Enum "General Posting Type"; DocNo: Code[20]; BaseNode: Text; NodeName: Text; Sign: Integer)
     var
         VATEntry: Record "VAT Entry";
     begin
