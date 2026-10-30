@@ -17,8 +17,8 @@ codeunit 6381 "Drive Processing"
     Access = Internal;
     Permissions = tabledata "E-Document" = m,
                   tabledata "E-Document Service Status" = m,
-                  tabledata "OneDrive Setup" = r,
-                  tabledata "Sharepoint Setup" = r;
+                  tabledata "OneDrive Setup" = rm,
+                  tabledata "Sharepoint Setup" = rm;
     InherentPermissions = X;
     InherentEntitlements = X;
 
@@ -26,7 +26,7 @@ codeunit 6381 "Drive Processing"
     var
         GraphClient: Codeunit "Graph Client";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        SiteId: Text;
+        DriveId: Text;
         NewFolderId: Text;
     begin
         FeatureTelemetry.LogUptake('0000OAY', FeatureName(), Enum::"Feature Uptake Status"::Used);
@@ -34,31 +34,47 @@ codeunit 6381 "Drive Processing"
         if EDocument."Drive Item Id" = '' then
             Error(DocumentIdEmptyErr, EDocument."Entry No");
 
-        SiteId := GetSiteId(EDocumentService."Service Integration V2");
+        DriveId := GetDocumentsDriveId(EDocumentService."Service Integration V2");
         NewFolderId := GetImportedDocumentsFolderId(EDocumentService."Service Integration V2");
 
-        GraphClient.MoveDriveItem(SiteId, EDocument."Drive Item Id", NewFolderId);
+        GraphClient.MoveDriveItem(DriveId, EDocument."Drive Item Id", NewFolderId);
     end;
 
-    procedure GetSiteId(FolderSharedLink: Text[2048]): Text
+    internal procedure GetSiteAndDriveId(FolderSharedLink: Text[2048]; var SiteId: Text; var DriveId: Text)
     var
         GraphClient: Codeunit "Graph Client";
         Base64Convert: Codeunit "Base64 Convert";
-        MySiteLink, Base64SharedLink, ErrorMessageTxt : Text;
-        FilesJson: JsonObject;
-        SiteIdToken: JsonToken;
+        ParentReferenceLink, Base64SharedLink, ErrorMessageTxt : Text;
+        ParentReferenceJson: JsonObject;
+        Token: JsonToken;
     begin
+        Clear(SiteId);
+        Clear(DriveId);
         Base64SharedLink := Base64Convert.ToBase64(FolderSharedLink);
         Base64SharedLink := 'u!' + Base64SharedLink.TrimEnd('=').Replace('/', '_').Replace('+', '-');
-        MySiteLink := GetGraphSharesURL() + Base64SharedLink + '/driveItem/parentReference';
-        if not GraphClient.GetDriveFolderInfo(MySiteLink, FilesJson) then begin
+        ParentReferenceLink := GetGraphSharesURL() + Base64SharedLink + '/driveItem/parentReference';
+        if not GraphClient.GetDriveFolderInfo(ParentReferenceLink, ParentReferenceJson) then begin
             ErrorMessageTxt := GetLastErrorText() + GetLastErrorCallStack();
             ClearLastError();
             Error(ErrorMessageTxt);
         end;
 
-        if FilesJson.Get('siteId', SiteIdToken) then
-            exit(SiteIdToken.AsValue().AsText())
+        if ParentReferenceJson.Get('siteId', Token) then
+            SiteId := Token.AsValue().AsText();
+        if ParentReferenceJson.Get('driveId', Token) then
+            DriveId := Token.AsValue().AsText();
+    end;
+
+    // Graph cannot move items between drives, so the archive folder must be in the same document library as the documents folder.
+    internal procedure CheckFoldersInSameDrive(DocumentsFolder: Text[2048]; DocumentsDriveId: Text; ArchiveFolder: Text[2048])
+    var
+        SiteId, ArchiveDriveId : Text;
+    begin
+        if DocumentsDriveId = '' then
+            GetSiteAndDriveId(DocumentsFolder, SiteId, DocumentsDriveId);
+        GetSiteAndDriveId(ArchiveFolder, SiteId, ArchiveDriveId);
+        if (DocumentsDriveId <> '') and (ArchiveDriveId <> '') and (DocumentsDriveId <> ArchiveDriveId) then
+            Error(FoldersInDifferentDrivesErr);
     end;
 
     procedure GetId(FolderSharedLink: Text[2048]): Text
@@ -195,7 +211,7 @@ codeunit 6381 "Drive Processing"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         DocumentOutStream: OutStream;
         DocumentInStream: InStream;
-        DocumentId, FileId, SiteId : Text;
+        DocumentId, FileId, DriveId : Text;
     begin
         ExtractItemIdAndName(DocumentMetadataBlob, DocumentId, FileId);
 
@@ -203,12 +219,12 @@ codeunit 6381 "Drive Processing"
         TempDocumentSharing."Item Id" := CopyStr(DocumentId, 1, MaxStrLen(TempDocumentSharing."Item Id"));
         TempDocumentSharing.Insert();
 
-        SiteId := GetSiteId(EDocumentService."Service Integration V2");
+        DriveId := GetDocumentsDriveId(EDocumentService."Service Integration V2");
 
         FeatureTelemetry.LogUptake('0000OB0', FeatureName(), Enum::"Feature Uptake Status"::Used);
         FeatureTelemetry.LogUsage('0000OB3', FeatureName(), Format(EDocumentService."Service Integration V2"));
 
-        if not GraphClient.GetFileContent(SiteId, TempDocumentSharing) then begin
+        if not GraphClient.GetFileContent(DriveId, TempDocumentSharing) then begin
             EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, GetLastErrorText());
             ClearLastError();
             exit;
@@ -283,29 +299,47 @@ codeunit 6381 "Drive Processing"
         end;
     end;
 
-    local procedure GetSiteId(var ServiceIntegration: Enum "Service Integration"): Text
+    // /sites/{id}/drive only addresses the site's default document library, so items are addressed by drive instead.
+    local procedure GetDocumentsDriveId(var ServiceIntegration: Enum "Service Integration"): Text
     var
         SharepointSetup: Record "Sharepoint Setup";
         OneDriveSetup: Record "OneDrive Setup";
-        SiteId: Text;
+        SiteId, DriveId : Text;
     begin
+        // Setups saved before the Drive Id field existed resolve it from the shared link once and store it.
         case ServiceIntegration of
             ServiceIntegration::SharePoint:
                 begin
                     CheckSetupEnabled(SharepointSetup);
                     CheckFolderSharedLinkNotEmpty(SharepointSetup."Documents Folder", SharepointSetup.TableCaption());
-                    SiteId := SharepointSetup.SiteId;
+                    if SharepointSetup."Drive Id" = '' then begin
+                        GetSiteAndDriveId(SharepointSetup."Documents Folder", SiteId, DriveId);
+                        if DriveId <> '' then begin
+                            SharepointSetup."Drive Id" := CopyStr(DriveId, 1, MaxStrLen(SharepointSetup."Drive Id"));
+                            SharepointSetup.Modify();
+                        end;
+                    end;
+                    DriveId := SharepointSetup."Drive Id";
                 end;
             ServiceIntegration::OneDrive:
                 begin
                     CheckSetupEnabled(OneDriveSetup);
                     CheckFolderSharedLinkNotEmpty(OneDriveSetup."Documents Folder", OneDriveSetup.TableCaption());
-                    SiteId := OneDriveSetup.SiteId;
+                    if OneDriveSetup."Drive Id" = '' then begin
+                        GetSiteAndDriveId(OneDriveSetup."Documents Folder", SiteId, DriveId);
+                        if DriveId <> '' then begin
+                            OneDriveSetup."Drive Id" := CopyStr(DriveId, 1, MaxStrLen(OneDriveSetup."Drive Id"));
+                            OneDriveSetup.Modify();
+                        end;
+                    end;
+                    DriveId := OneDriveSetup."Drive Id";
                 end;
             else
                 Error(UnsupportedIntegrationTypeErr);
         end;
-        exit(SiteId);
+        if DriveId = '' then
+            Error(DriveIdEmptyErr);
+        exit(DriveId);
     end;
 
     local procedure GetSourceDetails(var ServiceIntegration: Enum "Service Integration"): Text
@@ -385,4 +419,6 @@ codeunit 6381 "Drive Processing"
         IntegrationNotEnabledErr: Label '%1 must be enabled.', Comment = '%1 - a table caption, Sharepoint Document Import Setup';
         UnsupportedIntegrationTypeErr: Label 'You must choose a upported integration type.';
         DocumentIdEmptyErr: Label 'Drive Item Id is empty on e-document %1.', Comment = '%1 - an integer';
+        DriveIdEmptyErr: Label 'Unable to determine the document library of the folder specified on the setup page. Verify that the shared link points to an existing folder and that you have access to it.';
+        FoldersInDifferentDrivesErr: Label 'The archive folder must be in the same document library as the document folder.';
 }
