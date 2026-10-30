@@ -361,6 +361,7 @@ codeunit 31315 "Gen.Jnl. Post Line Handler CZL"
         VendorPostingGroup: Record "Vendor Posting Group";
         PostingGroupAccountNo: Code[20];
         OldCorrection: Boolean;
+        AmountAddCurr: Decimal;
     begin
         if IsHandled then
             exit;
@@ -389,9 +390,12 @@ codeunit 31315 "Gen.Jnl. Post Line Handler CZL"
             end;
 
             if AccNo = PostingGroupAccountNo then begin
+                AmountAddCurr := sender.GLCalcAddCurrency(
+                    DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount, 0,
+                    DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode, GenJournalLine);
                 OldCorrection := GenJournalLine.Correction;
                 GenJournalLine.Correction := true;
-                sender.CreateGLEntry(GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)", 0, DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
+                sender.CreateGLEntry(GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)", AmountAddCurr, DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
                 GenJournalLine.Correction := OldCorrection;
                 IsHandled := true;
             end;
