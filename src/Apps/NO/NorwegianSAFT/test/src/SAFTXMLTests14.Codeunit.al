@@ -36,6 +36,7 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         TaxInformationXPathLbl: Label '/n1:AuditFile/n1:GeneralLedgerEntries/n1:Journal/n1:Transaction/n1:Line/n1:TaxInformation', Locked = true;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmYesHandler')]
     procedure DebitCurrencyAmountsUseLongMonetaryPrecision()
     begin
@@ -44,6 +45,7 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmYesHandler')]
     procedure CreditCurrencyAmountsUseLongMonetaryPrecision()
     begin
@@ -52,6 +54,7 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmYesHandler')]
     procedure ForeignCurrencyInvoiceExportsCreditNOKTaxAmount()
     begin
@@ -60,6 +63,7 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmYesHandler')]
     procedure ForeignCurrencyCreditMemoExportsDebitNOKTaxAmount()
     begin
@@ -68,6 +72,7 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmYesHandler')]
     procedure LocalCurrencyInvoiceDoesNotExportNOKTaxAmount()
     begin
@@ -76,6 +81,7 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmYesHandler')]
     procedure LocalCurrencyCreditMemoDoesNotExportNOKTaxAmount()
     begin
@@ -84,6 +90,7 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmYesHandler')]
     procedure NOKSourceCurrencyDoesNotExportNOKTaxAmount()
     begin
@@ -92,6 +99,7 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmYesHandler')]
     procedure TaxCurrencyAmountUsesLongMonetaryPrecision()
     var

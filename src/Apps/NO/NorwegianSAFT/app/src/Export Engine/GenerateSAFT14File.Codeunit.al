@@ -841,9 +841,9 @@ codeunit 10695 "Generate SAF-T 1.4 File"
             TaxAmountNode := IsDebitVATAmount ? 'DebitTaxAmount' : 'CreditTaxAmount';
             SAFTXMLHelper.AddNewXMLNode(TaxAmountNode, '');
             SAFTXMLHelper.AppendXMLNode('Amount', FormatAmount(Abs(VATEntry.Amount)));
-            if CurrencyCode <> '' then begin
+            if ((CurrencyCode <> '') and (SourceCurrencyVATAmount <> 0)) then begin
                 SAFTXMLHelper.AppendXMLNode('CurrencyCode', CurrencyCode);
-                SAFTXMLHelper.AppendXMLNode('CurrencyAmount', FormatAmountSAFlongmonetary(Abs(SourceCurrencyVATAmount)));
+                SAFTXMLHelper.AppendXMLNode('CurrencyAmount', FormatAmountSAFlongmonetary(SourceCurrencyVATAmount));
             end;
             SAFTXMLHelper.FinalizeXMLNode();
             ExportNOKTaxAmount(VATEntry, IsDebitVATAmount);
