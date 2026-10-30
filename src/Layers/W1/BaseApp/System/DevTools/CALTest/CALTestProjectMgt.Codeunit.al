@@ -1,9 +1,8 @@
 ﻿namespace System.TestTools.TestRunner;
 
-using System;
 using System.IO;
 using System.Reflection;
-using System.Xml;
+using System.Utilities;
 
 codeunit 130404 "CAL Test Project Mgt."
 {
@@ -14,7 +13,6 @@ codeunit 130404 "CAL Test Project Mgt."
 
     var
         FileMgt: Codeunit "File Management";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         FileDialogFilterTxt: Label 'Test Project file (*.xml)|*.xml|All Files (*.*)|*.*', Locked = true;
 
     [Scope('OnPrem')]
@@ -22,37 +20,36 @@ codeunit 130404 "CAL Test Project Mgt."
     var
         CALTestSuite: Record "CAL Test Suite";
         CALTestLine: Record "CAL Test Line";
-        ProjectXML: DotNet XmlDocument;
-        DocumentElement: DotNet XmlNode;
-        TestNode: DotNet XmlNode;
+        ProjectXML: XmlDocument;
+        DocumentElement: XmlElement;
+        TestElement: XmlElement;
         XMLDataFile: Text;
         FileFilter: Text;
         ToFile: Text;
     begin
-        XMLDOMMgt.LoadXMLDocumentFromText(
-          StrSubstNo(
-            '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><%1></%1>', 'CALTests'),
-          ProjectXML);
+        ProjectXML := XmlDocument.Create();
+        ProjectXML.SetDeclaration(XmlDeclaration.Create('1.0', 'UTF-16', 'yes'));
+        DocumentElement := XmlElement.Create('CALTests');
+        ProjectXML.Add(DocumentElement);
 
         CALTestSuite.Get(CALTestSuiteName);
-        DocumentElement := ProjectXML.DocumentElement;
-        XMLDOMMgt.AddAttribute(DocumentElement, CALTestSuite.FieldName(Name), CALTestSuite.Name);
-        XMLDOMMgt.AddAttribute(DocumentElement, CALTestSuite.FieldName(Description), CALTestSuite.Description);
+        DocumentElement.SetAttribute(CALTestSuite.FieldName(Name), CALTestSuite.Name);
+        DocumentElement.SetAttribute(CALTestSuite.FieldName(Description), CALTestSuite.Description);
 
         CALTestLine.SetRange("Test Suite", CALTestSuite.Name);
         CALTestLine.SetRange("Line Type", CALTestLine."Line Type"::Codeunit);
         if CALTestLine.FindSet() then
             repeat
-                TestNode := ProjectXML.CreateElement('Codeunit');
-                XMLDOMMgt.AddAttribute(TestNode, 'ID', Format(CALTestLine."Test Codeunit"));
-                DocumentElement.AppendChild(TestNode);
+                TestElement := XmlElement.Create('Codeunit');
+                TestElement.SetAttribute('ID', Format(CALTestLine."Test Codeunit"));
+                DocumentElement.Add(TestElement);
             until CALTestLine.Next() = 0;
 
         XMLDataFile := FileMgt.ServerTempFileName('');
         FileMgt.IsAllowedPath(XMLDataFile, false);
         FileFilter := GetFileDialogFilter();
         ToFile := 'PROJECT.xml';
-        ProjectXML.Save(XMLDataFile);
+        SaveXmlDocumentToServerFile(ProjectXML, XMLDataFile);
 
         FileMgt.DownloadHandler(XMLDataFile, 'Download', '', FileFilter, ToFile);
 
@@ -65,19 +62,21 @@ codeunit 130404 "CAL Test Project Mgt."
         CALTestSuite: Record "CAL Test Suite";
         AllObjWithCaption: Record AllObjWithCaption;
         CALTestManagement: Codeunit "CAL Test Management";
-        ProjectXML: DotNet XmlDocument;
-        DocumentElement: DotNet XmlNode;
-        TestNode: DotNet XmlNode;
-        TestNodes: DotNet XmlNodeList;
+        TempBlob: Codeunit "Temp Blob";
+        ProjectXML: XmlDocument;
+        DocumentElement: XmlElement;
+        TestNode: XmlNode;
+        ProjectInStream: InStream;
         ServerFileName: Text;
-        NodeCount: Integer;
         TestID: Integer;
     begin
         ServerFileName := FileMgt.ServerTempFileName('.xml');
         FileMgt.IsAllowedPath(ServerFileName, false);
         if UploadXMLPackage(ServerFileName) then begin
-            XMLDOMMgt.LoadXMLDocumentFromFile(ServerFileName, ProjectXML);
-            DocumentElement := ProjectXML.DocumentElement;
+            FileMgt.BLOBImportFromServerFile(TempBlob, ServerFileName);
+            TempBlob.CreateInStream(ProjectInStream);
+            XmlDocument.ReadFrom(ProjectInStream, ProjectXML);
+            ProjectXML.GetRoot(DocumentElement);
 
             CALTestSuite.Name :=
               CopyStr(
@@ -90,28 +89,45 @@ codeunit 130404 "CAL Test Project Mgt."
             if not CALTestSuite.Get(CALTestSuite.Name) then
                 CALTestSuite.Insert();
 
-            TestNodes := DocumentElement.ChildNodes;
-            for NodeCount := 0 to (TestNodes.Count - 1) do begin
-                TestNode := TestNodes.Item(NodeCount);
-                if Evaluate(TestID, Format(GetAttribute('ID', TestNode))) then begin
+            foreach TestNode in DocumentElement.GetChildElements() do
+                if Evaluate(TestID, Format(GetAttribute('ID', TestNode.AsXmlElement()))) then begin
                     AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Codeunit);
                     AllObjWithCaption.SetRange("Object ID", TestID);
                     CALTestManagement.AddTestCodeunits(CALTestSuite, AllObjWithCaption);
                 end;
-            end;
         end;
     end;
 
-    local procedure GetAttribute(AttributeName: Text; var XMLNode: DotNet XmlNode): Text
+    local procedure GetAttribute(AttributeName: Text; ParentXmlElement: XmlElement): Text
     var
-        XMLAttributes: DotNet XmlNamedNodeMap;
-        XMLAttributeNode: DotNet XmlNode;
+        FoundXmlAttribute: XmlAttribute;
     begin
-        XMLAttributes := XMLNode.Attributes;
-        XMLAttributeNode := XMLAttributes.GetNamedItem(AttributeName);
-        if IsNull(XMLAttributeNode) then
+        if not ParentXmlElement.Attributes().Get(AttributeName, FoundXmlAttribute) then
             exit('');
-        exit(Format(XMLAttributeNode.InnerText));
+        exit(Format(FoundXmlAttribute.Value()));
+    end;
+
+    local procedure SaveXmlDocumentToServerFile(ProjectXML: XmlDocument; FileName: Text)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ProjectFile: File;
+        BlobOutStream: OutStream;
+        FileOutStream: OutStream;
+        BlobInStream: InStream;
+        ByteOrderMark: Char;
+        ProjectXMLText: Text;
+    begin
+        ProjectXML.WriteTo(ProjectXMLText);
+        ByteOrderMark := 65279;
+        TempBlob.CreateOutStream(BlobOutStream, TextEncoding::UTF16);
+        BlobOutStream.WriteText(Format(ByteOrderMark) + ProjectXMLText);
+
+        ProjectFile.WriteMode(true);
+        ProjectFile.Create(FileName);
+        ProjectFile.CreateOutStream(FileOutStream);
+        TempBlob.CreateInStream(BlobInStream);
+        CopyStream(FileOutStream, BlobInStream);
+        ProjectFile.Close();
     end;
 
     local procedure GetElementName(NameIn: Text): Text
