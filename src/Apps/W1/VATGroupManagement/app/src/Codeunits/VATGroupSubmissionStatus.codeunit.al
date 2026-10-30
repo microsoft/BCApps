@@ -40,7 +40,8 @@ codeunit 4705 "VAT Group Submission Status"
         Session.LogMessage('0000D7F', AllStatusUpdateMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', VATGroupTok);
 
         BatchPayload := VATGroupSerialization.CreateBatchRequestPayload(VATGroupReturnNoList);
-        VATGroupCommunication.Send('POST', '/$batch', BatchPayload, HttpResponseBodyText, true);
+        if not VATGroupCommunication.Send('POST', '/$batch', BatchPayload, HttpResponseBodyText, true) then
+            Error(GetLastErrorText());
 
         JsonObj.ReadFrom(HttpResponseBodyText);
         UpdateStatusInVATReportHeader(JsonObj, VATGroupReturnNoList);
