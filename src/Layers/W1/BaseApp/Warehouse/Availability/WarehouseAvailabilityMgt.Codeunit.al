@@ -78,7 +78,8 @@ codeunit 7314 "Warehouse Availability Mgt."
             PickQty := CalcQtyRegisteredPick(ReservEntry);
             // Keep the shipment check item-wide, as lot validation also adds item-wide reserved pick/shipment quantities.
             ValidateQtyPickedInShipmentBin(
-                PickQty, ReservEntry."Location Code", ReservEntry."Item No.", ReservEntry."Variant Code", TempTrackingSpecification, ReservEntry."Source Type");
+                PickQty, ReservEntry."Location Code", ReservEntry."Item No.", ReservEntry."Variant Code", TempTrackingSpecification,
+                ReservEntry."Source Type", ReservEntry."Source Subtype", ReservEntry."Source ID", ReservEntry."Source Ref. No.");
             PickQty +=
                 CalcQtyOutstandingPick(
                     ReservEntry."Source Type", ReservEntry."Source Subtype", ReservEntry."Source ID", ReservEntry."Source Ref. No.", ReservEntry."Source Prod. Order Line", WarehouseActivityLine);
@@ -154,7 +155,9 @@ codeunit 7314 "Warehouse Availability Mgt."
                 QtyPicked :=
                   CalcQtyRegisteredPick(
                     LocationCode, TempReservEntryBuffer."Source Type", TempReservEntryBuffer."Source Subtype", TempReservEntryBuffer."Source ID", TempReservEntryBuffer."Source Ref. No.", TempReservEntryBuffer."Source Prod. Order Line");
-                ValidateQtyPickedInShipmentBin(QtyPicked, LocationCode, ItemNo, VariantCode, TrackingSpecification, TempReservEntryBuffer."Source Type");
+                ValidateQtyPickedInShipmentBin(
+                    QtyPicked, LocationCode, ItemNo, VariantCode, TrackingSpecification,
+                    TempReservEntryBuffer."Source Type", TempReservEntryBuffer."Source Subtype", TempReservEntryBuffer."Source ID", TempReservEntryBuffer."Source Ref. No.");
                 QtyToPick :=
                   CalcQtyOutstandingPick(
                     TempReservEntryBuffer."Source Type", TempReservEntryBuffer."Source Subtype", TempReservEntryBuffer."Source ID", TempReservEntryBuffer."Source Ref. No.", TempReservEntryBuffer."Source Prod. Order Line", WarehouseActivityLine);
@@ -950,7 +953,7 @@ codeunit 7314 "Warehouse Availability Mgt."
         exit(WarehouseShipmentLine."Qty. Picked (Base)" - WarehouseShipmentLine."Qty. Shipped (Base)")
     end;
 
-    local procedure ValidateQtyPickedInShipmentBin(var QtyPicked: Decimal; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; TrackingSpecification: Record "Tracking Specification"; SourceType: Integer)
+    local procedure ValidateQtyPickedInShipmentBin(var QtyPicked: Decimal; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; TrackingSpecification: Record "Tracking Specification"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer)
     var
         Location: Record Location;
         ItemTrackingSetup: Record "Item Tracking Setup";
@@ -972,12 +975,12 @@ codeunit 7314 "Warehouse Availability Mgt."
         if not (Location.Get(LocationCode) and Location."Bin Mandatory" and (Location."Shipment Bin Code" <> '')) then
             exit;
 
-        QtyOnShipmentBin := CalcQtyOnShipmentBins(LocationCode, ItemNo, VariantCode, ItemTrackingSetup);
+        QtyOnShipmentBin := CalcQtyOnShipmentBins(LocationCode, ItemNo, VariantCode, ItemTrackingSetup, SourceType, SourceSubType, SourceID, SourceRefNo);
         if QtyOnShipmentBin = 0 then
             QtyPicked := 0
     end;
 
-    local procedure CalcQtyOnShipmentBins(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"): Decimal
+    local procedure CalcQtyOnShipmentBins(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer): Decimal
     var
         WarehouseEntry: Record "Warehouse Entry";
         BinType: Record "Bin Type";
@@ -1012,16 +1015,19 @@ codeunit 7314 "Warehouse Availability Mgt."
             end;
 
         if QtyOnShipmentBins = 0 then
-            QtyOnShipmentBins := CalcQtyOnRegisteredPickDestinationBins(LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup);
+            QtyOnShipmentBins :=
+                CalcQtyOnRegisteredPickDestinationBins(
+                    LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup, SourceType, SourceSubType, SourceID, SourceRefNo);
         exit(QtyOnShipmentBins);
     end;
 
-    local procedure CalcQtyOnRegisteredPickDestinationBins(LocationCode: Code[10]; DefaultShipmentBinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup") QtyOnBins: Decimal
+    local procedure CalcQtyOnRegisteredPickDestinationBins(LocationCode: Code[10]; DefaultShipmentBinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer) QtyOnBins: Decimal
     var
         WarehouseEntry: Record "Warehouse Entry";
         CheckedBins: List of [Code[20]];
     begin
         // Registered pick place entries remain after the warehouse shipment is deleted, so use them to find destination bins.
+        // Only the bins that the credited source line was picked into count; stock picked by other source lines must not keep this credit.
         WarehouseEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
         WarehouseEntry.SetLoadFields("Bin Code");
         WarehouseEntry.SetRange("Item No.", ItemNo);
@@ -1030,7 +1036,7 @@ codeunit 7314 "Warehouse Availability Mgt."
         WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
         WarehouseEntry.SetRange("Reference Document", WarehouseEntry."Reference Document"::Pick);
         WarehouseEntry.SetRange("Whse. Document Type", WarehouseEntry."Whse. Document Type"::Shipment);
-        WarehouseEntry.SetRange("Source Type", 37); // Database::Sales Line
+        WarehouseEntry.SetSourceFilter(SourceType, SourceSubType, SourceID, SourceRefNo, true);
         WarehouseEntry.SetFilter(Quantity, '>%1', 0);
         WarehouseEntry.SetFilter("Bin Code", '<>%1&<>%2', '', DefaultShipmentBinCode);
         WarehouseEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
