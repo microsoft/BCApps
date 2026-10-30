@@ -974,6 +974,7 @@ dotnet
         {
         }
 
+#if not CLEAN30
         type("Newtonsoft.Json.JsonTextReader"; "JsonTextReader")
         {
         }
@@ -981,7 +982,6 @@ dotnet
         type("Newtonsoft.Json.JsonTextWriter"; "JsonTextWriter")
         {
         }
-
         type("Newtonsoft.Json.Linq.JArray"; "JArray")
         {
         }
@@ -997,10 +997,10 @@ dotnet
         type("Newtonsoft.Json.Linq.JToken"; "JToken")
         {
         }
-
         type("Newtonsoft.Json.Linq.JValue"; "JValue")
         {
         }
+#endif
     }
 
     assembly("Microsoft.Dynamics.Nav.PluralizationService")

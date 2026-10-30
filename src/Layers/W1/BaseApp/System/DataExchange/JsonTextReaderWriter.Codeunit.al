@@ -1,3 +1,4 @@
+#if not CLEAN30
 namespace System.IO;
 
 using System;
@@ -5,6 +6,9 @@ using System.Utilities;
 
 codeunit 1234 "Json Text Reader/Writer"
 {
+    ObsoleteReason = 'Use the built-in AL JSON types and table "JSON Buffer" instead. Native AL JSON APIs do not support the Json.NET constructor expressions accepted by WriteStartConstructor.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     trigger OnRun()
     begin
@@ -18,7 +22,9 @@ codeunit 1234 "Json Text Reader/Writer"
 
     procedure ReadJSonToJSonBuffer(Json: Text; var JsonBuffer: Record "JSON Buffer")
     begin
+#pragma warning disable AL0432
         JsonBuffer.ReadFromText(Json);
+#pragma warning restore AL0432
     end;
 
     local procedure InitializeWriter()
@@ -159,4 +165,4 @@ codeunit 1234 "Json Text Reader/Writer"
         JsonTextWriter.WritePropertyName(VariableName);
     end;
 }
-
+#endif
