@@ -808,6 +808,19 @@
       "dvdFolder": "Applications\\BaseApp\\Test",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
+    "Tests-Concurrent Posting": {
+      "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\Concurrent Posting",
+      "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\Concurrent Posting\\app.json",
+      "isGDLProject": true,
+      "unsupportedCountries": [
+        "NA"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "dvdFolder": "Applications\\BaseApp\\Test",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
     "Tests-ERM": {
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\ERM",
       "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\ERM\\app.json",
@@ -3802,6 +3815,26 @@
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
+    },
+    "Report Filename Manager": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\ReportFilenameManager\\App",
+      "dvdFolder": "Applications\\ReportFilenameManager\\Source",
+      "hasTranslations": true,
+      "supportedCountries": "All",
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
+    },
+    "Report Filename Manager Tests": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\ReportFilenameManager\\Test",
+      "dvdFolder": "Applications\\ReportFilenameManager\\Test",
+      "supportedCountries": "All",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
     "Review General Ledger Entries": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\ReviewGLEntries\\app",
