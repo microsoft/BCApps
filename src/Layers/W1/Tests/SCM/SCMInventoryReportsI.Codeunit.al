@@ -1156,6 +1156,64 @@ codeunit 137301 "SCM Inventory Reports - I"
     end;
 
     [Test]
+    [HandlerFunctions('InvtValuationSkipZeroLinesRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure InventoryValuationSkipZeroLinesFalse()
+    begin
+        Initialize();
+        InventoryValuationSkipZeroLines(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('InvtValuationSkipZeroLinesRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure InventoryValuationSkipZeroLinesTrue()
+    begin
+        Initialize();
+        InventoryValuationSkipZeroLines(true);
+    end;
+
+    [Normal]
+    local procedure InventoryValuationSkipZeroLines(SkipZeroLines: Boolean)
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemNos: Array[2] of Code[20];
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [Inventory Valuation]
+        // [SCENARIO] Skip Zero Lines omits items with entries but zero ending quantity, value and posted G/L cost.
+        Initialize();
+
+        // [GIVEN] One item with balanced positive and negative adjustments, and another with remaining inventory.
+        CreateItem(Item);
+        ItemNos[1] := Item."No.";
+        Quantity := LibraryRandom.RandInt(100);
+        CreateAndPostItemJrnl(ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemNos[1], Quantity);
+        CreateAndPostItemJrnl(ItemJournalLine."Entry Type"::"Negative Adjmt.", ItemNos[1], Quantity);
+
+        CreateItem(Item);
+        ItemNos[2] := Item."No.";
+        CreateAndPostItemJrnl(ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemNos[2], Quantity);
+
+        Item.SetFilter("No.", '%1|%2', ItemNos[1], ItemNos[2]);
+        Commit();
+
+        // [WHEN] Run the report with the current SkipZeroLines setting.
+        RunInvtValuationReportSkipZeroLines(Item, '', 0D, WorkDate(), SkipZeroLines);
+        LibraryReportDataset.LoadDataSetFile();
+
+        // [THEN] The zero-ending item is shown only when SkipZeroLines is false; the other item is always shown.
+        if SkipZeroLines then
+            LibraryReportDataset.AssertElementWithValueNotExist('ItemNo', ItemNos[1])
+        else
+            LibraryReportDataset.AssertElementWithValueExists('ItemNo', ItemNos[1]);
+
+        LibraryReportDataset.AssertElementWithValueExists('ItemNo', ItemNos[2]);
+        Clear(LibraryReportDataset);
+    end;
+
+    [Test]
     [HandlerFunctions('CloseInvtPeriodTestRequestPageHandler')]
     [Scope('OnPrem')]
     procedure CloseInventoryPeriodTest()
@@ -1868,6 +1926,15 @@ codeunit 137301 "SCM Inventory Reports - I"
         REPORT.Run(REPORT::"Inventory Valuation", true, false, Item);
     end;
 
+    local procedure RunInvtValuationReportSkipZeroLines(Item: Record Item; LocationCode: Code[20]; StartDate: Date; EndingDate: Date; SkipZeroLines: Boolean)
+    begin
+        Item.SetRange("Location Filter", LocationCode);
+        LibraryVariableStorage.Enqueue(StartDate);
+        LibraryVariableStorage.Enqueue(EndingDate);
+        LibraryVariableStorage.Enqueue(SkipZeroLines);
+        REPORT.Run(REPORT::"Inventory Valuation", true, false, Item);
+    end;
+
     local procedure VerifyTop10ListReport(ItemNo: Code[20]; ItemNo2: Code[20])
     var
         Item: Record Item;
@@ -2229,6 +2296,23 @@ codeunit 137301 "SCM Inventory Reports - I"
         InventoryValuation.EndingDate.SetValue(EndingDate);
         LibraryVariableStorage.Dequeue(IncludeExpectedCost);
         InventoryValuation.IncludeExpectedCost.SetValue(IncludeExpectedCost);
+        InventoryValuation.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure InvtValuationSkipZeroLinesRequestPageHandler(var InventoryValuation: TestRequestPage "Inventory Valuation")
+    var
+        StartDate: Variant;
+        EndingDate: Variant;
+        SkipZeroLines: Variant;
+    begin
+        LibraryVariableStorage.Dequeue(StartDate);
+        InventoryValuation.StartingDate.SetValue(StartDate);
+        LibraryVariableStorage.Dequeue(EndingDate);
+        InventoryValuation.EndingDate.SetValue(EndingDate);
+        LibraryVariableStorage.Dequeue(SkipZeroLines);
+        InventoryValuation.RequestSkipZeroLines.SetValue(SkipZeroLines);
         InventoryValuation.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
