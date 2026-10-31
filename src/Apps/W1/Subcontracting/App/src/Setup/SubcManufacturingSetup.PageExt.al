@@ -52,5 +52,12 @@ pageextension 20542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
                 }
             }
         }
+        addlast(WizardDefaults)
+        {
+            field("Subc. Rtng. Link Purch Prov"; Rec."Subc. Rtng. Link Purch Prov")
+            {
+                ApplicationArea = Subcontracting;
+            }
+        }
     }
 }

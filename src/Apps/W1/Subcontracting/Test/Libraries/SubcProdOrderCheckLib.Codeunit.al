@@ -4,12 +4,20 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 
 codeunit 139987 "Subc. ProdOrderCheckLib"
 {
     var
+        ManufacturingSetup: Record "Manufacturing Setup";
         Assert: Codeunit Assert;
         Description2MismatchOnLineLbl: Label 'Description 2 mismatch on Line %1. Expected: %2, Actual: %3', Locked = true;
         Description2MismatchOnOperationLbl: Label 'Description 2 mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
@@ -36,6 +44,69 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
         UnitCostCalculationMismatchOnOperationLbl: Label 'Unit Cost Calculation mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
         WorkCenterGroupCodeMismatchOnOperationLbl: Label 'Work Center Group Code mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
         WorkCenterNoMismatchOnOperationLbl: Label 'Work Center No. mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
+
+    /// <summary>
+    /// Adds a temporary production order component using the default component settings from Manufacturing Setup.
+    /// </summary>
+    /// <param name="TempProdOrderComponent">The temporary production order component record to populate.</param>
+    /// <param name="PurchLine">The purchase line used to determine the subcontracting vendor location.</param>
+    procedure CreateTempProdOrderComponentFromSetup(var TempProdOrderComponent: Record "Prod. Order Component" temporary; PurchLine: Record "Purchase Line")
+    var
+        TempProdOrderComponent2: Record "Prod. Order Component" temporary;
+        LineNo: Integer;
+    begin
+        // Fill temporary Production Order Component from setup configuration
+        ManufacturingSetup.Get();
+
+        TempProdOrderComponent2.Copy(TempProdOrderComponent, true);
+        if TempProdOrderComponent2.FindLast() then
+            LineNo := TempProdOrderComponent2."Line No." + 10000
+        else
+            LineNo := 10000;
+
+        TempProdOrderComponent.Init();
+        TempProdOrderComponent."Line No." := LineNo;
+        TempProdOrderComponent."Item No." := ManufacturingSetup."Def. Wiz. Comp Item No.";
+        TempProdOrderComponent."Location Code" := GetVendorSubcontractingLocation(PurchLine."Buy-from Vendor No.");
+        TempProdOrderComponent."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
+        TempProdOrderComponent."Flushing Method" := ManufacturingSetup."Def. Wiz. Flushing Method";
+
+        TempProdOrderComponent.Insert();
+    end;
+
+    local procedure GetVendorSubcontractingLocation(VendorNo: Code[20]): Code[10]
+    var
+        Vendor: Record Vendor;
+    begin
+        Vendor.SetLoadFields("Subc. Location Code");
+        if Vendor.Get(VendorNo) then
+            exit(Vendor."Subc. Location Code");
+        exit('');
+    end;
+
+    procedure CreateTempProdOrderRoutingFromSetup(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; OperationNo: Code[10])
+    var
+        WorkCenter: Record "Work Center";
+    begin
+        ManufacturingSetup.Get();
+
+        TempProdOrderRoutingLine.Init();
+        TempProdOrderRoutingLine."Operation No." := OperationNo;
+        TempProdOrderRoutingLine.Type := TempProdOrderRoutingLine.Type::"Work Center";
+        TempProdOrderRoutingLine."No." := ManufacturingSetup."Def. Wiz. Work Center No.";
+        TempProdOrderRoutingLine."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
+        if ManufacturingSetup."Def. Wiz. Work Center No." <> '' then
+            if WorkCenter.Get(ManufacturingSetup."Def. Wiz. Work Center No.") then begin
+                TempProdOrderRoutingLine."Work Center No." := WorkCenter."No.";
+                TempProdOrderRoutingLine."Unit Cost Calculation" := WorkCenter."Unit Cost Calculation";
+                TempProdOrderRoutingLine."Direct Unit Cost" := WorkCenter."Direct Unit Cost";
+                TempProdOrderRoutingLine."Indirect Cost %" := WorkCenter."Indirect Cost %";
+                TempProdOrderRoutingLine."Overhead Rate" := WorkCenter."Overhead Rate";
+                TempProdOrderRoutingLine."Flushing Method" := ManufacturingSetup."Def. Wiz. Flushing Method";
+            end;
+
+        TempProdOrderRoutingLine.Insert();
+    end;
 
     procedure VerifyProdOrder(PurchLine: Record "Purchase Line"; var ProdOrder: Record "Production Order")
     begin
@@ -107,7 +178,6 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
             Assert.AreEqual(TempComponent."Quantity per", ActualComponent."Quantity per",
                 StrSubstNo(QuantityPerMismatchOnLineLbl,
                     TempComponent."Line No.", TempComponent."Quantity per", ActualComponent."Quantity per"));
-
         if TempComponent.Quantity <> 0 then
             Assert.AreEqual(TempComponent.Quantity, ActualComponent.Quantity,
                 StrSubstNo(QuantityMismatchOnLineLbl,
@@ -197,12 +267,10 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
             Assert.AreEqual(TempRoutingLine."Direct Unit Cost", ActualRoutingLine."Direct Unit Cost",
                 StrSubstNo(DirectUnitCostMismatchOnOperationLbl,
                     TempRoutingLine."Operation No.", TempRoutingLine."Direct Unit Cost", ActualRoutingLine."Direct Unit Cost"));
-
         if TempRoutingLine."Indirect Cost %" <> 0 then
             Assert.AreEqual(TempRoutingLine."Indirect Cost %", ActualRoutingLine."Indirect Cost %",
                 StrSubstNo(IndirectCostPercentMismatchOnOperationLbl,
                     TempRoutingLine."Operation No.", TempRoutingLine."Indirect Cost %", ActualRoutingLine."Indirect Cost %"));
-
         if TempRoutingLine."Overhead Rate" <> 0 then
             Assert.AreEqual(TempRoutingLine."Overhead Rate", ActualRoutingLine."Overhead Rate",
                 StrSubstNo(OverheadRateMismatchOnOperationLbl,
@@ -213,7 +281,6 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
             Assert.AreEqual(TempRoutingLine."Setup Time", ActualRoutingLine."Setup Time",
                 StrSubstNo(SetupTimeMismatchOnOperationLbl,
                     TempRoutingLine."Operation No.", TempRoutingLine."Setup Time", ActualRoutingLine."Setup Time"));
-
         if TempRoutingLine."Run Time" <> 0 then
             Assert.AreEqual(TempRoutingLine."Run Time", ActualRoutingLine."Run Time",
                 StrSubstNo(RunTimeMismatchOnOperationLbl,
@@ -230,5 +297,208 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
             Assert.AreEqual(TempRoutingLine."Description 2", ActualRoutingLine."Description 2",
                 StrSubstNo(Description2MismatchOnOperationLbl,
                     TempRoutingLine."Operation No.", TempRoutingLine."Description 2", ActualRoutingLine."Description 2"));
+    end;
+
+    /// <summary>
+    /// Replaces the temporary production order components with expected components built from the item lines of a production BOM.
+    /// </summary>
+    /// <param name="TempProdOrderComponent">The temporary production order component record to populate.</param>
+    /// <param name="BOMNo">The production BOM whose item lines are the component source.</param>
+    /// <param name="PurchLine">The purchase line used to determine the component and subcontracting vendor locations.</param>
+    procedure CreateTempProdOrderComponentFromBOM(var TempProdOrderComponent: Record "Prod. Order Component" temporary; BOMNo: Code[20]; PurchLine: Record "Purchase Line")
+    var
+        Item: Record Item;
+        ProductionBOMLine: Record "Production BOM Line";
+        LineNo: Integer;
+    begin
+        ManufacturingSetup.Get();
+        // Create temporary Production Order Components based on BOM lines
+        TempProdOrderComponent.Reset();
+        TempProdOrderComponent.DeleteAll();
+        if TempProdOrderComponent.FindLast() then
+            LineNo := TempProdOrderComponent."Line No."
+        else
+            LineNo := 0;
+
+        ProductionBOMLine.SetRange("Production BOM No.", BOMNo);
+        ProductionBOMLine.SetRange(Type, ProductionBOMLine.Type::Item);
+        if ProductionBOMLine.FindSet() then
+            repeat
+                LineNo += 10000;
+                TempProdOrderComponent.Init();
+                TempProdOrderComponent."Line No." := LineNo;
+                TempProdOrderComponent."Item No." := ProductionBOMLine."No.";
+                TempProdOrderComponent."Quantity per" := ProductionBOMLine."Quantity per";
+                TempProdOrderComponent."Unit of Measure Code" := ProductionBOMLine."Unit of Measure Code";
+                TempProdOrderComponent."Routing Link Code" := ProductionBOMLine."Routing Link Code";
+                TempProdOrderComponent."Description 2" := ProductionBOMLine."Description 2";
+                if ProductionBOMLine."Component Supply Method" in [ProductionBOMLine."Component Supply Method"::"Vendor-Supplied", ProductionBOMLine."Component Supply Method"::"Consignment at Vendor"] then
+                    TempProdOrderComponent."Location Code" := GetVendorSubcontractingLocation(PurchLine."Buy-from Vendor No.")
+                else
+                    TempProdOrderComponent."Location Code" := PurchLine."Location Code";
+
+                Item.SetLoadFields("Flushing Method");
+                if Item.Get(ProductionBOMLine."No.") then
+                    TempProdOrderComponent."Flushing Method" := Item."Flushing Method";
+                TempProdOrderComponent.Insert();
+            until ProductionBOMLine.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Appends expected temporary production order components built from the lines of a production BOM version.
+    /// </summary>
+    /// <param name="TempProdOrderComponent">The temporary production order component record to append to.</param>
+    /// <param name="BOMNo">The production BOM that owns the version.</param>
+    /// <param name="BOMVersionNo">The production BOM version whose lines are the component source.</param>
+    /// <param name="PurchLine">The purchase line whose location code is assigned to the components.</param>
+    procedure CreateTempProdOrderComponentFromBOMVersion(var TempProdOrderComponent: Record "Prod. Order Component" temporary; BOMNo: Code[20]; BOMVersionNo: Code[20]; PurchLine: Record "Purchase Line")
+    var
+        Item: Record Item;
+        ProductionBOMLine: Record "Production BOM Line";
+        LineNo: Integer;
+    begin
+        // Create temporary Production Order Components based on BOM Version lines
+        TempProdOrderComponent.Reset();
+        if TempProdOrderComponent.FindLast() then
+            LineNo := TempProdOrderComponent."Line No."
+        else
+            LineNo := 0;
+
+        ProductionBOMLine.SetRange("Production BOM No.", BOMNo);
+        ProductionBOMLine.SetRange("Version Code", BOMVersionNo);
+        if ProductionBOMLine.FindSet() then
+            repeat
+                LineNo += 10000;
+                TempProdOrderComponent.Init();
+                TempProdOrderComponent."Line No." := LineNo;
+                TempProdOrderComponent."Item No." := ProductionBOMLine."No.";
+                TempProdOrderComponent."Quantity per" := ProductionBOMLine."Quantity per";
+                TempProdOrderComponent."Unit of Measure Code" := ProductionBOMLine."Unit of Measure Code";
+                TempProdOrderComponent."Routing Link Code" := ProductionBOMLine."Routing Link Code";
+                TempProdOrderComponent."Location Code" := PurchLine."Location Code";
+                Item.SetLoadFields("Flushing Method");
+                if Item.Get(ProductionBOMLine."No.") then
+                    TempProdOrderComponent."Flushing Method" := Item."Flushing Method";
+                TempProdOrderComponent.Insert();
+            until ProductionBOMLine.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Replaces the temporary production order routing lines with expected lines built from a routing.
+    /// </summary>
+    /// <param name="TempProdOrderRoutingLine">The temporary production order routing line record to populate.</param>
+    /// <param name="RoutingNo">The routing whose lines are the operation source.</param>
+    procedure CreateTempProdOrderRoutingFromRouting(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; RoutingNo: Code[20])
+    var
+        MachineCenter: Record "Machine Center";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
+    begin
+        // Create temporary Production Order Routing Lines based on Routing lines
+        TempProdOrderRoutingLine.Reset();
+        TempProdOrderRoutingLine.DeleteAll();
+
+        RoutingLine.SetRange("Routing No.", RoutingNo);
+        if RoutingLine.FindSet() then
+            repeat
+                TempProdOrderRoutingLine.Init();
+                TempProdOrderRoutingLine."Operation No." := RoutingLine."Operation No.";
+                TempProdOrderRoutingLine.Type := RoutingLine.Type;
+                TempProdOrderRoutingLine."No." := RoutingLine."No.";
+                TempProdOrderRoutingLine.Description := RoutingLine.Description;
+                TempProdOrderRoutingLine."Description 2" := RoutingLine."Description 2";
+                TempProdOrderRoutingLine."Setup Time" := RoutingLine."Setup Time";
+                TempProdOrderRoutingLine."Run Time" := RoutingLine."Run Time";
+                TempProdOrderRoutingLine."Wait Time" := RoutingLine."Wait Time";
+                TempProdOrderRoutingLine."Move Time" := RoutingLine."Move Time";
+                TempProdOrderRoutingLine."Routing Link Code" := RoutingLine."Routing Link Code";
+
+                // Set Work Center specific fields
+                case RoutingLine.Type of
+                    RoutingLine.Type::"Work Center":
+                        if WorkCenter.Get(RoutingLine."No.") then begin
+                            TempProdOrderRoutingLine."Work Center No." := WorkCenter."No.";
+                            TempProdOrderRoutingLine."Unit Cost Calculation" := WorkCenter."Unit Cost Calculation";
+                            TempProdOrderRoutingLine."Direct Unit Cost" := WorkCenter."Direct Unit Cost";
+                            TempProdOrderRoutingLine."Indirect Cost %" := WorkCenter."Indirect Cost %";
+                            TempProdOrderRoutingLine."Overhead Rate" := WorkCenter."Overhead Rate";
+                            TempProdOrderRoutingLine."Flushing Method" := WorkCenter."Flushing Method";
+                        end;
+                    RoutingLine.Type::"Machine Center":
+                        if MachineCenter.Get(RoutingLine."No.") then begin
+                            TempProdOrderRoutingLine."Work Center No." := MachineCenter."Work Center No.";
+                            if WorkCenter.Get(MachineCenter."Work Center No.") then begin
+                                TempProdOrderRoutingLine."Unit Cost Calculation" := WorkCenter."Unit Cost Calculation";
+                                TempProdOrderRoutingLine."Direct Unit Cost" := MachineCenter."Direct Unit Cost";
+                                TempProdOrderRoutingLine."Indirect Cost %" := MachineCenter."Indirect Cost %";
+                                TempProdOrderRoutingLine."Overhead Rate" := MachineCenter."Overhead Rate";
+                                TempProdOrderRoutingLine."Flushing Method" := MachineCenter."Flushing Method";
+                            end;
+                        end;
+                end;
+
+                TempProdOrderRoutingLine.Insert();
+            until RoutingLine.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Replaces the temporary production order routing lines with expected lines built from a routing version.
+    /// </summary>
+    /// <param name="TempProdOrderRoutingLine">The temporary production order routing line record to populate.</param>
+    /// <param name="RoutingNo">The routing that owns the version.</param>
+    /// <param name="VersionCode">The routing version whose lines are the operation source.</param>
+    procedure CreateTempProdOrderRoutingFromRoutingVersion(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; RoutingNo: Code[20]; VersionCode: Code[20])
+    var
+        MachineCenter: Record "Machine Center";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
+    begin
+        // Create temporary Production Order Routing Lines based on Routing Version lines
+        TempProdOrderRoutingLine.Reset();
+        TempProdOrderRoutingLine.DeleteAll();
+
+        RoutingLine.SetRange("Routing No.", RoutingNo);
+        RoutingLine.SetRange("Version Code", VersionCode);
+        if RoutingLine.FindSet() then
+            repeat
+                TempProdOrderRoutingLine.Init();
+                TempProdOrderRoutingLine."Operation No." := RoutingLine."Operation No.";
+                TempProdOrderRoutingLine.Type := RoutingLine.Type;
+                TempProdOrderRoutingLine."No." := RoutingLine."No.";
+                TempProdOrderRoutingLine.Description := RoutingLine.Description;
+                TempProdOrderRoutingLine."Setup Time" := RoutingLine."Setup Time";
+                TempProdOrderRoutingLine."Run Time" := RoutingLine."Run Time";
+                TempProdOrderRoutingLine."Wait Time" := RoutingLine."Wait Time";
+                TempProdOrderRoutingLine."Move Time" := RoutingLine."Move Time";
+                TempProdOrderRoutingLine."Routing Link Code" := RoutingLine."Routing Link Code";
+
+                // Set Work Center specific fields
+                case RoutingLine.Type of
+                    RoutingLine.Type::"Work Center":
+                        if WorkCenter.Get(RoutingLine."No.") then begin
+                            TempProdOrderRoutingLine."Work Center No." := WorkCenter."No.";
+                            TempProdOrderRoutingLine."Work Center Group Code" := WorkCenter."Work Center Group Code";
+                            TempProdOrderRoutingLine."Unit Cost Calculation" := WorkCenter."Unit Cost Calculation";
+                            TempProdOrderRoutingLine."Direct Unit Cost" := WorkCenter."Direct Unit Cost";
+                            TempProdOrderRoutingLine."Indirect Cost %" := WorkCenter."Indirect Cost %";
+                            TempProdOrderRoutingLine."Overhead Rate" := WorkCenter."Overhead Rate";
+                            TempProdOrderRoutingLine."Flushing Method" := WorkCenter."Flushing Method";
+                        end;
+                    RoutingLine.Type::"Machine Center":
+                        if MachineCenter.Get(RoutingLine."No.") then begin
+                            TempProdOrderRoutingLine."Work Center No." := MachineCenter."Work Center No.";
+                            if WorkCenter.Get(MachineCenter."Work Center No.") then begin
+                                TempProdOrderRoutingLine."Work Center Group Code" := WorkCenter."Work Center Group Code";
+                                TempProdOrderRoutingLine."Unit Cost Calculation" := WorkCenter."Unit Cost Calculation";
+                                TempProdOrderRoutingLine."Direct Unit Cost" := MachineCenter."Direct Unit Cost";
+                                TempProdOrderRoutingLine."Indirect Cost %" := MachineCenter."Indirect Cost %";
+                                TempProdOrderRoutingLine."Overhead Rate" := MachineCenter."Overhead Rate";
+                                TempProdOrderRoutingLine."Flushing Method" := MachineCenter."Flushing Method";
+                            end;
+                        end;
+                end;
+
+                TempProdOrderRoutingLine.Insert();
+            until RoutingLine.Next() = 0;
     end;
 }

@@ -366,7 +366,7 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
         ProdOrderLine.SetRange("Prod. Order No.", "Prod. Order No.");
         ProdOrderLine.SetRange("Routing Reference No.", "Routing Reference No.");
         ProdOrderLine.SetRange("Routing No.", "Routing No.");
-        if ProdOrderLine.Find('-') then
+        if ProdOrderLine.FindSet() then
             repeat
                 PurchLine.SetLoadFields(SystemId);
                 PurchLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
@@ -411,7 +411,7 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
         ProdOrderLine.SetRange("Prod. Order No.", "Prod. Order No.");
         ProdOrderLine.SetRange("Routing Reference No.", "Routing Reference No.");
         ProdOrderLine.SetRange("Routing No.", "Routing No.");
-        if ProdOrderLine.Find('-') then
+        if ProdOrderLine.FindSet() then
             repeat
                 PurchLine.SetLoadFields(SystemId);
                 PurchLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
