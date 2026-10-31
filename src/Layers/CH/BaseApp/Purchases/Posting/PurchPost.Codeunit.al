@@ -1059,6 +1059,10 @@ codeunit 90 "Purch.-Post"
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
         SearchPurchCrMemoLine: Record "Purch. Cr. Memo Line";
         CostBaseAmount: Decimal;
+        JobFullLineDiscAmount: Decimal;
+        JobFullLineInvDiscAmount: Decimal;
+        JobUnitCostToInvoice: Decimal;
+        UseJobUnitCostToInvoice: Boolean;
         IsHandled: Boolean;
         AmountsOnly: Boolean;
     begin
@@ -1092,8 +1096,13 @@ codeunit 90 "Purch.-Post"
                 end;
             IsHandled := false;
             OnPostPurchLineOnBeforeDivideAmount(PurchHeader, PurchLine, TempVATAmountLine, TempVATAmountLineRemainder, IsHandled);
-            if not IsHandled then
+            if not IsHandled then begin
+                JobFullLineDiscAmount := PurchLine."Line Discount Amount";
+                JobFullLineInvDiscAmount := PurchLine."Inv. Discount Amount";
                 DivideAmount(PurchHeader, PurchLine, 1, PurchLine."Qty. to Invoice", TempVATAmountLine, TempVATAmountLineRemainder);
+                UseJobUnitCostToInvoice :=
+                    CalcJobUnitCostForInvDiscToInvoice(PurchHeader, PurchLine, JobFullLineDiscAmount, JobFullLineInvDiscAmount, JobUnitCostToInvoice);
+            end;
         end else
             if not AmountsOnly then
                 PurchLine.TestField(Amount, 0);
@@ -1118,7 +1127,7 @@ codeunit 90 "Purch.-Post"
         OnPostPurchLineOnBeforePostByType(PurchHeader, PurchInvHeader, PurchCrMemoHeader, PurchLine, PurchLineACY, SrcCode);
         case PurchLine.Type of
             PurchLine.Type::"G/L Account":
-                PostGLAccICLine(PurchHeader, PurchLine, ICGenJnlLineNo);
+                PostGLAccICLine(PurchHeader, PurchLine, ICGenJnlLineNo, UseJobUnitCostToInvoice, JobUnitCostToInvoice);
             PurchLine.Type::Item:
                 PostItemLine(PurchHeader, PurchLine, TempDropShptPostBuffer);
             PurchLine.Type::Resource:
@@ -1294,7 +1303,7 @@ codeunit 90 "Purch.-Post"
         OnAfterPostInvoice(PurchHeader, GenJnlPostLine, TotalPurchLine, TotalPurchLineLCY, SuppressCommit, VendLedgEntry);
     end;
 
-    local procedure PostGLAccICLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer)
+    local procedure PostGLAccICLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; UseJobUnitCostToInvoice: Boolean; JobUnitCostToInvoice: Decimal)
     var
         IsHandled: Boolean;
     begin
@@ -1309,7 +1318,7 @@ codeunit 90 "Purch.-Post"
                 IsHandled := false;
                 OnPostGLAccICLineOnBeforeCreateJobPurchLine(PurchHeader, PurchLine, IsHandled);
                 if not IsHandled then begin
-                    CreateJobPurchLine(JobPurchLine, PurchLine, PurchHeader."Prices Including VAT");
+                    CreateJobPurchLineWithInvDiscToInvoice(JobPurchLine, PurchLine, PurchHeader, UseJobUnitCostToInvoice, JobUnitCostToInvoice);
                     OnPostGLAccICLineOnAfterCreateJobPurchLine(PurchHeader);
                     InvoicePostingInterface.PrepareJobLine(PurchHeader, JobPurchLine, PurchLineACY);
                 end;
@@ -6171,14 +6180,94 @@ codeunit 90 "Purch.-Post"
     /// <param name="PricesIncludingVAT">Specifies if the purchase document that is being posted has prices with VAT</param>
     procedure CreateJobPurchLine(var JobPurchLine2: Record "Purchase Line"; PurchLine2: Record "Purchase Line"; PricesIncludingVAT: Boolean)
     begin
+        InitJobPurchLine(JobPurchLine2, PurchLine2, PricesIncludingVAT);
+        OnAfterCreateJobPurchLine(JobPurchLine2, PurchLine2);
+    end;
+
+    local procedure CreateJobPurchLineWithInvDiscToInvoice(var JobPurchLine2: Record "Purchase Line"; PurchLine2: Record "Purchase Line"; PurchHeader: Record "Purchase Header"; UseJobUnitCostToInvoice: Boolean; JobUnitCostToInvoice: Decimal)
+    begin
+        InitJobPurchLine(JobPurchLine2, PurchLine2, PurchHeader."Prices Including VAT");
+        if UseJobUnitCostToInvoice then
+            UpdateJobPurchLineUnitCostForInvDiscToInvoice(PurchHeader, JobPurchLine2, JobUnitCostToInvoice);
+        OnAfterCreateJobPurchLine(JobPurchLine2, PurchLine2);
+    end;
+
+    local procedure InitJobPurchLine(var JobPurchLine2: Record "Purchase Line"; PurchLine2: Record "Purchase Line"; PricesIncludingVAT: Boolean)
+    begin
         JobPurchLine2 := PurchLine2;
         if PricesIncludingVAT then
             if JobPurchLine2."VAT Calculation Type" = JobPurchLine2."VAT Calculation Type"::"Full VAT" then
                 JobPurchLine2."Direct Unit Cost" := 0
             else
                 JobPurchLine2."Direct Unit Cost" := JobPurchLine2."Direct Unit Cost" / (1 + JobPurchLine2."VAT %" / 100);
+    end;
 
-        OnAfterCreateJobPurchLine(JobPurchLine2, PurchLine2);
+    local procedure CalcJobUnitCostForInvDiscToInvoice(PurchHeader: Record "Purchase Header"; PurchLine2: Record "Purchase Line"; FullLineDiscAmount: Decimal; FullLineInvDiscAmount: Decimal; var JobUnitCostToInvoice: Decimal): Boolean
+    var
+        FullLineDiscAmountPerQty: Decimal;
+    begin
+        if (PurchLine2.Type <> PurchLine2.Type::"G/L Account") or (PurchLine2."Job No." = '') or PurchLine2."Prepayment Line" then
+            exit(false);
+        if not PurchLine2."Allow Invoice Disc." or (PurchLine2.Quantity = 0) or (PurchLine2."Qty. to Invoice" = 0) then
+            exit(false);
+        if PurchLine2."VAT Calculation Type" = PurchLine2."VAT Calculation Type"::"Full VAT" then
+            exit(false);
+        // Unit Cost reflects the full line invoice discount; only adjust when the invoiced discount differs from its proportional share.
+        // PurchLine2 is the divided line, so "Inv. Discount Amount" holds the discount actually posted for "Qty. to Invoice".
+        if PurchLine2."Inv. Discount Amount" =
+           Round(FullLineInvDiscAmount * PurchLine2."Qty. to Invoice" / PurchLine2.Quantity, Currency."Amount Rounding Precision")
+        then
+            exit(false);
+
+        // Only replace Unit Cost when it is derived from the full line discounts the line was divided from.
+        // Otherwise, for example when an extension changed it, the existing Unit Cost is kept.
+        GetGLSetup();
+        FullLineDiscAmountPerQty :=
+            Round((FullLineDiscAmount + FullLineInvDiscAmount) / PurchLine2.Quantity, GLSetup."Unit-Amount Rounding Precision");
+        // UpdateUnitCost of the purchase line deducts the whole "VAT Difference" from "Unit Cost", so the baseline does the same.
+        if PurchLine2."Unit Cost" <>
+           Round(
+               CalcJobUnitCostFromDiscAmountPerQty(PurchHeader, PurchLine2, FullLineDiscAmountPerQty, PurchLine2."VAT Difference"),
+               Currency."Unit-Amount Rounding Precision")
+        then
+            exit(false);
+
+        // Calculate from the divided amount without rounding, so that the project totals match the invoiced amount.
+        JobUnitCostToInvoice := CalcJobUnitCostFromDividedAmount(PurchHeader, PurchLine2);
+        exit(true);
+    end;
+
+    local procedure CalcJobUnitCostFromDividedAmount(PurchHeader: Record "Purchase Header"; PurchLine2: Record "Purchase Line"): Decimal
+    var
+        InvoicedVATDifference: Decimal;
+    begin
+        // PurchLine2.Amount is the net amount posted to G/L for "Qty. to Invoice". With prices including VAT, DivideAmount
+        // allocates the VAT of the VAT group, including its rounding and "VAT Difference", between the lines.
+        // As in UpdateUnitCost of the purchase line, "Indirect Cost %" does not apply to the VAT difference, which is deducted once.
+        if PurchHeader."Prices Including VAT" then
+            InvoicedVATDifference := PurchLine2."VAT Difference";
+        exit(
+            ((PurchLine2.Amount + InvoicedVATDifference) * (1 + PurchLine2."Indirect Cost %" / 100) - InvoicedVATDifference) /
+            PurchLine2."Qty. to Invoice");
+    end;
+
+    local procedure CalcJobUnitCostFromDiscAmountPerQty(PurchHeader: Record "Purchase Header"; PurchLine2: Record "Purchase Line"; DiscountAmountPerQty: Decimal; UnitCostVATDifference: Decimal) UnitCost: Decimal
+    begin
+        // Mirrors "Unit Cost" calculation in UpdateUnitCost of the purchase line; the VAT difference only applies to prices including VAT
+        UnitCost := (PurchLine2."Direct Unit Cost" - DiscountAmountPerQty) * (1 + PurchLine2."Indirect Cost %" / 100);
+        if PurchHeader."Prices Including VAT" then
+            UnitCost := UnitCost / (1 + PurchLine2.GetVATPct() / 100) - UnitCostVATDifference;
+    end;
+
+    local procedure UpdateJobPurchLineUnitCostForInvDiscToInvoice(PurchHeader: Record "Purchase Header"; var JobPurchLine2: Record "Purchase Line"; JobUnitCostToInvoice: Decimal)
+    begin
+        JobPurchLine2."Unit Cost" := JobUnitCostToInvoice;
+        if PurchHeader."Currency Code" = '' then
+            JobPurchLine2."Unit Cost (LCY)" := JobUnitCostToInvoice
+        else
+            JobPurchLine2."Unit Cost (LCY)" :=
+                CurrExchRate.ExchangeAmtFCYToLCY(
+                    PurchHeader.GetUseDate(), PurchHeader."Currency Code", JobUnitCostToInvoice, PurchHeader."Currency Factor");
     end;
 
     local procedure RevertWarehouseEntry(var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; JobNo: Code[20]; PostJobConsumptionBeforePurch: Boolean): Boolean

@@ -621,6 +621,7 @@ codeunit 1004 "Job Transfer Line"
         NondeductibleVATAmtPerUnitLCY: Decimal;
         NDVATAmountRounding: Decimal;
         NDVATBaseRounding: Decimal;
+        PreciseUnitCostLCY: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -715,6 +716,7 @@ codeunit 1004 "Job Transfer Line"
                 JobJnlLine."Unit Cost (LCY)" := Item."Standard Cost" + NondeductibleVATAmtPrUnitLCY;
 
         end;
+        PreciseUnitCostLCY := JobJnlLine."Unit Cost (LCY)";
         JobJnlLine."Unit Cost (LCY)" := Round(JobJnlLine."Unit Cost (LCY)", LCYCurrency."Unit-Amount Rounding Precision");
 
         case JobJnlLine."Currency Code" of
@@ -750,6 +752,23 @@ codeunit 1004 "Job Transfer Line"
             if not ((JobJnlLine."Currency Code" = '') and (PurchLine."Currency Code" <> '')) then
                 JobJnlLine."Total Cost (LCY)" :=
                     Round(JobJnlLine."Unit Cost (LCY)" * JobJnlLine.Quantity, LCYCurrency."Amount Rounding Precision");
+
+        if UsePreciseUnitCostForTotals(PurchLine) and not ((JobJnlLine."Currency Code" = '') and (PurchLine."Currency Code" <> '')) then begin
+            JobJnlLine."Total Cost (LCY)" := Round(PreciseUnitCostLCY * JobJnlLine.Quantity, LCYCurrency."Amount Rounding Precision");
+            // When the project currency is the purchase currency, "Total Cost" is already calculated from the unrounded "Unit Cost".
+            if JobJnlLine."Currency Code" = '' then
+                JobJnlLine."Total Cost" := Round(PreciseUnitCostLCY * JobJnlLine.Quantity, Currency."Amount Rounding Precision")
+            else
+                if JobJnlLine."Currency Code" <> PurchLine."Currency Code" then
+                    JobJnlLine."Total Cost" :=
+                        Round(
+                            CurrencyExchRate.ExchangeAmtLCYToFCY(
+                                PurchHeader."Posting Date",
+                                JobJnlLine."Currency Code",
+                                JobJnlLine."Total Cost (LCY)",
+                                JobJnlLine."Currency Factor"), Currency."Amount Rounding Precision");
+            JobJnlLine."Unit Cost" := Round(JobJnlLine."Unit Cost", Currency."Unit-Amount Rounding Precision");
+        end;
 
         if PurchLine."Currency Code" = '' then
             JobJnlLine."Direct Unit Cost (LCY)" := PurchLine."Direct Unit Cost" + NondeductibleVATAmtPrUnit
@@ -867,6 +886,15 @@ codeunit 1004 "Job Transfer Line"
             Currency.TestField("Amount Rounding Precision");
         end;
         LCYCurrency.InitRoundingPrecision();
+    end;
+
+    local procedure UsePreciseUnitCostForTotals(PurchLine: Record "Purchase Line"): Boolean
+    begin
+        // Purchase posting keeps the unit cost of a G/L account line unrounded when the invoiced invoice discount differs
+        // from its proportional share, so the totals must be calculated from it to match the invoiced amount.
+        if PurchLine.Type <> PurchLine.Type::"G/L Account" then
+            exit(false);
+        exit(PurchLine."Unit Cost (LCY)" <> Round(PurchLine."Unit Cost (LCY)", LCYCurrency."Unit-Amount Rounding Precision"));
     end;
 
     local procedure DoUpdateUnitCost(SalesLine: Record "Sales Line"): Boolean
