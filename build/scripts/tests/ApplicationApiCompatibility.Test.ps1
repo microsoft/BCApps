@@ -680,6 +680,355 @@ Describe 'Application API compatibility prototype' {
             }
         }
 
+        Context 'Additional Role Center member kinds' {
+            BeforeAll {
+                function Write-RoleCenterMemberApiPackages {
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $roleCenterOldCollections
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections $roleCenterCurrentCollections
+                    $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $roleCenterDestinationCollections
+                }
+            }
+
+            BeforeEach {
+                $member = @{
+                    Name = 'Extracted element'
+                    Kind = 'Group'
+                    Properties = @(@{ Name = 'Caption'; Value = 'Original caption' })
+                }
+                $newMember = $member | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $hostPage = @{
+                    Id = 9001
+                    Name = 'Role Center Probe'
+                    Properties = @(@{ Name = 'PageType'; Value = 'RoleCenter' })
+                    Controls = @(@{ Name = 'RoleCenter'; Kind = 'Area'; Controls = @($member) })
+                    Actions = @()
+                }
+                $currentHostPage = $hostPage | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $currentHostPage.Controls[0].Controls = @()
+                $memberExtension = @{
+                    Id = 9002
+                    Name = 'Role Center Probe Extension'
+                    TargetObject = 'Role Center Probe'
+                    ControlChanges = @(@{ Name = 'RoleCenter'; Controls = @($newMember) })
+                }
+                $script:roleCenterOldCollections = @{ Namespaces = @(@{ Name = 'Migration.RoleCenterProbe'; Pages = @($page, $hostPage) }) }
+                $script:roleCenterCurrentCollections = @{ Namespaces = @(@{ Name = 'Migration.RoleCenterProbe'; Pages = @($currentHostPage) }) }
+                $script:roleCenterDestinationCollections = @{
+                    Namespaces = @(@{ Name = 'Migration.RoleCenterProbe'; Pages = @($page); PageExtensions = @($memberExtension) })
+                }
+                $script:roleCenterMessage = "The group with name 'Extracted element' defined in Page 'Role Center Probe' was found in the previous version, but is missing in the current extension."
+            }
+
+            It 'reconciles unchanged <DiagnosticKind> metadata encoded as <Kind>' -TestCases @(
+                foreach ($case in @(
+                    @{ DiagnosticKind = 'area'; StringKind = 'Area'; NumericKind = 0; RuleId = 'AS0032'; ExpectedKind = 'Area' },
+                    @{ DiagnosticKind = 'group'; StringKind = 'Group'; NumericKind = 1; RuleId = 'AS0032'; ExpectedKind = 'Group' },
+                    @{ DiagnosticKind = 'repeater'; StringKind = 'Repeater'; NumericKind = 3; RuleId = 'AS0032'; ExpectedKind = 'Repeater' },
+                    @{ DiagnosticKind = 'fixed'; StringKind = 'Fixed'; NumericKind = 4; RuleId = 'AS0032'; ExpectedKind = 'Fixed' },
+                    @{ DiagnosticKind = 'grid'; StringKind = 'Grid'; NumericKind = 5; RuleId = 'AS0032'; ExpectedKind = 'Grid' },
+                    @{ DiagnosticKind = 'systempart'; StringKind = 'SystemPart'; NumericKind = 7; RuleId = 'AS0032'; ExpectedKind = 'SystemPart' },
+                    @{ DiagnosticKind = 'label'; StringKind = 'Label'; NumericKind = 9; RuleId = 'AS0032'; ExpectedKind = 'Label' },
+                    @{ DiagnosticKind = 'usercontrol'; StringKind = 'UserControl'; NumericKind = 10; RuleId = 'AS0032'; ExpectedKind = 'UserControl' },
+                    @{ DiagnosticKind = 'chart'; StringKind = 'Chart'; NumericKind = 11; RuleId = 'AS0032'; ExpectedKind = 'ChartPart' },
+                    @{ DiagnosticKind = 'chartpart'; StringKind = 'ChartPart'; NumericKind = 11; RuleId = 'AS0032'; ExpectedKind = 'ChartPart' },
+                    @{ DiagnosticKind = 'action area'; StringKind = 'Area'; NumericKind = 0; RuleId = 'AS0031'; ExpectedKind = 'ActionArea' },
+                    @{ DiagnosticKind = 'separator'; StringKind = 'Separator'; NumericKind = 3; RuleId = 'AS0031'; ExpectedKind = 'Separator' },
+                    @{ DiagnosticKind = 'customaction'; StringKind = 'CustomAction'; NumericKind = 5; RuleId = 'AS0031'; ExpectedKind = 'CustomAction' },
+                    @{ DiagnosticKind = 'systemaction'; StringKind = 'SystemAction'; NumericKind = 6; RuleId = 'AS0031'; ExpectedKind = 'SystemAction' },
+                    @{ DiagnosticKind = 'fileuploadaction'; StringKind = 'FileUploadAction'; NumericKind = 7; RuleId = 'AS0031'; ExpectedKind = 'FileUploadAction' }
+                )) {
+                    foreach ($kind in @($case.StringKind, $case.NumericKind)) {
+                        @{ DiagnosticKind = $case.DiagnosticKind; Kind = $kind; RuleId = $case.RuleId; ExpectedKind = $case.ExpectedKind }
+                    }
+                }
+            ) {
+                param($DiagnosticKind, $Kind, $RuleId, $ExpectedKind)
+                $member.Kind = $newMember.Kind = $Kind
+                if ($RuleId -eq 'AS0031') {
+                    $hostPage.Controls[0].Controls = @()
+                    $hostPage.Actions = @(@{ Name = 'Processing'; Kind = 'Area'; Actions = @($member) })
+                    $memberExtension.Remove('ControlChanges')
+                    $memberExtension.ActionChanges = @(@{ Name = 'Processing'; Actions = @($newMember) })
+                }
+                Write-RoleCenterMemberApiPackages
+                $gate = New-ApiGateLayout
+                $message = "The $DiagnosticKind with name 'Extracted element' defined in Page 'Role Center Probe' was found in the previous version, but is missing in the current extension. This will break dependent extensions."
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId $RuleId -Message $message
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $move = $state.AcceptedMoves | Where-Object RuleId -EQ $RuleId
+                $move.Accepted | Should -BeTrue
+                $move.Key | Should -Be 'Pages:9001'
+                if ($RuleId -eq 'AS0032') { $move.ControlKind | Should -Be $ExpectedKind }
+                else { $move.ActionKind | Should -Be $ExpectedKind }
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Not -Match "warning $RuleId"
+                $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
+                @($alerts.issues | Where-Object ruleId -EQ $RuleId).Count | Should -Be 0
+                @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
+            }
+
+            It 'rejects an additional control relocation when <Failure>' -TestCases @(
+                @{ Failure = 'the member is missing' },
+                @{ Failure = 'the member is renamed' },
+                @{ Failure = 'the kind changes' },
+                @{ Failure = 'the kind is unknown' },
+                @{ Failure = 'a group property changes' },
+                @{ Failure = 'a nested control changes' },
+                @{ Failure = 'a systempart target changes' },
+                @{ Failure = 'a usercontrol target changes' },
+                @{ Failure = 'the extension targets another page' },
+                @{ Failure = 'the replacement is ambiguous' },
+                @{ Failure = 'the provider is not exposed' },
+                @{ Failure = 'the member stays in the source app' }
+            ) {
+                param($Failure)
+                switch ($Failure) {
+                    'the member is missing' { $memberExtension.ControlChanges = @() }
+                    'the member is renamed' { $newMember.Name = 'Renamed element' }
+                    'the kind changes' { $newMember.Kind = 'Repeater' }
+                    'the kind is unknown' { $newMember.Kind = 255 }
+                    'a group property changes' { $newMember.Properties[0].Value = 'Changed caption' }
+                    'a nested control changes' {
+                        $member.Controls = @(@{ Name = 'Nested field'; Kind = 'Field'; Properties = @(@{ Name = 'SourceExpression'; Value = 'Rec.Code' }) })
+                        $newMember.Controls = ConvertTo-Json -InputObject $member.Controls -Depth 20 | ConvertFrom-Json -AsHashtable -NoEnumerate
+                        $newMember.Controls[0].Properties[0].Value = 'Rec.Name'
+                    }
+                    'a systempart target changes' {
+                        $member.Kind = $newMember.Kind = 'SystemPart'
+                        $member.SystemPartKind = 'Notes'
+                        $newMember.SystemPartKind = 'Links'
+                        $script:roleCenterMessage = $roleCenterMessage.Replace('The group ', 'The systempart ')
+                    }
+                    'a usercontrol target changes' {
+                        $member.Kind = $newMember.Kind = 'UserControl'
+                        $member.RelatedControlAddIn = 'Original AddIn'
+                        $newMember.RelatedControlAddIn = 'Different AddIn'
+                        $script:roleCenterMessage = $roleCenterMessage.Replace('The group ', 'The usercontrol ')
+                    }
+                    'the extension targets another page' {
+                        $memberExtension.TargetObject = 'Other Role Center'
+                        $roleCenterCurrentCollections.Namespaces[0].Pages += @{ Id = 9003; Name = 'Other Role Center' }
+                    }
+                    'the replacement is ambiguous' {
+                        $duplicate = $memberExtension | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                        $duplicate.Id = 9004
+                        $duplicate.Name = 'Duplicate provider'
+                        $roleCenterDestinationCollections.Namespaces[0].PageExtensions += $duplicate
+                    }
+                    'the provider is not exposed' {
+                        $script:currentApplication = New-ApiTestPackage -Name 'Application' -Id $applicationId -Propagate $true -Dependencies @($script:currentBase)
+                    }
+                    'the member stays in the source app' {
+                        $roleCenterCurrentCollections.Namespaces[0].PageExtensions = @($memberExtension)
+                        $roleCenterDestinationCollections.Namespaces[0].PageExtensions = @()
+                    }
+                }
+                Write-RoleCenterMemberApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $roleCenterMessage
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                ($state.AcceptedMoves | Where-Object ControlName -EQ 'Extracted element').Accepted | Should -BeFalse
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0032'
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            }
+
+            Context 'Actions nested inside page controls' {
+                BeforeEach {
+                    $nestedAction = @{ Name = 'Shared name'; Kind = 'Action'; Properties = @(@{ Name = 'Caption'; Value = 'Original action' }) }
+                    $member.Kind = $newMember.Kind = 'CueGroup'
+                    $member.Controls = @(@{ Name = 'Shared name'; Kind = 'Field'; Properties = @(@{ Name = 'SourceExpression'; Value = 'Rec.Code' }) })
+                    $member.Actions = @(@{ Name = 'Nested group'; Kind = 'Group'; Actions = @($nestedAction) })
+                    $newMember.Controls = ConvertTo-Json -InputObject $member.Controls -Depth 20 | ConvertFrom-Json -AsHashtable -NoEnumerate
+                    $newMember.Actions = ConvertTo-Json -InputObject $member.Actions -Depth 20 | ConvertFrom-Json -AsHashtable -NoEnumerate
+                    $script:nestedActionMessage = "The action with name 'Shared name' defined in Page 'Role Center Probe' was found in the previous version, but is missing in the current extension."
+                }
+
+                It 'collects control-local actions from <ChangeKind> without confusing fields with actions' -TestCases @(
+                    @{ ChangeKind = 'ControlChanges' },
+                    @{ ChangeKind = 'ActionChanges' }
+                ) {
+                    param($ChangeKind)
+                    if ($ChangeKind -eq 'ActionChanges') {
+                        $currentHostPage.Controls[0].Controls = @($member | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable)
+                        $currentHostPage.Controls[0].Controls[0].Actions = @()
+                        $memberExtension.Remove('ControlChanges')
+                        $memberExtension.ActionChanges = @(@{ Name = 'Extracted element'; Actions = $newMember.Actions })
+                    }
+                    Write-RoleCenterMemberApiPackages
+                    $gate = New-ApiGateLayout
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message $nestedActionMessage
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message "The action group with name 'Nested group' defined in Page 'Role Center Probe' was found in the previous version, but is missing in the current extension."
+                    if ($ChangeKind -eq 'ControlChanges') {
+                        Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $roleCenterMessage.Replace('The group ', 'The cuegroup ')
+                        Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message "The field with name 'Shared name' defined in Page 'Role Center Probe' was found in the previous version, but is missing in the current extension."
+                    }
+                    Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                    { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+                    $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                    ($state.AcceptedMoves | Where-Object ActionName -EQ 'Shared name').Accepted | Should -BeTrue
+                    ($state.AcceptedMoves | Where-Object ActionName -EQ 'Nested group').Accepted | Should -BeTrue
+                    if ($ChangeKind -eq 'ControlChanges') {
+                        ($state.AcceptedMoves | Where-Object FieldName -EQ 'Shared name').Accepted | Should -BeTrue
+                        ($state.AcceptedMoves | Where-Object CueGroupName -EQ 'Extracted element').Accepted | Should -BeTrue
+                    }
+                }
+
+                It 'rejects a control-local action when <Failure>' -TestCases @(
+                    @{ Failure = 'the action is missing' },
+                    @{ Failure = 'the action contract changes' },
+                    @{ Failure = 'the action kind changes' },
+                    @{ Failure = 'only the same-named field remains' },
+                    @{ Failure = 'the baseline action is ambiguous' },
+                    @{ Failure = 'the current action is ambiguous' }
+                ) {
+                    param($Failure)
+                    switch ($Failure) {
+                        'the action is missing' { $newMember.Actions = @() }
+                        'the action contract changes' { $newMember.Actions[0].Actions[0].Properties[0].Value = 'Changed action' }
+                        'the action kind changes' { $newMember.Actions[0].Actions[0].Kind = 'Separator' }
+                        'only the same-named field remains' { $newMember.Remove('Actions') }
+                        'the baseline action is ambiguous' { $hostPage.Actions = @($nestedAction) }
+                        'the current action is ambiguous' { $memberExtension.ActionChanges = @(@{ Name = 'Processing'; Actions = @($nestedAction) }) }
+                    }
+                    Write-RoleCenterMemberApiPackages
+                    $gate = New-ApiGateLayout
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message $nestedActionMessage
+                    { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                    $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                    ($state.AcceptedMoves | Where-Object ActionName -EQ 'Shared name').Accepted | Should -BeFalse
+                    Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0031'
+                }
+            }
+        }
+
+        Context 'Cuegroups relocated into Application page extensions' {
+            BeforeAll {
+                function Write-CueGroupApiPackages {
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $cueOldCollections
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections $cueCurrentCollections
+                    $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $cueDestinationCollections
+                }
+            }
+
+            BeforeEach {
+                $cueGroup = @{
+                    Name = 'Intercompany'
+                    Kind = 'CueGroup'
+                    Properties = @(
+                        @{ Name = 'Caption'; Value = 'Intercompany' },
+                        @{ Name = 'Visible'; Value = 'ShowIntercompanyActivities' }
+                    )
+                    Controls = @(
+                        foreach ($name in @('IC Inbox Transactions', 'IC Outbox Transactions')) {
+                            @{
+                                Name = $name
+                                Kind = 'Field'
+                                TypeDefinition = @{ Name = 'Integer' }
+                                Properties = @(
+                                    @{ Name = 'SourceExpression'; Value = 'Rec."' + $name + '"' },
+                                    @{ Name = 'DrillDownPageID'; Value = $name }
+                                )
+                            }
+                        }
+                    )
+                }
+                $newCueGroup = $cueGroup | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $cueHost = @{
+                    Id = 1310
+                    Name = 'O365 Activities'
+                    Controls = @(@{ Name = 'Content'; Kind = 'Area'; Controls = @($cueGroup) })
+                }
+                $currentCueHost = $cueHost | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $currentCueHost.Controls[0].Controls = @()
+                $cueExtension = @{
+                    Id = 8524
+                    Name = 'ICO365Activities'
+                    TargetObject = 'O365 Activities'
+                    ControlChanges = @(@{ Name = 'Ongoing Purchases'; Controls = @($newCueGroup) })
+                }
+                $script:cueOldCollections = @{ Namespaces = @(@{ Name = 'Migration.CueProbe'; Pages = @($page, $cueHost) }) }
+                $script:cueCurrentCollections = @{ Namespaces = @(@{ Name = 'Migration.CueProbe'; Pages = @($currentCueHost) }) }
+                $script:cueDestinationCollections = @{
+                    Namespaces = @(@{ Name = 'Migration.CueProbe'; Pages = @($page); PageExtensions = @($cueExtension) })
+                }
+                $script:cueMessage = "The cuegroup with name 'Intercompany' defined in Page 'O365 Activities' was found in the previous version, but is missing in the current extension."
+            }
+
+            It 'reconciles an unchanged cuegroup and its child field with kind <Kind>' -TestCases @(
+                @{ Kind = 'CueGroup'; Suffix = ' This will break dependent extensions.' },
+                @{ Kind = 2; Suffix = '' }
+            ) {
+                param($Kind, $Suffix)
+                $cueGroup.Kind = $newCueGroup.Kind = $Kind
+                Write-CueGroupApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message "$cueMessage$Suffix"
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message "The field with name 'IC Inbox Transactions' defined in Page 'O365 Activities' was found in the previous version, but is missing in the current extension."
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $moves = @($state.AcceptedMoves | Where-Object RuleId -EQ 'AS0032')
+                $moves.Count | Should -Be 2
+                @($moves | Where-Object { -not $_.Accepted }).Count | Should -Be 0
+                ($moves | Where-Object CueGroupName -EQ 'Intercompany').Key | Should -Be 'Pages:1310'
+                ($moves | Where-Object FieldName -EQ 'IC Inbox Transactions').Accepted | Should -BeTrue
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Not -Match 'warning AS0032'
+                Get-Content -LiteralPath (Join-Path $gate.Root "Originals\$([System.IO.Path]::GetFileName($gate.SourceLog)).txt") -Raw |
+                    Should -Match 'warning AS0032'
+                $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
+                @($alerts.issues | Where-Object ruleId -EQ 'AS0032').Count | Should -Be 0
+                @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
+            }
+
+            It 'recognizes a cuegroup diagnostic accompanying an unchanged whole-page move' {
+                $cueCurrentCollections.Namespaces[0].Pages = @()
+                $cueDestinationCollections.Namespaces[0].Pages += $cueHost
+                $cueDestinationCollections.Namespaces[0].PageExtensions = @()
+                Write-CueGroupApiPackages
+                $gate = New-ApiGateLayout -Id $cueHost.Id -Name $cueHost.Name
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $cueMessage
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $state.AcceptedMoves.Count | Should -Be 2
+                @($state.AcceptedMoves | Where-Object { -not $_.Accepted }).Count | Should -Be 0
+            }
+
+            It 'rejects a cuegroup relocation when <Failure>' -TestCases @(
+                @{ Failure = 'the cuegroup is deleted' },
+                @{ Failure = 'the cuegroup is renamed' },
+                @{ Failure = 'the member is no longer a cuegroup' },
+                @{ Failure = 'the cuegroup caption changes' },
+                @{ Failure = 'a child cue is removed' },
+                @{ Failure = 'a child source expression changes' },
+                @{ Failure = 'a child drilldown target changes' },
+                @{ Failure = 'the destination is not exposed' }
+            ) {
+                param($Failure)
+                switch ($Failure) {
+                    'the cuegroup is deleted' { $cueExtension.ControlChanges = @() }
+                    'the cuegroup is renamed' { $newCueGroup.Name = 'Renamed cues' }
+                    'the member is no longer a cuegroup' { $newCueGroup.Kind = 'Group' }
+                    'the cuegroup caption changes' { $newCueGroup.Properties[0].Value = 'Changed caption' }
+                    'a child cue is removed' { $newCueGroup.Controls = @($newCueGroup.Controls[0]) }
+                    'a child source expression changes' { $newCueGroup.Controls[0].Properties[0].Value = 'Rec."Different Cue"' }
+                    'a child drilldown target changes' { $newCueGroup.Controls[0].Properties[1].Value = 'Different Page' }
+                    'the destination is not exposed' {
+                        $script:currentApplication = New-ApiTestPackage -Name 'Application' -Id $applicationId -Propagate $true -Dependencies @($script:currentBase)
+                    }
+                }
+                Write-CueGroupApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $cueMessage
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                ($state.AcceptedMoves | Where-Object CueGroupName -EQ 'Intercompany').Accepted | Should -BeFalse
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0032'
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            }
+        }
+
         Context 'Page fields relocated into Application page extensions' {
             BeforeAll {
                 function Write-FieldApiPackages {
