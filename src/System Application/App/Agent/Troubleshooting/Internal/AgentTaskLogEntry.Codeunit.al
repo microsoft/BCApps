@@ -93,6 +93,7 @@ codeunit 4314 "Agent Task Log Entry"
 
     procedure ReadContext(Entry: Record "Agent Task Memory Entry") ContextTxt: Text;
     var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
         ContentInStream: InStream;
     begin
         if Entry."Task ID" = 0 then
@@ -101,12 +102,13 @@ codeunit 4314 "Agent Task Log Entry"
 #pragma warning disable AL0432
         Entry.CalcFields(Entry.Context);
         Entry.Context.CreateInStream(ContentInStream, GetDefaultEncoding());
-        ContentInStream.ReadText(ContextTxt);
+        ContextTxt := AgentTaskImpl.ReadStreamToEnd(ContentInStream);
 #pragma warning restore AL0432
     end;
 
     procedure ReadContext(Entry: Record "Agent Task Log Entry") ContextTxt: Text;
     var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
         ContentInStream: InStream;
     begin
         if Entry.ID = 0 then
@@ -114,7 +116,7 @@ codeunit 4314 "Agent Task Log Entry"
 
         Entry.CalcFields(Entry."Troubleshooting Info");
         Entry."Troubleshooting Info".CreateInStream(ContentInStream, GetDefaultEncoding());
-        ContentInStream.ReadText(ContextTxt);
+        ContextTxt := AgentTaskImpl.ReadStreamToEnd(ContentInStream);
     end;
 
     procedure GetDefaultEncoding(): TextEncoding

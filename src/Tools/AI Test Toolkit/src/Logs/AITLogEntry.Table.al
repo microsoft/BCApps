@@ -224,12 +224,10 @@ table 149034 "AIT Log Entry"
     procedure GetInputBlob(): Text
     var
         InStream: InStream;
-        InputContent: Text;
     begin
         CalcFields("Input Data");
         "Input Data".CreateInStream(InStream, GetDefaultTextEncoding());
-        InStream.Read(InputContent);
-        exit(InputContent);
+        exit(ReadStreamToEnd(InStream));
     end;
 
     procedure SetOutputBlob(NewOutput: Text)
@@ -244,12 +242,10 @@ table 149034 "AIT Log Entry"
     procedure GetOutputBlob(): Text
     var
         InStream: InStream;
-        OutputContent: Text;
     begin
         CalcFields("Output Data");
         "Output Data".CreateInStream(InStream, GetDefaultTextEncoding());
-        InStream.Read(OutputContent);
-        exit(OutputContent);
+        exit(ReadStreamToEnd(InStream));
     end;
 
     procedure SetMessage(NewMessageText: Text)
@@ -264,12 +260,10 @@ table 149034 "AIT Log Entry"
     procedure GetMessage(): Text
     var
         MessageInStream: InStream;
-        MessageText: Text;
     begin
         CalcFields("Message Text");
         "Message Text".CreateInStream(MessageInStream, GetDefaultTextEncoding());
-        MessageInStream.ReadText(MessageText);
-        exit(MessageText);
+        exit(ReadStreamToEnd(MessageInStream));
     end;
 
     procedure SetErrorCallStack(ErrorCallStack: Text)
@@ -284,12 +278,31 @@ table 149034 "AIT Log Entry"
     procedure GetErrorCallStack(): Text
     var
         ErrorCallStackInStream: InStream;
-        ErrorCallStackText: Text;
     begin
         CalcFields("Error Call Stack");
         "Error Call Stack".CreateInStream(ErrorCallStackInStream, GetDefaultTextEncoding());
-        ErrorCallStackInStream.ReadText(ErrorCallStackText);
-        exit(ErrorCallStackText);
+        exit(ReadStreamToEnd(ErrorCallStackInStream));
+    end;
+
+    local procedure ReadStreamToEnd(var Source: InStream): Text
+    var
+        Content: TextBuilder;
+        ContentLine: Text;
+        FirstLine: Boolean;
+    begin
+        if Source.Length() = 0 then
+            exit('');
+
+        FirstLine := true;
+        while not Source.EOS() do begin
+            Source.ReadText(ContentLine);
+            if FirstLine then
+                FirstLine := false
+            else
+                Content.AppendLine('');
+            Content.Append(ContentLine);
+        end;
+        exit(Content.ToText());
     end;
 
     local procedure GetDefaultTextEncoding(): TextEncoding

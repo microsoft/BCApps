@@ -17,23 +17,46 @@ codeunit 4313 "Agent Task Log Export"
 
     procedure ExportToJson(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"; var ExportOutStream: OutStream)
     var
+        ExportRoot: JsonObject;
+    begin
+        ExportRoot := ExportToJson(SelectedAgentTaskLogEntry);
+        ExportRoot.WriteTo(ExportOutStream);
+    end;
+
+    procedure ExportToJson(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"): JsonObject
+    var
         SelectedAgentTaskMemoryEntry: Record "Agent Task Memory Entry";
+        ExportRoot: JsonObject;
         AgentTaskID: BigInteger;
     begin
         AgentTaskID := GetTaskID(SelectedAgentTaskLogEntry);
-        ExportToJson(SelectedAgentTaskLogEntry, SelectedAgentTaskMemoryEntry, AgentTaskID, false, ExportOutStream);
+        ExportToJson(SelectedAgentTaskLogEntry, SelectedAgentTaskMemoryEntry, AgentTaskID, false, ExportRoot);
+        exit(ExportRoot);
+    end;
+
+    procedure ExportLogEntryToJson(AgentTaskLogEntry: Record "Agent Task Log Entry"): JsonObject
+    var
+        ExportRoot: JsonObject;
+        EntryToken: JsonToken;
+    begin
+        AgentTaskLogEntry.SetRecFilter();
+        ExportRoot := ExportToJson(AgentTaskLogEntry);
+        ExportRoot.GetArray(LogEntriesLbl).Get(0, EntryToken);
+        exit(EntryToken.AsObject());
     end;
 
     procedure ExportToJson(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"; var SelectedAgentTaskMemoryEntry: Record "Agent Task Memory Entry"; AgentTaskID: BigInteger; var ExportOutStream: OutStream)
+    var
+        ExportRoot: JsonObject;
     begin
-        ExportToJson(SelectedAgentTaskLogEntry, SelectedAgentTaskMemoryEntry, AgentTaskID, true, ExportOutStream);
+        ExportToJson(SelectedAgentTaskLogEntry, SelectedAgentTaskMemoryEntry, AgentTaskID, true, ExportRoot);
+        ExportRoot.WriteTo(ExportOutStream);
     end;
 
-    local procedure ExportToJson(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"; var SelectedAgentTaskMemoryEntry: Record "Agent Task Memory Entry"; AgentTaskID: BigInteger; IncludeMemoryEntries: Boolean; var ExportOutStream: OutStream)
+    local procedure ExportToJson(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"; var SelectedAgentTaskMemoryEntry: Record "Agent Task Memory Entry"; AgentTaskID: BigInteger; IncludeMemoryEntries: Boolean; var ExportRoot: JsonObject)
     var
         AgentSystemPermissionsImpl: Codeunit "Agent System Permissions Impl.";
         FeatureAccessManagement: Codeunit "Feature Access Management";
-        ExportRoot: JsonObject;
         IncludeSerializedPage: Boolean;
         CurrentGlobalLanguage: Integer;
         ErrorText: Text;
@@ -50,7 +73,6 @@ codeunit 4313 "Agent Task Log Export"
         end;
 
         GlobalLanguage(CurrentGlobalLanguage);
-        ExportRoot.WriteTo(ExportOutStream);
     end;
 
     [TryFunction]
@@ -85,12 +107,22 @@ codeunit 4313 "Agent Task Log Export"
 
     procedure ExportTaskToJson(AgentTaskID: BigInteger; var ExportOutStream: OutStream)
     var
+        ExportRoot: JsonObject;
+    begin
+        ExportRoot := ExportTaskToJson(AgentTaskID);
+        ExportRoot.WriteTo(ExportOutStream);
+    end;
+
+    procedure ExportTaskToJson(AgentTaskID: BigInteger): JsonObject
+    var
         AgentTaskLogEntry: Record "Agent Task Log Entry";
         AgentTaskMemoryEntry: Record "Agent Task Memory Entry";
+        ExportRoot: JsonObject;
     begin
         AgentTaskLogEntry.SetRange("Task ID", AgentTaskID);
         AgentTaskMemoryEntry.SetRange("Task ID", AgentTaskID);
-        ExportToJson(AgentTaskLogEntry, AgentTaskMemoryEntry, AgentTaskID, ExportOutStream);
+        ExportToJson(AgentTaskLogEntry, AgentTaskMemoryEntry, AgentTaskID, true, ExportRoot);
+        exit(ExportRoot);
     end;
 
     procedure ExportToJsonFile(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry")
@@ -147,7 +179,7 @@ codeunit 4313 "Agent Task Log Export"
                 EntryJson.Add(AgentNameLbl, AgentName);
             if not AgentTaskLogEntryRecord.IsTemporary() then
                 if AgentTaskMemoryEntry.Get(AgentTaskLogEntryRecord."Task ID", AgentTaskLogEntryRecord."Memory Entry ID") then
-                    MemoryDetailsTxt := ReadMemoryEntryDetails(AgentTaskMemoryEntry);
+                    MemoryDetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskMemoryEntry(AgentTaskMemoryEntry);
         end;
 
         if AgentTaskLogEntry.GetSuccess(MemoryDetailsTxt, Success) then
@@ -174,6 +206,7 @@ codeunit 4313 "Agent Task Log Export"
 
     local procedure BuildMemoryEntryJson(var AgentTaskMemoryEntry: Record "Agent Task Memory Entry"; IncludeSerializedPage: Boolean): JsonObject
     var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
         AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
         StepJson: JsonObject;
         ContextJson: JsonObject;
@@ -191,7 +224,7 @@ codeunit 4313 "Agent Task Log Export"
         if AgentTaskMemoryEntry."User Full Name" <> '' then
             StepJson.Add(UserFullNameLbl, AgentTaskMemoryEntry."User Full Name");
 
-        DetailsTxt := ReadMemoryEntryDetails(AgentTaskMemoryEntry);
+        DetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskMemoryEntry(AgentTaskMemoryEntry);
         if DetailsTxt <> '' then
             AddJsonTextOrToken(StepJson, DetailsLbl, DetailsTxt);
 
@@ -201,15 +234,6 @@ codeunit 4313 "Agent Task Log Export"
             StepJson.Add(ContextLbl, ContextJson);
 
         exit(StepJson);
-    end;
-
-    local procedure ReadMemoryEntryDetails(var AgentTaskMemoryEntry: Record "Agent Task Memory Entry") MemoryDetailsTxt: Text
-    var
-        ContentInStream: InStream;
-    begin
-        AgentTaskMemoryEntry.CalcFields(Details);
-        AgentTaskMemoryEntry.Details.CreateInStream(ContentInStream, GetDefaultEncoding());
-        ContentInStream.Read(MemoryDetailsTxt);
     end;
 
     procedure BuildRedactedContextJson(ContextTxt: Text; var ContextJson: JsonObject)
