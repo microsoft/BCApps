@@ -1985,6 +1985,478 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         Assert.ExpectedErrorCode('NCLCSRTS:TableErrorStr');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure EnableDirectTransferRetainsWarehouseLineProtection()
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        TransferHeader: Record "Transfer Header";
+        TransferHeaderBefore: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferLineBefore: Record "Transfer Line";
+        OutboundReservationEntry: Record "Reservation Entry";
+        InventoryReservationEntry: Record "Reservation Entry";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseShipmentHeaderBefore: Record "Warehouse Shipment Header";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        WarehouseShipmentLineBefore: Record "Warehouse Shipment Line";
+    begin
+        // [SCENARIO 652555] Enabling Direct Transfer rejects an actual warehouse shipment without losing alternate-UOM reservations.
+        Initialize();
+
+        // [GIVEN] Twenty base units of an untracked item, a shipment-required source and an ordinary destination.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
+        CreateLocationWithWarehouseSetup(LocationFrom, false, false, false, false, true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        CreateItemWithPositiveInventory(Item, LocationFrom.Code, 20);
+        Item.TestField("Item Tracking Code", '');
+        Item.TestField("Order Tracking Policy", Item."Order Tracking Policy"::None);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", 2);
+
+        // [GIVEN] A non-direct transfer for ten boxes, with eight boxes (sixteen base units) reserved from inventory.
+        CreateTransferOrderHeader(TransferHeader, LocationFrom.Code, LocationTo.Code, false);
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 10);
+        TransferLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        TransferLine.Modify(true);
+        ReserveTransferLineFromInventory(TransferLine, 8, OutboundReservationEntry, InventoryReservationEntry);
+        LibraryInventory.ReleaseTransferOrder(TransferHeader);
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+        LibraryInventory.ReopenTransferOrder(TransferHeader);
+
+        // [GIVEN] Fresh snapshots after reopening include an actual, unshipped warehouse line and the original reservation pair.
+        TransferHeader.Get(TransferHeader."No.");
+        TransferHeader.TestField(Status, TransferHeader.Status::Open);
+        TransferHeader.TestField("Direct Transfer", false);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::" ");
+        TransferHeader.TestField("In-Transit Code");
+        TransferHeaderBefore := TransferHeader;
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        TransferLine.TestField("Qty. per Unit of Measure", 2);
+        TransferLine.TestField(Quantity, 10);
+        VerifyReservedTransferLine(TransferLine, false, 8);
+        TransferLineBefore := TransferLine;
+        VerifyReservationEntryUnchanged(OutboundReservationEntry);
+        VerifyReservationEntryUnchanged(InventoryReservationEntry);
+        OutboundReservationEntry.Get(OutboundReservationEntry."Entry No.", false);
+        InventoryReservationEntry.Get(InventoryReservationEntry."Entry No.", true);
+        WarehouseShipmentLine.SetSourceFilter(Database::"Transfer Line", 0, TransferHeader."No.", TransferLine."Line No.", true);
+        Assert.RecordCount(WarehouseShipmentLine, 1);
+        WarehouseShipmentLine.FindFirst();
+        WarehouseShipmentLine.TestField("Source Document", WarehouseShipmentLine."Source Document"::"Outbound Transfer");
+        WarehouseShipmentLine.TestField("Item No.", Item."No.");
+        WarehouseShipmentLine.TestField("Location Code", LocationFrom.Code);
+        WarehouseShipmentLine.TestField("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        WarehouseShipmentLine.TestField("Qty. per Unit of Measure", 2);
+        WarehouseShipmentLine.TestField(Quantity, 10);
+        WarehouseShipmentLine.TestField("Qty. (Base)", 20);
+        WarehouseShipmentLine.TestField("Qty. Outstanding", 10);
+        WarehouseShipmentLine.TestField("Qty. Outstanding (Base)", 20);
+        WarehouseShipmentLine.TestField("Qty. Shipped", 0);
+        WarehouseShipmentLine.TestField("Qty. Shipped (Base)", 0);
+        WarehouseShipmentLineBefore := WarehouseShipmentLine;
+        WarehouseShipmentHeader.Get(WarehouseShipmentLine."No.");
+        WarehouseShipmentHeaderBefore := WarehouseShipmentHeader;
+        // Preserve the fixture across ASSERTERROR rollback so fresh reads test the rejected operation's persisted effects.
+        Commit();
+
+        // [WHEN] Direct Transfer is enabled on the reopened order.
+        asserterror TransferHeader.Validate("Direct Transfer", true);
+
+        // [THEN] Standard warehouse source-line protection rejects the change.
+        Assert.ExpectedError('must not be changed when a Warehouse Shipment Line');
+        Assert.ExpectedErrorCode('NCLCSRTS:TableErrorStr');
+
+        // [THEN] The persisted header and line remain non-direct, retaining routing, UOM, quantities and both reservations.
+        TransferHeader.Get(TransferHeaderBefore."No.");
+        TransferHeader.TestField(SystemId, TransferHeaderBefore.SystemId);
+        TransferHeader.TestField(Status, TransferHeaderBefore.Status);
+        TransferHeader.TestField("Direct Transfer", false);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeaderBefore."Direct Transfer Posting");
+        TransferHeader.TestField("In-Transit Code", TransferHeaderBefore."In-Transit Code");
+        TransferHeader.TestField("Transfer-from Code", TransferHeaderBefore."Transfer-from Code");
+        TransferHeader.TestField("Transfer-to Code", TransferHeaderBefore."Transfer-to Code");
+        VerifyReservedTransferLine(TransferLineBefore, false, 8);
+        TransferLine.Get(TransferLineBefore."Document No.", TransferLineBefore."Line No.");
+        TransferLine.TestField(SystemId, TransferLineBefore.SystemId);
+        TransferLine.TestField(Status, TransferLineBefore.Status);
+        TransferLine.TestField("In-Transit Code", TransferLineBefore."In-Transit Code");
+        TransferLine.TestField("Transfer-from Code", TransferLineBefore."Transfer-from Code");
+        TransferLine.TestField("Transfer-to Code", TransferLineBefore."Transfer-to Code");
+        TransferLine.TestField("Dimension Set ID", TransferLineBefore."Dimension Set ID");
+        TransferLine.TestField("Qty. to Ship", TransferLineBefore."Qty. to Ship");
+        TransferLine.TestField("Qty. to Ship (Base)", TransferLineBefore."Qty. to Ship (Base)");
+        TransferLine.TestField("Qty. to Receive", TransferLineBefore."Qty. to Receive");
+        TransferLine.TestField("Qty. to Receive (Base)", TransferLineBefore."Qty. to Receive (Base)");
+        TransferLine.TestField("Qty. Shipped (Base)", TransferLineBefore."Qty. Shipped (Base)");
+        TransferLine.TestField("Qty. Received (Base)", TransferLineBefore."Qty. Received (Base)");
+        VerifyReservationEntryUnchanged(OutboundReservationEntry);
+        VerifyReservationEntryUnchanged(InventoryReservationEntry);
+
+        // [THEN] The same warehouse header and line retain their source, identity, status and unit/base quantities.
+        WarehouseShipmentHeader.Get(WarehouseShipmentHeaderBefore."No.");
+        WarehouseShipmentHeader.TestField(SystemId, WarehouseShipmentHeaderBefore.SystemId);
+        WarehouseShipmentHeader.TestField("Location Code", WarehouseShipmentHeaderBefore."Location Code");
+        WarehouseShipmentHeader.TestField(Status, WarehouseShipmentHeaderBefore.Status);
+        WarehouseShipmentHeader.TestField("Document Status", WarehouseShipmentHeaderBefore."Document Status");
+        Assert.RecordCount(WarehouseShipmentLine, 1);
+        WarehouseShipmentLine.Get(WarehouseShipmentLineBefore."No.", WarehouseShipmentLineBefore."Line No.");
+        WarehouseShipmentLine.TestField(SystemId, WarehouseShipmentLineBefore.SystemId);
+        WarehouseShipmentLine.TestField("Source Type", WarehouseShipmentLineBefore."Source Type");
+        WarehouseShipmentLine.TestField("Source Subtype", WarehouseShipmentLineBefore."Source Subtype");
+        WarehouseShipmentLine.TestField("Source No.", WarehouseShipmentLineBefore."Source No.");
+        WarehouseShipmentLine.TestField("Source Line No.", WarehouseShipmentLineBefore."Source Line No.");
+        WarehouseShipmentLine.TestField("Source Document", WarehouseShipmentLineBefore."Source Document");
+        WarehouseShipmentLine.TestField("Item No.", WarehouseShipmentLineBefore."Item No.");
+        WarehouseShipmentLine.TestField("Variant Code", WarehouseShipmentLineBefore."Variant Code");
+        WarehouseShipmentLine.TestField("Location Code", WarehouseShipmentLineBefore."Location Code");
+        WarehouseShipmentLine.TestField(Status, WarehouseShipmentLineBefore.Status);
+        WarehouseShipmentLine.TestField("Unit of Measure Code", WarehouseShipmentLineBefore."Unit of Measure Code");
+        WarehouseShipmentLine.TestField("Qty. per Unit of Measure", WarehouseShipmentLineBefore."Qty. per Unit of Measure");
+        WarehouseShipmentLine.TestField(Quantity, WarehouseShipmentLineBefore.Quantity);
+        WarehouseShipmentLine.TestField("Qty. (Base)", WarehouseShipmentLineBefore."Qty. (Base)");
+        WarehouseShipmentLine.TestField("Qty. Outstanding", WarehouseShipmentLineBefore."Qty. Outstanding");
+        WarehouseShipmentLine.TestField("Qty. Outstanding (Base)", WarehouseShipmentLineBefore."Qty. Outstanding (Base)");
+        WarehouseShipmentLine.TestField("Qty. to Ship", WarehouseShipmentLineBefore."Qty. to Ship");
+        WarehouseShipmentLine.TestField("Qty. to Ship (Base)", WarehouseShipmentLineBefore."Qty. to Ship (Base)");
+        WarehouseShipmentLine.TestField("Qty. Shipped", WarehouseShipmentLineBefore."Qty. Shipped");
+        WarehouseShipmentLine.TestField("Qty. Shipped (Base)", WarehouseShipmentLineBefore."Qty. Shipped (Base)");
+        WarehouseShipmentLine.TestField("Qty. Picked", WarehouseShipmentLineBefore."Qty. Picked");
+        WarehouseShipmentLine.TestField("Qty. Picked (Base)", WarehouseShipmentLineBefore."Qty. Picked (Base)");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ToggleDirectTransferPreservesUOMDirectPosting()
+    begin
+        // [SCENARIO 652555] Disabling and enabling Direct Transfer preserves alternate and base units with Direct Transfer posting.
+        Initialize();
+        VerifyToggleDirectTransferPreservesUOM(Enum::"Direct Transfer Posting Type"::"Direct Transfer", 10, 0, 0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ToggleDirectTransferPreservesUOMShipmentReceipt()
+    begin
+        // [SCENARIO 652555] Disabling and enabling Direct Transfer preserves alternate and base units with Shipment and Receipt posting.
+        Initialize();
+        VerifyToggleDirectTransferPreservesUOM(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt", 10, 0, 0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ToggleDirectTransferPreservesUOMRoundingDirectPosting()
+    begin
+        // [SCENARIO 652555] Toggling Direct Transfer preserves fractional quantities and UOM rounding precisions with Direct Transfer posting.
+        Initialize();
+        VerifyToggleDirectTransferPreservesUOM(Enum::"Direct Transfer Posting Type"::"Direct Transfer", 10.5, 0.5, 0.1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ToggleDirectTransferPreservesUOMRoundingShipmentReceipt()
+    begin
+        // [SCENARIO 652555] Toggling Direct Transfer preserves fractional quantities and UOM rounding precisions with Shipment and Receipt posting.
+        Initialize();
+        VerifyToggleDirectTransferPreservesUOM(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt", 10.5, 0.5, 0.1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DisableDirectTransferPreservesReservationsDirectPosting()
+    begin
+        // [SCENARIO 652555] Disabling Direct Transfer preserves partial reservations in the selected UOM with Direct Transfer posting.
+        Initialize();
+        VerifyToggleDirectTransferPreservesReservations(Enum::"Direct Transfer Posting Type"::"Direct Transfer", true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EnableDirectTransferPreservesReservationsDirectPosting()
+    begin
+        // [SCENARIO 652555] Enabling Direct Transfer preserves partial reservations in the selected UOM with Direct Transfer posting.
+        Initialize();
+        VerifyToggleDirectTransferPreservesReservations(Enum::"Direct Transfer Posting Type"::"Direct Transfer", false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DisableDirectTransferPreservesReservationsShipmentReceipt()
+    begin
+        // [SCENARIO 652555] Disabling Direct Transfer preserves partial reservations in the selected UOM with Shipment and Receipt posting.
+        Initialize();
+        VerifyToggleDirectTransferPreservesReservations(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt", true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EnableDirectTransferPreservesReservationsShipmentReceipt()
+    begin
+        // [SCENARIO 652555] Enabling Direct Transfer preserves partial reservations in the selected UOM with Shipment and Receipt posting.
+        Initialize();
+        VerifyToggleDirectTransferPreservesReservations(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt", false);
+    end;
+
+    local procedure VerifyToggleDirectTransferPreservesReservations(PostingMode: Enum "Direct Transfer Posting Type"; InitialDirectTransfer: Boolean)
+    begin
+        SetDirectTransferPostingMode(PostingMode);
+        // Each case creates fresh inventory and a fresh order; neither direction relies on a previous toggle.
+        VerifyReservedTransferUOMAfterToggle(PostingMode, InitialDirectTransfer, 2, 5);
+        // Sixteen reserved base units exceed the transient quantity of ten when the factor is incorrectly reset to one.
+        VerifyReservedTransferUOMAfterToggle(PostingMode, InitialDirectTransfer, 2, 8);
+        VerifyReservedTransferUOMAfterToggle(PostingMode, InitialDirectTransfer, 1, 8);
+    end;
+
+    local procedure VerifyReservedTransferUOMAfterToggle(PostingMode: Enum "Direct Transfer Posting Type"; InitialDirectTransfer: Boolean; QtyPerUnitOfMeasure: Decimal; ReservedQuantity: Decimal)
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        OutboundReservationEntry: Record "Reservation Entry";
+        InventoryReservationEntry: Record "Reservation Entry";
+    begin
+        // [GIVEN] Ordinary locations and twenty posted base units of an untracked item, with no variant or warehouse documents.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        CreateItemWithPositiveInventory(Item, LocationFrom.Code, 20);
+        Item.TestField("Item Tracking Code", '');
+        Item.TestField("Order Tracking Policy", Item."Order Tracking Policy"::None);
+        if QtyPerUnitOfMeasure = 1 then
+            ItemUnitOfMeasure.Get(Item."No.", Item."Base Unit of Measure")
+        else
+            LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", QtyPerUnitOfMeasure);
+
+        // [GIVEN] Ten boxes of two base units (or twenty base units for the control), reserved outbound against actual inventory.
+        CreateTransferOrderHeader(TransferHeader, LocationFrom.Code, LocationTo.Code, InitialDirectTransfer);
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 20 / QtyPerUnitOfMeasure);
+        TransferLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        TransferLine.Modify(true);
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure);
+        TransferLine.TestField(Quantity, 20 / QtyPerUnitOfMeasure);
+        TransferLine.TestField("Quantity (Base)", 20);
+        ReserveTransferLineFromInventory(TransferLine, ReservedQuantity, OutboundReservationEntry, InventoryReservationEntry);
+        VerifyReservedTransferLine(TransferLine, InitialDirectTransfer, ReservedQuantity);
+
+        // [WHEN] The header's normal validation toggles Direct Transfer once.
+        TransferHeader.Get(TransferHeader."No.");
+        TransferHeader.TestField("Direct Transfer", InitialDirectTransfer);
+        TransferHeader.Validate("Direct Transfer", not InitialDirectTransfer);
+
+        // [THEN] Fresh reads retain the selected UOM, quantity, displayed reservation and both original reservation entries.
+        TransferHeader.Get(TransferHeader."No.");
+        TransferHeader.TestField(Status, TransferHeader.Status::Open);
+        TransferHeader.TestField("Direct Transfer", not InitialDirectTransfer);
+        TransferHeader.TestField("In-Transit Code", '');
+        if InitialDirectTransfer then
+            TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::" ")
+        else
+            TransferHeader.TestField("Direct Transfer Posting", PostingMode);
+        VerifyReservedTransferLine(TransferLine, not InitialDirectTransfer, ReservedQuantity);
+        VerifyReservationEntryUnchanged(OutboundReservationEntry);
+        VerifyReservationEntryUnchanged(InventoryReservationEntry);
+    end;
+
+    local procedure ReserveTransferLineFromInventory(TransferLine: Record "Transfer Line"; ReservedQuantity: Decimal; var OutboundReservationEntry: Record "Reservation Entry"; var InventoryReservationEntry: Record "Reservation Entry")
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ReservationManagement: Codeunit "Reservation Management";
+        FullAutoReservation: Boolean;
+        ReservedQuantityBase: Decimal;
+    begin
+        ReservedQuantityBase := ReservedQuantity * TransferLine."Qty. per Unit of Measure";
+        ReservationManagement.SetReservSource(TransferLine, Enum::"Transfer Direction"::Outbound);
+        ReservationManagement.AutoReserve(
+            FullAutoReservation, TransferLine.Description, TransferLine."Shipment Date", ReservedQuantity, ReservedQuantityBase);
+        Assert.IsTrue(FullAutoReservation, 'The requested partial quantity must be reserved from posted inventory.');
+
+        TransferLine.SetReservationFilters(OutboundReservationEntry, Enum::"Transfer Direction"::Outbound);
+        Assert.RecordCount(OutboundReservationEntry, 1);
+        OutboundReservationEntry.FindFirst();
+        OutboundReservationEntry.TestField(Positive, false);
+        OutboundReservationEntry.TestField("Reservation Status", OutboundReservationEntry."Reservation Status"::Reservation);
+        OutboundReservationEntry.TestField(Quantity, -ReservedQuantity);
+        OutboundReservationEntry.TestField("Quantity (Base)", -ReservedQuantityBase);
+        OutboundReservationEntry.TestField("Qty. per Unit of Measure", TransferLine."Qty. per Unit of Measure");
+        OutboundReservationEntry.TestField("Qty. to Handle (Base)", -ReservedQuantityBase);
+        OutboundReservationEntry.TestField("Qty. to Invoice (Base)", -ReservedQuantityBase);
+
+        InventoryReservationEntry.Get(OutboundReservationEntry."Entry No.", true);
+        InventoryReservationEntry.TestField("Reservation Status", InventoryReservationEntry."Reservation Status"::Reservation);
+        InventoryReservationEntry.TestField("Source Type", Database::"Item Ledger Entry");
+        InventoryReservationEntry.TestField("Item No.", TransferLine."Item No.");
+        InventoryReservationEntry.TestField("Location Code", TransferLine."Transfer-from Code");
+        InventoryReservationEntry.TestField("Variant Code", '');
+        InventoryReservationEntry.TestField(Quantity, ReservedQuantityBase);
+        InventoryReservationEntry.TestField("Quantity (Base)", ReservedQuantityBase);
+        InventoryReservationEntry.TestField("Qty. per Unit of Measure", 1);
+        InventoryReservationEntry.TestField("Qty. to Handle (Base)", ReservedQuantityBase);
+        InventoryReservationEntry.TestField("Qty. to Invoice (Base)", ReservedQuantityBase);
+        ItemLedgerEntry.Get(InventoryReservationEntry."Source Ref. No.");
+        ItemLedgerEntry.TestField("Item No.", TransferLine."Item No.");
+        ItemLedgerEntry.TestField("Location Code", TransferLine."Transfer-from Code");
+        ItemLedgerEntry.TestField("Variant Code", '');
+        ItemLedgerEntry.TestField("Entry Type", ItemLedgerEntry."Entry Type"::"Positive Adjmt.");
+        ItemLedgerEntry.TestField("Remaining Quantity", 20);
+        ItemLedgerEntry.CalcFields("Reserved Quantity");
+        ItemLedgerEntry.TestField("Reserved Quantity", ReservedQuantityBase);
+    end;
+
+    local procedure VerifyReservedTransferLine(ExpectedTransferLine: Record "Transfer Line"; ExpectedDirectTransfer: Boolean; ExpectedReservedQuantity: Decimal)
+    var
+        TransferLine: Record "Transfer Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        TransferLine.Get(ExpectedTransferLine."Document No.", ExpectedTransferLine."Line No.");
+        TransferLine.TestField("Direct Transfer", ExpectedDirectTransfer);
+        TransferLine.TestField("Item No.", ExpectedTransferLine."Item No.");
+        TransferLine.TestField("Unit of Measure Code", ExpectedTransferLine."Unit of Measure Code");
+        TransferLine.TestField("Qty. per Unit of Measure", ExpectedTransferLine."Qty. per Unit of Measure");
+        TransferLine.TestField("Qty. Rounding Precision", ExpectedTransferLine."Qty. Rounding Precision");
+        TransferLine.TestField("Qty. Rounding Precision (Base)", ExpectedTransferLine."Qty. Rounding Precision (Base)");
+        TransferLine.TestField(Quantity, ExpectedTransferLine.Quantity);
+        TransferLine.TestField("Quantity (Base)", 20);
+        TransferLine.TestField("Outstanding Quantity", ExpectedTransferLine.Quantity);
+        TransferLine.TestField("Outstanding Qty. (Base)", 20);
+        TransferLine.TestField("Quantity Shipped", 0);
+        TransferLine.TestField("Quantity Received", 0);
+        TransferLine.TestField("Variant Code", '');
+        TransferLine.CalcFields(
+            "Reserved Quantity Outbnd.", "Reserved Qty. Outbnd. (Base)", "Reserved Quantity Inbnd.", "Reserved Qty. Inbnd. (Base)");
+        TransferLine.TestField("Reserved Quantity Outbnd.", ExpectedReservedQuantity);
+        TransferLine.TestField("Reserved Qty. Outbnd. (Base)", ExpectedReservedQuantity * ExpectedTransferLine."Qty. per Unit of Measure");
+        TransferLine.TestField("Reserved Quantity Inbnd.", 0);
+        TransferLine.TestField("Reserved Qty. Inbnd. (Base)", 0);
+        ReservationEntry.SetRange("Item No.", TransferLine."Item No.");
+        Assert.RecordCount(ReservationEntry, 2);
+    end;
+
+    local procedure VerifyReservationEntryUnchanged(ExpectedReservationEntry: Record "Reservation Entry")
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.Get(ExpectedReservationEntry."Entry No.", ExpectedReservationEntry.Positive);
+        ReservationEntry.TestField(SystemId, ExpectedReservationEntry.SystemId);
+        ReservationEntry.TestField("Reservation Status", ExpectedReservationEntry."Reservation Status");
+        ReservationEntry.TestField("Source Type", ExpectedReservationEntry."Source Type");
+        ReservationEntry.TestField("Source Subtype", ExpectedReservationEntry."Source Subtype");
+        ReservationEntry.TestField("Source ID", ExpectedReservationEntry."Source ID");
+        ReservationEntry.TestField("Source Batch Name", ExpectedReservationEntry."Source Batch Name");
+        ReservationEntry.TestField("Source Prod. Order Line", ExpectedReservationEntry."Source Prod. Order Line");
+        ReservationEntry.TestField("Source Ref. No.", ExpectedReservationEntry."Source Ref. No.");
+        ReservationEntry.TestField("Item No.", ExpectedReservationEntry."Item No.");
+        ReservationEntry.TestField("Variant Code", ExpectedReservationEntry."Variant Code");
+        ReservationEntry.TestField("Location Code", ExpectedReservationEntry."Location Code");
+        ReservationEntry.TestField("Qty. per Unit of Measure", ExpectedReservationEntry."Qty. per Unit of Measure");
+        ReservationEntry.TestField(Quantity, ExpectedReservationEntry.Quantity);
+        ReservationEntry.TestField("Quantity (Base)", ExpectedReservationEntry."Quantity (Base)");
+        ReservationEntry.TestField("Qty. to Handle (Base)", ExpectedReservationEntry."Qty. to Handle (Base)");
+        ReservationEntry.TestField("Qty. to Invoice (Base)", ExpectedReservationEntry."Qty. to Invoice (Base)");
+    end;
+
+    local procedure VerifyToggleDirectTransferPreservesUOM(PostingMode: Enum "Direct Transfer Posting Type"; Quantity: Decimal; BaseRoundingPrecision: Decimal; AlternateRoundingPrecision: Decimal)
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        BaseItemUnitOfMeasure: Record "Item Unit of Measure";
+        AlternateItemUnitOfMeasure: Record "Item Unit of Measure";
+        DimensionValue: Record "Dimension Value";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        BaseTransferLine: Record "Transfer Line";
+        LibraryDimension: Codeunit "Library - Dimension";
+    begin
+        // [GIVEN] Ordinary locations and an item with an alternate UOM containing two base units.
+        SetDirectTransferPostingMode(PostingMode);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        LibraryInventory.CreateItem(Item);
+        BaseItemUnitOfMeasure.Get(Item."No.", Item."Base Unit of Measure");
+        BaseItemUnitOfMeasure.Validate("Qty. Rounding Precision", BaseRoundingPrecision);
+        BaseItemUnitOfMeasure.Modify(true);
+        LibraryInventory.CreateItemUnitOfMeasureCode(AlternateItemUnitOfMeasure, Item."No.", 2);
+        AlternateItemUnitOfMeasure.Validate("Qty. Rounding Precision", AlternateRoundingPrecision);
+        AlternateItemUnitOfMeasure.Modify(true);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        LibraryDimension.CreateDimWithDimValue(DimensionValue);
+
+        // [GIVEN] An open, unposted, unreserved direct transfer with an alternate-UOM line and a base-UOM control line.
+        CreateDirectTransferOrder(
+            TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", ItemVariant.Code, Quantity, PostingMode);
+        TransferLine.Validate("Unit of Measure Code", AlternateItemUnitOfMeasure.Code);
+        TransferLine.Validate(
+            "Dimension Set ID", LibraryDimension.CreateDimSet(0, DimensionValue."Dimension Code", DimensionValue.Code));
+        TransferLine.Modify(true);
+        TransferLine.TestField("Qty. per Unit of Measure", 2);
+        TransferLine.TestField("Quantity (Base)", Quantity * 2);
+        LibraryInventory.CreateTransferLine(TransferHeader, BaseTransferLine, Item."No.", Quantity);
+        BaseTransferLine.TestField("Qty. per Unit of Measure", 1);
+        BaseTransferLine.TestField("Quantity (Base)", Quantity);
+        VerifyTransferUOMAfterToggle(TransferHeader, TransferLine, BaseTransferLine, true, PostingMode);
+
+        // [WHEN] Direct Transfer is disabled using the header's normal table validation.
+        TransferHeader.Validate("Direct Transfer", false);
+
+        // [THEN] Persisted lines retain their units, quantities, variant and dimensions, and are no longer direct.
+        VerifyTransferUOMAfterToggle(
+            TransferHeader, TransferLine, BaseTransferLine, false, Enum::"Direct Transfer Posting Type"::" ");
+
+        // [WHEN] Direct Transfer is enabled again.
+        TransferHeader.Validate("Direct Transfer", true);
+
+        // [THEN] The same values survive the roundtrip and both lines are direct again.
+        VerifyTransferUOMAfterToggle(TransferHeader, TransferLine, BaseTransferLine, true, PostingMode);
+    end;
+
+    local procedure VerifyTransferUOMAfterToggle(var TransferHeader: Record "Transfer Header"; ExpectedTransferLine: Record "Transfer Line"; ExpectedBaseTransferLine: Record "Transfer Line"; ExpectedDirectTransfer: Boolean; ExpectedPostingMode: Enum "Direct Transfer Posting Type")
+    begin
+        TransferHeader.Get(TransferHeader."No.");
+        TransferHeader.TestField(Status, TransferHeader.Status::Open);
+        TransferHeader.TestField("Direct Transfer", ExpectedDirectTransfer);
+        TransferHeader.TestField("Direct Transfer Posting", ExpectedPostingMode);
+        TransferHeader.TestField("In-Transit Code", '');
+        VerifyTransferLineUOMAfterToggle(ExpectedTransferLine, ExpectedDirectTransfer);
+        VerifyTransferLineUOMAfterToggle(ExpectedBaseTransferLine, ExpectedDirectTransfer);
+    end;
+
+    local procedure VerifyTransferLineUOMAfterToggle(ExpectedTransferLine: Record "Transfer Line"; ExpectedDirectTransfer: Boolean)
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        TransferLine.Get(ExpectedTransferLine."Document No.", ExpectedTransferLine."Line No.");
+        TransferLine.TestField("Direct Transfer", ExpectedDirectTransfer);
+        TransferLine.TestField("Item No.", ExpectedTransferLine."Item No.");
+        TransferLine.TestField("Unit of Measure Code", ExpectedTransferLine."Unit of Measure Code");
+        TransferLine.TestField("Qty. per Unit of Measure", ExpectedTransferLine."Qty. per Unit of Measure");
+        TransferLine.TestField(Quantity, ExpectedTransferLine.Quantity);
+        TransferLine.TestField("Quantity (Base)", ExpectedTransferLine."Quantity (Base)");
+        TransferLine.TestField("Qty. Rounding Precision", ExpectedTransferLine."Qty. Rounding Precision");
+        TransferLine.TestField("Qty. Rounding Precision (Base)", ExpectedTransferLine."Qty. Rounding Precision (Base)");
+        TransferLine.TestField("Outstanding Quantity", ExpectedTransferLine.Quantity);
+        TransferLine.TestField("Outstanding Qty. (Base)", ExpectedTransferLine."Quantity (Base)");
+        TransferLine.TestField("Qty. to Ship", ExpectedTransferLine.Quantity);
+        TransferLine.TestField("Qty. to Ship (Base)", ExpectedTransferLine."Quantity (Base)");
+        TransferLine.TestField("Qty. to Receive", ExpectedTransferLine.Quantity);
+        TransferLine.TestField("Qty. to Receive (Base)", ExpectedTransferLine."Quantity (Base)");
+        TransferLine.TestField("Quantity Shipped", 0);
+        TransferLine.TestField("Qty. Shipped (Base)", 0);
+        TransferLine.TestField("Quantity Received", 0);
+        TransferLine.TestField("Qty. Received (Base)", 0);
+        TransferLine.TestField("Variant Code", ExpectedTransferLine."Variant Code");
+        TransferLine.TestField("Dimension Set ID", ExpectedTransferLine."Dimension Set ID");
+        TransferLine.CalcFields("Reserved Qty. Inbnd. (Base)", "Reserved Qty. Outbnd. (Base)");
+        TransferLine.TestField("Reserved Qty. Inbnd. (Base)", 0);
+        TransferLine.TestField("Reserved Qty. Outbnd. (Base)", 0);
+    end;
+
     local procedure Initialize()
     var
         InventorySetup: Record "Inventory Setup";
