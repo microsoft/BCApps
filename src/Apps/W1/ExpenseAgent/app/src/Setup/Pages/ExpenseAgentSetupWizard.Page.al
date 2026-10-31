@@ -543,6 +543,19 @@ page 6991 "Expense Agent Setup Wizard"
                             ConfigUpdated();
                         end;
                     }
+                    field(ManagementRulesLink; ManagementRulesLinkTxt)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies a link that opens the expense management rules.';
+
+                        trigger OnDrillDown()
+                        var
+                            ExpenseManagementRules: Page "Expense Management Rules";
+                        begin
+                            ExpenseManagementRules.RunModal();
+                        end;
+                    }
                 }
                 group(DetectOutdatedExpenseSection)
                 {
@@ -1084,6 +1097,7 @@ page 6991 "Expense Agent Setup Wizard"
         LocationsAppliedLinkTxt: Label 'View expense locations including new defaults';
         RulesLinkTxt: Label 'Preview the default management rules that will be added';
         RulesAppliedLinkTxt: Label 'View management rules including new defaults';
+        ManagementRulesLinkTxt: Label 'View rules';
         ExpensePoliciesLinkTxt: Label 'View expense policies';
         TrialExpensesRemainingTxt: Label '%1 free expenses remaining', Comment = '%1=Number of free expenses remaining';
         NoSeriesLinkTxt: Label 'Preview the default number series that will be added';
