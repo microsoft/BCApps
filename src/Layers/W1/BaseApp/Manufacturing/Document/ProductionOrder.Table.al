@@ -677,8 +677,7 @@ table 5405 "Production Order"
         field(7300; "Completely Picked"; Boolean)
         {
             CalcFormula = min("Prod. Order Component"."Completely Picked" where(Status = field(Status),
-                                                                                 "Prod. Order No." = field("No."),
-                                                                                 "Supplied-by Line No." = filter(0)));
+                                                                                 "Prod. Order No." = field("No.")));
             Caption = 'Completely Picked';
             ToolTip = 'Specifies whether all production components have been completely picked.';
             FieldClass = FlowField;
