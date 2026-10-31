@@ -420,11 +420,23 @@ table 242 "Source Code Setup"
             Caption = 'Compress Whse. Entries';
             TableRelation = "Source Code";
         }
+#if not CLEANSCHEMA33
+#pragma warning disable AA0232
         field(13400; "Depr. Difference"; Code[10])
         {
             Caption = 'Depr. Difference';
+            ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
             TableRelation = "Source Code";
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys
