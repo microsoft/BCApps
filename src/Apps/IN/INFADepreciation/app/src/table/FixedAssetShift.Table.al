@@ -202,12 +202,12 @@ table 18633 "Fixed Asset Shift"
 #pragma warning disable AS0072
             ObsoleteTag = '26.0';
 #pragma warning restore AS0072
-#endif
             trigger OnValidate()
             begin
                 ModifyDeprFields();
             end;
         }
+#endif
         field(14; "Depreciation ending Date"; Date)
         {
             Caption = 'Depreciation ending Date';
