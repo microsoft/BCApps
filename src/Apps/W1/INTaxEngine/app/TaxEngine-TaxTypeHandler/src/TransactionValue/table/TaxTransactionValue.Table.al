@@ -7,6 +7,7 @@ namespace Microsoft.Finance.TaxEngine.TaxTypeHandler;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.TaxEngine.Core;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
@@ -101,12 +102,15 @@ table 20261 "Tax Transaction Value"
             DataClassification = EndUserIdentifiableInformation;
             Caption = 'Visible on Interface';
         }
-        field(18; "ID"; Integer)
+#pragma warning disable AS0146
+#pragma warning disable AS0041
+        field(18; "ID"; BigInteger)
         {
             DataClassification = SystemMetadata;
             Caption = 'ID';
-            AutoIncrement = true;
         }
+#pragma warning restore AS0041
+#pragma warning restore AS0146
         field(19; "Tax Type"; Code[20])
         {
             DataClassification = EndUserIdentifiableInformation;
@@ -153,6 +157,17 @@ table 20261 "Tax Transaction Value"
         {
         }
     }
+
+    trigger OnInsert()
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        Rec.ID := SequenceNoMgt.GetNextSeqNoBigInt(Database::"Tax Transaction Value");
+    end;
+
     procedure GetAttributeColumName(): Text
     var
         TaxAttribute: Record "Tax Attribute";
