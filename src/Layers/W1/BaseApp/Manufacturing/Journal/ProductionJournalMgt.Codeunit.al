@@ -499,7 +499,7 @@ codeunit 5510 "Production Journal Mgt"
             ItemJnlTemplate.Init();
             ItemJnlTemplate.Recurring := false;
             ItemJnlTemplate.Validate(Type, PageTemplate);
-            ItemJnlTemplate.Validate("Page ID");
+            ItemJnlTemplate.Validate("Page ID", PageID);
 
             ItemJnlTemplate.Name := Format(ItemJnlTemplate.Type, MaxStrLen(ItemJnlTemplate.Name));
             ItemJnlTemplate.Description := StrSubstNo(Text000, ItemJnlTemplate.Type);
