@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1067,12 +1067,22 @@ table 21 "Cust. Ledger Entry"
             var
                 DisputeStatus: Record "Dispute Status";
                 MarkedAsOnHoldLbl: label 'X', Locked = true;
+                NewOnHold: Code[3];
             begin
-                if Rec."Dispute Status" = '' then
-                    exit;
-                if DisputeStatus.get(Rec."Dispute Status") then
-                    if DisputeStatus."Overwrite on hold" then
-                        "On Hold" := MarkedAsOnHoldLbl;
+                NewOnHold := "On Hold";
+                if (xRec."Dispute Status" <> '') and (xRec."Dispute Status" <> Rec."Dispute Status") and (NewOnHold = MarkedAsOnHoldLbl) then
+                    if DisputeStatus.Get(xRec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := '';
+                if Rec."Dispute Status" <> '' then
+                    if DisputeStatus.Get(Rec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := MarkedAsOnHoldLbl;
+                if NewOnHold <> "On Hold" then begin
+                    "On Hold" := NewOnHold;
+                    if Open then
+                        Validate("On Hold");
+                end;
             end;
         }
         /// <summary>

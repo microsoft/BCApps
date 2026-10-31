@@ -755,6 +755,25 @@ table 25 "Vendor Ledger Entry"
             TableRelation = "Dispute Status";
             DataClassification = CustomerContent;
             ToolTip = 'Specifies if there is an ongoing dispute for this document.';
+
+            trigger OnValidate()
+            var
+                DisputeStatus: Record "Dispute Status";
+                MarkedAsOnHoldLbl: label 'X', Locked = true;
+                NewOnHold: Code[3];
+            begin
+                NewOnHold := "On Hold";
+                if (xRec."Dispute Status" <> '') and (xRec."Dispute Status" <> Rec."Dispute Status") and (NewOnHold = MarkedAsOnHoldLbl) then
+                    if DisputeStatus.Get(xRec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := '';
+                if Rec."Dispute Status" <> '' then
+                    if DisputeStatus.Get(Rec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := MarkedAsOnHoldLbl;
+                if NewOnHold <> "On Hold" then
+                    Validate("On Hold", NewOnHold);
+            end;
         }
         field(10701; "VAT Reporting Date"; Date)
         {
