@@ -121,7 +121,12 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         VendorAddress, VendorName : Text;
         VendorID: Text;
         VATRegistrationNo: Text[20];
+        IsHandled: Boolean;
     begin
+        OnBeforeParseAccountingSupplierParty(EDocument, TempXMLBuffer, RootPath, IsHandled);
+        if IsHandled then
+            exit;
+
         // Read GLN or VAT Registration No based on the scheme ID.
         if GetNodeAttributeByPath(TempXMLBuffer, RootPath + '/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID') = GLNSchemeId() then
             GLN := CopyStr(GetNodeByPath(TempXMLBuffer, RootPath + '/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID'), 1, MaxStrLen(GLN));
@@ -151,6 +156,11 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
             EDocument."Bill-to/Pay-to No." := Vendor."No.";
             EDocument."Bill-to/Pay-to Name" := Vendor.Name;
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeParseAccountingSupplierParty(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text; var IsHandled: Boolean)
+    begin
     end;
 
     local procedure ParseAccountingCustomerParty(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text)

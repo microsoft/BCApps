@@ -13,6 +13,12 @@
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2206603",
   "dependencies": [
     {
+      "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
+      "name": "Library Variable Storage",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "44469049-4bb4-4a32-82ab-f6c34d0204d3",
       "name": "E-Reporting FR",
       "publisher": "Microsoft",

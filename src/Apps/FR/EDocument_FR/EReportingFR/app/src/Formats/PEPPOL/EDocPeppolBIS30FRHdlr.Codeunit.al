@@ -8,7 +8,6 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
-using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
 /// <summary>
@@ -130,6 +129,9 @@ codeunit 10985 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
     local procedure PopulateHeader(PeppolXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; DocumentPath: Text; var Header: Record "E-Document Purchase Header")
     var
         EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
+        FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
+        SIREN: Text;
+        SIRET: Text;
     begin
 #pragma warning disable AA0139 // false positive: overflow handled by SetStringValueInField
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, DocumentPath + '/cbc:ID', MaxStrLen(Header."Sales Invoice No."), Header."Sales Invoice No.");
@@ -148,7 +150,8 @@ codeunit 10985 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
 
         PopulateSupplierInfo(PeppolXml, XmlNamespaces, DocumentPath, Header);
         PopulateCustomerInfo(PeppolXml, XmlNamespaces, DocumentPath, Header);
-        Header."[BC] Vendor No." := FindVendor(Header);
+        FRLegalIdentifiers.ReadUBLIdentifiers(PeppolXml, XmlNamespaces, DocumentPath + '/cac:AccountingSupplierParty/cac:Party', SIREN, SIRET);
+        Header."[BC] Vendor No." := FRLegalIdentifiers.FindVendor(SIREN, SIRET, Header."Vendor VAT Id", Header."Vendor GLN", Header."Vendor Company Name", Header."Vendor Address", '', '');
     end;
 
     local procedure PopulateSupplierInfo(PeppolXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; DocumentPath: Text; var Header: Record "E-Document Purchase Header")
@@ -162,10 +165,9 @@ codeunit 10985 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyName/cbc:Name', MaxStrLen(Header."Vendor Company Name"), Header."Vendor Company Name");
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PostalAddress/cbc:StreetName', MaxStrLen(Header."Vendor Address"), Header."Vendor Address");
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PostalAddress/cbc:AdditionalStreetName', MaxStrLen(Header."Vendor Address Recipient"), Header."Vendor Address Recipient");
-        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyTaxScheme/cbc:CompanyID', MaxStrLen(Header."Vendor VAT Id"), Header."Vendor VAT Id");
+        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyTaxScheme[cac:TaxScheme/cbc:ID="VAT"]/cbc:CompanyID', MaxStrLen(Header."Vendor VAT Id"), Header."Vendor VAT Id");
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:Contact/cbc:Name', MaxStrLen(Header."Vendor Contact Name"), Header."Vendor Contact Name");
-        // The French export injects the SIRET as PartyIdentification, so it is mapped back as the external vendor id
-        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyIdentification/cbc:ID', MaxStrLen(Header."Vendor External Id"), Header."Vendor External Id");
+        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyIdentification/cbc:ID[not(@schemeID)]', MaxStrLen(Header."Vendor External Id"), Header."Vendor External Id");
 #pragma warning restore AA0139
         ApplyEndpointID(PeppolXml, XmlNamespaces, BasePath, Header."Vendor GLN", Header."Vendor VAT Id");
     end;
@@ -181,9 +183,8 @@ codeunit 10985 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyName/cbc:Name', MaxStrLen(Header."Customer Company Name"), Header."Customer Company Name");
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PostalAddress/cbc:StreetName', MaxStrLen(Header."Customer Address"), Header."Customer Address");
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PostalAddress/cbc:AdditionalStreetName', MaxStrLen(Header."Customer Address Recipient"), Header."Customer Address Recipient");
-        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyTaxScheme/cbc:CompanyID', MaxStrLen(Header."Customer VAT Id"), Header."Customer VAT Id");
-        // The French export injects the SIRET as PartyIdentification, so it is mapped back as the customer id
-        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyIdentification/cbc:ID', MaxStrLen(Header."Customer Company Id"), Header."Customer Company Id");
+        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyTaxScheme[cac:TaxScheme/cbc:ID="VAT"]/cbc:CompanyID', MaxStrLen(Header."Customer VAT Id"), Header."Customer VAT Id");
+        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyIdentification/cbc:ID[not(@schemeID)]', MaxStrLen(Header."Customer Company Id"), Header."Customer Company Id");
 #pragma warning restore AA0139
         ApplyEndpointID(PeppolXml, XmlNamespaces, BasePath, Header."Customer GLN", Header."Customer VAT Id");
     end;
@@ -191,6 +192,7 @@ codeunit 10985 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
     local procedure ApplyEndpointID(PeppolXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; BasePath: Text; var GLN: Text[13]; var VATId: Text[100])
     var
         EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
+        FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
         SchemeID: Text;
         EndpointID: Text;
     begin
@@ -201,38 +203,11 @@ codeunit 10985 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
         EndpointID := EDocumentXMLHelper.GetNodeValue(PeppolXml, XmlNamespaces, BasePath + '/cbc:EndpointID');
         case SchemeID of
             SchemeIDGLNTok:
-                GLN := CopyStr(EndpointID, 1, MaxStrLen(GLN));
+                GLN := FRLegalIdentifiers.ValidateGLN(EndpointID);
             SchemeIDVATTok:
                 if VATId = '' then
                     VATId := CopyStr(EndpointID, 1, MaxStrLen(VATId));
         end;
-    end;
-
-    local procedure FindVendor(Header: Record "E-Document Purchase Header"): Code[20]
-    var
-        Vendor: Record Vendor;
-        EDocumentImportHelper: Codeunit "E-Document Import Helper";
-        VendorGLN: Code[13];
-        VendorVATRegistrationNo: Text[20];
-    begin
-        VendorVATRegistrationNo := CopyStr(Header."Vendor VAT Id", 1, MaxStrLen(VendorVATRegistrationNo));
-        if VendorVATRegistrationNo <> '' then begin
-            Vendor.SetLoadFields("No.");
-            Vendor.SetRange("VAT Registration No.", VendorVATRegistrationNo);
-            if Vendor.FindFirst() then
-                exit(Vendor."No.");
-        end;
-
-        VendorGLN := CopyStr(Header."Vendor GLN", 1, MaxStrLen(VendorGLN));
-        if VendorGLN <> '' then begin
-            Vendor.Reset();
-            Vendor.SetLoadFields("No.");
-            Vendor.SetRange(GLN, VendorGLN);
-            if Vendor.FindFirst() then
-                exit(Vendor."No.");
-        end;
-
-        exit(EDocumentImportHelper.FindVendorByNameAndAddress(Header."Vendor Company Name", Header."Vendor Address"));
     end;
 
     #endregion Header

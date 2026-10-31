@@ -630,6 +630,19 @@ codeunit 6109 "E-Document Import Helper"
     /// <param name="EDocumentEntryNo">Id of e-document</param>
     /// <returns>Vendor number if exists or empty string.</returns>
     procedure FindVendorByNameAndAddressWithNotification(VendorName: Text; VendorAddress: Text; EDocEntryNoForNotification: Integer): Code[20]
+    begin
+        exit(FindVendorByNameAndAddressWithNotification(VendorName, VendorAddress, EDocEntryNoForNotification, false));
+    end;
+
+    /// <summary>
+    /// Finds a vendor using the existing name/address matching rules, optionally rejecting ambiguous matches.
+    /// </summary>
+    /// <param name="VendorName">The incoming vendor name.</param>
+    /// <param name="VendorAddress">The incoming vendor address.</param>
+    /// <param name="EDocEntryNoForNotification">The e-document entry number for notifications.</param>
+    /// <param name="RequireUniqueMatch">Specifies whether multiple matching vendors cause an error.</param>
+    /// <returns>The vendor number, or blank when no vendor matches.</returns>
+    procedure FindVendorByNameAndAddressWithNotification(VendorName: Text; VendorAddress: Text; EDocEntryNoForNotification: Integer; RequireUniqueMatch: Boolean): Code[20]
     var
         Vendor: Record Vendor;
         RecordMatchMgt: Codeunit "Record Match Mgt.";
@@ -639,7 +652,10 @@ codeunit 6109 "E-Document Import Helper"
         AddressNearness: Integer;
         MatchedByAddress: Boolean;
         NameOnlyCandidateFound: Boolean;
+        MatchedVendorNo: Code[20];
+        AmbiguousNameAddressErr: Label 'More than one vendor matches the incoming name and address. Select a vendor manually.';
     begin
+        MatchedVendorNo := '';
         Vendor.SetCurrentKey(Blocked);
         Vendor.SetLoadFields(Name, Address);
         if Vendor.FindSet() then
@@ -651,14 +667,22 @@ codeunit 6109 "E-Document Import Helper"
                     AddressNearness := RecordMatchMgt.CalculateStringNearness(VendorAddress, Vendor.Address, MatchThreshold(), NormalizingFactor());
                 if NameNearness >= RequiredNearness() then begin
                     MatchedByAddress := AddressNearness >= RequiredNearness();
-                    if MatchedByAddress then
-                        exit(Vendor."No.");
-                    NameOnlyCandidateFound := true;
-                    if EDocEntryNoForNotification <> 0 then
-                        EDocumentNotification.AddVendorMatchedByNameNotAddressNotification(EDocEntryNoForNotification);
+                    if MatchedByAddress then begin
+                        if not RequireUniqueMatch then
+                            exit(Vendor."No.");
+                        if MatchedVendorNo <> '' then
+                            Error(AmbiguousNameAddressErr);
+                        MatchedVendorNo := Vendor."No.";
+                    end else begin
+                        NameOnlyCandidateFound := true;
+                        if EDocEntryNoForNotification <> 0 then
+                            EDocumentNotification.AddVendorMatchedByNameNotAddressNotification(EDocEntryNoForNotification);
+                    end;
                 end;
             until Vendor.Next() = 0;
 
+        if MatchedVendorNo <> '' then
+            exit(MatchedVendorNo);
         if NameOnlyCandidateFound then
             EDocImpSessionTelemetry.SetBool('Vendor Matched By Name Not Address', true);
     end;

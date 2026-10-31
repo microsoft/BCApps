@@ -6,7 +6,6 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.IO.Peppol;
-using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
 using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
@@ -99,7 +98,10 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
         PeppolBIS30: Codeunit "EDoc PEPPOL BIS 3.0";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
     begin
+        FREDocHelpers.CheckSellerElectronicAddress(EDocumentService.Code);
+        FREDocHelpers.CheckBuyerElectronicAddress(SourceDocumentHeader, EDocumentService.Code);
         // Generate base PEPPOL BIS 3.0 XML
         PeppolBIS30.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
 
@@ -125,8 +127,12 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     /// <param name="EDocument">The E-Document record to populate with basic information.</param>
     /// <param name="TempBlob">The temporary blob that contains the received document.</param>
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
+    var
+        FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
     begin
+        BindSubscription(FRLegalIdentifiers);
         ImportPeppol.ParseBasicInfo(EDocument, TempBlob);
+        UnbindSubscription(FRLegalIdentifiers);
     end;
 
     /// <summary>
@@ -564,77 +570,57 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
     local procedure InjectSupplierIdentification(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; CompanyInformation: Record "Company Information")
     var
+        FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
         SupplierPartyNode: XmlNode;
-        PartyNode: XmlNode;
-        PartyIdElement: XmlElement;
-        IdElement: XmlElement;
-        SIRENNo: Text;
+        SIRENNo: Text[9];
     begin
+        SIRENNo := FRLegalIdentifiers.GetCompanySIREN(CompanyInformation);
         if not XmlDoc.SelectSingleNode('//cac:AccountingSupplierParty/cac:Party', NamespaceMgr, SupplierPartyNode) then
             exit;
 
-        PartyNode := SupplierPartyNode;
-
-        // Add SIRET (BT-29, schemeID=0009)
-        if CompanyInformation."SIRET No." <> '' then begin
-            PartyIdElement := XmlElement.Create('PartyIdentification', CacNamespaceTok);
-            IdElement := XmlElement.Create('ID', CbcNamespaceTok, CompanyInformation."SIRET No.");
-            IdElement.SetAttribute('schemeID', '0009');
-            PartyIdElement.Add(IdElement);
-            InsertPartyIdentification(PartyNode, PartyIdElement, NamespaceMgr);
-        end;
-
-        // Add SIREN (BT-30, schemeID=0002) as PartyLegalEntity/CompanyID.
-        // A valid SIRET always carries its coherent SIREN in the first nine digits.
-        SIRENNo := GetSIRENNo(CompanyInformation."Registration No.", CompanyInformation."SIRET No.");
-        if SIRENNo <> '' then
-            InjectLegalEntitySIREN(PartyNode, NamespaceMgr, CopyStr(SIRENNo, 1, 20));
+        InjectPartySIRET(SupplierPartyNode, NamespaceMgr, CompanyInformation."SIRET No.");
+        InjectLegalEntitySIREN(SupplierPartyNode, NamespaceMgr, SIRENNo);
     end;
 
     local procedure InjectBuyerIdentification(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SourceDocumentHeader: RecordRef)
     var
         Customer: Record Customer;
         FRCIIXMLBuilder: Codeunit "CII XML Builder";
+        FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
         CustomerNoFieldRef: FieldRef;
         BuyerPartyNode: XmlNode;
         CustomerNo: Code[20];
-        SIRENNo: Text;
-        VATRegistrationNo: Text;
+        SIRENNo: Text[9];
     begin
         if not XmlDoc.SelectSingleNode('//cac:AccountingCustomerParty/cac:Party', NamespaceMgr, BuyerPartyNode) then
             exit;
         if not FRCIIXMLBuilder.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
             exit;
         CustomerNo := CustomerNoFieldRef.Value();
-        Customer.SetLoadFields("Registration Number", "FR Electronic Address", "VAT Registration No.");
-        if not Customer.Get(CustomerNo) then
-            exit;
-
-        SIRENNo := GetSIRENNo(Customer."Registration Number", Customer."Registration Number");
-        if SIRENNo = '' then
-            if IsNumericIdentifier(CopyStr(Customer."FR Electronic Address", 1, 9), 9) then
-                SIRENNo := CopyStr(Customer."FR Electronic Address", 1, 9);
-        if SIRENNo = '' then begin
-            VATRegistrationNo := DelChr(Customer."VAT Registration No.", '=', ' ');
-            if (StrLen(VATRegistrationNo) = 13) and (CopyStr(VATRegistrationNo, 1, 2).ToUpper() = 'FR') then
-                if IsNumericIdentifier(CopyStr(VATRegistrationNo, 5, 9), 9) then
-                    SIRENNo := CopyStr(VATRegistrationNo, 5, 9);
-        end;
+        Customer.Get(CustomerNo);
+        SIRENNo := FRLegalIdentifiers.GetCustomerSIREN(Customer, FRLegalIdentifiers.IsDomesticB2B(Customer));
+        InjectPartySIRET(BuyerPartyNode, NamespaceMgr, Customer."FR SIRET No.");
         if SIRENNo <> '' then
-            InjectLegalEntitySIREN(BuyerPartyNode, NamespaceMgr, CopyStr(SIRENNo, 1, 20));
+            InjectLegalEntitySIREN(BuyerPartyNode, NamespaceMgr, SIRENNo);
     end;
 
-    local procedure GetSIRENNo(RegistrationNo: Text; SIRETNo: Text): Text
+    local procedure InjectPartySIRET(PartyNode: XmlNode; NamespaceMgr: XmlNamespaceManager; SIRET: Text)
+    var
+        ExistingIdentifiers: XmlNodeList;
+        ExistingIdentifier: XmlNode;
+        PartyIdElement: XmlElement;
+        IdElement: XmlElement;
     begin
-        if IsNumericIdentifier(SIRETNo, 14) then
-            exit(CopyStr(SIRETNo, 1, 9));
-        if IsNumericIdentifier(RegistrationNo, 9) then
-            exit(RegistrationNo);
-    end;
-
-    local procedure IsNumericIdentifier(Identifier: Text; RequiredLength: Integer): Boolean
-    begin
-        exit((StrLen(Identifier) = RequiredLength) and (DelChr(Identifier, '=', '0123456789') = ''));
+        PartyNode.SelectNodes('cac:PartyIdentification[cbc:ID/@schemeID="0009"]', NamespaceMgr, ExistingIdentifiers);
+        foreach ExistingIdentifier in ExistingIdentifiers do
+            ExistingIdentifier.Remove();
+        if SIRET = '' then
+            exit;
+        PartyIdElement := XmlElement.Create('PartyIdentification', CacNamespaceTok);
+        IdElement := XmlElement.Create('ID', CbcNamespaceTok, SIRET);
+        IdElement.SetAttribute('schemeID', '0009');
+        PartyIdElement.Add(IdElement);
+        InsertPartyIdentification(PartyNode, PartyIdElement, NamespaceMgr);
     end;
 
     local procedure InjectLegalEntitySIREN(PartyNode: XmlNode; NamespaceMgr: XmlNamespaceManager; SIRENNo: Text[20])
@@ -642,6 +628,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         LegalEntityNode: XmlNode;
         ExistingCompanyIdNode: XmlNode;
         RegistrationNameNode: XmlNode;
+        FollowingNode: XmlNode;
         CompanyIdElement: XmlElement;
         LegalEntityElement: XmlElement;
     begin
@@ -649,7 +636,10 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             LegalEntityElement := LegalEntityNode.AsXmlElement()
         else begin
             LegalEntityElement := XmlElement.Create('PartyLegalEntity', CacNamespaceTok);
-            PartyNode.AsXmlElement().Add(LegalEntityElement);
+            if PartyNode.SelectSingleNode('cac:Contact|cac:Person|cac:AgentParty|cac:ServiceProviderParty|cac:PowerOfAttorney|cac:FinancialAccount', NamespaceMgr, FollowingNode) then
+                FollowingNode.AddBeforeSelf(LegalEntityElement)
+            else
+                PartyNode.AsXmlElement().Add(LegalEntityElement);
         end;
 
         CompanyIdElement := XmlElement.Create('CompanyID', CbcNamespaceTok, SIRENNo);
@@ -670,7 +660,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
     local procedure InjectSupplierEndpoint(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; CompanyInformation: Record "Company Information"; EDocumentServiceCode: Code[20])
     var
-        FREDocHelpers: Codeunit "EDoc. Helpers";
+        FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
         SupplierPartyNode: XmlNode;
         ExistingEndpointNode: XmlNode;
         EndpointElement: XmlElement;
@@ -680,22 +670,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         if not XmlDoc.SelectSingleNode('//cac:AccountingSupplierParty/cac:Party', NamespaceMgr, SupplierPartyNode) then
             exit;
 
-        if not GetServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Company, '', ElecAddress, ElecAddressScheme) then
-            if CompanyInformation."SIRET No." <> '' then begin
-                ElecAddress := CompanyInformation."SIRET No.";
-                ElecAddressScheme := ElecAddressScheme::"0009";
-            end else
-                if CompanyInformation."Registration No." <> '' then begin
-                    ElecAddress := CompanyInformation."Registration No.";
-                    ElecAddressScheme := ElecAddressScheme::"0002";
-                end else
-                    if FREDocHelpers.IsFrenchCompany(CompanyInformation) then begin
-                        ElecAddress := CopyStr(CompanyInformation.GetVATRegistrationNumber(), 1, MaxStrLen(ElecAddress));
-                        ElecAddressScheme := ElecAddressScheme::"9957";
-                    end;
-
-        if ElecAddress = '' then
-            exit;
+        FRLegalIdentifiers.GetCompanyEndpoint(CompanyInformation, EDocumentServiceCode, false, ElecAddress, ElecAddressScheme);
 
         // Remove existing EndpointID if present
         if SupplierPartyNode.SelectSingleNode('cbc:EndpointID', NamespaceMgr, ExistingEndpointNode) then
@@ -731,7 +706,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     var
         Customer: Record Customer;
         FRCIIXMLBuilder: Codeunit "CII XML Builder";
-        FREDocHelpers: Codeunit "EDoc. Helpers";
+        FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
         CustomerNoFieldRef: FieldRef;
         CustomerNo: Code[20];
     begin
@@ -739,35 +714,8 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             exit(false);
 
         CustomerNo := CustomerNoFieldRef.Value();
-        if CustomerNo = '' then
-            exit(false);
-
-        if GetServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, CustomerNo, ElecAddress, ElecAddressScheme) then
-            exit(true);
-
-        Customer.SetLoadFields("FR Electronic Address", "FR Elec. Address Scheme", "Registration Number", "VAT Registration No.");
-        if not Customer.Get(CustomerNo) then
-            exit(false);
-
-        if not FREDocHelpers.GetBuyerElectronicAddress(Customer, ElecAddress) then
-            exit(false);
-        if (Customer."FR Electronic Address" <> '') and (Customer."FR Elec. Address Scheme" <> Customer."FR Elec. Address Scheme"::" ") then
-            ElecAddressScheme := Customer."FR Elec. Address Scheme"
-        else
-            ElecAddressScheme := ElecAddressScheme::"0225";
-        exit(true);
-    end;
-
-    local procedure GetServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]; var ElecAddress: Text[250]; var ElecAddressScheme: Enum "Electronic Address Scheme"): Boolean
-    var
-        ServiceParticipant: Record "Service Participant";
-        FREDocHelpers: Codeunit "EDoc. Helpers";
-    begin
-        if not FREDocHelpers.HasServiceParticipantAddress(EDocumentServiceCode, ParticipantType, ParticipantNo, ServiceParticipant) then
-            exit(false);
-
-        ElecAddress := CopyStr(ServiceParticipant."Participant Identifier", 1, MaxStrLen(ElecAddress));
-        ElecAddressScheme := ServiceParticipant."FR Identifier Scheme";
+        Customer.Get(CustomerNo);
+        FRLegalIdentifiers.GetCustomerEndpoint(Customer, EDocumentServiceCode, false, ElecAddress, ElecAddressScheme);
         exit(true);
     end;
 
@@ -793,12 +741,10 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     var
         PartyNameNode: XmlNode;
     begin
-        // UBL 2.1 Party sequence: ...EndpointID, PartyIdentification, PartyName, Language, PostalAddress...
-        // Insert before PartyName to maintain correct element order
-        if PartyNode.SelectSingleNode('cac:PartyName', NamespaceMgr, PartyNameNode) then
+        if PartyNode.SelectSingleNode('cac:PartyName|cac:Language|cac:PostalAddress|cac:PhysicalLocation|cac:PartyTaxScheme|cac:PartyLegalEntity|cac:Contact|cac:Person|cac:AgentParty|cac:ServiceProviderParty|cac:PowerOfAttorney|cac:FinancialAccount', NamespaceMgr, PartyNameNode) then
             PartyNameNode.AddBeforeSelf(PartyIdElement)
         else
-            InsertAsFirstChild(PartyNode, PartyIdElement);
+            PartyNode.AsXmlElement().Add(PartyIdElement);
     end;
 
     local procedure InsertAsFirstChild(ParentNode: XmlNode; NewElement: XmlElement)
