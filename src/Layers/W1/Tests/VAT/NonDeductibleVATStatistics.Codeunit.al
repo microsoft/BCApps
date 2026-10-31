@@ -714,6 +714,108 @@ codeunit 134287 "Non-Deductible VAT Statistics"
         Assert.RecordIsNotEmpty(PurchCrMemoHdr);
     end;
 
+    [Test]
+    [HandlerFunctions('PurchaseStatisticsVerifyAllocatedNonDedVATPageHandler')]
+    procedure PurchaseInvoiceStatisticsMatchSplitVATEntries()
+    var
+        PurchaseDocumentType: Enum "Purchase Document Type";
+    begin
+        // [SCENARIO 657371] Splitting invoice posting lines does not change the non-deductible VAT total.
+        VerifySplitNonDeductibleVATPosting(PurchaseDocumentType::Invoice, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchaseStatisticsVerifyAllocatedNonDedVATPageHandler')]
+    procedure PurchaseInvoiceInclVATStatisticsMatchSplitVATEntries()
+    var
+        PurchaseDocumentType: Enum "Purchase Document Type";
+    begin
+        // [SCENARIO 657371] An invoice with prices including VAT retains its allocated non-deductible VAT.
+        VerifySplitNonDeductibleVATPosting(PurchaseDocumentType::Invoice, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchaseStatisticsVerifyAllocatedNonDedVATPageHandler')]
+    procedure PurchaseCreditMemoStatisticsMatchSplitVATEntries()
+    var
+        PurchaseDocumentType: Enum "Purchase Document Type";
+    begin
+        // [SCENARIO 657371] Credit memo posting continues to retain the allocated non-deductible VAT.
+        VerifySplitNonDeductibleVATPosting(PurchaseDocumentType::"Credit Memo", false);
+    end;
+
+    local procedure VerifySplitNonDeductibleVATPosting(DocumentType: Enum "Purchase Document Type"; PricesIncludingVAT: Boolean)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        GeneralPostingSetup: Record "General Posting Setup";
+        GLAccount: Record "G/L Account";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VATEntry: Record "VAT Entry";
+        PurchaseInvoicePage: TestPage "Purchase Invoice";
+        PurchaseCreditMemoPage: TestPage "Purchase Credit Memo";
+        GLAccountNo: Code[20];
+        PostedDocumentNo: Code[20];
+        ExpectedSign: Integer;
+        LineIndex: Integer;
+    begin
+        Initialize();
+
+        // [GIVEN] 23% VAT, 50% non-deductible VAT, and separate posting entries for each G/L line.
+        LibraryNonDeductibleVAT.CreateVATPostingSetupWithNonDeductibleDetail(VATPostingSetup, 23, 50);
+        VATPostingSetup.Validate("Non-Ded. Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Copy Line Descr. to G/L Entry", true);
+        PurchasesPayablesSetup.Validate("Discount Posting", PurchasesPayablesSetup."Discount Posting"::"No Discounts");
+        PurchasesPayablesSetup.Modify(true);
+
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Purchase);
+        GLAccount.Get(GLAccountNo);
+        LibraryERM.FindGeneralPostingSetup(GeneralPostingSetup);
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, DocumentType,
+            LibraryPurchase.CreateVendorWithBusPostingGroups(GeneralPostingSetup."Gen. Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group"));
+        PurchaseHeader.Validate("Prices Including VAT", PricesIncludingVAT);
+        PurchaseHeader.Modify(true);
+        for LineIndex := 1 to 2 do begin
+            LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+            if PricesIncludingVAT then
+                PurchaseLine.Validate("Direct Unit Cost", 0.16)
+            else
+                PurchaseLine.Validate("Direct Unit Cost", 0.13);
+            PurchaseLine.Modify(true);
+        end;
+
+        // [GIVEN] Statistics show VAT of 0.06, of which 0.03 is non-deductible.
+        if DocumentType = DocumentType::Invoice then begin
+            PurchaseInvoicePage.OpenEdit();
+            PurchaseInvoicePage.Filter.SetFilter("No.", PurchaseHeader."No.");
+            PurchaseInvoicePage.PurchaseStatistics.Invoke();
+            PurchaseInvoicePage.Close();
+            ExpectedSign := 1;
+        end else begin
+            PurchaseCreditMemoPage.OpenEdit();
+            PurchaseCreditMemoPage.Filter.SetFilter("No.", PurchaseHeader."No.");
+            PurchaseCreditMemoPage.PurchaseStatistics.Invoke();
+            PurchaseCreditMemoPage.Close();
+            ExpectedSign := -1;
+        end;
+
+        // [WHEN] Post two VAT amounts of 0.03 with allocated non-deductible amounts of 0.02 and 0.01.
+        PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] VAT and G/L totals match statistics, rather than rounding each half of 0.03 to 0.02.
+        FindVATEntry(VATEntry, PostedDocumentNo);
+        Assert.RecordCount(VATEntry, 2);
+        VATEntry.CalcSums(Amount, "Non-Deductible VAT Amount");
+        VATEntry.TestField("Non-Deductible VAT Amount", ExpectedSign * 0.03);
+        VATEntry.TestField(Amount, ExpectedSign * 0.03);
+        VerifyGLEntry(PostedDocumentNo, VATPostingSetup."Non-Ded. Purchase VAT Account", 2, ExpectedSign * 0.03);
+        VerifyGLEntryByDocumentNo(PostedDocumentNo, 0);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -931,6 +1033,14 @@ codeunit 134287 "Non-Deductible VAT Statistics"
         GLEntry.SetRange("Document No.", DocumentNo);
         GLEntry.CalcSums(Amount);
         Assert.AreEqual(ExpectedAmount, GLEntry.Amount, GLEntryConsistentErr);
+    end;
+
+    [PageHandler]
+    procedure PurchaseStatisticsVerifyAllocatedNonDedVATPageHandler(var PurchaseStatisticsPage: TestPage "Purchase Statistics")
+    begin
+        PurchaseStatisticsPage.SubForm."VAT Amount".AssertEquals(0.06);
+        PurchaseStatisticsPage.SubForm.NonDeductibleAmount.AssertEquals(0.03);
+        PurchaseStatisticsPage.SubForm.DeductibleAmount.AssertEquals(0.03);
     end;
 
     [PageHandler]
