@@ -10,7 +10,6 @@ using Microsoft.Sales.Posting;
 
 codeunit 8028 "Usage Based Contr. Subscribers"
 {
-    Access = Internal;
 
     var
         UsageBasedDocTypeConv: Codeunit "Usage Based Doc. Type Conv.";
@@ -81,7 +80,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         exit(not UsageDataBilling.IsEmpty());
     end;
 
-    internal procedure CreateContractInvoicesFromUsageDataImport(ServicePartner: Enum "Service Partner"; ContractNoFilter: Text; ContractLineFilter: Text; BillingRhytmFilter: Text)
+    procedure CreateContractInvoicesFromUsageDataImport(ServicePartner: Enum "Service Partner"; ContractNoFilter: Text; ContractLineFilter: Text; BillingRhytmFilter: Text)
     begin
         case ServicePartner of
             ServicePartner::Customer:

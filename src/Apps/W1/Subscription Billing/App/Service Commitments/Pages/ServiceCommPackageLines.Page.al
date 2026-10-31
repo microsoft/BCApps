@@ -188,17 +188,17 @@ page 8058 "Service Comm. Package Lines"
 
         Bold: Boolean;
 
-    internal procedure SetItemNo(NewItemNo: Code[20])
+    procedure SetItemNo(NewItemNo: Code[20])
     begin
         ItemNo := NewItemNo;
     end;
 
-    internal procedure SetShowAllPackageLines(NewShowAllPackageLines: Boolean)
+    procedure SetShowAllPackageLines(NewShowAllPackageLines: Boolean)
     begin
         ShowAllPackageLines := NewShowAllPackageLines;
     end;
 
-    internal procedure SetPackageCode(NewPackageCode: Code[20])
+    procedure SetPackageCode(NewPackageCode: Code[20])
     begin
         PackageCode := NewPackageCode;
         SetDefaultFilters();
