@@ -5095,7 +5095,7 @@ table 5902 "Service Line"
                         VATAmountLine.Modify();
                     end;
                 end;
-                TotalVATAmount += ServiceLine."Amount Including VAT" - ServiceLine.Amount + ServiceLine."VAT Difference";
+                TotalVATAmount += ServiceLine."Amount Including VAT" - ServiceLine.Amount;
                 OnCalcVATAmountLinesOnAfterCalcLineTotals(VATAmountLine, ServHeader, ServiceLine, Currency, QtyType, TotalVATAmount);
             until ServiceLine.Next() = 0;
         VATAmountLine.Reset();
@@ -5118,6 +5118,7 @@ table 5902 "Service Line"
                 VATAmountLine."Calculated VAT Amount" := VATAmountLine."Calculated VAT Amount" + TotalVATAmount;
                 VATAmountLine.Modify();
             end;
+        VATAmountLine.Reset();
 
         OnAfterCalcVATAmountLines(ServHeader, ServiceLine, VATAmountLine, QtyType);
     end;
