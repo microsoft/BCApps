@@ -488,6 +488,7 @@ codeunit 7313 "Create Put-away"
 
     local procedure FindBinContent(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WarehouseClassCode2: Code[10]): Boolean
     var
+        BinCodeFilterText: Text[250];
         BinContentFound: Boolean;
         IsHandled: Boolean;
     begin
@@ -511,6 +512,10 @@ codeunit 7313 "Create Put-away"
         end;
         if PutAwayTemplateLine."Find Unit of Measure Match" then
             CurrBinContent.SetRange("Unit of Measure Code", PutAwayItemUnitOfMeasure.Code);
+        BinCodeFilterText := GetExcludedPutAwayBinFilter();
+        if BinCodeFilterText <> '' then
+            CurrBinContent.SetFilter("Bin Code", BinCodeFilterText);
+
         IsHandled := false;
         OnFindBinContent(PostedWhseReceiptLine, PutAwayTemplateLine, CurrBinContent, BinContentFound, IsHandled);
         if not IsHandled then
@@ -522,6 +527,7 @@ codeunit 7313 "Create Put-away"
     procedure FindBin(LocationCode: Code[10]; WarehouseClassCode2: Code[10]): Boolean
     var
         WhseActivLine: Record "Warehouse Activity Line";
+        BinCodeFilterText: Text[250];
         BinFound: Boolean;
         IsHandled: Boolean;
     begin
@@ -535,6 +541,10 @@ codeunit 7313 "Create Put-away"
         CurrBin.SetRange("Cross-Dock Bin", false);
         if PutAwayTemplateLine."Find Empty Bin" then
             CurrBin.SetRange(CurrBin.Empty, true);
+        BinCodeFilterText := GetExcludedPutAwayBinFilter();
+        if BinCodeFilterText <> '' then
+            CurrBin.SetFilter(Code, BinCodeFilterText);
+
         IsHandled := false;
         OnFindBin(PostedWhseReceiptLine, PutAwayTemplateLine, CurrBin, BinFound, IsHandled);
         if IsHandled then
@@ -1033,6 +1043,28 @@ codeunit 7313 "Create Put-away"
             BinContentFound := CurrBinContent.Next(-1) <> 0;
 
         exit(BinContentFound);
+    end;
+
+    local procedure GetExcludedPutAwayBinFilter() BinCodeFilterText: Text[250]
+    begin
+        if not CurrLocation.IsBWReceive() then
+            exit('');
+        if CrossDockInfo = CurrWarehouseActivityLine."Cross-Dock Information"::"Cross-Dock Items" then
+            exit('');
+
+        if CurrLocation."Receipt Bin Code" <> '' then
+            AddToFilterText(BinCodeFilterText, '&', '<>', CurrLocation."Receipt Bin Code");
+        if CurrLocation."Shipment Bin Code" <> '' then
+            AddToFilterText(BinCodeFilterText, '&', '<>', CurrLocation."Shipment Bin Code");
+        if PostedWhseReceiptLine."Bin Code" <> '' then
+            AddToFilterText(BinCodeFilterText, '&', '<>', PostedWhseReceiptLine."Bin Code");
+
+        OnAfterGetExcludedPutAwayBinFilter(PostedWhseReceiptLine, CurrLocation, BinCodeFilterText);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetExcludedPutAwayBinFilter(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; CurrLocation: Record Location; var BinCodeFilterText: Text[250]);
+    begin
     end;
 
     [IntegrationEvent(false, false)]
