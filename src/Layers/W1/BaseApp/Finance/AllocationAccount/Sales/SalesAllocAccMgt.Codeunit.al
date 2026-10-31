@@ -35,7 +35,7 @@ codeunit 2678 "Sales Alloc. Acc. Mgt."
         SalesLine.ReadIsolation := IsolationLevel::ReadCommitted;
         SalesLine.SetAutoCalcFields("Alloc. Acc. Modified by User");
         SalesLine.GetBySystemId(ParentSystemId);
-        AmountToAllocate := SalesLine.Amount;
+        AmountToAllocate := SalesLine."Line Amount";
 
         PostingDate := SalesLine.GetSalesHeader()."Posting Date";
 
@@ -43,7 +43,7 @@ codeunit 2678 "Sales Alloc. Acc. Mgt."
             LoadManualAllocationLines(SalesLine, AllocationLine)
         else begin
             GetAllocationAccount(SalesLine, AllocationAccount);
-            AllocationAccountMgt.GenerateAllocationLines(AllocationAccount, AllocationLine, SalesLine.Amount, PostingDate, SalesLine."Dimension Set ID", SalesLine."Currency Code");
+            AllocationAccountMgt.GenerateAllocationLines(AllocationAccount, AllocationLine, SalesLine."Line Amount", PostingDate, SalesLine."Dimension Set ID", SalesLine."Currency Code");
             AllocationAccountMgt.SplitQuantitiesIfNeeded(SalesLine.Quantity, AllocationLine, AllocationAccount);
             ReplaceInheritFromParent(AllocationLine, SalesLine);
         end;
