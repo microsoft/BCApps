@@ -420,19 +420,16 @@ codeunit 148006 "C5 Data Loader Tests"
     local procedure CopyZipFileInBlob()
     var
         C5SchemaParameters: Record "C5 Schema Parameters";
-        ZipFile: File;
         FileInStream: InStream;
         BlobOutStream: OutStream;
     begin
-        ZipFile.Open(GetHardcodedPathToArchives() + 'Data.zip');
-        ZipFile.CreateInStream(FileInStream);
+        NavApp.GetResource('Data.zip', FileInStream);
 
         C5SchemaParameters.GetSingleInstance();
         C5SchemaParameters."Zip File Blob".CreateOutStream(BlobOutStream);
         CopyStream(BlobOutStream, FileInStream);
         C5SchemaParameters.Modify();
         Commit();
-        ZipFile.Close();
     end;
 
     local procedure DeleteZipFileBlobFromC5SchemaParametersIntance()
@@ -497,17 +494,4 @@ codeunit 148006 "C5 Data Loader Tests"
         C5VendTrans.DeleteAll();
     end;
 
-    procedure GetHardcodedPathToArchives(): Text
-    var
-        NavRootPath: Text;
-        NavRootPosition: Integer;
-        ResourcePath: Text;
-    begin
-        NavRootPosition := STRPOS(ApplicationPath(), '\Run\NST\');
-        NavRootPath := DELSTR(ApplicationPath(), NavRootPosition);
-        ResourcePath := NavRootPath + '\App\BCApps\src\Apps\DK\C52012DataMigration\test\resources\';
-        if File.Exists(ResourcePath + 'Data.zip') then
-            exit(ResourcePath);
-        exit(NavRootPath + '\App\Apps\DK\C52012DataMigration\test\resources\');
-    end;
 }
