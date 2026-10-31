@@ -16,7 +16,7 @@ codeunit 18516 "Charge Purchase Subscriber"
         GenerateThirdPartyInvoice(PurchaseHeader);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPostPurchaseDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPostPurchaseDoc2', '', false, false)]
     local procedure PostThridPartyPurchaseInvoice(PurchaseHeader: Record "Purchase Header")
     begin
         ThridPartyPurchaseInvoicePosting(PurchaseHeader)

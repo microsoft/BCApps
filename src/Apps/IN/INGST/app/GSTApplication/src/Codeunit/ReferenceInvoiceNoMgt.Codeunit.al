@@ -4652,7 +4652,7 @@ codeunit 18435 "Reference Invoice No. Mgt."
         CheckRefInvNoSalesHeader(SalesHeader);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPostPurchaseDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPostPurchaseDoc2', '', false, false)]
     local procedure PurchPostOnAfterPostPurchaseDoc(
         var PurchaseHeader: Record "Purchase Header";
         var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
