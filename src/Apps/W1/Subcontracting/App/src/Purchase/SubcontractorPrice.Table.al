@@ -174,6 +174,7 @@ table 20500 "Subcontractor Price"
 #endif
         TestField("Vendor No.");
         TestField("Item No.");
+        SubcFeatureTelemetry.LogFeatureUptakeSetup();
     end;
 
     trigger OnRename()
@@ -189,6 +190,7 @@ table 20500 "Subcontractor Price"
     end;
 
     var
+        SubcFeatureTelemetry: Codeunit "Subc. Feature Telemetry";
 #if not CLEAN29
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
