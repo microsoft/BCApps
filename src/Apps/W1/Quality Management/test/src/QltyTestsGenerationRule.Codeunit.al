@@ -11,8 +11,11 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Integration.Receiving;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Test.QualityManagement.TestLibraries;
+using Microsoft.Warehouse.Journal;
 using System.TestLibraries.Utilities;
 
 codeunit 139955 "Qlty. Tests - Generation Rule"
@@ -543,6 +546,46 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     begin
         // The page is opened filtered to the target template, which has no rules, so the rule that exists for a different template must not be shown
         LibraryAssert.IsFalse(QltyInspectionGenRules.First(), 'The Generation Rules page should open filtered to the selected template (rules of other templates must not appear)');
+    end;
+
+    [Test]
+    procedure ReceivingSetupGuide_WarehouseReceipt_DoesNotUseCreateTriggerFromSetup()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyRecGenRuleSGuide: TestPage "Qlty. Rec. Gen. Rule S. Guide";
+    begin
+        // [SCENARIO 655842] The receiving setup guide never creates a Warehouse Journal Line rule with the "When Warehouse Receipt is created" trigger, which could never fire
+
+        // [GIVEN] Setup defaults the warehouse receipt trigger to "When Warehouse Receipt is created"
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyManagementSetup.Get();
+        QltyManagementSetup."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
+        QltyManagementSetup.Modify();
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+
+        // [WHEN] The receiving setup guide is run for a warehouse receipt rule without changing the trigger
+        QltyRecGenRuleSGuide.OpenEdit();
+        QltyRecGenRuleSGuide.ChoosechooseTemplate.SetValue(QltyInspectionTemplateHdr.Code);
+        QltyRecGenRuleSGuide.ChooseForWarehouseReceipt.SetValue(true);
+        QltyRecGenRuleSGuide.Next.Invoke();
+        QltyRecGenRuleSGuide.Next.Invoke();
+        QltyRecGenRuleSGuide.Next.Invoke();
+
+        // [THEN] The guide does not propose the "When Warehouse Receipt is created" trigger
+        LibraryAssert.AreEqual(
+            Format(QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger),
+            QltyRecGenRuleSGuide.ChooseeAutomaticallyCreateInspectionWarehouseReceipt.Value(),
+            'The guide should not default to a trigger that cannot fire for Warehouse Journal Line rules.');
+        QltyRecGenRuleSGuide.Finish.Invoke();
+
+        // [THEN] The created Warehouse Journal Line rule does not use the "When Warehouse Receipt is created" trigger
+        QltyInspectionGenRule.SetRange("Template Code", QltyInspectionTemplateHdr.Code);
+        QltyInspectionGenRule.FindFirst();
+        LibraryAssert.AreEqual(Database::"Warehouse Journal Line", QltyInspectionGenRule."Source Table No.", 'The guide should create a Warehouse Journal Line rule.');
+        LibraryAssert.AreEqual(QltyInspectionGenRule."Warehouse Receipt Trigger"::NoTrigger, QltyInspectionGenRule."Warehouse Receipt Trigger", 'The rule should not use the "When Warehouse Receipt is created" trigger.');
     end;
 
     local procedure DeleteAllAndCreateOneGenerationRule(TemplateCode: Code[20]; ActivationTrigger: Enum "Qlty. Gen. Rule Act. Trigger")
