@@ -130,6 +130,7 @@ codeunit 10985 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
     local procedure PopulateHeader(PeppolXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; DocumentPath: Text; var Header: Record "E-Document Purchase Header")
     var
         EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
+        VendorSIREN: Text[9];
     begin
 #pragma warning disable AA0139 // false positive: overflow handled by SetStringValueInField
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, DocumentPath + '/cbc:ID', MaxStrLen(Header."Sales Invoice No."), Header."Sales Invoice No.");
@@ -146,12 +147,12 @@ codeunit 10985 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
         EDocumentXMLHelper.SetNumberValueInField(PeppolXml, XmlNamespaces, DocumentPath + '/cac:LegalMonetaryTotal/cbc:PayableAmount', Header."Amount Due");
         Header."Total VAT" := Header.Total - Header."Sub Total" - Header."Total Discount";
 
-        PopulateSupplierInfo(PeppolXml, XmlNamespaces, DocumentPath, Header);
+        PopulateSupplierInfo(PeppolXml, XmlNamespaces, DocumentPath, Header, VendorSIREN);
         PopulateCustomerInfo(PeppolXml, XmlNamespaces, DocumentPath, Header);
-        Header."[BC] Vendor No." := FindVendor(Header);
+        Header."[BC] Vendor No." := FindVendor(Header, VendorSIREN);
     end;
 
-    local procedure PopulateSupplierInfo(PeppolXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; DocumentPath: Text; var Header: Record "E-Document Purchase Header")
+    local procedure PopulateSupplierInfo(PeppolXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; DocumentPath: Text; var Header: Record "E-Document Purchase Header"; var VendorSIREN: Text[9])
     var
         EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         BasePath: Text;
@@ -165,7 +166,8 @@ codeunit 10985 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyTaxScheme/cbc:CompanyID', MaxStrLen(Header."Vendor VAT Id"), Header."Vendor VAT Id");
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:Contact/cbc:Name', MaxStrLen(Header."Vendor Contact Name"), Header."Vendor Contact Name");
         // The French export injects the SIRET as PartyIdentification, so it is mapped back as the external vendor id
-        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyIdentification/cbc:ID', MaxStrLen(Header."Vendor External Id"), Header."Vendor External Id");
+        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyIdentification/cbc:ID[@schemeID=''0009'']', MaxStrLen(Header."Vendor External Id"), Header."Vendor External Id");
+        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, BasePath + '/cac:PartyLegalEntity/cbc:CompanyID[@schemeID=''0002'']', MaxStrLen(VendorSIREN), VendorSIREN);
 #pragma warning restore AA0139
         ApplyEndpointID(PeppolXml, XmlNamespaces, BasePath, Header."Vendor GLN", Header."Vendor VAT Id");
     end;
@@ -208,13 +210,18 @@ codeunit 10985 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
         end;
     end;
 
-    local procedure FindVendor(Header: Record "E-Document Purchase Header"): Code[20]
+    local procedure FindVendor(Header: Record "E-Document Purchase Header"; VendorSIREN: Text[9]): Code[20]
     var
         Vendor: Record Vendor;
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         VendorGLN: Code[13];
         VendorVATRegistrationNo: Text[20];
+        VendorNo: Code[20];
     begin
+        if FREDocHelpers.FindVendorByLegalIdentifiers(Header."Vendor External Id", VendorSIREN, VendorNo) then
+            exit(VendorNo);
+
         VendorVATRegistrationNo := CopyStr(Header."Vendor VAT Id", 1, MaxStrLen(VendorVATRegistrationNo));
         if VendorVATRegistrationNo <> '' then begin
             Vendor.SetLoadFields("No.");
