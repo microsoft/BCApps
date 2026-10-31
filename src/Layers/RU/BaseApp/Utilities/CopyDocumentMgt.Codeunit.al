@@ -2453,6 +2453,10 @@ codeunit 6620 "Copy Document Mgt."
         QtyToAssign: Decimal;
         SumQtyToAssign: Decimal;
         RemainingQty: Decimal;
+        ItemChargeCostAmount: Decimal;
+        SupportedValueEntryCount: Integer;
+        AppliesToDocType: Enum "Purchase Applies-to Document Type";
+        IsSupportedDocumentType: Boolean;
     begin
         if FromPurchLine."Document Type" = FromPurchLine."Document Type"::"Credit Memo" then
             ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Credit Memo")
@@ -2470,28 +2474,61 @@ codeunit 6620 "Copy Document Mgt."
 
         if ValueEntry.FindSet() then begin
             repeat
+                IsSupportedDocumentType := false;
+                if ValueEntry.Inventoriable then
+                    ItemChargeCostAmount := ValueEntry."Cost Amount (Actual)"
+                else
+                    ItemChargeCostAmount := ValueEntry."Cost Amount (Non-Invtbl.)";
                 if ItemLedgerEntry.Get(ValueEntry."Item Ledger Entry No.") then
-                    if ItemLedgerEntry."Document Type" = ItemLedgerEntry."Document Type"::"Purchase Receipt" then begin
-                        PurchaseItem.Get(ItemLedgerEntry."Item No.");
-                        CurrencyFactor := FromPurchHeader."Currency Factor";
-
-                        if not PurchaseCurrency.Get(FromPurchHeader."Currency Code") then begin
-                            CurrencyFactor := 1;
-                            PurchaseCurrency.InitRoundingPrecision();
-                        end;
-
-                        if ToPurchLine."Unit Cost" = 0 then
-                            QtyToAssign := 0
-                        else
-                            QtyToAssign :=
-                              Sign(ToPurchLine.Quantity) * Abs(ValueEntry."Cost Amount (Actual)") * CurrencyFactor / ToPurchLine."Unit Cost";
-                        SumQtyToAssign += QtyToAssign;
-
-                        ItemChargeAssgntPurch.InsertItemChargeAssignmentWithValuesTo(
-                            ToItemChargeAssignmentPurch, ToItemChargeAssignmentPurch."Applies-to Doc. Type"::Receipt,
-                            ItemLedgerEntry."Document No.", ItemLedgerEntry."Document Line No.", ItemLedgerEntry."Item No.", PurchaseItem.Description,
-                            QtyToAssign, 0, ItemChargeAssgntNextLineNo, TempToItemChargeAssignmentPurch);
+                    case ItemLedgerEntry."Document Type" of
+                        ItemLedgerEntry."Document Type"::"Purchase Receipt":
+                            begin
+                                AppliesToDocType := AppliesToDocType::Receipt;
+                                IsSupportedDocumentType := true;
+                            end;
+                        ItemLedgerEntry."Document Type"::"Transfer Receipt":
+                            begin
+                                AppliesToDocType := AppliesToDocType::"Transfer Receipt";
+                                IsSupportedDocumentType := true;
+                            end;
+                        ItemLedgerEntry."Document Type"::"Purchase Return Shipment":
+                            begin
+                                AppliesToDocType := AppliesToDocType::"Return Shipment";
+                                IsSupportedDocumentType := true;
+                            end;
+                        ItemLedgerEntry."Document Type"::"Sales Shipment":
+                            begin
+                                AppliesToDocType := AppliesToDocType::"Sales Shipment";
+                                IsSupportedDocumentType := true;
+                            end;
+                        ItemLedgerEntry."Document Type"::"Sales Return Receipt":
+                            begin
+                                AppliesToDocType := AppliesToDocType::"Return Receipt";
+                                IsSupportedDocumentType := true;
+                            end;
                     end;
+                if IsSupportedDocumentType then begin
+                    PurchaseItem.Get(ItemLedgerEntry."Item No.");
+                    CurrencyFactor := FromPurchHeader."Currency Factor";
+
+                    if not PurchaseCurrency.Get(FromPurchHeader."Currency Code") then begin
+                        CurrencyFactor := 1;
+                        PurchaseCurrency.InitRoundingPrecision();
+                    end;
+
+                    if ToPurchLine."Unit Cost" = 0 then
+                        QtyToAssign := 0
+                    else
+                        QtyToAssign :=
+                          Sign(ToPurchLine.Quantity) * Abs(ItemChargeCostAmount) * CurrencyFactor / ToPurchLine."Unit Cost";
+                    SumQtyToAssign += QtyToAssign;
+                    SupportedValueEntryCount += 1;
+
+                    ItemChargeAssgntPurch.InsertItemChargeAssignmentWithValuesTo(
+                        ToItemChargeAssignmentPurch, AppliesToDocType,
+                        ItemLedgerEntry."Document No.", ItemLedgerEntry."Document Line No.", ItemLedgerEntry."Item No.", PurchaseItem.Description,
+                        QtyToAssign, 0, ItemChargeAssgntNextLineNo, TempToItemChargeAssignmentPurch);
+                end;
                 OnCopyFromPurchLineItemChargeAssignOnAfterValueEntryLoop(
                     FromPurchHeader, ToPurchLine, ValueEntry, TempToItemChargeAssignmentPurch, ToItemChargeAssignmentPurch,
                     ItemChargeAssgntNextLineNo, SumQtyToAssign);
@@ -2503,7 +2540,10 @@ codeunit 6620 "Copy Document Mgt."
             ToItemChargeAssignmentPurch.SetRange("Document No.", ToPurchLine."Document No.");
             ToItemChargeAssignmentPurch.SetRange("Document Line No.", ToPurchLine."Line No.");
             if ToItemChargeAssignmentPurch.FindSet(true) then begin
-                RemainingQty := (FromPurchLine.Quantity - SumQtyToAssign) / ValueEntry.Count();
+                if SupportedValueEntryCount > 0 then
+                    RemainingQty := (FromPurchLine.Quantity - SumQtyToAssign) / SupportedValueEntryCount
+                else
+                    RemainingQty := 0;
                 SumQtyToAssign := 0;
                 repeat
                     AddRemainingQtyToPurchItemCharge(ToItemChargeAssignmentPurch, RemainingQty);
