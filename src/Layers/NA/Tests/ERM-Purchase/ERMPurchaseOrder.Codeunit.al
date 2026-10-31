@@ -44,6 +44,7 @@ codeunit 134327 "ERM Purchase Order"
         AmountError: Label '%1 must be %2 in %3.';
         PostError: Label 'Amount must be negative';
         CountErr: Label 'There must be %1 record(-s) in table %2 with the following filters: %3';
+        NavigateLineNotFoundErr: Label 'Find Entries has no line for table %1.', Comment = '%1 = table ID';
         ColumnWrongVisibilityErr: Label 'Column[%1] has wrong visibility';
         IncorrectFieldValueErr: Label 'Incorrect %1 field value.';
         WrongQtyToReceiveErr: Label 'Qty. to Receive should not be non zero because Quantity was not changed.';
@@ -2130,7 +2131,6 @@ codeunit 134327 "ERM Purchase Order"
 
         // [THEN] "Qty. to Receive " in Purchase Order Line is "X"
         Assert.AreEqual(Qty, PurchaseLine4."Qty. to Receive", StrSubstNo(QtyToReceiveUpdateErr, Qty));
-
     end;
 
     [Test]
@@ -9561,6 +9561,117 @@ codeunit 134327 "ERM Purchase Order"
         PurchInvHeader.TestField("Order No.", '');
     end;
 
+    [Test]
+    procedure ShowUnpostedPurchaseReturnOrderFromFindEntries()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Navigate: TestPage Navigate;
+        PurchaseReturnOrder: TestPage "Purchase Return Order";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651758] Show Related Entries in Find Entries opens the unposted Purchase Return Order.
+        Initialize();
+
+        // [GIVEN] Unposted Purchase Return Order "RO" found in Find Entries by document number.
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, CreateVendor(), PurchaseHeader."Document Type"::"Return Order");
+        FindEntriesByDocumentNo(Navigate, PurchaseHeader."No.");
+        Navigate.Filter.SetFilter("Document Type", Format(Enum::"Document Entry Document Type"::"Return Order"));
+        VerifyNavigatePageNoOfRecords(Navigate, Database::"Purchase Header", 1);
+
+        // [WHEN] Invoke Show Related Entries on the Purchase Header line.
+        PurchaseReturnOrder.Trap();
+        Navigate.Show.Invoke();
+
+        // [THEN] The Purchase Return Order card opens for "RO".
+        PurchaseReturnOrder."No.".AssertEquals(PurchaseHeader."No.");
+        PurchaseReturnOrder.Close();
+        Navigate.Close();
+    end;
+
+    [Test]
+    procedure ShowUnpostedPurchaseCreditMemoFromFindEntries()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Navigate: TestPage Navigate;
+        PurchaseCreditMemoPage: TestPage "Purchase Credit Memo";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651758] Show Related Entries in Find Entries opens the unposted Purchase Credit Memo.
+        Initialize();
+
+        // [GIVEN] Unposted Purchase Credit Memo "CM" found in Find Entries by document number.
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, CreateVendor(), PurchaseHeader."Document Type"::"Credit Memo");
+        FindEntriesByDocumentNo(Navigate, PurchaseHeader."No.");
+        Navigate.Filter.SetFilter("Document Type", Format(Enum::"Document Entry Document Type"::"Credit Memo"));
+        VerifyNavigatePageNoOfRecords(Navigate, Database::"Purchase Header", 1);
+
+        // [WHEN] Invoke Show Related Entries on the Purchase Header line.
+        PurchaseCreditMemoPage.Trap();
+        Navigate.Show.Invoke();
+
+        // [THEN] The Purchase Credit Memo card opens for "CM".
+        PurchaseCreditMemoPage."No.".AssertEquals(PurchaseHeader."No.");
+        PurchaseCreditMemoPage.Close();
+        Navigate.Close();
+    end;
+
+    [Test]
+    procedure UnpostedPurchaseReturnOrderFindByVendorExtDocNo()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Navigate: TestPage Navigate;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651758] Find Entries by vendor and external document number finds an unposted Purchase Return Order when no vendor ledger entry exists.
+        Initialize();
+
+        // [GIVEN] Unposted Purchase Return Order for vendor "V" with "Vendor Cr. Memo No." = "X".
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, CreateVendor(), PurchaseHeader."Document Type"::"Return Order");
+
+        // [WHEN] Search Find Entries by business contact vendor "V" and external document number "X".
+        FindEntriesByVendor(Navigate, PurchaseHeader."Buy-from Vendor No.", PurchaseHeader."Vendor Cr. Memo No.");
+
+        // [THEN] The unposted Purchase Return Order is found.
+        VerifyNavigatePageNoOfRecords(Navigate, Database::"Purchase Header", 1);
+        Navigate.Close();
+    end;
+
+    [Test]
+    procedure UnpostedPurchaseCreditMemoFindByVendorExtDocNoWithPostedInvoice()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Navigate: TestPage Navigate;
+        VendorNo: Code[20];
+        ExtDocNo: Code[35];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651758] Find Entries by vendor and external document number keeps an unposted Purchase Credit Memo when a vendor ledger entry is also found.
+        Initialize();
+        VendorNo := CreateVendor();
+
+        // [GIVEN] Posted Purchase Invoice for vendor "V" with "Vendor Invoice No." = "X".
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, VendorNo, PurchaseHeader."Document Type"::Invoice);
+        ExtDocNo := PurchaseHeader."Vendor Invoice No.";
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Unposted Purchase Credit Memo for vendor "V" with "Vendor Cr. Memo No." = "X".
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, VendorNo, PurchaseHeader."Document Type"::"Credit Memo");
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", ExtDocNo);
+        PurchaseHeader.Modify(true);
+
+        // [WHEN] Search Find Entries by business contact vendor "V" and external document number "X".
+        FindEntriesByVendor(Navigate, VendorNo, ExtDocNo);
+
+        // [THEN] Both the posted Purchase Invoice and the unposted Purchase Credit Memo are found.
+        VerifyNavigatePageNoOfRecords(Navigate, Database::"Purch. Inv. Header", 1);
+        VerifyNavigatePageNoOfRecords(Navigate, Database::"Purchase Header", 1);
+        Navigate.Close();
+    end;
+
     local procedure Initialize()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -11493,7 +11604,6 @@ codeunit 134327 "ERM Purchase Order"
     begin
         LibraryPurchase.CreatePurchHeader(
           PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
-
         for i := 1 to 3 do
             CreatePurchaseLineWithDirectUnitCost(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), 10, 10);
 
@@ -11897,6 +12007,31 @@ codeunit 134327 "ERM Purchase Order"
         DocumentEntry.SetRange("Table ID", TableID);
         DocumentEntry.FindFirst();
         DocumentEntry.TestField("No. of Records", NoOfRecords);
+    end;
+
+    local procedure FindEntriesByVendor(var Navigate: TestPage Navigate; VendorNo: Code[20]; ExtDocNo: Code[35])
+    begin
+        Navigate.OpenView();
+        Navigate.FindByBusinessContact.Invoke();
+        Navigate.ContactType.SetValue(Format(Enum::"Navigate Contact Type"::Vendor));
+        Navigate.ContactNo.SetValue(VendorNo);
+        Navigate.ExtDocNo.SetValue(ExtDocNo);
+        Navigate.Find.Invoke();
+    end;
+
+    local procedure FindEntriesByDocumentNo(var Navigate: TestPage Navigate; DocumentNo: Code[20])
+    begin
+        Navigate.OpenView();
+        Navigate.FindByDocument.Invoke();
+        Navigate.DocNoFilter.SetValue(DocumentNo);
+        Navigate.Find.Invoke();
+    end;
+
+    local procedure VerifyNavigatePageNoOfRecords(var Navigate: TestPage Navigate; TableID: Integer; NoOfRecords: Integer)
+    begin
+        Navigate.Filter.SetFilter("Table ID", Format(TableID));
+        Assert.IsTrue(Navigate.First(), StrSubstNo(NavigateLineNotFoundErr, TableID));
+        Navigate."No. of Records".AssertEquals(NoOfRecords);
     end;
 
     local procedure VerifyPurchaseCreditMemo(DocumentNo: Code[20]; PurchaseLine: Record "Purchase Line")
@@ -12356,7 +12491,6 @@ codeunit 134327 "ERM Purchase Order"
         ReturnShipmentLine.SetRange("No.", PurchaseLine."No.");
         ReturnShipmentLine.FindLast();
         ReturnShipmentLine.TestField(Quantity, -1 * PurchaseLine."Return Qty. to Ship");
-
     end;
 
     local procedure SetupMyNotificationsForPostingSetup()
@@ -12820,7 +12954,6 @@ codeunit 134327 "ERM Purchase Order"
         DocumentAttachment.Init();
         CreateTempBLOBWithImageOfType(TempBlob, 'jpeg');
         DocumentAttachment.SaveAttachment(RecRef, 'test.jpeg', TempBlob);
-
         if FlowPurchase then
             DocumentAttachment."Document Flow Purchase" := true;
         if FlowSales then
@@ -12949,7 +13082,6 @@ codeunit 134327 "ERM Purchase Order"
         DefaultDimension: Record "Default Dimension";
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-
         if DimensionCode = '' then
             exit;
         LibraryDimension.CreateDimensionValue(DimensionValue, DimensionCode);
@@ -13143,7 +13275,6 @@ codeunit 134327 "ERM Purchase Order"
     begin
         LibraryVariableStorage.Dequeue(DequedVar);
         IsSetup := DequedVar;
-
         if IsSetup then begin
             LibraryVariableStorage.Dequeue(DequedVar);
             QuantityToAssign := DequedVar;
@@ -13304,7 +13435,6 @@ codeunit 134327 "ERM Purchase Order"
         FieldVisibilityArray[30] := MatrixForm.Field30.Visible();
         FieldVisibilityArray[31] := MatrixForm.Field31.Visible();
         FieldVisibilityArray[32] := MatrixForm.Field32.Visible();
-
         for Index := 1 to Count do
             Assert.AreEqual(true, FieldVisibilityArray[Index], StrSubstNo(ColumnWrongVisibilityErr, Index));
     end;
