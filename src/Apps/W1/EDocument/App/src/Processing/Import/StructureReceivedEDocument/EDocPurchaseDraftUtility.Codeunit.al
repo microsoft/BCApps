@@ -9,7 +9,7 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 codeunit 6234 "E-Doc. Purchase Draft Utility"
 {
-    Access = Internal;
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 
