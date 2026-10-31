@@ -6,10 +6,12 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.UOM;
 using System.Automation;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 148311 "Expense No Rule Test"
 {
@@ -437,6 +439,394 @@ codeunit 148311 "Expense No Rule Test"
 
         // [THEN] Verify that different Expense User cannot be selected in Expense Report Line.
         Assert.ExpectedTestFieldError(ExpenseReportLine.FieldCaption("Expense User No."), ExpenseUser1."No.");
+    end;
+
+    [Test]
+    procedure NoReceiptThresholdIsStrictAndUsesLCY()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        CurrencyCode: Code[10];
+    begin
+        Initialize();
+        SetAllowNoReceipt(true);
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 2, 1);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::Error, true, CurrencyCode, 100);
+        ExpenseCategory.Get(Expense."Expense Category");
+        ExpenseCategory."Amount Limit for No Receipt" := Expense."Amount (LCY)" + 1;
+        ExpenseCategory.Modify();
+
+        Expense.UpdateAmount();
+        Assert.AreEqual(Expense."No Receipt Type"::"Receipt not needed", Expense."No Receipt Type",
+            'The exemption must use LCY, including when LCY has not changed.');
+        Assert.IsFalse(Expense."No Receipt Decl. Current", 'An automatic exemption must not attest or generate a declaration.');
+
+        ExpenseCategory."Amount Limit for No Receipt" := Expense."Amount (LCY)";
+        ExpenseCategory.Modify();
+        Expense.ApplyRule(false, true);
+        Assert.AreEqual(Expense."No Receipt Type"::" ", Expense."No Receipt Type", 'Equality requires proof of receipt.');
+
+        ExpenseCategory."Amount Limit for No Receipt" := Expense."Amount (LCY)" - 1;
+        ExpenseCategory.Modify();
+        Expense.UpdateAmount();
+        Assert.AreEqual(Expense."No Receipt Type"::" ", Expense."No Receipt Type", 'Amounts above the limit require proof.');
+    end;
+
+    [Test]
+    procedure NoReceiptExemptionClearsWhenDisabledOrCategoryRemoved()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseNo: Code[20];
+    begin
+        Initialize();
+        SetAllowNoReceipt(true);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::" ", true, '', 100);
+        ExpenseCategory.Get(Expense."Expense Category");
+        ExpenseCategory."Amount Limit for No Receipt" := 200;
+        ExpenseCategory.Modify();
+        Expense.UpdateAmount();
+        Assert.AreEqual(Expense."No Receipt Type"::"Receipt not needed", Expense."No Receipt Type", 'Below the limit must be exempt.');
+        ExpenseNo := Expense."No.";
+
+        SetAllowNoReceipt(false);
+        Clear(Expense);
+        Expense.Get(ExpenseNo);
+        Expense.UpdateAmount();
+        Assert.AreEqual(Expense."No Receipt Type"::" ", Expense."No Receipt Type", 'Disabling no receipt must clear automatic exemptions.');
+
+        SetAllowNoReceipt(true);
+        Clear(Expense);
+        Expense.Get(ExpenseNo);
+        Expense.UpdateAmount();
+        Expense.Validate("Expense Category", '');
+        Assert.AreEqual(Expense."No Receipt Type"::" ", Expense."No Receipt Type", 'Removing the category must clear the exemption.');
+    end;
+
+    [Test]
+    procedure NoReceiptCategoryChangeRecomputesSameAmount()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+    begin
+        Initialize();
+        SetAllowNoReceipt(true);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::" ", true, '', 100);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ");
+        ExpenseCategory."Amount Limit for No Receipt" := 100;
+        ExpenseCategory.Modify();
+
+        Expense.Validate("Expense Category", ExpenseCategory.Code);
+        Expense.Validate(Amount, 100);
+        Assert.AreEqual(Expense."No Receipt Type"::" ", Expense."No Receipt Type",
+            'Restoring the same LCY amount after category validation must not retain an exemption from the temporary zero amount.');
+    end;
+
+    [Test]
+    procedure NoReceiptDeclarationBecomesStaleOnEditing()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        CurrencyCode: Code[10];
+    begin
+        Initialize();
+        SetAllowNoReceipt(true);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::" ", true, '', 100);
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ");
+        ExpenseCategory."Posting Description" := Expense.Description;
+        ExpenseCategory.Modify();
+
+        MarkDeclarationCurrentForTest(Expense);
+        Expense.Validate("Expense Category", ExpenseCategory.Code);
+        Assert.IsFalse(Expense."No Receipt Decl. Current", 'A category change must invalidate the declaration even if its description is unchanged.');
+        Assert.AreEqual(Expense."No Receipt Type"::"Lost Receipt", Expense."No Receipt Type", 'Edits must preserve explicit declarations until cancelled.');
+
+        MarkDeclarationCurrentForTest(Expense);
+        Expense.Validate("Currency Code", CurrencyCode);
+        Assert.IsFalse(Expense."No Receipt Decl. Current", 'A currency change must invalidate the declaration even at a 1:1 rate.');
+
+        MarkDeclarationCurrentForTest(Expense);
+        Expense.Validate("Expense Date", CalcDate('<1D>', Expense."Expense Date"));
+        Assert.IsFalse(Expense."No Receipt Decl. Current", 'A date change must invalidate the declaration.');
+
+        MarkDeclarationCurrentForTest(Expense);
+        Expense.Validate(Amount, Expense.Amount + 1);
+        Assert.IsFalse(Expense."No Receipt Decl. Current", 'An amount change must invalidate the declaration.');
+
+        MarkDeclarationCurrentForTest(Expense);
+        Expense.Validate(Description, 'Changed declaration description');
+        Assert.IsFalse(Expense."No Receipt Decl. Current", 'A description change must invalidate the declaration.');
+    end;
+
+    [Test]
+    procedure NoReceiptAPIActionsRequireReasonAndAttestation()
+    var
+        Expense: Record Expense;
+        ExpensesAPI: Page "Expenses API";
+        ActionContext: WebServiceActionContext;
+    begin
+        Initialize();
+        SetAllowNoReceipt(true);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::" ", true, '', 100);
+        Expense.Validate(Description, 'Taxi without a receipt');
+        Expense.Modify();
+        ExpensesAPI.SetRecord(Expense);
+
+        asserterror ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, '   ', true);
+        Assert.ExpectedError('Enter the reason the original receipt is unavailable.');
+        asserterror ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, 'Receipt was lost', false);
+        Assert.ExpectedError('Confirm the declaration before creating the no receipt document.');
+        Expense.Get(Expense."No.");
+        Assert.IsTrue(IsNullGuid(Expense."No Receipt Declaration ID"), 'Rejected requests must not create a declaration.');
+    end;
+
+    [Test]
+    procedure NoReceiptAPIActionsGenerateRegenerateAndCancel()
+    var
+        Expense: Record Expense;
+        DocumentAttachment: Record "Document Attachment";
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+        ExpensesAPI: Page "Expenses API";
+        ActionContext: WebServiceActionContext;
+        FirstDeclarationId: Guid;
+    begin
+        Initialize();
+        SetAllowNoReceipt(true);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::" ", true, '', 100);
+        Expense.Validate(Description, 'Taxi without a receipt');
+        Expense.Modify();
+        ExpensesAPI.SetRecord(Expense);
+
+        ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, ' Receipt was lost ', true);
+        Expense.Get(Expense."No.");
+        Assert.IsTrue(NoReceiptDeclarationMgt.HasCurrentDeclaration(Expense), 'The action must generate a current PDF attachment.');
+        Assert.AreEqual('Receipt was lost', Expense."No Receipt Reason", 'The stored reason must be trimmed.');
+        FirstDeclarationId := Expense."No Receipt Declaration ID";
+
+        Expense.Validate(Description, 'Updated taxi journey');
+        Expense.Modify();
+        Assert.IsFalse(NoReceiptDeclarationMgt.HasCurrentDeclaration(Expense), 'Editing must make the existing PDF stale.');
+        ExpensesAPI.SetRecord(Expense);
+        ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, 'Receipt still unavailable', true);
+        Expense.Get(Expense."No.");
+        Assert.IsTrue(NoReceiptDeclarationMgt.HasCurrentDeclaration(Expense), 'Regeneration must create current proof.');
+        Assert.IsFalse(DocumentAttachment.GetBySystemId(FirstDeclarationId), 'Regeneration must remove the old declaration.');
+
+        FirstDeclarationId := Expense."No Receipt Declaration ID";
+        ExpensesAPI.SetRecord(Expense);
+        ExpensesAPI.CancelNoReceiptDeclaration(ActionContext);
+        Expense.Get(Expense."No.");
+        Assert.IsTrue(IsNullGuid(Expense."No Receipt Declaration ID"), 'Cancellation must clear the attachment reference.');
+        Assert.IsFalse(Expense."No Receipt Decl. Current", 'Cancellation must clear the current flag.');
+        Assert.IsFalse(DocumentAttachment.GetBySystemId(FirstDeclarationId), 'Cancellation must remove the generated declaration.');
+    end;
+
+    [Test]
+    procedure NoReceiptDeclarationRejectsOriginalReceipt()
+    var
+        Expense: Record Expense;
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+        ExpenseRecordRef: RecordRef;
+        ReceiptInStream: InStream;
+        ReceiptOutStream: OutStream;
+    begin
+        Initialize();
+        SetAllowNoReceipt(true);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::" ", true, '', 100);
+        Expense.Validate(Description, 'Taxi with original receipt');
+        Expense.Modify();
+        TempBlob.CreateOutStream(ReceiptOutStream);
+        ReceiptOutStream.WriteText('Original receipt');
+        TempBlob.CreateInStream(ReceiptInStream);
+        ExpenseRecordRef.GetTable(Expense);
+        DocumentAttachment.InitFieldsFromRecRef(ExpenseRecordRef);
+        DocumentAttachment.SaveAttachmentFromStream(ReceiptInStream, ExpenseRecordRef, 'receipt.txt');
+
+        asserterror NoReceiptDeclarationMgt.CreateDeclaration(Expense, 'Receipt was lost', true);
+        Assert.ExpectedError('already has an original receipt');
+        Assert.IsTrue(NoReceiptDeclarationMgt.HasOriginalReceipt(Expense), 'Rejected declarations must preserve the original receipt.');
+    end;
+
+    [Test]
+    procedure NoReceiptActionsRejectReleasedExpense()
+    var
+        Expense: Record Expense;
+        ExpensesAPI: Page "Expenses API";
+        ActionContext: WebServiceActionContext;
+    begin
+        Initialize();
+        SetAllowNoReceipt(true);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::" ", true, '', 100);
+        Expense.Status := Expense.Status::Released;
+        Expense.Modify();
+        ExpensesAPI.SetRecord(Expense);
+
+        asserterror ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, 'Receipt was lost', true);
+        Assert.ExpectedError(Expense.FieldCaption(Status));
+        asserterror ExpensesAPI.CancelNoReceiptDeclaration(ActionContext);
+        Assert.ExpectedError(Expense.FieldCaption(Status));
+    end;
+
+    [Test]
+    procedure NoReceiptLostDeclarationBecomesAutomaticExemption()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        DocumentAttachment: Record "Document Attachment";
+        ExpensesAPI: Page "Expenses API";
+        ActionContext: WebServiceActionContext;
+        DeclarationId: Guid;
+    begin
+        Initialize();
+        SetAllowNoReceipt(true);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::"Not needed under limit", true, '', 100);
+        Expense.Validate(Description, 'Taxi without a receipt');
+        Expense.Modify();
+        ExpensesAPI.SetRecord(Expense);
+        ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, 'Receipt was lost', true);
+        Expense.Get(Expense."No.");
+        DeclarationId := Expense."No Receipt Declaration ID";
+        ExpenseCategory.Get(Expense."Expense Category");
+        ExpenseCategory."Amount Limit for No Receipt" := 100;
+        ExpenseCategory.Modify();
+
+        Expense.Validate(Amount, 99);
+        Expense.Modify();
+        Assert.AreEqual(Expense."No Receipt Type"::"Receipt not needed", Expense."No Receipt Type", 'A lost receipt must become exempt below the limit.');
+        Assert.IsTrue(IsNullGuid(Expense."No Receipt Declaration ID"), 'An automatic exemption must clear the obsolete declaration reference.');
+        Assert.IsFalse(Expense."No Receipt Decl. Current", 'An automatic exemption must not retain an attestation.');
+        Assert.IsFalse(DocumentAttachment.GetBySystemId(DeclarationId), 'An automatic exemption must remove the obsolete generated PDF.');
+
+        Expense.Validate(Amount, 100);
+        Assert.AreEqual(Expense."No Receipt Type"::" ", Expense."No Receipt Type", 'Increasing to the limit requires new proof, not a restored old declaration.');
+    end;
+
+    [Test]
+    procedure NoReceiptUnderLimitEnforcementRequiresProofAtEquality()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseRuleViolation: Record "Expense Rule Violation";
+    begin
+        Initialize();
+        SetAllowNoReceipt(true);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::"Not needed under limit", true, '', 100);
+        ExpenseCategory.Get(Expense."Expense Category");
+        ExpenseCategory."Amount Limit for No Receipt" := 100;
+        ExpenseCategory.Modify();
+        Expense.ApplyRule(false, true);
+        ExpenseRuleViolation.SetRange("Expense No.", Expense."No.");
+        ExpenseRuleViolation.SetFilter(Description, '*Document Attachment is mandatory*');
+        Assert.IsFalse(ExpenseRuleViolation.IsEmpty(), 'The under-limit policy must require proof at equality.');
+
+        Expense.Validate(Amount, 99);
+        Assert.IsTrue(ExpenseRuleViolation.IsEmpty(), 'The under-limit policy must not flag an exempt expense.');
+    end;
+
+    [Test]
+    procedure NoReceiptReleaseRechecksThresholdBeforeDeclaration()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+    begin
+        Initialize();
+        SetAllowNoReceipt(true);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::"Not needed under limit", true, '', 100);
+        MarkDeclarationCurrentForTest(Expense);
+
+        asserterror ReleaseExpenseDocument.PerformManualRelease(Expense);
+        Assert.ExpectedError('is missing or no longer current');
+
+        Expense.Get(Expense."No.");
+        ExpenseCategory.Get(Expense."Expense Category");
+        ExpenseCategory."Amount Limit for No Receipt" := 200;
+        ExpenseCategory.Modify();
+        ReleaseExpenseDocument.PerformManualRelease(Expense);
+        Expense.Get(Expense."No.");
+        Assert.AreEqual(Expense.Status::Released, Expense.Status, 'A newly exempt expense must not require regeneration of an obsolete declaration.');
+        Assert.AreEqual(Expense."No Receipt Type"::"Receipt not needed", Expense."No Receipt Type", 'Release must persist the current category exemption.');
+    end;
+
+    [Test]
+    procedure NoReceiptActionsRejectDisabledPolicyAndReportedExpense()
+    var
+        Expense: Record Expense;
+        ExpensesAPI: Page "Expenses API";
+        ActionContext: WebServiceActionContext;
+    begin
+        Initialize();
+        SetAllowNoReceipt(false);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::" ", true, '', 100);
+        Expense.Validate(Description, 'Taxi without a receipt');
+        Expense.Modify();
+        ExpensesAPI.SetRecord(Expense);
+        asserterror ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, 'Receipt was lost', true);
+        Assert.ExpectedError('No receipt declarations are not allowed');
+
+        SetAllowNoReceipt(true);
+        Expense."Expense Report No." := 'REPORT';
+        Expense.Modify();
+        ExpensesAPI.SetRecord(Expense);
+        asserterror ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, 'Receipt was lost', true);
+        Assert.ExpectedError(Expense.FieldCaption("Expense Report No."));
+        asserterror ExpensesAPI.CancelNoReceiptDeclaration(ActionContext);
+        Assert.ExpectedError(Expense.FieldCaption("Expense Report No."));
+    end;
+
+    [Test]
+    procedure NoReceiptDateChangeRecalculatesLCYAndThreshold()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        CurrencyCode: Code[10];
+        NewDate: Date;
+    begin
+        Initialize();
+        SetAllowNoReceipt(true);
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::" ", true, CurrencyCode, 100);
+        ExpenseCategory.Get(Expense."Expense Category");
+        ExpenseCategory."Amount Limit for No Receipt" := 200;
+        ExpenseCategory.Modify();
+        Expense.UpdateAmount();
+        Assert.AreEqual(Expense."No Receipt Type"::"Receipt not needed", Expense."No Receipt Type", 'The original exchange rate must be below the threshold.');
+
+        NewDate := CalcDate('<1D>', WorkDate());
+        CurrencyExchangeRate.Init();
+        CurrencyExchangeRate."Currency Code" := CurrencyCode;
+        CurrencyExchangeRate."Starting Date" := NewDate;
+        CurrencyExchangeRate."Exchange Rate Amount" := 1;
+        CurrencyExchangeRate."Relational Exch. Rate Amount" := 4;
+        CurrencyExchangeRate."Adjustment Exch. Rate Amount" := 1;
+        CurrencyExchangeRate."Relational Adjmt Exch Rate Amt" := 4;
+        CurrencyExchangeRate.Insert();
+
+        Expense.Validate("Expense Date", NewDate);
+        Assert.AreEqual(400, Expense."Amount (LCY)", 'Date validation must apply the new exchange rate.');
+        Assert.AreEqual(Expense."No Receipt Type"::" ", Expense."No Receipt Type", 'Date-driven LCY changes must re-evaluate the threshold.');
+    end;
+
+    local procedure SetAllowNoReceipt(AllowNoReceipt: Boolean)
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Allow No Receipt" := AllowNoReceipt;
+        ExpenseAgentSetup.Modify();
+    end;
+
+    local procedure MarkDeclarationCurrentForTest(var Expense: Record Expense)
+    begin
+        Expense."No Receipt Type" := Expense."No Receipt Type"::"Lost Receipt";
+        Expense."No Receipt Declaration ID" := CreateGuid();
+        Expense."No Receipt Decl. Current" := true;
+        Expense.Modify();
+        Expense.Get(Expense."No.");
     end;
 
     local procedure Initialize()

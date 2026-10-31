@@ -277,8 +277,10 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "EA Corp Card Prov Reg" = X,
         codeunit "EA Corp Card Report Mgt" = X,
         codeunit "EA Corp Card Validate Mgt" = X,
+        codeunit "No Receipt Declaration Mgt." = X,
         report "Expense Report Cover Page" = X,
         report "Expense Report Summary Page" = X,
         report "Expense Report Details" = X,
+        report "No Receipt Declaration" = X,
         report "Delegate Expense Approval Req" = X;
 }

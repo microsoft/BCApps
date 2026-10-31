@@ -138,6 +138,8 @@ permissionset 6952 "Expense Agent - Objects"
                   table "Posted Expense Report Line" = X,
                   table "Posted Exp. Rep. Line VAT Spec" = X,
 
+                  Report "No Receipt Declaration" = X,
+
                   codeunit "Cancel Posted Expense Report" = X,
                   codeunit "Create Expense Report" = X,
                   codeunit "Expense API Currency Helper" = X,
@@ -175,6 +177,7 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Exp. Preview Post. Subscriber" = X,
                   codeunit "Exp. Preview Posting Handler" = X,
                   codeunit "Import Expense User" = X,
+                  codeunit "No Receipt Declaration Mgt." = X,
                   codeunit "Release Exp. Report Document" = X,
 #if not CLEAN29
 #pragma warning disable AL0432 // Object is obsoleted

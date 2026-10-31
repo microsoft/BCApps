@@ -42,9 +42,9 @@ table 6926 "Expense Rule Condition"
         }
         field(20; "Value"; Decimal)
         {
-            AutoFormatType = 0;
             Caption = 'Value';
-            DecimalPlaces = 2 : 5;
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
         }
     }
 

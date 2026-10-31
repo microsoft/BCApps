@@ -52,14 +52,16 @@ table 6900 Expense
         field(2; "Expense User No."; Code[20])
         {
             Caption = 'Expense User No.';
+            ToolTip = 'Specifies the expense user who incurred the expense.';
             TableRelation = "Expense User"."No.";
-
             trigger OnValidate()
             var
                 ExpenseUser: Record "Expense User";
                 Employee: Record Employee;
             begin
                 TestStatusOpen();
+                if xRec."Expense User No." <> Rec."Expense User No." then
+                    MarkNoReceiptDeclarationOutdated();
                 if xRec."Expense User No." <> Rec."Expense User No." then
                     if Rec."Expense User No." = '' then
                         Rec.Validate("Expense Category", '')
@@ -77,19 +79,20 @@ table 6900 Expense
         field(3; "Expense Report No."; Code[20])
         {
             Caption = 'Expense Report No.';
+            ToolTip = 'Specifies the expense report that includes this expense. Set when added to a report.';
             TableRelation = "Expense Report Header"."No.";
             Editable = false;
         }
         field(4; "Expense Category"; Code[20])
         {
             Caption = 'Expense Category';
+            ToolTip = 'Specifies the category assigned to this expense.';
             TableRelation = "Expense Category" where(Inactive = const(false));
-
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if "Expense Category" <> xRec."Expense Category" then begin
+                    MarkNoReceiptDeclarationOutdated();
                     ConfirmAndDeleteAssociatedRecords(Rec.FieldCaption("Expense Category"));
 
                     ClearRuleId();
@@ -101,7 +104,7 @@ table 6900 Expense
         field(39; "Expense Ext. Doc. No."; Code[30])
         {
             Caption = 'Expense External Document No.';
-
+            ToolTip = 'Specifies the receipt number or external reference on the document.';
             trigger OnValidate()
             begin
                 if xRec."Expense Ext. Doc. No." <> Rec."Expense Ext. Doc. No." then begin
@@ -124,8 +127,8 @@ table 6900 Expense
         field(40; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies the unit of measure for mileage (for example, miles or kilometers). Available for Mileage expenses.';
             TableRelation = "Unit of Measure";
-
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -135,36 +138,43 @@ table 6900 Expense
         field(5; "Status"; Enum "Expense Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the current status of the expense.';
             Editable = false;
         }
         field(6; "Description"; Text[100])
         {
             Caption = 'Description';
-
+            ToolTip = 'Specifies a short description of the expense.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                if xRec.Description <> Rec.Description then
+                    MarkNoReceiptDeclarationOutdated();
             end;
         }
         field(7; "Justification"; Text[100])
         {
             Caption = 'Justification';
-
+            ToolTip = 'Specifies the justification for the expense per policy.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                if xRec.Justification <> Rec.Justification then
+                    MarkNoReceiptDeclarationOutdated();
                 ApplyRule();
             end;
         }
         field(8; "Expense Date"; Date)
         {
             Caption = 'Expense Date';
-
+            ToolTip = 'Specifies the date the expense occurred.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
+                if xRec."Expense Date" <> Rec."Expense Date" then
+                    MarkNoReceiptDeclarationOutdated();
                 if "Expense Date" <> xRec."Expense Date" then begin
+                    UpdateAmount();
                     ClearRuleId();
                     ApplyRule();
                 end;
@@ -173,7 +183,7 @@ table 6900 Expense
         field(9; "Expense Time"; Time)
         {
             Caption = 'Expense Time';
-
+            ToolTip = 'Specifies the time the expense occurred.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -185,10 +195,11 @@ table 6900 Expense
             Caption = 'Currency Code';
             ToolTip = 'Specifies the currency code of the amount.';
             TableRelation = "Currency";
-
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                if xRec."Currency Code" <> Rec."Currency Code" then
+                    MarkNoReceiptDeclarationOutdated();
                 UpdateAmount();
                 ApplyRule();
             end;
@@ -196,12 +207,14 @@ table 6900 Expense
         field(11; "Amount"; Decimal)
         {
             Caption = 'Amount';
+            ToolTip = 'Specifies the total amount in the expense currency.';
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
-
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                if xRec.Amount <> Rec.Amount then
+                    MarkNoReceiptDeclarationOutdated();
                 UpdateAmount();
                 ApplyRule();
             end;
@@ -211,8 +224,8 @@ table 6900 Expense
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount (LCY)';
+            ToolTip = 'Specifies the total amount in the local currency.';
             Editable = false;
-
             trigger OnValidate()
             begin
                 UpdateAmount();
@@ -221,11 +234,12 @@ table 6900 Expense
         field(13; "Merchant Name"; Text[100])
         {
             Caption = 'Merchant Name';
-
+            ToolTip = 'Specifies the name of the merchant where the expense occurred.';
             trigger OnValidate()
             begin
                 if xRec."Merchant Name" <> Rec."Merchant Name" then begin
                     TestStatusOpen();
+                    MarkNoReceiptDeclarationOutdated();
                     ApplyRule(false, true);
                 end;
             end;
@@ -242,7 +256,6 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if (Rec."Receipt Entry" <> 0) then
                     Rec.Validate("Receipt Attached", true)
                 else
@@ -257,6 +270,7 @@ table 6900 Expense
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies Shortcut Dimension 1 for this expense.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
             trigger OnValidate()
@@ -270,6 +284,7 @@ table 6900 Expense
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies Shortcut Dimension 2 for this expense.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
             trigger OnValidate()
@@ -282,17 +297,15 @@ table 6900 Expense
         field(19; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
+            ToolTip = 'Specifies the payment method used for this expense.';
             TableRelation = "Expense Payment Method";
-
             trigger OnValidate()
             var
                 ExpensePaymentMethod: Record "Expense Payment Method";
             begin
                 TestStatusOpen();
-
                 if xRec."Payment Method Code" <> Rec."Payment Method Code" then begin
                     Rec.Validate("Reimbursement Type", Rec."Reimbursement Type"::" ");
-
                     if ExpensePaymentMethod.Get(Rec."Payment Method Code") then
                         Rec.Validate("Reimbursement Type", ExpensePaymentMethod."Reimbursement Type");
                 end;
@@ -301,11 +314,10 @@ table 6900 Expense
         field(20; "Refundable"; Boolean)
         {
             Caption = 'Refundable';
-
+            ToolTip = 'Specifies whether the expense is reimbursable.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if not Rec.Refundable then
                     Rec.TestField("Non-Refundable Amount", 0);
 
@@ -315,7 +327,7 @@ table 6900 Expense
         field(21; "Billable"; Boolean)
         {
             Caption = 'Billable';
-
+            ToolTip = 'Specifies whether the expense is billable to a customer.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -324,12 +336,11 @@ table 6900 Expense
         field(22; "Billable to Customer"; Code[20])
         {
             Caption = 'Billable to Customer';
+            ToolTip = 'Specifies the customer to bill for this expense. Available when Billable is turned on.';
             TableRelation = "Customer";
-
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if (Rec."Billable to Customer" <> '') and (Rec."Job No." <> '') then
                     Error(BillableCustomerAndProjectErr, Rec.FieldCaption("Billable to Customer"), Rec.FieldCaption("Job No."));
 
@@ -339,8 +350,8 @@ table 6900 Expense
         field(23; "Expense Location"; Code[30]) // NB: Expense Location Code has length 20.
         {
             Caption = 'Expense Location';
+            ToolTip = 'Specifies the travel location for the expense. Available for Per Diem expenses.';
             TableRelation = "Expense Location";
-
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -352,10 +363,8 @@ table 6900 Expense
                     if Rec."Expense Location" <> '' then
                         if not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") then
                             Error(OnlyUseExpenseLocationWithPerDiemErr, Rec."Expense Location", Rec."Expense Category", Rec."No.");
-
                     if Rec."Starting Date and Time" = 0DT then
                         Rec."Starting Date and Time" := CurrentDateTime;
-
                     if Rec."Ending Date and Time" = 0DT then
                         Rec."Ending Date and Time" := CurrentDateTime;
 
@@ -368,14 +377,12 @@ table 6900 Expense
         field(24; "Starting Date and Time"; DateTime)
         {
             Caption = 'Starting Date and Time';
-
+            ToolTip = 'Specifies the start of the travel period for this expense. Editable for Per Diem expenses.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if Rec."Starting Date and Time" = 0DT then
                     Rec."Ending Date and Time" := 0DT;
-
                 if Rec."Starting Date and Time" > Rec."Ending Date and Time" then
                     Rec."Ending Date and Time" := Rec."Starting Date and Time";
 
@@ -385,11 +392,10 @@ table 6900 Expense
         field(25; "Ending Date and Time"; DateTime)
         {
             Caption = 'Ending Date and Time';
-
+            ToolTip = 'Specifies the end of the travel period for this expense. Editable for Per Diem expenses.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if (Rec."Ending Date and Time" <> 0DT) and (Rec."Ending Date and Time" < Rec."Starting Date and Time") then
                     Error(InvalidEndingDateErr);
 
@@ -401,14 +407,12 @@ table 6900 Expense
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Non-Refundable Amount';
-
+            ToolTip = 'Specifies the reduction to the reimbursable amount. Available when Refundable is on and the category does not require itemization.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if Rec."Non-Refundable Amount" < 0 then
                     Error(NonRefundableAmountCannotBeNegativeErr, Rec.FieldCaption("Non-Refundable Amount"), Rec."No.");
-
                 if Amount < "Non-Refundable Amount" then
                     Error(NonRefundableAmountGreaterThanAmountErr, Rec.FieldCaption("Non-Refundable Amount"));
 
@@ -420,7 +424,7 @@ table 6900 Expense
         {
             AutoFormatType = 0;
             Caption = 'Mileage';
-
+            ToolTip = 'Specifies the distance traveled for mileage reimbursement. Available for Mileage expenses.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -430,7 +434,7 @@ table 6900 Expense
         field(28; "Starting Point"; Text[50])
         {
             Caption = 'Starting Point';
-
+            ToolTip = 'Specifies the starting location for mileage. Available for Mileage expenses.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -439,7 +443,7 @@ table 6900 Expense
         field(29; "Ending Point"; Text[50])
         {
             Caption = 'Ending Point';
-
+            ToolTip = 'Specifies the ending location for mileage. Available for Mileage expenses.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -459,8 +463,8 @@ table 6900 Expense
         field(63; "Vehicle Type"; Code[20])
         {
             Caption = 'Vehicle Type';
-            TableRelation = "Expense Vehicle Type";
             ToolTip = 'Specifies the vehicle type used for this mileage expense. The mileage rate matching this vehicle type is applied, or the generic rate when no vehicle-specific rate exists.';
+            TableRelation = "Expense Vehicle Type";
 
             trigger OnValidate()
             begin
@@ -473,8 +477,8 @@ table 6900 Expense
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Reimbursable Amount';
+            ToolTip = 'Specifies the amount eligible for reimbursement based on policy.';
             Editable = false;
-
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -487,8 +491,8 @@ table 6900 Expense
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Reimbursable Amount (LCY)';
+            ToolTip = 'Specifies the reimbursable amount in the local currency.';
             Editable = false;
-
             trigger OnValidate()
             begin
                 UpdateAmount();
@@ -501,7 +505,7 @@ table 6900 Expense
         field(33; "Credit Card Feed No."; Integer)
         {
             Caption = 'Credit Card Feed No.';
-
+            ToolTip = 'Specifies the reference to the imported credit card transaction. Set by the system when matched to a card feed.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -587,8 +591,8 @@ table 6900 Expense
         field(43; "Reimbursement Type"; Enum "Expense Reimbursement Type")
         {
             Caption = 'Reimbursement Type';
+            ToolTip = 'Specifies the type of reimbursement for this expense.';
             Editable = false;
-
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -598,6 +602,7 @@ table 6900 Expense
         field(44; "Rule Violations"; Boolean)
         {
             Caption = 'Rule Violations';
+            ToolTip = 'Specifies whether any rule violations exist for this expense.';
             FieldClass = FlowField;
             CalcFormula = exist("Expense Rule Violation" where("Expense No." = field("No.")));
             Editable = false;
@@ -609,15 +614,13 @@ table 6900 Expense
         field(46; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the job to assign this expense to.';
             TableRelation = Job."No." where(Status = filter(<> Completed));
-
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if (Rec."Job No." <> '') and (Rec."Billable to Customer" <> '') then
                     Error(BillableCustomerAndProjectErr, Rec.FieldCaption("Billable to Customer"), Rec.FieldCaption("Job No."));
-
                 if xRec."Job No." <> Rec."Job No." then
                     Rec.Validate("Job Task No.", '');
 
@@ -627,8 +630,8 @@ table 6900 Expense
         field(47; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the job task to assign this expense to.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
-
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -639,8 +642,8 @@ table 6900 Expense
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Refundable Amount';
+            ToolTip = 'Specifies the amount eligible for refund based on policy.';
             Editable = false;
-
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -653,8 +656,8 @@ table 6900 Expense
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Refundable Amount (LCY)';
+            ToolTip = 'Specifies the refundable amount in the local currency.';
             Editable = false;
-
             trigger OnValidate()
             begin
                 UpdateAmount();
@@ -676,6 +679,7 @@ table 6900 Expense
         field(52; "Created Date-Time"; DateTime)
         {
             Caption = 'Created Date Time';
+            ToolTip = 'Specifies the date and time the expense was created.';
             DataClassification = SystemMetadata;
         }
         field(54; "Created By Exp. User Id"; Guid)
@@ -693,7 +697,7 @@ table 6900 Expense
         field(60; "Merchant Registration No."; Text[50])
         {
             Caption = 'Merchant Registration No.';
-
+            ToolTip = 'Specifies the vendor or merchant registration number for this expense.';
             trigger OnValidate()
             begin
                 if xRec."Merchant Registration No." <> Rec."Merchant Registration No." then begin
@@ -705,7 +709,7 @@ table 6900 Expense
         field(61; "Merchant VAT Registration No."; Text[20])
         {
             Caption = 'Merchant VAT Registration No.';
-
+            ToolTip = 'Specifies the vendor or merchant VAT registration number for this expense.';
             trigger OnValidate()
             begin
                 if xRec."Merchant VAT Registration No." <> Rec."Merchant VAT Registration No." then begin
@@ -719,6 +723,54 @@ table 6900 Expense
             Caption = 'Expense Vendor No.';
             ToolTip = 'Specifies the expense vendor record created for accountant review and matching to a Business Central vendor.';
             TableRelation = "Expense Vendor";
+            Editable = false;
+        }
+        field(200; "No Receipt Type"; Enum "Expense No Receipt Type")
+        {
+            Caption = 'No Receipt Type';
+            ToolTip = 'Specifies whether the original receipt was lost and replaced by a no receipt declaration.';
+            Editable = false;
+        }
+        field(201; "No Receipt Reason"; Text[250])
+        {
+            Caption = 'Reason Receipt Is Unavailable';
+            ToolTip = 'Specifies why the original receipt is unavailable.';
+            DataClassification = CustomerContent;
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+                if xRec."No Receipt Reason" <> Rec."No Receipt Reason" then
+                    MarkNoReceiptDeclarationOutdated();
+            end;
+        }
+        field(202; "No Receipt Declaration ID"; Guid)
+        {
+            Caption = 'No Receipt Declaration ID';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(203; "No Receipt Decl. Current"; Boolean)
+        {
+            Caption = 'No Receipt Declaration Current';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(204; "Compliance Status"; Enum "Expense Compliance Status")
+        {
+            Caption = 'Compliance Status';
+            ToolTip = 'Specifies the compliance status assigned to the expense.';
+            Editable = false;
+        }
+        field(206; "No Receipt Generated At"; DateTime)
+        {
+            Caption = 'No Receipt Generated At';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(207; "No Receipt Generated By"; Code[50])
+        {
+            Caption = 'No Receipt Generated By';
+            DataClassification = EndUserIdentifiableInformation;
             Editable = false;
         }
     }
@@ -749,12 +801,10 @@ table 6900 Expense
             Rec."No." := NoSeriesManagement.GetNextNo(ExpenseAgentSetup."Expense Nos.", WorkDate(), true);
             "No. Series" := ExpenseAgentSetup."Expense Nos.";
         end;
-
         if Rec."Created Date-Time" = 0DT then
             Rec."Created Date-Time" := CurrentDateTime;
 
         SetExpenseUserOnCreate();
-
         if CalledFromExpenseAgent then
             EAKPITrack.UpdateExpenseEntry(Rec);
     end;
@@ -826,10 +876,8 @@ table 6900 Expense
         // Only update the Created By and Modified By Expense User Id when the change is made through Expense Agent, otherwise leave them unchanged as the change is made by other Business Central user.
         if not ExpenseAgentAPIValidation.IsCurrentUserExpenseAgent() then
             exit;
-
         if Rec."Expense User No." = '' then
             exit;
-
         if not ExpenseUser.Get(Rec."Expense User No.") then
             exit;
 
@@ -846,10 +894,8 @@ table 6900 Expense
             Rec."Modified By Exp. User Id" := EmptyGuid;
             exit;
         end;
-
         if Rec."Expense User No." = '' then
             exit;
-
         if not ExpenseUser.Get(Rec."Expense User No.") then
             exit;
 
@@ -885,7 +931,6 @@ table 6900 Expense
           DimMgt.EditDimensionSet(
             Rec, "Dimension Set ID", StrSubstNo('%1', "No."),
             "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
-
         if OldDimSetID <> "Dimension Set ID" then
             Modify();
     end;
@@ -1109,9 +1154,9 @@ table 6900 Expense
             ApplyRule();
             exit;
         end;
-
         if ValidateRuleOnly then begin
             TestStatusOpen();
+            UpdateNoReceiptType();
             ExpenseRuleValidation.ValidateExpenseAgainstRule(Rec);
         end;
     end;
@@ -1130,8 +1175,16 @@ table 6900 Expense
 
         Rec.SetSkipRuleApplication(true);
         ExpenseAutoPopulation.FindRuleAndUpdateExpense(Rec);
+        UpdateNoReceiptType();
         ExpenseRuleValidation.ValidateExpenseAgainstRule(Rec);
         Rec.SetSkipRuleApplication(false);
+    end;
+
+    local procedure MarkNoReceiptDeclarationOutdated()
+    var
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+    begin
+        NoReceiptDeclarationMgt.MarkDeclarationOutdated(Rec);
     end;
 
     procedure SetSkipRuleApplication(NewSkipRuleApplication: Boolean)
@@ -1210,13 +1263,11 @@ table 6900 Expense
         ExpenseCurrency.Initialize(Rec."Currency Code");
         GeneralLedgerSetup.GetRecordOnce();
         UpdateCurrencyFactor();
-
         if Rec."Non-Refundable Amount" <> 0 then
             Rec.TestField(Refundable, true);
 
         Rec."Reimbursable Amount" := 0;
         Rec."Refundable Amount" := 0;
-
         if Rec.Refundable then begin
             if Rec."Reimbursement Type" = Rec."Reimbursement Type"::"Employee Paid" then
                 Rec."Reimbursable Amount" := Rec.Amount - Rec."Non-Refundable Amount"
@@ -1260,6 +1311,30 @@ table 6900 Expense
                     CurrencyExchangeRate.ExchangeAmtFCYToLCY(Rec."Expense Date", Rec."Currency Code", Rec."Non-Refundable Amount", Rec."Currency Factor"),
                     ExpenseCurrency."Amount Rounding Precision");
         end;
+        UpdateNoReceiptType();
+    end;
+
+    local procedure UpdateNoReceiptType()
+    var
+        ExpenseCategory: Record "Expense Category";
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Allow No Receipt" and ExpenseCategory.Get(Rec."Expense Category") then
+            if Rec."Amount (LCY)" < ExpenseCategory."Amount Limit for No Receipt" then begin
+                if Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt" then begin
+                    // Category validation temporarily resets the amount before the API applies the final amount.
+                    if Rec.Amount = 0 then
+                        exit;
+                    NoReceiptDeclarationMgt.ClearDeclaration(Rec);
+                end;
+                Rec."No Receipt Type" := Rec."No Receipt Type"::"Receipt not needed";
+                exit;
+            end;
+
+        if Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt" then
+            exit;
+        Clear(Rec."No Receipt Type");
     end;
 
     local procedure UpdateCurrencyFactor()
@@ -1273,7 +1348,6 @@ table 6900 Expense
                 CurrencyDate := "Expense Date"
             else
                 CurrencyDate := WorkDate();
-
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, Rec."Currency Code") then
                 Rec."Currency Factor" := CurrExchRate.ExchangeRate(CurrencyDate, Rec."Currency Code")
             else
@@ -1288,7 +1362,6 @@ table 6900 Expense
     begin
         Rec.Description := '';
         Rec."Expense Detail Required" := Rec."Expense Detail Required"::" ";
-
         if Rec."Expense Category" = '' then begin
             Rec.Validate("Expense Location", '');
             Rec."Unit of Measure Code" := '';
@@ -1296,7 +1369,6 @@ table 6900 Expense
             Rec.UpdateAmount();
             exit;
         end;
-
         if not ExpenseCategory.Get(Rec."Expense Category") then begin
             Rec.Validate("Expense Location", '');
             exit;

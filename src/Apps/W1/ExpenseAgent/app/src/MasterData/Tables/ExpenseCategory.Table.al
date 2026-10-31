@@ -21,20 +21,23 @@ table 6921 "Expense Category"
         {
             Caption = 'Code';
             NotBlank = true;
+            ToolTip = 'Specifies the code for expense category.';
         }
         field(2; "Description"; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the skill for the agent usage that identifies expense category and its purpose or usage.';
         }
         field(3; "Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
             TableRelation = "Expense Posting Group".Code;
+            ToolTip = 'Specifies the posting group on the expense category that is used for accounting. The posting group links expense transactions to general ledger accounts.';
         }
         field(4; "Attachment Enforcement"; Enum "Expense Attachment Enforcement")
         {
             Caption = 'Attachment Enforcement';
-
+            ToolTip = 'Specifies whether an attachment is required for expenses in this category.';
             trigger OnValidate()
             begin
                 if Rec."Attachment Enforcement" <> xRec."Attachment Enforcement" then
@@ -45,7 +48,7 @@ table 6921 "Expense Category"
         {
             Caption = 'Default Payment Method';
             TableRelation = "Expense Payment Method".Code;
-
+            ToolTip = 'Specifies the default payment method applied to expenses in this category.';
             trigger OnValidate()
             var
                 ExpensePaymentMethod: Record "Expense Payment Method";
@@ -59,29 +62,34 @@ table 6921 "Expense Category"
         field(6; "Prepayment-Cash Advance"; Boolean)
         {
             Caption = 'Prepayment-Cash Advance';
+            ToolTip = 'Specifies whether expenses in this category require prepayment or cash advance.';
         }
         field(7; "Inactive"; Boolean)
         {
             Caption = 'Inactive';
+            ToolTip = 'Specifies whether the category is inactive. If inactive, the category can''t be used on new expenses.';
         }
         field(8; "Expense Group"; Code[20])
         {
             Caption = 'Expense Group';
             TableRelation = "Expense Group".Code;
+            ToolTip = 'Specifies the expense group for classification.';
         }
         field(9; "Refundable"; Boolean)
         {
             Caption = 'Refundable';
+            ToolTip = 'Specifies whether expenses in this category are refundable by default. This can be changed on the expense report.';
         }
         field(10; "Reimbursement Type"; Enum "Expense Reimbursement Type")
         {
             Caption = 'Reimbursement Type';
             Editable = false;
+            ToolTip = 'Specifies how expenses in this category are reimbursed.';
         }
         field(11; "Expense Detail Required"; Enum "Expense Detail Needed")
         {
             Caption = 'Expense Detail Required';
-
+            ToolTip = 'Specifies additional details required for expenses in the category, such as itemization, per-diem, or participants.';
             trigger OnValidate()
             begin
                 if Rec."Expense Detail Required" <> xRec."Expense Detail Required" then
@@ -111,6 +119,30 @@ table 6921 "Expense Category"
             MinValue = 0;
             MaxValue = 100;
             ToolTip = 'Specifies default VAT reclaim percentage will be used when the expense report line is created with this expense category. If the default VAT reclaim percentage is left blank, the system will calculate the VAT reclaim percentage based on the VAT product posting group and the VAT business posting group.';
+        }
+        field(18; "Amount Limit for No Receipt"; Decimal)
+        {
+            Caption = 'Amount Limit for No Receipt';
+            ToolTip = 'Specifies the amount limit for when receipts are required for this category of expenses.';
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            MinValue = 0;
+
+            trigger OnValidate()
+            var
+                ExpenseAgentSetup: Record "Expense Agent Setup";
+            begin
+                if Rec."Amount Limit for No Receipt" < 0 then
+                    Rec."Amount Limit for No Receipt" := 0;
+                if Rec."Amount Limit for No Receipt" = 0 then
+                    exit;
+                ExpenseAgentSetup.SetLoadFields("Allow No Receipt");
+                ExpenseAgentSetup.Get();
+                ExpenseAgentSetup.TestField("Allow No Receipt");
+                if Rec."Attachment Enforcement" <> Rec."Attachment Enforcement"::"Not needed under limit" then
+                    if ConfirmManagement.GetResponseOrDefault(StrSubstNo(ShouldChangeEnforcementQst, Rec."Attachment Enforcement"::"Not needed under limit")) then
+                        Rec."Attachment Enforcement" := Rec."Attachment Enforcement"::"Not needed under limit";
+            end;
         }
         field(20; "Posting Description"; Text[100])
         {
@@ -149,6 +181,7 @@ table 6921 "Expense Category"
         CanModifyExpenseReportLinesQst: Label 'You have modified %1 which will also update the expense report lines.\\Do you want to continue?', Comment = '%1 - Field Caption';
         CannotDeleteOrRenameExpenseCategoryErr: Label 'You cannot delete or rename %1 %2 because it is used on at least one %3 or %4.', Comment = '%1 = Expense Category table caption, %2 = Expense Category Code, %3 = Expense table caption, %4 = Expense Report Line table caption';
         CannotRenameExpenseCategoryWhenExpenseRuleExistErr: Label 'You cannot rename %1 %2 because it is used on %3.', Comment = '%1 = Expense Category table caption, %2 = Expense Category Code, %3 = Expense Rule Header table caption';
+        ShouldChangeEnforcementQst: Label 'You have specified a limit for attachment enforcement. Do you want to change the Attachment Enforcement to "%1"?', Comment = '%1 = an option name';
 
     internal procedure IsItemizationRequired(): Boolean
     var
@@ -213,12 +246,10 @@ table 6921 "Expense Category"
         ExpenseReportHeader.SetRange(Status, ExpenseReportHeader.Status::Open);
         if ExpenseReportHeader.IsEmpty() then
             exit;
-
         if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyExpenseReportLinesQst, ExpenseCategory.FieldCaption("Attachment Enforcement")), true) then
             Error('');
 
         ExpenseCategory.Modify();
-
         if ExpenseReportHeader.FindSet() then
             repeat
                 CheckRuleViolationOnExpenseReportLine(ExpenseReportHeader, ExpenseCategory);

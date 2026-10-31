@@ -26,14 +26,11 @@ page 6999 "Expense Report SubPage"
                 field("Expense No."; Rec."Expense No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the expense report number this line belongs to.';
                     Visible = false;
                 }
                 field("Expense Category"; Rec."Expense Category")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the expense category for the line. Determines whether the line requires per diem, mileage, participants, or itemization details.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -42,7 +39,18 @@ page 6999 "Expense Report SubPage"
                 field("Rule Violations"; Rec."Rule Violations")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if there are any rule violations for the expense line.';
+                }
+                field("No Receipt Type"; Rec."No Receipt Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Style = Unfavorable;
+                    StyleExpr = Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt";
+                }
+                field("Compliance Status"; Rec."Compliance Status")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Style = Unfavorable;
+                    StyleExpr = Rec."Compliance Status" = Rec."Compliance Status"::"Non-Compliant";
                 }
                 field(PolicyStatus; PolicyStatus)
                 {
@@ -65,7 +73,6 @@ page 6999 "Expense Report SubPage"
                 field("Expense Location"; Rec."Expense Location")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies where the expense occurred. Available when the expense requires per diem details.';
                     ShowMandatory = IsPerDiemCategory;
                     Editable = IsPerDiemCategory;
 
@@ -77,13 +84,10 @@ page 6999 "Expense Report SubPage"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a brief description of the expense line.';
                 }
                 field(Justification; Rec.Justification)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reason for the expense. Helps approvers understand why the expense was incurred.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -92,26 +96,21 @@ page 6999 "Expense Report SubPage"
                 field("Additional Information"; Rec."Additional Information")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies additional information for the expense line.';
                     Visible = false;
                 }
                 field(Billable; Rec.Billable)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the expense is billable to a customer.';
                     Visible = false;
                 }
                 field("Billable to Customer"; Rec."Billable to Customer")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the customer to bill for this expense when it is billable.';
                     Visible = false;
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment method used for this expense, for example corporate card or cash.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -120,8 +119,6 @@ page 6999 "Expense Report SubPage"
                 field("Expense Date"; Rec."Expense Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the expense was incurred. Used for reporting and validation purposes.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -130,7 +127,6 @@ page 6999 "Expense Report SubPage"
                 field("Expense Currency Code"; Rec."Expense Currency Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the currency used for this expense. Not editable for per diem expenses.';
                     Editable = not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
 
                     trigger OnValidate()
@@ -141,13 +137,11 @@ page 6999 "Expense Report SubPage"
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT product posting group used when posting VAT for this expense.';
                     Visible = false;
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total amount of the expense for this line, including any applicable taxes. Changing the amount will update related totals automatically.';
                     Editable = not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
 
                     trigger OnValidate()
@@ -158,15 +152,12 @@ page 6999 "Expense Report SubPage"
                 field(AmountLCY; Rec."Amount (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total amount of the expense for this line in local currency, including any applicable taxes. Automatically calculated from the amount and exchange rate.';
                     Editable = false;
                 }
                 field("Reimbursement Type"; Rec."Reimbursement Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = false;
-                    ToolTip = 'Specifies how the expense is reimbursed, for example cash or payroll.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -176,7 +167,6 @@ page 6999 "Expense Report SubPage"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the portion of the expense that will be reimbursed to the employee in local currency. Calculated from amount, VAT, and reductions.';
                     Visible = false;
                 }
                 field("Reimbursable Amount"; Rec."Reimbursable Amount")
@@ -184,13 +174,11 @@ page 6999 "Expense Report SubPage"
                     ApplicationArea = Basic, Suite;
                     CaptionClass = GetReimbursementAmountCaption();
                     Editable = false;
-                    ToolTip = 'Specifies the portion of the expense that will be reimbursed to the employee. Calculated from amount, VAT, and reductions.';
                 }
                 field("Refundable Amount (LCY)"; Rec."Refundable Amount (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the portion of the expense that will be refundable in local currency. Calculated from amount, VAT, and reductions.';
                     Visible = false;
                 }
                 field("Refundable Amount"; Rec."Refundable Amount")
@@ -198,7 +186,6 @@ page 6999 "Expense Report SubPage"
                     ApplicationArea = Basic, Suite;
                     CaptionClass = GetReimbursementAmountCaption();
                     Editable = false;
-                    ToolTip = 'Specifies the portion of the expense that will be refundable. Calculated from amount, VAT, and reductions.';
                     Visible = false;
                 }
                 field("Spend Request No."; Rec."Spend Request No.")
@@ -209,7 +196,6 @@ page 6999 "Expense Report SubPage"
                 field("Starting Date and Time"; Rec."Starting Date and Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the start date and time used for per diem calculations. Available when the expense requires per diem details.';
                     Editable = IsPerDiemCategory;
 
                     trigger OnValidate()
@@ -220,7 +206,6 @@ page 6999 "Expense Report SubPage"
                 field("Ending Date and Time"; Rec."Ending Date and Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the end date and time used for per diem calculations. Available when the expense requires per diem details.';
                     Editable = IsPerDiemCategory;
 
                     trigger OnValidate()
@@ -231,7 +216,6 @@ page 6999 "Expense Report SubPage"
                 field("Starting Point"; Rec."Starting Point")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the starting point for mileage calculations. Available when the expense requires mileage details.';
                     Editable = IsMileageCategory;
 
                     trigger OnValidate()
@@ -242,7 +226,6 @@ page 6999 "Expense Report SubPage"
                 field("Ending Point"; Rec."Ending Point")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ending point for mileage calculations. Available when the expense requires mileage details.';
                     Editable = IsMileageCategory;
 
                     trigger OnValidate()
@@ -255,8 +238,6 @@ page 6999 "Expense Report SubPage"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                     Editable = false;
-                    ToolTip = 'Specifies the unit of measure for mileage calculations. Available when the expense requires mileage details.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -265,7 +246,6 @@ page 6999 "Expense Report SubPage"
                 field(Mileage; Rec.Mileage)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the distance traveled for mileage reimbursement. Available when the expense requires mileage details.';
                     Editable = IsMileageCategory;
 
                     trigger OnValidate()
@@ -305,8 +285,6 @@ page 6999 "Expense Report SubPage"
                 field(Refundable; Rec.Refundable)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the Refundable field.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -315,7 +293,6 @@ page 6999 "Expense Report SubPage"
                 field("VAT Liable"; Rec."VAT Liable")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the VAT Liable field.';
                     Editable = not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
 
                     trigger OnValidate()
@@ -326,7 +303,6 @@ page 6999 "Expense Report SubPage"
                 field("VAT Amount"; Rec."VAT Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the VAT Amount field.';
                     Visible = false;
                     Editable = Rec."VAT Liable";
 
@@ -338,25 +314,21 @@ page 6999 "Expense Report SubPage"
                 field("VAT Amount (LCY)"; Rec."VAT Amount (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the VAT Amount (LCY) field.';
                     Visible = false;
                 }
                 field("Amount without VAT"; Rec."Amount without VAT")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the Amount without VAT field.';
                     Visible = false;
                 }
                 field("Amount without VAT (LCY)"; Rec."Amount without VAT (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the Amount without VAT (LCY) field.';
                     Visible = false;
                 }
                 field("Non-Refundable Amount"; Rec."Non-Refundable Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reduction to the reimbursable amount. Available when Refundable is on and itemization is not required or is enforced by policy.';
                     Editable = Rec.Refundable and ((not IsItemizationCategory) or IsEnforcedItemizationCategory);
 
                     trigger OnValidate()
@@ -367,7 +339,6 @@ page 6999 "Expense Report SubPage"
                 field("Non-Refundable Amount (LCY)"; Rec."Non-Refundable Amount (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the Non-Refundable Amount (LCY) field.';
                     Editable = Rec.Refundable and (not IsItemizationCategory);
                     Visible = false;
                 }

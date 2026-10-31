@@ -13,6 +13,7 @@ page 6988 "Expense"
     PageType = Card;
     SourceTable = Expense;
     DataCaptionFields = "No.", "Expense Category", Description;
+    RefreshOnActivate = true;
 
     layout
     {
@@ -23,7 +24,6 @@ page 6988 "Expense"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = All;
-                    Importance = Standard;
                     Visible = DocNoVisible;
 
                     trigger OnAssistEdit()
@@ -36,7 +36,6 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the expense user who incurred the expense.';
                 }
                 field("Expense Category"; Rec."Expense Category")
                 {
@@ -52,7 +51,6 @@ page 6988 "Expense"
                 field("Expense Location"; Rec."Expense Location")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the travel location for the expense. Available for Per Diem expenses.';
                     ShowMandatory = IsPerDiemCategory;
                     Editable = IsPerDiemCategory;
 
@@ -64,14 +62,11 @@ page 6988 "Expense"
                 field("Expense Report No."; Rec."Expense Report No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the expense report that includes this expense. Set when added to a report.';
                     Importance = Additional;
                 }
                 field("Expense Date"; Rec."Expense Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date the expense occurred.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -80,7 +75,6 @@ page 6988 "Expense"
                 field("Expense Time"; Rec."Expense Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the time the expense occurred.';
                     Importance = Additional;
 
                     trigger OnValidate()
@@ -91,25 +85,21 @@ page 6988 "Expense"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a short description of the expense.';
                 }
                 field("Expense Ext. Doc. No."; Rec."Expense Ext. Doc. No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Receipt No.';
-                    ToolTip = 'Specifies the receipt number or external reference on the document.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the Currency of the Amount.';
                     Editable = not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
                     Importance = Promoted;
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total amount in the expense currency.';
                     Editable = not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
                     Importance = Promoted;
 
@@ -128,8 +118,26 @@ page 6988 "Expense"
                 field(Justification; Rec.Justification)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the justification for the expense per policy.';
                     Importance = Additional;
+                }
+                field("No Receipt Type"; Rec."No Receipt Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Style = Unfavorable;
+                    StyleExpr = Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt";
+                }
+                field("No Receipt Reason"; Rec."No Receipt Reason")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = AllowNoReceipt and (Rec.Status = Rec.Status::Open);
+                    MultiLine = true;
+                    Visible = AllowNoReceipt or (Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt");
+                }
+                field("Compliance Status"; Rec."Compliance Status")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Style = Unfavorable;
+                    StyleExpr = Rec."Compliance Status" = Rec."Compliance Status"::"Non-Compliant";
                 }
                 field("Merchant Name"; Rec."Merchant Name")
                 {
@@ -139,12 +147,10 @@ page 6988 "Expense"
                 field("Merchant Registration No."; Rec."Merchant Registration No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor or merchant registration number for this expense.';
                 }
                 field("Merchant VAT Registration No."; Rec."Merchant VAT Registration No.")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the vendor or merchant VAT registration number for this expense.';
                 }
                 field("Expense Vendor No."; Rec."Expense Vendor No.")
                 {
@@ -154,18 +160,15 @@ page 6988 "Expense"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the current status of the expense.';
                     Importance = Additional;
                 }
                 field("Rule Violations"; Rec."Rule Violations")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether any rule violations exist for this expense.';
                 }
                 field("Created Date-Time"; Rec."Created Date-Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date and time the expense was created.';
                     Importance = Additional;
                     Editable = false;
                 }
@@ -203,7 +206,6 @@ page 6988 "Expense"
                 field("Starting Date and Time"; Rec."Starting Date and Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the start of the travel period for this expense. Editable for Per Diem expenses.';
                     Editable = IsPerDiemCategory;
 
                     trigger OnValidate()
@@ -214,7 +216,6 @@ page 6988 "Expense"
                 field("Ending Date and Time"; Rec."Ending Date and Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the end of the travel period for this expense. Editable for Per Diem expenses.';
                     Editable = IsPerDiemCategory;
 
                     trigger OnValidate()
@@ -225,19 +226,16 @@ page 6988 "Expense"
                 field("Starting Point"; Rec."Starting Point")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the starting location for mileage. Available for Mileage expenses.';
                     Editable = IsMileageCategory;
                 }
                 field("Ending Point"; Rec."Ending Point")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ending location for mileage. Available for Mileage expenses.';
                     Editable = IsMileageCategory;
                 }
                 field(Mileage; Rec.Mileage)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the distance traveled for mileage reimbursement. Available for Mileage expenses.';
                     Editable = IsMileageCategory;
 
                     trigger OnValidate()
@@ -277,7 +275,6 @@ page 6988 "Expense"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the unit of measure for mileage (for example, miles or kilometers). Available for Mileage expenses.';
                     Editable = false;
 
                     trigger OnValidate()
@@ -291,20 +288,16 @@ page 6988 "Expense"
                 field(Billable; Rec.Billable)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the expense is billable to a customer.';
                 }
                 field("Billable to Customer"; Rec."Billable to Customer")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = Rec.Billable;
-                    ToolTip = 'Specifies the customer to bill for this expense. Available when Billable is turned on.';
                     Importance = Additional;
                 }
                 field(Refundable; Rec.Refundable)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the expense is reimbursable.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -314,7 +307,6 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the type of reimbursement for this expense.';
                 }
                 field("Non-Refundable Amount"; Rec."Non-Refundable Amount")
                 {
@@ -337,26 +329,22 @@ page 6988 "Expense"
                 field("Reimbursable Amount (LCY)"; Rec."Reimbursable Amount (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reimbursable amount in the local currency.';
                     Importance = Additional;
                 }
                 field("Refundable Amount"; Rec."Refundable Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = false;
-                    ToolTip = 'Specifies the amount eligible for refund based on policy.';
                 }
                 field("Refundable Amount (LCY)"; Rec."Refundable Amount (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = false;
-                    ToolTip = 'Specifies the refundable amount in the local currency.';
                     Importance = Additional;
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment method used for this expense.';
                     Importance = Additional;
 
                     trigger OnValidate()
@@ -367,20 +355,17 @@ page 6988 "Expense"
                 field("Credit Card Feed No."; Rec."Credit Card Feed No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reference to the imported credit card transaction. Set by the system when matched to a card feed.';
                     Editable = false;
                     Importance = Additional;
                 }
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the job to assign this expense to.';
                     Importance = Additional;
                 }
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the job task to assign this expense to.';
                     Importance = Additional;
                 }
             }
@@ -575,6 +560,47 @@ page 6988 "Expense"
                         CreateExpenseReport.AddExpensesToReport(Expenses);
                     end;
                 }
+                action("No Receipt")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'No Receipt';
+                    Image = Document;
+                    Enabled = AllowNoReceipt and (Rec.Status = Rec.Status::Open) and (Rec."Expense Report No." = '');
+                    Visible = AllowNoReceipt;
+                    ToolTip = 'Create and attach a non-compliant replacement proof document when the original receipt is unavailable.';
+
+                    trigger OnAction()
+                    var
+                        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+                    begin
+                        CurrPage.SaveRecord();
+                        if not Confirm(NoReceiptAttestationQst, false) then
+                            exit;
+
+                        NoReceiptDeclarationMgt.CreateDeclaration(Rec, Rec."No Receipt Reason", true);
+                        CurrPage.Update(false);
+                    end;
+                }
+                action("Cancel No Receipt")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Cancel No Receipt';
+                    Image = Cancel;
+                    Enabled = (Rec.Status = Rec.Status::Open) and (Rec."Expense Report No." = '') and (Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt");
+                    Visible = Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt";
+                    ToolTip = 'Remove the No Receipt declaration, for example when the original receipt has been found.';
+
+                    trigger OnAction()
+                    var
+                        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+                    begin
+                        if not Confirm(CancelNoReceiptQst, false) then
+                            exit;
+
+                        NoReceiptDeclarationMgt.CancelDeclaration(Rec);
+                        CurrPage.Update(false);
+                    end;
+                }
                 action("Match Vendor")
                 {
                     ApplicationArea = Basic, Suite;
@@ -663,6 +689,12 @@ page 6988 "Expense"
                 actionref(Create_Expense_Report_Promoted; "Create Expense Report")
                 {
                 }
+                actionref(No_Receipt_Promoted; "No Receipt")
+                {
+                }
+                actionref(Cancel_No_Receipt_Promoted; "Cancel No Receipt")
+                {
+                }
             }
             group(Category_Expense)
             {
@@ -705,7 +737,6 @@ page 6988 "Expense"
     begin
         SetCategoryTypeVisibility();
         CalculateTotalMileage();
-
         if IsNullGuid(Rec."Applied Rule Id") then
             ShowAppliedRuleTxt := ''
         else
@@ -729,7 +760,10 @@ page 6988 "Expense"
         RuleStyleTxt: Text;
         ShowAppliedRuleTxt: Text[50];
         TotalMileage: Decimal;
+        NoReceiptAttestationQst: Label 'I confirm that the original receipt is unavailable and the expense information is accurate. Create the no receipt declaration?';
+        CancelNoReceiptQst: Label 'Remove the no receipt declaration from this expense?';
         AllowVATReclaim: Boolean;
+        AllowNoReceipt: Boolean;
         ViewAppliedRuleLbl: Label 'View Applied Rule';
 
     local procedure SetDocNoVisible()
@@ -748,6 +782,7 @@ page 6988 "Expense"
         IsParticipantCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Participants;
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
+        AllowNoReceipt := ExpenseAgentSetup."Allow No Receipt";
     end;
 
     local procedure CalculateTotalMileage()
