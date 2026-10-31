@@ -192,13 +192,6 @@ table 6906 "Expense Report Header"
             Caption = 'Employee Posting Group';
             ToolTip = 'Specifies the employee''s type to link business transactions made for the employee with the appropriate account in the general ledger.';
             TableRelation = "Employee Posting Group".Code;
-
-            trigger OnValidate()
-            begin
-                TestStatusOpen();
-                if xRec."Employee Posting Group" <> Rec."Employee Posting Group" then
-                    UpdateReportLines(Rec.FieldCaption("Employee Posting Group"));
-            end;
         }
         field(18; "Language Code"; Code[10])
         {
@@ -765,9 +758,8 @@ table 6906 "Expense Report Header"
         if not ExpenseLinesExist() then
             exit;
 
-        if CalledFromFieldCaption <> Rec.FieldCaption("Employee Posting Group") then
-            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyLinesQst, CalledFromFieldCaption), true) then
-                Error('');
+        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyLinesQst, CalledFromFieldCaption), true) then
+            Error('');
 
         ExpenseReportLine.SetRange("Document No.", "No.");
         if ExpenseReportLine.FindSet() then
@@ -783,8 +775,6 @@ table 6906 "Expense Report Header"
                         UpdatePostingDateOnReportLine(ExpenseReportLine);
                     Rec.FieldCaption("Spend Request No."):
                         UpdateSpendRequestOnReportLine(ExpenseReportLine);
-                    Rec.FieldCaption("Employee Posting Group"):
-                        ExpenseReportLine.ApplyRule(false, true);
                 end;
             until ExpenseReportLine.Next() = 0;
 
