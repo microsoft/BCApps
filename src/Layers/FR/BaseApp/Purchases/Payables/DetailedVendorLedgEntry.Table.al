@@ -30,12 +30,12 @@ table 380 "Detailed Vendor Ledg. Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
-        field(2; "Vendor Ledger Entry No."; Integer)
+        field(2; "Vendor Ledger Entry No."; BigInteger)
         {
             Caption = 'Vendor Ledger Entry No.';
             ToolTip = 'Specifies the entry number of the vendor ledger entry that the detailed vendor ledger entry line was created for.';
@@ -107,7 +107,7 @@ table 380 "Detailed Vendor Ledg. Entry"
             ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
         }
-        field(13; "Transaction No."; Integer)
+        field(13; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
             TableRelation = "G/L Transaction";
@@ -199,7 +199,7 @@ table 380 "Detailed Vendor Ledg. Entry"
             Caption = 'Initial Document Type';
             ToolTip = 'Specifies the document type that the initial vendor ledger entry was created with.';
         }
-        field(36; "Applied Vend. Ledger Entry No."; Integer)
+        field(36; "Applied Vend. Ledger Entry No."; BigInteger)
         {
             Caption = 'Applied Vend. Ledger Entry No.';
         }
@@ -208,7 +208,7 @@ table 380 "Detailed Vendor Ledg. Entry"
             Caption = 'Unapplied';
             ToolTip = 'Specifies whether the entry has been unapplied (undone) from the Unapply Vendor Entries window by the entry no. shown in the Unapplied by Entry No. field.';
         }
-        field(38; "Unapplied by Entry No."; Integer)
+        field(38; "Unapplied by Entry No."; BigInteger)
         {
             Caption = 'Unapplied by Entry No.';
             ToolTip = 'Specifies the number of the correcting entry, if the original entry has been unapplied (undone) from the Unapply Vendor Entries window.';
@@ -232,7 +232,7 @@ table 380 "Detailed Vendor Ledg. Entry"
             Editable = false;
             TableRelation = "Tax Jurisdiction";
         }
-        field(42; "Application No."; Integer)
+        field(42; "Application No."; BigInteger)
         {
             Caption = 'Application No.';
             Editable = false;
@@ -255,7 +255,7 @@ table 380 "Detailed Vendor Ledg. Entry"
             Editable = false;
             TableRelation = "Exch. Rate Adjmt. Reg.";
         }
-        field(95; "G/L Register No."; Integer)
+        field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             Editable = false;
@@ -335,7 +335,7 @@ table 380 "Detailed Vendor Ledg. Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Vendor Ledg. Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -361,10 +361,10 @@ table 380 "Detailed Vendor Ledg. Entry"
         OnAfterUpdateDebitCredit(rec, Correction);
     end;
 
-    procedure SetZeroTransNo(TransactionNo: Integer)
+    procedure SetZeroTransNo(TransactionNo: BigInteger)
     var
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
-        ApplicationNo: Integer;
+        ApplicationNo: BigInteger;
     begin
         DetailedVendorLedgEntry.SetCurrentKey("Transaction No.");
         DetailedVendorLedgEntry.SetRange("Transaction No.", TransactionNo);
@@ -392,7 +392,7 @@ table 380 "Detailed Vendor Ledg. Entry"
           not (("Entry Type" = "Entry Type"::Application) or ("Entry Type" = "Entry Type"::"Appln. Rounding"));
     end;
 
-    procedure GetUnrealizedGainLossAmount(EntryNo: Integer): Decimal
+    procedure GetUnrealizedGainLossAmount(EntryNo: BigInteger): Decimal
     begin
         SetCurrentKey("Vendor Ledger Entry No.", "Entry Type");
         SetRange("Vendor Ledger Entry No.", EntryNo);

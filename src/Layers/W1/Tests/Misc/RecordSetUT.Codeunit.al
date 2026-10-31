@@ -2103,7 +2103,7 @@ codeunit 134235 "Record Set UT"
         GLEntry: Record "G/L Entry";
         FindRecordManagement: Codeunit "Find Record Management";
         RecRef: RecordRef;
-        IntFields: list of [Integer];
+        IntFields: list of [BigInteger];
     begin
         // [FEATURE] [Find Record Management]
         // [SCENARIO 333173] GetIntFieldValues() returns the list of Integer field values
@@ -2140,7 +2140,7 @@ codeunit 134235 "Record Set UT"
         ShiptoAddress: Record "Ship-to Address";
         FindRecordManagement: Codeunit "Find Record Management";
         RecRef: RecordRef;
-        IntFields: list of [Integer];
+        IntFields: list of [BigInteger];
     begin
         // [FEATURE] [Find Record Management]
         // [SCENARIO 333173] GetIntFieldValues() returns the Integer flowfield value

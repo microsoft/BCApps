@@ -15,7 +15,7 @@ table 5815 "Inventory Period Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -45,7 +45,7 @@ table 5815 "Inventory Period Entry"
             Caption = 'Creation Time';
             ToolTip = 'Specifies the time when the inventory period entry was created.';
         }
-        field(6; "Closing Item Register No."; Integer)
+        field(6; "Closing Item Register No."; BigInteger)
         {
             Caption = 'Closing Item Register No.';
             ToolTip = 'Specifies the number of the last item register in a closed inventory period.';
@@ -79,7 +79,7 @@ table 5815 "Inventory Period Entry"
     {
     }
 
-    procedure RemoveItemRegNo(EntryNo: Integer; PhysInventory: Boolean)
+    procedure RemoveItemRegNo(EntryNo: BigInteger; PhysInventory: Boolean)
     var
         ItemReg: Record "Item Register";
         InvtPeriodEntry: Record "Inventory Period Entry";

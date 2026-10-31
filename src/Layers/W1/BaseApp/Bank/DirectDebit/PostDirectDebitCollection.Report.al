@@ -243,7 +243,7 @@ report 1201 "Post Direct Debit Collection"
     /// Sets the direct debit collection to process for posting.
     /// </summary>
     /// <param name="NewCollectionEntry">Collection number to process</param>
-    procedure SetCollectionEntry(NewCollectionEntry: Integer)
+    procedure SetCollectionEntry(NewCollectionEntry: BigInteger)
     begin
         DirectDebitCollectionNo := NewCollectionEntry;
         DirectDebitCollection.Get(DirectDebitCollectionNo);

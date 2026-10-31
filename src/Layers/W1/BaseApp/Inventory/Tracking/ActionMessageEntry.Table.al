@@ -16,7 +16,7 @@ table 99000849 "Action Message Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -24,7 +24,7 @@ table 99000849 "Action Message Entry"
         {
             Caption = 'Type';
         }
-        field(3; "Reservation Entry"; Integer)
+        field(3; "Reservation Entry"; BigInteger)
         {
             Caption = 'Reservation Entry';
             TableRelation = "Reservation Entry"."Entry No.";
@@ -71,7 +71,7 @@ table 99000849 "Action Message Entry"
         {
             Caption = 'Source Prod. Order Line';
         }
-        field(15; "Source Ref. No."; Integer)
+        field(15; "Source Ref. No."; BigInteger)
         {
             Caption = 'Source Ref. No.';
         }
@@ -122,7 +122,7 @@ table 99000849 "Action Message Entry"
         FirstDate: Date;
         FirstTime: Time;
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

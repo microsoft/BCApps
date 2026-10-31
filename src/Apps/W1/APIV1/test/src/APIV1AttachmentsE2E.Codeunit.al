@@ -548,7 +548,6 @@ codeunit 139733 "APIV1 - Attachments E2E"
         LibraryGraphMgt.VerifyIDFieldInJson(ResponseText, 'id');
         LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', AttachmentId);
         IncomingDocumentAttachment.GetBySystemId(AttachmentId);
-
         IF IncomingDocument.Posted THEN BEGIN
             Assert.AreEqual(IncomingDocument."Document No.", IncomingDocumentAttachment."Document No.", '');
             Assert.AreEqual(IncomingDocument."Posting Date", IncomingDocumentAttachment."Posting Date", '');
@@ -563,7 +562,7 @@ codeunit 139733 "APIV1 - Attachments E2E"
         IncomingDocumentAttachment: Record "Incoming Document Attachment";
         IncomingDocument: Record "Incoming Document";
         TempBlob: Codeunit "Temp Blob";
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
         AttachmentId: Text;
         ResponseText: Text;
         TargetURL: Text;
@@ -591,7 +590,6 @@ codeunit 139733 "APIV1 - Attachments E2E"
         LibraryGraphMgt.VerifyIDFieldInJson(ResponseText, 'id');
         LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', AttachmentId);
         IncomingDocumentAttachment.GetBySystemId(AttachmentId);
-
         IF IncomingDocument.Posted THEN BEGIN
             Assert.AreEqual(IncomingDocument."Document No.", IncomingDocumentAttachment."Document No.", '');
             Assert.AreEqual(IncomingDocument."Posting Date", IncomingDocumentAttachment."Posting Date", '');
@@ -726,7 +724,7 @@ codeunit 139733 "APIV1 - Attachments E2E"
     local procedure TestDeleteGLEAttachment(var DocumentRecordRef: RecordRef)
     var
         IncomingDocumentAttachment: Record "Incoming Document Attachment";
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
         AttachmentId: Guid;
         ResponseText: Text;
         TargetURL: Text;
@@ -1112,7 +1110,7 @@ codeunit 139733 "APIV1 - Attachments E2E"
         DummyGLEntry: Record "G/L Entry";
         DataTypeManagement: Codeunit "Data Type Management";
         EntryNoFieldRef: FieldRef;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         IF DataTypeManagement.FindFieldByName(DocumentRecordRef, EntryNoFieldRef, DummyGLEntry.FIELDNAME("Entry No.")) THEN
             EVALUATE(EntryNo, FORMAT(EntryNoFieldRef.VALUE()));
@@ -1165,7 +1163,6 @@ codeunit 139733 "APIV1 - Attachments E2E"
 
         IncomingDocument.INIT();
         IncomingDocument."Related Record ID" := DocumentRecordRef.RECORDID();
-
         IF DocumentRecordRef.NUMBER() = DATABASE::"Sales Invoice Header" THEN BEGIN
             DocumentRecordRef.SETTABLE(SalesInvoiceHeader);
             IncomingDocument.Description := COPYSTR(SalesInvoiceHeader."Sell-to Customer Name", 1, MAXSTRLEN(IncomingDocument.Description));
@@ -1177,7 +1174,6 @@ codeunit 139733 "APIV1 - Attachments E2E"
             IncomingDocument.FIND();
             EXIT(TRUE);
         END;
-
         IF IsGeneralJournalLine(DocumentRecordRef) THEN BEGIN
             DocumentRecordRef.SETTABLE(GenJournalLine);
             IncomingDocument.Description := COPYSTR(GenJournalLine.Description, 1, MAXSTRLEN(IncomingDocument.Description));
@@ -1188,7 +1184,6 @@ codeunit 139733 "APIV1 - Attachments E2E"
             DocumentRecordRef.GETTABLE(GenJournalLine);
             EXIT(TRUE);
         END;
-
         IF IsGLEntry(DocumentRecordRef) THEN BEGIN
             DocumentRecordRef.SETTABLE(GLEntry);
             IncomingDocument.Description := COPYSTR(GLEntry.Description, 1, MAXSTRLEN(IncomingDocument.Description));
@@ -1199,7 +1194,6 @@ codeunit 139733 "APIV1 - Attachments E2E"
             IncomingDocument.INSERT(TRUE);
             EXIT(TRUE);
         END;
-
         IF DocumentRecordRef.NUMBER() = DATABASE::"Sales Header" THEN BEGIN
             DocumentRecordRef.SETTABLE(SalesHeader);
             IncomingDocument.Description := COPYSTR(SalesHeader."Sell-to Customer Name", 1, MAXSTRLEN(IncomingDocument.Description));
@@ -1213,7 +1207,6 @@ codeunit 139733 "APIV1 - Attachments E2E"
             DocumentRecordRef.GETTABLE(SalesHeader);
             EXIT(TRUE);
         END;
-
         IF IsPurchaseInvoice(DocumentRecordRef) AND IsPostedDocument(DocumentRecordRef) THEN BEGIN
             DocumentRecordRef.SETTABLE(PurchInvHeader);
             IncomingDocument.Description := COPYSTR(PurchInvHeader."Buy-from Vendor Name", 1, MAXSTRLEN(IncomingDocument.Description));
@@ -1226,7 +1219,6 @@ codeunit 139733 "APIV1 - Attachments E2E"
             IncomingDocument.INSERT(TRUE);
             EXIT(TRUE);
         END;
-
         IF DocumentRecordRef.NUMBER() = DATABASE::"Purchase Header" THEN BEGIN
             DocumentRecordRef.SETTABLE(PurchaseHeader);
             IncomingDocument.Description := COPYSTR(PurchaseHeader."Buy-from Vendor Name", 1, MAXSTRLEN(IncomingDocument.Description));
@@ -1294,7 +1286,6 @@ codeunit 139733 "APIV1 - Attachments E2E"
         FileName: Text;
     begin
         AttachmentJSON := LibraryGraphMgt.AddPropertytoJSON('', 'parentId', FormatGuid(DocumentId));
-
         IF IncludeID THEN
             AttachmentJSON := LibraryGraphMgt.AddPropertytoJSON(AttachmentJSON, 'id', FormatGuid(IncomingDocumentAttachment.SystemId));
 
@@ -1302,18 +1293,16 @@ codeunit 139733 "APIV1 - Attachments E2E"
         AttachmentJSON := LibraryGraphMgt.AddPropertytoJSON(AttachmentJSON, 'fileName', FileName);
     end;
 
-    local procedure GetGLEntryAttachmentJSON(GLEntryNo: Integer; var IncomingDocumentAttachment: Record "Incoming Document Attachment"; IncludeID: Boolean) AttachmentJSON: Text
+    local procedure GetGLEntryAttachmentJSON(GLEntryNo: BigInteger; var IncomingDocumentAttachment: Record "Incoming Document Attachment"; IncludeID: Boolean) AttachmentJSON: Text
     var
         FileName: Text;
     begin
         AttachmentJSON := LibraryGraphMgt.AddPropertytoJSON('', 'generalLedgerEntryNumber', FORMAT(GLEntryNo));
-
         IF IncludeID THEN
             AttachmentJSON := LibraryGraphMgt.AddPropertytoJSON(AttachmentJSON, 'id', FormatGuid(IncomingDocumentAttachment.SystemId));
 
         FileName := NameAndExtensionToFileName(IncomingDocumentAttachment.Name, IncomingDocumentAttachment."File Extension");
         AttachmentJSON := LibraryGraphMgt.AddPropertytoJSON(AttachmentJSON, 'fileName', FileName);
-
     end;
 
     local procedure GetAttachmentBase64Content(var IncomingDocumentAttachment: Record "Incoming Document Attachment") Base64Content: Text
@@ -1402,7 +1391,6 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL := LibraryGraphMgt.CreateTargetURL('', PAGE::"APIV1 - Attachments", AttachmentServiceNameTxt);
 
         UrlFilter := '$filter=parentId eq ' + LibraryGraphMgt.StripBrackets(FORMAT(DocumentIdFilter));
-
         IF STRPOS(TargetURL, '?') <> 0 THEN
             TargetURL := TargetURL + '&' + UrlFilter
         ELSE
@@ -1419,7 +1407,6 @@ codeunit 139733 "APIV1 - Attachments E2E"
         TargetURL := LibraryGraphMgt.CreateTargetURL('', PAGE::"APIV1 - G/L Entry Attachments", GLEntryAttachmentServiceNameTxt);
 
         UrlFilter := '$filter=generalLedgerEntryNumber eq ' + GLEntryNoFilter;
-
         IF STRPOS(TargetURL, '?') <> 0 THEN
             TargetURL += '&' + UrlFilter
         ELSE

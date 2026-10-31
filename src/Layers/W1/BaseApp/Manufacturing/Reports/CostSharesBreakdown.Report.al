@@ -561,7 +561,7 @@ report 5848 "Cost Shares Breakdown"
             InsertItemLedgEntryCostShare(FromItemLedgEntry);
     end;
 
-    local procedure ForwardToAppliedOutbndEntry(EntryNo: Integer): Boolean
+    local procedure ForwardToAppliedOutbndEntry(EntryNo: BigInteger): Boolean
     var
         ItemApplnEntry: Record "Item Application Entry";
     begin
@@ -572,7 +572,7 @@ report 5848 "Cost Shares Breakdown"
         exit(false);
     end;
 
-    local procedure ForwardToAppliedInbndEntry(EntryNo: Integer)
+    local procedure ForwardToAppliedInbndEntry(EntryNo: BigInteger)
     var
         ItemApplnEntry: Record "Item Application Entry";
     begin
@@ -580,7 +580,7 @@ report 5848 "Cost Shares Breakdown"
             ForwardItemLedgEntryCostShare(ItemApplnEntry, EntryNo, true);
     end;
 
-    local procedure ForwardToInbndTranEntry(EntryNo: Integer): Boolean
+    local procedure ForwardToInbndTranEntry(EntryNo: BigInteger): Boolean
     var
         ItemApplnEntry: Record "Item Application Entry";
     begin
@@ -591,13 +591,13 @@ report 5848 "Cost Shares Breakdown"
         exit(false);
     end;
 
-    local procedure ForwardItemLedgEntryCostShare(var ItemApplnEntry: Record "Item Application Entry"; EntryNo: Integer; IsInBound: Boolean)
+    local procedure ForwardItemLedgEntryCostShare(var ItemApplnEntry: Record "Item Application Entry"; EntryNo: BigInteger; IsInBound: Boolean)
     var
         FromItemLedgEntry: Record "Item Ledger Entry";
         ToItemLedgEntry: Record "Item Ledger Entry";
         FromCostShareBuffer: Record "Cost Share Buffer";
         ToCostShareBuffer: Record "Cost Share Buffer";
-        ToEntryNo: Integer;
+        ToEntryNo: BigInteger;
         CostShare: Decimal;
         AppliedQty: Decimal;
         IsHandled: Boolean;

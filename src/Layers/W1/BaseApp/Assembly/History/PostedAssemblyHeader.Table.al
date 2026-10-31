@@ -131,7 +131,7 @@ table 910 "Posted Assembly Header"
             Caption = 'Bin Code';
             ToolTip = 'Specifies to which bin the assembly item was posted as output on the posted assembly order header.';
         }
-        field(39; "Item Rcpt. Entry No."; Integer)
+        field(39; "Item Rcpt. Entry No."; BigInteger)
         {
             Caption = 'Item Rcpt. Entry No.';
         }

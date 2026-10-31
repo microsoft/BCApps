@@ -223,13 +223,13 @@ report 1134 "Copy Cost Budget"
         DateFormula: DateFormula;
         Window: Dialog;
         DateChangeFormula: Code[10];
-        LastEntryNo: Integer;
-        NextEntryNo: Integer;
+        LastEntryNo: BigInteger;
+        NextEntryNo: BigInteger;
         NoOfCopies: Integer;
         Factor: Decimal;
         i: Integer;
         NoInserted: Integer;
-        CostBudgetRegNo: Integer;
+        CostBudgetRegNo: BigInteger;
 
 #pragma warning disable AA0074
         Text000: Label 'The multiplication factor must not be 0.';

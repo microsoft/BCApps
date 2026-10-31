@@ -150,7 +150,7 @@ page 7010 "Get Price Line"
     procedure SetDataCaptionExpr(PriceAssetList: Codeunit "Price Asset List")
     var
         TempPriceAsset: Record "Price Asset" temporary;
-        FirstEntryNo: Integer;
+        FirstEntryNo: BigInteger;
     begin
         if PriceAssetList.GetList(TempPriceAsset) then begin
             FirstEntryNo := TempPriceAsset."Entry No.";

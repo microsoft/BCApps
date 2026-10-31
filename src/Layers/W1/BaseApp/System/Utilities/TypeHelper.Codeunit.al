@@ -45,7 +45,7 @@ codeunit 10 "Type Helper"
                 exit(TryEvaluateDateTime(String, Format, CultureName, Variable));
             Variable.IsDecimal:
                 exit(TryEvaluateDecimal(String, CultureName, Variable));
-            Variable.IsInteger:
+            Variable.IsInteger, Variable.IsBigInteger:
                 exit(TryEvaluateInteger(String, CultureName, Variable));
             else
                 Error(UnsupportedTypeErr);

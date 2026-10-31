@@ -212,7 +212,7 @@ codeunit 1283 "Export Generic XML"
             end;
     end;
 
-    local procedure GetDataExchFieldValue(DataExchEntryNo: Integer; LineNo: Integer; ColumnNo: Integer) nVal: Text
+    local procedure GetDataExchFieldValue(DataExchEntryNo: BigInteger; LineNo: Integer; ColumnNo: Integer) nVal: Text
     var
         DataExchField: Record "Data Exch. Field";
     begin

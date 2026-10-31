@@ -47,7 +47,7 @@ tableextension 99000820 "Mfg. BOM Buffer" extends "BOM Buffer"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
-    procedure TransferFromProdComp(var EntryNo: Integer; ProdBOMLine: Record "Production BOM Line"; NewIndentation: Integer; ParentQtyPer: Decimal; ParentScrapQtyPer: Decimal; ParentScrapPct: Decimal; NeedByDate: Date; ParentLocationCode: Code[10]; ParentItem: Record Item; BOMQtyPerUOM: Decimal)
+    procedure TransferFromProdComp(var EntryNo: BigInteger; ProdBOMLine: Record "Production BOM Line"; NewIndentation: Integer; ParentQtyPer: Decimal; ParentScrapQtyPer: Decimal; ParentScrapPct: Decimal; NeedByDate: Date; ParentLocationCode: Code[10]; ParentItem: Record Item; BOMQtyPerUOM: Decimal)
     var
         BOMItem: Record Item;
         OriginalItem: Record Item;
@@ -103,7 +103,7 @@ tableextension 99000820 "Mfg. BOM Buffer" extends "BOM Buffer"
         OnAfterTransferFromProdComp(Rec, ProdBOMLine, ParentItem, EntryNo)
     end;
 
-    procedure TransferFromProdOrderLine(var EntryNo: Integer; ProdOrderLine: Record "Prod. Order Line")
+    procedure TransferFromProdOrderLine(var EntryNo: BigInteger; ProdOrderLine: Record "Prod. Order Line")
     var
         BOMItem: Record Item;
     begin
@@ -129,7 +129,7 @@ tableextension 99000820 "Mfg. BOM Buffer" extends "BOM Buffer"
         Insert(true);
     end;
 
-    procedure TransferFromProdOrderComp(var EntryNo: Integer; ProdOrderComp: Record "Prod. Order Component")
+    procedure TransferFromProdOrderComp(var EntryNo: BigInteger; ProdOrderComp: Record "Prod. Order Component")
     var
         BOMItem: Record Item;
     begin
@@ -154,7 +154,7 @@ tableextension 99000820 "Mfg. BOM Buffer" extends "BOM Buffer"
         Insert(true);
     end;
 
-    procedure TransferFromProdRouting(var EntryNo: Integer; RoutingLine: Record "Routing Line"; NewIndentation: Integer; ParentQtyPer: Decimal; NeedByDate: Date; ParentLocationCode: Code[10])
+    procedure TransferFromProdRouting(var EntryNo: BigInteger; RoutingLine: Record "Routing Line"; NewIndentation: Integer; ParentQtyPer: Decimal; NeedByDate: Date; ParentLocationCode: Code[10])
     var
         MachineCenter: Record "Machine Center";
         WorkCenter: Record "Work Center";
@@ -328,7 +328,7 @@ tableextension 99000820 "Mfg. BOM Buffer" extends "BOM Buffer"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromProdComp(var BOMBuffer: Record "BOM Buffer"; ProductionBOMLine: Record "Production BOM Line"; ParentItem: Record Item; var EntryNo: Integer)
+    local procedure OnAfterTransferFromProdComp(var BOMBuffer: Record "BOM Buffer"; ProductionBOMLine: Record "Production BOM Line"; ParentItem: Record Item; var EntryNo: BigInteger)
     begin
     end;
 
@@ -343,7 +343,7 @@ tableextension 99000820 "Mfg. BOM Buffer" extends "BOM Buffer"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeTransferFromProdComp(var EntryNo: Integer; ProductionBOMLine: Record "Production BOM Line"; NewIndentation: Integer; ParentQtyPer: Decimal; ParentScrapQtyPer: Decimal; ParentScrapPct: Decimal; NeedByDate: Date; ParentLocationCode: Code[10]; ParentItem: Record Item; BOMQtyPerUOM: Decimal; var IsHandled: Boolean)
+    local procedure OnBeforeTransferFromProdComp(var EntryNo: BigInteger; ProductionBOMLine: Record "Production BOM Line"; NewIndentation: Integer; ParentQtyPer: Decimal; ParentScrapQtyPer: Decimal; ParentScrapPct: Decimal; NeedByDate: Date; ParentLocationCode: Code[10]; ParentItem: Record Item; BOMQtyPerUOM: Decimal; var IsHandled: Boolean)
     begin
     end;
 

@@ -36,7 +36,7 @@ table 1249 "Bank Stmt Multiple Match Line"
         /// Ledger entry number of the potential match candidate.
         /// References the specific customer, vendor, or G/L entry that could be matched.
         /// </summary>
-        field(2; "Entry No."; Integer)
+        field(2; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

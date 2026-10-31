@@ -19,7 +19,7 @@ table 5328 "CRM Synch Status"
             Caption = 'Primary Key';
             DataClassification = SystemMetadata;
         }
-        field(2; "Last Update Invoice Entry No."; Integer)
+        field(2; "Last Update Invoice Entry No."; BigInteger)
         {
             Caption = 'Last Update Invoice Entry No.';
             Editable = false;

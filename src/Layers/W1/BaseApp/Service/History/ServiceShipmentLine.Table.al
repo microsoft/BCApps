@@ -186,7 +186,7 @@ table 5991 "Service Shipment Line"
             Caption = 'Appl.-to Item Entry';
             ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
         }
-        field(39; "Item Shpt. Entry No."; Integer)
+        field(39; "Item Shpt. Entry No."; BigInteger)
         {
             Caption = 'Item Shpt. Entry No.';
         }

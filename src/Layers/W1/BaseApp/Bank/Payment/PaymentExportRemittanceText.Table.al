@@ -19,7 +19,7 @@ table 1229 "Payment Export Remittance Text"
         /// Specifies the entry number of the payment export data record this remittance text belongs to.
         /// This field links the remittance text to a specific payment export entry.
         /// </summary>
-        field(1; "Pmt. Export Data Entry No."; Integer)
+        field(1; "Pmt. Export Data Entry No."; BigInteger)
         {
             Caption = 'Pmt. Export Data Entry No.';
             TableRelation = "Payment Export Data";
@@ -28,7 +28,7 @@ table 1229 "Payment Export Remittance Text"
         /// Specifies the line number for multiple remittance text lines within the same payment export entry.
         /// This field allows multiple text lines to be associated with a single payment.
         /// </summary>
-        field(2; "Line No."; Integer)
+        field(2; "Line No."; BigInteger)
         {
             Caption = 'Line No.';
         }

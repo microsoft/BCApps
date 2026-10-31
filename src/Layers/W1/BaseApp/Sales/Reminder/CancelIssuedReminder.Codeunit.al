@@ -223,7 +223,7 @@ codeunit 1393 "Cancel Issued Reminder"
         end;
     end;
 
-    local procedure DecreaseCustomerLedgerEntryLastIssuedReminderLevel(EntryNo: Integer)
+    local procedure DecreaseCustomerLedgerEntryLastIssuedReminderLevel(EntryNo: BigInteger)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
@@ -431,7 +431,7 @@ codeunit 1393 "Cancel Issued Reminder"
         PAGE.Run(PAGE::"Issued Reminder", IssuedReminderHeader);
     end;
 
-    local procedure ShowAppliedCustomerLedgerEntryNotification(EntryNo: Integer; IssuedReminderHeader: Record "Issued Reminder Header")
+    local procedure ShowAppliedCustomerLedgerEntryNotification(EntryNo: BigInteger; IssuedReminderHeader: Record "Issued Reminder Header")
     var
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         AppliedCustomerLedgerNotification: Notification;
@@ -456,7 +456,7 @@ codeunit 1393 "Cancel Issued Reminder"
     procedure ShowCustomerLedgerEntry(Notification: Notification)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         Evaluate(EntryNo, Notification.GetData('EntryNo'));
         CustLedgerEntry.SetRange("Entry No.", EntryNo);
@@ -472,7 +472,7 @@ codeunit 1393 "Cancel Issued Reminder"
         exit(not CustLedgerEntry.IsEmpty);
     end;
 
-    local procedure GetLastReminderLevel(CustomerEntryNo: Integer): Integer
+    local procedure GetLastReminderLevel(CustomerEntryNo: BigInteger): Integer
     var
         ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry";
         LastLevel: Integer;

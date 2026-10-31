@@ -275,7 +275,7 @@ table 111 "Sales Shipment Line"
         /// <summary>
         /// Specifies the item ledger entry number created by this shipment.
         /// </summary>
-        field(39; "Item Shpt. Entry No."; Integer)
+        field(39; "Item Shpt. Entry No."; BigInteger)
         {
             Caption = 'Item Shpt. Entry No.';
         }

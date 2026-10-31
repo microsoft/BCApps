@@ -888,7 +888,7 @@ table 1003 "Job Planning Line"
             Caption = 'Description 2';
             ToolTip = 'Specifies information in addition to the description.';
         }
-        field(1043; "Job Ledger Entry No."; Integer)
+        field(1043; "Job Ledger Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Project Ledger Entry No.';
@@ -912,7 +912,7 @@ table 1003 "Job Planning Line"
             Caption = 'Ledger Entry Type';
             ToolTip = 'Specifies the entry type of the project ledger entry associated with the planning line.';
         }
-        field(1051; "Ledger Entry No."; Integer)
+        field(1051; "Ledger Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Ledger Entry No.';

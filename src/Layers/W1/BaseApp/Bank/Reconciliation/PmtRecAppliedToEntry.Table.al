@@ -21,7 +21,7 @@ table 185 "Pmt. Rec. Applied-to Entry"
         /// <summary>
         /// Entry number of the ledger entry being applied to.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -49,14 +49,14 @@ table 185 "Pmt. Rec. Applied-to Entry"
         /// <summary>
         /// Line number within the reconciliation statement.
         /// </summary>
-        field(5; "Statement Line No."; Integer)
+        field(5; "Statement Line No."; BigInteger)
         {
             Caption = 'Statement Line No.';
         }
         /// <summary>
         /// Entry number that performed the application.
         /// </summary>
-        field(6; "Applied by Entry No."; Integer)
+        field(6; "Applied by Entry No."; BigInteger)
         {
             Caption = 'Applied by Entry No.';
         }

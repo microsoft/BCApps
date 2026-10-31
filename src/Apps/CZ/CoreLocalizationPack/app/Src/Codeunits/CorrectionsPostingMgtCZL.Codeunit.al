@@ -28,7 +28,7 @@ using Microsoft.Service.Posting;
 codeunit 11796 "Corrections Posting Mgt. CZL"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnBeforeInsertGLEntryBuffer', '', false, false)]
-    local procedure CheckDebitCreditOnBeforeInsertGLEntryBuffer(var TempGLEntryBuf: Record "G/L Entry" temporary; var GenJournalLine: Record "Gen. Journal Line"; var BalanceCheckAmount: Decimal; var BalanceCheckAmount2: Decimal; var BalanceCheckAddCurrAmount: Decimal; var BalanceCheckAddCurrAmount2: Decimal; var NextEntryNo: Integer; var TotalAmount: Decimal; var TotalAddCurrAmount: Decimal)
+    local procedure CheckDebitCreditOnBeforeInsertGLEntryBuffer(var TempGLEntryBuf: Record "G/L Entry" temporary; var GenJournalLine: Record "Gen. Journal Line"; var BalanceCheckAmount: Decimal; var BalanceCheckAmount2: Decimal; var BalanceCheckAddCurrAmount: Decimal; var BalanceCheckAddCurrAmount2: Decimal; var NextEntryNo: BigInteger; var TotalAmount: Decimal; var TotalAddCurrAmount: Decimal)
     begin
         GeneralLedgerSetup.Get();
         if GeneralLedgerSetup."Check Posting Debit/Credit CZL" then
@@ -95,7 +95,7 @@ codeunit 11796 "Corrections Posting Mgt. CZL"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforeInsertCorrValueEntry', '', false, false)]
-    local procedure SetGLCorrectionOnBeforeInsertCorrValueEntry(var NewValueEntry: Record "Value Entry"; OldValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; Sign: Integer; CalledFromAdjustment: Boolean; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L")
+    local procedure SetGLCorrectionOnBeforeInsertCorrValueEntry(var NewValueEntry: Record "Value Entry"; OldValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; Sign: Integer; CalledFromAdjustment: Boolean; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L")
     begin
         if Sign < 0 then
             NewValueEntry."G/L Correction CZL" := not OldValueEntry."G/L Correction CZL";

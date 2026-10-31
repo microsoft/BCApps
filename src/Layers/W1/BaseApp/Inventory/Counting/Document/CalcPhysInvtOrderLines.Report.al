@@ -158,7 +158,7 @@ report 5880 "Calc. Phys. Invt. Order Lines"
         CycleSourceType: Option " ",Item,SKU;
         InvtCountCode: Code[10];
         QtyExp: Decimal;
-        LastItemLedgEntryNo: Integer;
+        LastItemLedgEntryNo: BigInteger;
         NextLineNo: Integer;
         LineCount: Integer;
         ItemsBlocked: Boolean;
@@ -426,7 +426,7 @@ report 5880 "Calc. Phys. Invt. Order Lines"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateNewPhysInvtOrderLineForWhseEntry(Item: Record Item; WarehouseEntry: Record "Warehouse Entry"; ItemLedgerEntry: Record "Item Ledger Entry"; PhysInvtOrderHeader: Record "Phys. Invt. Order Header"; var PhysInvtOrderLine: Record "Phys. Invt. Order Line"; var ErrorText: Text[250]; var NextLineNo: Integer; InvtCountCode: Code[10]; CycleSourceType: Option " ",Item,SKU; CalcQtyExpected: Boolean; var LastItemLedgEntryNo: Integer; var LineCount: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCreateNewPhysInvtOrderLineForWhseEntry(Item: Record Item; WarehouseEntry: Record "Warehouse Entry"; ItemLedgerEntry: Record "Item Ledger Entry"; PhysInvtOrderHeader: Record "Phys. Invt. Order Header"; var PhysInvtOrderLine: Record "Phys. Invt. Order Line"; var ErrorText: Text[250]; var NextLineNo: Integer; InvtCountCode: Code[10]; CycleSourceType: Option " ",Item,SKU; CalcQtyExpected: Boolean; var LastItemLedgEntryNo: BigInteger; var LineCount: Integer; var IsHandled: Boolean)
     begin
     end;
 
@@ -441,7 +441,7 @@ report 5880 "Calc. Phys. Invt. Order Lines"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnCreateNewPhysInvtOrderLineOnAfterCalcQtyAndLastItemLedgExpected(QtyExpected: Decimal; LastItemLedgEntryNo: Integer; ItemLedgerEntry: Record "Item Ledger Entry"; PhysInvtOrderLine: Record "Phys. Invt. Order Line"; var InsertLine: Boolean; WarehouseEntry: Record "Warehouse Entry")
+    local procedure OnCreateNewPhysInvtOrderLineOnAfterCalcQtyAndLastItemLedgExpected(QtyExpected: Decimal; LastItemLedgEntryNo: BigInteger; ItemLedgerEntry: Record "Item Ledger Entry"; PhysInvtOrderLine: Record "Phys. Invt. Order Line"; var InsertLine: Boolean; WarehouseEntry: Record "Warehouse Entry")
     begin
     end;
 

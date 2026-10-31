@@ -391,6 +391,7 @@ codeunit 423 "Change Log Management"
     var
         HasValue: Boolean;
         Int: Integer;
+        BigInt: BigInteger;
         Dec: Decimal;
         D: Date;
         T: Time;
@@ -404,6 +405,11 @@ codeunit 423 "Change Log Management"
                 begin
                     Int := FldRef.Value();
                     HasValue := Int <> 0;
+                end;
+            FieldType::BigInteger:
+                begin
+                    BigInt := FldRef.Value();
+                    HasValue := BigInt <> 0;
                 end;
             FieldType::Decimal:
                 begin

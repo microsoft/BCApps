@@ -180,7 +180,7 @@ codeunit 5051 SegManagement
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Interaction Log Entry", 'r')]
-    procedure LogInteraction(SegmentLine: Record "Segment Line"; var AttachmentTemp: Record Attachment; var TempInterLogEntryCommentLine: Record "Inter. Log Entry Comment Line"; Deliver: Boolean; Postponed: Boolean) NextInteractLogEntryNo: Integer
+    procedure LogInteraction(SegmentLine: Record "Segment Line"; var AttachmentTemp: Record Attachment; var TempInterLogEntryCommentLine: Record "Inter. Log Entry Comment Line"; Deliver: Boolean; Postponed: Boolean) NextInteractLogEntryNo: BigInteger
     var
         InteractionTemplate: Record "Interaction Template";
         InteractionLogEntry: Record "Interaction Log Entry";
@@ -674,7 +674,7 @@ codeunit 5051 SegManagement
             CampaignTargetGroup."Campaign No.", SalesInvoiceHeader."Posting Description", '');
     end;
 
-    procedure InterLogEntryCommentLineInsert(var TempInterLogEntryCommentLine: Record "Inter. Log Entry Comment Line"; InteractionLogEntryNo: Integer)
+    procedure InterLogEntryCommentLineInsert(var TempInterLogEntryCommentLine: Record "Inter. Log Entry Comment Line"; InteractionLogEntryNo: BigInteger)
     var
         InterLogEntryCommentLine: Record "Inter. Log Entry Comment Line";
     begin
@@ -688,7 +688,7 @@ codeunit 5051 SegManagement
             until TempInterLogEntryCommentLine.Next() = 0;
     end;
 
-    local procedure DeleteExistingInteractionLogEntryComments(InteractionLogEntryNo: Integer)
+    local procedure DeleteExistingInteractionLogEntryComments(InteractionLogEntryNo: BigInteger)
     var
         InterLogEntryCommentLine: Record "Inter. Log Entry Comment Line";
     begin
@@ -717,7 +717,7 @@ codeunit 5051 SegManagement
         exit(CampaignEntry."Entry No." + 1);
     end;
 
-    local procedure GetCampaignEntryNo(SegmentLine: Record "Segment Line"; LoggedSegmentEntryNo: Integer): Integer
+    local procedure GetCampaignEntryNo(SegmentLine: Record "Segment Line"; LoggedSegmentEntryNo: BigInteger): BigInteger
     var
         CampaignEntry: Record "Campaign Entry";
     begin
@@ -788,7 +788,7 @@ codeunit 5051 SegManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterLogSegment(var TempDeliverySorter: Record "Delivery Sorter" temporary; var LoggedSegment: Record "Logged Segment"; SegmentHeader: Record "Segment Header"; SegmentNo: Code[20]; LastInteractLogEntryNo: Integer)
+    local procedure OnAfterLogSegment(var TempDeliverySorter: Record "Delivery Sorter" temporary; var LoggedSegment: Record "Logged Segment"; SegmentHeader: Record "Segment Header"; SegmentNo: Code[20]; LastInteractLogEntryNo: BigInteger)
     begin
     end;
 
@@ -928,7 +928,7 @@ codeunit 5051 SegManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnLogInteractionOnBeforeCheckAttachmentFileValue(SegmentLine: Record "Segment Line"; var AttachmentTemp: Record Attachment; var TempInterLogEntryCommentLine: Record "Inter. Log Entry Comment Line"; Deliver: Boolean; Postponed: Boolean; var NextInteractLogEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnLogInteractionOnBeforeCheckAttachmentFileValue(SegmentLine: Record "Segment Line"; var AttachmentTemp: Record Attachment; var TempInterLogEntryCommentLine: Record "Inter. Log Entry Comment Line"; Deliver: Boolean; Postponed: Boolean; var NextInteractLogEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -953,12 +953,12 @@ codeunit 5051 SegManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnLogInteractionOnAfterInterLogEntryCommentLineInsert(var InterLogEntryCommentLine: Record "Inter. Log Entry Comment Line"; SegmentLine: Record "Segment Line"; NextInteractLogEntryNo: Integer)
+    local procedure OnLogInteractionOnAfterInterLogEntryCommentLineInsert(var InterLogEntryCommentLine: Record "Inter. Log Entry Comment Line"; SegmentLine: Record "Segment Line"; NextInteractLogEntryNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnLogInteractionOnBeforeInteractLogEntryGet(var NextInteractLogEntryNo: Integer; SegmentLine: Record "Segment Line"; Postponed: Boolean; var IsHandled: Boolean)
+    local procedure OnLogInteractionOnBeforeInteractLogEntryGet(var NextInteractLogEntryNo: BigInteger; SegmentLine: Record "Segment Line"; Postponed: Boolean; var IsHandled: Boolean)
     begin
     end;
 

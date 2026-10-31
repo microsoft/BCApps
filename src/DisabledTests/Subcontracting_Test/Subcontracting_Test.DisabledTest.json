@@ -16,5 +16,77 @@
     "codeunitId": 139989,
     "codeunitName": "Subc. Subcontracting Test",
     "method": "CancelInvoiceWithSubcontractingItemChargeIsBlocked"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139981,
+    "codeunitName": "Subc. Location Handler Test",
+    "method": "DirectTransferFromRequireShipmentLocationPostsShipmentAndReceipt"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139981,
+    "codeunitName": "Subc. Location Handler Test",
+    "method": "DirectTransferFromRequirePickLocationPostsShipmentAndReceipt"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139981,
+    "codeunitName": "Subc. Location Handler Test",
+    "method": "DirectTransferFromDirectedWarehousePostsShipmentAndReceipt"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139981,
+    "codeunitName": "Subc. Location Handler Test",
+    "method": "TestTransferOrderCreation_PostAndRecreate"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139989,
+    "codeunitName": "Subc. Subcontracting Test",
+    "method": "CheckTransferOrderFromSubcontrAndReturnTransferOrderFromSubcontractorPurchOrder"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139989,
+    "codeunitName": "Subc. Subcontracting Test",
+    "method": "SubcontractingFieldsPopulatedOnIleAfterSubcontractingPurchaseReceipt"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139989,
+    "codeunitName": "Subc. Subcontracting Test",
+    "method": "ProdOFactboxMgmtResolvesProductionOrderForIleFromSubcontractingPurchaseReceipt"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139989,
+    "codeunitName": "Subc. Subcontracting Test",
+    "method": "CreateReturnTransferOrderAfterPartialShipOfOutboundDirectTransfer"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139989,
+    "codeunitName": "Subc. Subcontracting Test",
+    "method": "PurchLineFactboxTransferOrderCountIsZeroWhenOnlyReturnExists"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139991,
+    "codeunitName": "Subc. Purch. Subcont. Test",
+    "method": "SubcReturnTransferPreservesManuallyChangedComponentFlushingMethod"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139991,
+    "codeunitName": "Subc. Purch. Subcont. Test",
+    "method": "SubcTransferPartialConsumptionAndReturnFlow"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139991,
+    "codeunitName": "Subc. Purch. Subcont. Test",
+    "method": "SecondReturnTransferSucceedsAfterPartialReceiptAndReturn"
   }
 ]

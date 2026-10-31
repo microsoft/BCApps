@@ -35,13 +35,13 @@ table 7152 "Item Analysis View"
             Caption = 'Name';
             ToolTip = 'Specifies the name of the analysis view.';
         }
-        field(4; "Last Entry No."; Integer)
+        field(4; "Last Entry No."; BigInteger)
         {
             Caption = 'Last Entry No.';
             ToolTip = 'Specifies the number of the last item ledger entry you posted, prior to updating the analysis view.';
             Editable = false;
         }
-        field(5; "Last Budget Entry No."; Integer)
+        field(5; "Last Budget Entry No."; BigInteger)
         {
             Caption = 'Last Budget Entry No.';
             ToolTip = 'Specifies the number of the last item budget entry you entered prior to updating the analysis view.';

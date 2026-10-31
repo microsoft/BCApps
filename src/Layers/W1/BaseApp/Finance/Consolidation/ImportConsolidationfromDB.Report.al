@@ -394,7 +394,7 @@ report 90 "Import Consolidation from DB"
 #pragma warning disable AA0470
         Text032Err: Label 'The %1 is later than the %2 in company %3.';
 #pragma warning restore AA0470
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
 
 #pragma warning disable AA0074
         Text000: Label 'Enter a document number.';

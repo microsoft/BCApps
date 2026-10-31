@@ -375,7 +375,7 @@ table 5335 "Integration Table Mapping"
     end;
 
     var
-        JobLogEntryNo: Integer;
+        JobLogEntryNo: BigInteger;
         DateType: Option ,Integration,Local;
         ConfirmIncludeEntitiesWithNoCompanyQst: Label 'Do you want the Integration Table Filter to include %1 entities with no value in %2 attribute?', Comment = '%1 - Dataverse service name; %2 - attribute name of a Dataverse entity';
         OptionMappingCannotBeBidirectionalErr: Label 'Option mappings can only synchronize from integration table or to integration table.';
@@ -614,7 +614,7 @@ table 5335 "Integration Table Mapping"
         end;
     end;
 
-    procedure SetJobLogEntryNo(NewJobLogEntryNo: Integer)
+    procedure SetJobLogEntryNo(NewJobLogEntryNo: BigInteger)
     begin
         JobLogEntryNo := NewJobLogEntryNo;
     end;

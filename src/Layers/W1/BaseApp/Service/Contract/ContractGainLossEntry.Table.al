@@ -19,7 +19,7 @@ table 5969 "Contract Gain/Loss Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -126,7 +126,7 @@ table 5969 "Contract Gain/Loss Entry"
     procedure CreateEntry(ChangeType: Enum "Service Contract Change Type"; ContractType: Enum "Service Contract Type"; ContractNo: Code[20]; ChangeAmount: Decimal; ReasonCode: Code[10])
     var
         ServContract: Record "Service Contract Header";
-        NextLine: Integer;
+        NextLine: BigInteger;
     begin
         ContractGainLossEntry.Reset();
         ContractGainLossEntry.LockTable();

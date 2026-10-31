@@ -29,7 +29,7 @@ table 1706 "Deferral Posting Buffer"
         /// <summary>
         /// Unique sequential identifier for each buffer entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
@@ -555,7 +555,7 @@ table 1706 "Deferral Posting Buffer"
     /// Used for assigning sequential entry numbers to new buffer records.
     /// </summary>
     /// <returns>The highest entry number currently in use</returns>
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

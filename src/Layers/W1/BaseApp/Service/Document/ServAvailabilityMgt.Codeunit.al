@@ -408,7 +408,7 @@ codeunit 6452 "Serv. Availability Mgt."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Item Availability", 'OnAfterGetSourceReferences', '', true, false)]
-    local procedure OnAfterGetSourceReferences(FromRecordID: RecordId; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceRefNo: Integer; var IsHandled: Boolean; RecRef: RecordRef)
+    local procedure OnAfterGetSourceReferences(FromRecordID: RecordId; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceRefNo: BigInteger; var IsHandled: Boolean; RecRef: RecordRef)
     var
         ServiceLine: Record "Service Line";
     begin

@@ -57,7 +57,7 @@ table 1208 "Direct Debit Collection Entry"
         /// <summary>
         /// Customer ledger entry that this direct debit entry applies to, typically an invoice or reminder.
         /// </summary>
-        field(4; "Applies-to Entry No."; Integer)
+        field(4; "Applies-to Entry No."; BigInteger)
         {
             Caption = 'Applies-to Entry No.';
             ToolTip = 'Specifies the number of the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';

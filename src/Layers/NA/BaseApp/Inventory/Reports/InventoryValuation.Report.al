@@ -12,6 +12,8 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using System.Utilities;
 
+// Note that this is different from the standard report 1001 "Inventory Valuation"
+
 report 10139 "Inventory Valuation"
 {
     ApplicationArea = Basic, Suite;

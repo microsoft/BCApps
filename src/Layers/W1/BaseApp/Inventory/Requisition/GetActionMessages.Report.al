@@ -195,7 +195,7 @@ report 99001023 "Get Action Messages"
         GetPlanningParameters: Codeunit "Planning-Get Parameters";
         UOMMgt: Codeunit "Unit of Measure Management";
         Window: Dialog;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         CurrTemplateName: Code[10];
         CurrWorksheetName: Code[10];
         PlanningLinesInserted: Boolean;

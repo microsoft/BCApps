@@ -9,7 +9,7 @@ table 7013 "Contact Sync Queue"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             DataClassification = SystemMetadata;
             Caption = 'Entry No.';

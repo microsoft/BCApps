@@ -842,7 +842,7 @@ report 790 "Calculate Inventory"
 
     local procedure UpdateBuffer(BinCode: Code[20]; NewQuantity: Decimal; CalledFromItemLedgerEntry: Boolean)
     var
-        DimEntryNo: Integer;
+        DimEntryNo: BigInteger;
     begin
         if not HasNewQuantity(NewQuantity) then
             exit;
@@ -864,7 +864,7 @@ report 790 "Calculate Inventory"
         end;
     end;
 
-    local procedure RetrieveBuffer(BinCode: Code[20]; DimEntryNo: Integer) Result: Boolean
+    local procedure RetrieveBuffer(BinCode: Code[20]; DimEntryNo: BigInteger) Result: Boolean
     var
         IsHandled: Boolean;
     begin
@@ -1032,7 +1032,7 @@ report 790 "Calculate Inventory"
         end;
     end;
 
-    local procedure CreateDimFromDefault() DimEntryNo: Integer
+    local procedure CreateDimFromDefault() DimEntryNo: BigInteger
     begin
         InsertDefaultDimensions(DATABASE::Item, TempQuantityOnHandBuffer."Item No.");
         InsertDefaultDimensions(DATABASE::Location, TempQuantityOnHandBuffer."Location Code");
@@ -1137,7 +1137,7 @@ report 790 "Calculate Inventory"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeRetrieveBuffer(var TempInventoryBuffer: Record "Inventory Buffer" temporary; ItemLedgerEntry: Record "Item Ledger Entry"; BinCode: Code[20]; DimEntryNo: Integer; var Result: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeRetrieveBuffer(var TempInventoryBuffer: Record "Inventory Buffer" temporary; ItemLedgerEntry: Record "Item Ledger Entry"; BinCode: Code[20]; DimEntryNo: BigInteger; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 

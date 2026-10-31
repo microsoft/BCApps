@@ -14,9 +14,9 @@ codeunit 9500 "Sequence No. Mgt."
         GlobalPreviewMode: Boolean;
         GlobalPreviewModeID: Integer;
         LastSeqNoChecked: List of [Integer];
-        SeqNoBufferFrom: Dictionary of [Integer, Integer];
-        SeqNoBufferTo: Dictionary of [Integer, Integer];
-        PendingAllocation: Dictionary of [Integer, Integer];
+        SeqNoBufferFrom: Dictionary of [Integer, BigInteger];
+        SeqNoBufferTo: Dictionary of [Integer, BigInteger];
+        PendingAllocation: Dictionary of [Integer, BigInteger];
         SeqNameLbl: Label 'TableSeq%1', Comment = '%1 - Table No.', Locked = true;
         PreviewSeqNameLbl: Label 'PreviewTableSeq%1', Comment = '%1 - Table No.', Locked = true;
 
@@ -40,7 +40,7 @@ codeunit 9500 "Sequence No. Mgt."
     /// if the sequence does not exist, it will be created.
     /// </summary>
     /// <param name="TableNo">The ID of the table being checked</param>
-    procedure AllocateSeqNoBuffer(TableNo: Integer; NoOfEntries: Integer)
+    procedure AllocateSeqNoBuffer(TableNo: Integer; NoOfEntries: BigInteger)
     var
         SignedTableNo: Integer;
         PreviewMode: Boolean;
@@ -66,11 +66,11 @@ codeunit 9500 "Sequence No. Mgt."
     /// if the sequence does not exist, it will be created.
     /// </summary>
     /// <param name="TableNo">The ID of the table being checked</param>
-    procedure GetNextSeqNo(TableNo: Integer): Integer
+    procedure GetNextSeqNo(TableNo: Integer): BigInteger
     var
-        NewSeqNo: Integer;
-        FromNo: Integer;
-        NoOfEntries: Integer;
+        NewSeqNo: BigInteger;
+        FromNo: BigInteger;
+        NoOfEntries: BigInteger;
         SignedTableNo: Integer;
         PreviewMode: Boolean;
     begin
@@ -125,9 +125,9 @@ codeunit 9500 "Sequence No. Mgt."
     /// if the sequence does not exist, it will be created.
     /// </summary>
     /// <param name="TableNo">The ID of the table being checked</param>
-    procedure GetCurrentSeqNo(TableNo: Integer): Integer
+    procedure GetCurrentSeqNo(TableNo: Integer): BigInteger
     var
-        CurrSeqNo: Integer;
+        CurrSeqNo: BigInteger;
         PreviewMode: Boolean;
     begin
         PreviewMode := IsPreviewMode();  // Only call once to minimize sql calls during preview.
@@ -147,7 +147,7 @@ codeunit 9500 "Sequence No. Mgt."
     /// <param name="TableNo">The ID of the table being checked</param>
     procedure ValidateSeqNo(TableNo: Integer)
     var
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
     begin
         if IsPreviewMode() then
             exit;
@@ -170,19 +170,19 @@ codeunit 9500 "Sequence No. Mgt."
     end;
 
     [TryFunction]
-    local procedure TryGetNextNo(PreviewMode: Boolean; TableNo: Integer; var NewSeqNo: Integer)
+    local procedure TryGetNextNo(PreviewMode: Boolean; TableNo: Integer; var NewSeqNo: BigInteger)
     begin
         NewSeqNo := NumberSequence.Next(GetTableSequenceName(PreviewMode, TableNo));
     end;
 
     [TryFunction]
-    local procedure TryGetRange(PreviewMode: Boolean; TableNo: Integer; NoOfEntries: Integer; var NewSeqNo: Integer)
+    local procedure TryGetRange(PreviewMode: Boolean; TableNo: Integer; NoOfEntries: Integer; var NewSeqNo: BigInteger)
     begin
         NewSeqNo := NumberSequence.Range(GetTableSequenceName(PreviewMode, TableNo), NoOfEntries);
     end;
 
     [TryFunction]
-    local procedure TryGetCurrentNo(PreviewMode: Boolean; TableNo: Integer; var CurrSeqNo: Integer)
+    local procedure TryGetCurrentNo(PreviewMode: Boolean; TableNo: Integer; var CurrSeqNo: BigInteger)
     begin
         CurrSeqNo := NumberSequence.Current(GetTableSequenceName(PreviewMode, TableNo));
     end;

@@ -144,7 +144,7 @@ codeunit 5820 "Close Inventory Period"
     var
         InvtPeriodEntry: Record "Inventory Period Entry";
         ItemRegister: Record "Item Register";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         InvtPeriodEntry.SetRange("Ending Date", InvtPeriod."Ending Date");
         if InvtPeriodEntry.FindLast() then

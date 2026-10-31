@@ -823,7 +823,7 @@ page 2900 "Demand Forecast Variant Matrix"
         OnAfterLoad(Rec, ProductionForecastName, ForecastType);
     end;
 
-    local procedure IncrementEntryNo(var EntryNo: Integer): Boolean
+    local procedure IncrementEntryNo(var EntryNo: BigInteger): Boolean
     var
         ProdForecastNameRec: Record "Production Forecast Name";
     begin
@@ -842,7 +842,7 @@ page 2900 "Demand Forecast Variant Matrix"
         ItemWithVariantsAndLocationsQuery: Query "Item With Variants & Locations";
         ItemWithVariantsQuery: Query "Item With Variants";
         ItemWithLocationsQuery: Query "Item With Locations";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         Rec.DeleteAll();

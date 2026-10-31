@@ -3488,7 +3488,7 @@ codeunit 408 DimensionManagement
             Error(NoAllowedValuesSelectedErr);
     end;
 
-    local procedure InsertTempDimBufEntry(var TempDimBuf: Record "Dimension Buffer" temporary; TableId: Integer; EntryNo: Integer; DimCode: Code[20]; DimValueCode: Code[20])
+    local procedure InsertTempDimBufEntry(var TempDimBuf: Record "Dimension Buffer" temporary; TableId: Integer; EntryNo: BigInteger; DimCode: Code[20]; DimValueCode: Code[20])
     begin
         TempDimBuf.Init();
         TempDimBuf."Table ID" := TableId;

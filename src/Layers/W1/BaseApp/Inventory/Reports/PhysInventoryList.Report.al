@@ -278,7 +278,7 @@ report 722 "Phys. Inventory List"
         ShowNote: Boolean;
         ShowSummary: Boolean;
         NoteTxt: Label '*', Locked = true;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         GetPackageNoCaption: Text;
         GetLotNoCaption: Text;
         GetSerialNoCaption: Text;

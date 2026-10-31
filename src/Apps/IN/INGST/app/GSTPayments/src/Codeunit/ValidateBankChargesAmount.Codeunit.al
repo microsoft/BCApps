@@ -184,7 +184,7 @@ codeunit 18247 "Validate Bank Charges Amount"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnPostBankAccOnBeforeInitBankAccLedgEntry', '', false, false)]
-    local procedure PostBankCharges(var GenJournalLine: Record "Gen. Journal Line"; var NextTransactionNo: Integer; var NextEntryNo: Integer)
+    local procedure PostBankCharges(var GenJournalLine: Record "Gen. Journal Line"; var NextTransactionNo: BigInteger; var NextEntryNo: BigInteger)
     var
         JnlBankChargesSessionMgt: Codeunit "GST Bank Charge Session Mgt.";
     begin

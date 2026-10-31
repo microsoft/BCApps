@@ -305,7 +305,7 @@ codeunit 9059 "Acc. Payable Performance"
         exit(CalcDate(StrSubstNo('<1%1>', GetPeriodLength()), EndDate));
     end;
 
-    internal procedure TopVendorListUpdatedRecently(var LastVendorLedgerEntryNo: Integer): Boolean
+    internal procedure TopVendorListUpdatedRecently(var LastVendorLedgerEntryNo: BigInteger): Boolean
     var
         TopVendorsByPurch: Record "Top Vendors By Purchase";
         LastBufferUpdateDateTime: DateTime;
@@ -328,7 +328,7 @@ codeunit 9059 "Acc. Payable Performance"
 
     internal procedure ScheduleTopVendorListRefreshTask()
     var
-        LastVendorLedgerEntryNo: Integer;
+        LastVendorLedgerEntryNo: BigInteger;
     begin
         if TopVendorListUpdatedRecently(LastVendorLedgerEntryNo) then
             exit;

@@ -86,7 +86,7 @@ codeunit 5816 "Undo Return Receipt Line"
         PostedWhseRcptLine: Record "Posted Whse. Receipt Line";
         SalesLine: Record "Sales Line";
         Window: Dialog;
-        ItemShptEntryNo: Integer;
+        ItemShptEntryNo: BigInteger;
         DocLineNo: Integer;
         PostedWhseRcptLineFound: Boolean;
         IsHandled: Boolean;
@@ -238,7 +238,7 @@ codeunit 5816 "Undo Return Receipt Line"
         SourceCodeSetup: Record "Source Code Setup";
         ReturnRcptHeader: Record "Return Receipt Header";
         TempApplyToEntryList: Record "Item Ledger Entry" temporary;
-        ItemLedgEntryNo: Integer;
+        ItemLedgEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -297,7 +297,7 @@ codeunit 5816 "Undo Return Receipt Line"
         exit(0); // "Item Shpt. Entry No."
     end;
 
-    local procedure InsertNewReceiptLine(OldReturnRcptLine: Record "Return Receipt Line"; ItemShptEntryNo: Integer; DocLineNo: Integer)
+    local procedure InsertNewReceiptLine(OldReturnRcptLine: Record "Return Receipt Line"; ItemShptEntryNo: BigInteger; DocLineNo: Integer)
     var
         NewReturnRcptLine: Record "Return Receipt Line";
     begin
@@ -423,7 +423,7 @@ codeunit 5816 "Undo Return Receipt Line"
     /// <param name="TempGlobalItemEntryRelation">Temporary item entry relation.</param>
     /// <param name="IsHandled">Set to true to skip default processing.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCopyItemJnlLineFromReturnRcpt(var ItemJournalLine: Record "Item Journal Line"; ReturnReceiptHeader: Record "Return Receipt Header"; ReturnReceiptLine: Record "Return Receipt Line"; var WhseUndoQty: Codeunit "Whse. Undo Quantity"; var ItemLedgEntryNo: Integer; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var NextLineNo: Integer; ReturnRcptHeader: Record "Return Receipt Header"; var TempGlobalItemLedgEntry: Record "Item Ledger Entry" temporary; var TempGlobalItemEntryRelation: Record "Item Entry Relation" temporary; var IsHandled: Boolean)
+    local procedure OnAfterCopyItemJnlLineFromReturnRcpt(var ItemJournalLine: Record "Item Journal Line"; ReturnReceiptHeader: Record "Return Receipt Header"; ReturnReceiptLine: Record "Return Receipt Line"; var WhseUndoQty: Codeunit "Whse. Undo Quantity"; var ItemLedgEntryNo: BigInteger; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var NextLineNo: Integer; ReturnRcptHeader: Record "Return Receipt Header"; var TempGlobalItemLedgEntry: Record "Item Ledger Entry" temporary; var TempGlobalItemEntryRelation: Record "Item Entry Relation" temporary; var IsHandled: Boolean)
     begin
     end;
 
@@ -523,7 +523,7 @@ codeunit 5816 "Undo Return Receipt Line"
     /// <param name="ItemLedgEntryNo">The item ledger entry number.</param>
     /// <param name="IsHandled">Set to true to skip default item journal posting.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostItemJnlLine(var ReturnReceiptLine: Record "Return Receipt Line"; DocLineNo: Integer; var ItemLedgEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforePostItemJnlLine(var ReturnReceiptLine: Record "Return Receipt Line"; DocLineNo: Integer; var ItemLedgEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

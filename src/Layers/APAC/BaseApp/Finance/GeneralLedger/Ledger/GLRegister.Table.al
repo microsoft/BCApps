@@ -33,7 +33,7 @@ table 45 "G/L Register"
         /// <summary>
         /// Sequential register number for G/L entry posting batches.
         /// </summary>
-        field(1; "No."; Integer)
+        field(1; "No."; BigInteger)
         {
             Caption = 'No.';
             ToolTip = 'Specifies the number of the general ledger register.';
@@ -41,7 +41,7 @@ table 45 "G/L Register"
         /// <summary>
         /// First G/L entry number in this posting batch.
         /// </summary>
-        field(2; "From Entry No."; Integer)
+        field(2; "From Entry No."; BigInteger)
         {
             Caption = 'From Entry No.';
             ToolTip = 'Specifies the first general ledger entry number in the register.';
@@ -50,7 +50,7 @@ table 45 "G/L Register"
         /// <summary>
         /// Last G/L entry number in this posting batch.
         /// </summary>
-        field(3; "To Entry No."; Integer)
+        field(3; "To Entry No."; BigInteger)
         {
             Caption = 'To Entry No.';
             ToolTip = 'Specifies the last general ledger entry number in the register.';
@@ -94,7 +94,7 @@ table 45 "G/L Register"
         /// <summary>
         /// First VAT entry number in this posting batch.
         /// </summary>
-        field(8; "From VAT Entry No."; Integer)
+        field(8; "From VAT Entry No."; BigInteger)
         {
             Caption = 'From VAT Entry No.';
             ToolTip = 'Specifies the first VAT entry number in the register.';
@@ -103,7 +103,7 @@ table 45 "G/L Register"
         /// <summary>
         /// Last VAT entry number in this posting batch.
         /// </summary>
-        field(9; "To VAT Entry No."; Integer)
+        field(9; "To VAT Entry No."; BigInteger)
         {
             Caption = 'To VAT Entry No.';
             ToolTip = 'Specifies the last entry number in the register.';
@@ -196,7 +196,7 @@ table 45 "G/L Register"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Register", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -208,7 +208,7 @@ table 45 "G/L Register"
     /// </summary>
     /// <returns>Integer: The highest register number, or 0 if no registers exist.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Register", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -224,7 +224,7 @@ table 45 "G/L Register"
     /// <param name="SourceCode">Source code identifying the posting process.</param>
     /// <param name="BatchName">Journal batch name from the posting process.</param>
     /// <param name="TemplateName">Journal template name from the posting process.</param>
-    procedure Initialize(NextRegNo: Integer; FromEntryNo: Integer; FromVATEntryNo: Integer; SourceCode: Code[10]; BatchName: Code[10]; TemplateName: Code[10])
+    procedure Initialize(NextRegNo: BigInteger; FromEntryNo: BigInteger; FromVATEntryNo: BigInteger; SourceCode: Code[10]; BatchName: Code[10]; TemplateName: Code[10])
     begin
         Init();
         OnInitializeOnAfterGLRegisterInit(Rec, TemplateName);

@@ -496,7 +496,7 @@ page 9221 "Res. Gr. Avail. (Serv.) Matrix"
         ServOrderAllocMgt: Codeunit ServAllocationManagement;
         CurrentDocumentType: Integer;
         CurrentDocumentNo: Code[20];
-        CurrentEntryNo: Integer;
+        CurrentEntryNo: BigInteger;
         SelectedDate: Date;
         PeriodType: Enum "Analysis Period Type";
         QtytoAllocate: Decimal;
@@ -542,7 +542,7 @@ page 9221 "Res. Gr. Avail. (Serv.) Matrix"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
-    procedure SetData(DocumentType: Integer; DocumentNo: Code[20]; EntryNo: Integer; NewMatrixColumnCaptions: array[32] of Text[100]; var NewMatrixDateFilters: array[32] of Record Date; Period: Enum "Analysis Period Type")
+    procedure SetData(DocumentType: Integer; DocumentNo: Code[20]; EntryNo: BigInteger; NewMatrixColumnCaptions: array[32] of Text[100]; var NewMatrixDateFilters: array[32] of Record Date; Period: Enum "Analysis Period Type")
     begin
         CurrentDocumentType := DocumentType;
         CurrentDocumentNo := DocumentNo;

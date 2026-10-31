@@ -25,7 +25,7 @@ report 5183 "Resend Attachments"
                 SegLine: Record "Segment Line";
                 InterLogEntryCommentLine: Record "Inter. Log Entry Comment Line";
                 SegManagement: Codeunit SegManagement;
-                NewEntryNo: Integer;
+                NewEntryNo: BigInteger;
             begin
                 if not Attachment.Get("Attachment No.") then
                     CurrReport.Skip();

@@ -33,7 +33,7 @@ table 911 "Posted Assembly Line"
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
-            ToolTip = 'Specifies the number of the posted assembly order line.'; 
+            ToolTip = 'Specifies the number of the posted assembly order line.';
         }
         field(8; "Order No."; Code[20])
         {
@@ -124,7 +124,7 @@ table 911 "Posted Assembly Line"
         {
             Caption = 'Position 3';
         }
-        field(39; "Item Shpt. Entry No."; Integer)
+        field(39; "Item Shpt. Entry No."; BigInteger)
         {
             Caption = 'Item Shpt. Entry No.';
         }

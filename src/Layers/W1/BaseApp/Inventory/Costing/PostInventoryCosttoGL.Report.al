@@ -841,7 +841,7 @@ report 1002 "Post Inventory Cost to G/L"
         NewPost := Post;
     end;
 
-    local procedure GetItemValueEntry(EntryNo: Integer)
+    local procedure GetItemValueEntry(EntryNo: BigInteger)
     begin
         ItemValueEntry.Get(EntryNo);
         OnAfterGetItemValueEntry(ItemValueEntry);

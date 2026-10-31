@@ -238,7 +238,7 @@ xmlport 1 "Consolidation Import/Export"
         CurrentProductVersion: Label '4.00';
         CurrentFormatVersion: Label '1.00';
 #pragma warning restore AA0074
-        NextGLEntryNo: Integer;
+        NextGLEntryNo: BigInteger;
 
     /// <summary>
     /// Sets global consolidation parameters for XML import/export processing.

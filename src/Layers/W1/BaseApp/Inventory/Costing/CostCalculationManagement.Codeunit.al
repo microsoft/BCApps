@@ -78,7 +78,7 @@ codeunit 5836 "Cost Calculation Management"
             UnitCost := Round(Cost / Qty, UnitAmtRndgPrec);
     end;
 
-    procedure SplitItemLedgerEntriesExist(var TempItemLedgEntry: Record "Item Ledger Entry" temporary; QtyBase: Decimal; ItemLedgEntryNo: Integer): Boolean
+    procedure SplitItemLedgerEntriesExist(var TempItemLedgEntry: Record "Item Ledger Entry" temporary; QtyBase: Decimal; ItemLedgEntryNo: BigInteger): Boolean
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         ItemLedgEntry2: Record "Item Ledger Entry";

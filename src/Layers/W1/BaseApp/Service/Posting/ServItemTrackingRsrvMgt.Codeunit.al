@@ -228,7 +228,7 @@ codeunit 5985 "Serv-Item Tracking Rsrv. Mgt."
         ServiceLineReserve.DeleteInvoiceSpecFromHeader(ServHeader);
     end;
 
-    procedure InsertShptEntryRelation(var ServiceShptLine: Record "Service Shipment Line"; var TempHandlingSpecification: Record "Tracking Specification"; var TempTrackingSpecificationInv: Record "Tracking Specification"; ItemLedgShptEntryNo: Integer): Integer
+    procedure InsertShptEntryRelation(var ServiceShptLine: Record "Service Shipment Line"; var TempHandlingSpecification: Record "Tracking Specification"; var TempTrackingSpecificationInv: Record "Tracking Specification"; ItemLedgShptEntryNo: BigInteger): Integer
     var
         ItemEntryRelation: Record "Item Entry Relation";
     begin

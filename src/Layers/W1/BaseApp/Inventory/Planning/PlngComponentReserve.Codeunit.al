@@ -353,7 +353,7 @@ codeunit 99000840 "Plng. Component-Reserve"
         CaptionText := PlanningComponent.GetSourceCaption();
     end;
 
-    local procedure MatchThisEntry(EntryNo: Integer): Boolean
+    local procedure MatchThisEntry(EntryNo: BigInteger): Boolean
     begin
         exit(EntryNo = 91);
     end;

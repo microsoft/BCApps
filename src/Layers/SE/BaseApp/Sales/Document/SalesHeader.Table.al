@@ -2733,7 +2733,7 @@ table 36 "Sales Header"
         /// <summary>
         /// Specifies the entry number of the incoming document that created this sales document.
         /// </summary>
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             ToolTip = 'Specifies the number of the incoming document that this sales document is created for.';
@@ -6370,7 +6370,7 @@ table 36 "Sales Header"
         OnAfterGetStatusStyleText(Rec, StatusStyleText);
     end;
 
-    local procedure CreateTempAdjmtValueEntries(var TempValueEntry: Record "Value Entry" temporary; ItemLedgEntryNo: Integer)
+    local procedure CreateTempAdjmtValueEntries(var TempValueEntry: Record "Value Entry" temporary; ItemLedgEntryNo: BigInteger)
     var
         ValueEntry: Record "Value Entry";
     begin

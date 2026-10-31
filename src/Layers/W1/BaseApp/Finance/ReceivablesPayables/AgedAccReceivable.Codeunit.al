@@ -206,7 +206,7 @@ codeunit 763 "Aged Acc. Receivable"
         CustPostingGroup: Record "Customer Posting Group";
         TempEntryNoAmtBuf: Record "Entry No. Amount Buffer" temporary;
         CustRemainAmtByDueDate: Query "Cust. Remain. Amt. By Due Date";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         Index: Integer;
         RemainingAmountLCY: Decimal;
         PeriodStartDate: Date;

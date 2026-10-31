@@ -23,7 +23,7 @@ table 1318 "Trial Balance Cache"
         /// <summary>
         /// Unique sequential identifier for trial balance cache entries.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

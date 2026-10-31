@@ -752,7 +752,7 @@ page 6520 "Item Tracing"
         DescriptionIndent := Rec.Level;
     end;
 
-    local procedure SetFocus(ItemLedgerEntryNo: Integer)
+    local procedure SetFocus(ItemLedgerEntryNo: BigInteger)
     begin
         if Rec."Already Traced" then begin
             TempTrackEntry.SetCurrentKey("Item Ledger Entry No.");
