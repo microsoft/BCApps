@@ -555,7 +555,8 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
             if IsInheritFromParent then begin
                 PurchaseLine.Validate("Direct Unit Cost", GetUnitPrice(PurchaseLine, AllocationLine.Amount));
                 PurchaseLine."Line Amount" := GetAmount(PurchaseLine, AllocationLine.Amount);
-                PurchaseLine.Amount := PurchaseLine."Line Amount";
+                PurchaseLine.UpdateVATAmounts();
+                PurchaseLine.InitOutstandingAmount();
             end else begin
                 AmountRoundingPrecision := AllocationAccountMgt.GetCurrencyRoundingPrecision(PurchaseLine."Currency Code");
                 PurchaseLine.Validate("Direct Unit Cost", Round(AllocationLine.Amount / PurchaseLine.Quantity, AmountRoundingPrecision));
