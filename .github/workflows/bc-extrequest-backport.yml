@@ -1,0 +1,155 @@
+name: 'Extensibility Request Backport'
+
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch' &&
+      (inputs.source_pr != '' &&
+       format('Backport main PR #{0}', inputs.source_pr) || 'Backport team batches') ||
+      'Backport weekly extensibility team batches' }}
+
+on:
+  schedule:
+    - cron: '10 21 * * 0'
+      timezone: 'Europe/Copenhagen'
+  workflow_dispatch:
+    inputs:
+      source_pr:
+        description: Optional merged main PR number; leave empty for all eligible team batches
+        required: false
+        default: ''
+        type: string
+  pull_request:
+    paths:
+      - '.github/workflows/bc-extrequest-backport.yml'
+      - '.github/workflows/ownership-classification.yml'
+      - '.github/scripts/bc-extrequest-backport/**'
+      - 'build/scripts/tests/OwnershipClassification.Test.ps1'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: pwsh
+
+concurrency:
+  group: extrequest-backport-${{ github.repository }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'publication' }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github/scripts/bc-extrequest-backport
+            .github/workflows
+            build/scripts/tests
+      - name: Run offline PowerShell tests
+        run: |
+          if (-not (Get-Module -ListAvailable Pester | Where-Object Version -eq '5.7.1')) {
+            Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force
+          }
+          Import-Module Pester -RequiredVersion 5.7.1
+          $result = Invoke-Pester -Path @(
+            './.github/scripts/bc-extrequest-backport/Backport.Test.ps1'
+            './build/scripts/tests/OwnershipClassification.Test.ps1'
+          ) -PassThru
+          if ($result.Result -ne 'Passed' -or $result.PassedCount -eq 0) {
+            throw 'Backport tests failed or no tests ran.'
+          }
+
+  discover:
+    needs: tests
+    if: >-
+      github.repository == 'microsoft/BCApps' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'schedule' &&
+        github.event.schedule == '10 21 * * 0' &&
+        vars.EXT_REQ_BACKPORT_ENABLED == 'true'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+      has-work: ${{ steps.discover.outputs.has-work }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+          sparse-checkout: .github/scripts/bc-extrequest-backport
+      - name: Discover team batches and independent requests
+        id: discover
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_PR: ${{ inputs.source_pr }}
+          TARGET_OVERRIDE: ${{ vars.EXT_REQ_BACKPORT_TARGET_BRANCH }}
+          BATCH_ID: ${{ github.run_id }}
+        run: |
+          Import-Module ./.github/scripts/bc-extrequest-backport/Backport.psm1 -Force
+          $requests = @(Find-ExtRequestBackportBatches -Repository $env:GITHUB_REPOSITORY `
+            -SourcePr $env:SOURCE_PR -TargetOverride $env:TARGET_OVERRIDE -BatchId $env:BATCH_ID)
+          "has-work=$(($requests.Count -gt 0).ToString().ToLowerInvariant())" |
+            Add-Content $env:GITHUB_OUTPUT
+          "matrix=$(@{ include = $requests } | ConvertTo-Json -Depth 60 -Compress)" |
+            Add-Content $env:GITHUB_OUTPUT
+
+  backport:
+    needs: discover
+    if: needs.discover.outputs.has-work == 'true'
+    runs-on: ubuntu-latest
+    environment: extensibility-agent
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
+    concurrency:
+      group: extrequest-backport-${{ github.repository }}-${{ matrix.concurrency_key || matrix.key }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+          sparse-checkout: .github/scripts/bc-extrequest-backport
+      - name: Prepare backport without publication credentials
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUEST_JSON: ${{ toJSON(matrix) }}
+        run: |
+          Import-Module ./.github/scripts/bc-extrequest-backport/Backport.psm1 -Force
+          $statePath = Join-Path $env:RUNNER_TEMP 'extrequest-backport/state.json'
+          New-ExtRequestBackportBatch -Repository $env:GITHUB_REPOSITORY `
+            -RequestJson $env:REQUEST_JSON -StatePath $statePath
+      - name: Mint fresh GitHub App publication token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.EXTENSIBILITY_CLIENT_ID }}
+          private-key: ${{ secrets.EXTENSIBILITY_TRIAGE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: BCApps
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+      - name: Publish backport
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BACKPORT_BOT_LOGIN: ${{ steps.app-token.outputs.app-slug }}[bot]
+        run: |
+          Import-Module ./.github/scripts/bc-extrequest-backport/Backport.psm1 -Force
+          Publish-ExtRequestBackportBatch -StatePath (Join-Path $env:RUNNER_TEMP 'extrequest-backport/state.json') `
+            -BotLogin $env:BACKPORT_BOT_LOGIN
