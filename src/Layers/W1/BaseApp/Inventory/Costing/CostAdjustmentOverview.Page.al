@@ -452,6 +452,13 @@ page 5801 "Cost Adjustment Overview"
                     Image = PostInventoryToGL;
                     RunObject = Report "Post Inventory Cost to G/L";
                 }
+                action("Value Entries to Post to G/L")
+                {
+                    Caption = 'Value entries to post to G/L';
+                    ToolTip = 'View the value entries whose cost is waiting to be posted to the general ledger, and clean up entries that are already fully posted.';
+                    Image = EntriesList;
+                    RunObject = page "Post Value Entries to G/L";
+                }
             }
             group(Diagnostics)
             {
@@ -569,6 +576,7 @@ page 5801 "Cost Adjustment Overview"
                 actionref("Exclude From Adjustment_Promoted"; "Exclude From Adjustment") { }
                 actionref("Include In Adjustment_Promoted"; "Include In Adjustment") { }
                 actionref("Post Inventory Cost to G/L_Promoted"; "Post Inventory Cost to G/L") { }
+                actionref("Value Entries to Post to G/L_Promoted"; "Value Entries to Post to G/L") { }
 
             }
             group("Diagnostics_Promoted")
