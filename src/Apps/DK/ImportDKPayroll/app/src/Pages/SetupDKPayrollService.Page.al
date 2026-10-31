@@ -28,7 +28,7 @@ page 13640 "Setup DK Payroll Service"
             {
                 Editable = true;
                 Enabled = true;
-                field("Payroll Trans. Import Format"; "Payroll Trans. Import Format")
+                field("Payroll Trans. Import Format"; Rec."Payroll Trans. Import Format")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the format of the payroll transaction file that can be imported into the General Journal window.';
@@ -43,10 +43,10 @@ page 13640 "Setup DK Payroll Service"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         FeatureTelemetry.LogUptake('0000H8Y', 'DK payroll service', Enum::"Feature Uptake Status"::"Set up");
-        Reset();
-        if not get() then begin
-            Init();
-            Insert();
+        Rec.Reset();
+        if not Rec.Get() then begin
+            Rec.Init();
+            Rec.Insert();
         end;
         ImportPayrollDataExchDef.Run();
     end;
