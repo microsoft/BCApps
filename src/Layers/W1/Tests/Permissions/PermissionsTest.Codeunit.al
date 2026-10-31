@@ -851,6 +851,310 @@ codeunit 139400 "Permissions Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PermOverviewReadPermissionFilter()
+    var
+        ExpandedPermission: Record "Expanded Permission";
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: array[3] of Record "Tenant Permission";
+        PermissionsOverview: TestPage "Permissions Overview";
+    begin
+        // [SCENARIO] The read permission filter correctly filters permissions
+
+        // [GIVEN] A tenant permission set with permissions for one of each read permission
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateRandomCode(TenantPermissionSet.FieldNo("Role ID"), Database::"Tenant Permission Set"), NullGuid);
+        TenantPermission[1] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::"Table Data", Database::Customer,
+            ExpandedPermission."Read Permission"::Yes,
+            ExpandedPermission."Insert Permission"::" ",
+            ExpandedPermission."Modify Permission"::" ",
+            ExpandedPermission."Delete Permission"::" ",
+            ExpandedPermission."Execute Permission"::" ");
+        TenantPermission[2] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::"Table Data", Database::Vendor,
+            ExpandedPermission."Read Permission"::Indirect,
+            ExpandedPermission."Insert Permission"::" ",
+            ExpandedPermission."Modify Permission"::" ",
+            ExpandedPermission."Delete Permission"::" ",
+            ExpandedPermission."Execute Permission"::" ");
+        TenantPermission[3] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::"Table Data", Database::Item,
+           ExpandedPermission."Read Permission"::" ",
+           ExpandedPermission."Insert Permission"::" ",
+           ExpandedPermission."Modify Permission"::" ",
+           ExpandedPermission."Delete Permission"::" ",
+           ExpandedPermission."Execute Permission"::Yes);
+
+        PermissionsOverview.OpenEdit();
+        PermissionsOverview.RoleIDFilter.SetValue(TenantPermissionSet."Role ID");
+        // [WHEN] The permissions overview page read permission is not filtered
+        // [THEN] All permissions are visible regardless of their read permission
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3]);
+        // [WHEN] The permissions overview page read permission is filtered to Yes
+        PermissionsOverview.ReadFilter.SetValue(Enum::"Permission Filter"::Yes);
+        // [THEN] Only permissions with read permission set to Yes are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1], TenantPermission[2]);
+        // [WHEN] The permissions overview page read permission is filtered to Indirect
+        PermissionsOverview.ReadFilter.SetValue(Enum::"Permission Filter"::Indirect);
+        // [THEN] Only permissions with read permission set to Indirect are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2], TenantPermission[1]);
+        // [WHEN] The permissions overview page read permission is filtered to No
+        PermissionsOverview.ReadFilter.SetValue(Enum::"Permission Filter"::No);
+        // [THEN] Only permissions with read permission set to No (i.e. " ") are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3], TenantPermission[1]);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PermOverviewInsertPermissionFilter()
+    var
+        ExpandedPermission: Record "Expanded Permission";
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: array[3] of Record "Tenant Permission";
+        PermissionsOverview: TestPage "Permissions Overview";
+    begin
+        // [SCENARIO] The insert permission filter correctly filters permissions
+
+        // [GIVEN] A tenant permission set with permissions for one of each insert permission
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateRandomCode(TenantPermissionSet.FieldNo("Role ID"), Database::"Tenant Permission Set"), NullGuid);
+        TenantPermission[1] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::"Table Data", Database::Customer,
+            ExpandedPermission."Read Permission"::" ",
+            ExpandedPermission."Insert Permission"::Yes,
+            ExpandedPermission."Modify Permission"::" ",
+            ExpandedPermission."Delete Permission"::" ",
+            ExpandedPermission."Execute Permission"::" ");
+        TenantPermission[2] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::"Table Data", Database::Vendor,
+            ExpandedPermission."Read Permission"::" ",
+            ExpandedPermission."Insert Permission"::Indirect,
+            ExpandedPermission."Modify Permission"::" ",
+            ExpandedPermission."Delete Permission"::" ",
+            ExpandedPermission."Execute Permission"::" ");
+        TenantPermission[3] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::"Table Data", Database::Item,
+            ExpandedPermission."Read Permission"::" ",
+            ExpandedPermission."Insert Permission"::" ",
+            ExpandedPermission."Modify Permission"::" ",
+            ExpandedPermission."Delete Permission"::" ",
+            ExpandedPermission."Execute Permission"::Yes);
+
+        PermissionsOverview.OpenEdit();
+        PermissionsOverview.RoleIDFilter.SetValue(TenantPermissionSet."Role ID");
+        // [WHEN] The permissions overview page insert permission is not filtered
+        // [THEN] All permissions are visible regardless of their insert permission
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3]);
+        // [WHEN] The permissions overview page insert permission is filtered to Yes
+        PermissionsOverview.InsertFilter.SetValue(Enum::"Permission Filter"::Yes);
+        // [THEN] Only permissions with insert permission set to Yes are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1], TenantPermission[2]);
+        // [WHEN] The permissions overview page insert permission is filtered to Indirect
+        PermissionsOverview.InsertFilter.SetValue(Enum::"Permission Filter"::Indirect);
+        // [THEN] Only permissions with insert permission set to Indirect are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2], TenantPermission[1]);
+        // [WHEN] The permissions overview page insert permission is filtered to No
+        PermissionsOverview.InsertFilter.SetValue(Enum::"Permission Filter"::No);
+        // [THEN] Only permissions with insert permission set to No (i.e. " ") are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3], TenantPermission[1]);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PermOverviewModifyPermissionFilter()
+    var
+        ExpandedPermission: Record "Expanded Permission";
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: array[3] of Record "Tenant Permission";
+        PermissionsOverview: TestPage "Permissions Overview";
+    begin
+        // [SCENARIO] The modify permission filter correctly filters permissions
+
+        // [GIVEN] A tenant permission set with permissions for one of each modify permission
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateRandomCode(TenantPermissionSet.FieldNo("Role ID"), Database::"Tenant Permission Set"), NullGuid);
+        TenantPermission[1] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::"Table Data", Database::Customer,
+            ExpandedPermission."Read Permission"::" ",
+            ExpandedPermission."Insert Permission"::" ",
+            ExpandedPermission."Modify Permission"::Yes,
+            ExpandedPermission."Delete Permission"::" ",
+            ExpandedPermission."Execute Permission"::" ");
+        TenantPermission[2] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::"Table Data", Database::Vendor,
+            ExpandedPermission."Read Permission"::" ",
+            ExpandedPermission."Insert Permission"::" ",
+            ExpandedPermission."Modify Permission"::Indirect,
+            ExpandedPermission."Delete Permission"::" ",
+            ExpandedPermission."Execute Permission"::" ");
+        TenantPermission[3] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::"Table Data", Database::Item,
+            ExpandedPermission."Read Permission"::" ",
+            ExpandedPermission."Insert Permission"::" ",
+            ExpandedPermission."Modify Permission"::" ",
+            ExpandedPermission."Delete Permission"::" ",
+            ExpandedPermission."Execute Permission"::Yes);
+
+        PermissionsOverview.OpenEdit();
+        PermissionsOverview.RoleIDFilter.SetValue(TenantPermissionSet."Role ID");
+        // [WHEN] The permissions overview page modify permission is not filtered
+        // [THEN] All permissions are visible regardless of their modify permission
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3]);
+        // [WHEN] The permissions overview page modify permission is filtered to Yes
+        PermissionsOverview.ModifyFilter.SetValue(Enum::"Permission Filter"::Yes);
+        // [THEN] Only permissions with modify permission set to Yes are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1], TenantPermission[2]);
+        // [WHEN] The permissions overview page modify permission is filtered to Indirect
+        PermissionsOverview.ModifyFilter.SetValue(Enum::"Permission Filter"::Indirect);
+        // [THEN] Only permissions with modify permission set to Indirect are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2], TenantPermission[1]);
+        // [WHEN] The permissions overview page modify permission is filtered to No
+        PermissionsOverview.ModifyFilter.SetValue(Enum::"Permission Filter"::No);
+        // [THEN] Only permissions with modify permission set to No (i.e. " ") are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3], TenantPermission[1]);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PermOverviewDeletePermissionFilter()
+    var
+        ExpandedPermission: Record "Expanded Permission";
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: array[3] of Record "Tenant Permission";
+        PermissionsOverview: TestPage "Permissions Overview";
+    begin
+        // [SCENARIO] The delete permission filter correctly filters permissions
+
+        // [GIVEN] A tenant permission set with permissions for one of each delete permission
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateRandomCode(TenantPermissionSet.FieldNo("Role ID"), Database::"Tenant Permission Set"), NullGuid);
+        TenantPermission[1] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::"Table Data", Database::Customer,
+            ExpandedPermission."Read Permission"::" ",
+            ExpandedPermission."Insert Permission"::" ",
+            ExpandedPermission."Modify Permission"::" ",
+            ExpandedPermission."Delete Permission"::Yes,
+            ExpandedPermission."Execute Permission"::" ");
+        TenantPermission[2] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::"Table Data", Database::Vendor,
+            ExpandedPermission."Read Permission"::" ",
+            ExpandedPermission."Insert Permission"::" ",
+            ExpandedPermission."Modify Permission"::" ",
+            ExpandedPermission."Delete Permission"::Indirect,
+            ExpandedPermission."Execute Permission"::" ");
+        TenantPermission[3] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::"Table Data", Database::Item,
+            ExpandedPermission."Read Permission"::" ",
+            ExpandedPermission."Insert Permission"::" ",
+            ExpandedPermission."Modify Permission"::" ",
+            ExpandedPermission."Delete Permission"::" ",
+            ExpandedPermission."Execute Permission"::Yes);
+
+        PermissionsOverview.OpenEdit();
+        PermissionsOverview.RoleIDFilter.SetValue(TenantPermissionSet."Role ID");
+        // [WHEN] The permissions overview page delete permission is not filtered
+        // [THEN] All permissions are visible regardless of their delete permission
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3]);
+        // [WHEN] The permissions overview page delete permission is filtered to Yes
+        PermissionsOverview.DeleteFilter.SetValue(Enum::"Permission Filter"::Yes);
+        // [THEN] Only permissions with delete permission set to Yes are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1], TenantPermission[2]);
+        // [WHEN] The permissions overview page delete permission is filtered to Indirect
+        PermissionsOverview.DeleteFilter.SetValue(Enum::"Permission Filter"::Indirect);
+        // [THEN] Only permissions with delete permission set to Indirect are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2], TenantPermission[1]);
+        // [WHEN] The permissions overview page delete permission is filtered to No
+        PermissionsOverview.DeleteFilter.SetValue(Enum::"Permission Filter"::No);
+        // [THEN] Only permissions with delete permission set to No (i.e. " ") are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3], TenantPermission[1]);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PermOverviewExecutePermissionFilter()
+    var
+        ExpandedPermission: Record "Expanded Permission";
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: array[3] of Record "Tenant Permission";
+        PermissionsOverview: TestPage "Permissions Overview";
+    begin
+        // [SCENARIO] The execute permission filter correctly filters permissions
+
+        // [GIVEN] A tenant permission set with permissions for one of each execute permission
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateRandomCode(TenantPermissionSet.FieldNo("Role ID"), Database::"Tenant Permission Set"), NullGuid);
+        TenantPermission[1] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::Codeunit, Codeunit::"Sales-Post",
+            ExpandedPermission."Read Permission"::" ",
+            ExpandedPermission."Insert Permission"::" ",
+            ExpandedPermission."Modify Permission"::" ",
+            ExpandedPermission."Delete Permission"::" ",
+            ExpandedPermission."Execute Permission"::Yes);
+        TenantPermission[2] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::Codeunit, Codeunit::"Purch.-Post",
+            ExpandedPermission."Read Permission"::" ",
+            ExpandedPermission."Insert Permission"::" ",
+            ExpandedPermission."Modify Permission"::" ",
+            ExpandedPermission."Delete Permission"::" ",
+            ExpandedPermission."Execute Permission"::Indirect);
+        TenantPermission[3] := CreateTenantPermission(TenantPermissionSet, ExpandedPermission."Object Type"::Codeunit, Codeunit::"Gen. Jnl.-Post",
+            ExpandedPermission."Read Permission"::Yes,
+            ExpandedPermission."Insert Permission"::" ",
+            ExpandedPermission."Modify Permission"::" ",
+            ExpandedPermission."Delete Permission"::" ",
+            ExpandedPermission."Execute Permission"::" ");
+
+        PermissionsOverview.OpenEdit();
+        PermissionsOverview.RoleIDFilter.SetValue(TenantPermissionSet."Role ID");
+        // [WHEN] The permissions overview page execute permission is not filtered
+        // [THEN] All permissions are visible regardless of their execute permission
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2]);
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3]);
+        // [WHEN] The permissions overview page execute permission is filtered to Yes
+        PermissionsOverview.ExecuteFilter.SetValue(Enum::"Permission Filter"::Yes);
+        // [THEN] Only permissions with execute permission set to Yes are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[1], TenantPermission[2]);
+        // [WHEN] The permissions overview page execute permission is filtered to Indirect
+        PermissionsOverview.ExecuteFilter.SetValue(Enum::"Permission Filter"::Indirect);
+        // [THEN] Only permissions with execute permission set to Indirect are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[2], TenantPermission[1]);
+        // [WHEN] The permissions overview page execute permission is filtered to No
+        PermissionsOverview.ExecuteFilter.SetValue(Enum::"Permission Filter"::No);
+        // [THEN] Only permissions with execute permission set to No (i.e. " ") are visible
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermission[3], TenantPermission[1]);
+    end;
+
+    local procedure CreateTenantPermission(TenantPermissionSet: Record "Tenant Permission Set"; ObjectType: Option; ObjectID: Integer; R: Option; I: Option; M: Option; D: Option; E: Option) TenantPermission: Record "Tenant Permission";
+    begin
+        TenantPermission.Init();
+        TenantPermission."App ID" := TenantPermissionSet."App ID";
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := ObjectType;
+        TenantPermission."Object ID" := ObjectID;
+        TenantPermission."Read Permission" := R;
+        TenantPermission."Insert Permission" := I;
+        TenantPermission."Modify Permission" := M;
+        TenantPermission."Delete Permission" := D;
+        TenantPermission."Execute Permission" := E;
+        TenantPermission.Insert(true);
+    end;
+
+    local procedure AssertPermOverviewObjPerm(var PermissionsOverview: TestPage "Permissions Overview"; TenantPermissionExpected: Record "Tenant Permission")
+    var
+        BlankTenantPermission: Record "Tenant Permission";
+    begin
+        AssertPermOverviewObjPerm(PermissionsOverview, TenantPermissionExpected, BlankTenantPermission);
+    end;
+
+    local procedure AssertPermOverviewObjPerm(var PermissionsOverview: TestPage "Permissions Overview"; TenantPermissionExpected: Record "Tenant Permission"; TenantPermissionUnexpected: Record "Tenant Permission")
+    begin
+        PermissionsOverview.ObjTypeFilter.SetValue(TenantPermissionExpected."Object Type" + 1);
+        PermissionsOverview.ObjIDFilter.SetValue(TenantPermissionExpected."Object ID");
+        Assert.IsTrue(PermissionsOverview.First(), StrSubstNo('Expected permission %1 %2 not found', TenantPermissionExpected."Object Type", TenantPermissionExpected."Object ID"));
+        PermissionsOverview.ReadPermission.AssertEquals(TenantPermissionExpected."Read Permission");
+        PermissionsOverview.InsertPermission.AssertEquals(TenantPermissionExpected."Insert Permission");
+        PermissionsOverview.ModifyPermission.AssertEquals(TenantPermissionExpected."Modify Permission");
+        PermissionsOverview.DeletePermission.AssertEquals(TenantPermissionExpected."Delete Permission");
+        PermissionsOverview.ExecutePermission.AssertEquals(TenantPermissionExpected."Execute Permission");
+        if TenantPermissionUnexpected."Object ID" <> 0 then begin
+            PermissionsOverview.ObjTypeFilter.SetValue(TenantPermissionUnexpected."Object Type" + 1);
+            PermissionsOverview.ObjIDFilter.SetValue(TenantPermissionUnexpected."Object ID");
+            Assert.IsFalse(PermissionsOverview.First(), StrSubstNo('Unexpected permission %1 %2 found', TenantPermissionUnexpected."Object Type", TenantPermissionUnexpected."Object ID"));
+        end;
+    end;
+
+    [Test]
     [HandlerFunctions('RemoveObsoletePermissionsMessageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
