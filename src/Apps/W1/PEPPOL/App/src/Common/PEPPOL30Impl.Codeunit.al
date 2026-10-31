@@ -1059,6 +1059,8 @@ codeunit 37201 "PEPPOL30 Impl."
 
     procedure GetLineRequestedDeliveryPeriod(PurchaseLine: Record "Purchase Line"; var StartDate: Text; var EndDate: Text)
     begin
+        StartDate := '';
+        EndDate := '';
         if PurchaseLine."Requested Receipt Date" = 0D then
             exit;
 
@@ -2005,6 +2007,8 @@ codeunit 37201 "PEPPOL30 Impl."
 
     procedure GetRequestedDeliveryPeriod(PurchaseHeader: Record "Purchase Header"; var StartDate: Text; var EndDate: Text)
     begin
+        StartDate := '';
+        EndDate := '';
         if PurchaseHeader."Requested Receipt Date" = 0D then
             exit;
 
