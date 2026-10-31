@@ -713,21 +713,21 @@ page 7024 "Prices Overview"
             PriceSource."Source Type"::Customer:
                 begin
                     SalesSrcTableName := ObjTranslation.TranslateObject(ObjTranslation."Object Type"::Table, 18);
-                    Cust."No." := CopyStr(SourceNoFilter, 1, MaxStrLen(Cust."No."));
+                    Cust.SetFilter("No.", SourceNoFilter);
                     if Cust.FindFirst() then
                         Description := Cust.Name;
                 end;
             PriceSource."Source Type"::"Customer Price Group":
                 begin
                     SalesSrcTableName := ObjTranslation.TranslateObject(ObjTranslation."Object Type"::Table, 6);
-                    CustPriceGr.Code := CopyStr(SourceNoFilter, 1, MaxStrLen(CustPriceGr.Code));
+                    CustPriceGr.SetFilter(Code, SourceNoFilter);
                     if CustPriceGr.FindFirst() then
                         Description := CustPriceGr.Description;
                 end;
             PriceSource."Source Type"::Campaign:
                 begin
                     SalesSrcTableName := ObjTranslation.TranslateObject(ObjTranslation."Object Type"::Table, 5071);
-                    Campaign."No." := CopyStr(SourceNoFilter, 1, MaxStrLen(Campaign."No."));
+                    Campaign.SetFilter("No.", SourceNoFilter);
                     if Campaign.FindFirst() then
                         Description := Campaign.Description;
                 end;
