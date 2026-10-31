@@ -208,8 +208,13 @@ codeunit 22200 "Review G/L Entry" implements "G/L Entry Reviewer"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"G/L Entry", 'OnSkipGLEntryByReviewStatus', '', false, false)]
-    local procedure OnSkipGLEntryByReviewStatus(var GLEntry: Record "G/L Entry"; ReviewStatus: Option All,Reviewed,"Not Reviewed"; EvaluationDate: Date; Skip: Boolean)
+    local procedure OnSkipGLEntryByReviewStatus(var GLEntry: Record "G/L Entry"; ReviewStatus: Option All,Reviewed,"Not Reviewed"; EvaluationDate: Date; var Skip: Boolean)
     begin
+        if Skip then
+            exit;
+        if ReviewStatus = ReviewStatus::All then
+            exit;
+        GLEntry.CalcFields("Reviewed Date");
         if EvaluationDate <> 0D then
             case ReviewStatus of
                 ReviewStatus::Reviewed:

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Reports;
 
+#if not CLEAN30
+using Microsoft.Finance.FinancialReports;
+#endif
 using Microsoft.Finance.GeneralLedger.Account;
 using System.Utilities;
 
@@ -35,14 +38,24 @@ report 7 "Trial Balance/Previous Year"
             column(CompanyName; COMPANYPROPERTY.DisplayName())
             {
             }
+#if not CLEAN30
             column(GLFilter_GLAccount; "G/L Account".TableCaption + ': ' + GLFilter)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                ObsoleteTag = '30.0';
             }
             column(GLFilter; GLFilter)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                ObsoleteTag = '30.0';
             }
             column(Period; LongText1[1] + LongText1[2] + LongText1[3] + LongText1[4])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                ObsoleteTag = '30.0';
             }
             column(EmptyString; '')
             {
@@ -55,6 +68,9 @@ report 7 "Trial Balance/Previous Year"
             }
             column(CurrReportPageNoCaption; CurrReportPageNoCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                ObsoleteTag = '30.0';
             }
             column(NetChangeCaption; NetChangeCaptionLbl)
             {
@@ -64,39 +80,121 @@ report 7 "Trial Balance/Previous Year"
             }
             column(PADSTRGLAccountIndentation2GLAccountNameCaption; PADSTRGLAccountIndentation2GLAccountNameCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                ObsoleteTag = '30.0';
             }
             column(FiscalYearDebitChangeCaption; FiscalYearDebitChangeCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                ObsoleteTag = '30.0';
             }
             column(FiscalYearCreditChangeCaption; FiscalYearCreditChangeCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                ObsoleteTag = '30.0';
             }
             column(NetChangeIncreasePctCaption; NetChangeIncreasePctCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                ObsoleteTag = '30.0';
             }
             column(LastYearNetChangeCaption; LastYearNetChangeCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                ObsoleteTag = '30.0';
             }
+#else
+            column(GLAccTableCaptionGLFilter; TableCaption + ': ' + GLFilter)
+            {
+            }
+            column(LongText; LongText1[1] + LongText1[2] + LongText1[3] + LongText1[4])
+            {
+            }
+            column(EmptyString; '')
+            {
+            }
+            column(TrialBalancePreviousYearCaption; TrialBalancePreviousYearCaptionLbl)
+            {
+            }
+            column(PageNoCaption; PageNoCaptionLbl)
+            {
+            }
+            column(NetChangeCaption; NetChangeCaptionLbl)
+            {
+            }
+            column(BalanceCaption; BalanceCaptionLbl)
+            {
+            }
+            column(NameCaption; NameCaptionLbl)
+            {
+            }
+            column(DebitCaption; DebitCaptionLbl)
+            {
+            }
+            column(CreditCaption; CreditCaptionLbl)
+            {
+            }
+            column(PercentCaption; PercentCaptionLbl)
+            {
+            }
+            column(LastYearCaption; LastYearCaptionLbl)
+            {
+            }
+#endif
             dataitem("Integer"; "Integer")
             {
                 DataItemTableView = sorting(Number) where(Number = const(1));
+#if not CLEAN30
                 column(No1_GLAccount; "G/L Account"."No.")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                    ObsoleteTag = '30.0';
                     IncludeCaption = true;
                 }
                 column(GLAccountNameIndented; PadStr('', "G/L Account".Indentation * 2) + "G/L Account".Name)
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                    ObsoleteTag = '30.0';
                 }
-                column(FiscalYearNetChange; FiscalYearDebitChange)
+                column(FiscalYearNetChange; GetFiscalYearNetChange())
                 {
                     AutoFormatType = 1;
                     DecimalPlaces = 0 : 0;
                 }
                 column(FiscalYearCreditChange; FiscalYearCreditChange)
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                    ObsoleteTag = '30.0';
                     AutoFormatType = 1;
                     DecimalPlaces = 0 : 0;
                 }
+#else
+                column(No_GLAccount; "G/L Account"."No.")
+                {
+                    IncludeCaption = true;
+                }
+                column(GLAccIndentationGLAccName; PadStr('', "G/L Account".Indentation * 2) + "G/L Account".Name)
+                {
+                }
+                column(FiscalYearNetChange; FiscalYearNetChange)
+                {
+                    AutoFormatType = 1;
+                    DecimalPlaces = 0 : 0;
+                }
+                column(NegFiscalYearNetChange; -FiscalYearNetChange)
+                {
+                    AutoFormatType = 1;
+                    DecimalPlaces = 0 : 0;
+                }
+#endif
                 column(NetChangeIncreasePct; NetChangeIncreasePct)
                 {
                     DecimalPlaces = 1 : 1;
@@ -106,16 +204,35 @@ report 7 "Trial Balance/Previous Year"
                     AutoFormatType = 1;
                     DecimalPlaces = 0 : 0;
                 }
+#if not CLEAN30
                 column(FiscalYearDebitBalance; FiscalYearDebitBalance)
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                    ObsoleteTag = '30.0';
                     AutoFormatType = 1;
                     DecimalPlaces = 0 : 0;
                 }
                 column(FiscalYearCreditBalance; FiscalYearCreditBalance)
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+                    ObsoleteTag = '30.0';
                     AutoFormatType = 1;
                     DecimalPlaces = 0 : 0;
                 }
+#else
+                column(FiscalYearBalance; FiscalYearBalance)
+                {
+                    AutoFormatType = 1;
+                    DecimalPlaces = 0 : 0;
+                }
+                column(NegFiscalYearBalance; -FiscalYearBalance)
+                {
+                    AutoFormatType = 1;
+                    DecimalPlaces = 0 : 0;
+                }
+#endif
                 column(BalanceIncreasePct; BalanceIncreasePct)
                 {
                     DecimalPlaces = 1 : 1;
@@ -131,9 +248,11 @@ report 7 "Trial Balance/Previous Year"
                 column(GLAccountType; GLAccountType)
                 {
                 }
+#if not CLEAN30
                 column(NoofBlankLines_GLAccount; "G/L Account"."No. of Blank Lines")
                 {
                 }
+#endif
                 dataitem(BlankLineRepeater; "Integer")
                 {
                     DataItemTableView = sorting(Number);
@@ -160,22 +279,36 @@ report 7 "Trial Balance/Previous Year"
             begin
                 ReqFormDateFilter := GetFilter("Date Filter");
 
+#if not CLEAN30
                 SetFilter("Date Filter", '<=%1', FiscalYearEndDate);
                 CalcFields("Debit Amount", "Credit Amount");
                 FiscalYearDebitBalance := "Debit Amount";
                 FiscalYearCreditBalance := "Credit Amount";
+#endif
                 SetRange("Date Filter", FiscalYearStartDate, FiscalYearEndDate);
+#if not CLEAN30
                 CalcFields("Debit Amount", "Credit Amount", "Net Change", "Balance at Date");
+#else
+                CalcFields("Net Change", "Balance at Date");
+#endif
                 FiscalYearBalance := "Balance at Date";
                 FiscalYearNetChange := "Net Change";
+#if not CLEAN30
                 FiscalYearDebitChange := "Debit Amount";
                 FiscalYearCreditChange := "Credit Amount";
+#endif
                 SetRange("Date Filter", LastYearStartDate, LastYearEndDate);
+#if not CLEAN30
                 CalcFields("Debit Amount", "Credit Amount", "Net Change", "Balance at Date");
+#else
+                CalcFields("Net Change", "Balance at Date");
+#endif
                 LastYearBalance := "Balance at Date";
                 LastYearNetChange := "Net Change";
+#if not CLEAN30
                 LastYearDebitChange := "Debit Amount";
                 LastYearCreditChange := "Credit Amount";
+#endif
                 if LastYearNetChange <> 0 then
                     NetChangeIncreasePct := Round(FiscalYearNetChange / LastYearNetChange * 100, 0.1)
                 else
@@ -233,7 +366,11 @@ report 7 "Trial Balance/Previous Year"
         layout(RDLCLayout)
         {
             Type = RDLC;
+#if not CLEAN30
             LayoutFile = './Finance/GeneralLedger/Reports/TrialBalancePreviousYear.rdlc';
+#else
+            LayoutFile = './Finance/GeneralLedger/Reports/TrialBalancePreviousYearW1.rdlc';
+#endif
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
@@ -269,21 +406,35 @@ report 7 "Trial Balance/Previous Year"
         PageGroupNo: Integer;
         GLAccountType: Integer;
         IsNewPage: Boolean;
+#if not CLEAN30
         FiscalYearDebitChange: Decimal;
         FiscalYearCreditChange: Decimal;
         FiscalYearDebitBalance: Decimal;
         FiscalYearCreditBalance: Decimal;
         LastYearDebitChange: Decimal;
         LastYearCreditChange: Decimal;
+#endif
         TrialBalancePreviousYearCaptionLbl: Label 'Trial Balance/Previous Year';
+#if not CLEAN30
         CurrReportPageNoCaptionLbl: Label 'Page';
+#else
+        PageNoCaptionLbl: Label 'Page';
+#endif
         NetChangeCaptionLbl: Label 'Net Change';
         BalanceCaptionLbl: Label 'Balance';
+#if not CLEAN30
         PADSTRGLAccountIndentation2GLAccountNameCaptionLbl: Label 'Name';
         FiscalYearDebitChangeCaptionLbl: Label 'Debit';
         FiscalYearCreditChangeCaptionLbl: Label 'Credit';
         NetChangeIncreasePctCaptionLbl: Label '% of';
         LastYearNetChangeCaptionLbl: Label 'Last Year';
+#else
+        NameCaptionLbl: Label 'Name';
+        DebitCaptionLbl: Label 'Debit';
+        CreditCaptionLbl: Label 'Credit';
+        PercentCaptionLbl: Label '% of';
+        LastYearCaptionLbl: Label 'Last Year';
+#endif
         BlankLineNo: Integer;
 
     protected var
@@ -296,5 +447,15 @@ report 7 "Trial Balance/Previous Year"
         FiscalYearBalance: Decimal;
         FiscalYearStartDate: Date;
         FiscalYearEndDate: Date;
-}
 
+#if not CLEAN30
+    local procedure GetFiscalYearNetChange(): Decimal
+    var
+        FinancialScheduleMgt: Codeunit "FR AccSchedManagement";
+    begin
+        if FinancialScheduleMgt.IsReportsFREnabled() then
+            exit(FiscalYearNetChange);
+        exit(FiscalYearDebitChange);
+    end;
+#endif
+}

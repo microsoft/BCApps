@@ -939,27 +939,30 @@ codeunit 101085 "Create Acc. Schedule Line"
 
     procedure InsertDataFR("Schedule Name": Code[10]; "Row No.": Code[10]; Description: Text[80]; Totaling: Text[250]; "Totaling Type": Option; "New Page": Boolean; "Totaling Debtor": Text[250]; "Totaling Creditor": Text[250]; "Calculate with": Option Normal,Opposite; "Totaling 2": Text[250])
     var
-        "Account Schedule Line": Record "FR Acc. Schedule Line";
+        ScheduleNameCreator: Codeunit "Create Acc. Schedule Name";
+        ScheduleLine: RecordRef;
     begin
-        "Account Schedule Line".Init();
-        "Account Schedule Line".Validate("Schedule Name", "Schedule Name");
+        ScheduleLine.Open(ScheduleNameCreator.GetFinancialScheduleLineTableID());
+        ScheduleLine.Init();
+        ScheduleLine.Field(1).Validate("Schedule Name");
         if "Previous Schedule Name" <> "Schedule Name" then begin
             "Line No." := 10000;
             "Previous Schedule Name" := "Schedule Name";
         end else
             "Line No." := "Line No." + 10000;
 
-        "Account Schedule Line".Validate("Line No.", "Line No.");
-        "Account Schedule Line".Validate("Row No.", "Row No.");
-        "Account Schedule Line".Validate(Description, Description);
-        "Account Schedule Line".Validate(Totaling, Totaling);
-        "Account Schedule Line".Validate("Totaling Type", "Totaling Type");
-        "Account Schedule Line".Validate("New Page", "New Page");
-        "Account Schedule Line".Validate("Totaling Debtor", "Totaling Debtor");
-        "Account Schedule Line".Validate("Totaling Creditor", "Totaling Creditor");
-        "Account Schedule Line".Validate("Calculate with", "Calculate with");
-        "Account Schedule Line".Validate("Totaling 2", "Totaling 2");
-        "Account Schedule Line".Insert();
+        ScheduleLine.Field(2).Validate("Line No.");
+        ScheduleLine.Field(3).Validate("Row No.");
+        ScheduleLine.Field(4).Validate(Description);
+        ScheduleLine.Field(5).Validate(Totaling);
+        ScheduleLine.Field(6).Validate("Totaling Type");
+        ScheduleLine.Field(7).Validate("New Page");
+        ScheduleLine.Field(10800).Validate("Totaling Debtor");
+        ScheduleLine.Field(10801).Validate("Totaling Creditor");
+        ScheduleLine.Field(10802).Validate("Calculate with");
+        ScheduleLine.Field(10803).Validate("Totaling 2");
+        ScheduleLine.Insert();
+        ScheduleLine.Close();
     end;
 
     procedure InsertMiniAppData(ScheduleName: Code[10]; RowNo: Code[10]; Description: Text[80]; Totaling: Text[250]; TotalingType: Enum "Acc. Schedule Line Totaling Type"; RowType: Option; ShowOppositeSign: Boolean)

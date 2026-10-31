@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA33
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -6,9 +7,22 @@ namespace Microsoft.Finance.FinancialReports;
 
 table 10800 "FR Acc. Schedule Name"
 {
+    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+#if CLEAN30
+    ReplicateData = false;
+#endif
+#if not CLEAN30
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '33.0';
+#endif
     Caption = 'FR Acc. Schedule Name';
     DataCaptionFields = Name, Description;
+#if not CLEAN30
     LookupPageID = "FR Account Schedule Names";
+#endif
     DataClassification = CustomerContent;
 
     fields
@@ -62,6 +76,9 @@ table 10800 "FR Acc. Schedule Name"
     end;
 
     var
+#pragma warning disable AS0105
         AccSchedLine: Record "FR Acc. Schedule Line";
+#pragma warning restore AS0105
 }
 
+#endif

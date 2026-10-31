@@ -821,7 +821,7 @@ report 122 "Reminder - Test"
 
     rendering
     {
-#if not CLEAN28
+#if not CLEAN29
         layout(RDLCLayout)
         {
             Type = RDLC;
@@ -964,4 +964,3 @@ report 122 "Reminder - Test"
         ShowDim := NewShowDim;
     end;
 }
-

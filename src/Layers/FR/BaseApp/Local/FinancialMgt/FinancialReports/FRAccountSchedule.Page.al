@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+#if not CLEAN30
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -6,6 +7,9 @@ namespace Microsoft.Finance.FinancialReports;
 
 page 10801 "FR Account Schedule"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
     AutoSplitKey = true;
     Caption = 'FR Account Schedule';
     DataCaptionFields = "Schedule Name";
@@ -140,7 +144,14 @@ page 10801 "FR Account Schedule"
     }
 
     trigger OnOpenPage()
+    var
+        Handled: Boolean;
     begin
+        OnBeforeOpenFinancialSchedule(CurrentSchedName, Rec, Handled);
+        if Handled then begin
+            CurrPage.Close();
+            exit;
+        end;
         AccSchedManagement.OpenSchedule(CurrentSchedName, Rec);
     end;
 
@@ -149,7 +160,6 @@ page 10801 "FR Account Schedule"
         AccSchedManagement: Codeunit "FR AccSchedManagement";
         CurrentSchedName: Code[10];
 
-    [Scope('OnPrem')]
     procedure SetAccSchedName(NewAccSchedName: Code[10])
     begin
         CurrentSchedName := NewAccSchedName;
@@ -161,5 +171,10 @@ page 10801 "FR Account Schedule"
         AccSchedManagement.SetName(CurrentSchedName, Rec);
         CurrPage.Update(false);
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOpenFinancialSchedule(ScheduleName: Code[10]; ScheduleLine: Record "FR Acc. Schedule Line"; var Handled: Boolean)
+    begin
+    end;
+}
+#endif

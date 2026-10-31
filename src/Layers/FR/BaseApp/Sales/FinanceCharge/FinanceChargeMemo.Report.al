@@ -681,7 +681,7 @@ report 118 "Finance Charge Memo"
 
     rendering
     {
-#if not CLEAN28
+#if not CLEAN29
         layout(RDLCLayout)
         {
             Type = RDLC;
@@ -853,4 +853,3 @@ report 118 "Finance Charge Memo"
         LogInteraction := NewLogInteraction;
     end;
 }
-

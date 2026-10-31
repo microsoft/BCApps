@@ -1,7 +1,11 @@
+#if not CLEAN30
 codeunit 144042 "UT REP Number To Text"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+    ObsoleteReason = 'Moved to the Reports FR extension.';
 
     trigger OnRun()
     begin
@@ -116,7 +120,9 @@ codeunit 144042 "UT REP Number To Text"
     begin
         Check.InitTextVariable();
         Check.FormatNoText(TextStandard, Amount, '');
+#pragma warning disable AL0432
         Check.FormatNoTextFR(TextFR, Amount, '');
+#pragma warning restore AL0432
     end;
 
     local procedure ConvertNumToTextINTL(Amount: Decimal; var TextStandard: array[2] of Text[80]; var TextINTL: array[2] of Text[80])
@@ -125,7 +131,9 @@ codeunit 144042 "UT REP Number To Text"
     begin
         Check.InitTextVariable();
         Check.FormatNoText(TextStandard, Amount, '');
+#pragma warning disable AL0432
         Check.FormatNoTextINTL(TextINTL, Amount, '');
+#pragma warning restore AL0432
     end;
 }
-
+#endif

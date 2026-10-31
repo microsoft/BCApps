@@ -1,3 +1,4 @@
+#if not CLEAN30
 codeunit 144006 "UT REP Apply GL Entries"
 {
     // Test for feature APPLGLENTR - Apply GL Entries.
@@ -178,4 +179,4 @@ codeunit 144006 "UT REP Apply GL Entries"
         GLAccountStatement.SaveAsExcel(LibraryReportValidation.GetFileName());
     end;
 }
-
+#endif
