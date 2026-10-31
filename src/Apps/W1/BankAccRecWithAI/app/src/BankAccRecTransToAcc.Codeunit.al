@@ -24,7 +24,6 @@ codeunit 7251 "Bank Acc. Rec. Trans. to Acc."
         TexttoAccountMapping: Record "Text-to-Account Mapping";
         RecordMatchMgt: Codeunit "Record Match Mgt.";
         AzureOpenAI: Codeunit "Azure OpenAi";
-        AOAIDeployments: Codeunit "AOAI Deployments";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIPolicyParams: Codeunit "AOAI Policy Params";
@@ -49,7 +48,7 @@ codeunit 7251 "Bank Acc. Rec. Trans. to Acc."
 
         FeatureTelemetry.LogUptake('0000LEV', BankRecAIMatchingImpl.FeatureName(), Enum::"Feature Uptake Status"::"Set up");
         FeatureTelemetry.LogUptake('0000LEW', BankRecAIMatchingImpl.FeatureName(), Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000LEX', BankRecAIMatchingImpl.FeatureName(), 'Post Difference to G/L Account proposals');
+        FeatureTelemetry.LogUsage('0000LEX', BankRecAIMatchingImpl.FeatureName(), 'Post Difference to G/L Account proposals', BankRecAIMatchingImpl.GetModelTelemetryDimensions());
 
         // for bank account reconciliation lines whose description is mapped to a G/L Account in Text-to Account Mapping, add the result immediately
         // mark bank account reconciliation lines whose description is not mapped to a G/L Account in Text-to Account Mapping
@@ -75,7 +74,7 @@ codeunit 7251 "Bank Acc. Rec. Trans. to Acc."
         BestGLAccountNo := '';
         BankAccReconciliationLine.MarkedOnly(true);
         if not BankAccReconciliationLine.IsEmpty() then begin
-            AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
+            AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", BankRecAIMatchingImpl.GetChatCompletionsDeployment());
             AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Bank Account Reconciliation");
             AOAIPolicyParams.SetXPIADetection(true);
             AOAIPolicyParams.SetHarmsSeverity(Enum::"AOAI Policy Harms Severity"::Medium);
@@ -113,33 +112,27 @@ codeunit 7251 "Bank Acc. Rec. Trans. to Acc."
 
     procedure ProcessCompletionAnswer(var CompletionAnswerTxt: Text; var Result: Dictionary of [Integer, Code[20]])
     var
+        BankRecAIMatchingImpl: Codeunit "Bank Rec. AI Matching Impl.";
         BestGLAccountNoTxt: Text;
         BestGLAccountNo: Code[20];
         LineNo: Integer;
-        FirstOpenParenthesisPos: Integer;
-        FirstClosedParenthesisPos: Integer;
+        CommaPos: Integer;
         LineNoTxt: Text;
         MatchCoupleTxt: Text;
     begin
-        FirstOpenParenthesisPos := StrPos(CompletionAnswerTxt, '(');
-        FirstClosedParenthesisPos := StrPos(CompletionAnswerTxt, ')');
-        while (FirstClosedParenthesisPos - FirstOpenParenthesisPos > 1) do begin
-            MatchCoupleTxt := CopyStr(CompletionAnswerTxt, FirstOpenParenthesisPos + 1, FirstClosedParenthesisPos - FirstOpenParenthesisPos - 1).Trim();
-            LineNoTxt := CopyStr(MatchCoupleTxt, 1, StrPos(MatchCoupleTxt, ',') - 1).Trim().Replace('(', '');
-            Evaluate(LineNo, LineNoTxt);
-            BestGLAccountNoTxt := CopyStr(MatchCoupleTxt, StrPos(MatchCoupleTxt, ',') + 1).Trim().Replace(')', '');
-            if BestGLAccountNoTxt <> '' then begin
-                BestGLAccountNo := CopyStr(UpperCase(BestGLAccountNoTxt), 1, MaxStrLen(BestGLAccountNo));
-                if not Result.ContainsKey(LineNo) then
-                    Result.Add(LineNo, BestGLAccountNo);
+        // Expected match format: (Statement Line Id, G/L Account Id). Any other parenthesized text is ignored.
+        while BankRecAIMatchingImpl.GetNextParenthesizedText(CompletionAnswerTxt, MatchCoupleTxt) do begin
+            CommaPos := StrPos(MatchCoupleTxt, ',');
+            if CommaPos > 0 then begin
+                LineNoTxt := BankRecAIMatchingImpl.NormalizeCompletionAnswerId(CopyStr(MatchCoupleTxt, 1, CommaPos - 1));
+                BestGLAccountNoTxt := BankRecAIMatchingImpl.NormalizeCompletionAnswerId(CopyStr(MatchCoupleTxt, CommaPos + 1));
+                if (LineNoTxt <> '') and (BestGLAccountNoTxt <> '') and (StrLen(BestGLAccountNoTxt) <= MaxStrLen(BestGLAccountNo)) then
+                    if Evaluate(LineNo, LineNoTxt) then begin
+                        BestGLAccountNo := CopyStr(UpperCase(BestGLAccountNoTxt), 1, MaxStrLen(BestGLAccountNo));
+                        if not Result.ContainsKey(LineNo) then
+                            Result.Add(LineNo, BestGLAccountNo);
+                    end;
             end;
-            if (FirstOpenParenthesisPos > 0) and (FirstClosedParenthesisPos < StrLen(CompletionAnswerTxt)) then begin
-                CompletionAnswerTxt := CopyStr(CompletionAnswerTxt, FirstClosedParenthesisPos + 1);
-                FirstOpenParenthesisPos := StrPos(CompletionAnswerTxt, '(');
-                FirstClosedParenthesisPos := StrPos(CompletionAnswerTxt, ')');
-            end
-            else
-                CompletionAnswerTxt := '';
         end;
     end;
 

@@ -82,6 +82,7 @@ codeunit 148305 "Expense Test"
         PDFTestContentLbl: Label 'PDF test content';
         OnlyMyExpenseExpectedErr: Label 'Expense %1 should be visible after Show My Expenses is invoked.', Comment = '%1 = Expense No. that should be the only row';
         ExpenseVendorNosShouldBeSetErr: Label 'Expense Vendor Nos. should be set when no. series defaults are created.';
+        ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
 
     [Test]
     procedure NoCannotBeUpdatedInExpenseManuallyIfManualNosIsFalse()
@@ -5642,6 +5643,162 @@ codeunit 148305 "Expense Test"
             HasPDFAttachmentShouldBeTrueErr);
     end;
 
+    [Test]
+    procedure MissingExchangeRateErrorIsNotRaisedWhenExchangeRateExists()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651169] Verify that no error is raised when an exchange rate exists on or before the currency date.
+        Initialize();
+
+        // [GIVEN] Create Expense and Expense Report Line in local currency.
+        CreateExpensesForCurrencyValidation(Expense, ExpenseReportLine);
+
+        // [GIVEN] Create Currency with Exchange Rate starting on WorkDate.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+
+        // [WHEN] Validate currency on the starting date, after it, and with a blank expense date.
+        // [THEN] Both records use the applicable exchange rate without an error.
+        VerifyExpenseCurrencyFactors(Expense, ExpenseReportLine, CurrencyCode, WorkDate(), CurrencyExchangeRate.ExchangeRate(WorkDate(), CurrencyCode));
+        VerifyExpenseCurrencyFactors(Expense, ExpenseReportLine, CurrencyCode, WorkDate() + 1, CurrencyExchangeRate.ExchangeRate(WorkDate() + 1, CurrencyCode));
+        VerifyExpenseCurrencyFactors(Expense, ExpenseReportLine, CurrencyCode, 0D, CurrencyExchangeRate.ExchangeRate(WorkDate(), CurrencyCode));
+
+        // [WHEN] Clear currency on both records.
+        // [THEN] Currency factors are reset to zero.
+        VerifyExpenseCurrencyFactors(Expense, ExpenseReportLine, '', WorkDate(), 0);
+    end;
+
+    [Test]
+    procedure MissingExchangeRateErrorIsRaisedWhenCurrencyDateIsBeforeStartingDate()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CurrencyCode: Code[10];
+        CurrencyDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651169] Verify that a currency date before the first exchange rate raises an error with the requested date and currency.
+        Initialize();
+
+        // [GIVEN] Create Expense and Expense Report Line in local currency.
+        CreateExpensesForCurrencyValidation(Expense, ExpenseReportLine);
+
+        // [GIVEN] Create Currency with Exchange Rate starting on WorkDate.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+
+        // [GIVEN] Set Currency Date before the exchange rate starting date.
+        CurrencyDate := WorkDate() - 1;
+        Expense."Expense Date" := CurrencyDate;
+        ExpenseReportLine."Expense Date" := CurrencyDate;
+        Commit();
+
+        // [WHEN] Validate Currency Code on Expense.
+        asserterror Expense.Validate("Currency Code", CurrencyCode);
+
+        // [THEN] Verify that the error contains Currency Date and Currency Code.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, CurrencyDate, CurrencyCode));
+
+        // [WHEN] Validate Expense Currency Code on Expense Report Line.
+        asserterror ExpenseReportLine.Validate("Expense Currency Code", CurrencyCode);
+
+        // [THEN] Verify that the same missing exchange rate error is raised.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, CurrencyDate, CurrencyCode));
+    end;
+
+    [Test]
+    procedure MissingExchangeRateErrorIsRaisedOnExpenseReportHeader()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651169] Verify that a report header raises an error when no exchange rate exists for its posting date.
+        Initialize();
+
+        // [GIVEN] An expense report header and a currency whose first exchange rate is tomorrow.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate() + 1, LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+
+        // [WHEN] The currency is assigned to the report header.
+        asserterror ExpenseReportHeader.Validate("Reimbursement Currency Code", CurrencyCode);
+
+        // [THEN] The missing exchange rate error identifies the header posting date and currency.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, WorkDate(), CurrencyCode));
+    end;
+
+    [Test]
+    procedure MissingExchangeRateErrorIsRaisedWhenCurrencyHasNoExchangeRates()
+    var
+        Currency: Record Currency;
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651169] Verify that exchange rates for another currency do not prevent a missing exchange rate error.
+        Initialize();
+
+        // [GIVEN] Create Expense and Expense Report Line dated WorkDate in local currency.
+        CreateExpensesForCurrencyValidation(Expense, ExpenseReportLine);
+
+        // [GIVEN] Create another Currency with Exchange Rate.
+        LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+
+        // [GIVEN] Create Currency without exchange rates.
+        LibraryERM.CreateCurrency(Currency);
+        Commit();
+
+        // [WHEN] Validate Currency without exchange rates on Expense.
+        asserterror Expense.Validate("Currency Code", Currency.Code);
+
+        // [THEN] Verify that the error contains WorkDate and the currency without exchange rates.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, WorkDate(), Currency.Code));
+
+        // [WHEN] Validate the same Currency on Expense Report Line.
+        asserterror ExpenseReportLine.Validate("Expense Currency Code", Currency.Code);
+
+        // [THEN] Verify that the same missing exchange rate error is raised.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, WorkDate(), Currency.Code));
+    end;
+
+    [Test]
+    procedure MissingExchangeRateErrorUsesWorkDateWhenCurrencyDateIsBlank()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651169] Verify that a blank currency date uses WorkDate when only a future exchange rate exists.
+        Initialize();
+
+        // [GIVEN] Create Expense and Expense Report Line with blank expense dates.
+        CreateExpensesForCurrencyValidation(Expense, ExpenseReportLine);
+        Expense."Expense Date" := 0D;
+        ExpenseReportLine."Expense Date" := 0D;
+
+        // [GIVEN] Create Currency with Exchange Rate starting after WorkDate.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate() + 1, LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+        Commit();
+
+        // [WHEN] Validate Currency Code on Expense with a blank expense date.
+        asserterror Expense.Validate("Currency Code", CurrencyCode);
+
+        // [THEN] Verify that the error contains WorkDate instead of a blank date.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, WorkDate(), CurrencyCode));
+
+        // [WHEN] Validate Expense Currency Code on Expense Report Line with a blank expense date.
+        asserterror ExpenseReportLine.Validate("Expense Currency Code", CurrencyCode);
+
+        // [THEN] Verify that the error contains WorkDate instead of a blank date.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, WorkDate(), CurrencyCode));
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
@@ -6015,6 +6172,32 @@ codeunit 148305 "Expense Test"
         TempBlob.CreateOutStream(OutStr);
         OutStr.WriteText(PDFTestContentLbl);
         DocumentAttachment.SaveAttachment(RecRef, FileName, TempBlob);
+    end;
+    
+    local procedure CreateExpensesForCurrencyValidation(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        CreateExpense(Expense, true, '', LibraryRandom.RandInt(100));
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, Expense."Expense User No.", Expense."Expense Category", '', true, '', LibraryRandom.RandInt(100));
+        ExpenseReportLine."Expense Date" := WorkDate();
+    end;
+
+    local procedure VerifyExpenseCurrencyFactors(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line"; CurrencyCode: Code[10]; ExpenseDate: Date; ExpectedCurrencyFactor: Decimal)
+    begin
+        Expense."Expense Date" := ExpenseDate;
+        ExpenseReportLine."Expense Date" := ExpenseDate;
+
+        Expense.Validate("Currency Code", CurrencyCode);
+        ExpenseReportLine.Validate("Expense Currency Code", CurrencyCode);
+
+        Assert.AreEqual(
+            ExpectedCurrencyFactor, Expense."Currency Factor",
+            StrSubstNo(ValueMustBeEqualErr, Expense.FieldCaption("Currency Factor"), ExpectedCurrencyFactor, Expense.TableCaption()));
+        Assert.AreEqual(
+            ExpectedCurrencyFactor, ExpenseReportLine."Expense Currency Factor",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Expense Currency Factor"), ExpectedCurrencyFactor, ExpenseReportLine.TableCaption()));
     end;
 
     [ModalPageHandler]
