@@ -178,6 +178,66 @@ codeunit 144013 "ERM Payment Management"
         PaymentDiscountOnPurchaseCrMemo('', false);  // Using Blank for Currency Code, False for Calc. Pmt. Discount,    
     end;
 
+    [Test]
+    [HandlerFunctions('PaymentClassListModalPageHandler,SuggestCustomerPaymentsRequestPageHandler,ConfirmHandlerTrue')]
+    procedure PostCustomerInvoiceAndCreditMemoWithOppositeEntries()
+    var
+        Customer: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentClass: Record "Payment Class FR";
+        PaymentHeader: Record "Payment Header FR";
+        PaymentLine: Record "Payment Line FR";
+        PaymentStepLedger: Record "Payment Step Ledger FR";
+        InvoiceDebitGLEntry: Record "G/L Entry";
+        InvoiceCreditGLEntry: Record "G/L Entry";
+        CreditMemoDebitGLEntry: Record "G/L Entry";
+        CreditMemoCreditGLEntry: Record "G/L Entry";
+        CustomerNo: Code[20];
+        PaymentClassCode: Text[30];
+        Amount: Decimal;
+    begin
+        // [SCENARIO 644993] Invoice and credit memo payment lines post with opposite signs and document types.
+        Initialize();
+
+        Amount := LibraryRandom.RandDecInRange(100, 1000, 2);
+        CustomerNo := CreateCustomer('');
+        Customer.Get(CustomerNo);
+        Customer.Validate("Payment Terms Code", '');
+        Customer.Modify(true);
+        CreateAndPostGeneralJournal(
+            GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo,
+            GenJournalLine."Document Type"::Invoice, Amount, WorkDate());
+        CreateAndPostGeneralJournal(
+            GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo,
+            GenJournalLine."Document Type"::"Credit Memo", -Amount / 2, WorkDate());
+        PaymentClassCode := SetupForPaymentSlipPost(PaymentStepLedger."Detail Level"::Line, PaymentClass.Suggestions::Customer);
+        PaymentStepLedger.SetRange("Payment Class", PaymentClassCode);
+        PaymentStepLedger.ModifyAll("Document Type", PaymentStepLedger."Document Type"::Payment, true);
+        CreatePaymentHeader(PaymentHeader);
+        Commit();
+        SuggestCustomerPaymentLines(CustomerNo, '', PaymentHeader);
+
+        PostPaymentSlipHeaderNo(PaymentHeader."No.");
+
+        FindPostedPaymentLine(PaymentLine, PaymentHeader."No.", PaymentLine."Applies-to Doc. Type"::Invoice);
+        InvoiceDebitGLEntry.Get(PaymentLine."Entry No. Debit");
+        InvoiceCreditGLEntry.Get(PaymentLine."Entry No. Credit");
+        InvoiceDebitGLEntry.TestField("Document Type", InvoiceDebitGLEntry."Document Type"::Payment);
+        InvoiceCreditGLEntry.TestField("Document Type", InvoiceCreditGLEntry."Document Type"::Payment);
+
+        FindPostedPaymentLine(PaymentLine, PaymentHeader."No.", PaymentLine."Applies-to Doc. Type"::"Credit Memo");
+        CreditMemoDebitGLEntry.Get(PaymentLine."Entry No. Debit");
+        CreditMemoCreditGLEntry.Get(PaymentLine."Entry No. Credit");
+        CreditMemoDebitGLEntry.TestField("Document Type", CreditMemoDebitGLEntry."Document Type"::Refund);
+        CreditMemoCreditGLEntry.TestField("Document Type", CreditMemoCreditGLEntry."Document Type"::Refund);
+        Assert.AreEqual(
+            InvoiceDebitGLEntry."G/L Account No.", CreditMemoCreditGLEntry."G/L Account No.",
+            CreditMemoCreditGLEntry.FieldCaption("G/L Account No."));
+        Assert.AreEqual(
+            InvoiceCreditGLEntry."G/L Account No.", CreditMemoDebitGLEntry."G/L Account No.",
+            CreditMemoDebitGLEntry.FieldCaption("G/L Account No."));
+    end;
+
     local procedure PaymentDiscountOnPurchaseCrMemo(CurrencyCode: Code[10]; CalcPmtDiscOnCrMemos: Boolean)
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -2033,6 +2093,7 @@ codeunit 144013 "ERM Payment Management"
         ClearPaymentSlipData();
     end;
 
+
     local procedure ApplyPaymentSlip(PaymentClass: Text[30])
     var
         PaymentSlip: TestPage "Payment Slip FR";
@@ -3100,6 +3161,15 @@ codeunit 144013 "ERM Payment Management"
         if LineNo <> 0 then
             PaymentLine.SetRange("Status No.", LineNo);
         PaymentLine.FindFirst();
+    end;
+
+    local procedure FindPostedPaymentLine(var PaymentLine: Record "Payment Line FR"; PaymentHeaderNo: Code[20]; AppliesToDocumentType: Enum "Gen. Journal Document Type")
+    begin
+        PaymentLine.Reset();
+        PaymentLine.SetRange("No.", PaymentHeaderNo);
+        PaymentLine.SetRange("Applies-to Doc. Type", AppliesToDocumentType);
+        PaymentLine.FindFirst();
+        PaymentLine.TestField(Posted, true);
     end;
 
     local procedure FindVATEntry(var VATEntry: Record "VAT Entry"; DocumentNo: Code[20])
