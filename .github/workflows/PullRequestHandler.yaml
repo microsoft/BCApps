@@ -216,8 +216,30 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
+
+      - name: Detect Payables Agent architecture changes
+        id: payablesAgentChanges
+        run: ./build/scripts/Test-PayablesAgentArchitectureChanges.ps1 -FetchMissingBase
+
+      - name: Test Payables Agent architecture checker
+        shell: pwsh
+        if: steps.payablesAgentChanges.outputs.required != 'false'
+        run: |
+          $testFiles = @(Get-ChildItem ./build/scripts/tests/ALArchitecture*.Test.ps1)
+          if ($testFiles.Count -eq 0) { throw 'No Payables Agent architecture tests found.' }
+          $result = Invoke-Pester -Script $testFiles.FullName -PassThru
+          if ($result.TotalCount -eq 0 -or $result.FailedCount -gt 0) {
+            throw "$($result.FailedCount) Payables Agent architecture tests failed; $($result.TotalCount) tests discovered."
+          }
+
+      # Relevant changes still run before AL-Go cache/skip decisions, including on merge queues.
+      - name: Validate Payables Agent architecture
+        shell: pwsh
+        if: steps.payablesAgentChanges.outputs.required != 'false'
+        run: ./build/scripts/Test-PayablesAgentArchitecture.ps1
   
-      - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
+      # Use the checked-out validator so PR changes to the symbol policy take effect. TO BE UNDONE (change merged separately)
+      - uses: ./.github/actions/TestPreprocessorSymbols
   
       - uses: microsoft/BCApps/.github/actions/TestObsoleteTagPreprocessors@main
   

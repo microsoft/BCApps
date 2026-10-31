@@ -6821,6 +6821,16 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "skipInstallOnPrem": true
     },
+    "Payables Agent Unit Tests": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\PayablesAgent\\test",
+      "supportedCountries": "All",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "skipInstallOnPrem": true
+    },
     "VAT Audit Reports GB": {
       "projectPath": "$env:INETROOT\\App\\Apps\\GB\\VATReporting\\app",
       "dvdFolder": "Applications\\VATReporting\\Source",

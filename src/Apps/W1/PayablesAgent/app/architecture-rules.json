@@ -1,0 +1,405 @@
+{
+    "$schema": "./architecture-rules.schema.json",
+    "version": 2,
+    "rules": [
+        {
+            "id": "PA001",
+            "check": "dependencies",
+            "description": "Keep active-version selection in the approved backing adapters and import guard.",
+            "severity": "error",
+            "from": {"paths":["*"]},
+            "to": {"paths":["Shared/Versioning/PAV1V2Flag.Codeunit.al"]},
+            "exceptions": [
+                {
+                    "from": {"paths":["Entities/Setup/PASetup.Codeunit.al"]},
+                    "reason": "Setup chooses its active-version backing representation."
+                },
+                {
+                    "from": {"paths":["Entities/TaskSource/PATaskSource.Codeunit.al"]},
+                    "reason": "Source acquisition chooses the configured version's backing representation."
+                },
+                {
+                    "from": {"paths":["Compatibility/DraftBased/Flows/Intake/PADraftBasedSubscribers.Codeunit.al"]},
+                    "reason": "Draft import subscribers must not handle v2 intake."
+                }
+            ]
+        },
+        {
+            "id": "PA002",
+            "check": "dependencies",
+            "description": "Development settings storage is accessed only through its development API.",
+            "severity": "error",
+            "from": {"paths":["*"]},
+            "to": {"paths":["_Development/PADevelopmentSettings.Table.al"]},
+            "exceptions": [
+                {
+                    "from": {"paths":["_Development/PADevelopmentSettings.Codeunit.al"]},
+                    "reason": "The development settings API owns this storage."
+                },
+                {
+                    "from": {"paths":["_Development/PADevelopmentSettings.Page.al"]},
+                    "reason": "The development-only settings editor is bound to its backing table."
+                }
+            ]
+        },
+        {
+            "id": "PA003",
+            "check": "namespaces",
+            "description": "Shared flows must use adapters instead of referencing e-document objects directly (cleanup target).",
+            "severity": "warning",
+            "from": {"paths":["*"]},
+            "namespaces": ["Microsoft.eServices.EDocument","Microsoft.EServices.EDocumentConnector.Microsoft365"],
+            "exceptions": [
+                {
+                    "from": {"paths":["Compatibility/DraftBased/*"]},
+                    "reason": "Irreducibly draft-specific integrations and declarative surfaces live here."
+                },
+                {
+                    "from": {"paths":["Entities/Task/*"]},
+                    "reason": "The task adapters own reads of their v1 backing representation."
+                },
+                {
+                    "from": {"paths":["Entities/Setup/PASetup.Codeunit.al"]},
+                    "reason": "The setup adapter owns its v1 backing representation; service orchestration is separately reported by PA005."
+                },
+                {
+                    "from": {"paths":["Entities/Setup/PayablesAgentSetup.Table.al"]},
+                    "reason": "The namespace import supports an obsolete E-Document Service relation; this proxy does not distinguish schema references."
+                },
+                {
+                    "from": {"paths":["Shared/Security/PayablesAgAdm.Permissionset.al"]},
+                    "reason": "Declarative administrator grants cover the v1 integration; they are not runtime access."
+                },
+                {
+                    "from": {"paths":["Flows/Execution/Supporting/PATaskPosting.Codeunit.al"]},
+                    "reason": "Posting deliberately replaces matching V1 E-Document outcome references as one set-level operation."
+                }
+            ]
+        },
+        {
+            "id": "PA004",
+            "check": "dependencies",
+            "description": "Backing table references belong to their owners; temporary and declarative references need explicit exceptions.",
+            "severity": "warning",
+            "from": {"paths":["*"]},
+            "to": {"paths":["Entities/Task/PayablesAgentTask.Table.al","Entities/Setup/PayablesAgentSetup.Table.al"]},
+            "exceptions": [
+                {
+                    "from": {"paths":["Entities/Task/*"]},
+                    "target": "Entities/Task/PayablesAgentTask.Table.al",
+                    "reason": "Task owns its backing records."
+                },
+                {
+                    "from": {"paths":["Entities/TaskSource/*"]},
+                    "target": "Entities/Task/PayablesAgentTask.Table.al",
+                    "reason": "The source wrapper owns its v2 backing record."
+                },
+                {
+                    "from": {"paths":["Flows/Execution/Supporting/PATaskPosting.Codeunit.al"]},
+                    "target": "Entities/Task/PayablesAgentTask.Table.al",
+                    "reason": "Posting deliberately replaces matching v2 outcome references as one set-level operation."
+                },
+                {
+                    "from": {"paths":["Entities/Setup/*"]},
+                    "target": "Entities/Setup/PayablesAgentSetup.Table.al",
+                    "reason": "Setup owns its backing records."
+                },
+                {
+                    "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
+                    "target": "Entities/Task/PayablesAgentTask.Table.al",
+                    "reason": "The app-owned test cleanup facade deletes v2 task backing data while hiding its representation from test apps."
+                },
+                {
+                    "from": {"paths":["Flows/Upgrade/PayablesAgentUpgrade.Codeunit.al"]},
+                    "target": "Entities/Setup/PayablesAgentSetup.Table.al",
+                    "reason": "Historical setup migrations must operate on the persisted old schema."
+                },
+                {
+                    "from": {"paths":["Flows/Registration/PayablesAgentMetadata.Codeunit.al"]},
+                    "target": "Entities/Setup/PayablesAgentSetup.Table.al",
+                    "reason": "Registration supplies the table ID to data classification; it does not load a backing record."
+                },
+                {
+                    "from": {"paths":["Flows/Configuration/PayablesAgentSetup.Page.al"]},
+                    "target": "Entities/Setup/PayablesAgentSetup.Table.al",
+                    "reason": "The setup page edits an explicitly temporary projection; PA021 pins that property."
+                },
+                {
+                    "from": {
+                        "paths": [
+                            "Flows/Supervision/PAAccPayablesAdministratorRC.PageExt.al",
+                            "Flows/Supervision/PABusinessManagerRC.PageExt.al"
+                        ]
+                    },
+                    "target": "Entities/Setup/PayablesAgentSetup.Table.al",
+                    "reason": "Role-center visibility reads the setup row; retain as an explicit cleanup exception."
+                },
+                {
+                    "from": {
+                        "paths": ["Shared/Security/PayablesAgAdm.Permissionset.al","Shared/Security/PayablesAgRead.Permissionset.al"]
+                    },
+                    "target": "Entities/Setup/PayablesAgentSetup.Table.al",
+                    "reason": "Human permission sets grant declarative setup access; this matcher does not distinguish permissions from runtime references."
+                }
+            ]
+        },
+        {
+            "id": "PA005",
+            "check": "dependencies",
+            "description": "Entities must not depend on application flows, registration, UI, or draft service orchestration (cleanup target).",
+            "severity": "warning",
+            "from": {"paths":["Entities/*"]},
+            "to": {"paths":["Flows/*","Compatibility/DraftBased/*"]},
+            "exceptions": [
+                {
+                    "from": {"paths":["Entities/TaskSource/PATaskSource.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Entities/TaskSource/PADraftBasedTaskSource.Codeunit.al",
+                    "reason": "The logical source delegates its v1 backing representation to the compatibility entity adapter."
+                }
+            ]
+        },
+        {
+            "id": "PA006",
+            "check": "dependencies",
+            "description": "Runtime task construction belongs to the authoritative Task Intake flow.",
+            "severity": "error",
+            "from": {"paths":["*"]},
+            "symbols": [{"kind":"codeunit","name":"Agent Task Builder"},{"kind":"codeunit","name":"Agent Task Message Builder"}],
+            "exceptions": [
+                {
+                    "from": {"paths":["Flows/Intake/PATaskIntake.Codeunit.al"]},
+                    "reason": "Task Intake is the single app-owned entry point for runtime task construction."
+                }
+            ]
+        },
+        {
+            "id": "PA007",
+            "check": "dependencies",
+            "description": "Shared objects should call explicit draft integration entry points, not depend freely on compatibility internals (cleanup target).",
+            "severity": "warning",
+            "from": {"paths":["*"]},
+            "to": {"paths":["Compatibility/DraftBased/*"]},
+            "exceptions": [
+                {
+                    "from": {"paths":["Compatibility/DraftBased/*"]},
+                    "reason": "Draft implementation objects may collaborate within the compatibility boundary."
+                },
+                {
+                    "from": {"paths":["Flows/Configuration/PASetupPresentation.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Flows/Configuration/PADraftBasedSetup.Codeunit.al",
+                    "reason": "Setup Presentation deliberately delegates the v1-only additional-fields dialog."
+                },
+                {
+                    "from": {"paths":["Entities/TaskSource/PATaskSource.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Entities/TaskSource/PADraftBasedTaskSource.Codeunit.al",
+                    "reason": "The version-neutral source delegates v1 backing access through one compatibility entity adapter."
+                },
+                {
+                    "from": {"paths":["Flows/Intake/PATaskIntake.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Flows/Intake/PADraftBasedSourceIntake.Codeunit.al",
+                    "reason": "Authoritative task intake invokes the v1 import processing entry point after creating its source."
+                },
+                {
+                    "from": {"paths":["Flows/Upgrade/PayablesAgentUpgrade.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Flows/Configuration/PADraftBasedSetup.Codeunit.al",
+                    "reason": "The one-time migration delegates creation of the draft-based credit memo service type to its owner."
+                },
+                {
+                    "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/TestSupport/PADraftBasedTestFixtures.Codeunit.al",
+                    "reason": "The semantic fixture facade delegates draft-specific source construction, setup and scripted user actions to its compatibility fixture."
+                }
+            ]
+        },
+        {
+            "id": "PA008",
+            "check": "dependencies",
+            "description": "Capabilities and shared mechanisms should not depend on flow implementations (cleanup target; use narrow runtime helpers).",
+            "severity": "warning",
+            "from": {"paths":["Capabilities/*","Shared/*"],"kinds":["codeunit","table"]},
+            "to": {"paths":["Flows/*"]}
+        },
+        {
+            "id": "PA009",
+            "check": "dependencies",
+            "description": "Production objects must not consume test fixtures.",
+            "severity": "error",
+            "from": {"paths":["*"]},
+            "to": {"paths":["TestSupport/*","Compatibility/DraftBased/TestSupport/*"]},
+            "exceptions": [
+                {
+                    "from": {"paths":["TestSupport/*"]},
+                    "reason": "The semantic fixture facade delegates to backing-specific fixture implementations."
+                }
+            ]
+        },
+        {
+            "id": "PA010",
+            "check": "properties",
+            "description": "Implementation objects are internal; assignable permission sets remain public.",
+            "severity": "error",
+            "from": {"paths":["*"],"kinds":["codeunit","table","enum","query","report","xmlport","interface"]},
+            "properties": {"Access":"Internal"}
+        },
+        {
+            "id": "PA011",
+            "check": "properties",
+            "description": "The app does not expose traditional AL extensibility.",
+            "severity": "error",
+            "from": {"paths":["*"],"kinds":["page","table","enum"]},
+            "properties": {"Extensible":false},
+            "exceptions": [
+                {
+                    "from": {
+                        "paths": [
+                            "_Obsolete/PABillingLog.Table.al",
+                            "_Obsolete/PABillingOverview.Page.al",
+                            "_Obsolete/PABillingTaskSetup.Table.al",
+                            "_Obsolete/PADemoFile.Table.al",
+                            "_Obsolete/PADemoFilesToDownload.Page.al"
+                        ]
+                    },
+                    "target": "Extensible",
+                    "reason": "Retain historical obsolete surfaces unchanged; the placement rule freezes the allowed obsolete files."
+                }
+            ]
+        },
+        {
+            "id": "PA012",
+            "check": "forbiddenCode",
+            "description": "Entity wrappers do not explicitly commit.",
+            "severity": "error",
+            "from": {"paths":["Entities/*"]},
+            "pattern": "(?<![\\w.])(?:Database\\s*\\.\\s*)?Commit\\s*\\("
+        },
+        {
+            "id": "PA013",
+            "check": "forbiddenCode",
+            "description": "Entities do not own interactive UI.",
+            "severity": "error",
+            "from": {"paths":["Entities/*"]},
+            "pattern": "(?<![\\w.])(?:Message|Confirm|StrMenu)\\s*\\(|(?<![\\w.])Page\\b"
+        },
+        {
+            "id": "PA014",
+            "check": "dependencies",
+            "description": "Entities do not depend on app-owned pages.",
+            "severity": "error",
+            "from": {"paths":["Entities/*"]},
+            "to": {"paths":["*"],"kinds":["page"]}
+        },
+        {
+            "id": "PA015",
+            "check": "forbiddenCode",
+            "description": "Telemetry emission belongs to telemetry owners.",
+            "severity": "error",
+            "from": {"paths":["*"]},
+            "pattern": "\\b(?:Session|Telemetry)\\s*\\.\\s*LogMessage\\s*\\(",
+            "exceptions": [
+                {
+                    "from": {"paths":["Shared/Telemetry/PATelemetry.Codeunit.al"]},
+                    "reason": "Shared telemetry owns product and operational event emission."
+                },
+                {
+                    "from": {"paths":["Compatibility/DraftBased/Shared/Telemetry/PADraftBasedTelemetry.Codeunit.al"]},
+                    "reason": "Draft-specific telemetry owns V1 billing and demo events."
+                }
+            ]
+        },
+        {
+            "id": "PA016",
+            "check": "developmentOnly",
+            "description": "Development objects must not exist in production compilation.",
+            "severity": "error",
+            "from": {"paths":["_Development/*"]},
+            "symbol": "DEVELOPMENT"
+        },
+        {
+            "id": "PA017",
+            "check": "manifest",
+            "description": "Production should not enable DEVELOPMENT (pending a production-safe V2 evaluation selector).",
+            "severity": "warning",
+            "from": {"paths":["app.json"]},
+            "forbiddenSymbols": ["DEVELOPMENT"]
+        },
+        {
+            "id": "PA018",
+            "check": "manifest",
+            "description": "Only the approved test apps may access internals; production must not depend on test libraries.",
+            "severity": "error",
+            "from": {"paths":["app.json"]},
+            "allowedFriends": ["967eceac-106e-4102-b76a-fe5dc3d799e5","d1345542-62ab-433d-90f2-28137534572a"],
+            "forbiddenDependencies": [
+                "Tests-*",
+                "Library *",
+                "AI Development Toolkit - Evaluation",
+                "AI Evaluate Tool",
+                "5d86850b-0d76-4eca-bd7b-951ad998e997",
+                "5095f467-0a01-4b99-99d1-9ff1237d286f",
+                "517f890c-b49f-47de-8120-d0327974b89d",
+                "4f820121-b9a0-4b0a-ade8-a4fc5ee2fde1"
+            ]
+        },
+        {
+            "id": "PA019",
+            "check": "placement",
+            "description": "Objects belong to documented owners and the app namespace; obsolete files are frozen.",
+            "severity": "error",
+            "from": {"paths":["*"]},
+            "namespace": "Microsoft.Agent.PayablesAgent",
+            "allowedPaths": [
+                "Flows/Registration/*",
+                "Flows/Configuration/*",
+                "Flows/Intake/*",
+                "Flows/Execution/*",
+                "Flows/Supervision/*",
+                "Flows/Upgrade/*",
+                "Entities/Setup/*",
+                "Entities/Task/*",
+                "Entities/TaskSource/*",
+                "Entities/KnownSender/*",
+                "Entities/KPI/*",
+                "Entities/Trial/*",
+                "Capabilities/Trial/*",
+                "Capabilities/KPI/*",
+                "Capabilities/Feedback/*",
+                "Shared/Telemetry/*",
+                "Shared/Security/*",
+                "Shared/Versioning/*",
+                "Compatibility/DraftBased/*",
+                "Operations/EmailStorageCleanup/*",
+                "TestSupport/*",
+                "_Development/*",
+                "_Obsolete/AgentTaskList.PageExt.al",
+                "_Obsolete/PABillingLog.Table.al",
+                "_Obsolete/PABillingOverview.Page.al",
+                "_Obsolete/PABillingTaskSetup.Table.al",
+                "_Obsolete/PADemoFile.Table.al",
+                "_Obsolete/PADemoFilesToDownload.Page.al",
+                "_Obsolete/PAMLLMSetup.Page.al"
+            ]
+        },
+        {
+            "id": "PA020",
+            "check": "properties",
+            "description": "Sortable task-list rows are temporary projections.",
+            "severity": "error",
+            "from": {"paths":["Flows/Supervision/PADetailedTask.Table.al"]},
+            "properties": {"TableType":"Temporary"}
+        },
+        {
+            "id": "PA021",
+            "check": "properties",
+            "description": "Projection pages must not edit persisted backing records directly.",
+            "severity": "error",
+            "from": {
+                "paths": [
+                    "Flows/Supervision/PayablesAgentTasks.Page.al",
+                    "Flows/Supervision/PAEmailReview.Page.al",
+                    "Flows/Configuration/PayablesAgentSetup.Page.al"
+                ]
+            },
+            "properties": {"SourceTableTemporary":true}
+        }
+    ]
+}

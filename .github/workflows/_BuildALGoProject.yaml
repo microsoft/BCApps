@@ -103,6 +103,19 @@ jobs:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
 
+      - name: Detect Payables Agent architecture changes
+        id: payablesAgentChanges
+        if: inputs.projectName == 'Apps W1'
+        env:
+          PA_ARCHITECTURE_BASELINE_SHA: ${{ inputs.baselineWorkflowSHA }}
+        run: ./build/scripts/Test-PayablesAgentArchitectureChanges.ps1 -BaselineRef $env:PA_ARCHITECTURE_BASELINE_SHA -FetchMissingBase
+
+      # Relevant push/manual changes must not be bypassed by cached or skipped compilation.
+      - name: Validate Payables Agent architecture
+        shell: pwsh
+        if: inputs.projectName == 'Apps W1' && steps.payablesAgentChanges.outputs.required != 'false'
+        run: ./build/scripts/Test-PayablesAgentArchitecture.ps1
+
       - name: Read settings
         uses: microsoft/AL-Go/Actions/ReadSettings@20620d1a3676cecfa2d0bbba3ced4a89f0e08217
         with:

@@ -1,0 +1,203 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Payables Agent architectural static checks",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["version","rules"],
+    "properties": {
+        "$schema": {"type":"string"},
+        "version": {"const":2},
+        "rules": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id","description","severity","from","check"],
+                        "properties": {
+                            "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
+                            "description": {"type":"string","pattern":"\\S"},
+                            "severity": {"enum":["error","warning"]},
+                            "from": {"$ref":"#/definitions/selector"},
+                            "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
+                            "check": {"const":"dependencies"},
+                            "to": {"$ref":"#/definitions/selector"},
+                            "symbols": {"type":"array","minItems":1,"items":{"$ref":"#/definitions/symbol"}}
+                        },
+                        "oneOf": [
+                            {"required":["to"],"not":{"required":["symbols"]}},
+                            {"required":["symbols"],"not":{"required":["to"]}}
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id","description","severity","from","check","namespaces"],
+                        "properties": {
+                            "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
+                            "description": {"type":"string","pattern":"\\S"},
+                            "severity": {"enum":["error","warning"]},
+                            "from": {"$ref":"#/definitions/selector"},
+                            "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
+                            "check": {"const":"namespaces"},
+                            "namespaces": {
+                                "type": "array",
+                                "minItems": 1,
+                                "uniqueItems": true,
+                                "items": {"type":"string","pattern":"^[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*$"}
+                            }
+                        }
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id","description","severity","from","check","properties"],
+                        "properties": {
+                            "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
+                            "description": {"type":"string","pattern":"\\S"},
+                            "severity": {"enum":["error","warning"]},
+                            "from": {"$ref":"#/definitions/selector"},
+                            "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
+                            "check": {"const":"properties"},
+                            "properties": {
+                                "type": "object",
+                                "minProperties": 1,
+                                "propertyNames": {"pattern":"^[A-Za-z][A-Za-z0-9]*$"},
+                                "additionalProperties": {
+                                    "oneOf": [
+                                        {"type":"string","pattern":"^[A-Za-z_][A-Za-z0-9_]*$"},
+                                        {"type":"boolean"}
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id","description","severity","from","check","pattern"],
+                        "properties": {
+                            "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
+                            "description": {"type":"string","pattern":"\\S"},
+                            "severity": {"enum":["error","warning"]},
+                            "from": {"$ref":"#/definitions/selector"},
+                            "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
+                            "check": {"const":"forbiddenCode"},
+                            "pattern": {"type":"string","pattern":"\\S"}
+                        }
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id","description","severity","from","check","symbol"],
+                        "properties": {
+                            "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
+                            "description": {"type":"string","pattern":"\\S"},
+                            "severity": {"enum":["error","warning"]},
+                            "from": {"$ref":"#/definitions/selector"},
+                            "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
+                            "check": {"const":"developmentOnly"},
+                            "symbol": {"type":"string","pattern":"^[A-Z][A-Z0-9_]*$"}
+                        }
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id","description","severity","from","check"],
+                        "properties": {
+                            "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
+                            "description": {"type":"string","pattern":"\\S"},
+                            "severity": {"enum":["error","warning"]},
+                            "from": {"$ref":"#/definitions/selector"},
+                            "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
+                            "check": {"const":"manifest"},
+                            "forbiddenSymbols": {"$ref":"#/definitions/strings"},
+                            "allowedFriends": {"$ref":"#/definitions/strings"},
+                            "forbiddenDependencies": {"$ref":"#/definitions/strings"}
+                        }
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id","description","severity","from","check","allowedPaths","namespace"],
+                        "properties": {
+                            "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
+                            "description": {"type":"string","pattern":"\\S"},
+                            "severity": {"enum":["error","warning"]},
+                            "from": {"$ref":"#/definitions/selector"},
+                            "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
+                            "check": {"const":"placement"},
+                            "allowedPaths": {"$ref":"#/definitions/paths"},
+                            "namespace": {"type":"string","pattern":"^[A-Za-z_][A-Za-z0-9_.]*$"}
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "definitions": {
+        "paths": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"type":"string","pattern":"^(?!/|[A-Za-z]:|.*\\\\|(?:.*/)?\\.\\.(?:/|$))\\S.*$"}
+        },
+        "strings": {"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string","pattern":"\\S"}},
+        "selector": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["paths"],
+            "properties": {
+                "paths": {"$ref":"#/definitions/paths"},
+                "kinds": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                        "enum": [
+                            "table",
+                            "tableextension",
+                            "page",
+                            "pageextension",
+                            "pagecustomization",
+                            "codeunit",
+                            "enum",
+                            "enumextension",
+                            "interface",
+                            "report",
+                            "reportextension",
+                            "query",
+                            "xmlport",
+                            "permissionset",
+                            "permissionsetextension",
+                            "profile",
+                            "controladdin",
+                            "entitlement"
+                        ]
+                    }
+                }
+            }
+        },
+        "symbol": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind","name"],
+            "properties": {
+                "kind": {"enum":["table","codeunit","page","report","query","xmlport","enum","interface","permissionset","profile"]},
+                "name": {"type":"string","pattern":"\\S"}
+            }
+        },
+        "exception": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from","reason"],
+            "properties": {
+                "from": {"$ref":"#/definitions/selector"},
+                "target": {"type":"string","pattern":"\\S"},
+                "reason": {"type":"string","pattern":"\\S"}
+            }
+        }
+    }
+}

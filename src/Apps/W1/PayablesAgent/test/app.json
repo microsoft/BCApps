@@ -1,0 +1,77 @@
+{
+  "id": "d1345542-62ab-433d-90f2-28137534572a",
+  "name": "Payables Agent Unit Tests",
+  "publisher": "Microsoft",
+  "version": "30.0.0.0",
+  "brief": "Unit tests for the Payables Agent app.",
+  "description": "Deterministic unit tests for the Payables Agent app: setup, trial and known senders. They do not invoke the agent or an LLM. The AI evaluations of the Payables Agent live in the Payables Agent Tests app.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2304779",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2304779",
+  "logo": "ExtensionLogo.png",
+  "screenshots": [],
+  "dependencies": [
+    {
+      "id": "14aa1237-2f69-4c25-9a68-fa7d54e08613",
+      "name": "Payables Agent",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "e6328152-bb29-4664-9dae-3bc7eaae1fd8",
+      "name": "Email - Outlook REST API",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "aceb66c8-472e-437c-81d3-27e6c07d0f14",
+      "name": "Email - Microsoft 365 Connector",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
+      "name": "Library Variable Storage",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "platform": "30.0.0.0",
+  "application": "30.0.0.0",
+  "target": "OnPrem",
+  "idRanges": [
+    {
+      "from": 133700,
+      "to": 133700
+    },
+    {
+      "from": 133703,
+      "to": 133703
+    },
+    {
+      "from": 133722,
+      "to": 133723
+    },
+    {
+      "from": 133735,
+      "to": 133750
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "TranslationFile",
+    "NoImplicitWith"
+  ]
+}

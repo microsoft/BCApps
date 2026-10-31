@@ -27,12 +27,23 @@
             "name": "E-Document Connector - Microsoft 365",
             "publisher": "Microsoft",
             "version": "30.0.0.0"
+        },
+        {
+            "id": "aceb66c8-472e-437c-81d3-27e6c07d0f14",
+            "name": "Email - Microsoft 365 Connector",
+            "publisher": "Microsoft",
+            "version": "30.0.0.0"
         }
     ],
     "internalsVisibleTo": [
         {
             "id": "967eceac-106e-4102-b76a-fe5dc3d799e5",
             "name": "Payables Agent Tests",
+            "publisher": "Microsoft"
+        },
+        {
+            "id": "d1345542-62ab-433d-90f2-28137534572a",
+            "name": "Payables Agent Unit Tests",
             "publisher": "Microsoft"
         }
     ],
@@ -45,6 +56,9 @@
     "features": [
         "TranslationFile",
         "NoImplicitWith"
+    ],
+    "preprocessorSymbols": [
+        "DEVELOPMENT"
     ],
     "resourceFolders": [
         ".resources"
