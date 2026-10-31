@@ -387,8 +387,10 @@ codeunit 147508 "Payment Order Elec. Export"
         VendorBankAccount: Record "Vendor Bank Account";
         PaymentMethod: Record "Payment Method";
     begin
+#pragma warning disable AA0210
         PaymentMethod.SetRange("Invoices to Cartera", true);
         PaymentMethod.SetRange("Bill Type", PaymentMethod."Bill Type"::Transfer);
+#pragma warning restore AA0210
         PaymentMethod.FindFirst();
 
         LibraryCarteraPayables.CreateCarteraVendor(Vendor, '', PaymentMethod.Code); // blank currency code

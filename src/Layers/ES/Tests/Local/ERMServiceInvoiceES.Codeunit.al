@@ -751,7 +751,9 @@ codeunit 144108 "ERM Service Invoice ES"
     var
         PaymentMethod: Record "Payment Method";
     begin
+#pragma warning disable AA0210
         PaymentMethod.SetRange("Create Bills", true);
+#pragma warning restore AA0210
         PaymentMethod.FindFirst();
         exit(PaymentMethod.Code);
     end;

@@ -1577,6 +1577,7 @@ codeunit 6620 "Copy Document Mgt."
         RoundingLineInserted: Boolean;
         CopyThisLine: Boolean;
         InvDiscountAmount: Decimal;
+        PmtDiscountAmount: Decimal;
         IsHandled: Boolean;
         ShouldValidateQuantityMoveNegLines: Boolean;
         ShouldInitToSalesLine: Boolean;
@@ -1645,6 +1646,7 @@ codeunit 6620 "Copy Document Mgt."
                (ToSalesHeader."Currency Factor" <> FromSalesHeader."Currency Factor")
             then begin
                 InvDiscountAmount := ToSalesLine."Inv. Discount Amount";
+                PmtDiscountAmount := ToSalesLine."Pmt. Discount Amount";
                 IsHandled := false;
                 OnCopySalesDocLineOnBeforeValidateLineDiscountPct(ToSalesLine, IsHandled);
                 if not IsHandled then
@@ -1653,6 +1655,7 @@ codeunit 6620 "Copy Document Mgt."
                 OnCopySalesDocLineOnBeforeValidateInvDiscountAmount(ToSalesLine, InvDiscountAmount, IsHandled);
                 if not IsHandled then
                     ToSalesLine.Validate("Inv. Discount Amount", InvDiscountAmount);
+                ToSalesLine."Pmt. Discount Amount" := PmtDiscountAmount;
             end;
         end;
         ToSalesLine.Validate("Currency Code", FromSalesHeader."Currency Code");
@@ -2146,6 +2149,7 @@ codeunit 6620 "Copy Document Mgt."
     local procedure ValidatePurchLineDiscountFields(FromPurchHeader: Record "Purchase Header"; ToPurchHeader: Record "Purchase Header"; var ToPurchLine: Record "Purchase Line")
     var
         InvDiscountAmount: Decimal;
+        PmtDiscountAmount: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -2159,8 +2163,10 @@ codeunit 6620 "Copy Document Mgt."
             (ToPurchHeader."Currency Factor" <> FromPurchHeader."Currency Factor"))
         then begin
             InvDiscountAmount := ToPurchLine."Inv. Discount Amount";
+            PmtDiscountAmount := ToPurchLine."Pmt. Discount Amount";
             ToPurchLine.Validate("Line Discount %");
             ToPurchLine.Validate("Inv. Discount Amount", InvDiscountAmount);
+            ToPurchLine."Pmt. Discount Amount" := PmtDiscountAmount;
         end;
     end;
 
@@ -7245,6 +7251,7 @@ codeunit 6620 "Copy Document Mgt."
         CustLedgEntry.SetRange("Document No.", FromDocNo);
         CustLedgEntry.SetRange("Customer No.", ToSalesHeader."Bill-to Customer No.");
         CustLedgEntry.SetRange(Open, true);
+        OnUpdateCustLedgEntryOnAfterSetFilters(CustLedgEntry, ToSalesHeader, FromDocType, FromDocNo);
         if CustLedgEntry.FindFirst() then begin
             ToSalesHeader."Bal. Account No." := '';
             if FromDocType = "Sales Document Type From"::"Posted Invoice" then begin
@@ -7259,7 +7266,8 @@ codeunit 6620 "Copy Document Mgt."
             CustLedgEntry."Accepted Payment Tolerance" := 0;
             CustLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
             CODEUNIT.Run(CODEUNIT::"Cust. Entry-Edit", CustLedgEntry);
-        end;
+        end else
+            OnUpdateCustLedgEntryOnNoOpenEntries(CustLedgEntry, ToSalesHeader, FromDocType, FromDocNo);
 
         OnAfterUpdateCustLedgerEntry(ToSalesHeader, FromDocType, FromDocNo, CustLedgEntry);
     end;
@@ -7280,6 +7288,7 @@ codeunit 6620 "Copy Document Mgt."
             VendLedgEntry.SetRange("Document No.", FromDocNo);
             VendLedgEntry.SetRange("Vendor No.", ToPurchHeader."Pay-to Vendor No.");
             VendLedgEntry.SetRange(Open, true);
+            OnUpdateVendLedgEntryOnAfterSetFilters(VendLedgEntry, ToPurchHeader, FromDocType, FromDocNo);
             if VendLedgEntry.FindFirst() then begin
                 if FromDocType = "Purchase Document Type From"::"Posted Invoice" then begin
                     ToPurchHeader."Applies-to Doc. Type" := ToPurchHeader."Applies-to Doc. Type"::Invoice;
@@ -7293,7 +7302,8 @@ codeunit 6620 "Copy Document Mgt."
                 VendLedgEntry."Accepted Payment Tolerance" := 0;
                 VendLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
                 CODEUNIT.Run(CODEUNIT::"Vend. Entry-Edit", VendLedgEntry);
-            end;
+            end else
+                OnUpdateVendLedgEntryOnNoOpenEntries(VendLedgEntry, ToPurchHeader, FromDocType, FromDocNo);
         end;
 
         OnAfterUpdateVendLedgEntry(ToPurchHeader, FromDocNo, FromDocType, VendLedgEntry);
@@ -8230,8 +8240,7 @@ codeunit 6620 "Copy Document Mgt."
     /// <param name="CopyPostedDeferral">A boolean variable indicating if posted deferrals should be copied.</param>
     /// <param name="NextLineNo">The next line number for the target document.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCopyPurchLine(var ToPurchHeader: Record "Purchase Header"; FromPurchHeader: Record "Purchase Header"; FromPurchLine: Record "Purchase Line"; RecalculateAmount: Boolean; var CopyThisLine: Boolean; ToPurchLine: Record "Purchase Line"; MoveNegLines: Boolean; var RoundingLineInserted: Boolean; var Result: Boolean; var IsHandled: Boolean; FromPurchDocType: Enum "Purchase Document Type From"; DocLineNo: Integer;
-                                                                                                                                                                                                                                                                                                                                                                                                 RecalculateLines: Boolean; var LinesNotCopied: Integer; var CopyPostedDeferral: Boolean; var NextLineNo: Integer)
+    local procedure OnBeforeCopyPurchLine(var ToPurchHeader: Record "Purchase Header"; FromPurchHeader: Record "Purchase Header"; FromPurchLine: Record "Purchase Line"; RecalculateAmount: Boolean; var CopyThisLine: Boolean; ToPurchLine: Record "Purchase Line"; MoveNegLines: Boolean; var RoundingLineInserted: Boolean; var Result: Boolean; var IsHandled: Boolean; FromPurchDocType: Enum "Purchase Document Type From"; DocLineNo: Integer; RecalculateLines: Boolean; var LinesNotCopied: Integer; var CopyPostedDeferral: Boolean; var NextLineNo: Integer)
     begin
     end;
 
@@ -12537,6 +12546,26 @@ codeunit 6620 "Copy Document Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateJobPlanningLineOnAfterInitFromJobPlanningLine(var NewJobPlanningLine: Record "Job Planning Line"; JobPlanningLine: Record "Job Planning Line"; SalesLine: Record "Sales Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateCustLedgEntryOnAfterSetFilters(var CustLedgerEntry: Record "Cust. Ledger Entry"; var ToSalesHeader: Record "Sales Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateVendLedgEntryOnAfterSetFilters(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var ToPurchHeader: Record "Purchase Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateCustLedgEntryOnNoOpenEntries(var CustLedgerEntry: Record "Cust. Ledger Entry"; var ToSalesHeader: Record "Sales Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateVendLedgEntryOnNoOpenEntries(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var ToPurchHeader: Record "Purchase Header"; FromDocType: Enum "Gen. Journal Document Type"; FromDocNo: Code[20])
     begin
     end;
 }

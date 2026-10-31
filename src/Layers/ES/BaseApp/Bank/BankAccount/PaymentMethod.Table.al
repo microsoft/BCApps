@@ -7,7 +7,6 @@ namespace Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.PaymentTerms;
-using Microsoft.Sales.Receivables;
 using System.Globalization;
 using System.IO;
 
@@ -155,40 +154,6 @@ table 289 "Payment Method"
             Caption = 'Payment Means Code';
             ToolTip = 'Specifies the payment means in connection with electronic document sending. For example, when you send sales documents as electronic documents, the value in this field is used to populate the PaymentMeansCode element in the Payment Means group. The number is based on the UNCL4461 standard.';
         }
-        field(7000000; "Create Bills"; Boolean)
-        {
-            Caption = 'Create Bills';
-
-            trigger OnValidate()
-            begin
-                if "Invoices to Cartera" and "Create Bills" then
-                    Error(Text1100000, FieldCaption("Invoices to Cartera"));
-            end;
-        }
-        field(7000001; "Collection Agent"; Option)
-        {
-            Caption = 'Collection Agent';
-            OptionCaption = 'Direct,Bank';
-            OptionMembers = Direct,Bank;
-        }
-        field(7000002; "Submit for Acceptance"; Boolean)
-        {
-            Caption = 'Submit for Acceptance';
-        }
-        field(7000003; "Bill Type"; Enum "ES Bill Type")
-        {
-            Caption = 'Bill Type';
-        }
-        field(7000004; "Invoices to Cartera"; Boolean)
-        {
-            Caption = 'Invoices to Cartera';
-
-            trigger OnValidate()
-            begin
-                if "Create Bills" and "Invoices to Cartera" then
-                    Error(Text1100000, FieldCaption("Create Bills"));
-            end;
-        }
     }
 
     keys
@@ -231,9 +196,6 @@ table 289 "Payment Method"
     begin
         "Last Modified Date Time" := CurrentDateTime;
     end;
-
-    var
-        Text1100000: Label '%1 must be set equal to False';
 
     local procedure CheckGLAcc(AccNo: Code[20])
     var

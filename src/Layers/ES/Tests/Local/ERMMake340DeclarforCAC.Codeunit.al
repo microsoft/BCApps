@@ -2284,7 +2284,9 @@ codeunit 144050 "ERM Make 340 Declar. for CAC"
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Gen. Bus. Posting Group", FindGenBusPostingGroup(VATBusPostingGroup));
         Customer.Validate("VAT Bus. Posting Group", VATBusPostingGroup);
+#pragma warning disable AA0210
         PmtMethod.SetRange("Bill Type", BillType);
+#pragma warning restore AA0210
         PmtMethod.FindFirst();
         Customer."Payment Method Code" := PmtMethod.Code;
         PmtTerms.FindFirst();
@@ -2318,7 +2320,9 @@ codeunit 144050 "ERM Make 340 Declar. for CAC"
         LibraryPurchase.CreateVendor(Vendor);
         Vendor.Validate("Gen. Bus. Posting Group", FindGenBusPostingGroup(VATBusPostingGroup));
         Vendor.Validate("VAT Bus. Posting Group", VATBusPostingGroup);
+#pragma warning disable AA0210
         PmtMethod.SetRange("Bill Type", PmtMethod."Bill Type"::Transfer);
+#pragma warning restore AA0210
         PmtMethod.FindFirst();
         Vendor."Payment Method Code" := PmtMethod.Code;
         PmtTerms.FindFirst();

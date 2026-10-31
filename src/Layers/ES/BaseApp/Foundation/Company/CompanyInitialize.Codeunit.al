@@ -20,7 +20,6 @@ using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Registration;
@@ -281,8 +280,6 @@ codeunit 2 "Company-Initialize"
         Text1100007: Label 'Your Invoice';
         Text1100008: Label 'YP';
         Text1100009: Label 'Your payment No.';
-        XCARJNL: Label 'CARJNL';
-        XCARJNLDescription: Label 'Cartera Journal';
 #if not CLEAN29
         PEPPOLBIS3_ElectronicFormatTxt: Label 'PEPPOL BIS3', Locked = true;
         PEPPOLBIS3_ElectronicFormatDescriptionTxt: Label 'PEPPOL BIS3 Format (Pan-European Public Procurement Online)';
@@ -325,7 +322,6 @@ codeunit 2 "Company-Initialize"
         VATReportSetup: Record "VAT Report Setup";
         TaxSetup: Record "Tax Setup";
         ConfigSetup: Record "Config. Setup";
-        CarteraSetup: Record "Cartera Setup";
         DataMigrationSetup: Record "Data Migration Setup";
         IncomingDocumentsSetup: Record "Incoming Documents Setup";
         CompanyInfo: Record "Company Information";
@@ -455,11 +451,6 @@ codeunit 2 "Company-Initialize"
             VATSetup.Insert();
         end;
 
-        if not CarteraSetup.FindFirst() then begin
-            CarteraSetup.Init();
-            CarteraSetup.Insert();
-        end;
-
         OnAfterInitSetupTables();
     end;
 
@@ -544,7 +535,6 @@ codeunit 2 "Company-Initialize"
             InsertSourceCode(SourceCodeSetup."Sales Deferral", SourceCodeSalesDeferralLbl, SourceCodeSalesDeferralTxt);
             InsertSourceCode(SourceCodeSetup."Purchase Deferral", SourceCodePurchaseDeferralLbl, SourceCodePurchaseDeferralTxt);
             InsertSourceCode(SourceCodeSetup."Production Order", ProductionOrderLbl, ProductionOrderTxt);
-            InsertSourceCode(SourceCodeSetup."Cartera Journal", XCARJNL, XCARJNLDescription);
             OnBeforeSourceCodeSetupInsert(SourceCodeSetup);
             SourceCodeSetup.Insert();
         end;
