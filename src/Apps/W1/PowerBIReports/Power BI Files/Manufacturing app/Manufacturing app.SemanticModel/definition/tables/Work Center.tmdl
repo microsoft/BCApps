@@ -11,7 +11,7 @@ table 'Work Center'
 	measure 'Work Center Capacity (Effective)' =
 			
 			
-			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[type])
 			VAR TimeFactor =
 			    LOOKUPVALUE(
 			        'Time Factors'[Time Factor],
@@ -58,7 +58,7 @@ table 'Work Center'
 	/// Specifies the calculated capacity requirements for production orders at the work center.
 	measure 'Work Center Allocated Time' = ```
 			
-			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[type])
 			VAR TimeFactor =
 			    LOOKUPVALUE(
 			        'Time Factors'[Time Factor],
@@ -100,7 +100,7 @@ table 'Work Center'
 	measure 'Work Center Capacity (Total)' = ```
 			
 			
-			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[type])
 			VAR TimeFactor =
 			    LOOKUPVALUE(
 			        'Time Factors'[Time Factor],
@@ -158,7 +158,7 @@ table 'Work Center'
 
 	measure 'Work Center Actual Need' =
 			
-			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[type])
 			VAR TimeFactor =
 			    LOOKUPVALUE(
 			        'Time Factors'[Time Factor],
@@ -228,7 +228,7 @@ table 'Work Center'
 
 	measure 'Work Center Needed Time' =
 			
-			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[type])
 			VAR TimeFactor =
 			    LOOKUPVALUE(
 			        'Time Factors'[Time Factor],
