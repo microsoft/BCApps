@@ -424,9 +424,10 @@ codeunit 18632 "Depr Calculation Subscribers"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Normal Depreciation", 'OnAfterCalcDB1Amount', '', false, false)]
-    local procedure OnAfterCalcDB1Amount(DBPercent: Decimal; NumberOfDays: Integer; BookValue: Decimal; var Result: Decimal; FADepreciationBook: Record "FA Depreciation Book")
+    local procedure OnAfterCalcDB1Amount(DBPercent: Decimal; BookValue: Decimal; Sign: Integer; DeprInFiscalYear: Decimal; var Result: Decimal; FADepreciationBook: Record "FA Depreciation Book")
     var
         DeprBook: Record "Depreciation Book";
+        OpeningBookValue: Decimal;
     begin
         if not DeprBook.Get(FADepreciationBook."Depreciation Book Code") then
             exit;
@@ -434,10 +435,10 @@ codeunit 18632 "Depr Calculation Subscribers"
         if not (DeprBook."FA Book Type" = FADepreciationBook."FA Book Type"::"Income Tax") then
             exit;
 
-        if NumberOfDays <= DeprBook."Depr. Threshold Days" then
-            Result := -(BookValue * DBPercent / 200)
-        else
-            Result := -(BookValue * DBPercent / 100);
+        OpeningBookValue := BookValue - sign * DeprInFiscalYear;
+        Result := -(OpeningBookValue * DBPercent / 100) - sign * DeprInFiscalYear;
+        if Result > 0 then
+            Result := 0;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"FA Check Consistency", 'OnCheckNormalPostingOnAfterSetFALedgerEntryFilters', '', false, false)]
