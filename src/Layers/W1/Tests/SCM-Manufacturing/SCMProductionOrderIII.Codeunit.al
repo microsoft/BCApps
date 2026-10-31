@@ -8348,6 +8348,74 @@ codeunit 137079 "SCM Production Order III"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandlerWithoutValidation')]
+    procedure ReverseCapacityLedgerEntryIntermediateOperationWithoutOutputSerialTrackedItem()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemTrackingCode: Record "Item Tracking Code";
+        ProductionOrder: Record "Production Order";
+        ReversalCapacityLedgerEntry: Record "Capacity Ledger Entry";
+        CapacityLedgerEntries: TestPage "Capacity Ledger Entries";
+    begin
+        // [SCENARIO 653339] Capacity ledger entry of an intermediate operation posted with run time but no output can be reversed for a serial-tracked item without a serial number.
+        Initialize();
+
+        // [GIVEN] Serial-tracked production item with a routing of three operations.
+        Item.Get(CreateItemSerialRoutingSeveralLines(3));
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, true, false);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+
+        // [GIVEN] Released production order.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", LibraryRandom.RandIntInRange(2, 10), '', '');
+
+        // [GIVEN] Output journal with exploded routing: the first operation has run time and output, the second has run time and no output, the last (final) operation line is removed.
+        CreateOutputJournalWithExplodeRouting(ItemJournalLine, ProductionOrder."No.");
+        UpdateOutputJournalLine(ItemJournalLine, ProductionOrder.Quantity, LibraryRandom.RandDecInRange(10, 20, 2));
+        ItemJournalLine.Next();
+        UpdateOutputJournalLine(ItemJournalLine, 0, LibraryRandom.RandDecInRange(100, 200, 2));
+        ItemJournalLine.SetFilter("Line No.", '>%1', ItemJournalLine."Line No.");
+        ItemJournalLine.DeleteAll(true);
+        ItemJournalLine.SetRange("Line No.");
+        Assert.RecordCount(ItemJournalLine, 2);
+        LibraryInventory.PostItemJournalLine(OutputItemJournalBatch."Journal Template Name", OutputItemJournalBatch.Name);
+
+        // [GIVEN] Capacity ledger entry with run time and no output quantity.
+        CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
+        CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntry.SetRange("Output Quantity", 0);
+        repeat
+            if (CapacityLedgerEntry."Output Quantity" = 0) and (CapacityLedgerEntry.Quantity <> 0) then
+                break;
+        until CapacityLedgerEntry.Next() = 0;
+
+        // [WHEN] Invoke "Reverse" action on the capacity ledger entry of the intermediate operation.
+        CapacityLedgerEntries.OpenEdit();
+        CapacityLedgerEntries.Filter.SetFilter("Entry No.", Format(CapacityLedgerEntry."Entry No."));
+        CapacityLedgerEntries.Reverse.Invoke();
+
+        // [THEN] The capacity ledger entry is reversed without requiring a serial number.
+        CapacityLedgerEntry.Get(CapacityLedgerEntry."Entry No.");
+        Assert.IsTrue(CapacityLedgerEntry.Reversed, StrSubstNo(ValueMustBeEqualErr, CapacityLedgerEntry.FieldCaption(Reversed), true, CapacityLedgerEntry.TableCaption()));
+        ReversalCapacityLedgerEntry.Get(CapacityLedgerEntry."Reversed by Entry No.");
+        Assert.AreEqual(
+            -CapacityLedgerEntry."Run Time", ReversalCapacityLedgerEntry."Run Time",
+            StrSubstNo(ValueMustBeEqualErr, ReversalCapacityLedgerEntry.FieldCaption("Run Time"), -CapacityLedgerEntry."Run Time", ReversalCapacityLedgerEntry.TableCaption()));
+        Assert.AreEqual(
+            -CapacityLedgerEntry.Quantity, ReversalCapacityLedgerEntry.Quantity,
+            StrSubstNo(ValueMustBeEqualErr, ReversalCapacityLedgerEntry.FieldCaption(Quantity), -CapacityLedgerEntry.Quantity, ReversalCapacityLedgerEntry.TableCaption()));
+
+        // [THEN] No output item ledger entry is posted.
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        Assert.RecordIsEmpty(ItemLedgerEntry);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Production Order III");
@@ -8715,6 +8783,15 @@ codeunit 137079 "SCM Production Order III"
           ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, ItemNo, LibraryRandom.RandInt(100));
         ProductionBOMLine.Validate("Routing Link Code", RoutingLine."Routing Link Code");
         ProductionBOMLine.Modify(true);
+    end;
+
+    local procedure UpdateOutputJournalLine(var ItemJournalLine: Record "Item Journal Line"; OutputQuantity: Decimal; RunTime: Decimal)
+    begin
+        ItemJournalLine.Validate("Output Quantity", OutputQuantity);
+        ItemJournalLine.Validate("Setup Time", 0);
+        ItemJournalLine.Validate("Scrap Quantity", 0);
+        ItemJournalLine.Validate("Run Time", RunTime);
+        ItemJournalLine.Modify(true);
     end;
 
     local procedure CreateOutputJournalWithExplodeRouting(var ItemJournalLine: Record "Item Journal Line"; ProductionOrderNo: Code[20])
