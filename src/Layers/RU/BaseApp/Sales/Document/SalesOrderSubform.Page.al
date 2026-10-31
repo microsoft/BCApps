@@ -143,26 +143,6 @@ page 46 "Sales Order Subform"
                         CurrPage.Update();
                     end;
                 }
-                field("IC Partner Code"; Rec."IC Partner Code")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
-                field("IC Partner Ref. Type"; Rec."IC Partner Ref. Type")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
-                field("IC Partner Reference"; Rec."IC Partner Reference")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
-                field("IC Item Reference"; Rec."IC Item Reference No.")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
@@ -1842,6 +1822,15 @@ page 46 "Sales Order Subform"
             SalesSetup."Auto Post Non-Invt. via Whse." = SalesSetup."Auto Post Non-Invt. via Whse."::"Attached/Assigned";
     end;
 
+    [Scope('OnPrem')]
+    procedure ReserveSelectedLines()
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        CurrPage.SetSelectionFilter(SalesLine);
+        Rec.ReserveFromInventory(SalesLine);
+    end;
+
     /// <summary>
     /// Approves and calculates the invoice discount for the current line.
     /// </summary>
@@ -2032,15 +2021,6 @@ page 46 "Sales Order Subform"
         OrderPromisingLines.SetSource(OrderPromisingLine."Source Type"::Sales);
         OrderPromisingLines.SetTableView(OrderPromisingLine);
         OrderPromisingLines.RunModal();
-    end;
-
-    [Scope('OnPrem')]
-    procedure ReserveSelectedLines()
-    var
-        SalesLine: Record "Sales Line";
-    begin
-        CurrPage.SetSelectionFilter(SalesLine);
-        Rec.ReserveFromInventory(SalesLine);
     end;
 
     /// <summary>

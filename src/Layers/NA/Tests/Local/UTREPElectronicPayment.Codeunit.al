@@ -27,28 +27,6 @@ codeunit 141038 "UT REP Electronic Payment"
         PaymentJournalTestCaptionTxt: Label 'Payment Journal - Test';
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure CheckICPartnerPaymentJournalTest()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        PaymentJournalTest: Report "Payment Journal - Test";
-        AccountName: Text[50];
-    begin
-        // Purpose of the test is to validate CheckICPartner function of Report 10089 - Payment Journal - Test.
-
-        // Setup: Create General Journal Line Account Type - IC Partner.
-        Initialize();
-        CreateGeneralJournalLine(GenJournalLine, GenJournalLine."Account Type"::"IC Partner", CreateICPartner(), WorkDate());  // Posting Date - WORKDATE.
-
-        // Exercise: Execute function - CheckICPartner of Report - Payment Journal - Test.
-        PaymentJournalTest.CheckICPartner(GenJournalLine, AccountName);
-
-        // Verify: Verify updated Account Name with General Journal Line - Account Number.
-        Assert.AreEqual(GenJournalLine."Account No.", AccountName, ValueMustEqualMsg);
-    end;
-
-    [Test]
     [HandlerFunctions('PaymentJournalTestRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
@@ -582,16 +560,6 @@ codeunit 141038 "UT REP Electronic Payment"
         GLAccount."No." := LibraryUTUtility.GetNewCode();
         GLAccount.Insert();
         exit(GLAccount."No.");
-    end;
-
-    local procedure CreateICPartner(): Code[20]
-    var
-        ICPartner: Record "IC Partner";
-    begin
-        ICPartner.Code := LibraryUTUtility.GetNewCode();
-        ICPartner.Name := ICPartner.Code;
-        ICPartner.Insert();
-        exit(ICPartner.Code);
     end;
 
     local procedure CreateVendor(): Code[20]

@@ -22,13 +22,6 @@ using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Reporting;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.Comment;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Outbox;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
@@ -83,19 +76,6 @@ permissionset 862 "Payables Documents - Post"
                   tabledata "Gen. Journal Template" = R,
                   tabledata "General Ledger Setup" = rm,
                   tabledata "General Posting Setup" = R,
-                  tabledata "IC Bank Account" = R,
-                  tabledata "IC Comment Line" = RIMD,
-                  tabledata "IC Dimension" = R,
-                  tabledata "IC Dimension Value" = R,
-                  tabledata "IC Document Dimension" = RIMD,
-                  tabledata "IC G/L Account" = R,
-                  tabledata "IC Inbox/Outbox Jnl. Line Dim." = RIMD,
-                  tabledata "IC Outbox Jnl. Line" = RIMD,
-                  tabledata "IC Outbox Purchase Header" = RIMD,
-                  tabledata "IC Outbox Purchase Line" = RIMD,
-                  tabledata "IC Outbox Transaction" = RIMD,
-                  tabledata "IC Partner" = R,
-                  tabledata "IC Setup" = R,
                   tabledata "Inventory Posting Group" = r,
                   tabledata "Inventory Posting Setup" = r,
                   tabledata Item = Rm,

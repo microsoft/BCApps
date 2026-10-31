@@ -128,16 +128,6 @@ page 6631 "Sales Return Order Subform"
                         CurrPage.Update();
                     end;
                 }
-                field("IC Partner Ref. Type"; Rec."IC Partner Ref. Type")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
-                field("IC Partner Reference"; Rec."IC Partner Reference")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
                 field("Include in VAT Transac. Rep."; Rec."Include in VAT Transac. Rep.")
                 {
                     ApplicationArea = SalesReturnOrder;

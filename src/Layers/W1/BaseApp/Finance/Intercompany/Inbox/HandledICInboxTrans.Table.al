@@ -2,12 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Intercompany;
-using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Archives processed intercompany inbox transactions for historical tracking and audit purposes.
@@ -17,6 +16,10 @@ table 420 "Handled IC Inbox Trans."
 {
     Caption = 'Handled IC Inbox Trans.';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -35,7 +38,6 @@ table 420 "Handled IC Inbox Trans."
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
 #if not CLEANSCHEMA29
         /// <summary>
@@ -163,104 +165,5 @@ table 420 "Handled IC Inbox Trans."
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        HndlInboxJnlLine: Record "Handled IC Inbox Jnl. Line";
-        HndlICInboxSalesHdr: Record "Handled IC Inbox Sales Header";
-        HndlICInboxPurchHdr: Record "Handled IC Inbox Purch. Header";
-    begin
-        case "IC Source Type" of
-            "IC Source Type"::Journal:
-                begin
-                    HndlInboxJnlLine.SetRange("Transaction No.", "Transaction No.");
-                    HndlInboxJnlLine.SetRange("IC Partner Code", "IC Partner Code");
-                    HndlInboxJnlLine.SetRange("Transaction Source", "Transaction Source");
-                    HndlInboxJnlLine.DeleteAll(true);
-                end;
-            "IC Source Type"::"Sales Document":
-                if HndlICInboxSalesHdr.Get("Transaction No.", "IC Partner Code", "Transaction Source") then
-                    HndlICInboxSalesHdr.Delete(true);
-            "IC Source Type"::"Purchase Document":
-                if HndlICInboxPurchHdr.Get("Transaction No.", "IC Partner Code", "Transaction Source") then
-                    HndlICInboxPurchHdr.Delete(true);
-            else
-                OnDeleteOnSourceTypeCase(Rec);
-        end;
-        DeleteComments("Transaction No.", "IC Partner Code");
-    end;
-
-    /// <summary>
-    /// Opens the detailed view for this handled transaction based on its source type (Journal, Sales Document, or Purchase Document).
-    /// </summary>
-    procedure ShowDetails()
-    var
-        HandledICInboxJnlLine: Record "Handled IC Inbox Jnl. Line";
-        HandledICInboxSalesHeader: Record "Handled IC Inbox Sales Header";
-        HandledICInboxPurchHeader: Record "Handled IC Inbox Purch. Header";
-        HandledICInboxJnlLines: Page "Handled IC Inbox Jnl. Lines";
-        HandledICInboxSalesDoc: Page "Handled IC Inbox Sales Doc.";
-        HandledICInboxPurchDoc: Page "Handled IC Inbox Purch. Doc.";
-    begin
-        case "IC Source Type" of
-            "IC Source Type"::Journal:
-                begin
-                    HandledICInboxJnlLine.SetRange("Transaction No.", "Transaction No.");
-                    HandledICInboxJnlLine.SetRange("IC Partner Code", "IC Partner Code");
-                    HandledICInboxJnlLine.SetRange("Transaction Source", "Transaction Source");
-                    Clear(HandledICInboxJnlLines);
-                    HandledICInboxJnlLines.SetTableView(HandledICInboxJnlLine);
-                    HandledICInboxJnlLines.RunModal();
-                end;
-            "IC Source Type"::"Sales Document":
-                begin
-                    HandledICInboxSalesHeader.SetRange("IC Transaction No.", "Transaction No.");
-                    HandledICInboxSalesHeader.SetRange("IC Partner Code", "IC Partner Code");
-                    HandledICInboxSalesHeader.SetRange("Transaction Source", "Transaction Source");
-                    Clear(HandledICInboxSalesDoc);
-                    HandledICInboxSalesDoc.SetTableView(HandledICInboxSalesHeader);
-                    HandledICInboxSalesDoc.RunModal();
-                end;
-            "IC Source Type"::"Purchase Document":
-                begin
-                    HandledICInboxPurchHeader.SetRange("IC Partner Code", "IC Partner Code");
-                    HandledICInboxPurchHeader.SetRange("IC Transaction No.", "Transaction No.");
-                    HandledICInboxPurchHeader.SetRange("Transaction Source", "Transaction Source");
-                    Clear(HandledICInboxPurchDoc);
-                    HandledICInboxPurchDoc.SetTableView(HandledICInboxPurchHeader);
-                    HandledICInboxPurchDoc.RunModal();
-                end;
-        end;
-
-        OnAfterShowDetails(Rec);
-    end;
-
-    local procedure DeleteComments(TransactionNo: Integer; ICPartnerCode: Code[20])
-    var
-        ICCommentLine: Record "IC Comment Line";
-    begin
-        ICCommentLine.SetRange("Table Name", ICCommentLine."Table Name"::"Handled IC Inbox Transaction");
-        ICCommentLine.SetRange("Transaction No.", TransactionNo);
-        ICCommentLine.SetRange("IC Partner Code", ICPartnerCode);
-        ICCommentLine.DeleteAll();
-    end;
-
-    /// <summary>
-    /// Integration event raised after showing handled IC transaction details.
-    /// </summary>
-    /// <param name="HandledICInboxTrans">Handled IC inbox transaction record</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterShowDetails(var HandledICInboxTrans: Record "Handled IC Inbox Trans.")
-    begin
-    end;
-
-    /// <summary>
-    /// Integration event raised during deletion for source type-specific processing.
-    /// </summary>
-    /// <param name="HandledICInboxTrans">Handled IC inbox transaction record being deleted</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnDeleteOnSourceTypeCase(var HandledICInboxTrans: Record "Handled IC Inbox Trans.")
-    begin
-    end;
 }
-
+#endif

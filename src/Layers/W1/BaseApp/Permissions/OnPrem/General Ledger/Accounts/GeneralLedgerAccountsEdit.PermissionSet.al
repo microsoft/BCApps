@@ -24,9 +24,6 @@ using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Journal;
@@ -81,9 +78,6 @@ permissionset 9111 "General Ledger Accounts - Edit"
                   tabledata "Gen. Journal Template" = r,
                   tabledata "Gen. Product Posting Group" = R,
                   tabledata "General Posting Setup" = r,
-                  tabledata "IC Bank Account" = r,
-                  tabledata "IC G/L Account" = Rm,
-                  tabledata "IC Partner" = r,
                   tabledata "Inventory Posting Setup" = r,
                   tabledata "Job Journal Line" = r,
                   tabledata "Job Ledger Entry" = r,

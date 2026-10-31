@@ -55,11 +55,6 @@ page 135 "Posted Sales Cr. Memo Subform"
                     AccessByPermission = tabledata "Item Reference" = R;
                     ApplicationArea = Suite, ItemReferences;
                 }
-                field("IC Partner Code"; Rec."IC Partner Code")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
                 field("Include in VAT Transac. Rep."; Rec."Include in VAT Transac. Rep.")
                 {
                     ApplicationArea = Basic, Suite;

@@ -13,8 +13,6 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Projects.Project.Journal;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -155,11 +153,6 @@ table 80 "Gen. Journal Template"
                             "Posting Report ID" := REPORT::"CBG Posting - Test";
                             "Test Report ID" := REPORT::"CBG Posting - Test";
                         end;
-                    Type::Intercompany:
-                        begin
-                            "Source Code" := SourceCodeSetup."IC General Journal";
-                            "Page ID" := PAGE::"IC General Journal";
-                        end;
                     Type::Jobs:
                         begin
                             "Source Code" := SourceCodeSetup."Job G/L Journal";
@@ -286,9 +279,7 @@ table 80 "Gen. Journal Template"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account"
             else
-            if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset"
-            else
-            if ("Bal. Account Type" = const("IC Partner")) "IC Partner";
+            if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset";
 
             trigger OnValidate()
             begin

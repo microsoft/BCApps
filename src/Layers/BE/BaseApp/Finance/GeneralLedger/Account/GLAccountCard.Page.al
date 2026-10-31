@@ -209,10 +209,6 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = SalesTax;
                 }
-                field("Default IC Partner G/L Acc. No"; Rec."Default IC Partner G/L Acc. No")
-                {
-                    ApplicationArea = Intercompany;
-                }
                 field("% Non deductible VAT"; Rec."% Non deductible VAT")
                 {
                     ApplicationArea = VAT;

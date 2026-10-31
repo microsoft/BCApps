@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -365,15 +365,6 @@ page 460 "Purchases & Payables Setup"
                     ApplicationArea = Basic, Suite;
                     Visible = JnlTemplateNameVisible;
                 }
-                field("IC Purch. Invoice Templ. Name"; Rec."IC Purch. Invoice Templ. Name")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                field("IC Purch. Cr. Memo Templ. Name"; Rec."IC Purch. Cr. Memo Templ. Name")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-
             }
             group("Default Accounts")
             {

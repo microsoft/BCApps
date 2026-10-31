@@ -2,15 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
 
 /// <summary>
 /// Stores general journal line details for intercompany outbox transactions pending transmission to partner companies.
@@ -25,6 +20,10 @@ table 415 "IC Outbox Jnl. Line"
 {
     Caption = 'IC Outbox Jnl. Line';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -43,7 +42,6 @@ table 415 "IC Outbox Jnl. Line"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner".Code;
         }
         /// <summary>
         /// Line number providing unique identification within the journal transaction.
@@ -68,37 +66,6 @@ table 415 "IC Outbox Jnl. Line"
         field(5; "Account No."; Code[20])
         {
             Caption = 'Account No.';
-            TableRelation = if ("Account Type" = const("G/L Account")) "IC G/L Account"
-            else
-            if ("Account Type" = const(Customer)) Customer
-            else
-            if ("Account Type" = const(Vendor)) Vendor
-            else
-            if ("Account Type" = const("IC Partner")) "IC Partner"
-            else
-            if ("Account Type" = const("Bank Account")) "IC Bank Account";
-
-            trigger OnValidate()
-            var
-                Customer: Record Customer;
-                Vendor: Record Vendor;
-            begin
-                if ("Account No." <> xRec."Account No.") and ("Account No." <> '') then
-                    case "Account Type" of
-                        "Account Type"::"IC Partner":
-                            TestField("Account No.", "IC Partner Code");
-                        "Account Type"::Customer:
-                            begin
-                                Customer.Get("Account No.");
-                                Customer.TestField("IC Partner Code", "IC Partner Code");
-                            end;
-                        "Account Type"::Vendor:
-                            begin
-                                Vendor.Get("Account No.");
-                                Vendor.TestField("IC Partner Code", "IC Partner Code");
-                            end;
-                    end;
-            end;
         }
         /// <summary>
         /// Transaction amount for the journal line.
@@ -204,12 +171,5 @@ table 415 "IC Outbox Jnl. Line"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        DimMgt: Codeunit DimensionManagement;
-    begin
-        DimMgt.DeleteICJnlDim(
-          DATABASE::"IC Outbox Jnl. Line", "Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
 }
+#endif

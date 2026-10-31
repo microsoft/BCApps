@@ -10,7 +10,6 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Purchases.Analysis;
 using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.History;
@@ -584,22 +583,6 @@ page 9307 "Purchase Order List"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
-                action("Send IC Purchase Order")
-                {
-                    AccessByPermission = TableData "IC G/L Account" = R;
-                    ApplicationArea = Intercompany;
-                    Caption = 'Send IC Purchase Order';
-                    Image = IntercompanyOrder;
-                    ToolTip = 'Send the document to the intercompany outbox or directly to the intercompany partner if automatic transaction sending is enabled.';
-
-                    trigger OnAction()
-                    var
-                        PurchaseHeader: Record "Purchase Header";
-                    begin
-                        CurrPage.SetSelectionFilter(PurchaseHeader);
-                        Rec.SendICPurchaseDoc(PurchaseHeader);
-                    end;
-                }
                 action("Delete Invoiced")
                 {
                     ApplicationArea = Suite;
@@ -817,9 +800,6 @@ page 9307 "Purchase Order List"
                 Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
                 actionref("Create &Whse. Receipt_Promoted"; "Create &Whse. Receipt")
-                {
-                }
-                actionref("Send IC Purchase Order_Promoted"; "Send IC Purchase Order")
                 {
                 }
             }

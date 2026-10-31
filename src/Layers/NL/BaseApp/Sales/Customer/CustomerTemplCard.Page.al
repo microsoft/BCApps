@@ -56,12 +56,6 @@ page 1382 "Customer Templ. Card"
                     ApplicationArea = Suite;
                     Visible = false;
                 }
-                field("IC Partner Code"; Rec."IC Partner Code")
-                {
-                    ApplicationArea = Intercompany;
-                    Importance = Additional;
-                    Visible = false;
-                }
                 field("Disable Search by Name"; Rec."Disable Search by Name")
                 {
                     ApplicationArea = Basic, Suite;

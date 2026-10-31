@@ -687,24 +687,6 @@ table 311 "Sales & Receivables Setup"
             ToolTip = 'Specifies which general journal template to use for sales credit memos.';
         }
         /// <summary>
-        /// Specifies the intercompany journal template used for posting intercompany sales invoices.
-        /// </summary>
-        field(205; "IC Sales Invoice Template Name"; Code[10])
-        {
-            Caption = 'IC Sales Invoice Template Name';
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
-            ToolTip = 'Specifies the intercompany journal template to use for sales invoices.';
-        }
-        /// <summary>
-        /// Specifies the intercompany journal template used for posting intercompany sales credit memos.
-        /// </summary>
-        field(206; "IC Sales Cr. Memo Templ. Name"; Code[10])
-        {
-            Caption = 'IC Sales Cr. Memo Template Name';
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
-            ToolTip = 'Specifies the intercompany journal template to use for sales credit memos.';
-        }
-        /// <summary>
         /// Specifies the general journal template used for posting finance charge memos.
         /// </summary>
         field(207; "Fin. Charge Jnl. Template Name"; Code[10])

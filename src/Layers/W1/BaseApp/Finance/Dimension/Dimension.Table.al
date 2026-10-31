@@ -15,7 +15,6 @@ using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Intercompany.Dimension;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
@@ -120,26 +119,18 @@ table 348 Dimension
             Caption = 'Consolidation Code';
             ToolTip = 'Specifies the code that is used for consolidation.';
         }
-        /// <summary>
-        /// Maps this dimension to an intercompany dimension for transactions between related companies.
-        /// When set, all dimension values are automatically mapped to the corresponding IC dimension.
-        /// </summary>
+#if not CLEANSCHEMA30
         field(8; "Map-to IC Dimension Code"; Code[20])
         {
             Caption = 'Map-to IC Dimension Code';
+            DataClassification = CustomerContent;
             ToolTip = 'Specifies which intercompany dimension corresponds to the dimension on the line.';
-            TableRelation = "IC Dimension";
-
-            trigger OnValidate()
-            var
-                DimensionValue: Record "Dimension Value";
-            begin
-                if "Map-to IC Dimension Code" <> xRec."Map-to IC Dimension Code" then begin
-                    DimensionValue.SetRange("Dimension Code", Code);
-                    DimensionValue.ModifyAll("Map-to IC Dimension Code", "Map-to IC Dimension Code", "Map-to IC Dimension Value Code", '');
-                end;
-            end;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// System field that tracks when the dimension record was last modified.
         /// Used for synchronization and audit purposes.
@@ -226,8 +217,6 @@ table 348 Dimension
                     GLSetup.Modify();
                 end;
         end;
-
-        RemoveICDimensionMappings();
     end;
 
     /// <summary>
@@ -372,7 +361,6 @@ table 348 Dimension
         UsedAsAnalysisViewDim := false;
         UsedAsItemBudgetDim := false;
         UsedAsItemAnalysisViewDim := false;
-
         if CheckAllDim or CheckGlobalDim or CheckShortcutDim or CheckBudgetDim or CheckItemBudgetDim then begin
             GLSetup.Get();
             if (DimTypeChecked <> DimTypeChecked::Global1) and
@@ -384,7 +372,6 @@ table 348 Dimension
             then
                 UsedAsGlobalDim := true;
         end;
-
         if CheckGlobalDim or CheckShortcutDim then begin
             if (DimTypeChecked <> DimTypeChecked::Shortcut3) and
                (DimChecked = GLSetup."Shortcut Dimension 3 Code")
@@ -411,7 +398,6 @@ table 348 Dimension
             then
                 UsedAsShortcutDim := true;
         end;
-
         if CheckAllDim or CheckGlobalDim or CheckBudgetDim then begin
             if BudgetNameChecked <> '' then
                 GLBudgetName.SetRange(Name, BudgetNameChecked);
@@ -435,7 +421,6 @@ table 348 Dimension
                         UsedAsBudgetDim := true;
                 until GLBudgetName.Next() = 0;
         end;
-
         if CheckAllDim or CheckGlobalDim or CheckItemBudgetDim then begin
             if BudgetNameChecked <> '' then begin
                 ItemBudgetName.SetRange("Analysis Area", AnalysisAreaChecked);
@@ -461,7 +446,6 @@ table 348 Dimension
         CheckIfDimUsedAsAnalysisViewDim(AnalysisView, DimChecked, DimTypeChecked, CheckAllDim, CheckAnalysisViewDim, AnalysisViewChecked);
 
         CheckIfDimUsedAsItemAnalysisViewDim(ItemAnalysisView, DimChecked, DimTypeChecked, AnalysisViewChecked, AnalysisAreaChecked, CheckAllDim, CheckItemAnalysisViewDim);
-
         if UsedAsGlobalDim or
            UsedAsShortcutDim or
            UsedAsBudgetDim or
@@ -488,7 +472,6 @@ table 348 Dimension
         OnBeforeCheckIfDimUsedAsAnalysisViewDim(AnalysisView, DimChecked, DimTypeChecked, CheckAllDim, CheckAnalysisViewDim, AnalysisViewChecked, UsedAsAnalysisViewDim, IsHandled);
         if IsHandled then
             exit;
-
         if CheckAllDim or CheckAnalysisViewDim then begin
             if AnalysisViewChecked <> '' then
                 AnalysisView.SetRange(Code, AnalysisViewChecked);
@@ -547,7 +530,6 @@ table 348 Dimension
         OnBeforeCheckIfDimUsedAsItemAnalysisViewDim(ItemAnalysisView, DimChecked, DimTypeChecked, AnalysisViewChecked, AnalysisAreaChecked, CheckAllDim, CheckItemAnalysisViewDim, UsedAsItemAnalysisViewDim, IsHandled);
         if IsHandled then
             exit;
-
         if CheckAllDim or CheckItemAnalysisViewDim then begin
             if AnalysisViewChecked <> '' then begin
                 ItemAnalysisView.SetRange("Analysis Area", AnalysisAreaChecked);
@@ -753,32 +735,6 @@ table 348 Dimension
     local procedure SetLastModifiedDateTime()
     begin
         "Last Modified Date Time" := CurrentDateTime;
-    end;
-
-    local procedure RemoveICDimensionMappings()
-    var
-        ICDimension: Record "IC Dimension";
-        ICDimensionValue: Record "IC Dimension Value";
-    begin
-        ICDimension.SetRange("Map-to Dimension Code", Rec."Code");
-        if not ICDimension.IsEmpty() then begin
-            ICDimension.FindSet();
-            repeat
-                ICDimensionValue.SetRange("Dimension Code", ICDimension.Code);
-                if not ICDimensionValue.IsEmpty() then begin
-                    ICDimensionValue.FindSet();
-                    repeat
-                        if ICDimensionValue."Map-to Dimension Code" <> '' then begin
-                            ICDimensionValue."Map-to Dimension Code" := '';
-                            ICDimensionValue."Map-to Dimension Value Code" := '';
-                            ICDimensionValue.Modify();
-                        end;
-                    until ICDimensionValue.Next() = 0;
-                end;
-                ICDimension."Map-to Dimension Code" := '';
-                ICDimension.Modify();
-            until ICDimension.Next() = 0;
-        end;
     end;
 
     /// <summary>

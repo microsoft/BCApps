@@ -22,9 +22,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
@@ -609,7 +606,6 @@ report 6250 "Auto Posting Errors"
         VATPostingSetup: Record "VAT Posting Setup";
         NoSeries: Record "No. Series";
         FA: Record "Fixed Asset";
-        ICPartner: Record "IC Partner";
         DeprBook: Record "Depreciation Book";
         FADeprBook: Record "FA Depreciation Book";
         FASetup: Record "FA Setup";
@@ -651,7 +647,6 @@ report 6250 "Auto Posting Errors"
         AllocationDimText: Text[75];
         ShowDim: Boolean;
         Continue: Boolean;
-        CurrentICPartner: Code[20];
 
         Text000Txt: Label '%1 cannot be filtered when you post recurring journals.', Comment = '%1=Posting or Expiration Date';
         Text001Txt: Label '%1 or %2 must be specified.', Comment = '%1=Account Number, %2=Balance Account Number';
@@ -715,10 +710,6 @@ report 6250 "Auto Posting Errors"
         Text062Txt: Label '%1 must not be 0.', Comment = '%1=GenJnlLine  Amount';
         Text064Txt: Label '%1 %2 is already used in line %3 (%4 %5).', Comment = '%1=GenJnlLine External Document No. field caption, %2=GenJnlLine External Document No., %3=TempGenJnlLine Line No., %4=GenJnlLine Document No.field caption, %5=TempGenJnlLine Document No.';
         Text065Txt: Label '%1 must not be blocked with type %2 when %3 is %4.', Comment = '%1=Account Type, %2=Cust.Blocked, %3=Document Type field caption, %4=Document Type';
-        Text066Txt: Label 'You cannot enter G/L Account or Bank Account in both %1 and %2.', Comment = '%1=Account No. field caption, %2=Bal. Account No. field caption';
-        Text067Txt: Label '%1 %2 is linked to %3 %4.', Comment = '%1=Customer table caption, %2=Account No., %3=ICPartner table caption, %4=IC Partner Code';
-        Text069Txt: Label '%1 must not be specified when %2 is %3.', Comment = '%1=IC Partner G/L Acc. No. field caption, %2=IC Direction field caption, %3=IC Direction';
-        Text070Txt: Label '%1 must not be specified when the document is not an intercompany transaction.', Comment = '%1=IC Partner G/L Acc. No. field caption';
         Text071Txt: Label '%1 %2 does not exist.', Comment = '%1=Project table caption, %2=Project No.';
         Text072Txt: Label '%1 must not be %2 for %3 %4.', Comment = '%1=Project Blocked field caption, %2=Project Blocked, %3=Project table caption, %4=Project No.';
         Text073Txt: Label '%1 %2 already exists.', Comment = '%1=Document No. field caption, %2=Document No.';
@@ -1051,28 +1042,7 @@ report 6250 "Auto Posting Errors"
                       StrSubstNo(
                         Text038Txt,
                         GenJnlLine."Currency Code"));
-            if (Cust."IC Partner Code" <> '') and (GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany) then
-                if ICPartner.Get(Cust."IC Partner Code") then begin
-                    if ICPartner.Blocked then
-                        AddError(
-                          StrSubstNo(
-                            '%1 %2',
-                            StrSubstNo(
-                              Text067Txt,
-                              Cust.TableCaption(), GenJnlLine."Account No.", ICPartner.TableCaption(), GenJnlLine."IC Partner Code"),
-                            StrSubstNo(
-                              Text032Txt,
-                              ICPartner.FieldCaption(Blocked), false, ICPartner.TableCaption(), Cust."IC Partner Code")));
-                end else
-                    AddError(
-                      StrSubstNo(
-                        '%1 %2',
-                        StrSubstNo(
-                          Text067Txt,
-                          Cust.TableCaption(), GenJnlLine."Account No.", ICPartner.TableCaption(), Cust."IC Partner Code"),
-                        StrSubstNo(
-                          Text031Txt,
-                          ICPartner.TableCaption(), Cust."IC Partner Code")));
+            OnAfterCheckCustBase(GenJnlLine, Cust, GenJnlTemplate, ErrorText, ErrorCounter, DataMigrationError, GPMigrationTypeTxt, PostingErrorTxt);
             CustPosting := true;
             TestPostingType();
 
@@ -1139,29 +1109,7 @@ report 6250 "Auto Posting Errors"
                       StrSubstNo(
                         Text038Txt,
                         GenJnlLine."Currency Code"));
-
-            if (Vend."IC Partner Code" <> '') and (GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany) then
-                if ICPartner.Get(Vend."IC Partner Code") then begin
-                    if ICPartner.Blocked then
-                        AddError(
-                          StrSubstNo(
-                            '%1 %2',
-                            StrSubstNo(
-                              Text067Txt,
-                              Vend.TableCaption(), GenJnlLine."Account No.", ICPartner.TableCaption(), Vend."IC Partner Code"),
-                            StrSubstNo(
-                              Text032Txt,
-                              ICPartner.FieldCaption(Blocked), false, ICPartner.TableCaption(), Vend."IC Partner Code")));
-                end else
-                    AddError(
-                      StrSubstNo(
-                        '%1 %2',
-                        StrSubstNo(
-                          Text067Txt,
-                          Vend.TableCaption(), GenJnlLine."Account No.", ICPartner.TableCaption(), GenJnlLine."IC Partner Code"),
-                        StrSubstNo(
-                          Text031Txt,
-                          ICPartner.TableCaption(), Vend."IC Partner Code")));
+            OnAfterCheckVendBase(GenJnlLine, Vend, GenJnlTemplate, ErrorText, ErrorCounter, DataMigrationError, GPMigrationTypeTxt, PostingErrorTxt);
             VendPosting := true;
             TestPostingType();
 
@@ -1296,23 +1244,6 @@ report 6250 "Auto Posting Errors"
                   StrSubstNo(
                     Text036Txt,
                     FADeprBook.TableCaption(), FA."No.", GenJnlLine."Depreciation Book Code"));
-        end;
-    end;
-
-    local procedure CheckICPartner(var GenJnlLine: Record "Gen. Journal Line"; var AccName: Text[100])
-    begin
-        if not ICPartner.Get(GenJnlLine."Account No.") then
-            AddError(
-              StrSubstNo(
-                Text031Txt,
-                ICPartner.TableCaption(), GenJnlLine."Account No."))
-        else begin
-            AccName := ICPartner.Name;
-            if ICPartner.Blocked then
-                AddError(
-                  StrSubstNo(
-                    Text032Txt,
-                    ICPartner.FieldCaption(Blocked), false, ICPartner.TableCaption(), GenJnlLine."Account No."));
         end;
     end;
 
@@ -1554,23 +1485,9 @@ report 6250 "Auto Posting Errors"
 
     local procedure CheckICDocument()
     var
-        GenJnlLine4: Record "Gen. Journal Line";
+        IsHandled: Boolean;
     begin
-        if GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany then begin
-            if ("Gen. Journal Line"."Posting Date" <> LastDate) or ("Gen. Journal Line"."Document Type" <> LastDocType) or ("Gen. Journal Line"."Document No." <> LastDocNo) then begin
-                GenJnlLine4.SetCurrentKey("Journal Template Name", "Journal Batch Name", "Posting Date", "Document No.");
-                GenJnlLine4.SetRange("Journal Template Name", "Gen. Journal Line"."Journal Template Name");
-                GenJnlLine4.SetRange("Journal Batch Name", "Gen. Journal Line"."Journal Batch Name");
-                GenJnlLine4.SetRange("Posting Date", "Gen. Journal Line"."Posting Date");
-                GenJnlLine4.SetRange("Document No.", "Gen. Journal Line"."Document No.");
-                GenJnlLine4.SetFilter("IC Partner Code", '<>%1', '');
-                if GenJnlLine4.FindFirst() then
-                    CurrentICPartner := GenJnlLine4."IC Partner Code"
-                else
-                    CurrentICPartner := '';
-            end;
-            CheckICAccountNo();
-        end;
+        OnBeforeCheckICDocument("Gen. Journal Line", GenJnlTemplate, LastDate, LastDocType, LastDocNo, ErrorText, ErrorCounter, DataMigrationError, GPMigrationTypeTxt, PostingErrorTxt, IsHandled);
     end;
 
     local procedure TestJobFields(var GenJnlLine: Record "Gen. Journal Line")
@@ -1673,6 +1590,8 @@ report 6250 "Auto Posting Errors"
     end;
 
     local procedure CheckAccountTypes(AccountType: Enum "Gen. Journal Account Type"; var Name: Text[100])
+    var
+        IsHandled: Boolean;
     begin
         case AccountType of
             AccountType::"G/L Account":
@@ -1686,7 +1605,7 @@ report 6250 "Auto Posting Errors"
             AccountType::"Fixed Asset":
                 CheckFixedAsset("Gen. Journal Line", Name);
             AccountType::"IC Partner":
-                CheckICPartner("Gen. Journal Line", Name);
+                OnCheckICPartner("Gen. Journal Line", Name, ErrorText, ErrorCounter, DataMigrationError, GPMigrationTypeTxt, PostingErrorTxt, IsHandled);
             AccountType::Employee:
                 CheckEmployee("Gen. Journal Line", Name);
         end;
@@ -2111,56 +2030,6 @@ report 6250 "Auto Posting Errors"
                 AddError(StrSubstNo(Text009Txt, GenJnlLine.FieldCaption("Bank Payment Type")));
     end;
 
-    local procedure CheckICAccountNo()
-    var
-        ICGLAccount: Record "IC G/L Account";
-        ICBankAccount: Record "IC Bank Account";
-    begin
-        if (CurrentICPartner <> '') and ("Gen. Journal Line"."IC Direction" = "Gen. Journal Line"."IC Direction"::Outgoing) then
-            if ("Gen. Journal Line"."Account Type" in ["Gen. Journal Line"."Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and
-               ("Gen. Journal Line"."Bal. Account Type" in ["Gen. Journal Line"."Bal. Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and
-               ("Gen. Journal Line"."Account No." <> '') and
-               ("Gen. Journal Line"."Bal. Account No." <> '')
-            then
-                AddError(StrSubstNo(Text066Txt, "Gen. Journal Line".FieldCaption("Account No."), "Gen. Journal Line".FieldCaption("Bal. Account No.")))
-            else begin
-                if (("Gen. Journal Line"."Account Type" in ["Gen. Journal Line"."Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and ("Gen. Journal Line"."Account No." <> '')) xor
-                   (("Gen. Journal Line"."Bal. Account Type" in ["Gen. Journal Line"."Bal. Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and
-                    ("Gen. Journal Line"."Bal. Account No." <> ''))
-                then
-                    if "Gen. Journal Line"."IC Account No." = '' then
-                        AddError(StrSubstNo(Text002Txt, "Gen. Journal Line".FieldCaption("IC Account No.")))
-                    else begin
-                        if "Gen. Journal Line"."IC Account Type" = "Gen. Journal Line"."IC Account Type"::"G/L Account" then
-                            if ICGLAccount.Get("Gen. Journal Line"."IC Account No.") then
-                                if ICGLAccount.Blocked then
-                                    AddError(StrSubstNo(Text032Txt, ICGLAccount.FieldCaption(Blocked), false, "Gen. Journal Line".FieldCaption("IC Account No."),
-                                        "Gen. Journal Line"."IC Account No."));
-
-                        if "Gen. Journal Line"."IC Account Type" = "Gen. Journal Line"."IC Account Type"::"Bank Account" then
-                            if ICBankAccount.Get("Gen. Journal Line"."IC Account No.", CurrentICPartner) then
-                                if ICBankAccount.Blocked then
-                                    AddError(StrSubstNo(Text032Txt, ICBankAccount.FieldCaption(Blocked), false, "Gen. Journal Line".FieldCaption("IC Account No."),
-                                        "Gen. Journal Line"."IC Account No."));
-                    end;
-                if not ((("Gen. Journal Line"."Account Type" in ["Gen. Journal Line"."Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and
-                         ("Gen. Journal Line"."Account No." <> '')) xor
-                        (("Gen. Journal Line"."Bal. Account Type" in ["Gen. Journal Line"."Bal. Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and
-                         ("Gen. Journal Line"."Bal. Account No." <> '')))
-                then
-                    if "Gen. Journal Line"."IC Account No." <> '' then
-                        AddError(StrSubstNo(Text009Txt, "Gen. Journal Line".FieldCaption("IC Account No.")));
-            end
-        else
-            if "Gen. Journal Line"."IC Account No." <> '' then begin
-                if "Gen. Journal Line"."IC Direction" = "Gen. Journal Line"."IC Direction"::Incoming then
-                    AddError(StrSubstNo(Text069Txt, "Gen. Journal Line".FieldCaption("IC Account No."),
-                        "Gen. Journal Line".FieldCaption("IC Direction"), Format("Gen. Journal Line"."IC Direction")));
-                if CurrentICPartner = '' then
-                    AddError(StrSubstNo(Text070Txt, "Gen. Journal Line".FieldCaption("IC Account No.")));
-            end;
-    end;
-
     /// <summary>
     /// Integration event that occurs before validating posting date after retrieving general journal line data.
     /// Allows custom validation of posting date logic and error message handling.
@@ -2184,6 +2053,26 @@ report 6250 "Auto Posting Errors"
     /// <param name="IsHandled">Set to true to skip standard fixed asset posting date validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPostingDateFAFields(var GenJnlLine: Record "Gen. Journal Line"; var ErrorText: array[50] of Text[250]; var ErrorCounter: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckCustBase(var GenJnlLine: Record "Gen. Journal Line"; Customer: Record Customer; GenJnlTemplate: Record "Gen. Journal Template"; var ErrorText: array[50] of Text[250]; var ErrorCounter: Integer; var DataMigrationError: Record "Data Migration Error"; GPMigrationType: Text; PostingErrorText: Text)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckVendBase(var GenJnlLine: Record "Gen. Journal Line"; Vendor: Record Vendor; GenJnlTemplate: Record "Gen. Journal Template"; var ErrorText: array[50] of Text[250]; var ErrorCounter: Integer; var DataMigrationError: Record "Data Migration Error"; GPMigrationType: Text; PostingErrorText: Text)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckICPartner(var GenJnlLine: Record "Gen. Journal Line"; var AccName: Text[100]; var ErrorText: array[50] of Text[250]; var ErrorCounter: Integer; var DataMigrationError: Record "Data Migration Error"; GPMigrationType: Text; PostingErrorText: Text; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckICDocument(var GenJnlLine: Record "Gen. Journal Line"; GenJnlTemplate: Record "Gen. Journal Template"; LastDate: Date; LastDocType: Enum "Gen. Journal Document Type"; LastDocNo: Code[20]; var ErrorText: array[50] of Text[250]; var ErrorCounter: Integer; var DataMigrationError: Record "Data Migration Error"; GPMigrationType: Text; PostingErrorText: Text; var IsHandled: Boolean)
     begin
     end;
 }

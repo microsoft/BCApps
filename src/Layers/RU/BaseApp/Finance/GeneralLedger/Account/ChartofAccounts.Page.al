@@ -223,11 +223,6 @@ page 16 "Chart of Accounts"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
-                field("Default IC Partner G/L Acc. No"; Rec."Default IC Partner G/L Acc. No")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
                 field("Source Type"; Rec."Source Type")
                 {
                     ToolTip = 'Specifies the source type that applies to the source number that is shown in the Source No. field.';

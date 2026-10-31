@@ -5164,6 +5164,68 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
     },
+    "Intercompany APAC": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\APAC\\Intercompany\\app",
+      "dvdFolder": "Applications\\IntercompanyAPAC\\Source",
+      "supportedCountries": [
+        "AU",
+        "NZ"
+      ],
+      "installOnEnvironmentUpdate": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "hasTranslations": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
+    },
+    "Intercompany Italy": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\IT\\Intercompany\\app",
+      "dvdFolder": "Applications\\IntercompanyIT\\Source",
+      "supportedCountries": "IT",
+      "installOnEnvironmentUpdate": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "hasTranslations": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
+    },
+    "Intercompany Norway": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\NO\\Intercompany\\app",
+      "dvdFolder": "Applications\\IntercompanyNO\\Source",
+      "supportedCountries": "NO",
+      "installOnEnvironmentUpdate": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "hasTranslations": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
+    },
+    "Intercompany North America": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\NA\\Intercompany\\app",
+      "dvdFolder": "Applications\\IntercompanyNA\\Source",
+      "supportedCountries": [
+        "CA",
+        "MX",
+        "US"
+      ],
+      "installOnEnvironmentUpdate": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "hasTranslations": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
+    },
+    "Intercompany": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\Intercompany\\app",
+      "dvdFolder": "Applications\\Intercompany\\Source",
+      "supportedCountries": "All",
+      "installOnEnvironmentUpdate": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "hasTranslations": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
+    },
     "Manufacturing": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\Manufacturing\\app",
       "dvdFolder": "Applications\\Manufacturing\\Source",

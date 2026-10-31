@@ -52,6 +52,64 @@ codeunit 134151 "ERM Intercompany"
 
     [Test]
     [Scope('OnPrem')]
+    procedure WorkflowCustomerEntityICPartnerCode()
+    var
+        Customer: Record Customer;
+        CustomerWithoutPartner: Record Customer;
+        ICPartner: Record "IC Partner";
+        WorkflowCustomerEntity: TestPage "Workflow - Customer Entity";
+        NewICPartnerCode: Code[20];
+    begin
+        Initialize();
+        Customer.Get(CreateCustomer(Customer.Blocked::" ", CreateICPartner()));
+        LibrarySales.CreateCustomer(CustomerWithoutPartner);
+        NewICPartnerCode := CreateICPartner();
+
+        WorkflowCustomerEntity.OpenEdit();
+        WorkflowCustomerEntity.GoToRecord(Customer);
+        WorkflowCustomerEntity.icPartnerCode.AssertEquals(Customer."IC Partner Code");
+        WorkflowCustomerEntity.icPartnerCode.SetValue(NewICPartnerCode);
+        WorkflowCustomerEntity.GoToRecord(CustomerWithoutPartner);
+        WorkflowCustomerEntity.icPartnerCode.AssertEquals('');
+        WorkflowCustomerEntity.Close();
+
+        Customer.Get(Customer."No.");
+        Customer.TestField("IC Partner Code", NewICPartnerCode);
+        ICPartner.Get(NewICPartnerCode);
+        ICPartner.TestField("Customer No.", Customer."No.");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure WorkflowVendorEntityICPartnerCode()
+    var
+        Vendor: Record Vendor;
+        VendorWithoutPartner: Record Vendor;
+        ICPartner: Record "IC Partner";
+        WorkflowVendorEntity: TestPage "Workflow - Vendor Entity";
+        NewICPartnerCode: Code[20];
+    begin
+        Initialize();
+        Vendor.Get(CreateVendor(Vendor.Blocked::" ", CreateICPartner()));
+        LibraryPurchase.CreateVendor(VendorWithoutPartner);
+        NewICPartnerCode := CreateICPartner();
+
+        WorkflowVendorEntity.OpenEdit();
+        WorkflowVendorEntity.GoToRecord(Vendor);
+        WorkflowVendorEntity.icPartnerCode.AssertEquals(Vendor."IC Partner Code");
+        WorkflowVendorEntity.icPartnerCode.SetValue(NewICPartnerCode);
+        WorkflowVendorEntity.GoToRecord(VendorWithoutPartner);
+        WorkflowVendorEntity.icPartnerCode.AssertEquals('');
+        WorkflowVendorEntity.Close();
+
+        Vendor.Get(Vendor."No.");
+        Vendor.TestField("IC Partner Code", NewICPartnerCode);
+        ICPartner.Get(NewICPartnerCode);
+        ICPartner.TestField("Vendor No.", Vendor."No.");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure BlockedAllForVendor()
     var
         Vendor: Record Vendor;
@@ -2140,14 +2198,18 @@ codeunit 134151 "ERM Intercompany"
 
         // [THEN] The two G/L Account entries are not mapped.
         GLAccount.Reset();
+#pragma warning disable AA0210
         GLAccount.SetRange("Default IC Partner G/L Acc. No", ICGLAccountNo);
+#pragma warning restore AA0210
         Assert.IsTrue(GLAccount.IsEmpty(), StrSubstNo(UnexpectedEntryErr, GLAccount.FieldCaption("Default IC Partner G/L Acc. No"), ICGLAccountNo, GLAccount.TableCaption));
 
         // [GIVEN] Bind to the integration event to avoid checks on GLEntries
         BindSubscription(ERMIntercompany);
 
         // [WHEN] The G/L Account is deleted
+#pragma warning disable AA0210
         GLAccount.SetRange("Default IC Partner G/L Acc. No");
+#pragma warning restore AA0210
         GLAccount.SetRange("Account Type", "G/L Account Type"::Heading);
         GLAccount.FindFirst();
         GLAccount.Delete(true);
@@ -2267,14 +2329,18 @@ codeunit 134151 "ERM Intercompany"
 
         // [THEN] The two Dimension entries are not mapped.
         Dimension.Reset();
+#pragma warning disable AA0210
         Dimension.SetRange("Map-to IC Dimension Code", ICDimensionCode);
+#pragma warning restore AA0210
         Assert.IsTrue(Dimension.IsEmpty(), StrSubstNo(UnexpectedEntryErr, Dimension.FieldCaption("Map-to IC Dimension Code"), ICDimensionCode, Dimension.TableCaption));
 
         // [GIVEN] Bind to the integration event to avoid unnnecesary checks.
         BindSubscription(ERMIntercompany);
 
         // [WHEN] The Dimension is deleted
+#pragma warning disable AA0210
         Dimension.SetRange("Map-to IC Dimension Code");
+#pragma warning restore AA0210
         Dimension.SetRange("Code", DimensionCode);
         Dimension.FindFirst();
         Dimension.Delete(true);

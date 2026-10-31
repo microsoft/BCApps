@@ -392,8 +392,12 @@ codeunit 132537 SelectionFilterManagementTest
     procedure GetSelectionFilterForICPartner()
     var
         ICPartner: Record "IC Partner";
+        RecRef: RecordRef;
         SelectionString: Text;
+        SelectionString2: Text;
     begin
+        ;
+
         if not ICPartner.FindFirst() then begin
             ICPartner.Init();
             ICPartner.Code := '1';
@@ -402,8 +406,10 @@ codeunit 132537 SelectionFilterManagementTest
         ICPartner.Mark(true);
         ICPartner.MarkedOnly(true);
         SelectionString := SelectionFilterManagement.AddQuotes(ICPartner.Code);
+        RecRef.GetTable(ICPartner);
+        SelectionString2 := SelectionFilterManagement.GetSelectionFilter(RecRef, ICPartner.FieldNo(Code));
 
-        CheckGetSelectionResults(SelectionString, SelectionFilterManagement.GetSelectionFilterForICPartner(ICPartner));
+        CheckGetSelectionResults(SelectionString, SelectionString2);
     end;
 
     [Test]
