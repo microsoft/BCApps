@@ -1068,8 +1068,10 @@ table 1294 "Applied Payment Entry"
             BankAccReconLine."Account No." := "Account No.";
         end;
         UsePmtDisc := (BankAccReconLine."Transaction Date" <= PmtDiscDueDate) and (RemPmtDiscPossible <> 0);
-        if UseAppliedAmt then
+        if UseAppliedAmt then begin
+            OnInclPmtDiscOnBeforePmtTolPmtReconJnl(Rec, BankAccReconLine, PaymentToleranceManagement);
             PaymentToleranceManagement.PmtTolPmtReconJnl(BankAccReconLine);
+        end;
         if (not UsePmtDisc) and (not IsAcceptedPmtDiscTolerance()) then
             exit(false);
 
@@ -1442,6 +1444,11 @@ table 1294 "Applied Payment Entry"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAppliesToEntryNoLookup(var AppliedPaymentEntry: Record "Applied Payment Entry"; var IsHandled: boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInclPmtDiscOnBeforePmtTolPmtReconJnl(var AppliedPaymentEntry: Record "Applied Payment Entry"; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var PaymentToleranceManagement: Codeunit "Payment Tolerance Management")
     begin
     end;
 }
