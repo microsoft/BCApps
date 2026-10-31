@@ -56,10 +56,14 @@ function Create-BCContainer {
 
         Import-Module "$baseFolder\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
         Import-Module "$baseFolder\build\scripts\DevEnv\NewDevContainer.psm1" -DisableNameChecking
+        Import-Module "$baseFolder\build\scripts\PlatformHelper.psm1" -DisableNameChecking
         Import-Module BcContainerHelper
 
         # Get artifactUrl from branch
         $artifactUrl = Get-CurrentBCArtifactUrl
+
+        # Get the platform artifact URL from the BCPlatform version in Packages.json (if specified)
+        $platformArtifactUrl = Get-BCPlatformArtifactUrl
 
         $memoryLimit = Get-ConfigValue -Key "memoryLimit" -ConfigType AL-Go
         if (-not $memoryLimit) {
@@ -68,7 +72,24 @@ function Create-BCContainer {
 
         # Create a new container with a single tenant
         $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
-        New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentication -Credential $Credential -includeAL -memoryLimit $memoryLimit -additionalParameters @("--volume ""$($baseFolder):c:\sources""")
+
+        $newContainerParameters = @{
+            artifactUrl          = $artifactUrl
+            containerName        = $ContainerName
+            auth                 = $Authentication
+            Credential           = $Credential
+            includeAL            = $true
+            memoryLimit          = $memoryLimit
+            additionalParameters = @("--volume ""$($baseFolder):c:\sources""")
+        }
+
+        # Use the platform version from Packages.json when specified
+        if ($platformArtifactUrl) {
+            Write-Host "Using platform artifact URL: $platformArtifactUrl"
+            $newContainerParameters.platformArtifactUrl = $platformArtifactUrl
+        }
+
+        New-BcContainer @newContainerParameters -accept_eula -accept_insiderEula
 
         # Move all installed apps to the dev scope
         # By default, the container is created with the global scope. We need to move all installed apps to the dev scope.
@@ -312,10 +333,31 @@ function CreateCompilerFolder {
         [string] $packageCacheFolder
     )
 
-    # If the compiler folder already exists, return it
     $compilerFolder = Join-Path $packageCacheFolder "CompilerFolder"
+
+    # Resolve the platform artifact URL from the BCPlatform version in Packages.json (if specified).
+    # This is used as part of the cache key so a change to the pinned platform version invalidates
+    # an existing compiler folder instead of silently reusing an outdated compiler.
+    Import-Module "$PSScriptRoot\..\PlatformHelper.psm1" -DisableNameChecking
+    $platformArtifactUrl = Get-BCPlatformArtifactUrl
+    $currentPlatformArtifactUrl = if ($platformArtifactUrl) { $platformArtifactUrl } else { '' }
+
+    # Marker file recording the platform artifact URL used to build the cached compiler folder.
+    $platformMarkerFile = Join-Path $compilerFolder ".platformArtifactUrl"
+
+    # If the compiler folder already exists, reuse it only when it was built with the same platform version
     if (Test-Path $compilerFolder) {
-        return $compilerFolder
+        $cachedPlatformArtifactUrl = ''
+        if (Test-Path $platformMarkerFile) {
+            $cachedPlatformArtifactUrl = (Get-Content -Path $platformMarkerFile -Raw).Trim()
+        }
+
+        if ($cachedPlatformArtifactUrl -eq $currentPlatformArtifactUrl) {
+            return $compilerFolder
+        }
+
+        Write-Host "Configured platform version changed; recreating compiler folder $compilerFolder" -ForegroundColor Yellow
+        Remove-Item -Path $compilerFolder -Recurse -Force
     }
 
     # Create the package cache folder if it does not exist
@@ -326,7 +368,22 @@ function CreateCompilerFolder {
     # Create compiler folder using the AL-Go artifact URL
     $bcArtifactUrl = Get-CurrentBCArtifactUrl
     Write-Host "Creating compiler folder $compilerFolder" -ForegroundColor Yellow
-    New-BcCompilerFolder -artifactUrl $bcArtifactUrl -cacheFolder $compilerFolder | Out-Null
+
+    $newCompilerFolderParameters = @{
+        artifactUrl = $bcArtifactUrl
+        cacheFolder = $compilerFolder
+    }
+
+    # Use the platform version from Packages.json when specified
+    if ($platformArtifactUrl) {
+        Write-Host "Using platform artifact URL: $platformArtifactUrl" -ForegroundColor Yellow
+        $newCompilerFolderParameters.platformArtifactUrl = $platformArtifactUrl
+    }
+
+    New-BcCompilerFolder @newCompilerFolderParameters | Out-Null
+
+    # Record the platform artifact URL used so a later change to the pinned version invalidates this cache
+    Set-Content -Path $platformMarkerFile -Value $currentPlatformArtifactUrl
     return $compilerFolder
 }
 
