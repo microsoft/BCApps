@@ -2001,6 +2001,182 @@ codeunit 136209 "Marketing Opportunity Mgmt"
                 Format(OpportunityEntry."Action Type"::Update)));
     end;
 
+    [Test]
+    [HandlerFunctions('UpdateOppStageChanceHandler')]
+    [Scope('OnPrem')]
+    procedure SkipStageTypedRefreshesChance()
+    begin
+        // [SCENARIO 656878] Typing a Skip destination refreshes its chance before OK and saves the stage defaults.
+        VerifyStageChangeChance(ActionType::Skip, false, false, 65);
+    end;
+
+    [Test]
+    [HandlerFunctions('UpdateOppStageChanceHandler')]
+    [Scope('OnPrem')]
+    procedure JumpStageTypedRefreshesChance()
+    begin
+        // [SCENARIO 656878] Typing a Jump destination refreshes its chance before OK and saves the stage defaults.
+        VerifyStageChangeChance(ActionType::Jump, false, false, 65);
+    end;
+
+    [Test]
+    [HandlerFunctions('UpdateOppStageChanceHandler,SelectOppStageLookupHandler')]
+    [Scope('OnPrem')]
+    procedure SkipStageLookupRefreshesChance()
+    begin
+        // [SCENARIO 656878] Looking up a Skip destination refreshes its chance before OK and saves the stage defaults.
+        VerifyStageChangeChance(ActionType::Skip, true, false, 65);
+    end;
+
+    [Test]
+    [HandlerFunctions('UpdateOppStageChanceHandler,SelectOppStageLookupHandler')]
+    [Scope('OnPrem')]
+    procedure JumpStageLookupRefreshesChance()
+    begin
+        // [SCENARIO 656878] Looking up a Jump destination refreshes its chance before OK and saves the stage defaults.
+        VerifyStageChangeChance(ActionType::Jump, true, false, 65);
+    end;
+
+    [Test]
+    [HandlerFunctions('UpdateOppStageChanceHandler,SelectOppStageLookupHandler')]
+    [Scope('OnPrem')]
+    procedure SkipZeroChanceStageLookupKeepsManualChance()
+    begin
+        // [SCENARIO 656878] A looked-up Skip destination with no chance default preserves a positive manual chance through OK.
+        VerifyStageChangeChance(ActionType::Skip, true, true, 42);
+    end;
+
+    [Test]
+    [HandlerFunctions('UpdateOppUnchangedLookupHandler,SelectOppStageLookupHandler')]
+    [Scope('OnPrem')]
+    procedure SkipUnchangedLookupKeepsManualChance()
+    begin
+        // [SCENARIO 656878] Canceling a Skip lookup or accepting the same stage does not reset a positive manual chance.
+        VerifyUnchangedStageLookupChance(ActionType::Skip);
+    end;
+
+    local procedure VerifyStageChangeChance(NewActionType: Option; LookupStage: Boolean; ZeroStageChance: Boolean; ChanceBeforeStageChange: Decimal)
+    var
+        Opportunity: Record Opportunity;
+        SalesCycleStage: Record "Sales Cycle Stage";
+        ActiveStage: Integer;
+        TargetStage: Integer;
+        ExpectedChance: Decimal;
+    begin
+        Initialize();
+        GetStageChangeStages(NewActionType, ActiveStage, TargetStage);
+        CreateOpportunityWithFourStages(Opportunity, ActiveStage);
+        SalesCycleStage.Get(Opportunity."Sales Cycle Code", TargetStage);
+        if ZeroStageChance then begin
+            SalesCycleStage.Validate("Chances of Success %", 0);
+            SalesCycleStage.Modify(true);
+        end;
+        ExpectedChance := SalesCycleStage."Chances of Success %";
+        if ZeroStageChance then
+            ExpectedChance := ChanceBeforeStageChange;
+
+        LibraryVariableStorage.Enqueue(NewActionType);
+        LibraryVariableStorage.Enqueue(Opportunity."Sales Cycle Code");
+        LibraryVariableStorage.Enqueue(TargetStage);
+        LibraryVariableStorage.Enqueue(LookupStage);
+        LibraryVariableStorage.Enqueue(ChanceBeforeStageChange);
+        LibraryVariableStorage.Enqueue(ExpectedChance);
+
+        // The handler exercises page triggers and asserts the displayed chance before OK can run UpdateEstimates.
+        Opportunity.UpdateOpportunity();
+
+        VerifyActiveOpportunityStage(Opportunity."No.", TargetStage, ExpectedChance);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure VerifyUnchangedStageLookupChance(NewActionType: Option)
+    var
+        Opportunity: Record Opportunity;
+        ActiveStage: Integer;
+        TargetStage: Integer;
+    begin
+        Initialize();
+        GetStageChangeStages(NewActionType, ActiveStage, TargetStage);
+        CreateOpportunityWithFourStages(Opportunity, ActiveStage);
+        LibraryVariableStorage.Enqueue(NewActionType);
+        LibraryVariableStorage.Enqueue(Opportunity."Sales Cycle Code");
+        LibraryVariableStorage.Enqueue(TargetStage);
+
+        Opportunity.UpdateOpportunity();
+
+        // Nonzero Skip/Jump defaults still override a manual chance at Finish; only the dialog refresh is changed.
+        VerifyActiveOpportunityStage(Opportunity."No.", 3, 65);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure GetStageChangeStages(NewActionType: Option; var ActiveStage: Integer; var TargetStage: Integer)
+    begin
+        if NewActionType = ActionType::Skip then begin
+            ActiveStage := 2;
+            TargetStage := 4;
+        end else begin
+            ActiveStage := 4;
+            TargetStage := 2;
+        end;
+    end;
+
+    local procedure CreateOpportunityWithFourStages(var Opportunity: Record Opportunity; ActiveStage: Integer)
+    var
+        OpportunityEntry: Record "Opportunity Entry";
+        SalesCycle: Record "Sales Cycle";
+        SalesCycleStage: Record "Sales Cycle Stage";
+        StageNo: Integer;
+    begin
+        // Keep all fixture writes after Initialize's first-time commit so OnPrem AutoRollback can isolate each test.
+        LibraryMarketing.CreateSalesCycle(SalesCycle);
+        for StageNo := 1 to 4 do begin
+            LibraryMarketing.CreateSalesCycleStage(SalesCycleStage, SalesCycle.Code);
+            SalesCycleStage.Validate(Description, Format(StageNo));
+            if StageNo = 1 then
+                SalesCycleStage.Validate("Completed %", 10)
+            else
+                SalesCycleStage.Validate("Completed %", (StageNo - 1) * 30);
+            SalesCycleStage.Validate("Chances of Success %", SalesCycleStage."Completed %" + 5);
+            SalesCycleStage.Validate("Allow Skip", true);
+            SalesCycleStage.Validate("Quote Required", false);
+            SalesCycleStage.Validate("Activity Code", '');
+            Evaluate(SalesCycleStage."Date Formula", '<1M>');
+            SalesCycleStage.Modify(true);
+        end;
+
+        LibraryMarketing.CreateOpportunity(Opportunity, LibraryMarketing.CreateCompanyContactNo());
+        Opportunity.Validate("Sales Cycle Code", SalesCycle.Code);
+        Opportunity.Modify(true);
+
+        SalesCycleStage.Get(SalesCycle.Code, ActiveStage);
+        OpportunityEntry.Init();
+        OpportunityEntry."Entry No." := LibraryUtility.GetNewRecNo(OpportunityEntry, OpportunityEntry.FieldNo("Entry No."));
+        OpportunityEntry.InitOpportunityEntry(Opportunity);
+        OpportunityEntry.Validate("Sales Cycle Stage", ActiveStage);
+        OpportunityEntry."Completed %" := SalesCycleStage."Completed %";
+        OpportunityEntry."Chances of Success %" := SalesCycleStage."Chances of Success %";
+        OpportunityEntry."Estimated Value (LCY)" := 1000;
+        OpportunityEntry."Date of Change" := WorkDate();
+        OpportunityEntry."Estimated Close Date" := CalcDate('<1M>', WorkDate());
+        OpportunityEntry.Active := true;
+        OpportunityEntry.Insert(true);
+    end;
+
+    local procedure VerifyActiveOpportunityStage(OpportunityNo: Code[20]; ExpectedStage: Integer; ExpectedChance: Decimal)
+    var
+        OpportunityEntry: Record "Opportunity Entry";
+        SalesCycleStage: Record "Sales Cycle Stage";
+    begin
+        OpportunityEntry.SetRange("Opportunity No.", OpportunityNo);
+        OpportunityEntry.SetRange(Active, true);
+        Assert.RecordCount(OpportunityEntry, 1);
+        OpportunityEntry.FindFirst();
+        OpportunityEntry.TestField("Sales Cycle Stage", ExpectedStage);
+        OpportunityEntry.TestField("Chances of Success %", ExpectedChance);
+        SalesCycleStage.Get(OpportunityEntry."Sales Cycle Code", ExpectedStage);
+        OpportunityEntry.TestField("Completed %", SalesCycleStage."Completed %");
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Marketing Opportunity Mgmt");
@@ -2842,6 +3018,84 @@ codeunit 136209 "Marketing Opportunity Mgmt"
     procedure SalesCycleStagesModalPageHandler(var SalesCycleStages: TestPage "Sales Cycle Stages")
     begin
         SalesCycleStages.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure UpdateOppStageChanceHandler(var UpdateOpportunityPage: TestPage "Update Opportunity")
+    var
+        LookupSalesCycleCode: Code[10];
+        TargetStage: Integer;
+        LookupStage: Boolean;
+        ChanceBeforeStageChange: Decimal;
+        ExpectedChance: Decimal;
+    begin
+        UpdateOpportunityPage."Action type".SetValue(LibraryVariableStorage.DequeueInteger());
+        LookupSalesCycleCode := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(LookupSalesCycleCode));
+        TargetStage := LibraryVariableStorage.DequeueInteger();
+        LookupStage := LibraryVariableStorage.DequeueBoolean();
+        ChanceBeforeStageChange := LibraryVariableStorage.DequeueDecimal();
+        ExpectedChance := LibraryVariableStorage.DequeueDecimal();
+        UpdateOpportunityPage."Sales Cycle Stage".AssertEquals(3);
+        UpdateOpportunityPage."Chances of Success %".AssertEquals(65);
+        if ChanceBeforeStageChange <> 65 then
+            UpdateOpportunityPage."Chances of Success %".SetValue(ChanceBeforeStageChange);
+
+        if LookupStage then begin
+            EnqueueStageLookup(LookupSalesCycleCode, TargetStage, true);
+            UpdateOpportunityPage."Sales Cycle Stage".Lookup();
+        end else
+            UpdateOpportunityPage."Sales Cycle Stage".SetValue(TargetStage);
+
+        // These assertions must precede OK: Finish already corrected nonzero defaults before this page fix.
+        UpdateOpportunityPage."Sales Cycle Stage".AssertEquals(TargetStage);
+        UpdateOpportunityPage."Sales Cycle Stage Description".AssertEquals(Format(TargetStage));
+        UpdateOpportunityPage."Chances of Success %".AssertEquals(ExpectedChance);
+        UpdateOpportunityPage.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure UpdateOppUnchangedLookupHandler(var UpdateOpportunityPage: TestPage "Update Opportunity")
+    var
+        LookupSalesCycleCode: Code[10];
+        TargetStage: Integer;
+    begin
+        UpdateOpportunityPage."Action type".SetValue(LibraryVariableStorage.DequeueInteger());
+        LookupSalesCycleCode := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(LookupSalesCycleCode));
+        TargetStage := LibraryVariableStorage.DequeueInteger();
+        UpdateOpportunityPage."Sales Cycle Stage".AssertEquals(3);
+        UpdateOpportunityPage."Chances of Success %".AssertEquals(65);
+        UpdateOpportunityPage."Chances of Success %".SetValue(42);
+
+        EnqueueStageLookup(LookupSalesCycleCode, TargetStage, false);
+        UpdateOpportunityPage."Sales Cycle Stage".Lookup();
+        UpdateOpportunityPage."Sales Cycle Stage".AssertEquals(3);
+        UpdateOpportunityPage."Chances of Success %".AssertEquals(42);
+
+        EnqueueStageLookup(LookupSalesCycleCode, 3, true);
+        UpdateOpportunityPage."Sales Cycle Stage".Lookup();
+        UpdateOpportunityPage."Sales Cycle Stage".AssertEquals(3);
+        UpdateOpportunityPage."Chances of Success %".AssertEquals(42);
+        UpdateOpportunityPage.OK().Invoke();
+    end;
+
+    local procedure EnqueueStageLookup(LookupSalesCycleCode: Code[10]; TargetStage: Integer; AcceptLookup: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(LookupSalesCycleCode);
+        LibraryVariableStorage.Enqueue(TargetStage);
+        LibraryVariableStorage.Enqueue(AcceptLookup);
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure SelectOppStageLookupHandler(var SalesCycleStages: TestPage "Sales Cycle Stages")
+    begin
+        SalesCycleStages.GoToKey(LibraryVariableStorage.DequeueText(), LibraryVariableStorage.DequeueInteger());
+        if LibraryVariableStorage.DequeueBoolean() then
+            SalesCycleStages.OK().Invoke()
+        else
+            SalesCycleStages.Cancel().Invoke();
     end;
 
     [ModalPageHandler]
