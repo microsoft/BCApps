@@ -1078,8 +1078,11 @@ table 21 "Cust. Ledger Entry"
                     if DisputeStatus.Get(Rec."Dispute Status") then
                         if DisputeStatus."Overwrite on hold" then
                             NewOnHold := MarkedAsOnHoldLbl;
-                if NewOnHold <> "On Hold" then
-                    Validate("On Hold", NewOnHold);
+                if NewOnHold <> "On Hold" then begin
+                    "On Hold" := NewOnHold;
+                    if Open then
+                        Validate("On Hold");
+                end;
             end;
         }
         /// <summary>

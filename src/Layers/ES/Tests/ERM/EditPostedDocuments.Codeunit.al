@@ -947,6 +947,42 @@ codeunit 134658 "Edit Posted Documents"
     end;
 
     [Test]
+    procedure SetDisputeStatusWithOverwriteOnHoldOnClosedCustLedgerEntry()
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        DisputeStatus: Code[10];
+    begin
+        // [SCENARIO 651756] Dispute status with "Overwrite on hold" can be set and removed on a closed customer ledger entry.
+        Initialize();
+
+        // [GIVEN] Closed customer ledger entry of a posted sales invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesOrderGetInvoiceNo());
+        CustLedgerEntry.Get(SalesInvoiceHeader."Cust. Ledger Entry No.");
+        CustLedgerEntry.Open := false;
+        CustLedgerEntry.Modify();
+
+        // [WHEN] Set a dispute status with "Overwrite on hold" = true on the customer ledger entry.
+        DisputeStatus := CreateDisputeStatusCode(true);
+        CustLedgerEntry."Dispute Status" := DisputeStatus;
+        Codeunit.Run(Codeunit::"Cust. Entry-Edit", CustLedgerEntry);
+
+        // [THEN] Dispute status is saved and On Hold is set without error.
+        CustLedgerEntry.Find();
+        CustLedgerEntry.TestField("Dispute Status", DisputeStatus);
+        CustLedgerEntry.TestField("On Hold", MarkedAsOnHoldLbl);
+
+        // [WHEN] Remove the dispute status from the customer ledger entry.
+        CustLedgerEntry."Dispute Status" := '';
+        Codeunit.Run(Codeunit::"Cust. Entry-Edit", CustLedgerEntry);
+
+        // [THEN] On Hold is cleared without error.
+        CustLedgerEntry.Find();
+        CustLedgerEntry.TestField("Dispute Status", '');
+        CustLedgerEntry.TestField("On Hold", '');
+    end;
+
+    [Test]
     procedure SwitchDisputeStatusFromOverwriteToNonOverwriteOnVendorLedgerEntryClearsOnHold()
     var
         PurchInvHeader: Record "Purch. Inv. Header";
