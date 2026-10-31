@@ -16,6 +16,7 @@ codeunit 144201 "FatturaPA ValidateDocOnPosting"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryRandom: Codeunit "Library - Random";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryErrorMessage: Codeunit "Library - Error Message";
         LibraryITLocalization: Codeunit "Library - IT Localization";
         IsInitialized: Boolean;
@@ -243,6 +244,76 @@ codeunit 144201 "FatturaPA ValidateDocOnPosting"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    [Scope('OnPrem')]
+    procedure SalesInvoice_EnabledValidate_ForeignCustomerWithoutFiscalIdentifier()
+    var
+        SalesHeader: Record "Sales Header";
+        Customer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        DummyErrorMessage: Record "Error Message";
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Posting validation rejects a foreign customer without any fiscal identifier
+        Initialize();
+
+        // [GIVEN] Sales Setup "Validate Document On Posting" = TRUE
+        LibraryITLocalization.SetValidateDocumentOnPostingSales(true, FatturaPATxt);
+
+        // [GIVEN] A foreign customer without VAT Registration No. or Fiscal Code
+        Customer.Get(CreateCustomerNo(''));
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'US';
+        CountryRegion.Modify();
+        Customer."Country/Region Code" := CountryRegion.Code;
+        Customer."VAT Registration No." := '';
+        Customer."Fiscal Code" := '';
+        Customer.Modify(true);
+        CreateSalesDocument(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.", CreatePaymentMethod());
+
+        // [WHEN] Post the document
+        LibraryErrorMessage.TrapErrorMessages();
+        PostSalesInvoiceUI(SalesHeader);
+
+        // [THEN] The missing foreign fiscal identifier is reported before posting
+        LibraryErrorMessage.LoadErrorMessages();
+        LibraryErrorMessage.AssertLogIfMessageExists(
+          Customer, Customer.FieldNo("Fiscal Code"), DummyErrorMessage."Message Type"::Error);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesOrder_EnabledValidate_BlankedPACode_BlankedPmtMethod_ShipOnly()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [Sales] [Order]
+        // [SCENARIO] FatturaPA validation does not block shipment-only posting
+        Initialize();
+
+        // [GIVEN] Sales Setup "Validate Document On Posting" = TRUE
+        LibraryITLocalization.SetValidateDocumentOnPostingSales(true, FatturaPATxt);
+
+        // [GIVEN] Sales order with blanked PA Code and blanked Payment Method
+        LibrarySales.CreateSalesHeader(
+          SalesHeader, SalesHeader."Document Type"::Order, CreateCustomerNo(''));
+        SalesHeader.Validate("Payment Method Code", '');
+        SalesHeader.Validate("Payment Terms Code", CreatePaymentTerms());
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+
+        // [WHEN] Post shipment only
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [THEN] Shipment is posted without invoice-only FatturaPA validation
+        SalesShipmentHeader.SetRange("Order No.", SalesHeader."No.");
+        Assert.RecordIsNotEmpty(SalesShipmentHeader);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure SalesInvoice_EnabledValidate_TypedPACode_TypedPmtMethod()
     var
@@ -321,29 +392,28 @@ codeunit 144201 "FatturaPA ValidateDocOnPosting"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     [Scope('OnPrem')]
     procedure SalesInvoice_EnabledValidate_BlankedPACode_BlankedPmtMethod()
     var
         SalesHeader: Record "Sales Header";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        DocumentNo: Code[20];
     begin
         // [FEATURE] [Sales] [Invoice]
-        // [SCENARIO 259342] No errors on posting sales invoice with blanked PA Code, blanked Payment Method
-        // [SCENARIO 259342] in case of "Validate Document On Posting" = TRUE
+        // [SCENARIO] Blanked PA Code no longer bypasses FatturaPA validation
         Initialize();
 
         // [GIVEN] Sales Setup "Validate Document On Posting" = TRUE
         LibraryITLocalization.SetValidateDocumentOnPostingSales(true, FatturaPATxt);
 
-        // [GIVEN] Sales invoice for customer with blanked "PA Code", blanked Payment Method
+        // [GIVEN] Sales invoice for customer with blanked PA Code and blanked Payment Method
         CreateSalesDocument(SalesHeader, SalesHeader."Document Type"::Invoice, CreateCustomerNo(''), '');
 
         // [WHEN] Post the document
-        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        LibraryErrorMessage.TrapErrorMessages();
+        PostSalesInvoiceUI(SalesHeader);
 
-        // [THEN] The document has been posted
-        SalesInvoiceHeader.Get(DocumentNo);
+        // [THEN] Normal FatturaPA validation is applied
+        VerifyErrorMessageLog(SalesHeader);
     end;
 
     [Test]
@@ -559,6 +629,44 @@ codeunit 144201 "FatturaPA ValidateDocOnPosting"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ServiceOrder_EnabledValidate_BlankedPACode_BlankedPmtMethod_ShipOnly()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceItem: Record "Service Item";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+        ServiceShipmentHeader: Record "Service Shipment Header";
+    begin
+        // [FEATURE] [Service] [Order]
+        // [SCENARIO] FatturaPA validation does not block service shipment-only posting
+        Initialize();
+
+        // [GIVEN] Service Setup "Validate Document On Posting" = TRUE
+        LibraryITLocalization.SetValidateDocumentOnPostingService(true, FatturaPATxt);
+
+        // [GIVEN] Service order with blanked PA Code and blanked Payment Method
+        LibraryService.CreateServiceHeader(
+          ServiceHeader, ServiceHeader."Document Type"::Order, CreateCustomerNo(''));
+        ServiceHeader.Validate("Payment Method Code", '');
+        ServiceHeader.Validate("Payment Terms Code", CreatePaymentTerms());
+        ServiceHeader.Modify(true);
+        LibraryService.CreateServiceItem(ServiceItem, ServiceHeader."Customer No.");
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, ServiceItem."No.");
+        LibraryService.CreateServiceLineWithQuantity(
+          ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+        ServiceLine.Validate("Service Item Line No.", ServiceItemLine."Line No.");
+        ServiceLine.Modify(true);
+
+        // [WHEN] Post shipment only
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, false);
+
+        // [THEN] Shipment is posted without invoice-only FatturaPA validation
+        ServiceShipmentHeader.SetRange("Order No.", ServiceHeader."No.");
+        Assert.RecordIsNotEmpty(ServiceShipmentHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ServiceInvoice_EnabledValidate_TypedPACode_TypedPmtMethod()
     var
         ServiceHeader: Record "Service Header";
@@ -632,27 +740,28 @@ codeunit 144201 "FatturaPA ValidateDocOnPosting"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     [Scope('OnPrem')]
     procedure ServiceInvoice_EnabledValidate_BlankedPACode_BlankedPmtMethod()
     var
         ServiceHeader: Record "Service Header";
     begin
         // [FEATURE] [Service] [Invoice]
-        // [SCENARIO 259342] No errors on posting service invoice with blanked PA Code, blanked Payment Method
-        // [SCENARIO 259342] in case of "Validate Document On Posting" = TRUE
+        // [SCENARIO] Blanked PA Code no longer bypasses FatturaPA validation
         Initialize();
 
         // [GIVEN] Service Setup "Validate Document On Posting" = TRUE
         LibraryITLocalization.SetValidateDocumentOnPostingService(true, FatturaPATxt);
 
-        // [GIVEN] Service invoice for customer with blanked "PA Code", blanked Payment Method
+        // [GIVEN] Service invoice for customer with blanked PA Code and blanked Payment Method
         CreateServiceDocument(ServiceHeader, ServiceHeader."Document Type"::Invoice, CreateCustomerNo(''), '');
 
         // [WHEN] Post the document
-        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+        LibraryErrorMessage.TrapErrorMessages();
+        PostServiceInvoiceUI(ServiceHeader);
 
-        // [THEN] The document has been posted
-        VerifyServiceInvoiceHeaderExists(ServiceHeader);
+        // [THEN] Normal FatturaPA validation is applied
+        VerifyErrorMessageLog(ServiceHeader);
     end;
 
     [Test]
