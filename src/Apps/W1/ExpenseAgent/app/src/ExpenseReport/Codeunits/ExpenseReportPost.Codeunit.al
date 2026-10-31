@@ -254,12 +254,14 @@ codeunit 6987 "Expense Report-Post"
                 if PostedExpenseReportLine."Expense No." <> '' then
                     UpdateExpenseFromPostedExpenseReportLine(PostedExpenseReportLine);
 
-                InitExpenseLedgerEntry(GlobalExpenseLedgerEntry);
+                if ExpenseReportLine.Refundable or (ExpenseReportLine."Reimbursement Type" <> ExpenseReportLine."Reimbursement Type"::"Employee Paid") then begin
+                    InitExpenseLedgerEntry(GlobalExpenseLedgerEntry);
 
-                if ExpenseReportLine.Amount <> 0 then
-                    CreateAndPostJournalEntry(ExpenseReportHeader, ExpenseReportLine, PostedExpenseReportLine);
+                    if ExpenseReportLine.Amount <> 0 then
+                        CreateAndPostJournalEntry(ExpenseReportHeader, ExpenseReportLine, PostedExpenseReportLine);
 
-                InsertExpenseLedgerEntry(GlobalExpenseLedgerEntry);
+                    InsertExpenseLedgerEntry(GlobalExpenseLedgerEntry);
+                end;
 
                 OnAfterProcessExpenseReportLine(ExpenseReportHeader, ExpenseReportLine, PostedExpenseReportLine, PostedExpenseReportHeader);
             until ExpenseReportLine.Next() = 0;
