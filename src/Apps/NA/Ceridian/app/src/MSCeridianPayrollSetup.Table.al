@@ -39,7 +39,6 @@ table 1665 "MS Ceridian Payroll Setup"
     {
     }
 
-    [Scope('OnPrem')]
     procedure SavePassword(var PasswordKey: Guid; PasswordText: SecretText);
     begin
         if ISNULLGUID(PasswordKey) or not IsolatedStorage.Contains(PasswordKey, Datascope::Company) then
@@ -56,4 +55,3 @@ table 1665 "MS Ceridian Payroll Setup"
         exit('{30828ce4-53e3-407f-ba80-13ce8d79d110}');
     end;
 }
-
