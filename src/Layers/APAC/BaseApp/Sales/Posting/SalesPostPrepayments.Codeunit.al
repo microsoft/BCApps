@@ -1172,6 +1172,7 @@ codeunit 442 "Sales-Post Prepayments"
         PrepmtAmtToInvTotal := SalesLine."Prepmt. Line Amount" - SalesLine."Prepmt. Amt. Inv.";
         if SalesLine.FindSet() then
             repeat
+                DeductedVATBaseAmount := 0;
                 PrepmtAmt := PrepmtAmount(SalesLine, DocumentType);
                 if PrepmtAmt <> 0 then begin
                     if IsFullGST(SalesLine) then
@@ -2004,6 +2005,8 @@ codeunit 442 "Sales-Post Prepayments"
                     SalesLine."Prepmt Amt to Deduct" := 0;
                     SalesLine."Prepmt VAT Diff. to Deduct" := 0;
                     SalesLine."Prepayment VAT Difference" := 0;
+                    SalesLine."Prepmt. VAT Amount Deducted" := 0;
+                    SalesLine."Prepmt. VAT Base Deducted" := 0;
                     OnUpdateSalesDocumentOnBeforeModifyCreditMemoSalesLine(SalesLine);
                     SalesLine.Modify();
                 until SalesLine.Next() = 0;
