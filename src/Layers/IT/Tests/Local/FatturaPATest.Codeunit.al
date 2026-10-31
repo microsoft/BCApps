@@ -1290,6 +1290,112 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [HandlerFunctions('InvalidProvinciaErrorMessagesPageHandler')]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithInvalidDomesticProvincia()
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] FatturaPA export rejects a domestic Provincia that is not a two-letter uppercase code
+        Initialize();
+
+        // [GIVEN] A posted Sales Invoice for a local Customer with an invalid Provincia
+        Customer.Get(CreateCustomer());
+        Customer.County := 'Milano';
+        Customer.Modify();
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        asserterror ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+    end;
+
+    [Test]
+    [HandlerFunctions('InvalidProvinciaErrorMessagesPageHandler')]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithLowercaseDomesticProvincia()
+    begin
+        // [SCENARIO] A two-character lowercase customer Provincia is rejected
+        AssertInvalidCustomerProvincia('mi');
+    end;
+
+    [Test]
+    [HandlerFunctions('InvalidProvinciaErrorMessagesPageHandler')]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithNonAlphabeticDomesticProvincia()
+    begin
+        // [SCENARIO] A two-character customer Provincia containing a digit is rejected
+        AssertInvalidCustomerProvincia('M1');
+    end;
+
+    [Test]
+    [HandlerFunctions('InvalidProvinciaErrorMessagesPageHandler')]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithInvalidCompanyProvincia()
+    var
+        CompanyInformation: Record "Company Information";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [SCENARIO] A malformed Company Information Provincia is rejected
+        Initialize();
+
+        CompanyInformation.Get();
+        CompanyInformation.County := 'Milano';
+        CompanyInformation.Modify();
+
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
+
+        asserterror ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+    end;
+
+    local procedure AssertInvalidCustomerProvincia(InvalidCounty: Text[30])
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        Initialize();
+
+        Customer.Get(CreateCustomer());
+        Customer.County := InvalidCounty;
+        Customer.Modify();
+
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        asserterror ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+    end;
+
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure InvalidProvinciaErrorMessagesPageHandler(var ErrorMessages: TestPage "Error Messages")
+    var
+        ErrorFound: Boolean;
+    begin
+        if ErrorMessages.First() then
+            repeat
+                if ErrorMessages.Description.Value = 'The County must contain exactly two uppercase alphabetic characters for FatturaPA Provincia.' then
+                    ErrorFound := true;
+            until not ErrorMessages.Next();
+
+        Assert.IsTrue(ErrorFound, 'The invalid FatturaPA Provincia validation error was not shown.');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure ExportSalesInvoiceForLocalCustomer()
     var
