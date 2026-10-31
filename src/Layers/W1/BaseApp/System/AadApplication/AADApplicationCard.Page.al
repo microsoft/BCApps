@@ -220,7 +220,7 @@ page 9861 "AAD Application Card"
         UserProperty: Record "User Property";
     begin
         EditableByNotEnabled := Rec.State = Rec.State::Disabled;
-        SetUserPermissionEnabled := EditableByNotEnabled and not IsNullGuid(Rec."User ID");
+        SetUserPermissionEnabled := not IsNullGuid(Rec."User ID");
         InitializeUserEnabled := EditableByNotEnabled and IsNullGuid(Rec."User ID") and (Rec.Description <> '');
         ShowEnableWarning := '';
         ShowInitializeUserWarning := '';
