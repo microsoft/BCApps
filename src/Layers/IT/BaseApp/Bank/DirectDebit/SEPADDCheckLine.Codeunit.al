@@ -55,9 +55,11 @@ codeunit 1233 "SEPA DD-Check Line"
         GLSetup: Record "General Ledger Setup";
         SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
         IsHandled: Boolean;
+        SkipSwiftCodeCheck: Boolean;
     begin
         IsHandled := false;
-        OnBeforeCheckCollectionEntry(DirectDebitCollectionEntry, IsHandled);
+        SkipSwiftCodeCheck := false;
+        OnBeforeCheckCollectionEntry(DirectDebitCollectionEntry, IsHandled, SkipSwiftCodeCheck);
         if IsHandled then
             exit;
 
@@ -138,8 +140,9 @@ codeunit 1233 "SEPA DD-Check Line"
     /// </summary>
     /// <param name="DirectDebitCollectionEntry">The collection entry being validated</param>
     /// <param name="IsHandled">Whether the event has been handled by subscribers</param>
+    /// <param name="SkipSwiftCodeCheck">Whether to skip the SWIFT code check</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckCollectionEntry(var DirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; var IsHandled: Boolean)
+    local procedure OnBeforeCheckCollectionEntry(var DirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; var IsHandled: Boolean; var SkipSwiftCodeCheck: Boolean)
     begin
     end;
 
