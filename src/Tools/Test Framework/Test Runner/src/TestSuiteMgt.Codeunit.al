@@ -171,7 +171,9 @@ codeunit 130456 "Test Suite Mgt."
         AllObj.SetRange("Object ID", CodeunitTestMethodLine."Test Codeunit");
         AllObj.SetRange("Object Type", AllObj."Object Type"::Codeunit);
         if AllObj.FindFirst() then begin
+            #pragma warning disable AL0432
             CodeunitResultJson.Add('codeunitName', AllObj."Object Name");
+            #pragma warning restore AL0432
             NavInstalledApp.SetRange("Package ID", AllObj."App Package ID");
             if NavInstalledApp.FindFirst() then begin
                 CodeunitResultJson.Add('applicationID', NavInstalledApp."App ID");
