@@ -211,6 +211,7 @@ codeunit 137929 "SCM Orders UI"
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
         PurchaseOrder: TestPage "Purchase Order";
         Quantity: Integer;
     begin
@@ -225,8 +226,13 @@ codeunit 137929 "SCM Orders UI"
         Location.Modify(true);
 
         // [GIVEN] Purchase Order with Location and 10 PCS of Item
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), Quantity);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
+        LibraryPurchase.CreatePurchHeader(
+          PurchaseHeader, PurchaseHeader."Document Type"::Order,
+          LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item,
+          LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), Quantity);
         PurchaseLine.Validate("Location Code", Location.Code);
         PurchaseLine.Modify(true);
 
@@ -254,6 +260,7 @@ codeunit 137929 "SCM Orders UI"
         Location: Record Location;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
         SalesOrder: TestPage "Sales Order";
         Quantity: Integer;
     begin
@@ -268,8 +275,13 @@ codeunit 137929 "SCM Orders UI"
         Location.Modify(true);
 
         // [GIVEN] Sales Order with Location and 10 PCS of Item
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), Quantity);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
+        LibrarySales.CreateSalesHeader(
+          SalesHeader, SalesHeader."Document Type"::Order,
+          LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::Item,
+          LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), Quantity);
         SalesLine.Validate("Location Code", Location.Code);
         SalesLine.Modify(true);
 
