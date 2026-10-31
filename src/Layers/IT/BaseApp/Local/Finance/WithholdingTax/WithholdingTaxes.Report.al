@@ -120,7 +120,7 @@ report 12101 "Withholding Taxes"
                 column(ExternalDocNo_WithholdingTax2; "External Document No.")
                 {
                 }
-                column(PrintDetails; PrintDetails)
+                column(PrintDetails; SelectedPrintDetails)
                 {
                 }
                 column(TotalAmount; TotalAmount)
@@ -162,7 +162,7 @@ report 12101 "Withholding Taxes"
 
                 trigger OnPostDataItem()
                 begin
-                    if FinalPrinting and not CurrReport.Preview then begin
+                    if SelectedFinalPrinting and not CurrReport.Preview then begin
                         if PayableAmount <> 0 then begin
                             if WithholdingTaxPayment.FindLast() then
                                 EntryNo := WithholdingTaxPayment."Entry No." + 1
@@ -220,12 +220,12 @@ report 12101 "Withholding Taxes"
                 SetRange(Month, MonthParam);
                 SetRange(Year, YearParam);
 
-                if FinalPrinting and not CurrReport.Preview then begin
+                if SelectedFinalPrinting and not CurrReport.Preview then begin
                     WithholdingTaxPayment.SetCurrentKey(Year, Month);
                     WithholdingTaxPayment.SetRange(Month, MonthParam);
                     WithholdingTaxPayment.SetRange(Year, YearParam);
                     if WithholdingTaxPayment.FindFirst() then begin
-                        if not Confirm(Text1033, false, MonthParam, YearParam) then
+                        if not Confirm(PeriodAlreadyPrintedErr, false, MonthParam, YearParam) then
                             CurrReport.Quit();
                         WithholdingTaxPayment.DeleteAll();
                         ModifyAll(Paid, false);
@@ -260,13 +260,13 @@ report 12101 "Withholding Taxes"
                         Caption = 'Reference Year';
                         ToolTip = 'Specifies the reference year.';
                     }
-                    field(PrintDetails; PrintDetails)
+                    field(PrintDetails; SelectedPrintDetails)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Print Details';
                         ToolTip = 'Specifies if you want to print the details section.';
                     }
-                    field(FinalPrinting; FinalPrinting)
+                    field(FinalPrinting; SelectedFinalPrinting)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Final Printing';
@@ -284,7 +284,7 @@ report 12101 "Withholding Taxes"
         begin
             MonthParam := Date2DMY(WorkDate(), 2);
             YearParam := Date2DMY(WorkDate(), 3);
-            PrintDetails := true;
+            SelectedPrintDetails := true;
         end;
     }
 
@@ -299,16 +299,14 @@ report 12101 "Withholding Taxes"
     end;
 
     var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        ITTaxTok: Label 'IT Withholding Tax', Locked = true;
-        Text1033: Label 'Period %1/%2 has already been printed. Do you want to print it again?';
         Vend: Record Vendor;
         WithholdingTaxPayment: Record "Withholding Tax Payment";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         MonthParam: Integer;
         YearParam: Integer;
         EntryNo: Integer;
-        FinalPrinting: Boolean;
-        PrintDetails: Boolean;
+        SelectedFinalPrinting: Boolean;
+        SelectedPrintDetails: Boolean;
         FirstRecord: Boolean;
         PayableAmount: Decimal;
         TotalAmount: Decimal;
@@ -319,6 +317,9 @@ report 12101 "Withholding Taxes"
         WithhTaxAmount: Decimal;
         MonthDescr: Text[30];
         PrevTaxCode: Text[4];
+
+        ITTaxTok: Label 'IT Withholding Tax', Locked = true;
+        PeriodAlreadyPrintedErr: Label 'Period %1/%2 has already been printed. Do you want to print it again?', Comment = '%1 - Month, %2 - Year';
         WithholdingTaxAmtCaptionLbl: Label 'Withholding Tax Amount';
         TaxableBaseCaptionLbl: Label 'Taxable Base';
         NonTaxableAmtCaptionLbl: Label 'Non Taxable Amount';

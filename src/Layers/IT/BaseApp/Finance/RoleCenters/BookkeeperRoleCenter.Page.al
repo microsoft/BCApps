@@ -18,7 +18,6 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Reporting;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
@@ -295,45 +294,6 @@ page 9004 "Bookkeeper Role Center"
                 RunObject = Report "VAT Register - Print";
                 ToolTip = 'Print the VAT fiscal register report.';
             }
-            separator(Action1130014)
-            {
-            }
-            group(Withholding)
-            {
-                Caption = 'Withholding';
-                action("Withholding Taxes")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Withholding Taxes';
-                    Image = "Report";
-                    RunObject = Report "Withholding Taxes";
-                    ToolTip = 'View the withholding taxes.';
-                }
-                action(Contribution)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Contribution';
-                    Image = "Report";
-                    RunObject = Report Contribution;
-                    ToolTip = 'Get a report of social security and workers’ compensation contribution taxes on non-inventory services that you have purchased from an independent contractor or consultant.';
-                }
-                action("Compensation Details")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Compensation Details';
-                    Image = "Report";
-                    RunObject = Report "Compensation Details";
-                    ToolTip = 'View the data that will be included in the Certifications report.';
-                }
-                action(Certifications)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Certifications';
-                    Image = "Report";
-                    RunObject = Report Certifications;
-                    ToolTip = 'View the withholding tax and social security tax that the company has paid.';
-                }
-            }
         }
         area(embedding)
         {
@@ -409,41 +369,6 @@ page 9004 "Bookkeeper Role Center"
                 Caption = 'VAT Statements';
                 RunObject = Page "VAT Statement Names";
                 ToolTip = 'View a statement of posted VAT amounts, calculate your VAT settlement amount for a certain period, such as a quarter, and prepare to send the settlement to the tax authorities.';
-            }
-            action(Action1130000)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Withholding Taxes';
-                RunObject = Page "Withholding Tax List";
-                ToolTip = 'View the withholding taxes.';
-            }
-            action("Withholding Tax Payments")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Withholding Tax Payments';
-                RunObject = Page "Withholding Tax Payment List";
-                ToolTip = 'View the withholding tax payments.';
-            }
-            action("INPS Contributions")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'INPS Contributions';
-                RunObject = Page "INPS Contribution List";
-                ToolTip = 'View the social security taxes on non-inventory services that you have purchased from an independent contractor or consultant. ';
-            }
-            action("INAIL Contribution")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'INAIL Contribution';
-                RunObject = Page "INAIL Contribution List";
-                ToolTip = 'View the workers’ compensation taxes on non-inventory services that you have purchased from an independent contractor or consultant.';
-            }
-            action("INAIL & Social Security Payments")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'INAIL & Social Security Payments';
-                RunObject = Page "Contribution Payment List";
-                ToolTip = 'View the INAIL and social security tax payments.';
             }
             action("Purchase Invoices")
             {
@@ -877,22 +802,6 @@ page 9004 "Bookkeeper Role Center"
                 ToolTip = 'View the list of periodic VAT settlements.';
             }
 #endif
-            action("Withholding Tax Card")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Withholding Tax Card';
-                Image = ListPage;
-                RunObject = Page "Withholding Tax Card";
-                ToolTip = 'View the  withholding tax card.';
-            }
-            action("Social Security")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Social Security';
-                Image = SocialSecurity;
-                RunObject = Page "Contribution Card";
-                ToolTip = 'View the contribution taxes that have been applied to a purchase invoice from an independent contractor or consultant.';
-            }
             separator(Action84)
             {
                 Caption = 'Administration';

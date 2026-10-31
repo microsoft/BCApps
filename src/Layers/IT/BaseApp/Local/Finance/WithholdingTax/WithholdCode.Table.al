@@ -96,8 +96,8 @@ table 12104 "Withhold Code"
     end;
 
     var
+        WithholdCodeLine: Record "Withhold Code Line";
         DisableSrcWthTaxQst: Label 'Disabling the Source-Withholding Tax field will also disable the Recipient May Report Income field. Do you want to continue?';
         DisableSrcWthTaxTxt: Label 'You cannot set the Recipient May Report Income field if the Source-Withholding Tax field is disabled.';
-        WithholdCodeLine: Record "Withhold Code Line";
 }
 
