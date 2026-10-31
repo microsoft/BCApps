@@ -155,6 +155,9 @@ table 99000763 "Routing Header"
         NoSeries: Codeunit "No. Series";
     begin
         MfgSetup.Get();
+        if "Version Nos." = '' then
+            "Version Nos." := MfgSetup."Routing Version Nos.";
+
         if "No." = '' then begin
             MfgSetup.TestField("Routing Nos.");
                 "No. Series" := MfgSetup."Routing Nos.";

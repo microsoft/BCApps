@@ -16,6 +16,7 @@ using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Forecast;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
 using System.Telemetry;
 using System.Utilities;
 
@@ -332,6 +333,22 @@ table 99000765 "Manufacturing Setup"
             Caption = 'Default Flushing Method';
             InitValue = "Pick + Manual";
             ToolTip = 'Specifies default flushing method assigned to new items. A different flushing method on item cards will override this default.';
+        }
+        field(312; "Production BOM Version Nos."; Code[20])
+        {
+            AccessByPermission = TableData "Production BOM Header" = R;
+            Caption = 'Production BOM Version Nos.';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number series used to assign codes to new production BOM versions when the production BOM does not specify its own version number series.';
+            TableRelation = "No. Series";
+        }
+        field(313; "Routing Version Nos."; Code[20])
+        {
+            AccessByPermission = TableData "Routing Header" = R;
+            Caption = 'Routing Version Nos.';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number series used to assign codes to new routing versions when the routing does not specify its own version number series.';
+            TableRelation = "No. Series";
         }
         field(5500; "Preset Output Quantity"; Option)
         {

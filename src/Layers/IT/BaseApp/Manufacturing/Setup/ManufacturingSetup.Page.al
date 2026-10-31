@@ -115,7 +115,15 @@ page 99000768 "Manufacturing Setup"
                 {
                     ApplicationArea = Manufacturing;
                 }
+                field("Production BOM Version Nos."; Rec."Production BOM Version Nos.")
+                {
+                    ApplicationArea = Manufacturing;
+                }
                 field("Routing Nos."; Rec."Routing Nos.")
+                {
+                    ApplicationArea = Manufacturing;
+                }
+                field("Routing Version Nos."; Rec."Routing Version Nos.")
                 {
                     ApplicationArea = Manufacturing;
                 }
