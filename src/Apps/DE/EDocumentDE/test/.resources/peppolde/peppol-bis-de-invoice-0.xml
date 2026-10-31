@@ -68,6 +68,17 @@
 	</cac:AccountingCustomerParty>
 	<cac:TaxTotal>
 		<cbc:TaxAmount currencyID="XYZ">190</cbc:TaxAmount>
+		<cac:TaxSubtotal>
+			<cbc:TaxableAmount currencyID="XYZ">1000</cbc:TaxableAmount>
+			<cbc:TaxAmount currencyID="XYZ">190</cbc:TaxAmount>
+			<cac:TaxCategory>
+				<cbc:ID>S</cbc:ID>
+				<cbc:Percent>19</cbc:Percent>
+				<cac:TaxScheme>
+					<cbc:ID>VAT</cbc:ID>
+				</cac:TaxScheme>
+			</cac:TaxCategory>
+		</cac:TaxSubtotal>
 	</cac:TaxTotal>
 	<cac:LegalMonetaryTotal>
 		<cbc:LineExtensionAmount currencyID="XYZ">1000</cbc:LineExtensionAmount>
