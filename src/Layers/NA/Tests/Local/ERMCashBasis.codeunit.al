@@ -422,10 +422,12 @@
     var
         Currency: Record Currency;
         GenJournalLine: Record "Gen. Journal Line";
+        MyNotifications: Record "My Notifications";
         PurchaseLine: Record "Purchase Line";
         VATPostingSetup: Record "VAT Posting Setup";
         UnrealizedVATEntry: Record "VAT Entry";
         RealizedVATEntry: Record "VAT Entry";
+        InstructionMgt: Codeunit "Instruction Mgt.";
         ItemNo: Code[20];
         InvoiceNo: Code[20];
         VendorNo: Code[20];
@@ -436,6 +438,8 @@
         // [FEATURE] [Purchase]
         // [SCENARIO 363848] Realized VAT is posted with original unrealized amounts after vendor payment with new adjusted exch. rate is applied to invoice in FCY.
         Initialize();
+        LibraryERM.DisableMyNotifications(
+          CopyStr(UserId(), 1, MaxStrLen(MyNotifications."User Id")), InstructionMgt.GetPostingAfterWorkingDateNotificationId());
         LibraryERM.SetUnrealizedVAT(true);
 
         // [GIVEN] Create Currency with Exchange Rates. Create Vendor with Percentage Unrealized VAT setup.
@@ -486,10 +490,12 @@
     var
         Currency: Record Currency;
         GenJournalLine: Record "Gen. Journal Line";
+        MyNotifications: Record "My Notifications";
         SalesLine: Record "Sales Line";
         VATPostingSetup: Record "VAT Posting Setup";
         UnrealizedVATEntry: Record "VAT Entry";
         RealizedVATEntry: Record "VAT Entry";
+        InstructionMgt: Codeunit "Instruction Mgt.";
         ItemNo: Code[20];
         InvoiceNo: Code[20];
         CustomerNo: Code[20];
@@ -500,6 +506,8 @@
         // [FEATURE] [Sales]
         // [SCENARIO 363848] Realized VAT is posted with original unrealized amounts after customer payment with new adjusted exch. rate is applied to invoice in FCY.
         Initialize();
+        LibraryERM.DisableMyNotifications(
+          CopyStr(UserId(), 1, MaxStrLen(MyNotifications."User Id")), InstructionMgt.GetPostingAfterWorkingDateNotificationId());
         LibraryERM.SetUnrealizedVAT(true);
 
         // [GIVEN] Create Currency with Exchange Rates. Create Customer with Percentage Unrealized VAT setup.
@@ -967,6 +975,426 @@
     end;
 
     [Test]
+    procedure UnapplyFullGeneralJournalCrMemoRestoresInvoiceVAT()
+    begin
+        // [SCENARIO 648925] Unapplying a full general journal credit memo restores invoice VAT and reverses VAT G/L entries
+        // [GIVEN] A posted sales invoice for 1000 plus 16% Cash Basis VAT
+        // [GIVEN] A posted general journal credit memo for 1160 fully applied to the invoice
+        // [WHEN] The journal credit memo application is reversed
+        // [THEN] Invoice unrealized VAT and base are restored, and VAT and G/L realization entries net to zero
+        RunGeneralJournalCrMemoVATScenario(1, true);
+    end;
+
+    [Test]
+    procedure PartialGeneralJournalCrMemoRealizesMultipleInvoiceVATGroups()
+    begin
+        // [SCENARIO 648925] A partial general journal credit memo realizes each invoice Cash Basis VAT group proportionally
+        // [GIVEN] A posted sales invoice with two different Cash Basis VAT groups
+        // [GIVEN] A general journal credit memo for half the invoice amount applied to the invoice
+        // [WHEN] The journal credit memo is posted
+        // [THEN] Half of each invoice VAT group's amount and base remain unrealized
+        // [THEN] One proportional VAT realization entry per group and the corresponding VAT G/L transfers are posted
+        Initialize();
+        VerifyGeneralJournalCrMemoRealizesInvoiceVAT(0.5);
+    end;
+
+    [Test]
+    procedure PartialCrMemoWithEquivalentDifferentVATGroupRealizesProportionalInvoiceVAT()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        GLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATEntry: Record "VAT Entry";
+        CustomerNo: Code[20];
+        InvoiceNo: Code[20];
+        CreditMemoNo: Code[20];
+        InvoiceUnitPrice: Decimal;
+        CreditMemoUnitPrice: Decimal;
+    begin
+        // [SCENARIO 648925] Partial credit memo with an equivalent different VAT group realizes invoice VAT proportionally
+        Initialize();
+
+        // [GIVEN] Two equivalent Cash Basis VAT posting setups with different VAT product posting groups
+        CreateCashBasisVATPostingSetup(VATPostingSetup[1], 16);
+        VATPostingSetup[2]."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(VATPostingSetup[2], 16);
+        VATPostingSetup[2].Validate("Sales VAT Account", VATPostingSetup[1]."Sales VAT Account");
+        VATPostingSetup[2].Validate("Sales VAT Unreal. Account", VATPostingSetup[1]."Sales VAT Unreal. Account");
+        VATPostingSetup[2].Modify(true);
+
+        // [GIVEN] Posted Sales Invoice with one G/L Account line for 1000 using the first VAT product posting group
+        CreateGLAccount(GLAccount, VATPostingSetup[1]."VAT Prod. Posting Group");
+        CustomerNo := CreateCustomer('', VATPostingSetup[1]."VAT Bus. Posting Group");
+        InvoiceUnitPrice := 1000;
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("Unit Price", InvoiceUnitPrice);
+        SalesLine.Modify(true);
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] Partial Sales Credit Memo for 500 using the second VAT product posting group, applied to the invoice
+        CreditMemoUnitPrice := InvoiceUnitPrice / 2;
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
+        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+        SalesHeader.Validate("Applies-to Doc. No.", InvoiceNo);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
+        SalesLine.Validate("Unit Price", CreditMemoUnitPrice);
+        SalesLine.Modify(true);
+
+        // [WHEN] Post the Sales Credit Memo
+        CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Half of the invoice unrealized VAT remains
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+          InvoiceNo, VATPostingSetup[1]."VAT Prod. Posting Group");
+        Assert.AreNearlyEqual(
+          -Round((InvoiceUnitPrice - CreditMemoUnitPrice) * 16 / 100),
+          VATEntry."Remaining Unrealized Amount",
+          LibraryERM.GetAmountRoundingPrecision(),
+          'Invoice remaining unrealized VAT amount should reflect the partial credit memo');
+        Assert.AreNearlyEqual(
+          -(InvoiceUnitPrice - CreditMemoUnitPrice),
+          VATEntry."Remaining Unrealized Base",
+          LibraryERM.GetAmountRoundingPrecision(),
+          'Invoice remaining unrealized VAT base should reflect the partial credit memo');
+
+        // [THEN] Credit Memo has the initial entry and both offsetting proportional realized VAT entries
+        VATEntry.Reset();
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::"Credit Memo");
+        VATEntry.SetRange("Document No.", CreditMemoNo);
+        Assert.AreEqual(3, VATEntry.Count(), 'Credit memo should have three VAT entries');
+        VATEntry.CalcSums(Base, Amount);
+        Assert.AreEqual(0, VATEntry.Base, 'Credit memo VAT entry base should net to zero');
+        Assert.AreEqual(0, VATEntry.Amount, 'Credit memo VAT entry amount should net to zero');
+
+        // [THEN] No G/L entries transfer VAT between unrealized and realized accounts
+        VerifyInvoiceUnrealizedVATGLEntriesDoNotExist(CreditMemoNo, VATPostingSetup[1]);
+    end;
+
+    [Test]
+    procedure CrMemoWithDifferentNonEquivalentVATGroupDoesNotRealizeInvoiceVAT()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        GLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATEntry: Record "VAT Entry";
+        CustomerNo: Code[20];
+        InvoiceNo: Code[20];
+        CreditMemoNo: Code[20];
+        UnitPrice: Decimal;
+    begin
+        // [SCENARIO 648925] Different Cash Basis VAT groups with different VAT accounts are not treated as equivalent
+        Initialize();
+
+        // [GIVEN] Two Cash Basis VAT posting setups with the same percentage but different VAT accounts
+        CreateCashBasisVATPostingSetup(VATPostingSetup[1], 16);
+        VATPostingSetup[2]."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(VATPostingSetup[2], 16);
+
+        // [GIVEN] Posted Sales Invoice with one G/L Account line using the first VAT product posting group
+        CreateGLAccount(GLAccount, VATPostingSetup[1]."VAT Prod. Posting Group");
+        CustomerNo := CreateCustomer('', VATPostingSetup[1]."VAT Bus. Posting Group");
+        UnitPrice := 1000;
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] Full Sales Credit Memo using the non-equivalent VAT product posting group, applied to the invoice
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
+        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+        SalesHeader.Validate("Applies-to Doc. No.", InvoiceNo);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+
+        // [WHEN] Post the Sales Credit Memo
+        CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Invoice unrealized VAT remains unchanged because the VAT posting setups are not equivalent
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+          InvoiceNo, VATPostingSetup[1]."VAT Prod. Posting Group");
+        Assert.AreNearlyEqual(
+          -Round(UnitPrice * 16 / 100),
+          VATEntry."Remaining Unrealized Amount",
+          LibraryERM.GetAmountRoundingPrecision(),
+          'Invoice remaining unrealized VAT amount should remain unchanged');
+        Assert.AreNearlyEqual(
+          -UnitPrice,
+          VATEntry."Remaining Unrealized Base",
+          LibraryERM.GetAmountRoundingPrecision(),
+          'Invoice remaining unrealized VAT base should remain unchanged');
+
+        // [THEN] The missing invoice realization entry is not created for non-equivalent VAT posting setups
+        VATEntry.Reset();
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::"Credit Memo");
+        VATEntry.SetRange("Document No.", CreditMemoNo);
+        Assert.AreEqual(2, VATEntry.Count(), 'Credit memo should have two VAT entries');
+
+        // [THEN] No G/L entries transfer VAT between unrealized and realized accounts
+        VerifyInvoiceUnrealizedVATGLEntriesDoNotExist(CreditMemoNo, VATPostingSetup[1]);
+    end;
+
+    [Test]
+    procedure CrMemoWithMultipleEquivalentDifferentVATGroupsRealizesInvoiceVAT()
+    var
+        InvoiceVATPostingSetup: array[2] of Record "VAT Posting Setup";
+        CreditMemoVATPostingSetup: array[2] of Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATEntry: Record "VAT Entry";
+        CustomerNo: Code[20];
+        ItemNo: array[2] of Code[20];
+        InvoiceNo: Code[20];
+        CreditMemoNo: Code[20];
+        UnitPrice: Decimal;
+    begin
+        // [SCENARIO 648925] Credit memo with multiple equivalent different VAT groups fully realizes invoice VAT per group
+        Initialize();
+
+        // [GIVEN] Cash Basis VAT posting setups for 16% and 8%
+        CreateCashBasisVATPostingSetup(InvoiceVATPostingSetup[1], 16);
+        InvoiceVATPostingSetup[2]."VAT Bus. Posting Group" := InvoiceVATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(InvoiceVATPostingSetup[2], 8);
+
+        // [GIVEN] Equivalent Cash Basis VAT posting setups with different VAT product posting group codes
+        CreditMemoVATPostingSetup[1]."VAT Bus. Posting Group" := InvoiceVATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(CreditMemoVATPostingSetup[1], 16);
+        CreditMemoVATPostingSetup[1].Validate("Sales VAT Account", InvoiceVATPostingSetup[1]."Sales VAT Account");
+        CreditMemoVATPostingSetup[1].Validate("Sales VAT Unreal. Account", InvoiceVATPostingSetup[1]."Sales VAT Unreal. Account");
+        CreditMemoVATPostingSetup[1].Modify(true);
+        CreditMemoVATPostingSetup[2]."VAT Bus. Posting Group" := InvoiceVATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(CreditMemoVATPostingSetup[2], 8);
+        CreditMemoVATPostingSetup[2].Validate("Sales VAT Account", InvoiceVATPostingSetup[2]."Sales VAT Account");
+        CreditMemoVATPostingSetup[2].Validate("Sales VAT Unreal. Account", InvoiceVATPostingSetup[2]."Sales VAT Unreal. Account");
+        CreditMemoVATPostingSetup[2].Modify(true);
+
+        // [GIVEN] Posted Sales Invoice with one line for each invoice VAT product posting group
+        ItemNo[1] := CreateItem(InvoiceVATPostingSetup[1]."VAT Prod. Posting Group");
+        ItemNo[2] := CreateItem(InvoiceVATPostingSetup[2]."VAT Prod. Posting Group");
+        CustomerNo := CreateCustomer('', InvoiceVATPostingSetup[1]."VAT Bus. Posting Group");
+        UnitPrice := 1000;
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[1], 1);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[2], 1);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] Full Sales Credit Memo using the equivalent different VAT product posting groups, applied to the invoice
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
+        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+        SalesHeader.Validate("Applies-to Doc. No.", InvoiceNo);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[1], 1);
+        SalesLine.Validate("VAT Prod. Posting Group", CreditMemoVATPostingSetup[1]."VAT Prod. Posting Group");
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[2], 1);
+        SalesLine.Validate("VAT Prod. Posting Group", CreditMemoVATPostingSetup[2]."VAT Prod. Posting Group");
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+
+        // [WHEN] Post the Sales Credit Memo
+        CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Invoice unrealized VAT is fully realized for both groups
+        VerifyUnrealizedVATFullyRealized(InvoiceNo, InvoiceVATPostingSetup[1]."VAT Prod. Posting Group");
+        VerifyUnrealizedVATFullyRealized(InvoiceNo, InvoiceVATPostingSetup[2]."VAT Prod. Posting Group");
+
+        // [THEN] Credit Memo has the initial and both offsetting realized VAT entries for each group
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::"Credit Memo");
+        VATEntry.SetRange("Document No.", CreditMemoNo);
+        Assert.AreEqual(6, VATEntry.Count(), 'Credit memo should have six VAT entries');
+        VATEntry.CalcSums(Base, Amount);
+        Assert.AreEqual(0, VATEntry.Base, 'Credit memo VAT entry base should net to zero');
+        Assert.AreEqual(0, VATEntry.Amount, 'Credit memo VAT entry amount should net to zero');
+
+        // [THEN] All Credit Memo VAT entries use the VAT product posting groups selected on the Credit Memo
+        VATEntry.SetRange("VAT Prod. Posting Group", InvoiceVATPostingSetup[1]."VAT Prod. Posting Group");
+        Assert.RecordIsEmpty(VATEntry);
+        VATEntry.SetRange("VAT Prod. Posting Group", InvoiceVATPostingSetup[2]."VAT Prod. Posting Group");
+        Assert.RecordIsEmpty(VATEntry);
+        VATEntry.SetRange("VAT Prod. Posting Group", CreditMemoVATPostingSetup[1]."VAT Prod. Posting Group");
+        Assert.AreEqual(3, VATEntry.Count(), 'Credit memo should have three VAT entries for the equivalent 16% VAT group');
+        VATEntry.SetRange("VAT Prod. Posting Group", CreditMemoVATPostingSetup[2]."VAT Prod. Posting Group");
+        Assert.AreEqual(3, VATEntry.Count(), 'Credit memo should have three VAT entries for the equivalent 8% VAT group');
+
+        // [THEN] No G/L entries transfer VAT between unrealized and realized accounts
+        VerifyInvoiceUnrealizedVATGLEntriesDoNotExist(CreditMemoNo, InvoiceVATPostingSetup[1]);
+        VerifyInvoiceUnrealizedVATGLEntriesDoNotExist(CreditMemoNo, InvoiceVATPostingSetup[2]);
+    end;
+
+    [Test]
+    procedure CrMemoSplitAcrossExactAndEquivalentVATGroupsRealizesInvoiceVAT()
+    var
+        InvoiceVATPostingSetup: array[2] of Record "VAT Posting Setup";
+        EquivalentVATPostingSetup: Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATEntry: Record "VAT Entry";
+        CustomerNo: Code[20];
+        ItemNo: array[2] of Code[20];
+        InvoiceNo: Code[20];
+        CreditMemoNo: Code[20];
+        UnitPrice: Decimal;
+    begin
+        // [SCENARIO 648925] One invoice VAT group can be split across exact and equivalent Credit Memo VAT groups
+        Initialize();
+
+        // [GIVEN] Cash Basis VAT posting setups at 16% and 8%, plus an equivalent 8% setup
+        CreateCashBasisVATPostingSetup(InvoiceVATPostingSetup[1], 16);
+        InvoiceVATPostingSetup[2]."VAT Bus. Posting Group" := InvoiceVATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(InvoiceVATPostingSetup[2], 8);
+        EquivalentVATPostingSetup."VAT Bus. Posting Group" := InvoiceVATPostingSetup[2]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(EquivalentVATPostingSetup, 8);
+        EquivalentVATPostingSetup.Validate("Sales VAT Account", InvoiceVATPostingSetup[2]."Sales VAT Account");
+        EquivalentVATPostingSetup.Validate("Sales VAT Unreal. Account", InvoiceVATPostingSetup[2]."Sales VAT Unreal. Account");
+        EquivalentVATPostingSetup.Modify(true);
+
+        // [GIVEN] Posted Sales Invoice with one line of 1000 for each original VAT group
+        ItemNo[1] := CreateItem(InvoiceVATPostingSetup[1]."VAT Prod. Posting Group");
+        ItemNo[2] := CreateItem(InvoiceVATPostingSetup[2]."VAT Prod. Posting Group");
+        CustomerNo := CreateCustomer('', InvoiceVATPostingSetup[1]."VAT Bus. Posting Group");
+        UnitPrice := 1000;
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[1], 1);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[2], 1);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] Applied Sales Credit Memo splitting the amount equally between both VAT groups
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
+        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+        SalesHeader.Validate("Applies-to Doc. No.", InvoiceNo);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[1], 1);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[2], 1);
+        SalesLine.Validate("Unit Price", UnitPrice / 2);
+        SalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[2], 1);
+        SalesLine.Validate("VAT Prod. Posting Group", EquivalentVATPostingSetup."VAT Prod. Posting Group");
+        SalesLine.Validate("Unit Price", UnitPrice / 2);
+        SalesLine.Modify(true);
+
+        // [WHEN] Post the Sales Credit Memo
+        CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Invoice unrealized VAT is fully realized
+        VerifyUnrealizedVATFullyRealized(InvoiceNo, InvoiceVATPostingSetup[1]."VAT Prod. Posting Group");
+        VerifyUnrealizedVATFullyRealized(InvoiceNo, InvoiceVATPostingSetup[2]."VAT Prod. Posting Group");
+
+        // [THEN] Each Credit Memo VAT group has its initial entry and both offsetting realized entries
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::"Credit Memo");
+        VATEntry.SetRange("Document No.", CreditMemoNo);
+        Assert.AreEqual(9, VATEntry.Count(), 'Credit memo should have nine VAT entries');
+        VATEntry.CalcSums(Base, Amount);
+        Assert.AreEqual(0, VATEntry.Base, 'Credit memo VAT entry base should net to zero');
+        Assert.AreEqual(0, VATEntry.Amount, 'Credit memo VAT entry amount should net to zero');
+        VATEntry.SetRange("VAT Prod. Posting Group", InvoiceVATPostingSetup[1]."VAT Prod. Posting Group");
+        Assert.AreEqual(3, VATEntry.Count(), 'Credit memo should have three VAT entries for the 16% VAT group');
+        VATEntry.SetRange("VAT Prod. Posting Group", InvoiceVATPostingSetup[2]."VAT Prod. Posting Group");
+        Assert.AreEqual(3, VATEntry.Count(), 'Credit memo should have three VAT entries for the exact 8% VAT group');
+        VATEntry.SetRange("VAT Prod. Posting Group", EquivalentVATPostingSetup."VAT Prod. Posting Group");
+        Assert.AreEqual(3, VATEntry.Count(), 'Credit memo should have three VAT entries for the equivalent VAT group');
+
+        // [THEN] No G/L entries transfer VAT between unrealized and realized accounts
+        VerifyInvoiceUnrealizedVATGLEntriesDoNotExist(CreditMemoNo, InvoiceVATPostingSetup[1]);
+        VerifyInvoiceUnrealizedVATGLEntriesDoNotExist(CreditMemoNo, InvoiceVATPostingSetup[2]);
+    end;
+
+    [Test]
+    procedure ExactVATGroupWithOffsettingLinesDoesNotUseEquivalentVATGroup()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoVATBusPostingGroup: Code[20];
+        CreditMemoVATProdPostingGroup: Code[20];
+        CreditMemoPartAmount: Decimal;
+        SettledAmount: Decimal;
+    begin
+        // [SCENARIO 648925] An exact VAT group with offsetting amounts must not be replaced by an equivalent group.
+        Initialize();
+
+        // [GIVEN] Two equivalent Cash Basis VAT posting setups at 16% with different VAT product posting groups
+        CreateCashBasisVATPostingSetup(VATPostingSetup[1], 16);
+        VATPostingSetup[2]."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(VATPostingSetup[2], 16);
+        VATPostingSetup[2].Validate("Sales VAT Account", VATPostingSetup[1]."Sales VAT Account");
+        VATPostingSetup[2].Validate("Sales VAT Unreal. Account", VATPostingSetup[1]."Sales VAT Unreal. Account");
+        VATPostingSetup[2].Modify(true);
+
+        // [GIVEN] Credit Memo lines of 116 and -116 in the exact VAT group and 232 in the equivalent VAT group
+        SettledAmount := 116;
+        SalesCrMemoLine."Document No." :=
+          LibraryUtility.GenerateRandomCode(SalesCrMemoLine.FieldNo("Document No."), DATABASE::"Sales Cr.Memo Line");
+        SalesCrMemoLine."Line No." := 10000;
+        SalesCrMemoLine.Type := SalesCrMemoLine.Type::"G/L Account";
+        SalesCrMemoLine."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        SalesCrMemoLine."VAT Prod. Posting Group" := VATPostingSetup[1]."VAT Prod. Posting Group";
+        SalesCrMemoLine."Amount Including VAT" := SettledAmount;
+        SalesCrMemoLine.Insert();
+        SalesCrMemoLine."Line No." += 10000;
+        SalesCrMemoLine."Amount Including VAT" := -SettledAmount;
+        SalesCrMemoLine.Insert();
+        SalesCrMemoLine."Line No." += 10000;
+        SalesCrMemoLine."VAT Prod. Posting Group" := VATPostingSetup[2]."VAT Prod. Posting Group";
+        SalesCrMemoLine."Amount Including VAT" := 2 * SettledAmount;
+        SalesCrMemoLine.Insert();
+
+        // [WHEN] Calculate the exact VAT group's share of a positive settlement of 116
+        CreditMemoPartAmount :=
+          CustLedgerEntry.GetCreditMemoPartAmountByVAT(
+            SalesCrMemoLine."Document No.", VATPostingSetup[1]."VAT Bus. Posting Group",
+            VATPostingSetup[1]."VAT Prod. Posting Group", SettledAmount,
+            CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup);
+
+        // [THEN] The share is zero and the exact VAT posting groups are preserved
+        Assert.AreEqual(0, CreditMemoPartAmount, 'Offsetting exact VAT group amounts must remain zero');
+        Assert.AreEqual(
+          VATPostingSetup[1]."VAT Bus. Posting Group", CreditMemoVATBusPostingGroup,
+          'The exact VAT business posting group must be preserved');
+        Assert.AreEqual(
+          VATPostingSetup[1]."VAT Prod. Posting Group", CreditMemoVATProdPostingGroup,
+          'The exact VAT product posting group must be preserved');
+
+        // [WHEN] Calculate the exact VAT group's share of a negative settlement of -116
+        CreditMemoPartAmount :=
+          CustLedgerEntry.GetCreditMemoPartAmountByVAT(
+            SalesCrMemoLine."Document No.", VATPostingSetup[1]."VAT Bus. Posting Group",
+            VATPostingSetup[1]."VAT Prod. Posting Group", -SettledAmount);
+
+        // [THEN] The share remains zero instead of using the equivalent VAT group's amount
+        Assert.AreEqual(0, CreditMemoPartAmount, 'A negative settlement must preserve the zero exact VAT group amount');
+
+        // [WHEN] Calculate the nonzero VAT group's share of a positive settlement of 116
+        CreditMemoPartAmount :=
+          CustLedgerEntry.GetCreditMemoPartAmountByVAT(
+            SalesCrMemoLine."Document No.", VATPostingSetup[2]."VAT Bus. Posting Group",
+            VATPostingSetup[2]."VAT Prod. Posting Group", SettledAmount);
+
+        // [THEN] The nonzero VAT group retains its proportional share of 116
+        Assert.AreEqual(SettledAmount, CreditMemoPartAmount, 'The nonzero VAT group must retain proportional allocation');
+    end;
+
+    [Test]
     procedure PaymentAfterPartialCrMemoMultiVATRealizesRemainingVAT()
     var
         VATPostingSetup: array[2] of Record "VAT Posting Setup";
@@ -1257,6 +1685,85 @@
         SalesLine.Validate("Unit Price", UnitPrice[2]);
         SalesLine.Modify(true);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure VerifyGeneralJournalCrMemoRealizesInvoiceVAT(SettledFraction: Decimal)
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        VATEntry: Record "VAT Entry";
+        GLEntry: Record "G/L Entry";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        BankAccount: Record "Bank Account";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        CustomerNo: Code[20];
+        ItemNo: array[2] of Code[20];
+        InvoiceNo: Code[20];
+        UnitPrice: array[2] of Decimal;
+        InvoiceVATAmount: Decimal;
+        GroupIndex: Integer;
+    begin
+        // [GIVEN] A posted invoice with two different Cash Basis VAT groups.
+        UnitPrice[1] := 1000;
+        UnitPrice[2] := 2000;
+        InvoiceNo := CreateMultiVATGroupSalesInvoice(VATPostingSetup, CustomerNo, ItemNo, UnitPrice);
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, InvoiceNo);
+        CustLedgerEntry.CalcFields("Amount (LCY)");
+
+        // [WHEN] A credit memo is posted directly from a general journal and applied to the invoice.
+        LibraryERM.CreateBankAccount(BankAccount);
+        CreatePaymentGenJournal(
+          GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo, BankAccount."No.",
+          GenJournalLine."Bank Payment Type"::" ", -CustLedgerEntry."Amount (LCY)" * SettledFraction,
+          GenJournalTemplate.Type::General, GenJournalLine."Document Type"::"Credit Memo");
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] No posted sales credit memo lines exist.
+        SalesCrMemoLine.SetRange("Document No.", GenJournalLine."Document No.");
+        Assert.IsTrue(SalesCrMemoLine.IsEmpty(), 'General journal credit memo must not create posted sales credit memo lines');
+
+        for GroupIndex := 1 to ArrayLen(VATPostingSetup) do begin
+            InvoiceVATAmount := -Round(UnitPrice[GroupIndex] * VATPostingSetup[GroupIndex]."VAT %" / 100);
+
+            // [THEN] Each invoice VAT group retains only its unapplied unrealized amount and base.
+            VATEntry.Reset();
+            FindVATEntryByDocumentAndPostingGroup(
+              VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+              InvoiceNo, VATPostingSetup[GroupIndex]."VAT Prod. Posting Group");
+            Assert.AreEqual(
+              InvoiceVATAmount * (1 - SettledFraction), VATEntry."Remaining Unrealized Amount",
+              'Invoice remaining unrealized VAT amount must reflect the journal credit memo');
+            Assert.AreEqual(
+              -UnitPrice[GroupIndex] * (1 - SettledFraction), VATEntry."Remaining Unrealized Base",
+              'Invoice remaining unrealized VAT base must reflect the journal credit memo');
+
+            // [THEN] Exactly one realization entry per group is posted with the applied amount and base.
+            VATEntry.Reset();
+            VATEntry.SetRange("Document Type", VATEntry."Document Type"::"Credit Memo");
+            VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
+            VATEntry.SetRange("Unrealized VAT Entry No.", VATEntry."Entry No.");
+            VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[GroupIndex]."VAT Prod. Posting Group");
+            Assert.RecordCount(VATEntry, 1);
+            VATEntry.FindFirst();
+            Assert.AreEqual(InvoiceVATAmount * SettledFraction, VATEntry.Amount, 'Realized VAT amount must equal the applied share');
+            Assert.AreEqual(-UnitPrice[GroupIndex] * SettledFraction, VATEntry.Base, 'Realized VAT base must equal the applied share');
+
+            // [THEN] G/L entries transfer the applied VAT from the unrealized to the realized account.
+            GLEntry.SetRange("Document Type", GLEntry."Document Type"::"Credit Memo");
+            GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+            GLEntry.SetRange("G/L Account No.", VATPostingSetup[GroupIndex]."Sales VAT Account");
+            Assert.RecordCount(GLEntry, 1);
+            GLEntry.CalcSums(Amount);
+            Assert.AreEqual(InvoiceVATAmount * SettledFraction, GLEntry.Amount, 'Realized VAT G/L amount must equal the applied share');
+            GLEntry.SetRange("G/L Account No.", VATPostingSetup[GroupIndex]."Sales VAT Unreal. Account");
+            Assert.RecordCount(GLEntry, 1);
+            GLEntry.CalcSums(Amount);
+            Assert.AreEqual(-InvoiceVATAmount * SettledFraction, GLEntry.Amount, 'Unrealized VAT G/L amount must offset the realized amount');
+        end;
     end;
 
     local procedure CreateAndPostPaymentGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; ApplyToDocID: Code[20]; Amount: Decimal; PostingDate: Date)
@@ -1583,6 +2090,105 @@
         VATEntry.TestField("Remaining Unrealized Base", VATBase);
     end;
 
+    local procedure RunGeneralJournalCrMemoVATScenario(SettledFraction: Decimal; Unapply: Boolean)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        VATEntry: Record "VAT Entry";
+        GLEntry: Record "G/L Entry";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        CustomerNo: Code[20];
+        ItemNo: Code[20];
+        InvoiceNo: Code[20];
+    begin
+        Initialize();
+
+        CreateCashBasisVATPostingSetup(VATPostingSetup, 16);
+        ItemNo := CreateItem(VATPostingSetup."VAT Prod. Posting Group");
+        CustomerNo := CreateCustomer('', VATPostingSetup."VAT Bus. Posting Group");
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, 1);
+        SalesLine.Validate("Unit Price", 1000);
+        SalesLine.Modify(true);
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        CreateGenJournalBatch(GenJournalBatch, GenJournalBatch."Template Type"::General);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+          GenJournalLine."Document Type"::"Credit Memo", GenJournalLine."Account Type"::Customer,
+          CustomerNo, -1160 * SettledFraction);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNo());
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceNo);
+        GenJournalLine.Modify(true);
+
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        SalesCrMemoLine.SetRange("Document No.", GenJournalLine."Document No.");
+        Assert.IsTrue(SalesCrMemoLine.IsEmpty(), 'A general journal credit memo should not have posted sales lines');
+
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+          InvoiceNo, VATPostingSetup."VAT Prod. Posting Group");
+        Assert.AreEqual(
+          -160 * (1 - SettledFraction), VATEntry."Remaining Unrealized Amount",
+          'Invoice remaining unrealized VAT should reflect the journal credit memo application');
+        Assert.AreEqual(
+          -1000 * (1 - SettledFraction), VATEntry."Remaining Unrealized Base",
+          'Invoice remaining unrealized base should reflect the journal credit memo application');
+
+        VATEntry.Reset();
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::"Credit Memo");
+        VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        VATEntry.SetFilter(Base, '<>0');
+        Assert.IsFalse(VATEntry.IsEmpty(), 'The journal credit memo should have a realized VAT entry');
+        VATEntry.CalcSums(Base, Amount);
+        Assert.AreEqual(-1000 * SettledFraction, VATEntry.Base, 'Realized VAT base should match the applied amount');
+        Assert.AreEqual(-160 * SettledFraction, VATEntry.Amount, 'Realized VAT should match the applied amount');
+
+        GLEntry.SetRange("Document Type", GLEntry."Document Type"::"Credit Memo");
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Sales VAT Account");
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(-160 * SettledFraction, GLEntry.Amount, 'Realized VAT should be posted to the sales VAT account');
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Sales VAT Unreal. Account");
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(160 * SettledFraction, GLEntry.Amount, 'Realized VAT should be transferred from the unrealized VAT account');
+
+        if not Unapply then
+            exit;
+
+        LibraryERM.FindCustomerLedgerEntry(
+          CustLedgerEntry, CustLedgerEntry."Document Type"::"Credit Memo", GenJournalLine."Document No.");
+        LibraryERM.UnapplyCustomerLedgerEntry(CustLedgerEntry);
+
+        VATEntry.CalcSums(Base, Amount);
+        Assert.AreEqual(0, VATEntry.Base, 'Unapplying should reverse the realized VAT base');
+        Assert.AreEqual(0, VATEntry.Amount, 'Unapplying should reverse the realized VAT amount');
+        VATEntry.Reset();
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+          InvoiceNo, VATPostingSetup."VAT Prod. Posting Group");
+        Assert.AreEqual(-160, VATEntry."Remaining Unrealized Amount", 'Unapplying should restore invoice unrealized VAT');
+        Assert.AreEqual(-1000, VATEntry."Remaining Unrealized Base", 'Unapplying should restore invoice unrealized base');
+        // Unapplication G/L entries have a blank document type, unlike the original credit memo.
+        GLEntry.SetFilter("Document Type", '%1|%2', GLEntry."Document Type"::"Credit Memo", GLEntry."Document Type"::" ");
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Sales VAT Account");
+        Assert.RecordCount(GLEntry, 2);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(0, GLEntry.Amount, 'Unapplying should reverse realized VAT in the sales VAT account');
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Sales VAT Unreal. Account");
+        Assert.RecordCount(GLEntry, 2);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(0, GLEntry.Amount, 'Unapplying should reverse the transfer from unrealized VAT');
+    end;
+
     local procedure VerifyUnrealizedVATFullyRealized(InvoiceNo: Code[20]; VATProdPostingGroup: Code[20])
     var
         VATEntry: Record "VAT Entry";
@@ -1609,4 +2215,3 @@
     end;
 
 }
-
