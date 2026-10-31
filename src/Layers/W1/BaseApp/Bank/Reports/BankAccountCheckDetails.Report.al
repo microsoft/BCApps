@@ -21,6 +21,7 @@ report 1406 "Bank Account - Check Details"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Account - Check Details';
+    ToolTip = 'View a detailed trial balance for selected checks.';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Bank Account";
     DefaultRenderingLayout = RDLCLayout;

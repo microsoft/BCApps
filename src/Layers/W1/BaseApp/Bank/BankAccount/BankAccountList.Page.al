@@ -457,7 +457,6 @@ page 371 "Bank Account List"
                 Caption = 'Detail Trial Balance';
                 Image = "Report";
                 RunObject = Report "Bank Acc. - Detail Trial Bal.";
-                ToolTip = 'View a detailed trial balance for selected checks.';
             }
             action("Check Details")
             {
@@ -467,7 +466,6 @@ page 371 "Bank Account List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Bank Account - Check Details";
-                ToolTip = 'View a detailed trial balance for selected checks.';
             }
             action("Trial Balance by Period")
             {
@@ -483,7 +481,6 @@ page 371 "Bank Account List"
                 Caption = 'List';
                 Image = "Report";
                 RunObject = Report "Bank Account - List";
-                ToolTip = 'View a list of general information about bank accounts, such as posting group, currency code, minimum balance, and balance.';
             }
             action("Receivables-Payables")
             {
@@ -516,7 +513,6 @@ page 371 "Bank Account List"
                 Caption = 'Bank Account Statements';
                 Image = "Report";
                 RunObject = Report "Bank Account Statement";
-                ToolTip = 'View statements for selected bank accounts. For each bank transaction, the report shows a description, an applied amount, a statement amount, and other information.';
             }
         }
         area(Processing)
