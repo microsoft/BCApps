@@ -35,5 +35,33 @@ report 139595 TestReportLayoutsReport
             Type = RDLC;
             LayoutFile = 'Layouts/TestReportLayoutsReport2.rdl';
         }
+        layout(WordLayout)
+        {
+            Type = Word;
+            LayoutFile = 'Layouts/TestReportLayoutsReport.docx';
+        }
+        layout(ExcelLayout)
+        {
+            Type = Excel;
+            LayoutFile = 'Layouts/TestReportLayoutsReport.xlsx';
+        }
+        layout(WordBodyLayout)
+        {
+            Type = Word;
+            subtype = Body;
+            LayoutFile = 'Layouts/TestReportLayoutsReportBody.docx';
+        }
+        layout(WordHeaderLayout)
+        {
+            Type = Word;
+            subtype = HeaderFooter;
+            LayoutFile = 'Layouts/TestReportLayoutsReportHeader.docx';
+        }
+        layout(WordThemeLayout)
+        {
+            Type = Word;
+            subtype = Theme;
+            LayoutFile = 'Layouts/TestReportLayoutsReportTheme.dotx';
+        }
     }
 }
