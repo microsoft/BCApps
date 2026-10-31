@@ -81,6 +81,11 @@ page 7079 "EA Billing Overview"
                             Message(NoDescriptionAvailableLbl);
                     end;
                 }
+                field(FeatureTrial; Rec."Is Feature Trial")
+                {
+                    Caption = 'Is Feature Trial';
+                    ToolTip = 'Specifies whether this consumption entry was part of a feature trial.';
+                }
                 field(Credits; Rec."Copilot Credits")
                 {
                     AutoFormatType = 0;

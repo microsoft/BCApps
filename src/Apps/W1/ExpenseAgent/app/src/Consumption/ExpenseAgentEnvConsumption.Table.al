@@ -50,6 +50,11 @@ table 6969 "Expense Agent Env. Consumption"
             Caption = 'Consumption Source Operation';
             DataClassification = SystemMetadata;
         }
+        field(7; "Is Feature Trial"; Boolean)
+        {
+            Caption = 'Is Feature Trial';
+            DataClassification = SystemMetadata;
+        }
         field(101; "Consumption DateTime"; DateTime)
         {
             FieldClass = FlowField;
@@ -128,7 +133,7 @@ table 6969 "Expense Agent Env. Consumption"
         key(ExpenseUser; "Expense User No.")
         {
         }
-        key(Source; "Consumption Source Type", "Consumption Source System ID")
+        key(Source; "Consumption Source Type", "Consumption Source System ID", "Consumption Source Operation")
         {
         }
     }
@@ -145,7 +150,6 @@ table 6969 "Expense Agent Env. Consumption"
         Rec.CalcFields("Company Name");
         if Rec."Company Name" <> CompanyName() then
             DestinationCompany := Rec."Company Name";
-
         case Rec."Consumption Source Type" of
             Rec."Consumption Source Type"::Expense:
                 TaskLongName := GetTaskDisplayNameForExpense(DestinationCompany, Rec."Consumption Source System ID");
