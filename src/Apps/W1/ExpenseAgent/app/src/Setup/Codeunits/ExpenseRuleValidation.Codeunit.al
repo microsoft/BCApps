@@ -25,6 +25,8 @@ codeunit 6902 "Expense Rule Validation"
         RuleRestrictOnlyParticipantsErr: Label 'Your organization''s rule requires only Participants details for this expense. Please remove the extra %1 and try again.', Comment = '%1 = Extra detail types found (e.g., Itemization, Per Diem, Mileage)';
         RuleRestrictOnlyPerDiemErr: Label 'Your organization''s rule requires only Per Diem details for this expense. Please remove the extra %1 and try again.', Comment = '%1 = Extra detail types found (e.g., Itemization, Participants, Mileage)';
         RuleRestrictOnlyMileageErr: Label 'Your organization''s rule requires only Mileage details for this expense. Please remove the extra %1 and try again.', Comment = '%1 = Extra detail types found (e.g., Itemization, Participants, Per Diem)';
+        ExpenseItemizationCurrencyMismatchErr: Label '%1 on %2 must be the same as %1 on %3 in Expense No.=%4, Line No.=%5.', Comment = '%1 = Currency Code field caption, %2 = Expense Itemization table caption, %3 = Expense table caption, %4 = Expense No., %5 = Line No.';
+        ExpenseReportItemizationCurrencyMismatchErr: Label '%1 on %2 must be the same as %3 on %4 in Expense Report No.=%5, Expense Report Line No.=%6, Line No.=%7.', Comment = '%1 = Currency Code field caption, %2 = Expense Report Line Item table caption, %3 = Expense Currency Code field caption, %4 = Expense Report Line table caption, %5 = Expense Report No., %6 = Expense Report Line No., %7 = Line No.';
         ItemizationTotalMismatchErr: Label 'Itemization total %1 must be equal to expense amount %2.', Comment = '%1 = Itemization total amount, %2 = Expense amount';
         ItemizationTotalReductionMismatchErr: Label 'Itemization total reduction %1 must be equal to expense reduction amount %2.', Comment = '%1 = Itemization total reduction amount, %2 = Expense reduction amount';
         MileageCalculationMismatchErr: Label 'Mileage calculation (%1 x %2 = %3) must equal expense amount (%4).', Comment = '%1 = Effective distance (mileage doubled if round trip), %2 = Standard rate, %3 = Calculated amount, %4 = Expense amount';
@@ -483,6 +485,8 @@ codeunit 6902 "Expense Rule Validation"
         if ExpenseItemization.IsEmpty() then
             ExpenseRuleViolation.AddRuleViolation(Expense."No.", ItemizationRequiredErr);
 
+        ValidateExpenseItemizationCurrency(Expense);
+
         if not EnforcedItemization then begin
             ExpenseItemization.SetRange("Expense Subcategory Code", '');
             if ExpenseItemization.FindFirst() then
@@ -494,6 +498,25 @@ codeunit 6902 "Expense Rule Validation"
                         ExpenseItemization."Expense No.",
                         ExpenseItemization."Line No."));
         end;
+    end;
+
+    local procedure ValidateExpenseItemizationCurrency(Expense: Record Expense)
+    var
+        ExpenseItemization: Record "Expense Itemization";
+        ExpenseRuleViolation: Record "Expense Rule Violation";
+    begin
+        ExpenseItemization.SetRange("Expense No.", Expense."No.");
+        ExpenseItemization.SetFilter("Currency Code", '<>%1', Expense."Currency Code");
+        if ExpenseItemization.FindFirst() then
+            ExpenseRuleViolation.AddRuleViolation(
+                Expense."No.",
+                StrSubstNo(
+                    ExpenseItemizationCurrencyMismatchErr,
+                    ExpenseItemization.FieldCaption("Currency Code"),
+                    ExpenseItemization.TableCaption(),
+                    Expense.TableCaption(),
+                    ExpenseItemization."Expense No.",
+                    ExpenseItemization."Line No."));
     end;
 
     local procedure ValidateParticipantsRequired(Expense: Record Expense)
@@ -835,6 +858,8 @@ codeunit 6902 "Expense Rule Validation"
         if ExpReportLineItemization.IsEmpty() then
             ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", ItemizationRequiredErr);
 
+        ValidateExpenseReportItemizationCurrency(ExpenseReportLine);
+
         if not EnforcedItemization then begin
             ExpReportLineItemization.SetRange("Expense Subcategory Code", '');
             if ExpReportLineItemization.FindFirst() then
@@ -848,6 +873,29 @@ codeunit 6902 "Expense Rule Validation"
                         ExpReportLineItemization."Expense Report Line No.",
                         ExpReportLineItemization."Line No."));
         end;
+    end;
+
+    local procedure ValidateExpenseReportItemizationCurrency(ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpReportLineItemization: Record "Expense Report Line Item";
+        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+    begin
+        ExpReportLineItemization.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpReportLineItemization.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        ExpReportLineItemization.SetFilter("Currency Code", '<>%1', ExpenseReportLine."Expense Currency Code");
+        if ExpReportLineItemization.FindFirst() then
+            ExpenseReportRuleViolation.AddRuleViolation(
+                ExpenseReportLine."Document No.",
+                ExpenseReportLine."Line No.",
+                StrSubstNo(
+                    ExpenseReportItemizationCurrencyMismatchErr,
+                    ExpReportLineItemization.FieldCaption("Currency Code"),
+                    ExpReportLineItemization.TableCaption(),
+                    ExpenseReportLine.FieldCaption("Expense Currency Code"),
+                    ExpenseReportLine.TableCaption(),
+                    ExpReportLineItemization."Expense Report No.",
+                    ExpReportLineItemization."Expense Report Line No.",
+                    ExpReportLineItemization."Line No."));
     end;
 
     local procedure ValidateParticipantsRequiredForReportLine(ExpenseReportLine: Record "Expense Report Line")

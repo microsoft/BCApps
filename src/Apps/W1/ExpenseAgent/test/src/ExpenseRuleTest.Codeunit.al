@@ -7971,7 +7971,7 @@ codeunit 148301 "Expense Rule Test"
         ExpensePage."Rule Violations".AssertEquals(true);
         ExpensePage.RuleViolations.Description.AssertEquals(JustificationRequiredErr);
         ExpensePage.RuleViolations.Next();
-        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, ExpectedAmountFCY - 1));
+        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, FormatRuleConditionValue(ExpectedAmountFCY - 1)));
         ExpensePage.Close();
 
         // [GIVEN] Create Refundable and Non-Refundable Itemizations for the Expense.
@@ -8038,7 +8038,7 @@ codeunit 148301 "Expense Rule Test"
         ExpensePage."Rule Violations".AssertEquals(true);
         ExpensePage.RuleViolations.Description.AssertEquals(JustificationRequiredErr);
         ExpensePage.RuleViolations.Next();
-        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, ExpectedAmountFCY - 1));
+        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, FormatRuleConditionValue(ExpectedAmountFCY - 1)));
         ExpensePage.Close();
     end;
 
@@ -8091,7 +8091,7 @@ codeunit 148301 "Expense Rule Test"
         ExpenseReportPage.GoToRecord(ExpenseReportHeader);
         ExpenseReportPage.RuleViolations.Description.AssertEquals(JustificationRequiredErr);
         ExpenseReportPage.RuleViolations.Next();
-        ExpenseReportPage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, ExpectedAmountFCY - 1));
+        ExpenseReportPage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, FormatRuleConditionValue(ExpectedAmountFCY - 1)));
         ExpenseReportPage.Close();
 
         // [GIVEN] Find expense report line.
@@ -8164,7 +8164,7 @@ codeunit 148301 "Expense Rule Test"
         ExpenseReportPage.GoToRecord(ExpenseReportHeader);
         ExpenseReportPage.RuleViolations.Description.AssertEquals(JustificationRequiredErr);
         ExpenseReportPage.RuleViolations.Next();
-        ExpenseReportPage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, ExpectedAmountFCY - 1));
+        ExpenseReportPage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, FormatRuleConditionValue(ExpectedAmountFCY - 1)));
         ExpenseReportPage.Close();
     end;
 
@@ -9932,9 +9932,14 @@ codeunit 148301 "Expense Rule Test"
         ExpenseItemization.SetRange("Expense No.", Expense."No.");
         ExpenseItemization.SetRange("Refundable", true);
         if ExpenseItemization.FindFirst() then begin
-            ExpenseItemization.Amount := Amount;
+            ExpenseItemization.Validate("Daily Rate", Amount / ExpenseItemization.Quantity);
             ExpenseItemization.Modify();
         end;
+    end;
+
+    local procedure FormatRuleConditionValue(Value: Decimal): Text
+    begin
+        exit(Format(Value, 0, '<Precision,2:5><Standard Format,0>'));
     end;
 
     local procedure CreateNonRefundableItemizationForExpenseReportLine(ExpenseReportLine: Record "Expense Report Line"; Amount: Decimal)
@@ -9954,7 +9959,7 @@ codeunit 148301 "Expense Rule Test"
         ExpenseReportLineItemization.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
         ExpenseReportLineItemization.SetRange("Refundable", true);
         if ExpenseReportLineItemization.FindFirst() then begin
-            ExpenseReportLineItemization.Amount := Amount;
+            ExpenseReportLineItemization.Validate("Daily Rate", Amount / ExpenseReportLineItemization.Quantity);
             ExpenseReportLineItemization.Modify();
         end;
     end;

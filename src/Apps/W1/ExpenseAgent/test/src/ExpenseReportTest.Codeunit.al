@@ -4672,7 +4672,7 @@ codeunit 148306 "Expense Report Test"
 
         // [GIVEN] Enqueue expected Message text.
         LibraryVariableStorage.Enqueue(1);
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, Amount - 1, Amount));
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, Format(Amount - 1, 0, '<Precision,2:2><Standard Format,0>'), Format(Amount, 0, '<Precision,2:2><Standard Format,0>')));
 
         // [WHEN] Set Non-Refundable Amount in Expense Report Line.
         ExpenseReportPage."Expense Report Subform"."Non-Refundable Amount".SetValue(AmountReduction);

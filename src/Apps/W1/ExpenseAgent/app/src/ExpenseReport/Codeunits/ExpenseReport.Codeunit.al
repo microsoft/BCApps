@@ -76,6 +76,7 @@ codeunit 6910 "Expense Report"
                 ExpenseReportLineItem."Daily Rate" := ExpenseItemization."Daily Rate";
                 ExpenseReportLineItem."Quantity" := ExpenseItemization."Quantity";
                 ExpenseReportLineItem."Amount" := ExpenseItemization."Amount";
+                ExpenseReportLineItem."Currency Code" := ExpenseItemization."Currency Code";
                 ExpenseReportLineItem.Refundable := ExpenseItemization.Refundable;
                 ExpenseReportLineItem.Insert();
             until ExpenseItemization.Next() = 0;
