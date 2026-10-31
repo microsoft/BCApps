@@ -2,6 +2,10 @@ codeunit 144200 "FatturaPA Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
+
+    var
+        EmitAdditionalArticleCodes: Boolean;
 
     trigger OnRun()
     begin
@@ -108,6 +112,114 @@ codeunit 144200 "FatturaPA Test"
         TempXMLBuffer.LoadFromStream(InStr);
         VerifyFatturaPAFileHeaderPublicCompany(TempXMLBuffer, DocumentRecRef, CustomerNo);
         VerifyFatturaPAFileBody(TempXMLBuffer, DocumentRecRef, CustLedgerEntry."Document Type"::Invoice, ExportFromType::Sales, '', true, '');
+        VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithAdditionalDataPerLine()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        FatturaPATest: Codeunit "FatturaPA Test";
+        ClientFileName: Text[250];
+        FirstLineNo: Integer;
+        SecondLineNo: Integer;
+    begin
+        // [SCENARIO] A subscriber adds schema-valid line-specific data to each DettaglioLinee.
+        Initialize();
+
+        // [GIVEN] A sales invoice containing two item lines.
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), SalesHeader."Document Type"::Invoice);
+        LibrarySales.FindFirstSalesLine(SalesLine, SalesHeader);
+        // Fattura Doc. Helper renumbers exported document lines sequentially.
+        FirstLineNo := 1;
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+        SecondLineNo := 2;
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesInvoiceHeader.SetRecFilter();
+
+        // [WHEN] The document is exported with an additional per-line data subscriber.
+        BindSubscription(FatturaPATest);
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+        UnbindSubscription(FatturaPATest);
+
+        // [THEN] Each exported line contains its own additional data in document order.
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        TempXMLBuffer.FindNodesByXPath(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/AltriDatiGestionali/TipoDato');
+        Assert.RecordCount(TempXMLBuffer, 2);
+        if TempXMLBuffer.FindSet() then
+            repeat
+                Assert.AreEqual('RYRTEST', TempXMLBuffer.Value, 'Unexpected additional data type.');
+            until TempXMLBuffer.Next() = 0;
+
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.FindNodesByXPath(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/AltriDatiGestionali/RiferimentoTesto');
+        Assert.RecordCount(TempXMLBuffer, 2);
+        TempXMLBuffer.FindFirst();
+        Assert.AreEqual(Format(FirstLineNo), TempXMLBuffer.Value, 'Incorrect additional data on first line.');
+        TempXMLBuffer.Next();
+        Assert.AreEqual(Format(SecondLineNo), TempXMLBuffer.Value, 'Incorrect additional data on second line.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithAdditionalArticleCodesPerLine()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Item: Record Item;
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        FatturaPATest: Codeunit "FatturaPA Test";
+        InStr: InStream;
+        ClientFileName: Text[250];
+        FirstItemNo: Code[20];
+        SecondItemNo: Code[20];
+    begin
+        // [SCENARIO] Article codes precede Descrizione and coexist with trailing AltriDatiGestionali.
+        Initialize();
+
+        // [GIVEN] An invoice with two distinct item lines.
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), SalesHeader."Document Type"::Invoice);
+        LibrarySales.FindFirstSalesLine(SalesLine, SalesHeader);
+        FirstItemNo := SalesLine."No.";
+        Item.Get(FirstItemNo);
+        Item.Validate(GTIN, '8001234567890');
+        Item.Modify(true);
+
+        SecondItemNo := LibraryInventory.CreateItemNo();
+        Item.Get(SecondItemNo);
+        Item.Validate(GTIN, '');
+        Item.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, SecondItemNo, 1);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesInvoiceHeader.SetRecFilter();
+
+        // [WHEN] Both per-line events are subscribed.
+        FatturaPATest.SetEmitAdditionalArticleCodes(true);
+        BindSubscription(FatturaPATest);
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+        UnbindSubscription(FatturaPATest);
+
+        // [THEN] Check exact line association, child ordering, both events, and blank-GTIN behavior.
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        VerifyAdditionalArticleCodesPerLine(TempXMLBuffer, FirstItemNo, SecondItemNo);
+
+        // [THEN] Schema validation checks the actual order of siblings, including the blank-GTIN line.
+        TempBlob.CreateInStream(InStr);
         VerifyXSDSchemaForStream(InStr);
     end;
 
@@ -3313,5 +3425,130 @@ codeunit 144200 "FatturaPA Test"
     begin
         exit(Format(Amount, 0, '<Sign><Integer><Decimals,8><Comma,.>'))
     end;
+    local procedure VerifyAdditionalArticleCodesPerLine(var TempXMLBuffer: Record "XML Buffer" temporary; FirstItemNo: Code[20]; SecondItemNo: Code[20])
+    var
+        TempLines: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.FindNodesByXPath(TempLines,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee');
+        Assert.RecordCount(TempLines, 2);
+        TempLines.FindFirst();
+        VerifyAdditionalArticleCodeLine(TempXMLBuffer, TempLines."Entry No.", FirstItemNo, '8001234567890', '1');
+        TempLines.Next();
+        VerifyAdditionalArticleCodeLine(TempXMLBuffer, TempLines."Entry No.", SecondItemNo, '', '2');
+    end;
+
+    local procedure VerifyAdditionalArticleCodeLine(var TempXMLBuffer: Record "XML Buffer" temporary; ParentEntryNo: Integer; ExpectedItemNo: Code[20]; ExpectedGTIN: Text; ExpectedLineNo: Text)
+    var
+        TempChildren: Record "XML Buffer" temporary;
+        CodeType: Text;
+        DescriptionEntryNo: Integer;
+        InternalCodeEntryNo: Integer;
+        AdditionalDataEntryNo: Integer;
+        GTINCount: Integer;
+        GTINEntryNo: Integer;
+        InternalCount: Integer;
+        AdditionalDataCount: Integer;
+    begin
+        TempChildren.CopyImportFrom(TempXMLBuffer);
+        TempChildren.Reset();
+        TempChildren.SetRange("Parent Entry No.", ParentEntryNo);
+        TempChildren.SetRange(Type, TempChildren.Type::Element);
+        if TempChildren.FindSet() then
+            repeat
+                case TempChildren.Name of
+                    'NumeroLinea':
+                        Assert.AreEqual(ExpectedLineNo, TempChildren.Value, 'Incorrect exported line number.');
+                    'CodiceArticolo':
+                        begin
+                            CodeType := GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'CodiceTipo');
+                            case CodeType of
+                                'GTIN':
+                                    begin
+                                        GTINCount += 1;
+                                        GTINEntryNo := TempChildren."Entry No.";
+                                        Assert.AreEqual(ExpectedGTIN, GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'CodiceValore'), 'Incorrect standard GTIN.');
+                                    end;
+                                'INTERNO':
+                                    begin
+                                        InternalCount += 1;
+                                        InternalCodeEntryNo := TempChildren."Entry No.";
+                                        Assert.AreEqual(ExpectedItemNo, GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'CodiceValore'), 'Incorrect line-specific internal code.');
+                                    end;
+                                else
+                                    Error('Unexpected CodiceArticolo type %1.', CodeType);
+                            end;
+                        end;
+                    'Descrizione':
+                        DescriptionEntryNo := TempChildren."Entry No.";
+                    'AltriDatiGestionali':
+                        begin
+                            if GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'TipoDato') = 'RYRTEST' then begin
+                                AdditionalDataCount += 1;
+                                AdditionalDataEntryNo := TempChildren."Entry No.";
+                                Assert.AreEqual(ExpectedLineNo, GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'RiferimentoTesto'), 'Incorrect trailing line-specific data.');
+                            end;
+                        end;
+                end;
+            until TempChildren.Next() = 0;
+
+        Assert.AreEqual(1, InternalCount, 'Exactly one internal article code is required per line.');
+        if ExpectedGTIN = '' then
+            Assert.AreEqual(0, GTINCount, 'No standard GTIN should be emitted when blank.')
+        else
+            Assert.AreEqual(1, GTINCount, 'Expected standard GTIN was not emitted.');
+        Assert.AreEqual(1, AdditionalDataCount, 'Trailing event must emit once for the current line.');
+        if ExpectedGTIN <> '' then
+            Assert.IsTrue(GTINEntryNo < InternalCodeEntryNo, 'Standard GTIN must precede the extension article code.');
+        Assert.IsTrue((InternalCodeEntryNo > 0) and (InternalCodeEntryNo < DescriptionEntryNo), 'CodiceArticolo must precede Descrizione.');
+        Assert.IsTrue((DescriptionEntryNo > 0) and (DescriptionEntryNo < AdditionalDataEntryNo), 'AltriDatiGestionali must follow Descrizione.');
+    end;
+
+    local procedure GetFatturaPAXMLChildValue(var TempXMLBuffer: Record "XML Buffer" temporary; ParentEntryNo: Integer; ChildName: Text): Text
+    var
+        TempChild: Record "XML Buffer" temporary;
+    begin
+        TempChild.CopyImportFrom(TempXMLBuffer);
+        TempChild.Reset();
+        TempChild.SetRange("Parent Entry No.", ParentEntryNo);
+        TempChild.SetRange(Name, ChildName);
+        TempChild.SetRange(Type, TempChild.Type::Element);
+        Assert.RecordCount(TempChild, 1);
+        TempChild.FindFirst();
+        exit(TempChild.Value);
+    end;
+
+    procedure SetEmitAdditionalArticleCodes(Enable: Boolean)
+    begin
+        EmitAdditionalArticleCodes := Enable;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export FatturaPA Document", 'OnPopulateLineDataOnBeforeDescription', '', false, false)]
+    local procedure AddAdditionalArticleCodeToFatturaPALine(var TempFatturaLine: Record "Fattura Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary)
+    var
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        if not EmitAdditionalArticleCodes then
+            exit;
+        if TempFatturaLine.Type <> FatturaDocHelper.GetOptionCaptionValue(SalesLine.Type::Item.AsInteger()) then
+            exit;
+        if not Item.Get(TempFatturaLine."No.") then
+            exit;
+        TempXMLBuffer.AddGroupElement('CodiceArticolo');
+        TempXMLBuffer.AddNonEmptyElement('CodiceTipo', 'INTERNO');
+        TempXMLBuffer.AddNonEmptyLastElement('CodiceValore', CopyStr(Item."No.", 1, 35));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export FatturaPA Document", 'OnPopulateLineDataOnBeforeCloseLine', '', false, false)]
+    local procedure AddAdditionalDataToFatturaPALine(var TempFatturaLine: Record "Fattura Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary)
+    begin
+        TempXMLBuffer.AddGroupElement('AltriDatiGestionali');
+        TempXMLBuffer.AddNonEmptyElement('TipoDato', 'RYRTEST');
+        TempXMLBuffer.AddNonEmptyLastElement('RiferimentoTesto', Format(TempFatturaLine."Line No."));
+    end;
+
+
 }
 
