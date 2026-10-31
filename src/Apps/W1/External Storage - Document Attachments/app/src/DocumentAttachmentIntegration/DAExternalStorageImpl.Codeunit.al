@@ -705,6 +705,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             FileName := EnvironmentHashFolder + '/' + TableNameFolder + '/' + FileNamePart;
         end;
 
+        OnGetFilePathWithRootFolderOnAfterBuildFilePath(DocumentAttachment, FileName);
         exit(CopyStr(FileName, 1, 2048));
     end;
 
@@ -1132,5 +1133,10 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     local procedure GetNoFileAccountReason(): Text
     begin
         exit(StrSubstNo(NoFileAccountErr, Format(Enum::"File Scenario"::"Doc. Attach. - External Storage")));
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetFilePathWithRootFolderOnAfterBuildFilePath(DocumentAttachment: Record "Document Attachment"; var FilePath: Text)
+    begin
     end;
 }
