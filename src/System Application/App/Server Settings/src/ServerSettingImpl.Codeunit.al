@@ -98,5 +98,11 @@ codeunit 3703 "Server Setting Impl."
         InitializeConfigSettings();
         exit(ALConfigSettings.IsSaaS());
     end;
+
+    procedure GetIsTenantInEUDB(): Boolean
+    begin
+        InitializeConfigSettings();
+        exit(ALConfigSettings.IsTenantInEUDB());
+    end;
 }
 
