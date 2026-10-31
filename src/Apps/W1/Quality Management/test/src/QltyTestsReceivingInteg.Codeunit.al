@@ -496,6 +496,277 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
     end;
 
     [Test]
+    procedure AttemptCreateInspectionWithReceiptLine_Transfer_OnReceiptCreate()
+    var
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        PurOrderPurchaseHeader: Record "Purchase Header";
+        PurOrdPurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryInventory: Codeunit "Library - Inventory";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO 9977] Creating a warehouse receipt for an inbound transfer order creates an inspection from a warehouse receipt line rule
+
+        // [GIVEN] Quality management setup, a quality inspection template, and a warehouse receipt line generation rule
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInspectionGenRule);
+
+        // [GIVEN] A From location, an in-transit location, and a To location that requires warehouse receipts
+        LibraryWarehouse.CreateLocationWMS(FromLocation, false, false, false, false, false);
+        LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, true, false);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+
+        // [GIVEN] An item with inventory at the From location
+        LibraryInventory.CreateItem(Item);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, PurOrderPurchaseHeader, PurOrdPurchaseLine);
+        LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(FromLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
+
+        // [GIVEN] A transfer order to the To location is released and shipped
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code, InTransitLocation.Code);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 100);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+
+        // [GIVEN] The generation rule is set to trigger on warehouse receipt create
+        QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
+        QltyInspectionGenRule.Modify();
+
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] A warehouse receipt is created for the transfer order
+        LibraryWarehouse.CreateWhseReceiptFromTO(TransferHeader);
+
+        QltyInspectionGenRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+
+        // [THEN] One quality inspection is created for the transfer line at the To location
+        LibraryAssert.AreEqual(BeforeCount + 1, QltyInspectionHeader.Count(), 'Should be one inspection created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(TransferLine."Document No.", QltyInspectionHeader."Source Document No.", 'Inspection source document should be the transfer order.');
+        LibraryAssert.AreEqual(TransferLine."Line No.", QltyInspectionHeader."Source Document Line No.", 'Inspection source document line no. should match the transfer line.');
+        LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionHeader."Location Code", 'Location code should match the To location.');
+    end;
+
+    [Test]
+    procedure AttemptCreateInspectionWithReceiptLine_Transfer_LotTracked_OnReceiptCreate()
+    var
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        PurOrderPurchaseHeader: Record "Purchase Header";
+        PurOrdPurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ReservationEntry: Record "Reservation Entry";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO 9977] Creating a warehouse receipt for a lot-tracked inbound transfer order creates an inspection for the shipped lot
+
+        // [GIVEN] Quality management setup, a quality inspection template, and a warehouse receipt line generation rule
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInspectionGenRule);
+
+        // [GIVEN] A From location, an in-transit location, and a To location that requires warehouse receipts
+        LibraryWarehouse.CreateLocationWMS(FromLocation, false, false, false, false, false);
+        LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, true, false);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+
+        // [GIVEN] A lot-tracked item with inventory of one lot at the From location
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
+        LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(FromLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
+
+        // [GIVEN] A transfer order for that lot to the To location is released and shipped
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code, InTransitLocation.Code);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 100);
+        LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, '', ReservationEntry."Lot No.", 100);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+
+        // [GIVEN] The generation rule is set to trigger on warehouse receipt create
+        QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
+        QltyInspectionGenRule.Modify();
+
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] A warehouse receipt is created for the transfer order
+        LibraryWarehouse.CreateWhseReceiptFromTO(TransferHeader);
+
+        QltyInspectionGenRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+
+        // [THEN] One quality inspection is created for the shipped lot of the transfer line
+        LibraryAssert.AreEqual(BeforeCount + 1, QltyInspectionHeader.Count(), 'Should be one inspection created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match the shipped lot.');
+        LibraryAssert.AreEqual(TransferLine."Document No.", QltyInspectionHeader."Source Document No.", 'Inspection source document should be the transfer order.');
+    end;
+
+    [Test]
+    procedure AttemptCreateInspectionWithReceiptLine_SalesReturn_OnReceiptCreate()
+    var
+        Location: Record Location;
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        Customer: Record Customer;
+        RtnOrderSalesHeader: Record "Sales Header";
+        RtnSalesLine: Record "Sales Line";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibrarySales: Codeunit "Library - Sales";
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO 9977] Creating a warehouse receipt for a sales return order creates an inspection from a warehouse receipt line rule
+
+        // [GIVEN] Quality management setup, a quality inspection template, and a warehouse receipt line generation rule
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInspectionGenRule);
+
+        // [GIVEN] A location that requires warehouse receipts
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, true, false);
+
+        // [GIVEN] A released sales return order for an item at that location
+        LibraryInventory.CreateItem(Item);
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesReturnOrderWithLocation(RtnOrderSalesHeader, Customer."No.", Location.Code);
+        LibrarySales.CreateSalesLine(RtnSalesLine, RtnOrderSalesHeader, RtnSalesLine.Type::Item, Item."No.", 100);
+        LibrarySales.ReleaseSalesDocument(RtnOrderSalesHeader);
+
+        // [GIVEN] The generation rule is set to trigger on warehouse receipt create
+        QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
+        QltyInspectionGenRule.Modify();
+
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] A warehouse receipt is created for the sales return order
+        LibraryWarehouse.CreateWhseReceiptFromSalesReturnOrder(RtnOrderSalesHeader);
+
+        QltyInspectionGenRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+
+        // [THEN] One quality inspection is created for the sales return line at the location
+        LibraryAssert.AreEqual(BeforeCount + 1, QltyInspectionHeader.Count(), 'Should be one inspection created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(RtnSalesLine."Document No.", QltyInspectionHeader."Source Document No.", 'Inspection source document should be the sales return order.');
+        LibraryAssert.AreEqual(RtnSalesLine."Line No.", QltyInspectionHeader."Source Document Line No.", 'Inspection source document line no. should match the sales return line.');
+        LibraryAssert.AreEqual(Location.Code, QltyInspectionHeader."Location Code", 'Location code should match the receipt location.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure AttemptCreateInspectionWithWhseJournalLine_Transfer_ReceiptLineRule_OnReceiptPost()
+    var
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Item: Record Item;
+        PurOrderPurchaseHeader: Record "Purchase Header";
+        PurOrdPurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
+        WarehouseReceiptLine: Record "Warehouse Receipt Line";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryInventory: Codeunit "Library - Inventory";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO 9977] Posting a warehouse receipt for an inbound transfer order creates an inspection from a warehouse receipt line rule
+
+        // [GIVEN] Quality management setup, a quality inspection template, and a warehouse receipt line generation rule
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInspectionGenRule);
+
+        // [GIVEN] The generation rule is set to trigger on warehouse receipt post, so creating the receipt does not create an inspection
+        QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost;
+        QltyInspectionGenRule.Modify();
+
+        // [GIVEN] A From location, an in-transit location, and a To location with bins that requires warehouse receipts
+        LibraryWarehouse.CreateLocationWMS(FromLocation, false, false, false, false, false);
+        LibraryWarehouse.CreateFullWMSLocation(ToLocation, 1);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+
+        // [GIVEN] An item with inventory at the From location
+        LibraryInventory.CreateItem(Item);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, PurOrderPurchaseHeader, PurOrdPurchaseLine);
+        LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(FromLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
+
+        // [GIVEN] A transfer order to the To location is released and shipped, and a warehouse receipt is created for it
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code, InTransitLocation.Code);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 100);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+        LibraryWarehouse.CreateWhseReceiptFromTO(TransferHeader);
+        WarehouseReceiptLine.SetRange("Source Type", Database::"Transfer Line");
+        WarehouseReceiptLine.SetRange("Source Subtype", 1);
+        WarehouseReceiptLine.SetRange("Source No.", TransferHeader."No.");
+        WarehouseReceiptLine.FindFirst();
+        WarehouseReceiptHeader.Get(WarehouseReceiptLine."No.");
+        LibraryWarehouse.AutofillQtyToRecvWhseReceipt(WarehouseReceiptHeader);
+
+        BeforeCount := QltyInspectionHeader.Count();
+
+        // [WHEN] The warehouse receipt is posted
+        LibraryWarehouse.PostWhseReceipt(WarehouseReceiptHeader);
+
+        QltyInspectionGenRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+
+        // [THEN] One quality inspection is created for the transfer line at the To location
+        LibraryAssert.AreEqual(BeforeCount + 1, QltyInspectionHeader.Count(), 'Should be one inspection created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(TransferLine."Document No.", QltyInspectionHeader."Source Document No.", 'Inspection source document should be the transfer order.');
+        LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionHeader."Location Code", 'Location code should match the To location.');
+    end;
+
+    [Test]
     procedure AttemptCreateInspectionOnSalesReturnPost_LotTracked()
     var
         Location: Record Location;

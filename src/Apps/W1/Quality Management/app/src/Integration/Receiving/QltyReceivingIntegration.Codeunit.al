@@ -160,6 +160,60 @@ codeunit 20411 "Qlty. Receiving Integration"
     end;
 
     /// <summary>
+    /// Creates inspections after a warehouse receipt line is created from an inbound transfer line.
+    /// </summary>
+    /// <param name="WarehouseReceiptLine">The created warehouse receipt line.</param>
+    /// <param name="WarehouseReceiptHeader">The warehouse receipt header.</param>
+    /// <param name="TransferLine">The source transfer line.</param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Transfer Warehouse Mgt.", 'OnAfterCreateRcptLineFromTransLine', '', true, true)]
+    local procedure HandleOnAfterCreateRcptLineFromTransLine(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; TransferLine: Record "Transfer Line")
+    var
+        OptionalSource: Variant;
+    begin
+        if DetectIsPreviewPosting() then
+            exit;
+
+        if not QltyManagementSetup.GetSetupRecord() then
+            exit;
+
+        if not HasWarehouseReceiptCreateGenRule(ApplicableReceivingQltyInspectionGenRule) then
+            exit;
+
+        OptionalSource := TransferLine;
+        QltyBatchNotifHelper.BeginBatch();
+        AttemptCreateInspectionWithReceiptLine(WarehouseReceiptLine, WarehouseReceiptHeader, OptionalSource);
+        QltyBatchNotifHelper.EndBatch();
+    end;
+
+    /// <summary>
+    /// Creates inspections after a warehouse receipt line is created from a sales line, such as a sales return order line.
+    /// </summary>
+    /// <param name="WarehouseReceiptLine">The created warehouse receipt line.</param>
+    /// <param name="WarehouseReceiptHeader">The warehouse receipt header.</param>
+    /// <param name="SalesLine">The source sales line.</param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Warehouse Mgt.", 'OnAfterCreateRcptLineFromSalesLine', '', true, true)]
+    local procedure HandleOnAfterCreateRcptLineFromSalesLine(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; SalesLine: Record "Sales Line")
+    var
+        OptionalSource: Variant;
+    begin
+        if DetectIsPreviewPosting() then
+            exit;
+
+        if not QltyManagementSetup.GetSetupRecord() then
+            exit;
+
+        if not HasWarehouseReceiptCreateGenRule(ApplicableReceivingQltyInspectionGenRule) then
+            exit;
+
+        OptionalSource := SalesLine;
+        QltyBatchNotifHelper.BeginBatch();
+        AttemptCreateInspectionWithReceiptLine(WarehouseReceiptLine, WarehouseReceiptHeader, OptionalSource);
+        QltyBatchNotifHelper.EndBatch();
+    end;
+
+    /// <summary>
     /// Creates inspections from sales return lines and their inbound item tracking before posting.
     /// </summary>
     /// <param name="SalesHeader">The sales return order header.</param>
