@@ -130,6 +130,34 @@ page 6951 "Expense Users"
                 end;
             }
         }
+        area(Navigation)
+        {
+            action(ApprovalSetup)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Approval Setup';
+                ToolTip = 'Opens the Expense Approval Setup page for this expense user.';
+                Image = Approvals;
+
+                trigger OnAction()
+                var
+                    ExpenseApprovalMgmt: Codeunit "Expense Approval Helper";
+                begin
+                    ExpenseApprovalMgmt.OpenApprovalSetupPage(Rec);
+                end;
+            }
+            action("Alternate Approvers")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Alternate Approvers';
+                Image = UserSetup;
+                RunObject = Page "Expense Alternate Approvers";
+                RunPageLink = "Primary Approver No." = field("No.");
+                RunPageMode = Edit;
+                Visible = Rec."Can Approve";
+                ToolTip = 'Configure planned alternate approvers and their coverage dates.';
+            }
+        }
         area(Promoted)
         {
             group(Category_Process)
@@ -147,6 +175,19 @@ page 6951 "Expense Users"
                 }
                 actionref(SendWelcomeEmail_Promoted; "Send Welcome Email")
                 {
+                }
+
+                group(Category_Approval)
+                {
+                    Caption = 'Approval';
+                    ShowAs = Standard;
+
+                    actionref(ApprovalSetup_Promoted; ApprovalSetup)
+                    {
+                    }
+                    actionref(AlternateApprovers_Promoted; "Alternate Approvers")
+                    {
+                    }
                 }
             }
         }

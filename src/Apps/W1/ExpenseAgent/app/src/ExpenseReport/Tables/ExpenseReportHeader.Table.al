@@ -71,6 +71,9 @@ table 6906 "Expense Report Header"
                     Rec.Validate("Spend Request No.", '');
                     Rec."Final Approver No." := GetFinalApproverNo(Rec."Expense User No.");
                     Rec."Interim Approver No." := '';
+                    Rec."Alternate Approver No." := '';
+                    Rec."Primary Final Approver No." := '';
+                    Rec."Primary Interim Approver No." := '';
                 end;
 
                 Rec.CreateDimFromDefaultDim(Rec.FieldNo("Expense User No."));
@@ -543,6 +546,38 @@ table 6906 "Expense Report Header"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Expense User".Name where("No." = field("Interim Approver No.")));
+        }
+        field(72; "Alternate Approver No."; Code[20])
+        {
+            Caption = 'Alternate Approver No.';
+            ToolTip = 'Specifies the alternate approver assigned to the expense report.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+        }
+        field(73; "Alternate Approver Name"; Text[100])
+        {
+            Caption = 'Alternate Approver Name';
+            ToolTip = 'Specifies the name of the alternate approver assigned to the expense report.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Alternate Approver No.")));
+        }
+        field(74; "Primary Final Approver No."; Code[20])
+        {
+            Caption = 'Primary Final Approver No.';
+            ToolTip = 'Specifies the final approver that the report returns to when the alternate approver coverage ends.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+        }
+        field(75; "Primary Interim Approver No."; Code[20])
+        {
+            Caption = 'Primary Interim Approver No.';
+            ToolTip = 'Specifies the interim approver that the report returns to when the alternate approver coverage ends.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
         }
         field(100; "Spend Request No."; Code[20])
         {
@@ -1348,6 +1383,13 @@ table 6906 "Expense Report Header"
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseReportApprovalMgmt.AssignInterimApprover(Rec, NewApproverExpenseUserNo, ActorExpenseUserNo);
+    end;
+
+    procedure AssignAlternateApprover(ActorExpenseUserNo: Code[20])
+    var
+        ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        ExpenseReportApprovalMgmt.AssignAlternateApprover(Rec, ActorExpenseUserNo);
     end;
 
     local procedure GetFinalApproverNo(ExpenseUserNo: Code[20]): Code[20]
