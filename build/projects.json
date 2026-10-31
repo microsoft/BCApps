@@ -72,6 +72,16 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
+    "Test Runner Tests": {
+      "isMultiCountry": true,
+      "isTest": true,
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Runner Tests",
+      "dvdFolder": "Applications\\TestFramework\\TestRunner\\Tests",
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "repositoryUrl": "https://github.com/microsoft/BCApps"
+    },
     "Performance Toolkit": {
       "isMultiCountry": true,
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Performance Toolkit\\App",

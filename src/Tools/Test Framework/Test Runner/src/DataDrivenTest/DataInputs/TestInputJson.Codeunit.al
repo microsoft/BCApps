@@ -72,14 +72,19 @@ codeunit 130464 "Test Input Json"
         exit(TestJson.AsArray().Count());
     end;
 
+    /// <summary>
+    /// Returns the raw scalar value without resolving placeholders.
+    /// </summary>
     procedure ElementValue(): JsonValue
     begin
         exit(TestJson.AsValue());
     end;
 
     /// <summary>
-    /// Returns the value as Text with all data tool placeholders resolved.
-    /// Supported: $DateFormula-...$, $DateTimeFormula-...$.
+    /// Returns the value as Text, resolving data tool placeholders on every read.
+    /// Supported: $Placeholder-...$, $DateFormula-...$, $DateTimeFormula-...$.
+    /// Named values use their full name and the current company, then the shared-company fallback.
+    /// The underlying JSON is not changed. Use ElementValue().AsText() for raw scalar text.
     /// </summary>
     procedure ValueAsText(): Text
     var
@@ -121,7 +126,7 @@ codeunit 130464 "Test Input Json"
     /// Supports optional time (colon format):
     ///   $DateTimeFormula-&lt;formula&gt;$               → time defaults to 0T
     ///   $DateTimeFormula-&lt;formula&gt;-12:30:11$       → explicit time
-    ///   $DateTimeFormula-&lt;formula&gt;-12:30:11.1301$  → time with milliseconds
+    ///   $DateTimeFormula-&lt;formula&gt;-12:30:11.130$   → time with milliseconds
     /// </summary>
     procedure ValueAsDateTime(): DateTime
     var

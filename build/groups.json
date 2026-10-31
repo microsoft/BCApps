@@ -883,6 +883,19 @@
     ]
   },
   {
+    "name": "Test Runner Tests",
+    "groups": [
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Performance Toolkit",
     "groups": [
       {

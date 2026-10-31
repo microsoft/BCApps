@@ -11,7 +11,7 @@ This document is the **input contract** for AI agent tests: the YAML structure a
 What you'll find here:
 
 - The YAML schema (top-level keys, per-test keys, `turn_setup`, `query`, `expected_data`).
-- The placeholder syntax (`$DateFormula-…$`, `$DateTimeFormula-…$`).
+- The placeholder syntax (`$Placeholder-…$`, `$DateFormula-…$`, `$DateTimeFormula-…$`).
 - For each YAML key that the framework interprets, the library method  that consumes it.
 - A quick reference for `Library - Agent`, `AIT Test Context`, and  `Test Input Json`.
 
@@ -249,22 +249,103 @@ Additional validation keys can be defined per agent test app. Read them via `AIT
 
 ## 9. Placeholders
 
-Embed in any string YAML value using the `$...$` syntax. Resolution is **automatic** — the framework substitutes placeholders when YAML values are read, so authors never call a resolver explicitly.
+Embed in any string YAML value using the `$...$` syntax. During a test method, resolution is **automatic** when `Test Input Json.ValueAsText()` is called. The shared engine is `Test Input Data Tools`; `AIT Test Context` returns input wrappers rather than exposing a separate placeholder API.
 
 | Form | Resolves to | Example |
 |---|---|---|
+| `$Placeholder-<name>$` | registered text, as a whole value or substring | `"Create an order for $Placeholder-Customer1No$"` |
 | `$DateFormula-<formula>$` (whole value) | `Date` | `"$DateFormula-<CW+1M+1D>$"` |
 | `$DateFormula-<formula>$` (inside text) | substring → `Format(Date)` | `"Process orders for $DateFormula-<CW+1M+1D>$"` |
 | `$DateTimeFormula-<formula>$` | `DateTime` (time = `0T`) | `"$DateTimeFormula-<CD>$"` |
 | `$DateTimeFormula-<formula>-HH:MM:SS$` | `DateTime` with explicit time | `"$DateTimeFormula-<CW>-13:30:11$"` |
-| `$DateTimeFormula-<formula>-HH:MM:SS.FFFF$` | `DateTime` with milliseconds | `"$DateTimeFormula-<CW>-13:30:11.1301$"` |
+| `$DateTimeFormula-<formula>-HH:MM:SS.FFF$` | `DateTime` with milliseconds | `"$DateTimeFormula-<CW>-13:30:11.130$"` |
+
+The date/datetime result types above refer to typed getters. `ValueAsText()` always returns the resolved value as formatted text.
 
 `<formula>` is a standard AL DateFormula evaluated against `WorkDate()`
 (`<CD>`, `<CW>`, `<CM>`, `<CW+1M+1D>`, `<-7D>`, `<+30D>`, …).
 
 **Always quote** placeholder strings in YAML — the `<` and `>` characters are otherwise interpreted as flow-style delimiters by some parsers.
 
-The placeholder engine is `SingleInstance` and resets on `OnBeforeTestMethodRun`. On the first resolve call per test it scans the full input JSON once; if no placeholder prefix is present, subsequent calls return the input unchanged with one boolean check — zero overhead for tests that don't use placeholders.
+### 9.1 Registering runtime values
+
+Use named tokens directly in YAML; no declaration block or import-time substitution is needed:
+
+```yaml
+query:
+  title: "Order for $Placeholder-MY-SCENARIO-Customer1No$"
+  message: "Use item $Placeholder-MY-SCENARIO-BlockedItem1$."
+expected_data:
+  customer_no: "$Placeholder-MY-SCENARIO-Customer1No$"
+```
+
+After creating or finding the records in AL setup, register their actual values:
+
+```al
+DataTools.SetPlaceholder('MY-SCENARIO-Customer1No', Customer."No.");
+DataTools.SetPlaceholder('MY-SCENARIO-BlockedItem1', BlockedItem."No.");
+Found := DataTools.GetPlaceholder('MY-SCENARIO-Customer1No', CustomerNo);
+MessageText := AITTestContext.GetQuery().Element('message').ValueAsText();
+```
+
+Here `DataTools` is codeunit `Test Input Data Tools`. Set an existing key again to overwrite it; the next read, including a read through an existing input wrapper, sees the new value. An already returned AL `Text` variable does not change.
+
+Names are case-insensitive, contain 1-250 ASCII letters, digits, underscores, or hyphens, and cannot be blank. Supply the bare name to the API, not the complete token. The fixed `$Placeholder-` prefix remains case-sensitive.
+
+If a setup field declares the token, let the framework extract its name rather than parsing token syntax in consuming AL:
+
+```yaml
+customerNo: "$Placeholder-MY-SCENARIO-Customer1No$"
+```
+
+```al
+PlaceholderName := DataTools.GetPlaceholderName(SetupInput.Element('customerNo'));
+LibrarySales.CreateCustomer(Customer);
+DataTools.SetPlaceholder(PlaceholderName, Customer."No.");
+```
+
+`GetPlaceholderName` validates a single complete named token and reads the definition raw, even when that name already has a registered value. Invalid definitions raise an error before record creation. Normal reads of the same element resolve the current registered value.
+
+Values are stored as UTF-8 text in a BLOB. Reading a multiline value normalizes line endings to the platform-standard separator while preserving empty lines, Unicode, whitespace within lines, and leading zeros. An empty registered value is valid and replaces its token with empty text. `GetPlaceholder` returns `false` and clears its output argument when no value exists; unresolved tokens in input text remain unchanged. Malformed generic tokens also remain literal.
+
+Registration rejects values containing complete supported named/date/datetime tokens, even if the referenced name is unknown. Replacement is non-recursive, and there is no escape syntax.
+
+### 9.2 Full names and company fallback
+
+The storage key is `(Name, Company)`. Use full names such as `MY-SCENARIO-Customer1No` (prefix) or `Customer1No-MY-SCENARIO` (suffix) to distinguish scenarios. Prefixes and suffixes are literal parts of the name, not separate settings or implicit lookup context. The 250-character limit applies to the complete name.
+
+Test authors own naming uniqueness. Concurrent executions using the same full name in the same company address the same registration. If a run identifier is needed, include it in both the input token and the AL registration; changing only the registration name will not resolve the original token.
+
+| API | Scope |
+|---|---|
+| `SetPlaceholder(Name, Value)` / `GetPlaceholder(Name, var Value)` | Full name, current company. |
+| `SetPlaceholderForCompany(Name, Value, Company)` / `GetPlaceholderForCompany(Name, var Value, Company)` | Full name, explicit company. |
+
+Default operations use `CompanyName()`. Passing `''` to a company-specific API stores or reads a shared-company row. For a nonblank company, lookup first reads the exact company and then the shared row with the **same full name**. An existing local row containing empty text suppresses fallback. Explicit company operations do not change the company used by subsequent default operations or text reads.
+
+For example, `SetPlaceholderForCompany('MY-SCENARIO-Customer1No', 'SHARED-CUST', '')` provides a shared fallback. A current-company registration for the same full name takes precedence, without changing the shared row.
+
+### 9.3 Resolving reads, raw reads, and manual cleanup
+
+`ValueAsText()` and `ResolveText()` always resolve named, date, and datetime tokens lazily. The same behavior applies during setup, test execution, teardown, and outside a test run. There is no enable/disable switch or runner lifecycle requirement.
+
+Choose the read API explicitly. Use `ElementValue().AsText()` for raw scalar text, including definitions, previews, or invalid formulas that must not be evaluated. Raw reads do not change subsequent resolving reads. Typed date/datetime getters retain their conversion behavior; invalid conversions raise errors rather than returning silent defaults.
+
+Registrations are ordinary database rows shared through the explicit company key. No helper commits or automatically deletes registrations. Test isolation and transaction rollback govern persistence, so committed suite-setup registrations can be reused when setup is skipped.
+
+`Element()` / `ElementAt()` only navigate. `ElementValue()`, `ValueAsJsonObject()`, `AsJsonToken()`, and `ToText()` remain raw; neither the input JSON nor its property names are rewritten. Numeric/Boolean accessors are unchanged. Only the text being read is scanned, so separately loaded suite setup and directly initialized input wrappers work too.
+
+When a consumer requires a concrete reference, `ContainsNamedPlaceholderMarker(ResolvedText)` detects a remaining named-placeholder marker without hardcoding its syntax. This includes incomplete references; it does not look up registrations or change the normal missing-token behavior.
+
+Cleanup is explicit:
+
+| API | Deletes |
+|---|---|
+| `DeletePlaceholder(Name)` | The exact full name in the current company. Returns `false` if absent; never follows shared fallback. |
+| `DeletePlaceholderForCompany(Name, Company)` | The exact full name and company. Explicit blank company deletes only the shared row. Returns `false` if absent; never follows shared fallback. |
+| `DeleteAllPlaceholders()` | **All registrations across all names and companies.** Use only when that full scope is intended. |
+
+Cleanup uses exact matching, not prefix/suffix or wildcard matching, and follows the caller's transaction/test isolation. To clean up a scenario, retain its full names and delete those exact registrations.
 
 ---
 
@@ -375,5 +456,22 @@ The recommended high-level driver is `RunTurnAndWait` + `FinalizeTurn`, which ar
 | `ElementExists(Name, var Found)` | Safe lookup. |
 | `ElementAt(Index)` | Array element by 0-based index. |
 | `GetElementCount()` | Number of elements. |
-| `ValueAsText` / `Integer` / `Decimal` / `Boolean` / `Date` / `DateTime` | Typed accessors. Placeholder resolution is automatic on string-valued accessors. |
-| `ValueAsJsonObject()` / `ValueAsJsonToken()` | Escape to native JSON. |
+| `ValueAsText()` | Always resolves known named/date/datetime tokens lazily. |
+| `ElementValue().AsText()` | Reads raw scalar text without resolving or evaluating placeholders. |
+| `ValueAsInteger()` / `ValueAsDecimal()` / `ValueAsBoolean()` | Native typed accessors; no placeholder conversion. |
+| `ValueAsDate()` / `ValueAsDateTime()` | Typed date accessors, including date/datetime formulas. |
+| `ValueAsJsonObject()` / `AsJsonToken()` | Escape to raw native JSON. |
+| `ToText()` | Serializes unresolved content; does not preserve original YAML/JSON formatting. |
+
+### `Test Input Data Tools`
+
+See [Placeholders](#9-placeholders) for full-name and company-scope rules.
+
+| Procedure | Use |
+|---|---|
+| `GetPlaceholderName(Definition)` | Validate a raw input element and extract its bare placeholder name. |
+| `ContainsNamedPlaceholderMarker(InputText)` | Detect a remaining named marker, including incomplete references, without parsing syntax in consumer AL. |
+| `SetPlaceholder(Name, Value)` / `SetPlaceholderForCompany(Name, Value, Company)` | Register or overwrite the exact key with literal text. |
+| `GetPlaceholder(Name, var Value)` / `GetPlaceholderForCompany(Name, var Value, Company)` | Read registered text with platform-standard line breaks, returning whether the registration exists. |
+| `DeletePlaceholder(Name)` / `DeletePlaceholderForCompany(Name, Company)` | Delete the exact key without following shared fallback. |
+| `DeleteAllPlaceholders()` | Delete all registrations. |
