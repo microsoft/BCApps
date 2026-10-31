@@ -62,6 +62,7 @@ using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 using System.Environment.Configuration;
+using System.Security.User;
 using System.Utilities;
 
 table 39 "Purchase Line"
@@ -10758,6 +10759,26 @@ table 39 "Purchase Line"
     end;
 
     /// <summary>
+    /// Applies a security filter based on the user's responsibility center setup.
+    /// </summary>
+    procedure SetSecurityFilterOnRespCenter()
+    var
+        UserSetupMgt: Codeunit "User Setup Management";
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeSetSecurityFilterOnRespCenter(Rec, IsHandled);
+        if IsHandled then
+            exit;
+
+        if UserSetupMgt.GetPurchasesFilter() <> '' then begin
+            FilterGroup(2);
+            SetRange("Responsibility Center", UserSetupMgt.GetPurchasesFilter());
+            FilterGroup(0);
+        end;
+    end;
+
+    /// <summary>
     /// Gets the date required for purchase line calculations.
     /// </summary>
     /// <returns>The date for calculations.</returns>
@@ -13079,6 +13100,11 @@ table 39 "Purchase Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterClearVATDifference(var PurchaseLine: Record "Purchase Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeSetSecurityFilterOnRespCenter(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 
