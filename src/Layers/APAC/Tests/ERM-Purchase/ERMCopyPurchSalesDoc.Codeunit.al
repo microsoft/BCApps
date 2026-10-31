@@ -6990,7 +6990,7 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
 
     [Test]
     [HandlerFunctions('ReceiveAndInvoiceSalesReturnOrderStrMenuHandler')]
-    procedure VerifyQtyToShipNotClearedAfterPostingSalesReturnOrder()
+    procedure VerifyQtyToShipNotClearedAfterPostingSalesReturnOrderWhenRestoreQtyEnabled()
     var
         Customer: Record Customer;
         Item: Record Item;
@@ -7003,6 +7003,7 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
     begin
         // [SCENARIO 616052] After posting a sales return order if the sales order remains live the system does not remove the posted quantity reference.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create Customer and two Items.
         LibrarySales.CreateCustomer(Customer);
@@ -7033,6 +7034,161 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
 
         // [THEN] Verify Sales Line "Qty. to Ship" is not zero after posting Sales Return Order.
         VerifySalesLineQtyToShip(SalesHeader);
+    end;
+
+    [Test]
+    [HandlerFunctions('ReceiveAndInvoiceSalesReturnOrderStrMenuHandler')]
+    procedure VerifyQtyToShipNotRestoredAfterPostingSalesReturnOrderWhenRestoreQtyDisabled()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        Item2: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesHeader2: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PostedDocumentNo: Code[20];
+        SalesReturnOrder: TestPage "Sales Return Order";
+    begin
+        // [SCENARIO 649626] Sales order quantities are not restored after posting a sales return order when "Restore Order Qty. on Return" is disabled.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(false);
+
+        // [GIVEN] A partially posted sales order remains open.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItem(Item2);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item2."No.", LibraryRandom.RandIntInRange(1, 10));
+        SalesLine.Validate("Qty. to Ship", 0);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] A sales return order copied from the posted invoice.
+        LibrarySales.CreateSalesHeader(SalesHeader2, SalesHeader2."Document Type"::"Return Order", Customer."No.");
+        SalesCopyDocument(SalesHeader2, PostedDocumentNo, "Sales Document Type From"::"Posted Invoice");
+        SalesHeader2.Modify(true);
+        ModifySalesReturnOrderLine(Item."No.", SalesHeader2);
+
+        // [WHEN] Receive and invoice the sales return order.
+        SalesReturnOrder.OpenView();
+        SalesReturnOrder.GotoRecord(SalesHeader2);
+        SalesReturnOrder.Post.Invoke();
+
+        // [THEN] The posted sales order line remains fully shipped.
+        VerifySalesLineQtyToShipIsZero(SalesHeader);
+    end;
+
+    [Test]
+    procedure SalesOrderCanBePostedAgainAfterSalesReturnRestoresQuantityWhenRestoreQtyEnabled()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        Item2: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesReturnOrderHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PostedDocumentNo: Code[20];
+        SalesOrderNo: Code[20];
+        SalesOrderLineNo: Integer;
+    begin
+        // [SCENARIO 649626] A sales order can be posted again after a return restores its quantities.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(true);
+
+        // [GIVEN] A sales order with one partially shipped and invoiced line and one open line.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItem(Item2);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesOrderNo := SalesHeader."No.";
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2);
+        SalesOrderLineNo := SalesLine."Line No.";
+        SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Validate("Qty. to Invoice", 1);
+        SalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item2."No.", 1);
+        SalesLine.Validate("Qty. to Ship", 0);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] A sales return order copied from the posted invoice.
+        CreateSalesReturnOrder(
+            SalesReturnOrderHeader, Customer."No.", PostedDocumentNo, Item."No.", 1);
+
+        // [WHEN] The sales return order is received and invoiced.
+        LibrarySales.PostSalesDocument(SalesReturnOrderHeader, true, true);
+
+        // [THEN] The originating sales order quantities are restored.
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 0, 0, 2, 2);
+
+        // [WHEN] Part of the restored quantity is shipped and invoiced from the originating sales order.
+        SalesHeader.Get(SalesHeader."Document Type"::Order, SalesOrderNo);
+        SalesLine.Get(SalesLine."Document Type"::Order, SalesOrderNo, SalesOrderLineNo);
+        SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Validate("Qty. to Invoice", 1);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The originating sales order line is shipped and invoiced again.
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 1, 1, 1, 1);
+    end;
+
+    [Test]
+    procedure SalesOrderQuantityRestoredOnlyForReturnsPostedWhenRestoreQtyEnabled()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        Item2: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesReturnOrderHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PostedDocumentNo: Code[20];
+        SalesOrderNo: Code[20];
+        SalesOrderLineNo: Integer;
+    begin
+        // [SCENARIO 649626] Each sales return uses the current restore-order-quantity setting.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(false);
+
+        // [GIVEN] A sales order with Quantity 3 partially shipped and invoiced while another line keeps the order open.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItem(Item2);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesOrderNo := SalesHeader."No.";
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 3);
+        SalesOrderLineNo := SalesLine."Line No.";
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 2);
+        SalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item2."No.", 1);
+        SalesLine.Validate("Qty. to Ship", 0);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [WHEN] A return of Quantity 1 is posted while restoring order quantities is disabled.
+        CreateSalesReturnOrder(
+            SalesReturnOrderHeader, Customer."No.", PostedDocumentNo, Item."No.", 1);
+        LibrarySales.PostSalesDocument(SalesReturnOrderHeader, true, true);
+
+        // [THEN] The return does not restore quantity to the originating sales order.
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 2, 2, 1, 1);
+
+        // [GIVEN] Restoring order quantities is enabled for a second return against the same sales order.
+        SetRestoreOrderQtyOnReturn(true);
+        Clear(SalesReturnOrderHeader);
+        CreateSalesReturnOrder(
+            SalesReturnOrderHeader, Customer."No.", PostedDocumentNo, Item."No.", 1);
+
+        // [WHEN] The second return is posted.
+        LibrarySales.PostSalesDocument(SalesReturnOrderHeader, true, true);
+
+        // [THEN] The second return restores Quantity 1 to the originating sales order.
+        VerifySalesOrderLineQuantities(SalesOrderNo, SalesOrderLineNo, 1, 1, 2, 2);
     end;
 
     [Test]
@@ -8939,6 +9095,15 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         SalesReceivablesSetup.Modify(true);
     end;
 
+    local procedure SetRestoreOrderQtyOnReturn(RestoreOrderQtyOnReturn: Boolean)
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
+        SalesReceivablesSetup.Modify(true);
+    end;
+
     local procedure CreateAndPostPurchaseItemJournalLine(LocationCode: Code[10]; ItemNo: Code[20])
     var
         ItemJournalTemplate: Record "Item Journal Template";
@@ -9026,6 +9191,27 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         Assert.AreNotEqual(SalesLine."Qty. to Ship", 0, SalesLineQtyToShipErr);
     end;
 
+    local procedure VerifySalesLineQtyToShipIsZero(SalesHeader: Record "Sales Header")
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.TestField("Qty. to Ship", 0);
+    end;
+
+    local procedure VerifySalesOrderLineQuantities(SalesOrderNo: Code[20]; SalesOrderLineNo: Integer; QuantityShipped: Decimal; QuantityInvoiced: Decimal; QtyToShip: Decimal; QtyToInvoice: Decimal)
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        SalesLine.Get(SalesLine."Document Type"::Order, SalesOrderNo, SalesOrderLineNo);
+        SalesLine.TestField("Quantity Shipped", QuantityShipped);
+        SalesLine.TestField("Quantity Invoiced", QuantityInvoiced);
+        SalesLine.TestField("Qty. to Ship", QtyToShip);
+        SalesLine.TestField("Qty. to Invoice", QtyToInvoice);
+    end;
+
     local procedure ModifySalesReturnOrderLine(ItemNo: Code[20]; SalesHeader2: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";
@@ -9049,6 +9235,37 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         if SalesLine.FindFirst() then
             SalesLine.Validate("Appl.-from Item Entry", ItemLedgerEntry."Entry No.");
         SalesLine.Modify(true);
+    end;
+
+    local procedure CreateSalesReturnOrder(var SalesReturnOrderHeader: Record "Sales Header"; CustomerNo: Code[20]; PostedDocumentNo: Code[20]; ItemNo: Code[20]; ReturnQuantity: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        SalesReturnOrderLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateSalesHeader(
+            SalesReturnOrderHeader, SalesReturnOrderHeader."Document Type"::"Return Order", CustomerNo);
+        SalesCopyDocument(
+            SalesReturnOrderHeader, PostedDocumentNo, "Sales Document Type From"::"Posted Invoice");
+
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.FindFirst();
+
+#pragma warning disable AA0210
+        SalesReturnOrderLine.SetRange("Document Type", SalesReturnOrderHeader."Document Type");
+        SalesReturnOrderLine.SetRange("Document No.", SalesReturnOrderHeader."No.");
+        SalesReturnOrderLine.SetRange(Quantity, 0);
+        SalesReturnOrderLine.DeleteAll(true);
+#pragma warning restore AA0210
+
+        SalesReturnOrderLine.Reset();
+        SalesReturnOrderLine.SetRange("Document Type", SalesReturnOrderHeader."Document Type");
+        SalesReturnOrderLine.SetRange("Document No.", SalesReturnOrderHeader."No.");
+        SalesReturnOrderLine.SetRange(Type, SalesReturnOrderLine.Type::Item);
+        SalesReturnOrderLine.SetRange("No.", ItemNo);
+        SalesReturnOrderLine.FindFirst();
+        SalesReturnOrderLine.Validate(Quantity, ReturnQuantity);
+        SalesReturnOrderLine.Validate("Appl.-from Item Entry", ItemLedgerEntry."Entry No.");
+        SalesReturnOrderLine.Modify(true);
     end;
 
     local procedure SalesCopyDocument(SalesHeader: Record "Sales Header"; DocumentNo: Code[20]; DocumentType: Enum "Sales Document Type From")

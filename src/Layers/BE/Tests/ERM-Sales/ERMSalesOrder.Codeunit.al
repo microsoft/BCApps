@@ -5492,7 +5492,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure VerifySalesOrderUpdatedAfterPartialCorrectPostedSalesInvoice()
+    procedure VerifySalesOrderUpdatedAfterPartialCorrectPostedSalesInvoiceWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         SalesLine: Record "Sales Line";
@@ -5505,6 +5505,7 @@
     begin
         // [SCENARIO 578443] Verify quantity on posted Sales Order updated correctly after partial posting of Corrective Credit memo.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create an Item.
         LibraryInventory.CreateItem(Item);
@@ -5544,7 +5545,51 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoiceDifferentQuantity()
+    procedure VerifySalesOrderNotUpdatedAfterPartialCorrectPostedSalesInvoiceWhenRestoreQtyDisabled()
+    var
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        SalesHeaderCorrection: Record "Sales Header";
+        SalesLineCorrection: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        SalesCreditMemo: TestPage "Sales Credit Memo";
+    begin
+        // [SCENARIO 649626] Sales Order quantities are not restored after posting a partial Corrective Credit Memo when restoring order quantities is disabled.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(false);
+
+        // [GIVEN] A partially shipped and invoiced Sales Order with Quantity 10 and posted Quantity 5.
+        LibraryInventory.CreateItem(Item);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CreateCustomer());
+        CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 10, LibraryRandom.RandDec(100, 2));
+        SalesLine.Validate("Qty. to Ship", 5);
+        SalesLine.Modify(true);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] A Corrective Credit Memo for Quantity 2.
+        CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesHeaderCorrection);
+        FindSalesLine(SalesLineCorrection, SalesHeaderCorrection."Document Type", SalesHeaderCorrection."No.", SalesLineCorrection.Type::Item);
+        SalesLineCorrection.Validate(Quantity, 2);
+        SalesLineCorrection.Modify(true);
+
+        // [WHEN] The Corrective Credit Memo is posted.
+        SalesCreditMemo.OpenView();
+        SalesCreditMemo.GotoRecord(SalesHeaderCorrection);
+        SalesCreditMemo.Post.Invoke();
+
+        // [THEN] The Sales Order quantities remain unchanged.
+        SalesLine.Find();
+        SalesLine.TestField("Quantity Shipped", 5);
+        SalesLine.TestField("Quantity Invoiced", 5);
+        SalesLine.TestField("Qty. to Ship", 5);
+        SalesLine.TestField("Qty. to Invoice", 5);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoiceDifferentQuantityWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         SalesLine: Record "Sales Line";
@@ -5557,6 +5602,7 @@
     begin
         // [SCENARIO 578443] Verify quantity on posted Sales Order updated correctly after partial posting of Corrective Credit memo.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create an Item.
         LibraryInventory.CreateItem(Item);
@@ -5603,7 +5649,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoiceApplyEntries()
+    procedure VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoiceApplyEntriesWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         SalesLine: Record "Sales Line";
@@ -5616,6 +5662,7 @@
     begin
         // [SCENARIO 578443] Verify quantity on posted Sales Order updated correctly after posting of Corrective Credit memo with Application.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create an Item.
         LibraryInventory.CreateItem(Item);
@@ -5655,7 +5702,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerYes,PostedSalesDocumentLinesHandler')]
-    procedure VerifyManuallyCreatedSalesCrMemoUpdateExistingSalesOrder()
+    procedure VerifyManuallyCreatedSalesCrMemoUpdateExistingSalesOrderWhenRestoreQtyEnabled()
     var
         Customer: Record Customer;
         Item: Record Item;
@@ -5666,6 +5713,7 @@
     begin
         // [SCENARIO 578454] Verify manually created Sales Credit Memo with get posted document lines to reverse should update the existing Sales Order.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create an Item.
         LibraryInventory.CreateItem(Item);
@@ -5764,7 +5812,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerMessage')]
-    procedure MessageAddedUndoShipmentCreatesNegativeLineSalesShipmentWhenUndoneCancelledSalesInvoice()
+    procedure MessageAddedUndoShipmentCreatesNegativeLineSalesShipmentWhenUndoneCancelledSalesInvoiceWhenRestoreQtyEnabled()
     var
         // SalesReceivablesSetup: Record "Sales & Receivables Setup";
         SalesHeader: array[2] of Record "Sales Header";
@@ -5777,6 +5825,7 @@
     begin
         // [SCENARIO 579539] Message Added when Undo Shipment creates negative lines in Sales Shipment when already undone via cancelled Sales Invoice.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Find VATPostingSetup with Normal VAT Calculation Type.
         LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
@@ -5857,7 +5906,7 @@
 
     [Test]
     [HandlerFunctions('ConfirmHandlerYes')]
-    procedure VerifyQuantityToShipOnSalesOrderUpdatedWithGLAccountWithCorrectiveCreditMemo()
+    procedure VerifyQuantityToShipOnSalesOrderUpdatedWithGLAccountWithCorrectiveCreditMemoWhenRestoreQtyEnabled()
     var
         Customer: Record Customer;
         GLAccount: Record "G/L Account";
@@ -5874,6 +5923,7 @@
         // [SCENARIO 615866] Verify Qty. to Ship and  Qty. to Invoice are updated for G/L Account lines
         // after creating a Corrective Credit Memo from the Posted Sales Invoice.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
         Quantity := LibraryRandom.RandIntInRange(10, 10);
 
         // [GIVEN] Create a G/L Account.
@@ -6051,6 +6101,15 @@
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Sales Order");
+    end;
+
+    local procedure SetRestoreOrderQtyOnReturn(RestoreOrderQtyOnReturn: Boolean)
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
+        SalesReceivablesSetup.Modify(true);
     end;
 
     local procedure InitNotInvoicedData(var SalesHeader: Record "Sales Header"; var SalesLineTest: Record "Sales Line"; Value: Decimal; Quantity: Decimal; VAT: Decimal)

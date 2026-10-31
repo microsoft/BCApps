@@ -537,11 +537,6 @@
   {
     "codeunitId": 134378,
     "codeunitName": "ERM Sales Order",
-    "method": "MessageAddedUndoShipmentCreatesNegativeLineSalesShipmentWhenUndoneCancelledSalesInvoice"
-  },
-  {
-    "codeunitId": 134378,
-    "codeunitName": "ERM Sales Order",
     "method": "PartialSalesInvoicePostingClearsQtyToAssignThatIsLessThanAssignedInInvoice"
   },
   {
@@ -1042,17 +1037,7 @@
   {
     "codeunitId": 134378,
     "codeunitName": "ERM Sales Order",
-    "method": "VerifyManuallyCreatedSalesCrMemoUpdateExistingSalesOrder"
-  },
-  {
-    "codeunitId": 134378,
-    "codeunitName": "ERM Sales Order",
     "method": "VerifyPostSalesOrderWithChargeItemPostedFromSalesInvoiceRelatedToShipmentCreatedFromSalesOrder"
-  },
-  {
-    "codeunitId": 134378,
-    "codeunitName": "ERM Sales Order",
-    "method": "VerifyQuantityToShipOnSalesOrderUpdatedWithGLAccountWithCorrectiveCreditMemo"
   },
   {
     "codeunitId": 134378,
@@ -1063,21 +1048,6 @@
     "codeunitId": 134378,
     "codeunitName": "ERM Sales Order",
     "method": "VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoice"
-  },
-  {
-    "codeunitId": 134378,
-    "codeunitName": "ERM Sales Order",
-    "method": "VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoiceApplyEntries"
-  },
-  {
-    "codeunitId": 134378,
-    "codeunitName": "ERM Sales Order",
-    "method": "VerifySalesOrderUpdatedAfterCorrectPostedSalesInvoiceDifferentQuantity"
-  },
-  {
-    "codeunitId": 134378,
-    "codeunitName": "ERM Sales Order",
-    "method": "VerifySalesOrderUpdatedAfterPartialCorrectPostedSalesInvoice"
   },
   {
     "codeunitId": 134378,
