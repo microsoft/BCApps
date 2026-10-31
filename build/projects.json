@@ -7125,6 +7125,17 @@
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "Electronic Reporting Procedure": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\DE\\euBP\\app",
+      "dvdFolder": "Applications\\euBP\\Source",
+      "hasTranslations": true,
+      "installOnEnvironmentUpdate": true,
+      "supportedCountries": "DE",
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     }
   }
 }
