@@ -2545,6 +2545,60 @@ codeunit 136309 "Job Posting"
             JobTask."Job No.", ExpectedACYTotalCost, ExpectedACYTotalPrice, ExpectedACYLineAmount);
     end;
 
+    [Test]
+    procedure PostJobGLJournalLineACYTotalCostExcludesDeductibleVAT()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        JobTask: Record "Job Task";
+        VATPostingSetup: Record "VAT Posting Setup";
+        ACYCode: Code[10];
+        ExpectedACYTotalPrice: Decimal;
+        ExpectedACYLineAmount: Decimal;
+    begin
+        // [FEATURE] [Job] [Additional Reporting Currency] [Source Currency] [VAT]
+        // [SCENARIO 643950] ACY project cost from an overridden source currency amount excludes deductible VAT.
+        Initialize();
+
+        // [GIVEN] Additional Reporting Currency set up with a 1:1 exchange rate.
+        ACYCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        LibraryERM.SetAddReportingCurrency(ACYCode);
+
+        // [GIVEN] Normal VAT posting setup with 25% VAT.
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 25);
+
+        // [GIVEN] Project G/L Journal purchase line of 125 LCY including 25 VAT, with an overridden ACY amount of 250.
+        CreateJobWithJobTask(JobTask);
+        LibraryJob.CreateJobGLJournalLine(GenJournalLine."Job Line Type"::Billable, JobTask, GenJournalLine);
+        GenJournalLine.Validate("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
+        GenJournalLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GenJournalLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GenJournalLine.Validate("Job Quantity", 2);
+        GenJournalLine.Validate(Amount, 125);
+        GenJournalLine.Validate("Job Unit Price (LCY)", 40);
+        GenJournalLine."Source Currency Code" := ACYCode;
+        GenJournalLine."Source Currency Amount" := 250;
+        GenJournalLine.Modify(true);
+        ExpectedACYTotalPrice := GenJournalLine."Job Total Price (LCY)";
+        ExpectedACYLineAmount := GenJournalLine."Job Line Amount (LCY)";
+
+        // [WHEN] Post the Gen. Journal Line.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Project Ledger Entry "Total Cost (LCY)" = 100 and "Additional-Currency Total Cost" = 200 (250 less 50 VAT).
+        VerifyJobLedgerEntryACYAmounts(JobTask."Job No.", 200, ExpectedACYTotalPrice, ExpectedACYLineAmount);
+        JobLedgerEntry.SetRange("Job No.", JobTask."Job No.");
+        JobLedgerEntry.FindFirst();
+        JobLedgerEntry.TestField("Total Cost (LCY)", 100);
+
+        // [THEN] The expense G/L Entry "Additional-Currency Amount" = 200.
+        GLEntry.SetRange("Job No.", JobTask."Job No.");
+        GLEntry.SetRange("G/L Account No.", GenJournalLine."Account No.");
+        GLEntry.FindFirst();
+        GLEntry.TestField("Additional-Currency Amount", 200);
+    end;
+
     local procedure Initialize()
     var
         NoSeries: Record "No. Series";
