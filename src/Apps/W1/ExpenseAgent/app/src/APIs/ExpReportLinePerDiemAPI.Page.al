@@ -17,6 +17,9 @@ page 6915 "Exp. Report Line Per Diem API"
     PageType = API;
     ODataKeyFields = SystemId;
     SourceTable = "Expense Report Line Per Diem";
+    // Revisit parent policy invalidation if API inserts or deletes are enabled; generated-row invalidation alone is not sufficient.
+    InsertAllowed = false;
+    DeleteAllowed = false;
     AboutText = 'Provides access to data from the Expense Report Line Per Diem table';
     layout
     {
