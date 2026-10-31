@@ -17,6 +17,7 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
+using System.Security.AccessControl;
 using System.Security.User;
 
 codeunit 20440 "Qlty. Report Mgmt."
@@ -177,47 +178,56 @@ codeunit 20440 "Qlty. Report Mgmt."
 
     /// <summary>
     /// Resolves the name and contact details of the user who finished an inspection.
+    /// Only the recorded user, its user setup and the salesperson/purchaser linked in that user setup are considered,
+    /// so that the report never identifies a different person that happens to share the same code.
     /// </summary>
     /// <param name="FinishedByUserId">The user ID to resolve.</param>
-    /// <param name="FinishedByUserName">The resolved user name.</param>
-    /// <param name="FinishedByTitle">The resolved title, with a quality inspector fallback.</param>
+    /// <param name="FinishedByUserName">The user's full name, or the saved user ID when no full name is available.</param>
+    /// <param name="FinishedByTitle">The linked salesperson/purchaser job title, with a quality inspector fallback.</param>
     /// <param name="FinishedByEmail">The resolved email address.</param>
     /// <param name="FinishedByPhone">The resolved phone number.</param>
     internal procedure ResolveFinishedByPerson(FinishedByUserId: Code[50]; var FinishedByUserName: Text; var FinishedByTitle: Text; var FinishedByEmail: Text; var FinishedByPhone: Text)
     var
-        QltyPersonLookup: Codeunit "Qlty. Person Lookup";
-        DummyRecordId: RecordId;
-    begin
-        FinishedByUserName := FinishedByUserId;
-        QltyPersonLookup.GetBasicPersonDetails(FinishedByUserId, FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
-
-        if (FinishedByTitle = '') and (FinishedByUserName <> '') then
-            FinishedByTitle := DefaultQualityInspectorTitleLbl;
-
-        if (FinishedByTitle = '') and (FinishedByUserId <> '') then begin
-            FinishedByTitle := GetSalespersonJobTitleForUser(FinishedByUserId);
-            if FinishedByTitle = '' then
-                FinishedByTitle := DefaultQualityInspectorTitleLbl;
-        end;
-    end;
-
-    /// <summary>
-    /// Gets the job title of the salesperson or purchaser assigned to a user.
-    /// </summary>
-    /// <param name="UserId">The user ID to look up.</param>
-    /// <returns>The assigned salesperson or purchaser job title, or blank when unavailable.</returns>
-    local procedure GetSalespersonJobTitleForUser(UserId: Code[50]): Text
-    var
+        User: Record User;
         UserSetup: Record "User Setup";
         SalespersonPurchaser: Record "Salesperson/Purchaser";
     begin
-        if not UserSetup.Get(UserId) then
-            exit('');
-        if UserSetup."Salespers./Purch. Code" = '' then
-            exit('');
-        if not SalespersonPurchaser.Get(UserSetup."Salespers./Purch. Code") then
-            exit('');
-        exit(SalespersonPurchaser."Job Title");
+        FinishedByUserName := FinishedByUserId;
+        FinishedByTitle := '';
+        FinishedByEmail := '';
+        FinishedByPhone := '';
+        if FinishedByUserId = '' then
+            exit;
+
+        if User.ReadPermission() then begin
+            User.SetRange("User Name", FinishedByUserId);
+            if User.FindFirst() then begin
+                if User."Full Name" <> '' then
+                    FinishedByUserName := User."Full Name";
+                FinishedByEmail := User."Contact Email";
+            end;
+        end;
+
+        if UserSetup.ReadPermission() then
+            if UserSetup.Get(FinishedByUserId) then begin
+                if UserSetup."E-Mail" <> '' then
+                    FinishedByEmail := UserSetup."E-Mail";
+                if UserSetup."Phone No." <> '' then
+                    FinishedByPhone := UserSetup."Phone No.";
+
+                if UserSetup."Salespers./Purch. Code" <> '' then
+                    if SalespersonPurchaser.ReadPermission() then
+                        if SalespersonPurchaser.Get(UserSetup."Salespers./Purch. Code") then begin
+                            FinishedByTitle := SalespersonPurchaser."Job Title";
+                            if SalespersonPurchaser."E-Mail" <> '' then
+                                FinishedByEmail := SalespersonPurchaser."E-Mail";
+                            if SalespersonPurchaser."Phone No." <> '' then
+                                FinishedByPhone := SalespersonPurchaser."Phone No.";
+                        end;
+            end;
+
+        if FinishedByTitle = '' then
+            FinishedByTitle := DefaultQualityInspectorTitleLbl;
     end;
 
     /// <summary>
