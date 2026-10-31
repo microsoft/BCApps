@@ -13,6 +13,7 @@ using System.Environment;
 using System.Security.AccessControl;
 using System.Security.Authentication;
 using System.Telemetry;
+using System.Utilities;
 
 codeunit 6941 "EA Http Client"
 {
@@ -54,6 +55,35 @@ codeunit 6941 "EA Http Client"
         ProdBaseUrlSecretNameTok: Label 'EABaseUrl', Locked = true;
         CanaryBaseUrlSecretNameTok: Label 'EABaseUrlCanary', Locked = true;
         ExpenseAgentSetupMissingTxt: Label 'Expense Agent setup is missing. The service request was not sent.', Locked = true;
+        ExpenseAppBaseUrlOnPremTxt: Label 'http://localhost:5173/', Locked = true;
+        ExpenseAppBaseUrlProdTxt: Label 'https://app.expenses.dynamics.com/', Locked = true;
+        ExpenseAppBaseUrlTieTxt: Label 'https://app.expenses.dynamics-tie.com/', Locked = true;
+
+    internal procedure GetExpenseAppBaseUrl(): Text
+    var
+        EnvironmentInfo: Codeunit "Environment Information";
+        URLHelper: Codeunit "URL Helper";
+    begin
+        if EnvironmentInfo.IsOnPrem() then
+            exit(ExpenseAppBaseUrlOnPremTxt);
+        if not EnvironmentInfo.IsSaaSInfrastructure() then
+            exit('');
+        if URLHelper.IsTIE() or URLHelper.IsPPE() then
+            exit(ExpenseAppBaseUrlTieTxt);
+
+        exit(ExpenseAppBaseUrlProdTxt);
+    end;
+
+    internal procedure GetExpenseReportUrl(ExpenseReportSystemId: Guid): Text
+    var
+        ExpenseAppBaseUrl: Text;
+    begin
+        ExpenseAppBaseUrl := GetExpenseAppBaseUrl();
+        if ExpenseAppBaseUrl = '' then
+            exit('');
+
+        exit(ExpenseAppBaseUrl + 'reports/' + LowerCase(DelChr(Format(ExpenseReportSystemId), '=', '{}')));
+    end;
 
     [NonDebuggable]
     procedure SubmitExpenseWithAttachments(ConversationId: Text; Context: Text; OnBehalfUser: Text; var TempAttachment: Record "EA Email Attachment" temporary): Boolean
