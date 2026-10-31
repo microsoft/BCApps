@@ -265,10 +265,10 @@ codeunit 20557 "Subc. Purchase Order Creator"
                             PurchaseLine."Dimension Set ID" :=
                                 DimensionManagement.GetCombinedDimensionSetID(
                                     DimensionSetIDArr, PurchaseLine."Shortcut Dimension 1 Code", PurchaseLine."Shortcut Dimension 2 Code");
-                            PurchaseLine."Order Date" := WorkDate();
-
                             PurchaseLine."Subc. Prod. Order No." := ProdOrderRoutingLine."Prod. Order No.";
-                            PurchaseLine."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
+                            PurchaseLine."Subc. Prod. Order Line No." := ProdOrderComponent."Prod. Order Line No.";
+                            PurchaseLine."Subc. Prod. Ord. Comp Line No." := ProdOrderComponent."Line No.";
+                            PurchaseLine."Subc. Prod. Ord. Comp Due Date" := ProdOrderComponent."Due Date";
                             PurchaseLine."Subc. Routing No." := ProdOrderRoutingLine."Routing No.";
                             PurchaseLine."Subc. Rtng Reference No." := ProdOrderRoutingLine."Routing Reference No.";
                             PurchaseLine."Subc. Operation No." := ProdOrderRoutingLine."Operation No.";
@@ -645,8 +645,8 @@ codeunit 20557 "Subc. Purchase Order Creator"
         PurchaseLine."Item Category Code" := Item."Item Category Code";
         PurchaseLine.Validate("Purchasing Code", RequisitionLine."Purchasing Code");
 
-        if RequisitionLine."Due Date" <> 0D then begin
-            PurchaseLine.Validate("Expected Receipt Date", RequisitionLine."Due Date");
+        if ProdOrderComponent."Due Date" <> 0D then begin
+            PurchaseLine.Validate("Expected Receipt Date", ProdOrderComponent."Due Date");
             PurchaseLine."Requested Receipt Date" := PurchaseLine."Planned Receipt Date";
         end;
     end;
