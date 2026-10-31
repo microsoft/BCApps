@@ -31,6 +31,7 @@ codeunit 1279 "Cryptography Management Impl."
         EncryptionCheckFailErr: Label 'Encryption is either not enabled or the encryption key cannot be found.';
         EncryptionIsNotActivatedQst: Label 'Data encryption is not activated. It is recommended that you encrypt data. \Do you want to open the Data Encryption Management window?';
 
+    [NonDebuggable]
     procedure Encrypt(InputString: Text[215]): Text
     begin
         AssertEncryptionPossible();
@@ -39,6 +40,7 @@ codeunit 1279 "Cryptography Management Impl."
         exit(System.Encrypt(InputString));
     end;
 
+    [NonDebuggable]
     procedure Decrypt(EncryptedString: Text): Text
     begin
         AssertEncryptionPossible();
