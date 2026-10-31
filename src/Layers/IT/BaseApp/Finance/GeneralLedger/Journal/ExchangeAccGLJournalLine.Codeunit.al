@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Foundation.AuditCodes;
 
 /// <summary>
 /// Exchanges account and balancing account information in general journal lines for posting reversals and corrections.
@@ -77,6 +78,11 @@ codeunit 366 "Exchange Acc. G/L Journal Line"
             Rec."Source Curr. VAT Base Amount" := -Rec."Source Curr. VAT Base Amount";
             Rec."Source Curr. VAT Amount" := -Rec."Source Curr. VAT Amount";
         end;
+        if Rec."System-Created Entry" and (Rec."Source Curr. VAT Amount" <> 0) then begin
+            SourceCodeSetup.Get();
+            if Rec."Source Code" = SourceCodeSetup."Close Income Statement" then
+                Rec."Source Curr. VAT Amount" := 0;
+        end;
         NonDeductibleVAT.ExchangeAccGLJournalLine(Rec, GenJnlLine2);
 
         OnAfterOnRun(Rec, GenJnlLine2);
@@ -84,6 +90,7 @@ codeunit 366 "Exchange Acc. G/L Journal Line"
 
     var
         GenJnlLine2: Record "Gen. Journal Line";
+        SourceCodeSetup: Record "Source Code Setup";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
 
     /// <summary>
@@ -107,4 +114,3 @@ codeunit 366 "Exchange Acc. G/L Journal Line"
     begin
     end;
 }
-
