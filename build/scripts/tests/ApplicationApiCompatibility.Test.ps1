@@ -680,6 +680,149 @@ Describe 'Application API compatibility prototype' {
             }
         }
 
+        Context 'Page fields relocated into Application page extensions' {
+            BeforeAll {
+                function Write-FieldApiPackages {
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $fieldOldCollections
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections $fieldCurrentCollections
+                    $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $fieldDestinationCollections
+                }
+            }
+
+            BeforeEach {
+                $field = @{
+                    Name = 'IC Partner Code'
+                    Kind = 'Field'
+                    TypeDefinition = @{ Name = 'Code'; Length = 20 }
+                    Properties = @(
+                        @{ Name = 'SourceExpression'; Value = 'Rec."IC Partner Code"' },
+                        @{ Name = 'ApplicationArea'; Value = 'Intercompany' },
+                        @{ Name = 'Editable'; Value = 'false' },
+                        @{ Name = 'Visible'; Value = 'false' }
+                    )
+                }
+                $newField = $field | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $oldHost = @{
+                    Id = 2583
+                    Name = 'Dim. Correct Ledger Entries'
+                    Properties = @(@{ Name = 'SourceTable'; Value = 'G/L Entry' })
+                    Controls = @(@{ Name = 'Content'; Kind = 'Area'; Controls = @(
+                        @{ Name = 'Control1'; Kind = 'Repeater'; Controls = @($field) }
+                    ) })
+                }
+                $currentHost = $oldHost | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $currentHost.Controls[0].Controls[0].Controls = @()
+                $fieldExtension = @{
+                    Id = 8529
+                    Name = 'ICDimCorrectLedgerEntries'
+                    TargetObject = 'Dim. Correct Ledger Entries'
+                    ControlChanges = @(@{ Name = 'Global Dimension 2 Code'; Controls = @($newField) })
+                }
+                $fieldOldCollections = @{ Namespaces = @(@{ Name = 'Migration.FieldProbe'; Pages = @($page, $oldHost) }) }
+                $fieldCurrentCollections = @{ Namespaces = @(@{ Name = 'Migration.FieldProbe'; Pages = @($currentHost) }) }
+                $fieldDestinationCollections = @{
+                    Namespaces = @(@{ Name = 'Migration.FieldProbe'; Pages = @($page); PageExtensions = @($fieldExtension) })
+                }
+                $fieldMessage = "The field with name 'IC Partner Code' defined in Page 'Dim. Correct Ledger Entries' was found in the previous version, but is missing in the current extension."
+            }
+
+            It 'reconciles an unchanged field with <Encoding> metadata' -TestCases @(
+                @{ Encoding = 'string'; Kind = 'Field'; Suffix = ' This will break dependent extensions.' },
+                @{ Encoding = 'numeric'; Kind = 8; Suffix = '' },
+                @{ Encoding = 'mixed field and part'; Kind = 'Field'; Suffix = '' }
+            ) {
+                param($Encoding, $Kind, $Suffix)
+                $field.Kind = $newField.Kind = $Kind
+                if ($Encoding -eq 'numeric') { $fieldExtension.TargetObject = 'Migration.FieldProbe."Dim. Correct Ledger Entries"' }
+                if ($Encoding -eq 'mixed field and part') {
+                    $part = @{
+                        Name = 'Activities'
+                        Kind = 'Part'
+                        TypeDefinition = @{ Name = 'Page'; Subtype = @{ Id = 9071; Name = 'Activities' } }
+                    }
+                    $oldHost.Controls[0].Controls += $part
+                    $fieldExtension.ControlChanges[0].Controls += $part
+                    $target = @{ Id = 9071; Name = 'Activities' }
+                    $fieldOldCollections.Namespaces[0].Pages += $target
+                    $fieldDestinationCollections.Namespaces[0].Pages += $target
+                }
+                Write-FieldApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message "$fieldMessage$Suffix"
+                if ($Encoding -eq 'mixed field and part') {
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message "The part with name 'Activities' defined in Page 'Dim. Correct Ledger Entries' was found in the previous version, but is missing in the current extension."
+                }
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $fieldMoves = @($state.AcceptedMoves | Where-Object FieldName -EQ 'IC Partner Code')
+                $fieldMoves.Count | Should -Be 1
+                $fieldMoves[0].Accepted | Should -BeTrue
+                if ($Encoding -eq 'mixed field and part') {
+                    ($state.AcceptedMoves | Where-Object PartName -EQ 'Activities').Accepted | Should -BeTrue
+                }
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Not -Match 'warning AS0032'
+                Get-Content -LiteralPath (Join-Path $gate.Root "Originals\$([System.IO.Path]::GetFileName($gate.SourceLog)).txt") -Raw |
+                    Should -Match 'warning AS0032'
+                $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
+                @($alerts.issues | Where-Object ruleId -EQ 'AS0032').Count | Should -Be 0
+                @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
+            }
+
+            It 'rejects a field relocation when <Failure>' -TestCases @(
+                @{ Failure = 'the field is deleted' },
+                @{ Failure = 'the field is renamed' },
+                @{ Failure = 'the baseline field is missing' },
+                @{ Failure = 'the control is no longer a field' },
+                @{ Failure = 'the field type changes' },
+                @{ Failure = 'the source expression changes' },
+                @{ Failure = 'the field properties change' },
+                @{ Failure = 'the host page changes' },
+                @{ Failure = 'two extensions provide the field' },
+                @{ Failure = 'the provider is not exposed' },
+                @{ Failure = 'the field stays in the source app' }
+            ) {
+                param($Failure)
+                switch ($Failure) {
+                    'the field is deleted' { $fieldExtension.ControlChanges = @() }
+                    'the field is renamed' { $newField.Name = 'Renamed partner' }
+                    'the baseline field is missing' { $oldHost.Controls[0].Controls[0].Controls = @() }
+                    'the control is no longer a field' { $newField.Kind = 'Group' }
+                    'the field type changes' { $newField.TypeDefinition.Length = 100 }
+                    'the source expression changes' { $newField.Properties[0].Value = 'Rec."Source Code"' }
+                    'the field properties change' { $newField.Properties[2].Value = 'true' }
+                    'the host page changes' {
+                        $fieldExtension.TargetObject = 'Other Ledger Entries'
+                        $fieldCurrentCollections.Namespaces[0].Pages += @{ Id = 2584; Name = 'Other Ledger Entries' }
+                    }
+                    'two extensions provide the field' {
+                        $duplicate = $fieldExtension | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                        $duplicate.Id = 8530
+                        $duplicate.Name = 'Duplicate field provider'
+                        $fieldDestinationCollections.Namespaces[0].PageExtensions += $duplicate
+                    }
+                    'the provider is not exposed' {
+                        $script:currentApplication = New-ApiTestPackage -Name 'Application' -Id $applicationId -Propagate $true -Dependencies @($script:currentBase)
+                    }
+                    'the field stays in the source app' {
+                        $fieldCurrentCollections.Namespaces[0].PageExtensions = @($fieldExtension)
+                        $fieldDestinationCollections.Namespaces[0].PageExtensions = @()
+                    }
+                }
+                Write-FieldApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $fieldMessage
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $fieldMoves = @($state.AcceptedMoves | Where-Object FieldName -EQ 'IC Partner Code')
+                $fieldMoves.Count | Should -Be 1
+                $fieldMoves[0].Accepted | Should -BeFalse
+                $fieldMoves[0].Reason | Should -Not -BeNullOrEmpty
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0032'
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            }
+        }
+
         Context 'Actions relocated into Application page extensions' {
             BeforeAll {
                 function Write-ActionApiPackages {
@@ -831,10 +974,214 @@ Describe 'Application API compatibility prototype' {
             }
         }
 
+        Context 'Methods relocated into matching Application extensions' {
+            BeforeAll {
+                function Set-MethodApiHostKind {
+                    param([string] $Kind)
+
+                    $collection = switch ($Kind) { Table { 'Tables' }; Page { 'Pages' }; Report { 'Reports' } }
+                    $methodExtensionCollection = switch ($Kind) { Table { 'TableExtensions' }; Page { 'PageExtensions' }; Report { 'ReportExtensions' } }
+                    $targetProperty = if ($Kind -eq 'Report') { 'Target' } else { 'TargetObject' }
+                    $methodExtension.Remove('Target')
+                    $methodExtension.Remove('TargetObject')
+                    $methodExtension[$targetProperty] = $methodHost.Name
+                    $methodOldCollections = @{ Namespaces = @(@{ Name = 'Migration.MethodProbe'; Pages = @($page) }) }
+                    $methodCurrentCollections = @{ Namespaces = @(@{ Name = 'Migration.MethodProbe'; Pages = @() }) }
+                    $methodDestinationCollections = @{ Namespaces = @(@{ Name = 'Migration.MethodProbe'; Pages = @($page) }) }
+                    if ($Kind -eq 'Page') {
+                        $methodOldCollections.Namespaces[0].Pages += $methodHost
+                        $methodCurrentCollections.Namespaces[0].Pages += $currentMethodHost
+                    } else {
+                        $methodOldCollections.Namespaces[0][$collection] = @($methodHost)
+                        $methodCurrentCollections.Namespaces[0][$collection] = @($currentMethodHost)
+                    }
+                    $methodDestinationCollections.Namespaces[0][$methodExtensionCollection] = @($methodExtension)
+                    [PSCustomObject]@{
+                        Old = $methodOldCollections; Current = $methodCurrentCollections; Destination = $methodDestinationCollections
+                        Collection = $collection; ExtensionCollection = $methodExtensionCollection; TargetProperty = $targetProperty
+                    }
+                }
+
+                function Write-MethodApiPackages {
+                    param([object] $Layout)
+
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $Layout.Old
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections $Layout.Current
+                    $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $Layout.Destination
+                }
+
+                function Add-ApiMethodDiagnostic {
+                    param([object] $Gate, [string] $Kind, [string] $Method = 'Process')
+
+                    Add-ApiMemberDiagnostic -Gate $Gate -RuleId AS0018 -Message "Procedure '$Method(Text)' has been removed in '$Kind Method host'. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure."
+                }
+            }
+
+            BeforeEach {
+                $procedure = @{
+                    Name = 'Process'
+                    IsLocal = $false
+                    Parameters = @(@{ Name = 'Value'; IsVar = $false; TypeDefinition = @{ Name = 'Text' } })
+                    ReturnTypeDefinition = @{ Name = 'Boolean' }
+                }
+                $event = @{
+                    Name = 'OnBeforeProcess'
+                    IsLocal = $true
+                    Parameters = @(@{ Name = 'Value'; IsVar = $true; TypeDefinition = @{ Name = 'Text' } })
+                    Attributes = @(@{ Name = 'IntegrationEvent'; Arguments = @(@{ Value = 'false' }, @{ Value = 'false' }) })
+                }
+                $newProcedure = $procedure | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $newEvent = $event | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $methodHost = @{ Id = 50010; Name = 'Method host'; Methods = @($procedure, $event) }
+                $currentMethodHost = @{ Id = 50010; Name = 'Method host'; Methods = @() }
+                $methodExtension = @{ Id = 50011; Name = 'Method extension'; Methods = @($newProcedure, $newEvent) }
+            }
+
+            It 'reconciles unchanged procedures and <EventKind> publishers on a <Kind> with a <Reference> reference' -TestCases @(
+                @{ Kind = 'Table'; EventKind = 'IntegrationEvent'; Reference = 'simple' },
+                @{ Kind = 'Page'; EventKind = 'IntegrationEvent'; Reference = 'qualified' },
+                @{ Kind = 'Report'; EventKind = 'IntegrationEvent'; Reference = 'numeric' },
+                @{ Kind = 'Table'; EventKind = 'BusinessEvent'; Reference = 'qualified' },
+                @{ Kind = 'Page'; EventKind = 'BusinessEvent'; Reference = 'numeric' },
+                @{ Kind = 'Report'; EventKind = 'BusinessEvent'; Reference = 'simple' }
+            ) {
+                param($Kind, $EventKind, $Reference)
+                $event.Attributes[0].Name = $newEvent.Attributes[0].Name = $EventKind
+                if ($EventKind -eq 'BusinessEvent') {
+                    $event.Attributes[0].Arguments = $newEvent.Attributes[0].Arguments = @(@{ Value = 'false' })
+                }
+                $layout = Set-MethodApiHostKind -Kind $Kind
+                if ($Reference -eq 'qualified') { $methodExtension[$layout.TargetProperty] = 'Migration.MethodProbe."Method host"' }
+                if ($Reference -eq 'numeric') { $methodExtension[$layout.TargetProperty] = '50010' }
+                Write-MethodApiPackages -Layout $layout
+                $gate = New-ApiGateLayout
+                Add-ApiMethodDiagnostic -Gate $gate -Kind $Kind
+                Add-ApiMethodDiagnostic -Gate $gate -Kind $Kind -Method 'OnBeforeProcess'
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $moves = @($state.AcceptedMoves | Where-Object RuleId -EQ 'AS0018')
+                $moves.Count | Should -Be 2
+                @($moves | Where-Object { -not $_.Accepted }).Count | Should -Be 0
+                ($moves | Where-Object MethodName -EQ 'Process').Key | Should -Be "$($layout.Collection):50010"
+                ($moves | Where-Object MethodName -EQ 'OnBeforeProcess').Accepted | Should -BeTrue
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Not -Match 'warning AS0018'
+                Get-Content -LiteralPath (Join-Path $gate.Root "Originals\$([System.IO.Path]::GetFileName($gate.SourceLog)).txt") -Raw |
+                    Should -Match 'warning AS0018'
+                $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
+                @($alerts.issues | Where-Object ruleId -EQ 'AS0018').Count | Should -Be 0
+                @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
+            }
+
+            It 'rejects a <Kind> method relocation when <Failure>' -TestCases @(
+                @{ Kind = 'Table'; Failure = 'the method is missing' },
+                @{ Kind = 'Page'; Failure = 'the method is renamed' },
+                @{ Kind = 'Report'; Failure = 'the parameter type changes' },
+                @{ Kind = 'Table'; Failure = 'the parameter passing mode changes' },
+                @{ Kind = 'Page'; Failure = 'the return type changes' },
+                @{ Kind = 'Report'; Failure = 'the method becomes local' },
+                @{ Kind = 'Table'; Failure = 'the method becomes internal' },
+                @{ Kind = 'Page'; Failure = 'the event attributes change' },
+                @{ Kind = 'Report'; Failure = 'the publisher becomes an ordinary local method' },
+                @{ Kind = 'Table'; Failure = 'the host changes' },
+                @{ Kind = 'Page'; Failure = 'the host namespace changes' },
+                @{ Kind = 'Report'; Failure = 'the host reference is ambiguous' },
+                @{ Kind = 'Table'; Failure = 'two extensions provide the method' },
+                @{ Kind = 'Page'; Failure = 'the destination is not exposed' },
+                @{ Kind = 'Report'; Failure = 'the method stays in the source app' },
+                @{ Kind = 'Table'; Failure = 'the baseline has overloads' },
+                @{ Kind = 'Page'; Failure = 'the destination has overloads' },
+                @{ Kind = 'Report'; Failure = 'the method moves to a codeunit' }
+            ) {
+                param($Kind, $Failure)
+                $layout = Set-MethodApiHostKind -Kind $Kind
+                $name = 'Process'
+                switch ($Failure) {
+                    'the method is missing' { $methodExtension.Methods = @($newEvent) }
+                    'the method is renamed' { $newProcedure.Name = 'RenamedMethod' }
+                    'the parameter type changes' { $newProcedure.Parameters[0].TypeDefinition.Name = 'Integer' }
+                    'the parameter passing mode changes' { $newProcedure.Parameters[0].IsVar = $true }
+                    'the return type changes' { $newProcedure.ReturnTypeDefinition.Name = 'Text' }
+                    'the method becomes local' { $newProcedure.IsLocal = $true }
+                    'the method becomes internal' { $newProcedure.IsInternal = $true }
+                    'the event attributes change' {
+                        $name = 'OnBeforeProcess'
+                        $newEvent.Attributes[0].Arguments[0].Value = 'true'
+                    }
+                    'the publisher becomes an ordinary local method' {
+                        $name = 'OnBeforeProcess'
+                        $newEvent.Attributes = @()
+                    }
+                    'the host changes' {
+                        $methodExtension[$layout.TargetProperty] = 'Other host'
+                        $layout.Current.Namespaces[0][$layout.Collection] += @{ Id = 50012; Name = 'Other host' }
+                    }
+                    'the host namespace changes' { $layout.Current.Namespaces[0].Name = 'Migration.Other' }
+                    'the host reference is ambiguous' {
+                        $layout.Current.Namespaces += @{ Name = 'Migration.Other'; $layout.Collection = @(@{ Id = 50012; Name = 'Method host' }) }
+                    }
+                    'two extensions provide the method' {
+                        $duplicate = $methodExtension | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                        $duplicate.Id = 50012
+                        $duplicate.Name = 'Duplicate method provider'
+                        $layout.Destination.Namespaces[0][$layout.ExtensionCollection] += $duplicate
+                    }
+                    'the destination is not exposed' {
+                        $script:currentApplication = New-ApiTestPackage -Name 'Application' -Id $applicationId -Propagate $true -Dependencies @($script:currentBase)
+                    }
+                    'the method stays in the source app' {
+                        $layout.Current.Namespaces[0][$layout.ExtensionCollection] = @($methodExtension)
+                        $layout.Destination.Namespaces[0][$layout.ExtensionCollection] = @()
+                    }
+                    'the baseline has overloads' {
+                        $overload = $procedure | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                        $overload.Parameters[0].TypeDefinition.Name = 'Integer'
+                        $methodHost.Methods += $overload
+                    }
+                    'the destination has overloads' {
+                        $overload = $newProcedure | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                        $overload.Parameters[0].TypeDefinition.Name = 'Integer'
+                        $methodExtension.Methods += $overload
+                    }
+                    'the method moves to a codeunit' {
+                        $layout.Destination.Namespaces[0][$layout.ExtensionCollection] = @()
+                        $layout.Destination.Namespaces[0].Codeunits = @(@{ Id = 50011; Name = 'Method codeunit'; Methods = @($newProcedure) })
+                    }
+                }
+                Write-MethodApiPackages -Layout $layout
+                $gate = New-ApiGateLayout
+                Add-ApiMethodDiagnostic -Gate $gate -Kind $Kind -Method $name
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $moves = @($state.AcceptedMoves | Where-Object RuleId -EQ 'AS0018')
+                $moves.Count | Should -Be 1
+                $moves[0].Accepted | Should -BeFalse
+                $moves[0].Reason | Should -Not -BeNullOrEmpty
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0018'
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            }
+
+            It 'does not defer table-schema errors while reconciling methods' {
+                $layout = Set-MethodApiHostKind -Kind Table
+                Write-MethodApiPackages -Layout $layout
+                $gate = New-ApiGateLayout
+                Add-ApiMethodDiagnostic -Gate $gate -Kind Table
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0002 -Message 'A table field was removed.'
+                $path = Join-Path $gate.Parameters.ErrorLogDirectory 'Base Application_20261027_000000.errorLog.json'
+                $alerts = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json -AsHashtable
+                ($alerts.issues | Where-Object ruleId -EQ 'AS0002').properties.severity = 'Error'
+                $alerts | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $path
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*Compiler errors must not be deferred*'
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'AS0002'
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            }
+        }
+
         It 'still rejects <RuleId> member removals without a verified replacement' -TestCases @(
-            @{ RuleId = 'AS0018'; ExpectedFailure = '*not part of a whole-object move*'; Message = "Procedure 'Process(Text)' has been removed in 'Table Gen. Journal Line'. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure." },
+            @{ RuleId = 'AS0018'; ExpectedFailure = '*not verified*'; Message = "Procedure 'Process(Text)' has been removed in 'Table Gen. Journal Line'. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure." },
+            @{ RuleId = 'AS0018'; ExpectedFailure = '*not part of a whole-object move*'; Message = "Procedure 'Process(Text)' has been removed in 'Codeunit Unmoved Codeunit'. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure." },
             @{ RuleId = 'AS0031'; ExpectedFailure = '*not verified*'; Message = "The action with name 'Partners' defined in Page 'Accountant Role Center' was found in the previous version, but is missing in the current extension. This will break dependent extensions." },
-            @{ RuleId = 'AS0032'; ExpectedFailure = '*not part of a whole-object move*'; Message = "The field with name 'icPartnerCode' defined in Page 'Workflow - Customer Entity' was found in the previous version, but is missing in the current extension. This will break dependent extensions." },
+            @{ RuleId = 'AS0032'; ExpectedFailure = '*not verified*'; Message = "The field with name 'icPartnerCode' defined in Page 'Workflow - Customer Entity' was found in the previous version, but is missing in the current extension. This will break dependent extensions." },
             @{ RuleId = 'AS0106'; ExpectedFailure = '*not part of a whole-object move*'; Message = "The variable 'ShortcutDimCode' of type 'array[8] of Code[20]' defined in Page 'Unmoved Page' was found in the previous version, but is missing in the current extension. This will break dependent extensions." }
         ) {
             param($RuleId, $Message, $ExpectedFailure)

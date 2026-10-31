@@ -17,7 +17,7 @@ $script:RemovalRules = @{
 }
 $script:ObjectRemovalPattern = "^The '(?<kind>\w+)' with (?:ID '(?<id>[0-9]+)' and name|name) '(?<name>.+)' was found in the previous version, but is missing in the current extension\. This will break dependent extensions\.$"
 $script:MemberRules = @{
-    AS0018 = "^Procedure '.+' has been removed in '(?<kind>\w+) (?<name>.+)'\. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure\.$"
+    AS0018 = "^Procedure '(?<method>.+)' has been removed in '(?<kind>\w+) (?<name>.+)'\. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure\.$"
     AS0031 = "^The (?<memberKind>action(?: group)?) with name '(?<member>.+)' defined in (?<kind>Page|PageExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\.(?: This will break dependent extensions\.)?$"
     AS0032 = "^The (?<memberKind>field|part) with name '(?<member>.+)' defined in (?<kind>Page|PageExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\.(?: This will break dependent extensions\.)?$"
     AS0106 = "^The variable '.+' of type '.+' defined in (?<kind>Page|PageExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\. This will break dependent extensions\.$"
@@ -109,7 +109,7 @@ function Initialize-ApplicationApiValidation {
     $state | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $root 'state.json') -Encoding UTF8
     $rulesetPath = (Get-Item -LiteralPath $CompilationParameters['Ruleset']).FullName
     @{
-        name = 'Defer object and page-member removals until aggregate Application reconciliation'
+        name = 'Defer object and member removals until aggregate Application reconciliation'
         includedRuleSets = @(@{ path = $rulesetPath; action = 'Default' })
         rules = @($script:DeferredRules | Sort-Object | ForEach-Object { @{ id = $_; action = 'Warning' } })
     } | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $root 'deferred.ruleset.json') -Encoding UTF8
@@ -185,8 +185,10 @@ function Get-ApplicationApiRemovalDiagnostics {
         foreach ($issue in $removals) {
             $signature = "$($issue.ruleId):$($issue.shortMessage)"
             $partName = ''
+            $fieldName = ''
             $actionName = ''
             $actionKind = ''
+            $methodName = ''
             if (-not $lineMatches.ContainsKey($signature) -or $issue.properties.severity -ne 'Warning') {
                 throw "Unsupported deferred diagnostic in '$structuredPath': $signature"
             }
@@ -195,15 +197,31 @@ function Get-ApplicationApiRemovalDiagnostics {
                     throw "Unsupported member-removal diagnostic: $signature"
                 }
                 $parentKey = "$($Matches.kind):$($Matches.name)"
+                if (-not $wholeObjects.ContainsKey($parentKey) -and $issue.ruleId -eq 'AS0018' -and $Matches.kind -cin @('Table', 'Page', 'Report')) {
+                    $methodSignature = $Matches.method
+                    $parameterStart = $methodSignature.IndexOf('(')
+                    if ($parameterStart -le 0 -or -not $methodSignature.EndsWith(')')) {
+                        throw "Unsupported procedure signature in diagnostic: $signature"
+                    }
+                    $methodName = $methodSignature.Substring(0, $parameterStart)
+                    if ($methodName.StartsWith('"') -and $methodName.EndsWith('"')) {
+                        $methodName = $methodName.Substring(1, $methodName.Length - 2).Replace('""', '"')
+                    }
+                    $collection = switch ($Matches.kind) { Table { 'Tables' }; Page { 'Pages' }; Report { 'Reports' } }
+                    $parent = @{ Key = "${collection}:Name:$($Matches.name)"; Kind = $collection; Named = $true; Name = $Matches.name }
+                }
                 if (-not $wholeObjects.ContainsKey($parentKey) -and $Matches.kind -eq 'Page') {
                     if ($issue.ruleId -eq 'AS0032' -and $Matches.memberKind -eq 'part') {
                         $partName = $Matches.member
+                    }
+                    elseif ($issue.ruleId -eq 'AS0032' -and $Matches.memberKind -eq 'field') {
+                        $fieldName = $Matches.member
                     }
                     elseif ($issue.ruleId -eq 'AS0031') {
                         $actionName = $Matches.member
                         $actionKind = if ($Matches.memberKind -eq 'action group') { 'ActionGroup' } else { 'Action' }
                     }
-                    if ($partName -or $actionName) {
+                    if ($partName -or $actionName -or $fieldName) {
                         $parent = @{ Key = "Pages:Name:$($Matches.name)"; Kind = 'Pages'; Named = $true; Name = $Matches.name }
                     }
                 }
@@ -211,10 +229,10 @@ function Get-ApplicationApiRemovalDiagnostics {
             else {
                 $parentKey = $wholeObjectParents[$signature]
             }
-            if (-not $partName -and -not $actionName -and -not $wholeObjects.ContainsKey($parentKey)) {
+            if (-not $partName -and -not $actionName -and -not $fieldName -and -not $methodName -and -not $wholeObjects.ContainsKey($parentKey)) {
                 throw "$signature is not part of a whole-object move; the original compatibility check remains enforced."
             }
-            if (-not $partName -and -not $actionName) { $parent = $wholeObjects[$parentKey] }
+            if (-not $partName -and -not $actionName -and -not $fieldName -and -not $methodName) { $parent = $wholeObjects[$parentKey] }
             $diagnostics.Add([PSCustomObject]@{
                 RuleId = $issue.ruleId
                 Key = $parent.Key
@@ -222,8 +240,10 @@ function Get-ApplicationApiRemovalDiagnostics {
                 Named = $parent.Named
                 Name = $parent.Name
                 PartName = $partName
+                FieldName = $fieldName
                 ActionName = $actionName
                 ActionKind = $actionKind
+                MethodName = $methodName
                 Origin = $owner
                 Message = $issue.shortMessage
                 Line = $lineMatches[$signature]
@@ -236,7 +256,18 @@ function Get-ApplicationApiRemovalDiagnostics {
     [PSCustomObject]@{ Diagnostics = $diagnostics.ToArray(); Logs = $logs.ToArray() }
 }
 
-function Get-ApplicationApiPageMemberMoveFailure {
+function Get-ApplicationApiHostCandidates {
+    param([hashtable] $Objects, [string] $Kind, [string] $Reference)
+
+    foreach ($object in $Objects.Values | Where-Object Kind -CEQ $Kind) {
+        $quotedName = '"' + $object.Name.Replace('"', '""') + '"'
+        $references = @([string]$object.Id, $object.Name, $quotedName)
+        if ($object.Namespace) { $references += "$($object.Namespace).$($object.Name)", "$($object.Namespace).$quotedName" }
+        if ($Reference -cin $references) { $object }
+    }
+}
+
+function Get-ApplicationApiMemberMoveFailure {
     param(
         [hashtable] $Baseline,
         [hashtable] $Current,
@@ -246,35 +277,31 @@ function Get-ApplicationApiPageMemberMoveFailure {
     )
 
     if ($OldHost.OwnerId -ne $NewHost.OwnerId -or $OldHost.Name -cne $NewHost.Name -or $OldHost.Namespace -cne $NewHost.Namespace) {
-        return 'The original host page identity or ownership changed.'
+        return 'The original host object identity or ownership changed.'
     }
-    $memberName = if ($Diagnostic.PartName) { $Diagnostic.PartName } else { $Diagnostic.ActionName }
-    $memberKind = if ($Diagnostic.PartName) { 'Part' } else { $Diagnostic.ActionKind }
-    $collection = if ($Diagnostic.PartName) { 'PageParts' } else { 'PageActions' }
+    $memberName = if ($Diagnostic.MethodName) { $Diagnostic.MethodName } elseif ($Diagnostic.PartName) { $Diagnostic.PartName } elseif ($Diagnostic.FieldName) { $Diagnostic.FieldName } else { $Diagnostic.ActionName }
+    $memberKind = if ($Diagnostic.MethodName) { 'Method' } elseif ($Diagnostic.PartName) { 'Part' } elseif ($Diagnostic.FieldName) { 'Field' } else { $Diagnostic.ActionKind }
+    $collection = if ($Diagnostic.MethodName) { 'Methods' } elseif ($Diagnostic.PartName) { 'PageParts' } elseif ($Diagnostic.FieldName) { 'PageFields' } else { 'PageActions' }
     $oldMembers = @($Baseline[$collection] | Where-Object { $_.OwnerKey -ceq $OldHost.Key -and $_.Name -ceq $memberName })
     if ($oldMembers.Count -ne 1 -or $oldMembers[0].MemberKind -cne $memberKind) {
-        return 'The diagnostic does not identify a unique baseline page member of the same kind.'
+        return 'The diagnostic does not identify a unique baseline member of the same kind.'
     }
-    $pages = @($Current.Symbols.Values | Where-Object Kind -CEQ 'Pages')
+    $objects = if ($Diagnostic.MethodName) { $Current.MethodObjects } else { $Current.Symbols }
     $newMembers = [System.Collections.Generic.List[object]]::new()
     foreach ($member in $Current[$collection] | Where-Object Name -CEQ $memberName) {
-        $hosts = @(
-            foreach ($page in $pages) {
-                $quotedName = '"' + $page.Name.Replace('"', '""') + '"'
-                $references = @([string]$page.Id, $page.Name, $quotedName)
-                if ($page.Namespace) { $references += "$($page.Namespace).$($page.Name)", "$($page.Namespace).$quotedName" }
-                if ($member.PageReference -cin $references) { $page }
-            }
-        )
+        if ($Diagnostic.MethodName -and $member.HostKind -cne $OldHost.Kind) { continue }
+        $reference = if ($Diagnostic.MethodName) { $member.HostReference } else { $member.PageReference }
+        $hosts = @(Get-ApplicationApiHostCandidates -Objects $objects -Kind $OldHost.Kind -Reference $reference)
         if (@($hosts | Where-Object Key -CEQ $OldHost.Key).Count -eq 0) { continue }
-        if ($hosts.Count -ne 1) { return 'A candidate member has an ambiguous host-page reference.' }
+        if ($hosts.Count -ne 1) { return 'A candidate member has an ambiguous host-object reference.' }
         $newMembers.Add($member)
     }
-    if ($newMembers.Count -ne 1) { return 'The member is missing or ambiguous on the original host page.' }
+    if ($newMembers.Count -ne 1) { return 'The member is missing or ambiguous on the original host object.' }
     $old = $oldMembers[0]
     $new = $newMembers[0]
-    if ($new.MemberKind -cne $memberKind -or $new.OwnerId -eq $old.OwnerId -or $new.OwnerKey -cnotlike 'PageExtensions:*') {
-        return 'The member has not moved to a page extension in another exposed Application member.'
+    $extensionKind = switch ($OldHost.Kind) { Tables { 'TableExtensions' }; Pages { 'PageExtensions' }; Reports { 'ReportExtensions' } }
+    if ($new.MemberKind -cne $memberKind -or $new.OwnerId -eq $old.OwnerId -or $new.OwnerKey -cnotlike "${extensionKind}:*") {
+        return 'The member has not moved to a matching extension in another exposed Application member.'
     }
     if ($old.ContractHash -cne $new.ContractHash) { return 'The relocated member contract changed.' }
     if ($memberKind -ne 'Part') { return '' }
@@ -292,7 +319,7 @@ function Get-ApplicationApiPageMemberMoveFailure {
 
 <#
 .SYNOPSIS
-    Checks object and page-member removals against the same published baseline used by AppSourceCop.
+    Checks object and member removals against the same published baseline used by AppSourceCop.
 #>
 function Test-ApplicationApiMoves {
     [CmdletBinding()]
@@ -308,15 +335,17 @@ function Test-ApplicationApiMoves {
     }
     foreach ($diagnostic in $Diagnostics) {
         $origin = $diagnostic.Origin
+        $baselineObjects = if ($diagnostic.MethodName) { $Baseline.MethodObjects } else { $Baseline.Symbols }
+        $currentObjects = if ($diagnostic.MethodName) { $Current.MethodObjects } else { $Current.Symbols }
         $candidates = @(
             if ($diagnostic.Named) {
-                $Baseline.Symbols.Values | Where-Object { $_.Kind -ceq $diagnostic.Kind -and $_.Name -ceq $diagnostic.Name -and $_.OwnerId -eq $origin.Id }
+                $baselineObjects.Values | Where-Object { $_.Kind -ceq $diagnostic.Kind -and $_.Name -ceq $diagnostic.Name -and $_.OwnerId -eq $origin.Id }
             }
-            elseif ($Baseline.Symbols.ContainsKey($diagnostic.Key)) { $Baseline.Symbols[$diagnostic.Key] }
+            elseif ($baselineObjects.ContainsKey($diagnostic.Key)) { $baselineObjects[$diagnostic.Key] }
         )
         $old = if ($candidates.Count -eq 1) { $candidates[0] } else { $null }
         $key = if ($old) { $old.Key } else { $diagnostic.Key }
-        $new = $Current.Symbols[$key]
+        $new = $currentObjects[$key]
         $reason = ''
         if ($candidates.Count -gt 1) { $reason = 'The diagnostic does not identify an unambiguous object namespace.' }
         elseif (-not $old -or -not $new) { $reason = 'Object is missing, internal, or outside the exposed Application API.' }
@@ -325,8 +354,8 @@ function Test-ApplicationApiMoves {
         elseif ($Baseline.Packages[$origin.Id].Version -ne [version]$origin.BaselineVersion -or
             $Baseline.Packages[$origin.Id].Name -cne $origin.BaselineName -or
             $Baseline.Packages[$origin.Id].Publisher -cne $origin.BaselinePublisher) { $reason = 'AppSourceCop and aggregate baselines disagree.' }
-        elseif ($diagnostic.PartName -or $diagnostic.ActionName) {
-            $reason = Get-ApplicationApiPageMemberMoveFailure -Baseline $Baseline -Current $Current -OldHost $old -NewHost $new -Diagnostic $diagnostic
+        elseif ($diagnostic.PartName -or $diagnostic.ActionName -or $diagnostic.FieldName -or $diagnostic.MethodName) {
+            $reason = Get-ApplicationApiMemberMoveFailure -Baseline $Baseline -Current $Current -OldHost $old -NewHost $new -Diagnostic $diagnostic
         }
         elseif ($old.OwnerId -eq $new.OwnerId) { $reason = 'Object has not moved to another Application member.' }
         elseif ($old.Name -cne $new.Name -or $old.Namespace -cne $new.Namespace -or $old.ContractHash -cne $new.ContractHash) {
@@ -337,8 +366,10 @@ function Test-ApplicationApiMoves {
             Key = $key
             Name = $diagnostic.Name
             PartName = $diagnostic.PartName
+            FieldName = $diagnostic.FieldName
             ActionName = $diagnostic.ActionName
             ActionKind = $diagnostic.ActionKind
+            MethodName = $diagnostic.MethodName
             Accepted = -not $reason
             Reason = $reason
             Baseline = $old
@@ -349,13 +380,13 @@ function Test-ApplicationApiMoves {
 }
 
 function Get-ApplicationApiGateSnapshot {
-    param([string[]] $Paths, [string[]] $Keys, [string[]] $PartNames = @(), [string[]] $ActionNames = @())
+    param([string[]] $Paths, [string[]] $Keys, [string[]] $PartNames = @(), [string[]] $ActionNames = @(), [string[]] $FieldNames = @(), [string[]] $MethodNames = @())
 
     $roots = @($Paths | ForEach-Object { Get-ApplicationApiPackageInfo -Path $_ } |
         Where-Object { $_.Id -eq 'c1335042-3002-4257-bf8a-75c898ccb1b8' -and $_.Name -ceq 'Application' })
     if ($roots.Count -ne 1) { throw "Expected one compiled Application facade; found $($roots.Count)." }
     Get-ApplicationApiSnapshot -ApplicationPackagePath $roots[0].Path -DependencyPackagePaths $Paths -SymbolKeys $Keys `
-        -PartNames $PartNames -ActionNames $ActionNames
+        -PartNames $PartNames -ActionNames $ActionNames -FieldNames $FieldNames -MethodNames $MethodNames
 }
 
 <#
@@ -396,8 +427,10 @@ function Complete-ApplicationApiValidation {
             $keys = @($records.Diagnostics.Key | Sort-Object -Unique)
             $partNames = @($records.Diagnostics.PartName | Where-Object { $_ } | Sort-Object -Unique)
             $actionNames = @($records.Diagnostics.ActionName | Where-Object { $_ } | Sort-Object -Unique)
-            $baseline = Get-ApplicationApiGateSnapshot -Paths $baselinePaths -Keys $keys -PartNames $partNames -ActionNames $actionNames
-            $current = Get-ApplicationApiGateSnapshot -Paths $currentPaths -Keys $keys -PartNames $partNames -ActionNames $actionNames
+            $fieldNames = @($records.Diagnostics.FieldName | Where-Object { $_ } | Sort-Object -Unique)
+            $methodNames = @($records.Diagnostics.MethodName | Where-Object { $_ } | Sort-Object -Unique)
+            $baseline = Get-ApplicationApiGateSnapshot -Paths $baselinePaths -Keys $keys -PartNames $partNames -ActionNames $actionNames -FieldNames $fieldNames -MethodNames $methodNames
+            $current = Get-ApplicationApiGateSnapshot -Paths $currentPaths -Keys $keys -PartNames $partNames -ActionNames $actionNames -FieldNames $fieldNames -MethodNames $methodNames
             $state.AcceptedMoves = @(Test-ApplicationApiMoves -Baseline $baseline -Current $current -Diagnostics $records.Diagnostics)
             $rejected = @($state.AcceptedMoves | Where-Object { -not $_.Accepted })
             if ($rejected.Count -gt 0) {

@@ -139,19 +139,20 @@ function Add-ApplicationApiPageMembers {
         [System.Text.Json.JsonElement] $Elements,
         [string[]] $MemberNames,
         [ValidateSet('Controls', 'Actions')] [string] $ChildrenProperty,
+        [ValidateSet('PageParts', 'PageFields', 'PageActions')] [string] $Collection,
         [string] $OwnerKey,
         [string] $OwnerId,
         [string] $PageReference,
         [hashtable] $Snapshot
     )
 
-    $collection = if ($ChildrenProperty -eq 'Controls') { 'PageParts' } else { 'PageActions' }
     foreach ($control in $Elements.EnumerateArray()) {
         $name = $control.GetProperty('Name').GetString()
         if ($name -cin $MemberNames) {
             $kind = $control.GetProperty('Kind')
             $kindValue = if ($kind.ValueKind -eq [System.Text.Json.JsonValueKind]::String) { $kind.GetString() } else { [string]$kind.GetInt32() }
             $memberKind = if ($ChildrenProperty -eq 'Controls' -and $kindValue -cin @('Part', '6')) { 'Part' }
+                elseif ($ChildrenProperty -eq 'Controls' -and $kindValue -cin @('Field', '8')) { 'Field' }
                 elseif ($ChildrenProperty -eq 'Actions' -and $kindValue -cin @('Group', '1')) { 'ActionGroup' }
                 elseif ($ChildrenProperty -eq 'Actions' -and $kindValue -cin @('Action', '2')) { 'Action' }
                 else { 'Unsupported' }
@@ -164,7 +165,7 @@ function Add-ApplicationApiPageMembers {
                 $type.TryGetProperty('Subtype', [ref]$subtype) -and $subtype.TryGetProperty('Id', [ref]$target)) {
                 $targetId = $target.GetInt32()
             }
-            $Snapshot[$collection].Add([PSCustomObject]@{
+            $Snapshot[$Collection].Add([PSCustomObject]@{
                 Name = $name
                 IsPart = $isPart
                 MemberKind = $memberKind
@@ -178,8 +179,49 @@ function Add-ApplicationApiPageMembers {
         $children = [System.Text.Json.JsonElement]::new()
         if ($control.TryGetProperty($ChildrenProperty, [ref]$children)) {
             Add-ApplicationApiPageMembers -Elements $children -MemberNames $MemberNames -ChildrenProperty $ChildrenProperty `
-                -OwnerKey $OwnerKey -OwnerId $OwnerId -PageReference $PageReference -Snapshot $Snapshot
+                -Collection $Collection -OwnerKey $OwnerKey -OwnerId $OwnerId -PageReference $PageReference -Snapshot $Snapshot
         }
+    }
+}
+
+function Add-ApplicationApiMethods {
+    param(
+        [System.Text.Json.JsonElement] $Symbol,
+        [string[]] $MethodNames,
+        [string] $OwnerKey,
+        [string] $OwnerId,
+        [string] $HostKind,
+        [string] $HostReference,
+        [hashtable] $Snapshot
+    )
+
+    $methods = [System.Text.Json.JsonElement]::new()
+    if (-not $Symbol.TryGetProperty('Methods', [ref]$methods)) { return }
+    foreach ($method in $methods.EnumerateArray()) {
+        $name = $method.GetProperty('Name').GetString()
+        if ($name -cnotin $MethodNames) { continue }
+        $access = [System.Text.Json.JsonElement]::new()
+        if ($method.TryGetProperty('IsInternal', [ref]$access) -and $access.GetBoolean()) { continue }
+        $modifier = if ($method.TryGetProperty('AccessModifier', [ref]$access)) { $access.GetString() } else { '' }
+        if ($modifier -ieq 'Internal') { continue }
+        $attributes = [System.Text.Json.JsonElement]::new()
+        $isEvent = $false
+        if ($method.TryGetProperty('Attributes', [ref]$attributes)) {
+            $isEvent = @($attributes.EnumerateArray() | Where-Object {
+                $_.GetProperty('Name').GetString() -cin @('IntegrationEvent', 'BusinessEvent')
+            }).Count -gt 0
+        }
+        $isLocal = $modifier -ieq 'Local' -or ($method.TryGetProperty('IsLocal', [ref]$access) -and $access.GetBoolean())
+        if ($isLocal -and -not $isEvent) { continue }
+        $Snapshot.Methods.Add([PSCustomObject]@{
+            Name = $name
+            MemberKind = 'Method'
+            OwnerKey = $OwnerKey
+            OwnerId = $OwnerId
+            HostKind = $HostKind
+            HostReference = $HostReference
+            ContractHash = Get-ApplicationApiContractHash -Element $method
+        })
     }
 }
 
@@ -192,7 +234,9 @@ function Add-ApplicationApiSymbols {
         [hashtable] $Names,
         [hashtable] $SymbolKeys,
         [string[]] $PartNames,
-        [string[]] $ActionNames
+        [string[]] $ActionNames,
+        [string[]] $FieldNames,
+        [string[]] $MethodNames
     )
 
     $objectCollections = @(
@@ -200,22 +244,27 @@ function Add-ApplicationApiSymbols {
         'EnumTypes', 'EnumExtensionTypes', 'Interfaces', 'PermissionSets', 'PermissionSetExtensions', 'ControlAddIns',
         'Profiles', 'ProfileExtensions', 'PageCustomizations'
     )
+    $methodHosts = @{
+        Tables = 'Tables'; TableExtensions = 'Tables'
+        Pages = 'Pages'; PageExtensions = 'Pages'
+        Reports = 'Reports'; ReportExtensions = 'Reports'
+    }
     foreach ($property in $Element.EnumerateObject()) {
         if ($property.Name -ceq 'Namespaces') {
             foreach ($child in $property.Value.EnumerateArray()) {
                 $name = $child.GetProperty('Name').GetString()
                 $childNamespace = if ($Namespace) { "$Namespace.$name" } else { $name }
                 Add-ApplicationApiSymbols -Element $child -Namespace $childNamespace -Package $Package -Snapshot $Snapshot `
-                    -Names $Names -SymbolKeys $SymbolKeys -PartNames $PartNames -ActionNames $ActionNames
+                    -Names $Names -SymbolKeys $SymbolKeys -PartNames $PartNames -ActionNames $ActionNames -FieldNames $FieldNames -MethodNames $MethodNames
             }
         }
-        elseif ($property.Name -in @('Tables', 'TableExtensions')) {
+        elseif ($property.Name -cin $objectCollections -or $property.Name -cin @('Tables', 'TableExtensions')) {
             foreach ($symbol in $property.Value.EnumerateArray()) {
-                $Snapshot.SchemaObjects.Add("$($Package.Name): $($property.Name) $($symbol.GetProperty('Name').GetString())")
-            }
-        }
-        elseif ($property.Name -cin $objectCollections) {
-            foreach ($symbol in $property.Value.EnumerateArray()) {
+                $isSchema = $property.Name -cin @('Tables', 'TableExtensions')
+                if ($isSchema) {
+                    $Snapshot.SchemaObjects.Add("$($Package.Name): $($property.Name) $($symbol.GetProperty('Name').GetString())")
+                    if ($MethodNames.Count -eq 0) { continue }
+                }
                 $id = [System.Text.Json.JsonElement]::new()
                 $hasId = $symbol.TryGetProperty('Id', [ref]$id)
                 $name = $symbol.GetProperty('Name').GetString()
@@ -223,17 +272,23 @@ function Add-ApplicationApiSymbols {
                 $key = if ($namedIdentity) { "$($property.Name):${Namespace}:$name" } elseif ($hasId) { "$($property.Name):$($id.GetInt32())" } else { '' }
                 $nameSelector = "$($property.Name):Name:$name"
                 $selected = $SymbolKeys.Count -eq 0 -or $SymbolKeys.ContainsKey($key) -or $SymbolKeys.ContainsKey($nameSelector)
-                $inspectMembers = ($PartNames.Count -gt 0 -or $ActionNames.Count -gt 0) -and $property.Name -cin @('Pages', 'PageExtensions')
-                if (-not $selected -and -not $inspectMembers) { continue }
+                $inspectMembers = ($PartNames.Count -gt 0 -or $ActionNames.Count -gt 0 -or $FieldNames.Count -gt 0) -and $property.Name -cin @('Pages', 'PageExtensions')
+                $inspectMethods = $MethodNames.Count -gt 0 -and $methodHosts.ContainsKey($property.Name)
+                if (-not $selected -and -not $inspectMembers -and -not $inspectMethods) { continue }
                 $properties = [System.Text.Json.JsonElement]::new()
                 if ($symbol.TryGetProperty('Properties', [ref]$properties)) {
                     $access = @($properties.EnumerateArray() | Where-Object { $_.GetProperty('Name').GetString() -ceq 'Access' })
                     if ($access.Count -eq 1 -and $access[0].GetProperty('Value').GetString() -ieq 'Internal') { continue }
                 }
-                $memberCount = $Snapshot.PageParts.Count + $Snapshot.PageActions.Count
+                $memberCount = $Snapshot.PageParts.Count + $Snapshot.PageActions.Count + $Snapshot.PageFields.Count + $Snapshot.Methods.Count
                 if ($inspectMembers) {
-                    foreach ($childrenProperty in @('Controls', 'Actions')) {
-                        $memberNames = if ($childrenProperty -eq 'Controls') { $PartNames } else { $ActionNames }
+                    foreach ($collection in @('PageParts', 'PageFields', 'PageActions')) {
+                        $childrenProperty = if ($collection -eq 'PageActions') { 'Actions' } else { 'Controls' }
+                        $memberNames = switch ($collection) {
+                            PageParts { $PartNames }
+                            PageFields { $FieldNames }
+                            PageActions { $ActionNames }
+                        }
                         if (-not $memberNames) { continue }
                         $containers = @($symbol)
                         if ($property.Name -ceq 'PageExtensions') {
@@ -247,20 +302,27 @@ function Add-ApplicationApiSymbols {
                             if ($container.TryGetProperty($childrenProperty, [ref]$children)) {
                                 $pageReference = if ($property.Name -ceq 'Pages') { [string]$id.GetInt32() } else { $symbol.GetProperty('TargetObject').GetString() }
                                 Add-ApplicationApiPageMembers -Elements $children -MemberNames $memberNames -ChildrenProperty $childrenProperty `
-                                    -OwnerKey $key -OwnerId $Package.Id -PageReference $pageReference -Snapshot $Snapshot
+                                    -Collection $collection -OwnerKey $key -OwnerId $Package.Id -PageReference $pageReference -Snapshot $Snapshot
                             }
                         }
                     }
                 }
-                # Member checks also need potential host/target pages, not just diagnostic owners.
-                if (-not $selected -and $property.Name -ceq 'PageExtensions' -and
-                    ($Snapshot.PageParts.Count + $Snapshot.PageActions.Count) -eq $memberCount) { continue }
+                if ($inspectMethods) {
+                    $hostReference = if ($property.Name -cin @('Tables', 'Pages', 'Reports')) { [string]$id.GetInt32() }
+                        elseif ($property.Name -ceq 'ReportExtensions') { $symbol.GetProperty('Target').GetString() }
+                        else { $symbol.GetProperty('TargetObject').GetString() }
+                    Add-ApplicationApiMethods -Symbol $symbol -MethodNames $MethodNames -OwnerKey $key -OwnerId $Package.Id `
+                        -HostKind $methodHosts[$property.Name] -HostReference $hostReference -Snapshot $Snapshot
+                }
+                # Member checks also need potential host/target objects, not just diagnostic owners.
+                if (-not $selected -and $property.Name -cin @('TableExtensions', 'PageExtensions', 'ReportExtensions') -and
+                    ($Snapshot.PageParts.Count + $Snapshot.PageActions.Count + $Snapshot.PageFields.Count + $Snapshot.Methods.Count) -eq $memberCount) { continue }
                 if (-not $hasId -and -not $namedIdentity) {
                     $Snapshot.ReviewRequired.Add("$($Package.Name): unsupported ID-less $($property.Name) '$name'.")
                     continue
                 }
                 $nameKey = "$($property.Name):${Namespace}:$name"
-                if ($Snapshot.Symbols.ContainsKey($key) -or $Names.ContainsKey($nameKey)) {
+                if ($Snapshot.Symbols.ContainsKey($key) -or $Snapshot.MethodObjects.ContainsKey($key) -or $Names.ContainsKey($nameKey)) {
                     throw "Ambiguous exposed symbol '$nameKey' ($key) in '$($Package.Path)'."
                 }
                 # These root properties are generated from the owning app, not the public object contract.
@@ -269,8 +331,9 @@ function Add-ApplicationApiSymbols {
                     ControlAddIns { @('PublicKeyToken') }
                     default { @() }
                 }
-                $fingerprint = Get-ApplicationApiContractHash -Element $symbol -IgnoredProperties @($ignoredProperties)
-                $Snapshot.Symbols[$key] = [PSCustomObject]@{
+                # Tables supply host identity only; schema validation remains with AppSourceCop.
+                $fingerprint = if ($isSchema) { '' } else { Get-ApplicationApiContractHash -Element $symbol -IgnoredProperties @($ignoredProperties) }
+                $record = [PSCustomObject]@{
                     Key = $key
                     Kind = $property.Name
                     Id = if ($hasId) { $id.GetInt32() } else { $null }
@@ -280,6 +343,8 @@ function Add-ApplicationApiSymbols {
                     OwnerName = $Package.Name
                     ContractHash = $fingerprint
                 }
+                if ($inspectMethods) { $Snapshot.MethodObjects[$key] = $record }
+                if (-not $isSchema) { $Snapshot.Symbols[$key] = $record }
                 $Names[$nameKey] = $key
             }
         }
@@ -305,7 +370,7 @@ function Get-ApplicationApiPackageInfo {
 
 <#
 .SYNOPSIS
-    Collects the non-table symbols exposed by a compiled Application package.
+    Collects exposed non-table symbols and requested extension-member contracts.
 .DESCRIPTION
     Conservative symbol-equivalence collector, not an AppSourceCop replacement.
     Use separate, country-specific baseline and current package sets.
@@ -322,7 +387,9 @@ function Get-ApplicationApiSnapshot {
         [Parameter(Mandatory)] [AllowEmptyCollection()] [string[]] $DependencyPackagePaths,
         [string[]] $SymbolKeys = @(),
         [string[]] $PartNames = @(),
-        [string[]] $ActionNames = @()
+        [string[]] $ActionNames = @(),
+        [string[]] $FieldNames = @(),
+        [string[]] $MethodNames = @()
     )
 
     $index = @{}
@@ -345,6 +412,9 @@ function Get-ApplicationApiSnapshot {
         Symbols = @{}
         PageParts = [System.Collections.Generic.List[object]]::new()
         PageActions = [System.Collections.Generic.List[object]]::new()
+        PageFields = [System.Collections.Generic.List[object]]::new()
+        Methods = [System.Collections.Generic.List[object]]::new()
+        MethodObjects = @{}
         SchemaObjects = [System.Collections.Generic.List[string]]::new()
         ReviewRequired = [System.Collections.Generic.List[string]]::new()
     }
@@ -372,7 +442,7 @@ function Get-ApplicationApiSnapshot {
                 }
             }
             Add-ApplicationApiSymbols -Element $symbols -Namespace '' -Package $package -Snapshot $snapshot `
-                -Names $names -SymbolKeys $selectedKeys -PartNames $PartNames -ActionNames $ActionNames
+                -Names $names -SymbolKeys $selectedKeys -PartNames $PartNames -ActionNames $ActionNames -FieldNames $FieldNames -MethodNames $MethodNames
         }
         finally {
             $loaded.Document.Dispose()
