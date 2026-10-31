@@ -33,9 +33,7 @@ table 12403 "Gen. Journal Line Archive"
             else
             if ("Account Type" = const("Bank Account")) "Bank Account"
             else
-            if ("Account Type" = const("Fixed Asset")) "Fixed Asset"
-            else
-            if ("Account Type" = const("IC Partner")) "IC Partner";
+            if ("Account Type" = const("Fixed Asset")) "Fixed Asset";
         }
         field(5; "Posting Date"; Date)
         {
@@ -74,9 +72,7 @@ table 12403 "Gen. Journal Line Archive"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account"
             else
-            if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset"
-            else
-            if ("Bal. Account Type" = const("IC Partner")) "IC Partner";
+            if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset";
         }
         field(12; "Currency Code"; Code[10])
         {
@@ -583,12 +579,21 @@ table 12403 "Gen. Journal Line Archive"
             Caption = 'Bal. VAT Difference';
             Editable = false;
         }
+#if not CLEANSCHEMA30
         field(113; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
+            ObsoleteReason = 'Intercompany functionality has been moved to the Intercompany app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
         field(114; "IC Direction"; Option)
         {
             Caption = 'IC Direction';
@@ -599,7 +604,6 @@ table 12403 "Gen. Journal Line Archive"
         field(116; "IC Partner G/L Acc. No."; Code[20])
         {
             Caption = 'IC Partner G/L Acc. No.';
-            TableRelation = "IC G/L Account";
             ObsoleteReason = 'Replaced by IC Account No.';
             ObsoleteState = Removed;
             ObsoleteTag = '25.0';
@@ -639,27 +643,13 @@ table 12403 "Gen. Journal Line Archive"
             Caption = 'Financial Void';
             Editable = false;
         }
-        field(130; "IC Account Type"; Enum "IC Journal Account Type")
+        field(130; "IC Account Type"; Enum Microsoft.Intercompany.Journal."IC Journal Account Type")
         {
             Caption = 'IC Account Type';
         }
         field(131; "IC Account No."; Code[20])
         {
             Caption = 'IC Account No.';
-            TableRelation =
-            if ("IC Account Type" = const("G/L Account")) "IC G/L Account" where("Account Type" = const(Posting), Blocked = const(false))
-            else
-            if ("Account Type" = const(Customer), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Account No."), Blocked = const(false))
-            else
-            if ("Bal. Account Type" = const(Customer), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Bal. Account Type" = const(Vendor), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("IC Partner Code"), Blocked = const(false))
-            else
-            if ("Bal. Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Bal. Account No."), Blocked = const(false));
         }
         field(480; "Dimension Set ID"; Integer)
         {

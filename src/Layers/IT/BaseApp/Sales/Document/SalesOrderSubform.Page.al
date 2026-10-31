@@ -153,30 +153,10 @@ page 46 "Sales Order Subform"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if the entry must be included in the VAT transaction report.';
                 }
-                field("IC Partner Code"; Rec."IC Partner Code")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
-                field("IC Partner Ref. Type"; Rec."IC Partner Ref. Type")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
                 field("Prepmt. CM Refers to Period"; Rec."Prepmt. CM Refers to Period")
                 {
                     ApplicationArea = Prepayments;
                     ToolTip = 'Specifies the time period that is used to process and filter the prepayment credit memo transactions.';
-                }
-                field("IC Partner Reference"; Rec."IC Partner Reference")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
-                field("IC Item Reference"; Rec."IC Item Reference No.")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {

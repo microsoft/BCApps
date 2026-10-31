@@ -198,12 +198,6 @@ page 634 "Chart of Accounts Overview"
                     Editable = false;
                     Visible = false;
                 }
-                field("Default IC Partner G/L Acc. No"; Rec."Default IC Partner G/L Acc. No")
-                {
-                    ApplicationArea = Intercompany;
-                    Editable = false;
-                    Visible = false;
-                }
                 field("Default Deferral Template Code"; Rec."Default Deferral Template Code")
                 {
                     ApplicationArea = Suite;

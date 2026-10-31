@@ -9,6 +9,7 @@ Param(
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
+Import-Module "$PSScriptRoot\CountryPreprocessorSymbols.psm1"
 
 function Get-IncrementalBuildBaselineAppNames {
     <#
@@ -250,10 +251,10 @@ if($appType -eq 'app')
             Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
 
             if($appBuildMode -eq 'Clean') {
-                Write-Host "Compile the app without any preprocessor symbols to generate a baseline app to use for breaking changes check"
+                Write-Host "Compile the app without cleanup symbols, retaining localization symbols, to generate a baseline app for breaking changes check"
 
                 $tempParameters = $parameters.Value.Clone()
-                $tempParameters["PreprocessorSymbols"] = @() # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
+                $tempParameters["PreprocessorSymbols"] = @(Get-DefaultBuildPreprocessorSymbols -PreprocessorSymbols $parameters.Value["PreprocessorSymbols"])
                 $incrementalBaselineAppNames = @()
                 if ($outFolder) {
                     $baselineAppsFolder = Join-Path (Split-Path -Path $outFolder -Parent) 'Apps'
@@ -292,6 +293,11 @@ if($appType -eq 'app')
             }
 
             Enable-BreakingChangesCheckForWorkspace -AppSymbolsFolder $parameters.Value["PackageCachePath"] -WorkspaceFile $parameters.Value["WorkspaceFile"] -BuildMode $appBuildMode -CountryCode $countryCode | Out-Null
+
+            if ($env:BC_APPLICATION_API_VALIDATION -eq 'true' -and $countryCode -ne 'RU') {
+                Import-Module "$PSScriptRoot\ApplicationApiValidation.psm1"
+                Initialize-ApplicationApiValidation -CompilationParameters $parameters.Value -CountryCode $countryCode -BuildMode $appBuildMode
+            }
         }
     }
 }

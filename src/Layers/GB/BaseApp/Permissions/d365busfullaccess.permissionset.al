@@ -193,8 +193,6 @@ permissionset 959 "D365 BUS FULL ACCESS"
                              "D365 GLOBAL DIM MGT",
                              "D365 HR, EDIT",
                              "D365 HR, SETUP",
-                             "D365 IC, EDIT",
-                             "D365 IC, SETUP",
                              "D365 INV DOC, CREATE",
                              "D365 INV DOC, POST",
                              "D365 JOBS, EDIT",

@@ -58,14 +58,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Payables;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Inbox;
-using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Outbox;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Reports;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Counting.Journal;
@@ -232,52 +224,6 @@ page 8901 "Finance Manager Role Center"
                         }
                     }
                 }
-                group("Group3")
-                {
-                    Caption = 'Intercompany';
-                    action("General Journals")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany General Journal';
-                        RunObject = page "IC General Journal";
-                        Tooltip = 'Open the Intercompany General Journal page.';
-                    }
-                    action("Inbox Transactions")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany Inbox Transactions';
-                        RunObject = page "IC Inbox Transactions";
-                        Tooltip = 'Open the Intercompany Inbox Transactions page.';
-                    }
-                    action("Outbox Transactions")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany Outbox Transactions';
-                        RunObject = page "IC Outbox Transactions";
-                        Tooltip = 'Open the Intercompany Outbox Transactions page.';
-                    }
-                    action("Handled Inbox Transactions")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Handled Intercompany Inbox Transactions';
-                        RunObject = page "Handled IC Inbox Transactions";
-                        Tooltip = 'Open the Handled Intercompany Inbox Transactions page.';
-                    }
-                    action("Handled Outbox Transactions")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Handled Intercompany Outbox Transactions';
-                        RunObject = page "Handled IC Outbox Transactions";
-                        Tooltip = 'Open the Handled Intercompany Outbox Transactions page.';
-                    }
-                    action("Intercompany Transactions")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'IC Transaction';
-                        RunObject = report "IC Transactions";
-                        Tooltip = 'Run the IC Transaction report.';
-                    }
-                }
                 group("Group4")
                 {
                     Caption = 'Consolidation';
@@ -319,13 +265,6 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Recurring General Journals';
                         RunObject = page "Recurring General Journal";
                         Tooltip = 'Open the Recurring General Journals page.';
-                    }
-                    action("General Journals2")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany General Journal';
-                        RunObject = page "IC General Journal";
-                        Tooltip = 'Open the Intercompany General Journal page.';
                     }
                 }
                 group("Group6")
@@ -2417,38 +2356,6 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Areas';
                         RunObject = page "Areas";
                         Tooltip = 'Open the Areas page.';
-                    }
-                }
-                group("Group58")
-                {
-                    Caption = 'Intercompany';
-                    action("Intercompany Setup")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany Setup';
-                        RunObject = page "Intercompany Setup";
-                        Tooltip = 'Open the Intercompany Setup page.';
-                    }
-                    action("Partner Code")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany Partners';
-                        RunObject = page "IC Partner List";
-                        Tooltip = 'Open the Intercompany Partners page.';
-                    }
-                    action("Chart of Accounts2")
-                    {
-                        ApplicationArea = Intercompany;
-                        Caption = 'Intercompany Chart of Accounts';
-                        RunObject = page "IC Chart of Accounts";
-                        Tooltip = 'Open the Intercompany Chart of Accounts page.';
-                    }
-                    action("Dimensions")
-                    {
-                        ApplicationArea = Dimensions;
-                        Caption = 'Intercompany Dimensions';
-                        RunObject = page "IC Dimensions";
-                        Tooltip = 'Open the Intercompany Dimensions page.';
                     }
                 }
                 group("Group59")

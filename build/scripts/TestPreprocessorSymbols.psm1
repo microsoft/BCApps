@@ -16,6 +16,9 @@
 .PARAMETER symbolConfigs
     An array of objects where each entry has a stem, an upper, and a lower bound.
 
+.PARAMETER allowedSymbols
+    Exact feature-qualified symbols declared in build/projects.json.
+
 .EXAMPLE
     $alfiles = Get-ChildItem -Recurse -Filter *.al -Path .\App\
     foreach ($alfile in $alfiles) {
@@ -38,7 +41,8 @@ function Test-PreprocessorSymbols {
         [Parameter(Mandatory=$true)]
         [string]$filePath,
         [Parameter(Mandatory=$true)]
-        [hashtable[]]$symbolConfigs
+        [hashtable[]]$symbolConfigs,
+        [string[]]$allowedSymbols = @()
     )
 
     # check if extension is .al, else return $null
@@ -64,6 +68,10 @@ function Test-PreprocessorSymbols {
         $symbolPattern += "^#if\s${upperStem}($rangePattern)"
         $symbolPattern += "^#if\snot\s${upperStem}($rangePattern)"
         $symbolPattern += "^#elseif\s${upperStem}($rangePattern)"
+    }
+
+    foreach ($symbol in $allowedSymbols) {
+        $symbolPattern += "^#(if|elseif)\s(not\s)?$([regex]::Escape($symbol))(\s*//.*)?\s*$"
     }
 
     # Add #endif to the symbol pattern but not to the strict pattern
@@ -111,6 +119,12 @@ function Test-PreprocessorSymbols {
         }
 
         # Check for uppercase stem
+        foreach ($symbol in $allowedSymbols) {
+            $pattern = "^#(if|elseif)\s(not\s)?$([regex]::Escape($symbol))(\s*//.*)?\s*$"
+            if ($line -match $pattern -and $line -cnotmatch $pattern) {
+                $invalidStemSymbols += "${filePath}:${lineNumber}: $line"
+            }
+        }
         foreach ($config in $symbolConfigs) {
             $stem = $config.stem
             $upperStem = $stem.ToUpper()
@@ -120,7 +134,7 @@ function Test-PreprocessorSymbols {
         }
     }
 
-    if (($invalidLowercaseSymbols.Count -gt 0) -or ($invalidPatternSymbols -gt 0) -or ($invalidStemSymbols -gt 0)) {
+    if (($invalidLowercaseSymbols.Count -gt 0) -or ($invalidPatternSymbols.Count -gt 0) -or ($invalidStemSymbols.Count -gt 0)) {
         return @{ "invalidLowercaseSymbols" = $invalidLowercaseSymbols; "invalidPatternSymbols" = $invalidPatternSymbols; "invalidStemSymbols" = $invalidStemSymbols }
     } else {
         return $null

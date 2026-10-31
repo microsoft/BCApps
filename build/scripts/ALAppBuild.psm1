@@ -1,3 +1,5 @@
+Import-Module "$PSScriptRoot\CountryPreprocessorSymbols.psm1"
+
 # Container for build metadata for a project
 class BuildMetadata
 {
@@ -52,6 +54,8 @@ class BuildMetadata
 
     # The list of countries in which this project is available.
     [string[]] $SupportedCountries
+
+    [string[]] $CountryPreprocessorSymbols
 
     # The list of countries in which this project is not available.
     # Used for GDL projects which are usually available in all locales, but not in some
@@ -422,6 +426,7 @@ class BuildMetadataProvider
         $buildMetadata.IsMultiCountry = $projectInfo.isMultiCountry
         $buildMetadata.IsGDLProject = $projectInfo.isGDLProject
         $buildMetadata.SupportedCountries = $projectInfo.supportedCountries
+        $buildMetadata.CountryPreprocessorSymbols = @(Get-CountryPreprocessorSymbols -ApplicationNames $ApplicationName -CountryCode $CountryCode -Projects ([BuildMetadataProvider]::ApplicationBuildInfo.projects))
         $buildMetadata.UnsupportedCountries = $projectInfo.unsupportedCountries
         $buildMetadata.IsTest = $projectInfo.isTest
         $buildMetadata.IsInternal = $projectInfo.isInternal
@@ -628,17 +633,22 @@ class ApplicationBuildConfiguration
                 }
             }
 
+            $preprocessorSymbols = @($this.BuildMetadata.CountryPreprocessorSymbols)
             if ($EnableCLEANPreProcessorSymbols)
             {
                 # set as internal to avoid accidentally copying to DVD
                 $this.BuildMetadata.IsInternal = $true
                 # defined preprocessorsmbols
-                $compilationParams += @{PreProcessorSymbols = Get-CLEANPreprocessorSymbols}
+                $preprocessorSymbols += (Get-CLEANPreprocessorSymbols) -split ';'
                 # edit ruleset
                 if ($compilationParams.RuleSetFile -ne '')
                 {
                     $compilationParams.RuleSetFile = "$(Get-RulesetsforCLEANsymbolstest -path $compilationParams.RuleSetFile)"
                 }
+            }
+
+            if ($preprocessorSymbols.Count -gt 0) {
+                $compilationParams.PreProcessorSymbols = ($preprocessorSymbols | Sort-Object -Unique) -join ';'
             }
 
             Compile-ALProject @compilationParams

@@ -225,10 +225,6 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = SalesTax;
                 }
-                field("Default IC Partner G/L Acc. No"; Rec."Default IC Partner G/L Acc. No")
-                {
-                    ApplicationArea = Intercompany;
-                }
                 field("Default Deferral Template Code"; Rec."Default Deferral Template Code")
                 {
                     ApplicationArea = Suite;

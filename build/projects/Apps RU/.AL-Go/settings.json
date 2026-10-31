@@ -60,6 +60,7 @@
     "../../../src/Apps/W1/HybridBC14/app",
     "../../../src/Apps/W1/HybridBC14HistoricalData/app",
     "../../../src/Apps/W1/HybridBCLast/app",
+    "../../../src/Apps/W1/Intercompany/app",
     "../../../src/Apps/W1/Intrastat/app",
     "../../../src/Apps/W1/LatePaymentPredictor/app",
     "../../../src/Apps/W1/LibraryNoTransactions/app",

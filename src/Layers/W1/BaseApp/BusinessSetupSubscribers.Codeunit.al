@@ -31,10 +31,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Reporting;
 using Microsoft.HumanResources.Setup;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
@@ -284,22 +280,6 @@ codeunit 1876 "Business Setup Subscribers"
         VATReportConfigShortTitleTxt: Label 'VAT report configuration';
         VATReportConfigDescriptionTxt: Label 'Configure the objects that you use to process VAT reports.';
         VATReportConfigKeywordsTxt: Label 'VAT Report, Return, EC Sales List';
-        ICSetupTitleTxt: Label 'Set up intercompany postings';
-        ICSetupShortTitleTxt: Label 'Intercompany setup';
-        ICSetupDescriptionTxt: Label 'Set up how you want to electronically transfer transactions between the current company and partner companies.';
-        ICSetupKeywordsTxt: Label 'Intercompany';
-        ICPartnersTitleTxt: Label 'Intercompany partners';
-        ICPartnersShortTitleTxt: Label 'Intercompany partners';
-        ICPartnersDescriptionTxt: Label 'View or edit the codes for partners that you have intercompany transactions with.';
-        ICPartnersKeywordsTxt: Label 'Intercompany, Partners';
-        ICChartOfAccountsTitleTxt: Label 'Intercompany chart of accounts';
-        ICChartOfAccountsShortTitleTxt: Label 'Intercompany chart of accounts';
-        ICChartOfAccountsDescriptionTxt: Label 'Specify how you want to map the current company''s chart of accounts to the charts of accounts of your intercompany partners.';
-        ICChartOfAccountsKeywordsTxt: Label 'Intercompany, Ledger, Finance';
-        ICDimensionsTitleTxt: Label 'Intercompany dimensions';
-        ICDimensionsShortTitleTxt: Label 'Intercompany dimensions';
-        ICDimensionsDescriptionTxt: Label 'Specify how you want to map the current company''s dimension codes to the dimension codes of your intercompany partners.';
-        ICDimensionsKeywordsTxt: Label 'Intercompany, Dimensions';
         CostAccountingSetupTitleTxt: Label 'Set up cost accounting';
         CostAccountingSetupShortTitleTxt: Label 'Cost accounting setup';
         CostAccountingSetupDescriptionTxt: Label 'Set up general ledger transfers to cost accounting, dimension links to cost centers and objects, and how to handle allocation document numbers and IDs.';
@@ -457,7 +437,7 @@ codeunit 1876 "Business Setup Subscribers"
 
             Sender.InsertManualSetup(UsersTitleTxt, UsersShortTitleTxt, UsersDescriptionTxt, 10, ObjectType::Page,
               Page::Users, ManualSetupCategory::System, UsersKeywordsTxt);
-            
+
             Sender.InsertManualSetup(RetentionPolicyTitleTxt, RetentionPolicyShortTitleTxt, RetentionPolicyDescriptionTxt, 5, ObjectType::Page,
               Page::"Retention Policy Setup List", ManualSetupCategory::System, RetentionPolicyKeywordsTxt);
         end;
@@ -589,22 +569,6 @@ codeunit 1876 "Business Setup Subscribers"
         if ApplicationAreaMgmtFacade.IsManufacturingEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then
             Sender.InsertManualSetup(ReportSelProdOrderTitleTxt, ReportSelProdOrderShortTitleTxt, ReportSelProdOrderDescriptionTxt, 5, ObjectType::Page,
               Page::"Report Selection - Prod. Order", ManualSetupCategory::General, ReportSelProdOrderKeywordsTxt);
-
-        // Intercompany
-        if ApplicationAreaMgmtFacade.IsIntercompanyEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then begin
-            Sender.InsertManualSetup(
-                ICSetupTitleTxt, ICSetupShortTitleTxt, ICSetupDescriptionTxt, 2, ObjectType::Page,
-                Page::"Intercompany Setup", ManualSetupCategory::Intercompany, ICSetupKeywordsTxt);
-
-            Sender.InsertManualSetup(ICPartnersTitleTxt, ICPartnersShortTitleTxt, ICPartnersDescriptionTxt, 5, ObjectType::Page,
-              Page::"IC Partner List", ManualSetupCategory::Intercompany, ICPartnersKeywordsTxt);
-
-            Sender.InsertManualSetup(ICChartOfAccountsTitleTxt, ICChartOfAccountsShortTitleTxt, ICChartOfAccountsDescriptionTxt, 10, ObjectType::Page,
-              Page::"IC Chart of Accounts", ManualSetupCategory::Intercompany, ICChartOfAccountsKeywordsTxt);
-
-            Sender.InsertManualSetup(ICDimensionsTitleTxt, ICDimensionsShortTitleTxt, ICDimensionsDescriptionTxt, 3, ObjectType::Page,
-              Page::"IC Dimension List", ManualSetupCategory::Intercompany, ICDimensionsKeywordsTxt);
-        end;
     end;
 }
 

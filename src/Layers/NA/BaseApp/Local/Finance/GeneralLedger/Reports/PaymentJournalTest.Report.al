@@ -20,10 +20,6 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
@@ -675,7 +671,7 @@ report 10089 "Payment Journal - Test"
                                     "Account Type"::"Fixed Asset":
                                         CheckFixedAsset("Gen. Journal Line", AccName);
                                     "Account Type"::"IC Partner":
-                                        CheckICPartner("Gen. Journal Line", AccName);
+                                        CheckICPartnerAcc("Gen. Journal Line", AccName);
                                 end;
                             if "Bal. Account No." <> '' then begin
                                 ExchAccGLJnlLine.Run("Gen. Journal Line");
@@ -691,7 +687,7 @@ report 10089 "Payment Journal - Test"
                                     "Account Type"::"Fixed Asset":
                                         CheckFixedAsset("Gen. Journal Line", BalAccName);
                                     "Account Type"::"IC Partner":
-                                        CheckICPartner("Gen. Journal Line", AccName);
+                                        CheckICPartnerAcc("Gen. Journal Line", AccName);
                                 end;
                                 ExchAccGLJnlLine.Run("Gen. Journal Line");
                             end;
@@ -942,7 +938,6 @@ report 10089 "Payment Journal - Test"
         VATPostingSetup: Record "VAT Posting Setup";
         NoSeries: Record "No. Series";
         FA: Record "Fixed Asset";
-        ICPartner: Record "IC Partner";
         DeprBook: Record "Depreciation Book";
         FADeprBook: Record "FA Depreciation Book";
         FASetup: Record "FA Setup";
@@ -993,10 +988,6 @@ report 10089 "Payment Journal - Test"
         Text065: Label '%1 must not be blocked with type %2 when %3 is %4';
         PrivacyBlockedErr: Label '%1 must not be blocked for privacy.', Comment = '%1 = account type';
         CurrentICPartner: Code[20];
-        Text066: Label 'You cannot enter G/L Account or Bank Account in both %1 and %2.';
-        Text067: Label '%1 %2 is linked to %3 %4.';
-        Text069: Label '%1 must not be specified when %2 is %3.';
-        Text070: Label '%1 must not be specified when the document is not an intercompany transaction.';
         USText001: Label 'Warning:  Checks cannot be financially voided when Force Doc. Balance is set to No in the Journal Template.';
         Payment_Journal___TestCaptionLbl: Label 'Payment Journal - Test';
         CurrReport_PAGENOCaptionLbl: Label 'Page';
@@ -1355,28 +1346,7 @@ report 10089 "Payment Journal - Test"
                       StrSubstNo(
                         Text038,
                         GenJnlLine."Currency Code"));
-            if (Cust."IC Partner Code" <> '') and (GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany) then
-                if ICPartner.Get(Cust."IC Partner Code") then begin
-                    if ICPartner.Blocked then
-                        AddError(
-                          StrSubstNo(
-                            '%1 %2',
-                            StrSubstNo(
-                              Text067,
-                              Cust.TableCaption(), GenJnlLine."Account No.", ICPartner.TableCaption(), GenJnlLine."IC Partner Code"),
-                            StrSubstNo(
-                              Text032,
-                              ICPartner.FieldCaption(Blocked), false, ICPartner.TableCaption(), Cust."IC Partner Code")));
-                end else
-                    AddError(
-                      StrSubstNo(
-                        '%1 %2',
-                        StrSubstNo(
-                          Text067,
-                          Cust.TableCaption(), GenJnlLine."Account No.", ICPartner.TableCaption(), Cust."IC Partner Code"),
-                        StrSubstNo(
-                          Text031,
-                          ICPartner.TableCaption(), Cust."IC Partner Code")));
+            OnCheckCustomerIC(GenJnlLine, Cust, GenJnlTemplate, ErrorCounter, ErrorText);
             CustPosting := true;
             TestPostingType();
 
@@ -1449,28 +1419,7 @@ report 10089 "Payment Journal - Test"
                         Text038,
                         GenJnlLine."Currency Code"));
 
-            if (Vend."IC Partner Code" <> '') and (GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany) then
-                if ICPartner.Get(Cust."IC Partner Code") then begin
-                    if ICPartner.Blocked then
-                        AddError(
-                          StrSubstNo(
-                            '%1 %2',
-                            StrSubstNo(
-                              Text067,
-                              Vend.TableCaption(), GenJnlLine."Account No.", ICPartner.TableCaption(), Vend."IC Partner Code"),
-                            StrSubstNo(
-                              Text032,
-                              ICPartner.FieldCaption(Blocked), false, ICPartner.TableCaption(), Vend."IC Partner Code")));
-                end else
-                    AddError(
-                      StrSubstNo(
-                        '%1 %2',
-                        StrSubstNo(
-                          Text067,
-                          Vend.TableCaption(), GenJnlLine."Account No.", ICPartner.TableCaption(), GenJnlLine."IC Partner Code"),
-                        StrSubstNo(
-                          Text031,
-                          ICPartner.TableCaption(), Vend."IC Partner Code")));
+            OnCheckVendorIC(GenJnlLine, Cust, Vend, GenJnlTemplate, ErrorCounter, ErrorText);
             VendPosting := true;
             TestPostingType();
 
@@ -1597,21 +1546,17 @@ report 10089 "Payment Journal - Test"
         end;
     end;
 
-    procedure CheckICPartner(var GenJnlLine: Record "Gen. Journal Line"; var AccName: Text[100])
+#if not CLEAN30
+    [Obsolete('Use CheckICPartner procedure in Gen. Journal Line instead', '30.0')]
+    procedure CheckICPartner(var GenJnlLine: Record "Gen. Journal Line"; var AccName2: Text[100])
     begin
-        if not ICPartner.Get(GenJnlLine."Account No.") then
-            AddError(
-              StrSubstNo(
-                Text031,
-                ICPartner.TableCaption(), GenJnlLine."Account No."))
-        else begin
-            AccName := ICPartner.Name;
-            if ICPartner.Blocked then
-                AddError(
-                  StrSubstNo(
-                    Text032,
-                    ICPartner.FieldCaption(Blocked), false, ICPartner.TableCaption(), GenJnlLine."Account No."));
-        end;
+        CheckICPartnerAcc(GenJnlLine, AccName2);
+    end;
+#endif
+
+    local procedure CheckICPartnerAcc(var GenJnlLine: Record "Gen. Journal Line"; var AccName2: Text[100])
+    begin
+        OnCheckICPartnerAccount(GenJnlLine, AccName2, ErrorCounter, ErrorText);
     end;
 
     local procedure TestFixedAsset(var GenJnlLine: Record "Gen. Journal Line")
@@ -1944,68 +1889,27 @@ report 10089 "Payment Journal - Test"
     end;
 
     procedure CheckICDocument()
-    var
-        GenJnlLine4: Record "Gen. Journal Line";
     begin
-        if GenJnlTemplate.Type = GenJnlTemplate.Type::Intercompany then begin
-            if ("Gen. Journal Line"."Posting Date" <> LastDate) or ("Gen. Journal Line"."Document Type" <> LastDocType) or ("Gen. Journal Line"."Document No." <> LastDocNo) then begin
-                GenJnlLine4.SetCurrentKey("Journal Template Name", "Journal Batch Name", "Posting Date", "Document No.");
-                GenJnlLine4.SetRange("Journal Template Name", "Gen. Journal Line"."Journal Template Name");
-                GenJnlLine4.SetRange("Journal Batch Name", "Gen. Journal Line"."Journal Batch Name");
-                GenJnlLine4.SetRange("Posting Date", "Gen. Journal Line"."Posting Date");
-                GenJnlLine4.SetRange("Document No.", "Gen. Journal Line"."Document No.");
-                GenJnlLine4.SetFilter("IC Partner Code", '<>%1', '');
-                if GenJnlLine4.FindFirst() then
-                    CurrentICPartner := GenJnlLine4."IC Partner Code"
-                else
-                    CurrentICPartner := '';
-            end;
-            CheckICAccountNo();
-        end;
+        OnCheckICDocument("Gen. Journal Line", GenJnlTemplate, LastDate, LastDocType, LastDocNo, CurrentICPartner, ErrorCounter, ErrorText);
     end;
 
-    local procedure CheckICAccountNo()
-    var
-        ICGLAccount: Record "IC G/L Account";
-        ICBankAccount: Record "IC Bank Account";
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckCustomerIC(GenJnlLine: Record "Gen. Journal Line"; Cust: Record Customer; GenJnlTemplate: Record "Gen. Journal Template"; var ErrorCounter: Integer; var ErrorText: array[50] of Text[250])
     begin
-        if (CurrentICPartner <> '') and ("Gen. Journal Line"."IC Direction" = "Gen. Journal Line"."IC Direction"::Outgoing) then begin
-            if ("Gen. Journal Line"."Account Type" in ["Gen. Journal Line"."Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and
-               ("Gen. Journal Line"."Bal. Account Type" in ["Gen. Journal Line"."Bal. Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and
-               ("Gen. Journal Line"."Account No." <> '') and
-               ("Gen. Journal Line"."Bal. Account No." <> '')
-            then
-                AddError(StrSubstNo(Text066, "Gen. Journal Line".FieldCaption("Account No."), "Gen. Journal Line".FieldCaption("Bal. Account No.")))
-            else
-                if (("Gen. Journal Line"."Account Type" in ["Gen. Journal Line"."Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and ("Gen. Journal Line"."Account No." <> '')) xor
-                   (("Gen. Journal Line"."Bal. Account Type" in ["Gen. Journal Line"."Bal. Account Type"::"G/L Account", "Gen. Journal Line"."Account Type"::"Bank Account"]) and
-                    ("Gen. Journal Line"."Bal. Account No." <> ''))
-                then
-                    if "Gen. Journal Line"."IC Account No." = '' then
-                        AddError(StrSubstNo(Text002, "Gen. Journal Line".FieldCaption("IC Account No.")))
-                    else begin
-                        if "Gen. Journal Line"."IC Account Type" = "IC Journal Account Type"::"G/L Account" then
-                            if ICGLAccount.Get("Gen. Journal Line"."IC Account No.") then
-                                if ICGLAccount.Blocked then
-                                    AddError(StrSubstNo(Text032, ICGLAccount.FieldCaption(Blocked), false,
-                                        "Gen. Journal Line".FieldCaption("IC Account No."), "Gen. Journal Line"."IC Account No."));
+    end;
 
-                        if "Gen. Journal Line"."IC Account Type" = "IC Journal Account Type"::"Bank Account" then
-                            if ICBankAccount.Get("Gen. Journal Line"."IC Account No.", CurrentICPartner) then
-                                if ICBankAccount.Blocked then
-                                    AddError(StrSubstNo(Text032, ICGLAccount.FieldCaption(Blocked), false,
-                                        "Gen. Journal Line".FieldCaption("IC Account No."), "Gen. Journal Line"."IC Account No."));
-                    end
-                else
-                    if "Gen. Journal Line"."IC Account No." <> '' then
-                        AddError(StrSubstNo(Text009, "Gen. Journal Line".FieldCaption("IC Account No.")));
-        end else
-            if "Gen. Journal Line"."IC Account No." <> '' then begin
-                if "Gen. Journal Line"."IC Direction" = "Gen. Journal Line"."IC Direction"::Incoming then
-                    AddError(StrSubstNo(Text069, "Gen. Journal Line".FieldCaption("IC Account No."), "Gen. Journal Line".FieldCaption("IC Direction"), Format("Gen. Journal Line"."IC Direction")));
-                if CurrentICPartner = '' then
-                    AddError(StrSubstNo(Text070, "Gen. Journal Line".FieldCaption("IC Account No.")));
-            end;
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckVendorIC(GenJnlLine: Record "Gen. Journal Line"; Cust: Record Customer; Vend: Record Vendor; GenJnlTemplate: Record "Gen. Journal Template"; var ErrorCounter: Integer; var ErrorText: array[50] of Text[250])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckICPartnerAccount(GenJnlLine: Record "Gen. Journal Line"; var AccName2: Text[100]; var ErrorCounter: Integer; var ErrorText: array[50] of Text[250])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckICDocument(GenJournalLine: Record "Gen. Journal Line"; GenJnlTemplate: Record "Gen. Journal Template"; LastDate: Date; LastDocType: Enum "Gen. Journal Document Type"; LastDocNo: Code[20]; var CurrentICPartner: Code[20]; var ErrorCounter: Integer; var ErrorText: array[50] of Text[250])
+    begin
     end;
 }
-

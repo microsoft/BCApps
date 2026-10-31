@@ -16,7 +16,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
@@ -288,14 +287,6 @@ codeunit 46 SelectionFilterManagement
     begin
         RecRef.GetTable(BusinessUnit);
         exit(GetSelectionFilter(RecRef, BusinessUnit.FieldNo(Code)));
-    end;
-
-    procedure GetSelectionFilterForICPartner(var ICPartner: Record "IC Partner"): Text
-    var
-        RecRef: RecordRef;
-    begin
-        RecRef.GetTable(ICPartner);
-        exit(GetSelectionFilter(RecRef, ICPartner.FieldNo(Code)));
     end;
 
     procedure GetSelectionFilterForCashFlow(var CashFlowForecast: Record "Cash Flow Forecast"): Text

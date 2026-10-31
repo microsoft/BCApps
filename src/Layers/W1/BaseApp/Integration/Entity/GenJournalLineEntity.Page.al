@@ -505,33 +505,6 @@ page 6407 "Gen. Journal Line Entity"
                     ApplicationArea = All;
                     Caption = 'Bal. VAT Difference', Locked = true;
                 }
-                field(icPartnerCode; Rec."IC Partner Code")
-                {
-                    ApplicationArea = All;
-                    Caption = 'IC Partner Code', Locked = true;
-                }
-                field(icDirection; Rec."IC Direction")
-                {
-                    ApplicationArea = All;
-                    Caption = 'IC Direction', Locked = true;
-                }
-                field(icPartnerTransactionNumber; Rec."IC Partner Transaction No.")
-                {
-                    ApplicationArea = All;
-                    Caption = 'IC Partner Transaction No.', Locked = true;
-                }
-                field(icAccountType; Rec."IC Account Type")
-                {
-                    ApplicationArea = All;
-                    Caption = 'IC Account Type', Locked = true;
-                    ToolTip = 'Specifies the type of the account that you want to use for the transaction with your IC partner.';
-                }
-                field(icAccountNo; Rec."IC Account No.")
-                {
-                    ApplicationArea = All;
-                    Caption = 'IC Account No.', Locked = true;
-                    ToolTip = 'Specifies the number of the general ledger or bank account that the IC transaction is posted to.';
-                }
                 field(sellToBuyFromNumber; Rec."Sell-to/Buy-from No.")
                 {
                     ApplicationArea = All;
@@ -900,4 +873,3 @@ page 6407 "Gen. Journal Line Entity"
     {
     }
 }
-

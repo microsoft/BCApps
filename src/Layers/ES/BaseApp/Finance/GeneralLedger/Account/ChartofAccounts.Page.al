@@ -244,11 +244,6 @@ page 16 "Chart of Accounts"
                     ToolTip = 'Specifies the adjustment account for the auxiliary commercial accounts.';
                     Visible = false;
                 }
-                field("Default IC Partner G/L Acc. No"; Rec."Default IC Partner G/L Acc. No")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
                 field("Default Deferral Template Code"; Rec."Default Deferral Template Code")
                 {
                     ApplicationArea = Suite;

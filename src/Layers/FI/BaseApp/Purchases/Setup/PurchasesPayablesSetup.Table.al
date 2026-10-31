@@ -407,18 +407,30 @@ table 312 "Purchases & Payables Setup"
             ToolTip = 'Specifies which general journal template to use for purchase prepayment credit memos.';
             TableRelation = "Gen. Journal Template" where(Type = filter(Purchases));
         }
+#if not CLEANSCHEMA30
         field(204; "IC Purch. Invoice Templ. Name"; Code[10])
         {
             Caption = 'IC Jnl. Templ. Purch. Invoice';
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies the intercompany journal template to use for purchase invoices.';
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
+#if not CLEANSCHEMA30
         field(205; "IC Purch. Cr. Memo Templ. Name"; Code[10])
         {
             Caption = 'IC Jnl. Templ. Purch. Cr. Memo';
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies the intercompany journal template to use for posting purchase credit memos.';
-            TableRelation = "Gen. Journal Template" where(Type = filter(Intercompany));
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         field(210; "Copy Line Descr. to G/L Entry"; Boolean)
         {
             Caption = 'Copy Line Descr. to G/L Entry';

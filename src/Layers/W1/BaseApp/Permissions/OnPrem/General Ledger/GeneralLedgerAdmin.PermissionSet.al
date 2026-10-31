@@ -24,11 +24,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Task;
 using Microsoft.Integration.Graph;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Location;
 using Microsoft.Projects.TimeSheet;
@@ -102,12 +97,6 @@ permissionset 4423 "General Ledger - Admin"
                   tabledata "Gen. Product Posting Group" = RIMD,
                   tabledata "General Ledger Setup" = RIMD,
                   tabledata "General Posting Setup" = RIMD,
-                  tabledata "IC Bank Account" = RIMD,
-                  tabledata "IC Dimension" = RIMD,
-                  tabledata "IC Dimension Value" = RIMD,
-                  tabledata "IC G/L Account" = RIMD,
-                  tabledata "IC Partner" = RIMD,
-                  tabledata "IC Setup" = RIMD,
                   tabledata "Incoming Document" = RIMD,
                   tabledata "Incoming Document Approver" = RIMD,
                   tabledata "Incoming Document Attachment" = RIMD,

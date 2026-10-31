@@ -99,11 +99,6 @@ page 21 "Customer Card"
                     Importance = Additional;
                     Visible = false;
                 }
-                field("IC Partner Code"; Rec."IC Partner Code")
-                {
-                    ApplicationArea = Intercompany;
-                    Importance = Additional;
-                }
                 field("Balance (LCY)"; Rec."Balance (LCY)")
                 {
                     ApplicationArea = Basic, Suite;

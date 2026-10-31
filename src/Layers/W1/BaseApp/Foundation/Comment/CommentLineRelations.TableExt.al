@@ -9,7 +9,6 @@ using Microsoft.CRM.Campaign;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Resources.Resource;
@@ -42,9 +41,7 @@ tableextension 97 "Comment Line Relations" extends "Comment Line"
             else
             if ("Table Name" = const("Fixed Asset")) "Fixed Asset"
             else
-            if ("Table Name" = const(Insurance)) Insurance
-            else
-            if ("Table Name" = const("IC Partner")) "IC Partner";
+            if ("Table Name" = const(Insurance)) Insurance;
         }
     }
 }

@@ -500,14 +500,18 @@ table 6661 "Return Receipt Line"
         {
             Caption = 'Posting Date';
         }
-        /// <summary>
-        /// Specifies the intercompany item reference number for cross-company transactions.
-        /// </summary>
+#if not CLEANSCHEMA30
         field(138; "IC Item Reference No."; Code[50])
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'IC Item Reference No.';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// Specifies the unique identifier for the dimension set applied to this line.
         /// </summary>

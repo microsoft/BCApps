@@ -2,10 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Setup;
 
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Intercompany.Partner;
 
 /// <summary>
 /// Stores intercompany configuration settings for company-to-company transaction processing.
@@ -15,6 +15,10 @@ table 443 "IC Setup"
 {
     Caption = 'IC Setup';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -42,12 +46,6 @@ table 443 "IC Setup"
             InitValue = Database;
             OptionCaption = 'File Location,Database';
             OptionMembers = "File Location",Database;
-
-            trigger OnValidate()
-            begin
-                if "IC Inbox Type" = "IC Inbox Type"::Database then
-                    "IC Inbox Details" := '';
-            end;
         }
         /// <summary>
         /// Storage location details for intercompany inbox transactions.
@@ -85,7 +83,6 @@ table 443 "IC Setup"
         field(8; "Partner Code for Acc. Syn."; Code[20])
         {
             Caption = 'Account Syncronization Partner Code';
-            TableRelation = "IC Partner".Code where("Inbox Type" = filter("IC Partner Inbox Type"::Database));
         }
         /// <summary>
         /// Enables notifications when new intercompany transactions are created.
@@ -110,3 +107,4 @@ table 443 "IC Setup"
         }
     }
 }
+#endif
