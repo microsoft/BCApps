@@ -9,6 +9,7 @@ using System.Utilities;
 report 5695 "Delete Empty Insurance Reg."
 {
     Caption = 'Delete Empty Insurance Reg.';
+    ToolTip = 'Find and delete empty insurance registers.';
     Permissions = TableData "Insurance Register" = rimd;
     ProcessingOnly = true;
 

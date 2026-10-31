@@ -12,6 +12,7 @@ report 5634 "Maintenance - Details"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Maintenance Details';
+    ToolTip = 'Run the Maintenance Details report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

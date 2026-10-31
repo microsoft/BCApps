@@ -13,6 +13,7 @@ report 5605 "Fixed Asset - Book Value 01"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Book Value 01';
+    ToolTip = 'View detailed information about acquisition cost, depreciation and book value for both individual fixed assets and groups of fixed assets. For each of these three amount types, amounts are calculated at the beginning and at the end of a specified period as well as for the period itself.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;

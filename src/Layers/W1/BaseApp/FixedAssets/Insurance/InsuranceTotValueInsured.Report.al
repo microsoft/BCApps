@@ -12,6 +12,7 @@ report 5625 "Insurance - Tot. Value Insured"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Total Value Insured';
+    ToolTip = 'View each fixed asset with the amounts that you posted to each insurance policy. The entries in this report correspond to all of the entries in the Ins. Coverage Ledger Entry table. The amounts shown for each asset can be more or less than the actual insurance policy''s coverage. The amounts shown can differ from the actual book value of the asset.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
