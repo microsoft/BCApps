@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -1514,6 +1515,14 @@ codeunit 149908 "Subc. Warehouse Library"
             CreateWorkCenterForTest(WorkCenterNo2, ShopCalendarCode, "Flushing Method"::"Pick + Manual", not IsSubcontracting, UnitCostCalc, '');
         WorkCenter[2].Get(WorkCenterNo2);
         LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter[2], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+    end;
+
+    /// <summary>
+    /// Creates work and machine centers with detailed cost setup and the given unit cost calculation.
+    /// </summary>
+    procedure CreateAndCalculateNeededWorkAndMachineCenter(var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center"; IsSubcontracting: Boolean; UnitCostCalculationType: Enum "Unit Cost Calculation Type")
+    begin
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, IsSubcontracting, UnitCostCalculationType.AsInteger());
     end;
 
     /// <summary>

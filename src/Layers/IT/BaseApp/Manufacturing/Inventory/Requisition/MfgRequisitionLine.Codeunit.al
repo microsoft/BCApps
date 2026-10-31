@@ -32,6 +32,30 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterCreateDim', '', false, false)]
+    local procedure OnAfterCreateDim(var ReqLine: Record "Requisition Line")
+    begin
+        MergeDimFromSubcontractingProdOrderLine(ReqLine);
+    end;
+
+    local procedure MergeDimFromSubcontractingProdOrderLine(var RequisitionLine: Record "Requisition Line")
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        if RequisitionLine."Action Message" <> RequisitionLine."Action Message"::New then
+            exit;
+        if RequisitionLine."Ref. Order Type" <> RequisitionLine."Ref. Order Type"::Purchase then
+            exit;
+        if RequisitionLine."Prod. Order No." = '' then
+            exit;
+
+        ProdOrderLine.SetLoadFields("Dimension Set ID");
+        if not ProdOrderLine.Get(ProdOrderLine.Status::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Prod. Order Line No.") then
+            exit;
+
+        RequisitionLine.GetDimFromProdOrderLine(ProdOrderLine, true);
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnLookupRefOrderNoElseCase', '', true, false)]
     local procedure OnLookupRefOrderNoElseCase(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean)
     var

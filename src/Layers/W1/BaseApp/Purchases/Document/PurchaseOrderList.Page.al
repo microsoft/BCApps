@@ -169,6 +169,11 @@ page 9307 "Purchase Order List"
                     ApplicationArea = Suite;
                     Visible = false;
                 }
+                field("Order Date"; Rec."Order Date")
+                {
+                    ApplicationArea = Suite;
+                    Visible = false;
+                }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Suite;
@@ -650,7 +655,6 @@ page 9307 "Purchase Order List"
                     begin
                         Rec.PerformManualRelease();
                         GetSourceDocInbound.CreateFromPurchOrder(Rec);
-
                         if not Rec.Find('=><') then
                             Rec.Init();
                     end;
@@ -668,7 +672,6 @@ page 9307 "Purchase Order List"
                     begin
                         Rec.PerformManualRelease();
                         Rec.CreateInvtPutAwayPick();
-
                         if not Rec.Find('=><') then
                             Rec.Init();
                     end;
@@ -710,7 +713,6 @@ page 9307 "Purchase Order List"
                         LinesInstructionMgt.PurchaseCheckAllLinesHaveQuantityAssigned(Rec);
 
                         CurrPage.SetSelectionFilter(PurchaseHeader);
-
                         if PurchaseHeader.Count > 1 then begin
                             BatchProcessingMgt.SetParametersForPageID(Page::"Purchase Order List");
 

@@ -8,6 +8,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Purchases.Document;
 using System.Security.User;
 
 page 20504 "Subc. Subcontracting Worksheet"
@@ -78,6 +79,12 @@ page 20504 "Subc. Subcontracting Worksheet"
                 {
                     ToolTip = 'Specifies an action to take to rebalance the demand-supply situation.';
                 }
+                field("Ref. Order No."; Rec."Ref. Order No.")
+                {
+                    Editable = false;
+                    ToolTip = 'Specifies the purchase order referenced by the worksheet line, if any.';
+                }
+
                 field("Prod. Order No."; Rec."Prod. Order No.")
                 {
                     ToolTip = 'Specifies the number of the related production order.';
@@ -271,6 +278,23 @@ page 20504 "Subc. Subcontracting Worksheet"
             {
                 Caption = 'Line';
                 Image = Line;
+                action(ShowPurchaseOrder)
+                {
+                    Caption = 'Show purchase order';
+                    Enabled = CanShowPurchaseOrder;
+                    Image = Document;
+                    ToolTip = 'Open the purchase order referenced by the current worksheet line.';
+
+                    trigger OnAction()
+                    var
+                        PurchaseHeader: Record "Purchase Header";
+                        MissingOrderErr: Label 'Purchase order %1 referenced by worksheet line %2 no longer exists.', Comment = '%1 = purchase order number, %2 = worksheet line number';
+                    begin
+                        if not PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, Rec."Ref. Order No.") then
+                            Error(MissingOrderErr, Rec."Ref. Order No.", Rec."Line No.");
+                        Page.Run(Page::"Purchase Order", PurchaseHeader);
+                    end;
+                }
                 action(Card)
                 {
                     Caption = 'Card';
@@ -330,6 +354,34 @@ page 20504 "Subc. Subcontracting Worksheet"
                         CalculateSubContract.RunModal();
                     end;
                 }
+                action(AssignPurchaseOrder)
+                {
+                    Caption = 'Assign purchase order';
+                    Image = Purchase;
+                    ToolTip = 'Select an open purchase order for the current new subcontracting suggestion.';
+
+                    trigger OnAction()
+                    begin
+                        CurrPage.SaveRecord();
+                        Rec.AssignPurchaseOrderTarget();
+                    end;
+                }
+                action(ClearPurchaseOrder)
+                {
+                    Caption = 'Clear purchase order target';
+                    Image = Cancel;
+                    ToolTip = 'Remove the selected purchase order from the current new suggestion.';
+
+                    trigger OnAction()
+                    begin
+                        if not Rec.HasPurchaseOrderTarget() then
+                            exit;
+
+                        CurrPage.SaveRecord();
+                        Rec.ClearPurchaseOrderTarget();
+                        Rec.Modify(true);
+                    end;
+                }
                 action(CarryOutActionMessage)
                 {
                     Caption = 'Carry Out Action Message';
@@ -378,6 +430,7 @@ page 20504 "Subc. Subcontracting Worksheet"
     trigger OnAfterGetCurrRecord()
     begin
         ReqJnlManagement.GetDescriptionAndRcptName(Rec, Description2, BuyFromVendorName);
+        UpdateCanShowPurchaseOrder();
     end;
 
     trigger OnAfterGetRecord()
@@ -386,6 +439,7 @@ page 20504 "Subc. Subcontracting Worksheet"
     begin
         if Rec."Variant Code" = '' then
             VariantCodeMandatory := Item.IsVariantMandatory(Rec.Type = Rec.Type::Item, Rec."No.");
+        UpdateCanShowPurchaseOrder();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -415,10 +469,16 @@ page 20504 "Subc. Subcontracting Worksheet"
         CurrentJnlBatchName: Code[10];
         OpenedFromBatch: Boolean;
         VariantCodeMandatory: Boolean;
+        CanShowPurchaseOrder: Boolean;
 
     protected var
         Description2: Text[100];
         BuyFromVendorName: Text[100];
+
+    local procedure UpdateCanShowPurchaseOrder()
+    begin
+        CanShowPurchaseOrder := (Rec."Ref. Order Type" = Rec."Ref. Order Type"::Purchase) and (Rec."Ref. Order No." <> '');
+    end;
 
     local procedure CurrentJnlBatchNameOnAfterVali()
     begin

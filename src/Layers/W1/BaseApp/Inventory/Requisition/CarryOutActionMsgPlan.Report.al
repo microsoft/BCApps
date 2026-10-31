@@ -98,6 +98,8 @@ report 99001020 "Carry Out Action Msg. - Plan."
 
                 if not HideDialog then
                     Window.Open(Text012);
+                if PurchOrderChoice in [PurchOrderChoice::"Make Purch. Orders", PurchOrderChoice::"Make Purch. Orders & Print"] then
+                    ReqWkshMakeOrders.CheckPurchaseOrderTargets("Requisition Line");
                 CheckPreconditions();
                 CounterTotal := Count;
             end;

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Requisition;
 
+using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
@@ -45,10 +46,8 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
             begin
                 CheckActionMessageNew();
                 "Routing Version Code" := '';
-
                 if "Routing No." = '' then
                     exit;
-
                 if CurrFieldNo = FieldNo("Starting Date") then
                     RoutingDate := "Starting Date"
                 else
@@ -208,7 +207,6 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
                 "Production BOM Version Code" := '';
                 if "Production BOM No." = '' then
                     exit;
-
                 if CurrFieldNo = FieldNo("Starting Date") then
                     BOMDate := "Starting Date"
                 else begin
@@ -245,7 +243,8 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
         modify("Ref. Order No.")
         {
 #pragma warning disable AL0603
-            TableRelation = if ("Ref. Order Type" = const("Prod. Order")) "Production Order"."No." where(Status = field("Ref. Order Status"));
+            TableRelation =
+            if ("Ref. Order Type" = const("Prod. Order")) "Production Order"."No." where(Status = field("Ref. Order Status"));
 #pragma warning restore AL0603
         }
     }
@@ -372,7 +371,6 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
         OnBeforeSetReplenishmentSystemFromProdOrder(Rec);
 
         CheckReqWkshTemplate();
-
         if PlanningResiliency and (Item."Base Unit of Measure" = '') then
             TempPlanningErrorLog.SetError(
               StrSubstNo(MissingFieldValueErr, Item.TableCaption(), Item."No.", Item.FieldCaption("Base Unit of Measure")),
@@ -412,12 +410,10 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
                 ProductionBOMNo := StockkeepingUnit."Production BOM No."
             else
                 ProductionBOMNo := Item."Production BOM No.";
-
             if StockkeepingUnit."Routing No." <> '' then
                 RoutingNo := StockkeepingUnit."Routing No."
             else
                 RoutingNo := Item."Routing No.";
-
             if not Subcontracting then begin
                 OnSetReplenishmentSystemFromProdOrderOnBeforeSetProdFields(
                     Rec, Item, Subcontracting, PlanningResiliency, TempPlanningErrorLog);
@@ -435,7 +431,6 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
 
         Validate("Transfer-from Code", '');
         UpdateUnitOfMeasureCodeFromItemBaseUnitOfMeasure();
-
         if ("Planning Line Origin" = "Planning Line Origin"::"Order Planning") and ValidateFields() then
             PlanningLineMgt.Calculate(Rec, 1, true, true, 0);
 
@@ -450,7 +445,6 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
         OnBeforeCheckReqWkshTmpl(Rec, Item, IsHandled);
         if IsHandled then
             exit;
-
         if ReqWkshTemplate.Get("Worksheet Template Name") and
            (ReqWkshTemplate.Type = ReqWkshTemplate.Type::"Req.") and (ReqWkshTemplate.Name <> '') and not "Drop Shipment"
         then
@@ -463,18 +457,27 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
         WorkCenterForDescription: Record "Work Center";
         RoutingLineFound: Boolean;
     begin
-        if ("Ref. Order Type" <> "Ref. Order Type"::"Prod. Order") or ("Work Center No." = '') then
+        if "Work Center No." = '' then
             exit(false);
+        if "Ref. Order Type" <> "Ref. Order Type"::"Prod. Order" then
+            if ("Ref. Order Type" <> "Ref. Order Type"::Purchase) or
+               ("Action Message" <> "Action Message"::New) or
+               ("Prod. Order No." = '')
+            then
+                exit(false);
 
         WorkCenterForDescription.SetLoadFields(Name, "Name 2", "Subcontractor No.");
         WorkCenterForDescription.Get("Work Center No.");
-
         if WorkCenterForDescription."Subcontractor No." = '' then
             exit(false);
 
         ProdOrderRoutingLine.SetLoadFields(Description, "Description 2", "Work Center No.");
-        RoutingLineFound := ProdOrderRoutingLine.Get(
-            "Ref. Order Status", "Ref. Order No.", "Routing Reference No.", "Routing No.", "Operation No.");
+        if "Ref. Order Type" = "Ref. Order Type"::"Prod. Order" then
+            RoutingLineFound := ProdOrderRoutingLine.Get(
+                "Ref. Order Status", "Ref. Order No.", "Routing Reference No.", "Routing No.", "Operation No.")
+        else
+            RoutingLineFound := ProdOrderRoutingLine.Get(
+                ProdOrderRoutingLine.Status::Released, "Prod. Order No.", "Routing Reference No.", "Routing No.", "Operation No.");
         if RoutingLineFound and (ProdOrderRoutingLine."Work Center No." = "Work Center No.") then begin
             Description := ProdOrderRoutingLine.Description;
             "Description 2" := ProdOrderRoutingLine."Description 2";
@@ -486,6 +489,18 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
         end;
 
         exit(true);
+    end;
+
+    procedure GetDimFromProdOrderLine(ProdOrderLine: Record "Prod. Order Line"; AddToExisting: Boolean)
+    var
+        DimensionManagement: Codeunit DimensionManagement;
+        DimensionSetIDArr: array[10] of Integer;
+    begin
+        if AddToExisting then
+            DimensionSetIDArr[1] := "Dimension Set ID";
+        DimensionSetIDArr[2] := ProdOrderLine."Dimension Set ID";
+        "Dimension Set ID" := DimensionManagement.GetCombinedDimensionSetID(
+            DimensionSetIDArr, "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
     end;
 
     procedure ValidateProdOrderOnReqLine(var ReqLine: Record "Requisition Line")
@@ -501,7 +516,6 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
             exit;
 
         ReqLine.TestField(Type, ReqLine.Type::Item);
-
         if ProdOrder.Get(ProdOrder.Status::Released, ReqLine."Prod. Order No.") then begin
             ProdOrder.TestField(Blocked, false);
             ProdOrderLine.SetRange(Status, ProdOrderLine.Status::Released);
