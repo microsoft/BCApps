@@ -3,7 +3,7 @@ codeunit 144010 "VAT Reports BE"
     // // [FEATURE] [VAT] [Reports]
     // 1. Test to verify the Amount in Customer Ledger Entry and the Correction Amount in VAT - VIES Correction
     //    should be calculated together in exported file for the same customer within same year.
-    // 
+    //
     // Covers Test cases: for BE - Hotfix 358375
     // --------------------------------------------------------------------------
     // Test Function Name                                                  TFS ID
@@ -550,8 +550,9 @@ codeunit 144010 "VAT Reports BE"
         // [SCENARIO 379117] User should be able to use "Incl. Non Deductible VAT" for VAT Settlement rows with "Amount Type" Base
 
         Initialize();
-        VATStatementLine."Amount Type" := VATStatementLine."Amount Type"::Base;
+        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Amount);
         VATStatementLine.Validate("Incl. Non Deductible VAT", true);
+        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Base);
         VATStatementLine.TestField("Incl. Non Deductible VAT", true);
     end;
 
@@ -686,6 +687,20 @@ codeunit 144010 "VAT Reports BE"
 
         // [THEN] XML file is created.
         Assert.IsTrue(FILE.Exists(FileName), StrSubstNo('%1 %2', FileName, NotFoundMsg));
+    end;
+
+    [Test]
+    procedure InclNonDeductibleVATClearedForNotAllowedAmountType()
+    var
+        VATStatementLine: Record "VAT Statement Line";
+    begin
+        // [SCENARIO 656742] "Incl. Non Deductible VAT" is cleared when "Amount Type" is changed to an unsupported type
+
+        Initialize();
+        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Amount);
+        VATStatementLine.Validate("Incl. Non Deductible VAT", true);
+        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::"Unrealized Base");
+        VATStatementLine.TestField("Incl. Non Deductible VAT", false);
     end;
 
     local procedure Initialize()
@@ -1134,4 +1149,3 @@ codeunit 144010 "VAT Reports BE"
         ECSalesList.SaveAsExcel(LibraryVariableStorage.DequeueText());
     end;
 }
-
