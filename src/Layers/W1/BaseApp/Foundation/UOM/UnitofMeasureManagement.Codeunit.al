@@ -101,7 +101,7 @@ codeunit 5402 "Unit of Measure Management"
             if (QtyRounded = 0) and (QtyBase <> 0) then
                 Error(QuantityImbalanceErr, BasedOnField, DummyItem.TableCaption(), ItemNo, FromFieldName, ToFieldName);
         end;
-        OnAfterCalcBaseQtyPerUnitOfMeasure(ItemNo, VariantCode, UOMCode, QtyBase, QtyPerUOM, QtyRounded);
+        OnAfterCalcBaseQtyPerUnitOfMeasure(ItemNo, VariantCode, UOMCode, QtyBase, QtyPerUOM, QtyRounded, QtyRndingPrecision);
     end;
 
     procedure CalcQtyFromBase(QtyBase: Decimal; QtyPerUOM: Decimal): Decimal
@@ -221,7 +221,7 @@ codeunit 5402 "Unit of Measure Management"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCalcBaseQtyPerUnitOfMeasure(ItemNo: Code[20]; VariantCode: Code[10]; UOMCode: Code[10]; QtyBase: Decimal; QtyPerUOM: Decimal; var QtyRounded: Decimal)
+    local procedure OnAfterCalcBaseQtyPerUnitOfMeasure(ItemNo: Code[20]; VariantCode: Code[10]; UOMCode: Code[10]; QtyBase: Decimal; QtyPerUOM: Decimal; var QtyRounded: Decimal; QuantityRoundingPrecision: Decimal)
     begin
     end;
 
