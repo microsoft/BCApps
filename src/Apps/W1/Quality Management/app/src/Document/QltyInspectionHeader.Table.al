@@ -114,13 +114,15 @@ table 20405 "Qlty. Inspection Header"
 
                 VerifyPassAndFailQuantities();
                 UpdateSampleSize();
+                if (Rec."Sample Size" > Rec."Source Quantity (Base)") and (Rec."Source Quantity (Base)" > 0) then
+                    Rec.Validate("Sample Size");
             end;
         }
         field(13; "Pass Quantity"; Decimal)
         {
             Caption = 'Pass Quantity';
             AutoFormatType = 0;
-            ToolTip = 'Specifies the quantity that passed the inspection. When the inspection is finished, the system uses Sample Size if it is greater than 0; otherwise, it uses Quantity (Base). Reopening the inspection resets this value to 0. Only users with the Quality Admin & Supervisor role can change it manually.';
+            ToolTip = 'Specifies the quantity that passed the inspection. When the inspection is finished, the system uses Sample Size if it is greater than 0; otherwise, it uses Quantity (Base). The calculated value never exceeds Quantity (Base). Reopening the inspection resets this value to 0. Only users with the Quality Admin & Supervisor role can change it manually.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -139,7 +141,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Fail Quantity';
             AutoFormatType = 0;
-            ToolTip = 'Specifies the quantity that failed the inspection. When the inspection is finished, the system uses Sample Size if it is greater than 0; otherwise, it uses Quantity (Base). Reopening the inspection resets this value to 0. Only users with the Quality Admin & Supervisor role can change it manually.';
+            ToolTip = 'Specifies the quantity that failed the inspection. When the inspection is finished, the system uses Sample Size if it is greater than 0; otherwise, it uses Quantity (Base). The calculated value never exceeds Quantity (Base). Reopening the inspection resets this value to 0. Only users with the Quality Admin & Supervisor role can change it manually.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -158,6 +160,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Sample Size';
             ToolTip = 'Specifies the number of units that must be inspected. This will be used to fill out the sample size field on a Quality Inspection when possible based on the other characteristics that were applied. Only users with the Quality Admin & Supervisor role can change this value.';
+            MinValue = 0;
 
             trigger OnValidate()
             var
@@ -1582,7 +1585,10 @@ table 20405 "Qlty. Inspection Header"
 
         case QltyInspectionTemplateHdr."Sample Source" of
             QltyInspectionTemplateHdr."Sample Source"::"Fixed Quantity":
-                Rec.Validate("Sample Size", QltyInspectionTemplateHdr."Sample Fixed Amount");
+                if QltyInspectionTemplateHdr."Sample Fixed Amount" > 0 then
+                    Rec.Validate("Sample Size", QltyInspectionTemplateHdr."Sample Fixed Amount")
+                else
+                    Rec.Validate("Sample Size", 0);
             QltyInspectionTemplateHdr."Sample Source"::"Percent of Quantity":
                 begin
                     CalculatedSampleSize := Round(Rec."Source Quantity (Base)" * QltyInspectionTemplateHdr."Sample Percentage" / 100.0, 1, '>');
@@ -1700,6 +1706,7 @@ table 20405 "Qlty. Inspection Header"
     /// Sets passed or failed quantity from sample or source quantity according to the result category.
     /// Calculates and assigns the Pass Quantity or Fail Quantity based on the inspection's Result Category.
     /// Uses Sample Size when greater than zero; otherwise falls back to Source Quantity (Base).
+    /// The applied quantity never exceeds Source Quantity (Base), so nothing is applied when Source Quantity (Base) is zero.
     /// Acceptable results populate Pass Quantity; any other category populates Fail Quantity.
     /// The opposite quantity is always cleared so the values stay mutually exclusive.
     /// Intended to be called when the inspection transitions to Finished.
@@ -1716,12 +1723,12 @@ table 20405 "Qlty. Inspection Header"
         if not QltyInspectionResult.Get(Rec."Result Code") then
             exit;
 
-        if (Rec."Sample Size" > Rec."Source Quantity (Base)") and (Rec."Source Quantity (Base)" > 0) then
-            exit;
-
         if Rec."Sample Size" > 0 then
             QuantityToApply := Rec."Sample Size"
         else
+            QuantityToApply := Rec."Source Quantity (Base)";
+
+        if QuantityToApply > Rec."Source Quantity (Base)" then
             QuantityToApply := Rec."Source Quantity (Base)";
 
         if QuantityToApply <= 0 then
