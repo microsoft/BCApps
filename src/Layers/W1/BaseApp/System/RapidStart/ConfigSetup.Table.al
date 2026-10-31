@@ -495,7 +495,7 @@ table 8627 "Config. Setup"
             SalesReceivablesSetup.Init();
             SalesReceivablesSetup.Insert();
         end;
-        SalesReceivablesSetup."Logo Position on Documents" := "Logo Position on Documents";
+        SalesReceivablesSetup."Logo Position on Documents" := Enum::"Logo Position on Documents".FromInteger("Logo Position on Documents");
         SalesReceivablesSetup.Modify();
 
         Commit();
