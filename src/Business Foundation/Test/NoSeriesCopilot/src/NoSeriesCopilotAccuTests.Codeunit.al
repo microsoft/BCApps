@@ -15,17 +15,18 @@ codeunit 133689 "No. Series Copilot Accu. Tests"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = AITest;
+    TestHandlers = "AIT Test Handler";
 
     var
         Assert: codeunit "Library Assert";
-        AITTestContext: codeunit "AIT Test Context";
         NoSeriesCopilotTestLib: codeunit "Library - No. Series Copilot";
 
-    [Test]
-    procedure NoSeriesPositiveTests();
+    [TestDataSource(Codeunit::"AIT Test Data Source", 'NOSERIES-GOOD.YAML')]
+    procedure NoSeriesPositiveTests(context: interface "AIT Test Case Context")
     var
         TempNoSeriesGeneration: Record "No. Series Generation";
         TempNoSeriesGenerationDetail: Record "No. Series Generation Detail";
+        AITTestContext: Codeunit "AIT Test Context";
         TestInputJsonQuery: Codeunit "Test Input Json";
         TestInputJsonAnswer: Codeunit "Test Input Json";
         ExpectedNumberJson: Codeunit "Test Input Json";
