@@ -117,6 +117,8 @@ table 10777 "Verifactu Setup"
         DocumentSubmissionEndpointUrlTxt: Label 'https://www1.agenciatributaria.gob.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP', Locked = true;
         QRCodeValidationEndpointUrlTxt: Label 'https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR', Locked = true;
         DocumentSubmissionSandboxEndpointUrlTxt: Label 'https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP', Locked = true;
+        SealDocumentSubmissionEndpointUrlTxt: Label 'https://www10.agenciatributaria.gob.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP', Locked = true;
+        SealDocumentSubmissionSandboxEndpointUrlTxt: Label 'https://prewww10.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP', Locked = true;
         QRCodeValidationSandboxEndpointUrlTxt: Label 'https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR', Locked = true;
         NotEnabledTxt: Label 'Not enabled', Locked = true;
 
@@ -135,11 +137,19 @@ table 10777 "Verifactu Setup"
         exit(QRCodeValidationEndpointUrlTxt);
     end;
 
-    internal procedure GetDocumentSubmissionEndpointUrl(): Text
+    /// <summary>
+    /// AEAT exposes separate endpoints for electronic seal certificates (www10 / prewww10).
+    /// </summary>
+    internal procedure GetDocumentSubmissionEndpointUrl(IsSealCertificate: Boolean): Text
     begin
-        if UrlHelper.IsPPE() or EnvironmentInformation.IsSandbox() then
+        if UrlHelper.IsPPE() or EnvironmentInformation.IsSandbox() then begin
+            if IsSealCertificate then
+                exit(SealDocumentSubmissionSandboxEndpointUrlTxt);
             exit(DocumentSubmissionSandboxEndpointUrlTxt);
+        end;
 
+        if IsSealCertificate then
+            exit(SealDocumentSubmissionEndpointUrlTxt);
         exit(DocumentSubmissionEndpointUrlTxt);
     end;
 

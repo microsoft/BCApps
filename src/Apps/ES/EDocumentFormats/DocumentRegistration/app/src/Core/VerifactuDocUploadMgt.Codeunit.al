@@ -39,7 +39,7 @@ codeunit 10777 "Verifactu Doc. Upload Mgt."
     internal procedure InvokeSoapRequest(var EDocument: Record "E-Document"; RequestText: Text; RequestType: Enum "Verifactu Request Type"; var ErrorText: Text; var SendContext: Codeunit SendContext): Boolean
     var
         DocRegistrationCertMgt: Codeunit "Doc. Registration Cert. Mgt.";
-        CertificateEnabled, IsSuccessful : Boolean;
+        CertificateEnabled, IsSuccessful, IsSealCertificate : Boolean;
         CertText, CertPassword : SecretText;
         HttpClient: HttpClient;
         HttpRequest: HttpRequestMessage;
@@ -55,7 +55,7 @@ codeunit 10777 "Verifactu Doc. Upload Mgt."
 
         Session.LogMessage('0000QWW', StrSubstNo(BatchSoapRequestMsg, RequestType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
 
-        CertificateEnabled := DocRegistrationCertMgt.GetIsolatedCertificate(VerifactuSetup."Certificate Code", CertText, CertPassword);
+        CertificateEnabled := DocRegistrationCertMgt.GetIsolatedCertificate(VerifactuSetup."Certificate Code", CertText, CertPassword, IsSealCertificate);
         if not CertificateEnabled then begin
             Session.LogMessage('0000QWX', NoCertificateTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             Session.LogSecurityAudit(FeatureNameTxt, SecurityOperationResult::Failure, StrSubstNo(SecurityAuditCertLoadFailedTxt, VerifactuSetup."Certificate Code"), AuditCategory::Authentication);
@@ -65,10 +65,9 @@ codeunit 10777 "Verifactu Doc. Upload Mgt."
         HttpClient.AddCertificate(CertText, CertPassword);
 
         case RequestType of
-            RequestType::DocumentRegistration:
-                WebServiceUrl := VerifactuSetup.GetDocumentSubmissionEndpointUrl();
+            RequestType::DocumentRegistration,
             RequestType::DocumentCancelation:
-                WebServiceUrl := VerifactuSetup.GetDocumentSubmissionEndpointUrl();
+                WebServiceUrl := VerifactuSetup.GetDocumentSubmissionEndpointUrl(IsSealCertificate);
             RequestType::QrCodeValidation:
                 WebServiceUrl := VerifactuSetup.GetQRCodeValidationEndpointUrl();
         end;
@@ -101,7 +100,7 @@ codeunit 10777 "Verifactu Doc. Upload Mgt."
         StatusCode := HttpResponse.HttpStatusCode;
         StatusDescription := HttpResponse.ReasonPhrase;
         if not (StatusCode in [200, 202]) then begin
-            Session.LogMessage('0000QWZ', StrSubstNo(CommunicationTelemetryErr, Format(StatusCode) + ' ' + StatusDescription), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000QWZ', StrSubstNo(CommunicationTelemetryErr, Format(StatusCode) + ' ' + StatusDescription), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameTxt, 'SealCertificate', Format(IsSealCertificate));
             if StatusCode in [401, 403] then
                 Session.LogSecurityAudit(FeatureNameTxt, SecurityOperationResult::Failure, StrSubstNo(SecurityAuditAEATUnauthorizedTxt, StatusCode, RequestType), AuditCategory::Authentication);
             ErrorText := StrSubstNo(CommunicationErr, Format(StatusCode) + ' ' + StatusDescription);
@@ -111,7 +110,7 @@ codeunit 10777 "Verifactu Doc. Upload Mgt."
         HttpResponse.Content().ReadAs(ResponseTxt);
         if not ParseResponse(EDocument, ResponseTxt, SendContext, ErrorText) then
             exit(false);
-        Session.LogMessage('0000QX0', StrSubstNo(BatchSoapRequestSuccMsg, RequestType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogMessage('0000QX0', StrSubstNo(BatchSoapRequestSuccMsg, RequestType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt, 'SealCertificate', Format(IsSealCertificate));
         exit(true);
     end;
 
