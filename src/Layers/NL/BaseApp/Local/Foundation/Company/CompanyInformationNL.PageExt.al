@@ -13,7 +13,7 @@ pageextension 11433 "Company Information NL" extends "Company Information"
             field("Fiscal Entity No."; Rec."Fiscal Entity No.")
             {
                 ApplicationArea = Basic, Suite;
-                ToolTip = 'Specifies the fiscal entity number is the VAT number assigned to a group of companies to report one consolidated VAT declaration.';
+                ToolTip = 'Specifies the fiscal entity number, which is the VAT number assigned to a group of companies to report one consolidated VAT declaration.';
             }
         }
         modify("EORI Number")

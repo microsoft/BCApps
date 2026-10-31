@@ -117,9 +117,11 @@ tableextension 11462 "Customer NL" extends Customer
         if (not GuiAllowed) or IsHandled then
             exit;
         CustBankAcc.SetRange("Customer No.", "No.");
-        if CustBankAcc.FindSet() then begin
-            if not Confirm(StrSubstNo(UpdateBankAccountsQst, UseFieldCaption)) then
-                exit;
+        if CustBankAcc.IsEmpty() then
+            exit;
+        if not Confirm(UpdateBankAccountsQst, false, UseFieldCaption) then
+            exit;
+        if CustBankAcc.FindSet(true) then begin
             repeat
                 CustBankAcc."Account Holder Name" := Name;
                 CustBankAcc."Account Holder Address" := Address;

@@ -14,7 +14,7 @@ pageextension 11435 "General Ledger Entries NL" extends "General Ledger Entries"
             {
                 ApplicationArea = Basic, Suite;
                 Editable = false;
-                ToolTip = 'Specifies the amount that remains to be applied to before the entry is fully applied.';
+                ToolTip = 'Specifies the amount remaining to be applied before the entry is fully applied.';
                 Visible = false;
             }
         }

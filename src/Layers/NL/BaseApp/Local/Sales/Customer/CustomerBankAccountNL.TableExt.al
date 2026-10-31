@@ -44,6 +44,7 @@ tableextension 11463 "Customer Bank Account NL" extends "Customer Bank Account"
             else
             if ("Acc. Hold. Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Acc. Hold. Country/Region Code"));
             ValidateTableRelation = false;
+            TestTableRelation = false;
 
             trigger OnValidate()
             var
@@ -63,6 +64,7 @@ tableextension 11463 "Customer Bank Account NL" extends "Customer Bank Account"
             else
             if ("Acc. Hold. Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Acc. Hold. Country/Region Code"));
             ValidateTableRelation = false;
+            TestTableRelation = false;
 
             trigger OnValidate()
             var

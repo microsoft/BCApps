@@ -111,12 +111,14 @@ tableextension 11401 "Vendor NL" extends Vendor
             exit;
 
         VendBankAcc.SetRange("Vendor No.", "No.");
-        if VendBankAcc.FindSet() then begin
-            IsHandled := false;
-            OnUpdateVendorBankAccountsOnBeforeConfirm(Rec, IsHandled);
-            if not IsHandled then
-                if not Confirm(StrSubstNo(UpdateBankAccountsQst, UseFieldCaption)) then
-                    exit;
+        if VendBankAcc.IsEmpty() then
+            exit;
+        IsHandled := false;
+        OnUpdateVendorBankAccountsOnBeforeConfirm(Rec, IsHandled);
+        if not IsHandled then
+            if not Confirm(UpdateBankAccountsQst, false, UseFieldCaption) then
+                exit;
+        if VendBankAcc.FindSet(true) then begin
             repeat
                 VendBankAcc."Account Holder Name" := Name;
                 VendBankAcc."Account Holder Address" := Address;

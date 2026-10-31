@@ -13,7 +13,7 @@ pageextension 11438 "General Ledger Setup NL" extends "General Ledger Setup"
             field("Local SEPA Instr. Priority"; Rec."Local SEPA Instr. Priority")
             {
                 ApplicationArea = Basic, Suite;
-                ToolTip = 'Specifies if you want to use the local SEPA functionality to generate the InstrPrty XML element in documents. Otherwise, the generic functionality will be used';
+                ToolTip = 'Specifies if you want to use the local SEPA functionality to generate the InstrPrty XML element in documents. Otherwise, the generic functionality will be used.';
             }
         }
         addafter(Application)

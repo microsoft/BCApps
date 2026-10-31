@@ -9,7 +9,8 @@ using Microsoft.Bank.Statement;
 
 codeunit 11446 "Gen. Jnl. Management NL"
 {
-    Access = Internal;
+    Permissions = TableData "Gen. Journal Template" = rimd,
+                  TableData "Gen. Journal Batch" = rimd;
 
     [Scope('OnPrem')]
     procedure TemplateSelectionCBG(PageID: Integer; PageTemplate: Option General,Sales,Purchases,"Cash Receipts",Payments,Assets,Intercompany,,,,,Cash,Bank; var CBGStatement: Record "CBG Statement"; var JnlSelected: Boolean)
@@ -76,7 +77,7 @@ codeunit 11446 "Gen. Jnl. Management NL"
     end;
 
     [Scope('OnPrem')]
-    local procedure InsertCBGStatement(GenJnlTemplate: Record "Gen. Journal Template")
+    procedure InsertCBGStatement(GenJnlTemplate: Record "Gen. Journal Template")
     var
         CBGStatement: Record "CBG Statement";
     begin
@@ -92,7 +93,7 @@ codeunit 11446 "Gen. Jnl. Management NL"
     end;
 
     [Scope('OnPrem')]
-    local procedure EditCBGStatementPage(GenJnlTemplate: Record "Gen. Journal Template")
+    procedure EditCBGStatementPage(GenJnlTemplate: Record "Gen. Journal Template")
     var
         CBGStatement: Record "CBG Statement";
     begin
