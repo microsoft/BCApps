@@ -12,6 +12,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Utilities;
 using System.IO;
+using System.Runtime;
 using System.Threading;
 using System.Utilities;
 
@@ -626,13 +627,13 @@ codeunit 6800 "Avalara Functions"
 
     local procedure GetFileExtensionFromMediaType(MediaType: Text): Text
     var
+        MimeTypeUtility: Codeunit MimeTypeUtility;
         SemiPos: Integer;
         BaseType: Text;
+        Ext: Text;
     begin
-        // Normalise (trim + lower)
+        // Normalise (trim + lower) and strip parameters e.g. "application/json; charset=utf-8"
         BaseType := LowerCase(DelChr(MediaType, '<>', ' '));
-
-        // Strip parameters e.g. "application/json; charset=utf-8"
         SemiPos := StrPos(BaseType, ';');
         if SemiPos > 0 then
             BaseType := CopyStr(BaseType, 1, SemiPos - 1);
@@ -641,43 +642,13 @@ codeunit 6800 "Avalara Functions"
         if BaseType = '' then
             exit('.bin');
 
-        // Exact matches (most common)
-        case BaseType of
-            'application/pdf':
-                exit('.pdf');
-
-            'application/zip', 'application/x-zip-compressed':
-                exit('.zip');
-
-            'application/xml', 'text/xml':
-                exit('.xml');
-
-            'application/json':
-                exit('.json');
-
-            'image/png':
-                exit('.png');
-
-            'image/jpeg', 'image/jpg':
-                exit('.jpg');
-
-            'image/gif':
-                exit('.gif');
-
-            'text/plain':
-                exit('.txt');
-
-            'text/csv':
-                exit('.csv');
-
-            'text/html':
-                exit('.html');
-        end;
+        Ext := MimeTypeUtility.GetExtension(BaseType);
+        if Ext <> '' then
+            exit('.' + Ext);
 
         // Structured syntax suffixes: application/*+xml, application/*+json
         if BaseType.EndsWith('+xml') then
             exit('.xml');
-
         if BaseType.EndsWith('+json') then
             exit('.json');
 
@@ -685,7 +656,6 @@ codeunit 6800 "Avalara Functions"
         if BaseType.StartsWith('text/') then
             exit('.txt');
 
-        // Conservative default
         exit('.bin');
     end;
 
