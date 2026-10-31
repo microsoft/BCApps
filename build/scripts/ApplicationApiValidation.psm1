@@ -18,7 +18,7 @@ $script:RemovalRules = @{
 $script:ObjectRemovalPattern = "^The '(?<kind>\w+)' with (?:ID '(?<id>[0-9]+)' and name|name) '(?<name>.+)' was found in the previous version, but is missing in the current extension\. This will break dependent extensions\.$"
 $script:MemberRules = @{
     AS0018 = "^Procedure '(?<method>.+)' has been removed in '(?<kind>\w+) (?<name>.+)'\. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure\.$"
-    AS0031 = "^The (?<memberKind>action(?: group)?) with name '(?<member>.+)' defined in (?<kind>Page|PageExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\.(?: This will break dependent extensions\.)?$"
+    AS0031 = "^The (?<memberKind>action(?: group|ref)?) with name '(?<member>.+)' defined in (?<kind>Page|PageExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\.(?: This will break dependent extensions\.)?$"
     AS0032 = "^The (?<memberKind>field|part) with name '(?<member>.+)' defined in (?<kind>Page|PageExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\.(?: This will break dependent extensions\.)?$"
     AS0106 = "^The variable '.+' of type '.+' defined in (?<kind>Page|PageExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\. This will break dependent extensions\.$"
 }
@@ -219,7 +219,11 @@ function Get-ApplicationApiRemovalDiagnostics {
                     }
                     elseif ($issue.ruleId -eq 'AS0031') {
                         $actionName = $Matches.member
-                        $actionKind = if ($Matches.memberKind -eq 'action group') { 'ActionGroup' } else { 'Action' }
+                        $actionKind = switch ($Matches.memberKind) {
+                            'action group' { 'ActionGroup' }
+                            'actionref' { 'ActionRef' }
+                            default { 'Action' }
+                        }
                     }
                     if ($partName -or $actionName -or $fieldName) {
                         $parent = @{ Key = "Pages:Name:$($Matches.name)"; Kind = 'Pages'; Named = $true; Name = $Matches.name }

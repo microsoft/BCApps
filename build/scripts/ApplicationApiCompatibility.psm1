@@ -155,6 +155,7 @@ function Add-ApplicationApiPageMembers {
                 elseif ($ChildrenProperty -eq 'Controls' -and $kindValue -cin @('Field', '8')) { 'Field' }
                 elseif ($ChildrenProperty -eq 'Actions' -and $kindValue -cin @('Group', '1')) { 'ActionGroup' }
                 elseif ($ChildrenProperty -eq 'Actions' -and $kindValue -cin @('Action', '2')) { 'Action' }
+                elseif ($ChildrenProperty -eq 'Actions' -and $kindValue -cin @('ActionRef', '4')) { 'ActionRef' }
                 else { 'Unsupported' }
             $isPart = $memberKind -eq 'Part'
             $type = [System.Text.Json.JsonElement]::new()

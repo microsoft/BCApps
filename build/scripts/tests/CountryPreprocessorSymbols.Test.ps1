@@ -4,7 +4,7 @@ Describe 'Country preprocessor symbols' {
     }
 
     BeforeEach {
-        $projects = @'
+        $script:projects = @'
 {
   "Intercompany": {
     "countryPreprocessorSymbols": {

@@ -4,6 +4,30 @@ $script:BuildCountryCodes = @(
         ForEach-Object { $_.Name.Substring(5) }
 )
 
+<#
+.SYNOPSIS
+    Gets the country preprocessor symbols declared for selected applications.
+.DESCRIPTION
+    Validates country-to-symbol mappings and returns sorted, unique symbols.
+    Country codes are case-insensitive; WW is normalized to W1. AllApplications
+    returns the complete declared symbol allow-list without filtering by country.
+.PARAMETER ApplicationNames
+    Application names whose country-specific symbols should be returned.
+.PARAMETER CountryCode
+    Build country for which to resolve the selected applications' symbols.
+.PARAMETER AllApplications
+    Returns symbols declared by every application for every configured country.
+.PARAMETER Projects
+    Optional projects metadata object. Defaults to the projects property in build\projects.json.
+.OUTPUTS
+    System.String
+.EXAMPLE
+    Get-CountryPreprocessorSymbols -ApplicationNames Intercompany -CountryCode AU
+    Returns the Intercompany symbols configured for Australia.
+.EXAMPLE
+    Get-CountryPreprocessorSymbols -AllApplications
+    Returns all declared country symbols for source validation.
+#>
 function Get-CountryPreprocessorSymbols {
     [CmdletBinding(DefaultParameterSetName = 'Application')]
     param(
@@ -63,6 +87,20 @@ function Get-CountryPreprocessorSymbols {
     $symbols | Sort-Object -Unique
 }
 
+<#
+.SYNOPSIS
+    Gets preprocessor symbols for the default build baseline.
+.DESCRIPTION
+    Removes numbered CLEAN and CLEANSCHEMA symbols while retaining localization
+    and unrelated feature flags. Returns sorted, unique symbols.
+.PARAMETER PreprocessorSymbols
+    Symbols from the current build configuration. An empty collection is allowed.
+.OUTPUTS
+    System.String
+.EXAMPLE
+    Get-DefaultBuildPreprocessorSymbols -PreprocessorSymbols CLEAN30, INTERCOMPANY_NO, DEBUG
+    Returns DEBUG and INTERCOMPANY_NO.
+#>
 function Get-DefaultBuildPreprocessorSymbols {
     param(
         [AllowEmptyCollection()]

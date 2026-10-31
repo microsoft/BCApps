@@ -1,8 +1,8 @@
 Describe 'Country project preprocessor settings' {
     BeforeAll {
-        $updater = Join-Path $PSScriptRoot '..\Update-CountryProjectSettings.ps1'
-        $originalWorkspace = $env:GITHUB_WORKSPACE
-        $originalInetroot = $env:INETROOT
+        $script:updater = Join-Path $PSScriptRoot '..\Update-CountryProjectSettings.ps1'
+        $script:originalWorkspace = $env:GITHUB_WORKSPACE
+        $script:originalInetroot = $env:INETROOT
     }
 
     BeforeEach {
@@ -56,5 +56,14 @@ function Get-ApplicationGroup {
 
         $updated = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json
         $updated.preprocessorSymbols | Should -Be @('DEBUG', 'INTERCOMPANY_APAC')
+    }
+
+    It 'does not modify settings when WhatIf is specified' {
+        $originalContent = Get-Content -LiteralPath $settingsPath -Raw
+
+        & $updater -CountryCode AU -WhatIf 6>$null
+
+        Get-Content -LiteralPath $settingsPath -Raw | Should -Be $originalContent
+        (& $updater -CountryCode AU -Validate 6>$null) | Should -BeFalse
     }
 }

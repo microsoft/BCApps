@@ -586,12 +586,12 @@ Describe 'Application API compatibility prototype' {
                     TargetObject = 'Accountant Role Center'
                     ControlChanges = @(@{ Name = 'Control1902304208'; Controls = @($newPart) })
                 }
-                $partOldCollections = @{ Namespaces = @(@{ Name = 'Migration.PartProbe'; Pages = @($page, $oldHost, $oldTarget) }) }
-                $partCurrentCollections = @{ Namespaces = @(@{ Name = 'Migration.PartProbe'; Pages = @($currentHost) }) }
-                $partDestinationCollections = @{
+                $script:partOldCollections = @{ Namespaces = @(@{ Name = 'Migration.PartProbe'; Pages = @($page, $oldHost, $oldTarget) }) }
+                $script:partCurrentCollections = @{ Namespaces = @(@{ Name = 'Migration.PartProbe'; Pages = @($currentHost) }) }
+                $script:partDestinationCollections = @{
                     Namespaces = @(@{ Name = 'Migration.PartProbe'; Pages = @($page, $newTarget); PageExtensions = @($partExtension) })
                 }
-                $partMessage = "The part with name 'Intercompany Activities' defined in Page 'Accountant Role Center' was found in the previous version, but is missing in the current extension."
+                $script:partMessage = "The part with name 'Intercompany Activities' defined in Page 'Accountant Role Center' was found in the previous version, but is missing in the current extension."
             }
 
             It 'reconciles an unchanged part using a <Reference> host reference' -TestCases @(
@@ -718,12 +718,12 @@ Describe 'Application API compatibility prototype' {
                     TargetObject = 'Dim. Correct Ledger Entries'
                     ControlChanges = @(@{ Name = 'Global Dimension 2 Code'; Controls = @($newField) })
                 }
-                $fieldOldCollections = @{ Namespaces = @(@{ Name = 'Migration.FieldProbe'; Pages = @($page, $oldHost) }) }
-                $fieldCurrentCollections = @{ Namespaces = @(@{ Name = 'Migration.FieldProbe'; Pages = @($currentHost) }) }
-                $fieldDestinationCollections = @{
+                $script:fieldOldCollections = @{ Namespaces = @(@{ Name = 'Migration.FieldProbe'; Pages = @($page, $oldHost) }) }
+                $script:fieldCurrentCollections = @{ Namespaces = @(@{ Name = 'Migration.FieldProbe'; Pages = @($currentHost) }) }
+                $script:fieldDestinationCollections = @{
                     Namespaces = @(@{ Name = 'Migration.FieldProbe'; Pages = @($page); PageExtensions = @($fieldExtension) })
                 }
-                $fieldMessage = "The field with name 'IC Partner Code' defined in Page 'Dim. Correct Ledger Entries' was found in the previous version, but is missing in the current extension."
+                $script:fieldMessage = "The field with name 'IC Partner Code' defined in Page 'Dim. Correct Ledger Entries' was found in the previous version, but is missing in the current extension."
             }
 
             It 'reconciles an unchanged field with <Encoding> metadata' -TestCases @(
@@ -863,14 +863,14 @@ Describe 'Application API compatibility prototype' {
                         @{ Name = 'Recurring Journals'; Actions = @($newStandalone) }
                     )
                 }
-                $actionOldCollections = @{ Namespaces = @(@{ Name = 'Migration.ActionProbe'; Pages = @($page, $oldHost) }) }
-                $actionCurrentCollections = @{ Namespaces = @(@{ Name = 'Migration.ActionProbe'; Pages = @($currentHost) }) }
-                $actionDestinationCollections = @{
+                $script:actionOldCollections = @{ Namespaces = @(@{ Name = 'Migration.ActionProbe'; Pages = @($page, $oldHost) }) }
+                $script:actionCurrentCollections = @{ Namespaces = @(@{ Name = 'Migration.ActionProbe'; Pages = @($currentHost) }) }
+                $script:actionDestinationCollections = @{
                     Namespaces = @(@{ Name = 'Migration.ActionProbe'; Pages = @($page); PageExtensions = @($actionExtension) })
                 }
-                $groupMessage = "The action group with name 'Group3' defined in Page 'Finance Manager Role Center' was found in the previous version, but is missing in the current extension."
-                $childMessage = "The action with name 'General Journals' defined in Page 'Finance Manager Role Center' was found in the previous version, but is missing in the current extension."
-                $standaloneMessage = "The action with name 'General Journals2' defined in Page 'Finance Manager Role Center' was found in the previous version, but is missing in the current extension."
+                $script:groupMessage = "The action group with name 'Group3' defined in Page 'Finance Manager Role Center' was found in the previous version, but is missing in the current extension."
+                $script:childMessage = "The action with name 'General Journals' defined in Page 'Finance Manager Role Center' was found in the previous version, but is missing in the current extension."
+                $script:standaloneMessage = "The action with name 'General Journals2' defined in Page 'Finance Manager Role Center' was found in the previous version, but is missing in the current extension."
             }
 
             It 'reconciles an unchanged group, its child action and a standalone action with <Encoding> kinds' -TestCases @(
@@ -901,6 +901,88 @@ Describe 'Application API compatibility prototype' {
                 $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
                 @($alerts.issues | Where-Object ruleId -EQ 'AS0031').Count | Should -Be 0
                 @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
+            }
+
+            Context 'Promoted action references' {
+                BeforeEach {
+                    $oldHost.Name = $currentHost.Name = 'Purchase Order'
+                    $oldHost.Id = $currentHost.Id = 50
+                    $actionExtension.TargetObject = 'Purchase Order'
+                    $standalone.Name = $newStandalone.Name = 'Send Intercompany Purchase Order'
+                    $script:actionRef = @{
+                        Name = 'Send Intercompany Purchase Order_Promoted'
+                        Kind = 'ActionRef'
+                        TargetId = 123
+                        TargetName = 'Send Intercompany Purchase Order'
+                    }
+                    $script:newActionRef = $actionRef | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                    $oldHost.Actions += @{
+                        Name = 'Promoted'
+                        Kind = 'Area'
+                        Actions = @(@{ Name = 'Category_Process'; Kind = 'Group'; Actions = @($actionRef) })
+                    }
+                    $actionExtension.ActionChanges += @{
+                        Name = 'Create Inventor&y Put-away/Pick_Promoted'
+                        Actions = @($newActionRef)
+                    }
+                    $script:actionRefMessage = "The actionref with name 'Send Intercompany Purchase Order_Promoted' defined in Page 'Purchase Order' was found in the previous version, but is missing in the current extension."
+                    $script:sourceActionMessage = "The action with name 'Send Intercompany Purchase Order' defined in Page 'Purchase Order' was found in the previous version, but is missing in the current extension."
+                }
+
+                It 'reconciles an unchanged actionref and its source action with kind <Kind>' -TestCases @(
+                    @{ Kind = 'ActionRef'; Suffix = ' This will break dependent extensions.' },
+                    @{ Kind = 4; Suffix = '' }
+                ) {
+                    param($Kind, $Suffix)
+                    $actionRef.Kind = $newActionRef.Kind = $Kind
+                    Write-ActionApiPackages
+                    $gate = New-ApiGateLayout
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message "$actionRefMessage$Suffix"
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message $sourceActionMessage
+                    Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                    { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+                    $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                    $moves = @($state.AcceptedMoves | Where-Object RuleId -EQ 'AS0031')
+                    $moves.Count | Should -Be 2
+                    @($moves | Where-Object { -not $_.Accepted }).Count | Should -Be 0
+                    ($moves | Where-Object ActionName -EQ $actionRef.Name).ActionKind | Should -Be 'ActionRef'
+                    Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Not -Match 'warning AS0031'
+                    Get-Content -LiteralPath (Join-Path $gate.Root "Originals\$([System.IO.Path]::GetFileName($gate.SourceLog)).txt") -Raw |
+                        Should -Match 'warning AS0031'
+                    $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
+                    @($alerts.issues | Where-Object ruleId -EQ 'AS0031').Count | Should -Be 0
+                    @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
+                }
+
+                It 'rejects promoted action relocations when <Failure>' -TestCases @(
+                    @{ Failure = 'the actionref is missing' },
+                    @{ Failure = 'the actionref is renamed' },
+                    @{ Failure = 'the member is no longer an actionref' },
+                    @{ Failure = 'the referenced action name changes' },
+                    @{ Failure = 'the referenced action ID changes' },
+                    @{ Failure = 'the source action is missing' },
+                    @{ Failure = 'the source action contract changes' }
+                ) {
+                    param($Failure)
+                    switch ($Failure) {
+                        'the actionref is missing' { $actionExtension.ActionChanges[2].Actions = @() }
+                        'the actionref is renamed' { $newActionRef.Name = 'Renamed promotion' }
+                        'the member is no longer an actionref' { $newActionRef.Kind = 'Action' }
+                        'the referenced action name changes' { $newActionRef.TargetName = 'Other action' }
+                        'the referenced action ID changes' { $newActionRef.TargetId = 456 }
+                        'the source action is missing' { $actionExtension.ActionChanges[1].Actions = @() }
+                        'the source action contract changes' { $newStandalone.Properties[0].Value = 'Page "Different Journal"' }
+                    }
+                    Write-ActionApiPackages
+                    $gate = New-ApiGateLayout
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message $actionRefMessage
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message $sourceActionMessage
+                    { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                    $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                    @($state.AcceptedMoves | Where-Object { $_.RuleId -eq 'AS0031' -and -not $_.Accepted }).Count | Should -Be 1
+                    Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0031'
+                    { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+                }
             }
 
             It 'recognizes an action-group diagnostic accompanying an unchanged whole-page move' {
@@ -1024,17 +1106,17 @@ Describe 'Application API compatibility prototype' {
                     Parameters = @(@{ Name = 'Value'; IsVar = $false; TypeDefinition = @{ Name = 'Text' } })
                     ReturnTypeDefinition = @{ Name = 'Boolean' }
                 }
-                $event = @{
+                $eventMethod = @{
                     Name = 'OnBeforeProcess'
                     IsLocal = $true
                     Parameters = @(@{ Name = 'Value'; IsVar = $true; TypeDefinition = @{ Name = 'Text' } })
                     Attributes = @(@{ Name = 'IntegrationEvent'; Arguments = @(@{ Value = 'false' }, @{ Value = 'false' }) })
                 }
                 $newProcedure = $procedure | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
-                $newEvent = $event | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
-                $methodHost = @{ Id = 50010; Name = 'Method host'; Methods = @($procedure, $event) }
-                $currentMethodHost = @{ Id = 50010; Name = 'Method host'; Methods = @() }
-                $methodExtension = @{ Id = 50011; Name = 'Method extension'; Methods = @($newProcedure, $newEvent) }
+                $newEvent = $eventMethod | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $script:methodHost = @{ Id = 50010; Name = 'Method host'; Methods = @($procedure, $eventMethod) }
+                $script:currentMethodHost = @{ Id = 50010; Name = 'Method host'; Methods = @() }
+                $script:methodExtension = @{ Id = 50011; Name = 'Method extension'; Methods = @($newProcedure, $newEvent) }
             }
 
             It 'reconciles unchanged procedures and <EventKind> publishers on a <Kind> with a <Reference> reference' -TestCases @(
@@ -1046,9 +1128,9 @@ Describe 'Application API compatibility prototype' {
                 @{ Kind = 'Report'; EventKind = 'BusinessEvent'; Reference = 'simple' }
             ) {
                 param($Kind, $EventKind, $Reference)
-                $event.Attributes[0].Name = $newEvent.Attributes[0].Name = $EventKind
+                $eventMethod.Attributes[0].Name = $newEvent.Attributes[0].Name = $EventKind
                 if ($EventKind -eq 'BusinessEvent') {
-                    $event.Attributes[0].Arguments = $newEvent.Attributes[0].Arguments = @(@{ Value = 'false' })
+                    $eventMethod.Attributes[0].Arguments = $newEvent.Attributes[0].Arguments = @(@{ Value = 'false' })
                 }
                 $layout = Set-MethodApiHostKind -Kind $Kind
                 if ($Reference -eq 'qualified') { $methodExtension[$layout.TargetProperty] = 'Migration.MethodProbe."Method host"' }

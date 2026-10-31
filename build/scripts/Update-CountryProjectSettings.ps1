@@ -194,6 +194,16 @@ function Get-AppFoldersForCountry {
 }
 
 function Update-CountrySettings {
+    <#
+    .SYNOPSIS
+        Updates one country's app folders, test folders, and preprocessor symbols.
+    .DESCRIPTION
+        Reports drift without writing in validation mode. Otherwise, applies
+        changes only when ShouldProcess approves the settings file update.
+    .PARAMETER Country
+        Normalized build country code whose project settings should be updated.
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
     param([string]$Country)
 
     $settingsPath = Join-Path (Join-Path (Join-Path $countryProjectsPath "Apps $Country") ".AL-Go") "settings.json"
@@ -225,9 +235,9 @@ function Update-CountrySettings {
     )
 
     # Check if changes are needed
-    $appFoldersChanged = (Compare-Object $currentAppFolders $newAppFolders -SyncWindow 0) -ne $null
-    $testFoldersChanged = (Compare-Object $currentTestFolders $newTestFolders -SyncWindow 0) -ne $null
-    $preprocessorSymbolsChanged = (Compare-Object $currentPreprocessorSymbols $newPreprocessorSymbols -SyncWindow 0) -ne $null
+    $appFoldersChanged = $null -ne (Compare-Object $currentAppFolders $newAppFolders -SyncWindow 0)
+    $testFoldersChanged = $null -ne (Compare-Object $currentTestFolders $newTestFolders -SyncWindow 0)
+    $preprocessorSymbolsChanged = $null -ne (Compare-Object $currentPreprocessorSymbols $newPreprocessorSymbols -SyncWindow 0)
 
     if (-not $appFoldersChanged -and -not $testFoldersChanged -and -not $preprocessorSymbolsChanged) {
         Write-Host "  No changes needed for $Country" -ForegroundColor Green
