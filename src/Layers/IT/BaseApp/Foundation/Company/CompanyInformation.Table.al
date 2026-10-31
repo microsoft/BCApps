@@ -617,8 +617,17 @@ table 79 "Company Information"
         }
         field(12120; "Company Type"; Code[2])
         {
-            Caption = 'Company Type';
+            Caption = 'FatturaPA Fiscal Regime';
+            ToolTip = 'Specifies the fiscal regime used for FatturaPA. For example, code 19 is exported as RF19.';
             TableRelation = "Company Types";
+
+            trigger OnValidate()
+            var
+                CompanyTypes: Record "Company Types";
+            begin
+                if ("Company Type" <> '') and not CompanyTypes.IsValidFatturaPAFiscalRegimeCode("Company Type") then
+                    FieldError("Company Type");
+            end;
         }
         field(12121; "General Manager No."; Code[20])
         {
