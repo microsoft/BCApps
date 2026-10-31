@@ -13,10 +13,12 @@ tableextension 5282 "Dimension SAF-T" extends Dimension
         field(5280; "Analysis Type SAF-T"; Code[9])
         {
             Caption = 'SAF-T Analysis Type';
+            DataClassification = CustomerContent;
         }
         field(5281; "SAF-T Export"; Boolean)
         {
             Caption = 'SAF-T Export';
+            DataClassification = CustomerContent;
             InitValue = true;
         }
     }

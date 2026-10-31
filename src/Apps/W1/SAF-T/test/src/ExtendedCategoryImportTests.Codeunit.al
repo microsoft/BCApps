@@ -1,4 +1,6 @@
+#pragma warning disable AA0247
 codeunit 139537 "Extended Category Import Tests"
+#pragma warning restore AA0247
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -13,6 +15,22 @@ codeunit 139537 "Extended Category Import Tests"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
+        GroupingCodeXMLbl: Label '<Root><GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>%2</CategoryDescription><AccountNo>%3</AccountNo><AccountDescription>%4</AccountDescription></GroupingCode></Root>', Comment = '%1: Category Code, %2: Category Description, %3: Account No., %4: Account Description';
+        GroupingCodeExtendedXMLbl: Label '<Root><GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>%2</CategoryDescription><CategoryDescription>%3</CategoryDescription><AccountNo>%4</AccountNo><AccountDescription>%5</AccountDescription></GroupingCode></Root>', Comment = '%1: Category Code, %2: Category Description, %3: Extended Category Description, %4: Account No., %5: Account Description';
+        GroupingCodeDesc1XMLbl: Label '<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Desc 1</CategoryDescription><AccountNo>ACC001</AccountNo><AccountDescription>Account 1</AccountDescription></GroupingCode>', Comment = '%1: Category Code';
+        GroupingCodeDesc2XMLbl: Label '<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Desc 2</CategoryDescription><AccountNo>ACC002</AccountNo><AccountDescription>Account 2</AccountDescription></GroupingCode>', Comment = '%1: Category Code';
+        GroupingCodeDesc3XMLbl: Label '<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Desc 3</CategoryDescription><AccountNo>ACC003</AccountNo><AccountDescription>Account 3</AccountDescription></GroupingCode>', Comment = '%1: Category Code';
+        GroupingCodeShortDescXMLbl: Label '<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Short Desc</CategoryDescription><AccountNo>ACC001</AccountNo><AccountDescription>Account 1</AccountDescription></GroupingCode>', Comment = '%1: Category Code';
+        GroupingCodeLongDescXMLbl: Label '<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Long Desc</CategoryDescription><AccountNo>ACC002</AccountNo><AccountDescription>Account 2</AccountDescription></GroupingCode>', Comment = '%1: Category Code';
+        GroupingCodeLongDesc1XMLbl: Label '<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Long Desc 1</CategoryDescription><AccountNo>ACC001</AccountNo><AccountDescription>Account 1</AccountDescription></GroupingCode>', Comment = '%1: Category Code';
+        GroupingCodeShortDesc2XMLbl: Label '<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Short Desc</CategoryDescription><AccountNo>ACC002</AccountNo><AccountDescription>Account 2</AccountDescription></GroupingCode>', Comment = '%1: Category Code';
+        GroupingCodeLongDesc2XMLbl: Label '<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Long Desc 2</CategoryDescription><AccountNo>ACC003</AccountNo><AccountDescription>Account 3</AccountDescription></GroupingCode>', Comment = '%1: Category Code';
+        GroupingCodeAccount1XMLbl: Label '<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>%2</CategoryDescription><AccountNo>%3</AccountNo><AccountDescription>Account 1</AccountDescription></GroupingCode>', Comment = '%1: Category Code, %2: Category Description, %3: Account No.';
+        GroupingCodeAccount2XMLbl: Label '<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>%2</CategoryDescription><AccountNo>%3</AccountNo><AccountDescription>Account 2</AccountDescription></GroupingCode>', Comment = '%1: Category Code, %2: Category Description, %3: Account No.';
+        GroupingCodeAccount3XMLbl: Label '<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>%2</CategoryDescription><AccountNo>%3</AccountNo><AccountDescription>Account 3</AccountDescription></GroupingCode>', Comment = '%1: Category Code, %2: Category Description, %3: Account No.';
+        DescriptionMismatchErrLbl: Label 'Description mismatch for category %1', Comment = '%1: Category No.';
+        CategoryExtendedNoMismatchErrLbl: Label 'Extended No. mismatch for category %1', Comment = '%1: Category No.';
+        AccountExtendedNoMismatchErrLbl: Label 'Extended No. mismatch for account %1', Comment = '%1: Account No.';
 
     [Test]
     procedure ImportGroupingCodeWith20CharsStoredAsNo()
@@ -44,7 +62,7 @@ codeunit 139537 "Extended Category Import Tests"
     begin
         // [SCENARIO] Import a grouping code with 21 characters generates CAT000001 and stores original in Extended No.
         // [GIVEN] XML buffer with a 21-character category code
-        ExtendedCategoryCode := LibraryUtility.GenerateRandomAlphabeticText(21, 0);
+        ExtendedCategoryCode := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(21, 0), 1, MaxStrLen(ExtendedCategoryCode));
         Description := 'Extended Category';
         BuildGroupingCodeXML(TempXMLBuffer, ExtendedCategoryCode, Description, 'ACC001', 'Account 1');
 
@@ -64,9 +82,9 @@ codeunit 139537 "Extended Category Import Tests"
     begin
         // [SCENARIO] Import multiple long category codes generates sequential CAT numbers
         // [GIVEN] XML buffer with three long category codes
-        ExtendedCode1 := LibraryUtility.GenerateRandomAlphabeticText(30, 0);
-        ExtendedCode2 := LibraryUtility.GenerateRandomAlphabeticText(30, 0);
-        ExtendedCode3 := LibraryUtility.GenerateRandomAlphabeticText(30, 0);
+        ExtendedCode1 := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(30, 0), 1, MaxStrLen(ExtendedCode1));
+        ExtendedCode2 := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(30, 0), 1, MaxStrLen(ExtendedCode2));
+        ExtendedCode3 := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(30, 0), 1, MaxStrLen(ExtendedCode3));
 
         BuildMultipleGroupingCodesXML(TempXMLBuffer, ExtendedCode1, ExtendedCode2, ExtendedCode3);
 
@@ -90,7 +108,7 @@ codeunit 139537 "Extended Category Import Tests"
         // [SCENARIO] Import mix of short (<=20) and long (>20) category codes handles both correctly
         // [GIVEN] XML buffer with one short and one long category code
         ShortCode := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(15, 0), 1, MaxStrLen(ShortCode));
-        LongCode := LibraryUtility.GenerateRandomAlphabeticText(50, 0);
+        LongCode := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(50, 0), 1, MaxStrLen(LongCode));
 
         BuildMixedGroupingCodesXML(TempXMLBuffer, ShortCode, LongCode);
 
@@ -113,7 +131,7 @@ codeunit 139537 "Extended Category Import Tests"
     begin
         // [SCENARIO] Import same long category code multiple times reuses the generated CAT number
         // [GIVEN] XML buffer with same long category code for multiple accounts
-        ExtendedCategoryCode := LibraryUtility.GenerateRandomAlphabeticText(50, 0);
+        ExtendedCategoryCode := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(50, 0), 1, MaxStrLen(ExtendedCategoryCode));
         BuildRepeatedGroupingCodeXML(TempXMLBuffer, ExtendedCategoryCode, 'Category Desc', 'ACC001', 'ACC002', 'ACC003');
 
         // [WHEN] Import standard accounts with grouping codes
@@ -140,9 +158,9 @@ codeunit 139537 "Extended Category Import Tests"
     begin
         // [SCENARIO] Import long category, then short, then long again maintains correct sequence
         // [GIVEN] XML buffer with alternating long and short category codes
-        LongCode1 := LibraryUtility.GenerateRandomAlphabeticText(40, 0);
+        LongCode1 := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(40, 0), 1, MaxStrLen(LongCode1));
         ShortCode := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(10, 0), 1, MaxStrLen(ShortCode));
-        LongCode2 := LibraryUtility.GenerateRandomAlphabeticText(40, 0);
+        LongCode2 := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(40, 0), 1, MaxStrLen(LongCode2));
 
         BuildAlternatingGroupingCodesXML(TempXMLBuffer, LongCode1, ShortCode, LongCode2);
 
@@ -164,7 +182,7 @@ codeunit 139537 "Extended Category Import Tests"
     begin
         // [SCENARIO] Import handles CategoryDescription node correctly for long category codes
         // [GIVEN] XML buffer with CategoryDescription node and long category code
-        ExtendedCategoryCode := LibraryUtility.GenerateRandomAlphabeticText(50, 0);
+        ExtendedCategoryCode := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(50, 0), 1, MaxStrLen(ExtendedCategoryCode));
         BuildGroupingCodeXMLWithCategoryDescription(TempXMLBuffer, ExtendedCategoryCode, 'Category Desc', 'Extra Desc', 'ACC001', 'Account 1');
 
         // [WHEN] Import standard accounts with grouping codes
@@ -185,7 +203,7 @@ codeunit 139537 "Extended Category Import Tests"
         // [SCENARIO] Re-importing same long category code updates existing record
         // [GIVEN] Existing category with CAT000001
         CleanupMappingData();
-        ExtendedCategoryCode := LibraryUtility.GenerateRandomAlphabeticText(50, 0);
+        ExtendedCategoryCode := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(50, 0), 1, MaxStrLen(ExtendedCategoryCode));
 
         StandardAccountCategory.Init();
         StandardAccountCategory."Standard Account Type" := "Standard Account Type"::"Standard Account SAF-T";
@@ -214,7 +232,7 @@ codeunit 139537 "Extended Category Import Tests"
     begin
         // [SCENARIO] Imported accounts are correctly linked to their category
         // [GIVEN] XML buffer with long category code and multiple accounts
-        ExtendedCategoryCode := LibraryUtility.GenerateRandomAlphabeticText(50, 0);
+        ExtendedCategoryCode := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(50, 0), 1, MaxStrLen(ExtendedCategoryCode));
         BuildRepeatedGroupingCodeXML(TempXMLBuffer, ExtendedCategoryCode, 'Category', 'ACC001', 'ACC002', 'ACC003');
 
         // [WHEN] Import standard accounts with grouping codes
@@ -236,7 +254,7 @@ codeunit 139537 "Extended Category Import Tests"
     begin
         // [SCENARIO] Account descriptions are preserved during import with long category codes
         // [GIVEN] XML buffer with long category code
-        ExtendedCategoryCode := LibraryUtility.GenerateRandomAlphabeticText(50, 0);
+        ExtendedCategoryCode := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(50, 0), 1, MaxStrLen(ExtendedCategoryCode));
         BuildGroupingCodeXML(TempXMLBuffer, ExtendedCategoryCode, 'Category Desc', 'ACC001', 'Account Description 1');
 
         // [WHEN] Import standard accounts with grouping codes
@@ -422,7 +440,7 @@ codeunit 139537 "Extended Category Import Tests"
         TempXMLBuffer.DeleteAll();
 
         XmlText := StrSubstNo(
-            '<Root><GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>%2</CategoryDescription><AccountNo>%3</AccountNo><AccountDescription>%4</AccountDescription></GroupingCode></Root>',
+            GroupingCodeXMLbl,
             CategoryCode, CategoryDesc, AccountNo, AccountDesc);
         TempXMLBuffer.LoadFromText(XmlText);
 
@@ -438,7 +456,7 @@ codeunit 139537 "Extended Category Import Tests"
 
         // Include extra CategoryDescription node to test skipping
         XmlText := StrSubstNo(
-            '<Root><GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>%2</CategoryDescription><CategoryDescription>%3</CategoryDescription><AccountNo>%4</AccountNo><AccountDescription>%5</AccountDescription></GroupingCode></Root>',
+            GroupingCodeExtendedXMLbl,
             CategoryCode, CategoryDesc, ExtraDesc, AccountNo, AccountDesc);
         TempXMLBuffer.LoadFromText(XmlText);
 
@@ -453,9 +471,9 @@ codeunit 139537 "Extended Category Import Tests"
         TempXMLBuffer.DeleteAll();
 
         XmlText := '<Root>' +
-            StrSubstNo('<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Desc 1</CategoryDescription><AccountNo>ACC001</AccountNo><AccountDescription>Account 1</AccountDescription></GroupingCode>', Code1) +
-            StrSubstNo('<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Desc 2</CategoryDescription><AccountNo>ACC002</AccountNo><AccountDescription>Account 2</AccountDescription></GroupingCode>', Code2) +
-            StrSubstNo('<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Desc 3</CategoryDescription><AccountNo>ACC003</AccountNo><AccountDescription>Account 3</AccountDescription></GroupingCode>', Code3) +
+            StrSubstNo(GroupingCodeDesc1XMLbl, Code1) +
+            StrSubstNo(GroupingCodeDesc2XMLbl, Code2) +
+            StrSubstNo(GroupingCodeDesc3XMLbl, Code3) +
             '</Root>';
         TempXMLBuffer.LoadFromText(XmlText);
 
@@ -470,8 +488,8 @@ codeunit 139537 "Extended Category Import Tests"
         TempXMLBuffer.DeleteAll();
 
         XmlText := '<Root>' +
-            StrSubstNo('<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Short Desc</CategoryDescription><AccountNo>ACC001</AccountNo><AccountDescription>Account 1</AccountDescription></GroupingCode>', ShortCode) +
-            StrSubstNo('<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Long Desc</CategoryDescription><AccountNo>ACC002</AccountNo><AccountDescription>Account 2</AccountDescription></GroupingCode>', LongCode) +
+            StrSubstNo(GroupingCodeShortDescXMLbl, ShortCode) +
+            StrSubstNo(GroupingCodeLongDescXMLbl, LongCode) +
             '</Root>';
         TempXMLBuffer.LoadFromText(XmlText);
 
@@ -486,9 +504,9 @@ codeunit 139537 "Extended Category Import Tests"
         TempXMLBuffer.DeleteAll();
 
         XmlText := '<Root>' +
-            StrSubstNo('<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Long Desc 1</CategoryDescription><AccountNo>ACC001</AccountNo><AccountDescription>Account 1</AccountDescription></GroupingCode>', LongCode1) +
-            StrSubstNo('<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Short Desc</CategoryDescription><AccountNo>ACC002</AccountNo><AccountDescription>Account 2</AccountDescription></GroupingCode>', ShortCode) +
-            StrSubstNo('<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>Long Desc 2</CategoryDescription><AccountNo>ACC003</AccountNo><AccountDescription>Account 3</AccountDescription></GroupingCode>', LongCode2) +
+            StrSubstNo(GroupingCodeLongDesc1XMLbl, LongCode1) +
+            StrSubstNo(GroupingCodeShortDesc2XMLbl, ShortCode) +
+            StrSubstNo(GroupingCodeLongDesc2XMLbl, LongCode2) +
             '</Root>';
         TempXMLBuffer.LoadFromText(XmlText);
 
@@ -503,9 +521,9 @@ codeunit 139537 "Extended Category Import Tests"
         TempXMLBuffer.DeleteAll();
 
         XmlText := '<Root>' +
-            StrSubstNo('<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>%2</CategoryDescription><AccountNo>%3</AccountNo><AccountDescription>Account 1</AccountDescription></GroupingCode>', CategoryCode, CategoryDesc, AccountNo1) +
-            StrSubstNo('<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>%2</CategoryDescription><AccountNo>%3</AccountNo><AccountDescription>Account 2</AccountDescription></GroupingCode>', CategoryCode, CategoryDesc, AccountNo2) +
-            StrSubstNo('<GroupingCode><CategoryCode>%1</CategoryCode><CategoryDescription>%2</CategoryDescription><AccountNo>%3</AccountNo><AccountDescription>Account 3</AccountDescription></GroupingCode>', CategoryCode, CategoryDesc, AccountNo3) +
+            StrSubstNo(GroupingCodeAccount1XMLbl, CategoryCode, CategoryDesc, AccountNo1) +
+            StrSubstNo(GroupingCodeAccount2XMLbl, CategoryCode, CategoryDesc, AccountNo2) +
+            StrSubstNo(GroupingCodeAccount3XMLbl, CategoryCode, CategoryDesc, AccountNo3) +
             '</Root>';
         TempXMLBuffer.LoadFromText(XmlText);
 
@@ -536,8 +554,8 @@ codeunit 139537 "Extended Category Import Tests"
         StandardAccountCategory: Record "Standard Account Category";
     begin
         StandardAccountCategory.Get("Standard Account Type"::"Standard Account SAF-T", ExpectedNo);
-        Assert.AreEqual(ExpectedDescription, StandardAccountCategory.Description, StrSubstNo('Description mismatch for category %1', ExpectedNo));
-        Assert.AreEqual(ExpectedExtendedNo, StandardAccountCategory."Extended No.", StrSubstNo('Extended No. mismatch for category %1', ExpectedNo));
+        Assert.AreEqual(ExpectedDescription, StandardAccountCategory.Description, StrSubstNo(DescriptionMismatchErrLbl, ExpectedNo));
+        Assert.AreEqual(ExpectedExtendedNo, StandardAccountCategory."Extended No.", StrSubstNo(CategoryExtendedNoMismatchErrLbl, ExpectedNo));
     end;
 
     local procedure VerifyStandardAccountExtendedNo(ExpectedCategoryNo: Code[20]; ExpectedNo: Code[20]; ExpectedExtendedNo: Text[500])
@@ -545,7 +563,7 @@ codeunit 139537 "Extended Category Import Tests"
         StandardAccount: Record "Standard Account";
     begin
         StandardAccount.Get("Standard Account Type"::"Standard Account SAF-T", ExpectedCategoryNo, ExpectedNo);
-        Assert.AreEqual(ExpectedExtendedNo, StandardAccount."Extended No.", StrSubstNo('Extended No. mismatch for account %1', ExpectedNo));
+        Assert.AreEqual(ExpectedExtendedNo, StandardAccount."Extended No.", StrSubstNo(AccountExtendedNoMismatchErrLbl, ExpectedNo));
     end;
 
     local procedure BuildGroupingCodeXMLWithLongAccountNo(var TempXMLBuffer: Record "XML Buffer" temporary; CategoryCode: Text; CategoryDesc: Text; AccountNo: Text; AccountDesc: Text)
