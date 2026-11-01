@@ -430,8 +430,8 @@ codeunit 133735 "PA Wrapper Contract Tests"
         if Classic = AgentDriven then
             Check(Classic = 'Prompts/PayablesAgent-AgentInstructions-V2.md', 'V2 must select its prompt independently of the v1 line-matching treatment.')
         else begin
-            Check(Classic = '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions.md', 'The classic resource must remain available.');
-            Check(AgentDriven = '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', 'The agent-driven resource must remain available.');
+            Check(Classic = 'DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions.md', 'The classic resource must remain available.');
+            Check(AgentDriven = 'DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', 'The agent-driven resource must remain available.');
         end;
         Fingerprint := Instructions.GetInstructionsConfigHash();
         Check(StrLen(Fingerprint) = 64, 'The selected prompt must produce a SHA256 fingerprint.');
