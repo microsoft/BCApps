@@ -540,8 +540,10 @@ report 512 "IC Transactions"
         GLAcc: Record "G/L Account";
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
+#pragma warning disable AA0204
         EndingDate: Date;
         StartingDate: Date;
+#pragma warning restore AA0204
 #pragma warning disable AA0074
         Text001: Label 'Total';
 #pragma warning restore AA0074

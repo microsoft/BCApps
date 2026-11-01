@@ -332,7 +332,7 @@ table 418 "IC Inbox Transaction"
                     Message(DuplicatePurchaseOrderMsg, ICInboxPurchHeader."IC Transaction No.", ICInboxPurchHeader."Your Reference")
                 else begin
                     PurchInvHeader.SetRange("Your Reference", ICInboxPurchHeader."Your Reference");
-                    if PurchInvHeader.FindFirst() then
+                    if not PurchInvHeader.IsEmpty() then
                         if not ConfirmManagement.GetResponseOrDefault(
                              StrSubstNo(
                                DuplicatePurchaseInvoiceMsg, ICInboxPurchHeader."Your Reference",

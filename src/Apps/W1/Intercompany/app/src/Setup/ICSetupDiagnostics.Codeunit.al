@@ -184,11 +184,11 @@ codeunit 440 "IC Setup Diagnostics"
     /// <param name="NewStatus">New status level for comparison and potential update</param>
     procedure UpdateStatus(var OldStatus: Option; NewStatus: Option)
     var
-        IntercompanySetupDiagnostic: Record "Intercompany Setup Diagnostic";
+        TempIntercompanySetupDiagnostic: Record "Intercompany Setup Diagnostic";
     begin
-        if NewStatus = IntercompanySetupDiagnostic.Status::Ok then
+        if NewStatus = TempIntercompanySetupDiagnostic.Status::Ok then
             exit;
-        if OldStatus = IntercompanySetupDiagnostic.Status::Error then
+        if OldStatus = TempIntercompanySetupDiagnostic.Status::Error then
             exit;
         OldStatus := NewStatus;
     end;

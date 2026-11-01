@@ -157,7 +157,9 @@ codeunit 431 "IC Outbox Export"
             exit;
 
         ICPartner.SetFilter("Inbox Type", '<>%1', ICPartner."Inbox Type"::Database);
+#pragma warning disable AA0139
         ICPartnerFilter := ICOutboxTrans.GetFilter("IC Partner Code");
+#pragma warning restore AA0139
         if ICPartnerFilter <> '' then
             ICPartner.SetFilter(Code, ICPartnerFilter);
         OnSendToExternalPartnerOnBeforeICPartnerFindset(ICPartner);
@@ -171,8 +173,10 @@ codeunit 431 "IC Outbox Export"
                             Error(FolderPathMissingErr, ICPartner.Code);
                         i := 1;
                         while i <> 0 do begin
+#pragma warning disable AA0217
                             FileName :=
                               StrSubstNo('%1\%2_%3_%4.xml', ICPartner."Inbox Details", ICPartner.Code, ICOutboxTrans."Transaction No.", i);
+#pragma warning restore AA0217
                             if Exists(FileName) then
                                 i := i + 1
                             else
@@ -180,14 +184,18 @@ codeunit 431 "IC Outbox Export"
                         end;
                     end else begin
                         OFile.CreateTempFile();
+#pragma warning disable AA0217
                         FileName := StrSubstNo('%1.%2.xml', OFile.Name, ICPartner.Code);
+#pragma warning restore AA0217
                         OFile.Close();
                     end;
 
                     ExportOutboxTransaction(ICOutboxTrans, FileName);
 
                     if IsWebClient() then begin
+#pragma warning disable AA0217
                         OutFileName := StrSubstNo('%1_%2.xml', ICPartner.Code, ICOutboxTrans."Transaction No.");
+#pragma warning restore AA0217
                         if not AddBatchProcessingArtifact(FileName, CopyStr(OutFileName, 1, 1024)) then
                             Download(FileName, '', '', '', OutFileName)
                     end else
@@ -221,6 +229,7 @@ codeunit 431 "IC Outbox Export"
                             SourceIDs.Add(ICPartner.SystemId);
                             SourceRelationTypes.Add(Enum::"Email Relation Type"::"Related Entity".AsInteger());
 
+#pragma warning disable AA0217
                             DocumentMailing.EnqueueEmailFile(
                               InStream,
                               StrSubstNo('%1.xml', ICPartner.Code),
@@ -232,6 +241,7 @@ codeunit 431 "IC Outbox Export"
                               SourceTableIDs,
                               SourceIDs,
                               SourceRelationTypes);
+#pragma warning restore AA0217
                         end;
                     end;
                     OnSendToExternalPartnerOnAfterDocWasSent(ICPartner, FileName);
@@ -430,7 +440,9 @@ codeunit 431 "IC Outbox Export"
             until ICOutboxTransaction.Next() = 0
     end;
 
+#pragma warning disable AA0150
     local procedure ExportOutboxTransaction(var ICOutboxTransaction: Record "IC Outbox Transaction"; var FileName: Text)
+#pragma warning restore AA0150
     var
         ICOutboxImpExpXML: XMLport "IC Outbox Imp/Exp";
         OFile: File;
