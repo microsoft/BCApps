@@ -1,6 +1,6 @@
 {
     "id": "11c0c133-baf4-4e23-8e14-4ba647f86804",
-    "name": "Business Central Mirroring to Fabric (preview)",
+    "name": "Business Central Mirroring to Fabric",
     "publisher": "Microsoft",
     "brief": "Mirror data from Business Central to Microsoft Fabric using Open Mirroring.",
     "description": "Mirror data from Business Central to Microsoft Fabric using Open Mirroring technology. Supports table selection, category-based mirroring ordering, multi-company sync.",
