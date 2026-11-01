@@ -174,9 +174,10 @@ codeunit 133722 "PA Trial Tests"
         Assert.IsTrue(PATrial.IsEligibleToStart(), 'Should be eligible before first activation');
 
         // [WHEN] Activating the agent for the first time
-        SetupPayablesAgent();
+        SetupPayablesAgentWithoutFramework();
 
-        // [THEN] Trial mode is initialized
+        // [THEN] The app starts the trial through the setup flow without requiring the agent service
+        Assert.IsTrue(PATrial.IsActive(), 'Trial mode should be active after first setup activation');
         Assert.IsFalse(PATrial.IsEligibleToStart(), 'Should no longer be eligible after activation');
 
         ResetTrialState();
@@ -184,6 +185,14 @@ codeunit 133722 "PA Trial Tests"
     end;
 
     local procedure SetupPayablesAgent()
+    var
+        PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
+    begin
+        PATestFixtures.LoadConfiguration(PASetupUpdateParameters, false);
+        PATestFixtures.Activate(PASetupUpdateParameters);
+    end;
+
+    local procedure SetupPayablesAgentWithoutFramework()
     var
         PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
     begin

@@ -536,7 +536,8 @@ codeunit 3326 "PA Test Fixtures"
         PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
     begin
         if PASetup.TryFindAgent(Agent) then begin
-            LoadConfiguration(PASetupUpdateParameters, true);
+            // Unit-test cleanup must not reconfigure a live framework agent when the service is unavailable.
+            LoadConfiguration(PASetupUpdateParameters, false);
             PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
             TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Disabled;
             PASetupUpdateParameters.SetAgentSetupBuffer(TempAgentSetupBuffer);
