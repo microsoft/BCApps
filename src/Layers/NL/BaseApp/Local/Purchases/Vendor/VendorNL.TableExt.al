@@ -23,7 +23,6 @@ tableextension 11401 "Vendor NL" extends Vendor
             begin
                 if not IsDutchCompany() then
                     exit;
-
                 if "Transaction Mode Code" <> '' then begin
                     TransactionMode.Get(TransactionMode."Account Type"::Vendor, "Transaction Mode Code");
                     if TransactionMode."Payment Method Code" <> '' then
@@ -118,7 +117,7 @@ tableextension 11401 "Vendor NL" extends Vendor
         if not IsHandled then
             if not Confirm(UpdateBankAccountsQst, false, UseFieldCaption) then
                 exit;
-        if VendBankAcc.FindSet(true) then begin
+        if VendBankAcc.FindSet(true) then
             repeat
                 VendBankAcc."Account Holder Name" := Name;
                 VendBankAcc."Account Holder Address" := Address;
@@ -127,7 +126,6 @@ tableextension 11401 "Vendor NL" extends Vendor
                 VendBankAcc."Acc. Hold. Country/Region Code" := "Country/Region Code";
                 VendBankAcc.Modify();
             until VendBankAcc.Next() = 0;
-        end;
     end;
 
     [IntegrationEvent(false, false)]

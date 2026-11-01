@@ -30,7 +30,6 @@ tableextension 11462 "Customer NL" extends Customer
             begin
                 if not IsDutchCompany() then
                     exit;
-
                 if "Transaction Mode Code" <> '' then begin
                     TransactionMode.Get(TransactionMode."Account Type"::Customer, "Transaction Mode Code");
                     if TransactionMode."Payment Method Code" <> '' then
@@ -87,7 +86,6 @@ tableextension 11462 "Customer NL" extends Customer
                 OnBeforeValidatePartnerType(IsHandled);
                 if IsHandled then
                     exit;
-
                 if not TransactionMode.CheckTransactionModePartnerType(AccountType::Customer, "Transaction Mode Code", "Partner Type") then
                     if not Confirm(PartnerTypeMismatchQst, false) then
                         Error('')
@@ -121,7 +119,7 @@ tableextension 11462 "Customer NL" extends Customer
             exit;
         if not Confirm(UpdateBankAccountsQst, false, UseFieldCaption) then
             exit;
-        if CustBankAcc.FindSet(true) then begin
+        if CustBankAcc.FindSet(true) then
             repeat
                 CustBankAcc."Account Holder Name" := Name;
                 CustBankAcc."Account Holder Address" := Address;
@@ -130,7 +128,6 @@ tableextension 11462 "Customer NL" extends Customer
                 CustBankAcc."Acc. Hold. Country/Region Code" := "Country/Region Code";
                 CustBankAcc.Modify();
             until CustBankAcc.Next() = 0;
-        end;
     end;
 
     [IntegrationEvent(false, false)]
