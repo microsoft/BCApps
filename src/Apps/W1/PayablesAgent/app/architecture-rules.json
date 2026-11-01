@@ -515,11 +515,6 @@
             },
             "exceptions": [
                 {
-                    "from": {"paths":["Shared/Versioning/PAV1V2Flag.Codeunit.al"]},
-                    "target": "_Development/PADevelopmentSettings.Codeunit.al",
-                    "reason": "The existing DEVELOPMENT selector reads the explicit evaluation override and V2 switch."
-                },
-                {
                     "from": {"paths":["Flows/Execution/AgentWorkspace/PAAgentExperience.Codeunit.al"]},
                     "target": "_Development/PADevelopmentSettings.Codeunit.al",
                     "reason": "The existing DEVELOPMENT simulation seam reads the agent-experience override without changing session identity."
