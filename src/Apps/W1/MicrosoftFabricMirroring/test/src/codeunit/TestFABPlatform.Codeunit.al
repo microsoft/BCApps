@@ -678,7 +678,7 @@ codeunit 140012 "Test FAB Platform"
         CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
 
         //[THEN] The same client ID is returned
-        Assert.AreEqual('11111111-1111-1111-1111-111111111111', CredMgt.GetClientId(), 'Expected the stored client ID to be returned.');
+        Assert.AreEqual('11111111-1111-1111-1111-111111111111', CredMgt.GetCustomClientId(), 'Expected the stored client ID to be returned.');
     end;
 
     [Test]

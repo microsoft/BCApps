@@ -98,7 +98,6 @@ codeunit 48526 "Fabric Platform Admin Client"
         IdToken: JsonToken;
         NameToken: JsonToken;
         JsonArr: JsonArray;
-        TelemetryDimensions: Dictionary of [Text, Text];
         WorkspaceIdForUrl: Text;
         i: Integer;
     begin
@@ -122,7 +121,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         if not HttpClient.TrySend(RestClientResult, Req, Resp) then
             Error(RetrieveMirroredDbsTransportErr);
         if not Resp.GetIsSuccessStatusCode() then begin
-            Telemetry.LogFailureEvent('0000VNA', StrSubstNo(RetrieveMirroredDbsHttpStatusErr, Resp.GetHttpStatusCode()), TelemetryDimensions);
+            Session.LogMessage('0000WBZ', StrSubstNo(RetrieveMirroredDbsHttpStatusErr, Resp.GetHttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Telemetry.GetDimensions());
             Error(CreateMirroredDbsHttpErrorInfo(Resp.GetHttpStatusCode()));
         end;
         if not RootObj.ReadFrom(Resp.GetContent().AsText()) then

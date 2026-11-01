@@ -175,6 +175,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         PreviousVATEntryNoForSequenceCheck: Integer;
         UseCurrFactorOnly: Boolean;
         NonAddCurrCodeOccured: Boolean;
+        SkipAddCurrResiduals: Boolean;
         FADimAlreadyChecked: Boolean;
         OverrideDimErr: Boolean;
         JobLine: Boolean;
@@ -6198,7 +6199,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 begin
                     if MultiplePostingGroups then
                         CreateGLEntry(
-                            GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)", 0, DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
+                            GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)",
+                            GLCalcAddCurrency(
+                                DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount, 0,
+                                DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode, GenJournalLine),
+                            DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
                             CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
                     PostDtldCVApplicationEntry(GenJournalLine, DetailedCVLedgEntryBuffer);
                 end;
@@ -7968,13 +7973,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
         exit(OldAddCurrAmount);
     end;
 
+    internal procedure SetSkipAddCurrResiduals(NewSkipAddCurrResiduals: Boolean)
+    begin
+        SkipAddCurrResiduals := NewSkipAddCurrResiduals;
+    end;
+
     local procedure HandleAddCurrResidualGLEntry(GenJnlLine: Record "Gen. Journal Line"; GLEntry2: Record "G/L Entry")
     var
         GLAcc: Record "G/L Account";
         GLEntry: Record "G/L Entry";
         IsHandled: Boolean;
     begin
-        if AddCurrencyCode = '' then
+        if SkipAddCurrResiduals or (AddCurrencyCode = '') then
             exit;
 
         TotalAddCurrAmount := TotalAddCurrAmount + GLEntry2."Additional-Currency Amount";
