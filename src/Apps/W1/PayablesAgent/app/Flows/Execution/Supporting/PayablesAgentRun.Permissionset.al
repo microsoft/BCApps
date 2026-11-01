@@ -5,6 +5,7 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
+using Microsoft.CRM.Duplicates;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.VAT.Registration;
@@ -39,6 +40,7 @@ permissionset 3346 "Payables Agent - Run"
         tabledata "Dimension Set Entry" = im,
         tabledata "Dimension Set Tree Node" = im,
         // Missing permissions for vendor creation
+        tabledata "Contact Duplicate" = i, // Vendor contact duplicate detection inserts matches when validating vendor details.
         tabledata "VAT Registration Log" = i, // Validating VAT Registration No. on the vendor card writes an audit entry to the VAT Registration Log
                                               // Change Log
         tabledata "Change Log Entry" = i, // Needed when the customer has Change Log or Monitor Sensitive Fields enabled for tables the agent writes to (e.g. User Environment Login on login)

@@ -26,8 +26,8 @@ codeunit 3349 "PA Agent Instructions"
         UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
         AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
         AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
-        AgentInstructionsTok: Label '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
-        AgentDrivenInstructionsTok: Label '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
+        AgentInstructionsTok: Label 'DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
+        AgentDrivenInstructionsTok: Label 'DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
         AgentInstructionsV2Tok: Label 'Prompts/PayablesAgent-AgentInstructions-V2.md', Locked = true;
 
     internal procedure SetAgentInstructions(AgentUserSecurityId: Guid)
