@@ -9,7 +9,7 @@ using System.Agents;
 using System.Email;
 using System.Utilities;
 
-codeunit 3321 "PA Setup Update Parameters" // TODO: how could it look if we made this one more meaty, maybe a lot of the getters/setters internal exposure here could be limited quite a bit
+codeunit 3321 "PA Setup Update Parameters"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -44,8 +44,7 @@ codeunit 3321 "PA Setup Update Parameters" // TODO: how could it look if we made
         SkipEmailVerification := LocalSkipEmailVerification;
     end;
 
-    // Loads the editable proposal. Unless agent configuration is skipped, this may create Setup and
-    // reconcile its stored Agent User ID before preparing the framework setup buffer.
+    // Prepares an editable proposal and framework buffer without creating Setup or repairing its association.
     internal procedure InitializeFromStoredSetup()
     var
         Agent: Record Agent;
@@ -55,7 +54,7 @@ codeunit 3321 "PA Setup Update Parameters" // TODO: how could it look if we made
         AgentSetup: Codeunit "Agent Setup";
     begin
         if not SkipAgentConfiguration then begin
-            if StoredSetup.FindAgentAndReconcileSetup(Agent) then;
+            if StoredSetup.TryFindAgent(Agent) then;
             AgentSetup.GetSetupRecord(
                 TempLoadedAgentSetupBuffer,
                 Agent."User Security ID",
@@ -68,45 +67,27 @@ codeunit 3321 "PA Setup Update Parameters" // TODO: how could it look if we made
         end;
 
         Clear(DesiredSetup);
-        DesiredSetup.GetSetup();
+        DesiredSetup.LoadStoredOrDefaults();
     end;
 
-    procedure GetDesiredSetup(var PASetup: Codeunit "PA Setup")
+    procedure CopyProposal(var Proposal: Codeunit "PA Setup")
     begin
-        PASetup := DesiredSetup;
+        Proposal := DesiredSetup;
     end;
 
-    procedure SetDesiredSetup(var PASetup: Codeunit "PA Setup")
+    procedure SetEmailMonitoring(Enabled: Boolean; ReviewPolicy: Enum "PA Email Review Policy"; AccountId: Guid; FolderName: Text[2048]; FolderId: Text[2048])
     begin
-        DesiredSetup := PASetup;
-    end;
-
-    procedure SetMonitorEmail(Value: Boolean)
-    begin
-        DesiredSetup.SetMonitorOutlook(Value);
-    end;
-
-    procedure SetEmailReviewPolicy(Value: Enum "PA Email Review Policy")
-    begin
-        DesiredSetup.SetEmailReviewPolicy(Value);
-    end;
-
-    procedure SetMailboxSelection(AccountId: Guid; FolderName: Text[2048]; FolderId: Text[2048])
-    begin
+        DesiredSetup.SetMonitorOutlook(Enabled);
+        DesiredSetup.SetEmailReviewPolicy(ReviewPolicy);
         DesiredSetup.SetMailboxSelection(AccountId, FolderName, FolderId);
     end;
 
-    procedure Enabling(): Boolean
+    procedure Activating(): Boolean
     begin
         exit(TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Enabled);
     end;
 
-    procedure PrepareForApply()
-    begin
-        DesiredSetup.PrepareForApply(Enabling());
-    end;
-
-    procedure EnableAgent()
+    procedure ActivateAgent()
     var
         TempLocalAgentSetupBuffer: Record "Agent Setup Buffer";
     begin
@@ -120,19 +101,9 @@ codeunit 3321 "PA Setup Update Parameters" // TODO: how could it look if we made
         exit(DesiredSetup.GetMonitorOutlook());
     end;
 
-    procedure DisableEmailMonitoring()
+    procedure DisactivateEmailMonitoring()
     begin
         DesiredSetup.SetMonitorOutlook(false);
-    end;
-
-    procedure GetEmailReviewPolicy(): Enum "PA Email Review Policy"
-    begin
-        exit(DesiredSetup.GetEmailReviewPolicy());
-    end;
-
-    procedure SetLastActivated(LastActivated: DateTime)
-    begin
-        DesiredSetup.SetLastActivated(LastActivated);
     end;
 
     procedure GetEmailAccount(): Record "Email Account"
@@ -146,11 +117,6 @@ codeunit 3321 "PA Setup Update Parameters" // TODO: how could it look if we made
         if not TempEmailAccount.Get(DesiredSetup.GetEmailAccountId(), "Email Connector"::"Microsoft 365") then
             Clear(TempEmailAccount);
         exit(TempEmailAccount);
-    end;
-
-    procedure GetAgentSetupBuffer(): Record "Agent Setup Buffer"
-    begin
-        exit(TempAgentSetupBuffer);
     end;
 
     procedure GetAgentSetupBuffer(var TargetAgentSetupBuffer: Record "Agent Setup Buffer")
@@ -178,19 +144,21 @@ codeunit 3321 "PA Setup Update Parameters" // TODO: how could it look if we made
         TrialUploadPending := true;
     end;
 
-    procedure GetTrialUploadPending(): Boolean
+    procedure HasTrialUpload(): Boolean
     begin
         exit(TrialUploadPending);
     end;
 
-    procedure GetTrialUploadFileName(): Text
+    // Retrieval does not consume the upload; the flow clears it only after successful handoff.
+    procedure TryGetTrialUpload(var FileName: Text; var TempBlob: Codeunit "Temp Blob"): Boolean
     begin
-        exit(TrialUploadFileName);
-    end;
-
-    procedure GetTrialUploadBlob(var TempBlob: Codeunit "Temp Blob")
-    begin
+        Clear(FileName);
+        Clear(TempBlob);
+        if not TrialUploadPending then
+            exit(false);
+        FileName := TrialUploadFileName;
         TempBlob := TempBlobTrialUpload;
+        exit(true);
     end;
 
     procedure ClearTrialUpload()

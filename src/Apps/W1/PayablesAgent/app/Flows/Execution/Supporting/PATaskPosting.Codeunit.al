@@ -5,7 +5,6 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
@@ -20,7 +19,6 @@ codeunit 3331 "PA Task Posting"
     var
         EmptyPreviousOutcomeErr: Label 'An existing outcome reference is required for replacement.';
         InvalidOutcomeErr: Label 'The outcome must be an existing purchase invoice, purchase order, purchase credit memo, posted purchase invoice, or posted purchase credit memo.';
-        AgentEDocumentServiceTok: Label 'AGENT', Locked = true;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnAfterFinalizePostingOnBeforeCommit, '', false, false)]
     local procedure OnBeforePostingCommit(var PurchHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; PreviewMode: Boolean)
@@ -44,8 +42,8 @@ codeunit 3331 "PA Task Posting"
 
     local procedure ReplaceReferences(PreviousOutcome: RecordId; PostedOutcome: RecordId)
     var
-        EDocument: Record "E-Document";
         StoredTask: Record "Payables Agent Task";
+        DraftBasedTask: Codeunit "PA Draft Based Task";
     begin
         if PreviousOutcome.TableNo = 0 then
             Error(EmptyPreviousOutcomeErr);
@@ -55,14 +53,7 @@ codeunit 3331 "PA Task Posting"
 
         StoredTask.SetRange(Outcome, PreviousOutcome);
         StoredTask.ModifyAll(Outcome, PostedOutcome);
-        EDocument.SetRange("Document Record ID", PreviousOutcome);
-        if EDocument.FindSet(true) then
-            repeat
-                if EDocument.GetEDocumentService().Code = AgentEDocumentServiceTok then begin
-                    EDocument."Document Record ID" := PostedOutcome;
-                    EDocument.Modify();
-                end;
-            until EDocument.Next() = 0;
+        DraftBasedTask.ReplaceOutcomeReferences(PreviousOutcome, PostedOutcome);
     end;
 
     local procedure ValidateOutcome(OutcomeRecordId: RecordId)

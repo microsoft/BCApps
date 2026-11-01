@@ -51,12 +51,14 @@ codeunit 3347 "PA Draft Based Test Fixtures"
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         TempPOMatchWarning: Record "E-Doc PO Match Warning" temporary;
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
+        Source: Codeunit "PA Task Source";
         Header: JsonObject;
         Lines: JsonArray;
         Totals: JsonObject;
     begin
         Clear(PurchaseInvoice);
-        if not EDocument.GetBySystemId(Task.GetSourceId()) then begin
+        Task.GetSource(Source);
+        if not EDocument.GetBySystemId(Source.GetId()) then begin
             AddError(Errors, 'DataCollection', 'The draft-based source no longer exists.', 0);
             exit(false);
         end;
@@ -95,9 +97,9 @@ codeunit 3347 "PA Draft Based Test Fixtures"
     internal procedure ReceiveEmail(SenderEmail: Text; Subject: Text; var PATaskSource: Codeunit "PA Task Source"): Boolean
     var
         EDocument: Record "E-Document";
-        PADraftBasedSetup: Codeunit "PA Draft Based Setup";
+        DraftBasedSetupBacking: Codeunit "PA Draft Based Setup Backing";
     begin
-        EDocument.Service := PADraftBasedSetup.GetOrCreateAgentEDocumentService().Code;
+        EDocument.Service := DraftBasedSetupBacking.GetOrCreateService().Code;
         EDocument.Direction := EDocument.Direction::Incoming;
         EDocument."Source Details" := CopyStr(SenderEmail, 1, MaxStrLen(EDocument."Source Details"));
         EDocument."Additional Source Details" := CopyStr(Subject, 1, MaxStrLen(EDocument."Additional Source Details"));
@@ -114,9 +116,9 @@ codeunit 3347 "PA Draft Based Test Fixtures"
         OtherDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PADraftBasedSetup: Codeunit "PA Draft Based Setup";
+        DraftBasedSetupBacking: Codeunit "PA Draft Based Setup Backing";
     begin
-        Document.Service := PADraftBasedSetup.GetOrCreateAgentEDocumentService().Code;
+        Document.Service := DraftBasedSetupBacking.GetOrCreateService().Code;
         Document."Source Details" := 'fixture.pdf';
         Document.Insert();
         EDocumentPurchaseHeader."E-Document Entry No." := Document."Entry No";
@@ -158,9 +160,9 @@ codeunit 3347 "PA Draft Based Test Fixtures"
     internal procedure SeedImporterEnabled()
     var
         Service: Record "E-Document Service";
-        PADraftBasedSetup: Codeunit "PA Draft Based Setup";
+        DraftBasedSetupBacking: Codeunit "PA Draft Based Setup Backing";
     begin
-        Service := PADraftBasedSetup.GetOrCreateAgentEDocumentService();
+        Service := DraftBasedSetupBacking.GetOrCreateService();
         Service."Auto Import" := true;
         Clear(Service."Import Recurrent Job Id");
         Service.Modify();
@@ -169,9 +171,9 @@ codeunit 3347 "PA Draft Based Test Fixtures"
     internal procedure IsImporterEnabled(): Boolean
     var
         Service: Record "E-Document Service";
-        PADraftBasedSetup: Codeunit "PA Draft Based Setup";
+        DraftBasedSetupBacking: Codeunit "PA Draft Based Setup Backing";
     begin
-        Service := PADraftBasedSetup.GetOrCreateAgentEDocumentService();
+        Service := DraftBasedSetupBacking.GetOrCreateService();
         exit(Service."Auto Import");
     end;
 
@@ -303,11 +305,13 @@ codeunit 3347 "PA Draft Based Test Fixtures"
     local procedure GetEDocument(AgentTaskId: BigInteger; var EDocument: Record "E-Document"): Boolean
     var
         Task: Codeunit "Payables Agent Task";
+        Source: Codeunit "PA Task Source";
     begin
         if not Task.Load(AgentTaskId) then
             exit(false);
         if Task.GetVersion() <> "PA Version"::V1 then
             exit(false);
-        exit(EDocument.GetBySystemId(Task.GetSourceId()));
+        Task.GetSource(Source);
+        exit(EDocument.GetBySystemId(Source.GetId()));
     end;
 }

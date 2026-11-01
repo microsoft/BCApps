@@ -20,6 +20,13 @@ codeunit 3327 "PA Task Upload"
 
     internal procedure UploadInvoiceWithAgent(): Boolean
     var
+        SourceId: Guid;
+    begin
+        exit(UploadInvoiceWithAgent(SourceId));
+    end;
+
+    internal procedure UploadInvoiceWithAgent(var SourceId: Guid): Boolean
+    var
         PayablesAgent: Codeunit "Payables Agent Metadata";
         PAAgentAccess: Codeunit "PA Agent Access";
         PASetupUpdate: Codeunit "PA Setup Update";
@@ -31,6 +38,7 @@ codeunit 3327 "PA Task Upload"
         AlreadyActivated: Boolean;
         AgentExistInEnvironment: Boolean;
     begin
+        Clear(SourceId);
         if not PAAgentAccess.CanShowAgentActions() then
             exit(false);
         if not UploadIntoStream(SelectFileLbl, '', PdfFileFilterLbl, FileName, InStream) then
@@ -38,7 +46,7 @@ codeunit 3327 "PA Task Upload"
 
         AgentExistInEnvironment := PayablesAgent.PayablesAgentExistsAcrossAllCompanies();
         PASetupUpdate.EnsureActivated(AlreadyActivated);
-        PATaskIntake.CreateTask(FileName, InStream);
+        SourceId := PATaskIntake.CreateTask(FileName, InStream);
         PATelemetry.LogInvoiceUploaded();
 
         if not AgentExistInEnvironment then begin

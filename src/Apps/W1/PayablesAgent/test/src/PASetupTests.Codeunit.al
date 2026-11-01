@@ -11,7 +11,7 @@ using System.Email;
 using System.Privacy;
 using System.TestLibraries.Utilities;
 
-codeunit 133700 "PA Setup Tests"
+codeunit 133723 "PA Setup Tests"
 {
     Subtype = Test;
     TestType = Uncategorized;

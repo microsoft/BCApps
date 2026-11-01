@@ -42,10 +42,12 @@ codeunit 3336 "PA PDF Text Extraction"
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         Base64Convert: Codeunit "Base64 Convert";
         TempBlob: Codeunit "Temp Blob";
+        Source: Codeunit "PA Task Source";
         PdfInStream: InStream;
         FileName: Text;
     begin
-        if not Task.GetSourcePdf(TempBlob, FileName) then
+        Task.GetSource(Source);
+        if not Source.GetSourcePdf(TempBlob, FileName) then
             Error(ExtractionFailedErr);
         TempBlob.CreateInStream(PdfInStream);
 

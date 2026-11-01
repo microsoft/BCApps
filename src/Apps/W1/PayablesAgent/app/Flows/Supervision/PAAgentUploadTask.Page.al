@@ -49,7 +49,8 @@ page 3312 "PA Agent Upload Task"
 
                 trigger OnAction()
                 begin
-                    Presentation.ViewSourcePdf(PATask);
+                    PATask.GetSource(Source);
+                    Presentation.ViewSourcePdf(Source);
                 end;
             }
         }
@@ -62,11 +63,13 @@ page 3312 "PA Agent Upload Task"
     trigger OnAfterGetCurrRecord()
     begin
         if PATask.Load(Rec."Task ID") then;
-        FileName := PATask.GetFileName();
-        ViewPDFVisible := PATask.HasPdf();
+        PATask.GetSource(Source);
+        FileName := Source.GetFileName();
+        ViewPDFVisible := Source.HasPdf();
     end;
     var
         PATask: Codeunit "Payables Agent Task";
+        Source: Codeunit "PA Task Source";
         Presentation: Codeunit "PA Task Presentation";
         FileName: Text;
         ViewPDFVisible: Boolean;

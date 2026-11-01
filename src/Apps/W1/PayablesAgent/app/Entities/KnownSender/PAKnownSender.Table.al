@@ -62,8 +62,11 @@ table 3308 "PA Known Sender"
         SenderApprovedAuditLbl: Label 'Payables Agent known sender %1 was set to Approve, allowing its emails to be processed without review.', Locked = true;
 
     internal procedure InsertIfNew(PATask: Codeunit "Payables Agent Task")
+    var
+        Source: Codeunit "PA Task Source";
     begin
-        InsertSenderIfNew(PATask.GetSenderAddress());
+        PATask.GetSource(Source);
+        InsertSenderIfNew(Source.GetSenderAddress());
     end;
 
     internal procedure InsertSourceIfNew(PATaskSource: Codeunit "PA Task Source")
@@ -92,8 +95,11 @@ table 3308 "PA Known Sender"
     end;
 
     internal procedure GetForTask(PATask: Codeunit "Payables Agent Task"; var KnownSender: Record "PA Known Sender"): Boolean
+    var
+        Source: Codeunit "PA Task Source";
     begin
-        exit(GetForSender(PATask.GetSenderAddress(), KnownSender));
+        PATask.GetSource(Source);
+        exit(GetForSender(Source.GetSenderAddress(), KnownSender));
     end;
 
     internal procedure GetForSource(PATaskSource: Codeunit "PA Task Source"; var KnownSender: Record "PA Known Sender"): Boolean

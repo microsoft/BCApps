@@ -126,6 +126,7 @@ function Get-PayablesAgentArchitectureChange {
         $paths = @(
             'src/Apps/W1/PayablesAgent/',
             'build/scripts/Test-PayablesAgentArchitecture*.ps1',
+            'build/scripts/Test-ALAppArchitecture.ps1',
             'build/scripts/*Architecture*.psm1',
             'build/scripts/tests/ALArchitecture*.Test.ps1',
             '.github/workflows/PullRequestHandler.yaml',

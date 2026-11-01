@@ -37,7 +37,7 @@ codeunit 3318 "PA Trial"
         if not EnvironmentInformation.IsProduction() then
             exit(false);
 
-        PASetup.GetSetup();
+        PASetup.LoadStoredOrDefaults();
         if Agent.Get(PASetup.GetUserSecurityId()) then
             exit(false);
 

@@ -45,11 +45,12 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
     }
 
     var
-        PADraftBasedSetup: Codeunit "PA Draft Based Setup";
+        DraftBasedSetupBacking: Codeunit "PA Draft Based Setup Backing";
 
     local procedure CreatePATask(Files: List of [FileUpload])
     var
         EDocument: Record "E-Document";
+        TempAgentSetupBuffer: Record "Agent Setup Buffer";
         AgentCU: Codeunit Agent;
         PASetupConfig: Codeunit "PA Setup Update Parameters";
         EDocImport: Codeunit "E-Doc. Import";
@@ -59,11 +60,12 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
         SourceDetailsTok: Label 'Local file %1', Comment = '%1 is the file name.';
     begin
         PASetupConfig.InitializeFromStoredSetup();
-        if not AgentCU.IsActive(PASetupConfig.GetAgentSetupBuffer()."User Security ID") then
+        PASetupConfig.GetAgentSetupBuffer(TempAgentSetupBuffer);
+        if not AgentCU.IsActive(TempAgentSetupBuffer."User Security ID") then
             Error(AgentNotActiveErr);
         foreach FileUpload in Files do begin
             FileUpload.CreateInStream(InStream);
-            EDocImport.CreateFromType(EDocument, PADraftBasedSetup.GetOrCreateAgentEDocumentService(), "E-Doc. File Format"::PDF, FileUpload.FileName, InStream);
+            EDocImport.CreateFromType(EDocument, DraftBasedSetupBacking.GetOrCreateService(), "E-Doc. File Format"::PDF, FileUpload.FileName, InStream);
 
             EDocument."Source Details" := StrSubstNo(SourceDetailsTok, FileUpload.FileName);
             EDocument.Modify();

@@ -31,6 +31,7 @@ codeunit 3344 "PA Setup Update"
 
     internal procedure Update(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
     var
+        StoredAgent: Record Agent;
         AzureADGraphUser: Codeunit "Azure AD Graph User";
         PADemoGuide: Codeunit "PA Demo Guide";
         DesiredSetup: Codeunit "PA Setup";
@@ -41,33 +42,38 @@ codeunit 3344 "PA Setup Update"
             Error(DelegatedAdminErr);
 
         // Normalize deactivation and reject unsupported proposals before consent, trial or runtime writes.
-        PASetupUpdateParameters.PrepareForApply();
+        PASetupUpdateParameters.CopyProposal(DesiredSetup);
+        DesiredSetup.PrepareForApply(PASetupUpdateParameters.Activating());
 
         PATelemetry.LogSetupStarted();
 
         // Ask for email monitoring consent before any write transaction, since the consent dialog runs modally.
-        if PASetupUpdateParameters.Enabling() and PASetupUpdateParameters.MonitorEmail() then
-            if not ObtainConsent(PASetupUpdateParameters) then
+        if PASetupUpdateParameters.Activating() and DesiredSetup.GetMonitorOutlook() then
+            if not ObtainConsent(DesiredSetup) then
                 Error(EmailMonitoringRequiresPrivacyConsentErr);
 
         // Validation runs before any write transaction.
-        if PASetupUpdateParameters.Enabling() then
+        if PASetupUpdateParameters.Activating() then
             if not PASetupUpdateParameters.GetSkipEmailVerification() then begin
-                PASetupUpdateParameters.SetLastActivated(CurrentDateTime());
-                ValidateMailbox(PASetupUpdateParameters);
+                DesiredSetup.SetLastActivated(CurrentDateTime());
+                ValidateMailbox(DesiredSetup);
             end;
 
-        // Initialize trial BEFORE creating the agent so IsEligibleForTrial() can detect first activation
-        if PASetupUpdateParameters.Enabling() then
+        // First write transaction. Repair stored identity separately, without replacing the editable proposal.
+        if not PASetupUpdateParameters.GetSkipAgentConfiguration() then
+            if DesiredSetup.FindAgentAndReconcileSetup(StoredAgent) then;
+
+        // Initialize trial BEFORE creating the agent so IsEligibleForTrial() can detect first activation.
+        if PASetupUpdateParameters.Activating() then
             InitializeTrialIfEligible();
 
-        // First write transaction.
-        ApplySetup(PASetupUpdateParameters);
+        ApplySetup(PASetupUpdateParameters, DesiredSetup);
 
-        PADemoGuide.SendDemoEmail(PASetupUpdateParameters);
+        // Use the applied proposal; deactivation may have normalized a monitoring-on request to off.
+        if DesiredSetup.GetMonitorOutlook() then
+            PADemoGuide.SendDemoEmail(PASetupUpdateParameters);
 
         // Give the users that have recently created posted purchase invoices access to the agent.
-        PASetupUpdateParameters.GetDesiredSetup(DesiredSetup);
         PAAgentAccess.InsertAccessControlForEligibleUsers(DesiredSetup.GetUserSecurityId());
 
         ProcessTrialUploadIfPending(PASetupUpdateParameters);
@@ -84,8 +90,8 @@ codeunit 3344 "PA Setup Update"
         end;
 
         PASetupUpdateParameters.InitializeFromStoredSetup();
-        PASetupUpdateParameters.DisableEmailMonitoring();
-        PASetupUpdateParameters.EnableAgent();
+        PASetupUpdateParameters.DisactivateEmailMonitoring();
+        PASetupUpdateParameters.ActivateAgent();
         PASetupUpdateParameters.SetSkipEmailVerification(true);
         Update(PASetupUpdateParameters);
         AlreadyActivated := false;
@@ -96,18 +102,15 @@ codeunit 3344 "PA Setup Update"
     /// experience, and records it on the desired setup. Runs modally, so it must run before any write transaction.
     /// </summary>
     /// <returns>False when consent is declined.</returns>
-    local procedure ObtainConsent(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters"): Boolean
+    local procedure ObtainConsent(var DesiredSetup: Codeunit "PA Setup"): Boolean
     var
-        DesiredSetup: Codeunit "PA Setup";
         CustomerConsentMgt: Codeunit "Customer Consent Mgt.";
     begin
-        PASetupUpdateParameters.GetDesiredSetup(DesiredSetup);
         if DesiredSetup.GetEmailMonitoringConsent() then
             exit(true);
         if not CustomerConsentMgt.ConfirmUserConsentToMicrosoftService() then
             exit(false);
         DesiredSetup.SetEmailMonitoringConsent(true);
-        PASetupUpdateParameters.SetDesiredSetup(DesiredSetup);
         exit(true);
     end;
 
@@ -115,16 +118,16 @@ codeunit 3344 "PA Setup Update"
     /// Checks that the desired mailbox is selected and, in SaaS, reachable. Must run before any write transaction
     /// (Codeunit.Run is used for the reachability check).
     /// </summary>
-    local procedure ValidateMailbox(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
+    local procedure ValidateMailbox(DesiredSetup: Codeunit "PA Setup")
     var
+        TempEmailAccount: Record "Email Account" temporary;
+        EmailAccount: Codeunit "Email Account";
         EnvironmentInformation: Codeunit "Environment Information";
-        DesiredSetup: Codeunit "PA Setup";
         PAValidateSetup: Codeunit "PA Validate Setup";
         ErrorAccountNotConnecting: ErrorInfo;
     begin
-        if not PASetupUpdateParameters.MonitorEmail() then
+        if not DesiredSetup.GetMonitorOutlook() then
             exit;
-        PASetupUpdateParameters.GetDesiredSetup(DesiredSetup);
         if IsNullGuid(DesiredSetup.GetEmailAccountId()) then
             Error(ActivateWithoutMailboxNameErr);
 
@@ -133,8 +136,11 @@ codeunit 3344 "PA Setup Update"
             exit;
         PAValidateSetup.ConfigureSetupToValidate(DesiredSetup);
         if not PAValidateSetup.Run() then begin
+            EmailAccount.GetAllAccounts(false, TempEmailAccount);
+            if not TempEmailAccount.Get(DesiredSetup.GetEmailAccountId(), "Email Connector"::"Microsoft 365") then
+                Clear(TempEmailAccount);
             ErrorAccountNotConnecting.Title(EmailConnectionErr);
-            ErrorAccountNotConnecting.Message(StrSubstNo(EmailConnectionMessageErr, PASetupUpdateParameters.GetEmailAccount()."Email Address"));
+            ErrorAccountNotConnecting.Message(StrSubstNo(EmailConnectionMessageErr, TempEmailAccount."Email Address"));
             ErrorAccountNotConnecting.PageNo := Page::"Email Accounts";
             ErrorAccountNotConnecting.AddNavigationAction(EmailConnectionNavigationActionLbl);
             Error(ErrorAccountNotConnecting);
@@ -143,31 +149,27 @@ codeunit 3344 "PA Setup Update"
 
     /// <summary>
     /// Configures the agent (unless skipped) and saves the desired setup, including the agent user and the hash of the
-    /// configuration its instructions were applied with, in a single save. The saved setup is written back to the
-    /// parameters. Starts write transactions.
+    /// configuration its instructions were applied with, in a single save. The flow retains its applied proposal.
+    /// Starts write transactions.
     /// </summary>
-    local procedure ApplySetup(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
+    local procedure ApplySetup(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters"; var DesiredSetup: Codeunit "PA Setup")
     var
-        DesiredSetup: Codeunit "PA Setup";
         AppliedInstrConfigHash: Text[64];
     begin
-        PASetupUpdateParameters.GetDesiredSetup(DesiredSetup);
         if not PASetupUpdateParameters.GetSkipAgentConfiguration() then begin // Skipping the agent's configuration is valid in tests
             AppliedInstrConfigHash := DesiredSetup.GetAppliedInstrConfigHash();
-            DesiredSetup.SetUserSecurityId(ConfigureAgent(PASetupUpdateParameters, AppliedInstrConfigHash));
+            DesiredSetup.SetUserSecurityId(ConfigureAgent(PASetupUpdateParameters, DesiredSetup, AppliedInstrConfigHash));
             DesiredSetup.SetAppliedInstrConfigHash(AppliedInstrConfigHash);
         end;
-        DesiredSetup.ApplySetup(PASetupUpdateParameters.Enabling());
-        PASetupUpdateParameters.SetDesiredSetup(DesiredSetup);
+        DesiredSetup.ApplySetup(PASetupUpdateParameters.Activating());
     end;
 
-    local procedure ConfigureAgent(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters"; var AppliedInstrConfigHash: Text[64]): Guid
+    local procedure ConfigureAgent(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters"; DesiredSetup: Codeunit "PA Setup"; var AppliedInstrConfigHash: Text[64]): Guid
     var
         TempAccessControlBuffer: Record "Access Control Buffer" temporary;
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
         Agent: Codeunit Agent;
         AgentSetup: Codeunit "Agent Setup";
-        DesiredSetup: Codeunit "PA Setup";
         CurrentModuleInfo: ModuleInfo;
         AgentUserId: Guid;
     begin
@@ -175,7 +177,6 @@ codeunit 3344 "PA Setup Update"
         AgentUserId := AgentSetup.SaveChanges(TempAgentSetupBuffer);
 
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        PASetupUpdateParameters.GetDesiredSetup(DesiredSetup);
         Agent.SetProfile(AgentUserId, DesiredSetup.GetAgentProfile(), CurrentModuleInfo.Id);
         TempAccessControlBuffer."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TempAccessControlBuffer."Company Name"));
         TempAccessControlBuffer.Scope := TempAccessControlBuffer.Scope::System;
@@ -207,14 +208,14 @@ codeunit 3344 "PA Setup Update"
     var
         TempBlob: Codeunit "Temp Blob";
         PATaskIntake: Codeunit "PA Task Intake";
+        FileName: Text;
         InStream: InStream;
     begin
-        if not PASetupUpdateParameters.GetTrialUploadPending() then
+        if not PASetupUpdateParameters.TryGetTrialUpload(FileName, TempBlob) then
             exit;
 
-        PASetupUpdateParameters.GetTrialUploadBlob(TempBlob);
         TempBlob.CreateInStream(InStream);
-        PATaskIntake.CreateTask(PASetupUpdateParameters.GetTrialUploadFileName(), InStream);
+        PATaskIntake.CreateTask(FileName, InStream);
         PATelemetry.LogTrialUpload();
 
         PASetupUpdateParameters.ClearTrialUpload();

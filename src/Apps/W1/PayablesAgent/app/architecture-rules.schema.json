@@ -6,7 +6,7 @@
     "required": ["version","rules"],
     "properties": {
         "$schema": {"type":"string"},
-        "version": {"const":2},
+        "version": {"const":3},
         "rules": {
             "type": "array",
             "minItems": 1,
@@ -15,11 +15,10 @@
                     {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": ["id","description","severity","from","check"],
+                        "required": ["id","description","from","check"],
                         "properties": {
                             "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
                             "description": {"type":"string","pattern":"\\S"},
-                            "severity": {"enum":["error","warning"]},
                             "from": {"$ref":"#/definitions/selector"},
                             "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
                             "check": {"const":"dependencies"},
@@ -34,11 +33,10 @@
                     {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": ["id","description","severity","from","check","namespaces"],
+                        "required": ["id","description","from","check","namespaces"],
                         "properties": {
                             "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
                             "description": {"type":"string","pattern":"\\S"},
-                            "severity": {"enum":["error","warning"]},
                             "from": {"$ref":"#/definitions/selector"},
                             "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
                             "check": {"const":"namespaces"},
@@ -53,11 +51,10 @@
                     {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": ["id","description","severity","from","check","properties"],
+                        "required": ["id","description","from","check","properties"],
                         "properties": {
                             "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
                             "description": {"type":"string","pattern":"\\S"},
-                            "severity": {"enum":["error","warning"]},
                             "from": {"$ref":"#/definitions/selector"},
                             "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
                             "check": {"const":"properties"},
@@ -77,25 +74,24 @@
                     {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": ["id","description","severity","from","check","pattern"],
+                        "required": ["id","description","from","check","pattern"],
                         "properties": {
                             "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
                             "description": {"type":"string","pattern":"\\S"},
-                            "severity": {"enum":["error","warning"]},
                             "from": {"$ref":"#/definitions/selector"},
                             "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
                             "check": {"const":"forbiddenCode"},
-                            "pattern": {"type":"string","pattern":"\\S"}
+                            "pattern": {"type":"string","pattern":"\\S"},
+                            "includeQuotedIdentifiers": {"type":"boolean"}
                         }
                     },
                     {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": ["id","description","severity","from","check","symbol"],
+                        "required": ["id","description","from","check","symbol"],
                         "properties": {
                             "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
                             "description": {"type":"string","pattern":"\\S"},
-                            "severity": {"enum":["error","warning"]},
                             "from": {"$ref":"#/definitions/selector"},
                             "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
                             "check": {"const":"developmentOnly"},
@@ -105,11 +101,10 @@
                     {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": ["id","description","severity","from","check"],
+                        "required": ["id","description","from","check"],
                         "properties": {
                             "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
                             "description": {"type":"string","pattern":"\\S"},
-                            "severity": {"enum":["error","warning"]},
                             "from": {"$ref":"#/definitions/selector"},
                             "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
                             "check": {"const":"manifest"},
@@ -121,11 +116,10 @@
                     {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": ["id","description","severity","from","check","allowedPaths","namespace"],
+                        "required": ["id","description","from","check","allowedPaths","namespace"],
                         "properties": {
                             "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
                             "description": {"type":"string","pattern":"\\S"},
-                            "severity": {"enum":["error","warning"]},
                             "from": {"$ref":"#/definitions/selector"},
                             "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
                             "check": {"const":"placement"},

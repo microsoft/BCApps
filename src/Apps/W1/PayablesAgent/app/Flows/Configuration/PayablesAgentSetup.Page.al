@@ -359,8 +359,13 @@ page 3304 "Payables Agent Setup"
                         Editable = false;
 
                         trigger OnDrillDown()
+                        var
+                            PADraftBasedSetup: Codeunit "PA Draft Based Setup";
                         begin
-                            if PASetupPresentation.OpenAdditionalFieldsSetup() then
+                            PASetup.LoadStoredOrDefaults();
+                            if not PASetup.SupportsAdditionalFields() then
+                                exit;
+                            if PADraftBasedSetup.OpenAdditionalFieldsSetup() then
                                 SetupChanged := true;
                         end;
                     }
@@ -398,7 +403,7 @@ page 3304 "Payables Agent Setup"
         PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
         CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
         CurrPage.AgentSetupPart.Page.Update();
-        PASetupUpdateParameters.GetDesiredSetup(PASetup);
+        PASetupUpdateParameters.CopyProposal(PASetup);
         Rec := PASetup.GetPageRecord();
         AdditionalFieldsSetupVisible := PASetup.SupportsAdditionalFields();
         MailboxAddress := PASetupUpdateParameters.GetEmailAccount()."Email Address";
@@ -442,7 +447,7 @@ page 3304 "Payables Agent Setup"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
-        if PASetupUpdateParameters.GetTrialUploadPending() then begin
+        if PASetupUpdateParameters.HasTrialUpload() then begin
             CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
             TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
             TempAgentSetupBuffer.Modify();
@@ -467,7 +472,7 @@ page 3304 "Payables Agent Setup"
     var
         TempAgentSetupBuffer: Record "Agent Setup Buffer";
         AgentSetup: Codeunit "Agent Setup";
-        PASetupPresentation: Codeunit "PA Setup Presentation";
+        PAKnownSenders: Codeunit "PA Known Senders";
         PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
         PASetup: Codeunit "PA Setup";
         PASetupUpdate: Codeunit "PA Setup Update";
@@ -516,17 +521,34 @@ page 3304 "Payables Agent Setup"
         Impact: Enum "PA Setup Change Impact";
         SendersCount: Integer;
     begin
-        Impact := PASetupPresentation.ClassifyKnownSendersUnusedByChange(Rec."Email Review Policy", Rec."Email Folder", SendersCount);
+        Impact := PAKnownSenders.ClassifyKnownSendersUnusedByChange(Rec."Email Review Policy", Rec."Email Folder", SendersCount);
         if SendersCount = 0 then
             exit(true);
         case Impact of
             Impact::KnownSendersIgnoredByFolder:
                 exit(Confirm(FolderIgnoresListConfirmLbl, false, SendersCount, Rec."Email Folder"));
             Impact::KnownSendersIgnoredByPolicy:
-                exit(Confirm(PolicyIgnoresListConfirmLbl, false, SendersCount, PASetupPresentation.PolicyLabel(Rec."Email Review Policy")));
+                exit(Confirm(PolicyIgnoresListConfirmLbl, false, SendersCount, PolicyLabel(Rec."Email Review Policy")));
         end;
 
         exit(true);
+    end;
+
+    local procedure PolicyLabel(Policy: Enum "PA Email Review Policy"): Text
+    var
+        AlwaysLbl: Label 'Always';
+        NeverLbl: Label 'Never';
+        OnlyIfUntrustedLbl: Label 'Manage per sender';
+    begin
+        case Policy of
+            Policy::Always:
+                exit(AlwaysLbl);
+            Policy::Never:
+                exit(NeverLbl);
+            Policy::OnlyIfUntrusted:
+                exit(OnlyIfUntrustedLbl);
+        end;
+        exit('');
     end;
 
     local procedure ApplySetup()
@@ -539,9 +561,7 @@ page 3304 "Payables Agent Setup"
     begin
         CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
         PASetupUpdateParameters.SetAgentSetupBuffer(TempAgentSetupBuffer);
-        PASetupUpdateParameters.SetMonitorEmail(Rec."Monitor Outlook");
-        PASetupUpdateParameters.SetEmailReviewPolicy(Rec."Email Review Policy");
-        PASetupUpdateParameters.SetMailboxSelection(Rec."Email Account Id", Rec."Email Folder", Rec."Email Folder Id");
+        PASetupUpdateParameters.SetEmailMonitoring(Rec."Monitor Outlook", Rec."Email Review Policy", Rec."Email Account Id", Rec."Email Folder", Rec."Email Folder Id");
     end;
 
     local procedure SelectEmailAccount(var EmailAccountId: Guid; var EmailAddress: Text): Boolean

@@ -262,7 +262,12 @@ codeunit 3326 "PA Test Fixtures"
             exit(false);
 
         Diagnostics.Add('schemaVersion', 1);
-        Diagnostics.Add('paVersion', Format(Task.GetVersion()));
+        case Task.GetVersion() of
+            "PA Version"::V1:
+                Diagnostics.Add('paVersion', 'V1');
+            "PA Version"::V2:
+                Diagnostics.Add('paVersion', 'V2');
+        end;
         Outcome := Task.GetOutcome();
         if Outcome.TableNo <> 0 then begin
             HasPurchaseInvoice := BuildCreatedPurchaseInvoice(Outcome, PurchaseInvoice);
@@ -501,10 +506,8 @@ codeunit 3326 "PA Test Fixtures"
     var
         DesiredSetup: Codeunit "PA Setup";
     begin
-        PASetupUpdateParameters.GetDesiredSetup(DesiredSetup);
-        PASetupUpdateParameters.SetMonitorEmail(MonitorEmail);
-        PASetupUpdateParameters.SetEmailReviewPolicy(ReviewPolicy);
-        PASetupUpdateParameters.SetMailboxSelection(EmailAccountId, DesiredSetup.GetEmailFolder(), DesiredSetup.GetEmailFolderId());
+        PASetupUpdateParameters.CopyProposal(DesiredSetup);
+        PASetupUpdateParameters.SetEmailMonitoring(MonitorEmail, ReviewPolicy, EmailAccountId, DesiredSetup.GetEmailFolder(), DesiredSetup.GetEmailFolderId());
     end;
 
     /// <summary>

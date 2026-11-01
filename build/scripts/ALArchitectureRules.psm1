@@ -178,7 +178,8 @@ function Get-ArchitectureFindings($Rule, $File, [object[]] $Files, [object[]] $R
             }
         }
         'forbiddenCode' {
-            foreach ($match in Get-ArchitectureMatches $File.Code $Rule.pattern) {
+            $text = if ($Rule.Contains('includeQuotedIdentifiers') -and $Rule.includeQuotedIdentifiers) { $File.Source } else { $File.Code }
+            foreach ($match in Get-ArchitectureMatches $text $Rule.pattern) {
                 New-ArchitectureFinding -Target 'code' -Index $match.Index -Detail "forbidden code '$($match.Value.Trim())'"
             }
         }
@@ -239,8 +240,7 @@ function Get-ArchitectureFindings($Rule, $File, [object[]] $Files, [object[]] $R
     JSON schema used to validate the policy, beside RulesPath by default.
 .OUTPUTS
     An object containing object/reference/rule counts and deterministic diagnostics.
-    Policy errors are returned as diagnostics; invalid configuration or unreadable
-    inputs throw. The script entry point decides whether warnings fail the build.
+    Every unsuppressed finding is returned as a failing diagnostic.
 #>
 function Invoke-ALArchitectureRules {
     [CmdletBinding()]
@@ -277,7 +277,7 @@ function Invoke-ALArchitectureRules {
                     }
                 }
                 if (-not $excepted) {
-                    $diagnostics += [PSCustomObject]@{ RuleId = $rule.id; Severity = $rule.severity; Path = $file.FullPath
+                    $diagnostics += [PSCustomObject]@{ RuleId = $rule.id; Path = $file.FullPath
                         Line = 1 + [regex]::Matches($file.Text.Substring(0, $finding.Index), "`n").Count
                         Message = "$($rule.description) $($finding.Detail)." }
                 }
@@ -285,12 +285,12 @@ function Invoke-ALArchitectureRules {
         }
         if ($rule.Contains('exceptions')) {
             for ($i = 0; $i -lt $rule.exceptions.Count; $i++) {
-                if (-not $used.ContainsKey($i)) { $diagnostics += [PSCustomObject]@{ RuleId = 'CONFIG'; Severity = 'error'; Path = [IO.Path]::GetFullPath($RulesPath); Line = 1; Message = "Unused exception $($rule.id)[$i]: $($rule.exceptions[$i].reason)" } }
+                if (-not $used.ContainsKey($i)) { $diagnostics += [PSCustomObject]@{ RuleId = 'CONFIG'; Path = [IO.Path]::GetFullPath($RulesPath); Line = 1; Message = "Unused exception $($rule.id)[$i]: $($rule.exceptions[$i].reason)" } }
             }
         }
     }
     [PSCustomObject]@{ ObjectCount = $files.Count; ReferenceCount = @($references.Values | ForEach-Object { $_ }).Count
-        RuleCount = $config.rules.Count; Diagnostics = @($diagnostics | Sort-Object Path, Line, RuleId, Message -Unique) }
+        RuleCount = $config.rules.Count; Diagnostics = @($diagnostics | Sort-Object RuleId, Path, Line, Message -Unique) }
 }
 
 Export-ModuleMember -Function Invoke-ALArchitectureRules

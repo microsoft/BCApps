@@ -38,23 +38,23 @@ page 3313 "PA Known Senders"
 
     trigger OnOpenPage()
     var
-        PASetupPresentation: Codeunit "PA Setup Presentation";
+        PAKnownSenders: Codeunit "PA Known Senders";
         PASetup: Codeunit "PA Setup";
         UnusedNotification: Notification;
         Impact: Enum "PA Setup Change Impact";
         SavedPolicy: Enum "PA Email Review Policy";
         SavedFolder: Text;
     begin
-        PASetup.GetSetup();
+        PASetup.LoadStoredOrDefaults();
         SavedPolicy := PASetup.GetEmailReviewPolicy();
         SavedFolder := PASetup.GetEmailFolder();
 
-        Impact := PASetupPresentation.ClassifyKnownSendersUnusedReason(SavedPolicy, SavedFolder);
+        Impact := PAKnownSenders.ClassifyKnownSendersUnusedReason(SavedPolicy, SavedFolder);
         case Impact of
             Impact::KnownSendersIgnoredByFolder:
                 UnusedNotification.Message := UnusedByFolderLbl;
             Impact::KnownSendersIgnoredByPolicy:
-                UnusedNotification.Message := StrSubstNo(UnusedByPolicyLbl, PASetupPresentation.PolicyLabel(SavedPolicy));
+                UnusedNotification.Message := StrSubstNo(UnusedByPolicyLbl, PolicyLabel(SavedPolicy));
             else
                 exit;
         end;
@@ -65,6 +65,23 @@ page 3313 "PA Known Senders"
     var
         UnusedByFolderLbl: Label 'This list is currently unused. Emails arrive through the configured subfolder and are processed without consulting it.', Comment = '%1 = folder name';
         UnusedByPolicyLbl: Label 'This list doesn''t affect processing while review policy is set to ''%1''.', Comment = '%1 = review policy';
+
+    local procedure PolicyLabel(Policy: Enum "PA Email Review Policy"): Text
+    var
+        AlwaysLbl: Label 'Always';
+        NeverLbl: Label 'Never';
+        OnlyIfUntrustedLbl: Label 'Manage per sender';
+    begin
+        case Policy of
+            Policy::Always:
+                exit(AlwaysLbl);
+            Policy::Never:
+                exit(NeverLbl);
+            Policy::OnlyIfUntrusted:
+                exit(OnlyIfUntrustedLbl);
+        end;
+        exit('');
+    end;
 }
 #if not CLEAN27
 #pragma warning restore AS0050

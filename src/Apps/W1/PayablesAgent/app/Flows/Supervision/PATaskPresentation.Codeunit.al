@@ -12,7 +12,7 @@ using System.Agents;
 using System.Agents.TaskPane;
 using System.Utilities;
 
-// Projects task/source entities into page rows and owns navigation/formatting for the agent workspace.
+// Rebuilds scoped task/source projections and owns human navigation and formatting.
 codeunit 3330 "PA Task Presentation"
 {
     Access = Internal;
@@ -21,7 +21,6 @@ codeunit 3330 "PA Task Presentation"
     Permissions = tabledata "Agent Task" = R, tabledata "Agent Task Message" = R;
 
     var
-        AgentExperience: Codeunit "PA Agent Experience";
         TaskNameTxt: Label 'Task %1', Comment = '%1 = list row number';
         RejectedSourceNameTxt: Label 'Rejected source %1', Comment = '%1 = list row number';
         EmailSourceTxt: Label 'Email from %1: %2', Comment = '%1 = sender, %2 = subject';
@@ -32,13 +31,9 @@ codeunit 3330 "PA Task Presentation"
         NoOutcomeErr: Label 'The outcome is no longer available.';
         SourceNotAvailableErr: Label 'The source of this task is no longer available.';
         AgentTaskNotFoundErr: Label 'The agent task is no longer available.';
-        SourceTextUnavailableMsg: Label 'There is no extracted source text, and this source cannot be extracted.';
-        ExtractSourceTextQst: Label 'There is no extracted source text. Do you want to extract it now?';
-        ReplaceSourceTextQst: Label 'Extracted source text already exists. Do you want to replace it?';
-        SourceTextMsg: Label '%1', Comment = '%1 = extracted source text';
         OutlookWebLinkTok: Label 'https://outlook.office365.com/owa/?ItemID=%1&exvsurl=1&viewmodel=ReadMessageItem', Locked = true;
 
-    internal procedure GetTasks(var TempTasks: Record "PA Detailed Task" temporary)
+    internal procedure LoadAllRows(var TempTasks: Record "PA Detailed Task" temporary)
     var
         Tasks: Codeunit "PA Task Collection";
         SourceIds: List of [Guid];
@@ -52,36 +47,40 @@ codeunit 3330 "PA Task Presentation"
         InsertRejectedSources(TempTasks, SourceIds);
     end;
 
+    internal procedure LoadRowsByState(State: Enum "PA Task State"; var TempTasks: Record "PA Detailed Task" temporary)
+    var
+        Tasks: Codeunit "PA Task Collection";
+        SourceIds: List of [Guid];
+        TaskIds: List of [BigInteger];
+    begin
+        TempTasks.Reset();
+        TempTasks.DeleteAll();
+        if State = "PA Task State"::Rejected then begin
+            Tasks.GetRejectedSourceIds(SourceIds);
+            InsertRejectedSources(TempTasks, SourceIds);
+        end else begin
+            Tasks.GetTaskIdsByState(State, TaskIds);
+            InsertTasks(TempTasks, TaskIds);
+        end;
+    end;
+
     internal procedure PopulateListRow(var TempTask: Record "PA Detailed Task" temporary; Task: Codeunit "Payables Agent Task")
     var
         AgentTask: Record "Agent Task";
-        RowNo: BigInteger;
+        Source: Codeunit "PA Task Source";
     begin
-        RowNo := TempTask."Entry No.";
         ClearTaskRow(TempTask);
-        TempTask."Entry No." := RowNo;
-        TempTask."Task Id" := Task.GetSourceId();
+        Task.GetSource(Source);
+        PopulateSourceColumns(TempTask, Source);
         TempTask."Agent Task ID" := Task.GetAgentTaskId();
         TempTask.Outcome := Task.GetOutcome();
-        TempTask."Created At" := Task.GetCreatedAt();
-        TempTask."Updated At" := Task.GetUpdatedAt();
         TempTask."Agent Task Status" := Task.GetAgentTaskStatus();
-        TempTask."Source Type" := Task.GetSourceType();
-        TempTask."Email From" := CopyStr(Task.GetEmailFrom(), 1, MaxStrLen(TempTask."Email From"));
-        TempTask."Email Subject" := CopyStr(Task.GetEmailSubject(), 1, MaxStrLen(TempTask."Email Subject"));
-        TempTask."File Name" := CopyStr(Task.GetFileName(), 1, MaxStrLen(TempTask."File Name"));
-        TempTask."Has Pdf" := Task.HasPdf();
-        TempTask."Sender Name" := CopyStr(Task.GetSenderName(), 1, MaxStrLen(TempTask."Sender Name"));
-        TempTask."Email Received At" := Task.GetEmailReceivedAt();
-        TempTask."Email External Id" := CopyStr(Task.GetEmailExternalId(), 1, MaxStrLen(TempTask."Email External Id"));
         TempTask."Has Agent Task" := true;
         TempTask.State := Task.GetState();
         TempTask."Can Extract Text" := Task.CanExtractText();
         TempTask."Can Register Outcome" := Task.CanRegisterOutcome();
-        TempTask.Version := Task.GetVersion();
         TempTask."Intake Status" := Task.GetIntakeStatus();
-
-        TempTask.Name := CopyStr(StrSubstNo(TaskNameTxt, RowNo), 1, MaxStrLen(TempTask.Name));
+        TempTask.Name := CopyStr(StrSubstNo(TaskNameTxt, TempTask."Entry No."), 1, MaxStrLen(TempTask.Name));
         if AgentTask.Get(TempTask."Agent Task ID") then
             if AgentTask.Title <> '' then
                 TempTask.Name := CopyStr(AgentTask.Title, 1, MaxStrLen(TempTask.Name));
@@ -89,13 +88,19 @@ codeunit 3330 "PA Task Presentation"
     end;
 
     internal procedure PopulateRejectedSourceRow(var TempTask: Record "PA Detailed Task" temporary; Source: Codeunit "PA Task Source")
-    var
-        RowNo: BigInteger;
     begin
-        RowNo := TempTask."Entry No.";
         ClearTaskRow(TempTask);
-        TempTask."Entry No." := RowNo;
-        TempTask."Task Id" := Source.GetId();
+        PopulateSourceColumns(TempTask, Source);
+        TempTask.State := "PA Task State"::Rejected;
+        TempTask."Intake Status" := Source.GetIntakeStatus();
+        TempTask."Rejection Reason" := CopyStr(Source.GetRejectionReason(), 1, MaxStrLen(TempTask."Rejection Reason"));
+        TempTask.Name := CopyStr(StrSubstNo(RejectedSourceNameTxt, TempTask."Entry No."), 1, MaxStrLen(TempTask.Name));
+        PopulateDescriptions(TempTask);
+    end;
+
+    local procedure PopulateSourceColumns(var TempTask: Record "PA Detailed Task" temporary; Source: Codeunit "PA Task Source")
+    begin
+        TempTask."Source Id" := Source.GetId();
         TempTask."Created At" := Source.GetCreatedAt();
         TempTask."Updated At" := Source.GetUpdatedAt();
         TempTask."Source Type" := Source.GetSourceType();
@@ -106,30 +111,13 @@ codeunit 3330 "PA Task Presentation"
         TempTask."Sender Name" := CopyStr(Source.GetSenderName(), 1, MaxStrLen(TempTask."Sender Name"));
         TempTask."Email Received At" := Source.GetEmailReceivedAt();
         TempTask."Email External Id" := CopyStr(Source.GetEmailExternalId(), 1, MaxStrLen(TempTask."Email External Id"));
-        TempTask.State := "PA Task State"::Rejected;
-        TempTask.Version := Source.GetVersion();
-        TempTask."Intake Status" := Source.GetIntakeStatus();
-        TempTask."Rejection Reason" := CopyStr(Source.GetRejectionReason(), 1, MaxStrLen(TempTask."Rejection Reason"));
-        TempTask.Name := CopyStr(StrSubstNo(RejectedSourceNameTxt, RowNo), 1, MaxStrLen(TempTask.Name));
-        PopulateDescriptions(TempTask);
     end;
 
     internal procedure DrillDownByState(State: Enum "PA Task State")
     var
-        TempTasks: Record "PA Detailed Task" temporary;
-        Tasks: Codeunit "PA Task Collection";
         TasksPage: Page "Payables Agent Tasks";
-        SourceIds: List of [Guid];
-        TaskIds: List of [BigInteger];
     begin
-        if State = "PA Task State"::Rejected then begin
-            Tasks.GetRejectedSourceIds(SourceIds);
-            InsertRejectedSources(TempTasks, SourceIds);
-        end else begin
-            Tasks.GetTaskIdsByState(State, TaskIds);
-            InsertTasks(TempTasks, TaskIds);
-        end;
-        TasksPage.SetTasks(TempTasks);
+        TasksPage.OpenByState(State);
         TasksPage.Run();
     end;
 
@@ -137,13 +125,15 @@ codeunit 3330 "PA Task Presentation"
     var
         Message: Record "Agent Task Message";
         Task: Codeunit "Payables Agent Task";
+        Source: Codeunit "PA Task Source";
     begin
         Message.SetRange(ID, MessageId);
         if not Message.FindFirst() then
             exit(0);
         if not Task.Load(Message."Task ID") then
             exit(0);
-        case Task.GetSourceType() of
+        Task.GetSource(Source);
+        case Source.GetSourceType() of
             "PA Source Type"::Email:
                 exit(Page::"PA Agent Email Task");
             "PA Source Type"::Upload:
@@ -152,66 +142,67 @@ codeunit 3330 "PA Task Presentation"
         exit(0);
     end;
 
-    internal procedure OpenSource(var Task: Codeunit "Payables Agent Task")
+    internal procedure OpenSource(Task: Codeunit "Payables Agent Task")
+    var
+        Source: Codeunit "PA Task Source";
     begin
-        if AgentExperience.IsActive() and Task.CanExtractText() then begin
-            ShowSourceText(Task);
-            exit;
-        end;
-        if Task.GetSourceType() = "PA Source Type"::Email then
+        Task.GetSource(Source);
+        if Source.GetSourceType() = "PA Source Type"::Email then
             OpenSourceEmail(Task)
         else
-            OpenSourcePdf(Task);
+            OpenSourcePdf(Source);
     end;
 
     internal procedure OpenSourceEmail(Task: Codeunit "Payables Agent Task")
     var
+        Source: Codeunit "PA Task Source";
         EmailPage: Page "PA Email Review";
     begin
-        if Task.GetSourceType() <> "PA Source Type"::Email then
+        Task.GetSource(Source);
+        if Source.GetSourceType() <> "PA Source Type"::Email then
             Error(SourceNotAvailableErr);
         EmailPage.SetTask(Task);
         EmailPage.Run();
     end;
 
-    internal procedure OpenSourcePdf(Task: Codeunit "Payables Agent Task")
+    internal procedure OpenSourcePdf(Source: Codeunit "PA Task Source")
     begin
-        if not Task.HasPdf() then
+        if not Source.HasPdf() then
             Error(SourceNotAvailableErr);
-        ViewSourcePdf(Task);
+        ViewSourcePdf(Source);
     end;
 
-    internal procedure ViewSourcePdf(Task: Codeunit "Payables Agent Task")
+    internal procedure ViewSourcePdf(Source: Codeunit "PA Task Source")
     var
         Blob: Codeunit "Temp Blob";
         Stream: InStream;
         FileName: Text;
     begin
-        if not Task.GetSourcePdf(Blob, FileName) then
+        if not Source.GetSourcePdf(Blob, FileName) then
             Error(SourceNotAvailableErr);
         Blob.CreateInStream(Stream);
         if File.ViewFromStream(Stream, FileName, true) then
             exit;
-        DownloadSourcePdf(Task);
+        DownloadSourcePdf(Source);
     end;
 
-    internal procedure DownloadSourcePdf(Task: Codeunit "Payables Agent Task")
+    internal procedure DownloadSourcePdf(Source: Codeunit "PA Task Source")
     var
         Blob: Codeunit "Temp Blob";
         Stream: InStream;
         FileName: Text;
     begin
-        if not Task.GetSourcePdf(Blob, FileName) then
+        if not Source.GetSourcePdf(Blob, FileName) then
             Error(SourceNotAvailableErr);
         Blob.CreateInStream(Stream);
         DownloadFromStream(Stream, '', '', '', FileName);
     end;
 
-    internal procedure GetEmailWebLink(Task: Codeunit "Payables Agent Task"): Text
+    internal procedure GetEmailWebLink(Source: Codeunit "PA Task Source"): Text
     var
         ExternalId: Text;
     begin
-        ExternalId := Task.GetEmailExternalId();
+        ExternalId := Source.GetEmailExternalId();
         if ExternalId = '' then
             exit('');
         exit(StrSubstNo(OutlookWebLinkTok, ExternalId));
@@ -231,42 +222,6 @@ codeunit 3330 "PA Task Presentation"
             AgentTaskManagement.OpenAgentTaskLogEntries(AgentTaskId)
         else
             TaskPane.ShowTask(AgentTaskId);
-    end;
-
-    internal procedure ExtractSourceText(var Task: Codeunit "Payables Agent Task")
-    begin
-        if not Task.CanExtractText() then
-            Error(SourceNotAvailableErr);
-        if Task.GetSourceText() <> '' then
-            if not Confirm(ReplaceSourceTextQst, false) then
-                exit;
-        ExtractAndShowSourceText(Task);
-    end;
-
-    local procedure ShowSourceText(var Task: Codeunit "Payables Agent Task")
-    var
-        SourceText: Text;
-    begin
-        SourceText := Task.GetSourceText();
-        if SourceText <> '' then begin
-            Message(SourceTextMsg, SourceText);
-            exit;
-        end;
-        if not Task.CanExtractText() then begin
-            Message(SourceTextUnavailableMsg);
-            exit;
-        end;
-        if not Confirm(ExtractSourceTextQst, false) then
-            exit;
-        ExtractAndShowSourceText(Task);
-    end;
-
-    local procedure ExtractAndShowSourceText(var Task: Codeunit "Payables Agent Task")
-    var
-        PdfTextExtraction: Codeunit "PA PDF Text Extraction";
-    begin
-        PdfTextExtraction.ExtractText(Task);
-        Message(SourceTextMsg, Task.GetSourceText());
     end;
 
     internal procedure OpenOutcome(Task: Codeunit "Payables Agent Task")

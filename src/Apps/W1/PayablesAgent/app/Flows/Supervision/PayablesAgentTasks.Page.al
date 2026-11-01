@@ -72,10 +72,6 @@ page 3333 "Payables Agent Tasks"
                 {
                     ToolTip = 'Specifies whether the received source was accepted as an agent task or rejected during intake.';
                 }
-                field(Version; Rec.Version)
-                {
-                    ToolTip = 'Specifies the Payables Agent version that owns this task or source.';
-                }
                 field("Rejection Reason"; Rec."Rejection Reason")
                 {
                     ToolTip = 'Specifies why the received source was rejected during intake.';
@@ -146,7 +142,8 @@ page 3333 "Payables Agent Tasks"
                     trigger OnAction()
                     begin
                         LoadCurrentTask(PATask);
-                        Presentation.DownloadSourcePdf(PATask);
+                        PATask.GetSource(TaskSource);
+                        Presentation.DownloadSourcePdf(TaskSource);
                     end;
                 }
                 action(ViewPdf)
@@ -159,7 +156,8 @@ page 3333 "Payables Agent Tasks"
                     trigger OnAction()
                     begin
                         LoadCurrentTask(PATask);
-                        Presentation.OpenSourcePdf(PATask);
+                        PATask.GetSource(TaskSource);
+                        Presentation.OpenSourcePdf(TaskSource);
                     end;
                 }
             }
@@ -184,7 +182,10 @@ page 3333 "Payables Agent Tasks"
                 trigger OnAction()
                 begin
                     LoadCurrentTask(PATask);
-                    Presentation.OpenSource(PATask);
+                    if AgentExperience.IsActive() and PATask.CanExtractText() then
+                        AgentExperience.ShowSourceText(PATask)
+                    else
+                        Presentation.OpenSource(PATask);
                 end;
             }
             action(OpenOutcome)
@@ -216,7 +217,7 @@ page 3333 "Payables Agent Tasks"
                     trigger OnAction()
                     begin
                         LoadCurrentTask(PATask);
-                        Presentation.ExtractSourceText(PATask);
+                        AgentExperience.ExtractSourceText(PATask);
                         RefreshCurrentTask();
                     end;
                 }
@@ -311,8 +312,7 @@ page 3333 "Payables Agent Tasks"
     begin
         UseAgentExperience := AgentExperience.IsActive();
         CanUploadPdf := PAAgentAccess.CanShowAgentActions();
-        if not TasksSupplied then
-            Presentation.GetTasks(Rec);
+        RebuildRows();
         if Rec.FindFirst() then;
     end;
 
@@ -332,7 +332,8 @@ page 3333 "Payables Agent Tasks"
         EmailWebLink := '';
         if IsEmailSourced then begin
             LoadCurrentTask(PATask);
-            EmailWebLink := Presentation.GetEmailWebLink(PATask);
+            PATask.GetSource(TaskSource);
+            EmailWebLink := Presentation.GetEmailWebLink(TaskSource);
         end;
         HasEmailWebLink := EmailWebLink <> '';
     end;
@@ -342,7 +343,9 @@ page 3333 "Payables Agent Tasks"
         Presentation: Codeunit "PA Task Presentation";
         AgentExperience: Codeunit "PA Agent Experience";
         PAAgentAccess: Codeunit "PA Agent Access";
-        TasksSupplied: Boolean;
+        TaskSource: Codeunit "PA Task Source";
+        HasStateScope: Boolean;
+        ScopeState: Enum "PA Task State";
         TaskNotFoundErr: Label 'The task does not exist.';
         EmailWebLink: Text;
         UseAgentExperience: Boolean;
@@ -356,65 +359,76 @@ page 3333 "Payables Agent Tasks"
         CanRegisterOutcome: Boolean;
         AgentTaskStatusHidden: Boolean;
 
-    internal procedure SetTasks(var TempTasks: Record "PA Detailed Task" temporary)
+    internal procedure OpenByState(State: Enum "PA Task State")
     begin
-        Rec.Copy(TempTasks, true);
-        TasksSupplied := true;
+        HasStateScope := true;
+        ScopeState := State;
     end;
 
-    local procedure ReloadTasks() // TODO: this looks a bit complicated? don't quite get why, it may be better to put it in the preentation if the complexity can't be avoided.
+    local procedure RebuildRows()
     var
-        TaskSource: Codeunit "PA Task Source";
+        TempSavedView: Record "PA Detailed Task" temporary;
+    begin
+        TempSavedView.Copy(Rec);
+        if HasStateScope then
+            Presentation.LoadRowsByState(ScopeState, Rec)
+        else
+            Presentation.LoadAllRows(Rec);
+        Rec.Copy(TempSavedView);
+        Rec.Init();
+        Rec."Entry No." := 0;
+    end;
+
+    local procedure ReloadTasks()
+    var
+        CurrentAgentTaskId: BigInteger;
         CurrentSourceId: Guid;
     begin
-        CurrentSourceId := Rec."Task Id";
-        if not TasksSupplied then
-            Presentation.GetTasks(Rec)
-        else begin
-            Rec.Reset();
-            if Rec.FindSet() then
-                repeat
-                    if Rec."Has Agent Task" then begin
-                        if PATask.Load(Rec."Agent Task ID") then begin
-                            Presentation.PopulateListRow(Rec, PATask);
-                            Rec.Modify();
-                        end else
-                            Rec.Delete();
-                    end else
-                        if TaskSource.Load(Rec."Task Id") then begin
-                            Presentation.PopulateRejectedSourceRow(Rec, TaskSource);
-                            Rec.Modify();
-                        end else
-                            Rec.Delete();
-                until Rec.Next() = 0;
-        end;
-        Rec.SetRange("Task Id", CurrentSourceId);
-        if not Rec.FindFirst() then begin
-            Rec.SetRange("Task Id");
+        if Rec."Has Agent Task" then
+            CurrentAgentTaskId := Rec."Agent Task ID";
+        CurrentSourceId := Rec."Source Id";
+        RebuildRows();
+        if not SelectRow(CurrentAgentTaskId, CurrentSourceId) then
             if Rec.FindFirst() then;
-        end else
-            Rec.SetRange("Task Id");
         CurrPage.Update(false);
+    end;
+
+    local procedure SelectRow(SelectedAgentTaskId: BigInteger; SourceId: Guid): Boolean
+    var
+        TempVisibleRow: Record "PA Detailed Task" temporary;
+    begin
+        TempVisibleRow.Copy(Rec, true);
+        if TempVisibleRow.FindSet() then
+            repeat
+                if ((SelectedAgentTaskId <> 0) and TempVisibleRow."Has Agent Task" and (TempVisibleRow."Agent Task ID" = SelectedAgentTaskId)) or
+                   ((SelectedAgentTaskId = 0) and (TempVisibleRow."Source Id" = SourceId)) then begin
+                    Rec := TempVisibleRow;
+                    exit(true);
+                end;
+            until TempVisibleRow.Next() = 0;
+        exit(false);
     end;
 
     local procedure RefreshCurrentTask()
     begin
-        LoadCurrentTask(PATask);
-        PATask.Refresh();
-        Presentation.PopulateListRow(Rec, PATask);
-        Rec.Modify();
-        CurrPage.Update(false);
+        ReloadTasks();
     end;
 
     local procedure UploadPdfForAgent()
     var
         TaskUpload: Codeunit "PA Task Upload";
+        UploadedSource: Codeunit "PA Task Source";
+        SourceId: Guid;
     begin
-        if not TaskUpload.UploadInvoiceWithAgent() then
+        if not TaskUpload.UploadInvoiceWithAgent(SourceId) then
             exit;
-        Presentation.GetTasks(Rec);
-        if Rec.FindLast() then;
-        CurrPage.Update(false);
+        ReloadTasks();
+        if SelectRow(0, SourceId) then
+            CurrPage.Update(false)
+        else
+            if UploadedSource.Load(SourceId) then
+                if UploadedSource.GetAgentTaskId() <> 0 then
+                    Presentation.OpenAgentTask(UploadedSource.GetAgentTaskId());
     end;
 
     local procedure LoadCurrentTask(var Task: Codeunit "Payables Agent Task")

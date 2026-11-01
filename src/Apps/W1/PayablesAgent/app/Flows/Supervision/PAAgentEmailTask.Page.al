@@ -70,7 +70,8 @@ page 3305 "PA Agent Email Task"
                 var
                     WebLink: Text;
                 begin
-                    WebLink := Presentation.GetEmailWebLink(PATask);
+                    PATask.GetSource(Source);
+                    WebLink := Presentation.GetEmailWebLink(Source);
                     if WebLink <> '' then
                         HyperLink(WebLink);
                 end;
@@ -85,7 +86,8 @@ page 3305 "PA Agent Email Task"
 
                 trigger OnAction()
                 begin
-                    Presentation.ViewSourcePdf(PATask);
+                    PATask.GetSource(Source);
+                    Presentation.ViewSourcePdf(Source);
                 end;
             }
         }
@@ -104,17 +106,19 @@ page 3305 "PA Agent Email Task"
     begin
         if not PATask.Load(Rec."Task ID") then
             exit;
-        EmailFrom := PATask.GetEmailFrom();
-        SenderName := PATask.GetSenderName();
+        PATask.GetSource(Source);
+        EmailFrom := Source.GetEmailFrom();
+        SenderName := Source.GetSenderName();
         if SenderName <> '' then
             EmailFrom := StrSubstNo(EmailFromTxt, SenderName, EmailFrom);
-        EmailSubject := PATask.GetEmailSubject();
-        EmailContent := PATask.GetSourceEmailBody();
-        ViewPDFVisible := PATask.HasPdf();
+        EmailSubject := Source.GetEmailSubject();
+        EmailContent := Source.GetSourceEmailBody();
+        ViewPDFVisible := Source.HasPdf();
     end;
 
     var
         PATask: Codeunit "Payables Agent Task";
+        Source: Codeunit "PA Task Source";
         Presentation: Codeunit "PA Task Presentation";
         EmailSubject: Text;
         EmailFrom: Text;
@@ -127,9 +131,11 @@ page 3305 "PA Agent Email Task"
     local procedure GetCaption(): Text[250]
     var
         CaptionPATask: Codeunit "Payables Agent Task";
+        CaptionSource: Codeunit "PA Task Source";
     begin
         if CaptionPATask.Load(Rec."Task ID") then;
-        if CaptionPATask.HasPdf() then
+        CaptionPATask.GetSource(CaptionSource);
+        if CaptionSource.HasPdf() then
             exit(PDFReceivedFromEmailTxt);
         exit(NoPDFReceivedFromEmailTxt);
     end;

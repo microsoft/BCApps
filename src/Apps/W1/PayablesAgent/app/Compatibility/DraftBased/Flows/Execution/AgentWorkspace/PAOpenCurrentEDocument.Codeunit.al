@@ -41,12 +41,14 @@ codeunit 3308 "PA Open Current E-Document"
     var
         EDocument: Record "E-Document";
         Task: Codeunit "Payables Agent Task";
+        Source: Codeunit "PA Task Source";
     begin
         if not Task.LoadCurrentSession() then
             exit(0);
         if Task.GetVersion() <> "PA Version"::V1 then
             exit(0);
-        if EDocument.GetBySystemId(Task.GetSourceId()) then
+        Task.GetSource(Source);
+        if EDocument.GetBySystemId(Source.GetId()) then
             exit(EDocument."Entry No");
         exit(0);
     end;

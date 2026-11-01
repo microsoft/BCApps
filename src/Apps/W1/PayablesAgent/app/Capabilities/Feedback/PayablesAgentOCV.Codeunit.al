@@ -137,24 +137,25 @@ codeunit 3317 "Payables Agent OCV"
     local procedure GetInvoice(AgentTaskId: Text; var TempBlob: Codeunit "Temp Blob"; var FileName: Text): Boolean
     var
         PATask: Codeunit "Payables Agent Task";
+        Source: Codeunit "PA Task Source";
         AgentTaskIdValue: BigInteger;
     begin
         if not Evaluate(AgentTaskIdValue, AgentTaskId) then
             exit(false);
         if not PATask.Load(AgentTaskIdValue) then
             exit(false);
-        exit(PATask.GetSourcePdf(TempBlob, FileName));
+        PATask.GetSource(Source);
+        exit(Source.GetSourcePdf(TempBlob, FileName));
     end;
 
     local procedure IsAgentDraftPageFeedbackContext(Context: Dictionary of [Text, Text]; var Handled: Boolean)
     var
         PayablesAgentOCV: Codeunit "Payables Agent OCV";
+        DraftBasedFeedback: Codeunit "PA Draft Based Feedback";
         FeedbackType: Text;
     begin
         // Scenario: Thumbs feedback from E-Document Purchase Draft page (Infotips)
-        if not (Context.ContainsKey('FormName') and Context.ContainsKey('Copilot.Feedback.Target')) then
-            exit;
-        if Context.Get('FormName') <> 'E-Document Purchase Draft' then
+        if not DraftBasedFeedback.IsDraftPageFeedbackContext(Context) then
             exit;
         if Context.ContainsKey('Feedback.Type') then
             FeedbackType := Context.Get('Feedback.Type');

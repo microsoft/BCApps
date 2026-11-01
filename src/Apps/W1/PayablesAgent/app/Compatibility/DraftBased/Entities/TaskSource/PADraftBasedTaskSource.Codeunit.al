@@ -15,21 +15,23 @@ codeunit 3332 "PA Draft Based Task Source"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Agent Task" = R, tabledata "E-Document" = RM, tabledata "E-Doc. Data Storage" = R;
+    Permissions = tabledata "Agent Task" = R, tabledata "Agent Task Message" = R, tabledata "E-Document" = RM, tabledata "E-Doc. Data Storage" = R;
 
     var
         LoadedEDocument: Record "E-Document";
         Loaded: Boolean;
         SourceNotFoundErr: Label 'The task source does not exist.';
+        MultipleTaskBackingsErr: Label 'Agent task %1 has more than one Payables Agent backing record.', Comment = '%1 = Agent Task ID';
+        AgentEDocumentServiceTok: Label 'AGENT', Locked = true;
 
     internal procedure CreateFromPdf(FileName: Text; PdfInStream: InStream): Boolean
     var
         EDocument: Record "E-Document";
         EDocImport: Codeunit "E-Doc. Import";
-        PADraftBasedSetup: Codeunit "PA Draft Based Setup";
+        DraftBasedSetupBacking: Codeunit "PA Draft Based Setup Backing";
     begin
         ClearLoaded();
-        EDocImport.CreateFromType(EDocument, PADraftBasedSetup.GetOrCreateAgentEDocumentService(), "E-Doc. File Format"::PDF, FileName, PdfInStream);
+        EDocImport.CreateFromType(EDocument, DraftBasedSetupBacking.GetOrCreateService(), "E-Doc. File Format"::PDF, FileName, PdfInStream);
         EDocument."Source Details" := CopyStr(FileName, 1, MaxStrLen(EDocument."Source Details"));
         EDocument.Modify();
         exit(Load(EDocument.SystemId));
@@ -44,6 +46,43 @@ codeunit 3332 "PA Draft Based Task Source"
             exit(false);
         Loaded := true;
         exit(true);
+    end;
+
+    internal procedure LoadForTask(AgentTaskId: BigInteger): Boolean
+    var
+        AgentTask: Record "Agent Task";
+        AgentTaskMessage: Record "Agent Task Message";
+        EDocument: Record "E-Document";
+        EDocumentEntryNo: Integer;
+    begin
+        ClearLoaded();
+        if not AgentTask.Get(AgentTaskId) then
+            exit(false);
+        if AgentTask."Company Name" <> CompanyName() then
+            exit(false);
+
+        AgentTaskMessage.SetRange("Task ID", AgentTaskId);
+        AgentTaskMessage.SetFilter("External ID", '<>%1', '');
+        if AgentTaskMessage.FindSet() then
+            repeat
+                if Evaluate(EDocumentEntryNo, AgentTaskMessage."External ID") then
+                    if EDocument.Get(EDocumentEntryNo) then
+                        if EDocument.GetEDocumentService().Code = AgentEDocumentServiceTok then begin
+                            if Loaded and (LoadedEDocument."Entry No" <> EDocument."Entry No") then
+                                Error(MultipleTaskBackingsErr, AgentTaskId);
+                            LoadedEDocument := EDocument;
+                            Loaded := true;
+                        end;
+            until AgentTaskMessage.Next() = 0;
+        // The framework correlation survives loss of the initial message.
+        if not Loaded then
+            if Evaluate(EDocumentEntryNo, AgentTask."External ID") then
+                if EDocument.Get(EDocumentEntryNo) then
+                    if EDocument.GetEDocumentService().Code = AgentEDocumentServiceTok then begin
+                        LoadedEDocument := EDocument;
+                        Loaded := true;
+                    end;
+        exit(Loaded);
     end;
 
     internal procedure GetId(): Guid

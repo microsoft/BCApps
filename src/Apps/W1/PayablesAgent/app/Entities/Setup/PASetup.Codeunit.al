@@ -5,10 +5,6 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Integration;
-using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.EServices.EDocumentConnector.Microsoft365;
 using System.Agents;
 using System.Email;
 
@@ -18,23 +14,18 @@ codeunit 3343 "PA Setup"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Payables Agent Setup" = RIMD, tabledata "Outlook Setup" = RIM, tabledata Agent = R;
+    Permissions = tabledata "Payables Agent Setup" = RIMD, tabledata Agent = R;
 
     var
         PayablesAgentSetupRecord: Record "Payables Agent Setup";
-        OutlookSetup: Record "Outlook Setup";
+        DraftBasedSetupBacking: Codeunit "PA Draft Based Setup Backing";
         PAV1V2Flag: Codeunit "PA V1V2 Flag";
         IsV2: Boolean;
-        OutlookSetupExists: Boolean;
         AgentUserNameLbl: Label 'Payables Agent', Comment = 'User name of the agent.', Locked = true;
         PayablesAgentProfileTok: Label 'Payables Agent', Locked = true;
         PayablesAgentV2ProfileTok: Label 'Payables Agent Profile', Locked = true;
         PayablesAgentPermissionSetTok: Label 'Payables Ag. - Run', Locked = true;
         PayablesAgentV2PermissionSetTok: Label 'Payables Agent - Run', Locked = true;
-        AgentInstructionsTok: Label '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
-        AgentDrivenInstructionsTok: Label '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
-        AgentInstructionsV2Tok: Label 'Prompts/PayablesAgent-AgentInstructions-V2.md', Locked = true;
-        PayablesAgentEDocServiceTok: Label 'AGENT', Locked = true;
         MonitoringNotSupportedErr: Label 'Email monitoring is not available for this version of the Payables Agent.';
         MailboxRequiredErr: Label 'Select a mailbox before enabling email monitoring.';
         ConsentRequiredErr: Label 'Email monitoring requires privacy consent.';
@@ -52,13 +43,17 @@ codeunit 3343 "PA Setup"
         Exists: Boolean;
     begin
         Clear(PayablesAgentSetupRecord);
-        Clear(OutlookSetup);
+        Clear(DraftBasedSetupBacking);
         IsV2 := PAV1V2Flag.IsV2Active();
         Exists := PayablesAgentSetupRecord.GetSetup(InsertIfMissing);
-        OutlookSetupExists := false;
         if not IsV2 then
-            OutlookSetupExists := OutlookSetup.FindFirst();
+            DraftBasedSetupBacking.LoadStored();
         exit(Exists);
+    end;
+
+    internal procedure LoadStoredOrDefaults()
+    begin
+        if GetSetup(false) then;
     end;
 
     // A read-only lookup: neither the stored setup nor this editable proposal is changed.
@@ -129,9 +124,10 @@ codeunit 3343 "PA Setup"
     internal procedure ResetProposal()
     begin
         Clear(PayablesAgentSetupRecord);
-        Clear(OutlookSetup);
+        Clear(DraftBasedSetupBacking);
         IsV2 := PAV1V2Flag.IsV2Active();
-        OutlookSetupExists := not IsV2;
+        if not IsV2 then
+            DraftBasedSetupBacking.ResetProposal();
     end;
 
     internal procedure GetMonitorOutlook(): Boolean
@@ -160,39 +156,35 @@ codeunit 3343 "PA Setup"
         PayablesAgentSetupRecord."Email Account Id" := AccountId;
         PayablesAgentSetupRecord."Email Folder" := FolderName;
         PayablesAgentSetupRecord."Email Folder Id" := FolderId;
-        if not IsV2 then begin
-            OutlookSetup."Email Account ID" := AccountId;
-            OutlookSetup."Email Folder" := FolderName;
-            OutlookSetup."Email Folder Id" := FolderId;
-            OutlookSetupExists := true;
-        end;
+        if not IsV2 then
+            DraftBasedSetupBacking.SetMailboxSelection(AccountId, FolderName, FolderId);
     end;
 
     internal procedure GetEmailAccountId(): Guid
     begin
-        if not IsV2 and OutlookSetupExists then
-            exit(OutlookSetup."Email Account ID");
+        if not IsV2 and DraftBasedSetupBacking.HasMailboxProposal() then
+            exit(DraftBasedSetupBacking.GetEmailAccountId());
         exit(PayablesAgentSetupRecord."Email Account Id");
     end;
 
     internal procedure GetEmailFolder(): Text[2048]
     begin
-        if not IsV2 and OutlookSetupExists then
-            exit(OutlookSetup."Email Folder");
+        if not IsV2 and DraftBasedSetupBacking.HasMailboxProposal() then
+            exit(DraftBasedSetupBacking.GetEmailFolder());
         exit(PayablesAgentSetupRecord."Email Folder");
     end;
 
     internal procedure GetEmailFolderId(): Text[2048]
     begin
-        if not IsV2 and OutlookSetupExists then
-            exit(OutlookSetup."Email Folder Id");
+        if not IsV2 and DraftBasedSetupBacking.HasMailboxProposal() then
+            exit(DraftBasedSetupBacking.GetEmailFolderId());
         exit(PayablesAgentSetupRecord."Email Folder Id");
     end;
 
     internal procedure GetEmailMonitoringConsent(): Boolean
     begin
-        if not IsV2 and OutlookSetupExists then
-            exit(OutlookSetup."Consent Received");
+        if not IsV2 and DraftBasedSetupBacking.HasMailboxProposal() then
+            exit(DraftBasedSetupBacking.GetEmailMonitoringConsent());
         exit(PayablesAgentSetupRecord."Email Monitoring Consent");
     end;
 
@@ -200,13 +192,13 @@ codeunit 3343 "PA Setup"
     begin
         PayablesAgentSetupRecord."Email Monitoring Consent" := Value;
         if not IsV2 then
-            OutlookSetup."Consent Received" := Value;
+            DraftBasedSetupBacking.SetEmailMonitoringConsent(Value);
     end;
 
     internal procedure GetLastSyncAt(): DateTime
     begin
-        if not IsV2 and OutlookSetupExists then
-            exit(OutlookSetup."Last Sync At");
+        if not IsV2 and DraftBasedSetupBacking.HasMailboxProposal() then
+            exit(DraftBasedSetupBacking.GetLastSyncAt());
         exit(PayablesAgentSetupRecord."Last Sync At");
     end;
 
@@ -252,15 +244,6 @@ codeunit 3343 "PA Setup"
         if IsV2 then
             exit(PayablesAgentV2PermissionSetTok);
         exit(PayablesAgentPermissionSetTok);
-    end;
-
-    internal procedure GetAgentInstructionsResource(AgentDrivenLineMatching: Boolean): Text // TODO: Shouldnt receive this as param
-    begin
-        if PAV1V2Flag.IsV2Active() then
-            exit(AgentInstructionsV2Tok);
-        if AgentDrivenLineMatching then
-            exit(AgentDrivenInstructionsTok);
-        exit(AgentInstructionsTok);
     end;
 
     internal procedure SupportsEmailMonitoring(): Boolean
@@ -309,9 +292,9 @@ codeunit 3343 "PA Setup"
                 Error(MailboxUnavailableErr);
         end;
         if not IsV2 then
-            SyncV1BackingTables(Enabling)
+            DraftBasedSetupBacking.Synchronize(Enabling, GetMonitorOutlook(), GetEmailAccountId(), GetEmailFolder(), GetEmailFolderId(), GetEmailMonitoringConsent())
         else
-            DisableImport(); // Stop any remaining old importer when monitoring is off after a version switch.
+            DraftBasedSetupBacking.DisableMonitoring(); // Stop any remaining old importer when monitoring is off after a version switch.
 
         StoredSetup.GetOrCreateSetup();
         StoredSetup."Monitor Outlook" := PayablesAgentSetupRecord."Monitor Outlook";
@@ -358,73 +341,4 @@ codeunit 3343 "PA Setup"
         StoredSetup.DeleteAll();
     end;
 
-    local procedure SyncV1BackingTables(Enabling: Boolean)
-    var
-        StoredOutlookSetup: Record "Outlook Setup";
-        OutlookSetupExistedPreviously: Boolean;
-        EmailAccountChanged: Boolean;
-    begin
-        OutlookSetupExistedPreviously := StoredOutlookSetup.FindFirst();
-        EmailAccountChanged := StoredOutlookSetup."Email Account ID" <> GetEmailAccountId();
-        StoredOutlookSetup."Email Account ID" := GetEmailAccountId();
-        StoredOutlookSetup."Email Connector" := "Email Connector"::"Microsoft 365";
-        StoredOutlookSetup."Email Folder" := GetEmailFolder();
-        StoredOutlookSetup."Email Folder Id" := GetEmailFolderId();
-        StoredOutlookSetup."Consent Received" := GetEmailMonitoringConsent();
-        if EmailAccountChanged then
-            StoredOutlookSetup."Last Sync At" := 0DT;
-        if OutlookSetupExistedPreviously then
-            StoredOutlookSetup.Modify()
-        else
-            StoredOutlookSetup.Insert();
-
-        OutlookSetup := StoredOutlookSetup;
-        OutlookSetupExists := true;
-        SyncV1EDocumentService(Enabling, EmailAccountChanged);
-    end;
-
-    local procedure DisableImport()
-    var
-        EDocumentService: Record "E-Document Service";
-    begin
-        if EDocumentService.Get(PayablesAgentEDocServiceTok) then begin
-            EDocumentService.Validate("Auto Import", false);
-            EDocumentService.Modify();
-        end;
-    end;
-
-    local procedure SyncV1EDocumentService(Enabling: Boolean; ReactivateAutoImport: Boolean)
-    var
-        EDocumentService: Record "E-Document Service";
-        StoredOutlookSetup: Record "Outlook Setup";
-        SupportedType: Record "E-Doc. Service Supported Type";
-    begin
-        if not Enabling then begin
-            DisableImport();
-            exit;
-        end;
-        if not EDocumentService.Get(PayablesAgentEDocServiceTok) then begin
-            EDocumentService.Code := PayablesAgentEDocServiceTok;
-            EDocumentService.Insert(true);
-        end;
-        SupportedType.InsertDefaultIfMissing(EDocumentService.Code, "E-Document Type"::"Purchase Invoice", "E-Doc. Supp. Type Direction"::Incoming);
-        SupportedType.InsertDefaultIfMissing(EDocumentService.Code, "E-Document Type"::"Purchase Credit Memo", "E-Doc. Supp. Type Direction"::Incoming);
-        EDocumentService.Validate("Automatic Import Processing", "E-Doc. Automatic Processing"::No);
-        EDocumentService.Validate("Import Process", "E-Document Import Process"::"Version 2.0");
-        Clear(EDocumentService."Import Start Time");
-        EDocumentService."Import Minutes between runs" := 1;
-        EDocumentService."Verify Purch. Total Amounts" := true;
-        EDocumentService.Modify();
-        if ReactivateAutoImport then
-            EDocumentService.Validate("Auto Import", false);
-        if GetMonitorOutlook() then begin
-            EDocumentService.Validate("Service Integration V2", "Service Integration"::Outlook);
-            EDocumentService.Validate("Auto Import", true);
-            StoredOutlookSetup.FindFirst();
-            StoredOutlookSetup.Validate(Enabled, true);
-            StoredOutlookSetup.Modify();
-        end else
-            EDocumentService.Validate("Auto Import", false);
-        EDocumentService.Modify();
-    end;
 }

@@ -25,9 +25,9 @@ table 3332 "PA Detailed Task"
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
         }
-        field(2; "Task Id"; Guid)
+        field(2; "Source Id"; Guid)
         {
-            Caption = 'Task Id';
+            Caption = 'Source Id';
             DataClassification = SystemMetadata;
         }
         field(4; "Agent Task ID"; BigInteger)
@@ -140,17 +140,12 @@ table 3332 "PA Detailed Task"
             Caption = 'Can Register Outcome';
             DataClassification = SystemMetadata;
         }
-        field(37; Version; Enum "PA Version")
-        {
-            Caption = 'Version';
-            DataClassification = SystemMetadata;
-        }
-        field(38; "Intake Status"; Enum "PA Task Intake Status")
+        field(37; "Intake Status"; Enum "PA Task Intake Status")
         {
             Caption = 'Intake Status';
             DataClassification = SystemMetadata;
         }
-        field(39; "Rejection Reason"; Text[250])
+        field(38; "Rejection Reason"; Text[250])
         {
             Caption = 'Rejection Reason';
             DataClassification = SystemMetadata;

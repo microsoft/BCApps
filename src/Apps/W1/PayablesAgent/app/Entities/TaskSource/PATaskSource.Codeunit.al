@@ -75,6 +75,15 @@ codeunit 3340 "PA Task Source"
         exit(true);
     end;
 
+    internal procedure LoadDraftBasedForTask(AgentTaskId: BigInteger): Boolean
+    begin
+        ClearLoaded();
+        if not DraftBasedSource.LoadForTask(AgentTaskId) then
+            exit(false);
+        LoadedVersion := "PA Version"::V1;
+        exit(true);
+    end;
+
     internal procedure Refresh()
     var
         SourceId: Guid;

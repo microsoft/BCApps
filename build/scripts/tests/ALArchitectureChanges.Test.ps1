@@ -87,7 +87,7 @@ Describe 'Payables Agent architecture change selection' {
         $null = Get-TestChange
         $diff = @($script:calls | Where-Object { $_.Arguments[0] -eq 'diff' })[0].Arguments
         Assert-ChangeValue ($diff -contains '--') $true
-        foreach ($path in @('src/Apps/W1/PayablesAgent/', 'build/scripts/Test-PayablesAgentArchitecture*.ps1', 'build/scripts/*Architecture*.psm1', 'build/scripts/tests/ALArchitecture*.Test.ps1', '.github/workflows/PullRequestHandler.yaml', '.github/workflows/_BuildALGoProject.yaml')) {
+        foreach ($path in @('src/Apps/W1/PayablesAgent/', 'build/scripts/Test-PayablesAgentArchitecture*.ps1', 'build/scripts/Test-ALAppArchitecture.ps1', 'build/scripts/*Architecture*.psm1', 'build/scripts/tests/ALArchitecture*.Test.ps1', '.github/workflows/PullRequestHandler.yaml', '.github/workflows/_BuildALGoProject.yaml')) {
             Assert-ChangeValue ($diff -contains $path) $true
         }
     }
@@ -206,18 +206,21 @@ Describe 'Payables Agent architecture change selection' {
         } finally { $env:GITHUB_OUTPUT = $previousOutput }
     }
 
-    It 'guards both PR checks and the Apps W1 scan with the same conservative step output' {
+    It 'routes PR checks and project scans through one generic conservative runner step per host' {
         foreach ($workflow in @('PullRequestHandler.yaml', '_BuildALGoProject.yaml')) {
             $text = [IO.File]::ReadAllText((Join-Path $script:repo ".github/workflows/$workflow"))
-            if (-not $text.Contains('id: payablesAgentChanges') -or -not $text.Contains('run: ./build/scripts/Test-PayablesAgentArchitectureChanges.ps1')) { throw "Missing shared path detector in $workflow" }
             $steps = @([regex]::Matches($text, '(?ms)^      - name: .*?(?=^      - |\z)'))
-            $checks = @($steps | Where-Object { $_.Value -match '- name: (?:Test Payables Agent architecture checker|Validate Payables Agent architecture)\r?\n' })
-            Assert-ChangeValue $checks.Count $(if ($workflow -eq 'PullRequestHandler.yaml') { 2 } else { 1 })
-            foreach ($check in $checks) {
-                if (-not $check.Value.Contains("steps.payablesAgentChanges.outputs.required != 'false'")) { throw "Unguarded architecture check in $workflow" }
+            $checks = @($steps | Where-Object { $_.Value -match '- name: Validate AL app architecture\r?\n' })
+            Assert-ChangeValue $checks.Count 1
+            $check = $checks[0].Value
+            if (-not $check.Contains('run: ./build/scripts/Test-ALAppArchitecture.ps1') -or -not $check.Contains('-FetchMissingBase')) { throw "Missing shared checked-out runner in $workflow" }
+            if ($check -match '(?m)^        if:' -or $text.Contains('payablesAgentChanges') -or $text.Contains('Payables Agent architecture')) { throw "App-specific gate plumbing remains in $workflow" }
+            if ($workflow -eq 'PullRequestHandler.yaml' -and $text.IndexOf('Validate AL app architecture') -lt $text.IndexOf('  CustomJob-VerifyAppChanges:')) { throw 'Preserve the existing PR validation host.' }
+            if ($workflow -eq '_BuildALGoProject.yaml') {
+                foreach ($argument in @('AL_APP_ARCHITECTURE_PROJECT: ${{ inputs.project }}', 'AL_APP_ARCHITECTURE_BASELINE_SHA: ${{ inputs.baselineWorkflowSHA }}', '-Project $env:AL_APP_ARCHITECTURE_PROJECT', '-BaselineRef $env:AL_APP_ARCHITECTURE_BASELINE_SHA')) {
+                    if (-not $check.Contains($argument)) { throw "Missing generic project/baseline argument: $argument" }
+                }
             }
-            if ($text.IndexOf('Detect Payables Agent architecture changes') -gt $text.IndexOf('Validate Payables Agent architecture')) { throw 'Change detection must precede validation.' }
-            if ($workflow -eq '_BuildALGoProject.yaml' -and (-not $text.Contains('PA_ARCHITECTURE_BASELINE_SHA: ${{ inputs.baselineWorkflowSHA }}') -or -not $text.Contains("inputs.projectName == 'Apps W1' && steps.payablesAgentChanges.outputs.required"))) { throw 'Preserve the Apps W1 filter and manual-build baseline.' }
         }
     }
 }

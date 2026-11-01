@@ -98,7 +98,7 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
         Agent: Codeunit Agent;
         ModuleInfo: ModuleInfo;
     begin
-        PASetup.GetSetup();
+        PASetup.LoadStoredOrDefaults();
         NavApp.GetCurrentModuleInfo(ModuleInfo);
         Agent.PopulateDefaultProfile(PASetup.GetAgentProfile(), ModuleInfo.Id, TempAllProfile);
     end;
@@ -108,7 +108,7 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
         PASetup: Codeunit "PA Setup";
         ModuleInfo: ModuleInfo;
     begin
-        PASetup.GetSetup();
+        PASetup.LoadStoredOrDefaults();
         NavApp.GetCurrentModuleInfo(ModuleInfo);
         TempAccessControlBuffer.Init();
         TempAccessControlBuffer."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TempAccessControlBuffer."Company Name"));

@@ -49,10 +49,6 @@
   "target": "OnPrem",
   "idRanges": [
     {
-      "from": 133700,
-      "to": 133700
-    },
-    {
       "from": 133703,
       "to": 133703
     },

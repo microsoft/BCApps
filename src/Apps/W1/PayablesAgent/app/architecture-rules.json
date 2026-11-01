@@ -1,18 +1,21 @@
 {
     "$schema": "./architecture-rules.schema.json",
-    "version": 2,
+    "version": 3,
     "rules": [
         {
             "id": "PA001",
             "check": "dependencies",
             "description": "Keep active-version selection in the approved backing adapters and import guard.",
-            "severity": "error",
             "from": {"paths":["*"]},
             "to": {"paths":["Shared/Versioning/PAV1V2Flag.Codeunit.al"]},
             "exceptions": [
                 {
                     "from": {"paths":["Entities/Setup/PASetup.Codeunit.al"]},
                     "reason": "Setup chooses its active-version backing representation."
+                },
+                {
+                    "from": {"paths":["Flows/Configuration/PAAgentInstructions.Codeunit.al"]},
+                    "reason": "Agent Instructions selects the version-specific runtime instructions resource."
                 },
                 {
                     "from": {"paths":["Entities/TaskSource/PATaskSource.Codeunit.al"]},
@@ -28,7 +31,6 @@
             "id": "PA002",
             "check": "dependencies",
             "description": "Development settings storage is accessed only through its development API.",
-            "severity": "error",
             "from": {"paths":["*"]},
             "to": {"paths":["_Development/PADevelopmentSettings.Table.al"]},
             "exceptions": [
@@ -45,8 +47,7 @@
         {
             "id": "PA003",
             "check": "namespaces",
-            "description": "Shared flows must use adapters instead of referencing e-document objects directly (cleanup target).",
-            "severity": "warning",
+            "description": "E-Document namespaces are confined to draft compatibility, historical setup schema and declarative administration.",
             "from": {"paths":["*"]},
             "namespaces": ["Microsoft.eServices.EDocument","Microsoft.EServices.EDocumentConnector.Microsoft365"],
             "exceptions": [
@@ -55,24 +56,14 @@
                     "reason": "Irreducibly draft-specific integrations and declarative surfaces live here."
                 },
                 {
-                    "from": {"paths":["Entities/Task/*"]},
-                    "reason": "The task adapters own reads of their v1 backing representation."
-                },
-                {
-                    "from": {"paths":["Entities/Setup/PASetup.Codeunit.al"]},
-                    "reason": "The setup adapter owns its v1 backing representation; service orchestration is separately reported by PA005."
-                },
-                {
                     "from": {"paths":["Entities/Setup/PayablesAgentSetup.Table.al"]},
-                    "reason": "The namespace import supports an obsolete E-Document Service relation; this proxy does not distinguish schema references."
+                    "target": "Microsoft.eServices.EDocument",
+                    "reason": "Historical table 3303 field 2 retains its obsolete E-Document Service relation until CLEANSCHEMA33; no runtime backing access is permitted."
                 },
                 {
                     "from": {"paths":["Shared/Security/PayablesAgAdm.Permissionset.al"]},
-                    "reason": "Declarative administrator grants cover the v1 integration; they are not runtime access."
-                },
-                {
-                    "from": {"paths":["Flows/Execution/Supporting/PATaskPosting.Codeunit.al"]},
-                    "reason": "Posting deliberately replaces matching V1 E-Document outcome references as one set-level operation."
+                    "target": "Microsoft.EServices.EDocumentConnector.Microsoft365",
+                    "reason": "The administrator permission set declares the historical M365 connector grant; it is not runtime access."
                 }
             ]
         },
@@ -80,7 +71,6 @@
             "id": "PA004",
             "check": "dependencies",
             "description": "Backing table references belong to their owners; temporary and declarative references need explicit exceptions.",
-            "severity": "warning",
             "from": {"paths":["*"]},
             "to": {"paths":["Entities/Task/PayablesAgentTask.Table.al","Entities/Setup/PayablesAgentSetup.Table.al"]},
             "exceptions": [
@@ -140,14 +130,18 @@
                     },
                     "target": "Entities/Setup/PayablesAgentSetup.Table.al",
                     "reason": "Human permission sets grant declarative setup access; this matcher does not distinguish permissions from runtime references."
+                },
+                {
+                    "from": {"paths":["_Obsolete/PAMLLMSetup.Page.al"]},
+                    "target": "Entities/Setup/PayablesAgentSetup.Table.al",
+                    "reason": "The frozen pre-CLEAN29 MLLM rollout page remains bound to its historical setup schema; placement forbids new obsolete objects."
                 }
             ]
         },
         {
             "id": "PA005",
             "check": "dependencies",
-            "description": "Entities must not depend on application flows, registration, UI, or draft service orchestration (cleanup target).",
-            "severity": "warning",
+            "description": "Entities must use concrete backing adapters instead of application flows, registration, UI or draft service orchestration.",
             "from": {"paths":["Entities/*"]},
             "to": {"paths":["Flows/*","Compatibility/DraftBased/*"]},
             "exceptions": [
@@ -155,6 +149,16 @@
                     "from": {"paths":["Entities/TaskSource/PATaskSource.Codeunit.al"]},
                     "target": "Compatibility/DraftBased/Entities/TaskSource/PADraftBasedTaskSource.Codeunit.al",
                     "reason": "The logical source delegates its v1 backing representation to the compatibility entity adapter."
+                },
+                {
+                    "from": {"paths":["Entities/Setup/PASetup.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Entities/Setup/PADraftBasedSetupBacking.Codeunit.al",
+                    "reason": "Setup delegates its V1 editable proposal and service synchronization to the concrete draft backing owner."
+                },
+                {
+                    "from": {"paths":["Entities/Task/PayablesAgentTask.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Entities/Task/PADraftBasedTask.Codeunit.al",
+                    "reason": "Task delegates resolved V1 backing reads and lifecycle mapping to the concrete draft task adapter without rediscovering source identity."
                 }
             ]
         },
@@ -162,7 +166,6 @@
             "id": "PA006",
             "check": "dependencies",
             "description": "Runtime task construction belongs to the authoritative Task Intake flow.",
-            "severity": "error",
             "from": {"paths":["*"]},
             "symbols": [{"kind":"codeunit","name":"Agent Task Builder"},{"kind":"codeunit","name":"Agent Task Message Builder"}],
             "exceptions": [
@@ -175,8 +178,7 @@
         {
             "id": "PA007",
             "check": "dependencies",
-            "description": "Shared objects should call explicit draft integration entry points, not depend freely on compatibility internals (cleanup target).",
-            "severity": "warning",
+            "description": "Shared objects must call designated concrete draft entry points instead of depending freely on compatibility internals.",
             "from": {"paths":["*"]},
             "to": {"paths":["Compatibility/DraftBased/*"]},
             "exceptions": [
@@ -185,9 +187,9 @@
                     "reason": "Draft implementation objects may collaborate within the compatibility boundary."
                 },
                 {
-                    "from": {"paths":["Flows/Configuration/PASetupPresentation.Codeunit.al"]},
+                    "from": {"paths":["Flows/Configuration/PayablesAgentSetup.Page.al"]},
                     "target": "Compatibility/DraftBased/Flows/Configuration/PADraftBasedSetup.Codeunit.al",
-                    "reason": "Setup Presentation deliberately delegates the v1-only additional-fields dialog."
+                    "reason": "The setup page deliberately delegates the guarded v1-only additional-fields dialog."
                 },
                 {
                     "from": {"paths":["Entities/TaskSource/PATaskSource.Codeunit.al"]},
@@ -208,22 +210,72 @@
                     "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
                     "target": "Compatibility/DraftBased/TestSupport/PADraftBasedTestFixtures.Codeunit.al",
                     "reason": "The semantic fixture facade delegates draft-specific source construction, setup and scripted user actions to its compatibility fixture."
+                },
+                {
+                    "from": {"paths":["Entities/Setup/PASetup.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Entities/Setup/PADraftBasedSetupBacking.Codeunit.al",
+                    "reason": "Setup delegates its V1 editable proposal and service synchronization to the concrete draft backing owner."
+                },
+                {
+                    "from": {"paths":["Entities/Task/PayablesAgentTask.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Entities/Task/PADraftBasedTask.Codeunit.al",
+                    "reason": "Task delegates resolved V1 backing reads and lifecycle mapping to the concrete draft task adapter without rediscovering source identity."
+                },
+                {
+                    "from": {"paths":["Flows/Execution/Supporting/PATaskPosting.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Entities/Task/PADraftBasedTask.Codeunit.al",
+                    "reason": "Posting delegates only the AGENT-service V1 set-level outcome replacement; the flow retains transaction ownership and the V2 set-write exception."
+                },
+                {
+                    "from": {"paths":["Capabilities/Feedback/PayablesAgentOCV.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Capabilities/Feedback/PADraftBasedFeedback.Codeunit.al",
+                    "reason": "Shared feedback delegates the historical draft-page context discriminator while retaining feedback handling ownership."
+                },
+                {
+                    "from": {"paths":["Flows/Configuration/PADemoGuide.Page.al"]},
+                    "target": "Compatibility/DraftBased/Flows/Configuration/DemoGuide/PADemoGuide.Codeunit.al",
+                    "reason": "The demo wizard invokes the concrete draft sample download and email entry point; no shared E-Document types are exposed."
+                },
+                {
+                    "from": {"paths":["Flows/Configuration/PASetupUpdate.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Flows/Configuration/DemoGuide/PADemoGuide.Codeunit.al",
+                    "reason": "The configuration flow delegates sending draft demo invoices after setup is applied."
+                },
+                {
+                    "from": {"paths":["Flows/Configuration/PayablesAgentSetup.Page.al"]},
+                    "target": "Compatibility/DraftBased/Flows/Configuration/DemoGuide/PADemoGuide.Codeunit.al",
+                    "reason": "The setup page delegates the draft demo-account detection and configuration entry point."
+                },
+                {
+                    "from": {"paths":["_Obsolete/PADemoFilesToDownload.Page.al"]},
+                    "target": "Compatibility/DraftBased/Flows/Configuration/DemoGuide/PADemoGuide.Codeunit.al",
+                    "reason": "The frozen obsolete download page retains its historical concrete demo-file download entry point until removal."
+                },
+                {
+                    "from": {"paths":["_Obsolete/PABillingLog.Table.al"]},
+                    "target": "Compatibility/DraftBased/Capabilities/Billing/PABillingOperation.Enum.al",
+                    "reason": "The frozen obsolete billing log retains the persisted operation enum identity; this is historical schema, not runtime billing orchestration."
                 }
             ]
         },
         {
             "id": "PA008",
             "check": "dependencies",
-            "description": "Capabilities and shared mechanisms should not depend on flow implementations (cleanup target; use narrow runtime helpers).",
-            "severity": "warning",
+            "description": "Capabilities and shared mechanisms must not depend on flow implementations except designated runtime session identification.",
             "from": {"paths":["Capabilities/*","Shared/*"],"kinds":["codeunit","table"]},
-            "to": {"paths":["Flows/*"]}
+            "to": {"paths":["Flows/*"]},
+            "exceptions": [
+                {
+                    "from": {"paths":["Capabilities/KPI/PayablesAgentKPI.Codeunit.al"]},
+                    "target": "Flows/Registration/PayablesAgentMetadata.Codeunit.al",
+                    "reason": "The KPI purchase-invoice subscriber uses registration metadata only to identify the current Payables Agent runtime session before counting."
+                }
+            ]
         },
         {
             "id": "PA009",
             "check": "dependencies",
             "description": "Production objects must not consume test fixtures.",
-            "severity": "error",
             "from": {"paths":["*"]},
             "to": {"paths":["TestSupport/*","Compatibility/DraftBased/TestSupport/*"]},
             "exceptions": [
@@ -237,7 +289,6 @@
             "id": "PA010",
             "check": "properties",
             "description": "Implementation objects are internal; assignable permission sets remain public.",
-            "severity": "error",
             "from": {"paths":["*"],"kinds":["codeunit","table","enum","query","report","xmlport","interface"]},
             "properties": {"Access":"Internal"}
         },
@@ -245,7 +296,6 @@
             "id": "PA011",
             "check": "properties",
             "description": "The app does not expose traditional AL extensibility.",
-            "severity": "error",
             "from": {"paths":["*"],"kinds":["page","table","enum"]},
             "properties": {"Extensible":false},
             "exceptions": [
@@ -268,7 +318,6 @@
             "id": "PA012",
             "check": "forbiddenCode",
             "description": "Entity wrappers do not explicitly commit.",
-            "severity": "error",
             "from": {"paths":["Entities/*"]},
             "pattern": "(?<![\\w.])(?:Database\\s*\\.\\s*)?Commit\\s*\\("
         },
@@ -276,7 +325,6 @@
             "id": "PA013",
             "check": "forbiddenCode",
             "description": "Entities do not own interactive UI.",
-            "severity": "error",
             "from": {"paths":["Entities/*"]},
             "pattern": "(?<![\\w.])(?:Message|Confirm|StrMenu)\\s*\\(|(?<![\\w.])Page\\b"
         },
@@ -284,7 +332,6 @@
             "id": "PA014",
             "check": "dependencies",
             "description": "Entities do not depend on app-owned pages.",
-            "severity": "error",
             "from": {"paths":["Entities/*"]},
             "to": {"paths":["*"],"kinds":["page"]}
         },
@@ -292,7 +339,6 @@
             "id": "PA015",
             "check": "forbiddenCode",
             "description": "Telemetry emission belongs to telemetry owners.",
-            "severity": "error",
             "from": {"paths":["*"]},
             "pattern": "\\b(?:Session|Telemetry)\\s*\\.\\s*LogMessage\\s*\\(",
             "exceptions": [
@@ -310,15 +356,13 @@
             "id": "PA016",
             "check": "developmentOnly",
             "description": "Development objects must not exist in production compilation.",
-            "severity": "error",
             "from": {"paths":["_Development/*"]},
             "symbol": "DEVELOPMENT"
         },
         {
             "id": "PA017",
             "check": "manifest",
-            "description": "Production should not enable DEVELOPMENT (pending a production-safe V2 evaluation selector).",
-            "severity": "warning",
+            "description": "The production manifest must not enable DEVELOPMENT.",
             "from": {"paths":["app.json"]},
             "forbiddenSymbols": ["DEVELOPMENT"]
         },
@@ -326,7 +370,6 @@
             "id": "PA018",
             "check": "manifest",
             "description": "Only the approved test apps may access internals; production must not depend on test libraries.",
-            "severity": "error",
             "from": {"paths":["app.json"]},
             "allowedFriends": ["967eceac-106e-4102-b76a-fe5dc3d799e5","d1345542-62ab-433d-90f2-28137534572a"],
             "forbiddenDependencies": [
@@ -344,7 +387,6 @@
             "id": "PA019",
             "check": "placement",
             "description": "Objects belong to documented owners and the app namespace; obsolete files are frozen.",
-            "severity": "error",
             "from": {"paths":["*"]},
             "namespace": "Microsoft.Agent.PayablesAgent",
             "allowedPaths": [
@@ -363,6 +405,7 @@
                 "Capabilities/Trial/*",
                 "Capabilities/KPI/*",
                 "Capabilities/Feedback/*",
+                "Capabilities/KnownSenders/*",
                 "Shared/Telemetry/*",
                 "Shared/Security/*",
                 "Shared/Versioning/*",
@@ -370,7 +413,6 @@
                 "Operations/EmailStorageCleanup/*",
                 "TestSupport/*",
                 "_Development/*",
-                "_Obsolete/AgentTaskList.PageExt.al",
                 "_Obsolete/PABillingLog.Table.al",
                 "_Obsolete/PABillingOverview.Page.al",
                 "_Obsolete/PABillingTaskSetup.Table.al",
@@ -383,7 +425,6 @@
             "id": "PA020",
             "check": "properties",
             "description": "Sortable task-list rows are temporary projections.",
-            "severity": "error",
             "from": {"paths":["Flows/Supervision/PADetailedTask.Table.al"]},
             "properties": {"TableType":"Temporary"}
         },
@@ -391,7 +432,6 @@
             "id": "PA021",
             "check": "properties",
             "description": "Projection pages must not edit persisted backing records directly.",
-            "severity": "error",
             "from": {
                 "paths": [
                     "Flows/Supervision/PayablesAgentTasks.Page.al",
@@ -400,6 +440,101 @@
                 ]
             },
             "properties": {"SourceTableTemporary":true}
+        },
+        {
+            "id": "PA022",
+            "check": "forbiddenCode",
+            "description": "Explicit PA Version enum vocabulary belongs only to designated backing, intake, selector, compatibility and fixture owners.",
+            "from": {"paths":["*"]},
+            "pattern": "(?<![\\w.\"])Enum\\s+\"PA Version\"(?!\")|(?<!\")\"PA Version\"\\s*::",
+            "includeQuotedIdentifiers": true,
+            "exceptions": [
+                {
+                    "from": {"paths":["Entities/Task/PayablesAgentTask.Codeunit.al"]},
+                    "target": "code",
+                    "reason": "Task owns loaded-version identity, backing dispatch and supported operations."
+                },
+                {
+                    "from": {"paths":["Entities/TaskSource/PATaskSource.Codeunit.al"]},
+                    "target": "code",
+                    "reason": "Source owns acquisition and loaded-version identity across V1 and V2 backing representations."
+                },
+                {
+                    "from": {"paths":["Flows/Intake/PATaskIntake.Codeunit.al"]},
+                    "target": "code",
+                    "reason": "Authoritative intake dispatches received sources to V1 import or V2 task construction."
+                },
+                {
+                    "from": {"paths":["Shared/Versioning/PAV1V2Flag.Codeunit.al"]},
+                    "target": "code",
+                    "reason": "The existing selector owns active-version vocabulary; PA001 independently restricts its consumers."
+                },
+                {
+                    "from": {"paths":["Compatibility/DraftBased/Capabilities/Billing/PABilling.Codeunit.al"]},
+                    "target": "code",
+                    "reason": "Draft billing verifies that the loaded logical task has V1 backing before charging draft usage."
+                },
+                {
+                    "from": {"paths":["Compatibility/DraftBased/Flows/Execution/AgentWorkspace/PAOpenCurrentEDocument.Codeunit.al"]},
+                    "target": "code",
+                    "reason": "Draft navigation verifies that the loaded logical task has V1 backing before opening its E-Document."
+                },
+                {
+                    "from": {"paths":["Compatibility/DraftBased/TestSupport/PADraftBasedTestFixtures.Codeunit.al"]},
+                    "target": "code",
+                    "reason": "The compatibility fixture verifies V1 backing before building draft diagnostics."
+                },
+                {
+                    "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
+                    "target": "code",
+                    "reason": "The semantic fixture facade owns evaluation version dispatch and serializes task-version diagnostics."
+                },
+                {
+                    "from": {"paths":["_Development/PADevelopmentSettings.Codeunit.al"]},
+                    "target": "code",
+                    "reason": "The development API owns the explicit evaluation-version override."
+                },
+                {
+                    "from": {"paths":["_Development/PADevelopmentSettings.Table.al"]},
+                    "target": "code",
+                    "reason": "Development settings persist the explicit evaluation-version override using the shared enum."
+                }
+            ]
+        },
+        {
+            "id": "PA023",
+            "check": "dependencies",
+            "description": "Development API objects are usable only by the exact selector, simulation and semantic fixture seams or the development editor.",
+            "from": {"paths":["*"]},
+            "to": {
+                "paths":["_Development/*"],
+                "kinds": [
+                    "codeunit",
+                    "page"
+                ]
+            },
+            "exceptions": [
+                {
+                    "from": {"paths":["Shared/Versioning/PAV1V2Flag.Codeunit.al"]},
+                    "target": "_Development/PADevelopmentSettings.Codeunit.al",
+                    "reason": "The existing DEVELOPMENT selector reads the explicit evaluation override and V2 switch."
+                },
+                {
+                    "from": {"paths":["Flows/Execution/AgentWorkspace/PAAgentExperience.Codeunit.al"]},
+                    "target": "_Development/PADevelopmentSettings.Codeunit.al",
+                    "reason": "The existing DEVELOPMENT simulation seam reads the agent-experience override without changing session identity."
+                },
+                {
+                    "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
+                    "target": "_Development/PADevelopmentSettings.Codeunit.al",
+                    "reason": "The app-owned semantic fixture API prepares and reads the DEVELOPMENT evaluation-version override."
+                },
+                {
+                    "from": {"paths":["_Development/PADevelopmentSettings.Page.al"]},
+                    "target": "_Development/PADevelopmentSettings.Codeunit.al",
+                    "reason": "The DEVELOPMENT-only editor loads settings and clears the evaluation override through its owner API."
+                }
+            ]
         }
     ]
 }

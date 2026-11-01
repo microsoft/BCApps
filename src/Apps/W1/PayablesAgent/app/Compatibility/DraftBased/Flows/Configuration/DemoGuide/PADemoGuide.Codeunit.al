@@ -6,6 +6,7 @@
 namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using System.Agents;
 using System.Email;
 using System.Environment;
 
@@ -43,6 +44,7 @@ codeunit 3309 "PA Demo Guide"
     var
         EDocSamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
         TempEmailAccount: Record "Email Account";
+        TempAgentSetupBuffer: Record "Agent Setup Buffer";
         Email: Codeunit Email;
         EmailMessage: Codeunit "Email Message";
         DraftBasedTelemetry: Codeunit "PA Draft Based Telemetry";
@@ -55,7 +57,8 @@ codeunit 3309 "PA Demo Guide"
             exit(false);
         if not IsEmailConfiguredForDemoEmail(PASetupUpdateParameters) then
             exit(false);
-        if PASetupUpdateParameters.GetAgentSetupBuffer().State = PASetupUpdateParameters.GetAgentSetupBuffer().State::Disabled then
+        PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
+        if TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled then
             exit(false);
         EDocSamplePurchInvFile.SetRange("Send By Email", true);
         if EDocSamplePurchInvFile.IsEmpty() then

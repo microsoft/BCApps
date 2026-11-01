@@ -27,14 +27,16 @@ codeunit 3325 "PA Telemetry"
     local procedure GetTaskDimensions(PATask: Codeunit "Payables Agent Task") CustomDimensions: Dictionary of [Text, Text]
     var
         PASetup: Codeunit "PA Setup";
+        Source: Codeunit "PA Task Source";
     begin
         PASetup.GetSetup();
+        PATask.GetSource(Source);
         // 'Category' (capitalized) is kept for the task events that always used it.
         CustomDimensions.Set('Category', CategoryTok);
         CustomDimensions.Set('Version', Format(PATask.GetVersion(), 0, 9));
-        CustomDimensions.Set('SystemId', LowerCase(Format(PATask.GetSourceId())).Replace('{', '').Replace('}', ''));
+        CustomDimensions.Set('SystemId', LowerCase(Format(Source.GetId())).Replace('{', '').Replace('}', ''));
         CustomDimensions.Set('AgentTaskId', Format(PATask.GetAgentTaskId(), 0, 9));
-        CustomDimensions.Set('SourceType', Format(PATask.GetSourceType(), 0, 9));
+        CustomDimensions.Set('SourceType', Format(Source.GetSourceType(), 0, 9));
         CustomDimensions.Set('EmailReviewPolicy', Format(PASetup.GetEmailReviewPolicy(), 0, 9));
     end;
 

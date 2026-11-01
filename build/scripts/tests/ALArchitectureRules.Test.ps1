@@ -26,10 +26,10 @@ Describe 'Lightweight AL architecture checks' {
             Set-File 'Consumers/Caller.al' "$Preamble`n$Kind 50104 Caller`n{`n$Body`n}"
         }
         function Set-Policy($Rule) {
-            @{ version = 2; rules = @($Rule) } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $layout.Rules -Encoding UTF8
+            @{ version = 3; rules = @($Rule) } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $layout.Rules -Encoding UTF8
         }
         function New-Rule([string] $Check, [hashtable] $Settings) {
-            $rule = @{ id = 'TEST'; check = $Check; description = 'Test policy.'; severity = 'error'; from = @{ paths = @('Consumers/*') } }
+            $rule = @{ id = 'TEST'; check = $Check; description = 'Test policy.'; from = @{ paths = @('Consumers/*') } }
             foreach ($key in $Settings.Keys) { $rule[$key] = $Settings[$key] }
             return $rule
         }
@@ -266,18 +266,17 @@ end;
         Assert-Value (Get-Result).Diagnostics.Count 1
     }
 
-    It 'applies target-scoped reasoned exceptions and fails stale ones even on warning rules' {
+    It 'applies target-scoped reasoned exceptions and fails stale ones' {
         $rule.exceptions = @(@{ from = @{ paths = @('Consumers/Caller.al') }; target = 'Entities/Backing.Table.al'; reason = 'Approved projection.' })
         Set-Caller 'var R: Record Backing;'
         Set-Policy $rule
         Assert-Value (Get-Result).Diagnostics.Count 0
         Set-Caller ''
-        $rule.severity = 'warning'
         Set-Policy $rule
         $result = Get-Result
         Assert-Value $result.Diagnostics.Count 1
         Assert-Value $result.Diagnostics[0].RuleId 'CONFIG'
-        Assert-Value $result.Diagnostics[0].Severity 'error'
+        Assert-Value ($result.Diagnostics[0].PSObject.Properties.Name -contains 'Severity') $false
     }
 
     It 'does not let a table exception hide a dependency on the same-named codeunit' {
@@ -292,11 +291,11 @@ end;
         Set-Content -LiteralPath $layout.Rules -Value '{invalid' -Encoding UTF8
         Assert-Failure { Get-Result }
         foreach ($invalid in @(
-            @{ version = 2; rules = @($rule); catalogs = @() },
-            @{ version = 1; rules = @($rule) },
-            @{ version = 2; rules = @((New-Rule 'dependencies' @{ to = @{ paths = @() } })) },
-            @{ version = 2; rules = @((New-Rule 'dependencies' @{ to = @{ paths = @('Entities/*') }; includeTemporary = $false })) },
-            @{ version = 2; rules = @((New-Rule 'namespaces' @{ namespaces = @('External'); symbols = @(@{kind='table';name='X'}) })) }
+            @{ version = 3; rules = @($rule); catalogs = @() },
+            @{ version = 2; rules = @($rule) },
+            @{ version = 3; rules = @((New-Rule 'dependencies' @{ to = @{ paths = @() } })) },
+            @{ version = 3; rules = @((New-Rule 'dependencies' @{ to = @{ paths = @('Entities/*') }; includeTemporary = $false })) },
+            @{ version = 3; rules = @((New-Rule 'namespaces' @{ namespaces = @('External'); symbols = @(@{kind='table';name='X'}) })) }
         )) {
             $invalid | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $layout.Rules -Encoding UTF8
             Assert-Failure { Get-Result }
@@ -311,7 +310,7 @@ end;
     }
 
     It 'rejects duplicate IDs, invalid regexes, path traversal and missing source/target paths' {
-        @{version=2;rules=@($rule,$rule)} | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $layout.Rules
+        @{version=3;rules=@($rule,$rule)} | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $layout.Rules
         Assert-Failure { Get-Result } 'Duplicate rule ID'
         Set-Policy (New-Rule 'forbiddenCode' @{ pattern = '[' })
         Assert-Failure { Get-Result }
@@ -332,33 +331,34 @@ end;
         Assert-Failure { Get-Result } 'expected one object identity'
     }
 
-    It 'runner fails errors and optionally promotes warnings, with usable annotations and PassThru' {
+    It 'runner fails all findings, with error annotations and clean-scan PassThru' {
         Set-Caller 'var R: Record Backing;'
         Assert-Failure { & $script:runner -AppRoot $layout.App -RulesPath $layout.Rules *> $null } 'architecture checks failed'
-        $rule.severity = 'warning'
-        Set-Policy $rule
+        Set-Caller ''
         $result = & $script:runner -AppRoot $layout.App -RulesPath $layout.Rules -PassThru 6> $null
-        Assert-Value $result.Diagnostics.Count 1
-        Assert-Failure { & $script:runner -AppRoot $layout.App -RulesPath $layout.Rules -WarningsAsErrors *> $null } 'architecture checks failed'
+        Assert-Value $result.Diagnostics.Count 0
+        Set-Caller 'var R: Record Backing;'
         $previous = $env:GITHUB_ACTIONS
         try {
             $env:GITHUB_ACTIONS = 'true'
-            $output = (& $script:runner -AppRoot $layout.App -RulesPath $layout.Rules 6>&1 | Out-String)
-            if ($output -notmatch '::warning file=.*line=4::TEST:') { throw "Missing annotation: $output" }
+            $output = (& { Assert-Failure { & $script:runner -AppRoot $layout.App -RulesPath $layout.Rules } 'architecture checks failed' } 6>&1 | Out-String)
+            if ($output -notmatch '::error file=.*line=4::TEST:') { throw "Missing annotation: $output" }
         } finally { $env:GITHUB_ACTIONS = $previous }
     }
 
     It 'keeps both CI hooks on the checked-out runner under PowerShell 7 before build cache decisions' {
         $repo = Join-Path $PSScriptRoot '../../..'
+        $gate = [IO.File]::ReadAllText((Join-Path $repo 'build/scripts/Test-ALAppArchitecture.ps1'))
+        if (-not $gate.Contains('Get-PayablesAgentArchitectureChange -RepoRoot $repoRoot')) { throw 'Runner must own conservative change selection.' }
+        if (-not $gate.Contains("'Test-PayablesAgentArchitecture.ps1') -AppRoot")) { throw 'Runner must invoke the checked-out policy scanner.' }
+        if (-not $gate.Contains("if (`$EventName -in @('pull_request', 'merge_group'))")) { throw 'Relevant PR and merge-group validation must include checker self-tests.' }
+        if (-not $gate.Contains('Invoke-Pester -Script $testFiles.FullName -PassThru')) { throw 'Runner must test the checker itself using the shared runner pattern.' }
+        if (-not $gate.Contains('$testFiles.Count -eq 0') -or -not $gate.Contains('$result.TotalCount -eq 0 -or $result.FailedCount -gt 0')) { throw 'Runner must fail on failed or undiscovered tests.' }
         foreach ($workflow in @('PullRequestHandler.yaml', '_BuildALGoProject.yaml')) {
             $text = [IO.File]::ReadAllText((Join-Path $repo ".github/workflows/$workflow"))
-            if ($text -notmatch '(?m)- name: Validate Payables Agent architecture\r?\n\s+shell: pwsh') { throw "Missing pwsh gate in $workflow" }
-            if (-not $text.Contains('run: ./build/scripts/Test-PayablesAgentArchitecture.ps1')) { throw "Missing checked-out runner in $workflow" }
-            if ($workflow -eq 'PullRequestHandler.yaml') {
-                if (-not $text.Contains('Invoke-Pester -Script $testFiles.FullName -PassThru')) { throw 'PR validation must test the checker itself using the shared runner pattern.' }
-                if (-not $text.Contains('$result.TotalCount -eq 0 -or $result.FailedCount -gt 0')) { throw 'PR validation must fail on failed or undiscovered tests.' }
-            }
-            if ($workflow -eq '_BuildALGoProject.yaml' -and $text.IndexOf('Validate Payables Agent architecture') -gt $text.IndexOf('- name: Read settings')) { throw 'Architecture gate must precede settings/cache decisions.' }
+            if ($text -notmatch '(?m)- name: Validate AL app architecture\r?\n\s+shell: pwsh') { throw "Missing pwsh gate in $workflow" }
+            if (-not $text.Contains('run: ./build/scripts/Test-ALAppArchitecture.ps1')) { throw "Missing checked-out runner in $workflow" }
+            if ($workflow -eq '_BuildALGoProject.yaml' -and $text.IndexOf('Validate AL app architecture') -gt $text.IndexOf('- name: Read settings')) { throw 'Architecture gate must precede settings/cache decisions.' }
         }
     }
 
@@ -400,8 +400,7 @@ codeunit 50120 "Bad Owner"
 
     It 'validates the actual app without errors or stale exceptions' {
         $result = Invoke-ALArchitectureRules -AppRoot $script:paApp -RulesPath (Join-Path $script:paApp 'architecture-rules.json')
-        $errors = @($result.Diagnostics | Where-Object Severity -eq 'error')
-        if ($errors.Count) { throw ($errors | ForEach-Object Message | Out-String) }
-        if ($result.RuleCount -lt 21 -or $result.ObjectCount -lt 100) { throw 'App policy scan was unexpectedly incomplete.' }
+        if ($result.Diagnostics.Count) { throw ($result.Diagnostics | ForEach-Object Message | Out-String) }
+        if ($result.RuleCount -lt 23 -or $result.ObjectCount -lt 100) { throw 'App policy scan was unexpectedly incomplete.' }
     }
 }

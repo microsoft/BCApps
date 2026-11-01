@@ -25,12 +25,14 @@ codeunit 133735 "PA Wrapper Contract Tests"
     var
         StoredTask: Record "Payables Agent Task";
         Task: Codeunit "Payables Agent Task";
+        Source: Codeunit "PA Task Source";
     begin
         CreateTask(StoredTask, Task);
         StoredTask.Get(StoredTask."Entry No.");
-        Check(Task.GetCreatedAt() = StoredTask.SystemCreatedAt, 'Creation time must come from the platform audit field.');
-        Check(Task.GetUpdatedAt() = StoredTask.SystemModifiedAt, 'Update time must come from the platform audit field.');
-        Check(Task.GetSourceType() = "PA Source Type"::Upload, 'A task without an email source must be an upload.');
+        Task.GetSource(Source);
+        Check(Source.GetCreatedAt() = StoredTask.SystemCreatedAt, 'Creation time must come from the platform audit field.');
+        Check(Source.GetUpdatedAt() = StoredTask.SystemModifiedAt, 'Update time must come from the platform audit field.');
+        Check(Source.GetSourceType() = "PA Source Type"::Upload, 'A task without an email source must be an upload.');
         Check(Task.GetVersion() = "PA Version"::V2, 'The backing record must identify a v2 task.');
         Check(Task.Load(StoredTask."Agent Task ID"), 'The Agent Framework task identity must load the same task.');
     end;
@@ -80,12 +82,14 @@ codeunit 133735 "PA Wrapper Contract Tests"
     var
         StoredTask: Record "Payables Agent Task";
         Task: Codeunit "Payables Agent Task";
+        Source: Codeunit "PA Task Source";
     begin
         StoredTask."Email Inbox Id" := -1; // Represents a source inbox row that no longer exists.
         CreateTask(StoredTask, Task);
         Check(Task.Load(StoredTask."Agent Task ID"), 'The task must remain loadable after its email disappears.');
-        Check(Task.GetSourceType() = "PA Source Type"::Email, 'Loss of source content must not change source identity.');
-        Check(Task.GetSourceEmailBody() = '', 'Unavailable source content must be handled without backing errors.');
+        Task.GetSource(Source);
+        Check(Source.GetSourceType() = "PA Source Type"::Email, 'Loss of source content must not change source identity.');
+        Check(Source.GetSourceEmailBody() = '', 'Unavailable source content must be handled without backing errors.');
     end;
 
     [Test]
@@ -93,6 +97,7 @@ codeunit 133735 "PA Wrapper Contract Tests"
     var
         StoredTask: Record "Payables Agent Task";
         Task: Codeunit "Payables Agent Task";
+        Source: Codeunit "PA Task Source";
         AgentTaskId: BigInteger;
     begin
         CreateTask(StoredTask, Task);
@@ -102,7 +107,8 @@ codeunit 133735 "PA Wrapper Contract Tests"
         StoredTask.Modify();
         Task.Refresh();
         Check(Task.GetAgentTaskId() = AgentTaskId, 'Refresh must preserve the Agent Framework task identity.');
-        Check(Task.GetFileName() = 'changed.pdf', 'Refresh must reload the backing record.');
+        Task.GetSource(Source);
+        Check(Source.GetFileName() = 'changed.pdf', 'Refresh must reload the backing record.');
     end;
 
     [Test]
@@ -240,6 +246,7 @@ codeunit 133735 "PA Wrapper Contract Tests"
         StoredTask: Record "Payables Agent Task";
         StaleTask: Codeunit "Payables Agent Task";
         OtherTask: Codeunit "Payables Agent Task";
+        Source: Codeunit "PA Task Source";
         Outcome: RecordId;
     begin
         CreateTask(StoredTask, StaleTask);
@@ -251,7 +258,8 @@ codeunit 133735 "PA Wrapper Contract Tests"
         StoredTask.Modify();
         StaleTask.SetSourceText('extracted text');
         Check(StaleTask.GetOutcome() = Outcome, 'A text update must preserve a newer outcome.');
-        Check(StaleTask.GetFileName() = 'changed-by-another-writer.pdf', 'A text update must preserve unrelated changes.');
+        StaleTask.GetSource(Source);
+        Check(Source.GetFileName() = 'changed-by-another-writer.pdf', 'A text update must preserve unrelated changes.');
         Check(StaleTask.GetSourceText() = 'extracted text', 'The intended field must be updated.');
     end;
 
@@ -412,14 +420,13 @@ codeunit 133735 "PA Wrapper Contract Tests"
     [Test]
     procedure InstructionSelectionAndFingerprintResolveWithoutSecrets()
     var
-        Setup: Codeunit "PA Setup";
         Instructions: Codeunit "PA Agent Instructions";
         Classic: Text;
         AgentDriven: Text;
         Fingerprint: Text;
     begin
-        Classic := Setup.GetAgentInstructionsResource(false);
-        AgentDriven := Setup.GetAgentInstructionsResource(true);
+        Classic := Instructions.ResolveResource(false);
+        AgentDriven := Instructions.ResolveResource(true);
         if Classic = AgentDriven then
             Check(Classic = 'Prompts/PayablesAgent-AgentInstructions-V2.md', 'V2 must select its prompt independently of the v1 line-matching treatment.')
         else begin

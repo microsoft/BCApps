@@ -64,7 +64,7 @@ page 3338 "PA Email Review"
         EmailFrom := Rec."Email From";
         if Rec."Sender Name" <> '' then
             EmailFrom := StrSubstNo(EmailFromTxt, Rec."Sender Name", Rec."Email From");
-        EmailBody := Task.GetSourceEmailBody();
+        EmailBody := Source.GetSourceEmailBody();
         DisplaySubject := Rec."Email Subject";
         if (EmailFrom = '') and (DisplaySubject = '') and (EmailBody = '') then
             DisplaySubject := EmailNotAvailableTxt;
@@ -72,6 +72,7 @@ page 3338 "PA Email Review"
 
     var
         Task: Codeunit "Payables Agent Task";
+        Source: Codeunit "PA Task Source";
         TaskNotFoundErr: Label 'The task does not exist.';
         EmailFrom: Text;
         EmailBody: Text;
@@ -86,6 +87,7 @@ page 3338 "PA Email Review"
         // Pin this page to its own task handle rather than retain the caller's mutable wrapper.
         if not Task.Load(NewTask.GetAgentTaskId()) then
             Error(TaskNotFoundErr);
+        Task.GetSource(Source);
         Rec.Reset();
         Rec.DeleteAll();
         Rec.Init();

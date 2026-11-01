@@ -21,7 +21,7 @@ codeunit 3345 "PA Task Intake"
         TaskNotLoadableErr: Label 'Agent task %1 was created but its Payables Agent backing could not be loaded.', Comment = '%1 = Agent Task ID';
         SenderRejectedReasonTxt: Label 'The sender policy rejected this source.';
 
-    internal procedure CreateTask(FileName: Text; PdfInStream: InStream)
+    internal procedure CreateTask(FileName: Text; PdfInStream: InStream): Guid
     var
         PATask: Codeunit "Payables Agent Task";
         Source: Codeunit "PA Task Source";
@@ -36,12 +36,13 @@ codeunit 3345 "PA Task Intake"
             DraftBasedIntake.ProcessIncomingSource(SourceId);
             if not Source.LoadDraftBased(SourceId) then
                 Error(SourceNotCreatedErr);
-            exit;
+            exit(Source.GetId());
         end;
 
         // No other module owns an uploaded v2 source: roll it back if the agent cannot take it.
         if not CreateTask(Source, PATask) then
             Error(AgentNotActiveErr);
+        exit(Source.GetId());
     end;
 
     internal procedure CreateTask(FileName: Text; PdfInStream: InStream; var PATask: Codeunit "Payables Agent Task"): Boolean
@@ -86,6 +87,7 @@ codeunit 3345 "PA Task Intake"
         PAAgentInstructions: Codeunit "PA Agent Instructions";
         PATelemetry: Codeunit "PA Telemetry";
         PATrial: Codeunit "PA Trial";
+        PAKnownSenders: Codeunit "PA Known Senders";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         ExternalId: Text[2048];
@@ -120,7 +122,7 @@ codeunit 3345 "PA Task Intake"
 
         // New tasks must use the selected prompt revision, including locally edited experiment variants.
         PAAgentInstructions.EnsureAgentInstructionsMatchConfiguration(Agent."User Security ID");
-        RequiresReview := ShouldRequestReview(Source);
+        RequiresReview := PAKnownSenders.ShouldRequestReview(Source);
         ExcludeBilling := false;
         if PATrial.IsActive() then begin
             PATrial.IncrementTrialInvoiceCount();
@@ -153,54 +155,4 @@ codeunit 3345 "PA Task Intake"
         exit(true);
     end;
 
-    /// <summary>
-    /// Only emails are subject to review. A configured subfolder explicitly trusts its contents; otherwise
-    /// sender authentication, policy and the known-senders list determine whether supervisor review is needed.
-    /// </summary>
-    local procedure ShouldRequestReview(Source: Codeunit "PA Task Source"): Boolean
-    var
-        KnownSender: Record "PA Known Sender";
-        PASetup: Codeunit "PA Setup";
-        HeaderValue: Text;
-        SenderAuthenticated: Boolean;
-    begin
-        if Source.GetSourceType() <> "PA Source Type"::Email then
-            exit(false);
-
-        PASetup.GetSetup();
-        case PASetup.GetEmailReviewPolicy() of
-            "PA Email Review Policy"::Always,
-            "PA Email Review Policy"::Unset:
-                exit(true);
-            "PA Email Review Policy"::Never:
-                exit(false);
-        end;
-        if PASetup.GetEmailFolder() <> '' then
-            exit(false);
-        if Source.TryGetEmailHeader('Authentication-Results', HeaderValue) then
-            SenderAuthenticated := CompAuthPassed(HeaderValue);
-        if not SenderAuthenticated then
-            SenderAuthenticated := IsSenderInternal(Source);
-        if not SenderAuthenticated then
-            exit(true);
-        if KnownSender.GetForSource(Source, KnownSender) then
-            exit(KnownSender."Sender Policy" <> "PA Sender Policy"::Approve);
-        if IsSenderInternal(Source) then
-            exit(false);
-        exit(true);
-    end;
-
-    local procedure IsSenderInternal(Source: Codeunit "PA Task Source"): Boolean
-    var
-        HeaderValue: Text;
-    begin
-        if Source.TryGetEmailHeader('X-MS-Exchange-Organization-AuthAs', HeaderValue) then
-            exit(LowerCase(HeaderValue).Trim() = 'internal');
-        exit(false);
-    end;
-
-    local procedure CompAuthPassed(AuthenticationResults: Text): Boolean
-    begin
-        exit(StrPos(LowerCase(AuthenticationResults), 'compauth=pass') > 0);
-    end;
 }

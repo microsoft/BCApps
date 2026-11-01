@@ -26,6 +26,9 @@ codeunit 3349 "PA Agent Instructions"
         UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
         AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
         AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
+        AgentInstructionsTok: Label '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
+        AgentDrivenInstructionsTok: Label '_DraftBasedPayablesAgent/Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
+        AgentInstructionsV2Tok: Label 'Prompts/PayablesAgent-AgentInstructions-V2.md', Locked = true;
 
     internal procedure SetAgentInstructions(AgentUserSecurityId: Guid)
     begin
@@ -43,7 +46,7 @@ codeunit 3349 "PA Agent Instructions"
         PayablesAgentPromptText: Text;
         ResourceName: Text;
     begin
-        ResourceName := PASetup.GetAgentInstructionsResource(IsAgentDrivenLineMatchingEnabled());
+        ResourceName := ResolveResource();
         PayablesAgentPromptText := NavApp.GetResourceAsText(ResourceName, TextEncoding::UTF8);
         if PayablesAgentPromptText = '' then
             Error(UnableToConfigureAgentInstructionsErr);
@@ -59,6 +62,28 @@ codeunit 3349 "PA Agent Instructions"
         ConfigHash := CopyStr(HashInstructions(ResourceName, PayablesAgentPromptText), 1, MaxStrLen(ConfigHash));
     end;
 
+    internal procedure ResolveResource(): Text
+    begin
+        exit(ResolveResource(IsAgentDrivenLineMatchingEnabled()));
+    end;
+
+    // Explicit treatment input is retained for the existing resource-variant contracts.
+    internal procedure ResolveResource(AgentDrivenLineMatching: Boolean): Text
+    var
+        Version: Codeunit "PA V1V2 Flag";
+    begin
+        exit(SelectResource(Version.IsV2Active(), AgentDrivenLineMatching));
+    end;
+
+    local procedure SelectResource(IsV2: Boolean; AgentDrivenLineMatching: Boolean): Text
+    begin
+        if IsV2 then
+            exit(AgentInstructionsV2Tok);
+        if AgentDrivenLineMatching then
+            exit(AgentDrivenInstructionsTok);
+        exit(AgentInstructionsTok);
+    end;
+
     internal procedure IsAgentDrivenLineMatchingEnabled(): Boolean
     var
         FeatureConfiguration: Codeunit "Feature Configuration";
@@ -70,7 +95,7 @@ codeunit 3349 "PA Agent Instructions"
     begin
         if IsNullGuid(AgentUserSecurityId) then
             exit;
-        PASetup.GetSetup();
+        PASetup.LoadStoredOrDefaults();
         if PASetup.GetAppliedInstrConfigHash() = GetInstructionsConfigHash() then
             exit;
         PATelemetry.LogInstructionsReapplied();
@@ -87,7 +112,7 @@ codeunit 3349 "PA Agent Instructions"
     var
         ResourceName: Text;
     begin
-        ResourceName := PASetup.GetAgentInstructionsResource(IsAgentDrivenLineMatchingEnabled());
+        ResourceName := ResolveResource();
         exit(HashInstructions(ResourceName, NavApp.GetResourceAsText(ResourceName, TextEncoding::UTF8)));
     end;
 

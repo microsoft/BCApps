@@ -17,15 +17,14 @@
     no numeric/dynamic reference resolution, using-based symbol binding, expression parsing,
     temporary-record inference, transitive calls or effective UI visibility analysis.
     Only * and ? globs are supported, case-insensitively; * spans directories.
-    Exceptions need reasons and fail when stale. Errors and invalid configuration fail CI;
-    -WarningsAsErrors also gates architectural cleanup warnings.
+    Exceptions need reasons and fail when stale.
 
     CI invokes this for relevant PA/checker/workflow changes (or an uncertain diff) in PR
     validation and Apps W1 builds, before AL-Go cache/skip decisions. The shared change
     selector also guards the PR Pester tests; direct local invocations here always scan.
     Requires PowerShell 7 (JSON Schema validation); local compiler builds invoke it separately.
 .EXAMPLE
-    ./build/scripts/Test-PayablesAgentArchitecture.ps1 -WarningsAsErrors
+    ./build/scripts/Test-PayablesAgentArchitecture.ps1
 .EXAMPLE
     $tests = Get-ChildItem ./build/scripts/tests/ALArchitecture*.Test.ps1
     Invoke-Pester -Script $tests.FullName
@@ -34,7 +33,6 @@
 param(
     [string] $AppRoot = (Join-Path $PSScriptRoot '../../src/Apps/W1/PayablesAgent/app'),
     [string] $RulesPath,
-    [switch] $WarningsAsErrors,
     [switch] $PassThru
 )
 
@@ -45,7 +43,6 @@ if ([string]::IsNullOrWhiteSpace($RulesPath)) { $RulesPath = Join-Path $AppRoot 
 $result = Invoke-ALArchitectureRules -AppRoot $AppRoot -RulesPath $RulesPath
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')).TrimEnd('/', '\') + [IO.Path]::DirectorySeparatorChar
 foreach ($diagnostic in $result.Diagnostics) {
-    $severity = if ($WarningsAsErrors) { 'error' } else { $diagnostic.Severity }
     $path = $diagnostic.Path
     if ($path.StartsWith($repositoryRoot, [StringComparison]::OrdinalIgnoreCase)) { $path = $path.Substring($repositoryRoot.Length) }
     $path = $path.Replace('\', '/')
@@ -53,11 +50,9 @@ foreach ($diagnostic in $result.Diagnostics) {
     if ($env:GITHUB_ACTIONS -eq 'true') {
         $escapedPath = $path.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A').Replace(':', '%3A').Replace(',', '%2C')
         $escapedMessage = $message.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
-        Write-Host "::${severity} file=$escapedPath,line=$($diagnostic.Line)::$escapedMessage"
-    } else { Write-Host "$($severity.ToUpperInvariant()) ${path}:$($diagnostic.Line): $message" }
+        Write-Host "::error file=$escapedPath,line=$($diagnostic.Line)::$escapedMessage"
+    } else { Write-Host "ERROR ${path}:$($diagnostic.Line): $message" }
 }
-$errors = @($result.Diagnostics | Where-Object Severity -eq 'error').Count
-$warnings = @($result.Diagnostics | Where-Object Severity -eq 'warning').Count
-Write-Host "Payables Agent architecture: $($result.ObjectCount) objects, $($result.ReferenceCount) textual references, $($result.RuleCount) rules; $errors errors, $warnings warnings."
-if ($errors -gt 0 -or ($WarningsAsErrors -and $warnings -gt 0)) { throw 'Payables Agent architecture checks failed. See the diagnostics above.' }
+Write-Host "Payables Agent architecture: $($result.ObjectCount) objects, $($result.ReferenceCount) textual references, $($result.RuleCount) rules; $($result.Diagnostics.Count) findings."
+if ($result.Diagnostics.Count -gt 0) { throw 'Payables Agent architecture checks failed. See the diagnostics above.' }
 if ($PassThru) { return $result }
