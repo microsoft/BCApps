@@ -201,7 +201,8 @@ codeunit 3326 "PA Test Fixtures"
 #if DEVELOPMENT
         DevelopmentSettings.SetEvaluationVersionOverride(Version);
 #else
-        if Version <> Version::V1 then
+        // This evaluation-only branch forces V2 in release builds as well as DEVELOPMENT builds.
+        if Version <> Version::V2 then
             Error(EvaluationVersionUnavailableErr, Version);
 #endif
     end;
@@ -214,7 +215,8 @@ codeunit 3326 "PA Test Fixtures"
 #if DEVELOPMENT
         exit(DevelopmentSettings.GetEvaluationVersionOverride());
 #else
-        exit("PA Version"::Unknown);
+        // Matches the unconditional V2 runtime selector on this evaluation-only branch.
+        exit("PA Version"::V2);
 #endif
     end;
 
