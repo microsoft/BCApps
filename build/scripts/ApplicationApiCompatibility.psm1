@@ -353,6 +353,8 @@ function Add-ApplicationApiSymbols {
                 }
                 # Tables supply host identity only; schema validation remains with AppSourceCop.
                 $fingerprint = if ($isSchema) { '' } else { Get-ApplicationApiContractHash -Element $symbol -IgnoredProperties @($ignoredProperties) }
+                $customizationTarget = [System.Text.Json.JsonElement]::new()
+                $hasCustomizationTarget = $property.Name -ceq 'PageCustomizations' -and $symbol.TryGetProperty('TargetObject', [ref]$customizationTarget)
                 $record = [PSCustomObject]@{
                     Key = $key
                     Kind = $property.Name
@@ -362,6 +364,7 @@ function Add-ApplicationApiSymbols {
                     OwnerId = $Package.Id
                     OwnerName = $Package.Name
                     ContractHash = $fingerprint
+                    TargetObject = if ($hasCustomizationTarget) { $customizationTarget.GetString() } else { '' }
                 }
                 if ($inspectMethods) { $Snapshot.MethodObjects[$key] = $record }
                 if (-not $isSchema) { $Snapshot.Symbols[$key] = $record }

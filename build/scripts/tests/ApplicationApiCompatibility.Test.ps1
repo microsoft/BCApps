@@ -620,6 +620,112 @@ Describe 'Application API compatibility prototype' {
                 @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
             }
 
+            Context 'Inherited members reported on page customizations' {
+                BeforeEach {
+                    $oldHost.Name = $currentHost.Name = 'Business Manager Role Center'
+                    $partExtension.TargetObject = $oldHost.Name
+                    $customization = @{
+                        Id = 0
+                        Name = 'Business Manager Evaluation RC'
+                        TargetObject = 'Business Manager Role Center'
+                        ControlChanges = @(@{
+                            Name = 'User Tasks Activities'
+                            Properties = @(@{ Name = 'Visible'; Value = 'false' })
+                        })
+                    }
+                    $newCustomization = $customization | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                    $partOldCollections.Namespaces[0].PageCustomizations = @($customization)
+                    $partCurrentCollections.Namespaces[0].PageCustomizations = @($newCustomization)
+                    $script:customizationMessage = "The part with name 'Intercompany Activities' defined in PageCustomization 'Business Manager Evaluation RC' was found in the previous version, but is missing in the current extension."
+                }
+
+                It 'verifies inherited parts and actions with a <Reference> customization target' -TestCases @(
+                    @{ Reference = 'simple'; Suffix = '' },
+                    @{ Reference = 'qualified'; Suffix = ' This will break dependent extensions.' }
+                ) {
+                    param($Reference, $Suffix)
+                    if ($Reference -eq 'qualified') {
+                        $customization.TargetObject = $newCustomization.TargetObject = 'Migration.PartProbe."Business Manager Role Center"'
+                        $part.Kind = $newPart.Kind = 6
+                    }
+                    $action = @{ Name = 'IC Setup'; Kind = 'Action'; Properties = @(@{ Name = 'Caption'; Value = 'Intercompany Setup' }) }
+                    $oldHost.Actions = @(@{ Name = 'Processing'; Kind = 'Area'; Actions = @($action) })
+                    $partExtension.ActionChanges = @(@{ Name = 'Processing'; Actions = @($action) })
+                    Write-PartApiPackages
+                    $gate = New-ApiGateLayout
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message "$customizationMessage$Suffix"
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message "The action with name 'IC Setup' defined in PageCustomization 'Business Manager Evaluation RC' was found in the previous version, but is missing in the current extension."
+                    Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                    { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+                    $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                    $moves = @($state.AcceptedMoves | Where-Object { $_.RuleId -in @('AS0031', 'AS0032') })
+                    $moves.Count | Should -Be 2
+                    @($moves | Where-Object { -not $_.Accepted }).Count | Should -Be 0
+                    $moves[0].Key | Should -Be 'PageCustomizations:Migration.PartProbe:Business Manager Evaluation RC'
+                    Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Not -Match 'warning AS003[12]'
+                }
+
+                It 'rejects an inherited customization member when <Failure>' -TestCases @(
+                    @{ Failure = 'the customization is missing' },
+                    @{ Failure = 'profile-specific visibility changes' },
+                    @{ Failure = 'the customization changes owner without a whole-object move' },
+                    @{ Failure = 'the customized page is not identified' },
+                    @{ Failure = 'the customization targets a different page' },
+                    @{ Failure = 'the underlying page reference is ambiguous' },
+                    @{ Failure = 'the underlying page ID changes' },
+                    @{ Failure = 'the member is defined only in the customization' },
+                    @{ Failure = 'the replacement part changes' },
+                    @{ Failure = 'the part target page is missing' }
+                ) {
+                    param($Failure)
+                    switch ($Failure) {
+                        'the customization is missing' { $partCurrentCollections.Namespaces[0].PageCustomizations = @() }
+                        'profile-specific visibility changes' { $newCustomization.ControlChanges[0].Properties[0].Value = 'true' }
+                        'the customization changes owner without a whole-object move' {
+                            $partCurrentCollections.Namespaces[0].PageCustomizations = @()
+                            $partDestinationCollections.Namespaces[0].PageCustomizations = @($newCustomization)
+                        }
+                        'the customized page is not identified' {
+                            $customization.Remove('TargetObject')
+                            $newCustomization.Remove('TargetObject')
+                        }
+                        'the customization targets a different page' { $newCustomization.TargetObject = 'Different Role Center' }
+                        'the underlying page reference is ambiguous' {
+                            $partOldCollections.Namespaces += @{ Name = 'Migration.Other'; Pages = @(@{ Id = 9030; Name = $oldHost.Name }) }
+                        }
+                        'the underlying page ID changes' { $currentHost.Id = 9030 }
+                        'the member is defined only in the customization' {
+                            $oldHost.Controls[0].Controls = @()
+                            $customization.ControlChanges += @{ Name = 'RoleCenter'; Controls = @($part) }
+                            $newCustomization.ControlChanges = ConvertTo-Json -InputObject $customization.ControlChanges -Depth 20 |
+                                ConvertFrom-Json -AsHashtable -NoEnumerate
+                        }
+                        'the replacement part changes' { $newPart.Properties[0].Value = 'Basic' }
+                        'the part target page is missing' { $partDestinationCollections.Namespaces[0].Pages = @($page) }
+                    }
+                    Write-PartApiPackages
+                    $gate = New-ApiGateLayout
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $customizationMessage
+                    { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                    $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                    ($state.AcceptedMoves | Where-Object RuleId -EQ 'AS0032').Accepted | Should -BeFalse
+                    Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0032'
+                    { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+                }
+
+                It 'keeps whole-customization moves subject to their complete contract' {
+                    $partCurrentCollections.Namespaces[0].PageCustomizations = @()
+                    $partDestinationCollections.Namespaces[0].PageCustomizations = @($newCustomization)
+                    Write-PartApiPackages
+                    $gate = New-ApiGateLayout -RuleId AS0089 -Kind PageCustomization -Name $customization.Name
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $customizationMessage
+                    Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                    $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                    $state.AcceptedMoves.Count | Should -Be 2
+                    @($state.AcceptedMoves | Where-Object { -not $_.Accepted }).Count | Should -Be 0
+                }
+            }
+
             It 'rejects a part relocation when <Failure>' -TestCases @(
                 @{ Failure = 'the part is deleted' },
                 @{ Failure = 'the part is renamed' },

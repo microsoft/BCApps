@@ -18,8 +18,8 @@ $script:RemovalRules = @{
 $script:ObjectRemovalPattern = "^The '(?<kind>\w+)' with (?:ID '(?<id>[0-9]+)' and name|name) '(?<name>.+)' was found in the previous version, but is missing in the current extension\. This will break dependent extensions\.$"
 $script:MemberRules = @{
     AS0018 = "^Procedure '(?<method>.+)' has been removed in '(?<kind>\w+) (?<name>.+)'\. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure\.$"
-    AS0031 = "^The (?<memberKind>action(?: group| area| separator|ref)?|separator|(?:custom|system) ?action|file ?upload ?action) with name '(?<member>.+)' defined in (?<kind>Page|PageExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\.(?: This will break dependent extensions\.)?$"
-    AS0032 = "^The (?<memberKind>field|part|cuegroup|area|group|repeater|fixed|grid|system ?part|label|user ?control|chart(?: ?part)?) with name '(?<member>.+)' defined in (?<kind>Page|PageExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\.(?: This will break dependent extensions\.)?$"
+    AS0031 = "^The (?<memberKind>action(?: group| area| separator|ref)?|separator|(?:custom|system) ?action|file ?upload ?action) with name '(?<member>.+)' defined in (?<kind>Page|PageExtension|PageCustomization) '(?<name>.+)' was found in the previous version, but is missing in the current extension\.(?: This will break dependent extensions\.)?$"
+    AS0032 = "^The (?<memberKind>field|part|cuegroup|area|group|repeater|fixed|grid|system ?part|label|user ?control|chart(?: ?part)?) with name '(?<member>.+)' defined in (?<kind>Page|PageExtension|PageCustomization) '(?<name>.+)' was found in the previous version, but is missing in the current extension\.(?: This will break dependent extensions\.)?$"
     AS0106 = "^The variable '.+' of type '.+' defined in (?<kind>Page|PageExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\. This will break dependent extensions\.$"
 }
 $script:DeferredRules = @($script:RemovalRules.Keys) + @($script:MemberRules.Keys)
@@ -222,7 +222,7 @@ function Get-ApplicationApiRemovalDiagnostics {
                     $collection = switch ($Matches.kind) { Table { 'Tables' }; Page { 'Pages' }; Report { 'Reports' } }
                     $parent = @{ Key = "${collection}:Name:$($Matches.name)"; Kind = $collection; Named = $true; Name = $Matches.name }
                 }
-                if (-not $wholeObjects.ContainsKey($parentKey) -and $Matches.kind -eq 'Page') {
+                if (-not $wholeObjects.ContainsKey($parentKey) -and $Matches.kind -cin @('Page', 'PageCustomization')) {
                     if ($issue.ruleId -eq 'AS0032' -and $Matches.memberKind -eq 'part') {
                         $partName = $Matches.member
                     }
@@ -241,7 +241,8 @@ function Get-ApplicationApiRemovalDiagnostics {
                         $controlKind = $script:ControlMemberKinds[$Matches.memberKind.Replace(' ', '')]
                     }
                     if ($partName -or $actionName -or $fieldName -or $cueGroupName -or $controlName) {
-                        $parent = @{ Key = "Pages:Name:$($Matches.name)"; Kind = 'Pages'; Named = $true; Name = $Matches.name }
+                        $collection = if ($Matches.kind -eq 'PageCustomization') { 'PageCustomizations' } else { 'Pages' }
+                        $parent = @{ Key = "${collection}:Name:$($Matches.name)"; Kind = $collection; Named = $true; Name = $Matches.name }
                     }
                 }
             }
@@ -298,6 +299,23 @@ function Get-ApplicationApiMemberMoveFailure {
         [object] $Diagnostic
     )
 
+    if ($OldHost.Kind -ceq 'PageCustomizations') {
+        if ($OldHost.OwnerId -ne $NewHost.OwnerId -or $OldHost.Name -cne $NewHost.Name -or
+            $OldHost.Namespace -cne $NewHost.Namespace -or $OldHost.ContractHash -cne $NewHost.ContractHash) {
+            return 'The original page customization identity, ownership, or contract changed.'
+        }
+        if (-not $OldHost.TargetObject -or -not $NewHost.TargetObject) {
+            return 'The page customization does not identify its underlying page.'
+        }
+        $oldPages = @(Get-ApplicationApiHostCandidates -Objects $Baseline.Symbols -Kind Pages -Reference $OldHost.TargetObject)
+        $newPages = @(Get-ApplicationApiHostCandidates -Objects $Current.Symbols -Kind Pages -Reference $NewHost.TargetObject)
+        if ($oldPages.Count -ne 1 -or $newPages.Count -ne 1) {
+            return 'The customized page is missing or ambiguous in the exposed Application API.'
+        }
+        if ($oldPages[0].Key -cne $newPages[0].Key) { return 'The customized page identity changed.' }
+        $OldHost = $oldPages[0]
+        $NewHost = $newPages[0]
+    }
     if ($OldHost.OwnerId -ne $NewHost.OwnerId -or $OldHost.Name -cne $NewHost.Name -or $OldHost.Namespace -cne $NewHost.Namespace) {
         return 'The original host object identity or ownership changed.'
     }
