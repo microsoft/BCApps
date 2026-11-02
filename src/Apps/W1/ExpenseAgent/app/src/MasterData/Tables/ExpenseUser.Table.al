@@ -516,7 +516,7 @@ table 6923 "Expense User"
             Error(CurrentBCUserHasNoAuthEmailErr);
 
         ExpenseUser.SetLoadFields("No.");
-        ExpenseUser.SetFilter("E-mail", '@%1', User."Authentication Email");
+        ExpenseUser.SetFilter("E-mail", StrSubstNo('@%1', User."Authentication Email"));
         if ExpenseUser.FindFirst() then
             exit(ExpenseUser."No.");
 
@@ -575,7 +575,7 @@ table 6923 "Expense User"
             exit('');
 
         User.SetLoadFields("User Name");
-        User.SetFilter("Authentication Email", '@%1', Email);
+        User.SetFilter("Authentication Email", StrSubstNo('@%1', Email));
         if User.FindFirst() then
             exit(User."User Name");
     end;
