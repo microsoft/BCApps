@@ -112,10 +112,8 @@ codeunit 392 "Reminder-Make"
         OnBeforeGetReminderTerms(GlobalReminderHeader, GlobalReminderTerms, IsHandled);
         if IsHandled then
             exit;
-
         if GlobalCustomer."Reminder Terms Code" = '' then
             GlobalReminderHeader.TestField("Reminder Terms Code");
-
         if GlobalReminderHeader."Reminder Terms Code" = '' then begin
             GlobalCustomer.TestField("Reminder Terms Code");
             GlobalReminderTerms.Get(GlobalCustomer."Reminder Terms Code");
@@ -189,7 +187,6 @@ codeunit 392 "Reminder-Make"
         if not ReminderLevel.FindLast() then
             exit(false);
         TempCustLedgerEntryOnHold.DeleteAll();
-
         if not FindAndMarkReminderCandidates(GlobalCustLedgEntry, ReminderLevel, CustAmount, MakeDoc, MaxReminderLevel, MaxLineLevel) then
             exit(false);
 
@@ -228,7 +225,6 @@ codeunit 392 "Reminder-Make"
             ReminderLevel.MarkedOnly(true);
             GlobalCustLedgEntry.MarkedOnly(true);
             ReminderLevel.FindLast();
-
             repeat
                 StartLineInserted := false;
                 FilterCustLedgEntries(ReminderLevel);
@@ -266,8 +262,10 @@ codeunit 392 "Reminder-Make"
             OnMakeReminderOnBeforeReminderHeaderInsertLines(GlobalReminderHeader);
             GlobalReminderHeader.InsertLines();
             ReminderLine.SetRange("Reminder No.", GlobalReminderHeader."No.");
-            ReminderLine.FindLast();
-            NextLineNo := ReminderLine."Line No.";
+            if ReminderLine.FindLast() then
+                NextLineNo := ReminderLine."Line No."
+            else
+                NextLineNo := 0;
             GetOpenEntriesNotDueOnHoldTranslated(GlobalCustomer."Language Code", OpenEntriesNotDueTranslated, OpenEntriesOnHoldTranslated);
             GlobalCustLedgEntry.SetRange("Last Issued Reminder Level");
             OnMakeReminderOnBeforeCustLedgEntryFindSet(GlobalCustLedgEntry, GlobalCustomer, GlobalReminderHeader, MaxReminderLevel, OverdueEntriesOnly);
@@ -276,7 +274,6 @@ codeunit 392 "Reminder-Make"
                     AddRemiderLinesFromCustLedgEntryWithNoReminderLevelFilter(ReminderLine, ReminderLevel, LineLevel, ReminderDueDate, NextLineNo, OpenEntriesNotDueTranslated, StartLineInserted)
                 until GlobalCustLedgEntry.Next() = 0;
             OnMakeReminderOnAfterAddRemiderLinesFromCustLedgEntriesWithNoReminderLevelFilter(GlobalCustLedgEntry, GlobalCustomer, GlobalReminderHeader, MaxReminderLevel, OverdueEntriesOnly);
-
             if IncludeEntriesOnHold then
                 if TempCustLedgerEntryOnHold.FindSet() then begin
                     InsertReminderLine(
@@ -316,7 +313,6 @@ codeunit 392 "Reminder-Make"
         OnBeforeAddRemiderLinesFromCustLedgEntryWithNoReminderLevelFilter(GlobalCustLedgEntry, GlobalReminderHeaderReq, GlobalReminderHeader, IsHandled, ReminderLine, NextLineNo, StartLineInserted);
         if IsHandled then
             exit;
-
         if (not OverdueEntriesOnly) or
            (GlobalCustLedgEntry."Document Type" in [GlobalCustLedgEntry."Document Type"::Payment, GlobalCustLedgEntry."Document Type"::Refund])
         then begin
@@ -356,7 +352,6 @@ codeunit 392 "Reminder-Make"
             MakeDoc, MaxReminderLevel, MaxLineLevel, OverdueEntriesOnly, IncludeEntriesOnHold, IsHandled, Result);
         if IsHandled then
             exit(Result);
-
         repeat
             FilterCustLedgEntries(ReminderLevel);
             if CustLedgEntry.FindSet() then
@@ -418,7 +413,6 @@ codeunit 392 "Reminder-Make"
                 (CustLedgEntry."Document Type" in [CustLedgEntry."Document Type"::Payment, CustLedgEntry."Document Type"::Refund]))
             then
                 MarkEntry := true;
-
         if MarkEntry then begin
             if not EntryOnHold then
                 CustLedgEntry.Mark(true);
@@ -659,7 +653,6 @@ codeunit 392 "Reminder-Make"
 
         ReminderTotal := ReminderHeader."Remaining Amount" + ReminderHeader."Interest Amount" +
           ReminderHeader."Additional Fee" + ReminderHeader."VAT Amount";
-
         if ReminderTotal < 0 then
             ReminderHeader.Delete(true);
     end;
