@@ -57,7 +57,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         TempBuffer.Reset();
         TempBuffer.DeleteAll(false);
 
-        AccessToken := CredMgt.AcquireFabricApiTokenDelegated();
+        AccessToken := CredMgt.AcquireFabricApiTokenDelegated(false);
         RestClientResult := HttpClient.CreateClientWithBearer(AccessToken);
         Req := HttpClient.BuildJsonRequest('GET', 'https://api.fabric.microsoft.com/v1/workspaces', '');
         if not HttpClient.TrySend(RestClientResult, Req, Resp) then
@@ -113,7 +113,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         TempBuffer.Reset();
         TempBuffer.DeleteAll(false);
 
-        AccessToken := CredMgt.AcquireFabricApiTokenDelegated();
+        AccessToken := CredMgt.AcquireFabricApiTokenDelegated(false);
         RestClientResult := HttpClient.CreateClientWithBearer(AccessToken);
         Req := HttpClient.BuildJsonRequest(
             'GET',
