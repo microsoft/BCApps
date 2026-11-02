@@ -255,8 +255,11 @@ report 94 "Close Income Statement"
 
             trigger OnPreDataItem()
             begin
-                if BalancingAccount."No." <> '' then
+                if BalancingAccount."No." <> '' then begin
+                    FilterGroup(2);
                     SetFilter("No.", '<>%1', BalancingAccount."No.");
+                    FilterGroup(0);
+                end;
                 NoOfAccounts := "G/L Account".Count();
             end;
         }
