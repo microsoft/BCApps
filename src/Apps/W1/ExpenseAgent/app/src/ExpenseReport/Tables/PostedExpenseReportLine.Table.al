@@ -218,11 +218,11 @@ table 6916 "Posted Expense Report Line"
             AutoFormatType = 1;
             Caption = 'Non-Refundable Amount';
         }
-        field(36; "Starting Point"; Text[50])
+        field(36; "Starting Point"; Text[250])
         {
             Caption = 'Starting Point';
         }
-        field(37; "Ending Point"; Text[50])
+        field(37; "Ending Point"; Text[250])
         {
             Caption = 'Ending Point';
         }

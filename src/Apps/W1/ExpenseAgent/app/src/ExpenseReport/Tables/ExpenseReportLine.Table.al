@@ -614,7 +614,7 @@ table 6907 "Expense Report Line"
                 ApplyRule();
             end;
         }
-        field(36; "Starting Point"; Text[50])
+        field(36; "Starting Point"; Text[250])
         {
             Caption = 'Starting Point';
 
@@ -623,7 +623,7 @@ table 6907 "Expense Report Line"
                 TestStatusOpen();
             end;
         }
-        field(37; "Ending Point"; Text[50])
+        field(37; "Ending Point"; Text[250])
         {
             Caption = 'Ending Point';
 

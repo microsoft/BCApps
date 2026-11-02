@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.HumanResources.Employee;
 using System.Automation;
 using System.TestLibraries.Utilities;
 
@@ -633,6 +634,176 @@ codeunit 148313 "Expense Mileage Test"
         Assert.AreEqual(Mileage * Rate, ExpenseReportLine.Amount, ReportLineVehicleSpecificMileageRateLbl);
     end;
 
+    [Test]
+    procedure MileageAddressesCanBeSavedOnExpense()
+    var
+        Expense: Record Expense;
+        StartingPoint: Text[250];
+        EndingPoint: Text[250];
+    begin
+        // [SCENARIO 656559] Starting Point and Ending Point with 250 characters can be saved on a mileage expense.
+        Initialize();
+
+        // [GIVEN] Create a mileage expense.
+        CreateMileageExpense(Expense, LibraryRandom.RandDec(50, 2));
+
+        // [GIVEN] Generate Starting Point and Ending Point with 250 characters.
+        StartingPoint := PadStr(LibraryRandom.RandText(250), 250, 'S');
+        EndingPoint := PadStr(LibraryRandom.RandText(250), 250, 'E');
+
+        // [WHEN] Update Starting Point and Ending Point and save the expense.
+        Expense.Validate("Starting Point", StartingPoint);
+        Expense.Validate("Ending Point", EndingPoint);
+        Expense.Modify();
+
+        // [THEN] Both addresses are saved without truncation.
+        Expense.Get(Expense."No.");
+        Assert.AreEqual(
+            StartingPoint,
+            Expense."Starting Point",
+            StrSubstNo(ValueMustBeEqualErr, Expense.FieldCaption("Starting Point"), StartingPoint, Expense.TableCaption()));
+        Assert.AreEqual(
+            EndingPoint,
+            Expense."Ending Point",
+            StrSubstNo(ValueMustBeEqualErr, Expense.FieldCaption("Ending Point"), EndingPoint, Expense.TableCaption()));
+    end;
+
+    [Test]
+    procedure MileageAddressesCopiedToExpenseReportLine()
+    var
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+        StartingPoint: Text[250];
+        EndingPoint: Text[250];
+    begin
+        // [SCENARIO 656559] Starting Point and Ending Point with 250 characters are copied from a mileage expense to a report line.
+        Initialize();
+
+        // [GIVEN] Set up Standard Rate of Mileage.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Standard Rate of Mileage", LibraryRandom.RandIntInRange(1, 5));
+        ExpenseAgentSetup.Modify();
+
+        // [GIVEN] Create a mileage expense with 250-character addresses.
+        CreateMileageExpense(Expense, LibraryRandom.RandDec(50, 2));
+        StartingPoint := PadStr(LibraryRandom.RandText(250), 250, 'S');
+        EndingPoint := PadStr(LibraryRandom.RandText(250), 250, 'E');
+        Expense.Validate("Starting Point", StartingPoint);
+        Expense.Validate("Ending Point", EndingPoint);
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+        Expense.Modify();
+
+        // [GIVEN] Release the expense and create an expense report.
+        Expense.PerformManualRelease();
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
+
+        // [WHEN] Add the expense to the expense report.
+        ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
+
+        // [THEN] Both addresses are copied without truncation.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(
+            StartingPoint,
+            ExpenseReportLine."Starting Point",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Starting Point"), StartingPoint, ExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            EndingPoint,
+            ExpenseReportLine."Ending Point",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Ending Point"), EndingPoint, ExpenseReportLine.TableCaption()));
+    end;
+
+    [Test]
+    procedure MileageAddressesCanBeUpdatedOnExpenseReportLine()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        StartingPoint: Text[250];
+        EndingPoint: Text[250];
+    begin
+        // [SCENARIO 656559] Starting Point and Ending Point can be updated to 250 characters on a mileage report line.
+        Initialize();
+
+        // [GIVEN] Create an expense report with a mileage line.
+        CreateMileageExpenseReportLine(ExpenseReportHeader, ExpenseReportLine);
+
+        // [GIVEN] Set existing addresses on the report line.
+        ExpenseReportLine.Validate("Starting Point", LibraryRandom.RandText(50));
+        ExpenseReportLine.Validate("Ending Point", LibraryRandom.RandText(50));
+        ExpenseReportLine.Modify();
+
+        // [GIVEN] Generate new Starting Point and Ending Point with 250 characters.
+        StartingPoint := PadStr(LibraryRandom.RandText(250), 250, 'S');
+        EndingPoint := PadStr(LibraryRandom.RandText(250), 250, 'E');
+
+        // [WHEN] Update Starting Point and Ending Point and save the report line.
+        ExpenseReportLine.Validate("Starting Point", StartingPoint);
+        ExpenseReportLine.Validate("Ending Point", EndingPoint);
+        ExpenseReportLine.Modify();
+
+        // [THEN] Both updated addresses are saved without truncation.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(
+            StartingPoint,
+            ExpenseReportLine."Starting Point",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Starting Point"), StartingPoint, ExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            EndingPoint,
+            ExpenseReportLine."Ending Point",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Ending Point"), EndingPoint, ExpenseReportLine.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure MileageAddressesPreservedOnPostedExpenseReportLine()
+    var
+        ExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+        StartingPoint: Text[250];
+        EndingPoint: Text[250];
+    begin
+        // [SCENARIO 656559] Starting Point and Ending Point with 250 characters are preserved when a mileage report line is posted.
+        Initialize();
+
+        // [GIVEN] Create an expense report with a mileage line and 250-character addresses.
+        CreateMileageExpenseReportLine(ExpenseReportHeader, ExpenseReportLine);
+        StartingPoint := PadStr(LibraryRandom.RandText(250), 250, 'S');
+        EndingPoint := PadStr(LibraryRandom.RandText(250), 250, 'E');
+        ExpenseReportLine.Validate("Starting Point", StartingPoint);
+        ExpenseReportLine.Validate("Ending Point", EndingPoint);
+        ExpenseReportLine.Modify();
+
+        // [GIVEN] Set up the employee expense account and release the expense report.
+        ExpenseUser.Get(ExpenseReportHeader."Expense User No.");
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        ExpenseReportHeader.PerformManualRelease();
+
+        // [WHEN] Post the expense report.
+        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
+
+        // [THEN] Both addresses are preserved without truncation on the posted report line.
+        PostedExpenseReportLine.SetRange("Expense User No.", ExpenseUser."No.");
+        Assert.RecordCount(PostedExpenseReportLine, 1);
+        PostedExpenseReportLine.FindFirst();
+        Assert.AreEqual(
+            StartingPoint,
+            PostedExpenseReportLine."Starting Point",
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption("Starting Point"), StartingPoint, PostedExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            EndingPoint,
+            PostedExpenseReportLine."Ending Point",
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption("Ending Point"), EndingPoint, PostedExpenseReportLine.TableCaption()));
+    end;
+
     local procedure Initialize()
     var
         MileageRateSetup: Record "Mileage Rate Setup";
@@ -701,5 +872,31 @@ codeunit 148313 "Expense Mileage Test"
         ExpenseVehicleType.Code := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(ExpenseVehicleType.Code));
         ExpenseVehicleType.Insert(true);
         exit(ExpenseVehicleType.Code);
+    end;
+    
+     local procedure CreateMileageExpenseReportLine(var ExpenseReportHeader: Record "Expense Report Header"; var ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseUser: Record "Expense User";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+    begin
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Standard Rate of Mileage", LibraryRandom.RandIntInRange(1, 5));
+        ExpenseAgentSetup.Modify();
+
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Mileage);
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', 0);
+        ExpenseReportLine.Validate(Mileage, LibraryRandom.RandDec(50, 2));
+        ExpenseReportLine.Modify();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 }

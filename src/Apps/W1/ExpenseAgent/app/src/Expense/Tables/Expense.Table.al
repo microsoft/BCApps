@@ -427,7 +427,7 @@ table 6900 Expense
                 ApplyRule();
             end;
         }
-        field(28; "Starting Point"; Text[50])
+        field(28; "Starting Point"; Text[250])
         {
             Caption = 'Starting Point';
 
@@ -436,7 +436,7 @@ table 6900 Expense
                 TestStatusOpen();
             end;
         }
-        field(29; "Ending Point"; Text[50])
+        field(29; "Ending Point"; Text[250])
         {
             Caption = 'Ending Point';
 
