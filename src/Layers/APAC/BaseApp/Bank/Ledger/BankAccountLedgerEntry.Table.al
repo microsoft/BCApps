@@ -496,6 +496,7 @@ table 271 "Bank Account Ledger Entry"
         field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';

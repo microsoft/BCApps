@@ -48,6 +48,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     // -------------------------------------------------------------------------
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyUnapplyCustPaymentConcurrent()
     var
@@ -65,6 +66,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyUnapplyCustRefundConcurrent()
     var
@@ -82,6 +84,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyUnapplyApplyCustPaymentConcurrent()
     var
@@ -99,6 +102,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyUnapplyApplyCustRefundConcurrent()
     var
@@ -116,6 +120,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure UnapplyCustInvoiceLedgerConcurrent()
     var
@@ -133,6 +138,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure UnapplyCustCrMemoLedgerConcurrent()
     var
@@ -150,6 +156,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyCustPaymentGLEntriesHaveCorrectSIFTBucketConcurrent()
     var
@@ -188,6 +195,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     // -------------------------------------------------------------------------
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyUnapplyVendPaymentConcurrent()
     var
@@ -205,6 +213,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyUnapplyVendRefundConcurrent()
     var
@@ -222,6 +231,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyUnapplyApplyVendPaymentConcurrent()
     var
@@ -239,6 +249,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyUnapplyApplyVendRefundConcurrent()
     var
@@ -256,6 +267,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyVendPaymentGLEntriesHaveCorrectSIFTBucketConcurrent()
     var
@@ -302,6 +314,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     // -------------------------------------------------------------------------
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyUnapplyEmplPaymentConcurrent()
     var
@@ -320,6 +333,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyUnapplyApplyEmplPaymentConcurrent()
     var
@@ -337,6 +351,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure ApplyEmplPaymentGLEntriesHaveCorrectSIFTBucketConcurrent()
     var
@@ -384,6 +399,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     // -------------------------------------------------------------------------
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure UnapplyCustPaymentDetailedEntriesCreatedConcurrent()
     var
@@ -415,6 +431,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure UnapplyVendPaymentDetailedEntriesCreatedConcurrent()
     var
@@ -454,6 +471,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure UnapplyEmplPaymentDetailedEntriesCreatedConcurrent()
     var
@@ -793,7 +811,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
         LibraryERM.SetApplyVendorEntry(VendorLedgerEntry, VendorLedgerEntry."Remaining Amount");
         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry2, DocumentType2, DocumentNo2);
         VendorLedgerEntry2.SetAutoCalcFields("Remaining Amount");
-        VendorLedgerEntry2.FindSet();
+        VendorLedgerEntry2.FindSet(true);
         repeat
             VendorLedgerEntry2.Validate("Amount to Apply", VendorLedgerEntry2."Remaining Amount");
             VendorLedgerEntry2.Modify(true);
@@ -859,7 +877,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
         LibraryERM.SetApplyEmployeeEntry(EmployeeLedgerEntry, EmployeeLedgerEntry."Remaining Amount");
         LibraryERM.FindEmployeeLedgerEntry(EmployeeLedgerEntry2, DocumentType2, DocumentNo2);
         EmployeeLedgerEntry2.SetAutoCalcFields("Remaining Amount");
-        EmployeeLedgerEntry2.FindSet();
+        EmployeeLedgerEntry2.FindSet(true);
         repeat
             EmployeeLedgerEntry2.Validate("Amount to Apply", EmployeeLedgerEntry2."Remaining Amount");
             EmployeeLedgerEntry2.Modify(true);
@@ -901,9 +919,9 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
+        CustLedgerEntry.SetAutoCalcFields("Remaining Amount", Amount);
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, DocumentType, DocumentNo);
         repeat
-            CustLedgerEntry.CalcFields("Remaining Amount", Amount);
             CustLedgerEntry.TestField("Remaining Amount", CustLedgerEntry.Amount);
         until CustLedgerEntry.Next() = 0;
     end;
@@ -945,9 +963,9 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
     begin
+        VendorLedgerEntry.SetAutoCalcFields("Remaining Amount", Amount);
         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, DocumentType, DocumentNo);
         repeat
-            VendorLedgerEntry.CalcFields("Remaining Amount", Amount);
             VendorLedgerEntry.TestField("Remaining Amount", VendorLedgerEntry.Amount);
         until VendorLedgerEntry.Next() = 0;
     end;
@@ -994,9 +1012,9 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     var
         EmployeeLedgerEntry: Record "Employee Ledger Entry";
     begin
+        EmployeeLedgerEntry.SetAutoCalcFields("Remaining Amount", Amount);
         LibraryERM.FindEmployeeLedgerEntry(EmployeeLedgerEntry, DocumentType, DocumentNo);
         repeat
-            EmployeeLedgerEntry.CalcFields("Remaining Amount", Amount);
             EmployeeLedgerEntry.TestField("Remaining Amount", EmployeeLedgerEntry.Amount);
         until EmployeeLedgerEntry.Next() = 0;
     end;

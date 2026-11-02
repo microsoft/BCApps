@@ -43,7 +43,7 @@ table 134083 "Concurrent Seq. Test Buffer"
         }
     }
 
-    procedure GetNoOfAllocationsPerSession(): Integer
+    internal procedure GetNoOfAllocationsPerSession(): Integer
     begin
         exit(10);
     end;

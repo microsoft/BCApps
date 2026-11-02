@@ -18,6 +18,7 @@ codeunit 134291 "ERM Concurrent Sequence Tests"
         Assert: Codeunit Assert;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure GLRegisterGetNextEntryNoIsUniqueAndGapFreeAcrossSessions()
     var

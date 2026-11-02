@@ -152,16 +152,15 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [THEN] New G/L entries are created
         GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
-        Assert.IsTrue(not GLEntry.IsEmpty(), 'G/L entries should have been created after posting the Sales Invoice');
+        Assert.IsTrue(GLEntry.FindSet(), 'G/L entries should have been created after posting the Sales Invoice');
 
         // [THEN] Each new G/L entry has SIFT Bucket No. = Entry No. mod 5
-        if GLEntry.FindSet() then
-            repeat
-                Assert.AreEqual(
-                    GLEntry."Entry No." mod 5,
-                    GLEntry."SIFT Bucket No.",
-                    'SIFT Bucket No. must equal Entry No. mod 5 for all new G/L entries');
-            until GLEntry.Next() = 0;
+        repeat
+            Assert.AreEqual(
+                GLEntry."Entry No." mod 5,
+                GLEntry."SIFT Bucket No.",
+                'SIFT Bucket No. must equal Entry No. mod 5 for all new G/L entries');
+        until GLEntry.Next() = 0;
 
         // [THEN] New Detailed Cust. Ledg. entries are created
         DetailedCustLedgEntry.SetFilter("Entry No.", '>%1', LastDtldEntryNo);
@@ -197,16 +196,15 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [THEN] New G/L entries are created
         GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
-        Assert.IsTrue(not GLEntry.IsEmpty(), 'G/L entries should have been created after posting the Purchase Invoice');
+        Assert.IsTrue(GLEntry.FindSet(), 'G/L entries should have been created after posting the Purchase Invoice');
 
         // [THEN] Each new G/L entry has SIFT Bucket No. = Entry No. mod 5
-        if GLEntry.FindSet() then
-            repeat
-                Assert.AreEqual(
-                    GLEntry."Entry No." mod 5,
-                    GLEntry."SIFT Bucket No.",
-                    'SIFT Bucket No. must equal Entry No. mod 5 for all new G/L entries');
-            until GLEntry.Next() = 0;
+        repeat
+            Assert.AreEqual(
+                GLEntry."Entry No." mod 5,
+                GLEntry."SIFT Bucket No.",
+                'SIFT Bucket No. must equal Entry No. mod 5 for all new G/L entries');
+        until GLEntry.Next() = 0;
 
         // [THEN] New Detailed Vendor Ledg. entries are created
         DetailedVendorLedgEntry.SetFilter("Entry No.", '>%1', LastDtldEntryNo);

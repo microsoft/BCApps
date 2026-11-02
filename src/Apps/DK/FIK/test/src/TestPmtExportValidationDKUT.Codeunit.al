@@ -923,6 +923,7 @@ codeunit 148027 "TestPmtExport Validation DK UT"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure GenJnlLineTransferCurrencyIsNotSupported();
     var
         Currency: Record Currency;
@@ -968,6 +969,7 @@ codeunit 148027 "TestPmtExport Validation DK UT"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure GenJnlLineCustRefund();
     var
         GenJnlBatch: Record "Gen. Journal Batch";

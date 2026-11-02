@@ -32,6 +32,7 @@ codeunit 134194 "ERM Reverse Concurrent Post"
         ReversalErr: Label 'You cannot reverse G/L Register No. %1 because the register has already been involved in a reversal.', Comment = '%1 = G/L register number';
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure ReverseGLTransactionUseConcurrentPost()
@@ -57,6 +58,7 @@ codeunit 134194 "ERM Reverse Concurrent Post"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure ReverseGLRegisterUseConcurrentPost()
@@ -84,6 +86,7 @@ codeunit 134194 "ERM Reverse Concurrent Post"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure ReverseCustomerLedgerUseConcurrentPost()
@@ -109,6 +112,7 @@ codeunit 134194 "ERM Reverse Concurrent Post"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure ReverseVendorLedgerUseConcurrentPost()
@@ -134,6 +138,7 @@ codeunit 134194 "ERM Reverse Concurrent Post"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure AlreadyReversedRegUseConcurrentPost()
@@ -164,6 +169,7 @@ codeunit 134194 "ERM Reverse Concurrent Post"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure ReverseGLTransactionNoConcurrentPost()
