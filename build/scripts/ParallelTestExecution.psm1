@@ -1562,9 +1562,12 @@ function Invoke-PerProjectTestRun {
 
     $installed = Get-InstalledTestAppNames -ContainerName $parameters.containerName -Tenant $parameters.tenant -Country $country
     $appNamesToTest = @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType $testType -BucketNumber $bucketNumber)
+    $candidateCount = $appNamesToTest.Count
+    $churnEnabled = (Get-ALGoSetting -Key 'enableChurnBasedTesting') -eq $true
+    $selectionMode = if ($churnEnabled) { 'Enabled; no candidate test apps' } else { 'Disabled; full bucket' }
     $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
     $stateFile = Join-Path $tempDir "parallelTests_$($parameters.containerName).json"
-    if ($appNamesToTest.Count -gt 0 -and (Get-ALGoSetting -Key 'enableChurnBasedTesting') -eq $true) {
+    if ($appNamesToTest.Count -gt 0 -and $churnEnabled) {
         # Only the parent computes this; workers receive the already selected list.
         if (-not $script:affectedAppNamesByRun.ContainsKey($stateFile)) {
             try {
@@ -1578,19 +1581,32 @@ function Invoke-PerProjectTestRun {
             }
         }
         $affected = $script:affectedAppNamesByRun[$stateFile]
+        $selectionMode = 'Enabled; full bucket (RunAll)'
         if (-not $affected.RunAll) {
+            $selectionMode = 'Enabled; affected-app filter applied'
             $appNamesToTest = @($appNamesToTest | Where-Object { $_ -in $affected.AppNames })
         }
     }
 
+    $bucketLabel = if ($testType -eq 'Legacy') { $bucketNumber } else { 'n/a' }
+    Write-Host "::group::Test app selection"
+    Write-Host "Country: $country | Test type: $testType | Bucket: $bucketLabel"
+    Write-Host "Churn-based testing: $selectionMode"
+    Write-Host "Candidates: $candidateCount | Selected: $($appNamesToTest.Count) | Skipped: $($candidateCount - $appNamesToTest.Count)"
+    Write-Host "Selected test apps (dispatch order):"
+    foreach ($appName in $appNamesToTest) {
+        Write-Host "  - $appName"
+    }
     if ($appNamesToTest.Count -eq 0) {
-        Write-Host "No test apps selected for testType '$testType' in this project."
+        Write-Host "  No test apps selected."
+    }
+    Write-Host "::endgroup::"
+
+    if ($appNamesToTest.Count -eq 0) {
         @{ completed = $true; finalResult = $true; noTestsSelected = $true } |
             ConvertTo-Json | Set-Content -Path $stateFile -Force
         return $true
     }
-
-    Write-Host "Test apps to dispatch ($($appNamesToTest.Count)): $($appNamesToTest -join ', ')"
 
     $parameters["returnTrueIfAllPassed"] = $true
     $script = Join-Path $PSScriptRoot "RunTestsInBcContainer.ps1" -Resolve

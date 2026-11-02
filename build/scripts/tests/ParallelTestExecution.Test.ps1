@@ -54,6 +54,8 @@ Describe "ParallelTestExecution churn selection" {
         $env:RUNNER_TEMP = Join-Path $TestDrive ([guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $env:RUNNER_TEMP | Out-Null
         $env:BUILD_OPTIMIZATION_DISABLED = $null
+        $script:selectionLog = [System.Collections.Generic.List[string]]::new()
+        Mock -ModuleName ParallelTestExecution Write-Host { $script:selectionLog.Add([string]$Object) }
 
         Mock -ModuleName ParallelTestExecution Get-ALGoSetting {
             switch ($Key) {
@@ -119,6 +121,28 @@ Describe "ParallelTestExecution churn selection" {
         Should -Invoke -ModuleName ParallelTestExecution Get-AffectedAppNames -Times 1 -Exactly -ParameterFilter {
             $BaseFolder -eq $script:selectionRepoRoot
         }
+        $start = $script:selectionLog.IndexOf('::group::Test app selection')
+        $end = $script:selectionLog.IndexOf('::endgroup::')
+        ($script:selectionLog[$start..$end] -join "`n") | Should -Be (@(
+            '::group::Test app selection'
+            'Country: w1 | Test type: IntegrationTest | Bucket: n/a'
+            'Churn-based testing: Enabled; affected-app filter applied'
+            'Candidates: 3 | Selected: 2 | Skipped: 1'
+            'Selected test apps (dispatch order):'
+            '  - Tests C'
+            '  - Tests A'
+            '::endgroup::'
+        ) -join "`n")
+    }
+
+    It "includes the legacy bucket number in the selection group" {
+        Mock -ModuleName ParallelTestExecution Get-ALGoSetting { 'Legacy' } -ParameterFilter { $Key -eq 'testType' }
+        Mock -ModuleName ParallelTestExecution Get-ALGoSetting { 2 } -ParameterFilter { $Key -eq 'bucketNumber' }
+
+        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
+            Should -BeTrue
+
+        $script:selectionLog | Should -Contain 'Country: w1 | Test type: Legacy | Bucket: 2'
     }
 
     It "runs the full bucket without computing or using affected apps when the setting is <Setting>" -ForEach @(
@@ -141,6 +165,8 @@ Describe "ParallelTestExecution churn selection" {
             ($AppNamesToTest -join ',') -eq 'Tests C,Tests B,Tests A'
         }
         Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
+        $script:selectionLog | Should -Contain 'Churn-based testing: Disabled; full bucket'
+        $script:selectionLog | Should -Contain 'Candidates: 3 | Selected: 3 | Skipped: 0'
     }
 
     It "returns the cached <Passed> outcome on later per-app hooks without recomputing selection" -ForEach @(
@@ -156,6 +182,9 @@ Describe "ParallelTestExecution churn selection" {
         Should -Invoke -ModuleName ParallelTestExecution Get-AffectedAppNames -Times 1 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 2 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -eq '::group::Test app selection'
+        }
     }
 
     It "uses the existing downstream dependency calculation to select test apps" {
@@ -200,6 +229,11 @@ Describe "ParallelTestExecution churn selection" {
         Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 0 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Invoke-WarmupDispatch -Times 0 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly
+        $script:selectionLog | Should -Contain 'Candidates: 3 | Selected: 0 | Skipped: 3'
+        $script:selectionLog | Should -Contain '  No test apps selected.'
+        Should -Invoke -ModuleName ParallelTestExecution Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -eq '::group::Test app selection'
+        }
     }
 
     It "reuses affected-app computation if dispatch is interrupted before completion" {
@@ -237,6 +271,8 @@ Describe "ParallelTestExecution churn selection" {
             ($AppNamesToTest -join ',') -eq 'Tests C,Tests B,Tests A'
         }
         Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
+        $script:selectionLog | Should -Contain 'Churn-based testing: Enabled; full bucket (RunAll)'
+        $script:selectionLog | Should -Contain 'Candidates: 3 | Selected: 3 | Skipped: 0'
     }
 
     It "logs malformed change-detection JSON and safely runs the full bucket" {
