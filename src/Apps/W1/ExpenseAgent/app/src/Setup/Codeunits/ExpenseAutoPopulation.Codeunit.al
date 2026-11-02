@@ -121,6 +121,7 @@ codeunit 6912 "Expense Auto Population"
         TotalAmount: Decimal;
         DayPerDiemAmount: Decimal;
         ExpenseLineNo: Integer;
+        PerDiemDetailsChanged: Boolean;
     begin
         ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
 
@@ -136,9 +137,12 @@ codeunit 6912 "Expense Auto Population"
 
         ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
         ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
-        if not ExpenseReportLinePerDiem.IsEmpty() then
+        if not ExpenseReportLinePerDiem.IsEmpty() then begin
             ExpenseReportLinePerDiem.DeleteAll();
+            PerDiemDetailsChanged := true;
+        end;
 
+        ExpenseReportLinePerDiem.SetSkipParentPolicyInvalidation(true);
         CurrentDate := StartDate;
         while CurrentDate <= EndDate do begin
             ExpenseLineNo += 10000;
@@ -160,11 +164,14 @@ codeunit 6912 "Expense Auto Population"
             ExpenseReportLinePerDiem."Lunch Reduction Percent" := ExpenseAgentSetup."Reduction for Lunch %";
             ExpenseReportLinePerDiem."Dinner Reduction Percent" := ExpenseAgentSetup."Reduction for Dinner %";
             ExpenseReportLinePerDiem.Insert(true);
+            PerDiemDetailsChanged := true;
 
             TotalAmount += DayPerDiemAmount;
             CurrentDate := CalcDate('<+1D>', CurrentDate);
         end;
 
+        if PerDiemDetailsChanged then
+            ExpenseReportLine.MarkPolicyInvalidationPending();
         ExpenseReportLine.Validate(Amount, TotalAmount);
     end;
 

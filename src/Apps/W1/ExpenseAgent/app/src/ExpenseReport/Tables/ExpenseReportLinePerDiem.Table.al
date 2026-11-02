@@ -176,6 +176,7 @@ table 6909 "Expense Report Line Per Diem"
         ExpenseCurrency: Record Currency;
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportHelper: Codeunit "Expense Report";
+        SkipParentPolicyInvalidation: Boolean;
         ExpenseReportLocationMissingMsg: Label '%1 is missing in Expense Report No. %2, Line No. %3.', Comment = '%1 = Expense Location Caption, %2 = Expense Report No., %3 = Line No.';
         TotalReductionPercentExceededErr: Label 'Total Reduction Percent cannot exceed 100.';
 
@@ -183,8 +184,16 @@ table 6909 "Expense Report Line Per Diem"
     var
         ParentExpenseReportLine: Record "Expense Report Line";
     begin
+        if SkipParentPolicyInvalidation then
+            exit;
+
         if ParentExpenseReportLine.Get(Rec."Expense Report No.", Rec."Expense Report Line No.") then
             ParentExpenseReportLine.InvalidatePolicyEvaluation();
+    end;
+
+    internal procedure SetSkipParentPolicyInvalidation(NewSkipParentPolicyInvalidation: Boolean)
+    begin
+        SkipParentPolicyInvalidation := NewSkipParentPolicyInvalidation;
     end;
 
     local procedure UpdateExpenseReportLineInformation(ExpenseReportNo: Code[20]; ExpenseReportLineNo: Integer)
