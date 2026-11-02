@@ -41,7 +41,8 @@ codeunit 4516 "OAuth2 SMTP Authentication"
         AccessToken := AzureAdMgt.GetAccessTokenAsSecretText(AzureADMgt.GetO365Resource(), AzureADMgt.GetO365ResourceName(), true);
         if AccessToken.IsEmpty() then
             Error(CouldNotAuthenticateErr);
-        GetUserName(AccessToken, UserName);
+        if not GetUserName(AccessToken, UserName) then
+            Error(CouldNotAuthenticateErr);
     end;
 
     /// <summary>
@@ -101,8 +102,10 @@ codeunit 4516 "OAuth2 SMTP Authentication"
     begin
         AccessToken := AzureAdMgt.GetAccessTokenAsSecretText(AzureADMgt.GetO365Resource(), AzureADMgt.GetO365ResourceName(), true);
         if not AccessToken.IsEmpty() then begin
-            GetUserName(AccessToken, UserName);
-            Message(AuthenticationSuccessfulMsg, UserName);
+            if GetUserName(AccessToken, UserName) then
+                Message(AuthenticationSuccessfulMsg, UserName)
+            else
+                Message(AuthenticationFailedMsg);
         end else
             Message(AuthenticationFailedMsg);
     end;
@@ -129,7 +132,8 @@ codeunit 4516 "OAuth2 SMTP Authentication"
         // Get the encoded body
         AccessTokenBodyEncoded := AccessTokenSections.Get(2);
 
-        // Base64 encoded string should always have a length that is a multiple of 4
+        // Convert Base64URL to standard Base64 and add padding.
+        AccessTokenBodyEncoded := ConvertStr(AccessTokenBodyEncoded, '-_', '+/');
         while StrLen(AccessTokenBodyEncoded) mod 4 > 0 do
             AccessTokenBodyEncoded += '=';
 

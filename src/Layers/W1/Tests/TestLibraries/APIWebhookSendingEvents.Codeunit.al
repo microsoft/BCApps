@@ -147,16 +147,13 @@ codeunit 135090 "API Webhook Sending Events"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"API Webhook Notification Send", 'OnAfterSendNotification', '', false, false)]
-    local procedure HandleOnAfterSendNotification(ErrorMessage: Text; ErrorDetails: Text; var HttpStatusCode: DotNet HttpStatusCode)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"API Webhook Notification Send", 'OnAfterSendNotificationWithStatusNumber', '', false, false)]
+    local procedure HandleOnAfterSendNotificationWithStatusNumber(ErrorMessage: Text; ErrorDetails: Text; HttpStatusCode: Integer)
     var
         ExpectedStatusCode: Integer;
-        ActualStatusCode: Integer;
     begin
         ExpectedStatusCode := LibraryVariableStorage.DequeueInteger();
-        if not IsNull(HttpStatusCode) then
-            ActualStatusCode := HttpStatusCode;
-        Assert.AreEqual(ExpectedStatusCode, ActualStatusCode,
+        Assert.AreEqual(ExpectedStatusCode, HttpStatusCode,
           StrSubstNo('Incorrect HTTP status code.%1%2', ErrorMessage, ErrorDetails));
     end;
 

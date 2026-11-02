@@ -41,6 +41,7 @@ codeunit 140 "EC Sales List Suggest Lines"
     var
         CompanyInformation: Record "Company Information";
         EUVATEntries: Query "EU VAT Entries";
+        ProcessedVATEntries: Dictionary of [Integer, Boolean];
     begin
         CompanyInformation.Get();
         EUVATEntries.SetRange(VATReportingDate, VATReportHeader."Start Date", VATReportHeader."End Date");
@@ -49,10 +50,13 @@ codeunit 140 "EC Sales List Suggest Lines"
 
         EUVATEntries.Open();
         while EUVATEntries.Read() do
+            if not ProcessedVATEntries.ContainsKey(EUVATEntries.Entry_No) then begin
+                ProcessedVATEntries.Add(EUVATEntries.Entry_No, true);
 #if not CLEAN27
-            if IsApplicableEntry(EUVATEntries) then
+                if IsApplicableEntry(EUVATEntries) then
 #endif
-            AddOrUpdateECLLine(EUVATEntries);
+                    AddOrUpdateECLLine(EUVATEntries);
+            end;
         RowsTotalCorrection();
         DeleteZeroAmountLines();
     end;

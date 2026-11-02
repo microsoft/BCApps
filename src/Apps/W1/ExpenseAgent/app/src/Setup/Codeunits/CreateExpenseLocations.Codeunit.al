@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
+using Microsoft.Foundation.Address;
 
 codeunit 7124 "Create Expense Locations"
 {
@@ -801,9 +802,14 @@ codeunit 7124 "Create Expense Locations"
 
 
     internal procedure InsertExpenseLocation(var ExpenseLocation: Record "Expense Location"; Code: Code[20]; Description: Text[100]; CountryRegionCode: Code[10]; City: Text[30]; County: Text[30])
+    var
+        CountryRegion: Record "Country/Region";
     begin
         if ExpenseLocation.Get(Code) then
             exit;
+        if CountryRegionCode <> '' then
+            if not CountryRegion.Get(CountryRegionCode) then
+                exit;
         ExpenseLocation.Validate("No.", Code);
         ExpenseLocation.Validate(Description, Description);
         ExpenseLocation.Validate("Country/Region Code", CountryRegionCode);

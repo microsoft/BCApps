@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.HumanResources.Employee;
-using System.Integration;
 using System.Telemetry;
 using System.Utilities;
 
@@ -174,14 +173,15 @@ codeunit 6905 "Import Expense User"
 
     local procedure HasGraphHost(UrlToCheck: Text): Boolean
     var
-        WebRequestHelper: Codeunit "Web Request Helper";
         UrlHelper: Codeunit "Url Helper";
-        SystemGraphUrl: Text;
+        Uri: Codeunit Uri;
+        SystemGraphUri: Codeunit Uri;
     begin
-        if WebRequestHelper.IsValidUri(UrlToCheck) then begin
-            SystemGraphUrl := UrlHelper.GetGraphUrl();
+        if Uri.IsValidUri(UrlToCheck) then begin
+            Uri.Init(UrlToCheck);
+            SystemGraphUri.Init(UrlHelper.GetGraphUrl());
 
-            if WebRequestHelper.GetHostNameFromUrl(UrlToCheck) = WebRequestHelper.GetHostNameFromUrl(SystemGraphUrl) then
+            if Uri.GetHost() = SystemGraphUri.GetHost() then
                 exit(true);
         end;
 

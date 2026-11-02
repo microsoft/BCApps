@@ -6,8 +6,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+#if not CLEAN28
 using System.Azure.Identity;
 using System.Environment;
+#endif
 
 table 6107 "E-Documents Setup"
 {
@@ -16,8 +18,13 @@ table 6107 "E-Documents Setup"
     InherentPermissions = RX;
     ReplicateData = false;
     ObsoleteReason = 'This table is obsolete and should not be used.';
+#if not CLEAN28
     ObsoleteState = Pending;
     ObsoleteTag = '28.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '31.0';
+#endif
 
     fields
     {
@@ -38,6 +45,7 @@ table 6107 "E-Documents Setup"
             Clustered = true;
         }
     }
+#if not CLEAN28
 
     procedure IsNewEDocumentExperienceActive(): Boolean
     var
@@ -109,7 +117,7 @@ table 6107 "E-Documents Setup"
         Rec."New E-Document Experience" := true;
         Rec.Insert();
     end;
-
+#endif
 }
 #pragma warning restore AS0105
 #endif

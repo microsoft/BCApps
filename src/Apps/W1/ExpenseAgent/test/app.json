@@ -13,6 +13,12 @@
   "logo": "./ExtensionLogo.png",
   "dependencies": [
     {
+      "id": "9856ae4f-d1a7-46ef-89bb-6ef056398228",
+      "name": "System Application Test Library",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "66efe10c-8033-403b-a86d-77c0887178ba",
       "name": "Expense Agent (Preview)",
       "publisher": "Microsoft",
@@ -41,12 +47,12 @@
   "application": "30.0.0.0",
   "idRanges": [
     {
-      "from": 148300,
+      "from": 148298,
       "to": 148319
     },
     {
       "from": 148330,
-      "to": 148350
+      "to": 148369
     }
   ],
   "features": [

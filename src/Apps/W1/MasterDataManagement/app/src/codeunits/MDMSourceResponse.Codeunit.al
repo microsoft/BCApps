@@ -172,7 +172,7 @@ codeunit 7248 "MDM Source Response"
                             FieldType::Media:
                                 ApplyInlineMedia(SystemIdValue, FieldNo, TempSourceRecordRef.Number(), ValueToken);
                             FieldType::Blob:
-                                ApplyInlineBlob(DestField, FieldNo, TempSourceRecordRef.Number(), ValueToken);
+                                ApplyInlineBlob(SystemIdValue, DestField, FieldNo, TempSourceRecordRef.Number(), ValueToken);
                             else begin
                                 if not ValueToken.IsValue() then // an object/array for a scalar field is a broken contract
                                     Error(MalformedRecordEntry());
@@ -216,6 +216,7 @@ codeunit 7248 "MDM Source Response"
         MediaObject := ValueToken.AsObject();
         if IsSkipped(MediaObject) then begin
             LogSkippedField(TableId, FieldNo, MediaObject);
+            InlineMedia.ClearMediaState(SystemId, FieldNo); // newest state is skip (leave unchanged): drop any earlier content/cleared for this key
             exit;
         end;
         if IsEmptyField(MediaObject) then begin
@@ -235,8 +236,9 @@ codeunit 7248 "MDM Source Response"
 
     // Blob bytes are placed directly on the temp source record; the framework's record transfer carries them to
     // the destination (the same path same-env uses for mapped blobs), so no destination-side apply is needed.
-    local procedure ApplyInlineBlob(var DestField: FieldRef; FieldNo: Integer; TableId: Integer; ValueToken: JsonToken)
+    local procedure ApplyInlineBlob(SystemId: Guid; var DestField: FieldRef; FieldNo: Integer; TableId: Integer; ValueToken: JsonToken)
     var
+        InlineMedia: Codeunit "MDM Inline Media";
         TempBlob: Codeunit "Temp Blob";
         BlobObject: JsonObject;
         ContentToken: JsonToken;
@@ -247,8 +249,11 @@ codeunit 7248 "MDM Source Response"
         BlobObject := ValueToken.AsObject();
         if IsSkipped(BlobObject) then begin
             LogSkippedField(TableId, FieldNo, BlobObject);
+            // Over-cap blob not sent inline: mark it so the transfer keeps the destination blob rather than clearing it.
+            InlineMedia.PutBlobSkipped(SystemId, FieldNo);
             exit;
         end;
+        InlineMedia.ClearBlobSkipped(SystemId, FieldNo); // a real value supersedes an earlier skip for the same key
         if IsEmptyField(BlobObject) then begin
             Clear(TempBlob);
             TempBlob.ToFieldRef(DestField); // source cleared the blob: write empty so the transfer clears the destination

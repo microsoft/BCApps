@@ -3103,6 +3103,53 @@
     ]
   },
   {
+    "name": "Report Filename Manager",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Report Filename Manager Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Review General Ledger Entries",
     "groups": [
       {
@@ -5183,6 +5230,20 @@
     ]
   },
   {
+    "name": "Tests-Company Creation",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
     "name": "Tests-Misc",
     "groups": [
       {
@@ -6897,6 +6958,50 @@
     ]
   },
   {
+    "name": "Business Central Mirroring to Fabric",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Business Central Mirroring to Fabric Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Service Management",
     "groups": [
       {
@@ -7461,6 +7566,50 @@
   },
   {
     "name": "FEC Audit File Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "XML Audit File FR",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "XML Audit File FR Tests",
     "groups": [
       {
         "name": "AllExtensions"
@@ -9252,6 +9401,56 @@
       },
       {
         "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Sales FR",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Sales FR Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },

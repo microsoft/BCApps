@@ -290,7 +290,6 @@ codeunit 10058 "IRS 1099 Upgrade"
     local procedure AddFormStatementLine(PeriodNo: Code[20]; FormNo: Code[20]; FormBoxNo: Code[20]; StatementLineNo: Integer; Description: Text)
     var
         IRS1099FormStatementLine: Record "IRS 1099 Form Statement Line";
-        StatementLineFilterExpressionTxt: Label 'Form Box No.: %1', Comment = '%1 = Form Box No.';
     begin
         IRS1099FormStatementLine.Validate("Period No.", PeriodNo);
         IRS1099FormStatementLine.Validate("Form No.", FormNo);
@@ -299,7 +298,7 @@ codeunit 10058 "IRS 1099 Upgrade"
         IRS1099FormStatementLine.Validate("Description", Description);
         if IRS1099FormStatementLine."Row No." = 'MISC-07' then
             IRS1099FormStatementLine."Print Value Type" := Enum::"IRS 1099 Print Value Type"::"Yes/No";
-        IRS1099FormStatementLine.Validate("Filter Expression", StrSubstNo(StatementLineFilterExpressionTxt, FormBoxNo));
+        IRS1099FormStatementLine.SetFormBoxFilter(FormBoxNo);
         if IRS1099FormStatementLine.Insert(true) then;
     end;
 

@@ -116,6 +116,7 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         PaymentLine: Record "Payment Line FR";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         Customer: Record Customer;
+        PaymentSlip: TestPage "Payment Slip FR";
     begin
         // Setup.
 
@@ -129,6 +130,14 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         Assert.ExpectedError(ErrorsExistErr);
         VerifyPaymentErrors(DATABASE::"Payment Header FR", PaymentHeader."No.",
           PaymentLine."Line No.", StrSubstNo(UnappliedLinesNotAllowedErr, PaymentLine."Line No."), 1);
+
+        PaymentSlip.OpenView();
+        PaymentSlip.GoToRecord(PaymentHeader);
+        PaymentSlip.Lines.First();
+        Assert.IsTrue(PaymentSlip."Payment Journal Errors".First(), 'The originating slip must display its export error.');
+        PaymentSlip."Payment Journal Errors"."Error Text".AssertEquals(
+            StrSubstNo(UnappliedLinesNotAllowedErr, PaymentLine."Line No."));
+        PaymentSlip.Close();
 
         // Clean data
         PaymentHeader.Delete(true);
@@ -664,7 +673,7 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         File: File;
     begin
         DirectDebitCollection.CreateRecord(PaymentHeader."No.", PaymentHeader."Account No.", PaymentHeader."Partner Type");
-        DirectDebitCollection."Source Table ID" := DATABASE::"Payment Header FR";
+        DirectDebitCollection."Source Table ID FR" := DATABASE::"Payment Header FR";
         DirectDebitCollection.Modify();
         DirectDebitCollectionEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
         ExportedFilePath := TemporaryPath + LibraryUtility.GenerateGUID() + '.xml';

@@ -70,7 +70,7 @@ page 8351 "MCP Config Card"
                     field(Default; Rec.Default)
                     {
                         Caption = 'Default';
-                        ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Use the Set as Default and Clear Default actions on the configuration list to change this.';
+                        ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Use the Set as Default and Clear Default actions to change this.';
                         Editable = false;
                     }
                     field(AllowProdChanges; Rec.AllowProdChanges)
@@ -100,6 +100,14 @@ page 8351 "MCP Config Card"
                 SubPageLink = ID = field(SystemId);
                 UpdatePropagation = Both;
                 Visible = not IsDefault and APIToolsActive;
+                Editable = not Rec.Active;
+            }
+            part(AgentList; "MCP Config Agent List")
+            {
+                ApplicationArea = All;
+                SubPageLink = ID = field(SystemId);
+                UpdatePropagation = Both;
+                Visible = not IsDefault and AgentToolsActive;
                 Editable = not Rec.Active;
             }
         }
@@ -145,6 +153,34 @@ page 8351 "MCP Config Card"
                     MCPConfigImplementation.ValidateConfiguration(Rec, false);
                 end;
             }
+            action(SetAsDefault)
+            {
+                Caption = 'Set as Default';
+                ToolTip = 'Set this configuration as the default. It will be used when no configuration is specified by a connection.';
+                Image = Approve;
+                AccessByPermission = tabledata "MCP Configuration" = M;
+                Enabled = not Rec.Default;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ClearDefault)
+            {
+                Caption = 'Clear Default';
+                ToolTip = 'Remove the default designation from this configuration. The system will revert to built-in default settings.';
+                Image = Undo;
+                AccessByPermission = tabledata "MCP Configuration" = M;
+                Enabled = Rec.Default;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.ClearDefaultConfiguration();
+                    CurrPage.Update(false);
+                end;
+            }
             group(Advanced)
             {
                 Caption = 'Advanced';
@@ -179,6 +215,8 @@ page 8351 "MCP Config Card"
         {
             actionref(Promoted_Copy; Copy) { }
             actionref(Promoted_Validate; Validate) { }
+            actionref(Promoted_SetAsDefault; SetAsDefault) { }
+            actionref(Promoted_ClearDefault; ClearDefault) { }
             group(Promoted_Advanced)
             {
                 Caption = 'Advanced';
@@ -225,6 +263,7 @@ page 8351 "MCP Config Card"
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         IsDefault: Boolean;
         APIToolsActive: Boolean;
+        AgentToolsActive: Boolean;
         DesignatedDefaultCannotBeDeactivatedErr: Label 'The designated default configuration cannot be deactivated. Clear the default designation first.';
 
     local procedure RefreshSubPages()
@@ -234,7 +273,10 @@ page 8351 "MCP Config Card"
         CurrPage.ServerFeatureList.Page.Reload(Rec.SystemId, not IsDefault and not Rec.Active);
         ServerFeature := "MCP Server Feature"::"API Tools";
         APIToolsActive := ServerFeature.IsActive(Rec.SystemId);
+        ServerFeature := "MCP Server Feature"::"Agent Tools";
+        AgentToolsActive := ServerFeature.IsActive(Rec.SystemId);
         CurrPage.SystemToolList.Page.Reload(Rec.SystemId);
         CurrPage.ToolList.Page.SetConfigActive(Rec.Active);
+        CurrPage.AgentList.Page.SetConfigActive(Rec.Active);
     end;
 }

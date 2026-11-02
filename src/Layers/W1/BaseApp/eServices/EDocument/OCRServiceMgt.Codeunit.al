@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#pragma warning disable AA0217, AA0139 // Legacy implementation restored with its original analyzer debt.
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1335,4 +1336,3 @@ codeunit 1294 "OCR Service Mgt."
     begin
     end;
 }
-

@@ -37,6 +37,17 @@ page 7075 "EA KPI Entries"
                         Rec.OpenCard();
                     end;
                 }
+                field("Line No."; Rec."Line No.")
+                {
+                    BlankZero = true;
+                    ToolTip = 'Specifies the line number of the record.';
+                    Visible = LineNoVisible;
+
+                    trigger OnDrillDown()
+                    begin
+                        Rec.OpenCard();
+                    end;
+                }
                 field(CreatedByExpUserId; Rec."Created By Exp. User Id")
                 {
                     Visible = false;
@@ -107,8 +118,12 @@ page 7075 "EA KPI Entries"
 
         if Rec.GetFilter("Record Type") = Format(Rec."Record Type"::"Expense Report") then
             Caption := 'Expense Reports created by Expense Agent';
+
+        if Rec.GetFilter("Record Type") = Format(Rec."Record Type"::"Expense Report Line") then
+            LineNoVisible := true;
     end;
 
     var
         TypeVisible: Boolean;
+        LineNoVisible: Boolean;
 }

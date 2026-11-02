@@ -188,6 +188,7 @@ codeunit 6225 "Sust. Purchase Subscriber"
     local procedure OnAfterAssignItemValues(var PurchLine: Record "Purchase Line"; Item: Record Item)
     begin
         PurchLine.Validate("Sust. Account No.", Item."Default Sust. Account");
+        PurchLine.Validate("EUDR Relevant", Item."EUDR Relevant");
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterAssignResourceValues', '', false, false)]
@@ -220,8 +221,7 @@ codeunit 6225 "Sust. Purchase Subscriber"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Charge Assgnt. (Purch.)", 'OnAssignItemChargesFromLineOnAfterItemChargeAssignmentModifyAll', '', false, false)]
     local procedure OnAssignItemChargesFromLineOnAfterItemChargeAssignmentModifyAll(var ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)")
     begin
-        ItemChargeAssignmentPurch.ModifyAll("CO2e to Assign", 0);
-        ItemChargeAssignmentPurch.ModifyAll("CO2e to Handle", 0);
+        ItemChargeAssignmentPurch.ModifyAll("CO2e to Assign", 0, "CO2e to Handle", 0);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Charge Assgnt. (Purch.)", 'OnSuggestAssgntFromLineOnBeforeItemChargeAssignmentPurchModify', '', false, false)]

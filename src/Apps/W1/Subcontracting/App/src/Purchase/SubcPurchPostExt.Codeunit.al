@@ -25,11 +25,15 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
 #endif
         CancelNotSupportedErr: Label 'You cannot cancel or correct posted purchase invoice %1 because it contains item charges assigned to a subcontracting order receipt.\Use the ''Create Corrective Credit Memo'' action to create a credit memo for this invoice.', Comment = '%1 = Posted Purchase Invoice No.';
+        SeparateInvoiceReversalNotSupportedErr: Label 'You cannot automatically reverse this posted purchase invoice because it contains lines copied from a subcontracting order receipt.';
+        SeparateInvoiceReversalNotSupportedTitleLbl: Label 'Posted purchase invoice cannot be reversed';
+        SeparateInvoiceReversalNotSupportedDetailedMsg: Label 'Cancel, Correct, and Create Corrective Credit Memo are not supported for purchase invoices created from subcontracting receipt lines.';
+        ShowPostedPurchaseInvoiceLbl: Label 'Show Posted Purchase Invoice';
         ItemChargeAgainstUndoneRcptErr: Label 'You cannot post the item charge because it is assigned to subcontracting receipt %1, line %2, which has been undone.\Remove the item charge assignment from the undone receipt line.', Comment = '%1 = Posted Receipt No., %2 = Posted Receipt Line No.';
-        GetSubcontractingRcptNotSupportedErr: Label 'You cannot copy subcontracting receipt lines into this document. Subcontracting purchase orders must be invoiced from the subcontracting order itself, not by getting the receipt lines into a separate document.';
+        GetTrackedSubcontractingRcptNotSupportedErr: Label 'You cannot copy tracked subcontracting receipt lines into this document. Invoice tracked subcontracting receipts from the subcontracting order instead.';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Get Receipt", OnAfterPurchRcptLineSetFilters, '', false, false)]
-    local procedure ExcludeSubcontractingLinesOnAfterPurchRcptLineSetFilters(var PurchRcptLine: Record "Purch. Rcpt. Line"; PurchaseHeader: Record "Purchase Header")
+    [EventSubscriber(ObjectType::Table, Database::"Purch. Rcpt. Line", OnBeforeInsertInvLineFromRcptLine, '', false, false)]
+    local procedure BlockTrackedSubcontractingReceiptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; var PurchLine: Record "Purchase Line"; PurchOrderLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -37,26 +41,20 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
             exit;
 #endif
-        PurchRcptLine.SetRange("Prod. Order No.", '');
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Get Receipt", OnCreateInvLinesOnBeforeInsertLineIteration, '', false, false)]
-    local procedure BlockSubcontractingLinesOnCreateInvLinesOnBeforeInsertLineIteration(var PurchRcptLine2: Record "Purch. Rcpt. Line"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TransferLine: Boolean; var IsHandled: Boolean)
-    begin
-#if not CLEAN29
-#pragma warning disable AL0432
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) then
             exit;
-#endif
-        if PurchRcptLine2."Prod. Order No." <> '' then
-            Error(GetSubcontractingRcptNotSupportedErr);
+        if not ItemIsTracked(PurchRcptLine."No.") then
+            exit;
+        if not PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
+
+        Error(GetTrackedSubcontractingRcptNotSupportedErr);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Matched Order Line Mgmt.", OnGetPurchaseOrderLinesOnAfterSetPurchaseLineOrderFilters, '', false, false)]
     local procedure ExcludeSubcontractingLinesOnGetPurchaseOrderLines(var PurchaseLineOrder: Record "Purchase Line"; PurchaseHeaderInvoice: Record "Purchase Header")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -70,7 +68,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
     var
         ValueEntry: Record "Value Entry";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -80,8 +78,87 @@ codeunit 20535 "Subc. Purch. Post Ext"
         ValueEntry.SetRange("Document No.", PurchInvHeader."No.");
         ValueEntry.SetFilter("Item Charge No.", '<>%1', '');
         ValueEntry.SetFilter("Capacity Ledger Entry No.", '<>%1', 0);
-        if not ValueEntry.IsEmpty() then
-            Error(CancelNotSupportedErr, PurchInvHeader."No.");
+        if ValueEntry.IsEmpty() then
+            exit;
+
+        Error(CancelNotSupportedErr, PurchInvHeader."No.");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnBeforeTestIfInvoiceIsPaid, '', false, false)]
+    local procedure BlockSeparateSubcontractingInvoiceReversalBeforeLineValidation(var PurchInvHeader: Record "Purch. Inv. Header"; var IsHandled: Boolean)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        CheckSeparateSubcontractingInvoiceReversalIsSupported(PurchInvHeader);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnBeforeCreateCopyDocument, '', false, false)]
+    local procedure BlockSeparateSubcontractingInvoiceCopy(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type"; SkipCopyFromDescription: Boolean)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        CheckSeparateSubcontractingInvoiceReversalIsSupported(PurchInvHeader);
+    end;
+
+    local procedure CheckSeparateSubcontractingInvoiceReversalIsSupported(PurchInvHeader: Record "Purch. Inv. Header")
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        if PurchInvHeader."Pre-Assigned No." = '' then
+            exit;
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PurchInvHeader."No.");
+        ValueEntry.SetRange("Item Ledger Entry No.", 0);
+        ValueEntry.SetFilter("Capacity Ledger Entry No.", '<>%1', 0);
+        ValueEntry.SetRange("Item Charge No.", '');
+        if ValueEntry.IsEmpty() then
+            exit;
+
+        Error(CreateSeparateInvoiceReversalNotSupportedErrorInfo(PurchInvHeader));
+    end;
+
+    local procedure CreateSeparateInvoiceReversalNotSupportedErrorInfo(PurchInvHeader: Record "Purch. Inv. Header") ReversalNotSupportedErrorInfo: ErrorInfo
+    begin
+        ReversalNotSupportedErrorInfo.Title := SeparateInvoiceReversalNotSupportedTitleLbl;
+        ReversalNotSupportedErrorInfo.Message := SeparateInvoiceReversalNotSupportedErr;
+        ReversalNotSupportedErrorInfo.DetailedMessage := SeparateInvoiceReversalNotSupportedDetailedMsg;
+        ReversalNotSupportedErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        ReversalNotSupportedErrorInfo.ErrorType := ErrorType::Client;
+        ReversalNotSupportedErrorInfo.RecordId := PurchInvHeader.RecordId;
+        ReversalNotSupportedErrorInfo.PageNo := Page::"Posted Purchase Invoice";
+        ReversalNotSupportedErrorInfo.AddNavigationAction(ShowPostedPurchaseInvoiceLbl);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", OnBeforeCopyHandledItemTrkgToPurchLine, '', false, false)]
+    local procedure SkipPhysicalTrackingForNonLastSubcontractingReceipt(FromPurchLine: Record "Purchase Line"; var ToPurchLine: Record "Purchase Line"; CheckLineQty: Boolean; var IsHandled: Boolean)
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        PurchRcptLine.SetLoadFields("No.", "Prod. Order No.", "Routing Reference No.", "Routing No.", "Operation No.");
+        if not PurchRcptLine.Get(ToPurchLine."Receipt No.", ToPurchLine."Receipt Line No.") then
+            exit;
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) then
+            exit;
+        if not ItemIsTracked(PurchRcptLine."No.") then
+            exit;
+        if PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
+
+        IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
@@ -98,6 +175,8 @@ codeunit 20535 "Subc. Purch. Post Ext"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Purch.-Post", OnAfterPostItemJnlLineCopyProdOrder, '', false, false)]
     local procedure MfgPurchPostOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line")
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -105,9 +184,21 @@ codeunit 20535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
             exit;
 #endif
-        ItemJnlLine."Subc. Purch. Order No." := PurchLine."Document No.";
-        ItemJnlLine."Subc. Purch. Order Line No." := PurchLine."Line No.";
-        ItemJnlLine."Subc. Operation No." := PurchLine."Operation No.";
+        PurchRcptLine.SetLoadFields("Order No.", "Order Line No.", "Operation No.");
+        if PurchRcptLine.Get(PurchLine."Receipt No.", PurchLine."Receipt Line No.") then
+            SetSubcontractingPurchaseIdentity(ItemJnlLine, PurchRcptLine)
+        else begin
+            ItemJnlLine."Subc. Purch. Order No." := PurchLine."Document No.";
+            ItemJnlLine."Subc. Purch. Order Line No." := PurchLine."Line No.";
+            ItemJnlLine."Subc. Operation No." := PurchLine."Operation No.";
+        end;
+    end;
+
+    local procedure SetSubcontractingPurchaseIdentity(var ItemJnlLine: Record "Item Journal Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
+    begin
+        ItemJnlLine."Subc. Purch. Order No." := PurchRcptLine."Order No.";
+        ItemJnlLine."Subc. Purch. Order Line No." := PurchRcptLine."Order Line No.";
+        ItemJnlLine."Subc. Operation No." := PurchRcptLine."Operation No.";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostItemChargePerRcptOnAfterCalcDistributeCharge, '', false, false)]

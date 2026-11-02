@@ -333,6 +333,16 @@ codeunit 18469 "Subcontracting Subscribers"
             Reclass := true;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Item Jnl.-Post Line", 'OnBeforeCallFlushOperation', '', false, false)]
+    local procedure OnBeforeCallFlushOperation(var ItemJnlLine: Record "Item Journal Line"; var ShouldFlushOperation: Boolean)
+    begin
+        if (ItemJnlLine."Entry Type" = ItemJnlLine."Entry Type"::Output) and
+            ItemJnlLine.Subcontracting and
+            (ItemJnlLine."Subcon Order No." <> '')
+        then
+            ShouldFlushOperation := false;
+    end;
+
     local procedure ValidateDeliveryChallanCreatedForOrder(PurchHeader: Record "Purchase Header")
     var
         DeliveryChallanLine: Record "Delivery Challan Line";
@@ -364,8 +374,7 @@ codeunit 18469 "Subcontracting Subscribers"
             exit;
 
         ProdOrderLine.SetRange("Subcontracting Order No.", PurchHeader."No.");
-        ProdOrderLine.ModifyAll("Subcontractor Code", '');
-        ProdOrderLine.ModifyAll("Subcontracting Order No.", '');
+        ProdOrderLine.ModifyAll("Subcontractor Code", '', "Subcontracting Order No.", '');
     end;
 
     local procedure UpdateSubcontractingPostingDate(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header")

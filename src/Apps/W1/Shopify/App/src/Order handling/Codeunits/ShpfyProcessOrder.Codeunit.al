@@ -36,14 +36,20 @@ codeunit 30166 "Shpfy Process Order"
         ReleaseSalesDocument: Codeunit "Release Sales Document";
         OrderMapping: Codeunit "Shpfy Order Mapping";
         MappingErr: Label 'Not everything can be mapped.';
+        ErrorMessage: Text;
     begin
         OrderHeader.Get(Rec."Shopify Order Id");
+        ClearProcessingError(OrderHeader);
         OrderEvents.OnBeforeProcessSalesDocument(OrderHeader);
         if not OrderMapping.DoMapping(OrderHeader) then
             Error(MappingErr);
 
         ShopifyShop.Get(OrderHeader."Shop Code");
-        CreateHeaderFromShopifyOrder(SalesHeader, OrderHeader);
+        if not TryCreateHeaderFromShopifyOrder(SalesHeader, OrderHeader, ErrorMessage) then begin
+            SetProcessingError(OrderHeader, ErrorMessage);
+            Rec.Get(OrderHeader."Shopify Order Id");
+            exit;
+        end;
         CreateLinesFromShopifyOrder(SalesHeader, OrderHeader);
         ApplyGlobalDiscounts(OrderHeader, SalesHeader);
 
@@ -51,17 +57,14 @@ codeunit 30166 "Shpfy Process Order"
             ReleaseSalesDocument.Run(SalesHeader);
 
         OrderHeader.Get(OrderHeader."Shopify Order Id");
+        OrderHeader."Processed Currency Handling" := ShopifyShop."Currency Handling";
+        OrderHeader.Modify(false);
         OrderEvents.OnAfterProcessSalesDocument(SalesHeader, OrderHeader);
 
         Rec.Get(OrderHeader."Shopify Order Id");
     end;
 
-    /// <summary> 
-    /// Create Header From Shopify Order.
-    /// </summary>
-    /// <param name="SalesHeader">Parameter of type Record "Sales Header".</param>
-    /// <param name="ShopifyOrderHeader">Parameter of type Record "Shopify Order Header".</param>
-    internal procedure CreateHeaderFromShopifyOrder(var SalesHeader: Record "Sales Header"; ShopifyOrderHeader: Record "Shpfy Order Header")
+    local procedure TryCreateHeaderFromShopifyOrder(var SalesHeader: Record "Sales Header"; ShopifyOrderHeader: Record "Shpfy Order Header"; var ErrorMessage: Text): Boolean
     var
         DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
         ShopifyTaxArea: Record "Shpfy Tax Area";
@@ -71,8 +74,11 @@ codeunit 30166 "Shpfy Process Order"
         InvalidCharTok: Label '@', Locked = true;
         InvalidShopifyOrderErr: Label '%1 cannot start with %2.', Comment = '%1 = Shopify Order No. field caption, %2 = Invalid Character';
         IsHandled: Boolean;
+        ProcessingError: Boolean;
     begin
-        OrderEvents.OnBeforeCreateSalesHeader(ShopifyOrderHeader, SalesHeader, LastCreatedDocumentId, IsHandled);
+        OrderEvents.OnBeforeCreateSalesHeader(ShopifyOrderHeader, SalesHeader, LastCreatedDocumentId, IsHandled, ProcessingError, ErrorMessage);
+        if ProcessingError then
+            exit(false);
         if not IsHandled then begin
             ShopifyOrderHeader.TestField("Sell-to Customer No.");
             SalesHeader.Init();
@@ -177,6 +183,26 @@ codeunit 30166 "Shpfy Process Order"
         DocLinkToBCDoc."Document No." := SalesHeader."No.";
         DocLinkToBCDoc.Insert();
         OrderEvents.OnAfterCreateSalesHeader(ShopifyOrderHeader, SalesHeader);
+        exit(true);
+    end;
+
+    local procedure ClearProcessingError(var ShopifyOrderHeader: Record "Shpfy Order Header")
+    begin
+        if not ShopifyOrderHeader."Has Error" and (ShopifyOrderHeader."Error Message" = '') then
+            exit;
+
+        ShopifyOrderHeader."Has Error" := false;
+        ShopifyOrderHeader."Error Message" := '';
+        ShopifyOrderHeader.Modify(true);
+    end;
+
+    local procedure SetProcessingError(var ShopifyOrderHeader: Record "Shpfy Order Header"; ProcessingError: Text)
+    begin
+        ShopifyOrderHeader."Has Error" := true;
+        ShopifyOrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ProcessingError, 1, MaxStrLen(ShopifyOrderHeader."Error Message"));
+        ShopifyOrderHeader."Sales Order No." := '';
+        ShopifyOrderHeader."Sales Invoice No." := '';
+        ShopifyOrderHeader.Modify(true);
     end;
 
     local procedure UpdatePaymentTerms(var SalesHeader: Record "Sales Header"; PaymentTermsType: Code[20]; PaymentTermsName: Text[50])
@@ -523,9 +549,12 @@ codeunit 30166 "Shpfy Process Order"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnInsertShipmentHeaderOnAfterTransferfieldsToSalesShptHeader', '', false, false)]
-    local procedure TransferShopifyOrderNoToShipmentHeader(SalesHeader: Record "Sales Header"; var SalesShptHeader: Record "Sales Shipment Header")
+    local procedure TransferShopifyValuesToShipmentHeader(SalesHeader: Record "Sales Header"; var SalesShptHeader: Record "Sales Shipment Header")
     begin
         SalesShptHeader."Shpfy Order No." := SalesHeader."Shpfy Order No.";
+        // Refund and fulfillment IDs share field 30103 across the source and posted headers.
+        if (SalesHeader."Shpfy Refund Id" <> 0) and (SalesShptHeader."Shpfy Fulfillment Id" = SalesHeader."Shpfy Refund Id") then
+            Clear(SalesShptHeader."Shpfy Fulfillment Id");
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnBeforeSalesLineInsert', '', false, false)]
@@ -537,6 +566,5 @@ codeunit 30166 "Shpfy Process Order"
         SalesLine."Shpfy Refund Line Id" := TempSalesLine."Shpfy Refund Line Id";
     end;
 }
-
 
 

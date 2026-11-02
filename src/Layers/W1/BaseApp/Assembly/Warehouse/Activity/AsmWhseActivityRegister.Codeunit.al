@@ -10,10 +10,6 @@ using Microsoft.Warehouse.Request;
 
 codeunit 939 "Asm. Whse.-Activity-Register"
 {
-#if not CLEAN27
-    var
-        WhseActivityRegister: Codeunit "Whse.-Activity-Register";
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnUpdateWhseDocHeaderByWhseDocumentType', '', false, false)]
     local procedure OnUpdateWhseDocHeaderByWhseDocumentType(var WarehouseActivityLine: Record "Warehouse Activity Line")
@@ -69,14 +65,8 @@ codeunit 939 "Asm. Whse.-Activity-Register"
             AssemblyLine."Qty. Picked" :=
               Round(AssemblyLine."Qty. Picked" + WhseActivityLine."Qty. to Handle (Base)" / WhseActivityLine."Qty. per Unit of Measure");
         OnBeforeAssemblyLineModify(AssemblyLine, WhseActivityLine);
-#if not CLEAN27
-        WhseActivityRegister.RunOnBeforeAssemblyLineModify(AssemblyLine, WhseActivityLine);
-#endif
         AssemblyLine.Modify();
         OnAfterAssemblyLineModify(AssemblyLine);
-#if not CLEAN27
-        WhseActivityRegister.RunOnAfterAssemblyLineModify(AssemblyLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]
@@ -119,9 +109,6 @@ codeunit 939 "Asm. Whse.-Activity-Register"
     begin
         IsHandled := false;
         OnBeforeAutoReserveForAssemblyLine(TempWhseActivLineToReserve, IsHandled);
-#if not CLEAN27
-        WhseActivityRegister.RunOnBeforeAutoReserveForAssemblyLine(TempWhseActivLineToReserve, IsHandled);
-#endif
         if IsHandled then
             exit;
 

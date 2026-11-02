@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -11,6 +12,9 @@ page 10505 "Postcode Search GB"
     PageType = StandardDialog;
     SourceTable = "Autocomplete Address";
     SourceTableTemporary = true;
+    ObsoleteReason = 'GetAddress.io UK Postcodes extension is discontinued';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     layout
     {
@@ -71,3 +75,4 @@ page 10505 "Postcode Search GB"
         ResultDeliveryPoint := Rec.Address;
     end;
 }
+#endif

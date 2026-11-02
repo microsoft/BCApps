@@ -1602,7 +1602,7 @@ table 39 "Purchase Line"
                         FieldError("VAT Bus. Posting Group", StrSubstNo(Text1041003, "VAT Bus. Posting Group"));
 #endif
 
-                    ShouldUpdateUnitCost := PurchHeader."Prices Including VAT" and (Rec.Type in [Rec.Type::"G/L Account", Rec.Type::Item, Rec.Type::Resource]);
+                    ShouldUpdateUnitCost := PurchHeader."Prices Including VAT" and (Rec.Type in [Rec.Type::Item, Rec.Type::Resource]);
                     OnValidateVATProdPostingGroupOnAfterCalcShouldUpdateUnitCost(Rec, VATPostingSetup, ShouldUpdateUnitCost);
                     if ShouldUpdateUnitCost then
                         Validate("Direct Unit Cost",

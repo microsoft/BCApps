@@ -22,7 +22,7 @@ table 20352 "Connectivity App Logo"
         }
         field(3; "AppSource URL"; Text[2048])
         {
-            Caption = 'AppSource URL';
+            Caption = 'Marketplace URL';
         }
         field(4; "Expiry Date"; DateTime)
         {

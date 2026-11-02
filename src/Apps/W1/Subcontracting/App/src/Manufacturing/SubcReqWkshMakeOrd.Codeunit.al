@@ -29,9 +29,40 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         HandleSubcontractingAfterPurchOrderLineInsert(PurchOrderLine, NextLineNo, RequisitionLine);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnAfterInitPurchOrderLine, '', false, false)]
+    local procedure OnAfterInitPurchOrderLine(var PurchaseLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if (RequisitionLine."Prod. Order No." = '') or (RequisitionLine."Operation No." = '') then
+            exit;
+
+        SetSubcontractingPurchaseDates(PurchaseLine, RequisitionLine);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnBeforeCopyOrderDateFromPurchHeader, '', false, false)]
+    local procedure OnBeforeCopyOrderDateFromPurchHeader(var RequisitionLine: Record "Requisition Line"; PurchOrderHeader: Record "Purchase Header"; PurchOrderLine: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if (RequisitionLine."Prod. Order No." = '') or (RequisitionLine."Operation No." = '') then
+            exit;
+
+        IsHandled := true;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine, '', false, false)]
     local procedure OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine(var PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
     var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
 #if not CLEAN29
@@ -43,7 +74,10 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         if (RequisitionLine."Prod. Order No." = '') or (RequisitionLine."Operation No." = '') then
             exit;
 
-        SubcPriceManagement.GetSubcPriceForPurchLine(PurchOrderLine);
+        if not SubcPriceManagement.IsAutomaticSubcCostForReqLine(RequisitionLine, ProdOrderRoutingLine) then
+            exit;
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchOrderLine, ProdOrderRoutingLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnInsertPurchOrderLineOnAfterCheckInsertFinalizePurchaseOrderHeader, '', false, false)]
@@ -78,6 +112,28 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
 #endif
         SubcPurchaseOrderCreator.TransferSubcontractingProdOrderLineAttachments(PurchaseLine, RequisitionLine);
         UpdateSubcontractingComponentPurchLines(PurchaseLine, RequisitionLine);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Carry Out Action", OnPurchOrderChgAndResheduleOnBeforePurchLineModify, '', false, false)]
+    local procedure OnPurchOrderChgAndResheduleOnBeforePurchLineModify(var ReqLine: Record "Requisition Line"; var PurchLine: Record "Purchase Line")
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if (ReqLine."Prod. Order No." = '') or (ReqLine."Operation No." = '') then
+            exit;
+
+        SetSubcontractingPurchaseDates(PurchLine, ReqLine);
+    end;
+
+    local procedure SetSubcontractingPurchaseDates(var PurchaseLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
+    begin
+        PurchaseLine.Validate("Order Date", RequisitionLine."Order Date");
+        PurchaseLine."Expected Receipt Date" := RequisitionLine."Due Date";
+        PurchaseLine."Requested Receipt Date" := PurchaseLine."Planned Receipt Date";
     end;
 
     local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchaseLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")

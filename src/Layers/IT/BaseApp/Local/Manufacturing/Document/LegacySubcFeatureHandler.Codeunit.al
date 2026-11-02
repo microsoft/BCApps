@@ -219,6 +219,7 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
     begin
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("WIP Item", true);
+        PurchaseLine.SetFilter("Outstanding Quantity", '<>%1', 0);
         exit(not PurchaseLine.IsEmpty());
     end;
 

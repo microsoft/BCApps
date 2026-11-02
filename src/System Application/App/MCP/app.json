@@ -18,6 +18,12 @@
       "version": "30.0.0.0"
     },
     {
+      "id": "95f7c0f8-d9b8-4538-80f9-6e17f6f7b91a",
+      "name": "Agent",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "95025170-61fc-4808-9505-4ba1fe1d05d9",
       "name": "Azure AD Tenant",
       "publisher": "Microsoft",
