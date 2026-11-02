@@ -206,6 +206,7 @@ table 5223 "Detailed Employee Ledger Entry"
         field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "G/L Register";
         }
