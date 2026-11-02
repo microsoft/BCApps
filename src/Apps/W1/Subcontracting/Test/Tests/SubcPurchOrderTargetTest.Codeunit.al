@@ -57,6 +57,76 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
     end;
 
     [Test]
+    procedure TargetSelectionPreservesPendingQuantityChange()
+    begin
+        VerifyTargetSelectionPreservesPendingQuantityChange(false);
+    end;
+
+    [Test]
+    procedure TargetSelectionPreservesPendingQuantityChangeWithResiliency()
+    begin
+        VerifyTargetSelectionPreservesPendingQuantityChange(true);
+    end;
+
+    [Test]
+    procedure FollowingNewOrderUsesBatchDatesAndReferenceWithResiliency()
+    var
+        Item: Record Item;
+        TargetHeader: Record "Purchase Header";
+        BatchHeader: Record "Purchase Header";
+        NewHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        TargetedLine: Record "Requisition Line";
+        UntargetedLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        FirstVendor: Record Vendor;
+        SecondVendor: Record Vendor;
+    begin
+        // [GIVEN] A target with historical header values sorts before an untargeted suggestion of another vendor.
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(FirstVendor);
+        LibraryPurchase.CreateVendor(SecondVendor);
+        SortVendorPair(FirstVendor, SecondVendor);
+        CreateOpenOrder(TargetHeader, FirstVendor."No.");
+        TargetHeader."Order Date" := CalcDate('<-1M>', WorkDate());
+        TargetHeader."Posting Date" := CalcDate('<-1M>', WorkDate());
+        TargetHeader."Expected Receipt Date" := CalcDate('<-1W>', WorkDate());
+        TargetHeader."Your Reference" := 'Target reference';
+        TargetHeader.Modify(true);
+        CreateSuggestion(TargetedLine, ReqWkshTemplate.Name, RequisitionWkshName.Name, FirstVendor."No.", Item."No.");
+        TargetedLine."Ref. Order No." := TargetHeader."No.";
+        TargetedLine.Modify(true);
+        CreateSuggestion(UntargetedLine, ReqWkshTemplate.Name, RequisitionWkshName.Name, SecondVendor."No.", Item."No.");
+
+        // [GIVEN] The batch dates and reference differ from the target's values.
+        BatchHeader."Order Date" := WorkDate();
+        BatchHeader."Posting Date" := WorkDate();
+        BatchHeader."Expected Receipt Date" := CalcDate('<1M>', WorkDate());
+        BatchHeader."Your Reference" := 'Batch reference';
+
+        // [WHEN] Planning resiliency processes the target and then creates another order.
+        RunCarryOutWithBatchParameters(TargetedLine, BatchHeader, true);
+
+        // [THEN] The new order uses the batch values, and the target header remains unchanged.
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Buy-from Vendor No.", SecondVendor."No.");
+        PurchaseLine.SetRange("No.", Item."No.");
+        PurchaseLine.FindFirst();
+        NewHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        Assert.AreNotEqual(TargetHeader."No.", NewHeader."No.", 'The untargeted suggestion must create another order.');
+        Assert.AreEqual(BatchHeader."Order Date", NewHeader."Order Date", 'The new order must use the batch order date.');
+        Assert.AreEqual(BatchHeader."Posting Date", NewHeader."Posting Date", 'The new order must use the batch posting date.');
+        Assert.AreEqual(BatchHeader."Expected Receipt Date", NewHeader."Expected Receipt Date", 'The new order must use the batch receipt date.');
+        Assert.AreEqual(BatchHeader."Your Reference", NewHeader."Your Reference", 'The new order must use the batch reference.');
+        VerifyHeaderUnchanged(TargetHeader);
+        VerifyTargetHoldsSingleLine(TargetHeader, Item."No.");
+        Assert.IsFalse(IsRequisitionLinePresent(TargetedLine), 'The targeted suggestion must be consumed.');
+        Assert.IsFalse(IsRequisitionLinePresent(UntargetedLine), 'The untargeted suggestion must be consumed.');
+    end;
+
+    [Test]
     procedure InvalidAcceptedTargetBlocksBatchBeforeChangingOrders()
     var
         ValidHeader: Record "Purchase Header";
@@ -1464,6 +1534,63 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
                 LibraryPurchase.CreateSpecialOrderPurchasingCode(Purchasing)
             else
                 LibraryPurchase.CreatePurchasingCode(Purchasing);
+    end;
+
+    local procedure VerifyTargetSelectionPreservesPendingQuantityChange(PlanningResiliency: Boolean)
+    var
+        TargetHeader: Record "Purchase Header";
+        ChangedHeader: Record "Purchase Header";
+        BatchHeader: Record "Purchase Header";
+        ChangedPurchaseLine: Record "Purchase Line";
+        TargetedLine: Record "Requisition Line";
+        UntargetedLine: Record "Requisition Line";
+        QuantityChangeLine: Record "Requisition Line";
+    begin
+        // [GIVEN] The same group sorts as an untargeted New, a targeted New and a pending quantity change.
+        CreateTargetedSuggestion(TargetedLine, TargetHeader);
+        CreateSuggestion(UntargetedLine, TargetedLine."Worksheet Template Name", TargetedLine."Journal Batch Name",
+            TargetedLine."Vendor No.", TargetedLine."No.");
+        CreateOpenOrder(ChangedHeader, TargetedLine."Vendor No.");
+        Assert.IsTrue(TargetHeader."No." < ChangedHeader."No.", 'The target must sort before the order with the quantity change.');
+        LibraryPurchase.CreatePurchaseLine(ChangedPurchaseLine, ChangedHeader, ChangedPurchaseLine.Type::Item, TargetedLine."No.", 1);
+        CreateSuggestion(QuantityChangeLine, TargetedLine."Worksheet Template Name", TargetedLine."Journal Batch Name",
+            TargetedLine."Vendor No.", TargetedLine."No.");
+        QuantityChangeLine."Action Message" := QuantityChangeLine."Action Message"::"Change Qty.";
+        QuantityChangeLine."Ref. Order No." := ChangedHeader."No.";
+        QuantityChangeLine."Ref. Line No." := ChangedPurchaseLine."Line No.";
+        QuantityChangeLine."Ref. Order Status" := TargetedLine."Ref. Order Status";
+        QuantityChangeLine.Validate(Quantity, 5);
+        QuantityChangeLine.Validate("Due Date", ChangedPurchaseLine."Expected Receipt Date");
+        QuantityChangeLine.Modify(true);
+        BatchHeader."Order Date" := WorkDate();
+        BatchHeader."Posting Date" := WorkDate();
+
+        // [WHEN] Carry Out switches from the new order to the target before processing the quantity change.
+        RunCarryOutWithBatchParameters(TargetedLine, BatchHeader, PlanningResiliency);
+
+        // [THEN] The pending purchase-order update is applied and all three suggestions are consumed.
+        ChangedPurchaseLine.Get(ChangedPurchaseLine."Document Type", ChangedPurchaseLine."Document No.", ChangedPurchaseLine."Line No.");
+        Assert.AreEqual(5, ChangedPurchaseLine.Quantity, 'Selecting a target must not discard a pending quantity change.');
+        VerifyTargetHoldsSingleLine(TargetHeader, TargetedLine."No.");
+        Assert.IsFalse(IsRequisitionLinePresent(UntargetedLine), 'The untargeted suggestion must be consumed.');
+        Assert.IsFalse(IsRequisitionLinePresent(TargetedLine), 'The targeted suggestion must be consumed.');
+        Assert.IsFalse(IsRequisitionLinePresent(QuantityChangeLine), 'The quantity-change suggestion must be consumed after its update.');
+    end;
+
+    local procedure RunCarryOutWithBatchParameters(RequisitionLine: Record "Requisition Line"; BatchHeader: Record "Purchase Header"; PlanningResiliency: Boolean)
+    var
+        ReqWkshMakeOrders: Codeunit "Req. Wksh.-Make Order";
+    begin
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionLine."Journal Batch Name");
+        ReqWkshMakeOrders.Set(BatchHeader, WorkDate(), false);
+        if PlanningResiliency then begin
+            Commit();
+            ReqWkshMakeOrders.SetPlanningResiliency();
+        end else
+            ReqWkshMakeOrders.SetSuppressCommit(true);
+        ReqWkshMakeOrders.CarryOutBatchAction(RequisitionLine);
+        Assert.AreEqual(0, ReqWkshMakeOrders.GetFailedCounter(), 'All accepted suggestions must be carried out successfully.');
     end;
 
     local procedure RunCarryOut(RequisitionLine: Record "Requisition Line")

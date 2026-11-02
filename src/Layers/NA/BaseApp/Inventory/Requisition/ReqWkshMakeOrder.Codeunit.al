@@ -67,6 +67,7 @@ codeunit 333 "Req. Wksh.-Make Order"
         TempTransHeader: Record "Transfer Header" temporary;
         AccountingPeriod: Record "Accounting Period";
         TempFailedReqLine: Record "Requisition Line" temporary;
+        TempProcessedReqLine: Record "Requisition Line" temporary;
         PurchasingCode: Record Purchasing;
         TempDocumentEntry: Record "Document Entry" temporary;
         TempPurchaseOrderToPrint: Record "Purchase Header" temporary;
@@ -154,13 +155,19 @@ codeunit 333 "Req. Wksh.-Make Order"
 
     procedure Set(NewPurchOrderHeader: Record "Purchase Header"; NewEndingOrderDate: Date; NewPrintPurchOrder: Boolean)
     begin
+        Set(NewPurchOrderHeader, NewEndingOrderDate, NewPrintPurchOrder, NewPurchOrderHeader."Order Date",
+            NewPurchOrderHeader."Posting Date", NewPurchOrderHeader."Expected Receipt Date", NewPurchOrderHeader."Your Reference");
+    end;
+
+    internal procedure Set(NewPurchOrderHeader: Record "Purchase Header"; NewEndingOrderDate: Date; NewPrintPurchOrder: Boolean; NewOrderDate: Date; NewPostingDate: Date; NewReceiveDate: Date; NewReference: Text[35])
+    begin
         PurchOrderHeader := NewPurchOrderHeader;
         EndOrderDate := NewEndingOrderDate;
         PrintPurchOrders := NewPrintPurchOrder;
-        OrderDateReq := PurchOrderHeader."Order Date";
-        PostingDateReq := PurchOrderHeader."Posting Date";
-        ReceiveDateReq := PurchOrderHeader."Expected Receipt Date";
-        ReferenceReq := PurchOrderHeader."Your Reference";
+        OrderDateReq := NewOrderDate;
+        PostingDateReq := NewPostingDate;
+        ReceiveDateReq := NewReceiveDate;
+        ReferenceReq := NewReference;
         OnAfterSet(PurchOrderHeader, SuppressCommit, EndOrderDate, PrintPurchOrders, OrderDateReq, ReceiveDateReq, PostingDateReq, PurchOrderHeader, ReferenceReq);
     end;
 
@@ -173,6 +180,8 @@ codeunit 333 "Req. Wksh.-Make Order"
     begin
         OnBeforeCode(ReqLine, PlanningResiliency, SuppressCommit, PrintPurchOrders);
 
+        TempProcessedReqLine.Reset();
+        TempProcessedReqLine.DeleteAll();
         InitShipReceiveDetails();
         Clear(PurchOrderHeader);
         UsingPurchaseOrderTarget := false;
@@ -564,7 +573,8 @@ codeunit 333 "Req. Wksh.-Make Order"
     begin
         OnBeforeTryCarryOutReqLineAction(ReqLine);
 
-        ReqWkshMakeOrders.Set(PurchOrderHeader, EndOrderDate, PrintPurchOrders);
+        ReqWkshMakeOrders.Set(PurchOrderHeader, EndOrderDate, PrintPurchOrders, OrderDateReq, PostingDateReq, ReceiveDateReq, ReferenceReq);
+        ReqWkshMakeOrders.SetProcessedReqLines(TempProcessedReqLine);
         ReqWkshMakeOrders.SetTryParam(
           ReqTemplate,
           LineCount,
@@ -865,7 +875,7 @@ codeunit 333 "Req. Wksh.-Make Order"
     local procedure SelectPurchaseOrderTarget(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header"; var LastPurchaseLine: Record "Purchase Line")
     begin
         if (PurchaseHeader."Buy-from Vendor No." <> '') and not UsingPurchaseOrderTarget then
-            FinalizeOrderHeader(PurchaseHeader, RequisitionLine);
+            FinalizeOrderHeader(PurchaseHeader, RequisitionLine, true);
 
         RequisitionLine.CheckPurchaseOrderTarget();
         PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, RequisitionLine."Ref. Order No.");
@@ -1025,6 +1035,11 @@ codeunit 333 "Req. Wksh.-Make Order"
     end;
 
     procedure FinalizeOrderHeader(PurchOrderHeader: Record "Purchase Header"; var ReqLine: Record "Requisition Line")
+    begin
+        FinalizeOrderHeader(PurchOrderHeader, ReqLine, false);
+    end;
+
+    local procedure FinalizeOrderHeader(PurchOrderHeader: Record "Purchase Header"; var ReqLine: Record "Requisition Line"; OnlyProcessedReqLines: Boolean)
     var
         ReqLine2: Record "Requisition Line";
         IsHandled: Boolean;
@@ -1079,11 +1094,17 @@ codeunit 333 "Req. Wksh.-Make Order"
                 if ReqLine2.FindSet() then begin
                     ReqLine2.BlockDynamicTracking(true);
                     repeat
-                        if not ReqLine2.HasPurchaseOrderTarget() and PurchaseOrderLineMatchReqLine(ReqLine2) then begin
-                            TempFailedReqLine := ReqLine2;
-                            if not TempFailedReqLine.Find() then
-                                DeleteCarriedOutRequisitionLine(ReqLine2);
-                        end;
+                        if OnlyProcessedReqLines then
+                            if not TempProcessedReqLine.Get(ReqLine2."Worksheet Template Name", ReqLine2."Journal Batch Name", ReqLine2."Line No.") then
+                                continue;
+                        if ReqLine2.HasPurchaseOrderTarget() then
+                            continue;
+                        if not PurchaseOrderLineMatchReqLine(ReqLine2) then
+                            continue;
+                        TempFailedReqLine := ReqLine2;
+                        if TempFailedReqLine.Find() then
+                            continue;
+                        DeleteCarriedOutRequisitionLine(ReqLine2);
                     until ReqLine2.Next() = 0;
                 end;
         end;
@@ -1253,6 +1274,12 @@ codeunit 333 "Req. Wksh.-Make Order"
         PlanningResiliency := true;
     end;
 
+    internal procedure SetProcessedReqLines(var ProcessedReqLine: Record "Requisition Line" temporary)
+    begin
+        // Share processed keys with the per-line resiliency instance.
+        TempProcessedReqLine.Copy(ProcessedReqLine, true);
+    end;
+
     procedure GetFailedCounter(): Integer
     begin
         exit(CounterFailed);
@@ -1331,15 +1358,27 @@ codeunit 333 "Req. Wksh.-Make Order"
                    (ReqLine."Replenishment System" in [ReqLine."Replenishment System"::Purchase, ReqLine."Replenishment System"::"Prod. Order"])
                 then
                     ReqLine.CheckPurchaseOrderTarget();
-                if not PlanningResiliency then
-                    CarryOutReqLineAction(ReqLine)
-                else
-                    if not TryCarryOutReqLineAction(ReqLine) then begin
+                if not PlanningResiliency then begin
+                    CarryOutReqLineAction(ReqLine);
+                    RememberProcessedReqLine(ReqLine);
+                end else
+                    if TryCarryOutReqLineAction(ReqLine) then
+                        RememberProcessedReqLine(ReqLine)
+                    else begin
                         SetFailedReqLine(ReqLine);
                         OnProcessReqLineActionsOnAfterSetFailedReqLine(ReqLine);
                         CounterFailed := CounterFailed + 1;
                     end;
             until ReqLine.Next() = 0;
+    end;
+
+    local procedure RememberProcessedReqLine(RequisitionLine: Record "Requisition Line")
+    begin
+        TempProcessedReqLine.Init();
+        TempProcessedReqLine."Worksheet Template Name" := RequisitionLine."Worksheet Template Name";
+        TempProcessedReqLine."Journal Batch Name" := RequisitionLine."Journal Batch Name";
+        TempProcessedReqLine."Line No." := RequisitionLine."Line No.";
+        TempProcessedReqLine.Insert();
     end;
 
     local procedure SetPurchOrderHeader()
