@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,6 +10,9 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 
 report 10842 "G/L Account Statement"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
     DefaultLayout = RDLC;
     RDLCLayout = './Local/FinancialMgt/GeneralLedger/Reports/GLAccountStatement.rdlc';
     ApplicationArea = Basic, Suite;
@@ -298,4 +302,4 @@ report 10842 "G/L Account Statement"
         DescriptionCaptionLbl: Label 'Description';
         GrandTotalCaptionLbl: Label 'Grand Total';
 }
-
+#endif
