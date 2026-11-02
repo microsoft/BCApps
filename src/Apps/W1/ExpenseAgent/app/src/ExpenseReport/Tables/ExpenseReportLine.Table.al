@@ -1456,7 +1456,7 @@ table 6907 "Expense Report Line"
         PolicyInvalidationPending := false;
     end;
 
-    internal procedure MarkPolicyInvalidationPending()
+    internal procedure InvalidatePolicyEvaluationOnSave()
     begin
         // Defer child invalidation until the caller saves this buffer to avoid a competing parent write.
         PolicyInvalidationPending := true;
