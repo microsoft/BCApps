@@ -4846,7 +4846,7 @@ codeunit 137020 "SCM Planning"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandlers,PlanningErrorLogModalPageHandler')]
+    [HandlerFunctions('CalculatePlanPlanWkshRequestPageHandlerWithResiliency,MessageHandlers,PlanningErrorLogModalPageHandler')]
     [Scope('OnPrem')]
     procedure FixedReorderPlanningWhenSKUReorderQtyNegativeLogsPlanningError()
     var
@@ -4869,9 +4869,10 @@ codeunit 137020 "SCM Planning"
         StockkeepingUnit.Validate("Reorder Point", LibraryRandom.RandIntInRange(10, 20));
         StockkeepingUnit."Reorder Quantity" := -LibraryRandom.RandInt(10);
         StockkeepingUnit.Modify(true);
+        Commit();
 
         // [WHEN] Calculate Regenerative Plan with planning resiliency
-        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        CalcRegenPlanWithRequestPage(Item, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
 
         // [THEN] Planning Error Log has one entry for the SKU that shows the negative Reorder Quantity
 #pragma warning disable AA0210
@@ -5498,6 +5499,11 @@ codeunit 137020 "SCM Planning"
     end;
 
     local procedure CalcRegenPlanWithStopAndShowFirstError(Item: Record Item; FromDate: Date; ToDate: Date)
+    begin
+        CalcRegenPlanWithRequestPage(Item, FromDate, ToDate);
+    end;
+
+    local procedure CalcRegenPlanWithRequestPage(Item: Record Item; FromDate: Date; ToDate: Date)
     var
         RequisitionWkshName: Record "Requisition Wksh. Name";
         CalculatePlanPlanWksh: Report "Calculate Plan - Plan. Wksh.";
@@ -5723,6 +5729,13 @@ codeunit 137020 "SCM Planning"
     procedure CalculatePlanPlanWkshRequestPageHandlerWithStopAndShowFirstError(var CalculatePlanPlanWksh: TestRequestPage "Calculate Plan - Plan. Wksh.")
     begin
         CalculatePlanPlanWksh.NoPlanningResiliency.SetValue(true);
+        CalculatePlanPlanWksh.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure CalculatePlanPlanWkshRequestPageHandlerWithResiliency(var CalculatePlanPlanWksh: TestRequestPage "Calculate Plan - Plan. Wksh.")
+    begin
+        CalculatePlanPlanWksh.NoPlanningResiliency.SetValue(false);
         CalculatePlanPlanWksh.OK().Invoke();
     end;
 
