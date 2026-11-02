@@ -295,7 +295,7 @@ report 10850 "Suggest Vend. Payments"
         TempPayableVendLedgEntry.Positive := (TempPayableVendLedgEntry.Amount > 0);
         TempPayableVendLedgEntry.Future := (VendLedgEntry."Due Date" > LastDueDateToPayReq);
         TempPayableVendLedgEntry."Currency Code" := VendLedgEntry."Currency Code";
-        TempPayableVendLedgEntry."Due Date" := VendLedgEntry."Due Date";
+        TempPayableVendLedgEntry."Due Date FR" := VendLedgEntry."Due Date";
         TempPayableVendLedgEntry.Insert();
         NextEntryNo := NextEntryNo + 1;
     end;
@@ -480,10 +480,10 @@ report 10850 "Suggest Vend. Payments"
                         begin
                             if GenPayLine.Amount = 0 then
                                 SetAppliesToIDBlank(VendLedgEntry, TempPayableVendLedgEntry, TempPaymentPostBuffer);
-                            TempPayableVendLedgEntry.SetCurrentKey("Vendor No.", "Due Date");
+                            TempPayableVendLedgEntry.SetCurrentKey("Vendor No.", "Due Date FR");
                             TempPayableVendLedgEntry.SetRange("Vendor No.", TempPaymentPostBuffer."Account No.");
                             TempPayableVendLedgEntry.Find('-');
-                            GenPayLine."Due Date" := TempPayableVendLedgEntry."Due Date";
+                            GenPayLine."Due Date" := TempPayableVendLedgEntry."Due Date FR";
                             TempPayableVendLedgEntry.DeleteAll();
                         end;
                     SummarizePer::"Due date":
@@ -523,4 +523,3 @@ report 10850 "Suggest Vend. Payments"
         TempPayableVendorLedgEntry.SetRange("Vendor No.");
     end;
 }
-

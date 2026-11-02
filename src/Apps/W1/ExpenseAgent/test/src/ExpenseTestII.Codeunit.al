@@ -3155,6 +3155,55 @@ codeunit 148309 "Expense Test II"
         Assert.ExpectedError(StrSubstNo(BillableCustomerAndProjectErr, Expense.FieldCaption("Billable to Customer"), Expense.FieldCaption("Job No.")));
     end;
 
+    [Test]
+    procedure DefaultApproverMustHaveUnlimitedApproval()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        // [SCENARIO 626975] The configured default approver must retain unlimited approval.
+        Initialize();
+
+        // [GIVEN] An Expense User can approve, but has a finite approval limit.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser."Can Approve" := true;
+        ExpenseUser."Unlimited Approval" := false;
+        ExpenseUser.Modify();
+        ExpenseAgentSetup.Get();
+
+        // [WHEN] The limited approver is selected as the default.
+        asserterror ExpenseAgentSetup.Validate("Default Approver No.", ExpenseUser."No.");
+
+        // [THEN] Setup rejects the value because it is not a valid default approver.
+        Assert.ExpectedError(ExpenseUser.TableCaption());
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.TestField("Default Approver No.", '');
+    end;
+
+    [Test]
+    procedure RemovingApprovalRightsClearsLimitAndUnlimitedApproval()
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        // [SCENARIO 626975] Removing approval rights clears the related approval-limit settings.
+        Initialize();
+
+        // [GIVEN] An approver has approval rights and a finite limit.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser."Can Approve" := true;
+        ExpenseUser."Unlimited Approval" := false;
+        ExpenseUser."Approval Limit (LCY)" := 250;
+        ExpenseUser.Modify();
+
+        // [WHEN] Approval rights are removed.
+        ExpenseUser.Validate("Can Approve", false);
+
+        // [THEN] Approval is disabled and neither unlimited nor finite approval remains configured.
+        ExpenseUser.TestField("Can Approve", false);
+        ExpenseUser.TestField("Unlimited Approval", false);
+        ExpenseUser.TestField("Approval Limit (LCY)", 0);
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;

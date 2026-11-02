@@ -10,6 +10,7 @@ enumextension 5280 "Audit File Export Format SAF-T" extends "Audit File Export F
     {
         Caption = 'SAF-T';
         Implementation = "Audit File Export Data Handling" = "Audit Data Handling SAF-T",
-                         "Audit File Export Data Check" = "Audit Data Check SAF-T";
+                         "Audit File Export Data Check" = "Audit Data Check SAF-T",
+                         "Audit File Export Page Visibility" = "Audit Data Handling SAF-T";
     }
 }

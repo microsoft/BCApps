@@ -743,6 +743,107 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
+    [HandlerFunctions('SubcontractorLocationRecallHandler')]
+    procedure WorkCenterCardPersistsPendingChangesWhenSubcontractorIsValidated()
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 651344] Pending Work Center changes are persisted when Subcontractor No. is validated.
+        Initialize();
+
+        // [GIVEN] Work Center "WC" with time-based unit costs and configured subcontractor "V"
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Unit Cost Calculation", WorkCenter."Unit Cost Calculation"::Time);
+        WorkCenter.Modify(true);
+        CreateVendorWithSubcontractingLocation(Vendor);
+
+        // [WHEN] Unit Cost Calculation is changed to Units and "V" is selected on the Work Center Card
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+        WorkCenterCard."Unit Cost Calculation".SetValue(WorkCenter."Unit Cost Calculation"::Units);
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
+        VerifySubcontractorLocationNotification('');
+
+        // [THEN] Both changes remain on the page and are persisted
+        WorkCenterCard."Unit Cost Calculation".AssertEquals(WorkCenter."Unit Cost Calculation"::Units);
+        WorkCenterCard."Subcontractor No.".AssertEquals(Vendor."No.");
+        WorkCenterCard.Close();
+        WorkCenter.Get(WorkCenter."No.");
+        Assert.AreEqual(WorkCenter."Unit Cost Calculation"::Units, WorkCenter."Unit Cost Calculation", 'Unit Cost Calculation should be persisted.');
+        Assert.AreEqual(Vendor."No.", WorkCenter."Subcontractor No.", 'Subcontractor No. should be persisted.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SubcontractorLocationRecallHandler')]
+    procedure WorkCenterCardEnablesSubcontractingActionsAfterSettingSubcontractor()
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 637771] Subcontracting actions are enabled immediately after setting Subcontractor No.
+        Initialize();
+
+        // [GIVEN] Work Center "WC" without a subcontractor and configured subcontractor "V"
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        CreateVendorWithSubcontractingLocation(Vendor);
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+
+        // [WHEN] "V" is selected as the subcontractor
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
+        VerifySubcontractorLocationNotification('');
+
+        // [THEN] Subcontracting actions are enabled without reopening the card
+        Assert.IsTrue(WorkCenterCard."Subcontractor Prices".Enabled(), SubcontractingActionsNotEnabledErr);
+        Assert.IsTrue(WorkCenterCard."Subcontractor Dispatch List".Enabled(), SubcontractingActionsNotEnabledErr);
+        WorkCenterCard.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SubcontractorLocationRecallHandler')]
+    procedure WorkCenterCardDisablesSubcontractingActionsAfterClearingSubcontractor()
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 637771] Subcontracting actions are disabled immediately after clearing Subcontractor No.
+        Initialize();
+
+        // [GIVEN] Work Center "WC" with configured subcontractor "V" and time-based unit costs
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        CreateVendorWithSubcontractingLocation(Vendor);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Validate("Unit Cost Calculation", WorkCenter."Unit Cost Calculation"::Time);
+        WorkCenter.Modify(true);
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+
+        // [WHEN] Unit Cost Calculation is changed to Units and the subcontractor is cleared
+        WorkCenterCard."Unit Cost Calculation".SetValue(WorkCenter."Unit Cost Calculation"::Units);
+        WorkCenterCard."Subcontractor No.".SetValue('');
+        VerifySubcontractorLocationNotification('');
+
+        // [THEN] Subcontracting actions are disabled and the pending unit-cost change is persisted
+        Assert.IsFalse(WorkCenterCard."Subcontractor Prices".Enabled(), SubcontractingActionsEnabledErr);
+        Assert.IsFalse(WorkCenterCard."Subcontractor Dispatch List".Enabled(), SubcontractingActionsEnabledErr);
+        WorkCenterCard."Unit Cost Calculation".AssertEquals(WorkCenter."Unit Cost Calculation"::Units);
+        WorkCenterCard.Close();
+        WorkCenter.Get(WorkCenter."No.");
+        Assert.AreEqual(WorkCenter."Unit Cost Calculation"::Units, WorkCenter."Unit Cost Calculation", 'Unit Cost Calculation should be persisted.');
+        Assert.AreEqual('', WorkCenter."Subcontractor No.", 'Subcontractor No. should be cleared.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('SubcontractorLocationNotificationHandler,SubcontractorLocationRecallHandler')]
     procedure WorkCenterCardNotifiesWhenSubcontractorHasNoLocation()
     var
@@ -1545,6 +1646,16 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUoM.Code);
         RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUoM.Code);
         RoutingLine.Insert(true);
+    end;
+
+    local procedure CreateVendorWithSubcontractingLocation(var Vendor: Record Vendor)
+    var
+        Location: Record Location;
+    begin
+        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor.Validate("Subc. Location Code", Location.Code);
+        Vendor.Modify(true);
     end;
 
     local procedure GetNextItemLedgerEntryNo(): Integer

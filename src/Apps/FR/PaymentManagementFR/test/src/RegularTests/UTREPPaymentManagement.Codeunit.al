@@ -62,6 +62,9 @@ codeunit 144034 "UT REP Payment Management"
 
     trigger OnRun()
     begin
+#if not CLEAN28
+        BindSubscription(this);
+#endif
     end;
 
     var

@@ -444,12 +444,8 @@ table 6907 "Expense Report Line"
                     Rec."Spend Request Close" := false;
                 end;
 
-                if Rec.Refundable and (Rec."Expense User No." <> '') then begin
-                    Rec.SetSkipSpendRequestClose(true);
-                    Rec.Validate("Spend Request No.", ExpenseReportHeader."Spend Request No.");
-                    Rec."Spend Request Close" := ExpenseReportHeader."Spend Request Close";
-                    Rec.SetSkipSpendRequestClose(false);
-                end;
+                if Rec.Refundable and (Rec."Expense User No." <> '') then
+                    InheritSpendRequestFromHeader();
 
                 UpdateAmounts();
             end;
@@ -1060,12 +1056,18 @@ table 6907 "Expense Report Line"
             trigger OnValidate()
             var
                 SpendRequest: Record "Spend Request";
+                Traveler: Record Traveler;
+                HasMultipleTravelers: Boolean;
                 DimensionSetIDArr: array[10] of Integer;
             begin
                 if Rec."Spend Request No." <> '' then begin
                     Rec.TestField(Refundable, true);
                     CheckTraveler();
-                    SpendRequest.SetSkipSpendRequestClose(SkipSpendRequestClose);
+                    // Closing a shared travel request would block the expense reports of the other travelers, so do not offer it.
+                    HasMultipleTravelers := Traveler.HasMultipleTravelers(Rec."Spend Request No.");
+                    if HasMultipleTravelers then
+                        Rec."Spend Request Close" := false;
+                    SpendRequest.SetSkipSpendRequestClose(SkipSpendRequestClose or HasMultipleTravelers);
                     SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Refundable Amount (LCY)");
 
                     if SpendRequest."Dimension Set ID" <> 0 then begin
@@ -1114,6 +1116,9 @@ table 6907 "Expense Report Line"
         key(PK; "Document No.", "Line No.")
         {
             Clustered = true;
+        }
+        key(SpendRequestNo; "Spend Request No.")
+        {
         }
     }
 
@@ -1197,6 +1202,7 @@ table 6907 "Expense Report Line"
         OnlyRelinkToAnotherReportErr: Label 'You can only relink an expense report line to another expense report.';
         ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
+        ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
 
     internal procedure CopyFromVATPostingSetup(var VATPostingSetupFrom: Record "VAT Posting Setup")
     begin
@@ -1817,7 +1823,46 @@ table 6907 "Expense Report Line"
     var
         SpendRequest: Record "Spend Request";
     begin
+        // A closed travel request has no remaining budget to check.
+        if IsSpendRequestClosed(Rec."Spend Request No.") then
+            exit;
+
         SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Refundable Amount (LCY)");
+    end;
+
+    /// <summary>
+    /// Links a line that becomes refundable to the travel request of its expense report header,
+    /// with the same close setting as the header.
+    /// </summary>
+    local procedure InheritSpendRequestFromHeader()
+    begin
+        if IsSpendRequestClosed(ExpenseReportHeader."Spend Request No.") then begin
+            // The shared travel request was closed. Keep the line linked so the report can still be edited;
+            // posting requires an approved travel request, so the link must be removed before the report is posted.
+            Rec."Spend Request No." := ExpenseReportHeader."Spend Request No.";
+            Rec."Spend Request Close" := false;
+            exit;
+        end;
+
+        // Only the header decides whether the travel request is closed, so do not ask again for the line.
+        Rec.SetSkipSpendRequestClose(true);
+        Rec.Validate("Spend Request No.", ExpenseReportHeader."Spend Request No.");
+        Rec."Spend Request Close" := ExpenseReportHeader."Spend Request Close";
+        Rec.SetSkipSpendRequestClose(false);
+    end;
+
+    local procedure IsSpendRequestClosed(SpendRequestNo: Code[20]): Boolean
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        if SpendRequestNo = '' then
+            exit(false);
+
+        SpendRequest.SetLoadFields(Status);
+        if not SpendRequest.Get(SpendRequestNo) then
+            exit(false);
+
+        exit(SpendRequest.Status = SpendRequest.Status::Closed);
     end;
 
     local procedure UpdateVATAmount()
@@ -2012,7 +2057,7 @@ table 6907 "Expense Report Line"
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, Rec."Expense Currency Code") then
                 Rec."Expense Currency Factor" := CurrencyExchangeRate.ExchangeRate(CurrencyDate, Rec."Expense Currency Code")
             else
-                UpdateCurrencyExchangeRates.ShowMissingExchangeRatesNotification("Expense Currency Code");
+                Error(ReceiptDatedBeforeExchRateErr, CurrencyDate, Rec."Expense Currency Code");
         end else
             Rec."Expense Currency Factor" := 0;
     end;

@@ -73,6 +73,10 @@ page 427 "Payment Methods"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field("Payment Means Code"; Rec."Payment Means Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field("Fattura PA Payment Method"; Rec."Fattura PA Payment Method")
                 {
                     ApplicationArea = Basic, Suite;
