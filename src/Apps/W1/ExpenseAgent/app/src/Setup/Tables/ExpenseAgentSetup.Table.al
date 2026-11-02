@@ -740,7 +740,7 @@ table 6930 "Expense Agent Setup"
             Caption = 'Allow interim approvers';
             DataClassification = SystemMetadata;
             InitValue = true;
-            ToolTip = 'Specifies whether users can assign interim approvers to expense reports.';
+            ToolTip = 'Specifies whether expense submitters can assign interim approvers to expense reports.';
         }
         field(150; "Use Canary Endpoint"; Boolean)
         {
