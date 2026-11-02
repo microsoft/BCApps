@@ -110,6 +110,11 @@
                     "reason": "Registration supplies the table ID to data classification; it does not load a backing record."
                 },
                 {
+                    "from": {"paths":["Flows/Registration/PayablesAgentMetadata.Codeunit.al"]},
+                    "target": "Entities/Task/PayablesAgentTask.Table.al",
+                    "reason": "Registration supplies the task table ID to data classification; it does not load a backing record."
+                },
+                {
                     "from": {"paths":["Flows/Configuration/PayablesAgentSetup.Page.al"]},
                     "target": "Entities/Setup/PayablesAgentSetup.Table.al",
                     "reason": "The setup page edits an explicitly temporary projection; PA021 pins that property."
