@@ -3103,6 +3103,53 @@
     ]
   },
   {
+    "name": "Report Filename Manager",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Report Filename Manager Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Review General Ledger Entries",
     "groups": [
       {
@@ -6911,7 +6958,7 @@
     ]
   },
   {
-    "name": "Microsoft Fabric Mirroring",
+    "name": "Business Central Mirroring to Fabric",
     "groups": [
       {
         "name": "AllExtensions"
@@ -6933,7 +6980,7 @@
     ]
   },
   {
-    "name": "Microsoft Fabric Mirroring Tests",
+    "name": "Business Central Mirroring to Fabric Tests",
     "groups": [
       {
         "name": "AllExtensions"
