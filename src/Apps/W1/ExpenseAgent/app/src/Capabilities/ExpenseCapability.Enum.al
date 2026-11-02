@@ -99,10 +99,18 @@ enum 6984 "Expense Capability"
     }
 
     /// <summary>
-    /// Interim approvers can be assigned to expense reports. Current approver number is available in Expense Report API.
+    /// Advanced approval features and the current approver number are available in the Expense Report API.
     /// </summary>
     value(9; AdvancedApprovals)
     {
         Caption = 'Advanced Approvals', Locked = true;
+    }
+
+    /// <summary>
+    /// Interim approvers can be assigned when Allow Interim Approvers is enabled in Expense Agent Setup.
+    /// </summary>
+    value(10; InterimApprover)
+    {
+        Caption = 'Interim Approver', Locked = true;
     }
 }

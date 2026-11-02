@@ -239,13 +239,13 @@ codeunit 148318 "Expense Capabilities API Test"
     end;
 
     [Test]
-    procedure CapabilitiesAdvancedApprovalsEnabled()
+    procedure CapabilitiesInterimApproverEnabled()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
     begin
         // [SCENARIO] When Expense Agent Setup has "Allow Interim Approvers" = true,
-        //            the advancedApprovals capability is reported enabled.
+        //            interimApprover and advancedApprovals are reported enabled.
         Initialize();
 
         // [GIVEN] Expense Agent Setup exists with Allow Interim Approvers = true.
@@ -256,19 +256,21 @@ codeunit 148318 "Expense Capabilities API Test"
         ExpenseAgentSetup."Allow Interim Approvers" := true;
         ExpenseAgentSetup.Modify();
 
-        // [THEN] The provider reports advancedApprovals as enabled.
+        // [THEN] Interim approvers are enabled and advanced approvals are supported.
+        Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::InterimApprover),
+            'interimApprover must be enabled when Allow Interim Approvers is true.');
         Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AdvancedApprovals),
-            'advancedApprovals must be enabled when Allow Interim Approvers is true.');
+            'advancedApprovals must always be enabled.');
     end;
 
     [Test]
-    procedure CapabilitiesAdvancedApprovalsDisabled()
+    procedure CapabilitiesInterimApproverDisabled()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
     begin
         // [SCENARIO] When Expense Agent Setup has "Allow Interim Approvers" = false,
-        //            the advancedApprovals capability is reported disabled.
+        //            interimApprover is disabled but advancedApprovals remains enabled.
         Initialize();
 
         // [GIVEN] Expense Agent Setup exists with Allow Interim Approvers = false.
@@ -279,9 +281,11 @@ codeunit 148318 "Expense Capabilities API Test"
         ExpenseAgentSetup."Allow Interim Approvers" := false;
         ExpenseAgentSetup.Modify();
 
-        // [THEN] The provider reports advancedApprovals as disabled.
-        Assert.IsFalse(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AdvancedApprovals),
-            'advancedApprovals must be disabled when Allow Interim Approvers is false.');
+        // [THEN] Interim approvers are disabled but advanced approvals are still supported.
+        Assert.IsFalse(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::InterimApprover),
+            'interimApprover must be disabled when Allow Interim Approvers is false.');
+        Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AdvancedApprovals),
+            'advancedApprovals must always be enabled.');
     end;
 
     local procedure Initialize()

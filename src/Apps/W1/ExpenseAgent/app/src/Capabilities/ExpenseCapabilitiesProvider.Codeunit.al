@@ -34,12 +34,13 @@ codeunit 6906 "Expense Capabilities Provider"
                 exit(IsVATSpecificationsEnabled());
             Capability::AiAssistedPolicyEvaluation:
                 exit(IsAiAssistedPolicyEvaluationEnabled());
-            Capability::AdvancedApprovals:
-                exit(IsAdvancedApprovalsEnabled());
+            Capability::InterimApprover:
+                exit(IsInterimApproverEnabled());
             Capability::ActivityLog,
             Capability::MileageRateSetup,
             Capability::ApprovalConversation,
-            Capability::TravelRequest:
+            Capability::TravelRequest,
+            Capability::AdvancedApprovals:
                 exit(true);
         end;
         exit(false);
@@ -81,7 +82,7 @@ codeunit 6906 "Expense Capabilities Provider"
         exit(ExpenseAgentSetup."Evaluate Policies");
     end;
 
-    local procedure IsAdvancedApprovalsEnabled(): Boolean
+    local procedure IsInterimApproverEnabled(): Boolean
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
