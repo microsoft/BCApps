@@ -153,9 +153,13 @@ page 6991 "Expense Agent Setup Wizard"
                                 if ExpenseUsers.RunModal() = Action::LookupOK then begin
                                     ExpenseUsers.GetRecord(ExpenseUser);
                                     if ExpenseUser."No." <> Rec."Default Approver No." then begin
-                                        if not ExpenseUser."Can Approve" then begin
+                                        if (not ExpenseUser."Can Approve") or not (ExpenseUser."Unlimited Approval") then begin
                                             ExpenseUser.ReadIsolation(IsolationLevel::UpdLock);
                                             ExpenseUser.Get(ExpenseUser."No.");
+                                            if not ExpenseUser."Can Approve" then
+                                                ExpenseUser.Validate("Can Approve", true);
+                                            if not ExpenseUser."Unlimited Approval" then
+                                                ExpenseUser.Validate("Unlimited Approval", true);
                                             ExpenseUser.Validate("Can Approve", true);
                                             ExpenseUser.Modify();
                                             Commit(); // because we ask a question in the validate trigger later
