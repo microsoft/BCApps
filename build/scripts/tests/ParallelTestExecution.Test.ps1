@@ -30,6 +30,265 @@ if (-not (Get-Command Invoke-ScriptInBcContainer -ErrorAction SilentlyContinue))
 
 Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
 
+Describe "ParallelTestExecution churn selection" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../BuildOptimization.psm1')
+        $script:selectionRepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+        $script:createdSelectionAppInfoStub = -not (Get-Command Get-BcContainerAppInfo -ErrorAction SilentlyContinue)
+        if ($script:createdSelectionAppInfoStub) {
+            function global:Get-BcContainerAppInfo {
+                param([string]$containerName, [string]$tenant, [switch]$tenantSpecificProperties)
+                $null = $containerName, $tenant, $tenantSpecificProperties
+                throw 'Unexpected container access.'
+            }
+        }
+    }
+
+    BeforeEach {
+        $script:selectionEnvironment = @{}
+        foreach ($name in @('GITHUB_ACTIONS', 'GITHUB_EVENT_NAME', 'GITHUB_EVENT_PATH', 'GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT',
+            'GITHUB_JOB', 'RUNNER_TEMP', '_project', 'BUILD_OPTIMIZATION_DISABLED')) {
+            $script:selectionEnvironment[$name] = [Environment]::GetEnvironmentVariable($name)
+        }
+        $env:GITHUB_ACTIONS = 'true'
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        $env:GITHUB_RUN_ID = [guid]::NewGuid().ToString('N')
+        $env:GITHUB_RUN_ATTEMPT = '1'
+        $env:GITHUB_JOB = 'build'
+        $env:RUNNER_TEMP = $TestDrive
+        $env:_project = 'build/projects/Test Apps W1'
+        $env:BUILD_OPTIMIZATION_DISABLED = $null
+
+        Mock -ModuleName ParallelTestExecution Get-ALGoSetting {
+            switch ($Key) {
+                'testType' { 'IntegrationTest' }
+                'country' { 'w1' }
+                'enableCleanTestCodeunitExecution' { $true }
+            }
+        }
+        Mock -ModuleName ParallelTestExecution Get-InstalledTestAppNames { @('Tests B', 'Tests A', 'Tests C') }
+        Mock -ModuleName ParallelTestExecution Get-AppNamesForBucket { @('Tests C', 'Tests B', 'Tests A') }
+        Mock -ModuleName ParallelTestExecution Get-AffectedAppNames {
+            [PSCustomObject]@{ RunAll = $false; AppNames = @('Tests A', 'Tests C') }
+        }
+        Mock -ModuleName ParallelTestExecution Get-DisabledTestsForApp { @() }
+        Mock -ModuleName ParallelTestExecution Get-AvailableBcTenantInfo {
+            @(
+                [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
+                [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+            )
+        }
+        Mock -ModuleName ParallelTestExecution Get-BcContainerAppInfo {
+            @('Tests A', 'Tests B', 'Tests C') | ForEach-Object {
+                [PSCustomObject]@{ Name = $_; AppId = "$_-id"; IsInstalled = $true }
+            }
+        }
+        Mock -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems { @() }
+        Mock -ModuleName ParallelTestExecution Reset-BcTestTenant { }
+        Mock -ModuleName ParallelTestExecution Invoke-WarmupDispatch { @($Pending) }
+        Mock -ModuleName ParallelTestExecution Wait-ForFreeTenant { 'default' }
+        Mock -ModuleName ParallelTestExecution Start-TestAppDispatch { }
+        Mock -ModuleName ParallelTestExecution Merge-TenantTestResults { }
+    }
+
+    AfterEach {
+        foreach ($name in $script:selectionEnvironment.Keys) {
+            [Environment]::SetEnvironmentVariable($name, $script:selectionEnvironment[$name])
+        }
+    }
+
+    AfterAll {
+        if ($script:createdSelectionAppInfoStub) {
+            Remove-Item function:global:Get-BcContainerAppInfo
+        }
+    }
+
+    It "filters before discovery and warmup while preserving bucket order and clean-isolation selection" {
+        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests B' } |
+            Should -BeTrue
+
+        Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
+            ($AppNamesToTest -join ',') -eq 'Tests C,Tests A'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Invoke-WarmupDispatch -Times 1 -Exactly -ParameterFilter {
+            ($Pending -join ',') -eq 'Tests C,Tests A' -and ($CleanTenantAppNames -join ',') -eq 'Tests C,Tests A'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 2 -Exactly -ParameterFilter {
+            $AppName -in @('Tests C', 'Tests A') -and $SkipAutomaticDisabledPass
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly -ParameterFilter {
+            $AppName -eq 'Tests B'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Get-AffectedAppNames -Times 1 -Exactly -ParameterFilter {
+            $BaseFolder -eq $script:selectionRepoRoot
+        }
+    }
+
+    It "returns the cached <Passed> outcome on later per-app hooks without recomputing selection" -ForEach @(
+        @{ Passed = $true }, @{ Passed = $false }
+    ) {
+        if (-not $Passed) {
+            Mock -ModuleName ParallelTestExecution Start-TestAppDispatch { $State.hasFailures = $true }
+        }
+        foreach ($app in @('Tests B', 'Tests A', 'Tests C')) {
+            Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = $app } |
+                Should -Be $Passed
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Get-AffectedAppNames -Times 1 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 2 -Exactly
+    }
+
+    It "uses the existing downstream dependency calculation to select test apps" {
+        Mock -ModuleName ParallelTestExecution Get-AffectedAppNames {
+            BuildOptimization\Get-AffectedAppNames -BaseFolder $BaseFolder
+        }
+        Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/Apps/Example/code.al') }
+        Mock -ModuleName BuildOptimization Get-AppForFile { 'production' }
+        Mock -ModuleName BuildOptimization Get-AppDependencyGraph {
+            @{
+                production = [PSCustomObject]@{ Name = 'Production'; Dependents = @('test-a') }
+                'test-a' = [PSCustomObject]@{ Name = 'Tests A'; Dependents = @('test-c') }
+                'test-b' = [PSCustomObject]@{ Name = 'Tests B'; Dependents = @() }
+                'test-c' = [PSCustomObject]@{ Name = 'Tests C'; Dependents = @() }
+            }
+        }
+        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests B' } |
+            Should -BeTrue
+        Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
+            ($AppNamesToTest -join ',') -eq 'Tests C,Tests A'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 2 -Exactly
+    }
+
+    It "records an empty selection and never enters the shared sequential fallback, discovery or dispatch" {
+        Mock -ModuleName ParallelTestExecution Get-AffectedAppNames {
+            [PSCustomObject]@{ RunAll = $false; AppNames = @('Unrelated Tests') }
+        }
+        foreach ($app in @('Tests B', 'Tests A')) {
+            Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = $app } |
+                Should -BeTrue
+        }
+        InModuleScope ParallelTestExecution {
+            $state = Get-Content (Get-TestRunStateFile -ContainerName 'selection') -Raw | ConvertFrom-Json
+            $state.noTestsSelected | Should -BeTrue
+            $state.completed | Should -BeTrue
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Get-AffectedAppNames -Times 1 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Get-InstalledTestAppNames -Times 1 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Get-DisabledTestsForApp -Times 0 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Get-AvailableBcTenantInfo -Times 0 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 0 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Invoke-WarmupDispatch -Times 0 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly
+    }
+
+    It "does not reuse affected-app or outcome caches across projects, runs, attempts or containers" {
+        Mock -ModuleName ParallelTestExecution Get-AffectedAppNames {
+            [PSCustomObject]@{ RunAll = $false; AppNames = @() }
+        }
+        $parameters = @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' }
+        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
+        $env:_project = 'build/projects/Test Apps DE'
+        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
+        $env:GITHUB_RUN_ATTEMPT = '2'
+        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
+        $env:GITHUB_RUN_ID = [guid]::NewGuid().ToString('N')
+        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
+        $parameters.containerName = 'another-container'
+        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
+        Should -Invoke -ModuleName ParallelTestExecution Get-AffectedAppNames -Times 5 -Exactly
+    }
+
+    It "reuses affected-app computation if dispatch is interrupted before completion" {
+        Mock -ModuleName ParallelTestExecution Start-TestAppDispatch { throw 'dispatch interrupted' }
+        1..2 | ForEach-Object {
+            { Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } } |
+                Should -Throw '*dispatch interrupted*'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Get-AffectedAppNames -Times 1 -Exactly
+        Get-CachedTestRunResult -ContainerName 'selection' | Should -BeNullOrEmpty
+    }
+
+    It "runs the full bucket for <Mode>" -ForEach @(
+        @{ Mode = 'manual' }, @{ Mode = 'disabled' }, @{ Mode = 'no changes' }, @{ Mode = 'local' },
+        @{ Mode = 'github settings'; ChangedPath = '.github/AL-Go-Settings.json' },
+        @{ Mode = 'github action'; ChangedPath = '.github/actions/example/action.yaml' },
+        @{ Mode = 'github workflow'; ChangedPath = '.github/workflows/CI.yaml' }
+    ) {
+        Mock -ModuleName ParallelTestExecution Get-AffectedAppNames {
+            BuildOptimization\Get-AffectedAppNames -BaseFolder $BaseFolder
+        }
+        Mock -ModuleName BuildOptimization Get-AppDependencyGraph { throw 'Full-run fallback must not build the graph.' }
+        Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { $null }
+        switch ($Mode) {
+            'manual' { $env:GITHUB_EVENT_NAME = 'workflow_dispatch' }
+            'disabled' { $env:BUILD_OPTIMIZATION_DISABLED = 'true' }
+            'local' { $env:GITHUB_ACTIONS = $null }
+        }
+        if ($Mode -like 'github*') {
+            Mock -ModuleName BuildOptimization Get-ChangedFilesForCI -MockWith ({ @($ChangedPath) }.GetNewClosure())
+        }
+        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
+            Should -BeTrue
+        Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
+            ($AppNamesToTest -join ',') -eq 'Tests C,Tests B,Tests A'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
+    }
+
+    It "logs malformed change-detection JSON and safely runs the full bucket" {
+        Mock -ModuleName ParallelTestExecution Get-AffectedAppNames {
+            '{invalid' | ConvertFrom-Json -ErrorAction Stop
+        }
+        Mock -ModuleName ParallelTestExecution Write-Host { }
+        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
+            Should -BeTrue
+        Should -Invoke -ModuleName ParallelTestExecution Write-Host -Times 1 -ParameterFilter {
+            $Object -like '*warning*Could not read change-detection inputs*Running all tests*'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
+    }
+
+    It "preserves the full-run fallback when git diff fails" {
+        $env:GITHUB_EVENT_PATH = Join-Path $TestDrive 'event.json'
+        @{ pull_request = @{ base = @{ sha = 'a' * 40 }; head = @{ sha = 'b' * 40 } } } |
+            ConvertTo-Json -Depth 4 | Set-Content $env:GITHUB_EVENT_PATH
+        Mock -ModuleName ParallelTestExecution Get-AffectedAppNames {
+            BuildOptimization\Get-AffectedAppNames -BaseFolder $BaseFolder
+        }
+        Mock -ModuleName BuildOptimization git { $global:LASTEXITCODE = 1 }
+        Mock -ModuleName BuildOptimization Write-Host { }
+        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
+            Should -BeTrue
+        Should -Invoke -ModuleName BuildOptimization Write-Host -Times 1 -ParameterFilter {
+            $Object -like '*git diff failed*'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
+    }
+
+    It "logs unreadable change-detection inputs and safely runs the full bucket" {
+        Mock -ModuleName ParallelTestExecution Get-AffectedAppNames {
+            throw [System.IO.IOException]::new('Cannot read input')
+        }
+        Mock -ModuleName ParallelTestExecution Write-Host { }
+        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
+            Should -BeTrue
+        Should -Invoke -ModuleName ParallelTestExecution Write-Host -Times 1 -ParameterFilter {
+            $Object -like '*warning*Cannot read input*Running all tests*'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
+    }
+
+    It "does not hide unexpected selection errors or cache them as success" {
+        Mock -ModuleName ParallelTestExecution Get-AffectedAppNames { throw 'unexpected selection bug' }
+        { Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } } |
+            Should -Throw '*unexpected selection bug*'
+        Get-CachedTestRunResult -ContainerName 'selection' | Should -BeNullOrEmpty
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly
+    }
+}
+
 Describe "ParallelTestExecution app-name resolution" {
     BeforeEach {
         Mock -ModuleName ParallelTestExecution Get-ALGoSetting { $true } -ParameterFilter {
@@ -457,7 +716,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             $previousRunnerTemp = $env:RUNNER_TEMP
             $previousTemp = $env:TEMP
             $containerName = "ut-$([guid]::NewGuid().ToString('N'))"
-            $stateFile = Join-Path ([System.IO.Path]::GetTempPath()) "parallelTests_$containerName.json"
+            $stateFile = $null
             Mock Get-AvailableBcTenantInfo {
                 @([PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' })
             }
@@ -472,7 +731,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             try {
                 $env:RUNNER_TEMP = $null
                 $env:TEMP = $null
-                $stateFile = Join-Path ([System.IO.Path]::GetTempPath()) "parallelTests_$containerName.json"
+                $stateFile = Get-TestRunStateFile -ContainerName $containerName
 
                 Invoke-ParallelTestExecution -parameters @{
                     containerName = $containerName

@@ -1,4 +1,8 @@
 Import-Module (Join-Path $PSScriptRoot "EnlistmentHelperFunctions.psm1" -Resolve)
+Import-Module (Join-Path $PSScriptRoot "BuildOptimization.psm1" -Resolve)
+
+$script:affectedAppNamesByRun = @{}
+$script:testRunSessionId = [guid]::NewGuid().ToString('N')
 
 # ALAppBuild.psm1 expects $env:INETROOT to point at the repo root and uses Write-Log
 # internally. Set both up before importing so its functions work in CI runners that don't
@@ -13,6 +17,29 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
     }
 }
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
+
+function Get-TestRunStateFile {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName
+    )
+
+    $project = if ($env:_project) { $env:_project } elseif ($env:ALGoProject) { $env:ALGoProject } else { $PWD.Path }
+    $runId = if ($env:GITHUB_RUN_ID) { $env:GITHUB_RUN_ID } else { $script:testRunSessionId }
+    $identity = @(
+        (Get-BaseFolder), $runId, $env:GITHUB_RUN_ATTEMPT, $env:GITHUB_JOB, $project, $ContainerName,
+        (Get-ALGoSetting -Key 'testType'), (Get-ALGoSetting -Key 'country'), (Get-ALGoSetting -Key 'bucketNumber')
+    ) | ConvertTo-Json -Compress
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $key = [BitConverter]::ToString($sha256.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($identity))).Replace('-', '')
+    } finally {
+        $sha256.Dispose()
+    }
+
+    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
+    return Join-Path $tempDir "parallelTests_$key.json"
+}
 
 <#
 .SYNOPSIS
@@ -186,10 +213,10 @@ function Get-AppRerunBudget {
 .SYNOPSIS
     Returns the cached parallel-test-run result for a container, or $null if no run has finished.
 .DESCRIPTION
-    The first call into Invoke-ParallelTestExecution dispatches every test app in parallel,
+    The first call into Invoke-ParallelTestExecution dispatches the selected test apps in parallel,
     waits for completion, and persists the final result to a state file in $env:RUNNER_TEMP
-    (cleaned up between jobs by GitHub Actions). Subsequent invocations from the per-project
-    override should short-circuit using this helper to avoid redoing the work.
+    scoped to the run, attempt, project and container. Subsequent invocations from the
+    per-project override short-circuit using this helper, including when no tests were selected.
 .OUTPUTS
     [bool] cached final result if dispatch completed; $null if no state file or not yet finished.
 #>
@@ -199,8 +226,7 @@ function Get-CachedTestRunResult {
         [string]$ContainerName
     )
 
-    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
-    $stateFile = Join-Path $tempDir "parallelTests_$ContainerName.json"
+    $stateFile = Get-TestRunStateFile -ContainerName $ContainerName
     if (-not (Test-Path $stateFile)) { return $null }
 
     try {
@@ -1306,11 +1332,7 @@ function Invoke-ParallelTestExecution {
         [string[]]$appNamesToTest
     )
 
-    # GitHub Actions provides a per-job temp directory ($RUNNER_TEMP) that is cleaned up between
-    # jobs, so a stale state file from a previous run cannot corrupt the current run. Fall back
-    # to the local temp directory outside of CI.
-    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
-    $stateFile = Join-Path $tempDir "parallelTests_$($parameters.containerName).json"
+    $stateFile = Get-TestRunStateFile -ContainerName $parameters.containerName
 
     # Short-circuit ONLY when a previous call ran to completion (wait+merge done). The
     # 'dispatched' flag is set before the foreach starts; if the call crashed mid-flight we must
@@ -1534,9 +1556,9 @@ function Invoke-ParallelTestExecution {
     across the container's tenants and caches the result for subsequent override invocations.
 .DESCRIPTION
     Run-AlPipeline calls the per-project RunTestsInBcContainer.ps1 once per test app. The first
-    call computes the bucket's app list and dispatches them all in parallel; subsequent calls in
-    the same job short-circuit on the cached final result. Returns the cached result if there
-    are no apps to run for the project's testType.
+    call filters the bucket's ordered app list using the existing affected-app calculation
+    before discovery or dispatch. Subsequent calls short-circuit on the cached final result,
+    including a successful no-tests-selected result. Container setup is unchanged.
 .PARAMETER parameters
     The Run-AlPipeline parameters hashtable (containerName, tenant, credential, etc.).
 .OUTPUTS
@@ -1556,10 +1578,31 @@ function Invoke-PerProjectTestRun {
     $bucketNumber = if ($testType -eq "Legacy") { Get-ALGoSetting -Key "bucketNumber" } else { 0 }
 
     $installed = Get-InstalledTestAppNames -ContainerName $parameters.containerName -Tenant $parameters.tenant -Country $country
-    $appNamesToTest = Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType $testType -BucketNumber $bucketNumber
+    $appNamesToTest = @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType $testType -BucketNumber $bucketNumber)
+    $stateFile = Get-TestRunStateFile -ContainerName $parameters.containerName
+    if ($appNamesToTest.Count -gt 0) {
+        # Only the parent computes this; workers receive the already selected list.
+        if (-not $script:affectedAppNamesByRun.ContainsKey($stateFile)) {
+            try {
+                $script:affectedAppNamesByRun[$stateFile] = Get-AffectedAppNames -BaseFolder (Get-BaseFolder)
+            } catch [System.ArgumentException], [System.IO.IOException] {
+                if ($_.Exception -isnot [System.IO.IOException] -and $_.FullyQualifiedErrorId -notlike '*,Microsoft.PowerShell.Commands.ConvertFromJsonCommand') {
+                    throw
+                }
+                Write-Host "::warning::BUILD OPTIMIZATION: Could not read change-detection inputs ($($_.Exception.Message)). Running all tests."
+                $script:affectedAppNamesByRun[$stateFile] = [PSCustomObject]@{ RunAll = $true; AppNames = @() }
+            }
+        }
+        $affected = $script:affectedAppNamesByRun[$stateFile]
+        if (-not $affected.RunAll) {
+            $appNamesToTest = @($appNamesToTest | Where-Object { $_ -in $affected.AppNames })
+        }
+    }
 
     if ($appNamesToTest.Count -eq 0) {
-        Write-Host "No test apps to run for testType '$testType' in this project."
+        Write-Host "No test apps selected for testType '$testType' in this project."
+        @{ completed = $true; finalResult = $true; noTestsSelected = $true } |
+            ConvertTo-Json | Set-Content -Path $stateFile -Force
         return $true
     }
 
