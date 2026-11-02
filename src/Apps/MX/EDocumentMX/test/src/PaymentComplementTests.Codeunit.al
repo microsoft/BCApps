@@ -163,6 +163,25 @@ codeunit 148757 "Payment Complement Tests"
     end;
 
     [Test]
+    procedure CancellationResponseMentioningBothStatusesIsRejected()
+    var
+        PaymentComplement: Record "MX Payment Complement";
+    begin
+        // [SCENARIO] A response without an explicit status that mentions both rejection and cancellation is treated as rejected
+        Initialize();
+
+        // [GIVEN] A stamped payment complement
+        CreateStampedComplement(PaymentComplement);
+
+        // [WHEN] The PAC answers with a rejection text that also contains the word "cancelado"
+        MXPaymentComplCancel.ApplyCancellationResponse(PaymentComplement, '<Resultado IdRespuesta="1" Descripcion="Rechazado: el documento no fue cancelado"/>');
+
+        // [THEN] The complement has a cancellation error instead of being canceled
+        PaymentComplement.Get(PaymentComplement."Entry No.");
+        Assert.AreEqual(PaymentComplement."Cancellation Status"::"Cancel Error", PaymentComplement."Cancellation Status", 'The cancellation status is incorrect.');
+    end;
+
+    [Test]
     procedure CancelRequestFailsWhenComplementNotStamped()
     var
         PaymentComplement: Record "MX Payment Complement";

@@ -55,6 +55,8 @@ codeunit 3370 "EDoc CFDI Email MX"
         if not MXConnectionSetup.Get() or not MXConnectionSetup."Send PDF Report" then
             exit;
 
+        if EDocument."Source Type" <> EDocument."Source Type"::Customer then
+            exit;
         if EDocument."Bill-to/Pay-to No." = '' then
             exit;
 

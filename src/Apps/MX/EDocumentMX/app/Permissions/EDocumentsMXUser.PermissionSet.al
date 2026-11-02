@@ -18,7 +18,7 @@ permissionset 3352 "E-Documents MX User"
         table "MX PAC Web Service Detail" = X,
         tabledata "MX PAC Web Service Detail" = R,
         table "MX Payment Complement" = X,
-        tabledata "MX Payment Complement" = R,
+        tabledata "MX Payment Complement" = Rim,
         codeunit "EDoc CFDI MX" = X,
         codeunit "MX Interfactura Impl." = X,
         codeunit "Export Interfactura MX" = X,

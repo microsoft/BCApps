@@ -19,9 +19,16 @@ codeunit 3369 "EDoc CFDI Read Draft MX" implements IStructuredFormatReader
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
         CFDIImport: Codeunit "EDoc CFDI Import MX";
     begin
         CFDIImport.ParseBasicInfo(EDocument, TempBlob);
+
+        EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocumentPurchaseHeader.DeleteAll();
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocumentPurchaseLine.DeleteAll(true);
+
         CFDIImport.ParseLines(EDocument, TempBlob);
 
         EDocumentPurchaseHeader.InsertForEDocument(EDocument);

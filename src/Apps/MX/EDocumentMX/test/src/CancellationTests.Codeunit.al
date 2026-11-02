@@ -131,6 +131,48 @@ codeunit 148751 "CFDI Cancellation Tests"
         Assert.AreEqual(Enum::"E-Document Service Status"::"Cancel Error", ResultStatus, 'The cancellation status is incorrect.');
     end;
 
+    [Test]
+    procedure StatusResponseWithoutCancellationIdKeepsSavedId()
+    var
+        EDocument: Record "E-Document";
+        ResultStatus: Enum "E-Document Service Status";
+    begin
+        // [SCENARIO] A status response that does not repeat the cancellation ID keeps the saved one, so the next check polls the same request
+        Initialize();
+
+        // [GIVEN] An E-Document with a cancellation in progress
+        EDocument."CFDI Cancellation ID" := 'CANCEL-001';
+        EDocument.Insert(true);
+
+        // [WHEN] A status response without a cancellation ID is processed
+        CFDICancellation.ProcessCancellationResponse('<Resultado IdRespuesta="1" Estatus="EnProceso"/>', EDocument, ResultStatus);
+
+        // [THEN] The saved cancellation ID is kept
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual('CANCEL-001', EDocument."CFDI Cancellation ID", 'The cancellation ID must be kept.');
+    end;
+
+    [Test]
+    procedure RejectedCancellationClearsCancellationId()
+    var
+        EDocument: Record "E-Document";
+        ResultStatus: Enum "E-Document Service Status";
+    begin
+        // [SCENARIO] A rejected cancellation clears the cancellation ID, so the next Cancel sends a new request
+        Initialize();
+
+        // [GIVEN] An E-Document with a cancellation in progress
+        EDocument."CFDI Cancellation ID" := 'CANCEL-001';
+        EDocument.Insert(true);
+
+        // [WHEN] The status check returns a rejection
+        CFDICancellation.ProcessCancellationResponse('<Resultado IdRespuesta="1" Estatus="Rechazado" Resultado="Cancellation rejected by the receiver"/>', EDocument, ResultStatus);
+
+        // [THEN] The cancellation ID is cleared
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual('', EDocument."CFDI Cancellation ID", 'The cancellation ID must be cleared after a rejection.');
+    end;
+
     local procedure Initialize()
     begin
     end;

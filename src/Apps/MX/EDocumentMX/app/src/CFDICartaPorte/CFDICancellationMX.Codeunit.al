@@ -207,10 +207,10 @@ codeunit 3359 "CFDI Cancellation MX"
             exit('EnProceso');
         if StrPos(FullTxt, 'en proceso') > 0 then
             exit('EnProceso');
-        if StrPos(FullTxt, 'cancelado') > 0 then
-            exit('Cancelado');
         if StrPos(FullTxt, 'rechazado') > 0 then
             exit('Rechazado');
+        if StrPos(FullTxt, 'cancelado') > 0 then
+            exit('Cancelado');
 
         exit('Rechazado');
     end;
@@ -224,7 +224,11 @@ codeunit 3359 "CFDI Cancellation MX"
         TrySetFieldValueByName(RecRef, 'Service Status', ServiceStatus);
         TrySetFieldValueByName(RecRef, 'Error Message', CopyStr(ResultText, 1, 250));
         TrySetFieldValueByName(RecRef, 'Error Description', CopyStr(ResultText, 1, 250));
-        TrySetFieldValueByName(RecRef, 'CFDI Cancellation ID', CopyStr(CancellationId, 1, 50));
+        if ServiceStatus = Enum::"E-Document Service Status"::"Cancel Error" then
+            TrySetFieldValueByName(RecRef, 'CFDI Cancellation ID', '')
+        else
+            if CancellationId <> '' then
+                TrySetFieldValueByName(RecRef, 'CFDI Cancellation ID', CopyStr(CancellationId, 1, 50));
         TrySetDateTimeOrTextByName(RecRef, 'Date/Time Canceled', DateTimeCancelledTxt);
 
         RecRef.Modify();

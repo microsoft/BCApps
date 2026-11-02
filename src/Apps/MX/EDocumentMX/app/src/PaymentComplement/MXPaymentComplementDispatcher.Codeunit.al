@@ -24,6 +24,7 @@ codeunit 3365 "MX Payment Compl. Dispatcher"
     begin
         Complement.SetFilter("E-Document Message Entry No.", '>%1', 0);
         Complement.SetRange(Reversed, false);
+        Complement.SetRange("Stamped UUID", '');
         if not Complement.FindSet() then
             exit;
         repeat

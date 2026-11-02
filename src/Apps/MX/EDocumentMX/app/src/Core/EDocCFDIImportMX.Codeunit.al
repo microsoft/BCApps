@@ -27,7 +27,7 @@ codeunit 3368 "EDoc CFDI Import MX"
         RFC: Text;
         VendorNo: Code[20];
         DocDate: Date;
-        AmountExclVAT, AmountInclVAT : Decimal;
+        AmountExclVAT, AmountInclVAT, Discount : Decimal;
     begin
         TempXMLBuffer.DeleteAll();
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
@@ -59,7 +59,8 @@ codeunit 3368 "EDoc CFDI Import MX"
             EDocument."Document Date" := DocDate;
 
         EvaluateDecimal(GetAttr(TempXMLBuffer, RootPath + '/@SubTotal'), AmountExclVAT);
-        EDocument."Amount Excl. VAT" := AmountExclVAT;
+        EvaluateDecimal(GetAttr(TempXMLBuffer, RootPath + '/@Descuento'), Discount);
+        EDocument."Amount Excl. VAT" := AmountExclVAT - Discount;
 
         EvaluateDecimal(GetAttr(TempXMLBuffer, RootPath + '/@Total'), AmountInclVAT);
         EDocument."Amount Incl. VAT" := AmountInclVAT;

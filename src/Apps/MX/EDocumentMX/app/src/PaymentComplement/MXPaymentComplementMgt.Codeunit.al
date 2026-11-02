@@ -43,6 +43,9 @@ codeunit 3357 "MX Payment Complement Mgt."
         PaymentRef: RecordRef;
         Payload: Codeunit "Temp Blob";
     begin
+        // Serialize per payment so concurrent occurrences of the same payment do not create duplicate complements
+        Payment.LockTable();
+        Payment.Get(Payment."Entry No.");
         Complement.SetRange("Payment Entry No.", Payment."Entry No.");
         Complement.SetRange(Reversed, false);
         if Complement.FindFirst() then begin
