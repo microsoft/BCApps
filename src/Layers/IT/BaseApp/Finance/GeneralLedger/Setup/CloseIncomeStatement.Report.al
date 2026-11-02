@@ -71,7 +71,6 @@ report 94 "Close Income Statement"
                         if not GroupSum() then begin
                             TotalAmount += Amount;
                             TotalAmountAddCurr += "Additional-Currency Amount";
-                            TotalSourceCurrencyAmount += "Source Currency Amount";
 
                             GetGLEntryDimensions("Entry No.", TempDimBuf, "Dimension Set ID");
                         end;
@@ -171,7 +170,8 @@ report 94 "Close Income Statement"
                                     GenJnlLine.UpdateLineBalance();
                                 end;
 
-                                HandleGenJnlLine(-TempEntryNoAmountBuffer.Amount2, SourceCurrencyAmountIsAdditionalCurrency);
+                                HandleGenJnlLine(
+                                    -TempEntryNoAmountBuffer.Amount2, SourceCurrencyAmountIsAdditionalCurrency, true);
                                 OnGLEntryOnPostDataItemOnAfterHandleGenJnlLine(GenJnlLine, TempEntryNoAmountBuffer);
                             end;
                         until TempEntryNoAmountBuffer.Next() = 0;
@@ -248,7 +248,7 @@ report 94 "Close Income Statement"
                         GenJnlLine."Account No." := NetLossAccount."No.";
                     GenJnlLine."Source Currency Code" := '';
                     OnGLAccountOnOnPostDataItemOnAfterGenJnlLinePopulateFields(GenJnlLine, RetainedEarningsGLAcc);
-                    HandleGenJnlLine(TotalAmountAddCurr, TotalAmount = 0);
+                    HandleGenJnlLine(TotalAmountAddCurr, TotalAmount = 0, false);
                     Window.Update(1, GenJnlLine."Account No.");
                 end;
             end;
@@ -667,7 +667,8 @@ report 94 "Close Income Statement"
     /// This includes setting up additional currency fields and calling the posting routine.
     /// </remarks>
     /// <param name="AmountACY">Closed amount in the additional reporting currency</param>
-    local procedure HandleGenJnlLine(AmountACY: Decimal; SourceCurrencyAmountIsAdditionalCurrency: Boolean)
+    local procedure HandleGenJnlLine(
+        AmountACY: Decimal; SourceCurrencyAmountIsAdditionalCurrency: Boolean; AccumulateSourceCurrencyAmount: Boolean)
     var
         CloseIncStmtACYHandler: Codeunit "Close Inc. Stmt. ACY Handler";
         NoSeries: Codeunit "No. Series";
@@ -690,6 +691,8 @@ report 94 "Close Income Statement"
             if (GenJnlLine.Amount <> 0) or (GenJnlLine."Source Currency Amount" <> 0) or
                (GenJnlLine."Source Curr. VAT Amount" <> 0)
             then begin
+                if AccumulateSourceCurrencyAmount then
+                    TotalSourceCurrencyAmount -= GenJnlLine."Source Currency Amount";
                 // The source currency of the closing line is not necessarily the additional reporting currency,
                 // so the closed ACY amount is passed explicitly instead of being recalculated at the closing date rate.
                 UseClosedACYAmount :=
@@ -708,8 +711,11 @@ report 94 "Close Income Statement"
         end else
             if not ZeroGenJnlAmount(AmountACY) or (GenJnlLine."Source Currency Code" <> '') or
                (GenJnlLine."Source Currency Amount" <> 0) or (GenJnlLine."Source Curr. VAT Amount" <> 0)
-            then
+            then begin
+                if AccumulateSourceCurrencyAmount then
+                    TotalSourceCurrencyAmount -= GenJnlLine."Source Currency Amount";
                 GenJnlLine.Insert();
+            end;
     end;
 
     /// <summary>
@@ -736,7 +742,6 @@ report 94 "Close Income Statement"
         GLEntrySource."Source Currency Amount" := GLEntry."Source Currency Amount";
         GLEntrySource."Source Currency VAT Amount" := GLEntry."Source Currency VAT Amount";
         TotalAmount += GLEntrySource.Amount;
-        TotalSourceCurrencyAmount += GLEntrySource."Source Currency Amount";
         GLEntry.CalcSums("Additional-Currency Amount");
         GLEntrySource."Additional-Currency Amount" := GLEntry."Additional-Currency Amount";
         TotalAmountAddCurr += GLEntrySource."Additional-Currency Amount";

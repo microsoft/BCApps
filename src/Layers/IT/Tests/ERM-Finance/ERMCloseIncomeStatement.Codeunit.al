@@ -855,6 +855,7 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetFilter("G/L Account No.", '%1|%2', GLAccountNo, NetLossAccountNo);
         Assert.RecordCount(GLEntry, 2);
         GLEntry.CalcSums("Source Currency Amount");
         Assert.AreEqual(0, GLEntry."Source Currency Amount", 'Closing source currency amounts are not balanced.');
@@ -912,6 +913,7 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetFilter("G/L Account No.", '%1|%2', GLAccountNo, NetLossAccountNo);
         Assert.RecordCount(GLEntry, 2);
         GLEntry.CalcSums("Source Currency Amount");
         Assert.AreEqual(0, GLEntry."Source Currency Amount", 'Closing source currency amounts are not balanced.');
@@ -920,6 +922,65 @@ codeunit 134228 "ERM Close Income Statement"
         GLEntry.FindFirst();
         Assert.AreEqual(100, GLEntry.Amount, 'Incorrect net loss amount.');
         Assert.AreEqual(0, GLEntry."Source Currency Amount", 'Incorrect net loss source currency amount.');
+
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseIncomeStatementPostsHistoricalAdditionalCurrencyAsSourceAmount()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        GLAccountNo: Code[20];
+        NetProfitAccountNo: Code[20];
+        NetLossAccountNo: Code[20];
+        DocumentNo: Code[20];
+        PostingDate: Date;
+    begin
+        // [SCENARIO] Net loss balances the historical ACY amount used as the closing source amount.
+        Initialize();
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+
+        UpdateCurOnGeneralLedgerSetup('');
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Check Source Curr. Consistency", true);
+        GeneralLedgerSetup.Modify(true);
+
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::Customer, '', 0);
+        GLAccountNo := LibraryERM.CreateGLAccountNo();
+        PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
+        InsertGLEntryForCloseIncome(PostingDate, GLAccountNo, 100, 100, '', 0, 0);
+
+        LibraryFiscalYear.CloseFiscalYear();
+        PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
+        DocumentNo := LibraryUtility.GenerateGUID();
+        RunCloseIncomeStatementForSourceVAT(
+            GenJournalLine, PostingDate, PostToRetainedEarningsAcc::Balance, false, false, DocumentNo,
+            NetProfitAccountNo, NetLossAccountNo, GLAccountNo);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetFilter("G/L Account No.", '%1|%2', GLAccountNo, NetLossAccountNo);
+        Assert.RecordCount(GLEntry, 2);
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(0, GLEntry."Source Currency Amount", 'Closing source currency amounts are not balanced.');
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        Assert.AreEqual(-100, GLEntry."Source Currency Amount", 'The closing line must use the historical ACY amount as its source amount.');
+        GLEntry.SetRange("G/L Account No.", NetLossAccountNo);
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        Assert.AreEqual(100, GLEntry."Source Currency Amount", 'Net loss must balance the source amount assigned to the closing line.');
 
         LibrarySetupStorage.Restore();
     end;
