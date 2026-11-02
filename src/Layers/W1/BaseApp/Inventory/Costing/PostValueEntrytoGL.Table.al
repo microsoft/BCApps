@@ -60,7 +60,7 @@ table 5811 "Post Value Entry to G/L"
     /// has been fully posted to the general ledger in both local and additional reporting currency.
     /// </summary>
     /// <returns>True if the record is no longer needed to post inventory cost to the general ledger.</returns>
-    procedure HasNothingToPostToGL(): Boolean
+    internal procedure HasNothingToPostToGL(): Boolean
     var
         ValueEntry: Record "Value Entry";
         InventorySetup: Record "Inventory Setup";
@@ -83,7 +83,7 @@ table 5811 "Post Value Entry to G/L"
     /// <param name="ValueEntry">The value entry to check.</param>
     /// <param name="ExpectedCostPostingToGL">Specifies whether expected cost is posted to the general ledger.</param>
     /// <returns>True if no actual cost, and no expected cost when expected cost posting is enabled, remains to be posted.</returns>
-    procedure IsFullyPostedToGL(ValueEntry: Record "Value Entry"; ExpectedCostPostingToGL: Boolean) Result: Boolean
+    internal procedure IsFullyPostedToGL(ValueEntry: Record "Value Entry"; ExpectedCostPostingToGL: Boolean) Result: Boolean
     begin
         Result :=
             (ValueEntry."Cost Amount (Actual)" = ValueEntry."Cost Posted to G/L") and
