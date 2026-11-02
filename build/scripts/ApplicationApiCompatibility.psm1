@@ -332,6 +332,8 @@ function Add-ApplicationApiSymbols {
                 if ($symbol.TryGetProperty('Properties', [ref]$properties)) {
                     $access = @($properties.EnumerateArray() | Where-Object { $_.GetProperty('Name').GetString() -ceq 'Access' })
                     if ($access.Count -eq 1 -and $access[0].GetProperty('Value').GetString() -ieq 'Internal') { continue }
+                    $obsoleteState = @($properties.EnumerateArray() | Where-Object { $_.GetProperty('Name').GetString() -ceq 'ObsoleteState' })
+                    if ($obsoleteState.Count -eq 1 -and $obsoleteState[0].GetProperty('Value').GetString() -iin @('Moved', 'Removed')) { continue }
                 }
                 $memberCount = $Snapshot.PageParts.Count + $Snapshot.PageActions.Count + $Snapshot.PageFields.Count + $Snapshot.PageCueGroups.Count + $Snapshot.PageControls.Count + $Snapshot.Methods.Count
                 if ($inspectMembers) {

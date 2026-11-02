@@ -294,6 +294,59 @@ Describe 'Application API compatibility prototype' {
         { Get-ApiCurrentSnapshot } | Should -Throw '*Ambiguous exposed symbol*'
     }
 
+    It 'ignores <State> table placeholders when collecting method hosts with the placeholder <Order>' -TestCases @(
+        @{ State = 'Moved'; Order = 'first' },
+        @{ State = 'Moved'; Order = 'last' },
+        @{ State = 'Removed'; Order = 'first' },
+        @{ State = 'Removed'; Order = 'last' }
+    ) {
+        param($State, $Order)
+        $table = @{ Id = 231; Name = 'Reason Code'; Methods = @(@{ Name = 'Process' }) }
+        $placeholder = @{
+            Id = 231; Name = 'Reason Code'
+            Properties = @(@{ Name = 'ObsoleteState'; Value = $State })
+            Methods = @(@{ Name = 'Process' })
+        }
+        $script:currentBase = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Collections @{ Tables = @($placeholder) }
+        Write-ApiDestination -ExtraCollections @{ Tables = @($table) }
+        $dependencies = if ($Order -eq 'first') { @($script:currentBase, $destination) } else { @($destination, $script:currentBase) }
+        $script:currentApplication = New-ApiTestPackage -Name 'Application' -Id $applicationId -Propagate $true -Dependencies $dependencies
+
+        $snapshot = Get-ApplicationApiSnapshot -ApplicationPackagePath $script:currentApplication.Path `
+            -DependencyPackagePaths @($script:currentBase.Path, $destination.Path) -MethodNames @('Process')
+        $snapshot.MethodObjects['Tables:231'].OwnerId | Should -Be $destinationId
+        $methods = @($snapshot.Methods | Where-Object OwnerKey -EQ 'Tables:231')
+        $methods.Count | Should -Be 1
+        $methods[0].OwnerId | Should -Be $destinationId
+        $snapshot.SchemaObjects.Count | Should -Be 2
+    }
+
+    It 'still rejects duplicate live table method hosts with obsolete state <State>' -TestCases @(
+        @{ State = 'No' },
+        @{ State = 'Pending' }
+    ) {
+        param($State)
+        $table = @{
+            Id = 231; Name = 'Reason Code'
+            Properties = @(@{ Name = 'ObsoleteState'; Value = $State })
+        }
+        $script:currentBase = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Collections @{ Tables = @($table) }
+        Write-ApiDestination -ExtraCollections @{ Tables = @($table) }
+        { Get-ApplicationApiSnapshot -ApplicationPackagePath $script:currentApplication.Path `
+            -DependencyPackagePaths @($script:currentBase.Path, $destination.Path) -MethodNames @('Process') } |
+            Should -Throw '*Ambiguous exposed symbol*'
+    }
+
+    It 'does not treat a <State> page as an exposed replacement' -TestCases @(
+        @{ State = 'Moved' },
+        @{ State = 'Removed' }
+    ) {
+        param($State)
+        $page.Properties = @(@{ Name = 'ObsoleteState'; Value = $State })
+        Write-ApiDestination
+        (Compare-ApplicationApiSnapshot -Baseline $script:baseline -Current (Get-ApiCurrentSnapshot)).Verdict | Should -Be 'Breaking'
+    }
+
     It 'keeps table and field ownership outside the non-table comparison' {
         Write-ApiDestination -ExtraCollections @{ Tables = @(@{ Id = 621; Name = 'Schema requires AppSourceCop'; Fields = @(@{ Id = 1; Name = 'Moved field' }) }) }
         $snapshot = Get-ApiCurrentSnapshot
