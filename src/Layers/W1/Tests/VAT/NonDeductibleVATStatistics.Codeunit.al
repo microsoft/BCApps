@@ -757,6 +757,7 @@ codeunit 134287 "Non-Deductible VAT Statistics"
         PurchaseCreditMemoPage: TestPage "Purchase Credit Memo";
         GLAccountNo: Code[20];
         PostedDocumentNo: Code[20];
+        ExpectedNonDeductibleVATAmount: Decimal;
         ExpectedSign: Integer;
         LineIndex: Integer;
     begin
@@ -788,7 +789,7 @@ codeunit 134287 "Non-Deductible VAT Statistics"
             PurchaseLine.Modify(true);
         end;
 
-        // [GIVEN] Statistics show VAT of 0.06, of which 0.03 is non-deductible.
+        // [GIVEN] Statistics show VAT of 0.06 with non-deductible VAT calculated by the localization.
         if DocumentType = DocumentType::Invoice then begin
             PurchaseInvoicePage.OpenEdit();
             PurchaseInvoicePage.Filter.SetFilter("No.", PurchaseHeader."No.");
@@ -802,17 +803,21 @@ codeunit 134287 "Non-Deductible VAT Statistics"
             PurchaseCreditMemoPage.Close();
             ExpectedSign := -1;
         end;
+        ExpectedNonDeductibleVATAmount := LibraryVariableStorage.DequeueDecimal();
+        if not PricesIncludingVAT then
+            Assert.AreEqual(0.03, ExpectedNonDeductibleVATAmount, 'Statistics must allocate half of the total VAT.');
+        LibraryVariableStorage.AssertEmpty();
 
-        // [WHEN] Post two VAT amounts of 0.03 with allocated non-deductible amounts of 0.02 and 0.01.
+        // [WHEN] Post two VAT amounts of 0.03 with the non-deductible amounts allocated by Statistics.
         PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
-        // [THEN] VAT and G/L totals match statistics, rather than rounding each half of 0.03 to 0.02.
+        // [THEN] VAT and G/L totals match Statistics, including localization-specific rounding.
         FindVATEntry(VATEntry, PostedDocumentNo);
         Assert.RecordCount(VATEntry, 2);
         VATEntry.CalcSums(Amount, "Non-Deductible VAT Amount");
-        VATEntry.TestField("Non-Deductible VAT Amount", ExpectedSign * 0.03);
-        VATEntry.TestField(Amount, ExpectedSign * 0.03);
-        VerifyGLEntry(PostedDocumentNo, VATPostingSetup."Non-Ded. Purchase VAT Account", 2, ExpectedSign * 0.03);
+        VATEntry.TestField("Non-Deductible VAT Amount", ExpectedSign * ExpectedNonDeductibleVATAmount);
+        VATEntry.TestField(Amount, ExpectedSign * (0.06 - ExpectedNonDeductibleVATAmount));
+        VerifyGLEntry(PostedDocumentNo, VATPostingSetup."Non-Ded. Purchase VAT Account", 2, ExpectedSign * ExpectedNonDeductibleVATAmount);
         VerifyGLEntryByDocumentNo(PostedDocumentNo, 0);
     end;
 
@@ -1037,10 +1042,13 @@ codeunit 134287 "Non-Deductible VAT Statistics"
 
     [PageHandler]
     procedure PurchaseStatisticsVerifyAllocatedNonDedVATPageHandler(var PurchaseStatisticsPage: TestPage "Purchase Statistics")
+    var
+        NonDeductibleVATAmount: Decimal;
     begin
         PurchaseStatisticsPage.SubForm."VAT Amount".AssertEquals(0.06);
-        PurchaseStatisticsPage.SubForm.NonDeductibleAmount.AssertEquals(0.03);
-        PurchaseStatisticsPage.SubForm.DeductibleAmount.AssertEquals(0.03);
+        NonDeductibleVATAmount := PurchaseStatisticsPage.SubForm.NonDeductibleAmount.AsDecimal();
+        PurchaseStatisticsPage.SubForm.DeductibleAmount.AssertEquals(0.06 - NonDeductibleVATAmount);
+        LibraryVariableStorage.Enqueue(NonDeductibleVATAmount);
     end;
 
     [PageHandler]
