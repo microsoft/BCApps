@@ -55,6 +55,45 @@ codeunit 134843 AmtAutoFormatCurrLCYFCYSymBf
 
     [HandlerFunctions('SessionSettingsHandler')]
     [Test]
+    procedure XmlFormatOmitsCurrencySymbolsBeforeAmount()
+    var
+        AmountAutoFormatCurrency: Record "Amount AutoFormat Currency";
+        Currency: Record Currency;
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        AmountAutoFormatCurrencyTestPage: TestPage "Amount AutoFormat Currency";
+    begin
+        // [SCENARIO 625894] XML formatting omits currency symbols before amounts without rounding the stored values.
+        Initialize();
+        GeneralLedgerSetup := SetShowCurrencyLCYAndFCYSymbol();
+        GeneralLedgerSetup."Currency Symbol Position" := GeneralLedgerSetup."Currency Symbol Position"::"Before Amount";
+        GeneralLedgerSetup.Modify();
+        Currency := CreateFCYCurrency(Enum::"Currency Symbol Position"::"Before Amount");
+        RequestSessionUpdate();
+
+        AmountAutoFormatCurrency := CreateAmountFormatCurrencyTestRecord(Currency.Code);
+        AmountAutoFormatCurrency.Case1LCY := 1234.56789;
+        AmountAutoFormatCurrency.Case2LCY := -1234.56789;
+        AmountAutoFormatCurrency.Case1FCY := 1234.56789;
+        AmountAutoFormatCurrency.Case2FCY := -1234.56789;
+        AmountAutoFormatCurrency.Modify();
+
+        AmountAutoFormatCurrencyTestPage.Trap();
+        Page.Run(Page::"Amount AutoFormat Currency", AmountAutoFormatCurrency);
+        AmountAutoFormatCurrencyTestPage.GoToRecord(AmountAutoFormatCurrency);
+        Assert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case1LCY, GeneralLedgerSetup."Amount Decimal Places", GeneralLedgerSetup."Local Currency Symbol", GeneralLedgerSetup."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case1LCY.Value(), 'Page formatting must still include the LCY symbol.');
+        Assert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case1FCY, Currency."Amount Decimal Places", Currency.Symbol, Currency."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case1FCY.Value(), 'Page formatting must still include the FCY symbol.');
+        AmountAutoFormatCurrencyTestPage.Close();
+
+        Assert.AreEqual('1234.56789', Format(AmountAutoFormatCurrency.Case1LCY, 0, 9), 'XML formatting of an LCY amount must omit the currency symbol and preserve precision.');
+        Assert.AreEqual('-1234.56789', Format(AmountAutoFormatCurrency.Case2LCY, 0, 9), 'XML formatting of an LCY unit amount must omit the currency symbol and preserve the sign and precision.');
+        Assert.AreEqual('1234.56789', Format(AmountAutoFormatCurrency.Case1FCY, 0, 9), 'XML formatting of an FCY amount must omit the currency symbol and preserve precision.');
+        Assert.AreEqual('-1234.56789', Format(AmountAutoFormatCurrency.Case2FCY, 0, 9), 'XML formatting of an FCY unit amount must omit the currency symbol and preserve the sign and precision.');
+        AmountAutoFormatCurrency.Case1FCY := 0;
+        Assert.AreEqual('0', Format(AmountAutoFormatCurrency.Case1FCY, 0, 9), 'XML formatting of a zero FCY amount must omit the currency symbol.');
+    end;
+
+    [HandlerFunctions('SessionSettingsHandler')]
+    [Test]
     procedure ResetSetup_NotATest()
     begin
         // if a test fails, it leaves the General Ledger Setup in an unknown state. Other tests can't handle showing the currency, so this fake test is to ensure te setup is reset so failures appear here only and not in other unrelated tests.
