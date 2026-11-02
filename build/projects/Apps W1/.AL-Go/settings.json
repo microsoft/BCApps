@@ -1,6 +1,9 @@
 {
     "$schema":  "https://raw.githubusercontent.com/spetersenms/AL-Go/spetersen/separateTestActionCodeCoverage/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps W1",
+    "workspaceCompilation":  {
+                                 "generateCode":  true
+                             },
     "appFolders":  [
                        "../../../src/Apps/W1/AgentDesignExperience/app",
                        "../../../src/Apps/W1/AgentSamples/app",

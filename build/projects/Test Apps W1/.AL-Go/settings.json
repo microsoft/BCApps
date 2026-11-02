@@ -1,6 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/spetersenms/AL-Go/spetersen/separateTestActionCodeCoverage/Actions/.Modules/settings.schema.json",
   "projectName": "Unit Tests",
+  "overwriteSettings": [
+    "buildModes"
+  ],
   "gitHubRunner": "GitHub-BCAppsPL",
   "country": "w1",
   "projectsToTest": [
@@ -17,9 +20,7 @@
   "companyName": "Empty Company",
   "buildModes": [
     "IntegrationTests",
-    "UncategorizedTests",
-    "LegacyTestsBucket1",
-    "LegacyTestsBucket2"
+    "UncategorizedTests"
   ],
   "ConditionalSettings": [
     {
