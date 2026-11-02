@@ -474,6 +474,8 @@ codeunit 134333 "ERM Purchase Prepayments"
         InitializeInvoiceCancellation(LibrarySetupStorage);
         InvoicedQuantity := 1;
         OrderQuantity := 1;
+        // Fully invoiced lines have no remaining quantity from which to deduct prepayment.
+        ExpectedPrepmtToDeduct := 0;
         if PartiallyInvoice then begin
             InvoicedQuantity := LibraryRandom.RandIntInRange(1, 5);
             // Keep the remaining line amount above the full 50% prepayment.
