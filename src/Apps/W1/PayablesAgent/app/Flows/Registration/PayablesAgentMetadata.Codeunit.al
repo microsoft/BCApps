@@ -149,6 +149,7 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Billing Log");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Billing Task Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Known Sender");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Payables Agent Task");
     end;
 
     internal procedure RegisterCapability()
