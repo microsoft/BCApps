@@ -63,9 +63,10 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
             PAGE::"APIV1 - Sales Invoices",
             InvoiceServiceNameTxt,
             InvoiceServiceLinesNameTxt);
-        ASSERTERROR LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
+        ASSERTERROR LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
 
-        // [THEN] the response text should be empty
+        // [THEN] the request is rejected as a bad request and the response text is empty
+        Assert.ExpectedError('Response code is 400 (BadRequest)');
         Assert.AreEqual('', ResponseText, 'Response JSON should be blank');
     end;
 

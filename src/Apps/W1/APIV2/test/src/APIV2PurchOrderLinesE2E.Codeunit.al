@@ -59,9 +59,10 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
             Page::"APIV2 - Purchase Orders",
             OrderServiceNameTxt,
             OrderServiceLinesNameTxt);
-        asserterror LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
 
-        // [THEN] the response text should be empty
+        // [THEN] the request is rejected as a bad request and the response text is empty
+        Assert.ExpectedError('Response code is 400 (BadRequest)');
         Assert.AreEqual('', ResponseText, 'Response JSON should be blank');
     end;
 
