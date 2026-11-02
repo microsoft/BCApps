@@ -180,17 +180,14 @@ codeunit 148296 "Exp. Report Per Diem API Test"
             ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', 100);
         ExpenseReportLine.SetSkipRuleApplication(false);
 
-        ExpenseReportLinePerDiem.Init();
-        ExpenseReportLinePerDiem."Expense Report No." := ExpenseReportLine."Document No.";
-        ExpenseReportLinePerDiem."Expense Report Line No." := ExpenseReportLine."Line No.";
-        ExpenseReportLinePerDiem."Line No." := 10000;
-        ExpenseReportLinePerDiem.Date := WorkDate();
-        ExpenseReportLinePerDiem."Per Diem Amount" := 100;
+        LibraryExpense.CreateExpenseReportLinePerDiem(
+            ExpenseReportLinePerDiem, ExpenseReportLine, ExpenseCategory.Code,
+            ExpenseReportLine."Expense Subcategory Code", ExpenseReportLine."Expense Location", WorkDate(), false, false, false, 100);
         ExpenseReportLinePerDiem."Original Per Diem Amount" := 100;
         ExpenseReportLinePerDiem."Breakfast Reduction Percent" := 10;
         ExpenseReportLinePerDiem."Lunch Reduction Percent" := 20;
         ExpenseReportLinePerDiem."Dinner Reduction Percent" := 30;
-        ExpenseReportLinePerDiem.Insert(true);
+        ExpenseReportLinePerDiem.Modify(true);
 
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'Meals must comply with the per-diem policy.');
