@@ -170,7 +170,7 @@ codeunit 8408 "IC Dimension Management"
     /// <param name="ICPartnerCode">Intercompany partner code</param>
     /// <param name="TransactionSource">Transaction source type</param>
     /// <param name="LineNo">Line number within the transaction</param>
-    internal procedure DeleteICDocDim(TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer)
+    procedure DeleteICDocDim(TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer)
     var
         ICDocDim: Record "IC Document Dimension";
     begin
@@ -188,7 +188,7 @@ codeunit 8408 "IC Dimension Management"
     /// <param name="ICPartnerCode">Intercompany partner code</param>
     /// <param name="TransactionSource">Transaction source type</param>
     /// <param name="LineNo">Line number within the transaction</param>
-    internal procedure DeleteICJnlDim(TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer)
+    procedure DeleteICJnlDim(TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer)
     var
         ICJnlDim: Record "IC Inbox/Outbox Jnl. Line Dim.";
     begin
@@ -209,6 +209,9 @@ codeunit 8408 "IC Dimension Management"
             DimCode := ICDim."Map-to Dimension Code";
 
         OnAfterConvertICDimtoDim(FromICDimCode, DimCode);
+#if not CLEAN30
+        DimensionManagement.RunOnAfterConvertICDimtoDim(FromICDimCode, DimCode);
+#endif
     end;
 
     internal procedure ConvertICDimValuetoDimValue(FromICDimCode: Code[20]; FromICDimValue: Code[20]) DimValueCode: Code[20]
@@ -219,6 +222,9 @@ codeunit 8408 "IC Dimension Management"
             DimValueCode := ICDimValue."Map-to Dimension Value Code";
 
         OnAfterConvertICDimValuetoDimValue(FromICDimCode, FromICDimValue, DimValueCode);
+#if not CLEAN30
+        DimensionManagement.RunOnAfterConvertICDimValuetoDimValue(FromICDimCode, FromICDimValue, DimValueCode);
+#endif
     end;
 
     /// <summary>
@@ -235,6 +241,9 @@ codeunit 8408 "IC Dimension Management"
             ICDimCode := Dim."Map-to IC Dimension Code";
 
         OnAfterConvertDimtoICDim(FromDim, ICDimCode);
+#if not CLEAN30
+        DimensionManagement.RunOnAfterConvertDimtoICDim(FromDim, ICDimCode);
+#endif
     end;
 
     /// <summary>
@@ -249,10 +258,16 @@ codeunit 8408 "IC Dimension Management"
         DimValue: Record "Dimension Value";
     begin
         OnBeforeConvertDimValuetoICDimVal(DimValue);
+#if not CLEAN30
+        DimensionManagement.RunOnBeforeConvertDimValuetoICDimVal(DimValue);
+#endif
         if DimValue.Get(FromDim, FromDimValue) then
             ICDimValueCode := DimValue."Map-to IC Dimension Value Code";
 
         OnAfterConvertDimValuetoICDimVal(FromDim, FromDimValue, ICDimValueCode);
+#if not CLEAN30
+        DimensionManagement.RunOnAfterConvertDimValuetoICDimVal(FromDim, FromDimValue, ICDimValueCode);
+#endif
     end;
 
     /// <summary>
@@ -271,6 +286,9 @@ codeunit 8408 "IC Dimension Management"
         Result := false;
         IsHandled := false;
         OnBeforeCheckICDimValue(ICDimCode, ICDimValCode, Result, IsHandled);
+#if not CLEAN30
+        DimensionManagement.RunOnBeforeCheckICDimValue(ICDimCode, ICDimValCode, Result, IsHandled);
+#endif
         if IsHandled then
             exit(Result);
 
@@ -308,6 +326,9 @@ codeunit 8408 "IC Dimension Management"
           ICDimVal."Dimension Value Type" in [ICDimVal."Dimension Value Type"::Standard, ICDimVal."Dimension Value Type"::"Begin-Total"];
 
         OnCheckICDimValueAllowed(ICDimVal, DimValueAllowed);
+#if not CLEAN30 and not CLEANSCHEMA30
+        DimensionManagement.RunOnCheckICDimValueAllowed(ICDimVal, DimValueAllowed);
+#endif
 
         exit(DimValueAllowed);
     end;
@@ -327,6 +348,9 @@ codeunit 8408 "IC Dimension Management"
         Result := false;
         IsHandled := false;
         OnBeforeCheckICDim(ICDimCode, Result, IsHandled);
+#if not CLEAN30
+        DimensionManagement.RunOnBeforeCheckICDim(ICDimCode, Result, IsHandled);
+#endif
         if IsHandled then
             exit(Result);
 
@@ -356,6 +380,9 @@ codeunit 8408 "IC Dimension Management"
         TempDimSetEntry: Record "Dimension Set Entry" temporary;
     begin
         OnBeforeCreateDimSetIDFromICDocDim(DimValue);
+#if not CLEAN30
+        DimensionManagement.RunOnBeforeCreateDimSetIDFromICDocDim(DimValue);
+#endif
         if ICDocDim.Find('-') then
             repeat
                 DimValue.Get(
@@ -378,6 +405,9 @@ codeunit 8408 "IC Dimension Management"
         TempDimSetEntry: Record "Dimension Set Entry" temporary;
     begin
         OnBeforeCreateDimSetIDFromICJnlLineDim(DimValue);
+#if not CLEAN30
+        DimensionManagement.RunOnBeforeCreateDimSetIDFromICJnlLineDim(DimValue);
+#endif
         if ICInboxOutboxJnlLineDim.Find('-') then
             repeat
                 DimValue.Get(
@@ -397,6 +427,150 @@ codeunit 8408 "IC Dimension Management"
     begin
         DimensionManagement.FindLastErrorMessage(ErrorMessage);
     end;
+
+#if not CLEAN30 and not CLEANSCHEMA30
+#pragma warning disable AL0432
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnCheckICDim', '', false, false)]
+    local procedure OnCheckICDim(var Sender: Codeunit DimensionManagement; ICDimCode: Code[20]; var Result: Boolean; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        Result := CheckICDim(ICDimCode);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnCheckICDimValue', '', false, false)]
+    local procedure OnCheckICDimValue(var Sender: Codeunit DimensionManagement; ICDimCode: Code[20]; ICDimValCode: Code[20]; var Result: Boolean; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        Result := CheckICDimValue(ICDimCode, ICDimValCode);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnConvertDimtoICDim', '', false, false)]
+    local procedure OnConvertDimtoICDim(var Sender: Codeunit DimensionManagement; FromDim: Code[20]; var ICDimCode: Code[20]; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        ICDimCode := ConvertDimtoICDim(FromDim);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnConvertDimValuetoICDimVal', '', false, false)]
+    local procedure OnConvertDimValuetoICDimVal(var Sender: Codeunit DimensionManagement; FromDim: Code[20]; FromDimValue: Code[20]; var ICDimValueCode: Code[20]; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        ICDimValueCode := ConvertDimValuetoICDimVal(FromDim, FromDimValue);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnCopyDocDimtoICDocDim', '', false, false)]
+    local procedure OnCopyDocDimtoICDocDim(var Sender: Codeunit DimensionManagement; TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; DimSetEntryID: Integer; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        CopyDocDimtoICDocDim(TableID, TransactionNo, PartnerCode, TransactionSource, LineNo, DimSetEntryID);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnCopyICDocDimtoICDocDim', '', false, false)]
+    local procedure OnCopyICDocDimtoICDocDim(var Sender: Codeunit DimensionManagement; FromSourceICDocDim: Record "IC Document Dimension"; var ToSourceICDocDim: Record "IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        CopyICDocDimtoICDocDim(FromSourceICDocDim, ToSourceICDocDim, ToTableID, ToTransactionSource);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnCopyICJnlDimToICJnlDim', '', false, false)]
+    local procedure OnCopyICJnlDimToICJnlDim(var Sender: Codeunit DimensionManagement; var FromInOutBoxLineDim: Record "IC Inbox/Outbox Jnl. Line Dim."; var ToInOutBoxlineDim: Record "IC Inbox/Outbox Jnl. Line Dim."; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        CopyICJnlDimToICJnlDim(FromInOutBoxLineDim, ToInOutBoxlineDim);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnCopyJnlLineDimToICJnlDim', '', false, false)]
+    local procedure OnCopyJnlLineDimToICJnlDim(var Sender: Codeunit DimensionManagement; TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; DimSetID: Integer; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        CopyJnlLineDimToICJnlDim(TableID, TransactionNo, PartnerCode, TransactionSource, LineNo, DimSetID);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnCreateDimSetIDFromICDocDim', '', false, false)]
+    local procedure OnCreateDimSetIDFromICDocDim(var Sender: Codeunit DimensionManagement; var ICDocDim: Record "IC Document Dimension"; var DimSetID: Integer; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        DimSetID := CreateDimSetIDFromICDocDim(ICDocDim);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnCreateDimSetIDFromICJnlLineDim', '', false, false)]
+    local procedure OnCreateDimSetIDFromICJnlLineDim(var Sender: Codeunit DimensionManagement; var ICInboxOutboxJnlLineDim: Record "IC Inbox/Outbox Jnl. Line Dim."; var DimSetID: Integer; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        DimSetID := CreateDimSetIDFromICJnlLineDim(ICInboxOutboxJnlLineDim);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnDeleteICDocDim', '', false, false)]
+    local procedure OnDeleteICDocDim(var Sender: Codeunit DimensionManagement; TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        DeleteICDocDim(TableID, ICTransactionNo, ICPartnerCode, TransactionSource, LineNo);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnDeleteICJnlDim', '', false, false)]
+    local procedure OnDeleteICJnlDim(var Sender: Codeunit DimensionManagement; TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        DeleteICJnlDim(TableID, ICTransactionNo, ICPartnerCode, TransactionSource, LineNo);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnMoveICDocDimtoICDocDim', '', false, false)]
+    local procedure OnMoveICDocDimtoICDocDim(var Sender: Codeunit DimensionManagement; FromSourceICDocDim: Record "IC Document Dimension"; var ToSourceICDocDim: Record "IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        MoveICDocDimtoICDocDim(FromSourceICDocDim, ToSourceICDocDim, ToTableID, ToTransactionSource);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnSetICDocDimFilters', '', false, false)]
+    local procedure OnSetICDocDimFilters(var Sender: Codeunit DimensionManagement; var ICDocDim: Record "IC Document Dimension"; TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Integer; LineNo: Integer; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        DimensionManagement := Sender;
+        SetICDocDimFilters(ICDocDim, TableID, TransactionNo, PartnerCode, TransactionSource, LineNo);
+        IsHandled := true;
+    end;
+#pragma warning restore AL0432
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterConvertDimtoICDim(FromDim: Code[20]; var ICDimCode: Code[20])

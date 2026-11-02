@@ -14,6 +14,9 @@ codeunit 8432 "IC G/L Account-Indent"
 {
     var
         GLAcc: Record "G/L Account";
+#if not CLEAN30
+        GLAccountIndent: Codeunit "G/L Account-Indent";
+#endif
         Window: Dialog;
         AccNo: array[10] of Code[20];
         ICAccIndentQst: Label 'This function updates the indentation of all the G/L accounts in the chart of accounts. All accounts between a Begin-Total and the matching End-Total are indented one level. \\Do you want to indent the chart of accounts?';
@@ -42,6 +45,9 @@ codeunit 8432 "IC G/L Account-Indent"
     begin
         IsHandled := false;
         OnBeforeIndentICAccount(GLAcc, IsHandled);
+#if not CLEAN30
+        GLAccountIndent.RunOnBeforeIndentICAccount(GLAcc, IsHandled);
+#endif
         if IsHandled then
             exit;
 
@@ -69,6 +75,22 @@ codeunit 8432 "IC G/L Account-Indent"
             until ICGLAcc.Next() = 0;
         Window.Close();
     end;
+
+#if not CLEAN30
+#pragma warning disable AL0432
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"G/L Account-Indent", 'OnRunICAccountIndent', '', false, false)]
+    local procedure OnRunICAccountIndent(var Sender: Codeunit "G/L Account-Indent"; var GLAccount: Record "G/L Account"; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        GLAccountIndent := Sender;
+        GLAcc := GLAccount;
+        RunICAccountIndent();
+        GLAccount := GLAcc;
+        IsHandled := true;
+    end;
+#pragma warning restore AL0432
+#endif
 
     /// <summary>
     /// Integration event raised before indenting intercompany accounts during the indentation process.

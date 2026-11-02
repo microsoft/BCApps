@@ -410,7 +410,36 @@ codeunit 132537 SelectionFilterManagementTest
         SelectionString2 := SelectionFilterManagement.GetSelectionFilter(RecRef, ICPartner.FieldNo(Code));
 
         CheckGetSelectionResults(SelectionString, SelectionString2);
+#if not CLEAN30 and not CLEANSCHEMA30
+#pragma warning disable AL0432
+        CheckGetSelectionResults(SelectionString, SelectionFilterManagement.GetSelectionFilterForICPartner(ICPartner));
+#pragma warning restore AL0432
+#endif
     end;
+
+#if not CLEAN30 and not CLEANSCHEMA30
+    [Test]
+    [Scope('OnPrem')]
+    procedure GetSelectionFilterForTemporaryICPartner()
+    var
+        TempICPartner: Record "IC Partner" temporary;
+    begin
+#pragma warning disable AL0432
+        CheckGetSelectionResults('', SelectionFilterManagement.GetSelectionFilterForICPartner(TempICPartner));
+        TempICPartner.Code := 'A';
+        TempICPartner.Insert();
+        TempICPartner.Mark(true);
+        TempICPartner.Code := 'B';
+        TempICPartner.Insert();
+        TempICPartner.Code := 'C';
+        TempICPartner.Insert();
+        TempICPartner.Mark(true);
+        TempICPartner.MarkedOnly(true);
+
+        CheckGetSelectionResults('A|C', SelectionFilterManagement.GetSelectionFilterForICPartner(TempICPartner));
+#pragma warning restore AL0432
+    end;
+#endif
 
     [Test]
     [Scope('OnPrem')]

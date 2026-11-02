@@ -1854,6 +1854,245 @@ codeunit 408 DimensionManagement
         exit(GetLastDimErrorID() = LastErrorID);
     end;
 
+#if not CLEAN30 and not CLEANSCHEMA30
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure CheckICDim(ICDimCode: Code[20]): Boolean
+    var
+        Result: Boolean;
+        IsHandled: Boolean;
+    begin
+        OnCheckICDim(ICDimCode, Result, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+        exit(Result);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure CheckICDimValue(ICDimCode: Code[20]; ICDimValCode: Code[20]): Boolean
+    var
+        Result: Boolean;
+        IsHandled: Boolean;
+    begin
+        OnCheckICDimValue(ICDimCode, ICDimValCode, Result, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+        exit(Result);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure ConvertDimtoICDim(FromDim: Code[20]) ICDimCode: Code[20]
+    var
+        IsHandled: Boolean;
+    begin
+        OnConvertDimtoICDim(FromDim, ICDimCode, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure ConvertDimValuetoICDimVal(FromDim: Code[20]; FromDimValue: Code[20]) ICDimValueCode: Code[20]
+    var
+        IsHandled: Boolean;
+    begin
+        OnConvertDimValuetoICDimVal(FromDim, FromDimValue, ICDimValueCode, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure CopyDocDimtoICDocDim(TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; DimSetEntryID: Integer)
+    var
+        IsHandled: Boolean;
+    begin
+        OnCopyDocDimtoICDocDim(TableID, TransactionNo, PartnerCode, TransactionSource, LineNo, DimSetEntryID, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure CopyICDocDimtoICDocDim(FromSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; var ToSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer)
+    var
+        IsHandled: Boolean;
+    begin
+        OnCopyICDocDimtoICDocDim(FromSourceICDocDim, ToSourceICDocDim, ToTableID, ToTransactionSource, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure CopyICJnlDimToICJnlDim(var FromInOutBoxLineDim: Record Microsoft.Intercompany.Dimension."IC Inbox/Outbox Jnl. Line Dim."; var ToInOutBoxlineDim: Record Microsoft.Intercompany.Dimension."IC Inbox/Outbox Jnl. Line Dim.")
+    var
+        IsHandled: Boolean;
+    begin
+        OnCopyICJnlDimToICJnlDim(FromInOutBoxLineDim, ToInOutBoxlineDim, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure CopyJnlLineDimToICJnlDim(TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; DimSetID: Integer)
+    var
+        IsHandled: Boolean;
+    begin
+        OnCopyJnlLineDimToICJnlDim(TableID, TransactionNo, PartnerCode, TransactionSource, LineNo, DimSetID, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure CreateDimSetIDFromICDocDim(var ICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"): Integer
+    var
+        DimSetID: Integer;
+        IsHandled: Boolean;
+    begin
+        OnCreateDimSetIDFromICDocDim(ICDocDim, DimSetID, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+        exit(DimSetID);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure CreateDimSetIDFromICJnlLineDim(var ICInboxOutboxJnlLineDim: Record Microsoft.Intercompany.Dimension."IC Inbox/Outbox Jnl. Line Dim."): Integer
+    var
+        DimSetID: Integer;
+        IsHandled: Boolean;
+    begin
+        OnCreateDimSetIDFromICJnlLineDim(ICInboxOutboxJnlLineDim, DimSetID, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+        exit(DimSetID);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure DeleteICDocDim(TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer)
+    var
+        IsHandled: Boolean;
+    begin
+        OnDeleteICDocDim(TableID, ICTransactionNo, ICPartnerCode, TransactionSource, LineNo, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure DeleteICJnlDim(TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer)
+    var
+        IsHandled: Boolean;
+    begin
+        OnDeleteICJnlDim(TableID, ICTransactionNo, ICPartnerCode, TransactionSource, LineNo, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure MoveICDocDimtoICDocDim(FromSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; var ToSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer)
+    var
+        IsHandled: Boolean;
+    begin
+        OnMoveICDocDimtoICDocDim(FromSourceICDocDim, ToSourceICDocDim, ToTableID, ToTransactionSource, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    procedure SetICDocDimFilters(var ICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Integer; LineNo: Integer)
+    var
+        IsHandled: Boolean;
+    begin
+        OnSetICDocDimFilters(ICDocDim, TableID, TransactionNo, PartnerCode, TransactionSource, LineNo, IsHandled);
+        CheckIntercompanyProvider(IsHandled);
+    end;
+
+    local procedure CheckIntercompanyProvider(IsHandled: Boolean)
+    var
+        IntercompanyAppRequiredErr: Label 'The Intercompany app must be installed to manage intercompany dimensions.';
+    begin
+        if not IsHandled then
+            Error(IntercompanyAppRequiredErr);
+    end;
+
+    [Obsolete('Compatibility event for the obsolete CheckICDim procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnCheckICDim(ICDimCode: Code[20]; var Result: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete CheckICDimValue procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnCheckICDimValue(ICDimCode: Code[20]; ICDimValCode: Code[20]; var Result: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete ConvertDimtoICDim procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnConvertDimtoICDim(FromDim: Code[20]; var ICDimCode: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete ConvertDimValuetoICDimVal procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnConvertDimValuetoICDimVal(FromDim: Code[20]; FromDimValue: Code[20]; var ICDimValueCode: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete CopyDocDimtoICDocDim procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnCopyDocDimtoICDocDim(TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; DimSetEntryID: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete CopyICDocDimtoICDocDim procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnCopyICDocDimtoICDocDim(FromSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; var ToSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete CopyICJnlDimToICJnlDim procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnCopyICJnlDimToICJnlDim(var FromInOutBoxLineDim: Record Microsoft.Intercompany.Dimension."IC Inbox/Outbox Jnl. Line Dim."; var ToInOutBoxlineDim: Record Microsoft.Intercompany.Dimension."IC Inbox/Outbox Jnl. Line Dim."; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete CopyJnlLineDimToICJnlDim procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnCopyJnlLineDimToICJnlDim(TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; DimSetID: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete CreateDimSetIDFromICDocDim procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnCreateDimSetIDFromICDocDim(var ICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; var DimSetID: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete CreateDimSetIDFromICJnlLineDim procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnCreateDimSetIDFromICJnlLineDim(var ICInboxOutboxJnlLineDim: Record Microsoft.Intercompany.Dimension."IC Inbox/Outbox Jnl. Line Dim."; var DimSetID: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete DeleteICDocDim procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnDeleteICDocDim(TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete DeleteICJnlDim procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnDeleteICJnlDim(TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete MoveICDocDimtoICDocDim procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnMoveICDocDimtoICDocDim(FromSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; var ToSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete SetICDocDimFilters procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnSetICDocDimFilters(var ICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Integer; LineNo: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    internal procedure RunOnCheckICDimValueAllowed(ICDimVal: Record Microsoft.Intercompany.Dimension."IC Dimension Value"; var DimValueAllowed: Boolean)
+    begin
+        OnCheckICDimValueAllowed(ICDimVal, DimValueAllowed);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Dimension Management".', '30.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckICDimValueAllowed(ICDimVal: Record Microsoft.Intercompany.Dimension."IC Dimension Value"; var DimValueAllowed: Boolean)
+    begin
+    end;
+#endif
+
     /// <summary>
     /// Retrieves the last dimension error message.
     /// </summary>

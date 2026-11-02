@@ -16,10 +16,30 @@ codeunit 8498 "IC Selection Filter Mgt."
     /// </summary>
     procedure GetSelectionFilterForICPartner(var ICPartner: Record "IC Partner"): Text
     var
-        SelectionFilterManagement: Codeunit SelectionFilterManagement;
         RecRef: RecordRef;
     begin
         RecRef.GetTable(ICPartner);
+        exit(GetSelectionFilterForICPartner(RecRef));
+    end;
+
+    local procedure GetSelectionFilterForICPartner(var RecRef: RecordRef): Text
+    var
+        ICPartner: Record "IC Partner";
+        SelectionFilterManagement: Codeunit SelectionFilterManagement;
+    begin
         exit(SelectionFilterManagement.GetSelectionFilter(RecRef, ICPartner.FieldNo(Code)));
     end;
+
+#if not CLEAN30 and not CLEANSCHEMA30
+#pragma warning disable AL0432
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::SelectionFilterManagement, 'OnGetSelectionFilterForICPartner', '', false, false)]
+    local procedure OnGetSelectionFilterForICPartner(var ICPartnerRecRef: RecordRef; var SelectionFilter: Text; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+        SelectionFilter := GetSelectionFilterForICPartner(ICPartnerRecRef);
+        IsHandled := true;
+    end;
+#pragma warning restore AL0432
+#endif
 }

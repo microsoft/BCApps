@@ -93,6 +93,25 @@ codeunit 3 "G/L Account-Indent"
         OnAfterIndent();
     end;
 
+#if not CLEAN30
+    [Obsolete('Moved to codeunit "IC G/L Account-Indent".', '30.0')]
+    procedure RunICAccountIndent()
+    var
+        IsHandled: Boolean;
+        IntercompanyAppRequiredErr: Label 'The Intercompany app must be installed to indent intercompany G/L accounts.';
+    begin
+        OnRunICAccountIndent(GLAcc, IsHandled);
+        if not IsHandled then
+            Error(IntercompanyAppRequiredErr);
+    end;
+
+    [Obsolete('Compatibility event for the obsolete RunICAccountIndent procedure.', '30.0')]
+    [InternalEvent(true, false)]
+    local procedure OnRunICAccountIndent(var GLAccount: Record "G/L Account"; var IsHandled: Boolean)
+    begin
+    end;
+#endif
+
     /// <summary>
     /// Integration event raised after completing the chart of accounts indentation process.
     /// Allows extensions to perform additional processing after indentation is complete.

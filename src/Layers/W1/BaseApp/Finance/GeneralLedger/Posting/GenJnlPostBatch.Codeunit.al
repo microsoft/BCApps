@@ -191,6 +191,10 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         ErrorMessageMgt: Codeunit "Error Message Management";
         RecRef: RecordRef;
         LastTaxLineNo: Integer;
+#if not CLEAN30
+        CurrentICPartner: Code[20];
+        ICTransactionNo: Integer;
+#endif
         LastLineNo: Integer;
         VATInfoSourceLineIsInserted: Boolean;
         SkippedLine: Boolean;
@@ -258,6 +262,10 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             if not PostGenJournalLine(GenJnlLine3) then
                 SkippedLine := true;
 
+#if not CLEAN30
+            OnGetICPostingState(CurrentICPartner, ICTransactionNo);
+            OnProcessLinesOnAfterPostGenJournalLine(GenJnlLine3, CurrentICPartner, ICTransactionNo, LastTaxLineNo);
+#endif
             OnProcessLinesOnAfterPostGenJournalLine2(GenJnlLine3, LastTaxLineNo);
             ErrorMessageMgt.PopContext(ErrorContextElement);
         until GenJnlLine.Next() = 0;
@@ -2347,6 +2355,33 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     begin
     end;
 
+
+#if not CLEAN30 and not CLEANSCHEMA30
+    internal procedure RunOnProcessICLinesOnBeforeHandledICInboxTransModify(var HandledICInboxTrans: Record Microsoft.Intercompany.Inbox."Handled IC Inbox Trans."; GenJournalLine: Record "Gen. Journal Line")
+    begin
+        OnProcessICLinesOnBeforeHandledICInboxTransModify(HandledICInboxTrans, GenJournalLine);
+    end;
+
+    [Obsolete('Moved to codeunit "IC Gen. Jnl.-Post Batch".', '30.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnProcessICLinesOnBeforeHandledICInboxTransModify(var HandledICInboxTrans: Record Microsoft.Intercompany.Inbox."Handled IC Inbox Trans."; GenJournalLine: Record "Gen. Journal Line");
+    begin
+    end;
+#endif
+
+#if not CLEAN30
+    [Obsolete('Use OnProcessLinesOnAfterPostGenJournalLine2 instead.', '30.0')]
+    [IntegrationEvent(true, false)]
+    local procedure OnProcessLinesOnAfterPostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer; var LastTaxLineNo: Integer)
+    begin
+    end;
+
+    [Obsolete('Compatibility event for the obsolete OnProcessLinesOnAfterPostGenJournalLine event.', '30.0')]
+    [InternalEvent(false, false)]
+    local procedure OnGetICPostingState(var CurrentICPartnerCode: Code[20]; var CurrentICTransactionNo: Integer)
+    begin
+    end;
+#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnProcessLinesOnAfterPostGenJournalLine2(var GenJournalLine: Record "Gen. Journal Line"; var LastTaxLineNo: Integer)

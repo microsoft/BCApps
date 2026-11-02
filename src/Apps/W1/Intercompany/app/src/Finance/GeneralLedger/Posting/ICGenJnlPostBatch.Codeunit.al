@@ -164,6 +164,9 @@ codeunit 8415 "IC Gen. Jnl.-Post Batch"
                         HandledICInboxTrans.LockTable();
                         HandledICInboxTrans.Status := HandledICInboxTrans.Status::Posted;
                         OnProcessICLinesOnBeforeHandledICInboxTransModify(HandledICInboxTrans, GenJnlLine);
+#if not CLEAN30 and not CLEANSCHEMA30
+                        GenJnlPostBatch.RunOnProcessICLinesOnBeforeHandledICInboxTransModify(HandledICInboxTrans, GenJnlLine);
+#endif
                         HandledICInboxTrans.Modify();
                     end
             end
@@ -206,6 +209,17 @@ codeunit 8415 "IC Gen. Jnl.-Post Batch"
         then
             ICInboxOutboxMgt.CreateOutboxJnlLine(ICTransactionNo, 1, GenJnlLine5);
     end;
+
+#if not CLEAN30
+#pragma warning disable AL0432
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Batch", 'OnGetICPostingState', '', false, false)]
+    local procedure OnGetICPostingState(var CurrentICPartnerCode: Code[20]; var CurrentICTransactionNo: Integer)
+    begin
+        CurrentICPartnerCode := CurrentICPartner;
+        CurrentICTransactionNo := ICTransactionNo;
+    end;
+#pragma warning restore AL0432
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessICLines(var CurrentICPartner: Code[20]; var ICTransactionNo: Integer; var ICLastDocNo: Code[20]; var ICLastDate: Date; var ICLastDocType: Enum "Gen. Journal Document Type"; var GenJournalLine: Record "Gen. Journal Line"; var TempGenJournalLine: Record "Gen. Journal Line" temporary; var ICProcessedLines: Integer; var IsHandled: Boolean)
