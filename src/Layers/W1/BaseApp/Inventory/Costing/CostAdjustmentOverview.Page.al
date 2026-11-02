@@ -203,7 +203,6 @@ page 5801 "Cost Adjustment Overview"
             {
                 Caption = 'Show/hide';
                 Image = FilterLines;
-                Visible = false;
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Replaced by the Non-adjusted items and Excluded from adjustment views.';
                 ObsoleteTag = '30.0';
@@ -213,6 +212,7 @@ page 5801 "Cost Adjustment Overview"
                     Caption = 'Show non-adjusted';
                     ToolTip = 'Show only items for which the cost has not been adjusted.';
                     Image = Line;
+                    Visible = false;
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Replaced by the Non-adjusted items view.';
                     ObsoleteTag = '30.0';
@@ -229,6 +229,7 @@ page 5801 "Cost Adjustment Overview"
                     Caption = 'Show included';
                     ToolTip = 'Show only items that are included in the cost adjustment process.';
                     Image = CompleteLine;
+                    Visible = false;
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Replaced by the Non-adjusted items and Excluded from adjustment views.';
                     ObsoleteTag = '30.0';
@@ -245,6 +246,7 @@ page 5801 "Cost Adjustment Overview"
                     Caption = 'Show excluded';
                     ToolTip = 'Show only items that are excluded from the cost adjustment process.';
                     Image = CancelLine;
+                    Visible = false;
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Replaced by the Excluded from adjustment view.';
                     ObsoleteTag = '30.0';
@@ -261,6 +263,7 @@ page 5801 "Cost Adjustment Overview"
                     Caption = 'Show all';
                     ToolTip = 'Show all items regardless of whether the cost has been adjusted.';
                     Image = AllLines;
+                    Visible = false;
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Replaced by the All view.';
                     ObsoleteTag = '30.0';
@@ -555,7 +558,6 @@ page 5801 "Cost Adjustment Overview"
             group("Show/Hide_Promoted")
             {
                 Caption = 'Show/hide';
-                Visible = false;
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Replaced by the Non-adjusted items and Excluded from adjustment views.';
                 ObsoleteTag = '30.0';
