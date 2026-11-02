@@ -21,12 +21,12 @@ jobs:
     env:
       CACHE_KEY: https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/28.7.57360.0/base
       CACHE_VERSION: 2da07c0904e89864440f98729f68f9db99a2fe86650d85420f68322322c0670c
-      CACHE_PATH: ${{ runner.temp }}/.artifactcache
-      LISTING_PATH: ${{ runner.temp }}\compiler-cache-listing
     steps:
       - name: Verify exact cache identity and compatibility
         env:
           GH_TOKEN: ${{ github.token }}
+          CACHE_PATH: ${{ runner.temp }}/.artifactcache
+          LISTING_PATH: ${{ runner.temp }}\compiler-cache-listing
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:RUNNER_OS -ne 'Windows') { throw 'The cache requires Windows.' }
@@ -83,6 +83,8 @@ jobs:
         env:
           CACHE_HIT: ${{ steps.restore.outputs.cache-hit }}
           MATCHED_KEY: ${{ steps.restore.outputs.cache-matched-key }}
+          CACHE_PATH: ${{ runner.temp }}/.artifactcache
+          LISTING_PATH: ${{ runner.temp }}\compiler-cache-listing
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:CACHE_HIT -cne 'true' -or $env:MATCHED_KEY -cne $env:CACHE_KEY) {
