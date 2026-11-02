@@ -4956,6 +4956,43 @@ codeunit 136302 "Job Consumption Purchase"
     end;
 
     [Test]
+    [HandlerFunctions('PurchaseOrderStatisticsSetInvDiscountInvoicingPageHandler')]
+    procedure JobLedgerEntryTotalCostForGLAccLineWithChangedInvDiscAmountToInvoiceFractionalPerUnitPurchFCY()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        CurrencyCode: Code[10];
+        ExpectedAmount: Decimal;
+    begin
+        // [FEATURE] [G/L Account] [Invoice Discount] [Rounding] [FCY]
+        // [SCENARIO 642385] Project ledger entry total cost in local currency is equal to the invoiced amount when a purchase in foreign currency has a fractional changed invoice discount per unit
+        Initialize();
+
+        // [GIVEN] Foreign currency "FCY" with exchange rate 1
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+
+        // [GIVEN] Purchase order in "FCY" with G/L Account line linked to a task of a project in local currency: Quantity = 10000, "Direct Unit Cost" = 200, invoice discount = 1000000
+        // [GIVEN] "Qty. to Invoice" = 3000 and invoice discount on the Invoicing tab of purchase order statistics changed to 100, i.e. 0.0333.. per unit
+        // [WHEN] Receive and invoice the purchase order
+        PostGLAccLineWithInvDiscAmountToInvoice(
+            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10000, 3000, 200, 1000000, 100, false, 0, CurrencyCode, '', 0, 0);
+
+        // [THEN] G/L entry for the G/L Account has amount 200 * 3000 - 100 = 599900
+        ExpectedAmount := 599900;
+        Assert.AreEqual(ExpectedAmount, GLEntry.Amount, StrSubstNo(ValueMustMatchErr, GLEntry.FieldCaption(Amount), ExpectedAmount));
+
+        // [THEN] Project ledger entry "Total Cost (LCY)" and "Total Cost" are exactly equal to the G/L entry amount
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost (LCY)",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), GLEntry.Amount));
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost"), GLEntry.Amount));
+    end;
+
+    [Test]
     [HandlerFunctions('PurchaseOrderStatisticsSetInvDiscountAndVATDifferenceInvoicingPageHandler,VATAmountLinesAddVATDifferenceModalPageHandler')]
     procedure JobLedgerEntryTotalCostForGLAccLineWithChangedInvDiscAmountToInvoicePricesInclVATAndVATDifference()
     var

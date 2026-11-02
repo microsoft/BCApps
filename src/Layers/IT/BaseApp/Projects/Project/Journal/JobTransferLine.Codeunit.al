@@ -735,6 +735,10 @@ codeunit 1004 "Job Transfer Line"
         end;
 
         if (JobJnlLine."Currency Code" = '') and (PurchLine."Currency Code" <> '') then begin
+            // Validating "Unit Cost (LCY)" above calculated "Total Cost" from the rounded unit cost, so recalculate it from the unrounded one.
+            if UsePreciseUnitCostForTotals(PurchLine) then
+                JobJnlLine."Total Cost" :=
+                    Round((PurchLine."Unit Cost (LCY)" + NondeductibleVATAmtPrUnitLCY) * JobJnlLine.Quantity, Currency."Amount Rounding Precision");
             JobJnlLine."Total Cost" += Round(
                                         CurrencyExchRate.ExchangeAmtFCYToLCY(
                                             PurchHeader."Posting Date",
