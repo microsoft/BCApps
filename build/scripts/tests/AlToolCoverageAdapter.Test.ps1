@@ -196,6 +196,8 @@ Describe "BCApps per-app AL-Go coverage adapter" {
         New-Item -ItemType Directory -Path $root -Force | Out-Null
         $parameters = Get-TestParameterSet -Root $root
         $coverageApps = Set-TestCoverageApps -Root $root -Parameters $parameters
+        $appOneHash = (Get-FileHash -LiteralPath $coverageApps.AppOnePath -Algorithm SHA256).Hash
+        $appTwoHash = (Get-FileHash -LiteralPath $coverageApps.AppTwoPath -Algorithm SHA256).Hash
 
         Invoke-BcAppsCoverageAwareTestRun -Parameters $parameters |
             Should -BeTrue
@@ -219,6 +221,10 @@ Describe "BCApps per-app AL-Go coverage adapter" {
             $coverageApps.AppOnePath,
             $coverageApps.AppTwoPath
         )
+        (Get-FileHash -LiteralPath $coverageApps.AppOnePath -Algorithm SHA256).Hash |
+            Should -Be $appOneHash
+        (Get-FileHash -LiteralPath $coverageApps.AppTwoPath -Algorithm SHA256).Hash |
+            Should -Be $appTwoHash
         $capture.outputPath | Should -Be $parameters.codeCoverageOutputPath
         Test-Path -LiteralPath $parameters.JUnitResultFileName -PathType Leaf |
             Should -BeTrue
