@@ -199,6 +199,641 @@ Describe "ParallelTestExecution app-name resolution" {
     }
 }
 
+Describe "Separate RunTests action override contract" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    BeforeEach {
+        $script:savedSettings = $env:settings
+        $env:settings = @'
+{
+  "testType": "IntegrationTest",
+  "useSeparateTestAction": {
+    "enabled": true,
+    "testType": "IntegrationTest",
+    "codeCoverageEnabled": true
+  }
+}
+'@
+    }
+
+    AfterEach {
+        $env:settings = $script:savedSettings
+    }
+
+    It "uses the test type supplied by the separate action when it matches the bucket" {
+        InModuleScope ParallelTestExecution {
+            Resolve-TestTypeForRun -Parameters @{ testType = "IntegrationTest" } | Should -Be "IntegrationTest"
+        }
+    }
+
+    It "uses the merged bucket setting for the Run-AlPipeline compatibility path" {
+        InModuleScope ParallelTestExecution {
+            Resolve-TestTypeForRun -Parameters @{} | Should -Be "IntegrationTest"
+        }
+    }
+
+    It "fails before dispatch when the action and bucket test types differ" {
+        InModuleScope ParallelTestExecution {
+            {
+                Resolve-TestTypeForRun -Parameters @{ testType = "Uncategorized" }
+            } | Should -Throw "*supplied testType 'Uncategorized'*configured as 'IntegrationTest'*"
+        }
+    }
+
+    It "defaults the omitted separate-action tenant to default" {
+        InModuleScope ParallelTestExecution {
+            $parameters = @{}
+            Initialize-TestActionParameters -Parameters $parameters
+            $parameters.tenant | Should -Be "default"
+        }
+    }
+
+    It "preserves an explicitly supplied tenant" {
+        InModuleScope ParallelTestExecution {
+            $parameters = @{ tenant = "tenant2" }
+            Initialize-TestActionParameters -Parameters $parameters
+            $parameters.tenant | Should -Be "tenant2"
+        }
+    }
+
+    It "uses only the historical single-parameter override contract" {
+        $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
+        $projectOverrides = @(
+            Get-ChildItem (Join-Path $repositoryRoot "build\projects") `
+                -Filter "RunTestsInBcContainer.ps1" -Recurse -File
+        )
+
+        $projectOverrides.Count | Should -BeGreaterThan 0
+        foreach ($override in $projectOverrides) {
+            $tokens = $null
+            $errors = $null
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+                $override.FullName,
+                [ref]$tokens,
+                [ref]$errors
+            )
+            @($errors).Count | Should -Be 0
+            @($ast.ParamBlock.Parameters.Name.VariablePath.UserPath) |
+                Should -Be @("parameters")
+        }
+        @(
+            Get-ChildItem (Join-Path $repositoryRoot "build\projects") `
+                -Filter "RunTestsInBcContainerV2.ps1" -Recurse -File
+        ).Count | Should -Be 0
+    }
+
+    It "rejects coverage instead of bypassing canonical selection" {
+        InModuleScope ParallelTestExecution {
+            $parameters = @{
+                containerName = "test"
+                tenant = "default"
+                appName = "Tests"
+                codeCoverageOutputPath = "coverage"
+            }
+
+            Mock Get-CachedTestRunResult {
+                throw "Coverage-aware per-app calls must bypass the scheduler cache."
+            }
+            Mock Get-InstalledTestAppNames {
+                throw "Coverage-aware per-app calls must bypass bucket discovery."
+            }
+
+            { Invoke-PerProjectTestRun -parameters $parameters } |
+                Should -Throw "*does not collect coverage*"
+
+            Should -Invoke Get-CachedTestRunResult -Times 0
+            Should -Invoke Get-InstalledTestAppNames -Times 0
+        }
+    }
+
+    It "removes stray coverage keys before using the historical path" {
+        InModuleScope ParallelTestExecution {
+            $parameters = @{
+                containerName = "coverage-disabled"
+                appName = "Tests"
+                codeCoverageMode = "line"
+                codeCoverageFormats = @("bc-json")
+            }
+
+            $historical = Get-BcAppsHistoricalTestParameters -Parameters $parameters
+
+            $historical.ContainsKey("codeCoverageMode") | Should -BeFalse
+            $historical.ContainsKey("codeCoverageFormats") | Should -BeFalse
+            $historical.containerName | Should -Be "coverage-disabled"
+            $historical.appName | Should -Be "Tests"
+            $parameters.ContainsKey("codeCoverageMode") | Should -BeTrue
+            $parameters.ContainsKey("codeCoverageFormats") | Should -BeTrue
+        }
+    }
+
+    It "preserves the exact historical parameter object when coverage keys are absent" {
+        InModuleScope ParallelTestExecution {
+            $parameters = @{
+                containerName = "coverage-disabled"
+                appName = "Tests"
+            }
+
+            $historical = Get-BcAppsHistoricalTestParameters -Parameters $parameters
+
+            [object]::ReferenceEquals($historical, $parameters) | Should -BeTrue
+        }
+    }
+
+    It "keeps native execution without coverage on the canonical initialized bucket path" {
+        InModuleScope ParallelTestExecution {
+            $savedNative = $env:BCAPPS_ALTOOL_VERIFICATION
+            $savedPath = $env:AlToolPath
+            $savedSettings = $env:settings
+            try {
+                $env:BCAPPS_ALTOOL_VERIFICATION = "true"
+                $env:AlToolPath = "verified-altool.exe"
+                $env:settings = '{"testType":"Legacy","country":"w1","bucketNumber":2}'
+                Mock Get-Module { [pscustomobject]@{ Path = "action-runner.psm1" } } -ParameterFilter {
+                    $Name -eq "AlToolTestRunner"
+                }
+                Mock Get-CachedTestRunResult { $null }
+                Mock Get-AvailableBcTenants { @("default", "tenant2") }
+                Mock Install-BcAppsVerificationFramework { }
+                Mock Get-InstalledTestAppNames { @("Wrong Bucket", "Selected Tests") }
+                Mock Get-AppNamesForBucket {
+                    $TestType | Should -Be "Legacy"
+                    $BucketNumber | Should -Be 2
+                    @("Selected Tests")
+                }
+                Mock Get-BcAppsDisabledTestsForApp {
+                    @([pscustomobject]@{ codeunitName = "Disabled"; method = "*" })
+                }
+                Mock Invoke-ParallelTestExecution {
+                    $testType | Should -Be "Legacy"
+                    @($appNamesToTest) | Should -Be @("Selected Tests")
+                    $parameters["_bcAppsAlToolPath"] | Should -Be "verified-altool.exe"
+                    $parameters["_bcAppsAlToolModulePath"] | Should -Be "action-runner.psm1"
+                    @($parameters.disabledTests).Count | Should -Be 1
+                    $parameters.tenant | Should -Be "default"
+                    $true
+                }
+                Mock Set-BcAppsCachedTestRunResult { }
+
+                Invoke-PerProjectTestRun -parameters @{
+                    containerName = "test"; appName = "Selected Tests"; testType = "Legacy"
+                } | Should -BeTrue
+                Should -Invoke Install-BcAppsVerificationFramework -Times 1 -Exactly
+                Should -Invoke Get-AppNamesForBucket -Times 1 -Exactly
+                Should -Invoke Invoke-ParallelTestExecution -Times 1 -Exactly
+            }
+            finally {
+                $env:BCAPPS_ALTOOL_VERIFICATION = $savedNative
+                $env:AlToolPath = $savedPath
+                $env:settings = $savedSettings
+            }
+        }
+    }
+
+    It "does not silently use BCH when native initialization is incomplete" {
+        InModuleScope ParallelTestExecution {
+            $savedNative = $env:BCAPPS_ALTOOL_VERIFICATION
+            $savedPath = $env:AlToolPath
+            try {
+                $env:BCAPPS_ALTOOL_VERIFICATION = "true"
+                $env:AlToolPath = ""
+                { Initialize-TestActionParameters -Parameters @{} } |
+                    Should -Throw "*BCH fallback is forbidden*"
+            }
+            finally {
+                $env:BCAPPS_ALTOOL_VERIFICATION = $savedNative
+                $env:AlToolPath = $savedPath
+            }
+        }
+    }
+}
+
+Describe "RunTestsInBcContainer BCH parameter forwarding" {
+    BeforeAll {
+        $script:runTestsScript = (Resolve-Path (Join-Path $PSScriptRoot '../RunTestsInBcContainer.ps1')).Path
+        Import-Module (Join-Path $PSScriptRoot '../AlToolTestAdapter.psm1') -Force
+        Import-Module (Join-Path $PSScriptRoot '../TestTolerance/TestTolerance.psm1') -Force
+        $script:savedGitHubEventName = $env:GITHUB_EVENT_NAME
+        function Run-TestsInBcContainer {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification = 'Matches the BCH command being mocked.')]
+            param(
+                [string]$appName,
+                [string]$tenant,
+                [string]$testType,
+                [array]$disabledTests,
+                [bool]$renewClientContextBetweenTests
+            )
+            $null = $appName, $tenant, $testType, $disabledTests, $renewClientContextBetweenTests
+            throw 'Run-TestsInBcContainer must be mocked.'
+        }
+    }
+
+    AfterAll {
+        $env:GITHUB_EVENT_NAME = $script:savedGitHubEventName
+    }
+
+    BeforeEach {
+        Mock Get-BcAppsDisabledTestsForApp { @() }
+        Mock Run-TestsInBcContainer { $true }
+        Mock Start-Transcript { }
+        Mock Stop-Transcript { }
+        Mock Test-TransientTestFailure { $false }
+        Mock Write-Host { }
+    }
+
+    It "removes an action-supplied Legacy testType before BCH execution" {
+        $parameters = @{
+            appName = 'Legacy Tests'
+            tenant = 'default'
+            testType = 'Legacy'
+        }
+
+        & $script:runTestsScript -parameters $parameters -TestType Legacy -SkipAutomaticDisabledPass |
+            Should -BeTrue
+
+        Should -Invoke Run-TestsInBcContainer -Times 1 -Exactly -ParameterFilter {
+            -not $PSBoundParameters.ContainsKey('testType')
+        }
+        $parameters.testType | Should -Be 'Legacy'
+    }
+
+    It "preserves typed BCH lane <Lane>" -ForEach @(
+        @{ Lane = 'UnitTest' }
+        @{ Lane = 'IntegrationTest' }
+        @{ Lane = 'Uncategorized' }
+    ) {
+        $parameters = @{
+            appName = "$Lane Tests"
+            tenant = 'default'
+            testType = $Lane
+        }
+
+        & $script:runTestsScript -parameters $parameters -TestType $Lane -SkipAutomaticDisabledPass |
+            Should -BeTrue
+
+        Should -Invoke Run-TestsInBcContainer -Times 1 -Exactly -ParameterFilter {
+            $testType -eq $Lane
+        }
+        $parameters.testType | Should -Be $Lane
+    }
+
+    It "uses supplied disabled tests in the explicit single-app BCH path" {
+        $suppliedDisabledTests = @(
+            [PSCustomObject]@{
+                codeunitName = "Configured Codeunit"
+                method = @("Configured Method")
+            }
+        )
+        $parameters = @{
+            appName = "Integration Tests"
+            tenant = "default"
+            testType = "IntegrationTest"
+            disabledTests = $suppliedDisabledTests
+        }
+        Mock Get-BcAppsDisabledTestsForApp {
+            throw "The explicit single-app path must not replace supplied exclusions."
+        }
+
+        & $script:runTestsScript `
+            -parameters $parameters `
+            -TestType IntegrationTest `
+            -UseSuppliedDisabledTests `
+            -SkipAutomaticDisabledPass `
+            -SkipTestTolerance |
+            Should -BeTrue
+
+        Should -Invoke Get-BcAppsDisabledTestsForApp -Times 0
+        Should -Invoke Run-TestsInBcContainer -Times 1 -Exactly -ParameterFilter {
+            $disabledTests.Count -eq 1 -and
+            $disabledTests[0].codeunitName -eq "Configured Codeunit"
+        }
+    }
+
+    It "persists final parent tolerance for subsequent AL-Go app callbacks" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        Mock Get-ToleranceBranch { 'main' }
+        Mock Receive-UnstableTestsArtifact { 'unstable-tests.json' }
+        Mock Test-ShouldTolerateFailures { $true }
+        Mock Get-InstalledTestAppNames {
+            throw 'The second AL-Go app callback must use the final cached result.'
+        }
+        $previousRunnerTemp = $env:RUNNER_TEMP
+        $containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+        $stateFile = Join-Path $TestDrive "parallelTests_$containerName.json"
+        Mock Invoke-ParallelTestExecution {
+            @{
+                completed = $true
+                finalResult = $false
+            } | ConvertTo-Json | Set-Content -LiteralPath $stateFile -Encoding utf8
+            return $false
+        }
+        try {
+            $env:RUNNER_TEMP = $TestDrive
+            & $script:runTestsScript -parameters @{
+                appName = 'First AL-Go App'
+                containerName = $containerName
+                tenant = 'default'
+                JUnitResultFileName = 'merged-results.xml'
+            } -TestType IntegrationTest -AppNamesToTest @('Tests A', 'Tests B') |
+                Should -BeTrue
+
+            Invoke-PerProjectTestRun -parameters @{
+                containerName = $containerName
+                appName = 'Second AL-Go App'
+            } | Should -BeTrue
+
+            (Get-Content -LiteralPath $stateFile -Raw | ConvertFrom-Json).finalResult |
+                Should -BeTrue
+            Should -Invoke Invoke-ParallelTestExecution -Times 1 -Exactly
+            Should -Invoke Test-ShouldTolerateFailures -Times 1 -Exactly -ParameterFilter {
+                $TestResultsPath -eq 'merged-results.xml' -and
+                $UnstableTestsPath -eq 'unstable-tests.json'
+            }
+            Should -Invoke Get-InstalledTestAppNames -Times 0
+            Should -Invoke Run-TestsInBcContainer -Times 0
+        }
+        finally {
+            $env:RUNNER_TEMP = $previousRunnerTemp
+        }
+    }
+
+    It "does not apply test tolerance inside scheduler workers" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        Mock Run-TestsInBcContainer { $false }
+        Mock Test-ShouldTolerateFailures { throw 'Worker tolerance must be deferred to the parent.' }
+
+        & $script:runTestsScript -parameters @{
+            appName = 'Worker Tests'
+            tenant = 'default'
+            JUnitResultFileName = 'worker-results.xml'
+        } -TestType IntegrationTest -SkipAutomaticDisabledPass -SkipTestTolerance |
+            Should -BeFalse
+
+        Should -Invoke Test-ShouldTolerateFailures -Times 0
+    }
+
+    It "does not tolerate a final test infrastructure failure" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        $previousRunnerTemp = $env:RUNNER_TEMP
+        $containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+        $stateFile = Join-Path $TestDrive "parallelTests_$containerName.json"
+        Mock Invoke-ParallelTestExecution {
+            @{
+                completed = $true
+                finalResult = $false
+            } | ConvertTo-Json | Set-Content -LiteralPath $stateFile -Encoding utf8
+            $parameters["_bcAppsTestInfrastructureBlocksTolerance"] = $true
+            return $false
+        }
+        Mock Test-ShouldTolerateFailures {
+            throw 'Infrastructure failures must bypass test tolerance.'
+        }
+        try {
+            $env:RUNNER_TEMP = $TestDrive
+            & $script:runTestsScript -parameters @{
+                appName = 'First AL-Go App'
+                containerName = $containerName
+                tenant = 'default'
+                JUnitResultFileName = 'merged-results.xml'
+            } -TestType IntegrationTest -AppNamesToTest @('Tests A') |
+                Should -BeFalse
+
+            Should -Invoke Test-ShouldTolerateFailures -Times 0
+            (Get-Content -LiteralPath $stateFile -Raw | ConvertFrom-Json).finalResult |
+                Should -BeFalse
+        }
+        finally {
+            $env:RUNNER_TEMP = $previousRunnerTemp
+        }
+    }
+}
+
+Describe "ParallelTestExecution command isolation" {
+    It "does not shadow the AL-Go disabled-test helper across override iterations" {
+        function Get-DisabledTestsForApp {
+            param(
+                [hashtable]$settings,
+                [string]$projectPath,
+                [string]$appId
+            )
+            "$($settings.marker):${projectPath}:$appId"
+        }
+
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+
+        $module = Get-Module ParallelTestExecution
+        $module.ExportedCommands.Keys | Should -Contain 'Get-BcAppsDisabledTestsForApp'
+        $module.ExportedCommands.Keys | Should -Not -Contain 'Get-DisabledTestsForApp'
+
+        foreach ($appId in @('first-app', 'second-app')) {
+            Get-DisabledTestsForApp -settings @{ marker = 'algo' } `
+                -projectPath 'project' -appId $appId |
+                Should -Be "algo:project:$appId"
+        }
+    }
+}
+
+Describe "Separate RunTests action bucket configuration" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+        $script:configurationRepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+        $script:repoSettings = Get-Content (Join-Path $script:configurationRepoRoot '.github\AL-Go-Settings.json') -Raw |
+            ConvertFrom-Json
+        $script:testConfiguration = Get-Content (Join-Path $script:configurationRepoRoot 'build\scripts\TestConfiguration.json') -Raw |
+            ConvertFrom-Json
+        $script:testProjects = @(Get-Item (Join-Path $script:configurationRepoRoot 'build\projects\Test Apps W1'))
+        $script:expectedCoverage = @{
+            UnitTests = $false
+            IntegrationTests = $false
+            UncategorizedTests = $false
+            LegacyTestsBucket1 = $false
+            LegacyTestsBucket2 = $false
+        }
+        $script:expectedCoverageFormats = @{
+            UnitTests = @('bc-json', 'cobertura')
+            IntegrationTests = @('bc-json', 'cobertura')
+            UncategorizedTests = @('bc-json', 'cobertura')
+            LegacyTestsBucket1 = @('bc-json', 'cobertura')
+            LegacyTestsBucket2 = @('bc-json', 'cobertura')
+        }
+        $script:expectedTestType = @{
+            UnitTests = 'UnitTest'
+            IntegrationTests = 'IntegrationTest'
+            UncategorizedTests = 'Uncategorized'
+            LegacyTestsBucket1 = 'Legacy'
+            LegacyTestsBucket2 = 'Legacy'
+        }
+        $script:expectedCompany = @{
+            UnitTests = 'Empty Company'
+            IntegrationTests = 'My Company'
+            UncategorizedTests = 'CRONUS International Ltd.'
+            LegacyTestsBucket1 = 'CRONUS International Ltd.'
+            LegacyTestsBucket2 = 'CRONUS International Ltd.'
+        }
+        $script:expectedBucket = @{
+            UnitTests = $null
+            IntegrationTests = $null
+            UncategorizedTests = $null
+            LegacyTestsBucket1 = 1
+            LegacyTestsBucket2 = 2
+        }
+        $script:expectedDemoData = @{
+            UnitTests = @()
+            IntegrationTests = @()
+            UncategorizedTests = @()
+            LegacyTestsBucket1 = @('Standard', 'Evaluation')
+            LegacyTestsBucket2 = @()
+        }
+    }
+
+    It "maps both project path separator forms to the same separate-action rule" {
+        $script:testProjects.Count | Should -BeGreaterThan 0
+
+        foreach ($project in $script:testProjects) {
+            $projectSettings = Get-Content (Join-Path $project.FullName '.AL-Go\settings.json') -Raw | ConvertFrom-Json
+
+            foreach ($buildMode in @($projectSettings.buildModes)) {
+                $bucketRule = @($projectSettings.ConditionalSettings | Where-Object {
+                    @($_.buildModes) -contains $buildMode
+                })
+                $bucketRule.Count | Should -Be 1
+
+                foreach ($projectPath in @(
+                    "build/projects/$($project.Name)",
+                    "build\projects\$($project.Name)"
+                )) {
+                    $rules = @($script:repoSettings.conditionalSettings | Where-Object {
+                        $_.PSObject.Properties.Name -contains 'projects' -and
+                        @($_.projects | Where-Object { $projectPath -like $_ }).Count -gt 0 -and
+                        @($_.buildModes) -contains $buildMode -and
+                        $_.settings.PSObject.Properties.Name -contains 'useSeparateTestAction'
+                    })
+                    $rules.Count | Should -Be 1
+
+                    $separateSettings = $rules[0].settings.useSeparateTestAction
+                    $globalRule = @($script:repoSettings.conditionalSettings | Where-Object {
+                        $_.PSObject.Properties.Name -contains 'projects' -and
+                        $_.PSObject.Properties.Name -notcontains 'buildModes' -and
+                        @($_.projects | Where-Object { $projectPath -like $_ }).Count -gt 0
+                    })[0].settings.useSeparateTestAction
+                    $globalRule.enabled | Should -BeTrue
+                    $separateSettings.testType | Should -Be $bucketRule[0].settings.testType
+                    $globalRule.codeCoverageEnabled | Should -BeFalse
+                    $globalRule.codeCoverageSummary | Should -Be 'none'
+                }
+            }
+        }
+    }
+
+    It "resolves both separator forms through the coverage-branch ReadSettings module" {
+        $readSettingsModule = @(
+            if (-not [string]::IsNullOrWhiteSpace($env:BCAPPS_ALGO_COVERAGE_ROOT)) {
+                Join-Path $env:BCAPPS_ALGO_COVERAGE_ROOT 'Actions\.Modules\ReadSettings.psm1'
+            }
+        ) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+        if ([string]::IsNullOrWhiteSpace($readSettingsModule)) {
+            Set-ItResult -Skipped -Because 'the AL-Go coverage branch checkout is unavailable'
+            return
+        }
+
+        Import-Module $readSettingsModule -Force
+        $readSettingsParameters = @{
+            baseFolder = $script:configurationRepoRoot
+            repoName = 'microsoft/BCApps'
+            workflowName = 'CI/CD'
+            branchName = 'spetersen/runTestsCC'
+            userName = 'spetersenms'
+            trigger = 'workflow_dispatch'
+            orgSettingsVariableValue = ''
+            repoSettingsVariableValue = ''
+            environmentSettingsVariableValue = ''
+            environmentName = ''
+        }
+
+        foreach ($project in $script:testProjects) {
+            $projectSettings = Get-Content (Join-Path $project.FullName '.AL-Go\settings.json') -Raw |
+                ConvertFrom-Json
+            foreach ($projectPath in @(
+                "build/projects/$($project.Name)",
+                "build\projects\$($project.Name)"
+            )) {
+                foreach ($buildMode in @($projectSettings.buildModes)) {
+                    $settings = ReadSettings @readSettingsParameters -project $projectPath -buildMode $buildMode
+                    $settings.useSeparateTestAction.enabled | Should -BeTrue
+                    $settings.useSeparateTestAction.testType | Should -Be $script:expectedTestType[$buildMode]
+                    $settings.useSeparateTestAction.codeCoverageEnabled |
+                        Should -Be $script:expectedCoverage[$buildMode]
+                    @($settings.useSeparateTestAction.codeCoverageFormats) |
+                        Should -Be $script:expectedCoverageFormats[$buildMode]
+                    $settings.useSeparateTestAction.codeCoverageSummary | Should -Be 'none'
+                    $settings.testType | Should -Be $script:expectedTestType[$buildMode]
+                    $settings.companyName | Should -Be $script:expectedCompany[$buildMode]
+                    [int]$settings.numberOfTenantsForTesting | Should -Be 4
+                    $settings.artifact | Should -Be $script:repoSettings.artifact
+                    [bool]$settings.enableTaskScheduler |
+                        Should -Be ($buildMode -eq 'UncategorizedTests')
+                    if ($null -eq $script:expectedBucket[$buildMode]) {
+                        $settings.Contains('bucketNumber') | Should -BeFalse
+                    }
+                    else {
+                        [int]$settings.bucketNumber | Should -Be $script:expectedBucket[$buildMode]
+                    }
+                    $expectedDemoData = @($script:expectedDemoData[$buildMode])
+                    $demoDataOverride = @($projectSettings.ConditionalSettings | Where-Object {
+                        @($_.buildModes) -contains $buildMode -and
+                        $_.settings.PSObject.Properties.Name -contains 'overwriteSettings' -and
+                        @($_.settings.overwriteSettings) -contains 'additionalDemoDataTypes'
+                    }) | Select-Object -Last 1
+                    if ($demoDataOverride) {
+                        $expectedDemoData = @($demoDataOverride.settings.additionalDemoDataTypes)
+                    }
+                    $actualDemoData = if ($settings.Contains('additionalDemoDataTypes')) {
+                        @($settings.additionalDemoDataTypes)
+                    }
+                    else {
+                        @()
+                    }
+                    $actualDemoData | Should -Be $expectedDemoData
+                }
+            }
+        }
+    }
+
+    It "keeps the BC artifact selection unchanged" {
+        $script:repoSettings.artifact | Should -Match "^bcinsider/Sandbox/30\."
+    }
+
+    It "preserves each legacy bucket's configured membership and order" {
+        InModuleScope ParallelTestExecution -Parameters @{ Configuration = $script:testConfiguration } {
+            $installed = @($Configuration."LegacyTests-Bucket2") +
+                @("Modern Tests") +
+                @($Configuration."LegacyTests-Bucket1")
+
+            @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType "Legacy" -BucketNumber 1) |
+                Should -Be @($Configuration."LegacyTests-Bucket1")
+            @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType "Legacy" -BucketNumber 2) |
+                Should -Be @($Configuration."LegacyTests-Bucket2")
+        }
+    }
+
+    It "keeps legacy apps out of the IntegrationTest and Uncategorized lanes" {
+        InModuleScope ParallelTestExecution -Parameters @{ Configuration = $script:testConfiguration } {
+            $installed = @(
+                $Configuration."LegacyTests-Bucket1"[0]
+                "Modern Tests A"
+                $Configuration."LegacyTests-Bucket2"[0]
+                "Modern Tests B"
+            )
+
+            @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType "IntegrationTest") |
+                Should -Be @("Modern Tests A", "Modern Tests B")
+            @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType "Uncategorized") |
+                Should -Be @("Modern Tests A", "Modern Tests B")
+        }
+    }
+}
+
 Describe "ParallelTestExecution background-task profile" {
     BeforeAll {
         $script:profileRepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
@@ -306,7 +941,9 @@ Describe "ParallelTestExecution transient retry scheduling" {
             (Receive-TestJobResult -Entry $entry -Job $job -Retried @{}).Outcome | Should -Be 'Failed'
             $job.State = 'Completed'
             (Receive-TestJobResult -Entry $entry -Job $job -Retried @{}).Outcome | Should -Be 'Passed'
-            Should -Invoke Remove-Job -Times 5 -Exactly
+            Mock Receive-Job { throw 'Result stream failed.' } -RemoveParameterType Job
+            (Receive-TestJobResult -Entry $entry -Job $job -Retried @{}).Outcome | Should -Be 'Failed'
+            Should -Invoke Remove-Job -Times 6 -Exactly
         }
     }
 
@@ -385,7 +1022,7 @@ Describe "ParallelTestExecution RequiredTestIsolation discovery" {
     It "discovers selected apps once each while preserving isolation, lane and exclusion filters" {
         InModuleScope ParallelTestExecution {
             Mock Get-ParametersForCommand { @{ containerName = 'c'; tenant = 'default' } }
-            Mock Get-DisabledTestsForApp {
+            Mock Get-BcAppsDisabledTestsForApp {
                 @([PSCustomObject]@{ codeunitId = 999; method = 'DisabledMethod' })
             }
             Mock Get-TestsFromBcContainer {
@@ -422,7 +1059,7 @@ Describe "ParallelTestExecution RequiredTestIsolation discovery" {
     It "does not use unfiltered discovery for Legacy buckets" {
         InModuleScope ParallelTestExecution {
             Mock Get-ParametersForCommand { @{ containerName = 'c'; tenant = 'default'; testType = 'stale' } }
-            Mock Get-DisabledTestsForApp { @() }
+            Mock Get-BcAppsDisabledTestsForApp { @() }
             Mock Get-TestsFromBcContainer { @() }
 
             $result = @(Get-RequiredDisabledWorkItems -Parameters @{ containerName = 'c' } `
@@ -465,6 +1102,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
             }
             Mock Get-RequiredDisabledWorkItems { @() }
+            Mock Get-InstalledTestAppNames { throw 'The cached override must not rediscover apps.' }
             Mock Wait-ForFreeTenant { 'default' }
             Mock Start-TestAppDispatch { }
             Mock Wait-ForAllTestJobs { $true }
@@ -482,12 +1120,111 @@ Describe "ParallelTestExecution clean tenant scheduling" {
 
                 Test-Path $stateFile | Should -BeTrue
                 Get-CachedTestRunResult -ContainerName $containerName | Should -BeTrue
+                Invoke-PerProjectTestRun -parameters @{
+                    containerName = $containerName
+                    appName = 'second-algo-app'
+                } | Should -BeTrue
+                Should -Invoke Get-InstalledTestAppNames -Times 0
             } finally {
                 $env:RUNNER_TEMP = $previousRunnerTemp
                 $env:TEMP = $previousTemp
                 if (Test-Path $stateFile) {
                     Remove-Item $stateFile -Force
                 }
+            }
+        }
+    }
+
+    It "fails immediately when the container has no operational tenants" {
+        InModuleScope ParallelTestExecution {
+            Mock Get-AvailableBcTenantInfo { @() }
+
+            {
+                Invoke-ParallelTestExecution -parameters @{
+                    containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+                    tenant = 'default'
+                } -scriptPath 'unused.ps1' -testType 'IntegrationTest' -appNamesToTest @('Tests')
+            } | Should -Throw "*No operational tenants are available*"
+        }
+    }
+
+    It "marks vanished tracked jobs as failures" {
+        InModuleScope ParallelTestExecution {
+            Mock Get-Job { $null }
+            $state = [PSCustomObject]@{
+                jobs = @([PSCustomObject]@{ jobId = 42; tenant = 'default'; appName = 'Tests' })
+                hasFailures = $false
+                retried = @{}
+            }
+
+            @(Get-FreeTenants -state $state -tenants @('default')) | Should -Be @('default')
+            $state.hasFailures | Should -BeTrue
+            $state.jobs.Count | Should -Be 0
+
+            $state.jobs = @([PSCustomObject]@{ jobId = 43; tenant = 'default'; appName = 'Tests' })
+            $state.hasFailures = $false
+            Wait-ForAllTestJobs -state $state
+            $state.hasFailures | Should -BeTrue
+            $state.jobs.Count | Should -Be 0
+        }
+    }
+
+    It "requires every configured aggregate result file to exist and contain supported XML" {
+        InModuleScope ParallelTestExecution {
+            $validFile = Join-Path $TestDrive 'valid-results.xml'
+            $invalidFile = Join-Path $TestDrive 'invalid-results.xml'
+            '<testsuites />' | Set-Content -LiteralPath $validFile -Encoding utf8
+            '<not-test-results />' | Set-Content -LiteralPath $invalidFile -Encoding utf8
+
+            Test-BcAppsExpectedTestResults -Parameters @{
+                JUnitResultFileName = $validFile
+            } | Should -BeTrue
+            Test-BcAppsExpectedTestResults -Parameters @{
+                JUnitResultFileName = (Join-Path $TestDrive 'missing-results.xml')
+            } | Should -BeFalse
+            Test-BcAppsExpectedTestResults -Parameters @{
+                JUnitResultFileName = $invalidFile
+            } | Should -BeFalse
+        }
+    }
+
+    It "blocks tolerance when the scheduler finishes without its configured aggregate result" {
+        InModuleScope ParallelTestExecution {
+            $previousRunnerTemp = $env:RUNNER_TEMP
+            $containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+            $stateFile = Join-Path $TestDrive "parallelTests_$containerName.json"
+            $parameters = @{
+                containerName = $containerName
+                tenant = 'default'
+                JUnitResultFileName = (Join-Path $TestDrive 'missing-aggregate.xml')
+            }
+            Mock Get-AvailableBcTenantInfo {
+                @([PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' })
+            }
+            Mock Get-BcContainerAppInfo {
+                @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
+            }
+            Mock Get-ALGoSetting { $false } -ParameterFilter {
+                $Key -eq 'enableCleanTestCodeunitExecution'
+            }
+            Mock Get-RequiredDisabledWorkItems { @() }
+            Mock Wait-ForFreeTenant { 'default' }
+            Mock Start-TestAppDispatch {}
+            Mock Wait-ForAllTestJobs { $true }
+            Mock Merge-TenantTestResults {}
+
+            try {
+                $env:RUNNER_TEMP = $TestDrive
+                Invoke-ParallelTestExecution -parameters $parameters `
+                    -scriptPath 'unused.ps1' -testType 'IntegrationTest' `
+                    -appNamesToTest @('Tests') |
+                    Should -BeFalse
+                $parameters['_bcAppsTestInfrastructureBlocksTolerance'] |
+                    Should -BeTrue
+            }
+            finally {
+                $env:RUNNER_TEMP = $previousRunnerTemp
+                Remove-Item -LiteralPath $stateFile -Force -ErrorAction SilentlyContinue
             }
         }
     }
@@ -593,12 +1330,12 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 '[{"codeunitId":501,"method":"*"}]' |
                     Set-Content (Join-Path $appFolder 'second.json')
 
-                $result = @(Get-DisabledTestsForApp -AppName 'Example Tests')
+                $result = @(Get-BcAppsDisabledTestsForApp -AppName 'Example Tests')
 
                 $result.Count | Should -Be 2
                 $result.codeunitId | Should -Contain 500
                 $result.codeunitId | Should -Contain 501
-                @(Get-DisabledTestsForApp -AppName 'Other Tests').Count | Should -Be 0
+                @(Get-BcAppsDisabledTestsForApp -AppName 'Other Tests').Count | Should -Be 0
                 Should -Invoke Get-ALGoSetting -Times 0
             } finally {
                 Remove-Item $script:disabledTestRoot -Recurse -Force
@@ -610,7 +1347,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         InModuleScope ParallelTestExecution {
             $script:capturedParameters = $null
 
-            Mock Get-DisabledTestsForApp { @() }
+            Mock Get-BcAppsDisabledTestsForApp { @() }
             Mock Start-Sleep { }
             Mock Start-TestJob {
                 $script:capturedParameters = $parameters
@@ -647,7 +1384,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         InModuleScope ParallelTestExecution {
             $script:capturedParameters = $null
 
-            Mock Get-DisabledTestsForApp { @() }
+            Mock Get-BcAppsDisabledTestsForApp { @() }
             Mock Reset-BcTestTenant { }
             Mock Start-Sleep { }
             Mock Start-TestJob {

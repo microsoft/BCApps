@@ -6,11 +6,14 @@ Param(
     # override on the parent invocation. Empty when called from inside a background job, which
     # forces the sequential single-app path further down.
     [string[]] $AppNamesToTest = @(),
-    [switch] $SkipAutomaticDisabledPass
+    [switch] $UseSuppliedDisabledTests,
+    [switch] $SkipAutomaticDisabledPass,
+    [switch] $SkipTestTolerance
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\ParallelTestExecution.psm1
+Import-Module $PSScriptRoot\AlToolTestAdapter.psm1
 Import-Module $PSScriptRoot\TestTolerance\TestTolerance.psm1 -Force
 
 <#
@@ -32,6 +35,13 @@ function Invoke-RunTestsWithCancellationDetection {
     param(
         [Hashtable]$parameters
     )
+
+    if ($parameters.ContainsKey("_bcAppsAlToolPath")) {
+        return Invoke-BcAppsNativeTestRun -Parameters $parameters
+    }
+    if ($env:BCAPPS_ALTOOL_VERIFICATION -eq "true") {
+        throw "W1 verification did not initialize native ALTool execution; BCH fallback is forbidden."
+    }
 
     $bchPassed = $false
     $transcriptFile = [System.IO.Path]::GetTempFileName()
@@ -106,7 +116,13 @@ if (($null -ne $TestType) -and ($TestType -ne "Legacy")) {
     $parameters["testType"] = $TestType
 }
 
-$parameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $parameters["appName"])
+if (-not $UseSuppliedDisabledTests) {
+    $parameters["disabledTests"] = @(
+        Get-BcAppsDisabledTestsForApp -AppName $parameters["appName"]
+    )
+} elseif (-not $parameters.ContainsKey("disabledTests")) {
+    throw "UseSuppliedDisabledTests requires the test parameters to contain disabledTests."
+}
 $parameters["renewClientContextBetweenTests"] = $true
 
 # When invoked from the per-project override on the parent process, $AppNamesToTest contains
@@ -115,24 +131,31 @@ $parameters["renewClientContextBetweenTests"] = $true
 # circuit. When invoked from inside a background job (Start-TestJob), $AppNamesToTest is empty
 # and we fall through to the sequential single-app path below.
 if ($AppNamesToTest.Count -gt 0) {
-    return Invoke-ParallelTestExecution -parameters $parameters -scriptPath $PSCommandPath -testType $TestType -appNamesToTest $AppNamesToTest
+    $result = Invoke-ParallelTestExecution -parameters $parameters -scriptPath $PSCommandPath `
+        -testType $TestType -appNamesToTest $AppNamesToTest
 }
+else {
+    $isRequiredDisabledRun = $parameters.ContainsKey("requiredTestIsolation") -and $parameters["requiredTestIsolation"] -eq "Disabled"
+    # A failing app is retried once by the parallel dispatcher, on a different tenant (see
+    # ParallelTestExecution.psm1). Retrying in place here would reuse the tenant the app just dirtied,
+    # so the same residue could re-trigger the failure - hence a single attempt per dispatch.
+    $containerParameters = $parameters.Clone()
+    if ($TestType -eq "Legacy") {
+        $containerParameters.Remove("testType") | Out-Null
+    }
+    $result = Invoke-TestsWithReruns -parameters $containerParameters -maxAttempts 1
 
-$isRequiredDisabledRun = $parameters.ContainsKey("requiredTestIsolation") -and $parameters["requiredTestIsolation"] -eq "Disabled"
-# A failing app is retried once by the parallel dispatcher, on a different tenant (see
-# ParallelTestExecution.psm1). Retrying in place here would reuse the tenant the app just dirtied,
-# so the same residue could re-trigger the failure - hence a single attempt per dispatch.
-$result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
-
-# Preserve the old sequential fallback. Parallel project execution defers this pass to the
-# clean-tenant codeunit scheduler in ParallelTestExecution.psm1.
-if ($TestType -eq "UnitTest" -and -not $SkipAutomaticDisabledPass -and -not $isRequiredDisabledRun) {
-    Write-Host "Running DisableTestIsolation pass for UnitTest"
-    $parameters["requiredTestIsolation"] = "Disabled"
-    $parameters["testRunnerCodeunitId"] = "130451"
-    $parameters.Remove("ReRun") # Clear rerun state from the first pass
-    $isolationResult = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
-    $result = $result -and $isolationResult
+    # Preserve the old sequential fallback. Parallel project execution defers this pass to the
+    # clean-tenant codeunit scheduler in ParallelTestExecution.psm1.
+    if ($TestType -eq "UnitTest" -and
+        -not $SkipAutomaticDisabledPass -and -not $isRequiredDisabledRun) {
+        Write-Host "Running DisableTestIsolation pass for UnitTest"
+        $containerParameters["requiredTestIsolation"] = "Disabled"
+        $containerParameters["testRunnerCodeunitId"] = "130451"
+        $containerParameters.Remove("ReRun") # Clear rerun state from the first pass
+        $isolationResult = Invoke-TestsWithReruns -parameters $containerParameters -maxAttempts 1
+        $result = $result -and $isolationResult
+    }
 }
 
 # If tests failed, check if we can tolerate failures based on the test results and unstable tests list.
@@ -146,8 +169,11 @@ $testResultFileName = if ($parameters.ContainsKey("JUnitResultFileName") -and -n
 }
 
 $isPullRequest = $env:GITHUB_EVENT_NAME -eq 'pull_request'
+$infrastructureFailureBlocksTolerance = $parameters.ContainsKey("_bcAppsTestInfrastructureBlocksTolerance") -and
+    [bool]$parameters["_bcAppsTestInfrastructureBlocksTolerance"]
 
-if (-not $result -and $testResultFileName -and $isPullRequest) {
+if (-not $SkipTestTolerance -and -not $infrastructureFailureBlocksTolerance -and
+    -not $result -and $testResultFileName -and $isPullRequest) {
     Write-Host "Tests failed. Checking test tolerance using results file: $testResultFileName"
 
     # Download unstable tests artifact only when tests failed and tolerance may apply
@@ -163,6 +189,10 @@ if (-not $result -and $testResultFileName -and $isPullRequest) {
             Remove-Item -Path $tempDownloadDir -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
+}
+
+if ($AppNamesToTest.Count -gt 0) {
+    Set-BcAppsCachedTestRunResult -ContainerName $parameters.containerName -Result $result
 }
 
 return $result

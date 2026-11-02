@@ -1,7 +1,11 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/20620d1a3676cecfa2d0bbba3ced4a89f0e08217/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/spetersenms/AL-Go/5fdf6dd31beb4edab0b6fdecb7c8866e9e81a318/Actions/.Modules/settings.schema.json",
   "type": "PTE",
-  "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
+  "templateUrl": "https://github.com/spetersenms/AL-Go@5fdf6dd31beb4edab0b6fdecb7c8866e9e81a318",
+  "projects": [
+    "build/projects/Apps W1",
+    "build/projects/Test Apps W1"
+  ],
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
@@ -23,6 +27,76 @@
     "parallelism": -1
   },
   "conditionalSettings": [
+    {
+      "projects": [
+        "build/projects/Test Apps W1",
+        "build\\projects\\Test Apps W1"
+      ],
+      "settings": {
+        "useSeparateTestAction": {
+          "enabled": true,
+          "codeCoverageEnabled": false,
+          "codeCoverageSummary": "none"
+        }
+      }
+    },
+    {
+      "projects": [
+        "build/projects/Test Apps W1",
+        "build\\projects\\Test Apps W1"
+      ],
+      "buildModes": [
+        "UnitTests"
+      ],
+      "settings": {
+        "useSeparateTestAction": {
+          "testType": "UnitTest"
+        }
+      }
+    },
+    {
+      "projects": [
+        "build/projects/Test Apps W1",
+        "build\\projects\\Test Apps W1"
+      ],
+      "buildModes": [
+        "IntegrationTests"
+      ],
+      "settings": {
+        "useSeparateTestAction": {
+          "testType": "IntegrationTest"
+        }
+      }
+    },
+    {
+      "projects": [
+        "build/projects/Test Apps W1",
+        "build\\projects\\Test Apps W1"
+      ],
+      "buildModes": [
+        "UncategorizedTests"
+      ],
+      "settings": {
+        "useSeparateTestAction": {
+          "testType": "Uncategorized"
+        }
+      }
+    },
+    {
+      "projects": [
+        "build/projects/Test Apps W1",
+        "build\\projects\\Test Apps W1"
+      ],
+      "buildModes": [
+        "LegacyTestsBucket1",
+        "LegacyTestsBucket2"
+      ],
+      "settings": {
+        "useSeparateTestAction": {
+          "testType": "Legacy"
+        }
+      }
+    },
     {
       "buildModes": [
         "Clean"
@@ -183,7 +257,7 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "6d5fac686fbd9ef4564287f56818eb2391b84caa",
+  "templateSha": "5fdf6dd31beb4edab0b6fdecb7c8866e9e81a318",
   "commitOptions": {
     "messageSuffix": "Related to AB#640900",
     "pullRequestAutoMerge": true,

@@ -38,6 +38,52 @@ codeunit 139099 "Test ApplicationArea Country"
         Assert.IsTrue(ApplicationAreaSetup.VAT, 'Application Area #VAT should be TRUE.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure SessionApplicationAreaStartsUnrestricted()
+    var
+        ChangeStatus: TestPage "Change Status on Prod. Order";
+    begin
+        Assert.AreEqual('', ApplicationArea(), 'Each test must start with unrestricted application areas.');
+        ChangeStatus.OpenView();
+        Assert.AreNotEqual('', ChangeStatus.FirmPlannedStatus.Caption(), 'Manufacturing fields must be available to tests.');
+        ChangeStatus.Close();
+
+        ApplicationArea('#Basic');
+        Assert.AreEqual('#Basic', ApplicationArea(), 'Tests must still be able to restrict application areas.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SessionApplicationAreaDoesNotLeakBetweenTests()
+    var
+        Routing: TestPage Routing;
+    begin
+        Assert.AreEqual('', ApplicationArea(), 'A previous test must not restrict application areas for this test.');
+        Routing.OpenView();
+        Assert.IsTrue(Routing.RoutingLine.Visible(), 'Manufacturing page parts must be available to tests.');
+        Assert.IsTrue(Routing."Co&mments".Enabled(), 'Manufacturing actions must be available to tests.');
+        Routing.Close();
+
+        ApplicationArea('#Manufacturing');
+        Assert.AreEqual('#Manufacturing', ApplicationArea(), 'Tests must still be able to restrict application areas.');
+    end;
+
+    [TestDataSource(Codeunit::"Application Area Test Cases", 'ApplicationArea')]
+    [Scope('OnPrem')]
+    procedure SessionApplicationAreaDoesNotLeakBetweenCases(Context: Interface ITestContext)
+    var
+        ChangeStatus: TestPage "Change Status on Prod. Order";
+    begin
+        Assert.AreEqual('', ApplicationArea(), 'Each data-driven test case must start with unrestricted application areas.');
+        ChangeStatus.OpenView();
+        Assert.AreNotEqual('', ChangeStatus.FirmPlannedStatus.Caption(), 'Manufacturing fields must be available to each test case.');
+        ChangeStatus.Close();
+
+        ApplicationArea('#Basic');
+        Assert.AreEqual('#Basic', ApplicationArea(), 'Test cases must still be able to restrict application areas.');
+    end;
+
     local procedure Initialize()
     var
         ExperienceTierSetup: Record "Experience Tier Setup";

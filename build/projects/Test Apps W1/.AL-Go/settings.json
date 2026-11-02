@@ -16,12 +16,22 @@
   "testType": "UnitTest",
   "companyName": "Empty Company",
   "buildModes": [
+    "UnitTests",
     "IntegrationTests",
     "UncategorizedTests",
     "LegacyTestsBucket1",
     "LegacyTestsBucket2"
   ],
   "ConditionalSettings": [
+    {
+      "buildModes": [
+        "UnitTests"
+      ],
+      "settings": {
+        "testType": "UnitTest",
+        "companyName": "Empty Company"
+      }
+    },
     {
       "buildModes": [
         "IntegrationTests"
