@@ -119,15 +119,12 @@ tableextension 11462 "Customer NL" extends Customer
             exit;
         if not Confirm(UpdateBankAccountsQst, false, UseFieldCaption) then
             exit;
-        if CustBankAcc.FindSet(true) then
-            repeat
-                CustBankAcc."Account Holder Name" := Name;
-                CustBankAcc."Account Holder Address" := Address;
-                CustBankAcc."Account Holder Post Code" := "Post Code";
-                CustBankAcc."Account Holder City" := City;
-                CustBankAcc."Acc. Hold. Country/Region Code" := "Country/Region Code";
-                CustBankAcc.Modify();
-            until CustBankAcc.Next() = 0;
+        CustBankAcc.ModifyAll(
+            "Account Holder Name", Name,
+            "Account Holder Address", Address,
+            "Account Holder Post Code", "Post Code",
+            "Account Holder City", City,
+            "Acc. Hold. Country/Region Code", "Country/Region Code", false);
     end;
 
     [IntegrationEvent(false, false)]

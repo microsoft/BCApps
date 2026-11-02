@@ -2685,6 +2685,7 @@ codeunit 144101 "Test SEPA CT v03"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SEPA CT-Fill Export Buffer", 'OnBeforeSetSEPAInstructionPriority', '', false, false)]
     local procedure OnBeforeSetSEPAInstructionPriority(var PaymentExportData: Record "Payment Export Data"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var IsHandled: Boolean)
     begin
+        PaymentExportData.Validate("SEPA Instruction Priority", PaymentExportData."SEPA Instruction Priority"::NORMAL);
         IsHandled := true;
     end;
 }

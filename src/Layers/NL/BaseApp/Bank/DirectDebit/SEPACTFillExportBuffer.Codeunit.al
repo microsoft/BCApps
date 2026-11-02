@@ -60,6 +60,9 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
         BankExportImportSetup: Record "Bank Export/Import Setup";
         MessageID: Code[20];
         IsHandled: Boolean;
+#if not CLEAN30
+        ForceNormalPriority: Boolean;
+#endif
     begin
         TempGenJnlLine.CopyFilters(GenJnlLine);
         CODEUNIT.Run(CODEUNIT::"SEPA CT-Prepare Source", TempGenJnlLine);
@@ -138,9 +141,11 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
 
             IsHandled := false;
 #if not CLEAN30
-            OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority(IsHandled);
+            ForceNormalPriority := false;
+            OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority(ForceNormalPriority);
+            if not ForceNormalPriority then
 #endif
-            OnBeforeSetSEPAInstructionPriority(PaymentExportData, TempGenJnlLine, IsHandled);
+                OnBeforeSetSEPAInstructionPriority(PaymentExportData, TempGenJnlLine, IsHandled);
             if not IsHandled then
                 PaymentExportData.Validate(PaymentExportData."SEPA Instruction Priority", PaymentExportData."SEPA Instruction Priority"::NORMAL);
 

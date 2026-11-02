@@ -161,39 +161,38 @@ tableextension 11463 "Customer Bank Account NL" extends "Customer Bank Account"
     var
         ProposalLine: Record "Proposal Line";
     begin
-        if FindProposalLines(ProposalLine) then
-            ProposalLine.ModifyAll("Direct Debit Mandate ID", "Direct Debit Mandate ID");
+        SetProposalLineFilters(ProposalLine);
+        ProposalLine.ModifyAll("Direct Debit Mandate ID", "Direct Debit Mandate ID");
     end;
 
     local procedure UpdateIBAN()
     var
         ProposalLine: Record "Proposal Line";
     begin
-        if FindProposalLines(ProposalLine) then
-            ProposalLine.ModifyAll(IBAN, IBAN);
+        SetProposalLineFilters(ProposalLine);
+        ProposalLine.ModifyAll(IBAN, IBAN);
     end;
 
     local procedure UpdateSWIFT()
     var
         ProposalLine: Record "Proposal Line";
     begin
-        if FindProposalLines(ProposalLine) then
-            ProposalLine.ModifyAll("SWIFT Code", "SWIFT Code");
+        SetProposalLineFilters(ProposalLine);
+        ProposalLine.ModifyAll("SWIFT Code", "SWIFT Code");
     end;
 
     local procedure UpdateBankAccountNo()
     var
         ProposalLine: Record "Proposal Line";
     begin
-        if FindProposalLines(ProposalLine) then
-            ProposalLine.ModifyAll("Bank Account No.", "Bank Account No.");
+        SetProposalLineFilters(ProposalLine);
+        ProposalLine.ModifyAll("Bank Account No.", "Bank Account No.");
     end;
 
-    local procedure FindProposalLines(var ProposalLine: Record "Proposal Line"): Boolean
+    local procedure SetProposalLineFilters(var ProposalLine: Record "Proposal Line")
     begin
         ProposalLine.SetRange("Account Type", ProposalLine."Account Type"::Customer);
         ProposalLine.SetRange("Account No.", "Customer No.");
         ProposalLine.SetRange(Bank, Code);
-        exit(not ProposalLine.IsEmpty());
     end;
 }

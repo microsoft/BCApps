@@ -13,7 +13,7 @@ using Microsoft.Sales.Receivables;
 
 codeunit 11443 "Payment Tolerance Mgt. NL"
 {
-    Access = Internal;
+    Access = Public;
 
     [Scope('OnPrem')]
     procedure PmtTolCBGJnl(var CBGStatementLine: Record "CBG Statement Line"): Boolean

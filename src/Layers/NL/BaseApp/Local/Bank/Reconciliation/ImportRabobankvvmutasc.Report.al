@@ -286,6 +286,7 @@ report 11000022 "Import Rabobank vvmut.asc"
     var
         BankAccount: Record "Bank Account";
     begin
+        BankAccount.SetLoadFields("No.", "Bank Account No.");
         if BankAccount.FindSet() then
             repeat
                 if TextFilter(BankAccount."Bank Account No.", '0123456789') = TextFilter(AcctNo, '0123456789') then

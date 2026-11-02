@@ -55,11 +55,11 @@ codeunit 11446 "Gen. Jnl. Management NL"
     var
         GenJnlBatch: Record "Gen. Journal Batch";
     begin
-        if not GenJnlBatch.Get(CurrentJnlTemplateName, DefaultBatchNameLbl) then begin
+        if not GenJnlBatch.Get(CurrentJnlTemplateName, DefaultBatchNameTok) then begin
             GenJnlBatch.Init();
             GenJnlBatch."Journal Template Name" := CurrentJnlTemplateName;
             GenJnlBatch.SetupNewBatch();
-            GenJnlBatch.Name := DefaultBatchNameLbl;
+            GenJnlBatch.Name := DefaultBatchNameTok;
             GenJnlBatch.Description := DefaultJournalLbl;
             GenJnlBatch.Insert(true);
             Commit();
@@ -103,7 +103,7 @@ codeunit 11446 "Gen. Jnl. Management NL"
             CBGStatement.SetFilter(CBGStatement.Type, '=%1', CBGStatement.Type::"Bank/Giro")
         else
             CBGStatement.SetFilter(CBGStatement.Type, '=%1', CBGStatement.Type::Cash);
-        if CBGStatement.Count > 0 then begin
+        if not CBGStatement.IsEmpty() then begin
             CBGStatement.FilterGroup := 0;
             CBGStatement."Journal Template Name" := '';
             PAGE.Run(GenJnlTemplate."Page ID", CBGStatement);
@@ -113,6 +113,6 @@ codeunit 11446 "Gen. Jnl. Management NL"
 
     var
         JournalLbl: Label '%1 journal', Comment = '%1 = journal template type';
-        DefaultBatchNameLbl: Label 'DEFAULT';
+        DefaultBatchNameTok: Label 'DEFAULT', Locked = true;
         DefaultJournalLbl: Label 'Default Journal';
 }

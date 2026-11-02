@@ -10389,6 +10389,10 @@ table 36 "Sales Header"
     begin
     end;
 
+    /// <summary>
+    /// Raised after validating payment terms, prepayment payment terms, and payment method on a bill-to customer change, before validating the prepayment percentage.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being updated, passed by reference so subscribers can modify its payment fields.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateBillToCustomerPaymentFields(var SalesHeader: Record "Sales Header")
     begin

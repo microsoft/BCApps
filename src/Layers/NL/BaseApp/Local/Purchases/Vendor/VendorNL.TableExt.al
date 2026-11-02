@@ -117,15 +117,12 @@ tableextension 11401 "Vendor NL" extends Vendor
         if not IsHandled then
             if not Confirm(UpdateBankAccountsQst, false, UseFieldCaption) then
                 exit;
-        if VendBankAcc.FindSet(true) then
-            repeat
-                VendBankAcc."Account Holder Name" := Name;
-                VendBankAcc."Account Holder Address" := Address;
-                VendBankAcc."Account Holder Post Code" := "Post Code";
-                VendBankAcc."Account Holder City" := City;
-                VendBankAcc."Acc. Hold. Country/Region Code" := "Country/Region Code";
-                VendBankAcc.Modify();
-            until VendBankAcc.Next() = 0;
+        VendBankAcc.ModifyAll(
+            "Account Holder Name", Name,
+            "Account Holder Address", Address,
+            "Account Holder Post Code", "Post Code",
+            "Account Holder City", City,
+            "Acc. Hold. Country/Region Code", "Country/Region Code", false);
     end;
 
     [IntegrationEvent(false, false)]

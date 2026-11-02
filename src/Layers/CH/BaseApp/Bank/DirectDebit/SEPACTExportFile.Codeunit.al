@@ -34,7 +34,7 @@ codeunit 1220 "SEPA CT-Export File"
     var
         ExportToServerFile: Boolean;
         FeatureNameTxt: label 'SEPA Credit Transfer Export', locked = true;
-        FileNameLbl: Label '%1.XML', Locked = true;
+        FileNameLbl: Label '%1.XML', Locked = true, Comment = '%1 = credit transfer register identifier';
 
     internal procedure FeatureName(): Text
     begin

@@ -1585,6 +1585,34 @@ codeunit 144103 "Test SEPA CT v09"
         UnbindSubscription(TestSepaCtV03);
     end;
 
+#if not CLEAN30
+    [Test]
+    [HandlerFunctions('ProposalLineConfirmHandler,ProposalProcessedMsgHandler')]
+    procedure LegacyPriorityEventForcesNormalPriority()
+    var
+        BankAccount: Record "Bank Account";
+        VendorBankAccount: Record "Vendor Bank Account";
+        TestSEPACTv09: Codeunit "Test SEPA CT v09";
+        ExportProtocolCode: Code[20];
+        FileName: Text;
+        TotalAmount: Decimal;
+        NoOfDocuments: Integer;
+    begin
+        // [SCENARIO] A legacy subscriber forces NORMAL priority and initializes InstrPrty to NORM.
+        Initialize();
+        ExportProtocolCode := FindXMLPortEuroSEPAExportProtocol();
+        SetupForExport(BankAccount, VendorBankAccount, ExportProtocolCode, TotalAmount, NoOfDocuments);
+        BindSubscription(TestSEPACTv09);
+
+        GetEntriesAndExportSEPAReport(BankAccount."No.", ExportProtocolCode);
+
+        UnbindSubscription(TestSEPACTv09);
+        FileName := CreateXMLFileFromCreditTransferRegisterExportedFile(BankAccount."No.");
+        XMLReadHelper.Initialize(FileName, GetSEPACTNameSpace());
+        XMLReadHelper.VerifyNodeCountWithValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:PmtTpInf/ns:InstrPrty', 'NORM', 2);
+    end;
+#endif
+
     local procedure CheckSEPAISO20022_Scenario(GLSetupLocalCurrency: Option; CurrencyEuro: Code[10]; ProposalLineCurrency: Code[10])
     var
         DummyProposalLine: Record "Proposal Line";
@@ -2720,6 +2748,20 @@ codeunit 144103 "Test SEPA CT v09"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SEPA CT-Fill Export Buffer", 'OnBeforeSetSEPAInstructionPriority', '', false, false)]
     local procedure OnBeforeSetSEPAInstructionPriority(var PaymentExportData: Record "Payment Export Data"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var IsHandled: Boolean)
     begin
+        if IsHandled then
+            exit;
+
+        PaymentExportData.Validate("SEPA Instruction Priority", PaymentExportData."SEPA Instruction Priority"::NORMAL);
         IsHandled := true;
     end;
+
+#if not CLEAN30
+#pragma warning disable AL0432
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"SEPA CT-Fill Export Buffer", 'OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority', '', false, false)]
+#pragma warning restore AL0432
+    local procedure ForceNormalPriorityFromLegacyEvent(var IsHandled: Boolean)
+    begin
+        IsHandled := true;
+    end;
+#endif
 }
