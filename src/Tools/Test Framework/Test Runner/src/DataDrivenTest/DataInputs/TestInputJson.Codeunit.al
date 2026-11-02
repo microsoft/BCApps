@@ -123,10 +123,11 @@ codeunit 130464 "Test Input Json"
     /// <summary>
     /// Returns the value as a DateTime.
     /// Resolves $DateTimeFormula-&lt;formula&gt;$ placeholders.
+    /// Datetime formula results are rounded to the nearest 100 milliseconds.
     /// Supports optional time (colon format):
     ///   $DateTimeFormula-&lt;formula&gt;$               → time defaults to 0T
     ///   $DateTimeFormula-&lt;formula&gt;-12:30:11$       → explicit time
-    ///   $DateTimeFormula-&lt;formula&gt;-12:30:11.130$   → time with milliseconds
+    ///   $DateTimeFormula-&lt;formula&gt;-12:30:11.1$     → time with fractional seconds
     /// </summary>
     procedure ValueAsDateTime(): DateTime
     var

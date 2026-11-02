@@ -125,6 +125,7 @@ codeunit 130465 "Test Input Data Tools"
     /// Resolves named, date, and datetime tokens on every call.
     /// Named tokens use their full name and the current company. Unknown names remain unchanged.
     /// Only the original input is scanned; replacement text is never scanned again.
+    /// Datetime formula results are rounded to the nearest 100 milliseconds.
     /// </summary>
     /// <param name="InputText">The raw text value from the test input.</param>
     /// <returns>The text with known placeholders resolved.</returns>
@@ -147,7 +148,8 @@ codeunit 130465 "Test Input Data Tools"
 
     /// <summary>
     /// Resolves a value to a DateTime.
-    /// Supports date formulas with midnight, explicit time, or millisecond precision.
+    /// Supports date formulas with midnight or explicit time.
+    /// Datetime formula results are rounded to the nearest 100 milliseconds.
     /// </summary>
     /// <param name="InputText">The raw text value.</param>
     /// <returns>The resolved DateTime.</returns>

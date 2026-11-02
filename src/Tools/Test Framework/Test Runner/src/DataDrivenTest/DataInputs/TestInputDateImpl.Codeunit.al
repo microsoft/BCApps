@@ -51,7 +51,7 @@ codeunit 130467 "Test Input Date Impl."
                 TimePart := 0T;
             end;
 
-            exit(CreateDateTime(CalcDate(Formula, WorkDate()), TimePart));
+            exit(RoundDateTime(CreateDateTime(CalcDate(Formula, WorkDate()), TimePart), 100));
         end;
 
         exit(CreateDateTime(ResolveAsDate(InputText), 0T));

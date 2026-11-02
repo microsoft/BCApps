@@ -7,7 +7,7 @@ namespace System.TestTools.TestRunner;
 
 using System.TestLibraries.Utilities;
 
-codeunit 130486 "Test Input Date Tests"
+codeunit 130486 "Date Placeholder Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -132,6 +132,37 @@ codeunit 130486 "Test Input Date Tests"
             Format(Midnight) + Format(NextDayEnd) + ' / ' + Format(Midnight),
             ResolvedText,
             'DateTime tokens must not be confused with date tokens or skip adjacent occurrences.');
+    end;
+
+    [Test]
+    procedure DateTimeFractionsRoundToNearestTenth()
+    var
+        Input: Codeunit "Test Input Json";
+        RoundedDown: DateTime;
+        RoundedUp: DateTime;
+        RoundedNextDay: DateTime;
+    begin
+        // [SCENARIO] Typed and text datetime reads round to 100 ms, including midpoint and day rollover, without changing raw input.
+
+        // [GIVEN] Fractional times just below a midpoint, exactly at it, and at the final midpoint of the day.
+        Input.Initialize(
+            '{"down":"$DateTimeFormula-<CD>-12:30:11.149$","up":"$DateTimeFormula-<CD>-12:30:11.150$","nextDay":"$DateTimeFormula-<CD>-23:59:59.950$"}');
+
+        // [WHEN] The formulas are read as datetimes.
+        RoundedDown := Input.Element('down').ValueAsDateTime();
+        RoundedUp := Input.Element('up').ValueAsDateTime();
+        RoundedNextDay := Input.Element('nextDay').ValueAsDateTime();
+
+        // [THEN] Rounding selects the nearest tenth of a second and carries across midnight.
+        Assert.AreEqual(CreateDateTime(WorkDate(), 123011.100T), RoundedDown, 'Values below the midpoint must round down.');
+        Assert.AreEqual(CreateDateTime(WorkDate(), 123011.200T), RoundedUp, 'Values at the midpoint must round up.');
+        Assert.AreEqual(CreateDateTime(WorkDate() + 1, 000000T), RoundedNextDay, 'Rounding must carry into the next day.');
+        Assert.AreEqual(Format(RoundedDown), Input.Element('down').ValueAsText(), 'Text reads must use the rounded datetime.');
+        Assert.AreEqual(Format(RoundedUp), Input.Element('up').ValueAsText(), 'Text reads must round midpoint values consistently.');
+        Assert.AreEqual(Format(RoundedNextDay), Input.Element('nextDay').ValueAsText(), 'Text reads must preserve the rounded date.');
+        Assert.AreEqual(
+            '$DateTimeFormula-<CD>-12:30:11.149$', Input.Element('down').ElementValue().AsText(),
+            'Raw reads must retain the original fractional precision.');
     end;
 
     [Test]

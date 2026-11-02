@@ -8,7 +8,7 @@ namespace System.TestTools.TestRunner;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
-codeunit 130482 "Test Input Placeholder Tests"
+codeunit 130482 "Placeholder Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;

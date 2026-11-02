@@ -258,9 +258,11 @@ Embed in any string YAML value using the `$...$` syntax. During a test method, r
 | `$DateFormula-<formula>$` (inside text) | substring → `Format(Date)` | `"Process orders for $DateFormula-<CW+1M+1D>$"` |
 | `$DateTimeFormula-<formula>$` | `DateTime` (time = `0T`) | `"$DateTimeFormula-<CD>$"` |
 | `$DateTimeFormula-<formula>-HH:MM:SS$` | `DateTime` with explicit time | `"$DateTimeFormula-<CW>-13:30:11$"` |
-| `$DateTimeFormula-<formula>-HH:MM:SS.FFF$` | `DateTime` with milliseconds | `"$DateTimeFormula-<CW>-13:30:11.130$"` |
+| `$DateTimeFormula-<formula>-HH:MM:SS.FFF$` | `DateTime` rounded to the nearest 100 ms | `"$DateTimeFormula-<CW>-13:30:11.1$"` |
 
 The date/datetime result types above refer to typed getters. `ValueAsText()` always returns the resolved value as formatted text.
+
+Datetime formula results are rounded to the nearest 100 milliseconds (one fractional-second digit of precision), for both typed reads and resolved text. For example, `12:30:11.149` rounds to `12:30:11.1`, and `12:30:11.150` rounds to `12:30:11.2`. Rounding can carry into the next second or day. Raw reads retain the original formula and precision.
 
 `<formula>` is a standard AL DateFormula evaluated against `WorkDate()`
 (`<CD>`, `<CW>`, `<CM>`, `<CW+1M+1D>`, `<-7D>`, `<+30D>`, …).
