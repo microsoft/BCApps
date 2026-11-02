@@ -323,7 +323,7 @@ codeunit 12179 "Export FatturaPA Document"
 
     local procedure IsForeignCustomer(Customer: Record Customer): Boolean
     begin
-        exit(Customer."Country/Region Code" <> CompanyInformation."Country/Region Code");
+        exit(not FatturaDocHelper.IsSameISOCountry(Customer."Country/Region Code", CompanyInformation."Country/Region Code"));
     end;
 
     local procedure GetForeignFiscalIdentifier(Customer: Record Customer): Text[20]
@@ -422,16 +422,16 @@ codeunit 12179 "Export FatturaPA Document"
             ForeignFiscalIdentifier := GetForeignFiscalIdentifier(Customer);
             if ForeignFiscalIdentifier <> '' then begin
                 TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
-                TempXMLBuffer.AddNonEmptyElement('IdPaese', Customer."Country/Region Code");
+                TempXMLBuffer.AddNonEmptyElement('IdPaese', FatturaDocHelper.GetISOCountryCode(Customer."Country/Region Code"));
                 TempXMLBuffer.AddNonEmptyLastElement('IdCodice', ForeignFiscalIdentifier);
             end;
         end else
             if (Customer."VAT Registration No." <> '') and (not Customer."Individual Person") then begin
                 TempXMLBuffer.AddGroupElement('IdFiscaleIVA');
-                TempXMLBuffer.AddNonEmptyElement('IdPaese', Customer."Country/Region Code");
+                TempXMLBuffer.AddNonEmptyElement('IdPaese', FatturaDocHelper.GetISOCountryCode(Customer."Country/Region Code"));
                 TempXMLBuffer.AddNonEmptyLastElement('IdCodice', Customer."VAT Registration No.");
             end;
-        if CompanyInformation."Country/Region Code" = Customer."Country/Region Code" then
+        if not IsForeignCustomer(Customer) then
             TempXMLBuffer.AddNonEmptyElement('CodiceFiscale', Customer."Fiscal Code");
         // 1.4.1.3 Anagrafica
         TempXMLBuffer.AddGroupElement('Anagrafica');
@@ -444,13 +444,13 @@ codeunit 12179 "Export FatturaPA Document"
         // 1.4.2. Sede
         TempXMLBuffer.AddGroupElement('Sede');
         TempXMLBuffer.AddNonEmptyElement('Indirizzo', CopyStr(Customer.Address, 1, 60));
-        if Customer."Country/Region Code" <> CompanyInformation."Country/Region Code" then
+        if IsForeignCustomer(Customer) then
             TempXMLBuffer.AddNonEmptyElement('CAP', '00000')
         else
             TempXMLBuffer.AddNonEmptyElement('CAP', Customer."Post Code");
         TempXMLBuffer.AddNonEmptyElement('Comune', Customer.City);
         TempXMLBuffer.AddNonEmptyElement('Provincia', Customer.County);
-        TempXMLBuffer.AddNonEmptyLastElement('Nazione', Customer."Country/Region Code");
+        TempXMLBuffer.AddNonEmptyLastElement('Nazione', FatturaDocHelper.GetISOCountryCode(Customer."Country/Region Code"));
         TempXMLBuffer.GetParent();
     end;
 

@@ -1291,6 +1291,63 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ExportSalesInvoiceTreatsMatchingISOCountriesAsDomestic()
+    var
+        CompanyInformation: Record "Company Information";
+        CompanyCountryRegion: Record "Country/Region";
+        AlternateCountryRegion: Record "Country/Region";
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+        FiscalCode: Code[20];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Different Country/Region keys with the same ISO Code are treated as the same country
+        Initialize();
+
+        // [GIVEN] Company and Customer use different Country/Region keys for the same ISO country
+        CompanyInformation.Get();
+        CompanyCountryRegion.Get(CompanyInformation."Country/Region Code");
+        CreateCountryRegionWithISOCode(AlternateCountryRegion, CompanyCountryRegion."ISO Code");
+
+        Customer.Get(CreateCustomer());
+        Customer."Country/Region Code" := AlternateCountryRegion.Code;
+        FiscalCode := LibraryITLocalization.GetFiscalCode();
+        Customer."Fiscal Code" := FiscalCode;
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] Domestic routing and fields are used even though the BC record keys differ
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/CodiceDestinatario',
+          Customer."PA Code");
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/FormatoTrasmissione',
+          'FPA12');
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/DatiAnagrafici/CodiceFiscale',
+          FiscalCode);
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/Sede/CAP',
+          Customer."Post Code");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceForLocalCustomer()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -1338,7 +1395,7 @@ codeunit 144200 "FatturaPA Test"
         Initialize();
 
         // [GIVEN] Posted Sales Invoice for a foreign customer
-        LibraryERM.CreateCountryRegion(CountryRegion);
+        CreateCountryRegionWithISOCode(CountryRegion, 'GB');
         CustomerNo := CreateForeignCustomer(CountryRegion.Code);
         SalesInvoiceHeader.SetRange("No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CustomerNo));
 
@@ -1565,6 +1622,15 @@ codeunit 144200 "FatturaPA Test"
             '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/CodiceDestinatario',
             'XXXXXXX');
 
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/DatiAnagrafici/IdFiscaleIVA/IdPaese',
+            CountryRegion."ISO Code");
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/Sede/Nazione',
+            CountryRegion."ISO Code");
+
         TempBlob.CreateInStream(InStr);
         VerifyXSDSchemaForStream(InStr);
     end;
@@ -1702,7 +1768,7 @@ codeunit 144200 "FatturaPA Test"
 
         // [GIVEN]  "Country/Region Code" code is "IT" in Company Information
         // [GIVEN] A posted Sales Invoice with customer that has "Country/Region Code" = "GB" and "Fiscal Code" = "Y"
-        LibraryERM.CreateCountryRegion(CountryRegion);
+        CreateCountryRegionWithISOCode(CountryRegion, 'GB');
         Customer.Get(CreateCustomer());
         CurrCustomer := Customer;
         Customer.Validate("Country/Region Code", CountryRegion.Code);
@@ -2388,6 +2454,13 @@ codeunit 144200 "FatturaPA Test"
         exit(
           LibraryITLocalization.CreateFatturaCustomerNo(
             CopyStr(LibraryUtility.GenerateRandomCode(Customer.FieldNo("PA Code"), DATABASE::Customer), 1, 6)));
+    end;
+
+    local procedure CreateCountryRegionWithISOCode(var CountryRegion: Record "Country/Region"; ISOCode: Code[2])
+    begin
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion.Validate("ISO Code", ISOCode);
+        CountryRegion.Modify(true);
     end;
 
     local procedure CreateForeignCustomer(CountryRegionCode: Code[10]): Code[20]
