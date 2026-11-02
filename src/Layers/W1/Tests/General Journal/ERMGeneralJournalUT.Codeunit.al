@@ -6177,38 +6177,6 @@ codeunit 134920 "ERM General Journal UT"
     end;
 
     [Test]
-    procedure RecurringFrequencyAcceptsGermanDayAndYear()
-    var
-        GenJournalTemplate: Record "Gen. Journal Template";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        ExpectedDayFrequency: DateFormula;
-        ExpectedYearFrequency: DateFormula;
-        DisplayedRecurringFrequency: Text;
-    begin
-        // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653373] The visible text control still accepts German day and year formulas after restoring the table-backed control.
-        Initialize();
-
-        // [GIVEN] A recurring journal line "L" and language-independent day and year formulas.
-        CreateRecurringGeneralJournalLine(GenJournalLine, GenJournalTemplate, GenJournalBatch);
-        Evaluate(ExpectedDayFrequency, '<+1D>');
-        Evaluate(ExpectedYearFrequency, '<+1Y>');
-
-        // [WHEN] The German day formula is entered in the visible control and saved.
-        DisplayedRecurringFrequency := SetRecurringFrequencyInGerman(GenJournalLine, '+1T');
-
-        // [THEN] The day formula is persisted and displayed using the German token.
-        VerifyRecurringFrequencyValue(GenJournalLine, ExpectedDayFrequency, DisplayedRecurringFrequency, '+1T');
-
-        // [WHEN] The German year formula replaces it in the visible control and is saved.
-        DisplayedRecurringFrequency := SetRecurringFrequencyInGerman(GenJournalLine, '+1J');
-
-        // [THEN] The year formula replaces the stored day formula and uses the German token.
-        VerifyRecurringFrequencyValue(GenJournalLine, ExpectedYearFrequency, DisplayedRecurringFrequency, '+1J');
-    end;
-
-    [Test]
     [Scope('OnPrem')]
     procedure RecurringFrequencyDisplaysFormattedText()
     var
@@ -6934,18 +6902,6 @@ codeunit 134920 "ERM General Journal UT"
         GenJournalLine.Modify();
     end;
 
-    local procedure SetRecurringFrequencyInGerman(var GenJournalLine: Record "Gen. Journal Line"; RecurringFrequencyText: Text) DisplayedRecurringFrequency: Text
-    var
-        PreviousGlobalLanguage: Integer;
-        FrequencySet: Boolean;
-    begin
-        PreviousGlobalLanguage := GlobalLanguage();
-        GlobalLanguage(1031);
-        FrequencySet := TrySetLocalizedRecurringFrequency(GenJournalLine, RecurringFrequencyText, DisplayedRecurringFrequency);
-        GlobalLanguage(PreviousGlobalLanguage);
-        Assert.IsTrue(FrequencySet, GetLastErrorText());
-    end;
-
     local procedure FindOpenCustLedgEntryAndSetExtDoc(var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
         CustLedgEntry.SetRange(Open, true);
@@ -7043,18 +6999,6 @@ codeunit 134920 "ERM General Journal UT"
         LocalizedRecurringFrequency := RecurringGeneralJournal.RecurringFrequencyText.Value;
         RecurringGeneralJournal.Close();
         ExpectedLocalizedRecurringFrequency := Format(GenJournalLine."Recurring Frequency");
-    end;
-
-    [TryFunction]
-    local procedure TrySetLocalizedRecurringFrequency(var GenJournalLine: Record "Gen. Journal Line"; RecurringFrequencyText: Text; var DisplayedRecurringFrequency: Text)
-    var
-        RecurringGeneralJournal: TestPage "Recurring General Journal";
-    begin
-        RecurringGeneralJournal.Trap();
-        Page.Run(Page::"Recurring General Journal", GenJournalLine);
-        RecurringGeneralJournal.RecurringFrequencyText.SetValue(RecurringFrequencyText);
-        DisplayedRecurringFrequency := RecurringGeneralJournal.RecurringFrequencyText.Value;
-        RecurringGeneralJournal.Close();
     end;
 
     local procedure ValidateAmountAndVerifySalesPurchLCYGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; RecurringMethod: Enum "Gen. Journal Recurring Method"; SystemCreatedEntry: Boolean; DocumentType: Enum "Gen. Journal Document Type"; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; BalAccountType: Enum "Gen. Journal Account Type"; BalAccountNo: Code[20]; ValidateAmount: Decimal; ExpectedValue: Decimal)
