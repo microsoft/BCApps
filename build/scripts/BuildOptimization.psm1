@@ -11,6 +11,161 @@ $ErrorActionPreference = "Stop"
 
 <#
 .SYNOPSIS
+    Returns changed apps and their transitive dependents in a resolved workspace.
+.DESCRIPTION
+    Reads workspace app manifests, including dependencies declared through the
+    application property. Does not compile apps or change existing test selection.
+    Dependencies outside the workspace are reported as a warning and not traversed.
+.PARAMETER WorkspaceFile
+    Complete, country-resolved .code-workspace file. Folder paths are relative to
+    this file; different projects with the same app ID are rejected.
+.PARAMETER ChangedAppIds
+    IDs of changed apps in the workspace. An empty array returns no apps.
+.OUTPUTS
+    Objects with Id, Name and absolute project Path, sorted by normalized app ID.
+.EXAMPLE
+    Get-AffectedWorkspaceApps -WorkspaceFile .\apps-dk.code-workspace -ChangedAppIds @('e1d97edc-c239-46b4-8d84-6368bdf67c8b')
+#>
+function Get-AffectedWorkspaceApps {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory)]
+        [string] $WorkspaceFile,
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [string[]] $ChangedAppIds
+    )
+
+    $workspacePath = (Resolve-Path -LiteralPath $WorkspaceFile -ErrorAction Stop).ProviderPath
+    try {
+        $workspace = Get-Content -LiteralPath $workspacePath -Raw -ErrorAction Stop | ConvertFrom-Json -AsHashtable -NoEnumerate -ErrorAction Stop
+    } catch {
+        throw "Cannot read workspace '$workspacePath': $($_.Exception.Message)"
+    }
+    if ($workspace -isnot [System.Collections.IDictionary] -or $workspace['folders'] -isnot [array]) {
+        throw "Workspace '$workspacePath' must contain a folders array."
+    }
+
+    $workspaceDirectory = Split-Path -Path $workspacePath -Parent
+    $pathComparer = [System.StringComparer]::Ordinal
+    if ([System.IO.Path]::DirectorySeparatorChar -eq '\') {
+        $pathComparer = [System.StringComparer]::OrdinalIgnoreCase
+    }
+    $projectPaths = [System.Collections.Generic.HashSet[string]]::new($pathComparer)
+    $graph = @{}
+    foreach ($folder in $workspace['folders']) {
+        if ($folder -isnot [System.Collections.IDictionary] -or
+            $folder['path'] -isnot [string] -or [string]::IsNullOrWhiteSpace($folder['path'])) {
+            throw "Workspace '$workspacePath' contains a folder without a valid path."
+        }
+        $projectPath = $folder['path']
+        if (-not [System.IO.Path]::IsPathRooted($projectPath)) {
+            $projectPath = Join-Path $workspaceDirectory $projectPath
+        }
+        $projectPath = [System.IO.Path]::TrimEndingDirectorySeparator(
+            (Resolve-Path -LiteralPath $projectPath -ErrorAction Stop).ProviderPath)
+        if (-not $projectPaths.Add($projectPath)) { continue }
+
+        $manifestPath = Join-Path $projectPath 'app.json'
+        try {
+            $manifest = Get-Content -LiteralPath $manifestPath -Raw -ErrorAction Stop | ConvertFrom-Json -AsHashtable -NoEnumerate -ErrorAction Stop
+        } catch {
+            throw "Cannot read app manifest '$manifestPath': $($_.Exception.Message)"
+        }
+        $appId = [guid]::Empty
+        if ($manifest -isnot [System.Collections.IDictionary] -or
+            -not [guid]::TryParse([string]$manifest['id'], [ref]$appId) -or
+            $manifest['name'] -isnot [string] -or [string]::IsNullOrWhiteSpace($manifest['name'])) {
+            throw "App manifest '$manifestPath' must contain a valid app ID and non-empty name."
+        }
+        $id = $appId.ToString()
+        if ($graph.ContainsKey($id)) {
+            throw "Duplicate app ID '$id' in '$($graph[$id].Path)' and '$projectPath'. Supply one resolved country workspace."
+        }
+
+        $dependencies = [System.Collections.Generic.HashSet[string]]::new()
+        if ($manifest.Contains('dependencies')) {
+            if ($manifest['dependencies'] -isnot [array]) {
+                throw "App manifest '$manifestPath' must declare dependencies as an array."
+            }
+            foreach ($dependency in $manifest['dependencies']) {
+                $dependencyId = [guid]::Empty
+                if ($dependency -isnot [System.Collections.IDictionary] -or
+                    -not [guid]::TryParse([string]$dependency['id'], [ref]$dependencyId)) {
+                    throw "App manifest '$manifestPath' contains a dependency without a valid app ID."
+                }
+                [void]$dependencies.Add($dependencyId.ToString())
+            }
+        }
+        if ($manifest.Contains('application')) {
+            $applicationVersion = $null
+            if (-not [version]::TryParse([string]$manifest['application'], [ref]$applicationVersion)) {
+                throw "App manifest '$manifestPath' contains an invalid application version."
+            }
+            [void]$dependencies.Add('c1335042-3002-4257-bf8a-75c898ccb1b8')
+        }
+
+        $graph[$id] = [PSCustomObject]@{
+            Id           = $id
+            Name         = $manifest['name']
+            Path         = $projectPath
+            Dependencies = $dependencies
+            Dependents   = [System.Collections.Generic.List[string]]::new()
+        }
+    }
+
+    $externalDependencies = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($node in $graph.Values) {
+        foreach ($dependency in $node.Dependencies) {
+            if ($graph.ContainsKey($dependency)) {
+                $graph[$dependency].Dependents.Add($node.Id)
+            } else {
+                [void]$externalDependencies.Add($dependency)
+            }
+        }
+    }
+
+    $affected = [System.Collections.Generic.HashSet[string]]::new()
+    $queue = [System.Collections.Generic.Queue[string]]::new()
+    foreach ($changedId in $ChangedAppIds) {
+        $appId = [guid]::Empty
+        if (-not [guid]::TryParse($changedId, [ref]$appId)) {
+            throw "Changed app ID '$changedId' is not a valid GUID."
+        }
+        $id = $appId.ToString()
+        if (-not $graph.ContainsKey($id)) {
+            throw "Changed app ID '$id' is not in workspace '$workspacePath'."
+        }
+        if ($affected.Add($id)) { $queue.Enqueue($id) }
+    }
+    if ($externalDependencies.Count -gt 0) {
+        $externalIds = [string[]]@($externalDependencies)
+        [array]::Sort($externalIds, [System.StringComparer]::Ordinal)
+        Write-Warning "Workspace '$workspacePath' excludes dependency app IDs: $($externalIds -join ', '). Only in-workspace dependents are returned."
+    }
+
+    while ($queue.Count -gt 0) {
+        $current = $queue.Dequeue()
+        foreach ($dependent in $graph[$current].Dependents) {
+            if ($affected.Add($dependent)) { $queue.Enqueue($dependent) }
+        }
+    }
+
+    $affectedIds = [string[]]@($affected)
+    [array]::Sort($affectedIds, [System.StringComparer]::Ordinal)
+    foreach ($id in $affectedIds) {
+        [PSCustomObject]@{
+            Id   = $id
+            Name = $graph[$id].Name
+            Path = $graph[$id].Path
+        }
+    }
+}
+
+
+<#
+.SYNOPSIS
     Builds a dependency graph from all app.json files under the given base folder.
 .PARAMETER BaseFolder
     Root of the repository.
@@ -500,4 +655,4 @@ function Test-ShouldSkipTestApp {
     return $false
 }
 
-Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Get-AffectedAppNames, Test-ShouldSkipTestApp
+Export-ModuleMember -Function Get-AffectedWorkspaceApps, Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Get-AffectedAppNames, Test-ShouldSkipTestApp
