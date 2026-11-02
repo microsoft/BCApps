@@ -799,7 +799,7 @@ codeunit 139595 "Report Layouts Test"
                         ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Excel);
                     end;
                 else
-                    Error('Unsupported test layout format: %1.', LayoutFormat);
+                    Error(UnsupportedTestLayoutFormatErr, LayoutFormat);
             end;
             Assert.IsTrue(ReportLayoutList.FindFirst(), StrSubstNo('The test report must provide a built-in %1 layout.', LayoutFormat));
             ReportLayoutList.Layout.ExportStream(LayoutOutStream);
@@ -2187,6 +2187,7 @@ codeunit 139595 "Report Layouts Test"
         SecondRDLCLayoutNameLbl: Label 'MYLAYOUT2', Locked = true;
         WordLayoutNameLbl: Label 'WordLayout', Locked = true;
         ExcelLayoutNameLbl: Label 'ExcelLayout', Locked = true;
+        UnsupportedTestLayoutFormatErr: Label 'Unsupported test layout format: %1.', Comment = '%1 = layout format';
         GlobalOverrideMissingErr: Label 'A global override should exist for layout %1.', Comment = '%1 = layout name';
         GlobalOverrideApprovedErr: Label 'The global override for %1 should carry the Approved status.', Comment = '%1 = layout name';
         GlobalOverrideRetiredErr: Label 'The global override for %1 should carry the Retired status.', Comment = '%1 = layout name';
