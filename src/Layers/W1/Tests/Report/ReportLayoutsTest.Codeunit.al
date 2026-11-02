@@ -823,7 +823,7 @@ codeunit 139595 "Report Layouts Test"
             'External':
                 TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::Custom;
             else
-                Error('Unsupported test layout format: %1.', LayoutFormat);
+                Error(UnsupportedTestLayoutFormatErr, LayoutFormat);
         end;
         if not AvailableInAllCompanies then
             TenantReportLayout."Company Name" := CompanyName();
@@ -849,7 +849,7 @@ codeunit 139595 "Report Layouts Test"
             'Excel':
                 exit(ReportLayoutType::Excel);
             else
-                Error('Unsupported test layout format: %1.', LayoutFormat);
+                Error(UnsupportedTestLayoutFormatErr, LayoutFormat);
         end;
     end;
 
