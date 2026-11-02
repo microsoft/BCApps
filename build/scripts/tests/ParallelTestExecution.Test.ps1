@@ -46,17 +46,13 @@ Describe "ParallelTestExecution churn selection" {
 
     BeforeEach {
         $script:selectionEnvironment = @{}
-        foreach ($name in @('GITHUB_ACTIONS', 'GITHUB_EVENT_NAME', 'GITHUB_EVENT_PATH', 'GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT',
-            'GITHUB_JOB', 'RUNNER_TEMP', '_project', 'BUILD_OPTIMIZATION_DISABLED')) {
+        foreach ($name in @('GITHUB_ACTIONS', 'GITHUB_EVENT_NAME', 'GITHUB_EVENT_PATH', 'RUNNER_TEMP', 'BUILD_OPTIMIZATION_DISABLED')) {
             $script:selectionEnvironment[$name] = [Environment]::GetEnvironmentVariable($name)
         }
         $env:GITHUB_ACTIONS = 'true'
         $env:GITHUB_EVENT_NAME = 'pull_request'
-        $env:GITHUB_RUN_ID = [guid]::NewGuid().ToString('N')
-        $env:GITHUB_RUN_ATTEMPT = '1'
-        $env:GITHUB_JOB = 'build'
-        $env:RUNNER_TEMP = $TestDrive
-        $env:_project = 'build/projects/Test Apps W1'
+        $env:RUNNER_TEMP = Join-Path $TestDrive ([guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $env:RUNNER_TEMP | Out-Null
         $env:BUILD_OPTIMIZATION_DISABLED = $null
 
         Mock -ModuleName ParallelTestExecution Get-ALGoSetting {
@@ -170,7 +166,7 @@ Describe "ParallelTestExecution churn selection" {
                 Should -BeTrue
         }
         InModuleScope ParallelTestExecution {
-            $state = Get-Content (Get-TestRunStateFile -ContainerName 'selection') -Raw | ConvertFrom-Json
+            $state = Get-Content (Join-Path $env:RUNNER_TEMP 'parallelTests_selection.json') -Raw | ConvertFrom-Json
             $state.noTestsSelected | Should -BeTrue
             $state.completed | Should -BeTrue
         }
@@ -181,23 +177,6 @@ Describe "ParallelTestExecution churn selection" {
         Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 0 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Invoke-WarmupDispatch -Times 0 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly
-    }
-
-    It "does not reuse affected-app or outcome caches across projects, runs, attempts or containers" {
-        Mock -ModuleName ParallelTestExecution Get-AffectedAppNames {
-            [PSCustomObject]@{ RunAll = $false; AppNames = @() }
-        }
-        $parameters = @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' }
-        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
-        $env:_project = 'build/projects/Test Apps DE'
-        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
-        $env:GITHUB_RUN_ATTEMPT = '2'
-        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
-        $env:GITHUB_RUN_ID = [guid]::NewGuid().ToString('N')
-        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
-        $parameters.containerName = 'another-container'
-        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
-        Should -Invoke -ModuleName ParallelTestExecution Get-AffectedAppNames -Times 5 -Exactly
     }
 
     It "reuses affected-app computation if dispatch is interrupted before completion" {
@@ -716,7 +695,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             $previousRunnerTemp = $env:RUNNER_TEMP
             $previousTemp = $env:TEMP
             $containerName = "ut-$([guid]::NewGuid().ToString('N'))"
-            $stateFile = $null
+            $stateFile = Join-Path ([System.IO.Path]::GetTempPath()) "parallelTests_$containerName.json"
             Mock Get-AvailableBcTenantInfo {
                 @([PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' })
             }
@@ -731,7 +710,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             try {
                 $env:RUNNER_TEMP = $null
                 $env:TEMP = $null
-                $stateFile = Get-TestRunStateFile -ContainerName $containerName
+                $stateFile = Join-Path ([System.IO.Path]::GetTempPath()) "parallelTests_$containerName.json"
 
                 Invoke-ParallelTestExecution -parameters @{
                     containerName = $containerName

@@ -2,7 +2,6 @@ Import-Module (Join-Path $PSScriptRoot "EnlistmentHelperFunctions.psm1" -Resolve
 Import-Module (Join-Path $PSScriptRoot "BuildOptimization.psm1" -Resolve)
 
 $script:affectedAppNamesByRun = @{}
-$script:testRunSessionId = [guid]::NewGuid().ToString('N')
 
 # ALAppBuild.psm1 expects $env:INETROOT to point at the repo root and uses Write-Log
 # internally. Set both up before importing so its functions work in CI runners that don't
@@ -17,29 +16,6 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
     }
 }
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
-
-function Get-TestRunStateFile {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$ContainerName
-    )
-
-    $project = if ($env:_project) { $env:_project } elseif ($env:ALGoProject) { $env:ALGoProject } else { $PWD.Path }
-    $runId = if ($env:GITHUB_RUN_ID) { $env:GITHUB_RUN_ID } else { $script:testRunSessionId }
-    $identity = @(
-        (Get-BaseFolder), $runId, $env:GITHUB_RUN_ATTEMPT, $env:GITHUB_JOB, $project, $ContainerName,
-        (Get-ALGoSetting -Key 'testType'), (Get-ALGoSetting -Key 'country'), (Get-ALGoSetting -Key 'bucketNumber')
-    ) | ConvertTo-Json -Compress
-    $sha256 = [System.Security.Cryptography.SHA256]::Create()
-    try {
-        $key = [BitConverter]::ToString($sha256.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($identity))).Replace('-', '')
-    } finally {
-        $sha256.Dispose()
-    }
-
-    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
-    return Join-Path $tempDir "parallelTests_$key.json"
-}
 
 <#
 .SYNOPSIS
@@ -215,8 +191,8 @@ function Get-AppRerunBudget {
 .DESCRIPTION
     The first call into Invoke-ParallelTestExecution dispatches the selected test apps in parallel,
     waits for completion, and persists the final result to a state file in $env:RUNNER_TEMP
-    scoped to the run, attempt, project and container. Subsequent invocations from the
-    per-project override short-circuit using this helper, including when no tests were selected.
+    (cleaned up between jobs by GitHub Actions). Subsequent invocations from the per-project
+    override short-circuit using this helper, including when no tests were selected.
 .OUTPUTS
     [bool] cached final result if dispatch completed; $null if no state file or not yet finished.
 #>
@@ -226,7 +202,8 @@ function Get-CachedTestRunResult {
         [string]$ContainerName
     )
 
-    $stateFile = Get-TestRunStateFile -ContainerName $ContainerName
+    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
+    $stateFile = Join-Path $tempDir "parallelTests_$ContainerName.json"
     if (-not (Test-Path $stateFile)) { return $null }
 
     try {
@@ -1332,7 +1309,11 @@ function Invoke-ParallelTestExecution {
         [string[]]$appNamesToTest
     )
 
-    $stateFile = Get-TestRunStateFile -ContainerName $parameters.containerName
+    # GitHub Actions provides a per-job temp directory ($RUNNER_TEMP) that is cleaned up between
+    # jobs, so a stale state file from a previous run cannot corrupt the current run. Fall back
+    # to the local temp directory outside of CI.
+    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
+    $stateFile = Join-Path $tempDir "parallelTests_$($parameters.containerName).json"
 
     # Short-circuit ONLY when a previous call ran to completion (wait+merge done). The
     # 'dispatched' flag is set before the foreach starts; if the call crashed mid-flight we must
@@ -1579,7 +1560,8 @@ function Invoke-PerProjectTestRun {
 
     $installed = Get-InstalledTestAppNames -ContainerName $parameters.containerName -Tenant $parameters.tenant -Country $country
     $appNamesToTest = @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType $testType -BucketNumber $bucketNumber)
-    $stateFile = Get-TestRunStateFile -ContainerName $parameters.containerName
+    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
+    $stateFile = Join-Path $tempDir "parallelTests_$($parameters.containerName).json"
     if ($appNamesToTest.Count -gt 0) {
         # Only the parent computes this; workers receive the already selected list.
         if (-not $script:affectedAppNamesByRun.ContainsKey($stateFile)) {
