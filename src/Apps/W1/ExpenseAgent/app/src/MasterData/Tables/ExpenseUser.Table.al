@@ -509,22 +509,16 @@ table 6923 "Expense User"
         ExpenseUser: Record "Expense User";
         User: Record User;
         UserSecurityID: Guid;
-        AuthEmail: Text;
     begin
         FindUserSecurityID(UserSecurityID);
         User.Get(UserSecurityID);
         if User."Authentication Email" = '' then
             Error(CurrentBCUserHasNoAuthEmailErr);
 
-        AuthEmail := LowerCase(User."Authentication Email");
-
-        ExpenseUser.SetLoadFields("No.", "E-mail");
-        ExpenseUser.SetFilter("E-mail", '<>%1', '');
-        if ExpenseUser.FindSet() then
-            repeat
-                if LowerCase(ExpenseUser."E-mail") = AuthEmail then
-                    exit(ExpenseUser."No.");
-            until ExpenseUser.Next() = 0;
+        ExpenseUser.SetLoadFields("No.");
+        ExpenseUser.SetFilter("E-mail", '@%1', User."Authentication Email");
+        if ExpenseUser.FindFirst() then
+            exit(ExpenseUser."No.");
 
         Error(CurrentBCUserNotMatchedToExpenseUserErr, User."Authentication Email");
     end;
@@ -576,20 +570,14 @@ table 6923 "Expense User"
     local procedure GetUserIdByEmail(Email: Text[100]): Code[50]
     var
         User: Record User;
-        LowerEmail: Text;
     begin
         if Email = '' then
             exit('');
 
-        LowerEmail := LowerCase(Email);
-
-        User.SetLoadFields("User Name", "Authentication Email");
-        User.SetFilter("Authentication Email", '<>%1', '');
-        if User.FindSet() then
-            repeat
-                if LowerCase(User."Authentication Email") = LowerEmail then
-                    exit(User."User Name");
-            until User.Next() = 0;
+        User.SetLoadFields("User Name");
+        User.SetFilter("Authentication Email", '@%1', Email);
+        if User.FindFirst() then
+            exit(User."User Name");
     end;
 
     internal procedure CreateEmployeeFromExpenseUser()
