@@ -159,6 +159,67 @@ codeunit 136604 "ERM RS Package Dimensions"
         DimensionSetEntry.Delete();
     end;
 
+#if not CLEAN30
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure ApplyBlankDimSetIDToJnlLineWithDefDimensionWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        GenJnlTemplate: Record "Gen. Journal Template";
+        GenJnlBatch: Record "Gen. Journal Batch";
+        GenJnlLine: Record "Gen. Journal Line";
+        LineNo: Integer;
+        DimSetID: Integer;
+    begin
+        Initialize();
+        // Verify that default dimensions are inherited from the G/L Account if "Dimension Set ID" from package is zero.
+
+        HideDialog();
+        CreatePackageAndFields(ConfigPackage, ConfigPackageTable);
+
+        LineNo := 10000;
+        CreateGenJnlLineWithAccNoAndDefDimensions(ConfigPackage, ConfigPackageTable, LineNo, GenJnlTemplate, GenJnlBatch, DimSetID);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+        ExportImportPackageWithDotNet(ConfigPackage.Code);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+        GenJnlLine.Get(GenJnlTemplate.Name, GenJnlBatch.Name, LineNo);
+        Assert.AreEqual(DimSetID, GenJnlLine."Dimension Set ID", IncorrectDimSetError);
+
+        LibraryERM.ClearGenJournalLines(GenJnlBatch);
+        GenJnlBatch.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyPackageToJnlLineWithoutDimensionWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        GenJnlTemplate: Record "Gen. Journal Template";
+        GenJnlBatch: Record "Gen. Journal Batch";
+        GenJnlLine: Record "Gen. Journal Line";
+        LineNo: Integer;
+    begin
+        Initialize();
+        // Verify that there is no need to define "Dimension Set ID" field for package without dimensions
+
+        HideDialog();
+        LibraryRapidStart.CreatePackage(ConfigPackage);
+
+        LineNo := 10000;
+        CreateGenJnlLinePackageDataWithoutDimSetID(ConfigPackage, LineNo, GenJnlTemplate, GenJnlBatch);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+        ExportImportPackageWithDotNet(ConfigPackage.Code);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+        GenJnlLine.Get(GenJnlTemplate.Name, GenJnlBatch.Name, LineNo);
+        Assert.AreEqual(0, GenJnlLine."Dimension Set ID", IncorrectDimSetError);
+
+        LibraryERM.ClearGenJournalLines(GenJnlBatch);
+        GenJnlBatch.Delete();
+    end;
+#endif
+
     [Test]
     [Scope('OnPrem')]
     procedure ApplyPackageToJnlLineWithoutDimension()
@@ -404,7 +465,8 @@ codeunit 136604 "ERM RS Package Dimensions"
         until DimSetEntry.Next() = 0;
     end;
 
-    local procedure ExportImportPackage(ConfigPackageCode: Code[20])
+#if not CLEAN30
+    local procedure ExportImportPackageWithDotNet(ConfigPackageCode: Code[20])
     var
         ConfigPackage: Record "Config. Package";
         ConfigPackageTable: Record "Config. Package Table";
@@ -418,6 +480,22 @@ codeunit 136604 "ERM RS Package Dimensions"
         ConfigXMLExchange.SetExcelMode(true);
         ConfigXMLExchange.ExportPackageXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, false);
         ConfigXMLExchange.ImportPackageXMLDocument(PackageXML, '');
+    end;
+#endif
+
+    local procedure ExportImportPackage(ConfigPackageCode: Code[20])
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigXMLExchangeNative: Codeunit "Config. XML Exchange";
+        PackageXML: XmlDocument;
+    begin
+        ConfigPackage.Get(ConfigPackageCode);
+        ConfigPackageTable.SetRange("Package Code", ConfigPackage.Code);
+
+        ConfigXMLExchangeNative.SetExcelMode(true);
+        ConfigXMLExchangeNative.ExportPackageToXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, false);
+        ConfigXMLExchangeNative.ImportPackageXMLDocument(PackageXML, '');
     end;
 
     local procedure HideDialog()
