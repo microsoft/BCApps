@@ -30,6 +30,8 @@ codeunit 6195 "E-Doc. AI Tool Processor"
         TelemetryDimensions: Dictionary of [Text, Text];
         ModelSwitchSecretNameTok: Label 'EDocAIModelSwitch', Locked = true;
         GPT56CeresTok: Label 'GPT56Ceres', Locked = true;
+        GPT56CeresLatestLbl: Label 'gpt-56-ceres-latest', Locked = true;
+        GPT56CeresPreviewLbl: Label 'gpt-56-ceres-preview', Locked = true;
 
 
     /// <summary>
@@ -261,12 +263,12 @@ codeunit 6195 "E-Doc. AI Tool Processor"
         case UseCase of
             UseCase::"Matching Assistance":
                 if UseGPT56 then
-                    exit(AOAIDeployments.GetGPT56CeresLatest())
+                    exit(GPT56CeresLatestLbl)
                 else
                     exit(AOAIDeployments.GetGPT41Latest());
             UseCase::"PDF Extraction":
                 if UseGPT56 then
-                    exit(AOAIDeployments.GetGPT56CeresPreview())
+                    exit(GPT56CeresPreviewLbl)
                 else
                     exit(AOAIDeployments.GetGPT41MiniPreview());
             else
