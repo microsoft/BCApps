@@ -541,7 +541,7 @@ codeunit 148099 "SAF-T Test Helper"
             Customer.Validate(Contact, LibraryUtility.GenerateGUID());
             Customer."Phone No." := LibraryUtility.GenerateGUID();
             Customer.Validate("Fax No.", LibraryUtility.GenerateGUID());
-            Customer."E-Mail" := LibraryUtility.GenerateGUID();
+            Customer."E-Mail" := LibraryUtility.GenerateRandomEmail();
             Customer.Validate("Home Page", LibraryUtility.GenerateGUID());
             Customer.Validate("Payment Terms Code", CreatePaymentTerms());
             Customer.Modify(true);
@@ -583,7 +583,7 @@ codeunit 148099 "SAF-T Test Helper"
             Vendor.Validate(Contact, LibraryUtility.GenerateGUID());
             Vendor."Phone No." := LibraryUtility.GenerateGUID();
             Vendor.Validate("Fax No.", LibraryUtility.GenerateGUID());
-            Vendor."E-Mail" := LibraryUtility.GenerateGUID();
+            Vendor."E-Mail" := LibraryUtility.GenerateRandomEmail();
             Vendor.Validate("Home Page", LibraryUtility.GenerateGUID());
             Vendor.Validate("Payment Terms Code", CreatePaymentTerms());
             Vendor.Modify(true);

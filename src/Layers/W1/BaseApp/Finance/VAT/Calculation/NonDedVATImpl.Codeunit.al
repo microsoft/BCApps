@@ -764,6 +764,7 @@ codeunit 6201 "Non-Ded. VAT Impl."
     var
         VATPostingSetup: Record "VAT Posting Setup";
         CurrExchRate: Record "Currency Exchange Rate";
+        LCYCurrency: Record Currency;
         IsHandled: Boolean;
     begin
         if not IsNonDeductibleVATEnabled() then
@@ -792,9 +793,17 @@ codeunit 6201 "Non-Ded. VAT Impl."
             GenJournalLine.Validate(
                 "Non-Deductible VAT Base LCY",
                 Round(GenJournalLine."VAT Base Amount (LCY)" * GetNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
-            GenJournalLine.Validate(
-                "Non-Deductible VAT Amount LCY",
-                Round((GenJournalLine."Amount (LCY)" - GenJournalLine."VAT Base Amount (LCY)") * GetNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
+            if GenJournalLine."VAT Calculation Type" = GenJournalLine."VAT Calculation Type"::"Reverse Charge VAT" then begin
+                LCYCurrency.InitRoundingPrecision();
+                GenJournalLine.Validate("Non-Deductible VAT Base LCY", GenJournalLine."Amount (LCY)");
+                GenJournalLine.Validate(
+                    "Non-Deductible VAT Amount LCY",
+                    Round(GenJournalLine."Amount (LCY)" * VATPostingSetup."VAT %" / 100,
+                        LCYCurrency."Amount Rounding Precision", LCYCurrency.VATRoundingDirection()));
+            end else
+                GenJournalLine.Validate(
+                    "Non-Deductible VAT Amount LCY",
+                    Round((GenJournalLine."Amount (LCY)" - GenJournalLine."VAT Base Amount (LCY)") * GetNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
             exit;
         end;
         GenJournalLine.Validate(
@@ -813,6 +822,7 @@ codeunit 6201 "Non-Ded. VAT Impl."
     var
         VATPostingSetup: Record "VAT Posting Setup";
         CurrExchRate: Record "Currency Exchange Rate";
+        LCYCurrency: Record Currency;
         IsHandled: Boolean;
     begin
         if not IsNonDeductibleVATEnabled() then
@@ -841,9 +851,17 @@ codeunit 6201 "Non-Ded. VAT Impl."
             GenJournalLine.Validate(
                 "Bal. Non-Ded. VAT Base LCY",
                 Round(GenJournalLine."Bal. VAT Base Amount (LCY)" * GetBalNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
-            GenJournalLine.Validate(
-                "Bal. Non-Ded. VAT Amount LCY",
-                Round((-GenJournalLine."Bal. VAT Base Amount (LCY)" - GenJournalLine."Amount (LCY)") * GetBalNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
+            if GenJournalLine."Bal. VAT Calculation Type" = GenJournalLine."Bal. VAT Calculation Type"::"Reverse Charge VAT" then begin
+                LCYCurrency.InitRoundingPrecision();
+                GenJournalLine.Validate("Bal. Non-Ded. VAT Base LCY", -GenJournalLine."Amount (LCY)");
+                GenJournalLine.Validate(
+                    "Bal. Non-Ded. VAT Amount LCY",
+                    Round(-GenJournalLine."Amount (LCY)" * VATPostingSetup."VAT %" / 100,
+                        LCYCurrency."Amount Rounding Precision", LCYCurrency.VATRoundingDirection()));
+            end else
+                GenJournalLine.Validate(
+                    "Bal. Non-Ded. VAT Amount LCY",
+                    Round((-GenJournalLine."Bal. VAT Base Amount (LCY)" - GenJournalLine."Amount (LCY)") * GetBalNonDedVATPctFromGenJournalLine(GenJournalLine) / 100, Currency."Amount Rounding Precision"));
             exit;
         end;
         GenJournalLine.Validate(

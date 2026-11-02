@@ -39,6 +39,9 @@ codeunit 144020 "ERM SEPA"
 
     trigger OnRun()
     begin
+#if not CLEAN28
+        BindSubscription(this);
+#endif
     end;
 
     var

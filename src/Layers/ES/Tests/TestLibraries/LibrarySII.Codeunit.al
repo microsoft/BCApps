@@ -1073,12 +1073,19 @@ codeunit 143006 "Library - SII"
 
     local procedure ResolveTestAssetPath(RelativePath: Text): Text
     var
-        FileManagement: Codeunit "File Management";
+        DotNetFile: DotNet File;
+        NavRootPosition: Integer;
         BCAppsAssetPath: Text;
+        NavRootPath: Text;
     begin
-        BCAppsAssetPath := GetInetRoot() + '\App\BCApps\src' + RelativePath;
-        if FileManagement.ServerFileExists(BCAppsAssetPath) then
-            exit(BCAppsAssetPath);
+        NavRootPosition := StrPos(ApplicationPath(), '\Run\NST\');
+        if NavRootPosition > 0 then begin
+            NavRootPath := DelStr(ApplicationPath(), NavRootPosition);
+            BCAppsAssetPath := NavRootPath + '\App\BCApps\src' + RelativePath;
+            // AL file methods are restricted by EnforceUserPathForAlFileOperations; .NET is not, and the XSD is loaded via .NET.
+            if DotNetFile.Exists(BCAppsAssetPath) then
+                exit(BCAppsAssetPath);
+        end;
         exit(GetInetRoot() + RelativePath);
     end;
 
