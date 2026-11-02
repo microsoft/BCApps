@@ -1,0 +1,145 @@
+name: Inspect compiler cache (listing only)
+
+on:
+  pull_request:
+    branches: [ 'releases/28.x' ]
+    paths:
+      - '.github/workflows/InspectCompilerCache.yaml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  ListCache:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'aholstrup1-inspect-compiler-cache-contents'
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      CACHE_KEY: https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/28.7.57360.0/base
+      CACHE_VERSION: 2da07c0904e89864440f98729f68f9db99a2fe86650d85420f68322322c0670c
+      CACHE_PATH: ${{ runner.temp }}/.artifactcache
+      LISTING_PATH: ${{ runner.temp }}\compiler-cache-listing
+    steps:
+      - name: Verify exact cache identity and compatibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:RUNNER_OS -ne 'Windows') { throw 'The cache requires Windows.' }
+          zstd --version
+          if ($LASTEXITCODE -ne 0) { throw 'The producer requires zstd compression.' }
+          $versionInput = "$($env:CACHE_PATH)|zstd-without-long|windows-only|1.0"
+          $version = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData([System.Text.Encoding]::UTF8.GetBytes($versionInput))).ToLowerInvariant()
+          if ($version -cne $env:CACHE_VERSION) { throw "Cache path/compression version mismatch: $version" }
+
+          $query = [uri]::EscapeDataString($env:CACHE_KEY)
+          $response = gh api "repos/$env:GITHUB_REPOSITORY/actions/caches?key=$query&per_page=100"
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot verify cache metadata.' }
+          $caches = $response | ConvertFrom-Json
+          if ($caches.total_count -gt 100) { throw 'Cache query exceeds one page; refusing ambiguous identity.' }
+          $matches = @($caches.actions_caches | Where-Object { $_.key -ceq $env:CACHE_KEY -and $_.version -ceq $env:CACHE_VERSION })
+          if ($matches.Count -ne 1) { throw 'Expected exactly one cache with the pinned key and version.' }
+          $cache = $matches[0]
+          if ($cache.id -ne 9849354071 -or $cache.ref -cne 'refs/heads/releases/28.x' -or $cache.size_in_bytes -ne 899720052) {
+            throw 'The cache identity, branch, or stored archive size changed.'
+          }
+          if (Test-Path -LiteralPath $env:CACHE_PATH) { throw 'Restore destination is not empty.' }
+          New-Item -ItemType Directory -Path $env:LISTING_PATH | Out-Null
+          $cache | ConvertTo-Json | Set-Content -LiteralPath "$env:LISTING_PATH\cache-metadata.json" -Encoding utf8
+
+      - name: Look up exact existing cache without downloading
+        id: lookup
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/.artifactcache
+          key: ${{ env.CACHE_KEY }}
+          enableCrossOsArchive: false
+          fail-on-cache-miss: true
+          lookup-only: true
+
+      - name: Reject a partial match
+        env:
+          CACHE_HIT: ${{ steps.lookup.outputs.cache-hit }}
+          MATCHED_KEY: ${{ steps.lookup.outputs.cache-matched-key }}
+        run: |
+          if ($env:CACHE_HIT -cne 'true' -or $env:MATCHED_KEY -cne $env:CACHE_KEY) {
+            throw 'Exact cache not found. No download or repopulation will be attempted.'
+          }
+
+      - name: Restore existing cache only
+        id: restore
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/.artifactcache
+          key: ${{ env.CACHE_KEY }}
+          enableCrossOsArchive: false
+          fail-on-cache-miss: true
+
+      - name: Export relative filenames and byte lengths only
+        env:
+          CACHE_HIT: ${{ steps.restore.outputs.cache-hit }}
+          MATCHED_KEY: ${{ steps.restore.outputs.cache-matched-key }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:CACHE_HIT -cne 'true' -or $env:MATCHED_KEY -cne $env:CACHE_KEY) {
+            throw 'The restored cache is not an exact match.'
+          }
+          $root = Get-Item -LiteralPath $env:CACHE_PATH -Force
+          if (-not $root.PSIsContainer -or ($root.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+            throw 'Expected an ordinary cache directory.'
+          }
+          $entries = @(Get-ChildItem -LiteralPath $root.FullName -Recurse -Force -ErrorAction Stop)
+          if (@($entries | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint }).Count) {
+            throw 'Cache contains links; refusing an incomplete or externally resolved listing.'
+          }
+          $files = @($entries | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
+            [pscustomobject]@{
+              RelativePath = [IO.Path]::GetRelativePath($root.FullName, $_.FullName)
+              Bytes = [long]$_.Length
+            }
+          } | Sort-Object RelativePath)
+          if ($files.Count -eq 0) { throw 'The cache has no files.' }
+          $files | Export-Csv -LiteralPath "$env:LISTING_PATH\files.csv" -NoTypeInformation -Encoding utf8
+          $folders = @($files | Group-Object { ($_.RelativePath -split '\\')[0] } | ForEach-Object {
+            [pscustomobject]@{ Name = $_.Name; Files = $_.Count; Bytes = [long](($_.Group | Measure-Object Bytes -Sum).Sum) }
+          } | Sort-Object Bytes -Descending)
+          $extensions = @($files | Group-Object { [IO.Path]::GetExtension($_.RelativePath).ToLowerInvariant() } | ForEach-Object {
+            [pscustomobject]@{ Extension = $_.Name; Files = $_.Count; Bytes = [long](($_.Group | Measure-Object Bytes -Sum).Sum) }
+          } | Sort-Object Bytes -Descending)
+          $summary = [ordered]@{
+            CacheId = 9849354071
+            Key = $env:CACHE_KEY
+            Version = $env:CACHE_VERSION
+            CacheRef = 'refs/heads/releases/28.x'
+            StoredArchiveBytes = 899720052
+            FileCount = $files.Count
+            UncompressedFileBytes = [long](($files | Measure-Object Bytes -Sum).Sum)
+            DirectoryCount = @($entries | Where-Object PSIsContainer).Count
+            TopLevelEntries = $folders
+            Extensions = $extensions
+            Repository = $env:GITHUB_REPOSITORY
+            RunUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+            RunAttempt = $env:GITHUB_RUN_ATTEMPT
+            Job = $env:GITHUB_JOB
+            WorkflowSha = $env:GITHUB_SHA
+            EnumeratedAtUtc = [DateTime]::UtcNow.ToString('o')
+            Scope = 'Filesystem names and byte lengths only; no cached file contents were read or uploaded.'
+          }
+          $summary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath "$env:LISTING_PATH\summary.json" -Encoding utf8
+          "Files: $($summary.FileCount); uncompressed file bytes: $($summary.UncompressedFileBytes); stored archive bytes: $($summary.StoredArchiveBytes)." |
+            Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload listing only
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: compiler-cache-file-listing
+          path: |
+            ${{ runner.temp }}\compiler-cache-listing\files.csv
+            ${{ runner.temp }}\compiler-cache-listing\cache-metadata.json
+            ${{ runner.temp }}\compiler-cache-listing\summary.json
+          if-no-files-found: error
+          retention-days: 3
