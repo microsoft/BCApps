@@ -4,7 +4,7 @@
   "gitHubRunner": "GitHub-BCAppsPL",
   "country": "w1",
   "projectsToTest": [
-    "build/projects/Apps W1"
+    "build\\projects\\Apps W1"
   ],
   "testFolders": [],
   "runTestsInAllInstalledTestApps": true,
@@ -15,6 +15,9 @@
   "doNotPublishApps": false,
   "testType": "UnitTest",
   "companyName": "Empty Company",
+  "overwriteSettings": [
+    "buildModes"
+  ],
   "buildModes": [
     "UnitTests",
     "IntegrationTests",

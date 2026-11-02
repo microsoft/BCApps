@@ -9,7 +9,7 @@ Describe "W1 verification project discovery and workflow" {
     }
 
     It "selects exactly the production and test W1 projects in every repository override" {
-        $expected = @("build/projects/Apps W1", "build/projects/Test Apps W1")
+        $expected = @("build\projects\Apps W1", "build\projects\Test Apps W1")
         @($script:settings.projects) | Should -Be $expected
         foreach ($file in @("CICD.settings.json", "Pull Request Build.settings.json")) {
             $override = Get-Content (Join-Path $script:root ".github\$file") -Raw | ConvertFrom-Json
@@ -25,7 +25,8 @@ Describe "W1 verification project discovery and workflow" {
     It "keeps all existing test folders and adds an explicit unit-test lane" {
         $apps = Get-Content (Join-Path $script:root "build\projects\Apps W1\.AL-Go\settings.json") -Raw | ConvertFrom-Json
         $tests = Get-Content (Join-Path $script:root "build\projects\Test Apps W1\.AL-Go\settings.json") -Raw | ConvertFrom-Json
-        @($tests.projectsToTest) | Should -Be @("build/projects/Apps W1")
+        @($tests.projectsToTest) | Should -Be @("build\projects\Apps W1")
+        @($tests.overwriteSettings) | Should -Contain "buildModes"
         @($tests.buildModes) | Should -Be @("UnitTests", "IntegrationTests", "UncategorizedTests", "LegacyTestsBucket1", "LegacyTestsBucket2")
         $apps.testFolders.Count | Should -BeGreaterThan 100
         foreach ($framework in @("Test Runner", "Test Libraries/Permissions Mock")) {
@@ -41,6 +42,8 @@ Describe "W1 verification project discovery and workflow" {
         $script:workflow | Should -Not -Match 'CodeCoverage|BCAPPS_ALTOOL_URL'
         $script:workflow.IndexOf("- name: Build") | Should -BeLessThan $script:workflow.IndexOf("- name: Run Tests")
         $script:workflow.IndexOf("- name: Prepare verification ALTool") | Should -BeLessThan $script:workflow.IndexOf("- name: Run Tests")
+        $guard = "inputs.project == 'build/projects/Test Apps W1' || inputs.project == 'build\projects\Test Apps W1'"
+        @([regex]::Matches($script:workflow, [regex]::Escape($guard))).Count | Should -Be 3
     }
 
     It "pins the tracked archive to the exact verified staged-source build" {
@@ -108,7 +111,38 @@ Describe "Native ALTool verification adapter" {
                 $settings = Get-Content (Join-Path $root ".github\AL-Go-Settings.json") -Raw | ConvertFrom-Json
                 GetProjectsFromRepository -baseFolder $root -projectsFromSettings $settings.projects
             } $script:root
-            @($projects) | Should -Be @("build/projects/Apps W1", "build/projects/Test Apps W1")
+            @($projects) | Should -Be @("build\projects\Apps W1", "build\projects\Test Apps W1")
+        }
+
+        It "resolves the full pinned dependency graph and build matrix in Windows PowerShell 5.1" {
+            if ([System.Environment]::OSVersion.Platform -ne [System.PlatformID]::Win32NT) {
+                Set-ItResult -Skipped -Because "The CI action uses Windows PowerShell."
+                return
+            }
+            $shell = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
+            $resultPath = Join-Path $TestDrive "project-graph.json"
+            $output = & $shell -NoProfile -NonInteractive -ExecutionPolicy Bypass `
+                -File (Join-Path $PSScriptRoot "Invoke-W1ProjectGraph.ps1") `
+                -RepositoryRoot $script:root -ALGoRoot $env:BCAPPS_ALGO_COVERAGE_ROOT `
+                -ResultPath $resultPath 2>&1
+            $LASTEXITCODE | Should -Be 0 -Because ($output -join "`n")
+            $results = @(Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json)
+            @($results.Trigger) | Should -Be @("workflow_dispatch", "push", "merge_group")
+            $production = "build\projects\Apps W1"
+            $tests = "build\projects\Test Apps W1"
+            foreach ($result in $results) {
+                $result.Shell | Should -BeLike "5.1.*"
+                @($result.Projects) | Should -Be @($production, $tests)
+                @($result.Selected) | Should -Be @($production, $tests)
+                @($result.Dependencies.$tests) | Should -Be @($production)
+                $result.BuildOrder.Count | Should -Be 2
+                @($result.BuildOrder[0].projects) | Should -Be @($production)
+                @($result.BuildOrder[1].projects) | Should -Be @($tests)
+                @($result.BuildOrder[1].buildDimensions.buildMode) | Should -Be @(
+                    "UnitTests", "IntegrationTests", "UncategorizedTests", "LegacyTestsBucket1", "LegacyTestsBucket2"
+                )
+                @($result.BuildOrder[1].buildDimensions | Where-Object codeCoverageExpected).Count | Should -Be 0
+            }
         }
 
         It "preserves CI-generated framework versions above the pinned stock artifact" {

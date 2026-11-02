@@ -3,8 +3,8 @@
   "type": "PTE",
   "templateUrl": "https://github.com/spetersenms/AL-Go@5fdf6dd31beb4edab0b6fdecb7c8866e9e81a318",
   "projects": [
-    "build/projects/Apps W1",
-    "build/projects/Test Apps W1"
+    "build\\projects\\Apps W1",
+    "build\\projects\\Test Apps W1"
   ],
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",

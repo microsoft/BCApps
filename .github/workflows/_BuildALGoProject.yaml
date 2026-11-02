@@ -218,7 +218,8 @@ jobs:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
           BuildMode: ${{ inputs.buildMode }}
           NeedsContext: ${{ env.NeedsContext }}
-          BCAPPS_ALTOOL_VERIFICATION: ${{ inputs.project == 'build/projects/Test Apps W1' && 'true' || 'false' }}
+          # Pinned dependency analysis requires Windows project IDs; accept both separator forms.
+          BCAPPS_ALTOOL_VERIFICATION: ${{ (inputs.project == 'build/projects/Test Apps W1' || inputs.project == 'build\projects\Test Apps W1') && 'true' || 'false' }}
         with:
           shell: ${{ inputs.shell }}
           artifact: ${{ env.artifact }}
@@ -231,13 +232,13 @@ jobs:
           previousAppsPath: ${{ steps.DownloadPreviousRelease.outputs.PreviousAppsPath }}
 
       - name: Install .NET 10 for custom ALTool
-        if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && inputs.project == 'build/projects/Test Apps W1'
+        if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && (inputs.project == 'build/projects/Test Apps W1' || inputs.project == 'build\projects\Test Apps W1')
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
           dotnet-version: '10.0.x'
 
       - name: Prepare verification ALTool
-        if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && inputs.project == 'build/projects/Test Apps W1'
+        if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && (inputs.project == 'build/projects/Test Apps W1' || inputs.project == 'build\projects\Test Apps W1')
         shell: pwsh
         run: |
           if ($env:runTestsInSeparateAction -ne 'True') {
