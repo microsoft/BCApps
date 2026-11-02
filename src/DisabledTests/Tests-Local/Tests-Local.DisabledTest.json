@@ -312,167 +312,8 @@
   {
     "codeunitId": 141012,
     "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordAddCurrChangeConsolidatedTrialBal4"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordAddCurrChangeConsolidatedTrialBalance"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordAmtInThousandsConsolidatedTrialBal4"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordAmtInThousandsConsolidatedTrialBalance"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordCurrencyCurrencyBalancesRecPay"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordEliminationAmtConsolidatedTrialBal4"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordEliminationAmtConsolidatedTrialBalance"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordEliminationAmtTypeBalConsolidatedTrialBal4"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLAccountBalancesByGIFICode"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLAccountChartOfAccounts"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLAccountCreditsGenLedgWorksheet"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLAccountDebitsGenLedgWorksheet"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLAccountFilterClosingTrialBal"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLAccountFiscalYearBalClosingTrialBal"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLEntryBankAccGLRegister"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLEntryCrossReferenceByAccountNo"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLEntryCrossReferenceBySource"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLEntryCustomerGLRegister"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLEntryFixedAssetGLRegister"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLEntryICPartnerGLRegister"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLEntryVendorGLRegister"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordGLRegister"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordInThousandsConsolidatedTrialBal4"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordInThousandsConsolidatedTrialBalance"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordNetChangeAmtConsolidatedTrialBal4"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordNetChangeAmtConsolidatedTrialBalance"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordNetChangeBusUnitConsolidatedTrialBal4"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordNetChangeBusUnitConsolidatedTrialBalance"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnAfterGetRecordNetChangeTypeBalConsolidatedTrialBal4"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnPreReportConsolidatedTrialBal4"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnPreReportConsolidatedTrialBalance"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnPreReportSubTitleConsolidatedTrialBal4"
-  },
-  {
-    "codeunitId": 141012,
-    "codeunitName": "UT REP General Ledger",
-    "method": "OnPreReportSubTitleConsolidatedTrialBalance"
+    "method": "*",
+    "bug": "Error: Assert.Fail failed. No row found where Field 'SubTitle' = <Period: 01/27/28..01/27/28>.Row is found where Field 'SubTitle' = <Period: 01/27/28>"
   },
   {
     "codeunitId": 141020,
@@ -1342,67 +1183,8 @@
   {
     "codeunitId": 142006,
     "codeunitName": "Export Business Data",
-    "method": "ExportBusinessDataInsertsANSITagIntoIndexXml"
-  },
-  {
-    "codeunitId": 142006,
-    "codeunitName": "Export Business Data",
-    "method": "ExportBusinessDataInsertsMacintoshTagIntoIndexXml"
-  },
-  {
-    "codeunitId": 142006,
-    "codeunitName": "Export Business Data",
-    "method": "ExportBusinessDataInsertsOEMTagIntoIndexXml"
-  },
-  {
-    "codeunitId": 142006,
-    "codeunitName": "Export Business Data",
-    "method": "ExportBusinessDataInsertsUTF16TagIntoIndexXml"
-  },
-  {
-    "codeunitId": 142006,
-    "codeunitName": "Export Business Data",
-    "method": "ExportBusinessDataInsertsUTF7TagIntoIndexXml"
-  },
-  {
-    "codeunitId": 142006,
-    "codeunitName": "Export Business Data",
-    "method": "ExportBusinessDataInsertsUTF8TagIntoIndexXml"
-  },
-  {
-    "codeunitId": 142006,
-    "codeunitName": "Export Business Data",
-    "method": "ExportBusinessDataSameTableWithSameFieldsIndexXml"
-  },
-  {
-    "codeunitId": 142006,
-    "codeunitName": "Export Business Data",
-    "method": "TestCompanyInfoUmlautRemovedFromXML"
-  },
-  {
-    "codeunitId": 142006,
-    "codeunitName": "Export Business Data",
-    "method": "TestCorrectFieldNameUsedInIndexXML"
-  },
-  {
-    "codeunitId": 142006,
-    "codeunitName": "Export Business Data",
-    "method": "TestCorrectPKFieldNameUsedInIndexXML"
-  },
-  {
-    "codeunitId": 142006,
-    "codeunitName": "Export Business Data",
-    "method": "TestCorrectTableNameUsedInIndexXML"
-  },
-  {
-    "codeunitId": 142006,
-    "codeunitName": "Export Business Data",
-    "method": "TestFieldCountInIndexXML"
-  },
-  {
-    "codeunitId": 142006,
-    "codeunitName": "Export Business Data",
-    "method": "TestMediaNameTagInIndexXML"
+    "method": "*",
+    "bug": ".net not supported in test environment"
   },
   {
     "codeunitId": 142050,
@@ -1442,27 +1224,7 @@
   {
     "codeunitId": 142054,
     "codeunitName": "SalesDocTotalsWithSalesTax",
-    "method": "SalesCreditMemo"
-  },
-  {
-    "codeunitId": 142054,
-    "codeunitName": "SalesDocTotalsWithSalesTax",
-    "method": "SalesInvoice"
-  },
-  {
-    "codeunitId": 142054,
-    "codeunitName": "SalesDocTotalsWithSalesTax",
-    "method": "SalesQuote"
-  },
-  {
-    "codeunitId": 142054,
-    "codeunitName": "SalesDocTotalsWithSalesTax",
-    "method": "SalesTaxUpdatedInSalesInvoiceWhenShipToChanged"
-  },
-  {
-    "codeunitId": 142054,
-    "codeunitName": "SalesDocTotalsWithSalesTax",
-    "method": "SalesTaxUpdatedInSalesOrderWhenShipToChanged"
+    "method": "*"
   },
   {
     "codeunitId": 142056,
@@ -1710,54 +1472,35 @@
     "method": "ValidateRemitAddressNameOnBankAccountPositivePayExport"
   },
   {
-    "codeunitId": 142064,
-    "codeunitName": "UT REP VATSTAT",
-    "method": "OnAfterGetRecordAddCurrencyGLVATReconciliation"
+    "codeunitId": 142063,
+    "codeunitName": "SalesDocTotalsSalesEntryUI",
+    "method": "TestSalesOrderDisplaysDocTotalsNoInvoiceDiscount"
+  },
+  {
+    "codeunitId": 142063,
+    "codeunitName": "SalesDocTotalsSalesEntryUI",
+    "method": "TestSalesReturnOrderDisplaysDocTotalsNoInvoiceDiscount"
+  },
+  {
+    "codeunitId": 142063,
+    "codeunitName": "SalesDocTotalsSalesEntryUI",
+    "method": "TestSalesCrMemoDisplaysDocTotalsNoInvoiceDiscount"
+  },
+  {
+    "codeunitId": 142063,
+    "codeunitName": "SalesDocTotalsSalesEntryUI",
+    "method": "TestSalesBlanketOrderDisplaysDocTotalsNoInvoiceDiscount"
+  },
+  {
+    "codeunitId": 142063,
+    "codeunitName": "SalesDocTotalsSalesEntryUI",
+    "method": "TestSalesQuoteDisplaysDocTotalsNoInvoiceDiscount"
   },
   {
     "codeunitId": 142064,
     "codeunitName": "UT REP VATSTAT",
-    "method": "OnAfterGetRecordPeriodMonthVATStatementATError"
-  },
-  {
-    "codeunitId": 142064,
-    "codeunitName": "UT REP VATSTAT",
-    "method": "OnAfterGetRecordPeriodQuarterVATStatementATError"
-  },
-  {
-    "codeunitId": 142064,
-    "codeunitName": "UT REP VATSTAT",
-    "method": "OnAfterGetRecordTotalAmountGLVATReconciliation"
-  },
-  {
-    "codeunitId": 142064,
-    "codeunitName": "UT REP VATSTAT",
-    "method": "OnAfterGetRecordWithoutFileVATStatementATError"
-  },
-  {
-    "codeunitId": 142064,
-    "codeunitName": "UT REP VATSTAT",
-    "method": "OnPreDataItemAddCurrencyGLVATReconciliation"
-  },
-  {
-    "codeunitId": 142064,
-    "codeunitName": "UT REP VATSTAT",
-    "method": "OnPreDataItemLCYCodeGLVATReconciliation"
-  },
-  {
-    "codeunitId": 142064,
-    "codeunitName": "UT REP VATSTAT",
-    "method": "OnPreReportNoOfEntriesGLVATReconciliation"
-  },
-  {
-    "codeunitId": 142064,
-    "codeunitName": "UT REP VATSTAT",
-    "method": "OnPreReportSelectionAllGLVATReconciliation"
-  },
-  {
-    "codeunitId": 142064,
-    "codeunitName": "UT REP VATSTAT",
-    "method": "OnPreReportSelectionClosedGLVATReconciliation"
+    "method": "*",
+    "bug": "UI handler errors"
   },
   {
     "codeunitId": 142065,
@@ -2037,6 +1780,11 @@
   {
     "codeunitId": 142083,
     "codeunitName": "ERM Electronic Funds Transfer",
+    "method": "ExportPaymentJournalSortedByDocumentNo"
+  },
+  {
+    "codeunitId": 142083,
+    "codeunitName": "ERM Electronic Funds Transfer",
     "method": "GeneratingEFTFileInCAFormatRollbackAllExportedLinesOnError"
   },
   {
@@ -2053,6 +1801,36 @@
     "codeunitId": 142083,
     "codeunitName": "ERM Electronic Funds Transfer",
     "method": "TheRemittanceAdviceGeneratedFromThePaymentJournalsPageIsNotAccurateWhenTheInvoicesBeingPaidArEInAForeignCurrency"
+  },
+  {
+    "codeunitId": 142085,
+    "codeunitName": "PurchDocTotalsSalesEntryUI",
+    "method": "TestPurchInvoiceDisplaysDocTotalsNoInvoiceDiscount"
+  },
+  {
+    "codeunitId": 142085,
+    "codeunitName": "PurchDocTotalsSalesEntryUI",
+    "method": "TestPurchOrderDisplaysDocTotalsNoInvoiceDiscount"
+  },
+  {
+    "codeunitId": 142085,
+    "codeunitName": "PurchDocTotalsSalesEntryUI",
+    "method": "TestPurchReturnOrderDisplaysDocTotalsNoInvoiceDiscount"
+  },
+  {
+    "codeunitId": 142085,
+    "codeunitName": "PurchDocTotalsSalesEntryUI",
+    "method": "TestPurchCrMemoDisplaysDocTotalsNoInvoiceDiscount"
+  },
+  {
+    "codeunitId": 142085,
+    "codeunitName": "PurchDocTotalsSalesEntryUI",
+    "method": "TestPurchBlanketOrderDisplaysDocTotalsNoInvoiceDiscount"
+  },
+  {
+    "codeunitId": 142085,
+    "codeunitName": "PurchDocTotalsSalesEntryUI",
+    "method": "TestPurchQuoteDisplaysDocTotalsNoInvoiceDiscount"
   },
   {
     "codeunitId": 142091,
@@ -2312,97 +2090,8 @@
   {
     "codeunitId": 142096,
     "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateAccountListXSDSchema"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateAuxiliaryAccountSheetXML_TypeDE"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateAuxiliaryAccountSheetXML_TypeFC"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateAuxiliaryAccountXSDSchema_TypeDE"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateAuxiliaryAccountXSDSchema_TypeFC"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateBalanceSheetXML"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateBalanceSheetXML_ClosingBalance"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateBalanceSheetXSDSchema"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateBalanceSheetXSDSchema_ClosingBalance"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateTransactionsXML"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateTransactionsXMLBankTransferInternal"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateTransactionsXMLBankTransferVendor"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateTransactionsXMLCashPayment"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateTransactionsXMLCheckPayment"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateTransactionsXMLInternationalReceipt"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateTransactionsXMLNationalEInvoice"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateTransactionsXMLNationalReceipt"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateTransactionsXSDSchema_TypeAF"
-  },
-  {
-    "codeunitId": 142096,
-    "codeunitName": "Export Electr. Accounting Test",
-    "method": "ValidateTransactionsXSDSchema_TypeDE"
+    "method": "*",
+    "bug": "Error: Assert.IsTrue failed. Could not find a part of the path 'C:\Program Files\Microsoft Dynamics NAV\App\BCApps\src\GDL\NA\App\Test\XMLSchemas\CatalogoCuentas_1_3.xsd'."
   },
   {
     "codeunitId": 142101,
@@ -2422,32 +2111,8 @@
   {
     "codeunitId": 142500,
     "codeunitName": "Export Payments File Handling",
-    "method": "ExportPayments_Cecoban_CustomerName"
-  },
-  {
-    "codeunitId": 142500,
-    "codeunitName": "Export Payments File Handling",
-    "method": "ExportPayments_Cecoban_VendorName"
-  },
-  {
-    "codeunitId": 142500,
-    "codeunitName": "Export Payments File Handling",
-    "method": "TransmitExportedFileACH"
-  },
-  {
-    "codeunitId": 142500,
-    "codeunitName": "Export Payments File Handling",
-    "method": "TransmitExportedFileCecoban"
-  },
-  {
-    "codeunitId": 142500,
-    "codeunitName": "Export Payments File Handling",
-    "method": "TransmitExportedFileRB"
-  },
-  {
-    "codeunitId": 142500,
-    "codeunitName": "Export Payments File Handling",
-    "method": "VerifyRBExportedFileData"
+    "method": "*",
+    "bug": "File does not exist"
   },
   {
     "codeunitId": 144000,
@@ -2658,6 +2323,11 @@
     "codeunitId": 144001,
     "codeunitName": "MX CFDI",
     "method": "CancelDocumentManual"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "MX CFDI",
+    "method": "TimeZoneRequestStampPayment"
   },
   {
     "codeunitId": 144001,
