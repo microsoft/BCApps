@@ -1333,7 +1333,7 @@ codeunit 137350 "SCM Inventory Reports - III"
     [HandlerFunctions('PostInventoryCostToGLRequestPageHandler,MessageHandler')]
     procedure PostInvtCostToGLDeletesAllProcessedEntriesWithManyNonContiguousEntries()
     var
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
         ProcessedItemNo: Code[20];
         OtherItemNo: Code[20];
         FirstValueEntryNo: Integer;
@@ -1356,8 +1356,8 @@ codeunit 137350 "SCM Inventory Reports - III"
         end;
 
         // [WHEN] Run "Post Inventory Cost to G/L" with "Post" = true for item "X".
-        PostValueEntryToGL.SetRange("Item No.", ProcessedItemNo);
-        RunPostInventoryCostToGL(PostValueEntryToGL, PostMethod::"per Entry", '', NothingToPostToGLMsg);
+        ValueEntryToPostToGL.SetRange("Item No.", ProcessedItemNo);
+        RunPostInventoryCostToGL(ValueEntryToPostToGL, PostMethod::"per Entry", '', NothingToPostToGLMsg);
 
         // [THEN] All 4,002 entries of "X" are deleted from "Post Value Entry to G/L".
         VerifyPostValueEntryToGLCount(ProcessedItemNo, 0);
@@ -1370,7 +1370,7 @@ codeunit 137350 "SCM Inventory Reports - III"
     [HandlerFunctions('PostInventoryCostToGLRequestPageHandler,MessageHandler')]
     procedure PostInvtCostToGLDeletesPostValueEntryAfterPostingPurchase()
     var
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
         ItemNo: Code[20];
     begin
         // [FEATURE] [AI test 1.0] [Post Inventory Cost to GL]
@@ -1380,11 +1380,11 @@ codeunit 137350 "SCM Inventory Reports - III"
         // [GIVEN] Received and invoiced purchase order for item "X", so its value entry is listed in "Post Value Entry to G/L".
         ItemNo := CreateItem();
         CreateAndPostPurchaseOrder(ItemNo, LibraryRandom.RandInt(10), LibraryRandom.RandInt(100));
-        PostValueEntryToGL.SetRange("Item No.", ItemNo);
-        Assert.RecordIsNotEmpty(PostValueEntryToGL);
+        ValueEntryToPostToGL.SetRange("Item No.", ItemNo);
+        Assert.RecordIsNotEmpty(ValueEntryToPostToGL);
 
         // [WHEN] Run "Post Inventory Cost to G/L" with "Post" = true for item "X".
-        RunPostInventoryCostToGL(PostValueEntryToGL, PostMethod::"per Entry", '', EntriesPostedToGLMsg);
+        RunPostInventoryCostToGL(ValueEntryToPostToGL, PostMethod::"per Entry", '', EntriesPostedToGLMsg);
 
         // [THEN] No "Post Value Entry to G/L" entries remain for "X".
         VerifyPostValueEntryToGLCount(ItemNo, 0);
@@ -1394,7 +1394,7 @@ codeunit 137350 "SCM Inventory Reports - III"
     [HandlerFunctions('PostInventoryCostToGLRequestPageHandler')]
     procedure PostInvtCostToGLWithoutPostingKeepsPostValueEntries()
     var
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
         ItemNo: Code[20];
         PostedValueEntryNo: Integer;
         OrphanValueEntryNo: Integer;
@@ -1413,8 +1413,8 @@ codeunit 137350 "SCM Inventory Reports - III"
         MockPostValueEntryToGL(OrphanValueEntryNo, ItemNo);
 
         // [WHEN] Run "Post Inventory Cost to G/L" with "Post" = false for item "X".
-        PostValueEntryToGL.SetRange("Item No.", ItemNo);
-        RunPostInventoryCostToGLWithoutPosting(PostValueEntryToGL);
+        ValueEntryToPostToGL.SetRange("Item No.", ItemNo);
+        RunPostInventoryCostToGLWithoutPosting(ValueEntryToPostToGL);
 
         // [THEN] The entries for "V1" and "V2" remain in "Post Value Entry to G/L".
         VerifyPostValueEntryToGLExists(PostedValueEntryNo, true);
@@ -1425,7 +1425,7 @@ codeunit 137350 "SCM Inventory Reports - III"
     [HandlerFunctions('PostInventoryCostToGLRequestPageHandler,MessageHandler')]
     procedure PostInvtCostToGLDeletesPostValueEntryWithoutValueEntry()
     var
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
         ItemNo: Code[20];
         OrphanValueEntryNo: Integer;
     begin
@@ -1439,8 +1439,8 @@ codeunit 137350 "SCM Inventory Reports - III"
         MockPostValueEntryToGL(OrphanValueEntryNo, ItemNo);
 
         // [WHEN] Run "Post Inventory Cost to G/L" with "Post" = true for item "X".
-        PostValueEntryToGL.SetRange("Item No.", ItemNo);
-        RunPostInventoryCostToGL(PostValueEntryToGL, PostMethod::"per Entry", '', NothingToPostToGLMsg);
+        ValueEntryToPostToGL.SetRange("Item No.", ItemNo);
+        RunPostInventoryCostToGL(ValueEntryToPostToGL, PostMethod::"per Entry", '', NothingToPostToGLMsg);
 
         // [THEN] The entry for "V" is deleted from "Post Value Entry to G/L".
         VerifyPostValueEntryToGLExists(OrphanValueEntryNo, false);
@@ -1450,7 +1450,7 @@ codeunit 137350 "SCM Inventory Reports - III"
     [HandlerFunctions('PostInventoryCostToGLRequestPageHandler,MessageHandler')]
     procedure PostInvtCostToGLKeepsNonInventoriableEntryWithCostNotPosted()
     var
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
         ItemNo: Code[20];
         ValueEntryNo: Integer;
     begin
@@ -1464,8 +1464,8 @@ codeunit 137350 "SCM Inventory Reports - III"
         MockItemValueEntryWithPostValueEntryToGL(ValueEntryNo, ItemNo, 100, 0, false);
 
         // [WHEN] Run "Post Inventory Cost to G/L" with "Post" = true for item "X".
-        PostValueEntryToGL.SetRange("Item No.", ItemNo);
-        RunPostInventoryCostToGL(PostValueEntryToGL, PostMethod::"per Entry", '', NothingToPostToGLMsg);
+        ValueEntryToPostToGL.SetRange("Item No.", ItemNo);
+        RunPostInventoryCostToGL(ValueEntryToPostToGL, PostMethod::"per Entry", '', NothingToPostToGLMsg);
 
         // [THEN] The entry for "V" remains in "Post Value Entry to G/L".
         VerifyPostValueEntryToGLExists(ValueEntryNo, true);
@@ -1477,7 +1477,7 @@ codeunit 137350 "SCM Inventory Reports - III"
     var
         PostedValueEntry: Record "Value Entry";
         PendingValueEntry: Record "Value Entry";
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
     begin
         // [FEATURE] [AI test 1.0] [Post Inventory Cost to GL]
         // [SCENARIO] Report "Post Inventory Cost to G/L" deletes the "Post Value Entry to G/L" entry of a fully posted capacity value entry and keeps the entry of a capacity value entry whose cost cannot be posted.
@@ -1492,8 +1492,8 @@ codeunit 137350 "SCM Inventory Reports - III"
         MockValueEntryForCapacity(PendingValueEntry);
 
         // [WHEN] Run "Post Inventory Cost to G/L" with "Post" = true for "V1" and "V2".
-        PostValueEntryToGL.SetFilter("Value Entry No.", '%1|%2', PostedValueEntry."Entry No.", PendingValueEntry."Entry No.");
-        RunPostInventoryCostToGL(PostValueEntryToGL, PostMethod::"per Entry", '', NothingToPostToGLMsg);
+        ValueEntryToPostToGL.SetFilter("Value Entry No.", '%1|%2', PostedValueEntry."Entry No.", PendingValueEntry."Entry No.");
+        RunPostInventoryCostToGL(ValueEntryToPostToGL, PostMethod::"per Entry", '', NothingToPostToGLMsg);
 
         // [THEN] The entry for "V1" is deleted from "Post Value Entry to G/L" and the entry for "V2" remains.
         VerifyPostValueEntryToGLExists(PostedValueEntry."Entry No.", false);
@@ -2019,13 +2019,13 @@ codeunit 137350 "SCM Inventory Reports - III"
     local procedure GetFirstFreeValueEntryNo(): Integer
     var
         ValueEntry: Record "Value Entry";
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
         LastEntryNo: Integer;
     begin
         LastEntryNo := ValueEntry.GetLastEntryNo();
-        if PostValueEntryToGL.FindLast() then
-            if PostValueEntryToGL."Value Entry No." > LastEntryNo then
-                LastEntryNo := PostValueEntryToGL."Value Entry No.";
+        if ValueEntryToPostToGL.FindLast() then
+            if ValueEntryToPostToGL."Value Entry No." > LastEntryNo then
+                LastEntryNo := ValueEntryToPostToGL."Value Entry No.";
         exit(LastEntryNo + 1);
     end;
 
@@ -2053,13 +2053,13 @@ codeunit 137350 "SCM Inventory Reports - III"
 
     local procedure MockPostValueEntryToGL(ValueEntryNo: Integer; ItemNo: Code[20])
     var
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
     begin
-        PostValueEntryToGL.Init();
-        PostValueEntryToGL."Value Entry No." := ValueEntryNo;
-        PostValueEntryToGL."Item No." := ItemNo;
-        PostValueEntryToGL."Posting Date" := WorkDate();
-        PostValueEntryToGL.Insert();
+        ValueEntryToPostToGL.Init();
+        ValueEntryToPostToGL."Value Entry No." := ValueEntryNo;
+        ValueEntryToPostToGL."Item No." := ItemNo;
+        ValueEntryToPostToGL."Posting Date" := WorkDate();
+        ValueEntryToPostToGL.Insert();
     end;
 
     local procedure MockItemValueEntryWithPostValueEntryToGL(ValueEntryNo: Integer; ItemNo: Code[20]; CostAmountActual: Decimal; CostPostedToGL: Decimal; Inventoriable: Boolean)
@@ -2083,22 +2083,22 @@ codeunit 137350 "SCM Inventory Reports - III"
         MockPostValueEntryToGL(ValueEntryNo, ItemNo);
     end;
 
-    local procedure RunPostInventoryCostToGLWithoutPosting(var PostValueEntryToGL: Record "Post Value Entry to G/L")
+    local procedure RunPostInventoryCostToGLWithoutPosting(var ValueEntryToPostToGL: Record "Post Value Entry to G/L")
     begin
         LibraryVariableStorage.Enqueue(PostMethod::"per Entry");
         LibraryVariableStorage.Enqueue('');
         LibraryVariableStorage.Enqueue(false);
         Commit();
-        Report.Run(Report::"Post Inventory Cost to G/L", true, false, PostValueEntryToGL);
+        Report.Run(Report::"Post Inventory Cost to G/L", true, false, ValueEntryToPostToGL);
         LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure VerifyPostValueEntryToGLCount(ItemNo: Code[20]; ExpectedCount: Integer)
     var
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
     begin
-        PostValueEntryToGL.SetRange("Item No.", ItemNo);
-        Assert.RecordCount(PostValueEntryToGL, ExpectedCount);
+        ValueEntryToPostToGL.SetRange("Item No.", ItemNo);
+        Assert.RecordCount(ValueEntryToPostToGL, ExpectedCount);
     end;
 
     local procedure SetExpectedCostPostingToGL(ExpectedCostPostingToGL: Boolean)
@@ -2113,20 +2113,20 @@ codeunit 137350 "SCM Inventory Reports - III"
 
     local procedure RunCleanUpPostValueEntries(ItemNo: Code[20]; CountOnly: Boolean)
     var
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
     begin
         LibraryVariableStorage.Enqueue(CountOnly);
-        PostValueEntryToGL.SetRange("Item No.", ItemNo);
-        Report.Run(Report::"Clean Up Post Value Entries", true, false, PostValueEntryToGL);
+        ValueEntryToPostToGL.SetRange("Item No.", ItemNo);
+        Report.Run(Report::"Clean Up Post Value Entries", true, false, ValueEntryToPostToGL);
         LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure VerifyPostValueEntryToGLExists(ValueEntryNo: Integer; ShouldExist: Boolean)
     var
-        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
     begin
-        PostValueEntryToGL.SetRange("Value Entry No.", ValueEntryNo);
-        Assert.AreEqual(ShouldExist, not PostValueEntryToGL.IsEmpty(), PostValueEntryToGLExistsErr);
+        ValueEntryToPostToGL.SetRange("Value Entry No.", ValueEntryNo);
+        Assert.AreEqual(ShouldExist, not ValueEntryToPostToGL.IsEmpty(), PostValueEntryToGLExistsErr);
     end;
 
     local procedure InitSetupForProdItem(Qty: Decimal): Code[20]
