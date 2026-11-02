@@ -14,27 +14,27 @@ tableextension 7000086 "CRT CVLedgerEntryBuffer" extends "CV Ledger Entry Buffer
         field(7000000; "Bill No."; Code[20])
         {
             Caption = 'Bill No.';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
         }
         field(7000001; "Document Situation"; Enum "ES Document Situation")
         {
             Caption = 'Document Situation';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
         }
         field(7000002; "Applies-to Bill No."; Code[20])
         {
             Caption = 'Applies-to Bill No.';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
         }
         field(7000003; "Document Status"; Enum "ES Document Status")
         {
             Caption = 'Document Status';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
         }
         field(7000004; "CV Ledger Entry Type"; Option)
         {
             Caption = 'CV Ledger Entry Type';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             OptionCaption = 'Customer,Vendor';
             OptionMembers = Customer,Vendor;
         }

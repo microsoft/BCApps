@@ -41,11 +41,14 @@ codeunit 7000080 "CRT Bank Account"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Bank Account", OnAfterDeleteEvent, '', true, false)]
-    local procedure CurrencyCodeOnAfterDelete(var Rec: Record "Bank Account")
+    local procedure CurrencyCodeOnAfterDelete(var Rec: Record "Bank Account"; RunTrigger: Boolean)
     var
         Suffix: Record Suffix;
         DocumentMove: Codeunit "Document-Move";
     begin
+        if not RunTrigger then
+            exit;
+
         DocumentMove.MoveBankAccDocs(Rec);
 
         if CarteraSetup.ReadPermission then begin

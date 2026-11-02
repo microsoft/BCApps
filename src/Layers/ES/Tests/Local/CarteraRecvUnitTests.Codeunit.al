@@ -17,6 +17,7 @@ codeunit 147542 "Cartera Recv. Unit Tests"
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryERM: Codeunit "Library - ERM";
         LocalTxt: Label 'LOCAL', Locked = true;
+        BankAccountWithBillGroupsErr: Label 'You cannot delete a bank account with bill groups in preparation.';
 
     [Test]
     [Scope('OnPrem')]
@@ -119,6 +120,69 @@ codeunit 147542 "Cartera Recv. Unit Tests"
         Assert.IsFalse(BillGroup.Get(BillGroupNo), '');
         BGCommentLine.SetRange("BG/PO No.", BillGroupNo);
         Assert.IsTrue(BGCommentLine.IsEmpty, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeleteBankAccountWithBillGroupWithoutTriggers()
+    var
+        BankAccount: Record "Bank Account";
+        BillGroup: Record "Bill Group";
+    begin
+        // [SCENARIO] Deleting a bank account without triggers bypasses Cartera bill group validation.
+        Initialize();
+
+        // [GIVEN] A bank account with a bill group in preparation.
+        CreateBillGroupWithBankAccount(BillGroup);
+        BankAccount.Get(BillGroup."Bank Account No.");
+
+        // [WHEN] Delete the bank account without running the delete trigger.
+        BankAccount.Delete(false);
+
+        // [THEN] The bank account is deleted.
+        Assert.IsFalse(BankAccount.Get(BillGroup."Bank Account No."), 'The bank account must be deleted when triggers are disabled.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeleteAllBankAccountsWithBillGroupWithoutTriggers()
+    var
+        BankAccount: Record "Bank Account";
+        BillGroup: Record "Bill Group";
+    begin
+        // [SCENARIO] Bulk deletion without triggers bypasses Cartera bill group validation.
+        Initialize();
+
+        // [GIVEN] A bank account with a bill group in preparation.
+        CreateBillGroupWithBankAccount(BillGroup);
+        BankAccount.SetRange("No.", BillGroup."Bank Account No.");
+
+        // [WHEN] Delete the filtered bank account without running the delete trigger.
+        BankAccount.DeleteAll(false);
+
+        // [THEN] The bank account is deleted.
+        Assert.RecordIsEmpty(BankAccount);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeleteBankAccountWithBillGroupWithTriggersIsBlocked()
+    var
+        BankAccount: Record "Bank Account";
+        BillGroup: Record "Bill Group";
+    begin
+        // [SCENARIO] Deleting a bank account with triggers retains Cartera bill group validation.
+        Initialize();
+
+        // [GIVEN] A bank account with a bill group in preparation.
+        CreateBillGroupWithBankAccount(BillGroup);
+        BankAccount.Get(BillGroup."Bank Account No.");
+
+        // [WHEN] Delete the bank account with the delete trigger enabled.
+        asserterror BankAccount.Delete(true);
+
+        // [THEN] The bill group prevents deletion of the bank account.
+        Assert.ExpectedError(BankAccountWithBillGroupsErr);
     end;
 
     [Test]
@@ -499,4 +563,3 @@ codeunit 147542 "Cartera Recv. Unit Tests"
         BGCommentSheet.OK().Invoke();
     end;
 }
-
