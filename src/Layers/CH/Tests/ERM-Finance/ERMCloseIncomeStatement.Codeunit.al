@@ -982,11 +982,15 @@ codeunit 134228 "ERM Close Income Statement"
             GLEntry.SetRange("G/L Account No.", RetainedEarningsAccountNo);
             if RetainedEarningsPosting = PostToRetainedEarningsAcc::Details then
                 GLEntry.SetRange("Bal. Account No.", GLAccountNo);
-            Assert.RecordCount(GLEntry, 1);
-            GLEntry.FindFirst();
-            if RetainedEarningsPosting = PostToRetainedEarningsAcc::Details then
-                Assert.AreEqual(ClosingAmount, GLEntry.Amount, 'Incorrect retained earnings amount.');
-            Assert.AreEqual(0, GLEntry."Source Currency VAT Amount", 'Incorrect retained earnings source currency VAT amount.');
+            if (ClosingAmount = 0) and not UseAdditionalReportingCurrency then
+                Assert.RecordIsEmpty(GLEntry)
+            else begin
+                Assert.RecordCount(GLEntry, 1);
+                GLEntry.FindFirst();
+                if RetainedEarningsPosting = PostToRetainedEarningsAcc::Details then
+                    Assert.AreEqual(ClosingAmount, GLEntry.Amount, 'Incorrect retained earnings amount.');
+                Assert.AreEqual(0, GLEntry."Source Currency VAT Amount", 'Incorrect retained earnings source currency VAT amount.');
+            end;
         end;
     end;
 
