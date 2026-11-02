@@ -4846,6 +4846,52 @@ codeunit 137020 "SCM Planning"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandlers,PlanningErrorLogModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure FixedReorderPlanningWhenSKUReorderQtyNegativeLogsPlanningError()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        PlanningErrorLog: Record "Planning Error Log";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [SCENARIO 651103] Planning with resiliency logs the actual negative Reorder Quantity of an SKU with Fixed Reorder Qty.
+        Initialize();
+
+        // [GIVEN] SKU with Reordering Policy = Fixed Reorder Qty., Reorder Point = 10 and Reorder Quantity = -5 stored before the field got MinValue = 0
+        LibraryInventory.CreateItem(Item);
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, Location.Code, Item."No.", '');
+        StockkeepingUnit.Validate("Replenishment System", StockkeepingUnit."Replenishment System"::Purchase);
+        StockkeepingUnit.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        StockkeepingUnit.Validate("Reordering Policy", StockkeepingUnit."Reordering Policy"::"Fixed Reorder Qty.");
+        StockkeepingUnit.Validate("Reorder Point", LibraryRandom.RandIntInRange(10, 20));
+        StockkeepingUnit."Reorder Quantity" := -LibraryRandom.RandInt(10);
+        StockkeepingUnit.Modify(true);
+
+        // [WHEN] Calculate Regenerative Plan with planning resiliency
+        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+
+        // [THEN] Planning Error Log has one entry for the SKU that shows the negative Reorder Quantity
+#pragma warning disable AA0210
+        PlanningErrorLog.SetRange("Item No.", Item."No.");
+#pragma warning restore AA0210
+        Assert.RecordCount(PlanningErrorLog, 1);
+        PlanningErrorLog.FindFirst();
+        Assert.IsTrue(
+            StrPos(PlanningErrorLog."Error Description", Format(StockkeepingUnit."Reorder Quantity")) > 0,
+            'The planning error must show the negative Reorder Quantity.');
+        Assert.AreEqual(Database::"Stockkeeping Unit", PlanningErrorLog."Table ID", 'The error must refer to the stockkeeping unit.');
+        Assert.AreEqual(StockkeepingUnit.GetPosition(), PlanningErrorLog."Table Position", 'The error must identify the stockkeeping unit.');
+
+        // [THEN] No planning lines are created for the item
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", Item."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure PlanningWithLeadTimeCalculationDoesNotSuggestAboveMaxQty()
     var
@@ -5690,6 +5736,12 @@ codeunit 137020 "SCM Planning"
     procedure ReservationModalPageHandler(var ReservationPage: TestPage Reservation)
     begin
         ReservationPage.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure PlanningErrorLogModalPageHandler(var PlanningErrorLog: TestPage "Planning Error Log")
+    begin
+        PlanningErrorLog.OK().Invoke();
     end;
 }
 
