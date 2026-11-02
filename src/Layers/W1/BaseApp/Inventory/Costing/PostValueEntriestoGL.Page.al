@@ -69,10 +69,10 @@ page 5813 "Post Value Entries to G/L"
 
                 trigger OnAction()
                 var
-                    PostValueEntryToGL: Record "Post Value Entry to G/L";
+                    FilteredPostValueEntryToGL: Record "Post Value Entry to G/L";
                 begin
-                    PostValueEntryToGL.CopyFilters(Rec);
-                    Report.RunModal(Report::"Clean Up Post Value Entries", true, false, PostValueEntryToGL);
+                    FilteredPostValueEntryToGL.CopyFilters(Rec);
+                    Report.RunModal(Report::"Clean Up Post Value Entries", true, false, FilteredPostValueEntryToGL);
                     CurrPage.Update(false);
                 end;
             }
@@ -84,10 +84,10 @@ page 5813 "Post Value Entries to G/L"
 
                 trigger OnAction()
                 var
-                    PostValueEntryToGL: Record "Post Value Entry to G/L";
+                    FilteredPostValueEntryToGL: Record "Post Value Entry to G/L";
                 begin
-                    PostValueEntryToGL.CopyFilters(Rec);
-                    Report.RunModal(Report::"Post Inventory Cost to G/L", true, false, PostValueEntryToGL);
+                    FilteredPostValueEntryToGL.CopyFilters(Rec);
+                    Report.RunModal(Report::"Post Inventory Cost to G/L", true, false, FilteredPostValueEntryToGL);
                     CurrPage.Update(false);
                 end;
             }
