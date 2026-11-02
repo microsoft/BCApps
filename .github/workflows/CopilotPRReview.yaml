@@ -2,6 +2,9 @@ name: Copilot PR Review
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: ["main"]
+    types: [ opened, reopened, synchronize, ready_for_review ]
 
 concurrency:
   group: copilot-pr-review-${{ github.event.pull_request.number }}
