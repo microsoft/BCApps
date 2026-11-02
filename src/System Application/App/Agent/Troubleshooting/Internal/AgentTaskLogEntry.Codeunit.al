@@ -91,7 +91,7 @@ codeunit 4314 "Agent Task Log Entry"
         end;
     end;
 
-    procedure ReadContext(Entry: Record "Agent Task Memory Entry") ContextTxt: Text;
+    procedure ReadContext(var Entry: Record "Agent Task Memory Entry") ContextTxt: Text;
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         ContentInStream: InStream;
@@ -106,7 +106,7 @@ codeunit 4314 "Agent Task Log Entry"
 #pragma warning restore AL0432
     end;
 
-    procedure ReadContext(Entry: Record "Agent Task Log Entry") ContextTxt: Text;
+    procedure ReadContext(var Entry: Record "Agent Task Log Entry") ContextTxt: Text;
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         ContentInStream: InStream;

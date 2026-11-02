@@ -34,7 +34,7 @@ codeunit 4313 "Agent Task Log Export"
         exit(ExportRoot);
     end;
 
-    procedure ExportLogEntryToJson(AgentTaskLogEntry: Record "Agent Task Log Entry"): JsonObject
+    procedure ExportLogEntryToJson(var AgentTaskLogEntry: Record "Agent Task Log Entry"): JsonObject
     var
         ExportRoot: JsonObject;
         EntryToken: JsonToken;
