@@ -1887,6 +1887,7 @@ codeunit 142092 "ERM Sales/Purchase Tax III"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CurrencyExchangeRate: Record "Currency Exchange Rate";
+        VATPostingSetup: Record "VAT Posting Setup";
         CurrencyCode: Code[10];
         TaxAreaCode: Code[20];
         TaxGroupCode: Code[20];
@@ -1903,10 +1904,14 @@ codeunit 142092 "ERM Sales/Purchase Tax III"
 
         // [GIVEN] Create Customer with Tax Area Code and Currency
         Customer.Get(CreateCustomerWithTaxArea(TaxAreaCode, CurrencyCode, LibraryRandom.RandIntInRange(70, 70)));
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", Customer."VAT Bus. Posting Group");
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
 
         // [GIVEN] Create Sales Order With Prepayment as 70%
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
-        LibrarySales.CreateSalesLineWithUnitPrice(SalesLine, SalesHeader, '', 4019.29, 1);
+        LibrarySales.CreateSalesLineWithUnitPrice(
+            SalesLine, SalesHeader,
+            LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), 4019.29, 1);
         SalesLine.Validate("Tax Group Code", TaxGroupCode);
         SalesLine.Modify();
 

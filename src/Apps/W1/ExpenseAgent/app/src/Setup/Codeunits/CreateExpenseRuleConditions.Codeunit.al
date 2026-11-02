@@ -280,11 +280,15 @@ codeunit 7126 "Create Expense Rule Conditions"
 
     internal procedure InsertExpenseRuleCondition(var ExpenseRuleCondition: Record "Expense Rule Condition"; ExpenseCategoryCode: Code[20]; ExpenseLocationCode: Code[20]; EffectiveDate: Date; LineNo: Integer; ConditionType: Enum "Expense Rule Condition Type"; Value: Decimal)
     var
+        ExpenseLocation: Record "Expense Location";
         IsHandled: Boolean;
     begin
         CreateExpenseCategories.OnBeforeAddRuleConditionSeed(ExpenseRuleCondition, ExpenseCategoryCode, ExpenseLocationCode, ConditionType, Value, IsHandled);
         if IsHandled then
             exit;
+        if ExpenseLocationCode <> '' then
+            if not ExpenseLocation.Get(ExpenseLocationCode) then
+                exit;
         if ExpenseRuleCondition.Get(ExpenseCategoryCode, ExpenseLocationCode, EffectiveDate, LineNo) then
             exit;
         ExpenseRuleCondition."Expense Category Code" := ExpenseCategoryCode;

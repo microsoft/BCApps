@@ -55,10 +55,6 @@ page 28090 "Post Dated Checks"
                         Text := CustomerList.GetSelectionFilter();
                         exit(true);
 
-                        UpdateCustomer();
-                        Rec.SetFilter("Check Date", Rec.GetFilter("Date Filter"));
-                        if not Rec.FindFirst() then
-                            UpdateBalance();
                     end;
 
                     trigger OnValidate()

@@ -6599,6 +6599,41 @@ codeunit 134387 "ERM Sales Documents III"
                 SalesHeader[2].TableCaption()));
     end;
 
+    [Test]
+    procedure LineDiscountPercentAllowsFiveDecimalPlacesOnManualEntry()
+    var
+        SalesLineDiscount: Record "Sales Line Discount";
+        PriceListLine: Record "Price List Line";
+        CustomerCard: TestPage "Customer Card";
+        SalesLineDiscounts: TestPage "Sales Line Discounts";
+    begin
+        //[Scenario] Sales Line Discount % accepts 5 decimal places through Configuration Package import but rejects manual entry beyond 2 decimal places
+
+        Initialize();
+        PriceListLine.DeleteAll();
+
+        // [GIVEN] create Sales line discount for item
+        CreateSalesLineDiscount(
+          SalesLineDiscount, LibraryInventory.CreateItemNo(), LibrarySales.CreateCustomerNo(),
+          LibraryRandom.RandIntInRange(10, 20), 1.12345);
+        CopyFromToPriceListLine.CopyFrom(SalesLineDiscount, PriceListLine);
+
+        // [WHEN] Manually enter the line discount percentage
+        CustomerCard.OpenEdit();
+        CustomerCard.FILTER.SetFilter("No.", Format(SalesLineDiscount."Sales Code"));
+
+        SalesLineDiscounts.OpenEdit();
+        SalesLineDiscounts.FILTER.SetFilter("Sales Type", Format(SalesLineDiscount."Sales Type"));
+        SalesLineDiscounts.FILTER.SetFilter("Sales Code", SalesLineDiscount."Sales Code");
+        SalesLineDiscounts.FILTER.SetFilter(Type, Format(SalesLineDiscount.Type));
+        SalesLineDiscounts.FILTER.SetFilter(Code, SalesLineDiscount.Code);
+        SalesLineDiscounts.GotoRecord(SalesLineDiscount);
+        SalesLineDiscounts."Line Discount %".SetValue(1.12345);
+
+        // [THEN] The line discount percentage should allow 5 decimal places on manual entry
+        Assert.AreEqual(1.12345, SalesLineDiscount."Line Discount %", '');
+    end;
+
     local procedure Initialize()
     var
         ReportSelections: Record "Report Selections";
@@ -6808,7 +6843,7 @@ codeunit 134387 "ERM Sales Documents III"
         SalesLineDiscount.Validate("Line Discount %", DiscountPct);
         SalesLineDiscount.Modify(true);
     end;
- 
+
     local procedure CreateSalesLineWithItem(var Item: Record Item; SalesHeader: Record "Sales Header"; QtyToShip: Decimal; VATProdPostingGroup: Code[20])
     var
         SalesLine: Record "Sales Line";

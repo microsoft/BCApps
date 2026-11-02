@@ -60,12 +60,11 @@ codeunit 30167 "Shpfy Process Orders"
                 ProcessOrder.CleanUpLastCreatedDocument();
             end else begin
                 ShopifyOrderHeader.Get(ShopifyOrderHeader."Shopify Order Id");
+                if ShopifyOrderHeader."Has Error" then
+                    exit;
                 ShopifyOrderHeader."Has Error" := false;
                 ShopifyOrderHeader."Error Message" := '';
                 ShopifyOrderHeader.Processed := true;
-                if not Shop.Get(Shop.Code) then
-                    Shop.Get(ShopifyOrderHeader."Shop Code");
-                ShopifyOrderHeader."Processed Currency Handling" := Shop."Currency Handling";
             end;
             ShopifyOrderHeader.Modify(true);
             Commit();

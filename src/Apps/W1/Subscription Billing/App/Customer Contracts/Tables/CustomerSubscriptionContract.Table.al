@@ -246,6 +246,10 @@ table 8052 "Customer Subscription Contract"
         {
             Caption = 'Your Reference';
         }
+        field(100; "External Document No."; Code[35])
+        {
+            Caption = 'External Document No.';
+        }
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';

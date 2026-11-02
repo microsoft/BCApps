@@ -6,6 +6,7 @@
 namespace System.Test.ExternalFileStorage;
 
 using System.ExternalFileStorage;
+using System.Test.Integration.Sharepoint;
 using System.TestLibraries.Integration.Sharepoint;
 using System.TestLibraries.Utilities;
 using System.Utilities;
@@ -34,9 +35,144 @@ codeunit 144586 "Ext. SP REST Helper Test"
         DeletePath: Text;
         ReturnFolderExists: Boolean;
         ReturnFileExists: Boolean;
+        ResourcePathFileName: Text;
         SharePointUrlLbl: Label 'https://contoso.sharepoint.com/sites/test', Locked = true;
+        UnexpectedResourcePathRequestErr: Label 'Unexpected ResourcePath request: %1', Comment = '%1 = Mock HTTP request path';
 
     #region File Operations
+
+    [Test]
+    [HandlerFunctions('GetFileHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestEncodedAccountPathsDecodeOnlyConfiguration()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+    begin
+        Initialize(Account);
+        Account."SharePoint Url" := 'https://contoso.sharepoint.com/sites/Test%20Site';
+        Account."Base Relative Folder Path" := '/sites/Test%20Site/Shared%20Documents';
+        TempBlob.CreateInStream(InStream);
+
+        RestHelper.GetFile(Account, 'Invoice%20#50%.txt', InStream);
+
+        AssertDecodedRequestPath(DownloadPath, '/sites/Test Site/Shared Documents/Invoice%20#50%.txt');
+        Assert.IsTrue(DownloadPath.Contains('Invoice%2520%2350%25.txt'), 'The filename must retain its literal %20 sequence');
+        Assert.AreEqual(
+            '/sites/Test%20Site/Shared%20Documents', Account."Base Relative Folder Path",
+            'Resolving a configured URL must not mutate the account');
+    end;
+
+    [Test]
+    [HandlerFunctions('GetFileHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestDecodedBaseFolderPreservesLiteralPercentSequence()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+    begin
+        Initialize(Account);
+        Account."REST Base Folder Path Format" := Enum::"Ext. SharePoint Path Format"::"Decoded Path";
+        Account."Base Relative Folder Path" := '/sites/test/Reports%20Archive';
+        TempBlob.CreateInStream(InStream);
+
+        RestHelper.GetFile(Account, 'Invoice%23.pdf', InStream);
+
+        AssertDecodedRequestPath(DownloadPath, '/sites/test/Reports%20Archive/Invoice%23.pdf');
+        Assert.IsTrue(DownloadPath.Contains('Reports%2520Archive'), 'The decoded base folder must retain literal %20');
+        Assert.IsTrue(DownloadPath.Contains('Invoice%2523.pdf'), 'The filename must retain literal %23');
+    end;
+
+    [Test]
+    [HandlerFunctions('GetFileHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestEncodedBaseFolderIsDecodedOnce()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+    begin
+        Initialize(Account);
+        Account."Base Relative Folder Path" := 'Shared%20Documents/Reports%2520Archive';
+        TempBlob.CreateInStream(InStream);
+
+        RestHelper.GetFile(Account, 'file.txt', InStream);
+
+        AssertDecodedRequestPath(DownloadPath, '/sites/test/Shared Documents/Reports%20Archive/file.txt');
+        Assert.IsTrue(DownloadPath.Contains('Reports%2520Archive'), 'The encoded configuration must only be decoded once');
+    end;
+
+    [Test]
+    [HandlerFunctions('ResourcePathHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestConnectorSpecialCharacterFileAndFolderOperations()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempContent: Record "File Account Content" temporary;
+        ConnectorImpl: Codeunit "Ext. SharePoint Connector Impl";
+        GraphAuthMock: Codeunit "SharePoint Graph Auth Mock";
+        Pagination: Codeunit "File Pagination Data";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        OutStream: OutStream;
+        FileContent: Text;
+    begin
+        Initialize(Account);
+        Account."REST Base Folder Path Format" := Enum::"Ext. SharePoint Path Format"::"Decoded Path";
+        Account."Base Relative Folder Path" := '/sites/test/Reports #50%/Literal%20Folder';
+        Account.Modify();
+        ConnectorImpl.SetAuthorizationsForTest(GraphAuthMock, DummySharePointAuthorization);
+        ResourcePathFileName := 'Invoice #50%23.pdf';
+        TempBlob.CreateOutStream(OutStream);
+        OutStream.WriteText('content');
+        TempBlob.CreateInStream(InStream);
+
+        ConnectorImpl.CreateFile(Account.Id, ResourcePathFileName, InStream);
+        AssertDecodedRequestPath(FileAddPath, '/sites/test/Reports #50%/Literal%20Folder');
+        Assert.IsTrue(FileAddPath.Contains('Invoice%20%2350%2523.pdf'), 'Upload must encode the filename without decoding literal %23');
+
+        ConnectorImpl.GetFile(Account.Id, ResourcePathFileName, InStream);
+        InStream.ReadText(FileContent);
+        Assert.AreEqual('Hello World', FileContent, 'The connector should download the mocked content');
+        AssertDecodedRequestPath(DownloadPath, '/sites/test/Reports #50%/Literal%20Folder/' + ResourcePathFileName);
+
+        Assert.IsTrue(ConnectorImpl.FileExists(Account.Id, ResourcePathFileName), 'FileExists must use the decoded parent folder');
+        AssertDecodedRequestPath(LastPath, '/sites/test/Reports #50%/Literal%20Folder');
+
+        ConnectorImpl.ListFiles(Account.Id, '', Pagination, TempContent);
+        Assert.RecordCount(TempContent, 1);
+        AssertDecodedRequestPath(LastPath, '/sites/test/Reports #50%/Literal%20Folder');
+
+        ConnectorImpl.CopyFile(Account.Id, ResourcePathFileName, 'Copy #50%23.pdf');
+        AssertDecodedRequestPath(DownloadPath, '/sites/test/Reports #50%/Literal%20Folder/' + ResourcePathFileName);
+        Assert.IsTrue(FileAddPath.Contains('Copy%20%2350%2523.pdf'), 'Copy must use AddUsingPath for the target');
+        Assert.AreEqual('', DeletePath, 'Copy must not delete the source');
+
+        ConnectorImpl.MoveFile(Account.Id, ResourcePathFileName, 'Move #50%23.pdf');
+        Assert.IsTrue(FileAddPath.Contains('Move%20%2350%2523.pdf'), 'Move must use AddUsingPath for the target');
+        AssertDecodedRequestPath(DeletePath, '/sites/test/Reports #50%/Literal%20Folder/' + ResourcePathFileName);
+
+        ConnectorImpl.DeleteFile(Account.Id, ResourcePathFileName);
+        AssertDecodedRequestPath(DeletePath, '/sites/test/Reports #50%/Literal%20Folder/' + ResourcePathFileName);
+
+        ConnectorImpl.CreateDirectory(Account.Id, 'New #50%');
+        AssertDecodedRequestPath(LastPath, '/sites/test/Reports #50%/Literal%20Folder/New #50%');
+        Assert.IsTrue(LastPath.Contains('/Folders/AddUsingPath('), 'Folder creation must use AddUsingPath');
+
+        Assert.IsTrue(ConnectorImpl.DirectoryExists(Account.Id, 'New #50%'), 'DirectoryExists must parse the value response');
+        AssertDecodedRequestPath(LastPath, '/sites/test/Reports #50%/Literal%20Folder/New #50%');
+
+        TempContent.DeleteAll();
+        Clear(Pagination);
+        ConnectorImpl.ListDirectories(Account.Id, '', Pagination, TempContent);
+        Assert.RecordCount(TempContent, 1);
+        AssertDecodedRequestPath(LastPath, '/sites/test/Reports #50%/Literal%20Folder');
+
+        ConnectorImpl.DeleteDirectory(Account.Id, 'New #50%');
+        AssertDecodedRequestPath(DeletePath, '/sites/test/Reports #50%/Literal%20Folder/New #50%');
+    end;
 
     [Test]
     [HandlerFunctions('ListFilesHandler')]
@@ -104,8 +240,8 @@ codeunit 144586 "Ext. SP REST Helper Test"
         // [WHEN] Creating the file
         RestHelper.CreateFile(Account, 'file.txt', InStream);
 
-        // [THEN] The file was uploaded via the Files/add endpoint under its own name
-        Assert.IsTrue(FileAddPath.Contains('/Files/add(url='), 'CreateFile should upload via the Files/add endpoint. Actual: ' + FileAddPath);
+        // [THEN] The file was uploaded via the ResourcePath endpoint under its own name
+        Assert.IsTrue(FileAddPath.Contains('/Files/AddUsingPath(decodedurl='), 'CreateFile should upload via AddUsingPath. Actual: ' + FileAddPath);
         Assert.IsTrue(FileAddPath.Contains('file.txt'), 'The upload should target the requested file name. Actual: ' + FileAddPath);
     end;
 
@@ -235,8 +371,8 @@ codeunit 144586 "Ext. SP REST Helper Test"
         // [WHEN] Creating a directory
         RestHelper.CreateDirectory(Account, 'NewFolder');
 
-        // [THEN] A POST went to the folders endpoint
-        Assert.IsTrue(LastPath.Contains('/Web/folders'), 'CreateDirectory should POST to the folders endpoint. Actual: ' + LastPath);
+        // [THEN] A POST went to the ResourcePath folder creation endpoint
+        Assert.IsTrue(LastPath.Contains('/Web/Folders/AddUsingPath(decodedurl='), 'CreateDirectory should POST to Folders/AddUsingPath. Actual: ' + LastPath);
         Assert.IsTrue(LastMethod = HttpRequestType::POST, 'CreateDirectory should send a POST request');
     end;
 
@@ -309,6 +445,34 @@ codeunit 144586 "Ext. SP REST Helper Test"
     #region HTTP Handlers
 
     [HttpClientHandler]
+    procedure ResourcePathHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        TrackRequest(Request);
+        case true of
+            IsContextInfo(Request):
+                WriteContextInfoResponse(Response);
+            IsFileDownload(Request):
+                Response.Content.WriteFrom('Hello World');
+            Request.Path.Contains('/Files/AddUsingPath(decodedurl=') and (Request.RequestType = HttpRequestType::POST):
+                Response.Content.WriteFrom(GetFileItemJson(ResourcePathFileName));
+            Request.Path.Contains('/Files/') and (Request.RequestType = HttpRequestType::GET):
+                Response.Content.WriteFrom(
+                    '{"value":[{"UniqueId":"44444444-4444-4444-4444-444444444444","Name":"' +
+                    ResourcePathFileName + '","Length":"100"}]}');
+            Request.Path.Contains('/Folders/AddUsingPath(decodedurl=') and (Request.RequestType = HttpRequestType::POST):
+                Response.Content.WriteFrom('{"d":{"Name":"New #50%","Exists":true}}');
+            Request.Path.Contains('/Folders/') and (Request.RequestType = HttpRequestType::GET):
+                Response.Content.WriteFrom(GetFoldersJson());
+            Request.Path.Contains('/Exists/') and (Request.RequestType = HttpRequestType::GET):
+                Response.Content.WriteFrom('{"value":true}');
+            Request.RequestType = HttpRequestType::DELETE:
+                Response.Content.WriteFrom('{}');
+            else
+                Error(UnexpectedResourcePathRequestErr, Request.Path);
+        end;
+    end;
+
+    [HttpClientHandler]
     procedure ListFilesHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
         TrackRequest(Request);
@@ -341,7 +505,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
         case true of
             IsContextInfo(Request):
                 WriteContextInfoResponse(Response);
-            Request.Path.Contains('/Files/add(url='):
+            Request.Path.Contains('/Files/AddUsingPath(decodedurl='):
                 Response.Content.WriteFrom(GetFileItemJson('file.txt'));
             else
                 Response.Content.WriteFrom('{}');
@@ -357,7 +521,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
                 WriteContextInfoResponse(Response);
             IsFileDownload(Request):
                 Response.Content.WriteFrom('file content');
-            Request.Path.Contains('/Files/add(url='):
+            Request.Path.Contains('/Files/AddUsingPath(decodedurl='):
                 Response.Content.WriteFrom(GetFileItemJson('dest.txt'));
             else
                 Response.Content.WriteFrom('{}');
@@ -373,7 +537,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
                 WriteContextInfoResponse(Response);
             IsFileDownload(Request):
                 Response.Content.WriteFrom('file content');
-            Request.Path.Contains('/Files/add(url='):
+            Request.Path.Contains('/Files/AddUsingPath(decodedurl='):
                 Response.Content.WriteFrom(GetFileItemJson('dest.txt'));
             Request.RequestType = HttpRequestType::DELETE:
                 Response.Content.WriteFrom('{}');
@@ -432,7 +596,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
         case true of
             IsContextInfo(Request):
                 WriteContextInfoResponse(Response);
-            Request.Path.Contains('/_api/Web/folders') and (Request.RequestType = HttpRequestType::POST):
+            Request.Path.Contains('/_api/Web/Folders/AddUsingPath(decodedurl=') and (Request.RequestType = HttpRequestType::POST):
                 Response.Content.WriteFrom('{"d":{"__metadata":{"type":"SP.Folder"},"Name":"NewFolder","Exists":true}}');
             else
                 Response.Content.WriteFrom('{}');
@@ -458,6 +622,15 @@ codeunit 144586 "Ext. SP REST Helper Test"
 
     #region Handler Helpers
 
+    local procedure AssertDecodedRequestPath(RequestPath: Text; ExpectedPath: Text)
+    var
+        Uri: Codeunit Uri;
+    begin
+        Assert.IsTrue(
+            Uri.UnescapeDataString(RequestPath).Contains('decodedurl=''' + ExpectedPath + ''''),
+            'The ResourcePath parameter must preserve the decoded path. Actual: ' + RequestPath);
+    end;
+
     local procedure TrackRequest(Request: TestHttpRequestMessage)
     begin
         LastPath := Request.Path;
@@ -466,7 +639,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
             DeletePath := Request.Path;
         if IsFileDownload(Request) then
             DownloadPath := Request.Path;
-        if Request.Path.Contains('/Files/add(url=') then
+        if Request.Path.Contains('/Files/AddUsingPath(decodedurl=') then
             FileAddPath := Request.Path;
     end;
 
@@ -522,6 +695,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
         DeletePath := '';
         ReturnFileExists := false;
         ReturnFolderExists := false;
+        ResourcePathFileName := '';
 
         Account.Init();
         Account.Id := CreateGuid();

@@ -759,6 +759,32 @@ codeunit 134825 "UT Customer Table"
         Assert.AreEqual(StrSubstNo(DocumentTypeFilterTxt, "Gen. Journal Document Type"::Refund), Customer.GetTopCustomerHeadlineQueryDocumentTypeFilter(), '');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CustomerEmailIsSynchronizedWithContactWhenModifiedProgrammatically()
+    var
+        Customer: Record Customer;
+        Customer2: Record Customer;
+        Contact: Record Contact;
+        CustomerEmail: Text[80];
+    begin
+        // [SCENARIO 651180] A contact is updated when a customer is modified programmatically
+        Initialize();
+
+        // [GIVEN] A customer with an associated contact
+        LibraryMarketing.CreateContactWithCustomer(Contact, Customer);
+
+        // [WHEN] The customer's email address is updated programmatically
+        CustomerEmail := LibraryUtility.GenerateRandomEmail();
+        Customer2.Get(Customer."No.");
+        Customer2.Validate("E-Mail", CustomerEmail);
+        Customer2.Modify(true);
+
+        // [THEN] The associated contact has the updated email address
+        Contact.Get(Contact."No.");
+        Contact.TestField("E-Mail", CustomerEmail);
+    end;
+
     local procedure Initialize()
     var
         Customer: Record Customer;
@@ -863,4 +889,3 @@ codeunit 134825 "UT Customer Table"
         Choice := 0;
     end;
 }
-

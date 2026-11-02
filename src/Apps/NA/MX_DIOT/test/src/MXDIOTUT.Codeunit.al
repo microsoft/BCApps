@@ -1,4 +1,6 @@
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 codeunit 148041 "MX DIOT UT"
+#pragma warning restore AS0011
 {
     Subtype = Test;
     TestType = IntegrationTest;

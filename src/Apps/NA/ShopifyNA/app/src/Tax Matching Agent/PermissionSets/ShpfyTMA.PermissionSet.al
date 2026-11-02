@@ -9,7 +9,7 @@ using Microsoft.Finance.SalesTax;
 
 permissionset 30470 "Shpfy TMA"
 {
-    Caption = 'Shopify Tax Matching Agent';
+    Caption = 'Shopify Tax Matching';
     Assignable = true;
 
     IncludedPermissionSets = "Shpfy - Edit";
@@ -29,5 +29,6 @@ permissionset 30470 "Shpfy TMA"
         codeunit "Shpfy TMA Install" = X,
         codeunit "Shpfy TMA Upgrade" = X,
         codeunit "Shpfy TMA Activity Log" = X,
-        codeunit "Shpfy TMA Notify" = X;
+        codeunit "Shpfy TMA Notify" = X,
+        codeunit "Shpfy TMA Processing Limit" = X;
 }

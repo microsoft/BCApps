@@ -392,8 +392,7 @@ codeunit 144049 "ERM ES Check PMPE"
 
         // [GIVEN] Detailed entries gives zero totals
         DetailedCustLedgEntry.SetRange("Customer No.", GenJournalLine."Account No.");
-        DetailedCustLedgEntry.ModifyAll(Amount, 0);
-        DetailedCustLedgEntry.ModifyAll("Amount (LCY)", 0);
+        DetailedCustLedgEntry.ModifyAll(Amount, 0, "Amount (LCY)", 0);
         Commit();
 
         // [WHEN] Run 'Customer - Overdue Payments'
@@ -425,8 +424,7 @@ codeunit 144049 "ERM ES Check PMPE"
 
         // [GIVEN] Detailed entries gives zero totals
         DetailedVendorLedgEntry.SetRange("Vendor No.", GenJournalLine."Account No.");
-        DetailedVendorLedgEntry.ModifyAll(Amount, 0);
-        DetailedVendorLedgEntry.ModifyAll("Amount (LCY)", 0);
+        DetailedVendorLedgEntry.ModifyAll(Amount, 0, "Amount (LCY)", 0);
         Commit();
 
         // [WHEN] Run 'Vendor - Overdue Payments'

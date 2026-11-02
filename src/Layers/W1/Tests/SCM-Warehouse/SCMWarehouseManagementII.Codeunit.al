@@ -4706,8 +4706,7 @@ codeunit 137154 "SCM Warehouse Management II"
     begin
         WarehouseActivityLine.SetRange("Action Type", ActionType);
         FindWarehouseActivityLine(WarehouseActivityLine, SourceDocument, SourceNo, ActivityType);
-        WarehouseActivityLine.ModifyAll("Zone Code", Bin."Zone Code", true);
-        WarehouseActivityLine.ModifyAll("Bin Code", Bin.Code, true);
+        WarehouseActivityLine.ModifyAll("Zone Code", Bin."Zone Code", "Bin Code", Bin.Code, true);
     end;
 
     local procedure UpdateBinOnWarehouseReceiptLine(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; Bin: Record Bin; SourceNo: Code[20])

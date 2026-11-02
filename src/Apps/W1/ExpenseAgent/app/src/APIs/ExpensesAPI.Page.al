@@ -50,6 +50,10 @@ page 6927 "Expenses API"
                 {
                     Caption = 'Expense Report No.';
                 }
+                field(postedExpenseReportNo; Rec."Posted Expense Report No.")
+                {
+                    Caption = 'Posted Expense Report No.';
+                }
                 field(expenseCategory; Rec."Expense Category")
                 {
                     Caption = 'Expense Category';

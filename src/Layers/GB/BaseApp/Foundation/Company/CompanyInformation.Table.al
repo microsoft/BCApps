@@ -529,6 +529,77 @@ table 79 "Company Information"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the name of the Power BI workspace that deployable Power BI reports are deployed to. An empty value means the reports are deployed to "My Workspace".';
         }
+#if not CLEANSCHEMA30            
+        field(10500; "Registered Name"; Text[50])
+        {
+            Caption = 'Registered Name';
+            ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
+        }
+        field(10501; "Registered Name 2"; Text[50])
+        {
+            Caption = 'Registered Name 2';
+            ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
+        }
+        field(10502; "Registered Address"; Text[50])
+        {
+            Caption = 'Registered Address';
+            ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
+        }
+        field(10503; "Registered Address 2"; Text[50])
+        {
+            Caption = 'Registered Address 2';
+            ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
+        }
+        field(10504; "Registered City"; Text[30])
+        {
+            Caption = 'Registered City';
+            ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
+        }
+        field(10505; "Registered County"; Text[30])
+        {
+            Caption = 'Registered County';
+            ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
+        }
+        field(10506; "Registered Post Code"; Code[20])
+        {
+            Caption = 'Registered Post Code';
+            ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
+        }
+        field(10507; "Branch Number"; Text[3])
+        {
+            Caption = 'Branch Number';
+            CharAllowed = '09';
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to GovTalk app';
+        }
+        field(10508; "Contact Name"; Text[35])
+        {
+            Caption = 'Contact Name';
+            ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
+        }
+#endif        
+        field(7612; "Company Description"; Blob)
+        {
+            Caption = 'Company Description';
+            ToolTip = 'Specifies the company''s nature and intended purpose. The description can provide context for AI-powered experiences.';
+        }
     }
 
     keys
@@ -698,6 +769,50 @@ table 79 "Company Information"
         Result := FieldCaption("Registration No.");
         OnAfterGetRegistrationNumberLbl(Result);
     end;
+
+    procedure GetCompanyDescription(): Text
+    var
+        DescriptionInStream: InStream;
+    begin
+        CalcFields("Company Description");
+        if not "Company Description".HasValue() then
+            exit('');
+
+        "Company Description".CreateInStream(DescriptionInStream, GetTextEncoding());
+        exit(ReadText(DescriptionInStream));
+    end;
+
+    procedure SetCompanyDescription(Description: Text)
+    var
+        DescriptionOutStream: OutStream;
+    begin
+        Clear("Company Description");
+        "Company Description".CreateOutStream(DescriptionOutStream, GetTextEncoding());
+        DescriptionOutStream.WriteText(Description);
+        Modify(true);
+    end;
+
+    local procedure ReadText(Input: InStream): Text
+    var
+        TextBuilder: TextBuilder;
+        TextLine: Text;
+        FirstLine: Boolean;
+    begin
+        FirstLine := true;
+        while not Input.EOS() do begin
+            Input.ReadText(TextLine);
+            if not FirstLine then
+                TextBuilder.AppendLine('');
+            TextBuilder.Append(TextLine);
+            FirstLine := false;
+        end;
+        exit(TextBuilder.ToText());
+    end;
+    local procedure GetTextEncoding(): TextEncoding
+    begin
+        exit(TextEncoding::UTF8);
+    end;
+
 
     procedure GetVATRegistrationNumber() Result: Text
     begin

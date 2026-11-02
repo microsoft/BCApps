@@ -28,8 +28,7 @@ codeunit 149004 "BCPT Header"
     begin
         if Confirm(ConfirmResetStatusQst) then begin
             BCPTLine.SetRange("BCPT Code", BCPTHeader."Code");
-            BCPTLine.ModifyAll(Status, BCPTLine.Status::Completed);
-            BCPTLine.ModifyAll("No. of Running Sessions", 0);
+            BCPTLine.ModifyAll(Status, BCPTLine.Status::Completed, "No. of Running Sessions", 0);
 
             BCPTHeader.Status := BCPTHeader.Status::Completed;
             BCPTHeader."No. of tests running" := 0;

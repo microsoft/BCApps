@@ -41,6 +41,7 @@ codeunit 7314 "Warehouse Availability Mgt."
     var
         ReservEntry: Record "Reservation Entry";
         ReservEntry2: Record "Reservation Entry";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
         ReservQtyonInvt: Decimal;
         PickQty: Decimal;
         IsHandled: Boolean;
@@ -74,7 +75,13 @@ codeunit 7314 "Warehouse Availability Mgt."
             until ReservEntry.Next() = 0;
 
         if HandleResPickAndShipQty then begin
-            PickQty := CalcRegisteredAndOutstandingPickQty(ReservEntry, WarehouseActivityLine);
+            PickQty := CalcQtyRegisteredPick(ReservEntry);
+            // Keep the shipment check item-wide, as lot validation also adds item-wide reserved pick/shipment quantities.
+            ValidateQtyPickedInShipmentBin(
+                PickQty, ReservEntry."Location Code", ReservEntry."Item No.", ReservEntry."Variant Code", TempTrackingSpecification, ReservEntry."Source Type");
+            PickQty +=
+                CalcQtyOutstandingPick(
+                    ReservEntry."Source Type", ReservEntry."Source Subtype", ReservEntry."Source ID", ReservEntry."Source Ref. No.", ReservEntry."Source Prod. Order Line", WarehouseActivityLine);
             if ReservQtyonInvt > PickQty then
                 ReservQtyonInvt -= PickQty
             else
@@ -973,6 +980,7 @@ codeunit 7314 "Warehouse Availability Mgt."
     local procedure CalcQtyOnShipmentBins(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"): Decimal
     var
         WarehouseEntry: Record "Warehouse Entry";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
         BinType: Record "Bin Type";
         Location: Record Location;
         Bin: Record Bin;
@@ -1003,6 +1011,20 @@ codeunit 7314 "Warehouse Availability Mgt."
                 if not DefaultBinAlreadyCounted then
                     QtyOnShipmentBins += CalcQtyOnBin(LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup);
             end;
+
+        // A shipment line can use a non-default bin that is not of a Ship bin type (e.g. at basic warehouse locations).
+        if QtyOnShipmentBins = 0 then begin
+            WarehouseShipmentLine.SetLoadFields("Bin Code");
+            WarehouseShipmentLine.SetRange("Item No.", ItemNo);
+            WarehouseShipmentLine.SetRange("Location Code", LocationCode);
+            WarehouseShipmentLine.SetRange("Variant Code", VariantCode);
+            WarehouseShipmentLine.SetFilter("Bin Code", '<>%1&<>%2', '', Location."Shipment Bin Code");
+            WarehouseShipmentLine.SetFilter("Qty. Picked (Base)", '>%1', 0);
+            if WarehouseShipmentLine.FindSet() then
+                repeat
+                    QtyOnShipmentBins += CalcQtyOnBin(LocationCode, WarehouseShipmentLine."Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup);
+                until (QtyOnShipmentBins <> 0) or (WarehouseShipmentLine.Next() = 0);
+        end;
 
         exit(QtyOnShipmentBins);
     end;

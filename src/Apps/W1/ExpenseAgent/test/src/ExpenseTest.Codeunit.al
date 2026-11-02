@@ -7,6 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
@@ -81,6 +82,7 @@ codeunit 148305 "Expense Test"
         PDFTestContentLbl: Label 'PDF test content';
         OnlyMyExpenseExpectedErr: Label 'Expense %1 should be visible after Show My Expenses is invoked.', Comment = '%1 = Expense No. that should be the only row';
         ExpenseVendorNosShouldBeSetErr: Label 'Expense Vendor Nos. should be set when no. series defaults are created.';
+        ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
 
     [Test]
     procedure NoCannotBeUpdatedInExpenseManuallyIfManualNosIsFalse()
@@ -248,6 +250,138 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
+    procedure ExistingVATPostingSetupProvidesDefaultVATBusinessPostingGroup()
+    var
+        CompanyInformation: Record "Company Information";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        ExistingVATPercent: Decimal;
+    begin
+        // [SCENARIO 652572] An existing VAT posting setup provides the default VAT business posting group.
+        Initialize();
+
+        // [GIVEN] A VAT posting setup exists, and the expense default VAT business posting group is blank.
+        VATPostingSetup.DeleteAll();
+        VATBusinessPostingGroup.DeleteAll();
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroup.Code, VATProductPostingGroup.Code);
+        ExistingVATPercent := LibraryRandom.RandInt(100);
+        VATPostingSetup.Validate("VAT %", ExistingVATPercent);
+        VATPostingSetup.Modify(true);
+        SetUnsupportedCountryCode(CompanyInformation);
+        ClearDefaultVATBusinessPostingGroup(ExpenseAgentSetup);
+
+        // [WHEN] Create the country VAT rate defaults.
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        // [THEN] The configured VAT business posting group is used without changing its existing VAT setup.
+        ExpenseAgentSetup.Get();
+        Assert.AreEqual(
+            VATBusinessPostingGroup.Code,
+            ExpenseAgentSetup."Default VAT Bus. Posting Group",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"), VATBusinessPostingGroup.Code, ExpenseAgentSetup.TableCaption()));
+        VATPostingSetup.Get(VATBusinessPostingGroup.Code, VATProductPostingGroup.Code);
+        Assert.AreEqual(
+            ExistingVATPercent,
+            VATPostingSetup."VAT %",
+            StrSubstNo(ValueMustBeEqualErr, VATPostingSetup.FieldCaption("VAT %"), ExistingVATPercent, VATPostingSetup.TableCaption()));
+    end;
+
+    [Test]
+    procedure ExistingVATBusinessPostingGroupProvidesDefaultWithoutVATPostingSetup()
+    var
+        CompanyInformation: Record "Company Information";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 652572] An existing VAT business posting group provides the default when no VAT posting setup exists.
+        Initialize();
+
+        // [GIVEN] A VAT business posting group exists without a VAT posting setup, and the expense default is blank.
+        VATPostingSetup.DeleteAll();
+        VATBusinessPostingGroup.DeleteAll();
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        SetUnsupportedCountryCode(CompanyInformation);
+        ClearDefaultVATBusinessPostingGroup(ExpenseAgentSetup);
+
+        // [WHEN] Create the country VAT rate defaults.
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        // [THEN] The existing VAT business posting group is used.
+        ExpenseAgentSetup.Get();
+        Assert.AreEqual(
+            VATBusinessPostingGroup.Code,
+            ExpenseAgentSetup."Default VAT Bus. Posting Group",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"), VATBusinessPostingGroup.Code, ExpenseAgentSetup.TableCaption()));
+    end;
+
+    [Test]
+    procedure NoVATBusinessPostingGroupsDoesNotFailCountryVATRatesDefaults()
+    var
+        CompanyInformation: Record "Company Information";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 653962] Sales Tax countries (CA/US) without VAT business posting groups can create country VAT rate defaults.
+        Initialize();
+
+        // [GIVEN] No VAT posting setup or VAT business posting group exists, a country without VAT defaults is set, and the expense default is blank.
+        VATPostingSetup.DeleteAll();
+        VATBusinessPostingGroup.DeleteAll();
+        SetUnsupportedCountryCode(CompanyInformation);
+        CompanyInformation."Country/Region Code" := 'CA';
+        CompanyInformation.Modify();
+        ClearDefaultVATBusinessPostingGroup(ExpenseAgentSetup);
+
+        // [WHEN] Create the country VAT rate defaults.
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        // [THEN] No error occurs, the default stays blank and VAT rates are marked as applied.
+        ExpenseAgentSetup.Get();
+        Assert.AreEqual('', ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
+        Assert.IsTrue(ExpenseAgentSetup."VAT Rates Applied", ExpenseAgentSetup.FieldCaption("VAT Rates Applied"));
+    end;
+
+    [Test]
+    procedure VATCountryWithoutBusinessPostingGroupCanApplyRatesLater()
+    var
+        CompanyInformation: Record "Company Information";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        Initialize();
+        VATPostingSetup.DeleteAll();
+        VATBusinessPostingGroup.DeleteAll();
+        CompanyInformation.Get();
+        CompanyInformation."Country/Region Code" := 'DE';
+        CompanyInformation.Modify();
+        ClearDefaultVATBusinessPostingGroup(ExpenseAgentSetup);
+
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        ExpenseAgentSetup.Get();
+        Assert.IsFalse(ExpenseAgentSetup."VAT Rates Applied", 'VAT rates must remain pending until a VAT business posting group is available.');
+        Assert.AreEqual('', ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
+        Assert.IsTrue(VATPostingSetup.IsEmpty(), 'No VAT posting setup must be created with a blank business posting group.');
+
+        ExpenseAgentSetup.CreateExpenseCategoriesDefaults();
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        ExpenseAgentSetup.CreateCountryVATRatesDefaults();
+
+        ExpenseAgentSetup.Get();
+        Assert.IsTrue(ExpenseAgentSetup."VAT Rates Applied", 'VAT rates must be applied when a VAT business posting group becomes available.');
+        Assert.AreEqual(VATBusinessPostingGroup.Code, ExpenseAgentSetup."Default VAT Bus. Posting Group", ExpenseAgentSetup.FieldCaption("Default VAT Bus. Posting Group"));
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
+        Assert.IsFalse(VATPostingSetup.IsEmpty(), 'The later setup run must create VAT posting rates for the business posting group.');
+    end;
+
+    [Test]
     procedure NoBeUpdatedInExpenseManuallyIfManualNosIsTrue()
     var
         Expense: Record Expense;
@@ -351,8 +485,8 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create Expense.
         CreateExpense(Expense, true, CurrencyCode, LibraryRandom.RandInt(100));
-        Expense.Validate("Merchant Name", LibraryRandom.RandText(20));
-        Expense.Validate("Expense Ext. Doc. No.", LibraryRandom.RandText(20));
+        Expense.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
+        Expense.Validate("Expense Ext. Doc. No.", CopyStr(LibraryRandom.RandText(20), 1, 30));
 
         // [GIVEN] Release Expense.
         ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
@@ -2178,7 +2312,6 @@ codeunit 148305 "Expense Test"
             StrSubstNo(ValueMustBeEqualErr, ExpenseItemization.FieldCaption(Quantity), 1, ExpenseItemization.TableCaption()));
     end;
 
-    // This test is currently disabled via DisabledTests/Expense_Agent_Tests/Expense_Agent_Tests.DisabledTest.json because setting the Expense Itemization "Start Date" is validated against the license-allowed month window ('??11*|??12*|??01*|??02*'), and the CI WorkDate can fall outside that range.
     [Test]
     [HandlerFunctions('ExactMessageHandler,SetDateInExpenseItemizationsModalPageHandler')]
     procedure DescriptionMustBeFlowFromExpenseToExpenseItemization()
@@ -2205,7 +2338,7 @@ codeunit 148305 "Expense Test"
         LibraryERM.FindPostCode(PostCode);
 
         // [GIVEN] Create Currency with Exchange Rate.
-        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(DMY2Date(1, 1, 2020), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
 
         // [GIVEN] Get Currency.
         Currency.Get(CurrencyCode);
@@ -2215,7 +2348,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create Expense with Rule "Itemize".
         CreateExpenseWithRule(
-            Expense, ExpenseRuleHeader, ExpenseRuleCondition, PostCode."Country/Region Code", PostCode.City, CurrencyCode, Amount, WorkDate(),
+            Expense, ExpenseRuleHeader, ExpenseRuleCondition, PostCode."Country/Region Code", PostCode.City, CurrencyCode, Amount, DMY2Date(1, 1, 2025),
             "Expense Detail Needed"::Itemize, ExpenseRuleHeader."Justification Required"::" ", '', ExpenseRuleCondition."Condition Type"::"Max Amount", true, Amount);
 
         // [GIVEN] Get "Expense Category".
@@ -2235,10 +2368,10 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Enqueue Expense SubCategory and Work Date for ExpenseItemizationsModalPageHandler.
         LibraryVariableStorage.Enqueue(Expense."Expense Subcategory");
-        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(DMY2Date(1, 1, 2025));
 
         // [GIVEN] Enqueue expected Message text.
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, 0, Expense.Amount));
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, '0.00', Expense.Amount));
 
         // [WHEN] Open Expense Page and Navigate to Expense Itemizations.
         ExpensePage.OpenEdit();
@@ -3011,7 +3144,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create Expense with Expense Category.
         LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', Amount);
-        Expense.Validate("Merchant Name", LibraryRandom.RandText(10));
+        Expense.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
         Expense.Modify();
 
         // [WHEN] Open Expense Page.
@@ -3534,7 +3667,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Get Company Information.
         CompanyInformation.Get();
-        CompanyInformation.Validate(Name, LibraryRandom.RandText(10));
+        CompanyInformation.Validate(Name, CopyStr(LibraryRandom.RandText(10), 1, 100));
         CompanyInformation.Modify();
 
         // [GIVEN] Find "Post Code".
@@ -3606,7 +3739,7 @@ codeunit 148305 "Expense Test"
         LibraryVariableStorage.Enqueue(1);
 
         // [GIVEN] Enqueue expected Message text.
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, 0, Expense.Amount));
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, '0.00', Expense.Amount));
 
         // [WHEN] Open Expense Itemization Page.
         ExpensePage.OpenEdit();
@@ -3994,13 +4127,13 @@ codeunit 148305 "Expense Test"
         Commit();
 
         // [WHEN] Update Participant Name.
-        asserterror ExpenseParticipant.validate("Participant Name", LibraryRandom.RandText(10));
+        asserterror ExpenseParticipant.validate("Participant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Organization.
-        asserterror ExpenseParticipant.validate("Participant Organization", LibraryRandom.RandText(10));
+        asserterror ExpenseParticipant.validate("Participant Organization", CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
@@ -4012,13 +4145,13 @@ codeunit 148305 "Expense Test"
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Title.
-        asserterror ExpenseParticipant.validate("Participant Title", LibraryRandom.RandText(10));
+        asserterror ExpenseParticipant.validate("Participant Title", CopyStr(LibraryRandom.RandText(10), 1, 30));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Email.
-        asserterror ExpenseParticipant.validate("Participant Email", LibraryRandom.RandText(10));
+        asserterror ExpenseParticipant.validate("Participant Email", CopyStr(LibraryRandom.RandText(10), 1, 80));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseParticipant.FieldCaption("Participant Employee No."), '');
@@ -4401,6 +4534,39 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
+    procedure AttachmentModifySucceedsWhenContentHashRetrievalFails()
+    var
+        Expense: Record Expense;
+        DocumentAttachment: Record "Document Attachment";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO] Attachment writes are not blocked when best-effort content hashing cannot retrieve the attachment
+        Initialize();
+
+        // [GIVEN] An expense attachment with a content hash
+        CreateExpense(Expense, true, '', LibraryRandom.RandDec(100, 2));
+        RecRef.GetTable(Expense);
+        CreateDocumentAttachment(DocumentAttachment, RecRef, Expense."No." + JPEGLbl);
+        Assert.AreNotEqual('', DocumentAttachment."Content Hash", 'The attachment should have a content hash before retrieval fails.');
+
+        // [GIVEN] Attachment retrieval fails during content-hash refresh
+        LibraryExpense.SetAttachmentRetrievalFailureEnabled(true);
+        BindSubscription(LibraryExpense);
+
+        // [WHEN] The attachment is modified
+        DocumentAttachment."Attached Date" := CurrentDateTime();
+        DocumentAttachment.Modify(true);
+
+        UnbindSubscription(LibraryExpense);
+
+        // [THEN] The modification succeeds and the stale content hash is cleared
+        DocumentAttachment.Get(
+            DocumentAttachment."Table ID", DocumentAttachment."No.", DocumentAttachment."Document Type",
+            DocumentAttachment."Line No.", DocumentAttachment.ID);
+        Assert.AreEqual('', DocumentAttachment."Content Hash", 'The content hash should be cleared when attachment retrieval fails.');
+    end;
+
+    [Test]
     procedure DocumentAttachmentIsShownOnExpense()
     var
         Expense: Record Expense;
@@ -4716,6 +4882,7 @@ codeunit 148305 "Expense Test"
         Amount: Decimal;
         AmountReduction: Decimal;
         CurrencyCode: Code[10];
+        ExpectedAmount: Text;
     begin
         // [SCENARIO 616971] Verify that the Itemization Total Reduction Mismatch error is shown in Expense and Expense Itemization.
         // when Expense Itemization is created with Refundable and Non-Refundable Expense Sub Category
@@ -4734,9 +4901,12 @@ codeunit 148305 "Expense Test"
         // [GIVEN] Create Expense with Itemization.
         CreateExpenseWithRefundableAndNonRefundableItemization(Expense, ExpenseItemization, ExpenseRuleHeader, ExpenseRuleCondition, true, CurrencyCode, Amount, Amount - AmountReduction, AmountReduction - 1);
 
+        // [GIVEN] Expected itemization total as shown in the message, formatted with two decimals.
+        ExpectedAmount := Format(Amount - 1, 0, '<Precision,2:2><Standard Format,0>');
+
         // [GIVEN] Enqueue expected Message text.
         LibraryVariableStorage.Enqueue(1);
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, Amount - 1, Expense.Amount));
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, ExpectedAmount, Expense.Amount));
 
         // [GIVEN] Update Non-Refundable Amount in Expense which is mismatch with total reduction in Itemization.
         Expense."Non-Refundable Amount" := AmountReduction;
@@ -4839,7 +5009,7 @@ codeunit 148305 "Expense Test"
         Expense.PerformManualRelease();
 
         // [WHEN] Validate Description in Expense Itemization.
-        asserterror ExpenseItemization[1].Validate(Description, LibraryRandom.RandText(10));
+        asserterror ExpenseItemization[1].Validate(Description, CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that the Status is Open if Itemization is updated.
         Assert.ExpectedTestFieldError(Expense.FieldCaption(Status), Format(Expense.Status::Open));
@@ -5476,6 +5646,162 @@ codeunit 148305 "Expense Test"
             HasPDFAttachmentShouldBeTrueErr);
     end;
 
+    [Test]
+    procedure MissingExchangeRateErrorIsNotRaisedWhenExchangeRateExists()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651169] Verify that no error is raised when an exchange rate exists on or before the currency date.
+        Initialize();
+
+        // [GIVEN] Create Expense and Expense Report Line in local currency.
+        CreateExpensesForCurrencyValidation(Expense, ExpenseReportLine);
+
+        // [GIVEN] Create Currency with Exchange Rate starting on WorkDate.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+
+        // [WHEN] Validate currency on the starting date, after it, and with a blank expense date.
+        // [THEN] Both records use the applicable exchange rate without an error.
+        VerifyExpenseCurrencyFactors(Expense, ExpenseReportLine, CurrencyCode, WorkDate(), CurrencyExchangeRate.ExchangeRate(WorkDate(), CurrencyCode));
+        VerifyExpenseCurrencyFactors(Expense, ExpenseReportLine, CurrencyCode, WorkDate() + 1, CurrencyExchangeRate.ExchangeRate(WorkDate() + 1, CurrencyCode));
+        VerifyExpenseCurrencyFactors(Expense, ExpenseReportLine, CurrencyCode, 0D, CurrencyExchangeRate.ExchangeRate(WorkDate(), CurrencyCode));
+
+        // [WHEN] Clear currency on both records.
+        // [THEN] Currency factors are reset to zero.
+        VerifyExpenseCurrencyFactors(Expense, ExpenseReportLine, '', WorkDate(), 0);
+    end;
+
+    [Test]
+    procedure MissingExchangeRateErrorIsRaisedWhenCurrencyDateIsBeforeStartingDate()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CurrencyCode: Code[10];
+        CurrencyDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651169] Verify that a currency date before the first exchange rate raises an error with the requested date and currency.
+        Initialize();
+
+        // [GIVEN] Create Expense and Expense Report Line in local currency.
+        CreateExpensesForCurrencyValidation(Expense, ExpenseReportLine);
+
+        // [GIVEN] Create Currency with Exchange Rate starting on WorkDate.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+
+        // [GIVEN] Set Currency Date before the exchange rate starting date.
+        CurrencyDate := WorkDate() - 1;
+        Expense."Expense Date" := CurrencyDate;
+        ExpenseReportLine."Expense Date" := CurrencyDate;
+        Commit();
+
+        // [WHEN] Validate Currency Code on Expense.
+        asserterror Expense.Validate("Currency Code", CurrencyCode);
+
+        // [THEN] Verify that the error contains Currency Date and Currency Code.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, CurrencyDate, CurrencyCode));
+
+        // [WHEN] Validate Expense Currency Code on Expense Report Line.
+        asserterror ExpenseReportLine.Validate("Expense Currency Code", CurrencyCode);
+
+        // [THEN] Verify that the same missing exchange rate error is raised.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, CurrencyDate, CurrencyCode));
+    end;
+
+    [Test]
+    procedure MissingExchangeRateErrorIsRaisedOnExpenseReportHeader()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651169] Verify that a report header raises an error when no exchange rate exists for its posting date.
+        Initialize();
+
+        // [GIVEN] An expense report header and a currency whose first exchange rate is tomorrow.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate() + 1, LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+
+        // [WHEN] The currency is assigned to the report header.
+        asserterror ExpenseReportHeader.Validate("Reimbursement Currency Code", CurrencyCode);
+
+        // [THEN] The missing exchange rate error identifies the header posting date and currency.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, WorkDate(), CurrencyCode));
+    end;
+
+    [Test]
+    procedure MissingExchangeRateErrorIsRaisedWhenCurrencyHasNoExchangeRates()
+    var
+        Currency: Record Currency;
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651169] Verify that exchange rates for another currency do not prevent a missing exchange rate error.
+        Initialize();
+
+        // [GIVEN] Create Expense and Expense Report Line dated WorkDate in local currency.
+        CreateExpensesForCurrencyValidation(Expense, ExpenseReportLine);
+
+        // [GIVEN] Create another Currency with Exchange Rate.
+        LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+
+        // [GIVEN] Create Currency without exchange rates.
+        LibraryERM.CreateCurrency(Currency);
+        Commit();
+
+        // [WHEN] Validate Currency without exchange rates on Expense.
+        asserterror Expense.Validate("Currency Code", Currency.Code);
+
+        // [THEN] Verify that the error contains WorkDate and the currency without exchange rates.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, WorkDate(), Currency.Code));
+
+        // [WHEN] Validate the same Currency on Expense Report Line.
+        asserterror ExpenseReportLine.Validate("Expense Currency Code", Currency.Code);
+
+        // [THEN] Verify that the same missing exchange rate error is raised.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, WorkDate(), Currency.Code));
+    end;
+
+    [Test]
+    procedure MissingExchangeRateErrorUsesWorkDateWhenCurrencyDateIsBlank()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651169] Verify that a blank currency date uses WorkDate when only a future exchange rate exists.
+        Initialize();
+
+        // [GIVEN] Create Expense and Expense Report Line with blank expense dates.
+        CreateExpensesForCurrencyValidation(Expense, ExpenseReportLine);
+        Expense."Expense Date" := 0D;
+        ExpenseReportLine."Expense Date" := 0D;
+
+        // [GIVEN] Create Currency with Exchange Rate starting after WorkDate.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate() + 1, LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+        Commit();
+
+        // [WHEN] Validate Currency Code on Expense with a blank expense date.
+        asserterror Expense.Validate("Currency Code", CurrencyCode);
+
+        // [THEN] Verify that the error contains WorkDate instead of a blank date.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, WorkDate(), CurrencyCode));
+
+        // [WHEN] Validate Expense Currency Code on Expense Report Line with a blank expense date.
+        asserterror ExpenseReportLine.Validate("Expense Currency Code", CurrencyCode);
+
+        // [THEN] Verify that the error contains WorkDate instead of a blank date.
+        Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, WorkDate(), CurrencyCode));
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
@@ -5505,6 +5831,21 @@ codeunit 148305 "Expense Test"
         Commit(); // Ensure setup data is committed before running tests. The first test is expected to fail and it rolls back the changes made after early exit on IsInitialized check.
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Test");
+    end;
+
+    local procedure ClearDefaultVATBusinessPostingGroup(var ExpenseAgentSetup: Record "Expense Agent Setup")
+    begin
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", '');
+        ExpenseAgentSetup.Validate("VAT Rates Applied", false);
+        ExpenseAgentSetup.Modify(true);
+    end;
+
+    local procedure SetUnsupportedCountryCode(var CompanyInformation: Record "Company Information")
+    begin
+        CompanyInformation.Get();
+        CompanyInformation."Country/Region Code" := '';
+        CompanyInformation.Modify();
     end;
 
     local procedure CreateExpense(var Expense: Record Expense; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
@@ -5677,7 +6018,6 @@ codeunit 148305 "Expense Test"
         ExpensePerDiem.FindFirst();
 
         CalculatedPerDiemAmount := ExpensePerDiem."Original Per Diem Amount";
-
         if (ExpensePerDiem.Breakfast) and (ExpensePerDiem."Breakfast Reduction Percent" <> 0) then
             TotalReductionPercent += ExpensePerDiem."Breakfast Reduction Percent";
         if (ExpensePerDiem.Lunch) and (ExpensePerDiem."Lunch Reduction Percent" <> 0) then
@@ -5835,6 +6175,32 @@ codeunit 148305 "Expense Test"
         TempBlob.CreateOutStream(OutStr);
         OutStr.WriteText(PDFTestContentLbl);
         DocumentAttachment.SaveAttachment(RecRef, FileName, TempBlob);
+    end;
+    
+    local procedure CreateExpensesForCurrencyValidation(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        CreateExpense(Expense, true, '', LibraryRandom.RandInt(100));
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, Expense."Expense User No.", Expense."Expense Category", '', true, '', LibraryRandom.RandInt(100));
+        ExpenseReportLine."Expense Date" := WorkDate();
+    end;
+
+    local procedure VerifyExpenseCurrencyFactors(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line"; CurrencyCode: Code[10]; ExpenseDate: Date; ExpectedCurrencyFactor: Decimal)
+    begin
+        Expense."Expense Date" := ExpenseDate;
+        ExpenseReportLine."Expense Date" := ExpenseDate;
+
+        Expense.Validate("Currency Code", CurrencyCode);
+        ExpenseReportLine.Validate("Expense Currency Code", CurrencyCode);
+
+        Assert.AreEqual(
+            ExpectedCurrencyFactor, Expense."Currency Factor",
+            StrSubstNo(ValueMustBeEqualErr, Expense.FieldCaption("Currency Factor"), ExpectedCurrencyFactor, Expense.TableCaption()));
+        Assert.AreEqual(
+            ExpectedCurrencyFactor, ExpenseReportLine."Expense Currency Factor",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Expense Currency Factor"), ExpectedCurrencyFactor, ExpenseReportLine.TableCaption()));
     end;
 
     [ModalPageHandler]

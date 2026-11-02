@@ -17,13 +17,42 @@ codeunit 7414 "Excise Tax Upgrade"
     var
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        if UpgradeTag.HasUpgradeTag(GetMultipleExciseTaxesPerItemUpgradeTag()) then
+        if not UpgradeTag.HasUpgradeTag(GetMultipleExciseTaxesPerItemUpgradeTag()) then begin
+            MigrateItemExciseTaxSetup();
+            UpgradeTag.SetUpgradeTag(GetMultipleExciseTaxesPerItemUpgradeTag());
+        end;
+
+#if not CLEANSCHEMA33
+        if not UpgradeTag.HasUpgradeTag(GetExciseTaxRateTableUpgradeTag()) then begin
+            MigrateExciseTaxRates();
+            UpgradeTag.SetUpgradeTag(GetExciseTaxRateTableUpgradeTag());
+        end;
+#endif
+    end;
+
+#if not CLEANSCHEMA33
+    local procedure MigrateExciseTaxRates()
+    var
+        ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
+        ExciseTaxRate: Record "Excise Tax Rate";
+    begin
+#pragma warning disable AL0432
+        if not ExciseTaxItemFARate.FindSet() then
             exit;
 
-        MigrateItemExciseTaxSetup();
-
-        UpgradeTag.SetUpgradeTag(GetMultipleExciseTaxesPerItemUpgradeTag());
+        repeat
+            if not ExciseTaxRate.Get(ExciseTaxItemFARate."Excise Tax Type Code", ExciseTaxItemFARate."Source Type", ExciseTaxItemFARate."Source No.", '', ExciseTaxItemFARate."Effective From Date") then begin
+                ExciseTaxRate.Init();
+                ExciseTaxRate.TransferFields(ExciseTaxItemFARate);
+                ExciseTaxRate."Item Category Code" := '';
+                ExciseTaxRate."Excise Calculation Type" := ExciseTaxRate."Excise Calculation Type"::"Specific per Unit";
+                ExciseTaxRate."Excise Duty %" := 0;
+                ExciseTaxRate.Insert();
+            end;
+        until ExciseTaxItemFARate.Next() = 0;
+#pragma warning restore AL0432
     end;
+#endif
 
     local procedure MigrateItemExciseTaxSetup()
     var
@@ -65,10 +94,20 @@ codeunit 7414 "Excise Tax Upgrade"
     local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetMultipleExciseTaxesPerItemUpgradeTag());
+#if not CLEANSCHEMA33
+        PerCompanyUpgradeTags.Add(GetExciseTaxRateTableUpgradeTag());
+#endif
     end;
 
     local procedure GetMultipleExciseTaxesPerItemUpgradeTag(): Code[250]
     begin
         exit('MS-626127-MultipleExciseTaxesPerItem-20260727');
     end;
+
+#if not CLEANSCHEMA33
+    local procedure GetExciseTaxRateTableUpgradeTag(): Code[250]
+    begin
+        exit('MS-626305-ExciseTaxRate-20260902');
+    end;
+#endif
 }

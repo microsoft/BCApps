@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExternalStorage.DocumentAttachments;
 
+using System.Utilities;
+
 /// <summary>
 /// Permission set for External Storage functionality.
 /// Grants necessary permissions to use external storage features.
@@ -12,5 +14,13 @@ permissionset 8751 "DA Ext. Stor. Admin"
 {
     Assignable = true;
     Caption = 'DA - External Storage Admin';
-    Permissions = tabledata "DA External Storage Setup" = rimd;
+    Permissions = tabledata "DA External Storage Setup" = rimd,
+                  tabledata "Error Message" = ri,
+                  tabledata "Error Message Register" = ri,
+                  table "DA External Storage Setup" = X,
+                  report "DA External Storage Migration" = X,
+                  report "DA External Storage Sync" = X,
+                  codeunit "DA Ext. Storage Sync Worker" = X,
+                  codeunit "DA Feature Telemetry" = X,
+                  page "Document Attachment - External" = X;
 }

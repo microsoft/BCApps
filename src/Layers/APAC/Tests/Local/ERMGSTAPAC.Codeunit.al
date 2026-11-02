@@ -167,6 +167,59 @@ codeunit 141007 "ERM GST APAC"
 
     [Test]
     [Scope('OnPrem')]
+    procedure GetCustUnrealizedVATPartSkipsEntryWithoutRemainingUnrealizedGST()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATEntry: Record "VAT Entry";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        SettledAmount: Decimal;
+        VATPart: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [Unrealized VAT] [Sales]
+        // [SCENARIO 652063] A fully-settled unrealized GST entry with no remaining unrealized amount is not realized
+        // again, so posting the reversal cannot generate an unbounded number of VAT entries sharing one Transaction No.
+        Initialize();
+
+        // [GIVEN] An unrealized (Percentage) GST posting setup
+        LibraryERM.SetUnrealizedVAT(true);
+        CreateUnrealVATPostingSetup(VATPostingSetup);
+        SettledAmount := LibraryRandom.RandDecInRange(100, 200, 2);
+
+        // [GIVEN] An unrealized GST entry that is already fully realized (Remaining Unrealized Amount/Base = 0)
+        VATEntry.Init();
+        VATEntry.Type := VATEntry.Type::Sale;
+        VATEntry."VAT Calculation Type" := VATEntry."VAT Calculation Type"::"Normal VAT";
+        VATEntry."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
+        VATEntry."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
+        VATEntry.Amount := 0;
+        VATEntry.Base := 0;
+        VATEntry."Remaining Unrealized Amount" := 0;
+        VATEntry."Remaining Unrealized Base" := 0;
+
+        // [WHEN] Calculating the unrealized VAT part for a fully-settled ledger entry (Paid = Full)
+        VATPart := VATEntry.GetCustUnrealizedVATPart(SettledAmount, SettledAmount, SettledAmount, 0, 0, CustLedgerEntry, GenJournalLine, 0);
+
+        // [THEN] No realization is performed (before the fix this returned 1 and drove an unbounded reversal loop)
+        Assert.IsTrue(VATPart <= 0, 'Fully-realized unrealized GST entry must not be realized again.');
+
+        // [GIVEN] The same entry but with remaining unrealized GST still open
+        VATEntry."Remaining Unrealized Amount" := -VATPostingSetup."VAT %";
+        VATEntry."Remaining Unrealized Base" := -SettledAmount;
+
+        // [WHEN] Calculating the unrealized VAT part for a fully-settled ledger entry (Paid = Full)
+        VATPart := VATEntry.GetCustUnrealizedVATPart(SettledAmount, SettledAmount, SettledAmount, 0, 0, CustLedgerEntry, GenJournalLine, 0);
+
+        // [THEN] The remaining unrealized GST is still fully realized, as before the fix
+        Assert.IsTrue(VATPart = 1, 'Fully-settled entry with remaining unrealized GST must be fully realized.');
+
+        // Tear Down.
+        ResetUnrealizedVATPostingSetup(VATPostingSetup);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure SalesCrMemoApplyInvoiceWithUnrealizedGST()
     var
         VATPostingSetup: Record "VAT Posting Setup";
