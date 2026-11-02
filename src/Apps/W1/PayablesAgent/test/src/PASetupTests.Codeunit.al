@@ -60,7 +60,7 @@ codeunit 133723 "PA Setup Tests"
     begin
         EmailOutlookAccount.Id := CreateGuid();
         EmailOutlookAccount.Name := 'Payables';
-        EmailOutlookAccount."Email Address" := 'payables@contoso.com';
+        EmailOutlookAccount."Email Address" := LowerCase(DelChr(Format(EmailOutlookAccount.Id), '=', '{}-')) + '@contoso.com';
         EmailOutlookAccount."Outlook API Email Connector" := "Email Connector"::"Microsoft 365";
         EmailOutlookAccount.Insert();
         exit(EmailOutlookAccount.Id);
