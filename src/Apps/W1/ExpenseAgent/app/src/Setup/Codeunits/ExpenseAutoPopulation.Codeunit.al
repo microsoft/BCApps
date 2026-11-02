@@ -171,7 +171,7 @@ codeunit 6912 "Expense Auto Population"
         end;
 
         if PerDiemDetailsChanged then
-            ExpenseReportLine.MarkPolicyInvalidationPending();
+            ExpenseReportLine.InvalidatePolicyEvaluationOnSave();
         ExpenseReportLine.Validate(Amount, TotalAmount);
     end;
 
