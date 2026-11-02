@@ -41,7 +41,6 @@ codeunit 3329 "PA Matching Telemetry"
         Agent: Record Agent;
         AgentTaskLogEntry: Record "Agent Task Log Entry";
         EDocument: Record "E-Document";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
         LinesArray: JsonArray;
         SummaryText: Text;
@@ -61,23 +60,108 @@ codeunit 3329 "PA Matching Telemetry"
             exit;
         if not PayablesAgentSetup.WasEDocumentCreatedByAgent(EDocument) then
             exit;
-        if not TryGetMatchingSummary(AgentTask.ID, AgentTaskLogEntry, SummaryText) then
+        if not TryGetMatchingSummary(AgentTask.ID, AgentTaskLogEntry, SummaryText) then begin
+            Clear(AgentTaskLogEntry);
+            LogVendorSummary(AgentTaskLogEntry, AgentTask, EDocument.SystemId, '');
             exit;
+        end;
+
+        LogVendorSummary(AgentTaskLogEntry, AgentTask, EDocument.SystemId, SummaryText);
 
         if not ParseSummary(SummaryText, LinesArray, Status) then begin
             LogProcessingStatus(AgentTaskLogEntry, AgentTask, Status, EDocument.SystemId, 0, 0);
             exit;
         end;
 
-        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
-        ExpectedLineCount := EDocumentPurchaseLine.Count();
-        if ExpectedLineCount <> LinesArray.Count() then begin
-            LogProcessingStatus(AgentTaskLogEntry, AgentTask, CountMismatchStatusTok, EDocument.SystemId, ExpectedLineCount, LinesArray.Count());
+        if not ValidateSummaryLines(EDocument."Entry No", LinesArray, ExpectedLineCount, Status) then begin
+            LogProcessingStatus(AgentTaskLogEntry, AgentTask, Status, EDocument.SystemId, ExpectedLineCount, LinesArray.Count());
             exit;
         end;
 
         LogProcessingStatus(AgentTaskLogEntry, AgentTask, SuccessStatusTok, EDocument.SystemId, ExpectedLineCount, LinesArray.Count());
         LogSummaryLines(AgentTaskLogEntry, AgentTask, EDocument, LinesArray);
+    end;
+
+    internal procedure ParseVendorSummary(SummaryText: Text; var VendorDimensions: Dictionary of [Text, Text]; var Status: Text): Boolean
+    var
+        RootObject: JsonObject;
+        VendorToken: JsonToken;
+        VendorObject: JsonObject;
+        SchemaVersion: Integer;
+        VendorSelected: Boolean;
+        VendorAssignedByAgent: Boolean;
+        VendorAssignmentSource: Text;
+    begin
+        Clear(VendorDimensions);
+        if SummaryText = '' then begin
+            Status := MissingSummaryStatusTok;
+            exit(false);
+        end;
+        if not RootObject.ReadFrom(SummaryText) then begin
+            Status := InvalidJsonStatusTok;
+            exit(false);
+        end;
+        if not TryGetInteger(RootObject, VersionTok, SchemaVersion) then begin
+            Status := InvalidJsonStatusTok;
+            exit(false);
+        end;
+        if SchemaVersion <> 2 then begin
+            Status := UnsupportedSchemaStatusTok;
+            exit(false);
+        end;
+        if not RootObject.Get(VendorTok, VendorToken) then begin
+            Status := MissingVendorSummaryStatusTok;
+            exit(false);
+        end;
+        Status := InvalidValueStatusTok;
+        if not VendorToken.IsObject() then
+            exit(false);
+        VendorObject := VendorToken.AsObject();
+        if not TryGetBoolean(VendorObject, VendorSelectedTok, VendorSelected) then
+            exit(false);
+        if not TryGetBoolean(VendorObject, VendorAssignedByAgentTok, VendorAssignedByAgent) then
+            exit(false);
+        if not TryGetText(VendorObject, VendorAssignmentSourceTok, VendorAssignmentSource) then
+            exit(false);
+        if not (VendorAssignmentSource in [PreassignedTok, HistoryTok, VendorListTok, CreatedTok, UserProvidedTok, UnresolvedTok, UnknownTok]) then
+            exit(false);
+        if not VendorSelected then begin
+            if VendorAssignedByAgent or (VendorAssignmentSource <> UnresolvedTok) then
+                exit(false);
+        end else begin
+            if VendorAssignmentSource = UnresolvedTok then
+                exit(false);
+            if (VendorAssignmentSource = PreassignedTok) and VendorAssignedByAgent then
+                exit(false);
+            if (VendorAssignmentSource in [HistoryTok, VendorListTok, CreatedTok]) and not VendorAssignedByAgent then
+                exit(false);
+        end;
+
+        VendorDimensions.Add(VendorSelectedDimensionTok, Format(VendorSelected, 0, 9));
+        VendorDimensions.Add(VendorAssignedByAgentDimensionTok, Format(VendorAssignedByAgent, 0, 9));
+        VendorDimensions.Add(VendorAssignmentSourceDimensionTok, VendorAssignmentSource);
+        Status := SuccessStatusTok;
+        exit(true);
+    end;
+
+    local procedure LogVendorSummary(AgentTaskLogEntry: Record "Agent Task Log Entry"; AgentTask: Record "Agent Task"; EDocumentSystemId: Guid; SummaryText: Text)
+    var
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+        Telemetry: Codeunit Telemetry;
+        CustomDimensions: Dictionary of [Text, Text];
+        Status: Text;
+    begin
+        if not ParseVendorSummary(SummaryText, CustomDimensions, Status) then
+            Clear(CustomDimensions);
+        CustomDimensions.Add(CategoryTok, PayablesAgentCategoryTok);
+        CustomDimensions.Add(AgentTaskIdTok, Format(AgentTask.ID, 0, 9));
+        if AgentTaskLogEntry.ID <> 0 then
+            CustomDimensions.Add(AgentTaskLogEntryIdTok, Format(AgentTaskLogEntry.ID, 0, 9));
+        CustomDimensions.Add(EDocumentSystemIdTok, EDocImpSessionTelemetry.CreateSystemIdText(EDocumentSystemId));
+        CustomDimensions.Add(SchemaVersionTok, '2');
+        CustomDimensions.Add(StatusTok, Status);
+
+        Telemetry.LogMessage('0000V7O', VendorSummaryTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
     end;
 
     internal procedure ParseSummary(SummaryText: Text; var LinesArray: JsonArray; var Status: Text): Boolean
@@ -86,6 +170,8 @@ codeunit 3329 "PA Matching Telemetry"
         LinesToken: JsonToken;
         LineToken: JsonToken;
         LineObject: JsonObject;
+        LineSystemIds: List of [Guid];
+        LineSystemId: Guid;
         SchemaVersion: Integer;
     begin
         Clear(LinesArray);
@@ -98,7 +184,7 @@ codeunit 3329 "PA Matching Telemetry"
             Status := InvalidJsonStatusTok;
             exit(false);
         end;
-        if SchemaVersion <> 1 then begin
+        if SchemaVersion <> 2 then begin
             Status := UnsupportedSchemaStatusTok;
             exit(false);
         end;
@@ -118,10 +204,62 @@ codeunit 3329 "PA Matching Telemetry"
                 Status := InvalidValueStatusTok;
                 exit(false);
             end;
+            if not TryGetLineSystemId(LineObject, LineSystemId) then begin
+                Status := InvalidValueStatusTok;
+                exit(false);
+            end;
+            if LineSystemIds.Contains(LineSystemId) then begin
+                Status := InvalidValueStatusTok;
+                exit(false);
+            end;
+            LineSystemIds.Add(LineSystemId);
         end;
 
         Status := SuccessStatusTok;
         exit(true);
+    end;
+
+    internal procedure ValidateSummaryLines(EDocumentEntryNo: Integer; LinesArray: JsonArray; var ExpectedLineCount: Integer; var Status: Text): Boolean
+    var
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        LineToken: JsonToken;
+        LineSystemId: Guid;
+    begin
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        ExpectedLineCount := EDocumentPurchaseLine.Count();
+        if ExpectedLineCount <> LinesArray.Count() then begin
+            Status := CountMismatchStatusTok;
+            exit(false);
+        end;
+
+        foreach LineToken in LinesArray do begin
+            if not TryGetLineSystemId(LineToken.AsObject(), LineSystemId) then begin
+                Status := InvalidValueStatusTok;
+                exit(false);
+            end;
+            if not EDocumentPurchaseLine.GetBySystemId(LineSystemId) then begin
+                Status := LineIdentityMismatchStatusTok;
+                exit(false);
+            end;
+            if EDocumentPurchaseLine."E-Document Entry No." <> EDocumentEntryNo then begin
+                Status := LineIdentityMismatchStatusTok;
+                exit(false);
+            end;
+        end;
+
+        Status := SuccessStatusTok;
+        exit(true);
+    end;
+
+    local procedure TryGetLineSystemId(LineObject: JsonObject; var LineSystemId: Guid): Boolean
+    var
+        LineSystemIdText: Text;
+    begin
+        if not TryGetText(LineObject, LineSystemIdTok, LineSystemIdText) then
+            exit(false);
+        if not Evaluate(LineSystemId, LineSystemIdText) then
+            exit(false);
+        exit(not IsNullGuid(LineSystemId));
     end;
 
     local procedure IsValidSummaryLine(LineObject: JsonObject): Boolean
@@ -217,7 +355,7 @@ codeunit 3329 "PA Matching Telemetry"
         CustomDimensions.Add(CategoryTok, PayablesAgentCategoryTok);
         CustomDimensions.Add(AgentTaskIdTok, Format(AgentTask.ID, 0, 9));
         CustomDimensions.Add(AgentTaskLogEntryIdTok, Format(AgentTaskLogEntry.ID, 0, 9));
-        CustomDimensions.Add(SchemaVersionTok, '1');
+        CustomDimensions.Add(SchemaVersionTok, '2');
         CustomDimensions.Add(StatusTok, Status);
         CustomDimensions.Add(ExpectedLineCountTok, Format(ExpectedLineCount, 0, 9));
         CustomDimensions.Add(SummaryLineCountTok, Format(SummaryLineCount, 0, 9));
@@ -233,18 +371,21 @@ codeunit 3329 "PA Matching Telemetry"
         CustomDimensions: Dictionary of [Text, Text];
         LineObject: JsonObject;
         LineToken: JsonToken;
+        LineSystemId: Guid;
         LineIndex: Integer;
     begin
         foreach LineToken in LinesArray do begin
             LineIndex += 1;
             LineObject := LineToken.AsObject();
+            Evaluate(LineSystemId, LineObject.GetText(LineSystemIdTok));
             Clear(CustomDimensions);
             CustomDimensions.Add(CategoryTok, PayablesAgentCategoryTok);
             CustomDimensions.Add(AgentTaskIdTok, Format(AgentTask.ID, 0, 9));
             CustomDimensions.Add(AgentTaskLogEntryIdTok, Format(AgentTaskLogEntry.ID, 0, 9));
             CustomDimensions.Add(EDocumentSystemIdTok, EDocImpSessionTelemetry.CreateSystemIdText(EDocument.SystemId));
+            CustomDimensions.Add(EDocImpSessionTelemetry.GetEDocLineSystemIdTok(), EDocImpSessionTelemetry.CreateSystemIdText(LineSystemId));
             CustomDimensions.Add(SummaryLineIndexTok, Format(LineIndex, 0, 9));
-            CustomDimensions.Add(SchemaVersionTok, '1');
+            CustomDimensions.Add(SchemaVersionTok, '2');
             CustomDimensions.Add(MatchMethodDimensionTok, LineObject.GetText(MatchMethodTok));
             CustomDimensions.Add(ConfidenceDimensionTok, LineObject.GetText(ConfidenceTok));
             CustomDimensions.Add(DeferralSourceDimensionTok, LineObject.GetText(DeferralSourceTok));
@@ -292,7 +433,23 @@ codeunit 3329 "PA Matching Telemetry"
         SummaryKeyTok: Label 'PAYABLES_AGENT_MATCHING_TELEMETRY', Locked = true;
         MemorizedDataTok: Label 'memorizedData', Locked = true;
         VersionTok: Label 'v', Locked = true;
+        VendorTok: Label 'vendor', Locked = true;
+        VendorSelectedTok: Label 'vendorSelected', Locked = true;
+        VendorAssignedByAgentTok: Label 'vendorAssignedByAgent', Locked = true;
+        VendorAssignmentSourceTok: Label 'vendorAssignmentSource', Locked = true;
+        PreassignedTok: Label 'Preassigned', Locked = true;
+        VendorListTok: Label 'VendorList', Locked = true;
+        CreatedTok: Label 'Created', Locked = true;
+        UserProvidedTok: Label 'UserProvided', Locked = true;
+        UnresolvedTok: Label 'Unresolved', Locked = true;
+        UnknownTok: Label 'Unknown', Locked = true;
+        MissingSummaryStatusTok: Label 'MissingSummary', Locked = true;
+        MissingVendorSummaryStatusTok: Label 'MissingVendorSummary', Locked = true;
+        VendorSelectedDimensionTok: Label 'Vendor Selected', Locked = true;
+        VendorAssignedByAgentDimensionTok: Label 'Vendor Assigned By Agent', Locked = true;
+        VendorAssignmentSourceDimensionTok: Label 'Vendor Assignment Source', Locked = true;
         LinesTok: Label 'lines', Locked = true;
+        LineSystemIdTok: Label 'lineSystemId', Locked = true;
         MatchMethodTok: Label 'matchMethod', Locked = true;
         ConfidenceTok: Label 'confidence', Locked = true;
         DeferralSourceTok: Label 'deferralSource', Locked = true;
@@ -319,6 +476,7 @@ codeunit 3329 "PA Matching Telemetry"
         UnsupportedSchemaStatusTok: Label 'UnsupportedSchema', Locked = true;
         InvalidValueStatusTok: Label 'InvalidValue', Locked = true;
         CountMismatchStatusTok: Label 'CountMismatch', Locked = true;
+        LineIdentityMismatchStatusTok: Label 'LineIdentityMismatch', Locked = true;
         CategoryTok: Label 'Category', Locked = true;
         PayablesAgentCategoryTok: Label 'Payables Agent', Locked = true;
         AgentTaskIdTok: Label 'Agent Task Id', Locked = true;
@@ -336,4 +494,5 @@ codeunit 3329 "PA Matching Telemetry"
         NewPatternDimensionTok: Label 'New Pattern', Locked = true;
         MatchingSummaryTelemetryMsg: Label 'Payables Agent Matching Summary', Locked = true;
         MatchingSummaryLineTelemetryMsg: Label 'Payables Agent Matching Summary Line', Locked = true;
+        VendorSummaryTelemetryMsg: Label 'Payables Agent Vendor Matching Summary', Locked = true;
 }

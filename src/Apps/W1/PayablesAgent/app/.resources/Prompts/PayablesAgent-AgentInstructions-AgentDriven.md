@@ -57,6 +57,8 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 </task>
 
 <task name="Ensure vendor is assigned to the draft">
+  Remember how the vendor was obtained and whether you successfully applied its assignment during this task. Preserve this provenance across assistance and reviews for the pre-finalization telemetry snapshot. Finding a candidate or attempting a field write is not a successful assignment.
+
   You can complete this task if at any point you have a BC vendor number assigned in the draft invoice.
 
   If you don't have a vendor assigned you **MUST** execute the following steps in order. Do NOT proceed to the next step until you have exhaustively completed the current step.
@@ -374,17 +376,29 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 
   **Before** requesting the review, add a `memorize` entry with the exact key `PAYABLES_AGENT_MATCHING_TELEMETRY`. Its value must be a compact JSON string using this schema:
   ```json
-  {"v":1,"lines":[{"matchMethod":"TextToAccount","confidence":"High","deferralSource":"None","hasConflict":false,"newPattern":false}]}
+  {"v":2,"vendor":{"vendorSelected":true,"vendorAssignedByAgent":true,"vendorAssignmentSource":"History"},"lines":[{"lineSystemId":"<source draft line GUID>","matchMethod":"TextToAccount","confidence":"High","deferralSource":"None","hasConflict":false,"newPattern":false}]}
   ```
 
-  Add one object for every draft line, in the same order the lines appear on the draft. Use only these values:
+  Populate `vendor` independently of the line decisions, using the current draft header and the provenance remembered during vendor resolution:
+  - `vendorSelected`: `true` only when the draft currently has a BC Vendor No. assigned; otherwise `false`.
+  - `vendorAssignedByAgent`: `true` only when you successfully applied the currently assigned vendor during this task, not just searched for it. A user-provided choice entered by you is still an agent-applied assignment.
+  - `vendorAssignmentSource`: `Preassigned` if the current vendor was already assigned and you did not replace it; `History` if you found and assigned it from vendor assignment history; `VendorList` if you found and assigned an existing vendor from the Vendors page; `Created` if you created and assigned a new vendor following the required user authorization/review; `UserProvided` if the user supplied the choice; `Unresolved` if no vendor is assigned; or `Unknown` if a vendor is assigned but its provenance cannot be established.
+  - With `vendorSelected=false`, use `vendorAssignedByAgent=false` and `vendorAssignmentSource=Unresolved`. With `Preassigned`, use `vendorAssignedByAgent=false`. With `History`, `VendorList`, or `Created`, use both booleans `true`. `UserProvided` and `Unknown` require `vendorSelected=true`; report whether you actually applied the assignment.
+
+  Capture this snapshot **before** the review; do not overwrite it with post-review outcomes merely because the user subsequently changes the vendor. Never include the vendor number, name, address, tax identifiers, or any other customer values in `vendor`.
+
+  Before memorizing the summary, read every draft row, including rows on other pages, on the "Purchase Document Draft" page. Add one object for every draft line, including already assigned and unmatched lines.
+
+  For `lineSystemId`, copy the exact **E-Document Line System Id** shown on that draft row. The placeholder in the example must be replaced with the actual GUID. This identifies the source draft line, not a historical line, purchase order line, or created purchase invoice line. Never invent an ID, use a row position, or reuse another line's ID. Preserve the association between each line's ID and its matching decision; array order is not used to identify lines.
+
+  Use only these values for the remaining fields:
   - `matchMethod`: `PrepareDraft`, `ItemReference`, `TextToAccount`, `Historical`, `ChartOfAccounts`, `Items`, `PurchaseOrder`, `UserAssigned`, or `Unmatched`
   - `confidence`: `High`, `Medium`, `Low`, or `None`
   - `deferralSource`: `None`, `History`, `Template`, or `HistoryAndTemplate`
   - `hasConflict`: `true` when usable sources disagreed; otherwise `false`
   - `newPattern`: `true` when the most recent historical match diverged from the older majority; otherwise `false`
 
-  This entry is used for aggregate telemetry. Never include descriptions, vendor names, account numbers, item numbers, deferral codes, explanations, or any other free-form/customer data in this JSON.
+  This entry is used for aggregate telemetry and line correlation. Apart from the source draft line GUID, include only the fields and allowed values above. Never include descriptions, vendor names, account numbers, item numbers, deferral codes, explanations, matched-record IDs, or any other free-form/customer data in this JSON.
 
   <success_criteria>User has reviewed and acknowledged that you can proceed with finalization</success_criteria>
 </task>
