@@ -1,4 +1,4 @@
-name: Inspect compiler cache (listing only)
+name: Export complete compiler cache
 
 on:
   pull_request:
@@ -129,19 +129,104 @@ jobs:
             Job = $env:GITHUB_JOB
             WorkflowSha = $env:GITHUB_SHA
             EnumeratedAtUtc = [DateTime]::UtcNow.ToString('o')
-            Scope = 'Filesystem names and byte lengths only; no cached file contents were read or uploaded.'
+            Scope = 'Full restored cache exported as a lossless ZIP repack; not the original GitHub cache blob.'
           }
           $summary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath "$env:LISTING_PATH\summary.json" -Encoding utf8
           "Files: $($summary.FileCount); uncompressed file bytes: $($summary.UncompressedFileBytes); stored archive bytes: $($summary.StoredArchiveBytes)." |
             Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY
 
-      - name: Upload listing only
+      - name: Archive and verify every cached file
+        shell: python
+        env:
+          CACHE_PATH: ${{ runner.temp }}/.artifactcache
+          LISTING_PATH: ${{ runner.temp }}\compiler-cache-listing
+        run: |
+          import csv
+          import hashlib
+          import json
+          import os
+          import re
+          import zipfile
+          from pathlib import Path
+
+          root = Path(os.environ["CACHE_PATH"])
+          output = Path(os.environ["LISTING_PATH"])
+          with (output / "files.csv").open(encoding="utf-8-sig", newline="") as stream:
+              listing = {row["RelativePath"]: int(row["Bytes"]) for row in csv.DictReader(stream)}
+          if len(listing) != 3632 or sum(listing.values()) != 1748675550:
+              raise RuntimeError("The restored cache differs from the previously verified listing.")
+          suspicious = re.compile(
+              r"(?i)(^|[\\/])(\.env(?:\..*)?|credentials(?:\..*)?|secrets(?:\..*)?|"
+              r"id_(?:rsa|ed25519)|.*\.(?:pfx|p12|pem|key|snk|flf|bclicense))$"
+          )
+          entries = sorted(root.rglob("*"))
+          flagged = [str(path.relative_to(root)) for path in entries if suspicious.search(str(path.relative_to(root)))]
+          if flagged:
+              raise RuntimeError("Potential credential/license files require review before export: " + repr(flagged))
+          directories = [path for path in entries if path.is_dir()]
+          files = [path for path in entries if path.is_file()]
+          actual = {str(path.relative_to(root)): path.stat().st_size for path in files}
+          if actual != listing or len(directories) != 231:
+              raise RuntimeError("Archive input does not match the complete file/directory listing.")
+
+          def digest(stream):
+              value = hashlib.sha256()
+              for block in iter(lambda: stream.read(1024 * 1024), b""):
+                  value.update(block)
+              return value.hexdigest()
+
+          manifest = []
+          archive_path = output / "compiler-cache-9849354071.zip"
+          with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6, allowZip64=True) as archive:
+              for path in directories:
+                  archive.write(path, path.relative_to(root).as_posix() + "/")
+              for path in files:
+                  relative = path.relative_to(root).as_posix()
+                  with path.open("rb") as stream:
+                      sha256 = digest(stream)
+                  archive.write(path, relative)
+                  manifest.append({"path": relative, "bytes": path.stat().st_size, "sha256": sha256})
+
+          with zipfile.ZipFile(archive_path) as archive:
+              names = archive.namelist()
+              expected = {entry["path"] for entry in manifest}
+              expected.update(path.relative_to(root).as_posix() + "/" for path in directories)
+              if len(names) != len(expected) or set(names) != expected:
+                  raise RuntimeError("ZIP entry set differs from restored cache.")
+              for entry in manifest:
+                  if archive.getinfo(entry["path"]).file_size != entry["bytes"]:
+                      raise RuntimeError("ZIP file length mismatch: " + entry["path"])
+                  with archive.open(entry["path"]) as stream:
+                      if digest(stream) != entry["sha256"]:
+                          raise RuntimeError("ZIP content hash mismatch: " + entry["path"])
+          with archive_path.open("rb") as stream:
+              archive_sha256 = digest(stream)
+          (output / "file-sha256.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+          metadata = {
+              "archive": archive_path.name,
+              "bytes": archive_path.stat().st_size,
+              "sha256": archive_sha256,
+              "files": len(files),
+              "directories": len(directories),
+              "uncompressed_file_bytes": sum(listing.values()),
+              "format": "Lossless ZIP repack of the complete restored cache; not the original GitHub cache blob.",
+              "verification": "Every ZIP file's SHA256 and length match the restored source; directory entries include empty directories.",
+              "filename_screening": "No credential/private-key/business-license filenames detected; package license notices and authentication libraries are retained.",
+          }
+          (output / "archive-metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+          print(json.dumps(metadata, indent=2))
+
+      - name: Upload full cache archive and verification metadata
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: compiler-cache-file-listing
+          name: compiler-cache-full
           path: |
+            ${{ runner.temp }}\compiler-cache-listing\compiler-cache-9849354071.zip
+            ${{ runner.temp }}\compiler-cache-listing\file-sha256.json
+            ${{ runner.temp }}\compiler-cache-listing\archive-metadata.json
             ${{ runner.temp }}\compiler-cache-listing\files.csv
             ${{ runner.temp }}\compiler-cache-listing\cache-metadata.json
             ${{ runner.temp }}\compiler-cache-listing\summary.json
           if-no-files-found: error
           retention-days: 3
+          compression-level: 0

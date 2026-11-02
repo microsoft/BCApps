@@ -3,7 +3,7 @@ name: 'Verify App Changes'
 on:
   pull_request:
     branches: [ 'main', 'releases/*']
-    # Temporary listing-only diagnostic; this branch must not be merged.
+    # Temporary cache-export diagnostic; this branch must not be merged.
     paths-ignore:
       - '.github/workflows/InspectCompilerCache.yaml'
       - '.github/workflows/PullRequestHandler.yaml'
