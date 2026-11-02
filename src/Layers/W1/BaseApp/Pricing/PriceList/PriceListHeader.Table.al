@@ -731,7 +731,7 @@ table 7000 "Price List Header"
 
         if Status = Status::Active then begin
             PriceListManagement.VerifyLines(PriceListLine);
-            if not PriceListManagement.ResolveDuplicatePrices(Rec) then
+            if not PriceListManagement.ResolveDuplicatePrices(Rec, PriceListLine) then
                 exit(false);
         end;
 

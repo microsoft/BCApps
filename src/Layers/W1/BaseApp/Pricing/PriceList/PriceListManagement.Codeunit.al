@@ -584,6 +584,15 @@ codeunit 7017 "Price List Management"
 
     procedure ResolveDuplicatePrices(PriceListHeader: Record "Price List Header") Resolved: Boolean
     var
+        PriceListLine: Record "Price List Line";
+    begin
+        PriceListLine.SetRange("Price List Code", PriceListHeader.Code);
+        PriceListLine.SetRange(Status, "Price Status"::Draft);
+        exit(ResolveDuplicatePrices(PriceListHeader, PriceListLine));
+    end;
+
+    procedure ResolveDuplicatePrices(PriceListHeader: Record "Price List Header"; var PriceListLine: Record "Price List Line") Resolved: Boolean
+    var
         DuplicatePriceLine: Record "Duplicate Price Line";
         IsHandled: Boolean;
     begin
@@ -595,11 +604,11 @@ codeunit 7017 "Price List Management"
         if PriceListHeader.Status <> PriceListHeader.Status::Active then
             exit(false);
 
-        if FindDuplicatePrices(PriceListHeader, true, DuplicatePriceLine) then
+        if FindDuplicatePrices(PriceListHeader, PriceListLine, true, DuplicatePriceLine) then
             if not ResolveDuplicatePrices(PriceListHeader, DuplicatePriceLine) then
                 exit(false);
 
-        if FindDuplicatePrices(PriceListHeader, false, DuplicatePriceLine) then
+        if FindDuplicatePrices(PriceListHeader, PriceListLine, false, DuplicatePriceLine) then
             if not ResolveDuplicatePrices(PriceListHeader, DuplicatePriceLine) then
                 exit(false);
         exit(true);

@@ -915,6 +915,20 @@ codeunit 134118 "Price List Header UT"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesSimpleHandler,DuplicatePriceLinesModalHandler')]
+    procedure T073_ActivateInactiveSalesPriceListWithDuplicateLines()
+    begin
+        TestActivateInactivePriceListWithDuplicateLines("Price Type"::Sale);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesSimpleHandler,DuplicatePriceLinesModalHandler')]
+    procedure T074_ActivateInactivePurchasePriceListWithDuplicateLines()
+    begin
+        TestActivateInactivePriceListWithDuplicateLines("Price Type"::Purchase);
+    end;
+
+    [Test]
     procedure T052_IsEditable()
     var
         PriceListHeader: Record "Price List Header";
@@ -2496,6 +2510,36 @@ codeunit 134118 "Price List Header UT"
             PriceListLine, PriceListHeader, "Price Amount Type"::Price, "Price Asset Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
     end;
 
+    local procedure TestActivateInactivePriceListWithDuplicateLines(PriceType: Enum "Price Type")
+    var
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: array[2] of Record "Price List Line";
+        ItemNo: Code[20];
+    begin
+        Initialize();
+        if PriceType = PriceType::Sale then
+            LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, PriceType, "Price Source Type"::"All Customers", '')
+        else
+            LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, PriceType, "Price Source Type"::"All Vendors", '');
+
+        ItemNo := LibraryInventory.CreateItemNo();
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine[1], PriceListHeader, "Price Amount Type"::Price, "Price Asset Type"::Item, ItemNo);
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine[2], PriceListHeader, "Price Amount Type"::Price, "Price Asset Type"::Item, ItemNo);
+
+        PriceListHeader.Validate(Status, PriceListHeader.Status::Inactive);
+        PriceListHeader.Modify();
+        PriceListHeader.Validate(Status, PriceListHeader.Status::Active);
+        PriceListHeader.Modify();
+
+        PriceListLine[1].SetRange("Price List Code", PriceListHeader.Code);
+        Assert.RecordCount(PriceListLine[1], 1);
+        PriceListLine[1].FindFirst();
+        PriceListLine[1].TestField(Status, PriceListHeader.Status::Active);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure CreatePriceListFor(SourceType: Enum "Price Source Type"; DeletedSourceNo: Code[20]; SourceNo: Code[20]; ParentSourceNo: Code[20])
     var
         PriceListHeader: Record "Price List Header";
@@ -2677,6 +2721,13 @@ codeunit 134118 "Price List Header UT"
     begin
         LibraryVariableStorage.Enqueue(Question);
         Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure DuplicatePriceLinesModalHandler(var DuplicatePriceLines: TestPage "Duplicate Price Lines")
+    begin
+        Assert.IsTrue(DuplicatePriceLines.First(), 'No duplicate price lines');
+        DuplicatePriceLines.OK().Invoke();
     end;
 
     [ConfirmHandler]
