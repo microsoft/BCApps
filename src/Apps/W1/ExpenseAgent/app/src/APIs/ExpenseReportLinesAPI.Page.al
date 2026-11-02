@@ -238,13 +238,25 @@ page 6929 "Expense Report Lines API"
                 {
                     Caption = 'Ending Date and Time';
                 }
-                field(startingPoint; Rec."Starting Point")
+                field(startingPoint; StartingPoint)
                 {
                     Caption = 'Starting Point';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.Validate("Starting Point", CopyStr(StartingPoint, 1, MaxStrLen(Rec."Starting Point")));
+                        StartingPoint := Rec."Starting Point";
+                    end;
                 }
-                field(endingPoint; Rec."Ending Point")
+                field(endingPoint; EndingPoint)
                 {
                     Caption = 'Ending Point';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.Validate("Ending Point", CopyStr(EndingPoint, 1, MaxStrLen(Rec."Ending Point")));
+                        EndingPoint := Rec."Ending Point";
+                    end;
                 }
                 field(mileage; Rec.Mileage)
                 {
@@ -429,6 +441,8 @@ page 6929 "Expense Report Lines API"
         TotalMileage: Decimal;
         JobDescription: Text[100];
         JobTaskDescription: Text[100];
+        StartingPoint: Text;
+        EndingPoint: Text;
         PolicyStatusDisplay: Enum "Expense Policy Status";
         HasPolicyViolationDisplay: Boolean;
         TargetExpenseReportNotFoundErr: Label 'Expense report with Id %1 not found.', Comment = '%1 = Expense Report Header SystemId';
@@ -444,7 +458,7 @@ page 6929 "Expense Report Lines API"
     trigger OnOpenPage()
     begin
         // Avoid JIT load consistency errors by ensuring fields read in OnAfterGetRecord are included in the initial record buffer.
-        Rec.AddLoadFields("Expense Currency Code", "Expense User No.", Mileage, "Round Trip", "Policy Eval Version", "Evaluated Policy Version");
+        Rec.AddLoadFields("Expense Currency Code", "Expense User No.", Mileage, "Round Trip", "Policy Eval Version", "Evaluated Policy Version", "Starting Point", "Ending Point");
     end;
 
     trigger OnAfterGetRecord()
@@ -457,6 +471,8 @@ page 6929 "Expense Report Lines API"
         XCurrencyCodeDisplay := CurrencyCodeDisplay;
         ExpenseUserSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Expense User No.");
         TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Rec.Mileage, Rec."Round Trip");
+        StartingPoint := Rec."Starting Point";
+        EndingPoint := Rec."Ending Point";
         PolicyStatusDisplay := Rec.GetPolicyStatus();
         HasPolicyViolationDisplay := PolicyStatusDisplay = PolicyStatusDisplay::Flagged;
 
@@ -478,6 +494,8 @@ page 6929 "Expense Report Lines API"
     begin
         CurrencyCodeDisplay := '';
         XCurrencyCodeDisplay := '';
+        StartingPoint := '';
+        EndingPoint := '';
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean

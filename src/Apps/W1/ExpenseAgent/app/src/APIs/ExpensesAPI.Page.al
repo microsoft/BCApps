@@ -176,13 +176,25 @@ page 6927 "Expenses API"
                 {
                     Caption = 'Unit of Measure Code';
                 }
-                field(startingPoint; Rec."Starting Point")
+                field(startingPoint; StartingPoint)
                 {
                     Caption = 'Starting Point';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.Validate("Starting Point", CopyStr(StartingPoint, 1, MaxStrLen(Rec."Starting Point")));
+                        StartingPoint := Rec."Starting Point";
+                    end;
                 }
-                field(endingPoint; Rec."Ending Point")
+                field(endingPoint; EndingPoint)
                 {
                     Caption = 'Ending Point';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.Validate("Ending Point", CopyStr(EndingPoint, 1, MaxStrLen(Rec."Ending Point")));
+                        EndingPoint := Rec."Ending Point";
+                    end;
                 }
                 field(roundTrip; Rec."Round Trip")
                 {
@@ -349,6 +361,8 @@ page 6927 "Expenses API"
         TotalMileage: Decimal;
         JobDescription: Text[100];
         JobTaskDescription: Text[100];
+        StartingPoint: Text;
+        EndingPoint: Text;
         ExpenseCreatedLbl: Label 'Expense created via API.', Locked = true;
 
     trigger OnInit()
@@ -360,7 +374,7 @@ page 6927 "Expenses API"
     trigger OnOpenPage()
     begin
         // Avoid JIT load consistency errors by ensuring fields read in OnAfterGetRecord are included in the initial record buffer.
-        Rec.AddLoadFields("Currency Code", "Expense User No.", Mileage, "Round Trip");
+        Rec.AddLoadFields("Currency Code", "Expense User No.", Mileage, "Round Trip", "Starting Point", "Ending Point");
     end;
 
     trigger OnAfterGetRecord()
@@ -373,6 +387,8 @@ page 6927 "Expenses API"
         XCurrencyCodeDisplay := CurrencyCodeDisplay;
         ExpenseUserSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Expense User No.");
         TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Rec.Mileage, Rec."Round Trip");
+        StartingPoint := Rec."Starting Point";
+        EndingPoint := Rec."Ending Point";
 
         JobDescription := '';
         JobTaskDescription := '';
@@ -392,6 +408,8 @@ page 6927 "Expenses API"
     begin
         CurrencyCodeDisplay := '';
         XCurrencyCodeDisplay := '';
+        StartingPoint := '';
+        EndingPoint := '';
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
