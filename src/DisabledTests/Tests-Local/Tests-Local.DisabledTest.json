@@ -20336,7 +20336,7 @@
   {
     "codeunitId": 147312,
     "codeunitName": "SEPA DD Integration Test - ES",
-    "method": "*".
+    "method": "*",
     "bug": "ES: Error: The operation cannot complete because it uses a feature that is not supported (.NET Framework Interoperability.)"
   },
   {
@@ -20369,7 +20369,7 @@
   {
     "codeunitId": 147590,
     "codeunitName": "Test VAT Statement",
-    "method": "*".
+    "method": "*",
     "bug": "ES: Error: The operation cannot complete because it uses a feature that is not supported (.NET Framework Interoperability.)"
   },
   {
