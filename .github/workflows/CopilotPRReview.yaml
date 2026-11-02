@@ -1,50 +1,27 @@
 name: Copilot PR Review
 
 on:
-  pull_request:
-    branches:
-      - main
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - ready_for_review
+  workflow_dispatch:
 
 concurrency:
   group: copilot-pr-review-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+defaults:
+  run:
+    shell: pwsh
 
 permissions:
   contents: read
 
 jobs:
-  intake:
-    if: github.event.pull_request.draft == false && github.event.pull_request.user.login != 'business-central-bot[bot]'
+  Intake:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: pwsh
     steps:
-      - name: Save PR metadata
-        run: |
-          $outputDir = Join-Path $env:GITHUB_WORKSPACE 'review-input'
-          New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
-
-          @{
-            prNumber = "${{ github.event.pull_request.number }}"
-            headSha = "${{ github.event.pull_request.head.sha }}"
-            baseRef = "${{ github.event.pull_request.base.ref }}"
-            repository = "${{ github.repository }}"
-          } | ConvertTo-Json -Depth 5 | Set-Content -Path (Join-Path $outputDir 'pr-metadata.json') -Encoding UTF8
-
-      - name: Upload review input
+      - name: Upload pull request metadata
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        env:
-          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         with:
-          name: copilot-pr-review-input-${{ github.event.pull_request.number }}
-          path: ${{ github.workspace }}/review-input
-          if-no-files-found: error
+          name: copilot-pr-review-metadata
+          path: ${{ github.event_path }}
+          retention-days: 1
