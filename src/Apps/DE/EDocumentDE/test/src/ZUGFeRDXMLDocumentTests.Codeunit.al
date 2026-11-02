@@ -79,6 +79,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         DocumentLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
         SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
         BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
+        BuyerLegalOrganizationIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:SpecifiedLegalOrganization/ram:ID', Locked = true;
         ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
         IsInitialized: Boolean;
         OriginalCompanyGLN: Code[13];
@@ -567,6 +568,28 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         // [THEN] Seller tax identifier contains the Registration No. with FC tax scheme
         Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, SellerTaxRegistrationTok), StrSubstNo(IncorrectValueErr, SellerTaxRegistrationTok));
         Assert.AreEqual('FC', GetAttributeByPathWithError(TempXMLBuffer, SellerTaxRegistrationTok, 'schemeID'), StrSubstNo(IncorrectValueErr, SellerTaxRegistrationTok + '/@schemeID'));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyCustomerRegistrationNo()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        RegistrationNo: Text[50];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 652557] Customer Registration No. is exported as the legal organization identifier when GLN and VAT ID are unavailable
+        Initialize();
+
+        // [GIVEN] A customer with a Registration No. longer than 20 characters but no GLN or VAT ID
+        RegistrationNo := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(30, 0), 1, MaxStrLen(RegistrationNo));
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithRegistrationNo(RegistrationNo));
+
+        // [WHEN] Export ZUGFeRD electronic document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Customer legal organization identifier contains the Registration No.
+        Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, BuyerLegalOrganizationIdTok), StrSubstNo(IncorrectValueErr, BuyerLegalOrganizationIdTok));
     end;
 
     [Test]
@@ -4426,6 +4449,23 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Customer."Use GLN in Electronic Document" := UseGLNInElectronicDocument;
         Customer.Modify(true);
         exit(Customer."No.");
+    end;
+
+    local procedure CreateAndPostSalesInvoiceForCustomerWithRegistrationNo(RegistrationNo: Text[50]): Code[20]
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+    begin
+        Customer.Get(CreateCustomer());
+        Customer.GLN := '';
+        Customer."Use GLN in Electronic Document" := false;
+        Customer."VAT Registration No." := '';
+        Customer."Registration Number" := RegistrationNo;
+        Customer."Use Reg. No. in E-Document" := true;
+        Customer.Modify(true);
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, Customer."No.");
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
     local procedure CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(GLN: Code[13]; NewShipToGLN: Code[13]; UseGLNInElectronicDocument: Boolean): Code[20]
