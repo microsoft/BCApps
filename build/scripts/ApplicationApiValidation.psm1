@@ -20,7 +20,7 @@ $script:MemberRules = @{
     AS0018 = "^Procedure '(?<method>.+)' has been removed in '(?<kind>\w+) (?<name>.+)'\. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure\.$"
     AS0031 = "^The (?<memberKind>action(?: group| area| separator|ref)?|separator|(?:custom|system) ?action|file ?upload ?action) with name '(?<member>.+)' defined in (?<kind>Page|PageExtension|PageCustomization) '(?<name>.+)' was found in the previous version, but is missing in the current extension\.(?: This will break dependent extensions\.)?$"
     AS0032 = "^The (?<memberKind>field|part|cuegroup|area|group|repeater|fixed|grid|system ?part|label|user ?control|chart(?: ?part)?) with name '(?<member>.+)' defined in (?<kind>Page|PageExtension|PageCustomization) '(?<name>.+)' was found in the previous version, but is missing in the current extension\.(?: This will break dependent extensions\.)?$"
-    AS0106 = "^The variable '.+' of type '.+' defined in (?<kind>Page|PageExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\. This will break dependent extensions\.$"
+    AS0106 = "^The variable '.+' of type '.+' defined in (?<kind>Page|PageExtension|Report|ReportExtension) '(?<name>.+)' was found in the previous version, but is missing in the current extension\.(?: This will break dependent extensions\.)?$"
 }
 $script:DeferredRules = @($script:RemovalRules.Keys) + @($script:MemberRules.Keys)
 $script:ControlMemberKinds = @{

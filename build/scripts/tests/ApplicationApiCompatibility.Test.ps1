@@ -343,6 +343,65 @@ Describe 'Application API compatibility prototype' {
             Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Not -Match "warning ${RuleId}:"
         }
 
+        It 'reconciles protected-variable diagnostics for an unchanged <Kind> move with suffix "<Suffix>"' -TestCases @(
+            @{ Kind = 'Page'; Collection = 'Pages'; RuleId = 'AS0029'; Suffix = '' },
+            @{ Kind = 'Page'; Collection = 'Pages'; RuleId = 'AS0029'; Suffix = ' This will break dependent extensions.' },
+            @{ Kind = 'PageExtension'; Collection = 'PageExtensions'; RuleId = 'AS0029'; Suffix = '' },
+            @{ Kind = 'PageExtension'; Collection = 'PageExtensions'; RuleId = 'AS0029'; Suffix = ' This will break dependent extensions.' },
+            @{ Kind = 'Report'; Collection = 'Reports'; RuleId = 'AS0088'; Suffix = '' },
+            @{ Kind = 'Report'; Collection = 'Reports'; RuleId = 'AS0088'; Suffix = ' This will break dependent extensions.' },
+            @{ Kind = 'ReportExtension'; Collection = 'ReportExtensions'; RuleId = 'AS0088'; Suffix = '' },
+            @{ Kind = 'ReportExtension'; Collection = 'ReportExtensions'; RuleId = 'AS0088'; Suffix = ' This will break dependent extensions.' }
+        ) {
+            param($Kind, $Collection, $RuleId, $Suffix)
+            $symbol = @{
+                Id = 511
+                Name = 'Complete IC Inbox Action'
+                Variables = @(@{ Name = 'TempGenJnlLine'; TypeDefinition = @{ Name = 'Record'; Subtype = @{ Id = 81; Name = 'Gen. Journal Line' }; Temporary = $true } })
+            }
+            $collections = @{ $Collection = @($symbol) }
+            $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $collections
+            $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $collections
+            $gate = New-ApiGateLayout -RuleId $RuleId -Kind $Kind -Id $symbol.Id -Name $symbol.Name
+            Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0106 -Message "The variable 'TempGenJnlLine' of type 'Record ""Gen. Journal Line"" temporary' defined in $Kind 'Complete IC Inbox Action' was found in the previous version, but is missing in the current extension.$Suffix"
+            Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+            { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+            $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+            $moves = @($state.AcceptedMoves | Where-Object RuleId -EQ 'AS0106')
+            $moves.Count | Should -Be 1
+            $moves[0].Key | Should -Be "${Collection}:511"
+            $moves[0].Accepted | Should -BeTrue
+            Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Not -Match 'warning AS0106'
+            Get-Content -LiteralPath (Join-Path $gate.Root "Originals\$([System.IO.Path]::GetFileName($gate.SourceLog)).txt") -Raw |
+                Should -Match 'warning AS0106'
+            $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
+            @($alerts.issues | Where-Object ruleId -EQ 'AS0106').Count | Should -Be 0
+        }
+
+        It 'rejects protected-variable diagnostics when a moved report variable is <Failure>' -TestCases @(
+            @{ Failure = 'removed' },
+            @{ Failure = 'changed' }
+        ) {
+            param($Failure)
+            $symbol = @{
+                Id = 511
+                Name = 'Complete IC Inbox Action'
+                Variables = @(@{ Name = 'TempGenJnlLine'; TypeDefinition = @{ Name = 'Record'; Subtype = @{ Id = 81; Name = 'Gen. Journal Line' }; Temporary = $true } })
+            }
+            $collections = @{ Reports = @($symbol) }
+            $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $collections
+            if ($Failure -eq 'removed') { $symbol.Variables = @() }
+            else { $symbol.Variables[0].TypeDefinition.Temporary = $false }
+            $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $collections
+            $gate = New-ApiGateLayout -RuleId AS0088 -Kind Report -Id $symbol.Id -Name $symbol.Name
+            Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0106 -Message "The variable 'TempGenJnlLine' of type 'Record ""Gen. Journal Line"" temporary' defined in Report 'Complete IC Inbox Action' was found in the previous version, but is missing in the current extension."
+            { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+            { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+            ($state.AcceptedMoves | Where-Object RuleId -EQ 'AS0106').Accepted | Should -BeFalse
+            Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0106'
+        }
+
         It 'reconciles an unchanged named <Kind> move including regenerated ownership metadata' -TestCases @(
             @{ Kind = 'Interface'; Collection = 'Interfaces'; RuleId = 'AS0065' },
             @{ Kind = 'ControlAddIn'; Collection = 'ControlAddIns'; RuleId = 'AS0089' },
@@ -1719,7 +1778,8 @@ Describe 'Application API compatibility prototype' {
             @{ RuleId = 'AS0018'; ExpectedFailure = '*not part of a whole-object move*'; Message = "Procedure 'Process(Text)' has been removed in 'Codeunit Unmoved Codeunit'. A procedure that belongs to the public API must not be removed as it will break dependent extensions calling this procedure." },
             @{ RuleId = 'AS0031'; ExpectedFailure = '*not verified*'; Message = "The action with name 'Partners' defined in Page 'Accountant Role Center' was found in the previous version, but is missing in the current extension. This will break dependent extensions." },
             @{ RuleId = 'AS0032'; ExpectedFailure = '*not verified*'; Message = "The field with name 'icPartnerCode' defined in Page 'Workflow - Customer Entity' was found in the previous version, but is missing in the current extension. This will break dependent extensions." },
-            @{ RuleId = 'AS0106'; ExpectedFailure = '*not part of a whole-object move*'; Message = "The variable 'ShortcutDimCode' of type 'array[8] of Code[20]' defined in Page 'Unmoved Page' was found in the previous version, but is missing in the current extension. This will break dependent extensions." }
+            @{ RuleId = 'AS0106'; ExpectedFailure = '*not part of a whole-object move*'; Message = "The variable 'ShortcutDimCode' of type 'array[8] of Code[20]' defined in Page 'Unmoved Page' was found in the previous version, but is missing in the current extension. This will break dependent extensions." },
+            @{ RuleId = 'AS0106'; ExpectedFailure = '*not part of a whole-object move*'; Message = "The variable 'TempGenJnlLine' of type 'Record ""Gen. Journal Line"" temporary' defined in Report 'Unmoved Report' was found in the previous version, but is missing in the current extension." }
         ) {
             param($RuleId, $Message, $ExpectedFailure)
             $gate = New-ApiGateLayout
