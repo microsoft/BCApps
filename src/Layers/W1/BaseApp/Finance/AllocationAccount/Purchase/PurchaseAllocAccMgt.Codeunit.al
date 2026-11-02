@@ -555,18 +555,18 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
             if IsInheritFromParent then begin
                 PurchaseLine.Validate("Direct Unit Cost", GetUnitPrice(PurchaseLine, AllocationLine.Amount));
                 PurchaseLine."Line Amount" := GetAmount(PurchaseLine, AllocationLine.Amount);
-                PurchaseLine.Amount := PurchaseLine."Line Amount";
             end else begin
                 AmountRoundingPrecision := AllocationAccountMgt.GetCurrencyRoundingPrecision(PurchaseLine."Currency Code");
                 PurchaseLine.Validate("Direct Unit Cost", Round(AllocationLine.Amount / PurchaseLine.Quantity, AmountRoundingPrecision));
                 PurchaseLine."Line Amount" := AllocationLine.Amount;
-                PurchaseLine.Amount := AllocationLine.Amount;
                 PurchaseLine."Line Discount Amount" := 0;
             end;
         end else begin
             PurchaseLine.Validate("Direct Unit Cost", AllocationPurchaseLine."Direct Unit Cost");
             PurchaseLine."Line Amount" := AllocationPurchaseLine."Line Amount";
         end;
+
+        PurchaseLine.UpdateVATAmounts();
     end;
 
     local procedure GetAmount(var PurchaseLine: Record "Purchase Line"; AllocationLineAmount: Decimal): Decimal
