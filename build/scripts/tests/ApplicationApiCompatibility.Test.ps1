@@ -2,6 +2,35 @@ Describe 'Application API compatibility prototype' {
     BeforeAll {
         Import-Module "$PSScriptRoot\..\ApplicationApiCompatibility.psm1" -Force
 
+        function Write-ApiTestPackageArchive {
+            param([string] $Path, [hashtable] $Entries)
+
+            $buffer = [System.IO.MemoryStream]::new()
+            $zip = [System.IO.Compression.ZipArchive]::new($buffer, [System.IO.Compression.ZipArchiveMode]::Create, $true)
+            try {
+                foreach ($entry in $Entries.GetEnumerator()) {
+                    $data = if ($entry.Value -is [byte[]]) { $entry.Value } else { [System.Text.Encoding]::UTF8.GetBytes($entry.Value) }
+                    $writer = $zip.CreateEntry($entry.Key).Open()
+                    try { $writer.Write($data, 0, $data.Length) } finally { $writer.Dispose() }
+                }
+            }
+            finally {
+                $zip.Dispose()
+            }
+            $output = [System.IO.File]::Create($Path)
+            try {
+                $header = [byte[]]::new(40)
+                [System.Text.Encoding]::ASCII.GetBytes('NAVX').CopyTo($header, 0)
+                $output.Write($header, 0, $header.Length)
+                $buffer.Position = 0
+                $buffer.CopyTo($output)
+            }
+            finally {
+                $output.Dispose()
+                $buffer.Dispose()
+            }
+        }
+
         function New-ApiTestPackage {
             param(
                 [string] $Name,
@@ -28,30 +57,29 @@ Describe 'Application API compatibility prototype' {
             }
             $symbols = @{ AppId = $Id; Name = $Name; Publisher = $Publisher; Version = $Version }
             foreach ($key in $Collections.Keys) { $symbols[$key] = $Collections[$key] }
-            $buffer = [System.IO.MemoryStream]::new()
-            $zip = [System.IO.Compression.ZipArchive]::new($buffer, [System.IO.Compression.ZipArchiveMode]::Create, $true)
-            try {
-                foreach ($entry in @{ 'NavxManifest.xml' = $manifest.OuterXml; 'SymbolReference.json' = ($symbols | ConvertTo-Json -Depth 100 -Compress) }.GetEnumerator()) {
-                    $writer = [System.IO.StreamWriter]::new($zip.CreateEntry($entry.Key).Open())
-                    try { $writer.Write($entry.Value) } finally { $writer.Dispose() }
-                }
-            }
-            finally {
-                $zip.Dispose()
-            }
-            $output = [System.IO.File]::Create($Path)
-            try {
-                $header = [byte[]]::new(40)
-                [System.Text.Encoding]::ASCII.GetBytes('NAVX').CopyTo($header, 0)
-                $output.Write($header, 0, $header.Length)
-                $buffer.Position = 0
-                $buffer.CopyTo($output)
-            }
-            finally {
-                $output.Dispose()
-                $buffer.Dispose()
+            Write-ApiTestPackageArchive -Path $Path -Entries @{
+                'NavxManifest.xml' = $manifest.OuterXml
+                'SymbolReference.json' = ($symbols | ConvertTo-Json -Depth 100 -Compress)
             }
             [PSCustomObject]@{ Path = $Path; Id = $Id; Name = $Name; Publisher = $Publisher; Version = $Version }
+        }
+
+        function ConvertTo-ApiReadyToRunPackage {
+            param([object] $Package, [hashtable] $ManifestOverrides = @{})
+
+            $manifest = @{
+                EmbeddedAppId = $Package.Id
+                EmbeddedAppName = $Package.Name
+                EmbeddedAppPublisher = $Package.Publisher
+                EmbeddedAppVersion = $Package.Version
+                EmbeddedAppFileName = 'embedded.app'
+            }
+            foreach ($key in $ManifestOverrides.Keys) { $manifest[$key] = $ManifestOverrides[$key] }
+            Write-ApiTestPackageArchive -Path $Package.Path -Entries @{
+                'readytorunappmanifest.json' = ($manifest | ConvertTo-Json -Compress)
+                'embedded.app' = [System.IO.File]::ReadAllBytes($Package.Path)
+                'publishedartifacts/compiled.dll' = [byte[]]@(1, 2, 3)
+            }
         }
 
         function Write-ApiDestination {
@@ -281,6 +309,61 @@ Describe 'Application API compatibility prototype' {
         $result.ReviewRequired[0].Reason | Should -Match 'FutureObjects'
     }
 
+    It 'reads ready-to-run package identities, dependencies, and embedded symbol contracts' {
+        foreach ($package in @($script:currentBase, $destination, $script:currentApplication)) {
+            ConvertTo-ApiReadyToRunPackage -Package $package
+        }
+        $info = Get-ApplicationApiPackageInfo -Path $script:currentApplication.Path
+        $info.Id | Should -Be $applicationId
+        $info.Path | Should -Be $script:currentApplication.Path
+        $info.PropagateDependencies | Should -BeTrue
+        @($info.Dependencies).Count | Should -Be 2
+        $current = Get-ApiCurrentSnapshot
+        $current.Packages[$destinationId].Path | Should -Be $destination.Path
+        (Compare-ApplicationApiSnapshot -Baseline $script:baseline -Current $current).Verdict | Should -Be 'Unchanged'
+    }
+
+    It 'rejects ready-to-run packages with <Failure>' -TestCases @(
+        @{ Failure = 'a missing embedded app'; Overrides = @{ EmbeddedAppFileName = 'missing.app' }; ExpectedFailure = '*Expected exactly one embedded app*' },
+        @{ Failure = 'a missing embedded filename'; Overrides = @{ EmbeddedAppFileName = '' }; ExpectedFailure = '*Invalid ready-to-run manifest*' },
+        @{ Failure = 'a different app ID'; Overrides = @{ EmbeddedAppId = '00000000-0000-0000-0000-000000000001' }; ExpectedFailure = '*Ready-to-run/embedded app identity mismatch*' },
+        @{ Failure = 'a different name'; Overrides = @{ EmbeddedAppName = 'Other app' }; ExpectedFailure = '*Ready-to-run/embedded app identity mismatch*' },
+        @{ Failure = 'a different publisher'; Overrides = @{ EmbeddedAppPublisher = 'Other publisher' }; ExpectedFailure = '*Ready-to-run/embedded app identity mismatch*' },
+        @{ Failure = 'a different version'; Overrides = @{ EmbeddedAppVersion = '9.0.0.0' }; ExpectedFailure = '*Ready-to-run/embedded app identity mismatch*' }
+    ) {
+        param($Failure, $Overrides, $ExpectedFailure)
+        ConvertTo-ApiReadyToRunPackage -Package $destination -ManifestOverrides $Overrides
+        { Get-ApiCurrentSnapshot } | Should -Throw $ExpectedFailure -Because $Failure
+    }
+
+    It 'rejects nested ready-to-run wrappers' {
+        ConvertTo-ApiReadyToRunPackage -Package $destination
+        ConvertTo-ApiReadyToRunPackage -Package $destination
+        { Get-ApiCurrentSnapshot } | Should -Throw '*Nested ready-to-run*'
+    }
+
+    It 'still requires a manifest and symbols inside a ready-to-run package' -TestCases @(
+        @{ Entry = 'NavxManifest.xml'; ExpectedFailure = '*Expected exactly one SymbolReference.json*' },
+        @{ Entry = 'SymbolReference.json'; ExpectedFailure = '*Expected exactly one NavxManifest.xml*' }
+    ) {
+        param($Entry, $ExpectedFailure)
+        $entries = @{}
+        $bytes = [System.IO.File]::ReadAllBytes($destination.Path)
+        $stream = [System.IO.MemoryStream]::new($bytes, 40, $bytes.Length - 40)
+        $zip = [System.IO.Compression.ZipArchive]::new($stream, [System.IO.Compression.ZipArchiveMode]::Read)
+        try {
+            $reader = [System.IO.StreamReader]::new($zip.GetEntry($Entry).Open())
+            try { $entries[$Entry] = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        }
+        finally {
+            $zip.Dispose()
+            $stream.Dispose()
+        }
+        Write-ApiTestPackageArchive -Path $destination.Path -Entries $entries
+        ConvertTo-ApiReadyToRunPackage -Package $destination
+        { Get-ApiCurrentSnapshot } | Should -Throw $ExpectedFailure
+    }
+
     It 'rejects an unsupported package envelope' {
         [System.IO.File]::WriteAllText($destination.Path, 'not a NAVX package')
         { Get-ApiCurrentSnapshot } | Should -Throw '*Unsupported package envelope*'
@@ -307,6 +390,29 @@ Describe 'Application API compatibility prototype' {
             $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
             @($alerts.issues).Count | Should -Be 1
             $alerts.issues[0].ruleId | Should -Be 'AA0021'
+        }
+
+        It 'validates whole-object moves against ready-to-run release baselines with <Contract> contracts' -TestCases @(
+            @{ Contract = 'unchanged' },
+            @{ Contract = 'changed' }
+        ) {
+            param($Contract)
+            ConvertTo-ApiReadyToRunPackage -Package $oldBase
+            ConvertTo-ApiReadyToRunPackage -Package $oldApplication
+            if ($Contract -eq 'changed') {
+                $page.Methods[0].Parameters[0].TypeDefinition.Name = 'Integer'
+                Write-ApiDestination
+            }
+            $gate = New-ApiGateLayout
+            if ($Contract -eq 'unchanged') {
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+            }
+            else {
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0029'
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            }
         }
 
         It 'rejects deletion without removing its original warning from build logs' {

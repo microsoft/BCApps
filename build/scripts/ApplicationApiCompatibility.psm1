@@ -6,10 +6,12 @@ Set-StrictMode -Version 2.0
 function Read-ApplicationApiPackage {
     param(
         [Parameter(Mandatory)] [string] $Path,
-        [switch] $IncludeSymbols
+        [switch] $IncludeSymbols,
+        [byte[]] $PackageBytes
     )
 
-    $bytes = [System.IO.File]::ReadAllBytes($Path)
+    $bytes = $PackageBytes
+    if ($null -eq $bytes) { $bytes = [System.IO.File]::ReadAllBytes($Path) }
     if ($bytes.Length -lt 44 -or [System.Text.Encoding]::ASCII.GetString($bytes, 0, 4) -cne 'NAVX' -or
         [System.BitConverter]::ToUInt32($bytes, 40) -ne 0x04034b50) {
         throw "Unsupported package envelope in '$Path'; expected a 40-byte NAVX header followed by ZIP data."
@@ -19,6 +21,44 @@ function Read-ApplicationApiPackage {
     $zip = [System.IO.Compression.ZipArchive]::new($stream, [System.IO.Compression.ZipArchiveMode]::Read)
     try {
         $entries = @($zip.Entries | Where-Object { $_.FullName -ceq 'NavxManifest.xml' })
+        $readyToRunEntries = @($zip.Entries | Where-Object { $_.FullName -ceq 'readytorunappmanifest.json' })
+        if ($readyToRunEntries.Count -gt 0) {
+            if ($null -ne $PackageBytes) { throw "Nested ready-to-run packages are not supported in '$Path'." }
+            if ($readyToRunEntries.Count -ne 1 -or $entries.Count -gt 0) {
+                throw "Expected a single, unambiguous ready-to-run manifest in '$Path'."
+            }
+            $reader = [System.IO.StreamReader]::new($readyToRunEntries[0].Open())
+            try { $readyToRun = $reader.ReadToEnd() | ConvertFrom-Json -AsHashtable } finally { $reader.Dispose() }
+            if ($readyToRun -isnot [System.Collections.IDictionary]) {
+                throw "Invalid ready-to-run manifest in '$Path'."
+            }
+            foreach ($key in @('EmbeddedAppId', 'EmbeddedAppName', 'EmbeddedAppPublisher', 'EmbeddedAppVersion', 'EmbeddedAppFileName')) {
+                if ($readyToRun[$key] -isnot [string] -or [string]::IsNullOrWhiteSpace($readyToRun[$key])) {
+                    throw "Invalid ready-to-run manifest in '$Path': missing or invalid '$key'."
+                }
+            }
+            $embeddedEntries = @($zip.Entries | Where-Object { $_.FullName -ceq $readyToRun.EmbeddedAppFileName })
+            if ($embeddedEntries.Count -ne 1) {
+                throw "Expected exactly one embedded app '$($readyToRun.EmbeddedAppFileName)' in '$Path'."
+            }
+            $embeddedStream = $embeddedEntries[0].Open()
+            $buffer = [System.IO.MemoryStream]::new()
+            try {
+                $embeddedStream.CopyTo($buffer)
+                $embeddedBytes = $buffer.ToArray()
+            }
+            finally {
+                $buffer.Dispose()
+                $embeddedStream.Dispose()
+            }
+            $embedded = Read-ApplicationApiPackage -Path $Path -PackageBytes $embeddedBytes -IncludeSymbols:$IncludeSymbols
+            if ($embedded.Id -ine $readyToRun.EmbeddedAppId -or $embedded.Name -cne $readyToRun.EmbeddedAppName -or
+                $embedded.Publisher -cne $readyToRun.EmbeddedAppPublisher -or [string]$embedded.Version -cne $readyToRun.EmbeddedAppVersion) {
+                if ($null -ne $embedded.Document) { $embedded.Document.Dispose() }
+                throw "Ready-to-run/embedded app identity mismatch in '$Path'."
+            }
+            return $embedded
+        }
         if ($entries.Count -ne 1) {
             throw "Expected exactly one NavxManifest.xml in '$Path'."
         }
