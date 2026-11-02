@@ -198,16 +198,24 @@ page 5801 "Cost Adjustment Overview"
     {
         area(Processing)
         {
+#if not CLEAN30
             group(Filters)
             {
                 Caption = 'Show/hide';
                 Image = FilterLines;
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by the Non-adjusted items and Excluded from adjustment views.';
+                ObsoleteTag = '30.0';
 
                 action("Show Non-Adjusted")
                 {
                     Caption = 'Show non-adjusted';
                     ToolTip = 'Show only items for which the cost has not been adjusted.';
                     Image = Line;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Non-adjusted items view.';
+                    ObsoleteTag = '30.0';
 
                     trigger OnAction();
                     begin
@@ -221,6 +229,9 @@ page 5801 "Cost Adjustment Overview"
                     Caption = 'Show included';
                     ToolTip = 'Show only items that are included in the cost adjustment process.';
                     Image = CompleteLine;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Non-adjusted items and Excluded from adjustment views.';
+                    ObsoleteTag = '30.0';
 
                     trigger OnAction();
                     begin
@@ -234,6 +245,9 @@ page 5801 "Cost Adjustment Overview"
                     Caption = 'Show excluded';
                     ToolTip = 'Show only items that are excluded from the cost adjustment process.';
                     Image = CancelLine;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Excluded from adjustment view.';
+                    ObsoleteTag = '30.0';
 
                     trigger OnAction();
                     begin
@@ -247,6 +261,9 @@ page 5801 "Cost Adjustment Overview"
                     Caption = 'Show all';
                     ToolTip = 'Show all items regardless of whether the cost has been adjusted.';
                     Image = AllLines;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the All view.';
+                    ObsoleteTag = '30.0';
 
                     trigger OnAction();
                     begin
@@ -255,6 +272,7 @@ page 5801 "Cost Adjustment Overview"
                     end;
                 }
             }
+#endif
             group("Adjust Cost")
             {
                 Caption = 'Adjust';
@@ -533,15 +551,41 @@ page 5801 "Cost Adjustment Overview"
         }
         area(Promoted)
         {
+#if not CLEAN30
             group("Show/Hide_Promoted")
             {
                 Caption = 'Show/hide';
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by the Non-adjusted items and Excluded from adjustment views.';
+                ObsoleteTag = '30.0';
 
-                actionref("Show Non-Adjusted_Promoted"; "Show Non-Adjusted") { }
-                actionref("Show Included_Promoted"; "Show Included") { }
-                actionref("Show Excluded_Promoted"; "Show Excluded") { }
-                actionref("Show All_Promoted"; "Show All") { }
+                actionref("Show Non-Adjusted_Promoted"; "Show Non-Adjusted")
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Non-adjusted items view.';
+                    ObsoleteTag = '30.0';
+                }
+                actionref("Show Included_Promoted"; "Show Included")
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Non-adjusted items and Excluded from adjustment views.';
+                    ObsoleteTag = '30.0';
+                }
+                actionref("Show Excluded_Promoted"; "Show Excluded")
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Excluded from adjustment view.';
+                    ObsoleteTag = '30.0';
+                }
+                actionref("Show All_Promoted"; "Show All")
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the All view.';
+                    ObsoleteTag = '30.0';
+                }
             }
+#endif
             group("Adjust Cost_Promoted")
             {
                 Caption = 'Adjust';
@@ -590,6 +634,20 @@ page 5801 "Cost Adjustment Overview"
                 actionref("Costing Issues Detection_Promoted"; "Costing Issues Detection") { }
                 actionref("Clear Data_Promoted"; "Clear Data") { }
             }
+        }
+    }
+
+    views
+    {
+        view(CostNotAdjusted)
+        {
+            Caption = 'Non-adjusted items';
+            Filters = where("Cost is Adjusted" = const(false));
+        }
+        view(ExcludedFromCostAdjustment)
+        {
+            Caption = 'Excluded from adjustment';
+            Filters = where("Excluded from Cost Adjustment" = const(true));
         }
     }
 
