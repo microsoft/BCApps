@@ -22,7 +22,7 @@ codeunit 131022 "Microsoft Test Auth Provider" implements "API Test Auth Provide
     /// <summary>
     /// Uses the current user's web service key only with NavUserPassword authentication on-premises.
     /// Preserves ambient authentication for Windows, SaaS, and other authentication modes.
-    /// Valid keys are reused; missing or expired keys are replaced with a key that does not expire.
+    /// Valid keys are reused; missing or expired keys are replaced with a key that expires after 24 hours.
     /// </summary>
     /// <param name="Authentication">The authentication context to configure.</param>
     procedure ConfigureAuthentication(var Authentication: Codeunit "API Test Auth Context")
@@ -47,7 +47,7 @@ codeunit 131022 "Microsoft Test Auth Provider" implements "API Test Auth Provide
     begin
         WebServiceKey := ReadWebServiceKey(ExpiryDate);
         if WebServiceKey.IsEmpty() or ((ExpiryDate <> 0DT) and (ExpiryDate <= CurrentDateTime())) then begin
-            WebServiceKey := IdentityManagement.CreateWebServicesKeyNoExpiry(UserSecurityId());
+            WebServiceKey := IdentityManagement.CreateWebServicesKey(UserSecurityId(), CurrentDateTime() + 24 * 60 * 60 * 1000);
             // The request is authenticated by a separate server session, which only sees committed data.
             Commit();
         end;
@@ -55,6 +55,7 @@ codeunit 131022 "Microsoft Test Auth Provider" implements "API Test Auth Provide
             Error(EmptyKeyErr);
         exit(WebServiceKey);
     end;
+
     [NonDebuggable]
     local procedure ReadWebServiceKey(var ExpiryDate: DateTime): SecretText
     var
