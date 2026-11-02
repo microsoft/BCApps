@@ -60,6 +60,7 @@ Describe "ParallelTestExecution churn selection" {
                 'testType' { 'IntegrationTest' }
                 'country' { 'w1' }
                 'enableCleanTestCodeunitExecution' { $true }
+                'enableChurnBasedTesting' { $true }
             }
         }
         Mock -ModuleName ParallelTestExecution Get-InstalledTestAppNames { @('Tests B', 'Tests A', 'Tests C') }
@@ -99,7 +100,7 @@ Describe "ParallelTestExecution churn selection" {
         }
     }
 
-    It "filters before discovery and warmup while preserving bucket order and clean-isolation selection" {
+    It "filters before discovery and warmup when enabled, preserving bucket order and clean-isolation selection" {
         Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests B' } |
             Should -BeTrue
 
@@ -118,6 +119,28 @@ Describe "ParallelTestExecution churn selection" {
         Should -Invoke -ModuleName ParallelTestExecution Get-AffectedAppNames -Times 1 -Exactly -ParameterFilter {
             $BaseFolder -eq $script:selectionRepoRoot
         }
+    }
+
+    It "runs the full bucket without computing or using affected apps when the setting is <Setting>" -ForEach @(
+        @{ Setting = 'false'; Enabled = $false }, @{ Setting = 'absent'; Enabled = $null }
+    ) {
+        Mock -ModuleName ParallelTestExecution Get-ALGoSetting -MockWith ({ $Enabled }.GetNewClosure()) -ParameterFilter {
+            $Key -eq 'enableChurnBasedTesting'
+        }
+        Mock -ModuleName ParallelTestExecution Get-AffectedAppNames { throw 'Selection must be bypassed.' }
+        InModuleScope ParallelTestExecution {
+            $stateFile = Join-Path $env:RUNNER_TEMP 'parallelTests_selection.json'
+            $script:affectedAppNamesByRun[$stateFile] = [PSCustomObject]@{ RunAll = $false; AppNames = @() }
+        }
+
+        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
+            Should -BeTrue
+
+        Should -Invoke -ModuleName ParallelTestExecution Get-AffectedAppNames -Times 0 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
+            ($AppNamesToTest -join ',') -eq 'Tests C,Tests B,Tests A'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
     }
 
     It "returns the cached <Passed> outcome on later per-app hooks without recomputing selection" -ForEach @(

@@ -1537,9 +1537,11 @@ function Invoke-ParallelTestExecution {
     across the container's tenants and caches the result for subsequent override invocations.
 .DESCRIPTION
     Run-AlPipeline calls the per-project RunTestsInBcContainer.ps1 once per test app. The first
-    call filters the bucket's ordered app list using the existing affected-app calculation
-    before discovery or dispatch. Subsequent calls short-circuit on the cached final result,
-    including a successful no-tests-selected result. Container setup is unchanged.
+    call filters the bucket's ordered app list before discovery or dispatch when the AL-Go
+    setting enableChurnBasedTesting is true. Set it to false in .github/AL-Go-Settings.json
+    to disable selection for future runs; absent also runs the full bucket. Existing
+    full-run fallbacks still apply when enabled. Subsequent calls short-circuit on the cached
+    final result, including a successful no-tests-selected result. Container setup is unchanged.
 .PARAMETER parameters
     The Run-AlPipeline parameters hashtable (containerName, tenant, credential, etc.).
 .OUTPUTS
@@ -1562,7 +1564,7 @@ function Invoke-PerProjectTestRun {
     $appNamesToTest = @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType $testType -BucketNumber $bucketNumber)
     $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
     $stateFile = Join-Path $tempDir "parallelTests_$($parameters.containerName).json"
-    if ($appNamesToTest.Count -gt 0) {
+    if ($appNamesToTest.Count -gt 0 -and (Get-ALGoSetting -Key 'enableChurnBasedTesting') -eq $true) {
         # Only the parent computes this; workers receive the already selected list.
         if (-not $script:affectedAppNamesByRun.ContainsKey($stateFile)) {
             try {

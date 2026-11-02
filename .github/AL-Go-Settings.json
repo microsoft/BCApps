@@ -16,6 +16,7 @@
   "memoryLimit": "16G",
   "numberOfTenantsForTesting": 4,
   "enableCleanTestCodeunitExecution": true,
+  "enableChurnBasedTesting": true,
   "maxTestAppReruns": 2,
   "failOn": "newWarning",
   "workspaceCompilation": {
