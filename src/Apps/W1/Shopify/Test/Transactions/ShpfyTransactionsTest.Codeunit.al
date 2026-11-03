@@ -350,7 +350,7 @@ codeunit 139697 "Shpfy Transactions Test"
 
         //[THEN] Repeated discovery does not duplicate normalized mapping combinations.
         PaymentMethodMapping.SetRange("Shop Code", Shop.Code);
-        PaymentMethodMapping.SetRange(Gateway, Gateway);
+        PaymentMethodMapping.SetRange("Gateway", Gateway);
         LibraryAssert.AreEqual(2, PaymentMethodMapping.Count(), 'Repeat discovery should not duplicate normalized mapping combinations');
     end;
 
