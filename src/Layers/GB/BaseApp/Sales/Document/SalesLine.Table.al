@@ -1834,25 +1834,27 @@ table 37 "Sales Line"
                             end;
                     end;
 #if not CLEAN27
-                GetSalesSetup();
-                if ("VAT Bus. Posting Group" = SalesSetup."Reverse Charge VAT Posting Gr.") and not "Reverse Charge Item" then
-                    FieldError("VAT Bus. Posting Group", StrSubstNo(Text1041001, "VAT Bus. Posting Group", Type, "No."));
+                if not FeatureKeyManagement.IsVATReverseChargeEnabled() then begin
+                    GetSalesSetup();
+                    if ("VAT Bus. Posting Group" = SalesSetup."Reverse Charge VAT Posting Gr.") and not "Reverse Charge Item" then
+                        FieldError("VAT Bus. Posting Group", StrSubstNo(Text1041001, "VAT Bus. Posting Group", Type, "No."));
 
-                if "Document Type" = "Document Type"::"Credit Memo" then begin
-                    "Reverse Charge" := 0;
-                    if ("VAT Bus. Posting Group" = SalesSetup."Reverse Charge VAT Posting Gr.") and
-                     (SalesHeader."VAT Bus. Posting Group" = SalesSetup."Domestic Customers")
-                  then
-                        "Reverse Charge" :=
-                          Round(Amount * (1 - SalesHeader."VAT Base Discount %" / 100) * xRec."VAT %" / 100,
-                            Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
+                    if "Document Type" = "Document Type"::"Credit Memo" then begin
+                        "Reverse Charge" := 0;
+                        if ("VAT Bus. Posting Group" = SalesSetup."Reverse Charge VAT Posting Gr.") and
+                         (SalesHeader."VAT Bus. Posting Group" = SalesSetup."Domestic Customers")
+                      then
+                            "Reverse Charge" :=
+                              Round(Amount * (1 - SalesHeader."VAT Base Discount %" / 100) * xRec."VAT %" / 100,
+                                Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
+                    end;
                 end;
 #endif
 
                 IsHandled := false;
                 OnValidateVATProdPostingGroupOnBeforeUpdateUnitPrice(Rec, VATPostingSetup, IsHandled, xRec, SalesHeader, Currency);
                 if not IsHandled then
-                    if SalesHeader."Prices Including VAT" and (Type in [Type::Item, Type::Resource]) then
+                    if SalesHeader."Prices Including VAT" and (Type = Type::Resource) then
                         Validate("Unit Price",
                             Round(
                                 "Unit Price" * (100 + GetVATPct()) / (100 + xRec.GetVATPct()),
@@ -4420,6 +4422,9 @@ table 37 "Sales Line"
         CalendarMgmt: Codeunit "Calendar Management";
         PostingSetupMgt: Codeunit PostingSetupManagement;
         ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
+#if not CLEAN27
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         PriceType: Enum "Price Type";
         FieldCausedPriceCalculation: Integer;
         FullAutoReservation: Boolean;
@@ -4896,7 +4901,8 @@ table 37 "Sales Line"
         Nonstock := Item."Created From Nonstock Item";
         "Profit %" := Item."Profit %";
 #if not CLEAN27
-        "Reverse Charge Item" := Item."Reverse Charge Applies";
+        if not FeatureKeyManagement.IsVATReverseChargeEnabled() then
+            "Reverse Charge Item" := Item."Reverse Charge Applies";
 #endif
         "Allow Item Charge Assignment" := true;
         PrepaymentMgt.SetSalesPrepaymentPct(Rec, SalesHeader."Posting Date");
@@ -9502,7 +9508,7 @@ table 37 "Sales Line"
     [Obsolete('Moved to Reverse Charge VAT GB app', '27.0')]
     procedure SetReverseChargeApplies()
     begin
-        ReverseChargeApplies := true;
+        ReverseChargeApplies := not FeatureKeyManagement.IsVATReverseChargeEnabled();
     end;
 #endif
 
@@ -9767,6 +9773,9 @@ table 37 "Sales Line"
     [Obsolete('Moved to Reverse Charge VAT GB app', '27.0')]
     local procedure DomesticCustomerWarning()
     begin
+        if FeatureKeyManagement.IsVATReverseChargeEnabled() then
+            exit;
+
         GetSalesSetup();
         GLSetup.Get();
         if GLSetup."Threshold applies" and (CurrFieldNo = 0) and ("Document Type" = "Document Type"::"Credit Memo") and

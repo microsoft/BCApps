@@ -114,7 +114,6 @@ codeunit 18200 "GST Distribution"
 
                 GenJnlPostLine.RunWithCheck(GenJournalLine);
             until DistComponentAmount.Next() = 0;
-
         if DistReversal then begin
             DetailedGSTDistEntry.Reset();
             DetailedGSTDistEntry.SetRange("ISD Document No.", ReversalInvNo);
@@ -169,7 +168,6 @@ codeunit 18200 "GST Distribution"
                     DetailedGSTLedgerEntry.SetRange(Distributed, true);
                 end else
                     DetailedGSTLedgerEntry.SetRange("Dist. Document No.", DistributionNo);
-
                 if DetailedGSTLedgerEntry.FindSet() then
                     repeat
                         FilterDistComponentAmount(DistComponentAmount, GSTDistributionLine, DetailedGSTLedgerEntry, DistributionNo);
@@ -190,7 +188,6 @@ codeunit 18200 "GST Distribution"
                                       GSTDistributionLine."Distribution Jurisdiction"));
                                 GSTPostingSetup.TestField("Receivable Account");
                                 DistComponentAmount."GST Component Code" := DetailedGSTLedgerEntry."GST Component Code";
-
                                 if GSTDistributionHeader.Reversal then
                                     DistComponentAmount."To Location Code" := GSTDistributionLine."From Location Code"
                                 else
@@ -242,10 +239,10 @@ codeunit 18200 "GST Distribution"
                     until DetailedGSTLedgerEntry.Next() = 0
                 else
                     Error(SelectDitributionErr);
-
             until GSTDistributionLine.Next() = 0;
-
-        if not DistReversal then
+        if DistReversal then
+            ApplyDistComponentReversalRoundingAmount(DistributionNo, DistComponentAmount)
+        else
             ApplyDistComponentRoundingAmount(DistributionNo, DistComponentAmount);
 
         InsertDistComponentAmountBalancingAcc(DistributionNo, DistReversal);
@@ -330,7 +327,6 @@ codeunit 18200 "GST Distribution"
                     DetailedGSTLedgerEntry.SetRange(Distributed, true);
                 end else
                     DetailedGSTLedgerEntry.SetRange("Dist. Document No.", DistributionNo);
-
                 if DetailedGSTLedgerEntry.FindSet() then
                     repeat
                         GSTPostingSetup.Get(Location."State Code", GetComponentID(DetailedGSTLedgerEntry."GST Component Code"));
@@ -375,10 +371,43 @@ codeunit 18200 "GST Distribution"
                         end;
                     until DetailedGSTLedgerEntry.Next() = 0;
             until GSTDistributionLine.Next() = 0;
-
-        if not DistReversal then
+        if DistReversal then
+            ApplyDistBalComponentReversalRoundingAmount(DistributionNo)
+        else
             ApplyDistBalComponentRoundingAmount(DistributionNo, DistComponentAmount);
+    end;
 
+    local procedure ApplyDistBalComponentReversalRoundingAmount(DistributionNo: Code[20])
+    var
+        GstdistributionHeader: Record "GST Distribution Header";
+        NonAvailmentDistComponentAmount: Record "Dist. Component Amount";
+        ExpenseDistComponentAmount: Record "Dist. Component Amount";
+        RoundingAmount: Decimal;
+    begin
+        GstdistributionHeader.Get(DistributionNo);
+        if GstdistributionHeader."Dist. Credit Type" <> GstdistributionHeader."Dist. Credit Type"::"Non-Availment" then
+            exit;
+
+        NonAvailmentDistComponentAmount.SetLoadFields("Distribution No.", "GST Credit", "GST Component Code", "Credit Amount");
+        NonAvailmentDistComponentAmount.SetRange("Distribution No.", DistributionNo);
+        NonAvailmentDistComponentAmount.SetRange("GST Credit", NonAvailmentDistComponentAmount."GST Credit"::"Non-Availment");
+        NonAvailmentDistComponentAmount.SetRange("GST Component Code", '');
+        NonAvailmentDistComponentAmount.CalcSums("Credit Amount");
+
+        ExpenseDistComponentAmount.SetLoadFields("Distribution No.", "GST Credit", "GST Component Code", "Debit Amount");
+        ExpenseDistComponentAmount.SetRange("Distribution No.", DistributionNo);
+        ExpenseDistComponentAmount.SetFilter("GST Component Code", '<>%1', '');
+        ExpenseDistComponentAmount.CalcSums("Debit Amount");
+
+        RoundingAmount := NonAvailmentDistComponentAmount."Credit Amount" - ExpenseDistComponentAmount."Debit Amount";
+        if RoundingAmount = 0 then
+            exit;
+
+        expenseDistComponentAmount.SetFilter("Debit Amount", '<>%1', 0);
+        if ExpenseDistComponentAmount.FindFirst() then begin
+            ExpenseDistComponentAmount."Debit Amount" += RoundingAmount;
+            ExpenseDistComponentAmount.Modify();
+        end;
     end;
 
     local procedure InsertPostedGSTDistHeader(GSTDistributionHeader: Record "GST Distribution Header"): Code[20]
@@ -421,12 +450,10 @@ codeunit 18200 "GST Distribution"
         GSTDistributionLine.CalcSums("Distribution %");
         if GSTDistributionLine."Distribution %" <> 100 then
             Error(DistributeErr, GSTDistributionLine.FieldCaption("Distribution %"));
-
         if GSTDistributionLine.FindSet() then
             repeat
                 if GSTDistributionLine."Distribution %" = 0 then
                     Error(ZeroDistPercentErr, GSTDistributionLine.FieldCaption("Distribution %"), GSTDistributionLine."From Location Code");
-
                 if (GSTDistributionLine."To GSTIN No." = '') and (GSTDistributionLine."Rcpt. Credit Type" = GSTDistributionLine."Rcpt. Credit Type"::Availment)
                 then
                     Error(
@@ -481,14 +508,12 @@ codeunit 18200 "GST Distribution"
             DetailedGSTLedgerEntry.SetRange("Dist. Reverse Document No.", PostedDistributionNo);
         end else
             DetailedGSTLedgerEntry.SetRange("Dist. Document No.", PostedDistributionNo);
-
         if DetailedGSTLedgerEntry.FindSet() then
             repeat
                 Vendor.Get(DetailedGSTLedgerEntry."Source No.");
                 VendorLedgerEntry.SetRange("Buy-from Vendor No.", Vendor."No.");
                 VendorLedgerEntry.SetRange("Document No.", DetailedGSTLedgerEntry."Document No.");
                 VendorLedgerEntry.FindFirst();
-
                 if DetailedGSTLedgerEntryInfo.Get(DetailedGSTLedgerEntry."Entry No.") then;
 
                 GSTDistributionLine.Reset();
@@ -502,7 +527,6 @@ codeunit 18200 "GST Distribution"
                         DetailedGSTDistEntry.Init();
                         DetailedGSTDistEntry."Entry No." := 0;
                         DetailedGSTDistEntry."Detailed GST Ledger Entry No." := DetailedGSTLedgerEntry."Entry No.";
-
                         if GSTDistributionHeader."ISD Document Type" = GSTDistributionHeader."ISD Document Type"::"Credit Memo" then begin
                             DetailedGSTDistEntry."Dist. Location Code" := GSTDistributionLine."To Location Code";
                             DetailedGSTDistEntry."Rcpt. Location Code" := GSTDistributionLine."From Location Code";
@@ -557,7 +581,6 @@ codeunit 18200 "GST Distribution"
                             DetailedGSTDistEntry."Original Dist. Invoice No." := GSTDistributionHeader."Reversal Invoice No.";
                             DetailedGSTDistEntry."Original Dist. Invoice Date" := PostedGSTDistributionHeader."Posting Date";
                         end;
-
                         if DetailedGSTDistEntry."Rcpt. GST Credit" = DetailedGSTDistEntry."Rcpt. GST Credit"::Availment then begin
                             DetailedGSTDistEntry."G/L Account No." := GetGSTAccountNoDistribution(
                                 DetailedGSTDistEntry."Rcpt. Location State Code",
@@ -650,7 +673,6 @@ codeunit 18200 "GST Distribution"
             GSTComponentDistribution.SetRange("Interstate Distribution", true)
         else
             GSTComponentDistribution.SetRange("Intrastate Distribution", true);
-
         if not GSTComponentDistribution.FindFirst() then
             Error(ToGSTCompErr, GSTComponentCode, JurisdictionType);
 
@@ -666,7 +688,6 @@ codeunit 18200 "GST Distribution"
             GSTComponentDistribution.SetRange("Interstate Distribution", true)
         else
             GSTComponentDistribution.SetRange("Intrastate Distribution", true);
-
         if GSTComponentDistribution.Findfirst() then
             exit(GetComponentID(GSTComponentDistribution."Distribution Component Code"))
         else
@@ -822,7 +843,6 @@ codeunit 18200 "GST Distribution"
         GetDistComponentRoundingAmount(DistributionNo, DistComponentAmount, RoundingAmount);
         if RoundingAmount = 0 then
             exit;
-
         if DistComponentAmount.FindFirst() then begin
             DistComponentAmount."Debit Amount" += RoundingAmount;
             DistComponentAmount.Modify();
@@ -850,6 +870,45 @@ codeunit 18200 "GST Distribution"
         if not DetailedGSTLedgerEntry.FindFirst() then
             exit;
 
+        FilterDistComponentAmount(DistComponentAmount, GSTDistributionLine, DetailedGSTLedgerEntry, DistributionNo);
+    end;
+
+    local procedure ApplyDistComponentReversalRoundingAmount(DistributionNo: Code[20]; DistComponentAmount: Record "Dist. Component Amount")
+    var
+        RoundingAmount: Decimal;
+    begin
+        GetDistComponentReversalRoundingAmount(DistributionNo, DistComponentAmount, RoundingAmount);
+        if RoundingAmount = 0 then
+            exit;
+        if DistComponentAmount.FindFirst() then begin
+            DistComponentAmount."Credit Amount" += RoundingAmount;
+            DistComponentAmount.Modify();
+        end;
+    end;
+
+    local procedure GetDistComponentReversalRoundingAmount(DistributionNo: Code[20]; var DistComponentAmount: Record "Dist. Component Amount"; var RoundingAmount: Decimal)
+    var
+        GSTDistributionLine: Record "GST Distribution Line";
+        DetailedGSTLedgerEntry: Record "Detailed GST Ledger Entry";
+    begin
+        GSTDistributionLine.SetLoadFields("Distribution No.");
+        GSTDistributionLine.SetRange("Distribution No.", DistributionNo);
+        if not GSTDistributionLine.FindFirst() then
+            exit;
+
+        DistComponentAmount.Reset();
+        DistComponentAmount.SetLoadFields("Distribution No.", "Credit Amount");
+        DistComponentAmount.SetRange("Distribution No.", DistributionNo);
+        DistComponentAmount.CalcSums("Credit Amount");
+
+        DetailedGSTLedgerEntry.SetLoadFields("Dist. Reverse Document No.", Distributed, "GST Amount", "GST Component Code", Type, "No.", "Document Type", "Document No.");
+        DetailedGSTLedgerEntry.SetRange("Dist. Reverse Document No.", DistributionNo);
+        DetailedGSTLedgerEntry.SetRange(Distributed, true);
+        if not DetailedGSTLedgerEntry.FindFirst() then
+            exit;
+
+        DetailedGSTLedgerEntry.CalcSums("GST Amount");
+        RoundingAmount := DetailedGSTLedgerEntry."GST Amount" - DistComponentAmount."Credit Amount";
         FilterDistComponentAmount(DistComponentAmount, GSTDistributionLine, DetailedGSTLedgerEntry, DistributionNo);
     end;
 
@@ -927,10 +986,8 @@ codeunit 18200 "GST Distribution"
         RoundingAmount: Decimal;
     begin
         GetDistComponentBalRoundingAmount(DistributionNo, DistComponentAmount, RoundingAmount);
-
         if RoundingAmount = 0 then
             exit;
-
         if DistComponentAmount.FindFirst() then begin
             DistComponentAmount."Credit Amount" += RoundingAmount;
             DistComponentAmount.Modify();

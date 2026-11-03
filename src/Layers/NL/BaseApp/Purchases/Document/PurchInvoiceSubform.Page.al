@@ -1482,7 +1482,7 @@ page 55 "Purch. Invoice Subform"
            (xRec."No." <> '')
         then
             CurrPage.SaveRecord();
-        if Rec.Type = Rec.Type::"G/L Account" then
+        if (Rec.Type = Rec.Type::"G/L Account") and (Rec."No." <> xRec."No.") then
             Rec.Validate(Quantity, 1);
 
         OnAfterNoOnAfterValidate(Rec, xRec);

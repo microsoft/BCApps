@@ -55,8 +55,10 @@ table 5644 "FA Posting Type"
     procedure CreateTypes()
     var
         FADepreciationBook: Record "FA Depreciation Book";
+        DerogatoryPostingTypeName: Text[50];
     begin
         LockTable();
+        DerogatoryPostingTypeName := CopyStr(FADepreciationBook.FieldCaption("Derogatory Amount"), 1, MaxStrLen("FA Posting Type Name"));
         if not Find('-') then begin
             "FA Entry" := true;
             "G/L Entry" := true;
@@ -76,6 +78,8 @@ table 5644 "FA Posting Type"
             "FA Entry" := false;
             "G/L Entry" := true;
             InsertRec(12, FADepreciationBook.FieldNo("Book Value on Disposal"), FADepreciationBook.FieldCaption("Book Value on Disposal"));
+            "FA Entry" := true;
+            InsertRec(13, FADepreciationBook.FieldNo("Derogatory Amount"), DerogatoryPostingTypeName);
         end else begin
             SetCurrentKey("Entry No.");
             Find('-');
@@ -164,6 +168,13 @@ table 5644 "FA Posting Type"
                         Delete();
                         InsertRec(12, FADepreciationBook.FieldNo("Book Value on Disposal"), FADepreciationBook.FieldCaption("Book Value on Disposal"));
                     end;
+                if "Entry No." = 13 then
+                    if ("FA Posting Type No." <> FADepreciationBook.FieldNo("Derogatory Amount")) or
+                       ("FA Posting Type Name" <> DerogatoryPostingTypeName)
+                    then begin
+                        Delete();
+                        InsertRec(13, FADepreciationBook.FieldNo("Derogatory Amount"), DerogatoryPostingTypeName);
+                    end;
             until Next() = 0;
         end;
         OnAfterCreateTypes(Rec);
@@ -182,4 +193,3 @@ table 5644 "FA Posting Type"
     begin
     end;
 }
-
