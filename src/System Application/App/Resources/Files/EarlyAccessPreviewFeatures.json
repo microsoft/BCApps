@@ -208,5 +208,27 @@
         "HelpURL": "",
         "VideoURL": "",
         "ADOSliceIds": [616928]
+    },
+    {
+        "FeatureName": "Preview the impact of supply changes",
+        "Description": "Try a lower quantity or a later receipt date on a supply line before changing the document. What-if analysis shows the directly affected demand and lets you open the related documents, without keeping the simulated changes.",
+        "Category": "Supply chain management",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [636114]
+    },
+    {
+        "FeatureName": "Track country of origin on documents in Czechia",
+        "Description": "Record the country or region of origin on document and journal lines and retain it in posted entries. Use the configured origin source when preparing Intrastat reporting instead of relying only on the item's current origin.",
+        "Category": "Supply chain management",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Set default number series for manufacturing versions",
+        "Description": "Choose default number series for production BOM versions and routing versions in Manufacturing Setup. New BOMs and routings inherit these defaults when they do not specify their own version number series; existing records and explicit choices are preserved.",
+        "Category": "Supply chain management",
+        "HelpURL": "",
+        "VideoURL": ""
     }
 ]
