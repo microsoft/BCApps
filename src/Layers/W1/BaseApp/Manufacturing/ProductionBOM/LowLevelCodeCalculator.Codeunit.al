@@ -15,7 +15,7 @@ codeunit 3687 "Low-Level Code Calculator"
 {
     var
         LowLevelCodeParam: Codeunit "Low-Level Code Parameter";
-        NodeKeysAddedToTree: List of [Text];
+        NodeKeysAddedToTree: Dictionary of [Text, Boolean];
         ConfirmQst: Label 'Calculate low-level code?';
         BackgroundJobQst: Label 'Would you like to run the low-level code calculation as a background job?';
         RecordDetailsLbl: Label 'Table %1: %2', Comment = '%1 is the table caption, %2 is the record ID';
@@ -135,7 +135,7 @@ codeunit 3687 "Low-Level Code Calculator"
                 ItemCounter += 1;
                 LowLevelCodeParam.ShowDetails(StrSubstNo(RecordDetailsLbl, Item.TableCaption(), Item."No."), ItemCounter, TotalItems + TotalBOMs);
 
-                if not NodeKeysAddedToTree.Contains(BOMNode.GetKey()) then begin
+                if not NodeKeysAddedToTree.ContainsKey(BOMNode.GetKey()) then begin
                     Item.Mark(true);
                     Counter += 1;
                 end;
@@ -153,7 +153,7 @@ codeunit 3687 "Low-Level Code Calculator"
                 ProdBOMCounter += 1;
                 LowLevelCodeParam.ShowDetails(StrSubstNo(RecordDetailsLbl, ProductionBOMHeader.TableCaption(), ProductionBOMHeader."No."), TotalItems + ProdBOMCounter, TotalItems + TotalBOMs);
 
-                if not NodeKeysAddedToTree.Contains(BOMNode.GetKey()) then begin
+                if not NodeKeysAddedToTree.ContainsKey(BOMNode.GetKey()) then begin
                     ProductionBOMHeader.Mark(true);
                     Counter += 1;
                 end;
@@ -177,7 +177,10 @@ codeunit 3687 "Low-Level Code Calculator"
         Item.SetFilter("Production BOM No.", '<> %1', '');
         TotalItemCount := Item.Count();
 
+        // Skip items without a Production BOM so they are not loaded
+        ItemProductionBOMs.SetFilter(Production_BOM_No_, '<> %1', '');
         ItemProductionBOMs.SetFilter(BOMStatus, '<>%1', Enum::"BOM Status"::Closed);
+        OnBeforeItemProductionBOMsOpen(ItemProductionBOMs);
         ItemProductionBOMs.Open();
         while ItemProductionBOMs.Read() do
             if CheckItemProductionBOMIsCertified(ItemProductionBOMs) then begin
@@ -272,11 +275,9 @@ codeunit 3687 "Low-Level Code Calculator"
         BOMComponentItems.Close();
     end;
 
-    local procedure AddKeyToList(BOMKey: Text)
+    local procedure AddKeyToTree(BOMKey: Text)
     begin
-        if NodeKeysAddedToTree.Contains(BOMKey) then
-            exit;
-        NodeKeysAddedToTree.Add(BOMKey);
+        NodeKeysAddedToTree.Set(BOMKey, true);
     end;
 
     local procedure AddChildToParent(BOMStructure: Codeunit "BOM Tree"; Parent: Codeunit "BOM Node"; Child: Codeunit "BOM Node")
@@ -286,8 +287,8 @@ codeunit 3687 "Low-Level Code Calculator"
             exit;
 
         BOMStructure.AddRelation(Parent, Child);
-        AddKeyToList(Parent.GetKey());
-        AddKeyToList(Child.GetKey());
+        AddKeyToTree(Parent.GetKey());
+        AddKeyToTree(Child.GetKey());
     end;
 
     local procedure CheckItemProductionBOMIsCertified(var ItemProductionBOMs: Query "Item Production BOMs"): Boolean
@@ -338,6 +339,11 @@ codeunit 3687 "Low-Level Code Calculator"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalculate()
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeItemProductionBOMsOpen(var ItemProductionBOMs: Query "Item Production BOMs")
     begin
     end;
 }
