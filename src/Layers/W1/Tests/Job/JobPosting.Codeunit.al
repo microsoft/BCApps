@@ -30,6 +30,7 @@ codeunit 136309 "Job Posting"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         CopyFromToPriceListLine: Codeunit CopyFromToPriceListLine;
         LibraryNoSeries: Codeunit "Library - No. Series";
+        LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         Any: Codeunit Any;
         TargetJobNo: Code[20];
         JournalTemplateName: Code[10];
@@ -2577,6 +2578,7 @@ codeunit 136309 "Job Posting"
         GenJournalLine.Validate("Job Quantity", 2);
         GenJournalLine.Validate(Amount, 125);
         GenJournalLine.Validate("Job Unit Price (LCY)", 40);
+        GenJournalLine.Validate("Bill-to/Pay-to No.", LibraryPurchase.CreateVendorNo());
         GenJournalLine."Source Currency Code" := ACYCode;
         GenJournalLine."Source Currency Amount" := 250;
         GenJournalLine.Modify(true);
@@ -2599,9 +2601,62 @@ codeunit 136309 "Job Posting"
         GLEntry.TestField("Additional-Currency Amount", 200);
     end;
 
+    [Test]
+    procedure PostJobGLJournalLineACYTotalCostIncludesNonDeductibleVAT()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        JobTask: Record "Job Task";
+        VATPostingSetup: Record "VAT Posting Setup";
+        ACYCode: Code[10];
+        ExpectedACYTotalPrice: Decimal;
+        ExpectedACYLineAmount: Decimal;
+    begin
+        // [FEATURE] [Job] [Additional Reporting Currency] [Source Currency] [Non-Deductible VAT]
+        // [SCENARIO 643950] ACY project cost from an overridden source currency amount includes non-deductible VAT that is used for project cost.
+        Initialize();
+
+        // [GIVEN] Additional Reporting Currency set up with a 1:1 exchange rate.
+        ACYCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        LibraryERM.SetAddReportingCurrency(ACYCode);
+
+        // [GIVEN] Non-deductible VAT is enabled and used for project cost.
+        LibraryNonDeductibleVAT.EnableNonDeductibleVAT();
+        LibraryNonDeductibleVAT.SetUseForJobCost();
+
+        // [GIVEN] Normal VAT posting setup with 25% VAT that is 100% non-deductible.
+        LibraryNonDeductibleVAT.CreateVATPostingSetupWithNonDeductibleDetail(VATPostingSetup, 25, 100);
+
+        // [GIVEN] Project G/L Journal purchase line of 125 LCY including 25 VAT, with an overridden ACY amount of 250.
+        CreateJobWithJobTask(JobTask);
+        LibraryJob.CreateJobGLJournalLine(GenJournalLine."Job Line Type"::Billable, JobTask, GenJournalLine);
+        GenJournalLine.Validate("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
+        GenJournalLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GenJournalLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GenJournalLine.Validate("Job Quantity", 2);
+        GenJournalLine.Validate(Amount, 125);
+        GenJournalLine.Validate("Job Unit Price (LCY)", 40);
+        GenJournalLine.Validate("Bill-to/Pay-to No.", LibraryPurchase.CreateVendorNo());
+        GenJournalLine."Source Currency Code" := ACYCode;
+        GenJournalLine."Source Currency Amount" := 250;
+        GenJournalLine.Modify(true);
+        ExpectedACYTotalPrice := GenJournalLine."Job Total Price (LCY)";
+        ExpectedACYLineAmount := GenJournalLine."Job Line Amount (LCY)";
+
+        // [WHEN] Post the Gen. Journal Line.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Project Ledger Entry "Total Cost (LCY)" = 125 and "Additional-Currency Total Cost" = 250 (200 net plus 50 non-deductible VAT).
+        VerifyJobLedgerEntryACYAmounts(JobTask."Job No.", 250, ExpectedACYTotalPrice, ExpectedACYLineAmount);
+        JobLedgerEntry.SetRange("Job No.", JobTask."Job No.");
+        JobLedgerEntry.FindFirst();
+        JobLedgerEntry.TestField("Total Cost (LCY)", 125);
+    end;
+
     local procedure Initialize()
     var
         NoSeries: Record "No. Series";
+        VATSetup: Record "VAT Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Job Posting");
@@ -2630,6 +2685,9 @@ codeunit 136309 "Job Posting"
 
         LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
         LibrarySetupStorage.Save(DATABASE::"Purchases & Payables Setup");
+        if not VATSetup.Get() then
+            VATSetup.Insert();
+        LibrarySetupStorage.Save(DATABASE::"VAT Setup");
         LibrarySetupStorage.SaveGeneralLedgerSetup();
 
         IsInitialized := true;

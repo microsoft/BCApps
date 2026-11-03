@@ -372,7 +372,21 @@ codeunit 1001 "Job Post-Line"
         // The G/L entry amount excludes VAT; non-deductible VAT is posted separately and belongs to the project cost.
         SourceCurrencyTotalCost := GLEntry."Additional-Currency Amount";
         if NonDeductibleVAT.UseNonDeductibleVATAmountForJobCost() then
-            SourceCurrencyTotalCost += GenJnlLine."Non-Deductible VAT Amount ACY";
+            SourceCurrencyTotalCost += GetSourceCurrencyNonDeductibleVATAmount(GenJnlLine);
+    end;
+
+    local procedure GetSourceCurrencyNonDeductibleVATAmount(GenJnlLine: Record "Gen. Journal Line"): Decimal
+    var
+        SourceCurrency: Record Currency;
+    begin
+        // The source currency non-deductible VAT is calculated only when VAT is posted, after the project entry, so convert the LCY amount at the line's source currency rate.
+        if (GenJnlLine."Non-Deductible VAT Amount LCY" = 0) or (GenJnlLine."Amount (LCY)" = 0) then
+            exit(0);
+        SourceCurrency.Initialize(GenJnlLine."Source Currency Code");
+        exit(
+            Round(
+                GenJnlLine."Non-Deductible VAT Amount LCY" * GenJnlLine."Source Currency Amount" / GenJnlLine."Amount (LCY)",
+                SourceCurrency."Amount Rounding Precision"));
     end;
 
     procedure PostJobOnPurchaseLine(var PurchHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; PurchLine: Record "Purchase Line"; SourceCode: Code[10])
