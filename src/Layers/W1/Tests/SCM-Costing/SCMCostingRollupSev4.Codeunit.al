@@ -20,7 +20,7 @@ codeunit 137616 "SCM Costing Rollup Sev 4"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryPatterns: Codeunit "Library - Patterns";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-#if not CLEAN29
+#if not CLEAN28
         LibraryPlanning: Codeunit "Library - Planning";
 #endif
         LibraryUtility: Codeunit "Library - Utility";
@@ -374,7 +374,7 @@ codeunit 137616 "SCM Costing Rollup Sev 4"
         Assert.AreNearlyEqual(UnitAmount, Item."Unit Cost", GeneralLedgerSetup."Amount Rounding Precision",
           'Item unit cost is updated in situations with negative qty on hand');
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Test]
     [HandlerFunctions('ConsumptionNotFinishedConfirmHandler')]
     [Scope('OnPrem')]
@@ -552,7 +552,7 @@ codeunit 137616 "SCM Costing Rollup Sev 4"
           GeneralLedgerSetup."Amount Rounding Precision",
           'Unit cost adjusted to alternative unit of measure');
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Normal]
     local procedure CreateRoutingSetup(var WorkCenter: Record "Work Center"; var RoutingLine: Record "Routing Line"; var RoutingLink: Record "Routing Link")
     var

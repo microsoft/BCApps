@@ -428,55 +428,55 @@ report 99001015 "Calculate Subcontracts"
             Error('');
     end;
 
-    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcQtyToPurch(ProdOrderLine: Record "Prod. Order Line"; var QtyToPurch: Decimal)
     begin
     end;
 
-    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferProdOrderRoutingLine(var RequisitionLine: Record "Requisition Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
     end;
 
-    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReqWkshLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var WorkCenter: Record "Work Center"; var ReqLine: Record "Requisition Line"; var IsHandled: Boolean; ProdOrderLine: Record "Prod. Order Line");
     begin
     end;
 
-    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateUnitCost(var RequisitionLine: Record "Requisition Line"; var WorkCenter: Record "Work Center"; var IsHandled: Boolean; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
     end;
 
-    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReqWkshLineInsert(var RequisitionLine: Record "Requisition Line"; ProdOrderLine: Record "Prod. Order Line")
     begin
     end;
 
-    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnDeleteRepeatedReqLinesOnAfterRequisitionLineSetFilters(var RequisitionLine: Record "Requisition Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
     end;
 
-    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnProdOrderRoutingLineOnAfterGetRecordOnAfterProdOrderLineSetFilters(var ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
     end;
 
-    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetVendorItemNo(var RequisitionLine: Record "Requisition Line"; ItemVendor: Record "Item Vendor"; Item: Record Item)
     begin
     end;
 
-    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '29.0')]
+    [Obsolete('Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnProdOrderRoutingLineOnBeforeCalculateSubContractRequirements(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary)
     begin

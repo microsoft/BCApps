@@ -1,0 +1,7 @@
+[
+  "src/Layers/IT/Tests/SCM-Manufacturing/SCMManufacturing70.Codeunit.al",
+  "src/Layers/IT/Tests/SCM-Manufacturing/SCMWIPCostingProductionII.Codeunit.al",
+  "src/Layers/IT/Tests/SCM-Planning/SCMSupplyPlanningIV.Codeunit.al",
+  "src/Layers/IT/Tests/SCM-Costing/SCMCostingRollupSev2.Codeunit.al",
+  "src/Layers/IT/Tests/SCM-Costing/SCMCostingRollupSev4.Codeunit.al"
+]

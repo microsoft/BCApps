@@ -116,7 +116,7 @@ codeunit 139995 "Subc. Comments Attachment Test"
         VerifyStandardRoutingCopyComment(DestinationRoutingHeader."No.", '');
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     [Test]
     procedure CopyRoutingDoesNotCopySubcontractingCommentsWhenDisabled()
     var

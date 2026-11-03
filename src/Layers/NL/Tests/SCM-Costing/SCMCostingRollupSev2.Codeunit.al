@@ -12,7 +12,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
     var
         LibraryCosting: Codeunit "Library - Costing";
         LibraryInventory: Codeunit "Library - Inventory";
-#if not CLEAN29
+#if not CLEAN28
         LibraryPlanning: Codeunit "Library - Planning";
 #endif
         LibraryUtility: Codeunit "Library - Utility";
@@ -28,7 +28,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         LibraryRandom: Codeunit "Library - Random";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
-#if not CLEAN29
+#if not CLEAN28
         UnexpectedValueMsg: Label 'Unexpected %1 value in %2.';
 #endif
         CalcStdCostOptionTxt: Label '&Top level,&All levels';
@@ -37,7 +37,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         ItemFilterTok: Label '%1|%2|%3';
         isInitialized: Boolean;
         InvCostMustBeZeroErr: Label 'Total cost amount must be 0 after correction.';
-#if not CLEAN29
+#if not CLEAN28
         ReverseCapacityLedgerEntryForSubContractingErr: Label 'Entry cannot be reversed as it is linked to the subcontracting work center.';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
 #endif
@@ -1052,7 +1052,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         VerifyCostAmountOnValuationDate(ComponentItem."No.", ProdOrder."No.", WorkDate() + 1, -ComponentItem."Unit Cost");
         VerifyCostAmountOnValuationDate(ProdItem."No.", ProdOrder."No.", WorkDate() + 1, ComponentItem."Unit Cost" * 2);
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Test]
     [HandlerFunctions('MsgHandler,YesConfirmHandler')]
     [Scope('OnPrem')]
@@ -1158,7 +1158,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         // Verify: Verify Value Entries - Cost Amount Actual should contain the Item Charge adjust entry, the total should be zero.
         Assert.AreEqual(0, InventoryCostByItem(ComponentItem."No."), InvCostMustBeZeroErr);
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Test]
     [HandlerFunctions('YesConfirmHandler')]
     procedure VerifyCapacityLedgerEntryMustNotBeReversedWhenSubcontractingIsTrue()
@@ -1286,7 +1286,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         LibraryItemTracking.CreateSalesOrderItemTracking(ReservEntry, SecondSalesLine, '', 'E', 69);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Normal]
     local procedure CustomizeSetupsAndLocation(var Location: Record Location)
     var
@@ -1348,7 +1348,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         exit(Item."No.");
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     [Normal]
     local procedure CreateItemWithAdditionalUOM(var Item: Record Item; var NewItemUOM: Record "Item Unit of Measure")
     begin
@@ -1406,7 +1406,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         ProdItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
         ProdItem.Modify(true);
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Normal]
     local procedure CreateManufacturingItems(var ParentItem: Record Item; var NonBaseItemUOM: Record "Item Unit of Measure"; var ChildItem: Record Item)
     begin
@@ -1591,7 +1591,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         ProdOrderLine.FindFirst();
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure CreateRoutingLine(var RoutingLine: Record "Routing Line"; RoutingHeader: Record "Routing Header"; CenterNo: Code[20]; RoutingLinkCode: Code[10])
     var
         OperationNo: Code[10];
@@ -1641,7 +1641,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         LibraryPurchase.CreateVendor(Vendor);
         exit(Vendor."No.");
     end;
-#if not CLEAN29
+#if not CLEAN28
     local procedure CreateAndRefreshReleasedProductionOrder(var ProductionOrder: Record "Production Order"; ItemNo: Code[20]; LocationCode: Code[10])
     begin
         LibraryManufacturing.CreateProductionOrder(ProductionOrder, ProductionOrder.Status::Released,
@@ -1708,7 +1708,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         CopyDocMgt.SetProperties(false, false, false, false, true, true, true);
         CopyDocMgt.CopySalesInvLinesToDoc(SalesHeader, SalesInvLine, LinesNotCopied, MissingExCostRevLink);
     end;
-#if not CLEAN29
+#if not CLEAN28
     local procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
     begin
         WorkCenter.SetRange("No.", WorkCenter."No.");
@@ -1758,7 +1758,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         LibraryPatterns.InsertTempILEFromLast(TempItemLedgerEntry);
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure FindLastOperationNo(RoutingNo: Code[20]): Code[10]
     var
         RoutingLine: Record "Routing Line";
@@ -1812,7 +1812,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         ItemJournalLine.FindFirst();
         CODEUNIT.Run(CODEUNIT::"Item Jnl.-Post Batch", ItemJournalLine);
     end;
-#if not CLEAN29
+#if not CLEAN28
     local procedure SelectPurchaseOrderLine(var PurchaseLine: Record "Purchase Line"; No: Code[20])
     begin
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
@@ -1857,7 +1857,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
           AvgCostingPeriod);
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure UpdateItemRoutingNo(var Item: Record Item; RoutingNo: Code[20])
     begin
         Item.Validate("Routing No.", RoutingNo);
@@ -1906,7 +1906,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         if Confirm('') then;
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure UpdateProdOrderLineUnitOfMeasureCode(ItemNo: Code[20]; UnitOfMeasureCode: Code[10])
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -1961,7 +1961,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         ProdOrderComponent.Modify(true);
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     [Normal]
     local procedure VerifyPurchaseOrderLine(PurchaseLine: Record "Purchase Line"; ItemUOM: Record "Item Unit of Measure"; ItemNo: Code[20]; LocationCode: Code[10]; Qty: Decimal; DirectUnitCost: Decimal)
     begin
@@ -2096,7 +2096,7 @@ codeunit 137612 "SCM Costing Rollup Sev 2"
         ItemApplicationEntry.TestField(Quantity, Quantity);
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure CreateRoutingAndUpdateItemSubcontracted(var Item: Record Item; var WorkCenter: Record "Work Center"; IsSubcontracted: Boolean): Code[10]
     var
         RoutingHeader: Record "Routing Header";
