@@ -154,9 +154,9 @@ codeunit 130486 "Date Placeholder Tests"
         RoundedNextDay := Input.Element('nextDay').ValueAsDateTime();
 
         // [THEN] Rounding selects the nearest tenth of a second and carries across midnight.
-        Assert.AreEqual(CreateDateTime(WorkDate(), 123011.100T), RoundedDown, 'Values below the midpoint must round down.');
-        Assert.AreEqual(CreateDateTime(WorkDate(), 123011.200T), RoundedUp, 'Values at the midpoint must round up.');
-        Assert.AreEqual(CreateDateTime(WorkDate() + 1, 000000T), RoundedNextDay, 'Rounding must carry into the next day.');
+        Assert.AreEqualDateTime(CreateDateTime(WorkDate(), 123011.100T), RoundedDown, 'Values below the midpoint must round down.');
+        Assert.AreEqualDateTime(CreateDateTime(WorkDate(), 123011.200T), RoundedUp, 'Values at the midpoint must round up.');
+        Assert.AreEqualDateTime(CreateDateTime(WorkDate() + 1, 000000T), RoundedNextDay, 'Rounding must carry into the next day.');
         Assert.AreEqual(Format(RoundedDown), Input.Element('down').ValueAsText(), 'Text reads must use the rounded datetime.');
         Assert.AreEqual(Format(RoundedUp), Input.Element('up').ValueAsText(), 'Text reads must round midpoint values consistently.');
         Assert.AreEqual(Format(RoundedNextDay), Input.Element('nextDay').ValueAsText(), 'Text reads must preserve the rounded date.');
