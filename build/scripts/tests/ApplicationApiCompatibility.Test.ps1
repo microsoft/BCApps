@@ -669,6 +669,49 @@ Describe 'Application API compatibility prototype' {
             { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
             $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
             $state.AcceptedMoves[0].Reason | Should -Match 'contract changed'
+            $differences = $state.AcceptedMoves[0].ContractDifferences
+            $differences.Count | Should -Be 1
+            $differences[0].Path | Should -Be '$.Methods[0].Parameters[0].TypeDefinition.Name'
+            $differences[0].Baseline | Should -Be '"Text"'
+            $differences[0].Current | Should -Be '"Integer"'
+            $state.AcceptedMoves[0].ContractDifferencesTruncated | Should -BeFalse
+        }
+
+        It 'distinguishes missing values from null and empty containers in contract diagnostics' {
+            $page.Existing = $null
+            $page.Removed = @()
+            $page.EmptyObject = @{}
+            $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections @{
+                Namespaces = @(@{ Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page) })
+            }
+            $page.Existing = 'Changed'
+            $page.Remove('Removed')
+            $page.Remove('EmptyObject')
+            $page.Added = $null
+            Write-ApiDestination
+            $gate = New-ApiGateLayout
+            { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+            $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+            $differences = $state.AcceptedMoves[0].ContractDifferences
+            $differences.Count | Should -Be 4
+            ($differences | Where-Object Path -EQ '$.Added').Baseline | Should -Be '<missing>'
+            ($differences | Where-Object Path -EQ '$.Added').Current | Should -Be 'null'
+            ($differences | Where-Object Path -EQ '$.Existing').Baseline | Should -Be 'null'
+            ($differences | Where-Object Path -EQ '$.Existing').Current | Should -Be '"Changed"'
+            ($differences | Where-Object Path -EQ '$.Removed').Baseline | Should -Be '[]'
+            ($differences | Where-Object Path -EQ '$.Removed').Current | Should -Be '<missing>'
+            ($differences | Where-Object Path -EQ '$.EmptyObject').Baseline | Should -Be '{}'
+        }
+
+        It 'limits persisted contract differences and reports truncation without accepting the move' {
+            $page.Added = @(1..25)
+            Write-ApiDestination
+            $gate = New-ApiGateLayout
+            { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+            $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+            $state.AcceptedMoves[0].Accepted | Should -BeFalse
+            $state.AcceptedMoves[0].ContractDifferences.Count | Should -Be 20
+            $state.AcceptedMoves[0].ContractDifferencesTruncated | Should -BeTrue
         }
 
         It 'rejects a move to an installed but unexposed app' {

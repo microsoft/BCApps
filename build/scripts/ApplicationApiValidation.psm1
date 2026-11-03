@@ -357,6 +357,63 @@ function Get-ApplicationApiMemberMoveFailure {
     return ''
 }
 
+function Add-ApplicationApiContractValues {
+    param(
+        [System.Text.Json.JsonElement] $Element,
+        [string] $Path,
+        [hashtable] $Values
+    )
+
+    if ($Element.ValueKind -eq [System.Text.Json.JsonValueKind]::Object -and @($Element.EnumerateObject()).Count -gt 0) {
+        foreach ($property in $Element.EnumerateObject()) {
+            Add-ApplicationApiContractValues -Element $property.Value -Path "$Path.$($property.Name)" -Values $Values
+        }
+    }
+    elseif ($Element.ValueKind -eq [System.Text.Json.JsonValueKind]::Array -and $Element.GetArrayLength() -gt 0) {
+        for ($index = 0; $index -lt $Element.GetArrayLength(); $index++) {
+            Add-ApplicationApiContractValues -Element $Element[$index] -Path "$Path[$index]" -Values $Values
+        }
+    }
+    else {
+        $Values[$Path] = $Element.GetRawText()
+    }
+}
+
+function Get-ApplicationApiContractDifferences {
+    param([string] $Baseline, [string] $Current)
+
+    $old = [System.Text.Json.JsonDocument]::Parse($Baseline)
+    try {
+        $new = [System.Text.Json.JsonDocument]::Parse($Current)
+        try {
+            $oldValues = @{}
+            $newValues = @{}
+            Add-ApplicationApiContractValues -Element $old.RootElement -Path '$' -Values $oldValues
+            Add-ApplicationApiContractValues -Element $new.RootElement -Path '$' -Values $newValues
+            $differences = @(
+                foreach ($path in @(@($oldValues.Keys) + @($newValues.Keys) | Sort-Object -Unique -CaseSensitive)) {
+                    if ($oldValues.ContainsKey($path) -and $newValues.ContainsKey($path) -and $oldValues[$path] -ceq $newValues[$path]) { continue }
+                    [PSCustomObject]@{
+                        Path = $path
+                        Baseline = if ($oldValues.ContainsKey($path)) { $oldValues[$path] } else { '<missing>' }
+                        Current = if ($newValues.ContainsKey($path)) { $newValues[$path] } else { '<missing>' }
+                    }
+                }
+            )
+            [PSCustomObject]@{
+                Differences = @($differences | Select-Object -First 20)
+                Truncated = $differences.Count -gt 20
+            }
+        }
+        finally {
+            $new.Dispose()
+        }
+    }
+    finally {
+        $old.Dispose()
+    }
+}
+
 <#
 .SYNOPSIS
     Checks object and member removals against the same published baseline used by AppSourceCop.
@@ -401,6 +458,15 @@ function Test-ApplicationApiMoves {
         elseif ($old.Name -cne $new.Name -or $old.Namespace -cne $new.Namespace -or $old.ContractHash -cne $new.ContractHash) {
             $reason = 'Moved object contract changed; automatic migration exception is unsafe.'
         }
+        $contractDifferences = @()
+        $contractDifferencesTruncated = $false
+        if ($reason -and $old -and $new -and $old.ContractHash -cne $new.ContractHash -and
+            $Baseline.ContainsKey('Contracts') -and $Current.ContainsKey('Contracts') -and
+            $Baseline.Contracts.ContainsKey($key) -and $Current.Contracts.ContainsKey($key)) {
+            $comparison = Get-ApplicationApiContractDifferences -Baseline $Baseline.Contracts[$key] -Current $Current.Contracts[$key]
+            $contractDifferences = $comparison.Differences
+            $contractDifferencesTruncated = $comparison.Truncated
+        }
         [PSCustomObject]@{
             RuleId = $diagnostic.RuleId
             Key = $key
@@ -415,6 +481,8 @@ function Test-ApplicationApiMoves {
             ControlKind = $diagnostic.ControlKind
             Accepted = -not $reason
             Reason = $reason
+            ContractDifferences = $contractDifferences
+            ContractDifferencesTruncated = $contractDifferencesTruncated
             Baseline = $old
             Current = $new
             Diagnostic = $diagnostic.Message
@@ -429,7 +497,7 @@ function Get-ApplicationApiGateSnapshot {
         Where-Object { $_.Id -eq 'c1335042-3002-4257-bf8a-75c898ccb1b8' -and $_.Name -ceq 'Application' })
     if ($roots.Count -ne 1) { throw "Expected one compiled Application facade; found $($roots.Count)." }
     Get-ApplicationApiSnapshot -ApplicationPackagePath $roots[0].Path -DependencyPackagePaths $Paths -SymbolKeys $Keys `
-        -PartNames $PartNames -ActionNames $ActionNames -FieldNames $FieldNames -MethodNames $MethodNames -CueGroupNames $CueGroupNames -ControlNames $ControlNames
+        -PartNames $PartNames -ActionNames $ActionNames -FieldNames $FieldNames -MethodNames $MethodNames -CueGroupNames $CueGroupNames -ControlNames $ControlNames -IncludeContracts
 }
 
 <#
@@ -479,7 +547,16 @@ function Complete-ApplicationApiValidation {
             $state.AcceptedMoves = @(Test-ApplicationApiMoves -Baseline $baseline -Current $current -Diagnostics $records.Diagnostics)
             $rejected = @($state.AcceptedMoves | Where-Object { -not $_.Accepted })
             if ($rejected.Count -gt 0) {
-                foreach ($issue in $rejected) { Write-Host "::error::$($issue.RuleId) $($issue.Name): $($issue.Reason)" }
+                foreach ($issue in $rejected) {
+                    Write-Host "::error::$($issue.RuleId) $($issue.Name): $($issue.Reason)"
+                    if ($issue.ContractDifferences.Count -gt 0) {
+                        Write-Host "$($issue.RuleId) $($issue.Name) contract differences (JSON paths; full values in ApplicationApi state.json):"
+                        foreach ($difference in $issue.ContractDifferences) {
+                            Write-Host "  $($difference.Path)"
+                        }
+                        if ($issue.ContractDifferencesTruncated) { Write-Host '  Only the first 20 differences are included.' }
+                    }
+                }
                 throw "$($rejected.Count) removal(s) were not verified as ownership-only Application moves."
             }
         }

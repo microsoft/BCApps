@@ -153,7 +153,7 @@ function Write-ApplicationApiContract {
     }
 }
 
-function Get-ApplicationApiContractHash {
+function Get-ApplicationApiContractJson {
     param(
         [System.Text.Json.JsonElement] $Element,
         [string[]] $IgnoredProperties = @()
@@ -161,16 +161,30 @@ function Get-ApplicationApiContractHash {
 
     $buffer = [System.IO.MemoryStream]::new()
     $writer = [System.Text.Json.Utf8JsonWriter]::new($buffer)
-    $hash = [System.Security.Cryptography.SHA256]::Create()
     try {
         Write-ApplicationApiContract -Element $Element -Writer $writer -IgnoredProperties $IgnoredProperties
         $writer.Flush()
-        [System.Convert]::ToBase64String($hash.ComputeHash($buffer.ToArray()))
+        [System.Text.Encoding]::UTF8.GetString($buffer.ToArray())
+    }
+    finally {
+        $writer.Dispose()
+        $buffer.Dispose()
+    }
+}
+
+function Get-ApplicationApiContractHash {
+    param(
+        [System.Text.Json.JsonElement] $Element,
+        [string[]] $IgnoredProperties = @()
+    )
+
+    $contract = Get-ApplicationApiContractJson -Element $Element -IgnoredProperties $IgnoredProperties
+    $hash = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        [System.Convert]::ToBase64String($hash.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($contract)))
     }
     finally {
         $hash.Dispose()
-        $writer.Dispose()
-        $buffer.Dispose()
     }
 }
 
@@ -289,7 +303,8 @@ function Add-ApplicationApiSymbols {
         [string[]] $FieldNames,
         [string[]] $MethodNames,
         [string[]] $CueGroupNames,
-        [string[]] $ControlNames
+        [string[]] $ControlNames,
+        [switch] $IncludeContracts
     )
 
     $objectCollections = @(
@@ -308,7 +323,7 @@ function Add-ApplicationApiSymbols {
                 $name = $child.GetProperty('Name').GetString()
                 $childNamespace = if ($Namespace) { "$Namespace.$name" } else { $name }
                 Add-ApplicationApiSymbols -Element $child -Namespace $childNamespace -Package $Package -Snapshot $Snapshot `
-                    -Names $Names -SymbolKeys $SymbolKeys -PartNames $PartNames -ActionNames $ActionNames -FieldNames $FieldNames -MethodNames $MethodNames -CueGroupNames $CueGroupNames -ControlNames $ControlNames
+                    -Names $Names -SymbolKeys $SymbolKeys -PartNames $PartNames -ActionNames $ActionNames -FieldNames $FieldNames -MethodNames $MethodNames -CueGroupNames $CueGroupNames -ControlNames $ControlNames -IncludeContracts:$IncludeContracts
             }
         }
         elseif ($property.Name -cin $objectCollections -or $property.Name -cin @('Tables', 'TableExtensions')) {
@@ -395,6 +410,9 @@ function Add-ApplicationApiSymbols {
                 }
                 # Tables supply host identity only; schema validation remains with AppSourceCop.
                 $fingerprint = if ($isSchema) { '' } else { Get-ApplicationApiContractHash -Element $symbol -IgnoredProperties @($ignoredProperties) }
+                if ($IncludeContracts -and $selected -and -not $isSchema) {
+                    $Snapshot.Contracts[$key] = Get-ApplicationApiContractJson -Element $symbol -IgnoredProperties @($ignoredProperties)
+                }
                 $customizationTarget = [System.Text.Json.JsonElement]::new()
                 $hasCustomizationTarget = $property.Name -ceq 'PageCustomizations' -and $symbol.TryGetProperty('TargetObject', [ref]$customizationTarget)
                 $record = [PSCustomObject]@{
@@ -456,7 +474,8 @@ function Get-ApplicationApiSnapshot {
         [string[]] $FieldNames = @(),
         [string[]] $MethodNames = @(),
         [string[]] $CueGroupNames = @(),
-        [string[]] $ControlNames = @()
+        [string[]] $ControlNames = @(),
+        [switch] $IncludeContracts
     )
 
     $index = @{}
@@ -477,6 +496,7 @@ function Get-ApplicationApiSnapshot {
         Application = $root
         Packages = @{}
         Symbols = @{}
+        Contracts = @{}
         PageParts = [System.Collections.Generic.List[object]]::new()
         PageActions = [System.Collections.Generic.List[object]]::new()
         PageFields = [System.Collections.Generic.List[object]]::new()
@@ -511,7 +531,7 @@ function Get-ApplicationApiSnapshot {
                 }
             }
             Add-ApplicationApiSymbols -Element $symbols -Namespace '' -Package $package -Snapshot $snapshot `
-                -Names $names -SymbolKeys $selectedKeys -PartNames $PartNames -ActionNames $ActionNames -FieldNames $FieldNames -MethodNames $MethodNames -CueGroupNames $CueGroupNames -ControlNames $ControlNames
+                -Names $names -SymbolKeys $selectedKeys -PartNames $PartNames -ActionNames $ActionNames -FieldNames $FieldNames -MethodNames $MethodNames -CueGroupNames $CueGroupNames -ControlNames $ControlNames -IncludeContracts:$IncludeContracts
         }
         finally {
             $loaded.Document.Dispose()
