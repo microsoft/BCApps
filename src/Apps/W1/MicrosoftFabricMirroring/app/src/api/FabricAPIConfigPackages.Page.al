@@ -76,6 +76,23 @@ page 48504 "Fabric API Config Packages"
         SetActionResponse(ActionContext);
     end;
 
+    [ServiceEnabled]
+    [Caption('Import a configuration package from its JSON definition')]
+    [Scope('Cloud')]
+    procedure ImportPackage(PackageJson: Text; var ActionContext: WebServiceActionContext)
+    var
+        FabricConfigPackage: Record "Fabric Config Package";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+        PackageCode: Code[20];
+    begin
+        PackageCode := FabricConfigPkgMgt.ImportPackageFromJson(PackageJson);
+        FabricConfigPackage.Get(PackageCode);
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Fabric API Config Packages");
+        ActionContext.AddEntityKey(FabricConfigPackage.FieldNo(SystemId), FabricConfigPackage.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Created);
+    end;
+
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext)
     begin
         ActionContext.SetObjectType(ObjectType::Page);

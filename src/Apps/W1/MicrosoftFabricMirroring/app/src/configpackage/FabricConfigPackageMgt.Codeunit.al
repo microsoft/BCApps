@@ -285,24 +285,27 @@ codeunit 48521 "Fabric Config Package Mgt"
 
     internal procedure ImportPackageFromStream(var InStream: InStream)
     var
-        JsonObj: JsonObject;
-        JsonArr: JsonArray;
-        TablesToken: JsonToken;
-        FieldToken: JsonToken;
-        TableElem: JsonToken;
-        TableIds: List of [Integer];
-        PackageCode: Code[20];
-        Description: Text[100];
-        Version: Code[10];
         JsonTextBuilder: TextBuilder;
-        JsonText: Text;
         Line: Text;
     begin
         while not InStream.EOS() do begin
             InStream.ReadText(Line);
             JsonTextBuilder.Append(Line);
         end;
-        JsonText := JsonTextBuilder.ToText();
+        ImportPackageFromJson(JsonTextBuilder.ToText());
+    end;
+
+    internal procedure ImportPackageFromJson(JsonText: Text) PackageCode: Code[20]
+    var
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
+        TablesToken: JsonToken;
+        FieldToken: JsonToken;
+        TableElem: JsonToken;
+        TableIds: List of [Integer];
+        Description: Text[100];
+        Version: Code[10];
+    begin
         if not JsonObj.ReadFrom(JsonText) then
             Error(InvalidPackageFileErr);
         if JsonObj.Get('code', FieldToken) then
