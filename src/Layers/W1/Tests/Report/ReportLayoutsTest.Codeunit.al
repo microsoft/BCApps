@@ -127,10 +127,10 @@ codeunit 139595 "Report Layouts Test"
         // Assert - Layout exists and contains new contents
         ReportLayoutList.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid);
 
-        TempBlob.CreateOutStream(ReplacedLayoutOutStream, TextEncoding::UTF8);
+        GlobalTempBlob.CreateOutStream(ReplacedLayoutOutStream, TextEncoding::UTF8);
         ReportLayoutList.Layout.ExportStream(ReplacedLayoutOutStream);
 
-        TempBlob.CreateInStream(TextEncoding::UTF8).ReadText(ReplacedLayoutText, StrLen(AlternateLayoutTextTxt));
+        GlobalTempBlob.CreateInStream(TextEncoding::UTF8).ReadText(ReplacedLayoutText, StrLen(AlternateLayoutTextTxt));
         Assert.AreEqual(AlternateLayoutTextTxt, ReplacedLayoutText, 'The contents of the layout were not replaced.');
     end;
 
@@ -759,7 +759,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutList.SetRange("Report ID", Report::TestReportLayoutsReport);
         ReportLayoutList.SetRange("User Defined", false);
         ReportLayoutList.SetRange(Name, LayoutName);
-        Assert.IsTrue(ReportLayoutList.FindFirst(), StrSubstNo('The extension-installed test layout %1 must exist.', LayoutName));
+        Assert.IsTrue(ReportLayoutList.FindFirst(), StrSubstNo(ExtensionInstalledTestLayoutMustExistErr, LayoutName));
     end;
 
     local procedure SetExtensionRDLCLayoutsFilter(var ReportLayoutList: Record "Report Layout List")
@@ -800,7 +800,7 @@ codeunit 139595 "Report Layouts Test"
                 else
                     Error(UnsupportedTestLayoutFormatErr, LayoutFormat);
             end;
-            Assert.IsTrue(ReportLayoutList.FindFirst(), StrSubstNo('The test report must provide a built-in %1 layout.', LayoutFormat));
+            Assert.IsTrue(ReportLayoutList.FindFirst(), StrSubstNo(TheTestReportMustProvideBuiltInLayoutErr, LayoutFormat));
             ReportLayoutList.Layout.ExportStream(LayoutOutStream);
         end;
         Assert.IsTrue(LayoutBlob.HasValue(), 'The test layout fixture must not be empty.');
@@ -825,7 +825,7 @@ codeunit 139595 "Report Layouts Test"
                 Error(UnsupportedTestLayoutFormatErr, LayoutFormat);
         end;
         if not AvailableInAllCompanies then
-            TenantReportLayout."Company Name" := CompanyName();
+            TenantReportLayout."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayout."Company Name"));
         TenantReportLayout."MIME Type" := MimeType;
         TenantReportLayout.Layout.ImportStream(LayoutBlob.CreateInStream(TextEncoding::UTF8), TenantReportLayout.Description);
         TenantReportLayout.Insert(true);
@@ -1282,7 +1282,7 @@ codeunit 139595 "Report Layouts Test"
         ExportCount := 0;
         UseLayoutUpload := false;
         CaptureExport := false;
-        clear(TempBlob);
+        clear(GlobalTempBlob);
         clear(UploadedLayoutBlob);
         clear(ExportedLayoutBlob);
     end;
@@ -1303,10 +1303,10 @@ codeunit 139595 "Report Layouts Test"
             exit;
         end;
 
-        TempBlob.CreateOutStream(TempOutStream, TextEncoding::UTF8);
+        GlobalTempBlob.CreateOutStream(TempOutStream, TextEncoding::UTF8);
         TempOutStream.WriteText(InsertedLayoutContextTxt, StrLen(InsertedLayoutContextTxt));
 
-        TempBlob.CreateInStream(FileInStream, TextEncoding::UTF8);
+        GlobalTempBlob.CreateInStream(FileInStream, TextEncoding::UTF8);
 
         UploadFileName := 'TestLayout';
         AlreadyUploaded := true;
@@ -2182,7 +2182,7 @@ codeunit 139595 "Report Layouts Test"
 
     var
         Assert: Codeunit Assert;
-        TempBlob: Codeunit "Temp Blob";
+        GlobalTempBlob: Codeunit "Temp Blob";
         UploadedLayoutBlob: Codeunit "Temp Blob";
         ExportedLayoutBlob: Codeunit "Temp Blob";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
@@ -2200,6 +2200,8 @@ codeunit 139595 "Report Layouts Test"
         GlobalOverrideRetiredErr: Label 'The global override for %1 should carry the Retired status.', Comment = '%1 = layout name';
         CompanyOverrideUnexpectedErr: Label 'No company-specific override should exist for layout %1.', Comment = '%1 = layout name';
         LayoutCouldNotBePreparedErr: Label 'The layout could not be prepared. %1', Comment = '%1 = layout validation error';
+        ExtensionInstalledTestLayoutMustExistErr: Label 'The extension-installed test layout %1 must exist.', Comment = '%1 = layout name';
+        TheTestReportMustProvideBuiltInLayoutErr: Label 'The test report must provide a built-in %1 layout.', Comment = '%1 = layout name';
         InsertedLayoutContextTxt: Text;
         UploadedLayoutFileName: Text;
         ExportedLayoutFileName: Text;
