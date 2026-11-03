@@ -1367,8 +1367,8 @@ codeunit 144200 "FatturaPA Test"
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempErrorMessage: Record "Error Message" temporary;
-        HeaderRecRef: RecordRef;
         FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+        HeaderRecRef: RecordRef;
     begin
         // [SCENARIO] A missing domestic customer CAP should not also log a format error.
         Initialize();
@@ -1403,8 +1403,8 @@ codeunit 144200 "FatturaPA Test"
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempErrorMessage: Record "Error Message" temporary;
-        HeaderRecRef: RecordRef;
         FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+        HeaderRecRef: RecordRef;
     begin
         // [SCENARIO] A missing company CAP should not also log a format error.
         Initialize();
