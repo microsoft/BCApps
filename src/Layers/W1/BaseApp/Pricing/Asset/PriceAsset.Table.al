@@ -332,4 +332,9 @@ table 7003 "Price Asset"
     local procedure OnBeforeVerifyConsistentAssetType(var PriceAsset: Record "Price Asset"; var IsHandled: Boolean)
     begin
     end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateVariantCode(var PriceAsset: Record "Price Asset"; var IsHandled: Boolean)
+    begin
+    end;
 }
