@@ -24,6 +24,7 @@ using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Utilities;
 
 table 6907 "Expense Report Line"
@@ -1189,6 +1190,7 @@ table 6907 "Expense Report Line"
         CannotModifyWithParticipantsErr: Label 'You cannot modify %1 field of expense report %2, Line No. %3 because it has associated participants.', Comment = '%1 = Field Name, %2 = Expense No., %3 = Line No.';
         CannotModifyWithItemizationErr: Label 'You cannot modify %1 field of expense report %2, Line No. %3 because it has associated itemizations.', Comment = '%1 = Field Name, %2 = Expense No., %3 = Line No.';
         DeleteAssociatedRecordsQst: Label 'If you change %1, the existing %2 details will be deleted.\\Do you want to continue?', Comment = '%1 = Field Name, %2 = Expense Detail Required';
+        SubcategoryBlankedMsg: Label 'The expense category of expense report %1, Line No. %2 was changed, so the subcategories on its itemizations were cleared. Review the itemizations and select a subcategory that matches the new category.', Comment = '%1 = Expense Report No., %2 = Line No.';
         OnlyUseExpenseLocationWithPerDiemErr: Label 'The selected Expense Location %1 and Expense Category %2 can only be used with per diem expenses on Expense No. %3.', Comment = '%1 = Expense Location, %2 = Expense Category, %3 = Expense No.';
         NonRefundableGreaterThanAmountErr: Label '%1 cannot be greater than Amount.', Comment = '%1 = Field Caption';
         NonRefundableCannotBeNegativeErr: Label '%1 cannot be in negative on Expense Report No. %2, Line No. %3.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Line No.';
@@ -1220,6 +1222,11 @@ table 6907 "Expense Report Line"
     end;
 
     procedure DeleteAssociatedRecords()
+    begin
+        DeleteAssociatedRecords(false);
+    end;
+
+    local procedure DeleteAssociatedRecords(KeepItemization: Boolean)
     var
         ExpenseReportLineParticip: Record "Expense Report Line Particip.";
         ExpenseReportLineItemization: Record "Expense Report Line Item";
@@ -1230,15 +1237,50 @@ table 6907 "Expense Report Line"
         if not ExpenseReportLineParticip.IsEmpty() then
             ExpenseReportLineParticip.DeleteAll();
 
-        ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
-        ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
-        if not ExpenseReportLineItemization.IsEmpty() then
-            ExpenseReportLineItemization.DeleteAll();
+        if KeepItemization then
+            ClearItemizationSubcategory()
+        else begin
+            ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
+            ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
+            if not ExpenseReportLineItemization.IsEmpty() then
+                ExpenseReportLineItemization.DeleteAll();
+        end;
 
         ExpenseReportLinePerDiem.SetRange("Expense Report No.", Rec."Document No.");
         ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", Rec."Line No.");
         if not ExpenseReportLinePerDiem.IsEmpty() then
             ExpenseReportLinePerDiem.DeleteAll();
+    end;
+
+    local procedure ClearItemizationSubcategory()
+    var
+        ExpenseReportLineItemization: Record "Expense Report Line Item";
+    begin
+        ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
+        ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
+        ExpenseReportLineItemization.SetFilter("Expense Subcategory Code", '<>%1', '');
+        if not ExpenseReportLineItemization.IsEmpty() and not HideValidationDialog then
+            SendSubcategoryBlankedNotification();
+
+        ExpenseReportLineItemization.SetRange("Expense Subcategory Code");
+        ExpenseReportLineItemization.ModifyAll("Expense Category Code", Rec."Expense Category", false);
+        ExpenseReportLineItemization.ModifyAll("Expense Subcategory Code", '', false);
+    end;
+
+    local procedure SendSubcategoryBlankedNotification()
+    var
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        NotificationToSend: Notification;
+    begin
+        NotificationToSend.Id := GetSubcategoryBlankedNotificationId();
+        NotificationToSend.Recall();
+        NotificationToSend.Message(StrSubstNo(SubcategoryBlankedMsg, Rec."Document No.", Rec."Line No."));
+        NotificationLifecycleMgt.SendNotification(NotificationToSend, Rec.RecordId);
+    end;
+
+    local procedure GetSubcategoryBlankedNotificationId(): Guid
+    begin
+        exit('8e4a2b97-1d63-4c5a-b0f8-6a9d3e7c2f15');
     end;
 
     procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
@@ -1449,31 +1491,37 @@ table 6907 "Expense Report Line"
 
     local procedure ConfirmAndDeleteAssociatedRecords(FieldCaption: Text)
     var
+        ExpenseCategory: Record "Expense Category";
         ConfirmManagement: Codeunit "Confirm Management";
+        KeepItemization: Boolean;
     begin
-        if not HasAssociatedRecords() then
-            exit;
+        if Rec."Expense Category" <> '' then
+            if ExpenseCategory.Get(Rec."Expense Category") then
+                KeepItemization := ExpenseCategory.IsItemizationRequired();
 
-        if not HideValidationDialog then
+        if HasAssociatedRecords(KeepItemization) and not HideValidationDialog then
             if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(DeleteAssociatedRecordsQst, FieldCaption, Rec."Expense Detail Required"), true) then
                 Error('');
 
-        DeleteAssociatedRecords();
+        DeleteAssociatedRecords(KeepItemization);
     end;
 
-    local procedure HasAssociatedRecords(): Boolean
+    local procedure HasAssociatedRecords(KeepItemization: Boolean): Boolean
     var
         ExpenseReportLineParticip: Record "Expense Report Line Particip.";
         ExpenseReportLineItemization: Record "Expense Report Line Item";
         ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
     begin
+        if not KeepItemization then begin
+            ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
+            ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
+            if not ExpenseReportLineItemization.IsEmpty() then
+                exit(true);
+        end;
+
         case Rec."Expense Detail Required" of
             Rec."Expense Detail Required"::Itemize:
-                begin
-                    ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
-                    ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
-                    exit(not ExpenseReportLineItemization.IsEmpty());
-                end;
+                exit(false);
             Rec."Expense Detail Required"::Participants:
                 begin
                     ExpenseReportLineParticip.SetRange("Expense Report No.", Rec."Document No.");
@@ -2244,6 +2292,8 @@ table 6907 "Expense Report Line"
             exit;
         end;
 
+        Rec.Validate("Expense Detail Required", ExpenseCategory."Expense Detail Required");
+
         if ExpenseCategory."Expense Detail Required" <> ExpenseCategory."Expense Detail Required"::"Per Diem" then
             Rec.Validate("Expense Location", '');
 
@@ -2252,8 +2302,6 @@ table 6907 "Expense Report Line"
         Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
         if ExpenseCategory."Default Payment Method" <> '' then
             Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
-
-        Rec.Validate("Expense Detail Required", ExpenseCategory."Expense Detail Required");
 
         ExpenseAgentSetup.GetRecordOnce();
         if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage then begin
@@ -2375,6 +2423,31 @@ table 6907 "Expense Report Line"
             end;
 
         Rec := NewLine;
+    end;
+
+    internal procedure IsItemizationRequired(): Boolean
+    begin
+        if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize then
+            exit(true);
+
+        exit(Rec.IsEnforcedItemizationRequired());
+    end;
+
+    internal procedure IsEnforcedItemizationRequired(): Boolean
+    var
+        ExpensePolicy: Record "Expense Policy";
+    begin
+        if (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or
+           (Rec."Expense Category" = '')
+        then
+            exit(false);
+
+        ExpensePolicy.SetRange("Expense Category Code", Rec."Expense Category");
+        ExpensePolicy.SetRange(Enabled, true);
+        ExpensePolicy.SetFilter("Policy Text", '<>%1', '');
+        exit(not ExpensePolicy.IsEmpty());
     end;
 
     internal procedure GetNextExpenseReportLineNo(ExpenseReportNo: Code[20]): Integer
