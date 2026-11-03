@@ -994,7 +994,7 @@ codeunit 333 "Req. Wksh.-Make Order"
         FinalizeOrderHeader(PurchOrderHeader, ReqLine, false);
     end;
 
-    local procedure FinalizeOrderHeader(PurchOrderHeader: Record "Purchase Header"; var ReqLine: Record "Requisition Line"; OnlyProcessedReqLines: Boolean)
+    local procedure FinalizeOrderHeader(PurchHeaderToFinalize: Record "Purchase Header"; var ReqLine: Record "Requisition Line"; OnlyProcessedReqLines: Boolean)
     var
         ReqLine2: Record "Requisition Line";
         IsHandled: Boolean;
@@ -1002,13 +1002,13 @@ codeunit 333 "Req. Wksh.-Make Order"
         if ReqTemplate.Recurring then begin
             // Recurring journal
             ReqLine2.Copy(ReqLine);
-            ReqLine2.SetRange("Vendor No.", PurchOrderHeader."Buy-from Vendor No.");
-            ReqLine2.SetRange("Sell-to Customer No.", PurchOrderHeader."Sell-to Customer No.");
-            ReqLine2.SetRange("Ship-to Code", PurchOrderHeader."Ship-to Code");
-            ReqLine2.SetRange("Order Address Code", PurchOrderHeader."Order Address Code");
-            ReqLine2.SetRange("Currency Code", PurchOrderHeader."Currency Code");
+            ReqLine2.SetRange("Vendor No.", PurchHeaderToFinalize."Buy-from Vendor No.");
+            ReqLine2.SetRange("Sell-to Customer No.", PurchHeaderToFinalize."Sell-to Customer No.");
+            ReqLine2.SetRange("Ship-to Code", PurchHeaderToFinalize."Ship-to Code");
+            ReqLine2.SetRange("Order Address Code", PurchHeaderToFinalize."Order Address Code");
+            ReqLine2.SetRange("Currency Code", PurchHeaderToFinalize."Currency Code");
             IsHandled := false;
-            OnFinalizeOrderHeaderOnAfterSetFiltersForRecurringReqLine(ReqLine2, PurchOrderHeader, IsHandled);
+            OnFinalizeOrderHeaderOnAfterSetFiltersForRecurringReqLine(ReqLine2, PurchHeaderToFinalize, IsHandled);
             if not IsHandled then begin
                 ReqLine2.Find('-');
                 repeat
@@ -1018,7 +1018,7 @@ codeunit 333 "Req. Wksh.-Make Order"
                             Window.Update(5, OrderLineCounter);
                     if ReqLine2."Order Date" <> 0D then begin
                         ReqLine2.Validate("Order Date", CalcDate(ReqLine2."Recurring Frequency", ReqLine2."Order Date"));
-                        ReqLine2.Validate("Currency Code", PurchOrderHeader."Currency Code");
+                        ReqLine2.Validate("Currency Code", PurchHeaderToFinalize."Currency Code");
                     end;
                     if (ReqLine2."Recurring Method" = ReqLine2."Recurring Method"::Variable) and (ReqLine2."No." <> '') then begin
                         ReqLine2.Quantity := 0;
@@ -1036,14 +1036,14 @@ codeunit 333 "Req. Wksh.-Make Order"
                     Window.Update(5, OrderLineCounter);
 
             ReqLine2.Copy(ReqLine);
-            ReqLine2.SetRange("Vendor No.", PurchOrderHeader."Buy-from Vendor No.");
-            ReqLine2.SetRange("Sell-to Customer No.", PurchOrderHeader."Sell-to Customer No.");
-            ReqLine2.SetRange("Ship-to Code", PurchOrderHeader."Ship-to Code");
-            ReqLine2.SetRange("Order Address Code", PurchOrderHeader."Order Address Code");
-            ReqLine2.SetRange("Currency Code", PurchOrderHeader."Currency Code");
+            ReqLine2.SetRange("Vendor No.", PurchHeaderToFinalize."Buy-from Vendor No.");
+            ReqLine2.SetRange("Sell-to Customer No.", PurchHeaderToFinalize."Sell-to Customer No.");
+            ReqLine2.SetRange("Ship-to Code", PurchHeaderToFinalize."Ship-to Code");
+            ReqLine2.SetRange("Order Address Code", PurchHeaderToFinalize."Order Address Code");
+            ReqLine2.SetRange("Currency Code", PurchHeaderToFinalize."Currency Code");
             ReqLine2.SetRange("Purchasing Code", PrevPurchCode);
             IsHandled := false;
-            OnFinalizeOrderHeaderOnAfterSetFiltersForNonRecurringReqLine(ReqLine2, PurchOrderHeader, IsHandled, TempFailedReqLine);
+            OnFinalizeOrderHeaderOnAfterSetFiltersForNonRecurringReqLine(ReqLine2, PurchHeaderToFinalize, IsHandled, TempFailedReqLine);
             if not IsHandled then
                 if ReqLine2.FindSet() then begin
                     ReqLine2.BlockDynamicTracking(true);
@@ -1062,21 +1062,21 @@ codeunit 333 "Req. Wksh.-Make Order"
                     until ReqLine2.Next() = 0;
                 end;
         end;
-        OnAfterFinalizeOrderHeader(PurchOrderHeader, ReqLine);
+        OnAfterFinalizeOrderHeader(PurchHeaderToFinalize, ReqLine);
         if not SuppressCommit then
             Commit();
 
         IsHandled := false;
-        OnFinalizeOrderHeaderOnBeforePrint(PrintPurchOrders, PurchOrderHeader, IsHandled);
+        OnFinalizeOrderHeaderOnBeforePrint(PrintPurchOrders, PurchHeaderToFinalize, IsHandled);
         if not IsHandled then
             if PrintPurchOrders and not PlanningResiliency then
-                if PurchOrderHeader.Get(PurchOrderHeader."Document Type", PurchOrderHeader."No.") then
-                    if not TempPurchaseOrderToPrint.Get(PurchOrderHeader."Document Type", PurchOrderHeader."No.") then begin
-                        TempPurchaseOrderToPrint := PurchOrderHeader;
+                if PurchHeaderToFinalize.Get(PurchHeaderToFinalize."Document Type", PurchHeaderToFinalize."No.") then
+                    if not TempPurchaseOrderToPrint.Get(PurchHeaderToFinalize."Document Type", PurchHeaderToFinalize."No.") then begin
+                        TempPurchaseOrderToPrint := PurchHeaderToFinalize;
                         TempPurchaseOrderToPrint.Insert();
                     end;
 
-        OnAfterFinalizeOrderHeaderProcedure(PurchOrderHeader, ReqLine);
+        OnAfterFinalizeOrderHeaderProcedure(PurchHeaderToFinalize, ReqLine);
     end;
 
     local procedure DeleteCarriedOutRequisitionLine(var RequisitionLine: Record "Requisition Line")
