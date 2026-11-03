@@ -53,5 +53,21 @@
         "HelpURL": "",
         "VideoURL": "",
         "ADOSliceIds": [624513]
+    },
+    {
+        "FeatureName": "Post Shopify payment transactions automatically",
+        "Description": "Enable automatic posting for selected Shopify payment methods and choose the general journal setup. Eligible sale, capture and refund transactions are posted when the related invoice or credit memo is posted, reducing manual payment handling.",
+        "Category": "Commerce",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [620951]
+    },
+    {
+        "FeatureName": "Match Shopify sales taxes with Copilot",
+        "Description": "With the Shopify Connector NA app, use Shopify Tax Matching to propose tax jurisdictions and tax areas from order tax lines. Review the proposed matches and approve orders held for review before creating their sales documents.",
+        "Category": "Commerce",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [445769]
     }
 ]
