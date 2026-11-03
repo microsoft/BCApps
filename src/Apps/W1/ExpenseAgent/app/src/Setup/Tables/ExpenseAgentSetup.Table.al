@@ -314,6 +314,7 @@ table 6930 "Expense Agent Setup"
         {
             Caption = 'Evaluate policies';
             DataClassification = SystemMetadata;
+            InitValue = true;
             ToolTip = 'Specifies whether the agent automatically evaluates expenses against the configured policies. This feature consumes additional AI credits.';
 
             trigger OnValidate()
