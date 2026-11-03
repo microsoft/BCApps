@@ -266,17 +266,21 @@ page 518 "Purchase Lines"
                     var
                         PageManagement: Codeunit "Page Management";
 #if not CLEAN27
+#if not CLEAN28
                         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
 #endif
                     begin
                         PurchHeader.Get(Rec."Document Type", Rec."Document No.");
 #if not CLEAN27
+#if not CLEAN28
                         if Rec."Document Type" = Rec."Document Type"::Order then begin
                             if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() and (Rec."Prod. Order No." <> '') then
                                 PAGE.Run(PAGE::"Subcontracting Order", PurchHeader)
                             else
                                 PAGE.Run(PAGE::"Purchase Order", PurchHeader);
                         end else
+#endif
 #endif
                         PageManagement.PageRun(PurchHeader);
 
