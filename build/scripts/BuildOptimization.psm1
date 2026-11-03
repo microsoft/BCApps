@@ -285,14 +285,23 @@ function Get-ChangedFilesForCI {
     $prevErrorAction = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        # Fetch only when the event's base commit is not already available locally.
-        & git cat-file -e "$baseSha^{commit}" 2>$null
-        if ($LASTEXITCODE -ne 0) {
-            if ($CompareFromMergeBase) {
-                & git fetch origin $baseSha 2>$null
-            }
-            else {
-                & git fetch origin $baseSha --depth=1 2>$null
+        # A depth-one PR merge checkout can be missing both event endpoints.
+        foreach ($sha in @($baseSha, $headSha)) {
+            & git cat-file -e "$sha^{commit}" 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "BUILD OPTIMIZATION: Fetching missing commit $sha"
+                if ($CompareFromMergeBase) {
+                    & git fetch origin $sha 2>$null
+                }
+                else {
+                    & git fetch origin $sha --depth=1 2>$null
+                }
+                if ($LASTEXITCODE -ne 0) {
+                    $message = "Could not fetch commit '$sha' from origin (exitCode=$LASTEXITCODE, directory='$PWD')."
+                    if ($RequireChangeDetection) { throw $message }
+                    Write-Host "BUILD OPTIMIZATION: $message"
+                    return $null
+                }
             }
         }
 
@@ -314,12 +323,13 @@ function Get-ChangedFilesForCI {
         }
         $diffArguments += @($diffBase, $headSha, '--')
 
-        $files = @(& git @diffArguments 2>$null)
+        $files = @(& git @diffArguments 2>&1)
         if ($LASTEXITCODE -ne 0) {
+            $message = "Git diff failed (exitCode=$LASTEXITCODE, directory='$PWD'): $($files -join [Environment]::NewLine)"
             if ($RequireChangeDetection) {
-                throw "Git diff failed with exit code $LASTEXITCODE."
+                throw $message
             }
-            Write-Host "BUILD OPTIMIZATION: git diff failed (exitCode=$LASTEXITCODE)"
+            Write-Host "BUILD OPTIMIZATION: $message"
             return $null
         }
 

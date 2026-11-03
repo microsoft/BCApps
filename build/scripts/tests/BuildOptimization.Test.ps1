@@ -244,6 +244,86 @@ Describe "BuildOptimization" {
             }
         }
 
+        It "compares event endpoints from a depth-one checkout of the PR merge commit" {
+            $source = Join-Path $TestDrive 'merge-source'
+            $checkout = Join-Path $TestDrive 'merge-checkout'
+            git init --quiet $source
+            git -C $source -c user.name=Test -c user.email=test@example.com commit --quiet --allow-empty -m initial
+            git -C $source checkout --quiet -b feature
+            Set-Content (Join-Path $source 'feature.txt') 'feature change'
+            git -C $source add .
+            git -C $source -c user.name=Test -c user.email=test@example.com commit --quiet -m feature
+            $headSha = git -C $source rev-parse HEAD
+            git -C $source checkout --quiet -b target HEAD~1
+            Set-Content (Join-Path $source 'target.txt') 'target change'
+            git -C $source add .
+            git -C $source -c user.name=Test -c user.email=test@example.com commit --quiet -m target
+            $baseSha = git -C $source rev-parse HEAD
+            git -C $source -c user.name=Test -c user.email=test@example.com merge --quiet --no-ff feature -m merge
+            git clone --quiet --depth=1 ([uri]$source).AbsoluteUri $checkout
+            $LASTEXITCODE | Should -Be 0
+            git -C $checkout rev-parse --is-shallow-repository | Should -Be 'true'
+            git -C $checkout cat-file -e "$headSha^{commit}" 2>$null
+            $LASTEXITCODE | Should -Not -Be 0
+
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $eventFile = Join-Path $TestDrive 'merge-event.json'
+            @{ pull_request = @{ base = @{ sha = $baseSha }; head = @{ sha = $headSha } } } |
+                ConvertTo-Json -Depth 5 | Set-Content $eventFile
+            New-Item -ItemType Directory -Path (Join-Path $checkout 'build') | Out-Null
+            Push-Location (Join-Path $checkout 'build')
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:GITHUB_EVENT_PATH = $eventFile
+                $result = @(Get-ChangedFilesForCI)
+                $result | Should -Contain 'feature.txt'
+                $result | Should -Contain 'target.txt'
+                $result.Count | Should -Be 2
+            } finally {
+                Pop-Location
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+            }
+        }
+
+        It "reports <Failure> failure without returning diagnostic text as changed files" -ForEach @(
+            @{ Failure = 'fetch'; ExpectedMessage = '*Could not fetch commit*exitCode=128*' }
+            @{ Failure = 'diff'; ExpectedMessage = '*Git diff failed*exitCode=128*fatal: bad object*' }
+        ) {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $eventFile = Join-Path $TestDrive 'failed-git-event.json'
+            @{ pull_request = @{ base = @{ sha = 'a' * 40 }; head = @{ sha = 'b' * 40 } } } |
+                ConvertTo-Json -Depth 5 | Set-Content $eventFile
+            Mock -ModuleName BuildOptimization git -MockWith ({
+                $global:LASTEXITCODE = 0
+                if ($Failure -eq 'fetch' -or $args -contains 'diff') {
+                    $global:LASTEXITCODE = 128
+                    if ($args -contains 'diff') { Write-Error 'fatal: bad object' }
+                }
+            }.GetNewClosure())
+            Mock -ModuleName BuildOptimization Write-Host { }
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:GITHUB_EVENT_PATH = $eventFile
+                Get-ChangedFilesForCI | Should -BeNullOrEmpty
+                Should -Invoke -ModuleName BuildOptimization Write-Host -Times 1 -ParameterFilter {
+                    $Object -like $ExpectedMessage
+                }
+                { Get-ChangedFilesForCI -RequireChangeDetection } | Should -Throw $ExpectedMessage
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+            }
+        }
+
         It "returns only newly added files when the A diff filter is requested" {
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME

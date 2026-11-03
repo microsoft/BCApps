@@ -269,7 +269,9 @@ Describe "ParallelTestExecution churn selection" {
         @{ pull_request = @{ base = @{ sha = 'a' * 40 }; head = @{ sha = 'b' * 40 } } } |
             ConvertTo-Json -Depth 4 | Set-Content $env:GITHUB_EVENT_PATH
         $script:useRealAffectedAppNames = $true
-        Mock -ModuleName BuildOptimization git { $global:LASTEXITCODE = 1 }
+        Mock -ModuleName BuildOptimization git {
+            $global:LASTEXITCODE = if ($args -contains 'diff') { 128 } else { 0 }
+        }
         Mock -ModuleName BuildOptimization Write-Host { }
         Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
             Should -BeTrue
