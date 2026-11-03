@@ -66,8 +66,13 @@ codeunit 134842 AmtAutoFormatCurrLCYFCYSymAf
         Initialize();
         GeneralLedgerSetup := SetShowCurrencyLCYAndFCYSymbol();
         GeneralLedgerSetup."Currency Symbol Position" := GeneralLedgerSetup."Currency Symbol Position"::"After Amount";
+        GeneralLedgerSetup."Amount Decimal Places" := '0:5';
+        GeneralLedgerSetup."Unit-Amount Decimal Places" := '0:5';
         GeneralLedgerSetup.Modify();
         Currency := CreateFCYCurrency(Enum::"Currency Symbol Position"::"After Amount");
+        Currency."Amount Decimal Places" := '0:5';
+        Currency."Unit-Amount Decimal Places" := '0:5';
+        Currency.Modify();
         RequestSessionUpdate();
 
         AmountAutoFormatCurrency := CreateAmountFormatCurrencyTestRecord(Currency.Code);
