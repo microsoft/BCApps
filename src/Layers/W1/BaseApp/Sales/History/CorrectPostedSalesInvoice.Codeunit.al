@@ -1025,10 +1025,16 @@ codeunit 1303 "Correct Posted Sales Invoice"
     /// <param name="SalesCreditMemoNo">Specifies the posted sales credit memo number.</param>
     internal procedure UpdateSalesOrderLineIfExist(SalesCreditMemoNo: Code[20])
     var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SalesInvoiceLine: Record "Sales Invoice Line";
         TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary;
     begin
+        SalesCrMemoHeader.SetLoadFields("Return Order No.", "Applies-to Doc. No.");
+        SalesCrMemoHeader.Get(SalesCreditMemoNo);
+        if (SalesCrMemoHeader."Return Order No." <> '') and (SalesCrMemoHeader."Applies-to Doc. No." <> '') then
+            exit;
+
         SalesCrMemoLine.SetLoadFields("Document No.", "No.", "Appl.-from Item Entry", Quantity, "Variant Code");
         SalesCrMemoLine.SetRange("Document No.", SalesCreditMemoNo);
         SalesCrMemoLine.SetFilter("No.", '<>%1', '');
