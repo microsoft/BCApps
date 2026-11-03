@@ -380,6 +380,57 @@ Describe "BuildOptimization" {
         }
     }
 
+    Context "Mandatory NewObjects test selection" {
+        BeforeEach {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
+            $env:GITHUB_ACTIONS = 'true'
+            $env:GITHUB_EVENT_NAME = 'pull_request'
+            $env:BUILD_OPTIMIZATION_DISABLED = $null
+            Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/Apps/Example/code.al') }
+            Mock -ModuleName BuildOptimization Get-AppDependencyGraph {
+                @{
+                    unrelated = [PSCustomObject]@{ Name = 'Unrelated App' }
+                    newobjects = [PSCustomObject]@{ Name = 'Tests-NewObjects-Internal' }
+                    unaffected = [PSCustomObject]@{ Name = 'Unaffected Tests' }
+                }
+            }
+            Mock -ModuleName BuildOptimization Get-AffectedApps { @('unrelated') }
+        }
+
+        AfterEach {
+            $env:GITHUB_ACTIONS = $savedActions
+            $env:GITHUB_EVENT_NAME = $savedEvent
+            $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
+        }
+
+        It "retains NewObjects for an unrelated app change without selecting other unaffected tests" {
+            $result = Get-AffectedAppNames -BaseFolder $baseFolder
+            $result.RunAll | Should -BeFalse
+            $result.AppNames.Count | Should -Be 2
+            $result.AppNames | Should -Contain 'Unrelated App'
+            $result.AppNames | Should -Contain 'Tests-NewObjects-Internal'
+            $result.AppNames | Should -Not -Contain 'Unaffected Tests'
+        }
+
+        It "does not duplicate NewObjects when already affected" {
+            Mock -ModuleName BuildOptimization Get-AffectedApps { @('unrelated', 'newobjects') }
+            $result = Get-AffectedAppNames -BaseFolder $baseFolder
+            $result.RunAll | Should -BeFalse
+            @($result.AppNames | Where-Object { $_ -eq 'Tests-NewObjects-Internal' }).Count | Should -Be 1
+        }
+
+        It "never skips NewObjects through the shared helper or its cached result" {
+            $cache = Join-Path $TestDrive 'mandatory-newobjects.json'
+            Test-ShouldSkipTestApp -AppName 'Tests-NewObjects-Internal' -BaseFolder $baseFolder -CacheFile $cache |
+                Should -BeFalse
+            Test-ShouldSkipTestApp -AppName 'Tests-NewObjects-Internal' -BaseFolder $baseFolder -CacheFile $cache |
+                Should -BeFalse
+            Should -Invoke -ModuleName BuildOptimization Get-AffectedApps -Times 1 -Exactly
+        }
+    }
+
     Context "Test-ShouldSkipTestApp" {
         BeforeAll {
             $cacheFile = Join-Path ([System.IO.Path]::GetTempPath()) "BuildOptimization_Test_$([System.Guid]::NewGuid()).json"

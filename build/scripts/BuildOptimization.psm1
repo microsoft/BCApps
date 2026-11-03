@@ -387,6 +387,7 @@ function Test-FullBuildPatternsMatch {
     Pure computation — no caching or side effects. Returns a PSCustomObject with
     two properties: RunAll (bool) and AppNames (string[]). The caller is responsible
     for persisting/reading the result to avoid recomputing across process invocations.
+    Selective results also retain Tests-NewObjects-Internal regardless of dependency changes.
 .PARAMETER BaseFolder
     Root of the repository.
 .OUTPUTS
@@ -446,6 +447,11 @@ function Get-AffectedAppNames {
     $sortedNames = $affectedNames | Sort-Object
     Write-Host "BUILD OPTIMIZATION: Affected apps ($($affectedNames.Count)):"
     foreach ($name in $sortedNames) { Write-Host "  - $name" }
+
+    if ($affectedNames -notcontains 'Tests-NewObjects-Internal') {
+        $affectedNames += 'Tests-NewObjects-Internal'
+    }
+    Write-Host "BUILD OPTIMIZATION: Always retaining 'Tests-NewObjects-Internal' when present in the test bucket"
 
     return [PSCustomObject]@{ RunAll = $false; AppNames = $affectedNames }
 }
