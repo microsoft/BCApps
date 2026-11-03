@@ -213,6 +213,12 @@ page 6927 "Expenses API"
                     Caption = 'Credit Card Feed No.';
                     Editable = false;
                 }
+                field(source; Rec.Source)
+                {
+                    Caption = 'Source';
+                    ToolTip = 'Specifies how the expense was originally created.';
+                    Editable = false;
+                }
                 field(corporateCardId; Rec."Corporate Card Id")
                 {
                     Caption = 'Corporate Card Id';

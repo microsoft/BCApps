@@ -77,6 +77,7 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the date the expense occurred.';
+                    Editable = Rec.Source <> Rec.Source::CorporateCard;
 
                     trigger OnValidate()
                     begin
@@ -109,14 +110,14 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the Currency of the Amount.';
-                    Editable = not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
+                    Editable = (Rec.Source <> Rec.Source::CorporateCard) and not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
                     Importance = Promoted;
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the total amount in the expense currency.';
-                    Editable = not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
+                    Editable = (Rec.Source <> Rec.Source::CorporateCard) and not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
                     Importance = Promoted;
 
                     trigger OnValidate()

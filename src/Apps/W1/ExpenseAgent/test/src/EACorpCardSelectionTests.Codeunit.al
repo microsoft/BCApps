@@ -89,10 +89,10 @@ codeunit 148364 EACorpCardSelectionTests
         ExpenseCard.CorporateCard.Lookup();
         ExpenseCard.CorporateCard.AssertEquals(CorpCardSelectionMgt.GetCardDisplay(CorpCard."Card Id"));
         ExpenseCard.Close();
-        Expense.SetRange("Expense User No.", CorpCard."Expense User No.");
         Expense.SetRange("Corporate Card Id", CorpCard."Card Id");
         Assert.RecordCount(Expense, 1);
         Expense.FindFirst();
+        Expense.TestField("Expense User No.", CorpCard."Expense User No.");
         Expense.TestField("Credit Card Feed No.", 0);
     end;
 
@@ -420,6 +420,104 @@ codeunit 148364 EACorpCardSelectionTests
     end;
 
     [Test]
+    procedure CardTransactionDraftRetainsCorporateCardSource()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+    begin
+        CreateCorporateCardDraft(Expense);
+        CorpCardTrans.Get(Expense."Credit Card Feed No.");
+
+        Expense.Validate(Amount, Expense.Amount);
+        Expense.Validate("Expense Date", Expense."Expense Date");
+        Expense.Validate("Currency Code", Expense."Currency Code");
+        Expense.Description := 'Receipt details';
+        Expense.Modify(true);
+
+        Expense.Get(Expense."No.");
+        Expense.TestField(Source, Expense.Source::CorporateCard);
+        Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        Expense.TestField(Description, 'Receipt details');
+    end;
+
+    [Test]
+    procedure CorporateCardDraftRejectsAmountChange()
+    var
+        Expense: Record Expense;
+    begin
+        CreateCorporateCardDraft(Expense);
+
+        asserterror Expense.Validate(Amount, Expense.Amount + 1);
+
+        Assert.ExpectedError(Expense.FieldCaption(Amount) + ' cannot be changed');
+    end;
+
+    [Test]
+    procedure CorporateCardDraftRejectsExpenseDateChange()
+    var
+        Expense: Record Expense;
+    begin
+        CreateCorporateCardDraft(Expense);
+
+        asserterror Expense.Validate("Expense Date", CalcDate('<1D>', Expense."Expense Date"));
+
+        Assert.ExpectedError(Expense.FieldCaption("Expense Date") + ' cannot be changed');
+    end;
+
+    [Test]
+    procedure CorporateCardDraftRejectsCurrencyValidation()
+    var
+        Expense: Record Expense;
+    begin
+        CreateCorporateCardDraft(Expense);
+
+        asserterror Expense.Validate("Currency Code", 'EUR');
+
+        Assert.ExpectedError(Expense.FieldCaption("Currency Code") + ' cannot be changed');
+    end;
+
+    [Test]
+    procedure CorporateCardDraftRejectsCurrencyAssignedWithoutValidation()
+    var
+        Expense: Record Expense;
+    begin
+        CreateCorporateCardDraft(Expense);
+        Expense."Currency Code" := 'EUR';
+
+        asserterror Expense.Modify(true);
+
+        Assert.ExpectedError(Expense.FieldCaption("Currency Code") + ' cannot be changed');
+    end;
+
+    [Test]
+    procedure MatchedManualExpenseRetainsFinancialEditing()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+    begin
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        InsertExpense(Expense, CorpCard);
+        CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
+        Expense.Get(Expense."No.");
+
+        Expense.Validate(Amount, 21);
+        Expense.Validate("Expense Date", CalcDate('<1D>', WorkDate()));
+        Expense.Validate("Currency Code", 'EUR');
+        Expense.Modify(true);
+
+        Expense.Get(Expense."No.");
+        Expense.TestField(Source, Expense.Source::Manual);
+        Expense.TestField(Amount, 21);
+        Expense.TestField("Expense Date", CalcDate('<1D>', WorkDate()));
+        Expense.TestField("Currency Code", 'EUR');
+        Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure AutoDraftLinksExistingManualExpenseAndRetryDoesNotDuplicateIt()
     var
@@ -448,6 +546,8 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans.Get(CorpCardTrans."Entry No.");
         Assert.AreEqual(CorpCardTrans.Status::Matched, CorpCardTrans.Status, 'AutoDraft must match the existing selected-card expense first.');
         Assert.AreEqual(Expense."No.", CorpCardTrans."Expense No.", 'The transaction must link the manually created expense.');
+        Expense.Get(CorpCardTrans."Expense No.");
+        Expense.TestField(Source, Expense.Source::Manual);
         Assert.AreEqual(ExpenseCount, Expense.Count(), 'Initial processing and retries must not create another expense.');
     end;
 
@@ -592,6 +692,22 @@ codeunit 148364 EACorpCardSelectionTests
         Expense."Reimbursement Type" := Expense."Reimbursement Type"::"Credit Card";
         Expense."Expense Date" := WorkDate();
         Expense.Amount := 20;
+    end;
+
+    local procedure CreateCorporateCardDraft(var Expense: Record Expense)
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        LibraryExpense: Codeunit "Library - Expense";
+        ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
+        ExpenseNo: Code[20];
+    begin
+        Initialize();
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        CorpCard.Get('CORPCARD-0001');
+        CreateTransaction(CorpCardTrans, CorpCard);
+        ExpenseWriter.CreateDraftFromTrans(CorpCardTrans, ExpenseNo);
+        Expense.Get(ExpenseNo);
     end;
 
     local procedure InsertExpense(var Expense: Record Expense; CorpCard: Record "EA Corp Card")

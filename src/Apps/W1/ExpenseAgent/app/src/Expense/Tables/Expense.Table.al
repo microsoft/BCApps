@@ -163,6 +163,7 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
 
                 if "Expense Date" <> xRec."Expense Date" then begin
                     ClearRuleId();
@@ -189,6 +190,7 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
                 UpdateAmount();
                 ApplyRule();
             end;
@@ -202,6 +204,7 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
                 UpdateAmount();
                 ApplyRule();
             end;
@@ -747,6 +750,12 @@ table 6900 Expense
             TableRelation = "Expense Vendor";
             Editable = false;
         }
+        field(63; Source; Enum "Expense Source")
+        {
+            Caption = 'Source';
+            ToolTip = 'Specifies how the expense was originally created.';
+            Editable = false;
+        }
     }
     keys
     {
@@ -791,6 +800,7 @@ table 6900 Expense
 
     trigger OnModify()
     begin
+        CheckCorporateCardSourceFields();
         if ("Corporate Card Id" <> xRec."Corporate Card Id") or
            ("Expense User No." <> xRec."Expense User No.") or
            ("Expense Date" <> xRec."Expense Date") or
@@ -845,6 +855,7 @@ table 6900 Expense
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 = Expense User No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
         ModifyOrDeleteErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
+        CorporateCardSourceFieldCannotChangeErr: Label '%1 cannot be changed on an expense created from a corporate card transaction.', Comment = '%1 = field caption';
         ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
 
     procedure AssistEdit() Result: Boolean
@@ -992,6 +1003,25 @@ table 6900 Expense
     procedure TestStatusOpen()
     begin
         Rec.TestField(Status, Status::Open);
+    end;
+
+    local procedure CheckCorporateCardSourceFields()
+    var
+        StoredExpense: Record Expense;
+    begin
+        if Rec.IsTemporary() or IsNullGuid(Rec.SystemId) then
+            exit;
+        if not StoredExpense.GetBySystemId(Rec.SystemId) then
+            exit;
+        if StoredExpense.Source <> StoredExpense.Source::CorporateCard then
+            exit;
+
+        if Rec.Amount <> StoredExpense.Amount then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption(Amount));
+        if Rec."Expense Date" <> StoredExpense."Expense Date" then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Expense Date"));
+        if Rec."Currency Code" <> StoredExpense."Currency Code" then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Currency Code"));
     end;
 
     procedure GetRuleStyleText() StatusStyleText: Text

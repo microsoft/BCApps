@@ -40,6 +40,7 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
         ExpenseCategory := GetExpenseCategoryFromMCC(CorpCardTrans.MCC);
 
         Expense.Init();
+        Expense.Source := Expense.Source::CorporateCard;
         Expense."Expense User No." := ExpenseUserNo;
         Expense."Status" := Expense."Status"::Open;
         if ExpenseCategory <> '' then

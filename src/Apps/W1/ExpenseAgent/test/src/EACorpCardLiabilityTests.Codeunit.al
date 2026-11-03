@@ -59,9 +59,7 @@ codeunit 148363 EACorpCardLiabilityTests
         EmployeePostingGroup.Get(EmployeePostingGroupCode);
         EmployeePostingGroup.Validate("Expense Payable Card Paid Acc.", LibraryERM.CreateGLAccountNo());
         EmployeePostingGroup.Modify(true);
-        VATPostingSetup.SetRange("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        VATPostingSetup.SetFilter("VAT %", '>0');
-        VATPostingSetup.FindFirst();
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
         GLAccount.Get(PostedExpenseReportLine."Card Payable Account No.");
         GLAccount."Gen. Posting Type" := GLAccount."Gen. Posting Type"::Purchase;
         GLAccount."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";

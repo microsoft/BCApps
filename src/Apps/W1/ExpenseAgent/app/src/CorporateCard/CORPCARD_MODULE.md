@@ -532,6 +532,18 @@ The catalog returns unblocked cards for that expense user, including `corporateC
 
 Use the returned internal `corporateCardId` when creating or updating an eligible manual expense or standalone report line. Expense, report-line, and posted-report-line APIs expose card identity. `creditCardFeedNo` remains read-only and is assigned by import/matching, not by the caller.
 
+### Expense Source and Receipt Collection
+
+The `expenses` API exposes a read-only `source` field. `Manual` is the default, including for existing expenses. Drafts created from imported corporate card transactions have source `CorporateCard`. Matching a transaction to an existing expense does not change its source.
+
+Once a `CorporateCard`-source expense is stored, its amount, expense date, and currency cannot be changed, including through receipt extraction/API updates. The Expense Card shows these fields as read-only. Updates that retain the financial values and updates to other receipt details remain allowed. `Manual`-source expenses are not subject to this restriction, even after matching to a transaction.
+
+To find corporate-card-created drafts awaiting receipts:
+
+```http
+GET .../api/microsoft/expense/beta/companies({companyId})/expenses?$filter=source eq 'CorporateCard' and status eq 'Open' and receiptAttached eq false and expenseReportNo eq ''
+```
+
 ### Upgrade Behavior
 
 Upgrade fills blank Corporate Card Id values on expenses, report lines, and posted report lines from their existing feed transaction links. It also initializes provider short names through the same defaults used by setup. Existing manually selected card identities and custom provider short names are retained.
