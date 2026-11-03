@@ -48,13 +48,13 @@ codeunit 101600 "Create Employee"
         InsertAdministration(XTD, XPROD, '', XPROD, X14DAYS, 19960301D, '', XTerry, XUPROD, '234654-631');
 
         InsertGeneral(
-          XKH, XKatherine, '', XHull, XKHULL, X12SelsdonRoad, CreatePostCode.Convert('GB-N16 34Z'),
-          XServiceManager, Employee.Gender::Female);
-        InsertContact(XKH, '1095', '', '7223-4321-8744', '020-2584-1095', XKatherineEmail, 'Katherine Hull');
-        InsertAdministration(XKH, XADM, '', XADM, XMONTH, CalcDate('<-4Y>', MakeAdjustments.AdjustDate(19021001D)), XKH, XKatherine, XUADMI, '4921826-897');
-        InsertPersonal(XKH, CalcDate('<-35Y>', MakeAdjustments.AdjustDate(19020519D)), '1294370062', XUADMI, '4921826-897');
+          XKHLbl, XKatherineLbl, '', XHullLbl, XKHULLLbl, X12SelsdonRoadLbl, CreatePostCode.Convert('GB-N16 34Z'),
+          XServiceManagerLbl, Employee.Gender::Female);
+        InsertContact(XKHLbl, '1095', '', '7223-4321-8744', '020-2584-1095', '', 'Katherine Hull');
+        InsertAdministration(XKHLbl, XADM, '', XADM, XMONTH, CalcDate('<-4Y>', MakeAdjustments.AdjustDate(19021001D)), XKHLbl, XKatherineLbl, XUADMI, '4921826-897');
+        InsertPersonal(XKHLbl, CalcDate('<-35Y>', MakeAdjustments.AdjustDate(19020519D)), '1294370062', XUADMI, '4921826-897');
         if EmployeePostingGroup.Get(XEmplExpTxt) then
-            InsertPostingGroup(XKH, EmployeePostingGroup.Code);
+            InsertPostingGroup(XKHLbl, EmployeePostingGroup.Code);
     end;
 
     var
@@ -115,13 +115,12 @@ codeunit 101600 "Create Employee"
         XPERSONAL: Label 'PERSONAL';
         XPERSEXP: Label 'PERSEXP';
         XEmplExpTxt: Label 'EMPLEXP';
-        XKH: Label 'KH';
-        XKatherine: Label 'Katherine';
-        XHull: Label 'Hull';
-        XKHULL: Label 'KHULL';
-        XServiceManager: Label 'Service Manager';
-        X12SelsdonRoad: Label '12 Selsdon Road';
-        XKatherineEmail: Label 'lm@cronus-demosite.com';
+        XKHLbl: Label 'KH';
+        XKatherineLbl: Label 'Katherine';
+        XHullLbl: Label 'Hull';
+        XKHULLLbl: Label 'KHULL';
+        XServiceManagerLbl: Label 'Service Manager';
+        X12SelsdonRoadLbl: Label '12 Selsdon Road';
 
     procedure InsertGeneral("No.": Code[20]; "First Name": Text[30]; "Middle Name": Text[30]; "Last Name": Text[30]; Initials: Text[30]; Address: Text[30]; "Post Code": Code[20]; Title: Text[30]; Sex: Enum "Employee Gender")
     begin
