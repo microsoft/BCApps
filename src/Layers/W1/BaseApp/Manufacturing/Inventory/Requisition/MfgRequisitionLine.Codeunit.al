@@ -270,7 +270,7 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [EventSubscriber(ObjectType::Table, Database::"Req. Wksh. Template", 'OnAfterValidateEvent', 'Recurring', true, false)]
     local procedure ReqWkshTemplateOnAfterValidateRecurring(var Rec: Record "Req. Wksh. Template")
     begin

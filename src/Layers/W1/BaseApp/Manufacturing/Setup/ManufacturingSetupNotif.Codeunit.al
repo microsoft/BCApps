@@ -5,7 +5,7 @@
 namespace System.DataAdministration;
 
 using Microsoft.Inventory.Setup;
-#if not CLEAN28
+#if not CLEAN29
 using System.Apps;
 using System.Environment;
 #endif
@@ -19,7 +19,7 @@ codeunit 99000779 "Manufacturing Setup Notif."
         NotificationActionDisableTxt: Label 'Don''t show me again';
         NotificationActionOpenPageTxt: Label 'Open Inventory Setup';
         NotificationMessageMsg: Label 'Use Inventory Setup page to update Planning fields.';
-#if not CLEAN28
+#if not CLEAN29
         SubcontractingAppIdTok: Label '1f32a50d-0057-4b95-b5df-cc04d7e89470', Locked = true;
         SubcontractingAppNotificationNameTxt: Label 'Install the Subcontracting app';
         SubcontractingAppNotificationDescriptionTxt: Label 'Suggest installing the Subcontracting app when opening the obsolete Subcontracting Worksheet.';
@@ -62,7 +62,7 @@ codeunit 99000779 "Manufacturing Setup Notif."
     begin
         exit('6d9d1f9a-3826-4b5e-81cd-be6e1fd8849f');
     end;
-#if not CLEAN28
+#if not CLEAN29
 
     internal procedure ShowInstallSubcontractingAppNotification()
     var

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-#if not CLEAN28
+#if not CLEAN29
 using Microsoft.Manufacturing.Setup;
 #endif
 using System.Environment.Configuration;
@@ -31,12 +31,12 @@ codeunit 20571 "Subc. Application Area Mgmt."
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Application Area Mgmt. Facade", 'OnGetPremiumExperienceAppAreas', '', false, true)]
     local procedure HandleOnGetPremiumExperienceAppAreas(var TempApplicationAreaSetup: Record "Application Area Setup" temporary);
-#if not CLEAN28
+#if not CLEAN29
     var
         ManufacturingSetup: Record "Manufacturing Setup";
 #endif
     begin
-#if not CLEAN28
+#if not CLEAN29
         if ManufacturingSetup.Get() then
 #pragma warning disable AL0432
             TempApplicationAreaSetup.Subcontracting := not ManufacturingSetup."Legacy Subcontracting";

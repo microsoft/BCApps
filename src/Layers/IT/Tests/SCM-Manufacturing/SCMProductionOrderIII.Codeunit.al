@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Test;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
-#if not CLEAN28
+#if not CLEAN29
 using Microsoft.Finance.VAT.Setup;
 #endif
 using Microsoft.Foundation.Enums;
@@ -33,13 +33,13 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.StandardCost;
 using Microsoft.Manufacturing.WorkCenter;
-#if not CLEAN28
+#if not CLEAN29
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 #endif
 using Microsoft.Purchases.Document;
-#if not CLEAN28
+#if not CLEAN29
 using Microsoft.Purchases.History;
 #endif
 using Microsoft.Purchases.Vendor;
@@ -99,13 +99,13 @@ codeunit 137079 "SCM Production Order III"
         LibraryPostInventoryToGL: Codeunit "Library - Post Inventory To GL";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         ShopCalendarMgt: Codeunit "Shop Calendar Management";
-#if not CLEAN28
+#if not CLEAN29
         LibraryPriceCalculation: Codeunit "Library - Price Calculation";
 #endif
         IsInitialized: Boolean;
         ItemJournalLineExistErr: Label 'There is no Item Journal Line within the filter.';
         TrackingMsg: Label 'The change will not affect existing entries';
-#if not CLEAN28
+#if not CLEAN29
         ItemTrackingErr: Label 'You cannot define item tracking on this line because it is linked to production order';
 #endif
         StartingDateMsg: Label 'Starting Date must be less or equal.';
@@ -118,7 +118,7 @@ codeunit 137079 "SCM Production Order III"
         ExpectedCostPostingChangedMsg: Label 'Expected Cost Posting to G/L has been changed to Yes. You should now run Post Inventory Cost to G/L.';
         PostJournalLinesConfirmationMsg: Label 'Do you want to post the journal lines';
         JournalLinesPostedMsg: Label 'The journal lines were successfully posted.';
-#if not CLEAN28
+#if not CLEAN29
         RecreatePurchaseLineConfirmHandlerQst: Label 'If you change %1, the existing purchase lines will be deleted and new purchase lines based on the new information in the header will be created.\\Do you want to continue?';
 #endif
         WHHandlingIsRequiredErr: Label 'Warehouse handling is required for Entry Type = Output';
@@ -132,11 +132,11 @@ codeunit 137079 "SCM Production Order III"
         ItemSubstItemNoErr: Label 'Wron Item Substitution No.';
         ValueEntrySourceTypeErr: Label 'Value Entry Source Type must be equal to %1';
         ValueEntrySourceNoErr: Label 'Value Entry Source No must be equal to %1';
-#if not CLEAN28
+#if not CLEAN29
         ProdJournalOutQtyErr: Label 'Output Quantity should be 0 in Production Journal Line linked to Subcontracted Workcenter';
 #endif
         ComponentsAlreadyPickedQst: Label 'Components for production order %1 have already been picked. Do you want to continue?', Comment = 'Production order no.: Components for production order 101001 have already been picked. Do you want to continue?';
-#if not CLEAN28
+#if not CLEAN29
         SubcItemJnlErr: Label '%1 must be zero', Comment = '%1 - "Subcontractor No."';
 #endif
         RtngLineBinCodeErr: Label 'Wrong %1 in %2.', Comment = '%1: Field(To-Production Bin Code), %2: TableCaption(Prod. Order Routing Line)';
@@ -500,7 +500,7 @@ codeunit 137079 "SCM Production Order III"
         // Verify: Verify the Quantity and Location Code and Action Message on Requisition Line.
         VerifyRequisitionLineWithLocation(Item."No.", Quantity, LocationBlue.Code, RequisitionLine."Action Message"::New);
     end;
-#if not CLEAN28
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ItemTrackingPageHandler')]
     [Scope('OnPrem')]
@@ -1476,7 +1476,7 @@ codeunit 137079 "SCM Production Order III"
         VerifyValueEntryForEntryType(
             ValueEntry."Entry Type"::"Indirect Cost", ProductionOrder."No.", 0, CostAmount, 0, ProdOrderLine."Overhead Rate", CostAmount);
     end;
-#if not CLEAN28
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ConfirmHandlerTRUE')]
     [Scope('OnPrem')]
@@ -2422,7 +2422,7 @@ codeunit 137079 "SCM Production Order III"
             Assert.IsTrue(TempItem.Get(ItemNo[i]), ItemSubstItemNoErr);
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     [Scope('OnPrem')]
@@ -2494,7 +2494,7 @@ codeunit 137079 "SCM Production Order III"
         VerifyValueEntrySource(ProdOrderNo, Item."No.", ValueEntry."Source Type"::Item);
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ProductionJournalSubcontractedPageHandler')]
     [Scope('OnPrem')]
@@ -4836,7 +4836,7 @@ codeunit 137079 "SCM Production Order III"
         ProdOrderCapacityNeed.TestField("Allocated Time", ProdOrderRoutingLine."Run Time");
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [Test]
     procedure ConsiderQtyPerUnitOfMeasureForUnitCostInSubcontracting()
     var
@@ -4973,7 +4973,7 @@ codeunit 137079 "SCM Production Order III"
         ProdOrderComponent.TestField("Expected Qty. (Base)", 0.05904);
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure QtyRndingPrecisionRespectedOnPurchLineFromSubcontracting()
@@ -5148,7 +5148,7 @@ codeunit 137079 "SCM Production Order III"
         LibraryVariableStorage.AssertEmpty();
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [Test]
     procedure RoundingInCostAmountAfterPostingSubcontractingPOWithUoM()
     var
@@ -5272,7 +5272,7 @@ codeunit 137079 "SCM Production Order III"
         ProdOrderLine.TestField("Finished Qty. (Base)", ProductionOrder.Quantity);
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure ValidatePurchaseLinePriceUpdateWithPurchasePriceListFunctionality()
@@ -7762,7 +7762,7 @@ codeunit 137079 "SCM Production Order III"
         Assert.RecordIsNotEmpty(ItemLedgerEntry);
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure UndoFirstReceiptInSubcontractingPurchaseOrder()
@@ -8558,7 +8558,7 @@ codeunit 137079 "SCM Production Order III"
         ItemJournalLine.Modify(true);
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     local procedure MockSubcontractedJournalLine(var ItemJournalLine: Record "Item Journal Line")
     var
         WorkCenter: Record "Work Center";
@@ -8722,7 +8722,7 @@ codeunit 137079 "SCM Production Order III"
         AcceptActionMessage(RequisitionLine, ItemNo);
         LibraryPlanning.CarryOutReqWksh(RequisitionLine, WorkDate(), WorkDate(), WorkDate(), WorkDate(), '');
     end;
-#if not CLEAN28
+#if not CLEAN29
     local procedure AssignTrackingOnProdOrderLine(ProdOrderNo: Code[20])
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -8815,7 +8815,7 @@ codeunit 137079 "SCM Production Order III"
         LibraryManufacturing.OutputJnlExplodeRoute(ItemJournalLine);
         SelectItemJournalLine(ItemJournalLine, OutputItemJournalBatch."Journal Template Name", OutputItemJournalBatch.Name);
     end;
-#if not CLEAN28
+#if not CLEAN29
     local procedure UndoPurchReceiptWithProductionSubcontracting(ItemWithTracking: Boolean; DoInvoiceSubcontracting: Boolean; DoConsumeOutputBeforeUndo: Boolean)
     var
         WorkCenter: Record "Work Center";
@@ -9049,7 +9049,7 @@ codeunit 137079 "SCM Production Order III"
         exit(ItemTrackingCode.Code);
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     local procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
     begin
         WorkCenter.SetRange("No.", WorkCenter."No.");
@@ -9436,7 +9436,7 @@ codeunit 137079 "SCM Production Order III"
         RoutingLine: Record "Routing Line";
     begin
         CreateRoutingAndUpdateItem(Item, WorkCenter);
-#if not CLEAN28
+#if not CLEAN29
         WorkCenter.Validate("Subcontractor No.", '');
 #endif
         WorkCenter.Modify();
@@ -9495,7 +9495,7 @@ codeunit 137079 "SCM Production Order III"
         ProdOrderLine.Modify();
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     local procedure CreateAndPostSubcontractingPurchaseOrder(WorkCenter: Record "Work Center"; ItemNo: Code[20])
     var
         RequisitionLine: Record "Requisition Line";
@@ -9649,7 +9649,7 @@ codeunit 137079 "SCM Production Order III"
         if RoutingLine.FindLast() then
             exit(RoutingLine."Operation No.");
     end;
-#if not CLEAN28
+#if not CLEAN29
     local procedure FindPurchaseOrderLine(var PurchaseLine: Record "Purchase Line"; No: Code[20])
     begin
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
@@ -9664,7 +9664,7 @@ codeunit 137079 "SCM Production Order III"
         WarehouseReceiptLine.SetRange("Source No.", SourceNo);
         WarehouseReceiptLine.FindFirst();
     end;
-#if not CLEAN28
+#if not CLEAN29
     local procedure PostPurchaseOrderAsShip(ItemNo: Code[20])
     var
         PurchaseHeader: Record "Purchase Header";
@@ -10314,7 +10314,7 @@ codeunit 137079 "SCM Production Order III"
         ProdOrderLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
         ProdOrderLine.Modify(true);
     end;
-#if not CLEAN28
+#if not CLEAN29
     local procedure UpdatePurchaseHeaderVATBusPostingGroup(var PurchaseHeader: Record "Purchase Header")
     begin
         PurchaseHeader.Validate("VAT Bus. Posting Group", GetDifferentVATBusPostingGroup(PurchaseHeader."VAT Bus. Posting Group"));
@@ -10448,7 +10448,7 @@ codeunit 137079 "SCM Production Order III"
         PurchaseLine.FindFirst();
         PurchaseLine.TestField(Quantity, Quantity);
     end;
-#if not CLEAN28
+#if not CLEAN29
     local procedure VerifyRecreatedPurchaseLine(PurchaseLine: Record "Purchase Line"; VATBusPostingGroupCode: Code[20])
     var
         RecreatedPurchaseLine: Record "Purchase Line";
@@ -10536,7 +10536,7 @@ codeunit 137079 "SCM Production Order III"
         ReservationEntry.TestField("Location Code", LocationCode);
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     local procedure VerifyRequisitionLineForSubcontract(ProductionOrder: Record "Production Order"; WorkCenter: Record "Work Center"; ItemNo: Code[20])
     var
         RequisitionLine: Record "Requisition Line";
@@ -11569,7 +11569,7 @@ codeunit 137079 "SCM Production Order III"
         ItemSubstitutionEntries.Cancel().Invoke();
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure ProductionJournalSubcontractedPageHandler(var ProductionJournal: TestPage "Production Journal")

@@ -18,7 +18,7 @@ codeunit 132202 "Library - Manufacturing"
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         Assert: Codeunit Assert;
         BOMItemLineNo: Integer;
-#if not CLEAN28
+#if not CLEAN29
         BatchName: Label 'DEFAULT', Comment = 'Default Batch';
 #endif
         OutputConsumpMismatchTxt: Label 'Output Cost in Prod. Order %1, line %2 does not match Consumption.';
@@ -154,8 +154,8 @@ codeunit 132202 "Library - Manufacturing"
         CalculatePlanPlanWksh.UseRequestPage(false);
         CalculatePlanPlanWksh.RunModal();
     end;
-#if not CLEAN28
-    [Obsolete('Will be replaced by the Subcontracting Test App', '28.0')]
+#if not CLEAN29
+    [Obsolete('Will be replaced by the Subcontracting Test App', '29.0')]
     procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
     var
         RequisitionLine: Record "Requisition Line";
@@ -185,8 +185,8 @@ codeunit 132202 "Library - Manufacturing"
         CalculateWorkCenterCalendarReport.UseRequestPage(false);
         CalculateWorkCenterCalendarReport.RunModal();
     end;
-#if not CLEAN28
-    [Obsolete('Will be replaced by the Subcontracting Test App', '28.0')]
+#if not CLEAN29
+    [Obsolete('Will be replaced by the Subcontracting Test App', '29.0')]
     procedure CalculateSubcontractOrderWithProdOrderRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         RequisitionLine: Record "Requisition Line";
@@ -1062,7 +1062,7 @@ codeunit 132202 "Library - Manufacturing"
         RollUpStandardCost.UseRequestPage(false);
         RollUpStandardCost.RunModal();
     end;
-#if not CLEAN28
+#if not CLEAN29
     local procedure RequisitionLineForSubcontractOrder(var RequisitionLine: Record "Requisition Line")
     var
         ReqJnlManagement: Codeunit ReqJnlManagement;
@@ -1258,9 +1258,9 @@ codeunit 132202 "Library - Manufacturing"
         ProdOrderComponent.Modify(true);
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is obsoleted since it is moving to Subontracting App', '28.0')]
+    [Obsolete('This event is obsoleted since it is moving to Subontracting App', '29.0')]
     local procedure OnBeforeOpenJournal(var RequisitionLine: Record "Requisition Line"; var Handled: Boolean)
     begin
     end;
