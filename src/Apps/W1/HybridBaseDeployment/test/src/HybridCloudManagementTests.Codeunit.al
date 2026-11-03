@@ -7,6 +7,7 @@ codeunit 139656 "Hybrid Cloud Management Tests"
     var
         Assert: Codeunit Assert;
         LibraryHybridManagement: Codeunit "Library - Hybrid Management";
+        LibraryUtility: Codeunit "Library - Utility";
         Initialized: Boolean;
         ExtensionRefreshFailureErr: Label 'Some extensions could not be updated and may need to be reinstalled to refresh their data.';
         ExtensionRefreshUnexpectedFailureErr: Label 'Failed to update extensions. You may need to verify and reinstall any missing extensions if needed.';
@@ -17,10 +18,7 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         CustomerId2Tok: Label 'TEST-2', Locked = true;
         SourceTableMetadataNotFoundErr: Label 'Source table metadata not found for table ID %1.', Comment = '%1 - Table ID';
         DestinationTableMetadataNotFoundErr: Label 'Destination table metadata not found for table ID %1.', Comment = '%1 - Table ID';
-        DeletedCompanyNameTok: Label 'Cloud Migration Delete Test', Locked = true;
-        ReplicatedCompanyNameTok: Label 'Replicated Company', Locked = true;
-        TestTableNameTok: Label 'Cloud Migration Test Table', Locked = true;
-        TestSubscriptionIdTok: Label 'TestProduct_IntelligentCloud', Locked = true;
+        SubscriptionIdFormatTok: Label '%1_IntelligentCloud', Comment = '%1 - Product ID', Locked = true;
         HybridCompanyMissingErr: Label 'The hybrid company %1 should not be removed when another company is deleted.', Comment = '%1 - Company name';
 
     local procedure Initialize()
@@ -1511,6 +1509,8 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         Company: Record Company;
         HybridCompany: Record "Hybrid Company";
         IntelligentCloudStatus: Record "Intelligent Cloud Status";
+        DeletedCompanyName: Text[30];
+        TableName: Text[30];
     begin
         // [SCENARIO] Deleting a company removes only the cloud migration records of the deleted company
         Initialize();
@@ -1519,25 +1519,26 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         InsertHybridCompaniesForExistingCompanies();
 
         // [GIVEN] A per-database table and a table of the current company are included in the cloud migration
-        InsertIntelligentCloudStatus(TestTableNameTok, '');
-        InsertIntelligentCloudStatus(TestTableNameTok, CompanyName());
+        TableName := LibraryUtility.GenerateGUID();
+        InsertIntelligentCloudStatus(TableName, '');
+        InsertIntelligentCloudStatus(TableName, CompanyName());
 
         // [GIVEN] A new hybrid company with a table included in the cloud migration
-        CreateHybridCompany(DeletedCompanyNameTok);
-        InsertIntelligentCloudStatus(TestTableNameTok, DeletedCompanyNameTok);
+        DeletedCompanyName := CreateHybridCompany();
+        InsertIntelligentCloudStatus(TableName, DeletedCompanyName);
 
         // [WHEN] The new company is deleted
-        Company.Get(DeletedCompanyNameTok);
+        Company.Get(DeletedCompanyName);
         Company.Delete();
 
         // [THEN] The cloud migration records of the deleted company are removed
-        Assert.IsFalse(HybridCompany.Get(DeletedCompanyNameTok), 'The hybrid company of the deleted company should be removed.');
-        Assert.IsFalse(IntelligentCloudStatus.Get(TestTableNameTok, DeletedCompanyNameTok), 'The intelligent cloud status of the deleted company should be removed.');
+        Assert.IsFalse(HybridCompany.Get(DeletedCompanyName), 'The hybrid company of the deleted company should be removed.');
+        Assert.IsFalse(IntelligentCloudStatus.Get(TableName, DeletedCompanyName), 'The intelligent cloud status of the deleted company should be removed.');
 
         // [THEN] The cloud migration records of the other companies are kept
         VerifyHybridCompaniesExistForAllCompanies();
-        Assert.IsTrue(IntelligentCloudStatus.Get(TestTableNameTok, ''), 'The per-database intelligent cloud status should be kept.');
-        Assert.IsTrue(IntelligentCloudStatus.Get(TestTableNameTok, CompanyName()), 'The intelligent cloud status of the current company should be kept.');
+        Assert.IsTrue(IntelligentCloudStatus.Get(TableName, ''), 'The per-database intelligent cloud status should be kept.');
+        Assert.IsTrue(IntelligentCloudStatus.Get(TableName, CompanyName()), 'The intelligent cloud status of the current company should be kept.');
     end;
 
     [Test]
@@ -1546,6 +1547,8 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         Company: Record Company;
         HybridCompany: Record "Hybrid Company";
         WebhookSubscription: Record "Webhook Subscription";
+        DeletedCompanyName: Text[30];
+        SubscriptionId: Text[150];
     begin
         // [SCENARIO] Deleting the company that holds the cloud migration webhook subscription keeps the hybrid companies of the other companies
         Initialize();
@@ -1554,53 +1557,105 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         InsertHybridCompaniesForExistingCompanies();
 
         // [GIVEN] A new hybrid company holds the cloud migration webhook subscription
-        CreateHybridCompany(DeletedCompanyNameTok);
-        InsertWebhookSubscription(DeletedCompanyNameTok);
+        DeletedCompanyName := CreateHybridCompany();
+        SubscriptionId := InsertWebhookSubscription(DeletedCompanyName);
 
         // [WHEN] The new company is deleted
-        Company.Get(DeletedCompanyNameTok);
+        Company.Get(DeletedCompanyName);
         Company.Delete();
 
         // [THEN] Only the hybrid company of the deleted company is removed
-        Assert.IsFalse(HybridCompany.Get(DeletedCompanyNameTok), 'The hybrid company of the deleted company should be removed.');
+        Assert.IsFalse(HybridCompany.Get(DeletedCompanyName), 'The hybrid company of the deleted company should be removed.');
         VerifyHybridCompaniesExistForAllCompanies();
 
         // [THEN] The webhook subscription is moved to an existing company
-        WebhookSubscription.Get(TestSubscriptionIdTok, '');
+        WebhookSubscription.Get(SubscriptionId, '');
         Assert.IsTrue(Company.Get(WebhookSubscription."Company Name"), 'The webhook subscription should be moved to an existing company.');
+    end;
+
+    [Test]
+    procedure TestUpgradeNotCompletedWithoutUpgradeStatusRecords()
+    var
+        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
+        UpgradeCompleted: Boolean;
+    begin
+        // [SCENARIO] The upgrade is not completed when no hybrid company is replicated and there are no upgrade status records
+        InitializeCompletedReplicationWithoutReplicatedHybridCompany();
+
+        // [WHEN] Checking whether the upgrade is completed
+        UpgradeCompleted := HybridCloudManagement.IsUpgradeCompleted();
+
+        // [THEN] The upgrade is not completed
+        Assert.IsFalse(UpgradeCompleted, 'The upgrade should not be completed without upgrade status records.');
+    end;
+
+    [Test]
+    procedure TestUpgradeNotCompletedWhenOnlyPerDatabaseDataIsUpgraded()
+    var
+        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
+        UpgradeCompleted: Boolean;
+    begin
+        // [SCENARIO] The per-database upgrade status record alone does not complete the upgrade when no hybrid company is replicated
+        InitializeCompletedReplicationWithoutReplicatedHybridCompany();
+
+        // [GIVEN] Only the upgrade of the per-database data is completed
+        InsertReplicatedHybridCompanyStatus('', true);
+
+        // [WHEN] Checking whether the upgrade is completed
+        UpgradeCompleted := HybridCloudManagement.IsUpgradeCompleted();
+
+        // [THEN] The upgrade is not completed
+        Assert.IsFalse(UpgradeCompleted, 'The upgrade should not be completed when only the per-database data is upgraded.');
     end;
 
     [Test]
     procedure TestUpgradeCompletedWhenReplicatedCompanyIsNotHybridCompany()
     var
-        HybridCompanyStatus: Record "Hybrid Company Status";
         HybridCloudManagement: Codeunit "Hybrid Cloud Management";
+        UpgradeCompleted: Boolean;
     begin
         // [SCENARIO] The upgrade status records are used when the replicated companies are missing from the hybrid companies
-        Initialize();
-        HybridCompanyStatus.DeleteAll();
+        InitializeCompletedReplicationWithoutReplicatedHybridCompany();
 
-        // [GIVEN] The last replication run is completed and no hybrid company is replicated
-        InsertCompletedReplicationSummary();
+        // [GIVEN] The upgrade of the per-database data and of a replicated company is completed
+        InsertReplicatedHybridCompanyStatus('', true);
+        InsertReplicatedHybridCompanyStatus(LibraryUtility.GenerateGUID(), true);
 
-        // [WHEN] There are no upgrade status records
-        // [THEN] The upgrade is not completed
-        Assert.IsFalse(HybridCloudManagement.IsUpgradeCompleted(), 'The upgrade should not be completed without upgrade status records.');
-
-        // [WHEN] The upgrade of the per-database data and of the replicated company is completed
-        InsertCompletedHybridCompanyStatus('');
-        InsertCompletedHybridCompanyStatus(ReplicatedCompanyNameTok);
+        // [WHEN] Checking whether the upgrade is completed
+        UpgradeCompleted := HybridCloudManagement.IsUpgradeCompleted();
 
         // [THEN] The upgrade is completed
-        Assert.IsTrue(HybridCloudManagement.IsUpgradeCompleted(), 'The upgrade should be completed when all replicated companies are upgraded.');
+        Assert.IsTrue(UpgradeCompleted, 'The upgrade should be completed when all replicated companies are upgraded.');
+    end;
 
-        // [WHEN] The upgrade of the replicated company is pending
-        HybridCompanyStatus.Get(ReplicatedCompanyNameTok);
-        HybridCompanyStatus."Upgrade Status" := HybridCompanyStatus."Upgrade Status"::Pending;
-        HybridCompanyStatus.Modify();
+    [Test]
+    procedure TestUpgradeNotCompletedWhenReplicatedCompanyIsNotUpgraded()
+    var
+        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
+        UpgradeCompleted: Boolean;
+    begin
+        // [SCENARIO] The upgrade is not completed when a replicated company that is missing from the hybrid companies is not upgraded
+        InitializeCompletedReplicationWithoutReplicatedHybridCompany();
+
+        // [GIVEN] The upgrade of the per-database data is completed and the upgrade of a replicated company is pending
+        InsertReplicatedHybridCompanyStatus('', true);
+        InsertReplicatedHybridCompanyStatus(LibraryUtility.GenerateGUID(), false);
+
+        // [WHEN] Checking whether the upgrade is completed
+        UpgradeCompleted := HybridCloudManagement.IsUpgradeCompleted();
 
         // [THEN] The upgrade is not completed
-        Assert.IsFalse(HybridCloudManagement.IsUpgradeCompleted(), 'The upgrade should not be completed when a replicated company is not upgraded.');
+        Assert.IsFalse(UpgradeCompleted, 'The upgrade should not be completed when a replicated company is not upgraded.');
+    end;
+
+    local procedure InitializeCompletedReplicationWithoutReplicatedHybridCompany()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+    begin
+        // Initialize removes the replication details, so no hybrid company is replicated.
+        Initialize();
+        HybridCompanyStatus.DeleteAll();
+        InsertCompletedReplicationSummary();
     end;
 
     local procedure InsertHybridCompaniesForExistingCompanies()
@@ -1615,14 +1670,15 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         until Company.Next() = 0;
     end;
 
-    local procedure CreateHybridCompany(NewCompanyName: Text[30])
+    local procedure CreateHybridCompany(): Text[30]
     var
         Company: Record Company;
     begin
         Company.Init();
-        Company.Name := NewCompanyName;
+        Company.Name := LibraryUtility.GenerateGUID();
         Company.Insert();
-        InsertHybridCompany(NewCompanyName);
+        InsertHybridCompany(Company.Name);
+        exit(Company.Name);
     end;
 
     local procedure InsertHybridCompany(HybridCompanyName: Text[50])
@@ -1648,15 +1704,16 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         IntelligentCloudStatus.Insert();
     end;
 
-    local procedure InsertWebhookSubscription(SubscriptionCompanyName: Text[30])
+    local procedure InsertWebhookSubscription(SubscriptionCompanyName: Text[30]): Text[150]
     var
         WebhookSubscription: Record "Webhook Subscription";
     begin
         WebhookSubscription.Init();
-        WebhookSubscription."Subscription ID" := TestSubscriptionIdTok;
+        WebhookSubscription."Subscription ID" := CopyStr(StrSubstNo(SubscriptionIdFormatTok, LibraryUtility.GenerateGUID()), 1, MaxStrLen(WebhookSubscription."Subscription ID"));
         WebhookSubscription.Endpoint := '';
         WebhookSubscription."Company Name" := SubscriptionCompanyName;
         WebhookSubscription.Insert();
+        exit(WebhookSubscription."Subscription ID");
     end;
 
     local procedure VerifyHybridCompaniesExistForAllCompanies()
@@ -1680,14 +1737,17 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         HybridReplicationSummary.Modify();
     end;
 
-    local procedure InsertCompletedHybridCompanyStatus(StatusCompanyName: Text[50])
+    local procedure InsertReplicatedHybridCompanyStatus(StatusCompanyName: Text[50]; UpgradeCompleted: Boolean)
     var
         HybridCompanyStatus: Record "Hybrid Company Status";
     begin
         HybridCompanyStatus.Init();
         HybridCompanyStatus.Name := StatusCompanyName;
         HybridCompanyStatus.Replicated := true;
-        HybridCompanyStatus."Upgrade Status" := HybridCompanyStatus."Upgrade Status"::Completed;
+        if UpgradeCompleted then
+            HybridCompanyStatus."Upgrade Status" := HybridCompanyStatus."Upgrade Status"::Completed
+        else
+            HybridCompanyStatus."Upgrade Status" := HybridCompanyStatus."Upgrade Status"::Pending;
         HybridCompanyStatus.Insert();
     end;
 }

@@ -2127,7 +2127,9 @@ codeunit 4001 "Hybrid Cloud Management"
         HybridCompanyStatus: Record "Hybrid Company Status";
     begin
         // The replicated companies can be missing from the Hybrid Company table, so the upgrade status records are used instead.
+        // The per-database record has an empty name and does not prove that a company was upgraded.
         HybridCompanyStatus.SetRange(Replicated, true);
+        HybridCompanyStatus.SetFilter(Name, '<>''''');
         if HybridCompanyStatus.IsEmpty() then
             exit(false);
 
