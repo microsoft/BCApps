@@ -505,6 +505,10 @@ function Test-ShouldSkipTestApp {
     return $false
 }
 
+<#
+.SYNOPSIS
+    Logs the churn-based test proposal and returns all candidate apps unchanged.
+#>
 function Get-SelectedTestApps {
     [OutputType([string[]])]
     param(

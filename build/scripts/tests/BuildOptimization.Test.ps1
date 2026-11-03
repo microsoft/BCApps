@@ -382,9 +382,9 @@ Describe "BuildOptimization" {
 
     Context "Mandatory NewObjects test selection" {
         BeforeEach {
-            $savedActions = $env:GITHUB_ACTIONS
-            $savedEvent = $env:GITHUB_EVENT_NAME
-            $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
+            $script:savedActions = $env:GITHUB_ACTIONS
+            $script:savedEvent = $env:GITHUB_EVENT_NAME
+            $script:savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
             $env:GITHUB_ACTIONS = 'true'
             $env:GITHUB_EVENT_NAME = 'pull_request'
             $env:BUILD_OPTIMIZATION_DISABLED = $null
@@ -400,9 +400,9 @@ Describe "BuildOptimization" {
         }
 
         AfterEach {
-            $env:GITHUB_ACTIONS = $savedActions
-            $env:GITHUB_EVENT_NAME = $savedEvent
-            $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
+            $env:GITHUB_ACTIONS = $script:savedActions
+            $env:GITHUB_EVENT_NAME = $script:savedEvent
+            $env:BUILD_OPTIMIZATION_DISABLED = $script:savedDisabled
         }
 
         It "retains NewObjects for an unrelated app change without selecting other unaffected tests" {

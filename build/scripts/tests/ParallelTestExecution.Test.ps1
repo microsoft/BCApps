@@ -33,6 +33,7 @@ Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
 Describe "ParallelTestExecution churn selection" {
     BeforeAll {
         Import-Module (Join-Path $PSScriptRoot '../BuildOptimization.psm1')
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
         $script:selectionRepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
         $script:createdSelectionAppInfoStub = -not (Get-Command Get-BcContainerAppInfo -ErrorAction SilentlyContinue)
         if ($script:createdSelectionAppInfoStub) {
