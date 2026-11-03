@@ -4890,6 +4890,10 @@ codeunit 137020 "SCM Planning"
         RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
         RequisitionLine.SetRange("No.", Item."No.");
         Assert.RecordIsEmpty(RequisitionLine);
+
+        // Planning commits the error log; remove it so later tests on the same worksheet batch don't get the "continue from where it left off" confirmation.
+        PlanningErrorLog.DeleteAll();
+        Commit();
     end;
 
     [Test]
