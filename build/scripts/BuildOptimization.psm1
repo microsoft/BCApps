@@ -451,7 +451,6 @@ function Get-AffectedAppNames {
     if ($affectedNames -notcontains 'Tests-NewObjects-Internal') {
         $affectedNames += 'Tests-NewObjects-Internal'
     }
-    Write-Host "BUILD OPTIMIZATION: Always retaining 'Tests-NewObjects-Internal' when present in the test bucket"
 
     return [PSCustomObject]@{ RunAll = $false; AppNames = $affectedNames }
 }
