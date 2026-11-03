@@ -7,7 +7,6 @@
 #>
 
 $ErrorActionPreference = "Stop"
-$script:affectedAppNamesByRun = @{}
 
 
 <#
@@ -512,7 +511,6 @@ function Get-SelectedTestApps {
         [string[]] $AppNamesToTest,
         [string] $BaseFolder,
         [bool] $ChurnEnabled,
-        [string] $CacheKey,
         [string] $Country,
         [string] $TestType,
         [int] $BucketNumber
@@ -522,19 +520,7 @@ function Get-SelectedTestApps {
     $proposedAppNames = @($AppNamesToTest)
     $selectionMode = if ($ChurnEnabled) { 'Enabled; no candidate test apps' } else { 'Disabled; full bucket' }
     if ($AppNamesToTest.Count -gt 0 -and $ChurnEnabled) {
-        # Only the parent computes the proposal; logging mode still runs the full bucket.
-        if (-not $script:affectedAppNamesByRun.ContainsKey($CacheKey)) {
-            try {
-                $script:affectedAppNamesByRun[$CacheKey] = Get-AffectedAppNames -BaseFolder $BaseFolder
-            } catch [System.ArgumentException], [System.IO.IOException] {
-                if ($_.Exception -isnot [System.IO.IOException] -and $_.FullyQualifiedErrorId -notlike '*,Microsoft.PowerShell.Commands.ConvertFromJsonCommand') {
-                    throw
-                }
-                Write-Host "::warning::BUILD OPTIMIZATION: Could not read change-detection inputs ($($_.Exception.Message)). Running all tests."
-                $script:affectedAppNamesByRun[$CacheKey] = [PSCustomObject]@{ RunAll = $true; AppNames = @() }
-            }
-        }
-        $affected = $script:affectedAppNamesByRun[$CacheKey]
+        $affected = Get-AffectedAppNames -BaseFolder $BaseFolder
         $selectionMode = 'Enabled; full bucket (RunAll)'
         if (-not $affected.RunAll) {
             $selectionMode = 'Enabled; affected-app proposal'

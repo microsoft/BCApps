@@ -109,7 +109,7 @@ Describe "ParallelTestExecution churn selection" {
         @{ Case = 'multiple'; Candidates = @('Tests C', 'Tests B', 'Tests A'); Expected = @('Tests C', 'Tests B', 'Tests A') }
     ) {
         $selected = @(Get-SelectedTestApps -AppNamesToTest $Candidates -BaseFolder $script:selectionRepoRoot `
-            -ChurnEnabled $true -CacheKey $env:RUNNER_TEMP -Country 'w1' -TestType 'IntegrationTest' -BucketNumber 0)
+            -ChurnEnabled $true -Country 'w1' -TestType 'IntegrationTest' -BucketNumber 0)
         $selected.Count | Should -Be $Expected.Count
         ($selected -join ',') | Should -Be ($Expected -join ',')
         foreach ($name in $selected) { $name | Should -BeOfType [string] }
@@ -166,10 +166,6 @@ Describe "ParallelTestExecution churn selection" {
             $Key -eq 'enableChurnBasedTesting'
         }
         Mock -ModuleName BuildOptimization Get-AffectedAppNames { throw 'Selection must be bypassed.' } -ParameterFilter { $true }
-        InModuleScope BuildOptimization {
-            $stateFile = Join-Path $env:RUNNER_TEMP 'parallelTests_selection.json'
-            $script:affectedAppNamesByRun[$stateFile] = [PSCustomObject]@{ RunAll = $false; AppNames = @() }
-        }
 
         Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
             Should -BeTrue
@@ -201,27 +197,6 @@ Describe "ParallelTestExecution churn selection" {
         }
     }
 
-    It "uses the existing downstream dependency calculation for the proposal without skipping tests" {
-        $script:useRealAffectedAppNames = $true
-        Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/Apps/Example/code.al') }
-        Mock -ModuleName BuildOptimization Get-AppForFile { 'production' }
-        Mock -ModuleName BuildOptimization Get-AppDependencyGraph {
-            @{
-                production = [PSCustomObject]@{ Name = 'Production'; Dependents = @('test-a') }
-                'test-a' = [PSCustomObject]@{ Name = 'Tests A'; Dependents = @('test-c') }
-                'test-b' = [PSCustomObject]@{ Name = 'Tests B'; Dependents = @() }
-                'test-c' = [PSCustomObject]@{ Name = 'Tests C'; Dependents = @() }
-            }
-        }
-        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests B' } |
-            Should -BeTrue
-        Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
-            ($AppNamesToTest -join ',') -eq 'Tests C,Tests B,Tests A'
-        }
-        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
-        $script:selectionLog | Should -Contain 'Candidates: 3 | Would run: 2 | Would skip: 1'
-    }
-
     It "runs the full bucket for an empty proposal and caches the actual execution result" {
         Mock -ModuleName BuildOptimization Get-AffectedAppNames {
             [PSCustomObject]@{ RunAll = $false; AppNames = @('Unrelated Tests') }
@@ -251,25 +226,14 @@ Describe "ParallelTestExecution churn selection" {
         }
     }
 
-    It "still records a genuinely empty bucket without discovery or dispatch" {
-        Mock -ModuleName ParallelTestExecution Get-AppNamesForBucket { @() }
+    It "preserves the original empty bucket return without writing a result cache" {
+        Mock -ModuleName ParallelTestExecution Get-AppNamesForBucket { ,@() }
         Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
             Should -BeTrue
-        $state = Get-Content (Join-Path $env:RUNNER_TEMP 'parallelTests_selection.json') -Raw | ConvertFrom-Json
-        $state.noTestsSelected | Should -BeTrue
+        Test-Path (Join-Path $env:RUNNER_TEMP 'parallelTests_selection.json') | Should -BeFalse
         Should -Invoke -ModuleName BuildOptimization Get-AffectedAppNames -Times 0 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 0 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly
-    }
-
-    It "reuses affected-app computation if dispatch is interrupted before completion" {
-        Mock -ModuleName ParallelTestExecution Start-TestAppDispatch { throw 'dispatch interrupted' }
-        1..2 | ForEach-Object {
-            { Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } } |
-                Should -Throw '*dispatch interrupted*'
-        }
-        Should -Invoke -ModuleName BuildOptimization Get-AffectedAppNames -Times 1 -Exactly
-        Get-CachedTestRunResult -ContainerName 'selection' | Should -BeNullOrEmpty
     }
 
     It "runs the full bucket for <Mode>" -ForEach @(
@@ -299,19 +263,6 @@ Describe "ParallelTestExecution churn selection" {
         $script:selectionLog | Should -Contain 'Candidates: 3 | Would run: 3 | Would skip: 0'
     }
 
-    It "logs malformed change-detection JSON and safely runs the full bucket" {
-        Mock -ModuleName BuildOptimization Get-AffectedAppNames {
-            '{invalid' | ConvertFrom-Json -ErrorAction Stop
-        } -ParameterFilter { $true }
-        Mock -ModuleName BuildOptimization Write-Host { }
-        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
-            Should -BeTrue
-        Should -Invoke -ModuleName BuildOptimization Write-Host -Times 1 -ParameterFilter {
-            $Object -like '*warning*Could not read change-detection inputs*Running all tests*'
-        }
-        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
-    }
-
     It "preserves the full-run fallback when git diff fails" {
         $env:GITHUB_EVENT_PATH = Join-Path $TestDrive 'event.json'
         @{ pull_request = @{ base = @{ sha = 'a' * 40 }; head = @{ sha = 'b' * 40 } } } |
@@ -327,26 +278,6 @@ Describe "ParallelTestExecution churn selection" {
         Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
     }
 
-    It "logs unreadable change-detection inputs and safely runs the full bucket" {
-        Mock -ModuleName BuildOptimization Get-AffectedAppNames {
-            throw [System.IO.IOException]::new('Cannot read input')
-        } -ParameterFilter { $true }
-        Mock -ModuleName BuildOptimization Write-Host { }
-        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
-            Should -BeTrue
-        Should -Invoke -ModuleName BuildOptimization Write-Host -Times 1 -ParameterFilter {
-            $Object -like '*warning*Cannot read input*Running all tests*'
-        }
-        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
-    }
-
-    It "does not hide unexpected selection errors or cache them as success" {
-        Mock -ModuleName BuildOptimization Get-AffectedAppNames { throw 'unexpected selection bug' } -ParameterFilter { $true }
-        { Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } } |
-            Should -Throw '*unexpected selection bug*'
-        Get-CachedTestRunResult -ContainerName 'selection' | Should -BeNullOrEmpty
-        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly
-    }
 }
 
 Describe "ParallelTestExecution app-name resolution" {

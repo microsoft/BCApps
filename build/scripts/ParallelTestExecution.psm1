@@ -187,10 +187,10 @@ function Get-AppRerunBudget {
 .SYNOPSIS
     Returns the cached parallel-test-run result for a container, or $null if no run has finished.
 .DESCRIPTION
-    The first call into Invoke-ParallelTestExecution dispatches the selected test apps in parallel,
+    The first call into Invoke-ParallelTestExecution dispatches every test app in parallel,
     waits for completion, and persists the final result to a state file in $env:RUNNER_TEMP
     (cleaned up between jobs by GitHub Actions). Subsequent invocations from the per-project
-    override short-circuit using this helper, including when no tests were selected.
+    override should short-circuit using this helper to avoid redoing the work.
 .OUTPUTS
     [bool] cached final result if dispatch completed; $null if no state file or not yet finished.
 #>
@@ -1535,11 +1535,11 @@ function Invoke-ParallelTestExecution {
     across the container's tenants and caches the result for subsequent override invocations.
 .DESCRIPTION
     Run-AlPipeline calls the per-project RunTestsInBcContainer.ps1 once per test app. The first
-    call logs the proposed test app list when the AL-Go setting enableChurnBasedTesting is
-    true. Temporarily, this is logging only: the full bucket still runs. Set it to false in
-    .github/AL-Go-Settings.json (or omit it) to bypass analysis. Existing full-run fallbacks
-    still apply to the proposal. Subsequent calls short-circuit on the cached
-    final result, including a successful no-tests-selected result. Container setup is unchanged.
+    call computes the bucket's app list and dispatches them all in parallel; subsequent calls in
+    the same job short-circuit on the cached final result. Returns the cached result if there
+    are no apps to run for the project's testType.
+    enableChurnBasedTesting in .github/AL-Go-Settings.json enables proposal logging only;
+    false or absent bypasses analysis. All bucket tests still run.
 .PARAMETER parameters
     The Run-AlPipeline parameters hashtable (containerName, tenant, credential, etc.).
 .OUTPUTS
@@ -1559,18 +1559,17 @@ function Invoke-PerProjectTestRun {
     $bucketNumber = if ($testType -eq "Legacy") { Get-ALGoSetting -Key "bucketNumber" } else { 0 }
 
     $installed = Get-InstalledTestAppNames -ContainerName $parameters.containerName -Tenant $parameters.tenant -Country $country
-    $appNamesToTest = @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType $testType -BucketNumber $bucketNumber)
-    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
-    $stateFile = Join-Path $tempDir "parallelTests_$($parameters.containerName).json"
-    $appNamesToTest = @(Get-SelectedTestApps -AppNamesToTest $appNamesToTest -BaseFolder (Get-BaseFolder) `
-        -ChurnEnabled ((Get-ALGoSetting -Key 'enableChurnBasedTesting') -eq $true) `
-        -CacheKey $stateFile -Country $country -TestType $testType -BucketNumber $bucketNumber)
+    $appNamesToTest = Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType $testType -BucketNumber $bucketNumber
 
     if ($appNamesToTest.Count -eq 0) {
-        @{ completed = $true; finalResult = $true; noTestsSelected = $true } |
-            ConvertTo-Json | Set-Content -Path $stateFile -Force
+        Write-Host "No test apps to run for testType '$testType' in this project."
         return $true
     }
+
+    $appNamesToTest = @(Get-SelectedTestApps -AppNamesToTest $appNamesToTest -BaseFolder (Get-BaseFolder) `
+        -ChurnEnabled ((Get-ALGoSetting -Key 'enableChurnBasedTesting') -eq $true) `
+        -Country $country -TestType $testType -BucketNumber $bucketNumber)
+    Write-Host "Test apps to dispatch ($($appNamesToTest.Count)): $($appNamesToTest -join ', ')"
 
     $parameters["returnTrueIfAllPassed"] = $true
     $script = Join-Path $PSScriptRoot "RunTestsInBcContainer.ps1" -Resolve
