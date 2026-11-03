@@ -685,7 +685,8 @@ codeunit 144201 "FatturaPA ValidateDocOnPosting"
         CreateServiceDocument(ServiceHeader, ServiceHeader."Document Type"::Invoice, CreateCustomerNo('1234567'), '');
 
         // [WHEN] A standalone service invoice is posted without a payment method
-        asserterror LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+        // Pass Invoice = false to exercise standalone document-type validation before Service-Post normalizes the flag.
+        asserterror LibraryService.PostServiceOrder(ServiceHeader, true, false, false);
 
         // [THEN] FatturaPA rejects posting and displays the payment-method diagnostic
         Assert.ExpectedError('');
@@ -706,7 +707,8 @@ codeunit 144201 "FatturaPA ValidateDocOnPosting"
         CreateServiceDocument(ServiceHeader, ServiceHeader."Document Type"::"Credit Memo", CreateCustomerNo('1234567'), '');
 
         // [WHEN] A standalone service credit memo is posted without a payment method
-        asserterror LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+        // Pass Invoice = false to exercise standalone document-type validation before Service-Post normalizes the flag.
+        asserterror LibraryService.PostServiceOrder(ServiceHeader, true, false, false);
 
         // [THEN] FatturaPA rejects posting and displays the payment-method diagnostic
         Assert.ExpectedError('');
