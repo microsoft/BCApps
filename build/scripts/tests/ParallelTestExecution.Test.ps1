@@ -103,10 +103,10 @@ Describe "ParallelTestExecution churn selection" {
         }
     }
 
-    It "returns only selected app names for <Case> candidates" -ForEach @(
+    It "returns all original app names for <Case> candidates in logging mode" -ForEach @(
         @{ Case = 'empty'; Candidates = @(); Expected = @() }
         @{ Case = 'single'; Candidates = @('Tests A'); Expected = @('Tests A') }
-        @{ Case = 'multiple'; Candidates = @('Tests C', 'Tests B', 'Tests A'); Expected = @('Tests C', 'Tests A') }
+        @{ Case = 'multiple'; Candidates = @('Tests C', 'Tests B', 'Tests A'); Expected = @('Tests C', 'Tests B', 'Tests A') }
     ) {
         $selected = @(Get-SelectedTestApps -AppNamesToTest $Candidates -BaseFolder $script:selectionRepoRoot `
             -ChurnEnabled $true -CacheKey $env:RUNNER_TEMP -Country 'w1' -TestType 'IntegrationTest' -BucketNumber 0)
@@ -115,20 +115,20 @@ Describe "ParallelTestExecution churn selection" {
         foreach ($name in $selected) { $name | Should -BeOfType [string] }
     }
 
-    It "filters before discovery and warmup when enabled, preserving bucket order and clean-isolation selection" {
+    It "logs a narrower proposal but runs the full bucket through discovery, warmup and clean isolation" {
         Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests B' } |
             Should -BeTrue
 
         Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
-            ($AppNamesToTest -join ',') -eq 'Tests C,Tests A'
+            ($AppNamesToTest -join ',') -eq 'Tests C,Tests B,Tests A'
         }
         Should -Invoke -ModuleName ParallelTestExecution Invoke-WarmupDispatch -Times 1 -Exactly -ParameterFilter {
-            ($Pending -join ',') -eq 'Tests C,Tests A' -and ($CleanTenantAppNames -join ',') -eq 'Tests C,Tests A'
+            ($Pending -join ',') -eq 'Tests C,Tests B,Tests A' -and ($CleanTenantAppNames -join ',') -eq 'Tests C,Tests B,Tests A'
         }
-        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 2 -Exactly -ParameterFilter {
-            $AppName -in @('Tests C', 'Tests A') -and $SkipAutomaticDisabledPass
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly -ParameterFilter {
+            $AppName -in @('Tests C', 'Tests B', 'Tests A') -and $SkipAutomaticDisabledPass
         }
-        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly -ParameterFilter {
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 1 -Exactly -ParameterFilter {
             $AppName -eq 'Tests B'
         }
         Should -Invoke -ModuleName BuildOptimization Get-AffectedAppNames -Times 1 -Exactly -ParameterFilter {
@@ -139,9 +139,10 @@ Describe "ParallelTestExecution churn selection" {
         ($script:selectionLog[$start..$end] -join "`n") | Should -Be (@(
             '::group::Test app selection'
             'Country: w1 | Test type: IntegrationTest | Bucket: n/a'
-            'Churn-based testing: Enabled; affected-app filter applied'
-            'Candidates: 3 | Selected: 2 | Skipped: 1'
-            'Selected test apps (dispatch order):'
+            'Churn-based testing: Enabled; affected-app proposal'
+            'Logging only: full bucket will run (3 test apps).'
+            'Candidates: 3 | Would run: 2 | Would skip: 1'
+            'Proposed test apps (candidate order):'
             '  - Tests C'
             '  - Tests A'
             '::endgroup::'
@@ -179,7 +180,7 @@ Describe "ParallelTestExecution churn selection" {
         }
         Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
         $script:selectionLog | Should -Contain 'Churn-based testing: Disabled; full bucket'
-        $script:selectionLog | Should -Contain 'Candidates: 3 | Selected: 3 | Skipped: 0'
+        $script:selectionLog | Should -Contain 'Candidates: 3 | Would run: 3 | Would skip: 0'
     }
 
     It "returns the cached <Passed> outcome on later per-app hooks without recomputing selection" -ForEach @(
@@ -194,13 +195,13 @@ Describe "ParallelTestExecution churn selection" {
         }
         Should -Invoke -ModuleName BuildOptimization Get-AffectedAppNames -Times 1 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly
-        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 2 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
         Should -Invoke -ModuleName BuildOptimization Write-Host -Times 1 -Exactly -ParameterFilter {
             $Object -eq '::group::Test app selection'
         }
     }
 
-    It "uses the existing downstream dependency calculation to select test apps" {
+    It "uses the existing downstream dependency calculation for the proposal without skipping tests" {
         $script:useRealAffectedAppNames = $true
         Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/Apps/Example/code.al') }
         Mock -ModuleName BuildOptimization Get-AppForFile { 'production' }
@@ -215,12 +216,13 @@ Describe "ParallelTestExecution churn selection" {
         Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests B' } |
             Should -BeTrue
         Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
-            ($AppNamesToTest -join ',') -eq 'Tests C,Tests A'
+            ($AppNamesToTest -join ',') -eq 'Tests C,Tests B,Tests A'
         }
-        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 2 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
+        $script:selectionLog | Should -Contain 'Candidates: 3 | Would run: 2 | Would skip: 1'
     }
 
-    It "records an empty selection and never enters the shared sequential fallback, discovery or dispatch" {
+    It "runs the full bucket for an empty proposal and caches the actual execution result" {
         Mock -ModuleName BuildOptimization Get-AffectedAppNames {
             [PSCustomObject]@{ RunAll = $false; AppNames = @('Unrelated Tests') }
         } -ParameterFilter { $true }
@@ -230,21 +232,34 @@ Describe "ParallelTestExecution churn selection" {
         }
         InModuleScope ParallelTestExecution {
             $state = Get-Content (Join-Path $env:RUNNER_TEMP 'parallelTests_selection.json') -Raw | ConvertFrom-Json
-            $state.noTestsSelected | Should -BeTrue
+            $state.PSObject.Properties.Name | Should -Not -Contain 'noTestsSelected'
             $state.completed | Should -BeTrue
         }
         Should -Invoke -ModuleName BuildOptimization Get-AffectedAppNames -Times 1 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Get-InstalledTestAppNames -Times 1 -Exactly
-        Should -Invoke -ModuleName ParallelTestExecution Get-DisabledTestsForApp -Times 0 -Exactly
-        Should -Invoke -ModuleName ParallelTestExecution Get-AvailableBcTenantInfo -Times 0 -Exactly
-        Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 0 -Exactly
-        Should -Invoke -ModuleName ParallelTestExecution Invoke-WarmupDispatch -Times 0 -Exactly
-        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly
-        $script:selectionLog | Should -Contain 'Candidates: 3 | Selected: 0 | Skipped: 3'
-        $script:selectionLog | Should -Contain '  No test apps selected.'
+        Should -Invoke -ModuleName ParallelTestExecution Get-AvailableBcTenantInfo -Times 1 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
+            ($AppNamesToTest -join ',') -eq 'Tests C,Tests B,Tests A'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Invoke-WarmupDispatch -Times 1 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
+        $script:selectionLog | Should -Contain 'Candidates: 3 | Would run: 0 | Would skip: 3'
+        $script:selectionLog | Should -Contain '  No test apps proposed.'
+        $script:selectionLog | Should -Contain 'Logging only: full bucket will run (3 test apps).'
         Should -Invoke -ModuleName BuildOptimization Write-Host -Times 1 -Exactly -ParameterFilter {
             $Object -eq '::group::Test app selection'
         }
+    }
+
+    It "still records a genuinely empty bucket without discovery or dispatch" {
+        Mock -ModuleName ParallelTestExecution Get-AppNamesForBucket { @() }
+        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
+            Should -BeTrue
+        $state = Get-Content (Join-Path $env:RUNNER_TEMP 'parallelTests_selection.json') -Raw | ConvertFrom-Json
+        $state.noTestsSelected | Should -BeTrue
+        Should -Invoke -ModuleName BuildOptimization Get-AffectedAppNames -Times 0 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 0 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly
     }
 
     It "reuses affected-app computation if dispatch is interrupted before completion" {
@@ -281,7 +296,7 @@ Describe "ParallelTestExecution churn selection" {
         }
         Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
         $script:selectionLog | Should -Contain 'Churn-based testing: Enabled; full bucket (RunAll)'
-        $script:selectionLog | Should -Contain 'Candidates: 3 | Selected: 3 | Skipped: 0'
+        $script:selectionLog | Should -Contain 'Candidates: 3 | Would run: 3 | Would skip: 0'
     }
 
     It "logs malformed change-detection JSON and safely runs the full bucket" {

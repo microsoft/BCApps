@@ -519,9 +519,10 @@ function Get-SelectedTestApps {
     )
 
     $candidateCount = $AppNamesToTest.Count
+    $proposedAppNames = @($AppNamesToTest)
     $selectionMode = if ($ChurnEnabled) { 'Enabled; no candidate test apps' } else { 'Disabled; full bucket' }
     if ($AppNamesToTest.Count -gt 0 -and $ChurnEnabled) {
-        # Only the parent computes this; workers receive the already selected list.
+        # Only the parent computes the proposal; logging mode still runs the full bucket.
         if (-not $script:affectedAppNamesByRun.ContainsKey($CacheKey)) {
             try {
                 $script:affectedAppNamesByRun[$CacheKey] = Get-AffectedAppNames -BaseFolder $BaseFolder
@@ -536,8 +537,8 @@ function Get-SelectedTestApps {
         $affected = $script:affectedAppNamesByRun[$CacheKey]
         $selectionMode = 'Enabled; full bucket (RunAll)'
         if (-not $affected.RunAll) {
-            $selectionMode = 'Enabled; affected-app filter applied'
-            $AppNamesToTest = @($AppNamesToTest | Where-Object { $_ -in $affected.AppNames })
+            $selectionMode = 'Enabled; affected-app proposal'
+            $proposedAppNames = @($AppNamesToTest | Where-Object { $_ -in $affected.AppNames })
         }
     }
 
@@ -545,13 +546,14 @@ function Get-SelectedTestApps {
     Write-Host "::group::Test app selection"
     Write-Host "Country: $Country | Test type: $TestType | Bucket: $bucketLabel"
     Write-Host "Churn-based testing: $selectionMode"
-    Write-Host "Candidates: $candidateCount | Selected: $($AppNamesToTest.Count) | Skipped: $($candidateCount - $AppNamesToTest.Count)"
-    Write-Host "Selected test apps (dispatch order):"
-    foreach ($appName in $AppNamesToTest) {
+    Write-Host "Logging only: full bucket will run ($candidateCount test apps)."
+    Write-Host "Candidates: $candidateCount | Would run: $($proposedAppNames.Count) | Would skip: $($candidateCount - $proposedAppNames.Count)"
+    Write-Host "Proposed test apps (candidate order):"
+    foreach ($appName in $proposedAppNames) {
         Write-Host "  - $appName"
     }
-    if ($AppNamesToTest.Count -eq 0) {
-        Write-Host "  No test apps selected."
+    if ($proposedAppNames.Count -eq 0) {
+        Write-Host "  No test apps proposed."
     }
     Write-Host "::endgroup::"
 

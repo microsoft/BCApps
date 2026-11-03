@@ -1535,10 +1535,10 @@ function Invoke-ParallelTestExecution {
     across the container's tenants and caches the result for subsequent override invocations.
 .DESCRIPTION
     Run-AlPipeline calls the per-project RunTestsInBcContainer.ps1 once per test app. The first
-    call filters the bucket's ordered app list before discovery or dispatch when the AL-Go
-    setting enableChurnBasedTesting is true. Set it to false in .github/AL-Go-Settings.json
-    to disable selection for future runs; absent also runs the full bucket. Existing
-    full-run fallbacks still apply when enabled. Subsequent calls short-circuit on the cached
+    call logs the proposed test app list when the AL-Go setting enableChurnBasedTesting is
+    true. Temporarily, this is logging only: the full bucket still runs. Set it to false in
+    .github/AL-Go-Settings.json (or omit it) to bypass analysis. Existing full-run fallbacks
+    still apply to the proposal. Subsequent calls short-circuit on the cached
     final result, including a successful no-tests-selected result. Container setup is unchanged.
 .PARAMETER parameters
     The Run-AlPipeline parameters hashtable (containerName, tenant, credential, etc.).
