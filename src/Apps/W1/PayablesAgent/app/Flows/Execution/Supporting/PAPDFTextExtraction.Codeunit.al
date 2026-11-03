@@ -78,5 +78,6 @@ codeunit 3336 "PA PDF Text Extraction"
         SystemPrompt := NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8);
         if SystemPrompt = '' then
             Error(ExtractionFailedErr);
+        SystemPrompt := StrSubstNo(SystemPrompt, CompanyName());
     end;
 }
