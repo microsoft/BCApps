@@ -61,13 +61,5 @@
         "HelpURL": "",
         "VideoURL": "",
         "ADOSliceIds": [620951]
-    },
-    {
-        "FeatureName": "Match Shopify sales taxes with Copilot",
-        "Description": "With the Shopify Connector NA app, use Shopify Tax Matching to propose tax jurisdictions and tax areas from order tax lines. Review the proposed matches and approve orders held for review before creating their sales documents.",
-        "Category": "Commerce",
-        "HelpURL": "",
-        "VideoURL": "",
-        "ADOSliceIds": [445769]
     }
 ]
