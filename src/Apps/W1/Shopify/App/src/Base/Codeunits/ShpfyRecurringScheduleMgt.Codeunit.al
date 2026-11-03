@@ -408,10 +408,11 @@ codeunit 30206 "Shpfy Recurring Schedule Mgt."
         if not Shop.Get(Shop.Code) then
             Error(ShopNoLongerExistsErr, Shop.Code);
 
-        JobQueueCategory.LockTable();
+        // Serializes concurrent Finish calls: the update lock on the SHPFY category row is held until the first commit,
+        // so the recheck below sees schedules created by another session. That commit happens only after all entries are inserted.
+        JobQueueCategory.ReadIsolation := IsolationLevel::UpdLock;
         JobQueueCategory.InsertRec(JobQueueCategoryTok, JobQueueCategoryDescriptionTok);
         JobQueueCategory.Get(JobQueueCategoryTok);
-        // New entries become visible before activation or approval can commit and release this shared lock.
 
         BuildRecommendations(Shop, TempCurrentRecommendations);
         CreatedSchedule := CreateSchedulesForSelectedRecommendations(Shop, TempSelectedBuffer, TempCurrentRecommendations, TempCreatedJobQueueEntry);
@@ -569,15 +570,13 @@ codeunit 30206 "Shpfy Recurring Schedule Mgt."
                 if Shop."Order Created Webhooks" then
                     BaseTime := 030000T
                 else begin
-                    EarliestStartDateTime := CurrentDateTime() + OffsetMinutes * 60000;
-                    StartingTime := DT2Time(EarliestStartDateTime);
+                    GetIntervalStartingTime(OffsetMinutes, StartingTime, EarliestStartDateTime);
                     exit;
                 end;
             Workload::"Product Images":
                 BaseTime := 020000T;
             else begin
-                EarliestStartDateTime := CurrentDateTime() + OffsetMinutes * 60000;
-                StartingTime := DT2Time(EarliestStartDateTime);
+                GetIntervalStartingTime(OffsetMinutes, StartingTime, EarliestStartDateTime);
                 exit;
             end;
         end;
@@ -588,6 +587,13 @@ codeunit 30206 "Shpfy Recurring Schedule Mgt."
             StartingDate += 1;
             EarliestStartDateTime := CreateDateTime(StartingDate, BaseTime) + OffsetMinutes * 60000;
         end;
+        StartingTime := DT2Time(EarliestStartDateTime);
+    end;
+
+    local procedure GetIntervalStartingTime(OffsetMinutes: Integer; var StartingTime: Time; var EarliestStartDateTime: DateTime)
+    begin
+        // Interval workloads start 1-15 minutes after Finish, so a zero shop offset never schedules an immediate run.
+        EarliestStartDateTime := CurrentDateTime() + (OffsetMinutes + 1) * 60000;
         StartingTime := DT2Time(EarliestStartDateTime);
     end;
 
@@ -809,10 +815,8 @@ codeunit 30206 "Shpfy Recurring Schedule Mgt."
     local procedure GetShopDisplay(Shop: Record "Shpfy Shop"; Coverage: Enum "Shpfy Sync Coverage"): Text[250]
     begin
         case Coverage of
-            Coverage::"All Shops":
-                exit('All Shops');
-            Coverage::"Multiple Shops":
-                exit('Multiple Shops');
+            Coverage::"All Shops", Coverage::"Multiple Shops":
+                exit(Format(Coverage));
             else
                 exit(Shop.Code);
         end;

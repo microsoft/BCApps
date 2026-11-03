@@ -90,13 +90,11 @@ page 30178 "Shpfy Recurring Sync List"
         TempShpfyRecurringSyncBuffer: Record "Shpfy Recurring Sync Buffer" temporary;
 
     trigger OnAfterGetRecord()
-    var
-        ScheduleInfoNotFoundErr: Label 'The recurring schedule information could not be loaded.';
     begin
         TempShpfyRecurringSyncBuffer.Reset();
         TempShpfyRecurringSyncBuffer.SetRange("Job Queue Entry ID", Rec.ID);
         if not TempShpfyRecurringSyncBuffer.FindFirst() then
-            Error(ScheduleInfoNotFoundErr);
+            Clear(TempShpfyRecurringSyncBuffer);
     end;
 
     internal procedure SetShop(ShopToSet: Record "Shpfy Shop")
