@@ -107,11 +107,14 @@ codeunit 139561 "Shpfy Initialize Test"
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
-        if SalesReceivablesSetup.Get() then
-            if SalesReceivablesSetup."Customer Nos." = '' then begin
-                SalesReceivablesSetup."Customer Nos." := LibraryERM.CreateNoSeriesCode();
-                SalesReceivablesSetup.Modify(false);
-            end;
+        if not SalesReceivablesSetup.Get() then begin
+            SalesReceivablesSetup.Init();
+            SalesReceivablesSetup.Insert(false);
+        end;
+        if SalesReceivablesSetup."Customer Nos." = '' then begin
+            SalesReceivablesSetup."Customer Nos." := LibraryERM.CreateNoSeriesCode();
+            SalesReceivablesSetup.Modify(false);
+        end;
     end;
 
     internal procedure EnsureCountryRegion(ShopifyCountryCode: Code[2])
@@ -144,35 +147,6 @@ codeunit 139561 "Shpfy Initialize Test"
             ShopifyCustomerTemplate."Company Templ. Code" := CompanyTemplateCode;
             ShopifyCustomerTemplate.Insert(false);
         end;
-    end;
-
-    internal procedure CreateCustomerTemplate(Shop: Record "Shpfy Shop"; var PaymentTermsCode: Code[10]) CustomerTemplateCode: Code[20]
-    var
-        CustomerTempl: Record "Customer Templ.";
-        PaymentTerms: Record "Payment Terms";
-    begin
-        if PaymentTermsCode = '' then
-            repeat
-                PaymentTermsCode := CopyStr(Any.AlphanumericText(MaxStrLen(PaymentTermsCode)), 1, MaxStrLen(PaymentTermsCode));
-            until (PaymentTermsCode <> '') and not PaymentTerms.Get(PaymentTermsCode);
-
-        if not PaymentTerms.Get(PaymentTermsCode) then begin
-            PaymentTerms.Init();
-            PaymentTerms.Code := PaymentTermsCode;
-            PaymentTerms.Insert(false);
-        end;
-
-        repeat
-            CustomerTemplateCode := CopyStr(Any.AlphanumericText(MaxStrLen(CustomerTemplateCode)), 1, MaxStrLen(CustomerTemplateCode));
-        until (CustomerTemplateCode <> '') and not CustomerTempl.Get(CustomerTemplateCode);
-
-        CustomerTempl.Init();
-        CustomerTempl.Code := CustomerTemplateCode;
-        CustomerTempl."Payment Terms Code" := PaymentTermsCode;
-        CustomerTempl."Customer Posting Group" := Shop."Customer Posting Group";
-        CustomerTempl."Gen. Bus. Posting Group" := Shop."Gen. Bus. Posting Group";
-        CustomerTempl."VAT Bus. Posting Group" := Shop."VAT Bus. Posting Group";
-        CustomerTempl.Insert(false);
     end;
 
     local procedure CreateDummyCustomer(CurrentTemplateCode: Code[20])
@@ -434,7 +408,6 @@ codeunit 139561 "Shpfy Initialize Test"
             VatPostingSetup."VAT %" := 10;
             VatPostingSetup.Insert();
         end;
-
         if not GeneralPostingSetup.Get(GenBusinessPostingGroup, GenProductPostingGroup) then begin
             Clear(GeneralPostingSetup);
             GeneralPostingSetup."Gen. Bus. Posting Group" := GenBusinessPostingGroup;

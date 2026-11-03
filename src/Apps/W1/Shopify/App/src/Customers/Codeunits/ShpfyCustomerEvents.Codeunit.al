@@ -34,7 +34,7 @@ codeunit 30115 "Shpfy Customer Events"
     begin
     end;
 
-    [InternalEvent(false)]
+    [IntegrationEvent(false, false)]
     /// <summary>
     /// Raised after finding a customer template for a Shopify company.
     /// </summary>
@@ -46,7 +46,7 @@ codeunit 30115 "Shpfy Customer Events"
     begin
     end;
 
-    [InternalEvent(false)]
+    [IntegrationEvent(false, false)]
     /// <summary>
     /// Raised before finding a customer template for a Shopify company.
     /// </summary>

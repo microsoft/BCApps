@@ -6,6 +6,7 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.CRM.Setup;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Integration.Shopify;
 using Microsoft.Sales.Customer;
 using System.TestLibraries.Utilities;
@@ -148,11 +149,11 @@ codeunit 139565 "Shpfy Create Customer Test"
         Initialize();
 
         //[GIVEN] A country customer template is configured.
-        CountryTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, CountryPaymentTermsCode);
+        CountryTemplateCode := CreateCustomerTemplate(Shop, CountryPaymentTermsCode);
         //[GIVEN] The country row is configured with its customer template.
         CreateShopifyCustomerTemplate('US', CountryTemplateCode);
         //[GIVEN] An explicit customer template is configured.
-        ExplicitTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, ExplicitPaymentTermsCode);
+        ExplicitTemplateCode := CreateCustomerTemplate(Shop, ExplicitPaymentTermsCode);
         //[GIVEN] The shop is copied for this selection.
         TestShop := Shop;
 
@@ -180,7 +181,7 @@ codeunit 139565 "Shpfy Create Customer Test"
         Initialize();
 
         //[GIVEN] A country customer template is configured.
-        CountryTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, CountryPaymentTermsCode);
+        CountryTemplateCode := CreateCustomerTemplate(Shop, CountryPaymentTermsCode);
         //[GIVEN] The country row is configured with its customer template.
         CreateShopifyCustomerTemplate('US', CountryTemplateCode);
         //[GIVEN] The shop customer template remains configured as a fallback.
@@ -214,7 +215,7 @@ codeunit 139565 "Shpfy Create Customer Test"
         //[GIVEN] The test shop is copied with its customer template.
         TestShop := Shop;
         //[GIVEN] The shop customer template code is set.
-        TestShop."Customer Templ. Code" := InitializeTest.CreateCustomerTemplate(Shop, ShopPaymentTermsCode);
+        TestShop."Customer Templ. Code" := CreateCustomerTemplate(Shop, ShopPaymentTermsCode);
 
         //[WHEN] A B2C customer is created without an explicit template.
         Customer := CreateCustomerFromShopifyAddress(TestShop, '');
@@ -240,6 +241,33 @@ codeunit 139565 "Shpfy Create Customer Test"
             CreateCustomer.SetTemplateCode(ExplicitTemplateCode);
         CreateCustomer.Run(ShopifyCustomerAddress);
         Customer.GetBySystemId(ShopifyCustomerAddress.CustomerSystemId);
+    end;
+
+    internal procedure CreateCustomerTemplate(ShpfyShop: Record "Shpfy Shop"; var PaymentTermsCode: Code[10]) CustomerTemplateCode: Code[20]
+    var
+        CustomerTempl: Record "Customer Templ.";
+        PaymentTerms: Record "Payment Terms";
+    begin
+        if PaymentTermsCode = '' then
+            repeat
+                PaymentTermsCode := CopyStr(Any.AlphanumericText(MaxStrLen(PaymentTermsCode)), 1, MaxStrLen(PaymentTermsCode));
+            until (PaymentTermsCode <> '') and not PaymentTerms.Get(PaymentTermsCode);
+        if not PaymentTerms.Get(PaymentTermsCode) then begin
+            PaymentTerms.Init();
+            PaymentTerms.Code := PaymentTermsCode;
+            PaymentTerms.Insert(false);
+        end;
+        repeat
+            CustomerTemplateCode := CopyStr(Any.AlphanumericText(MaxStrLen(CustomerTemplateCode)), 1, MaxStrLen(CustomerTemplateCode));
+        until (CustomerTemplateCode <> '') and not CustomerTempl.Get(CustomerTemplateCode);
+
+        CustomerTempl.Init();
+        CustomerTempl.Code := CustomerTemplateCode;
+        CustomerTempl."Payment Terms Code" := PaymentTermsCode;
+        CustomerTempl."Customer Posting Group" := ShpfyShop."Customer Posting Group";
+        CustomerTempl."Gen. Bus. Posting Group" := ShpfyShop."Gen. Bus. Posting Group";
+        CustomerTempl."VAT Bus. Posting Group" := ShpfyShop."VAT Bus. Posting Group";
+        CustomerTempl.Insert(false);
     end;
 
     local procedure Initialize()

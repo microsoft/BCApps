@@ -246,17 +246,17 @@ codeunit 139647 "Shpfy Company Import Test"
         Initialize();
 
         //[GIVEN] A template is created for the country row.
-        CountryTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, CountryPaymentTermsCode);
+        CountryTemplateCode := CreateCustomerTemplate(Shop, CountryPaymentTermsCode);
         //[GIVEN] The country template row uses those template codes.
         CreateShopifyCustomerTemplate('US', CountryTemplateCode, CountryTemplateCode);
         //[GIVEN] A shop-level company template is configured.
-        ShopCompanyTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, ShopCompanyPaymentTermsCode);
+        ShopCompanyTemplateCode := CreateCustomerTemplate(Shop, ShopCompanyPaymentTermsCode);
         //[GIVEN] The test shop is copied for this selection.
         TestShop := Shop;
         //[GIVEN] The test shop has a company template.
         TestShop."Company Templ. Code" := ShopCompanyTemplateCode;
         //[GIVEN] An explicit order template is configured.
-        ExplicitTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, ExplicitPaymentTermsCode);
+        ExplicitTemplateCode := CreateCustomerTemplate(Shop, ExplicitPaymentTermsCode);
 
         //[WHEN] A B2B customer is created with the explicit template.
         Customer := CreateCustomerFromCompany(TestShop, 'US', ExplicitTemplateCode);
@@ -289,15 +289,15 @@ codeunit 139647 "Shpfy Company Import Test"
         //[GIVEN] A Shopify ISO code is mapped to a different Business Central country code.
         CreateCountryRegionMapping(CountryRegion, 'QZ');
         //[GIVEN] A company template is created for the Shopify ISO country.
-        IsoTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, IsoPaymentTermsCode);
+        IsoTemplateCode := CreateCustomerTemplate(Shop, IsoPaymentTermsCode);
         //[GIVEN] A distinct company template is created for the mapped country.
-        MappedTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, MappedPaymentTermsCode);
+        MappedTemplateCode := CreateCustomerTemplate(Shop, MappedPaymentTermsCode);
         //[GIVEN] The ISO row is configured with its company template.
         CreateShopifyCustomerTemplate('QZ', '', IsoTemplateCode);
         //[GIVEN] The mapped-country row is configured with its company template.
         CreateShopifyCustomerTemplate(CountryRegion.Code, '', MappedTemplateCode);
         //[GIVEN] A shop-level company template is created.
-        ShopTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, ShopPaymentTermsCode);
+        ShopTemplateCode := CreateCustomerTemplate(Shop, ShopPaymentTermsCode);
         //[GIVEN] The test shop is copied for this selection.
         TestShop := Shop;
         //[GIVEN] The test shop has its own company template.
@@ -334,11 +334,11 @@ codeunit 139647 "Shpfy Company Import Test"
         //[GIVEN] The ISO country row has no company template.
         CreateShopifyCustomerTemplate('QY', '', '');
         //[GIVEN] A company template is created for the mapped country.
-        MappedTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, MappedPaymentTermsCode);
+        MappedTemplateCode := CreateCustomerTemplate(Shop, MappedPaymentTermsCode);
         //[GIVEN] The mapped-country row is configured with its company template.
         CreateShopifyCustomerTemplate(CountryRegion.Code, '', MappedTemplateCode);
         //[GIVEN] A shop-level company template is created.
-        ShopTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, ShopPaymentTermsCode);
+        ShopTemplateCode := CreateCustomerTemplate(Shop, ShopPaymentTermsCode);
         //[GIVEN] The test shop is copied for this selection.
         TestShop := Shop;
         //[GIVEN] The test shop has its own company template.
@@ -370,11 +370,11 @@ codeunit 139647 "Shpfy Company Import Test"
         Initialize();
 
         //[GIVEN] A country customer template is configured.
-        CountryTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, CountryPaymentTermsCode);
+        CountryTemplateCode := CreateCustomerTemplate(Shop, CountryPaymentTermsCode);
         //[GIVEN] The country row is configured with its customer template.
         CreateShopifyCustomerTemplate('US', CountryTemplateCode, '');
         //[GIVEN] A shop company template is created.
-        ShopTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, ShopPaymentTermsCode);
+        ShopTemplateCode := CreateCustomerTemplate(Shop, ShopPaymentTermsCode);
         //[GIVEN] The test shop is copied for this selection.
         TestShop := Shop;
         //[GIVEN] The test shop has its own company template.
@@ -404,7 +404,7 @@ codeunit 139647 "Shpfy Company Import Test"
         Initialize();
 
         //[GIVEN] A country customer template is configured.
-        CountryTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, CountryPaymentTermsCode);
+        CountryTemplateCode := CreateCustomerTemplate(Shop, CountryPaymentTermsCode);
         //[GIVEN] The country row is configured with its customer template.
         CreateShopifyCustomerTemplate('US', CountryTemplateCode, '');
         //[GIVEN] No company-specific template is configured.
@@ -436,7 +436,7 @@ codeunit 139647 "Shpfy Company Import Test"
         Initialize();
 
         //[GIVEN] A shop customer template is created.
-        CustomerTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, PaymentTermsCode);
+        CustomerTemplateCode := CreateCustomerTemplate(Shop, PaymentTermsCode);
         //[GIVEN] The test shop is copied for this selection.
         TestShop := Shop;
         //[GIVEN] The test shop company template is blank.
@@ -474,7 +474,7 @@ codeunit 139647 "Shpfy Company Import Test"
         //[GIVEN] The Shopify ISO row has no customer template.
         CreateShopifyCustomerTemplate('QW', '', '');
         //[GIVEN] A customer template is created for the mapped country.
-        MappedTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, MappedPaymentTermsCode);
+        MappedTemplateCode := CreateCustomerTemplate(Shop, MappedPaymentTermsCode);
         //[GIVEN] The mapped-country row is configured with that customer template.
         CreateShopifyCustomerTemplate(CountryRegion.Code, MappedTemplateCode, '');
         //[GIVEN] The test shop is copied for this selection.
@@ -538,9 +538,9 @@ codeunit 139647 "Shpfy Company Import Test"
         Initialize();
 
         //[GIVEN] A customer template is created for the US country row.
-        CustomerTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, CustomerPaymentTermsCode);
+        CustomerTemplateCode := CreateCustomerTemplate(Shop, CustomerPaymentTermsCode);
         //[GIVEN] A distinct company template is created for the US country row.
-        CompanyTemplateCode := InitializeTest.CreateCustomerTemplate(Shop, CompanyPaymentTermsCode);
+        CompanyTemplateCode := CreateCustomerTemplate(Shop, CompanyPaymentTermsCode);
         //[GIVEN] The US country row is configured with both template codes.
         CreateShopifyCustomerTemplate('US', CustomerTemplateCode, CompanyTemplateCode);
 
@@ -577,6 +577,34 @@ codeunit 139647 "Shpfy Company Import Test"
         CountryRegion."ISO Code" := ISOCode;
         CountryRegion.Modify(false);
     end;
+
+    internal procedure CreateCustomerTemplate(ShpfyShop: Record "Shpfy Shop"; var PaymentTermsCode: Code[10]) CustomerTemplateCode: Code[20]
+    var
+        CustomerTempl: Record "Customer Templ.";
+        PaymentTerms: Record "Payment Terms";
+    begin
+        if PaymentTermsCode = '' then
+            repeat
+                PaymentTermsCode := CopyStr(Any.AlphanumericText(MaxStrLen(PaymentTermsCode)), 1, MaxStrLen(PaymentTermsCode));
+            until (PaymentTermsCode <> '') and not PaymentTerms.Get(PaymentTermsCode);
+        if not PaymentTerms.Get(PaymentTermsCode) then begin
+            PaymentTerms.Init();
+            PaymentTerms.Code := PaymentTermsCode;
+            PaymentTerms.Insert(false);
+        end;
+        repeat
+            CustomerTemplateCode := CopyStr(Any.AlphanumericText(MaxStrLen(CustomerTemplateCode)), 1, MaxStrLen(CustomerTemplateCode));
+        until (CustomerTemplateCode <> '') and not CustomerTempl.Get(CustomerTemplateCode);
+
+        CustomerTempl.Init();
+        CustomerTempl.Code := CustomerTemplateCode;
+        CustomerTempl."Payment Terms Code" := PaymentTermsCode;
+        CustomerTempl."Customer Posting Group" := ShpfyShop."Customer Posting Group";
+        CustomerTempl."Gen. Bus. Posting Group" := ShpfyShop."Gen. Bus. Posting Group";
+        CustomerTempl."VAT Bus. Posting Group" := ShpfyShop."VAT Bus. Posting Group";
+        CustomerTempl.Insert(false);
+    end;
+
 
     local procedure CreateShopifyCustomerTemplate(CountryCode: Code[20]; CustomerTemplateCode: Code[20]; CompanyTemplateCode: Code[20])
     begin
