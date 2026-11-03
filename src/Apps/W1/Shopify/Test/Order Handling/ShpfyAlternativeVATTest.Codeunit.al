@@ -123,6 +123,56 @@ codeunit 139614 "Shpfy Alternative VAT Test"
 
     [Test]
     [HandlerFunctions('FulfillmentOrdersHttpHandler')]
+    procedure AutoCreate_B2B_UsesCompanyPreference()
+    var
+        BillToCustomer: Record Customer;
+        CountryCustomerTemplate: Record "Customer Templ.";
+        OrderHeader: Record "Shpfy Order Header";
+        SellToCustomer: Record Customer;
+        Shop: Record "Shpfy Shop";
+        VATCustomer: Record Customer;
+        DestinationCountry: Code[10];
+    begin
+        // [Scenario #4] B2B auto-creation follows the company preference, not the customer preference.
+        this.Initialize();
+
+        // [Given] A B2B order has an eligible country template and only company auto-create is enabled.
+        this.CreateB2BAutoCreateScenario(Shop, OrderHeader, SellToCustomer, BillToCustomer, VATCustomer, DestinationCountry, CountryCustomerTemplate, true);
+
+        // [When] The B2B order is processed.
+        this.ProcessOrderManually(OrderHeader);
+
+        // [Then] The document uses the template groups and the destination alternative is created.
+        this.VerifyB2BAutoCreateUsesCompanyPreference(OrderHeader, SellToCustomer, BillToCustomer, VATCustomer, DestinationCountry, CountryCustomerTemplate);
+    end;
+
+    [Test]
+    [HandlerFunctions('FulfillmentOrdersHttpHandler')]
+    procedure AutoCreate_B2B_DoesNotUseCustomerPreference()
+    var
+        BillToCustomer: Record Customer;
+        CountryCustomerTemplate: Record "Customer Templ.";
+        OrderHeader: Record "Shpfy Order Header";
+        SellToCustomer: Record Customer;
+        Shop: Record "Shpfy Shop";
+        VATCustomer: Record Customer;
+        DestinationCountry: Code[10];
+    begin
+        // [Scenario #5] B2B auto-creation does not use the customer preference.
+        this.Initialize();
+
+        // [Given] A B2B order has an eligible destination-country template, but only customer auto-create is enabled.
+        this.CreateB2BAutoCreateScenario(Shop, OrderHeader, SellToCustomer, BillToCustomer, VATCustomer, DestinationCountry, CountryCustomerTemplate, false);
+
+        // [When] The B2B order is processed.
+        this.ProcessOrderManually(OrderHeader);
+
+        // [Then] No alternative is created and the document retains the VAT customer's baseline setup.
+        this.VerifyB2BAutoCreateDoesNotUseCustomerPreference(OrderHeader, SellToCustomer, BillToCustomer, VATCustomer, DestinationCountry);
+    end;
+
+    [Test]
+    [HandlerFunctions('FulfillmentOrdersHttpHandler')]
     procedure AutoCreate_PreservesExistingAlternative()
     var
         AltCustVATRegBefore: Record "Alt. Cust. VAT Reg.";
@@ -135,7 +185,7 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         VATCustomer: Record Customer;
         DestinationCountry: Code[10];
     begin
-        // [Scenario #4] Existing alternative VAT setup is not overwritten by auto-create.
+        // [Scenario #6] Existing alternative VAT setup is not overwritten by auto-create.
         this.Initialize();
 
         // [Given] Auto-create is enabled and an existing alternative differs from the country template.
@@ -158,7 +208,7 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         SellToCustomer: Record Customer;
         RefundId: BigInteger;
     begin
-        // [Scenario #5] A refund credit memo uses the current alternative VAT setup.
+        // [Scenario #7] A refund credit memo uses the current alternative VAT setup.
         this.Initialize();
 
         // [Given] A refund refers to a posted invoice whose alternative VAT setup has since changed.
@@ -208,13 +258,14 @@ codeunit 139614 "Shpfy Alternative VAT Test"
     local procedure ProcessOrderThenManuallyChangeShipToCountry(var SalesHeader: Record "Sales Header"; OrderHeader: Record "Shpfy Order Header"; ManualCountry: Code[10]; CountryCustomerTemplate: Record "Customer Templ."; VATCustomer: Record Customer)
     var
         ManualValidationPromptMissingErr: Label 'Manual country validation after Shopify processing must retain standard interactive behavior.';
+        SalesDocumentNotFoundErr: Label 'Sales document not created/found for the Shopify order.';
     begin
         this.SetExpectedVATValues(CopyStr(OrderHeader."Ship-to Country/Region Code", 1, MaxStrLen(this.ExpectedVATCountry)), VATCustomer."VAT Registration No.", CountryCustomerTemplate."Gen. Bus. Posting Group", CountryCustomerTemplate."VAT Bus. Posting Group", false, true, true);
         this.ManualVATPromptShown := false;
         this.ProcessOrderManually(OrderHeader);
         this.LibraryAssert.IsFalse(this.ManualVATPromptShown, ManualValidationPromptMissingErr);
         SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
-        SalesHeader.FindFirst();
+        this.LibraryAssert.IsTrue(SalesHeader.FindFirst(), SalesDocumentNotFoundErr);
         this.LibrarySales.ReopenSalesDocument(SalesHeader);
         // The standard confirmation page is shown only outside a write transaction, as in an interactive user session.
         Commit();
@@ -234,6 +285,44 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         this.LibraryAssert.IsTrue(SalesHeader."Alt. VAT Registration No.", ManualVATSetupErr);
         this.GetAlternativeVATRegistration(AltCustVATReg, VATCustomer."No.", ManualCountry);
         this.LibraryAssert.AreEqual('MANUAL-VAT', AltCustVATReg."VAT Registration No.", ManualVATSetupErr);
+    end;
+
+    local procedure CreateB2BAutoCreateScenario(var Shop: Record "Shpfy Shop"; var OrderHeader: Record "Shpfy Order Header"; var SellToCustomer: Record Customer; var BillToCustomer: Record Customer; var VATCustomer: Record Customer; var DestinationCountry: Code[10]; var CountryCustomerTemplate: Record "Customer Templ."; EnableCompanyAutoCreate: Boolean)
+    var
+        InterimShipToAddress: Record "Ship-to Address";
+        CountryTemplateInvalidErr: Label 'The test country template must contain both posting groups.';
+    begin
+        this.CreateScenario(Shop, OrderHeader, VATCustomer, SellToCustomer, BillToCustomer, DestinationCountry, InterimShipToAddress, true, false, false, true);
+        CountryCustomerTemplate := this.CreateCountryCustomerTemplate(Shop, DestinationCountry, VATCustomer, true, true);
+        Shop."Auto Create Alt. VAT Reg. Cust" := not EnableCompanyAutoCreate;
+        Shop."Auto Create Alt. VAT Reg. Co." := EnableCompanyAutoCreate;
+        Shop.Modify();
+        this.LibraryAssert.IsTrue(CountryCustomerTemplate."Gen. Bus. Posting Group" <> '', CountryTemplateInvalidErr);
+        this.LibraryAssert.IsTrue(CountryCustomerTemplate."VAT Bus. Posting Group" <> '', CountryTemplateInvalidErr);
+        if EnableCompanyAutoCreate then
+            this.SetExpectedVATValues(DestinationCountry, VATCustomer."VAT Registration No.", CountryCustomerTemplate."Gen. Bus. Posting Group", CountryCustomerTemplate."VAT Bus. Posting Group", false, true, true)
+        else
+            this.SetExpectedVATSetup(VATCustomer, DestinationCountry, false);
+    end;
+
+    local procedure VerifyB2BAutoCreateUsesCompanyPreference(OrderHeader: Record "Shpfy Order Header"; SellToCustomer: Record Customer; BillToCustomer: Record Customer; VATCustomer: Record Customer; DestinationCountry: Code[10]; CountryCustomerTemplate: Record "Customer Templ.")
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        AlternativeVATSetupMissingErr: Label 'The company auto-create preference should create the destination alternative VAT registration.';
+    begin
+        this.VerifyScenario(OrderHeader, SellToCustomer, BillToCustomer, false, true);
+        this.LibraryAssert.IsTrue(this.AlternativeVATRegistrationExists(AltCustVATReg, VATCustomer."No.", DestinationCountry), AlternativeVATSetupMissingErr);
+        this.LibraryAssert.AreEqual(CountryCustomerTemplate."Gen. Bus. Posting Group", AltCustVATReg."Gen. Bus. Posting Group", AlternativeVATSetupMissingErr);
+        this.LibraryAssert.AreEqual(CountryCustomerTemplate."VAT Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group", AlternativeVATSetupMissingErr);
+    end;
+
+    local procedure VerifyB2BAutoCreateDoesNotUseCustomerPreference(OrderHeader: Record "Shpfy Order Header"; SellToCustomer: Record Customer; BillToCustomer: Record Customer; VATCustomer: Record Customer; DestinationCountry: Code[10])
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        AlternativeVATSetupUnexpectedErr: Label 'The customer auto-create preference must not create an alternative for a B2B order.';
+    begin
+        this.VerifyScenario(OrderHeader, SellToCustomer, BillToCustomer, false, true);
+        this.LibraryAssert.IsFalse(this.AlternativeVATRegistrationExists(AltCustVATReg, VATCustomer."No.", DestinationCountry), AlternativeVATSetupUnexpectedErr);
     end;
 
     local procedure CreateAutoCreateCustomerTemplateScenario(var OrderHeader: Record "Shpfy Order Header"; var SellToCustomer: Record Customer; var BillToCustomer: Record Customer; var VATCustomer: Record Customer; var DestinationCountry: Code[10]; var CountryCustomerTemplate: Record "Customer Templ.")

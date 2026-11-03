@@ -265,8 +265,7 @@ codeunit 30166 "Shpfy Process Order"
         then
             exit(false);
 
-        // Serialize lookup and insertion so a concurrent document reuses the first created setup.
-        AltCustVATReg.LockTable();
+        // A concurrent insert of the same alternative is handled by re-reading after Insert returns false.
         if AltCustVATRegFacade.GetAlternativeCustVATReg(AltCustVATReg, VATCustomer."No.", CountryRegionCode) then
             exit(true);
 
