@@ -2,6 +2,7 @@ codeunit 139165 "Integration Table Synch. Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -9,6 +10,7 @@ codeunit 139165 "Integration Table Synch. Test"
     end;
 
     var
+        LoggedIntegrationSynchJobErrors: Record "Integration Synch. Job Errors";
         Assert: Codeunit Assert;
         LibraryCRMIntegration: Codeunit "Library - CRM Integration";
         LibrarySales: Codeunit "Library - Sales";
@@ -18,6 +20,7 @@ codeunit 139165 "Integration Table Synch. Test"
         SourceRecordRef: RecordRef;
         DestinationRecordRef: RecordRef;
         IsInitialized: Boolean;
+        LogSynchErrorEventCount: Integer;
         SyncStartedMsg: Label 'The synchronization has been scheduled.';
         MapIsNotConfiguredErr: Label 'The Integration Table Mapping %1 is not configured for %2 synchronization.';
         TablesDoNotMatchMappingErr: Label 'Source table %1 and destination table %2 do not match integration table mapping %3.', Comment = '%1,%2 - tables Ids; %2 - name of the mapping.';
@@ -1731,6 +1734,22 @@ codeunit 139165 "Integration Table Synch. Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure LogSynchErrorEventReceivesInsertedRecord()
+    begin
+        // [SCENARIO] OnAfterLogSynchError receives the inserted error when the caller record is empty.
+        VerifyLogSynchErrorEvent(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure LogSynchErrorEventIgnoresExistingRecordContext()
+    begin
+        // [SCENARIO] OnAfterLogSynchError receives the new error instead of an unrelated caller record.
+        VerifyLogSynchErrorEvent(true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure LogSynchErrorForBothExistingRecords()
     var
         CRMAccount: Record "CRM Account";
@@ -2786,6 +2805,87 @@ codeunit 139165 "Integration Table Synch. Test"
         CDSConnectionSetup.Modify();
         CDSSetupDefaults.ResetConfiguration(CDSConnectionSetup);
         CRMSetupDefaults.ResetConfiguration(CRMConnectionSetup);
+    end;
+
+    local procedure VerifyLogSynchErrorEvent(UseExistingRecordContext: Boolean)
+    var
+        SourceCustomer: Record Customer;
+        DestinationCustomer: Record Customer;
+        IntegrationSynchJobErrors: Record "Integration Synch. Job Errors";
+        LoggedSynchError: Record "Integration Synch. Job Errors";
+        StoredSynchError: Record "Integration Synch. Job Errors";
+        IntegrationTableSynchTest: Codeunit "Integration Table Synch. Test";
+        StackTraceInStream: InStream;
+        IntegrationSynchJobId: Guid;
+        StartedAt: DateTime;
+        ErrorMessage: Text;
+        ExpectedStackTrace: Text;
+        ActualStackTrace: Text;
+        PreviousErrorNo: Integer;
+    begin
+        Initialize();
+        LibrarySales.CreateCustomer(SourceCustomer);
+        LibrarySales.CreateCustomer(DestinationCustomer);
+        IntegrationSynchJobId := CreateGuid();
+        ErrorMessage := PadStr('Synchronization failed.', MaxStrLen(IntegrationSynchJobErrors."Error Message") + 1, 'X');
+
+        // [GIVEN] An empty caller record or a previously logged error with different values.
+        if UseExistingRecordContext then begin
+            IntegrationSynchJobErrors.LogSynchError(
+                CreateGuid(), DestinationCustomer.RecordId(), SourceCustomer.RecordId(), 'Previous synchronization error.');
+            IntegrationSynchJobErrors.FindLast();
+            PreviousErrorNo := IntegrationSynchJobErrors."No.";
+        end;
+
+        ExpectedStackTrace := GetLastErrorCallstack();
+        BindSubscription(IntegrationTableSynchTest);
+        StartedAt := CurrentDateTime();
+
+        // [WHEN] Logging a new synchronization error.
+        IntegrationSynchJobErrors.LogSynchError(
+            IntegrationSynchJobId, SourceCustomer.RecordId(), DestinationCustomer.RecordId(), ErrorMessage);
+        UnbindSubscription(IntegrationTableSynchTest);
+
+        // [THEN] The subscriber is called once with the newly inserted record and its populated fields.
+        IntegrationTableSynchTest.GetLoggedSynchError(LoggedSynchError);
+        Assert.AreNotEqual(PreviousErrorNo, LoggedSynchError."No.", 'The event must not receive the caller record.');
+        StoredSynchError.Get(LoggedSynchError."No.");
+        LoggedSynchError.TestField("Integration Synch. Job ID", IntegrationSynchJobId);
+        LoggedSynchError.TestField("Source Record ID", SourceCustomer.RecordId());
+        LoggedSynchError.TestField("Destination Record ID", DestinationCustomer.RecordId());
+        LoggedSynchError.TestField(Message, CopyStr(ErrorMessage, 1, MaxStrLen(LoggedSynchError.Message)));
+        LoggedSynchError.TestField("Error Message", CopyStr(ErrorMessage, 1, MaxStrLen(LoggedSynchError."Error Message")));
+        Assert.IsTrue(
+            (LoggedSynchError."Date/Time" >= StartedAt) and (LoggedSynchError."Date/Time" <= CurrentDateTime()),
+            'The event must receive the time of the new error.');
+        StoredSynchError.TestField("Integration Synch. Job ID", LoggedSynchError."Integration Synch. Job ID");
+        StoredSynchError.TestField("Source Record ID", LoggedSynchError."Source Record ID");
+        StoredSynchError.TestField("Destination Record ID", LoggedSynchError."Destination Record ID");
+        StoredSynchError.TestField(Message, LoggedSynchError.Message);
+        StoredSynchError.TestField("Error Message", LoggedSynchError."Error Message");
+        StoredSynchError.TestField("Date/Time", LoggedSynchError."Date/Time");
+        LoggedSynchError.CalcFields("Exception Detail");
+        LoggedSynchError."Exception Detail".CreateInStream(StackTraceInStream);
+        StackTraceInStream.Read(ActualStackTrace);
+        Assert.AreEqual(ExpectedStackTrace, ActualStackTrace, 'The event must receive the error call stack.');
+        StoredSynchError.CalcFields("Exception Detail");
+        StoredSynchError."Exception Detail".CreateInStream(StackTraceInStream);
+        StackTraceInStream.Read(ActualStackTrace);
+        Assert.AreEqual(ExpectedStackTrace, ActualStackTrace, 'The error call stack must already be stored.');
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetLoggedSynchError(var IntegrationSynchJobErrors: Record "Integration Synch. Job Errors")
+    begin
+        Assert.AreEqual(1, LogSynchErrorEventCount, 'OnAfterLogSynchError must be raised exactly once.');
+        IntegrationSynchJobErrors := LoggedIntegrationSynchJobErrors;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Integration Synch. Job Errors", 'OnAfterLogSynchError', '', false, false)]
+    local procedure OnAfterLogSynchError(IntegrationSynchJobErrors: Record "Integration Synch. Job Errors")
+    begin
+        LogSynchErrorEventCount += 1;
+        LoggedIntegrationSynchJobErrors := IntegrationSynchJobErrors;
     end;
 
     local procedure VerifySyncJobErrorRecIDs(JobID: Guid; SourceRecID: RecordID; DestinationRecID: RecordID)
