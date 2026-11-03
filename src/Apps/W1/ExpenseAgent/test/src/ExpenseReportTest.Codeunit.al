@@ -3044,6 +3044,7 @@ codeunit 148306 "Expense Report Test"
 
         // [GIVEN] Update Reimbursement Type to Credit Card in Expense.
         Expense.Validate("Reimbursement Type", Expense."Reimbursement Type"::"Credit Card");
+        Expense.Validate("Corporate Card Id", LibraryExpense.GetCorporateCardForExpenseUser(Expense."Expense User No.", Expense."Expense Date"));
         Expense.Modify();
 
         // [GIVEN] Release Expense.

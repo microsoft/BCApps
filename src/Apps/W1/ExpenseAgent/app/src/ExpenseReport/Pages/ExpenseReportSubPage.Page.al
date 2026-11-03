@@ -117,6 +117,32 @@ page 6999 "Expense Report SubPage"
                         CurrPage.Update();
                     end;
                 }
+                field(CorporateCard; CorporateCardDisplay)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Corporate Card';
+                    ToolTip = 'Specifies the provider short name and last four card digits. Expenses copied to a report retain the card selected on the expense.';
+                    Editable = (Rec."Credit Card Feed No." = 0) and (Rec."Expense No." = '');
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        if not CorpCardSelectionMgt.LookupReportLineCard(Rec) then
+                            exit(false);
+                        CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id");
+                        Text := CorporateCardDisplay;
+                        CurrPage.Update();
+                        exit(true);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        if CorporateCardDisplay = '' then
+                            Rec.Validate("Corporate Card Id", '')
+                        else
+                            if CorporateCardDisplay <> CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id") then
+                                Error(UseCardLookupErr);
+                    end;
+                }
                 field("Expense Date"; Rec."Expense Date")
                 {
                     ApplicationArea = Basic, Suite;
@@ -644,6 +670,9 @@ page 6999 "Expense Report SubPage"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
         ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CorporateCardDisplay: Text[150];
+        UseCardLookupErr: Label 'Use the lookup to select a corporate card.';
         TotalAmountLCY: Decimal;
         TotalVATAmountLCY: Decimal;
         TotalAmountWithoutVATLCY: Decimal;
@@ -662,6 +691,7 @@ page 6999 "Expense Report SubPage"
 
     local procedure UpdateControls()
     begin
+        CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id");
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
         IsItemizationCategory := Rec.IsItemizationRequired();

@@ -244,12 +244,15 @@ page 6949 "Expense User"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Corporate Cards';
                 Image = Card;
+                AccessByPermission = tabledata "EA Corp Card" = R;
+                Enabled = Rec."No." <> '';
                 ToolTip = 'Opens the Corporate Cards page filtered to this expense user.';
 
                 trigger OnAction()
                 var
                     EACorpCard: Record "EA Corp Card";
                 begin
+                    Rec.TestField("No.");
                     EACorpCard.SetRange("Expense User No.", Rec."No.");
                     Page.Run(Page::"EA Corp Card Cards", EACorpCard);
                 end;
@@ -276,6 +279,9 @@ page 6949 "Expense User"
                 {
                 }
                 actionref(SendWelcomeEmail_Promoted; "Send Welcome Email")
+                {
+                }
+                actionref(CorporateCards_Promoted; CorporateCards)
                 {
                 }
             }

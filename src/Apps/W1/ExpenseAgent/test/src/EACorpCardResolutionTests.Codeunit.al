@@ -480,6 +480,7 @@ codeunit 148362 EACorpCardResolutionTests
         LibraryExpense.CreateExpense(Expense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, 'USD', 19.63);
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
         Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+        Expense.Validate("Corporate Card Id", '');
         Expense.Modify(true);
     end;
 

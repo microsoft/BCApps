@@ -54,6 +54,7 @@ codeunit 7422 "EA Corp Card Expense Writer" implements "EA Corp Card Expense Wri
         Expense.Validate("Currency Code", CorpCardTrans."Currency Code");
         Expense.Validate(Amount, CorpCardTrans.Amount);
         Expense."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        Expense."Corporate Card Id" := CorpCardTrans."Card Id";
 
         Expense.Insert(true);
         ExpenseNo := Expense."No.";

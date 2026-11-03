@@ -38,6 +38,8 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         UpgradeEnableCommunicationDefault();
         UpgradeMigratePostedExpRepLineCanceled();
         UpgradeMigrateExpenseUserUnlimitedApproval();
+        UpgradeCorporateCardIdentity();
+        UpgradeCorporateCardProviderShortNames();
     end;
 
     local procedure UpgradeClearStaleCopyCompanyState()
@@ -124,6 +126,8 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         PerCompanyUpgradeTags.Add(GetEnableCommunicationDefaultUpgradeTag());
         PerCompanyUpgradeTags.Add(GetMigratePostedExpRepLineCanceledTag());
         PerCompanyUpgradeTags.Add(GetMigrateExpenseUserUnlimitedApprovalTag());
+        PerCompanyUpgradeTags.Add(GetCorporateCardIdentityUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetCorporateCardProviderShortNameUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
@@ -214,6 +218,77 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     local procedure GetRemoveLegacyPrivacyNoticeUpgradeTag(): Code[250]
     begin
         exit('MS-646070-RemoveLegacyPrivacyNotice-20260818');
+    end;
+
+    local procedure UpgradeCorporateCardIdentity()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetCorporateCardIdentityUpgradeTag()) then
+            exit;
+
+        Expense.SetRange("Corporate Card Id", '');
+        Expense.SetFilter("Credit Card Feed No.", '<>%1', 0);
+        if Expense.FindSet(true) then
+            repeat
+                if CorpCardTrans.Get(Expense."Credit Card Feed No.") then begin
+                    Expense."Corporate Card Id" := CorpCardTrans."Card Id";
+                    Expense.Modify(false);
+                end;
+            until Expense.Next() = 0;
+        ExpenseReportLine.SetRange("Corporate Card Id", '');
+        ExpenseReportLine.SetFilter("Credit Card Feed No.", '<>%1', 0);
+        if ExpenseReportLine.FindSet(true) then
+            repeat
+                if CorpCardTrans.Get(ExpenseReportLine."Credit Card Feed No.") then begin
+                    ExpenseReportLine."Corporate Card Id" := CorpCardTrans."Card Id";
+                    ExpenseReportLine.Modify(false);
+                end;
+            until ExpenseReportLine.Next() = 0;
+        PostedExpenseReportLine.SetRange("Corporate Card Id", '');
+        PostedExpenseReportLine.SetFilter("Credit Card Feed No.", '<>%1', 0);
+        if PostedExpenseReportLine.FindSet(true) then
+            repeat
+                if CorpCardTrans.Get(PostedExpenseReportLine."Credit Card Feed No.") then begin
+                    PostedExpenseReportLine."Corporate Card Id" := CorpCardTrans."Card Id";
+                    PostedExpenseReportLine.Modify(false);
+                end;
+            until PostedExpenseReportLine.Next() = 0;
+        UpgradeTag.SetUpgradeTag(GetCorporateCardIdentityUpgradeTag());
+    end;
+
+    local procedure UpgradeCorporateCardProviderShortNames()
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        PreviousShortName: Text[4];
+    begin
+        if UpgradeTag.HasUpgradeTag(GetCorporateCardProviderShortNameUpgradeTag()) then
+            exit;
+
+        if CorpCardProvider.FindSet(true) then
+            repeat
+                PreviousShortName := CorpCardProvider."Short Name";
+                CreateCorpCardSetup.SetDefaultProviderShortName(CorpCardProvider);
+                if CorpCardProvider."Short Name" <> PreviousShortName then
+                    CorpCardProvider.Modify();
+            until CorpCardProvider.Next() = 0;
+        UpgradeTag.SetUpgradeTag(GetCorporateCardProviderShortNameUpgradeTag());
+    end;
+
+    local procedure GetCorporateCardProviderShortNameUpgradeTag(): Code[250]
+    begin
+        exit('MS-ExpenseAgent-CardProviderShortName-VISA-AMEX-20261103');
+    end;
+
+    local procedure GetCorporateCardIdentityUpgradeTag(): Code[250]
+    begin
+        exit('MS-ExpenseAgent-CorporateCardIdentity-20261103');
     end;
 
     local procedure GetClearStaleCopyCompanyStateUpgradeTag(): Code[250]

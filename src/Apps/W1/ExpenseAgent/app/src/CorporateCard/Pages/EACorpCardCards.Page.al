@@ -18,6 +18,13 @@ page 7431 "EA Corp Card Cards"
         {
             repeater(General)
             {
+                field(CorporateCard; CorpCardSelectionMgt.GetCardDisplay(Rec))
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Corporate Card';
+                    Editable = false;
+                    ToolTip = 'Specifies the provider short name followed by the last four digits of the corporate card.';
+                }
                 field("Card Id"; Rec."Card Id")
                 {
                     ApplicationArea = Basic, Suite;
@@ -48,6 +55,7 @@ page 7431 "EA Corp Card Cards"
                     ToolTip = 'Specifies whether this card is blocked from new imports.';
                 }
             }
+
         }
     }
 
@@ -84,4 +92,7 @@ page 7431 "EA Corp Card Cards"
             }
         }
     }
+
+    var
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
 }

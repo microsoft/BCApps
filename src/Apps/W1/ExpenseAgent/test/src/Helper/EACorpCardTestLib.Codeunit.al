@@ -116,6 +116,7 @@ codeunit 148357 EACorpCardTestLib
         CorpCardProvider.Get(ProviderCode);
         CorpCardProvider.Enabled := true;
         CorpCardProvider."Feed Type" := FeedType;
+        CreateCorpCardSetup.SetDefaultProviderShortName(CorpCardProvider);
         CorpCardProvider.Modify(true);
         CreateCorpCardSetup.EnsureDataExchangeForProvider(CorpCardProvider);
     end;

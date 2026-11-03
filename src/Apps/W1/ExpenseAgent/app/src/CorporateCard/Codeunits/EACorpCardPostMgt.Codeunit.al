@@ -7,7 +7,61 @@ namespace Microsoft.ExpenseAgent;
 codeunit 7440 "EA Corp Card Post Mgt"
 {
     Access = Internal;
-    Permissions = tabledata "EA Corp Card Trans" = rm;
+    Permissions = tabledata "EA Corp Card Trans" = rm,
+                  tabledata "EA Corp Card Statement" = r;
+
+    internal procedure LockPostedReportTransactions(PostedExpenseReportNo: Code[20])
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+        TempCorpCardStatement: Record "EA Corp Card Statement" temporary;
+        CorpCardTrans: Record "EA Corp Card Trans";
+        TempCorpCardTrans: Record "EA Corp Card Trans" temporary;
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        Expense: Record Expense;
+    begin
+        PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportNo);
+        PostedExpenseReportLine.SetRange("Is Canceled", false);
+        PostedExpenseReportLine.SetFilter("Credit Card Feed No.", '<>%1', 0);
+        if PostedExpenseReportLine.FindSet() then
+            repeat
+                CorpCardTrans.Get(PostedExpenseReportLine."Credit Card Feed No.");
+                if not TempCorpCardTrans.Get(CorpCardTrans."Entry No.") then begin
+                    TempCorpCardTrans := CorpCardTrans;
+                    TempCorpCardTrans.Insert();
+                end;
+                if CorpCardTrans."Statement Entry No." <> 0 then
+                    if not TempCorpCardStatement.Get(CorpCardTrans."Statement Entry No.") then begin
+                        TempCorpCardStatement.Init();
+                        TempCorpCardStatement."Statement Entry No." := CorpCardTrans."Statement Entry No.";
+                        TempCorpCardStatement.Insert();
+                    end;
+            until PostedExpenseReportLine.Next() = 0;
+
+        CorpCardStatement.LockTable();
+        if TempCorpCardStatement.FindSet() then
+            repeat
+                CorpCardStatement.Get(TempCorpCardStatement."Statement Entry No.");
+            until TempCorpCardStatement.Next() = 0;
+        CorpCardTrans.LockTable();
+        if TempCorpCardTrans.FindSet() then
+            repeat
+                CorpCardTrans.Get(TempCorpCardTrans."Entry No.");
+                CorpCardTrans.TestField("Statement Entry No.", TempCorpCardTrans."Statement Entry No.");
+            until TempCorpCardTrans.Next() = 0;
+
+        Expense.LockTable();
+        Expense.SetRange("Posted Expense Report No.", PostedExpenseReportNo);
+        if Expense.FindSet() then
+            repeat
+                Expense.TestField("Posted Expense Report No.", PostedExpenseReportNo);
+            until Expense.Next() = 0;
+
+        if PostedExpenseReportLine.FindSet() then
+            repeat
+                if not TempCorpCardTrans.Get(PostedExpenseReportLine."Credit Card Feed No.") then
+                    Error(ReportCardLinksChangedErr);
+            until PostedExpenseReportLine.Next() = 0;
+    end;
 
     internal procedure LinkPostedExpense(PostedExpenseReportLine: Record "Posted Expense Report Line"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
     var
@@ -28,12 +82,15 @@ codeunit 7440 "EA Corp Card Post Mgt"
         CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardTrans: Record "EA Corp Card Trans";
         CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
+        CorpCardLiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
         InvalidationReason: Text[250];
     begin
         if PostedExpenseReportLine."Credit Card Feed No." = 0 then
             exit;
         if not CorpCardTrans.Get(PostedExpenseReportLine."Credit Card Feed No.") then
             exit;
+        if (CorpCardTrans."Liability Transaction No." <> 0) and (CorpCardTrans."Liability Reversal Trans. No." = 0) then
+            CorpCardLiabilityMgt.ReverseLiability(CorpCardTrans);
 
         if CorpCardTrans."Statement Entry No." <> 0 then
             if CorpCardStatement.Get(CorpCardTrans."Statement Entry No.") then begin
@@ -57,4 +114,5 @@ codeunit 7440 "EA Corp Card Post Mgt"
 
     var
         ExpenseReportCanceledReasonTxt: Label 'Posted expense report %1 was canceled.', Comment = '%1 = posted expense report number';
+        ReportCardLinksChangedErr: Label 'Corporate card links changed while preparing cancellation. Try canceling the expense report again.';
 }

@@ -60,7 +60,7 @@ codeunit 7423 "EA Corp Card Post Import Orch"
             ClearLastError();
             if PostImportWorker.Run(CorpCardTrans) then begin
                 CorpCardTrans.Get(TransactionEntryNo);
-                if CorpCardTrans.Status = CorpCardTrans.Status::Matched then
+                if CorpCardTrans.Status in [CorpCardTrans.Status::Matched, CorpCardTrans.Status::Submitted, CorpCardTrans.Status::Posted] then
                     MatchedCount += 1
                 else
                     if CorpCardTrans.Status = CorpCardTrans.Status::Imported then
@@ -90,6 +90,7 @@ codeunit 7423 "EA Corp Card Post Import Orch"
         CorpCardValidateMgt: Codeunit "EA Corp Card Validate Mgt";
         MerchantNorm: Codeunit "EA Corp Card Merchant Norm";
         EnhancedMatchMgt: Codeunit "EA Corp Card Enh. Match Mgt";
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
         AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
         MatchedExpenseNo: Code[20];
         DraftExpenseNo: Code[20];
@@ -118,25 +119,22 @@ codeunit 7423 "EA Corp Card Post Import Orch"
                 Error(ValidationReason);
             CorpCard.TestField("Card Id", CorpCardTrans."Card Id");
             CorpCardTrans.TestField("Expense Match No.", MatchedExpenseNo);
-            LinkExpenseToTransaction(MatchedExpenseNo, CorpCardTrans."Entry No.");
-            CorpCardTrans.Status := CorpCardTrans.Status::Matched;
-            CorpCardTrans."Expense No." := MatchedExpenseNo;
-            CorpCardTrans."Match Type" := CorpCardTrans."Match Type"::Full;
-            CorpCardTrans."Match Score" := 100;
+            CorpCardExpenseMatch.LinkExpense(CorpCardTrans, MatchedExpenseNo);
         end else
-            if ExpenseAgentSetup."Corp Card Create Mode" = ExpenseAgentSetup."Corp Card Create Mode"::AutoDraft then begin
-                TransactionExpenseWriter.CreateDraftFromTrans(CorpCardTrans, DraftExpenseNo);
-                AuditSubscribers.LogDraftCreated(CorpCardTrans."Entry No.");
-            end else
-                if EnhancedMatchMgt.EnhancedMatchTransaction(CorpCardTrans, MatchedExpenseNo) then begin
-                    LinkExpenseToTransaction(MatchedExpenseNo, CorpCardTrans."Entry No.");
-                    CorpCardTrans.Status := CorpCardTrans.Status::Matched;
-                    CorpCardTrans."Expense No." := MatchedExpenseNo;
+            if CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, MatchedExpenseNo) then
+                CorpCardExpenseMatch.LinkExpense(CorpCardTrans, MatchedExpenseNo)
+            else
+                if ExpenseAgentSetup."Corp Card Create Mode" = ExpenseAgentSetup."Corp Card Create Mode"::AutoDraft then begin
+                    TransactionExpenseWriter.CreateDraftFromTrans(CorpCardTrans, DraftExpenseNo);
+                    AuditSubscribers.LogDraftCreated(CorpCardTrans."Entry No.");
                 end else
-                    if ExpenseAgentSetup."Corp Card Auto Create Draft" then begin
-                        TransactionExpenseWriter.CreateDraftFromTrans(CorpCardTrans, DraftExpenseNo);
-                        AuditSubscribers.LogDraftCreated(CorpCardTrans."Entry No.");
-                    end;
+                    if EnhancedMatchMgt.EnhancedMatchTransaction(CorpCardTrans, MatchedExpenseNo) then
+                        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, MatchedExpenseNo)
+                    else
+                        if ExpenseAgentSetup."Corp Card Auto Create Draft" then begin
+                            TransactionExpenseWriter.CreateDraftFromTrans(CorpCardTrans, DraftExpenseNo);
+                            AuditSubscribers.LogDraftCreated(CorpCardTrans."Entry No.");
+                        end;
 
         CorpCardTrans.Modify(true);
         ResolveProcessingExceptions(CorpCardTrans);
@@ -216,12 +214,4 @@ codeunit 7423 "EA Corp Card Post Import Orch"
         CorpCardStatement.Modify(true);
     end;
 
-    local procedure LinkExpenseToTransaction(ExpenseNo: Code[20]; CorpCardTransEntryNo: Integer)
-    var
-        Expense: Record Expense;
-    begin
-        Expense.Get(ExpenseNo);
-        Expense.Validate("Credit Card Feed No.", CorpCardTransEntryNo);
-        Expense.Modify(true);
-    end;
 }

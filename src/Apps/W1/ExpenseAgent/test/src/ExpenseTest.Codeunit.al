@@ -3458,6 +3458,7 @@ codeunit 148305 "Expense Test"
         // [WHEN] Update "Reimbursement Type" in Expense.
         Expense.Validate("Reimbursement Type", Expense."Reimbursement Type"::"Credit Card");
         Expense.Validate("Payment Method Code", '');
+        Expense.Validate("Corporate Card Id", LibraryExpense.GetCorporateCardForExpenseUser(Expense."Expense User No.", Expense."Expense Date"));
         Expense.Modify();
 
         // [THEN] Verify that the Reimbursement Amount is zero when Refundable is false and Type is Credit Paid.

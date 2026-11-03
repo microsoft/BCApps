@@ -121,6 +121,7 @@ codeunit 148358 EACorpCardPostTests
             ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code,
             ExpensePaymentMethod.Code, true, '', 2000);
         ExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
         ExpenseReportLine.Modify(true);
         ExpenseReportHeader.PerformManualRelease();
 

@@ -318,7 +318,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCard."Expense User No." := ExpenseUserNo;
         CorpCard."External Card Ref" := CopyStr(ExpenseUserNo, 1, MaxStrLen(CorpCard."External Card Ref"));
         CorpCard."Masked Card No." := BuildMaskedCardNo(CorpCard."Card Id");
-        CorpCard."Valid From" := Today();
+        CorpCard."Valid From" := 0D;
         CorpCard.Modify(true);
     end;
 
@@ -393,6 +393,7 @@ codeunit 7442 "EA Create Corp Card Setup"
             CorpCardProvider."Data Exch Def Code" := DataExchDefCode;
             CorpCardProvider."Data Exch Map Code" := DataExchLineCode;
             CorpCardProvider."Import Frequency (Min)" := 1440;
+            SetDefaultProviderShortName(CorpCardProvider);
             CorpCardProvider.Insert(true);
             exit;
         end;
@@ -407,7 +408,25 @@ codeunit 7442 "EA Create Corp Card Setup"
             CorpCardProvider."Data Exch Map Code" := DataExchLineCode;
         if CorpCardProvider."Import Frequency (Min)" = 0 then
             CorpCardProvider."Import Frequency (Min)" := 1440;
+        SetDefaultProviderShortName(CorpCardProvider);
         CorpCardProvider.Modify(true);
+    end;
+
+    internal procedure SetDefaultProviderShortName(var CorpCardProvider: Record "EA Corp Card Provider")
+    begin
+        if (CorpCardProvider."Short Name" <> '') and
+           (CorpCardProvider."Short Name" <> CopyStr(CorpCardProvider.Code, 1, MaxStrLen(CorpCardProvider."Short Name")))
+        then
+            exit;
+
+        case CorpCardProvider.Code of
+            CorpCardCsvProviderCodeTok:
+                CorpCardProvider."Short Name" := CorpCardCsvProviderShortNameTok;
+            CorpCardXmlProviderCodeTok:
+                CorpCardProvider."Short Name" := CorpCardXmlProviderShortNameTok;
+            else
+                CorpCardProvider."Short Name" := CopyStr(CorpCardProvider.Code, 1, MaxStrLen(CorpCardProvider."Short Name"));
+        end;
     end;
 
     local procedure BuildProviderSampleCardId(SequenceNo: Integer): Code[50]
@@ -1224,6 +1243,8 @@ codeunit 7442 "EA Create Corp Card Setup"
     var
         CorpCardCsvProviderCodeTok: Label 'CORPCARDCSV', MaxLength = 20, Locked = true;
         CorpCardXmlProviderCodeTok: Label 'CORPCARDXML', MaxLength = 20, Locked = true;
+        CorpCardCsvProviderShortNameTok: Label 'VISA', MaxLength = 4, Locked = true;
+        CorpCardXmlProviderShortNameTok: Label 'AMEX', MaxLength = 4, Locked = true;
         CorpCardCsvDataExchDefCodeTok: Label 'EACCARDCSV', MaxLength = 20, Locked = true;
         CorpCardCsvDataExchLineCodeTok: Label 'TRANS', MaxLength = 20, Locked = true;
         CorpCardXmlDataExchDefCodeTok: Label 'EACCARDXML', MaxLength = 20, Locked = true;

@@ -330,6 +330,47 @@ table 6916 "Posted Expense Report Line"
         {
             Caption = 'Credit Card Feed No.';
         }
+        field(107; "Corporate Card Id"; Code[50])
+        {
+            Caption = 'Corporate Card';
+            DataClassification = AccountData;
+            TableRelation = "EA Corp Card"."Card Id";
+            Editable = false;
+            ToolTip = 'Specifies the corporate card used to pay for the posted expense.';
+        }
+        field(108; "Card Payable Account No."; Code[20])
+        {
+            Caption = 'Card Payable Account No.';
+            TableRelation = "G/L Account"."No.";
+            Editable = false;
+        }
+        field(109; "Card Liability Amount"; Decimal)
+        {
+            Caption = 'Card Liability Amount';
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Card Liability Currency Code";
+            Editable = false;
+        }
+        field(110; "Card Liability Amount (LCY)"; Decimal)
+        {
+            Caption = 'Card Liability Amount (LCY)';
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Editable = false;
+        }
+        field(111; "Card Liability Currency Code"; Code[10])
+        {
+            Caption = 'Card Liability Currency Code';
+            TableRelation = Currency.Code;
+            Editable = false;
+        }
+        field(112; "Card Liability Currency Factor"; Decimal)
+        {
+            Caption = 'Card Liability Currency Factor';
+            AutoFormatType = 0;
+            DecimalPlaces = 0 : 15;
+            Editable = false;
+        }
         field(52; "Applied Rule Id"; Guid)
         {
             Caption = 'Applied Rule Id';
@@ -490,6 +531,9 @@ table 6916 "Posted Expense Report Line"
         {
         }
         key(CreditCardFeedNo; "Credit Card Feed No.")
+        {
+        }
+        key(CorporateCard; "Corporate Card Id")
         {
         }
     }

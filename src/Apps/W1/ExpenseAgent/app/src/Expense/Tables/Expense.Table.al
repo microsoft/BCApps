@@ -503,8 +503,34 @@ table 6900 Expense
             Caption = 'Credit Card Feed No.';
 
             trigger OnValidate()
+            var
+                CorpCardTrans: Record "EA Corp Card Trans";
             begin
                 TestStatusOpen();
+                if "Credit Card Feed No." <> 0 then begin
+                    CorpCardTrans.Get("Credit Card Feed No.");
+                    if "Corporate Card Id" = '' then
+                        "Corporate Card Id" := CorpCardTrans."Card Id";
+                    CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
+                end;
+            end;
+        }
+        field(107; "Corporate Card Id"; Code[50])
+        {
+            Caption = 'Corporate Card';
+            DataClassification = AccountData;
+            TableRelation = "EA Corp Card"."Card Id" where("Expense User No." = field("Expense User No."), Blocked = const(false));
+            ToolTip = 'Specifies the corporate card used to pay for this expense, independently of whether a feed transaction has arrived.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+                CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
+            end;
+
+            trigger OnLookup()
+            begin
+                CorpCardSelectionMgt.LookupCard(Rec);
             end;
         }
         field(34; "Dimension Set ID"; Integer)
@@ -731,6 +757,9 @@ table 6900 Expense
         key(CreditCardFeedNo; "Credit Card Feed No.")
         {
         }
+        key(CorporateCard; "Corporate Card Id")
+        {
+        }
     }
     fieldgroups
     {
@@ -754,6 +783,7 @@ table 6900 Expense
             Rec."Created Date-Time" := CurrentDateTime;
 
         SetExpenseUserOnCreate();
+        CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
 
         if CalledFromExpenseAgent then
             EAKPITrack.UpdateExpenseEntry(Rec);
@@ -761,6 +791,13 @@ table 6900 Expense
 
     trigger OnModify()
     begin
+        if ("Corporate Card Id" <> xRec."Corporate Card Id") or
+           ("Expense User No." <> xRec."Expense User No.") or
+           ("Expense Date" <> xRec."Expense Date") or
+           ("Reimbursement Type" <> xRec."Reimbursement Type") or
+           ("Credit Card Feed No." <> xRec."Credit Card Feed No.")
+        then
+            CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
         UpdateExpenseUserOnModify();
     end;
 
@@ -791,6 +828,7 @@ table 6900 Expense
         NoSeries: Codeunit "No. Series";
         DimMgt: Codeunit DimensionManagement;
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         HideValidationDialog: Boolean;
         SkipRuleApplication: Boolean;
         CalledFromExpenseAgent: Boolean;
