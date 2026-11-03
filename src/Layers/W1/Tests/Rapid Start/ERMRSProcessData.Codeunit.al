@@ -1787,7 +1787,7 @@ codeunit 136612 "ERM RS Process Data"
         ConfigXMLExchange.ExportPackageXML(ConfigPackageTable, FilePath);
         if not Overwrite then
             LibraryRapidStart.CleanUp(ConfigPackageCode);
-        ConfigXMLExchange.ImportPackageXML(FilePath);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
     end;
 
     local procedure ExportImportPackageWithRuleForPurchHeader(var ConfigPackage: Record "Config. Package"; var PurchHeader: Record "Purchase Header"; "Action": Option; CodeunitID: Integer)

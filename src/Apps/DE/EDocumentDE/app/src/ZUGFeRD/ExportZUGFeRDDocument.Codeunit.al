@@ -533,7 +533,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         ExchangedDocumentElement.Add(XmlElement.Create('TypeCode', XmlNamespaceRAM, '380')); // Invoice type code
 
         IssueDateTimeElement := XmlElement.Create('IssueDateTime', XmlNamespaceRAM);
-        IssueDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(SalesInvoiceHeader."Posting Date")));
+        IssueDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(SalesInvoiceHeader."Document Date")));
         ExchangedDocumentElement.Add(IssueDateTimeElement);
         RootXMLNode.Add(ExchangedDocumentElement);
         OnAfterInsertSalesInvHeaderData(RootXMLNode, SalesInvoiceHeader);
@@ -557,7 +557,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         ExchangedDocumentElement.Add(XmlElement.Create('TypeCode', XmlNamespaceRAM, '381')); // Credit memo type code
 
         IssueDateTimeElement := XmlElement.Create('IssueDateTime', XmlNamespaceRAM);
-        IssueDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(SalesCrMemoHeader."Posting Date")));
+        IssueDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(SalesCrMemoHeader."Document Date")));
         ExchangedDocumentElement.Add(IssueDateTimeElement);
         RootXMLNode.Add(ExchangedDocumentElement);
         OnAfterInsertSalesCrMemoHeaderData(RootXMLNode, SalesCrMemoHeader);
@@ -574,7 +574,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         HeaderRecordRef: RecordRef;
         HeaderTradeAgreementElement, SellerTradePartyElement, BuyerTradePartyElement, SpecifiedTaxRegistrationElement, IDElement : XmlElement;
         SellerOrderReferencedDocumentElement, BuyerOrderReferencedDocumentElement : XmlElement;
-        PostalTradeAddressElement, ContactElement : XmlElement;
+        PostalTradeAddressElement, ContactElement, BuyerLegalOrganizationElement : XmlElement;
         SellerIDAttr, BuyerIDAttr : XmlAttribute;
         CustomerNo: Code[20];
         CustomerGLN: Code[13];
@@ -585,6 +585,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         City: Text[50];
         CountryCode: Code[10];
         VATRegistrationNo: Text[20];
+        CustomerRegistrationNo: Text[50];
         YourReference: Text[35];
         Contact: Text[100];
         CustomerEmail: Text[250];
@@ -649,10 +650,13 @@ codeunit 13917 "Export ZUGFeRD Document"
         end;
 
         GetSellerPostalAddr(RespCentrCode, SellerStreetName, SellerAdditionalStreetName, SellerCityName, SellerPostalZone, SellerCountryCode);
-        Customer.SetLoadFields("Use GLN in Electronic Document", GLN);
-        if Customer.Get(CustomerNo) then
+        Customer.SetLoadFields("Use GLN in Electronic Document", GLN, "Registration Number", "Use Reg. No. in E-Document", "VAT Registration No.");
+        if Customer.Get(CustomerNo) then begin
             if Customer."Use GLN in Electronic Document" then
                 CustomerGLN := Customer.GLN;
+            if Customer."Use Reg. No. in E-Document" and (Customer.GLN = '') and (Customer."VAT Registration No." = '') and (Customer."Registration Number" <> '') then
+                CustomerRegistrationNo := Customer."Registration Number";
+        end;
         HeaderTradeAgreementElement := XmlElement.Create('ApplicableHeaderTradeAgreement', XmlNamespaceRAM);
         HeaderTradeAgreementElement.Add(XmlElement.Create('BuyerReference', XmlNamespaceRAM, GetBuyerReference(RecordVariant)));
 
@@ -715,6 +719,12 @@ codeunit 13917 "Export ZUGFeRD Document"
         if CustomerGLN <> '' then
             BuyerTradePartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', GLNSchemeIDTok), CustomerGLN));
         BuyerTradePartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, CustomerName));
+
+        if CustomerRegistrationNo <> '' then begin
+            BuyerLegalOrganizationElement := XmlElement.Create('SpecifiedLegalOrganization', XmlNamespaceRAM);
+            BuyerLegalOrganizationElement.Add(XmlElement.Create('ID', XmlNamespaceRAM, CustomerRegistrationNo));
+            BuyerTradePartyElement.Add(BuyerLegalOrganizationElement);
+        end;
 
         // Buyer Contact
         InsertBuyerContact(BuyerTradePartyElement, Contact, PhoneNumber, CustomerEmail);

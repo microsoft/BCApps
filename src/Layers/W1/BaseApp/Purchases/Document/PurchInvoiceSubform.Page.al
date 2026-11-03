@@ -601,6 +601,12 @@ page 55 "Purch. Invoice Subform"
                     ApplicationArea = FixedAssets;
                     Visible = false;
                 }
+                field("Maintenance Code"; Rec."Maintenance Code")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies a maintenance code.';
+                    Visible = false;
+                }
                 field("Depr. until FA Posting Date"; Rec."Depr. until FA Posting Date")
                 {
                     ApplicationArea = FixedAssets;
@@ -1663,4 +1669,3 @@ page 55 "Purch. Invoice Subform"
     begin
     end;
 }
-

@@ -1266,8 +1266,7 @@ codeunit 134203 "Document Approval - Documents"
         ApprovalEntry: Record "Approval Entry";
     begin
         GetApprovalEntries(ApprovalEntry, TableID, DocumentType, DocumentNo);
-        ApprovalEntry.ModifyAll("Sender ID", UserSetup."Approver ID", true);
-        ApprovalEntry.ModifyAll("Approver ID", UserSetup."User ID", true);
+        ApprovalEntry.ModifyAll("Sender ID", UserSetup."Approver ID", "Approver ID", UserSetup."User ID", true);
     end;
 
     local procedure UpdateSubstitute(var UserSetup: Record "User Setup"; Substitute: Code[50])

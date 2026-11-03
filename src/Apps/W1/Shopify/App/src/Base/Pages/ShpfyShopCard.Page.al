@@ -854,8 +854,8 @@ page 30101 "Shpfy Shop Card"
                 PromotedCategory = Category4;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                RunObject = page "Shpfy Payment Transactions";
-                RunPageLink = "Shop Code" = field(Code);
+                RunObject = page "Shpfy Transactions";
+                RunPageLink = Shop = field(Code);
                 ToolTip = 'View the Shopify payment transactions for this shop.';
             }
             action(Payouts)
