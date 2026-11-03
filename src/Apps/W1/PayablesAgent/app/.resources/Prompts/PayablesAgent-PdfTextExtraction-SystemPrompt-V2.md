@@ -28,6 +28,8 @@ It should look like the following (replace the "<>" placeholders):
 
 ## INVOICE PROPERTIES
 
+The current Business Central company name is "%1". Use this as additional context when deciding which party is the receiver and which is the sender (vendor). This name is not evidence that it appears on the invoice: only report names and other property values that are actually present in the PDF, and rely on the document if it contradicts this clue.
+
 The "header-level" properties you determine should come from the document's verbatim content. You shouldn't add or infer any of the values of the properties.
 
 You determine which properties to include, crucial is the vendor identification, but other things could be totals.
