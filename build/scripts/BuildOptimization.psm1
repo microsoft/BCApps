@@ -7,6 +7,7 @@
 #>
 
 $ErrorActionPreference = "Stop"
+$script:affectedAppNamesByRun = @{}
 
 
 <#
@@ -505,4 +506,56 @@ function Test-ShouldSkipTestApp {
     return $false
 }
 
-Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Get-AffectedAppNames, Test-ShouldSkipTestApp
+function Get-SelectedTestApps {
+    [OutputType([string[]])]
+    param(
+        [string[]] $AppNamesToTest,
+        [string] $BaseFolder,
+        [bool] $ChurnEnabled,
+        [string] $CacheKey,
+        [string] $Country,
+        [string] $TestType,
+        [int] $BucketNumber
+    )
+
+    $candidateCount = $AppNamesToTest.Count
+    $selectionMode = if ($ChurnEnabled) { 'Enabled; no candidate test apps' } else { 'Disabled; full bucket' }
+    if ($AppNamesToTest.Count -gt 0 -and $ChurnEnabled) {
+        # Only the parent computes this; workers receive the already selected list.
+        if (-not $script:affectedAppNamesByRun.ContainsKey($CacheKey)) {
+            try {
+                $script:affectedAppNamesByRun[$CacheKey] = Get-AffectedAppNames -BaseFolder $BaseFolder
+            } catch [System.ArgumentException], [System.IO.IOException] {
+                if ($_.Exception -isnot [System.IO.IOException] -and $_.FullyQualifiedErrorId -notlike '*,Microsoft.PowerShell.Commands.ConvertFromJsonCommand') {
+                    throw
+                }
+                Write-Host "::warning::BUILD OPTIMIZATION: Could not read change-detection inputs ($($_.Exception.Message)). Running all tests."
+                $script:affectedAppNamesByRun[$CacheKey] = [PSCustomObject]@{ RunAll = $true; AppNames = @() }
+            }
+        }
+        $affected = $script:affectedAppNamesByRun[$CacheKey]
+        $selectionMode = 'Enabled; full bucket (RunAll)'
+        if (-not $affected.RunAll) {
+            $selectionMode = 'Enabled; affected-app filter applied'
+            $AppNamesToTest = @($AppNamesToTest | Where-Object { $_ -in $affected.AppNames })
+        }
+    }
+
+    $bucketLabel = if ($TestType -eq 'Legacy') { $BucketNumber } else { 'n/a' }
+    Write-Host "::group::Test app selection"
+    Write-Host "Country: $Country | Test type: $TestType | Bucket: $bucketLabel"
+    Write-Host "Churn-based testing: $selectionMode"
+    Write-Host "Candidates: $candidateCount | Selected: $($AppNamesToTest.Count) | Skipped: $($candidateCount - $AppNamesToTest.Count)"
+    Write-Host "Selected test apps (dispatch order):"
+    foreach ($appName in $AppNamesToTest) {
+        Write-Host "  - $appName"
+    }
+    if ($AppNamesToTest.Count -eq 0) {
+        Write-Host "  No test apps selected."
+    }
+    Write-Host "::endgroup::"
+
+    return $AppNamesToTest
+}
+
+Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Get-AffectedAppNames, Test-ShouldSkipTestApp, Get-SelectedTestApps

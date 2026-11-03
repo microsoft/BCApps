@@ -1,8 +1,6 @@
 Import-Module (Join-Path $PSScriptRoot "EnlistmentHelperFunctions.psm1" -Resolve)
 Import-Module (Join-Path $PSScriptRoot "BuildOptimization.psm1" -Resolve)
 
-$script:affectedAppNamesByRun = @{}
-
 # ALAppBuild.psm1 expects $env:INETROOT to point at the repo root and uses Write-Log
 # internally. Set both up before importing so its functions work in CI runners that don't
 # have the full NAV build environment configured.
@@ -1562,45 +1560,11 @@ function Invoke-PerProjectTestRun {
 
     $installed = Get-InstalledTestAppNames -ContainerName $parameters.containerName -Tenant $parameters.tenant -Country $country
     $appNamesToTest = @(Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType $testType -BucketNumber $bucketNumber)
-    $candidateCount = $appNamesToTest.Count
-    $churnEnabled = (Get-ALGoSetting -Key 'enableChurnBasedTesting') -eq $true
-    $selectionMode = if ($churnEnabled) { 'Enabled; no candidate test apps' } else { 'Disabled; full bucket' }
     $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
     $stateFile = Join-Path $tempDir "parallelTests_$($parameters.containerName).json"
-    if ($appNamesToTest.Count -gt 0 -and $churnEnabled) {
-        # Only the parent computes this; workers receive the already selected list.
-        if (-not $script:affectedAppNamesByRun.ContainsKey($stateFile)) {
-            try {
-                $script:affectedAppNamesByRun[$stateFile] = Get-AffectedAppNames -BaseFolder (Get-BaseFolder)
-            } catch [System.ArgumentException], [System.IO.IOException] {
-                if ($_.Exception -isnot [System.IO.IOException] -and $_.FullyQualifiedErrorId -notlike '*,Microsoft.PowerShell.Commands.ConvertFromJsonCommand') {
-                    throw
-                }
-                Write-Host "::warning::BUILD OPTIMIZATION: Could not read change-detection inputs ($($_.Exception.Message)). Running all tests."
-                $script:affectedAppNamesByRun[$stateFile] = [PSCustomObject]@{ RunAll = $true; AppNames = @() }
-            }
-        }
-        $affected = $script:affectedAppNamesByRun[$stateFile]
-        $selectionMode = 'Enabled; full bucket (RunAll)'
-        if (-not $affected.RunAll) {
-            $selectionMode = 'Enabled; affected-app filter applied'
-            $appNamesToTest = @($appNamesToTest | Where-Object { $_ -in $affected.AppNames })
-        }
-    }
-
-    $bucketLabel = if ($testType -eq 'Legacy') { $bucketNumber } else { 'n/a' }
-    Write-Host "::group::Test app selection"
-    Write-Host "Country: $country | Test type: $testType | Bucket: $bucketLabel"
-    Write-Host "Churn-based testing: $selectionMode"
-    Write-Host "Candidates: $candidateCount | Selected: $($appNamesToTest.Count) | Skipped: $($candidateCount - $appNamesToTest.Count)"
-    Write-Host "Selected test apps (dispatch order):"
-    foreach ($appName in $appNamesToTest) {
-        Write-Host "  - $appName"
-    }
-    if ($appNamesToTest.Count -eq 0) {
-        Write-Host "  No test apps selected."
-    }
-    Write-Host "::endgroup::"
+    $appNamesToTest = @(Get-SelectedTestApps -AppNamesToTest $appNamesToTest -BaseFolder (Get-BaseFolder) `
+        -ChurnEnabled ((Get-ALGoSetting -Key 'enableChurnBasedTesting') -eq $true) `
+        -CacheKey $stateFile -Country $country -TestType $testType -BucketNumber $bucketNumber)
 
     if ($appNamesToTest.Count -eq 0) {
         @{ completed = $true; finalResult = $true; noTestsSelected = $true } |
