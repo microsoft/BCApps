@@ -13,6 +13,7 @@ codeunit 134842 AmtAutoFormatCurrLCYFCYSymAf
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    RequiredTestIsolation = Codeunit;
 
     var
         Any: Codeunit "Any";
@@ -55,6 +56,7 @@ codeunit 134842 AmtAutoFormatCurrLCYFCYSymAf
 
     [HandlerFunctions('SessionSettingsHandler')]
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure XmlFormatOmitsCurrencySymbolsAfterAmount()
     var
         AmountAutoFormatCurrency: Record "Amount AutoFormat Currency";
@@ -63,6 +65,7 @@ codeunit 134842 AmtAutoFormatCurrLCYFCYSymAf
         AmountAutoFormatCurrencyTestPage: TestPage "Amount AutoFormat Currency";
     begin
         // [SCENARIO 625894] XML formatting omits currency symbols after amounts without rounding the stored values.
+        // [GIVEN] LCY and FCY currency symbols are shown after amounts with five-decimal precision.
         Initialize();
         GeneralLedgerSetup := SetShowCurrencyLCYAndFCYSymbol();
         GeneralLedgerSetup."Currency Symbol Position" := GeneralLedgerSetup."Currency Symbol Position"::"After Amount";
@@ -75,6 +78,7 @@ codeunit 134842 AmtAutoFormatCurrLCYFCYSymAf
         Currency.Modify();
         RequestSessionUpdate();
 
+        // [GIVEN] Positive and negative LCY and FCY amounts with five decimal places.
         AmountAutoFormatCurrency := CreateAmountFormatCurrencyTestRecord(Currency.Code);
         AmountAutoFormatCurrency.Case1LCY := 1234.56789;
         AmountAutoFormatCurrency.Case2LCY := -1234.56789;
@@ -82,13 +86,16 @@ codeunit 134842 AmtAutoFormatCurrLCYFCYSymAf
         AmountAutoFormatCurrency.Case2FCY := -1234.56789;
         AmountAutoFormatCurrency.Modify();
 
+        // [WHEN] The amounts are displayed on a page and formatted using XML format 9.
         AmountAutoFormatCurrencyTestPage.Trap();
         Page.Run(Page::"Amount AutoFormat Currency", AmountAutoFormatCurrency);
         AmountAutoFormatCurrencyTestPage.GoToRecord(AmountAutoFormatCurrency);
+        // [THEN] Page formatting includes the configured currency symbols.
         Assert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case1LCY, GeneralLedgerSetup."Amount Decimal Places", GeneralLedgerSetup."Local Currency Symbol", GeneralLedgerSetup."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case1LCY.Value(), 'Page formatting must still include the LCY symbol.');
         Assert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case1FCY, Currency."Amount Decimal Places", Currency.Symbol, Currency."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case1FCY.Value(), 'Page formatting must still include the FCY symbol.');
         AmountAutoFormatCurrencyTestPage.Close();
 
+        // [THEN] XML formatting omits symbols without losing signs or decimal precision.
         Assert.AreEqual('1234.56789', Format(AmountAutoFormatCurrency.Case1LCY, 0, 9), 'XML formatting of an LCY amount must omit the currency symbol and preserve precision.');
         Assert.AreEqual('-1234.56789', Format(AmountAutoFormatCurrency.Case2LCY, 0, 9), 'XML formatting of an LCY unit amount must omit the currency symbol and preserve the sign and precision.');
         Assert.AreEqual('1234.56789', Format(AmountAutoFormatCurrency.Case1FCY, 0, 9), 'XML formatting of an FCY amount must omit the currency symbol and preserve precision.');
