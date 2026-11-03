@@ -1926,6 +1926,39 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         RedistributeAccAllocations.Dimensions.Invoke();
     end;
 
+    local procedure CreateVATPostingSetup(
+        var VATPostingSetup: Record "VAT Posting Setup";
+        VATRate: Decimal;
+        var GLAccountNo: Code[20];
+        GenPostingType: Enum "General Posting Type")
+    begin
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", VATRate);
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GenPostingType::Purchase);
+    end;
+
+    local procedure CreateGeneralPostingSetup(
+        var GeneralPostingSetup: Record "General Posting Setup";
+        GLAccountNo: Code[20];
+        GenPostingType: Enum "General Posting Type";
+        VATPostingSetup: Record "VAT Posting Setup")
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        GLAccount.Get(GLAccountNo);
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
+        LibraryERM.UpdateGLAccountWithPostingSetup(GLAccount, GenPostingType, GeneralPostingSetup, VATPostingSetup);
+    end;
+
+    local procedure CreateVendorWithPostingGroup(
+        var Vendor: Record Vendor;
+        var GeneralPostingSetup: Record "General Posting Setup";
+        var VATPostingSetup: Record "VAT Posting Setup")
+    begin
+        Vendor.Get(
+            LibraryPurchase.CreateVendorWithBusPostingGroups(
+                GeneralPostingSetup."Gen. Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group"));
+    end;
+
     local procedure CreateVATPostingSetupWithSalesPurchAcc(var VATPostingSetup: Record "VAT Posting Setup"; VATBusinessPostingGroup: Code[20]; VATProductPostingGroup: Code[20]; VATCalculationType: Enum "Tax Calculation Type"; VATRate: Decimal)
     begin
         LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroup, VATProductPostingGroup);
