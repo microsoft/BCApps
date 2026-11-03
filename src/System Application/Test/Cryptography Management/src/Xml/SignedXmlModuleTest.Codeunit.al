@@ -58,7 +58,7 @@ codeunit 132612 "Signed Xml Module Test"
         SignedXml.InitializeSignedXml(SignedXmlDocument);
         SignedXml.LoadXml(SignatureElement);
 
-        GetSignatureKeyXmlString(XmlString);
+        GetSignaturePublicKeyXmlString(XmlString);
         LibraryAssert.IsTrue(SignedXml.CheckSignature(XmlString), 'Failed to verify the xml signature.');
     end;
 
@@ -94,7 +94,7 @@ codeunit 132612 "Signed Xml Module Test"
         ReferenceTypeTok: Label 'http://uri.etsi.org/01903#SignedProperties', Locked = true;
     begin
         XmlDocument.ReadFrom('<XmlData Id="ID01">This is a document</XmlData>', XmlToSign);
-        GetSignatureKeyXmlString(KeyText);
+        GenerateSigningKeyXmlString(KeyText);
         SignatureKey.FromXmlString(KeyText);
 
         SignedXml.InitializeSignedXml(XmlToSign);
@@ -131,7 +131,7 @@ codeunit 132612 "Signed Xml Module Test"
         C14NTransformUriTok: Label 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315', Locked = true;
     begin
         XmlDocument.ReadFrom('<XmlData Id="ID01">This is a document</XmlData>', XmlToSign);
-        GetSignatureKeyXmlString(KeyText);
+        GenerateSigningKeyXmlString(KeyText);
         SignatureKey.FromXmlString(KeyText);
 
         SignedXml.InitializeSignedXml(XmlToSign);
@@ -162,7 +162,7 @@ codeunit 132612 "Signed Xml Module Test"
         XmlDocument.ReadFrom('<TestXml Id="ID01">XML to sign</TestXml>', XmlToSign);
         SignedXml.InitializeSignedXml(XmlToSign);
 
-        GetSignatureKeyXmlString(SigningKey);
+        GenerateSigningKeyXmlString(SigningKey);
         SignedXml.SetSigningKey(SigningKey);
         SignedXml.InitializeReference('#ID01');
 
@@ -182,7 +182,7 @@ codeunit 132612 "Signed Xml Module Test"
         XmlDocument.ReadFrom('<TestXml Id="ID01">XML to sign</TestXml>', XmlToSign);
         SignedXml.InitializeSignedXml(XmlToSign);
 
-        GetSignatureKeyXmlString(SigningKey);
+        GenerateSigningKeyXmlString(SigningKey);
         SignedXml.SetSigningKey(SigningKey, Enum::SignatureAlgorithm::RSA);
         SignedXml.InitializeReference('#ID01');
 
@@ -212,7 +212,7 @@ codeunit 132612 "Signed Xml Module Test"
         SignedXml.InitializeSignedXml(DataElement);
         
         // [GIVEN] Set signing key on the SignedXml instance
-        GetSignatureKeyXmlString(PrivateKey);
+        GenerateSigningKeyXmlString(PrivateKey);
         SignatureKey.FromXmlString(PrivateKey);
         SignedXml.SetSigningKey(SignatureKey);
 
@@ -325,20 +325,23 @@ codeunit 132612 "Signed Xml Module Test"
             SignedXmlDocument);
     end;
 
-    local procedure GetSignatureKeyXmlString(var SecretXmlString: SecretText)
+    local procedure GenerateSigningKeyXmlString(var SecretXmlString: SecretText)
+    var
+        RSA: Codeunit RSA;
+    begin
+        RSA.InitializeRSA(2048);
+        SecretXmlString := RSA.ToSecretXmlString(true);
+    end;
+
+    local procedure GetSignaturePublicKeyXmlString(var SecretXmlString: SecretText)
     var
         XmlString: Text;
     begin
+        // Public key of the pre-signed XML returned by GetValidSignedXml
         XmlString :=
             '<RSAKeyValue>' +
             '<Modulus>xgEGvHk+U/RY0j9l3MP7o+S2a6uf4XaRBhu1ztdCHz8tMG8Kj4/qJmgsSZQD17sRctHGBTUJWp4CLtBwCf0zAGVzySwUkcHSu1/2mZ/w7Nr0TQHKeWr/j8pvXH534DKEvugr21DAHbi4c654eLUL+JW/wJJYqJh7qHM3W3Fh7ys=</Modulus>' +
             '<Exponent>AQAB</Exponent>' +
-            '<P>/KDieObcq+Os3DgLemqOz3n1S4luULvj8X6B5mZg1dlEKnjOV7WYODve1QUroDrN/qriHQAui6LWJf+jfhOMtw==</P>' +
-            '<Q>yKWD2JNCrAgtjk2bfF1HYt24tq8+q7x2ek3/cUhqwInkrZqOFokex3+yBB879TuUOadvBXndgMHHcJQKSAJlLQ==</Q>' +
-            '<DP>XRuGnHyptAhTe06EnHeNbtZKG67pI4Q8PJMdmSb+ZZKP1v9zPUxGb+NQ+z3OmF1T8ppUf8/DV9+KAbM4NI1L/Q==</DP>' +
-            '<DQ>dGBsBKYFObrUkYE5+fwwd4uao3sponqBTZcH3jDemiZg2MCYQUHu9E+AdRuYrziLVJVks4xniVLb1tRG0lVxUQ==</DQ>' +
-            '<InverseQ>SfjdGT81HDJSzTseigrM+JnBKPPrzpeEp0RbTP52Lm23YARjLCwmPMMdAwYZsvqeTuHEDQcOHxLHWuyN/zgP2A==</InverseQ>' +
-            '<D>XzxrIwgmBHeIqUe5FOBnDsOZQlyAQA+pXYjCf8Rll2XptFwUdkzAUMzWUGWTG5ZspA9l8Wc7IozRe/bhjMxuVK5yZhPDKbjqRdWICA95Jd7fxlIirHOVMQRdzI7xNKqMNQN05MLJfsEHUYtOLhZE+tfhJTJnnmB7TMwnJgc4O5E=</D>' +
             '</RSAKeyValue>';
         SecretXmlString := XmlString;
     end;
