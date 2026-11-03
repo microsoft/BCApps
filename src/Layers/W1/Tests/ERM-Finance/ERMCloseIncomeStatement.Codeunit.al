@@ -725,6 +725,7 @@ codeunit 134228 "ERM Close Income Statement"
     var
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
         GLEntry: Record "G/L Entry";
         OriginalAdditionalReportingCurrency: Code[10];
         SourceCurrencyCode: Code[10];
@@ -746,6 +747,9 @@ codeunit 134228 "ERM Close Income Statement"
             GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
             GenJournalLine."Account Type"::Customer, '', 0);
         GLAccountNo := LibraryERM.CreateGLAccountNo();
+        GLAccount.Get(GLAccountNo);
+        GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Income Statement");
+        GLAccount.Modify(true);
         PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
         InsertGLEntryForCloseIncome(PostingDate, GLAccountNo, 0, 0, SourceCurrencyCode, 25, 0, 0, '', '', '');
 
