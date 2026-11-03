@@ -319,6 +319,7 @@ codeunit 5510 "Production Journal Mgt"
         MachineCenter: Record "Machine Center";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         QtyToPost: Decimal;
+        QtyToPostBeforeCheckWhse: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -396,8 +397,11 @@ codeunit 5510 "Production Journal Mgt"
         ItemJnlLine.Validate("Setup Time", 0);
         ItemJnlLine.Validate("Run Time", 0);
         OnInsertOutputItemJnlLineOnAfterAssignTimes(ItemJnlLine, ProdOrderLine, ProdOrderRtngLine, QtyToPost);
-        if (ProdOrderLine."Location Code" <> '') and IsLastOperation(ProdOrderRtngLine) then
+        if (ProdOrderLine."Location Code" <> '') and IsLastOperation(ProdOrderRtngLine) then begin
+            QtyToPostBeforeCheckWhse := QtyToPost;
             ItemJnlLine.CheckWhse(ProdOrderLine."Location Code", QtyToPost);
+            OnInsertOutputItemJnlLineOnAfterCheckWhse(ItemJnlLine, ProdOrderLine, ProdOrderRtngLine, QtyToPostBeforeCheckWhse, QtyToPost);
+        end;
         OnInsertOutputItemJnlLineOnBeforeSubcontractingWorkCenterUsed(ItemJnlLine, ProdOrderLine);
         if ItemJnlLine.SubcontractingWorkCenterUsed() then
             ItemJnlLine.Validate("Output Quantity", 0)
@@ -798,6 +802,11 @@ codeunit 5510 "Production Journal Mgt"
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertOutputItemJnlLineOnAfterAssignTimes(var ItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var QtyToPost: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertOutputItemJnlLineOnAfterCheckWhse(var ItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; QtyToPostBeforeCheckWhse: Decimal; var QtyToPost: Decimal)
     begin
     end;
 
