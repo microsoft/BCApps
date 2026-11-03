@@ -1209,7 +1209,7 @@ codeunit 432 Consolidate
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeUpdateTempGLEntryProcedure(TempGLEntry, GLEntry, IsHandled, TempDimBufIn);
+        OnBeforeUpdateTempGLEntryProcedure(TempGLEntry, GLEntry, IsHandled, TempDimBufIn, DimBufMgt);
         if IsHandled then
             exit;
 
@@ -1882,8 +1882,9 @@ codeunit 432 Consolidate
     /// <param name="GLEntry">Source G/L Entry record for data copying</param>
     /// <param name="IsHandled">Set to true to bypass standard G/L entry update processing</param>
     /// <param name="TempDimensionBufferIn">Dimension Buffer record for dimension processing</param>
+    /// <param name="DimensionBufferManagement">Dimension Buffer Management codeunit used during consolidation</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateTempGLEntryProcedure(var TempGLEntry: Record "G/L Entry"; GLEntry: Record "G/L Entry"; var IsHandled: Boolean; TempDimensionBufferIn: Record "Dimension Buffer")
+    local procedure OnBeforeUpdateTempGLEntryProcedure(var TempGLEntry: Record "G/L Entry"; GLEntry: Record "G/L Entry"; var IsHandled: Boolean; TempDimensionBufferIn: Record "Dimension Buffer"; var DimensionBufferManagement: Codeunit "Dimension Buffer Management")
     begin
     end;
 
