@@ -83,6 +83,7 @@ permissionset 20501 "Subcontract. - Objs"
         codeunit "Subc. Worksheet Handler" = X,
         codeunit "Subc. Attachment Details Ext." = X,
         codeunit "Subc. Routing Line Ext." = X,
+        codeunit "Subc. Feature Telemetry" = X,
 
         // Pages
         page "Subc. Standard Task Comments" = X,

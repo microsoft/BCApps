@@ -261,7 +261,7 @@ page 20505 "Subcontracting Setup Wizard"
     trigger OnOpenPage()
     begin
         Rec.Get();
-        FeatureTelemetry.LogUptake('0001Q7N', SubcontractingTok, Enum::"Feature Uptake Status"::Discovered);
+        SubcFeatureTelemetry.LogUptake(Enum::"Feature Uptake Status"::Discovered);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -277,7 +277,7 @@ page 20505 "Subcontracting Setup Wizard"
         MediaRepositoryStandard: Record "Media Repository";
         MediaResourcesDone: Record "Media Resources";
         MediaResourcesStandard: Record "Media Resources";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
+        SubcFeatureTelemetry: Codeunit "Subc. Feature Telemetry";
         BackActionEnabled: Boolean;
         CompanyDefaultsStepVisible: Boolean;
         FinishActionEnabled: Boolean;
@@ -292,7 +292,6 @@ page 20505 "Subcontracting Setup Wizard"
         DocumentationUrlLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2345593', Locked = true;
         LocationsLinkLbl: Label 'Set up locations';
         SetupNotCompletedQst: Label 'The Subcontracting setup is not complete. Are you sure you want to exit?';
-        SubcontractingTok: Label 'Subcontracting', Locked = true;
         SubcontractorPricesLinkLbl: Label 'Set up subcontractor prices';
         VendorsLinkLbl: Label 'Set up vendors';
         WorkCentersLinkLbl: Label 'Set up subcontractor work centers';
@@ -328,7 +327,7 @@ page 20505 "Subcontracting Setup Wizard"
     begin
         CurrPage.SaveRecord();
         GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Subcontracting Setup Wizard");
-        FeatureTelemetry.LogUptake('0001Q7O', SubcontractingTok, Enum::"Feature Uptake Status"::"Set up");
+        SubcFeatureTelemetry.LogUptake(Enum::"Feature Uptake Status"::"Set up");
         SubcApplicationAreaMgmt.RefreshExperienceTierCurrentCompany();
         SetupCompleted := true;
         CurrPage.Close();
