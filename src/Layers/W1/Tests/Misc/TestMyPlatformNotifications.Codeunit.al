@@ -2,6 +2,7 @@ codeunit 139034 "Test My Platform Notifications"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -11,6 +12,7 @@ codeunit 139034 "Test My Platform Notifications"
     var
         Assert: Codeunit Assert;
         SystemActionTriggers: Codeunit "System Action Triggers";
+        InsertCompetingNotification: Boolean;
         WorkDateNotificationIdTxt: Label '53C1D678-1994-4981-97CE-D12D9EB887B0', Locked = true;
 
     [Test]
@@ -161,6 +163,60 @@ codeunit 139034 "Test My Platform Notifications"
         VerifyNotificationIsDisabled();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure GetNotificationStatusReturnsStatusOfNotificationInsertedAfterLookup()
+    var
+        MyNotifications: Record "My Notifications";
+        Enabled: Boolean;
+    begin
+        // [SCENARIO 657048] A notification inserted between the first-use lookup and insert is read without a duplicate-key error.
+        MyNotifications.DeleteAll();
+        InsertCompetingNotification := true;
+        BindSubscription(this);
+
+        SystemActionTriggers.GetNotificationStatus(WorkDateNotificationIdTxt, Enabled);
+
+        UnBindSubscription(this);
+        Assert.IsFalse(InsertCompetingNotification, 'The competing notification must be inserted after the lookup.');
+        Assert.IsTrue(Enabled, 'The status saved by the competing session must be returned.');
+        VerifyNotificationExists();
+        VerifyNotificationIsEnabled();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SetNotificationStatusToleratesNotificationInsertedAfterLookup()
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        // [SCENARIO 657048] First-use status initialization tolerates a notification inserted after the lookup.
+        MyNotifications.DeleteAll();
+        InsertCompetingNotification := true;
+        BindSubscription(this);
+
+        SystemActionTriggers.SetNotificationStatus(WorkDateNotificationIdTxt, true);
+
+        UnBindSubscription(this);
+        Assert.IsFalse(InsertCompetingNotification, 'The competing notification must be inserted after the lookup.');
+        VerifyNotificationExists();
+        VerifyNotificationIsEnabled();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"My Notifications", 'OnBeforeInsertEvent', '', false, false)]
+    local procedure InsertNotificationAfterLookup(var Rec: Record "My Notifications"; RunTrigger: Boolean)
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        if Rec.IsTemporary() or not InsertCompetingNotification then
+            exit;
+        if (Rec."User Id" <> UserId()) or (Rec."Notification Id" <> WorkDateNotificationIdTxt) then
+            exit;
+
+        InsertCompetingNotification := false;
+        MyNotifications.InsertDefault(WorkDateNotificationIdTxt, '', '', true);
+    end;
+
     [Normal]
     local procedure VerifyNotificationExists()
     var
@@ -193,4 +249,3 @@ codeunit 139034 "Test My Platform Notifications"
         Assert.IsFalse(MyNotifications.IsEnabled(WorkDateNotificationIdTxt), 'Notification should be disabled');
     end;
 }
-

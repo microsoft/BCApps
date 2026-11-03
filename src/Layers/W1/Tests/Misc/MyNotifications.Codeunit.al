@@ -2,6 +2,7 @@ codeunit 139008 "My Notifications"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -9,9 +10,13 @@ codeunit 139008 "My Notifications"
     end;
 
     var
+        CompetingNotification: Record "My Notifications";
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
+        InsertCompetingNotification: Boolean;
+        CompetingDescription: Text;
+        CompetingFilter: Text;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -280,6 +285,90 @@ codeunit 139008 "My Notifications"
         VerifyMyNotificationsRec(MyNotifications, NewNotificationName, NewDescriptionText, true, ApplyToTableId, MyNotifications.GetXmlFromTableView(ApplyToTableId, ApplyToTableFilter));
     end;
 
+    [Test]
+    procedure InsertDefaultPreservesNotificationInsertedAfterLookup()
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        // [SCENARIO 657048] A competing default insert preserves the existing notification and reloads its settings.
+        PrepareCompetingNotification();
+
+        MyNotifications.InsertDefault(CompetingNotification."Notification Id", LibraryUtility.GenerateGUID(), LibraryUtility.GenerateGUID(), true);
+
+        UnBindSubscription(this);
+        VerifyCompetingNotification(MyNotifications);
+    end;
+
+    [Test]
+    procedure InsertDefaultWithTableNumPreservesNotificationInsertedAfterLookup()
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        // [SCENARIO 657048] A competing table-specific default insert preserves the existing notification and reloads its settings.
+        PrepareCompetingNotification();
+
+        MyNotifications.InsertDefaultWithTableNum(CompetingNotification."Notification Id", LibraryUtility.GenerateGUID(), LibraryUtility.GenerateGUID(), Database::Customer);
+
+        UnBindSubscription(this);
+        VerifyCompetingNotification(MyNotifications);
+    end;
+
+    [Test]
+    procedure InsertDefaultWithFilterPreservesNotificationInsertedAfterLookup()
+    var
+        MyNotifications: Record "My Notifications";
+        Customer: Record Customer;
+    begin
+        // [SCENARIO 657048] A competing filtered default insert does not overwrite the existing notification's filters.
+        PrepareCompetingNotification();
+        Customer.SetRange("No.", LibraryUtility.GenerateGUID());
+
+        MyNotifications.InsertDefaultWithTableNumAndFilter(
+            CompetingNotification."Notification Id", LibraryUtility.GenerateGUID(), LibraryUtility.GenerateGUID(), Database::Customer, Customer.GetFilters());
+
+        UnBindSubscription(this);
+        VerifyCompetingNotification(MyNotifications);
+    end;
+
+    local procedure PrepareCompetingNotification()
+    var
+        Vendor: Record Vendor;
+    begin
+        Clear(CompetingNotification);
+        CompetingDescription := LibraryUtility.GenerateGUID();
+        Vendor.SetRange("No.", LibraryUtility.GenerateGUID());
+        CompetingFilter := CompetingNotification.GetXmlFromTableView(Database::Vendor, Vendor.GetFilters());
+        CompetingNotification.InsertDefaultWithTableNumAndFilter(
+            CreateGuid(), LibraryUtility.GenerateGUID(), CompetingDescription, Database::Vendor, Vendor.GetFilters());
+        CompetingNotification.SetStatus(CompetingNotification."Notification Id", false);
+        CompetingNotification.CalcFields(Description, "Apply to Table Filter");
+        CompetingNotification.Delete();
+        InsertCompetingNotification := true;
+        BindSubscription(this);
+    end;
+
+    local procedure VerifyCompetingNotification(var MyNotifications: Record "My Notifications")
+    begin
+        Assert.IsFalse(InsertCompetingNotification, 'The competing notification must be inserted after the lookup.');
+        MyNotifications.TestField("User Id", CompetingNotification."User Id");
+        MyNotifications.TestField("Notification Id", CompetingNotification."Notification Id");
+        VerifyMyNotificationsRec(MyNotifications, CompetingNotification.Name, CompetingDescription, false, Database::Vendor, CompetingFilter);
+        MyNotifications.Get(CompetingNotification."User Id", CompetingNotification."Notification Id");
+        VerifyMyNotificationsRec(MyNotifications, CompetingNotification.Name, CompetingDescription, false, Database::Vendor, CompetingFilter);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"My Notifications", 'OnBeforeInsertEvent', '', false, false)]
+    local procedure InsertNotificationAfterLookup(var Rec: Record "My Notifications"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary() or not InsertCompetingNotification then
+            exit;
+        if (Rec."User Id" <> CompetingNotification."User Id") or (Rec."Notification Id" <> CompetingNotification."Notification Id") then
+            exit;
+
+        InsertCompetingNotification := false;
+        CompetingNotification.Insert();
+    end;
+
     local procedure VerifyMyNotificationsRec(MyNotifications: Record "My Notifications"; ExpectedName: Text[128]; ExpectedDescription: Text; ExpectedState: Boolean; ExpApplyToTableId: Integer; ExpApplyToTableFilter: Text)
     var
         ActualDescription: Text;
@@ -301,4 +390,3 @@ codeunit 139008 "My Notifications"
         Assert.AreEqual(ExpApplyToTableFilter, ActualApplyToTableFilter, '');
     end;
 }
-
