@@ -159,6 +159,7 @@ table 6902 "Expense Itemization"
         Rec.TestField("Expense Category Code");
         if not Expense.IsEnforcedItemizationRequired() then
             Rec.TestField("Expense Subcategory Code");
+
         "Currency Code" := Expense."Currency Code";
         "Expense Category Code" := Expense."Expense Category";
         if Description = '' then
