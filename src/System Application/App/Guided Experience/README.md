@@ -32,10 +32,3 @@ items; listing PRs should not copy closing directives from implementation PRs.
 The AL loader reads only the five display properties and ignores `ADOSliceIds`.
 Existing entries without metadata continue to work. The metadata creates no
 runtime Azure DevOps dependency and is not shown in the cockpit.
-
-The repository's existing Pester suite validates the catalog and optional metadata.
-Run the focused checks from the repository root with PowerShell 7 and Pester 5:
-
-```powershell
-Invoke-Pester -Path '.\build\scripts\tests\EarlyAccessPreviewFeatures.Test.ps1' -Output Detailed
-```
