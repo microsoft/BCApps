@@ -6,6 +6,10 @@ Describe 'Temporary dev AlTool workflow preparation' {
         $script:repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
         $script:workflowPath = Join-Path $script:repositoryRoot '.github\workflows\_BuildALGoProject.yaml'
         $script:workflow = Get-Content -LiteralPath $script:workflowPath -Raw
+        $script:cicdWorkflowPath = Join-Path $script:repositoryRoot '.github\workflows\CICD.yaml'
+        $script:cicdWorkflow = Get-Content -LiteralPath $script:cicdWorkflowPath -Raw
+        $script:experimentalAlGoRef = 'spetersen-microsoft-separate-test-action-cc-experimental'
+        $script:oldAlGoRef = 'spetersen/separateTestActionCodeCoverage'
         $script:compilePrepareMatch = [regex]::Match(
             $script:workflow,
             '(?m)^\s*-\s+name:\s+Prepare temporary dev AlTool for Compile Apps\s*$'
@@ -182,9 +186,26 @@ Describe 'Temporary dev AlTool workflow preparation' {
             'Add-Content -Encoding UTF8 -Path $env:GITHUB_ENV -Value "AlToolPath=$alToolPath"'
         ))
         $script:compileStep | Should -Match ([regex]::Escape(
-            'uses: spetersenms/AL-Go/Actions/CompileApps@spetersen/separateTestActionCodeCoverage'
+            "uses: spetersenms/AL-Go/Actions/CompileApps@$($script:experimentalAlGoRef)"
         ))
         $script:compileStep | Should -Not -Match '(?m)^\s+AlToolPath:'
+    }
+
+    It 'uses the experimental AL-Go branch consistently for the dispatched run' {
+        foreach ($workflowContent in @($script:cicdWorkflow, $script:workflow)) {
+            $actionReferences = @(
+                [regex]::Matches(
+                    $workflowContent,
+                    'spetersenms/AL-Go/Actions/[^@\s]+@([^\s]+)'
+                )
+            )
+            $actionReferences.Count | Should -BeGreaterThan 0
+            @(
+                $actionReferences |
+                    Where-Object { $_.Groups[1].Value -ne $script:experimentalAlGoRef }
+            ).Count | Should -Be 0
+            $workflowContent | Should -Not -Match ([regex]::Escape($script:oldAlGoRef))
+        }
     }
 
     It 'retains validated test-time extraction and AlToolPath export' {
