@@ -17,6 +17,11 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         CustomerId2Tok: Label 'TEST-2', Locked = true;
         SourceTableMetadataNotFoundErr: Label 'Source table metadata not found for table ID %1.', Comment = '%1 - Table ID';
         DestinationTableMetadataNotFoundErr: Label 'Destination table metadata not found for table ID %1.', Comment = '%1 - Table ID';
+        DeletedCompanyNameTok: Label 'Cloud Migration Delete Test', Locked = true;
+        ReplicatedCompanyNameTok: Label 'Replicated Company', Locked = true;
+        TestTableNameTok: Label 'Cloud Migration Test Table', Locked = true;
+        TestSubscriptionIdTok: Label 'TestProduct_IntelligentCloud', Locked = true;
+        HybridCompanyMissingErr: Label 'The hybrid company %1 should not be removed when another company is deleted.', Comment = '%1 - Company name';
 
     local procedure Initialize()
     var
@@ -1498,5 +1503,191 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         ReplicationMapping.SetRange("Company Name", CompanyName);
         ReplicationMapping.SetFilter("Table Name", 'Vendor Ledger Entry');
         Assert.IsTrue(ReplicationMapping.FindFirst(), 'Replication mapping should be created for Vendor Ledger Entry');
+    end;
+
+    [Test]
+    procedure TestDeleteCompanyRemovesOnlyItsCloudMigrationRecords()
+    var
+        Company: Record Company;
+        HybridCompany: Record "Hybrid Company";
+        IntelligentCloudStatus: Record "Intelligent Cloud Status";
+    begin
+        // [SCENARIO] Deleting a company removes only the cloud migration records of the deleted company
+        Initialize();
+
+        // [GIVEN] All existing companies are hybrid companies
+        InsertHybridCompaniesForExistingCompanies();
+
+        // [GIVEN] A per-database table and a table of the current company are included in the cloud migration
+        InsertIntelligentCloudStatus(TestTableNameTok, '');
+        InsertIntelligentCloudStatus(TestTableNameTok, CompanyName());
+
+        // [GIVEN] A new hybrid company with a table included in the cloud migration
+        CreateHybridCompany(DeletedCompanyNameTok);
+        InsertIntelligentCloudStatus(TestTableNameTok, DeletedCompanyNameTok);
+
+        // [WHEN] The new company is deleted
+        Company.Get(DeletedCompanyNameTok);
+        Company.Delete();
+
+        // [THEN] The cloud migration records of the deleted company are removed
+        Assert.IsFalse(HybridCompany.Get(DeletedCompanyNameTok), 'The hybrid company of the deleted company should be removed.');
+        Assert.IsFalse(IntelligentCloudStatus.Get(TestTableNameTok, DeletedCompanyNameTok), 'The intelligent cloud status of the deleted company should be removed.');
+
+        // [THEN] The cloud migration records of the other companies are kept
+        VerifyHybridCompaniesExistForAllCompanies();
+        Assert.IsTrue(IntelligentCloudStatus.Get(TestTableNameTok, ''), 'The per-database intelligent cloud status should be kept.');
+        Assert.IsTrue(IntelligentCloudStatus.Get(TestTableNameTok, CompanyName()), 'The intelligent cloud status of the current company should be kept.');
+    end;
+
+    [Test]
+    procedure TestDeleteCompanyWithMigrationWebhookKeepsOtherHybridCompanies()
+    var
+        Company: Record Company;
+        HybridCompany: Record "Hybrid Company";
+        WebhookSubscription: Record "Webhook Subscription";
+    begin
+        // [SCENARIO] Deleting the company that holds the cloud migration webhook subscription keeps the hybrid companies of the other companies
+        Initialize();
+
+        // [GIVEN] All existing companies are hybrid companies
+        InsertHybridCompaniesForExistingCompanies();
+
+        // [GIVEN] A new hybrid company holds the cloud migration webhook subscription
+        CreateHybridCompany(DeletedCompanyNameTok);
+        InsertWebhookSubscription(DeletedCompanyNameTok);
+
+        // [WHEN] The new company is deleted
+        Company.Get(DeletedCompanyNameTok);
+        Company.Delete();
+
+        // [THEN] Only the hybrid company of the deleted company is removed
+        Assert.IsFalse(HybridCompany.Get(DeletedCompanyNameTok), 'The hybrid company of the deleted company should be removed.');
+        VerifyHybridCompaniesExistForAllCompanies();
+
+        // [THEN] The webhook subscription is moved to an existing company
+        WebhookSubscription.Get(TestSubscriptionIdTok, '');
+        Assert.IsTrue(Company.Get(WebhookSubscription."Company Name"), 'The webhook subscription should be moved to an existing company.');
+    end;
+
+    [Test]
+    procedure TestUpgradeCompletedWhenReplicatedCompanyIsNotHybridCompany()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
+    begin
+        // [SCENARIO] The upgrade status records are used when the replicated companies are missing from the hybrid companies
+        Initialize();
+        HybridCompanyStatus.DeleteAll();
+
+        // [GIVEN] The last replication run is completed and no hybrid company is replicated
+        InsertCompletedReplicationSummary();
+
+        // [WHEN] There are no upgrade status records
+        // [THEN] The upgrade is not completed
+        Assert.IsFalse(HybridCloudManagement.IsUpgradeCompleted(), 'The upgrade should not be completed without upgrade status records.');
+
+        // [WHEN] The upgrade of the per-database data and of the replicated company is completed
+        InsertCompletedHybridCompanyStatus('');
+        InsertCompletedHybridCompanyStatus(ReplicatedCompanyNameTok);
+
+        // [THEN] The upgrade is completed
+        Assert.IsTrue(HybridCloudManagement.IsUpgradeCompleted(), 'The upgrade should be completed when all replicated companies are upgraded.');
+
+        // [WHEN] The upgrade of the replicated company is pending
+        HybridCompanyStatus.Get(ReplicatedCompanyNameTok);
+        HybridCompanyStatus."Upgrade Status" := HybridCompanyStatus."Upgrade Status"::Pending;
+        HybridCompanyStatus.Modify();
+
+        // [THEN] The upgrade is not completed
+        Assert.IsFalse(HybridCloudManagement.IsUpgradeCompleted(), 'The upgrade should not be completed when a replicated company is not upgraded.');
+    end;
+
+    local procedure InsertHybridCompaniesForExistingCompanies()
+    var
+        Company: Record Company;
+        HybridCompany: Record "Hybrid Company";
+    begin
+        Company.FindSet();
+        repeat
+            if not HybridCompany.Get(Company.Name) then
+                InsertHybridCompany(Company.Name);
+        until Company.Next() = 0;
+    end;
+
+    local procedure CreateHybridCompany(NewCompanyName: Text[30])
+    var
+        Company: Record Company;
+    begin
+        Company.Init();
+        Company.Name := NewCompanyName;
+        Company.Insert();
+        InsertHybridCompany(NewCompanyName);
+    end;
+
+    local procedure InsertHybridCompany(HybridCompanyName: Text[50])
+    var
+        HybridCompany: Record "Hybrid Company";
+    begin
+        HybridCompany.Init();
+        HybridCompany.Name := HybridCompanyName;
+        HybridCompany."Display Name" := HybridCompanyName;
+        HybridCompany.Replicate := true;
+        HybridCompany.Insert();
+    end;
+
+    local procedure InsertIntelligentCloudStatus(TableName: Text; StatusCompanyName: Text)
+    var
+        IntelligentCloudStatus: Record "Intelligent Cloud Status";
+    begin
+        IntelligentCloudStatus.Init();
+        IntelligentCloudStatus."Table Name" := CopyStr(TableName, 1, MaxStrLen(IntelligentCloudStatus."Table Name"));
+        IntelligentCloudStatus."Company Name" := CopyStr(StatusCompanyName, 1, MaxStrLen(IntelligentCloudStatus."Company Name"));
+        IntelligentCloudStatus."Table Id" := Database::Customer;
+        IntelligentCloudStatus."Replicate Data" := true;
+        IntelligentCloudStatus.Insert();
+    end;
+
+    local procedure InsertWebhookSubscription(SubscriptionCompanyName: Text[30])
+    var
+        WebhookSubscription: Record "Webhook Subscription";
+    begin
+        WebhookSubscription.Init();
+        WebhookSubscription."Subscription ID" := TestSubscriptionIdTok;
+        WebhookSubscription.Endpoint := '';
+        WebhookSubscription."Company Name" := SubscriptionCompanyName;
+        WebhookSubscription.Insert();
+    end;
+
+    local procedure VerifyHybridCompaniesExistForAllCompanies()
+    var
+        Company: Record Company;
+        HybridCompany: Record "Hybrid Company";
+    begin
+        Company.FindSet();
+        repeat
+            Assert.IsTrue(HybridCompany.Get(Company.Name), StrSubstNo(HybridCompanyMissingErr, Company.Name));
+        until Company.Next() = 0;
+    end;
+
+    local procedure InsertCompletedReplicationSummary()
+    var
+        HybridReplicationSummary: Record "Hybrid Replication Summary";
+    begin
+        HybridReplicationSummary.CreateInProgressRecord(Format(CreateGuid()), HybridReplicationSummary.ReplicationType::Normal);
+        HybridReplicationSummary.FindLast();
+        HybridReplicationSummary.Status := HybridReplicationSummary.Status::Completed;
+        HybridReplicationSummary.Modify();
+    end;
+
+    local procedure InsertCompletedHybridCompanyStatus(StatusCompanyName: Text[50])
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+    begin
+        HybridCompanyStatus.Init();
+        HybridCompanyStatus.Name := StatusCompanyName;
+        HybridCompanyStatus.Replicated := true;
+        HybridCompanyStatus."Upgrade Status" := HybridCompanyStatus."Upgrade Status"::Completed;
+        HybridCompanyStatus.Insert();
     end;
 }

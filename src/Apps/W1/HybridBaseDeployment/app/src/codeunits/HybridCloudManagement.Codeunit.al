@@ -1698,9 +1698,9 @@ codeunit 4001 "Hybrid Cloud Management"
             WebhookSubscription.ModifyAll("Company Name", ReplacementCompanyName);
         end;
 
-        if HybridCompany.Get(Company.Name) then
+        if HybridCompany.Get(Rec.Name) then
             HybridCompany.Delete();
-        RemoveIntelligentCloudStatusRecords(Company.Name);
+        RemoveIntelligentCloudStatusRecords(Rec.Name);
         CleanupSetupTables(Rec);
     end;
 
@@ -2109,7 +2109,7 @@ codeunit 4001 "Hybrid Cloud Management"
 
         HybridCompany.SetRange(Replicated, true);
         if not HybridCompany.FindSet() then
-            exit;
+            exit(IsUpgradeCompletedForReplicatedCompanyStatuses());
 
         repeat
             if not HybridCompanyStatus.Get(HybridCompany.Name) then
@@ -2120,6 +2120,19 @@ codeunit 4001 "Hybrid Cloud Management"
         until HybridCompany.Next() = 0;
 
         exit(true);
+    end;
+
+    local procedure IsUpgradeCompletedForReplicatedCompanyStatuses(): Boolean
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+    begin
+        // The replicated companies can be missing from the Hybrid Company table, so the upgrade status records are used instead.
+        HybridCompanyStatus.SetRange(Replicated, true);
+        if HybridCompanyStatus.IsEmpty() then
+            exit(false);
+
+        HybridCompanyStatus.SetFilter("Upgrade Status", '<>%1', HybridCompanyStatus."Upgrade Status"::Completed);
+        exit(HybridCompanyStatus.IsEmpty());
     end;
 
     procedure GetLastReplicationSummary(var HybridReplicationSummary: Record "Hybrid Replication Summary"): Boolean
