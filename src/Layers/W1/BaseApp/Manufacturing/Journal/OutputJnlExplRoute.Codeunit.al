@@ -181,6 +181,7 @@ codeunit 5406 "Output Jnl.-Expl. Route"
         i: Integer;
         LinesToInsert: Integer;
         QtyPerLine: Decimal;
+        QtyPerLineBeforeCheckWhse: Decimal;
     begin
         LinesToInsert := 1;
         QtyPerLine := QtyToPost;
@@ -206,8 +207,11 @@ codeunit 5406 "Output Jnl.-Expl. Route"
             ItemJnlLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
             ItemJnlLine.Validate("Setup Time", 0);
             ItemJnlLine.Validate("Run Time", 0);
-            if (LocationCode <> '') and LastOperation then
+            if (LocationCode <> '') and LastOperation then begin
+                QtyPerLineBeforeCheckWhse := QtyPerLine;
                 ItemJnlLine.CheckWhse(LocationCode, QtyPerLine);
+                OnInsertOutputJnlLineOnAfterCheckWhse(ItemJnlLine, ProdOrderLine, QtyPerLineBeforeCheckWhse, QtyPerLine);
+            end;
             if ItemJnlLine.SubcontractingWorkCenterUsed() then
                 ItemJnlLine.Validate("Output Quantity", 0)
             else
@@ -332,6 +336,11 @@ codeunit 5406 "Output Jnl.-Expl. Route"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOutputItemJnlLineInsert(var ItemJournalLine: Record "Item Journal Line"; LastOperation: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertOutputJnlLineOnAfterCheckWhse(var ItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record "Prod. Order Line"; QtyPerLineBeforeCheckWhse: Decimal; var QtyPerLine: Decimal)
     begin
     end;
 
