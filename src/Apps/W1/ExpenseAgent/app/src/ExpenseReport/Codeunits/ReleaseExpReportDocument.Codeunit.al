@@ -91,8 +91,7 @@ codeunit 6984 "Release Exp. Report Document"
 
         if ExpenseReportLine."No Receipt Type" = ExpenseReportLine."No Receipt Type"::"Lost Receipt" then begin
             ExpenseReportLine.TestField("No Receipt Reason");
-            if not ExpenseReportLine."No Receipt Decl. Current" or
-               not NoReceiptDeclarationMgt.HasDeclaration(ExpenseReportLine)
+            if IsNullGuid(ExpenseReportLine."No Receipt Declaration ID") or not NoReceiptDeclarationMgt.HasDeclaration(ExpenseReportLine)
             then
                 Error(NoReceiptDeclarationNotCurrentErr, ExpenseReportLine."Expense No.");
         end;
@@ -235,20 +234,17 @@ codeunit 6984 "Release Exp. Report Document"
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
-        CheckApprovedStatus(ExpReportHeader, ApproverExpenseUserNo, SkipPolicyValidation);
+        CheckApprovedStatus(ExpReportHeader, SkipPolicyValidation);
 
         ExpenseReportApprovalMgmt.Approve(ExpReportHeader, ApproverExpenseUserNo);
     end;
 
-    local procedure CheckApprovedStatus(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
+    local procedure CheckApprovedStatus(var ExpReportHeader: Record "Expense Report Header"; SkipPolicyValidation: Boolean)
     var
         ExpenseReportLine: Record "Expense Report Line";
     begin
         ExpReportHeader.TestApprovalPending();
         ExpReportHeader.TestField("Expense User No.");
-
-        if HasNoReceiptLines(ExpReportHeader) and (ApproverExpenseUserNo = ExpReportHeader."Expense User No.") then
-            Error(NoReceiptIndependentApproverErr);
 
         CheckExpenseReportLines(ExpenseReportLine, ExpReportHeader);
         if not SkipPolicyValidation then
@@ -299,5 +295,4 @@ codeunit 6984 "Release Exp. Report Document"
     var
         NoReceiptApprovalRequiredErr: Label 'Expense reports containing a no receipt declaration require an enabled approval process.';
         NoReceiptDeclarationNotCurrentErr: Label 'The no receipt declaration for expense %1 is missing or no longer current.', Comment = '%1 = Expense No.';
-        NoReceiptIndependentApproverErr: Label 'A no receipt expense must be reviewed by an approver other than the expense owner.';
 }

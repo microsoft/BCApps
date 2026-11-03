@@ -256,11 +256,6 @@ page 6927 "Expenses API"
                     Caption = 'No Receipt Declaration Id';
                     Editable = false;
                 }
-                field(noReceiptDeclarationCurrent; Rec."No Receipt Decl. Current")
-                {
-                    Caption = 'No Receipt Declaration Current';
-                    Editable = false;
-                }
                 field(complianceStatus; Rec."Compliance Status")
                 {
                     Caption = 'Compliance Status';

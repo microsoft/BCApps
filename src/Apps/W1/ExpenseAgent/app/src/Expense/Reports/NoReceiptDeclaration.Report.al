@@ -46,10 +46,6 @@ report 6953 "No Receipt Declaration"
             {
                 IncludeCaption = true;
             }
-            column(No_Receipt_Decl__Current; "No Receipt Decl. Current")
-            {
-                IncludeCaption = true;
-            }
             column(CurrencyCode; "Currency Code")
             {
                 IncludeCaption = true;

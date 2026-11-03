@@ -573,10 +573,10 @@ page 6988 "Expense"
                     var
                         NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
                     begin
-                        CurrPage.SaveRecord();
                         if not Confirm(NoReceiptAttestationQst, false) then
                             exit;
 
+                        CurrPage.SaveRecord();
                         NoReceiptDeclarationMgt.CreateDeclaration(Rec, Rec."No Receipt Reason", true);
                         CurrPage.Update(false);
                     end;

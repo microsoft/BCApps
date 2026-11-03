@@ -1116,24 +1116,20 @@ table 6907 "Expense Report Line"
         field(200; "No Receipt Type"; Enum "Expense No Receipt Type")
         {
             Caption = 'No Receipt Type';
+            ToolTip = 'Specifies whether the original receipt was replaced by a "no receipt" declaration.';
             Editable = false;
-            ToolTip = 'Specifies whether the original receipt was replaced by a no receipt declaration.';
         }
         field(201; "No Receipt Reason"; Text[250])
         {
             Caption = 'Reason Receipt Is Unavailable';
+            ToolTip = 'Specifies why the original receipt was not available.';
             DataClassification = CustomerContent;
             Editable = false;
         }
         field(202; "No Receipt Declaration ID"; Guid)
         {
             Caption = 'No Receipt Declaration ID';
-            DataClassification = SystemMetadata;
-            Editable = false;
-        }
-        field(203; "No Receipt Decl. Current"; Boolean)
-        {
-            Caption = 'No Receipt Declaration Current';
+            ToolTip = 'Specifies the system ID of the Document Attachment record that holds the declaration.';
             DataClassification = SystemMetadata;
             Editable = false;
         }

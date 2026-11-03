@@ -749,12 +749,6 @@ table 6900 Expense
             DataClassification = SystemMetadata;
             Editable = false;
         }
-        field(203; "No Receipt Decl. Current"; Boolean)
-        {
-            Caption = 'No Receipt Declaration Current';
-            DataClassification = SystemMetadata;
-            Editable = false;
-        }
         field(204; "Compliance Status"; Enum "Expense Compliance Status")
         {
             Caption = 'Compliance Status';
@@ -1319,17 +1313,18 @@ table 6900 Expense
         NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
     begin
         ExpenseAgentSetup.GetRecordOnce();
-        if ExpenseAgentSetup."Allow No Receipt" and ExpenseCategory.Get(Rec."Expense Category") then
-            if Rec."Amount (LCY)" < ExpenseCategory."Amount Limit for No Receipt" then begin
-                if Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt" then begin
-                    // Category validation temporarily resets the amount before the API applies the final amount.
-                    if Rec.Amount = 0 then
-                        exit;
-                    NoReceiptDeclarationMgt.ClearDeclaration(Rec);
+        if ExpenseAgentSetup."Allow No Receipt" then 
+            if ExpenseCategory.Get(Rec."Expense Category") then
+                if Rec."Amount (LCY)" < ExpenseCategory."Amount Limit for No Receipt" then begin
+                    if Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt" then begin
+                        // Category validation temporarily resets the amount before the API applies the final amount.
+                        if Rec.Amount = 0 then
+                            exit;
+                        NoReceiptDeclarationMgt.ClearDeclaration(Rec);
+                    end;
+                    Rec."No Receipt Type" := Rec."No Receipt Type"::"Receipt not needed";
+                    exit;
                 end;
-                Rec."No Receipt Type" := Rec."No Receipt Type"::"Receipt not needed";
-                exit;
-            end;
 
         if Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt" then
             exit;
