@@ -897,9 +897,10 @@ codeunit 139912 "Customer Deferrals Test"
         CreateCustomerContractWithDeferrals('<2M-CM>', true);
         CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
 
-        // [GIVEN] A standard BC deferral template
+        // [GIVEN] A standard BC deferral template and accounting periods covering its schedule
         LibraryERM.CreateDeferralTemplate(DeferralTemplate, Enum::"Deferral Calculation Method"::"Straight-Line",
             Enum::"Deferral Calculation Start Date"::"Posting Date", 3);
+        ContractTestLibrary.CreateAccountingPeriodsForDeferral(SalesHeader."Posting Date", DeferralTemplate."No. of Periods");
 
         // [WHEN] Assigning the Deferral Code to the sales line that has contract deferrals
         SalesLine.SetRange("Document No.", SalesHeader."No.");
