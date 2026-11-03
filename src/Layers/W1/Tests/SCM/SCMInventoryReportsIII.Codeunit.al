@@ -1348,11 +1348,12 @@ codeunit 137350 "SCM Inventory Reports - III"
         OtherItemNo := LibraryInventory.CreateItemNo();
 
         // [GIVEN] 4,002 value entries of item "X" with "Cost Amount (Actual)" = "Cost Posted to G/L" = 100, listed in "Post Value Entry to G/L".
-        // [GIVEN] 4,002 "Post Value Entry to G/L" entries of item "Y", interleaved with the entries of "X", so that no two entries of "X" have consecutive numbers.
+        // [GIVEN] 4,002 fully posted value entries of item "Y", interleaved with the entries of "X", so that no two entries of "X" have consecutive numbers.
+        // Every entry has a value entry, so the remaining entries of "Y" never take a number that later postings use.
         FirstValueEntryNo := GetFirstFreeValueEntryNo();
         for Index := 0 to NoOfEntriesPerItem - 1 do begin
             MockItemValueEntryWithPostValueEntryToGL(FirstValueEntryNo + 2 * Index, ProcessedItemNo, 100, 100, true);
-            MockPostValueEntryToGL(FirstValueEntryNo + 2 * Index + 1, OtherItemNo);
+            MockItemValueEntryWithPostValueEntryToGL(FirstValueEntryNo + 2 * Index + 1, OtherItemNo, 100, 100, true);
         end;
 
         // [WHEN] Run "Post Inventory Cost to G/L" with "Post" = true for item "X".
@@ -1404,13 +1405,14 @@ codeunit 137350 "SCM Inventory Reports - III"
         Initialize();
         ItemNo := LibraryInventory.CreateItemNo();
 
-        // [GIVEN] Value entry "V1" of item "X" with "Cost Amount (Actual)" = "Cost Posted to G/L" = 100, listed in "Post Value Entry to G/L".
-        PostedValueEntryNo := GetFirstFreeValueEntryNo();
-        MockItemValueEntryWithPostValueEntryToGL(PostedValueEntryNo, ItemNo, 100, 100, true);
-
         // [GIVEN] "Post Value Entry to G/L" entry "V2" of item "X" without a value entry.
         OrphanValueEntryNo := GetFirstFreeValueEntryNo();
         MockPostValueEntryToGL(OrphanValueEntryNo, ItemNo);
+
+        // [GIVEN] Value entry "V1" of item "X" with "Cost Amount (Actual)" = "Cost Posted to G/L" = 100, listed in "Post Value Entry to G/L".
+        // "V1" gets a higher number than "V2", so the remaining entry for "V2" never takes a number that later postings use.
+        PostedValueEntryNo := GetFirstFreeValueEntryNo();
+        MockItemValueEntryWithPostValueEntryToGL(PostedValueEntryNo, ItemNo, 100, 100, true);
 
         // [WHEN] Run "Post Inventory Cost to G/L" with "Post" = false for item "X".
         ValueEntryToPostToGL.SetRange("Item No.", ItemNo);
