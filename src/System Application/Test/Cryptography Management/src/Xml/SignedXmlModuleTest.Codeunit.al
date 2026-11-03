@@ -196,10 +196,12 @@ codeunit 132612 "Signed Xml Module Test"
     procedure SignXmlDocumentAddKeyInfoInSignature()
     var
         SignatureKey: Codeunit "Signature Key";
+        CertificateRequest: Codeunit CertificateRequest;
         XmlDoc: XmlDocument;
         DataElement: XmlElement;
         PrivateKey: SecretText;
         CertPassword: SecretText;
+        CertBase64Data: Text;
         Signature: XmlElement;
         NamespaceMgr: XmlNamespaceManager;
         KeyInfoNode: XmlNode;
@@ -211,8 +213,11 @@ codeunit 132612 "Signed Xml Module Test"
         XmlDoc.GetRoot(DataElement);
         SignedXml.InitializeSignedXml(DataElement);
         
-        // [GIVEN] Set signing key on the SignedXml instance
-        GenerateSigningKeyXmlString(PrivateKey);
+        // [GIVEN] Generate a signing key and a certificate with the matching public key
+        CertificateRequest.InitializeRSA(2048, true, PrivateKey);
+        CertificateRequest.InitializeCertificateRequestUsingRSA('CN=Signed Xml Module Test', Enum::"Hash Algorithm"::SHA256, Enum::"RSA Signature Padding"::Pkcs1);
+        CertificateRequest.CreateSelfSigned(CreateDateTime(Today(), 000000T), CreateDateTime(Today() + 1, 000000T), Enum::"X509 Content Type"::Cert, CertBase64Data);
+        LibraryAssert.AreNotEqual('', CertBase64Data, 'The self-signed test certificate was not created.');
         SignatureKey.FromXmlString(PrivateKey);
         SignedXml.SetSigningKey(SignatureKey);
 
@@ -223,13 +228,14 @@ codeunit 132612 "Signed Xml Module Test"
         SignedXml.InitializeKeyInfo();
 
         // [WHEN] Add a key info clause from the X509 certificate and generate signature
-        SignedXml.AddKeyInfoClauseFromX509Certificate(GetCertificateData(), CertPassword);
+        SignedXml.AddKeyInfoClauseFromX509Certificate(CertBase64Data, CertPassword);
         SignedXml.ComputeSignature();
 
         // [THEN] The signature contains the X509Data element
         Signature := SignedXml.GetXml();
         NamespaceMgr.AddNamespace('ns', 'http://www.w3.org/2000/09/xmldsig#');
         LibraryAssert.IsTrue(Signature.SelectSingleNode('./ns:KeyInfo/ns:X509Data/ns:X509Certificate', NamespaceMgr, KeyInfoNode), 'The XML signature must contain the X509Data element.');
+        LibraryAssert.IsTrue(SignedXml.CheckSignature(CertBase64Data, CertPassword, true), 'Failed to verify the XML signature with the generated certificate.');
     end;
 
     local procedure GetSignatureElement(SignedXmlDocument: XmlDocument; var SignatureElement: XmlElement)
