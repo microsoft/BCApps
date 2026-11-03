@@ -7814,8 +7814,12 @@ codeunit 80 "Sales-Post"
     procedure CheckIfReverseChargeApplies(SalesHeader: Record "Sales Header"): Boolean
     var
         SalesLine2: Record "Sales Line";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         TotalAmount: Decimal;
     begin
+        if FeatureKeyManagement.IsVATReverseChargeEnabled() then
+            exit(false);
+
         GLSetup.Get();
         SalesSetup.Get();
         if not GLSetup."Threshold applies" or (SalesHeader."VAT Registration No." = '') or

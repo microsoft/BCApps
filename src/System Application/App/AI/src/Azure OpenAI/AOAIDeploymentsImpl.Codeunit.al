@@ -28,6 +28,8 @@ codeunit 7769 "AOAI Deployments Impl"
         GPT53ChatPreviewLbl: Label 'gpt-53-chat-preview', Locked = true;
         GPT55ChatLatestLbl: Label 'gpt-55-chat-latest', Locked = true;
         GPT55ChatPreviewLbl: Label 'gpt-55-chat-preview', Locked = true;
+        GPT56CeresLatestLbl: Label 'gpt-56-ceres-latest', Locked = true;
+        GPT56CeresPreviewLbl: Label 'gpt-56-ceres-preview', Locked = true;
         DeprecatedDeployments: Dictionary of [Text, Date];
         DeprecationDatesInitialized: Boolean;
         DeprecationMessageLbl: Label 'We detected usage of the Azure OpenAI deployment "%1". This model is obsoleted starting %2 and the quality of your results might vary after that date. Check out codeunit 7768 AOAI Deployments to find the supported deployments.', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
@@ -93,6 +95,21 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(GetDeploymentName(GPT55ChatPreviewLbl));
     end;
 
+    procedure GetGPT56CeresLatest(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT56CeresLatestLbl));
+    end;
+
+    procedure GetGPT56CeresPreview(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT56CeresPreviewLbl));
+    end;
+
+    procedure IsFileContentSupported(DeploymentName: Text): Boolean
+    begin
+        exit(DeploymentName in [GPT41MiniPreviewLbl, GPT55ChatPreviewLbl, GPT56CeresPreviewLbl]);
+    end;
+
     // Initializes dictionary of deprecated models
     local procedure InitializeDeploymentDeprecationDates()
     begin
@@ -106,6 +123,8 @@ codeunit 7769 "AOAI Deployments Impl"
         DeprecatedDeployments.Add(GPT4oMiniLatestLbl, DMY2Date(15, 7, 2025));
         DeprecatedDeployments.Add(GPT4oMiniPreviewLbl, DMY2Date(15, 7, 2025));
 #endif
+        DeprecatedDeployments.Add(GPT55ChatLatestLbl, DMY2Date(11, 9, 2026));
+        DeprecatedDeployments.Add(GPT55ChatPreviewLbl, DMY2Date(11, 9, 2026));
         DeprecationDatesInitialized := true;
     end;
 

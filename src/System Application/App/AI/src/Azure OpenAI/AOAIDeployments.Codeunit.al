@@ -157,7 +157,7 @@ codeunit 7768 "AOAI Deployments"
     /// <summary>
     /// Returns the name of the preview AOAI deployment model of GPT-5.5 chat.
     /// </summary>
-    /// <remarks>Use this deployment when the chat messages contain file content parts.</remarks>
+    /// <remarks>Use GetGPT56CeresPreview when the chat messages contain file content parts.</remarks>
     /// <returns>The deployment name.</returns>
     procedure GetGPT55ChatPreview(): Text
     var
@@ -165,5 +165,30 @@ codeunit 7768 "AOAI Deployments"
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AOAIDeploymentsImpl.GetGPT55ChatPreview(CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Returns the name of the latest AOAI deployment model of GPT-5.6 Ceres.
+    /// </summary>
+    /// <returns>The deployment name.</returns>
+    procedure GetGPT56CeresLatest(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT56CeresLatest(CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Returns the name of the preview AOAI deployment model of GPT-5.6 Ceres.
+    /// </summary>
+    /// <remarks>Use this deployment when the chat messages contain file content parts.</remarks>
+    /// <returns>The deployment name.</returns>
+    procedure GetGPT56CeresPreview(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT56CeresPreview(CallerModuleInfo));
     end;
 }

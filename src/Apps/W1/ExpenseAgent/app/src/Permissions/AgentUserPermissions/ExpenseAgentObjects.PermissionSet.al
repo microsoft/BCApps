@@ -141,6 +141,7 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Activity Log Mgt." = X,
                   codeunit "Exp. Policies To Eval Builder" = X,
                   codeunit "Expense Consumption Handler" = X,
+                  codeunit "Expense Agent Quota Impl." = X,
                   codeunit "Expense Currency" = X,
                   codeunit "Expense Doc No Visibility" = X,
                   codeunit "Expense Doc. Att. Subscribers" = X,

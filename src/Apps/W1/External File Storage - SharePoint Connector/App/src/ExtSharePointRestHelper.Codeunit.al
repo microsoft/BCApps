@@ -34,7 +34,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
         OriginalPath := Path;
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
-        if not SharePointClient.GetFolderFilesByServerRelativeUrl(Path, TempSharePointFile) then
+        if not SharePointClient.GetFolderFilesByServerRelativePath(Path, TempSharePointFile) then
             ShowError(SharePointClient);
 
         FilePaginationData.SetEndOfListing(true);
@@ -60,7 +60,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
 
-        if not SharePointClient.DownloadFileContentByServerRelativeUrl(Path, TempBlobStream) then
+        if not SharePointClient.DownloadFileContentByServerRelativePath(Path, TempBlobStream) then
             ShowError(SharePointClient);
 
         // Platform fix: For some reason the Stream from DownloadFileContentByServerRelativeUrl dies after leaving the interface
@@ -77,7 +77,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
         SplitPath(Path, ParentPath, FileName);
-        if SharePointClient.AddFileToFolder(ParentPath, FileName, Stream, TempSharePointFile, false) then
+        if SharePointClient.AddFileToFolderByServerRelativePath(ParentPath, FileName, Stream, TempSharePointFile, false) then
             exit;
 
         ShowError(SharePointClient);
@@ -107,7 +107,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
     begin
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
-        if not SharePointClient.GetFolderFilesByServerRelativeUrl(GetParentPath(Path), TempSharePointFile) then
+        if not SharePointClient.GetFolderFilesByServerRelativePath(GetParentPath(Path), TempSharePointFile) then
             ShowError(SharePointClient);
 
         TempSharePointFile.SetRange(Name, GetFileName(Path));
@@ -120,7 +120,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
     begin
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
-        if SharePointClient.DeleteFileByServerRelativeUrl(Path) then
+        if SharePointClient.DeleteFileByServerRelativePath(Path) then
             exit;
 
         ShowError(SharePointClient);
@@ -139,7 +139,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
         OriginalPath := Path;
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
-        if not SharePointClient.GetSubFoldersByServerRelativeUrl(Path, TempSharePointFolder) then
+        if not SharePointClient.GetSubFoldersByServerRelativePath(Path, TempSharePointFolder) then
             ShowError(SharePointClient);
 
         FilePaginationData.SetEndOfListing(true);
@@ -163,7 +163,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
     begin
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
-        if SharePointClient.CreateFolder(Path, TempSharePointFolder) then
+        if SharePointClient.CreateFolderByServerRelativePath(Path, TempSharePointFolder) then
             exit;
 
         ShowError(SharePointClient);
@@ -176,7 +176,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
 
-        Result := SharePointClient.FolderExistsByServerRelativeUrl(Path);
+        Result := SharePointClient.FolderExistsByServerRelativePath(Path);
 
         if not SharePointClient.GetDiagnostics().IsSuccessStatusCode() then
             ShowError(SharePointClient);
@@ -188,7 +188,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
     begin
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
-        if SharePointClient.DeleteFolderByServerRelativeUrl(Path) then
+        if SharePointClient.DeleteFolderByServerRelativePath(Path) then
             exit;
 
         ShowError(SharePointClient);
@@ -269,20 +269,26 @@ codeunit 4609 "Ext. SharePoint REST Helper"
 
     local procedure InitPath(SharePointAccount: Record "Ext. SharePoint Account"; var Path: Text)
     var
+        Uri: Codeunit Uri;
+        BaseFolderPath: Text;
         SitePath: Text;
     begin
         // Extract site path from SharePoint URL
         SitePath := GetSitePathFromUrl(SharePointAccount."SharePoint Url");
 
-        // Combine base folder path with the file path
-        Path := CombinePath(SharePointAccount."Base Relative Folder Path", Path);
+        BaseFolderPath := SharePointAccount."Base Relative Folder Path";
+        if SharePointAccount."REST Base Folder Path Format" = Enum::"Ext. SharePoint Path Format"::URL then
+            BaseFolderPath := Uri.UnescapeDataString(BaseFolderPath);
+
+        // Decode URL-derived configuration only; attachment paths may contain literal percent sequences.
+        Path := CombinePath(BaseFolderPath, Path);
 
         // Ensure path starts with forward slash
         if not Path.StartsWith('/') then
             Path := '/' + Path;
 
         // Prepend site path if it exists and path doesn't already include it
-        if (SitePath <> '') and (not Path.StartsWith(SitePath)) then
+        if (SitePath <> '') and (Path <> SitePath) and (not Path.StartsWith(SitePath + '/')) then
             Path := SitePath + Path;
     end;
 
@@ -292,7 +298,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
         PathSegment: Text;
     begin
         Uri.Init(SharePointUrl);
-        PathSegment := Uri.GetAbsolutePath();
+        PathSegment := Uri.UnescapeDataString(Uri.GetAbsolutePath());
 
         // Remove trailing slash if present
         if PathSegment.EndsWith('/') then

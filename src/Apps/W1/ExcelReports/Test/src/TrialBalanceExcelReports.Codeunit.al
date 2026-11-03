@@ -23,6 +23,8 @@ codeunit 139544 "Trial Balance Excel Reports"
         LibraryERM: Codeunit "Library - ERM";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         Assert: Codeunit Assert;
+        CombinationNotExportedErr: Label 'Combination %1 should be exported.', Comment = '%1 = account and dimension combination', Locked = true;
+        UnexpectedNetChangeErr: Label 'Unexpected net change for combination %1.', Comment = '%1 = account and dimension combination', Locked = true;
 
     [Test]
     [HandlerFunctions('EXRTrialBalanceExcelHandler')]
@@ -271,6 +273,91 @@ codeunit 139544 "Trial Balance Excel Reports"
 
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="EXRTrialBalanceBuffer"]');
         Assert.AreEqual(18, LibraryReportDataset.RowCount(), 'All dimension combinations should be exported');
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRTrialBalanceByPeriodTwoPeriodsHandler')]
+    procedure TrialBalanceByPeriodAggregatesNetChangePerDimensionCombination()
+    var
+        PostingGLAccount: Record "G/L Account";
+        TotalGLAccount: Record "G/L Account";
+        Dimension1: Record Dimension;
+        Dimension2: Record Dimension;
+        DimensionValueA1: Record "Dimension Value";
+        DimensionValueA2: Record "Dimension Value";
+        DimensionValueB1: Record "Dimension Value";
+        DimensionValueB2: Record "Dimension Value";
+        NetChangePerCombination: Dictionary of [Text, Decimal];
+        Variant: Variant;
+        RequestPageXml: Text;
+        SecondPeriodStart: Date;
+    begin
+        // [SCENARIO] Trial Balance by Period calculates the net change per account and period for the total, each global dimension value and each combination
+        Initialize();
+        // [GIVEN] A posting account and an End-Total account totaling it
+        CreateGLAccount(PostingGLAccount);
+        CreateGLAccount(TotalGLAccount, Enum::"G/L Account Type"::"End-Total", PostingGLAccount."No.");
+        // [GIVEN] Global dimension 1 values A1, A2 and global dimension 2 values B1, B2
+        CreateGlobalDimensionValue(Dimension1, DimensionValueA1, 1);
+        CreateGlobalDimensionValue(Dimension1, DimensionValueA2, 1);
+        CreateGlobalDimensionValue(Dimension2, DimensionValueB1, 2);
+        CreateGlobalDimensionValue(Dimension2, DimensionValueB2, 2);
+        // [GIVEN] First period entries (A1, B1, 100), (A1, B2, -30), (A2, B1, 50) and (blank, B2, 7)
+        CreateGLEntryWithAmount(PostingGLAccount."No.", DimensionValueA1.Code, DimensionValueB1.Code, '', WorkDate(), 100);
+        CreateGLEntryWithAmount(PostingGLAccount."No.", DimensionValueA1.Code, DimensionValueB2.Code, '', WorkDate(), -30);
+        CreateGLEntryWithAmount(PostingGLAccount."No.", DimensionValueA2.Code, DimensionValueB1.Code, '', WorkDate(), 50);
+        CreateGLEntryWithAmount(PostingGLAccount."No.", '', DimensionValueB2.Code, '', WorkDate(), 7);
+        // [GIVEN] Second period entry (A2, B2, 20)
+        SecondPeriodStart := CalcDate('<1M>', WorkDate());
+        CreateGLEntryWithAmount(PostingGLAccount."No.", DimensionValueA2.Code, DimensionValueB2.Code, '', SecondPeriodStart, 20);
+        Commit();
+
+        // [WHEN] Running the report for WorkDate..WorkDate+1M+1D with period length 1M hiding zero lines
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Trial Bal by Period Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Bal by Period Excel", Variant, RequestPageXml);
+        CollectNetChangePerCombination(NetChangePerCombination);
+
+        // [THEN] Both the posting and the total account show the same net change per period and dimension combination
+        VerifyNetChangePerCombination(NetChangePerCombination, PostingGLAccount."No.", SecondPeriodStart, DimensionValueA1.Code, DimensionValueA2.Code, DimensionValueB1.Code, DimensionValueB2.Code);
+        VerifyNetChangePerCombination(NetChangePerCombination, TotalGLAccount."No.", SecondPeriodStart, DimensionValueA1.Code, DimensionValueA2.Code, DimensionValueB1.Code, DimensionValueB2.Code);
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRTrialBalanceByPeriodVATReportingDateFilterHandler')]
+    procedure TrialBalanceByPeriodUsesVATReportingDateUpperLimitForBalance()
+    var
+        GLAccount: Record "G/L Account";
+        Dimension1: Record Dimension;
+        DimensionValueA1: Record "Dimension Value";
+        NetChangePerCombination: Dictionary of [Text, Decimal];
+        Variant: Variant;
+        RequestPageXml: Text;
+        SecondPeriodStart: Date;
+    begin
+        // [SCENARIO] With a VAT Reporting Date Filter, net change uses the whole filter while the balance (which decides
+        // whether a line is hidden) uses only its upper limit, like the "Net Change" and "Balance at Date" flowfields.
+        Initialize();
+        CreateGLAccount(GLAccount);
+        CreateGlobalDimensionValue(Dimension1, DimensionValueA1, 1);
+        // [GIVEN] An entry (A1, 100) with a VAT reporting date before the lower bound of the VAT Reporting Date Filter
+        CreateGLEntryWithVATReportingDate(GLAccount."No.", DimensionValueA1.Code, WorkDate(), WorkDate() - 1, 100);
+        // [GIVEN] An entry (blank, 40) with a VAT reporting date within the filter
+        CreateGLEntryWithVATReportingDate(GLAccount."No.", '', WorkDate(), WorkDate(), 40);
+        Commit();
+
+        // [WHEN] Running the report with VAT Reporting Date Filter WorkDate..WorkDate+1Y hiding zero lines
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Trial Bal by Period Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Bal by Period Excel", Variant, RequestPageXml);
+        CollectNetChangePerCombination(NetChangePerCombination);
+
+        // [THEN] Net change only includes the entry within the VAT Reporting Date Filter
+        // The report adds a trailing period that starts after it ends, it repeats the balance with zero net change.
+        SecondPeriodStart := CalcDate('<1M>', WorkDate());
+        VerifyNetChangeForCombination(NetChangePerCombination, GLAccount."No.", WorkDate(), '', '', 40);
+        VerifyNetChangeForCombination(NetChangePerCombination, GLAccount."No.", SecondPeriodStart, '', '', 0);
+        // [THEN] The A1 line is exported in both periods with zero net change, because its balance includes the entry before the lower bound
+        VerifyNetChangeForCombination(NetChangePerCombination, GLAccount."No.", WorkDate(), DimensionValueA1.Code, '', 0);
+        VerifyNetChangeForCombination(NetChangePerCombination, GLAccount."No.", SecondPeriodStart, DimensionValueA1.Code, '', 0);
     end;
 
     [Test]
@@ -960,9 +1047,105 @@ codeunit 139544 "Trial Balance Excel Reports"
         CreateGLEntryWithAmount(GLAccount."No.", DimensionValue1.Code, DimensionValue2.Code, '', WorkDate(), 100);
     end;
 
+    local procedure CollectNetChangePerCombination(var NetChangePerCombination: Dictionary of [Text, Decimal])
+    var
+        Variant: Variant;
+        AccountNo, Dimension1Code, Dimension2Code, PeriodStart : Text;
+        NetChange: Decimal;
+    begin
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="EXRTrialBalanceBuffer"]');
+        while LibraryReportDataset.GetNextRow() do begin
+            LibraryReportDataset.FindCurrentRowValue('Account', Variant);
+            AccountNo := Format(Variant);
+            LibraryReportDataset.FindCurrentRowValue('PeriodStart', Variant);
+            PeriodStart := Format(EvaluateDatasetDate(Format(Variant)), 0, 9);
+            LibraryReportDataset.FindCurrentRowValue('Dimension1Code', Variant);
+            Dimension1Code := Format(Variant);
+            LibraryReportDataset.FindCurrentRowValue('Dimension2Code', Variant);
+            Dimension2Code := Format(Variant);
+            LibraryReportDataset.FindCurrentRowValue('NetChange', Variant);
+            NetChange := EvaluateDatasetDecimal(Format(Variant));
+            NetChangePerCombination.Add(GetCombinationKey(AccountNo, PeriodStart, Dimension1Code, Dimension2Code), NetChange);
+        end;
+    end;
+
+    // The XML dataset may contain values in XML format or in the session's regional format, so both are accepted.
+    local procedure EvaluateDatasetDate(Value: Text) Result: Date
+    begin
+        if Evaluate(Result, CopyStr(Value, 1, 10), 9) then
+            exit(Result);
+        Evaluate(Result, Value);
+    end;
+
+    local procedure EvaluateDatasetDecimal(Value: Text) Result: Decimal
+    begin
+        if Value = '' then
+            exit(0);
+        if Evaluate(Result, Value, 9) then
+            exit(Result);
+        Evaluate(Result, Value);
+    end;
+
+    local procedure VerifyNetChangePerCombination(var NetChangePerCombination: Dictionary of [Text, Decimal]; AccountNo: Code[20]; SecondPeriodStart: Date; DimensionA1Code: Code[20]; DimensionA2Code: Code[20]; DimensionB1Code: Code[20]; DimensionB2Code: Code[20])
+    begin
+        // First period
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), '', '', 127);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), DimensionA1Code, '', 70);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), DimensionA2Code, '', 50);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), DimensionA1Code, DimensionB1Code, 100);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), DimensionA1Code, DimensionB2Code, -30);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), DimensionA2Code, DimensionB1Code, 50);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), '', DimensionB1Code, 150);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), '', DimensionB2Code, -23);
+        Assert.IsFalse(
+            NetChangePerCombination.ContainsKey(GetCombinationKey(AccountNo, Format(WorkDate(), 0, 9), DimensionA2Code, DimensionB2Code)),
+            'Combinations without entries or balance should not be exported');
+        // Second period: only the (A2, B2) entry is net change, combinations with a balance are exported with zero net change
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, '', '', 20);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, DimensionA2Code, '', 20);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, DimensionA2Code, DimensionB2Code, 20);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, '', DimensionB2Code, 20);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, DimensionA1Code, '', 0);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, DimensionA1Code, DimensionB1Code, 0);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, '', DimensionB1Code, 0);
+    end;
+
+    local procedure VerifyNetChangeForCombination(var NetChangePerCombination: Dictionary of [Text, Decimal]; AccountNo: Text; PeriodStart: Date; Dimension1Code: Text; Dimension2Code: Text; ExpectedNetChange: Decimal)
+    var
+        CombinationKey: Text;
+    begin
+        CombinationKey := GetCombinationKey(AccountNo, Format(PeriodStart, 0, 9), Dimension1Code, Dimension2Code);
+        Assert.IsTrue(NetChangePerCombination.ContainsKey(CombinationKey), StrSubstNo(CombinationNotExportedErr, CombinationKey));
+        Assert.AreEqual(ExpectedNetChange, NetChangePerCombination.Get(CombinationKey), StrSubstNo(UnexpectedNetChangeErr, CombinationKey));
+    end;
+
+    local procedure GetCombinationKey(AccountNo: Text; PeriodStart: Text; Dimension1Code: Text; Dimension2Code: Text): Text
+    begin
+        exit(AccountNo + '|' + PeriodStart + '|' + Dimension1Code + '|' + Dimension2Code);
+    end;
+
+    local procedure CreateGLEntryWithVATReportingDate(GLAccountNo: Code[20]; Dim1Code: Code[20]; PostingDate: Date; VATReportingDate: Date; Amount: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        CreateGLEntryWithAmount(GLAccountNo, Dim1Code, '', '', PostingDate, Amount);
+        GLEntry.FindLast();
+        GLEntry."VAT Reporting Date" := VATReportingDate;
+        GLEntry.Modify();
+    end;
+
     local procedure CreateGLEntry(GLAccountNo: Code[20]; DimensionValue2Code: Code[20])
     begin
         CreateGLEntryWithAmount(GLAccountNo, '', DimensionValue2Code, '', WorkDate(), 1337);
+    end;
+
+    local procedure CreateGlobalDimensionValue(var Dimension: Record Dimension; var DimensionValue: Record "Dimension Value"; GlobalDimensionNo: Integer)
+    begin
+        if Dimension.Code = '' then
+            LibraryERM.CreateDimension(Dimension);
+        LibraryERM.CreateDimensionValue(DimensionValue, Dimension.Code);
+        DimensionValue."Global Dimension No." := GlobalDimensionNo;
+        DimensionValue.Modify();
     end;
 
     local procedure CreateGLEntryWithAmount(GLAccountNo: Code[20]; Dim1Code: Code[20]; Dim2Code: Code[20]; BusinessUnitCode: Code[20]; PostingDate: Date; Amount: Decimal)
@@ -1002,6 +1185,23 @@ codeunit 139544 "Trial Balance Excel Reports"
     procedure EXRTrialBalanceByPeriodHideZeroValuesHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
     begin
         EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("Date Filter", Format(WorkDate()));
+        EXRTrialBalanceByPeriodExcel.HideLinesWithZeroValuesField.SetValue(true);
+        EXRTrialBalanceByPeriodExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRTrialBalanceByPeriodTwoPeriodsHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
+    begin
+        EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("Date Filter", Format(WorkDate()) + '..' + Format(CalcDate('<1M+1D>', WorkDate())));
+        EXRTrialBalanceByPeriodExcel.HideLinesWithZeroValuesField.SetValue(true);
+        EXRTrialBalanceByPeriodExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRTrialBalanceByPeriodVATReportingDateFilterHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
+    begin
+        EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("Date Filter", Format(WorkDate()));
+        EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("VAT Reporting Date Filter", Format(WorkDate()) + '..' + Format(CalcDate('<1Y>', WorkDate())));
         EXRTrialBalanceByPeriodExcel.HideLinesWithZeroValuesField.SetValue(true);
         EXRTrialBalanceByPeriodExcel.OK().Invoke();
     end;
