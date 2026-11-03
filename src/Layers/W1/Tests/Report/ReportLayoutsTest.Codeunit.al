@@ -1276,6 +1276,15 @@ codeunit 139595 "Report Layouts Test"
 
         // A test failing between Enqueue and Dequeue would otherwise leak into the next one.
         LibraryVariableStorage.Clear();
+
+        // Reset all global counters and flags to their default state
+        UploadCount := 0;
+        ExportCount := 0;
+        UseLayoutUpload := false;
+        CaptureExport := false;
+        clear(TempBlob);
+        clear(UploadedLayoutBlob);
+        clear(ExportedLayoutBlob);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Layouts Impl.", 'OnBeforeUpload', '', false, false)]
