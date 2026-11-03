@@ -171,13 +171,16 @@ codeunit 139034 "Test My Platform Notifications"
         Enabled: Boolean;
     begin
         // [SCENARIO 657048] A notification inserted between the first-use lookup and insert is read without a duplicate-key error.
+        // [GIVEN] No notification exists, and a competing enabled notification will be inserted after the lookup.
         MyNotifications.DeleteAll();
         InsertCompetingNotification := true;
         BindSubscription(this);
 
+        // [WHEN] The platform requests the notification status for the first time.
         SystemActionTriggers.GetNotificationStatus(WorkDateNotificationIdTxt, Enabled);
 
         UnBindSubscription(this);
+        // [THEN] The competing notification exists, and its enabled status is returned without a duplicate-key error.
         Assert.IsFalse(InsertCompetingNotification, 'The competing notification must be inserted after the lookup.');
         Assert.IsTrue(Enabled, 'The status saved by the competing session must be returned.');
         VerifyNotificationExists();
@@ -191,13 +194,16 @@ codeunit 139034 "Test My Platform Notifications"
         MyNotifications: Record "My Notifications";
     begin
         // [SCENARIO 657048] First-use status initialization tolerates a notification inserted after the lookup.
+        // [GIVEN] No notification exists, and a competing enabled notification will be inserted after the lookup.
         MyNotifications.DeleteAll();
         InsertCompetingNotification := true;
         BindSubscription(this);
 
+        // [WHEN] The platform enables the notification for the first time.
         SystemActionTriggers.SetNotificationStatus(WorkDateNotificationIdTxt, true);
 
         UnBindSubscription(this);
+        // [THEN] The notification exists and is enabled without a duplicate-key error.
         Assert.IsFalse(InsertCompetingNotification, 'The competing notification must be inserted after the lookup.');
         VerifyNotificationExists();
         VerifyNotificationIsEnabled();

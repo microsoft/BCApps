@@ -291,11 +291,14 @@ codeunit 139008 "My Notifications"
         MyNotifications: Record "My Notifications";
     begin
         // [SCENARIO 657048] A competing default insert preserves the existing notification and reloads its settings.
+        // [GIVEN] No notification exists, and a competing insert is prepared with disabled status and vendor filters.
         PrepareCompetingNotification();
 
+        // [WHEN] Default initialization races with the competing insert after the lookup.
         MyNotifications.InsertDefault(CompetingNotification."Notification Id", LibraryUtility.GenerateGUID(), LibraryUtility.GenerateGUID(), true);
 
         UnBindSubscription(this);
+        // [THEN] The caller reloads the competing row, and its settings remain unchanged in the database.
         VerifyCompetingNotification(MyNotifications);
     end;
 
@@ -305,11 +308,14 @@ codeunit 139008 "My Notifications"
         MyNotifications: Record "My Notifications";
     begin
         // [SCENARIO 657048] A competing table-specific default insert preserves the existing notification and reloads its settings.
+        // [GIVEN] No notification exists, and a competing insert is prepared with disabled status and vendor filters.
         PrepareCompetingNotification();
 
+        // [WHEN] Customer-specific default initialization races with the competing insert after the lookup.
         MyNotifications.InsertDefaultWithTableNum(CompetingNotification."Notification Id", LibraryUtility.GenerateGUID(), LibraryUtility.GenerateGUID(), Database::Customer);
 
         UnBindSubscription(this);
+        // [THEN] The caller reloads the competing row, and its settings remain unchanged in the database.
         VerifyCompetingNotification(MyNotifications);
     end;
 
@@ -320,13 +326,16 @@ codeunit 139008 "My Notifications"
         Customer: Record Customer;
     begin
         // [SCENARIO 657048] A competing filtered default insert does not overwrite the existing notification's filters.
+        // [GIVEN] No notification exists, and a competing insert with vendor filters and a different customer filter are prepared.
         PrepareCompetingNotification();
         Customer.SetRange("No.", LibraryUtility.GenerateGUID());
 
+        // [WHEN] Filtered customer default initialization races with the competing insert after the lookup.
         MyNotifications.InsertDefaultWithTableNumAndFilter(
             CompetingNotification."Notification Id", LibraryUtility.GenerateGUID(), LibraryUtility.GenerateGUID(), Database::Customer, Customer.GetFilters());
 
         UnBindSubscription(this);
+        // [THEN] The caller reloads the competing row, and its vendor filters and other settings remain unchanged in the database.
         VerifyCompetingNotification(MyNotifications);
     end;
 
