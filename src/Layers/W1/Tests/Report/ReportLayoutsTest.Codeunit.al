@@ -603,15 +603,14 @@ codeunit 139595 "Report Layouts Test"
             Assert.IsTrue(ActualBlob.HasValue(), 'The generated blank layout must not be empty.');
             Assert.AreEqual(0, ReportLayoutsTest.GetUploadCount(), 'Generating a blank layout must not upload a file.');
             AssertLayoutCanBePrepared(LayoutFormat, ActualBlob);
-        end else begin
+        end else
             Assert.AreEqual(1, ReportLayoutsTest.GetUploadCount(), 'Creating a layout must upload exactly one file.');
-        end;
+
         LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure ImportLayoutErrorTestCore(LayoutFormat: Text; FileName: Text; EmptyFile: Boolean; ExpectedError: Text)
     var
-        TenantReportLayout: Record "Tenant Report Layout";
         ReportLayoutsTest: Codeunit "Report Layouts Test";
         UploadBlob: Codeunit "Temp Blob";
         ReportLayoutsPage: TestPage "Report Layouts";
@@ -955,10 +954,9 @@ codeunit 139595 "Report Layouts Test"
         CopyStream(LayoutBlob.CreateOutStream(TextEncoding::UTF8), ExportedLayoutBlob.CreateInStream(TextEncoding::UTF8));
         FileName := ExportedLayoutFileName;
         WithEncoding := ExportedWithEncoding;
-        if WithEncoding then begin
+        if WithEncoding then
             if (ExportedEncoding <> TextEncoding::UTF8) then
                 Assert.Fail('An updated layout must be exported with UTF8 encoding.');
-        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"File Management", 'OnBeforeBlobExport', '', false, false)]
