@@ -1049,6 +1049,9 @@ codeunit 139913 "Vendor Deferrals Test"
         LibraryERM.CreateDeferralTemplate(DeferralTemplate, Enum::"Deferral Calculation Method"::"Straight-Line",
             Enum::"Deferral Calculation Start Date"::"Posting Date", 3);
 
+        // [GIVEN] Accounting periods cover the standard deferral schedule before the contract validation runs
+        ContractTestLibrary.CreateAccountingPeriodsForDeferrals(PurchaseHeader."Posting Date", DeferralTemplate."No. of Periods");
+
         // [WHEN] Assigning the Deferral Code to the purchase line that has contract deferrals
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.SetFilter("No.", '<>%1', '');

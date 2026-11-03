@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Period;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
@@ -123,6 +124,23 @@ codeunit 139685 "Contract Test Library"
         SourceCodeSetup.Get();
         SourceCodeSetup."Sub. Contr. Deferrals Release" := 'CONTDEFREL';
         SourceCodeSetup.Modify(false);
+    end;
+
+    procedure CreateAccountingPeriodsForDeferrals(PostingDate: Date; NumberOfPeriods: Integer)
+    var
+        AccountingPeriod: Record "Accounting Period";
+        AccountingPeriodMgt: Codeunit "Accounting Period Mgt.";
+        PeriodStartDate: Date;
+        PeriodIndex: Integer;
+    begin
+        PeriodStartDate := CalcDate('<-CM>', PostingDate);
+        for PeriodIndex := 0 to NumberOfPeriods do begin
+            if not AccountingPeriod.Get(PeriodStartDate) then begin
+                AccountingPeriodMgt.InitDefaultAccountingPeriod(AccountingPeriod, PeriodStartDate);
+                AccountingPeriod.Insert(true);
+            end;
+            PeriodStartDate := CalcDate('<1M>', PeriodStartDate);
+        end;
     end;
 
     procedure DeleteAllContractRecords()

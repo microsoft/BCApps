@@ -902,6 +902,9 @@ codeunit 139912 "Customer Deferrals Test"
         LibraryERM.CreateDeferralTemplate(DeferralTemplate, Enum::"Deferral Calculation Method"::"Straight-Line",
             Enum::"Deferral Calculation Start Date"::"Posting Date", 3);
 
+        // [GIVEN] Accounting periods cover the standard deferral schedule before the contract validation runs
+        ContractTestLibrary.CreateAccountingPeriodsForDeferrals(SalesHeader."Posting Date", DeferralTemplate."No. of Periods");
+
         // [WHEN] Assigning the Deferral Code to the sales line that has contract deferrals
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.SetFilter("No.", '<>%1', '');
