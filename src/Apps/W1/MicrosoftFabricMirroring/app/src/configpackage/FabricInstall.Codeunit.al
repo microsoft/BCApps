@@ -7,6 +7,14 @@ codeunit 48522 "Fabric Install"
 {
     Subtype = Install;
     Access = Internal;
+
+    trigger OnInstallAppPerDatabase()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        FabricPlatformMgt.EnsureRequiredLogTables();
+    end;
+
     trigger OnInstallAppPerCompany()
     begin
         EnsureMsStdPackage();

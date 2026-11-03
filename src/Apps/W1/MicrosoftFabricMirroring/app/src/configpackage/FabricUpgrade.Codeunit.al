@@ -5,6 +5,13 @@ codeunit 48528 "Fabric Upgrade"
     Subtype = Upgrade;
     Access = Internal;
 
+    trigger OnUpgradePerDatabase()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        FabricPlatformMgt.EnsureRequiredLogTables();
+    end;
+
     trigger OnUpgradePerCompany()
     var
         FabricInstall: Codeunit "Fabric Install";

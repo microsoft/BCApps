@@ -21,6 +21,7 @@ codeunit 48520 "Fabric Platform Mgt"
         TableInvalidErr: Label 'Table %1 does not exist or is not accessible.', Comment = '%1 = table id';
         TableExistsErr: Label 'Table %1 is already selected for export.', Comment = '%1 = table id';
         TableClaimedByPackageErr: Label 'Table %1 is included in an active configuration package. Deactivate or edit the package to remove it.', Comment = '%1 = table id';
+        RequiredLogTableErr: Label 'Table %1 is required for Fabric logging and cannot be removed from the export selection.', Comment = '%1 = table id';
         CompanyInvalidErr: Label 'Company %1 does not exist.', Comment = '%1 = company name';
         CompanyExistsErr: Label 'Company %1 is already selected for export.', Comment = '%1 = company name';
         EnableRequestedMsg: Label 'Enable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
@@ -128,8 +129,36 @@ codeunit 48520 "Fabric Platform Mgt"
         InsertClaim(TableId, "Fabric Table Claim Source"::Manual, '');
     end;
 
+    internal procedure EnsureRequiredLogTables()
+    var
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        MissingTableCount: Integer;
+    begin
+        TenantFabricTables.LockTable();
+        if not TenantFabricTables.Get(Database::"Tenant Fabric Export Details") then
+            MissingTableCount += 1;
+        if not TenantFabricTables.Get(Database::"Tenant Fabric Export Summary") then
+            MissingTableCount += 1;
+        EnsureCapacity(MissingTableCount);
+
+        ClaimTable(Database::"Tenant Fabric Export Details", "Fabric Table Claim Source"::Manual, '');
+        ClaimTable(Database::"Tenant Fabric Export Summary", "Fabric Table Claim Source"::Manual, '');
+    end;
+
+    internal procedure IsRequiredLogTable(TableId: Integer): Boolean
+    begin
+        exit(TableId in [Database::"Tenant Fabric Export Details", Database::"Tenant Fabric Export Summary"]);
+    end;
+
+    internal procedure CheckCanRemoveTable(TableId: Integer)
+    begin
+        if IsRequiredLogTable(TableId) then
+            Error(RequiredLogTableErr, TableId);
+    end;
+
     internal procedure RemoveTable(TableId: Integer)
     begin
+        CheckCanRemoveTable(TableId);
         // A table still claimed by a package must be removed via the package, not here.
         if IsClaimedByOthers(TableId, "Fabric Table Claim Source"::Manual, '') then
             Error(TableClaimedByPackageErr, TableId);
@@ -152,6 +181,8 @@ codeunit 48520 "Fabric Platform Mgt"
         TenantFabricTables.Validate("Table ID", TableId);
         TenantFabricTables.Validate("Table Name", CopyStr(AllObjWithCaption."Object Name", 1, MaxStrLen(TenantFabricTables."Table Name")));
         TenantFabricTables.Validate("Fabric Entity Name", CopyStr(AllObjWithCaption."Object Name", 1, MaxStrLen(TenantFabricTables."Fabric Entity Name")));
+        if IsRequiredLogTable(TableId) then
+            TenantFabricTables.Validate("Fabric Schema Type", "Fabric Schema Type"::Logging);
         if TableMetadata.Get(TableId) then
             TenantFabricTables.Validate("Per Company", TableMetadata.DataPerCompany)
         else
@@ -213,6 +244,8 @@ codeunit 48520 "Fabric Platform Mgt"
     begin
         if Claim.Get(TableId, SourceType, PackageCode) then
             Claim.Delete(true);
+        if IsRequiredLogTable(TableId) then
+            exit;
         if not HasAnyClaim(TableId) then
             if TenantFabricTables.Get(TableId) then
                 TenantFabricTables.Delete(true);
