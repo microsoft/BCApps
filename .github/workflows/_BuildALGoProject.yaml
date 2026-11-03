@@ -188,8 +188,15 @@ jobs:
         shell: pwsh
         run: |
           $zipPath = Join-Path $env:GITHUB_WORKSPACE 'build\tools\altool-dev-net10.zip'
-          $expectedHash = 'C6346A93D2E074F1BB656F8834FFAC2E33CF07983CB44E0705A8366D84D4D3BF'
+          $expectedHash = '43DF5D186AF128BCA667A9B173E055CA8E8754148EBC570BE5BB177501ADD5B0'
           $expectedVersion = '30.0.0.0+14ef6c5c8aeb5bfd12b3ebf7b413750cb7ac8369'
+          $requiredFiles = @(
+            'Microsoft.Dynamics.Nav.Analyzers.Common.dll'
+            'Microsoft.Dynamics.Nav.CodeCop.dll'
+            'Microsoft.Dynamics.Nav.AppSourceCop.dll'
+            'Microsoft.Dynamics.Nav.PerTenantExtensionCop.dll'
+            'Microsoft.Dynamics.Nav.UICop.dll'
+          )
 
           if (-not (Test-Path -LiteralPath $zipPath -PathType Leaf)) {
             throw "Temporary dev AlTool bundle was not found at '$zipPath'."
@@ -209,6 +216,12 @@ jobs:
           $alToolPath = Join-Path $destination 'altool.exe'
           if (-not (Test-Path -LiteralPath $alToolPath -PathType Leaf)) {
             throw "Temporary dev AlTool executable was not found at '$alToolPath'."
+          }
+          foreach ($requiredFile in $requiredFiles) {
+            $requiredPath = Join-Path $destination $requiredFile
+            if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+              throw "Temporary dev AlTool required file was not found at '$requiredPath'."
+            }
           }
 
           $versionOutput = @(& $alToolPath --version 2>&1)
@@ -276,8 +289,15 @@ jobs:
         shell: pwsh
         run: |
           $zipPath = Join-Path $env:GITHUB_WORKSPACE 'build\tools\altool-dev-net10.zip'
-          $expectedHash = 'C6346A93D2E074F1BB656F8834FFAC2E33CF07983CB44E0705A8366D84D4D3BF'
+          $expectedHash = '43DF5D186AF128BCA667A9B173E055CA8E8754148EBC570BE5BB177501ADD5B0'
           $expectedVersion = '30.0.0.0+14ef6c5c8aeb5bfd12b3ebf7b413750cb7ac8369'
+          $requiredFiles = @(
+            'Microsoft.Dynamics.Nav.Analyzers.Common.dll'
+            'Microsoft.Dynamics.Nav.CodeCop.dll'
+            'Microsoft.Dynamics.Nav.AppSourceCop.dll'
+            'Microsoft.Dynamics.Nav.PerTenantExtensionCop.dll'
+            'Microsoft.Dynamics.Nav.UICop.dll'
+          )
 
           if (-not (Test-Path -LiteralPath $zipPath -PathType Leaf)) {
             throw "Temporary dev AlTool bundle was not found at '$zipPath'."
@@ -297,6 +317,12 @@ jobs:
           $alToolPath = Join-Path $destination 'altool.exe'
           if (-not (Test-Path -LiteralPath $alToolPath -PathType Leaf)) {
             throw "Temporary dev AlTool executable was not found at '$alToolPath'."
+          }
+          foreach ($requiredFile in $requiredFiles) {
+            $requiredPath = Join-Path $destination $requiredFile
+            if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+              throw "Temporary dev AlTool required file was not found at '$requiredPath'."
+            }
           }
 
           $versionOutput = @(& $alToolPath --version 2>&1)

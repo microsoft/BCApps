@@ -64,8 +64,16 @@ Describe 'Temporary dev AlTool workflow preparation' {
             ConvertFrom-Json
         $script:cicdSettings = Get-Content -LiteralPath $script:cicdSettingsPath -Raw |
             ConvertFrom-Json
-        $script:expectedHash = 'C6346A93D2E074F1BB656F8834FFAC2E33CF07983CB44E0705A8366D84D4D3BF'
+        $script:expectedHash = '43DF5D186AF128BCA667A9B173E055CA8E8754148EBC570BE5BB177501ADD5B0'
+        $script:expectedSize = 19753465
         $script:expectedVersion = '30.0.0.0+14ef6c5c8aeb5bfd12b3ebf7b413750cb7ac8369'
+        $script:requiredAnalyzerFiles = @(
+            'Microsoft.Dynamics.Nav.Analyzers.Common.dll'
+            'Microsoft.Dynamics.Nav.CodeCop.dll'
+            'Microsoft.Dynamics.Nav.AppSourceCop.dll'
+            'Microsoft.Dynamics.Nav.PerTenantExtensionCop.dll'
+            'Microsoft.Dynamics.Nav.UICop.dll'
+        )
     }
 
     It 'places generated-code preparation immediately before Compile Apps' {
@@ -150,6 +158,8 @@ Describe 'Temporary dev AlTool workflow preparation' {
     It 'pins the checked-in bundle hash and exact executable version in both preparation steps' {
         (Get-FileHash -LiteralPath $script:devAlToolBundlePath -Algorithm SHA256).Hash |
             Should -Be $script:expectedHash
+        (Get-Item -LiteralPath $script:devAlToolBundlePath).Length |
+            Should -Be $script:expectedSize
 
         foreach ($prepareStep in @($script:compilePrepareStep, $script:testPrepareStep)) {
             $prepareStep | Should -Match ([regex]::Escape(
@@ -161,14 +171,32 @@ Describe 'Temporary dev AlTool workflow preparation' {
             $prepareStep | Should -Match ([regex]::Escape('& $alToolPath --version'))
             $prepareStep | Should -Match '\$versionExitCode\s+-ne\s+0'
             $prepareStep | Should -Match '\$actualVersion\s+-ne\s+\$expectedVersion'
+            $exportIndex = $prepareStep.IndexOf(
+                'Add-Content -Encoding UTF8 -Path $env:GITHUB_ENV -Value "AlToolPath=$alToolPath"'
+            )
+            $exportIndex | Should -BeGreaterThan 0
+            foreach ($requiredAnalyzerFile in $script:requiredAnalyzerFiles) {
+                $requiredFileIndex = $prepareStep.IndexOf($requiredAnalyzerFile)
+                $requiredFileIndex | Should -BeGreaterThan 0
+                $requiredFileIndex | Should -BeLessThan $exportIndex
+            }
+            $prepareStep | Should -Match 'foreach\s*\(\$requiredFile\s+in\s+\$requiredFiles\)'
+            $prepareStep | Should -Match 'Test-Path\s+-LiteralPath\s+\$requiredPath\s+-PathType\s+Leaf'
         }
     }
 
-    It 'advertises compiler-generated code in the checked-in AlTool bundle' {
+    It 'contains the complete generated-code compiler payload' {
         $extractPath = Join-Path $TestDrive 'altool-generatecode'
         Expand-Archive -LiteralPath $script:devAlToolBundlePath -DestinationPath $extractPath -Force
         $alToolPath = Join-Path $extractPath 'altool.exe'
         Test-Path -LiteralPath $alToolPath -PathType Leaf | Should -BeTrue
+        @(Get-ChildItem -LiteralPath $extractPath -File -Recurse).Count | Should -Be 137
+        @(Get-ChildItem -LiteralPath $extractPath -File -Recurse -Filter '*.pdb').Count |
+            Should -Be 0
+        foreach ($requiredAnalyzerFile in $script:requiredAnalyzerFiles) {
+            Test-Path -LiteralPath (Join-Path $extractPath $requiredAnalyzerFile) -PathType Leaf |
+                Should -BeTrue
+        }
 
         $helpOutput = @(& $alToolPath workspace compile --help 2>&1)
         $LASTEXITCODE | Should -Be 0
