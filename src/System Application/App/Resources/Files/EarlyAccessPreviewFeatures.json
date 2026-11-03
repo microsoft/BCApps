@@ -4,6 +4,38 @@
         "Description": "Delegate real work to Copilot, such as creating or updating records or running actions in Business Central.",
         "Category": "Other",
         "HelpURL": "https://aka.ms/editBCwithCopilot",
+        "VideoURL": "",
+        "ADOSliceIds": [625745]
+    },
+    {
+        "FeatureName": "Track Expense Agent trial allowance and usage",
+        "Description": "See the remaining trial expenses during Expense Agent setup and identify trial consumption in the billing overview. Eligible operations can use available trial allowance, while consumption records retain whether the operation used trial or paid capacity.",
+        "Category": "Administration",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [638256]
+    },
+    {
+        "FeatureName": "Control incoming and outgoing types for e-document services",
+        "Description": "Choose whether each supported document type can be received, sent or used in both directions for an e-document service. The configured directions are checked during incoming processing and outgoing document creation and export.",
+        "Category": "Administration",
+        "HelpURL": "",
         "VideoURL": ""
+    },
+    {
+        "FeatureName": "Choose ready-made report themes and header/footer designs",
+        "Description": "Use new header/footer designs and report themes with composite Word layouts. Body-only layouts for Customer - Order Summary and the Salesperson reports let you combine their report content with a selected design without replacing the existing Excel or RDLC choices.",
+        "Category": "Administration",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [647452, 647454]
+    },
+    {
+        "FeatureName": "Include project history when migrating from Dynamics SL",
+        "Description": "Choose historical project transactions in the Dynamics SL migration settings, including per-company settings. Project history can be migrated alongside the other selected historical transaction areas.",
+        "Category": "Administration",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [575742]
     }
 ]

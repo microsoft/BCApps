@@ -3,10 +3,10 @@ name: 'PowerShell'
 on:
   push:
     branches: [ "main", "releases/*" ]
-    paths: ["**.ps1", "**.psm1", "**.psd1", ".github/workflows/powershell.yaml" ]
+    paths: ["**.ps1", "**.psm1", "**.psd1", ".github/workflows/powershell.yaml", "src/System Application/App/Resources/Files/EarlyAccessPreviewFeatures.json" ]
   pull_request:
     branches: [ "main", "releases/*" ]
-    paths: ["**.ps1", "**.psm1", "**.psd1", ".github/workflows/powershell.yaml" ]
+    paths: ["**.ps1", "**.psm1", "**.psd1", ".github/workflows/powershell.yaml", "src/System Application/App/Resources/Files/EarlyAccessPreviewFeatures.json" ]
 
 permissions:
   contents: read
