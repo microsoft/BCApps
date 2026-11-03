@@ -3260,6 +3260,134 @@ codeunit 137055 "SCM Warehouse Pick"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesSelectEntriesPageHandler,ItemTrackingSummaryPageHandler')]
+    [Scope('OnPrem')]
+    procedure LotTrackingFlowsToSecondPickAfterPartialWarehouseShipmentOfPurchaseReturn()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        LotNo: array[2] of Code[50];
+        LotQty: Decimal;
+        OriginalWorkDate: Date;
+    begin
+        // [FEATURE] [Item Tracking] [Bin] [Purchase Return]
+        // [SCENARIO 651793] The remaining lot can be selected on a purchase return warehouse shipment after a partial shipment wrote the shipment bin back to the purchase line.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(20250101D);
+
+        // [GIVEN] A FEFO warehouse location contains two lots of a lot-tracked item without lot warehouse tracking.
+        LotQty := LibraryRandom.RandIntInRange(10, 20);
+        CreateLocationWithTwoLotsWithoutWarehouseTracking(Location, Item, LotNo, LotQty);
+
+        // [GIVEN] Purchase return order for both lots, released, with a warehouse shipment.
+        LibraryPurchase.CreatePurchaseDocumentWithItem(
+            PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::"Return Order", '', Item."No.", 2 * LotQty, Location.Code, WorkDate());
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        LibraryWarehouse.CreateWhseShipmentFromPurchaseReturnOrder(PurchaseHeader);
+
+        // [GIVEN] The first lot is picked and posted as a partial warehouse shipment, then the remaining pick and shipment are deleted.
+        FindWarehouseShipmentLineForSource(
+            WarehouseShipmentLine, Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseHeader."No.");
+        PickAndPostPartialWarehouseShipmentWithLot(WarehouseShipmentLine, LotNo[1], LotQty);
+
+        // [GIVEN] The shipment bin is copied to the purchase line and a second shipment is created for the remaining quantity.
+        PurchaseLine.Find();
+        PurchaseLine.TestField("Return Qty. Shipped", LotQty);
+        PurchaseLine.TestField("Bin Code", Location."Shipment Bin Code");
+        LibraryWarehouse.CreateWhseShipmentFromPurchaseReturnOrder(PurchaseHeader);
+        FindWarehouseShipmentLineForSource(
+            WarehouseShipmentLine, Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseHeader."No.");
+        WarehouseShipmentHeader.Get(WarehouseShipmentLine."No.");
+
+        // [WHEN] Select Entries assigns the remaining lot on the warehouse shipment line and a second pick is created.
+        // Before the fix the stale bin limited availability to the empty shipment bin: "You cannot select more than 0 units."
+        LibraryVariableStorage.Enqueue(LotNo[2]);
+        LibraryVariableStorage.Enqueue(LotQty);
+        WarehouseShipmentLine.OpenItemTrackingLines();
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        // [THEN] The remaining lot is assigned to the purchase line and the quantity flows to both lines of the second pick.
+        VerifySourceLineLotTracking(
+            Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Line No.",
+            LotNo[2], LotQty);
+        VerifyPickTakeAndPlaceQuantity(Location.Code, PurchaseHeader."No.", LotQty);
+
+        WorkDate(OriginalWorkDate);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesSelectEntriesPageHandler,ItemTrackingSummaryPageHandler')]
+    [Scope('OnPrem')]
+    procedure LotTrackingFlowsToSecondPickAfterPartialWarehouseShipmentOfTransfer()
+    var
+        Location: Record Location;
+        InTransitLocation: Record Location;
+        Item: Record Item;
+        ToLocation: Record Location;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        LotNo: array[2] of Code[50];
+        LotQty: Decimal;
+        OriginalWorkDate: Date;
+    begin
+        // [FEATURE] [Item Tracking] [Bin] [Transfer]
+        // [SCENARIO 651793] The remaining lot can be selected on a transfer warehouse shipment after a partial shipment wrote the shipment bin back to the transfer line.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(20250101D);
+
+        // [GIVEN] A FEFO warehouse location contains two lots of a lot-tracked item without lot warehouse tracking.
+        LotQty := LibraryRandom.RandIntInRange(10, 20);
+        CreateLocationWithTwoLotsWithoutWarehouseTracking(Location, Item, LotNo, LotQty);
+
+        // [GIVEN] Transfer order for both lots from the warehouse location, released, with a warehouse shipment.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ToLocation);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, Location.Code, ToLocation.Code, InTransitLocation.Code);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 2 * LotQty);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+
+        // [GIVEN] The first lot is picked and posted as a partial warehouse shipment, then the remaining pick and shipment are deleted.
+        FindWarehouseShipmentLineForSource(
+            WarehouseShipmentLine, Database::"Transfer Line", "Transfer Direction"::Outbound.AsInteger(), TransferHeader."No.");
+        PickAndPostPartialWarehouseShipmentWithLot(WarehouseShipmentLine, LotNo[1], LotQty);
+
+        // [GIVEN] The shipment bin is copied to the transfer line and a second shipment is created for the remaining quantity.
+        TransferLine.Find();
+        TransferLine.TestField("Quantity Shipped", LotQty);
+        TransferLine.TestField("Transfer-from Bin Code", Location."Shipment Bin Code");
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+        FindWarehouseShipmentLineForSource(
+            WarehouseShipmentLine, Database::"Transfer Line", "Transfer Direction"::Outbound.AsInteger(), TransferHeader."No.");
+        WarehouseShipmentHeader.Get(WarehouseShipmentLine."No.");
+
+        // [WHEN] Select Entries assigns the remaining lot on the warehouse shipment line and a second pick is created.
+        // Before the fix the stale bin limited availability to the empty shipment bin: "You cannot select more than 0 units."
+        LibraryVariableStorage.Enqueue(LotNo[2]);
+        LibraryVariableStorage.Enqueue(LotQty);
+        WarehouseShipmentLine.OpenItemTrackingLines();
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        // [THEN] The remaining lot is assigned to the outbound transfer line and the quantity flows to both lines of the second pick.
+        VerifySourceLineLotTracking(
+            Database::"Transfer Line", "Transfer Direction"::Outbound.AsInteger(), TransferLine."Document No.", TransferLine."Line No.",
+            LotNo[2], LotQty);
+        VerifyPickTakeAndPlaceQuantity(Location.Code, TransferHeader."No.", LotQty);
+
+        WorkDate(OriginalWorkDate);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         WarehouseActivityLine: Record "Warehouse Activity Line";
@@ -4224,6 +4352,87 @@ codeunit 137055 "SCM Warehouse Pick"
         ReservationEntry.SetRange("Lot No.", LotNo);
         ReservationEntry.FindFirst();
         ReservationEntry.TestField("Quantity (Base)", -Quantity);
+    end;
+
+    local procedure CreateLocationWithTwoLotsWithoutWarehouseTracking(var Location: Record Location; var Item: Record Item; var LotNo: array[2] of Code[50]; LotQty: Decimal)
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        WarehouseEmployee: Record "Warehouse Employee";
+    begin
+        LibraryWarehouse.CreateFullWMSLocation(Location, 2);
+        Location.Validate("Pick According to FEFO", true);
+        Location.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+        CreateItemWithLotTrackingAndExpirationDate(Item, ItemTrackingCode);
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", false);
+        ItemTrackingCode.Modify(true);
+        LotNo[1] := LibraryUtility.GenerateGUID();
+        LotNo[2] := LibraryUtility.GenerateGUID();
+        UpdateInventoryInPickBinWithLotAndExpirationWithoutWarehouseTracking(Item, Location.Code, LotQty, LotNo[1], CalcDate('<+5D>', WorkDate()));
+        UpdateInventoryInPickBinWithLotAndExpirationWithoutWarehouseTracking(Item, Location.Code, LotQty, LotNo[2], CalcDate('<+15D>', WorkDate()));
+    end;
+
+    local procedure PickAndPostPartialWarehouseShipmentWithLot(WarehouseShipmentLine: Record "Warehouse Shipment Line"; LotNo: Code[50]; LotQty: Decimal)
+    var
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        WarehouseShipmentHeader.Get(WarehouseShipmentLine."No.");
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(LotQty);
+        WarehouseShipmentLine.OpenItemTrackingLines();
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        FindWarehouseActivityHeader(
+            WarehouseActivityHeader, WarehouseActivityHeader.Type::Pick, WarehouseShipmentLine."Location Code", WarehouseShipmentLine."Source No.");
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindSet();
+        repeat
+            WarehouseActivityLine.Validate("Qty. to Handle", LotQty);
+            WarehouseActivityLine.Modify(true);
+        until WarehouseActivityLine.Next() = 0;
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
+
+        WarehouseActivityHeader.Find();
+        WarehouseActivityHeader.Delete(true);
+        WarehouseShipmentHeader.Get(WarehouseShipmentHeader."No.");
+        LibraryWarehouse.ReopenWhseShipment(WarehouseShipmentHeader);
+        WarehouseShipmentHeader.Get(WarehouseShipmentHeader."No.");
+        WarehouseShipmentHeader.Delete(true);
+    end;
+
+    local procedure FindWarehouseShipmentLineForSource(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; SourceType: Integer; SourceSubtype: Integer; SourceNo: Code[20])
+    begin
+        WarehouseShipmentLine.Reset();
+        WarehouseShipmentLine.SetRange("Source Type", SourceType);
+        WarehouseShipmentLine.SetRange("Source Subtype", SourceSubtype);
+        WarehouseShipmentLine.SetRange("Source No.", SourceNo);
+        WarehouseShipmentLine.FindFirst();
+    end;
+
+    local procedure VerifySourceLineLotTracking(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: Integer; LotNo: Code[50]; Quantity: Decimal)
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetSourceFilter(SourceType, SourceSubtype, SourceID, SourceRefNo, true);
+        ReservationEntry.SetRange("Lot No.", LotNo);
+        ReservationEntry.FindFirst();
+        ReservationEntry.TestField("Quantity (Base)", -Quantity);
+    end;
+
+    local procedure VerifyPickTakeAndPlaceQuantity(LocationCode: Code[10]; SourceNo: Code[20]; Quantity: Decimal)
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        FindWarehouseActivityLine(
+            WarehouseActivityLine, WarehouseActivityLine."Activity Type"::Pick, LocationCode, SourceNo, WarehouseActivityLine."Action Type"::Take);
+        WarehouseActivityLine.TestField(Quantity, Quantity);
+        FindWarehouseActivityLine(
+            WarehouseActivityLine, WarehouseActivityLine."Activity Type"::Pick, LocationCode, SourceNo, WarehouseActivityLine."Action Type"::Place);
+        WarehouseActivityLine.TestField(Quantity, Quantity);
     end;
 
     local procedure EnsureGeneralPostingSetupForItem(Item: Record Item)
