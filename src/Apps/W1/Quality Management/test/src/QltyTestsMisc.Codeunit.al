@@ -508,36 +508,29 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
-    procedure ResolveFinishedByPerson_UserDoesNotExist()
+    procedure ResolveFinishedByPerson_UserIdMatchesEmployee()
     var
         User: Record User;
         Employee: Record Employee;
-        SalespersonPurchaser: Record "Salesperson/Purchaser";
         LibraryHumanResource: Codeunit "Library - Human Resource";
-        LibrarySales: Codeunit "Library - Sales";
         FinishedByUserName: Text;
         FinishedByTitle: Text;
         FinishedByEmail: Text;
         FinishedByPhone: Text;
     begin
-        // [SCENARIO] The saved user ID is shown on reports when the finishing user no longer exists, even if another person shares the same code
+        // [SCENARIO] The saved user ID is shown on reports when no User exists for it, even if an Employee has the same number
 
         Initialize();
 
-        // [GIVEN] An Employee and a Salesperson/Purchaser with names and job titles
+        // [GIVEN] An Employee with a name and job title
         LibraryHumanResource.CreateEmployee(Employee);
         Employee.Validate("First Name", 'Other');
         Employee.Validate("Last Name", 'Employee');
         Employee."Job Title" := 'Employee job title';
         Employee.Modify(false);
 
-        LibrarySales.CreateSalesperson(SalespersonPurchaser);
-        SalespersonPurchaser.Name := 'Other Salesperson';
-        SalespersonPurchaser."Job Title" := 'Salesperson job title';
-        SalespersonPurchaser.Modify(false);
-
-        // [GIVEN] No User exists with the Employee number or the Salesperson/Purchaser code as user name
-        User.SetFilter("User Name", '%1|%2', Employee."No.", SalespersonPurchaser.Code);
+        // [GIVEN] No User exists with the Employee number as user name
+        User.SetRange("User Name", Employee."No.");
         LibraryAssert.RecordIsEmpty(User);
 
         // [WHEN] ResolveFinishedByPerson is called with the Employee number as the saved user ID
@@ -546,6 +539,32 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [THEN] The saved user ID is returned instead of the Employee name
         LibraryAssert.AreEqual(Employee."No.", FinishedByUserName, 'The finished by name should fall back to the saved user ID, not the employee name.');
         LibraryAssert.AreEqual(QualityInspectorTitleTok, FinishedByTitle, 'The finished by title should be the default quality inspector title.');
+    end;
+
+    [Test]
+    procedure ResolveFinishedByPerson_UserIdMatchesSalesperson()
+    var
+        User: Record User;
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        LibrarySales: Codeunit "Library - Sales";
+        FinishedByUserName: Text;
+        FinishedByTitle: Text;
+        FinishedByEmail: Text;
+        FinishedByPhone: Text;
+    begin
+        // [SCENARIO] The saved user ID is shown on reports when no User exists for it, even if a Salesperson/Purchaser has the same code
+
+        Initialize();
+
+        // [GIVEN] A Salesperson/Purchaser with a name and job title
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+        SalespersonPurchaser.Name := 'Other Salesperson';
+        SalespersonPurchaser."Job Title" := 'Salesperson job title';
+        SalespersonPurchaser.Modify(false);
+
+        // [GIVEN] No User exists with the Salesperson/Purchaser code as user name
+        User.SetRange("User Name", SalespersonPurchaser.Code);
+        LibraryAssert.RecordIsEmpty(User);
 
         // [WHEN] ResolveFinishedByPerson is called with the Salesperson/Purchaser code as the saved user ID
         QltyInspectionUtility.ResolveFinishedByPerson(SalespersonPurchaser.Code, FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
