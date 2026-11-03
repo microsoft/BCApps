@@ -28,8 +28,6 @@ codeunit 6195 "E-Doc. AI Tool Processor"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         AISystem: Interface IEDocAISystem;
         TelemetryDimensions: Dictionary of [Text, Text];
-        ModelSwitchSecretNameTok: Label 'EDocAIModelSwitch', Locked = true;
-        GPT56CeresTok: Label 'GPT56Ceres', Locked = true;
 
 
     /// <summary>
@@ -250,27 +248,13 @@ codeunit 6195 "E-Doc. AI Tool Processor"
     internal procedure GetChatCompletionsDeployment(UseCase: Option "Matching Assistance","PDF Extraction"): Text
     var
         AOAIDeployments: Codeunit "AOAI Deployments";
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        ModelSwitchValue: Text;
-        UseGPT56: Boolean;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(ModelSwitchSecretNameTok, ModelSwitchValue) then
-            ModelSwitchValue := '';
-        UseGPT56 := UpperCase(ModelSwitchValue.Trim()) = UpperCase(GPT56CeresTok);
-
+        // Validation job: use GPT-5.6 regardless of the production AKV switch.
         case UseCase of
-            UseCase::"Matching Assistance":
-                if UseGPT56 then
-                    exit(AOAIDeployments.GetGPT56CeresLatest())
-                else
-                    exit(AOAIDeployments.GetGPT41Latest());
             UseCase::"PDF Extraction":
-                if UseGPT56 then
-                    exit(AOAIDeployments.GetGPT56CeresPreview())
-                else
-                    exit(AOAIDeployments.GetGPT41MiniPreview());
+                exit(AOAIDeployments.GetGPT56CeresPreview());
             else
-                exit(AOAIDeployments.GetGPT41Latest());
+                exit(AOAIDeployments.GetGPT56CeresLatest());
         end;
     end;
 
