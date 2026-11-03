@@ -4102,7 +4102,6 @@ table 39 "Purchase Line"
             ObsoleteTag = '30.0';
 #endif
 #if not CLEAN27
-#if not CLEAN28
             trigger OnValidate()
             var
                 LegacySubcFeatureHandler: codeunit "Legacy Subc. Feature Handler";
@@ -4114,7 +4113,6 @@ table 39 "Purchase Line"
                 if "Not Proc. WIP Qty to Receive" > "WIP Qty at Subc.Loc. (Base)" then
                     Error(Text1130000);
             end;
-#endif
 #endif
         }
         field(12184; "Base UM Qty/Pricelist UM Qty"; Decimal)

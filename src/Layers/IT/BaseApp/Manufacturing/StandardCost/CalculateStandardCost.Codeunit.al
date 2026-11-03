@@ -957,11 +957,9 @@ codeunit 5812 "Calculate Standard Cost"
         WorkCenter: Record "Work Center";
         MachineCenter: Record "Machine Center";
 #if not CLEAN27
-#if not CLEAN28
         SubContPrices: Record "Subcontractor Prices";
         SubContPriceMgt: Codeunit SubcontractingPricesMgt;
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
-#endif
 #endif
         IsHandled: Boolean;
     begin
@@ -978,7 +976,6 @@ codeunit 5812 "Calculate Standard Cost"
             exit;
 
 #if not CLEAN27
-#if not CLEAN28
         if (Type = Type::"Work Center") and
            (WorkCenter."Subcontractor No." <> '') and
            LegacySubcFeatureHandler.IsLegacySubcontractingEnabled()
@@ -994,7 +991,6 @@ codeunit 5812 "Calculate Standard Cost"
             SubContPriceMgt.GetRoutingPricelistCost(
                 SubContPrices, WorkCenter, DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, 1, 1, 1);
         end else
-#endif
 #endif
             MfgCostCalcMgt.CalcRoutingCostPerUnit(
                 Type, DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, WorkCenter, MachineCenter);
