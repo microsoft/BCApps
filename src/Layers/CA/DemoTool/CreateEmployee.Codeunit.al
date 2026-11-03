@@ -13,6 +13,7 @@ codeunit 101600 "Create Employee"
     var
         Employee: Record Employee;
         CreatePostCode: Codeunit "Create Post Code";
+        MakeAdjustments: Codeunit "Make Adjustments";
         XEH: Label 'EH';
         XEster: Label 'Ester';
         XHenderson: Label 'Henderson';
@@ -67,6 +68,13 @@ codeunit 101600 "Create Employee"
         XAccountsPayableTok: Label 'Accounts Payable';
         XEmployeesPayable: Label 'Employees Payable';
         X3710Route9South: Label '3710 Route 9 South';
+        XKH: Label 'KH';
+        XKatherine: Label 'Katherine';
+        XHull: Label 'Hull';
+        XKHULL: Label 'KHULL';
+        XServiceManager: Label 'Service Manager';
+        X12SelsdonRoad: Label '12 Selsdon Road';
+        XKatherineEmail: Label 'lm@cronus-demosite.com';
 
     procedure InsertGeneral("No.": Code[20]; "First Name": Text[30]; "Middle Name": Text[30]; "Last Name": Text[30]; Initials: Text[30]; Address: Text[30]; "Post Code": Code[20]; Title: Text[30]; Sex: Enum "Employee Gender")
     begin
@@ -159,6 +167,9 @@ codeunit 101600 "Create Employee"
         InsertGeneral(
           XTD, XTerry, '', XDodds, XTDODDS, X3710Route9South, 'CA-BC V7Y 1L1',
           XProductionAssistant, Employee.Gender::Male);
+        InsertGeneral(
+          XKH, XKatherine, '', XHull, XKHULL, X12SelsdonRoad, CreatePostCode.Convert('GB-N16 34Z'),
+          XServiceManager, Employee.Gender::Female);
     end;
 
     local procedure InsertAllContact()
@@ -170,6 +181,7 @@ codeunit 101600 "Create Employee"
         InsertContact(XRB, '6571', '', '1234-1643-4384', '0678-2534-2013', 'rb@cronus-demosite.com', 'Robin Bettencourt');
         InsertContact(XMH, '4456', '', '1234-5464-5446', '0678-2135-4649', 'mh@cronus-demosite.com', 'Marty Horst');
         InsertContact(XTD, '4653', '', '1234-6545-8799', '0678-8712-5466', 'td@cronus-demosite.com', 'Terry Dodds');
+        InsertContact(XKH, '1095', '', '7223-4321-8744', '020-2584-1095', XKatherineEmail, 'Katherine Hull');
     end;
 
     local procedure InsertAllAdministration()
@@ -181,6 +193,7 @@ codeunit 101600 "Create Employee"
         InsertAdministration(XRB, XPROD, '', XPROD, X14DAYS, 20010601D, XRB, '');
         InsertAdministration(XMH, XPROD, '', XPROD, X14DAYS, 20010601D, '', XMarty);
         InsertAdministration(XTD, XPROD, '', XPROD, X14DAYS, 20061201D, '', XTerry);
+        InsertAdministration(XKH, XADM, '', XADM, XMONTH, CalcDate('<-4Y>', MakeAdjustments.AdjustDate(19021001D)), XKH, XKatherine);
     end;
 
     local procedure InsertAllPersonal()
@@ -192,6 +205,7 @@ codeunit 101600 "Create Employee"
         InsertPersonal(XRB, 19790507D, '0705491679', XUPROD, '234654-631');
         InsertPersonal(XMH, 19820807D, '0708624564', XUPROD, '234654-631');
         InsertPersonal(XTD, 19831207D, '0712635465', XUPROD, '234654-631');
+        InsertPersonal(XKH, CalcDate('<-35Y>', MakeAdjustments.AdjustDate(19020519D)), '1294370062', XUADMI, '4921826-897');
     end;
 
     local procedure InsertAllDates()
@@ -203,6 +217,7 @@ codeunit 101600 "Create Employee"
         InsertDates(XRB, 20010601D, 19790507D);
         InsertDates(XMH, 20010601D, 19820807D);
         InsertDates(XTD, 20061201D, 19831207D);
+        InsertDates(XKH, CalcDate('<-4Y>', MakeAdjustments.AdjustDate(19021001D)), CalcDate('<-35Y>', MakeAdjustments.AdjustDate(19020519D)));
     end;
 
     local procedure InsertDates("No.": Code[20]; "Employment Date": Date; "Birth Date": Date)
@@ -216,15 +231,34 @@ codeunit 101600 "Create Employee"
     local procedure InsertAllPostingGroups()
     var
         EmployeePostingGroup: Record "Employee Posting Group";
+    begin
+        if not CreateEmployeePostingGroup(EmployeePostingGroup) then
+            exit;
+
+        InsertPostingGroup(XEH, EmployeePostingGroup.Code);
+        InsertPostingGroup(XJO, EmployeePostingGroup.Code);
+        InsertPostingGroup(XOF, EmployeePostingGroup.Code);
+        InsertPostingGroup(XLT, EmployeePostingGroup.Code);
+        InsertPostingGroup(XRB, EmployeePostingGroup.Code);
+        InsertPostingGroup(XMH, EmployeePostingGroup.Code);
+        InsertPostingGroup(XTD, EmployeePostingGroup.Code);
+        InsertPostingGroup(XKH, EmployeePostingGroup.Code);
+    end;
+
+    local procedure CreateEmployeePostingGroup(var EmployeePostingGroup: Record "Employee Posting Group"): Boolean
+    var
         GLAccount: Record "G/L Account";
         RoundingGLAccount: Record "G/L Account";
         CreateCustPostGroup: Codeunit "Create Cust. Posting Group";
     begin
+        if EmployeePostingGroup.Get(XEmplExpTxt) then
+            exit(true);
+
         GLAccount.SetRange(Name, XEmployeesPayable);
         if not GLAccount.FindFirst() then begin
             GLAccount.SetRange(Name, XAccountsPayableTok);
             if not GLAccount.FindFirst() then
-                exit;
+                exit(false);
         end;
         EmployeePostingGroup.Code := XEmplExpTxt;
         RoundingGLAccount."No." := CreateCustPostGroup.GetRoundingAccount();
@@ -235,14 +269,7 @@ codeunit 101600 "Create Employee"
         EmployeePostingGroup.Validate("Debit Curr. Appln. Rndg. Acc.", RoundingGLAccount."No.");
         EmployeePostingGroup.Validate("Debit Rounding Account", RoundingGLAccount."No.");
         EmployeePostingGroup.Insert();
-
-        InsertPostingGroup(XEH, EmployeePostingGroup.Code);
-        InsertPostingGroup(XJO, EmployeePostingGroup.Code);
-        InsertPostingGroup(XOF, EmployeePostingGroup.Code);
-        InsertPostingGroup(XLT, EmployeePostingGroup.Code);
-        InsertPostingGroup(XRB, EmployeePostingGroup.Code);
-        InsertPostingGroup(XMH, EmployeePostingGroup.Code);
-        InsertPostingGroup(XTD, EmployeePostingGroup.Code);
+        exit(true);
     end;
 
     procedure InsertPostingGroup("No.": Code[20]; PostingGroupCode: Code[20])
@@ -259,4 +286,3 @@ codeunit 101600 "Create Employee"
         exit(XEmplExpTxt);
     end;
 }
-

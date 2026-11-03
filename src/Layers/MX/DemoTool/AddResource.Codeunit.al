@@ -24,6 +24,8 @@ codeunit 117562 "Add Resource"
     var
         Resource: Record Resource;
         ResUnitOfMeasure: Record "Resource Unit of Measure";
+        Employee: Record Employee;
+        EmployeeResourceUpdate: Codeunit "Employee/Resource Update";
     begin
         Resource.Init();
         Resource."No." := No;
@@ -56,6 +58,9 @@ codeunit 117562 "Add Resource"
         else
             Resource.Validate("Tax Group Code", TaxProdPostingGroup);
         Resource.Insert();
+        Employee.SetRange("Resource No.", Resource."No.");
+        if Employee.FindFirst() then
+            EmployeeResourceUpdate.ResUpdate(Employee);
     end;
 
     local procedure RoundAmount(Amount: Decimal): Decimal
@@ -65,4 +70,3 @@ codeunit 117562 "Add Resource"
             Amount * DemoDataSetup."Local Currency Factor", DemoDataSetup."Local Precision Factor"));
     end;
 }
-
