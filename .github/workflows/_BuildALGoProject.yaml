@@ -104,7 +104,7 @@ jobs:
           lfs: true
 
       - name: Read settings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -113,7 +113,7 @@ jobs:
 
       - name: Run Build Initialize hook
         if: hashFiles(format('{0}/.AL-Go/BuildInitialize.ps1', inputs.project)) != ''
-        uses: spetersenms/AL-Go/Actions/RunHook@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/RunHook@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -121,7 +121,7 @@ jobs:
 
       - name: Determine whether to build project
         id: DetermineBuildProject
-        uses: spetersenms/AL-Go/Actions/DetermineBuildProject@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/DetermineBuildProject@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ inputs.shell }}
           skippedProjectsJson: ${{ inputs.skippedProjectsJson }}
@@ -132,7 +132,7 @@ jobs:
       - name: Read secrets
         id: ReadSecrets
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: spetersenms/AL-Go/Actions/ReadSecrets@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ReadSecrets@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ inputs.shell }}
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -150,7 +150,7 @@ jobs:
       - name: Determine ArtifactUrl
         id: determineArtifactUrl
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: spetersenms/AL-Go/Actions/DetermineArtifactUrl@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/DetermineArtifactUrl@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -165,7 +165,7 @@ jobs:
       - name: Download Project Dependencies
         id: DownloadProjectDependencies
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: spetersenms/AL-Go/Actions/DownloadProjectDependencies@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/DownloadProjectDependencies@spetersen-microsoft-separate-test-action-cc-experimental
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -178,7 +178,7 @@ jobs:
       - name: Download Previous Release
         id: DownloadPreviousRelease
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && env.skipUpgrade == 'False'
-        uses: spetersenms/AL-Go/Actions/DownloadPreviousRelease@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/DownloadPreviousRelease@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -227,7 +227,7 @@ jobs:
 
       - name: Compile Apps
         id: compile
-        uses: spetersenms/AL-Go/Actions/CompileApps@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/CompileApps@spetersen-microsoft-separate-test-action-cc-experimental
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && fromJson(env.workspaceCompilation).enabled == true
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
@@ -254,7 +254,7 @@ jobs:
           Add-Content -Encoding UTF8 -Path $env:GITHUB_ENV -Value "NeedsContext=$needsContextPath"
 
       - name: Build
-        uses: spetersenms/AL-Go/Actions/RunPipeline@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/RunPipeline@spetersen-microsoft-separate-test-action-cc-experimental
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
@@ -314,7 +314,7 @@ jobs:
           Write-Host "::notice::Using temporary dev AlTool coverage build $actualVersion (ZIP SHA-256 $actualHash)."
 
       - name: Run Tests
-        uses: spetersenms/AL-Go/Actions/RunTests@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/RunTests@spetersen-microsoft-separate-test-action-cc-experimental
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && env.runTestsInSeparateAction == 'True'
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
@@ -329,7 +329,7 @@ jobs:
       - name: Sign
         id: sign
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && inputs.signArtifacts && env.doNotSignApps == 'False' && (env.keyVaultCodesignCertificateName != '' || (fromJson(env.trustedSigning).Endpoint != '' && fromJson(env.trustedSigning).Account != '' && fromJson(env.trustedSigning).CertificateProfile != '')) && (hashFiles(format('{0}/.buildartifacts/Apps/*.app',inputs.project)) != '')
-        uses: spetersenms/AL-Go/Actions/Sign@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/Sign@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ inputs.shell }}
           azureCredentialsJson: '${{ fromJson(steps.ReadSecrets.outputs.Secrets).AZURE_CREDENTIALS }}'
@@ -337,7 +337,7 @@ jobs:
 
       - name: Calculate Artifact names
         id: calculateArtifactsNames
-        uses: spetersenms/AL-Go/Actions/CalculateArtifactNames@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/CalculateArtifactNames@spetersen-microsoft-separate-test-action-cc-experimental
         if: success() || failure()
         with:
           shell: ${{ inputs.shell }}
@@ -420,7 +420,7 @@ jobs:
 
       - name: Analyze Code Coverage
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/CodeCoverage/coverage-status.json',inputs.project)) != '')
-        uses: spetersenms/AL-Go/Actions/AnalyzeCodeCoverage@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/AnalyzeCodeCoverage@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ inputs.shell }}
           scope: project
@@ -471,7 +471,7 @@ jobs:
       - name: Analyze Test Results
         id: analyzeTestResults
         if: (success() || failure()) && env.doNotRunTests == 'False'
-        uses: spetersenms/AL-Go/Actions/AnalyzeTests@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/AnalyzeTests@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -480,7 +480,7 @@ jobs:
       - name: Analyze BCPT Test Results
         id: analyzeTestResultsBCPT
         if: (success() || failure()) && env.doNotRunBcptTests == 'False'
-        uses: spetersenms/AL-Go/Actions/AnalyzeTests@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/AnalyzeTests@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -489,7 +489,7 @@ jobs:
       - name: Analyze Page Scripting Test Results
         id: analyzeTestResultsPageScripting
         if: (success() || failure()) && env.doNotRunpageScriptingTests == 'False'
-        uses: spetersenms/AL-Go/Actions/AnalyzeTests@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/AnalyzeTests@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -497,7 +497,7 @@ jobs:
 
       - name: Cleanup
         if: always() && steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: spetersenms/AL-Go/Actions/PipelineCleanup@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/PipelineCleanup@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}

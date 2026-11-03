@@ -51,7 +51,7 @@ jobs:
       trackALAlertsInGitHub: ${{ steps.SetALCodeAnalysisVar.outputs.trackALAlertsInGitHub }}
     steps:
       - name: Dump Workflow Information
-        uses: spetersenms/AL-Go/Actions/DumpWorkflowInfo@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/DumpWorkflowInfo@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
 
@@ -62,13 +62,13 @@ jobs:
 
       - name: Initialize the workflow
         id: init
-        uses: spetersenms/AL-Go/Actions/WorkflowInitialize@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/WorkflowInitialize@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
 
       - name: Read settings
         id: ReadSettings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
           get: type,powerPlatformSolutionFolder,useGitSubmodules,trackALAlertsInGitHub
@@ -82,7 +82,7 @@ jobs:
       - name: Read submodules token
         id: ReadSubmodulesToken
         if: env.useGitSubmodules != 'false' && env.useGitSubmodules != ''
-        uses: spetersenms/AL-Go/Actions/ReadSecrets@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ReadSecrets@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -103,7 +103,7 @@ jobs:
 
       - name: Determine Projects To Build
         id: determineProjectsToBuild
-        uses: spetersenms/AL-Go/Actions/DetermineProjectsToBuild@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/DetermineProjectsToBuild@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
           maxBuildDepth: ${{ env.workflowDepth }}
@@ -116,7 +116,7 @@ jobs:
 
       - name: Determine Delivery Target Secrets
         id: DetermineDeliveryTargetSecrets
-        uses: spetersenms/AL-Go/Actions/DetermineDeliveryTargets@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/DetermineDeliveryTargets@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
           projectsJson: '${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}'
@@ -124,7 +124,7 @@ jobs:
 
       - name: Read secrets
         id: ReadSecrets
-        uses: spetersenms/AL-Go/Actions/ReadSecrets@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ReadSecrets@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -132,7 +132,7 @@ jobs:
 
       - name: Determine Delivery Targets
         id: DetermineDeliveryTargets
-        uses: spetersenms/AL-Go/Actions/DetermineDeliveryTargets@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/DetermineDeliveryTargets@spetersen-microsoft-separate-test-action-cc-experimental
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -142,7 +142,7 @@ jobs:
 
       - name: Determine Deployment Environments
         id: DetermineDeploymentEnvironments
-        uses: spetersenms/AL-Go/Actions/DetermineDeploymentEnvironments@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/DetermineDeploymentEnvironments@spetersen-microsoft-separate-test-action-cc-experimental
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -158,21 +158,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Read settings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
           get: templateUrl
 
       - name: Read secrets
         id: ReadSecrets
-        uses: spetersenms/AL-Go/Actions/ReadSecrets@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ReadSecrets@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
           getSecrets: 'ghTokenWorkflow'
 
       - name: Check for updates to AL-Go system files
-        uses: spetersenms/AL-Go/Actions/CheckForUpdates@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/CheckForUpdates@spetersen-microsoft-separate-test-action-cc-experimental
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -248,7 +248,7 @@ jobs:
 
       - name: Analyze Code Coverage
         if: success() || failure()
-        uses: spetersenms/AL-Go/Actions/AnalyzeCodeCoverage@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/AnalyzeCodeCoverage@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
           scope: repository
@@ -277,7 +277,7 @@ jobs:
       - name: Process AL Code Analysis Logs
         id: ProcessALCodeAnalysisLogs
         if: (success() || failure())
-        uses: spetersenms/AL-Go/Actions/ProcessALCodeAnalysisLogs@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ProcessALCodeAnalysisLogs@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
 
@@ -313,13 +313,13 @@ jobs:
           path: '.artifacts'
 
       - name: Read settings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
 
       - name: Determine ArtifactUrl
         id: determineArtifactUrl
-        uses: spetersenms/AL-Go/Actions/DetermineArtifactUrl@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/DetermineArtifactUrl@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
 
@@ -328,7 +328,7 @@ jobs:
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Build Reference Documentation
-        uses: spetersenms/AL-Go/Actions/BuildReferenceDocumentation@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/BuildReferenceDocumentation@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
           artifacts: '.artifacts'
@@ -371,7 +371,7 @@ jobs:
           path: '.artifacts'
 
       - name: Read settings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ matrix.shell }}
           get: type,powerPlatformSolutionFolder
@@ -385,7 +385,7 @@ jobs:
 
       - name: Read secrets
         id: ReadSecrets
-        uses: spetersenms/AL-Go/Actions/ReadSecrets@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ReadSecrets@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: ${{ matrix.shell }}
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -393,7 +393,7 @@ jobs:
 
       - name: Deploy to Business Central
         id: Deploy
-        uses: spetersenms/AL-Go/Actions/Deploy@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/Deploy@spetersen-microsoft-separate-test-action-cc-experimental
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -405,7 +405,7 @@ jobs:
 
       - name: Deploy to Power Platform
         if: env.type == 'PTE' && env.powerPlatformSolutionFolder != ''
-        uses: spetersenms/AL-Go/Actions/DeployPowerPlatform@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/DeployPowerPlatform@spetersen-microsoft-separate-test-action-cc-experimental
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -435,20 +435,20 @@ jobs:
           path: '.artifacts'
 
       - name: Read settings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ReadSettings@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
 
       - name: Read secrets
         id: ReadSecrets
-        uses: spetersenms/AL-Go/Actions/ReadSecrets@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/ReadSecrets@spetersen-microsoft-separate-test-action-cc-experimental
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
           getSecrets: '${{ matrix.deliveryTarget }}Context'
 
       - name: Deliver
-        uses: spetersenms/AL-Go/Actions/Deliver@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/Deliver@spetersen-microsoft-separate-test-action-cc-experimental
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -468,7 +468,7 @@ jobs:
 
       - name: Finalize the workflow
         id: PostProcess
-        uses: spetersenms/AL-Go/Actions/WorkflowPostProcess@spetersen/separateTestActionCodeCoverage
+        uses: spetersenms/AL-Go/Actions/WorkflowPostProcess@spetersen-microsoft-separate-test-action-cc-experimental
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
