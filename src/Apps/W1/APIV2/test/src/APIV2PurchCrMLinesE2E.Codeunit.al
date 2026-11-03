@@ -43,10 +43,10 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
             Page::"APIV2 - Purchase Credit Memos",
             CreditMemoServiceNameTxt,
             CreditMemoServiceLinesNameTxt);
-        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 404);
 
-        // [THEN] the request is rejected as a bad request and the response text is empty
-        Assert.ExpectedError('Response code is 400 (BadRequest)');
+        // [THEN] the URL is rejected as not found because the lines can only be reached through a parent document, and the response text is empty
+        Assert.ExpectedError('Response code is 404 (NotFound)');
         Assert.AreEqual('', ResponseText, 'Response JSON should be blank');
     end;
 

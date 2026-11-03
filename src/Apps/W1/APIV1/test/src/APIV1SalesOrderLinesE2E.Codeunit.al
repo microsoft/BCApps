@@ -61,10 +61,10 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
             PAGE::"APIV1 - Sales Orders",
             OrderServiceNameTxt,
             OrderServiceLinesNameTxt);
-        ASSERTERROR LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
+        ASSERTERROR LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 404);
 
-        // [THEN] the request is rejected as a bad request and the response text is empty
-        Assert.ExpectedError('Response code is 400 (BadRequest)');
+        // [THEN] the URL is rejected as not found because the lines can only be reached through a parent document, and the response text is empty
+        Assert.ExpectedError('Response code is 404 (NotFound)');
         Assert.AreEqual('', ResponseText, 'Response JSON should be blank');
     end;
 
