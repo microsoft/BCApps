@@ -18,6 +18,8 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         Assert: Codeunit Assert;
         Initialized: Boolean;
         AmountMisMatchErr: Label 'Amount must be equal.';
+        AmountShouldBeLbl: Label 'Amount should be %1 but was %2 for account %3', Comment = '%1 = expected amount, %2 = actual amount, %3 = G/L account number.';
+        VATAmountShouldBeLbl: Label 'VAT amount should be %1 for account %2', Comment = '%1 = expected VAT amount, %2 = G/L account number.';
 
     [Test]
     procedure TestInheritFromParentRoundingDistributesCorrectly()
@@ -2045,9 +2047,9 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         ExpectedAmountIncludingVAT := ExpectedAmount + ExpectedVATAmount;
 
         Assert.AreNearlyEqual(ExpectedAmount, PurchaseLine.Amount, 0.01,
-            StrSubstNo('Amount should be %1 but was %2 for account %3', ExpectedAmount, PurchaseLine.Amount, AccountNo));
+            StrSubstNo(AmountShouldBeLbl, ExpectedAmount, PurchaseLine.Amount, AccountNo));
         Assert.AreNearlyEqual(ExpectedVATAmount, PurchaseLine."Amount Including VAT" - PurchaseLine.Amount, 0.01,
-            StrSubstNo('VAT amount should be %1 for account %2', ExpectedVATAmount, AccountNo));
+            StrSubstNo(VATAmountShouldBeLbl, ExpectedVATAmount, AccountNo));
 
         // Verify VAT-exclusive amount (Line Amount)
         Assert.AreNearlyEqual(ExpectedAmountIncludingVAT, PurchaseLine."Line Amount", 0.01,
