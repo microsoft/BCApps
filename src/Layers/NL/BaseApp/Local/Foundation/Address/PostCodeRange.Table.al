@@ -51,13 +51,13 @@ table 11406 "Post Code Range"
                 case Type of
                     Type::" ", Type::"House Boat", Type::"House Trailer":
                         if "From No." <> 0 then
-                            FieldError("From No.", MustBe0Lbl, FieldCaption(Type), Type);
+                            FieldError("From No.", StrSubstNo(MustBe0Lbl, FieldCaption(Type), Type));
                     Type::Odd:
                         if "From No." mod 2 <> 1 then
-                            FieldError("From No.", MustBeOddLbl, FieldCaption(Type), Type);
+                            FieldError("From No.", StrSubstNo(MustBeOddLbl, FieldCaption(Type), Type));
                     Type::Even:
                         if "From No." mod 2 <> 0 then
-                            FieldError("From No.", MustBeEvenLbl, FieldCaption(Type), Type);
+                            FieldError("From No.", StrSubstNo(MustBeEvenLbl, FieldCaption(Type), Type));
                 end;
             end;
         }
@@ -71,13 +71,13 @@ table 11406 "Post Code Range"
                 case Type of
                     Type::" ", Type::"House Boat", Type::"House Trailer":
                         if "To No." <> 0 then
-                            FieldError("To No.", MustBe0Lbl, FieldCaption(Type), Type);
+                            FieldError("To No.", StrSubstNo(MustBe0Lbl, FieldCaption(Type), Type));
                     Type::Odd:
                         if "To No." mod 2 <> 1 then
-                            FieldError("To No.", MustBeOddLbl, FieldCaption(Type), Type);
+                            FieldError("To No.", StrSubstNo(MustBeOddLbl, FieldCaption(Type), Type));
                     Type::Even:
                         if "To No." mod 2 <> 0 then
-                            FieldError("To No.", MustBeEvenLbl, FieldCaption(Type), Type);
+                            FieldError("To No.", StrSubstNo(MustBeEvenLbl, FieldCaption(Type), Type));
                 end;
             end;
         }
