@@ -24,18 +24,33 @@ codeunit 20503 "Subcontracting Comp. Init."
     local procedure InitializeManufacturingSetupDefaults()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
+        InitializeDefaults: Boolean;
     begin
         if not ManufacturingSetup.Get() then begin
             ManufacturingSetup.Init();
             ManufacturingSetup.Insert(true);
         end;
 
+        InitializeDefaults := IsSubcontractingSetupUninitialized(ManufacturingSetup);
         if not CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup(ManufacturingSetup) then
             exit;
 
-        ManufacturingSetup."Create Prod. Order Info Line" := true;
-        Evaluate(ManufacturingSetup."Subc. Comp. Transfer Lead Time", GetDefaultCompTransferLeadTime());
+        if InitializeDefaults then begin
+            ManufacturingSetup."Create Prod. Order Info Line" := true;
+            Evaluate(ManufacturingSetup."Subc. Comp. Transfer Lead Time", GetDefaultCompTransferLeadTime());
+        end;
         ManufacturingSetup.Modify(true);
+    end;
+
+    local procedure IsSubcontractingSetupUninitialized(ManufacturingSetup: Record "Manufacturing Setup"): Boolean
+    begin
+        // Fully cleared settings are indistinguishable from extension data that has not been initialized.
+        exit((ManufacturingSetup."Subcontracting Template Name" = '') and
+            (ManufacturingSetup."Subcontracting Batch Name" = '') and
+            not ManufacturingSetup."Create Prod. Order Info Line" and
+            (Format(ManufacturingSetup."Subc. Comp. Transfer Lead Time") = '') and
+            (ManufacturingSetup."Component Direct Unit Cost" = ManufacturingSetup."Component Direct Unit Cost"::Standard) and
+            (ManufacturingSetup."Subc. Default Comp. Location" = ManufacturingSetup."Subc. Default Comp. Location"::Empty));
     end;
 
     procedure CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup(var ManufacturingSetup: Record "Manufacturing Setup"): Boolean
@@ -43,10 +58,13 @@ codeunit 20503 "Subcontracting Comp. Init."
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";
     begin
-        if not CreateReqWkshTemplate(ReqWkshTemplate, false) then
-            exit(false);
+        if not ReqWkshTemplate.Get(ManufacturingSetup."Subcontracting Template Name") or
+           (ReqWkshTemplate.Type <> ReqWkshTemplate.Type::Subcontracting)
+        then
+            CreateReqWkshTemplate(ReqWkshTemplate, false);
 
-        CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
+        if not RequisitionWkshName.Get(ReqWkshTemplate.Name, ManufacturingSetup."Subcontracting Batch Name") then
+            CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
         ManufacturingSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
         ManufacturingSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;
         exit(true);

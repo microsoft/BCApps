@@ -1,6 +1,8 @@
 codeunit 139743 "APIV1 - Customer Payments E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -769,6 +771,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV1 - Customer Payments E2E");
 
         if not isInitialized then

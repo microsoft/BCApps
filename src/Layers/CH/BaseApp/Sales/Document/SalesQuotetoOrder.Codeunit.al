@@ -99,6 +99,11 @@ codeunit 86 "Sales-Quote to Order"
             SalesCalcDiscountByType.ResetRecalculateInvoiceDisc(SalesOrderHeader);
 
         OnAfterOnRun(Rec, SalesOrderHeader);
+
+        IsHandled := false;
+        OnBeforePromptForRemainingReservations(SalesOrderHeader, IsHandled);
+        if not IsHandled then
+            PromptForRemainingReservations(SalesOrderHeader);
     end;
 
     var
@@ -372,11 +377,33 @@ codeunit 86 "Sales-Quote to Order"
                       SalesQuoteLine, SalesOrderLine, SalesQuoteLine."Outstanding Qty. (Base)");
                     SalesLineReserve.VerifyQuantity(SalesOrderLine, SalesQuoteLine);
                     if SalesOrderLine.Reserve = SalesOrderLine.Reserve::Always then
-                        SalesOrderLine.AutoReserve();
+                        SalesOrderLine.AutoReserve(false);
                     OnTransferQuoteToOrderLinesOnAfterSalesOrderLineReserve(SalesOrderLine, SalesQuoteLine);
                 end;
             until SalesQuoteLine.Next() = 0;
         OnAfterTransferQuoteToOrderLines(SalesQuoteLine, SalesQuoteHeader);
+    end;
+
+    local procedure PromptForRemainingReservations(OrderHeader: Record "Sales Header")
+    var
+        OrderLine: Record "Sales Line";
+        RemainingQty: Decimal;
+        RemainingQtyBase: Decimal;
+    begin
+        if not GuiAllowed() then
+            exit;
+
+        OrderLine.SetRange("Document Type", OrderHeader."Document Type");
+        OrderLine.SetRange("Document No.", OrderHeader."No.");
+        OrderLine.SetRange(Type, OrderLine.Type::Item);
+        OrderLine.SetFilter("No.", '<>%1', '');
+        OrderLine.SetRange(Reserve, OrderLine.Reserve::Always);
+        if OrderLine.FindSet() then
+            repeat
+                OrderLine.GetRemainingQty(RemainingQty, RemainingQtyBase);
+                if RemainingQtyBase <> 0 then
+                    OrderLine.AutoReserve();
+            until OrderLine.Next() = 0;
     end;
 
     [IntegrationEvent(false, false)]
@@ -531,6 +558,11 @@ codeunit 86 "Sales-Quote to Order"
 
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterCalcAmountIncludingVAT(var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePromptForRemainingReservations(var SalesOrderHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 }

@@ -71,7 +71,7 @@ codeunit 2515 "AppSource Product Manager"
     begin
         ProductObject := GetProductDetails(UniqueProductIDValue);
         AppSourceProductDetailsPage.SetProduct(ProductObject);
-        AppSourceProductDetailsPage.RunModal();
+        AppSourceProductDetailsPage.Run();
     end;
 
     /// <summary>

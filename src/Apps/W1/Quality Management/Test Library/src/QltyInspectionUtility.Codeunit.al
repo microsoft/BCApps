@@ -41,6 +41,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Tracking;
 using System.Automation;
 using System.Reflection;
@@ -55,6 +56,16 @@ codeunit 139940 "Qlty. Inspection Utility"
         NoSeriesCodeunit: Codeunit "No. Series";
         DefaultResult2PassCodeLbl: Label 'PASS', Locked = true;
         AdminSupervisorRoleIDTok: Label 'QltyMgmt - Admin', Locked = true;
+
+    /// <summary>
+    /// Exposes the internal tracked inventory lookup to the Quality Management tests.
+    /// </summary>
+    internal procedure GetCurrentLocationOfTrackedInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBinContent: Record "Bin Content" temporary): Boolean
+    var
+        QltyInventoryAvailability: Codeunit "Qlty. Inventory Availability";
+    begin
+        exit(QltyInventoryAvailability.GetCurrentLocationOfTrackedInventory(QltyInspectionHeader, TempBinContent));
+    end;
 
     /// <summary>
     /// Ensures baseline Quality Management setup exists and grants the current user the admin/supervisor permission set.
@@ -1826,6 +1837,20 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
     begin
         exit(QltyDispTransfer.PerformDisposition(QltyInspectionHeader, OptionalSpecificQuantity, QltyQuantityBehavior, OptionalSourceLocationFilter, OptionalSourceBinFilter, DestinationLocationCode, OptionalInTransitLocationCode));
+    end;
+
+    /// <summary>
+    /// Wrapper for internal QltyDispTransfer.PerformDisposition (8-argument version).
+    /// </summary>
+    internal procedure PerformTransferDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text;
+                                                                                                                                                                       OptionalSourceBinFilter: Text;
+                                                                                                                                                                       DestinationLocationCode: Code[10];
+                                                                                                                                                                       DestinationBinCode: Code[20];
+                                                                                                                                                                       OptionalInTransitLocationCode: Code[10]): Boolean
+    var
+        QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
+    begin
+        exit(QltyDispTransfer.PerformDisposition(QltyInspectionHeader, OptionalSpecificQuantity, QltyQuantityBehavior, OptionalSourceLocationFilter, OptionalSourceBinFilter, DestinationLocationCode, DestinationBinCode, OptionalInTransitLocationCode));
     end;
 
     /// <summary>

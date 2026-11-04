@@ -7823,8 +7823,7 @@ codeunit 80 "Sales-Post"
         // clear Unit Price to not having recalculation
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.ModifyAll("Currency Code", '');
-        SalesLine.ModifyAll("Unit Price", 0);
+        SalesLine.ModifyAll("Currency Code", '', "Unit Price", 0);
         SalesHeader.Validate("Prices Including VAT", true);
 
         GLSetup.Get();
@@ -12745,8 +12744,7 @@ codeunit 80 "Sales-Post"
         if IsHandled then
             exit;
 
-        ReservEntry.ModifyAll("Qty. to Handle (Base)", 0);
-        ReservEntry.ModifyAll("Qty. to Invoice (Base)", 0);
+        ReservEntry.ModifyAll("Qty. to Handle (Base)", 0, "Qty. to Invoice (Base)", 0);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforePostValueEntryToGL', '', false, false)]

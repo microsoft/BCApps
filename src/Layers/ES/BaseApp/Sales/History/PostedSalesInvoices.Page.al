@@ -144,7 +144,18 @@ page 143 "Posted Sales Invoices"
                     ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                     Visible = false;
                 }
+#if not CLEAN30
                 field("<Ship-to Code>"; Rec."Ship-to Name")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ObsoleteReason = 'Use Ship-to Name instead.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ToolTip = 'Specifies the name of the customer that the items were shipped to.';
+                    Visible = false;
+                }
+#endif
+                field("Ship-to Name"; Rec."Ship-to Name")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the name of the customer that the items were shipped to.';

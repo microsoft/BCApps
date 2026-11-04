@@ -175,8 +175,7 @@ codeunit 131302 "Library - Fiscal Year"
             CreateFiscalYear.Run();
             clear(CreateFiscalYear);
 
-            AccountingPeriod.ModifyAll(Closed, true);
-            AccountingPeriod.ModifyAll("Date Locked", true);
+            AccountingPeriod.ModifyAll(Closed, true, "Date Locked", true);
         end;
     end;
 }

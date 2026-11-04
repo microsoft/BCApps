@@ -505,6 +505,100 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
+    procedure EnvironmentCopyClearsSourceSecretAndDisablesCrossEnvSync()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        JobQueueEntry: Record "Job Queue Entry";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        EnvironmentTriggers: Codeunit "Environment Triggers";
+        EmptyRecordId: RecordId;
+        ConnectionDetails: TestPage "MDM Connection Details";
+        SynchJobId: Guid;
+        DetectorJobId: Guid;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO] Copying an environment (e.g. production to sandbox) removes the stored source client secret and
+        //            disables cross-environment synchronization, keeping the rest of the connection for re-entry.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+
+        // [GIVEN] a cross-environment connection saved through the wizard, so the secret is really in Isolated Storage
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionFinish.Invoke(); // declines "enable now" (ConfirmHandlerNo); enabled directly below
+
+        // [GIVEN] synchronization is enabled
+        MasterDataManagementSetup.Get();
+        Assert.IsFalse(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Precondition: client secret should be stored');
+        MasterDataManagementSetup."Is Enabled" := true; // set directly to skip the enable side effects; the cleanup is what we assert
+        MasterDataManagementSetup.Modify(false);
+
+        // [GIVEN] an active synchronization job and the change detector job. The synchronization job is non-recurring so
+        //         that only the MDM cleanup (not the Base App's put-recurring-jobs-on-hold cleanup) can put it on hold.
+        CreateMinimalCustomerMapping(IntegrationTableMapping);
+        IntegrationTableMapping."Synch. Codeunit ID" := Codeunit::"Integration Master Data Synch.";
+        IntegrationTableMapping.Modify();
+        SynchJobId := InsertReadyJobQueueEntry(Codeunit::"Integration Synch. Job Runner", IntegrationTableMapping.RecordId(), false);
+        DetectorJobId := InsertReadyJobQueueEntry(LibraryMasterDataMgt.ChangeDetectorCodeunitId(), EmptyRecordId, true);
+
+        // [WHEN] the environment is copied from production to a sandbox
+        EnvironmentTriggers.OnAfterCopyEnvironmentPerCompany(0, 'PRODUCTION', 1, 'SANDBOX');
+
+        // [THEN] the secret key is cleared and synchronization is disabled
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Client secret should be removed on environment copy');
+        Assert.IsFalse(MasterDataManagementSetup."Is Enabled", 'Cross-environment synchronization should be disabled on environment copy');
+        // [THEN] background synchronization is stopped: the synchronization job is on hold and the change detector job is removed
+        JobQueueEntry.Get(SynchJobId);
+        Assert.AreEqual(JobQueueEntry.Status::"On Hold", JobQueueEntry.Status, 'Synchronization job should be on hold after environment copy');
+        Assert.IsFalse(JobQueueEntry.Get(DetectorJobId), 'Change detector job should be removed on environment copy');
+        // [THEN] the rest of the connection is kept, so an admin only re-enters the secret
+        Assert.AreEqual('CONTOSO-PROD', MasterDataManagementSetup."Source Environment Name", 'Source environment should be kept');
+        Assert.AreEqual('CRONUS', MasterDataManagementSetup."Source Company Name", 'Source company should be kept');
+        Assert.AreEqual('11111111-2222-3333-4444-555555555555', MasterDataManagementSetup."Source OAuth Client Id", 'Source client id should be kept');
+
+        if JobQueueEntry.Get(SynchJobId) then
+            JobQueueEntry.Delete();
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure EnvironmentCopyKeepsSameEnvironmentSyncEnabled()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        EnvironmentTriggers: Codeunit "Environment Triggers";
+    begin
+        // [FEATURE] [Master Data Management] [Security]
+        // [SCENARIO] Copying an environment leaves a same-environment setup (no stored credential) untouched.
+        Initialize();
+        // [GIVEN] an enabled same-environment setup
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Is Enabled" := true; // set directly to skip the enable side effects
+        MasterDataManagementSetup.Modify(false);
+
+        // [WHEN] the environment is copied from production to a sandbox
+        EnvironmentTriggers.OnAfterCopyEnvironmentPerCompany(0, 'PRODUCTION', 1, 'SANDBOX');
+
+        // [THEN] synchronization stays enabled
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(MasterDataManagementSetup."Is Enabled", 'Same-environment synchronization should not be disabled on environment copy');
+
+        MasterDataManagementSetup."Is Enabled" := false;
+        MasterDataManagementSetup.Modify(false);
+        CleanUp();
+    end;
+
+    [Test]
     procedure CrossEnvGetByFilterReturnsRecordsPastTheWatermark()
     var
         Customer: Record Customer;
@@ -1684,6 +1778,22 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         IntegrationTableMapping."Int. Tbl. Modified On Fld. No." := 2000000003; // SystemModifiedAt
         IntegrationTableMapping."Delete After Synchronization" := false;
         IntegrationTableMapping.Insert();
+    end;
+
+    // Insert-only (no scheduling): the test lab can't schedule background jobs.
+    local procedure InsertReadyJobQueueEntry(ObjectIdToRun: Integer; RecordIdToProcess: RecordId; RecurringJob: Boolean): Guid
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        JobQueueEntry.Init();
+        JobQueueEntry.ID := CreateGuid();
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
+        JobQueueEntry."Object ID to Run" := ObjectIdToRun;
+        JobQueueEntry."Record ID to Process" := RecordIdToProcess;
+        JobQueueEntry."Recurring Job" := RecurringJob;
+        JobQueueEntry.Status := JobQueueEntry.Status::Ready;
+        JobQueueEntry.Insert(false);
+        exit(JobQueueEntry.ID);
     end;
 
     local procedure ContainsSystemId(var SourceRecordRef: RecordRef; SystemIdValue: Guid): Boolean

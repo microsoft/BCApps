@@ -9,6 +9,8 @@ codeunit 139494 "API Test Auth Provider Tests"
 {
     EventSubscriberInstance = Manual;
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -31,22 +33,6 @@ codeunit 139494 "API Test Auth Provider Tests"
         ProviderCallTok: Label 'Provider|%1', Locked = true, Comment = '%1 - Provider invocation number';
         EventCallTok: Label 'Event', Locked = true;
         UnexpectedCallErr: Label 'Unexpected authentication call.';
-
-    [Test]
-    procedure DefaultAuthenticationDoesNotConfigureRequest()
-    begin
-        // [SCENARIO] The default API test authentication does not configure the request
-        Initialize();
-
-        // [GIVEN] A Graph library instance without an explicitly selected provider
-
-        // [WHEN] A web request is initialized
-        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpRequestMessage, TargetURLTok);
-
-        // [THEN] Only the final request event is raised
-        VerifyNextCall(EventCallTok);
-        VerifyNoRemainingCalls();
-    end;
 
     [Test]
     procedure ExtendedAuthenticationProviderRunsBeforeFinalEvent()
@@ -95,7 +81,7 @@ codeunit 139494 "API Test Auth Provider Tests"
         // [SCENARIO] Authentication provider selection is scoped to a Graph library instance
         Initialize();
 
-        // [GIVEN] Two Graph library instances where only the first uses the mock provider
+        // [GIVEN] One Graph library instance using the mock provider and another using the default
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
 
         // [WHEN] Each Graph library instance initializes a web request
@@ -132,17 +118,17 @@ codeunit 139494 "API Test Auth Provider Tests"
     end;
 
     [Test]
-    procedure SelectingNoneStopsConfiguringRequests()
+    procedure SelectingDefaultRestoresDefaultAuthentication()
     begin
-        // [SCENARIO] Selecting None replaces the previously selected provider
+        // [SCENARIO] Selecting Default replaces the previously selected mock provider
         Initialize();
 
         // [GIVEN] A request has used the mock provider
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
         LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpRequestMessage, TargetURLTok);
 
-        // [WHEN] Authentication is deselected before another request
-        LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::None);
+        // [WHEN] Default authentication is selected before another request
+        LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Default);
         LibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpRequestMessage, TargetURLTok);
 
         // [THEN] Only the first request invokes the mock provider
