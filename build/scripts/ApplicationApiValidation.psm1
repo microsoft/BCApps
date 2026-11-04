@@ -295,6 +295,40 @@ function Get-ApplicationApiHostCandidates {
     }
 }
 
+function Update-ApplicationApiPageMemberIds {
+    param([object] $Baseline, [object] $Current, [ValidateSet('Controls', 'Actions')] [string] $ChildrenProperty)
+
+    if ($Baseline -isnot [System.Collections.IDictionary] -or $Current -isnot [System.Collections.IDictionary] -or
+        $Baseline['Name'] -isnot [string] -or [string]::IsNullOrWhiteSpace($Baseline['Name']) -or
+        $Baseline['Name'] -cne $Current['Name'] -or $Baseline['Kind'] -cne $Current['Kind']) { return $false }
+    $kinds = if ($ChildrenProperty -ceq 'Actions') {
+        @('Area', 'Group', 'Action', 'Separator', 'ActionRef', 'CustomAction', 'SystemAction', 'FileUploadAction')
+    }
+    else { @('Area', 'Group', 'CueGroup', 'Repeater', 'Fixed', 'Grid', 'Part', 'SystemPart', 'Field', 'Label', 'UserControl', 'ChartPart') }
+    $knownKinds = @($kinds) + @(0..($kinds.Count - 1) | ForEach-Object { [string]$_ })
+    if ($ChildrenProperty -ceq 'Controls') { $knownKinds += 'Chart' }
+    if ([string]$Baseline['Kind'] -cnotin $knownKinds) { return $false }
+
+    $changed = $false
+    if (($Baseline['Id'] -is [int] -or $Baseline['Id'] -is [long]) -and
+        ($Current['Id'] -is [int] -or $Current['Id'] -is [long]) -and
+        $Baseline['Id'] -ge 0 -and $Baseline['Id'] -le [int]::MaxValue -and
+        $Current['Id'] -ge 0 -and $Current['Id'] -le [int]::MaxValue -and
+        $Baseline['Id'] -ne $Current['Id']) {
+        $Current['Id'] = $Baseline['Id']
+        $changed = $true
+    }
+    foreach ($property in @('Controls', 'Actions')) {
+        if ($Baseline[$property] -isnot [array] -or $Current[$property] -isnot [array] -or
+            $Baseline[$property].Count -ne $Current[$property].Count) { continue }
+        for ($index = 0; $index -lt $Baseline[$property].Count; $index++) {
+            $childChanged = Update-ApplicationApiPageMemberIds -Baseline $Baseline[$property][$index] -Current $Current[$property][$index] -ChildrenProperty $property
+            $changed = $changed -or $childChanged
+        }
+    }
+    return $changed
+}
+
 function Get-ApplicationApiMemberMoveFailure {
     param(
         [hashtable] $Baseline,
@@ -351,14 +385,31 @@ function Get-ApplicationApiMemberMoveFailure {
         return 'The member has not moved to a matching extension in another exposed Application member.'
     }
     if ($old.ContractHash -cne $new.ContractHash) {
-        if ($memberKind -ne 'Field' -or -not $old.PSObject.Properties['Contract'] -or -not $new.PSObject.Properties['Contract'] -or
-            -not (Test-ApplicationApiAddedFieldTooltip -Baseline $old.Contract -Current $new.Contract)) {
+        $compatible = $false
+        $idsChanged = $false
+        $tooltipAdded = $false
+        if ($memberKind -ne 'Method' -and $old.PSObject.Properties['Contract'] -and $new.PSObject.Properties['Contract']) {
+            $oldContract = $old.Contract | ConvertFrom-Json -AsHashtable
+            $newContract = $new.Contract | ConvertFrom-Json -AsHashtable
+            $childrenProperty = if ($collection -ceq 'PageActions') { 'Actions' } else { 'Controls' }
+            # Only declaration IDs may be regenerated; IDs inside references remain contractual.
+            $idsChanged = Update-ApplicationApiPageMemberIds -Baseline $oldContract -Current $newContract -ChildrenProperty $childrenProperty
+            $oldJson = $oldContract | ConvertTo-Json -Depth 100 -Compress
+            $newJson = $newContract | ConvertTo-Json -Depth 100 -Compress
+            $compatible = (Get-ApplicationApiContractDifferences -Baseline $oldJson -Current $newJson).Differences.Count -eq 0
+            if (-not $compatible -and $memberKind -ceq 'Field') {
+                $tooltipAdded = Test-ApplicationApiAddedFieldTooltip -Baseline $oldJson -Current $newJson
+                $compatible = $tooltipAdded
+            }
+        }
+        if (-not $compatible) {
             if ($ContractComparison -and $old.PSObject.Properties['Contract'] -and $new.PSObject.Properties['Contract']) {
                 $ContractComparison.Value = Get-ApplicationApiContractDifferences -Baseline $old.Contract -Current $new.Contract
             }
             return 'The relocated member contract changed.'
         }
-        $CompatibleChanges.Add("Added tooltip to relocated field '$memberName'.")
+        if ($idsChanged) { $CompatibleChanges.Add("Regenerated compiler IDs for relocated page member '$memberName'.") }
+        if ($tooltipAdded) { $CompatibleChanges.Add("Added tooltip to relocated field '$memberName'.") }
     }
     if ($memberKind -ne 'Part') { return '' }
     if ($old.TargetPageId -le 0) { return 'The baseline part does not identify its target page.' }
@@ -629,7 +680,8 @@ function Get-ApplicationApiCompatibleAdditions {
     trailing option captions. Page fields may move unchanged into the destination app's
     page extensions using addbefore at their original positions. Existing methods, option
     values, and all other contracts must remain unchanged. Relocated fields may gain a
-    tooltip but cannot change an existing one. Accepted changes are recorded.
+    tooltip but cannot change an existing one. Verified page-member relocations may
+    regenerate declaration IDs, but not reference IDs. Accepted changes are recorded.
 #>
 function Test-ApplicationApiMoves {
     [CmdletBinding()]

@@ -1204,13 +1204,15 @@ Describe 'Application API compatibility prototype' {
                 $script:partMessage = "The part with name 'Intercompany Activities' defined in Page 'Accountant Role Center' was found in the previous version, but is missing in the current extension."
             }
 
-            It 'reconciles an unchanged part using a <Reference> host reference' -TestCases @(
+            It 'reconciles a part with a regenerated ID using a <Reference> host reference' -TestCases @(
                 @{ Reference = 'simple'; Kind = 'Part'; Suffix = '' },
                 @{ Reference = 'qualified'; Kind = 6; Suffix = ' This will break dependent extensions.' },
                 @{ Reference = 'module-scoped'; Kind = 6; Suffix = '' },
                 @{ Reference = 'module-scoped qualified'; Kind = 6; Suffix = '' }
             ) {
                 param($Reference, $Kind, $Suffix)
+                $part.Id = 6259575
+                $newPart.Id = 2062414636
                 $part.Kind = $Kind
                 $newPart.Kind = $Kind
                 if ($Reference -eq 'qualified') { $partExtension.TargetObject = 'Migration.PartProbe."Accountant Role Center"' }
@@ -1231,6 +1233,7 @@ Describe 'Application API compatibility prototype' {
                 $partMove.Count | Should -Be 1
                 $partMove[0].Accepted | Should -BeTrue
                 $partMove[0].PartName | Should -Be 'Intercompany Activities'
+                $partMove[0].CompatibleChanges | Should -Contain "Regenerated compiler IDs for relocated page member 'Intercompany Activities'."
                 Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Not -Match 'warning AS0032'
                 Get-Content -LiteralPath (Join-Path $gate.Root "Originals\$([System.IO.Path]::GetFileName($gate.SourceLog)).txt") -Raw |
                     Should -Match 'warning AS0032'
@@ -1277,6 +1280,8 @@ Describe 'Application API compatibility prototype' {
             }
 
             It 'reports the changed part contract rather than unrelated host-page changes' {
+                $part.Id = 6259575
+                $newPart.Id = 2062414636
                 $newPart.Properties[0].Value = 'Basic'
                 Write-PartApiPackages
                 $gate = New-ApiGateLayout
@@ -1285,10 +1290,25 @@ Describe 'Application API compatibility prototype' {
                 $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
                 $move = $state.AcceptedMoves | Where-Object PartName -EQ $part.Name
                 $move.Reason | Should -Be 'The relocated member contract changed.'
-                $move.ContractDifferences.Count | Should -Be 1
-                $move.ContractDifferences[0].Path | Should -Be '$.Properties[0].Value'
-                $move.ContractDifferences[0].Baseline | Should -Be '"Intercompany"'
-                $move.ContractDifferences[0].Current | Should -Be '"Basic"'
+                $move.ContractDifferences.Count | Should -Be 2
+                $difference = $move.ContractDifferences | Where-Object Path -EQ '$.Properties[0].Value'
+                $difference.Baseline | Should -Be '"Intercompany"'
+                $difference.Current | Should -Be '"Basic"'
+            }
+
+            It 'does not normalize referenced page IDs when a part ID is regenerated' {
+                $part.Id = 6259575
+                $newPart.Id = 2062414636
+                $newPart.TypeDefinition.Subtype.Id = 9072
+                Write-PartApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $partMessage
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $move = $state.AcceptedMoves | Where-Object PartName -EQ $part.Name
+                $move.Accepted | Should -BeFalse
+                $move.ContractDifferences.Path | Should -Contain '$.TypeDefinition.Subtype.Id'
+                $move.CompatibleChanges | Should -BeNullOrEmpty
             }
 
             Context 'Inherited members reported on page customizations' {
@@ -1505,7 +1525,7 @@ Describe 'Application API compatibility prototype' {
                 $script:roleCenterMessage = "The group with name 'Extracted element' defined in Page 'Role Center Probe' was found in the previous version, but is missing in the current extension."
             }
 
-            It 'reconciles unchanged <DiagnosticKind> metadata encoded as <Kind>' -TestCases @(
+            It 'reconciles regenerated <DiagnosticKind> IDs encoded as <Kind>' -TestCases @(
                 foreach ($case in @(
                     @{ DiagnosticKind = 'area'; StringKind = 'Area'; NumericKind = 0; RuleId = 'AS0032'; ExpectedKind = 'Area' },
                     @{ DiagnosticKind = 'group'; StringKind = 'Group'; NumericKind = 1; RuleId = 'AS0032'; ExpectedKind = 'Group' },
@@ -1529,6 +1549,8 @@ Describe 'Application API compatibility prototype' {
                 }
             ) {
                 param($DiagnosticKind, $Kind, $RuleId, $ExpectedKind)
+                $member.Id = 718538055
+                $newMember.Id = 377681731
                 $member.Kind = $newMember.Kind = $Kind
                 if ($RuleId -eq 'AS0031') {
                     $hostPage.Controls[0].Controls = @()
@@ -1552,6 +1574,44 @@ Describe 'Application API compatibility prototype' {
                 $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
                 @($alerts.issues | Where-Object ruleId -EQ $RuleId).Count | Should -Be 0
                 @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
+            }
+
+            It 'reconciles regenerated nested IDs in a relocated <Kind>' -TestCases @(
+                @{ Kind = 'group'; Children = 'Controls'; ChildKind = 8; RuleId = 'AS0032' },
+                @{ Kind = 'action group'; Children = 'Actions'; ChildKind = 2; RuleId = 'AS0031' }
+            ) {
+                param($Kind, $Children, $ChildKind, $RuleId)
+                $member.Id = 718538055
+                $newMember.Id = 377681731
+                $member[$Children] = @(1..25 | ForEach-Object {
+                    @{ Id = $_; Name = "Child $_"; Kind = $ChildKind; Properties = @(@{ Name = 'Caption'; Value = "Caption $_" }) }
+                })
+                $newMember[$Children] = ConvertTo-Json -InputObject $member[$Children] -Depth 20 | ConvertFrom-Json -AsHashtable -NoEnumerate
+                foreach ($child in $newMember[$Children]) { $child.Id += 100 }
+                if ($RuleId -eq 'AS0031') {
+                    $hostPage.Controls[0].Controls = @()
+                    $hostPage.Actions = @(@{ Name = 'Processing'; Kind = 0; Actions = @($member) })
+                    $memberExtension.Remove('ControlChanges')
+                    $memberExtension.ActionChanges = @(@{ Name = 'Processing'; Actions = @($newMember) })
+                }
+                Write-RoleCenterMemberApiPackages
+                $gate = New-ApiGateLayout
+                $message = "The $Kind with name 'Extracted element' defined in Page 'Role Center Probe' was found in the previous version, but is missing in the current extension."
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId $RuleId -Message $message
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                ($state.AcceptedMoves | Where-Object RuleId -EQ $RuleId).Accepted | Should -BeTrue
+
+                $newMember[$Children][24].Properties[0].Value = 'Changed caption'
+                Write-RoleCenterMemberApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId $RuleId -Message $message
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $move = $state.AcceptedMoves | Where-Object RuleId -EQ $RuleId
+                $move.Accepted | Should -BeFalse
+                $move.ContractDifferencesTruncated | Should -BeTrue
+                $move.CompatibleChanges | Should -BeNullOrEmpty
             }
 
             It 'reports precise relocated <Kind> differences instead of the host layout' -TestCases @(
@@ -1939,8 +1999,16 @@ Describe 'Application API compatibility prototype' {
                 @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
             }
 
-            It 'accepts an added tooltip on an otherwise unchanged relocated field' {
+            It 'accepts an added tooltip on a relocated field with regenerated ID: <RegenerateId>' -TestCases @(
+                @{ RegenerateId = $false },
+                @{ RegenerateId = $true }
+            ) {
+                param($RegenerateId)
                 $field.Kind = $newField.Kind = 8
+                if ($RegenerateId) {
+                    $field.Id = 188687427
+                    $newField.Id = 188687428
+                }
                 $fieldExtension.TargetObject = '#' + ([guid]$baseId).ToString('N') + '#' + $oldHost.Name
                 $newField.Properties += @{ Name = 'ToolTip'; Value = 'Specifies the intercompany partner code.' }
                 Write-FieldApiPackages
@@ -1953,9 +2021,10 @@ Describe 'Application API compatibility prototype' {
                     Should -Contain "Added tooltip to relocated field 'IC Partner Code'."
             }
 
-            It 'reports a changed field ID without hiding it behind host-page layout differences' {
+            It 'reports a changed source expression even when the field ID is regenerated' {
                 $field.Id = 188687427
                 $newField.Id = 188687428
+                $newField.Properties[0].Value = 'Rec."Source Code"'
                 Write-FieldApiPackages
                 $gate = New-ApiGateLayout
                 Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $fieldMessage
@@ -1963,10 +2032,9 @@ Describe 'Application API compatibility prototype' {
                 $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
                 $move = $state.AcceptedMoves | Where-Object FieldName -EQ $field.Name
                 $move.Accepted | Should -BeFalse
-                $move.ContractDifferences.Count | Should -Be 1
-                $move.ContractDifferences[0].Path | Should -Be '$.Id'
-                $move.ContractDifferences[0].Baseline | Should -Be '188687427'
-                $move.ContractDifferences[0].Current | Should -Be '188687428'
+                $move.ContractDifferences.Count | Should -Be 2
+                $move.ContractDifferences.Path | Should -Contain '$.Id'
+                $move.ContractDifferences.Path | Should -Contain '$.Properties[0].Value'
             }
 
             It 'does not use a new field tooltip to hide <Failure>' -TestCases @(
