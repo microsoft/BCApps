@@ -587,6 +587,7 @@ Describe 'Application API compatibility prototype' {
         ) {
             param($Kind, $Collection, $RuleId)
             $symbol = @{ Id = 511; Name = 'Complete IC Inbox Action' }
+            if ($Kind -eq 'PageExtension') { $symbol.TargetObject = 'User Details' }
             $collections = @{ Namespaces = @(@{ Name = 'Microsoft.Intercompany.Inbox'; $Collection = @($symbol) }) }
             $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $collections
             $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $collections
@@ -616,6 +617,7 @@ Describe 'Application API compatibility prototype' {
                 Name = 'Complete IC Inbox Action'
                 Variables = @(@{ Name = 'TempGenJnlLine'; Protected = $true; TypeDefinition = @{ Name = 'Record'; Subtype = @{ Id = 81; Name = 'Gen. Journal Line' }; Temporary = $true } })
             }
+            if ($Kind -eq 'PageExtension') { $symbol.TargetObject = 'User Details' }
             $collections = @{ $Collection = @($symbol) }
             $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $collections
             $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $collections
@@ -805,6 +807,226 @@ Describe 'Application API compatibility prototype' {
             ($differences | Where-Object Path -EQ '$.EmptyObject').Baseline | Should -Be '{}'
         }
 
+        Context 'Narrowly compatible additions on moved objects' {
+            BeforeEach {
+                $addedEvent = @{
+                    Name = 'OnBeforePost'; IsLocal = $true
+                    Attributes = @(@{
+                        Name = 'IntegrationEvent'
+                        Arguments = @(@{ Value = 'False' }, @{ Value = 'False' })
+                    })
+                    Parameters = @(@{ Name = 'Value'; IsVar = $true; TypeDefinition = @{ Name = 'Text' } })
+                }
+                $existingMethod = $page.Methods[0]
+                $page.Methods = @($addedEvent, $existingMethod)
+            }
+
+            It 'accepts an added integration event without treating declaration order as a signature change' {
+                Write-ApiDestination
+                $gate = New-ApiGateLayout
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $state.Status | Should -Be 'Passed'
+                $state.AcceptedMoves[0].CompatibleChanges | Should -Contain "Added integration event 'OnBeforePost'."
+                $state.AcceptedMoves[0].Baseline.ContractHash | Should -Not -Be $state.AcceptedMoves[0].Current.ContractHash
+            }
+
+            It 'does not use an added event to hide <Failure>' -TestCases @(
+                @{ Failure = 'a changed existing signature' },
+                @{ Failure = 'a removed existing method' },
+                @{ Failure = 'duplicate method names' },
+                @{ Failure = 'a regular procedure addition' },
+                @{ Failure = 'a nonlocal event' },
+                @{ Failure = 'an event return value' },
+                @{ Failure = 'global variable access' },
+                @{ Failure = 'an isolated event' },
+                @{ Failure = 'a case-only metadata change' }
+            ) {
+                param($Failure)
+                switch ($Failure) {
+                    'a changed existing signature' { $existingMethod.Parameters[0].TypeDefinition.Name = 'Integer' }
+                    'a removed existing method' { $page.Methods = @($addedEvent) }
+                    'duplicate method names' { $page.Methods += $existingMethod }
+                    'a regular procedure addition' { $addedEvent.Remove('Attributes') }
+                    'a nonlocal event' { $addedEvent.IsLocal = $false }
+                    'an event return value' { $addedEvent.ReturnTypeDefinition = @{ Name = 'Integer' } }
+                    'global variable access' { $addedEvent.Attributes[0].Arguments[1].Value = 'True' }
+                    'an isolated event' { $addedEvent.Attributes[0].Arguments += @{ Value = 'True' } }
+                    'a case-only metadata change' { $existingMethod.Parameters[0].TypeDefinition = @{ name = 'Text' } }
+                }
+                Write-ApiDestination
+                $gate = New-ApiGateLayout
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0029'
+            }
+        }
+
+        Context 'Fields relocated into extensions of a moved page' {
+            BeforeEach {
+                $relocatedFields = @(
+                    foreach ($name in @('Payment Type Code Abroad', 'Specification (Norges Bank)')) {
+                        @{
+                            Id = if ($name -eq 'Payment Type Code Abroad') { 1909562046 } else { 1513956286 }
+                            Name = $name; Kind = 8; TypeDefinition = @{ Name = 'Code[2]' }
+                            Properties = @(@{ Name = 'SourceExpression'; Value = 'Rec."' + $name + '"' })
+                        }
+                    }
+                )
+                $comment = @{ Name = 'Comment'; Kind = 8; TypeDefinition = @{ Name = 'Text[250]' } }
+                $anchor = @{ Name = 'Job Queue Status'; Kind = 8; TypeDefinition = @{ Name = 'Integer' } }
+                $last = @{ Name = 'ICAccountType'; Kind = 8; TypeDefinition = @{ Name = 'Integer' } }
+                $page.Controls = @(@{ Name = 'Content'; Kind = 0; Controls = @(
+                    @{ Name = 'General'; Kind = 3; Controls = @($comment) + $relocatedFields + @($anchor, $last) }
+                ) })
+                $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections @{
+                    Namespaces = @(@{ Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page) })
+                }
+                $page.Controls[0].Controls[0].Controls = @($comment, $anchor, $last)
+                $relocationExtension = @{
+                    Id = 8558; Name = 'IC General Journal NO'
+                    TargetObject = '#' + ([guid]$destinationId).ToString('N') + '#' + $page.Name
+                    ControlChanges = @(@{ Anchor = 'Job Queue Status'; ChangeKind = 3; Controls = $relocatedFields })
+                }
+                $script:relocationExtensions = @($relocationExtension)
+            }
+
+            It 'verifies original field contracts and placement with kind <ChangeKind> and added event <AddEvent>' -TestCases @(
+                @{ ChangeKind = 3; AddEvent = $false },
+                @{ ChangeKind = 'AddBefore'; AddEvent = $false },
+                @{ ChangeKind = 3; AddEvent = $true }
+            ) {
+                param($ChangeKind, $AddEvent)
+                $relocationExtension.ControlChanges[0].ChangeKind = $ChangeKind
+                if ($AddEvent) {
+                    $page.Methods += @{
+                        Name = 'OnBeforePost'; IsLocal = $true
+                        Attributes = @(@{ Name = 'IntegrationEvent'; Arguments = @(@{ Value = 'False' }, @{ Value = 'False' }) })
+                    }
+                }
+                Write-ApiDestination -ExtraCollections @{ PageExtensions = $script:relocationExtensions }
+                $gate = New-ApiGateLayout
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $state.Status | Should -Be 'Passed'
+                @($state.AcceptedMoves[0].CompatibleChanges | Where-Object { $_ -like 'Relocated field*' }).Count | Should -Be 2
+                $state.AcceptedMoves[0].Baseline.ContractHash | Should -Not -Be $state.AcceptedMoves[0].Current.ContractHash
+            }
+
+            It 'does not use relocated fields to hide <Failure>' -TestCases @(
+                @{ Failure = 'changed field metadata' },
+                @{ Failure = 'a missing field' },
+                @{ Failure = 'a different layout position' },
+                @{ Failure = 'reversed field order' },
+                @{ Failure = 'duplicate providers' },
+                @{ Failure = 'a different host module' },
+                @{ Failure = 'a provider in the wrong app' },
+                @{ Failure = 'a hidden provider' },
+                @{ Failure = 'another extension modifying the relocated field' },
+                @{ Failure = 'changed page properties' },
+                @{ Failure = 'an unsupported placement operation' },
+                @{ Failure = 'a changed existing method' },
+                @{ Failure = 'a changed remaining control' },
+                @{ Failure = 'an ambiguous anchor' }
+            ) {
+                param($Failure)
+                $hidden = $null
+                switch ($Failure) {
+                    'changed field metadata' { $relocatedFields[0].TypeDefinition.Name = 'Integer' }
+                    'a missing field' { $relocationExtension.ControlChanges[0].Controls = @($relocatedFields[0]) }
+                    'a different layout position' { $relocationExtension.ControlChanges[0].Anchor = 'ICAccountType' }
+                    'reversed field order' { $relocationExtension.ControlChanges[0].Controls = @($relocatedFields[1], $relocatedFields[0]) }
+                    'duplicate providers' {
+                        $duplicate = $relocationExtension | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                        $duplicate.Id++
+                        $duplicate.Name = 'Duplicate fields'
+                        $script:relocationExtensions += $duplicate
+                    }
+                    'a different host module' { $relocationExtension.TargetObject = '#' + ([guid]$baseId).ToString('N') + '#' + $page.Name }
+                    'a provider in the wrong app' {
+                        $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections @{ PageExtensions = $script:relocationExtensions }
+                        $script:relocationExtensions = @()
+                    }
+                    'a hidden provider' {
+                        $hidden = New-ApiTestPackage -Name 'Hidden fields' -Id ([guid]::NewGuid().ToString()) -Collections @{ PageExtensions = $script:relocationExtensions }
+                        $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Dependencies @($hidden)
+                        $script:relocationExtensions = @()
+                    }
+                    'another extension modifying the relocated field' {
+                        $script:relocationExtensions += @{
+                            Id = 8559; Name = 'Changed field'; TargetObject = $relocationExtension.TargetObject
+                            ControlChanges = @(@{
+                                Anchor = 'Payment Type Code Abroad'; ChangeKind = 9
+                                Properties = @(@{ Name = 'Visible'; Value = 'false' })
+                            })
+                        }
+                    }
+                    'changed page properties' { $relocationExtension.Properties = @(@{ Name = 'Editable'; Value = 'false' }) }
+                    'an unsupported placement operation' { $relocationExtension.ControlChanges[0].ChangeKind = 4 }
+                    'a changed existing method' { $page.Methods[0].Parameters[0].TypeDefinition.Name = 'Integer' }
+                    'a changed remaining control' { $anchor.TypeDefinition.Name = 'Text' }
+                    'an ambiguous anchor' { $page.Controls[0].Controls[0].Controls += $anchor }
+                }
+                Write-ApiDestination -ExtraCollections @{ PageExtensions = $script:relocationExtensions }
+                $gate = New-ApiGateLayout
+                if ($hidden) { $gate.Compiled += $hidden.Path }
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0029'
+            }
+        }
+
+        Context 'Completion of missing option captions' {
+            BeforeEach {
+                $page.Controls = @(@{
+                    Name = 'ShowAction'; Kind = 8
+                    TypeDefinition = @{ Name = 'Option'; OptionMembers = @('All', 'No Action', 'Accept', 'Return to IC Partner', 'Cancel') }
+                    Properties = @(@{ Name = 'OptionCaption'; Value = 'All,No Action,Accept,Return to IC Partner' })
+                })
+                $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections @{
+                    Namespaces = @(@{ Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page) })
+                }
+                $page.Controls[0].Properties[0].Value += ',Cancel'
+            }
+
+            It 'allows a caption for an existing final option without changing the option values' {
+                Write-ApiDestination
+                $gate = New-ApiGateLayout
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $state.Status | Should -Be 'Passed'
+                $state.AcceptedMoves[0].CompatibleChanges.Count | Should -Be 1
+                $state.AcceptedMoves[0].CompatibleChanges[0] | Should -Match 'Completed missing option captions'
+            }
+
+            It 'rejects caption completion with <Failure>' -TestCases @(
+                @{ Failure = 'a changed existing caption' },
+                @{ Failure = 'a changed option value' },
+                @{ Failure = 'an added option value' },
+                @{ Failure = 'missing option metadata' },
+                @{ Failure = 'an empty appended caption' },
+                @{ Failure = 'too many captions' },
+                @{ Failure = 'an unrelated property change' }
+            ) {
+                param($Failure)
+                $field = $page.Controls[0]
+                switch ($Failure) {
+                    'a changed existing caption' { $field.Properties[0].Value = 'All,None,Accept,Return to IC Partner,Cancel' }
+                    'a changed option value' { $field.TypeDefinition.OptionMembers[1] = 'Changed' }
+                    'an added option value' {
+                        $field.TypeDefinition.OptionMembers += 'New option'
+                        $field.Properties[0].Value += ',New option'
+                    }
+                    'missing option metadata' { $field.TypeDefinition.Remove('OptionMembers') }
+                    'an empty appended caption' { $field.Properties[0].Value = 'All,No Action,Accept,Return to IC Partner,' }
+                    'too many captions' { $field.Properties[0].Value += ',Extra' }
+                    'an unrelated property change' { $field.Properties += @{ Name = 'Caption'; Value = 'Changed' } }
+                }
+                Write-ApiDestination
+                $gate = New-ApiGateLayout
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            }
+        }
+
         It 'limits persisted contract differences and reports truncation without accepting the move' {
             $page.Added = @(1..25)
             Write-ApiDestination
@@ -959,12 +1181,21 @@ Describe 'Application API compatibility prototype' {
 
             It 'reconciles an unchanged part using a <Reference> host reference' -TestCases @(
                 @{ Reference = 'simple'; Kind = 'Part'; Suffix = '' },
-                @{ Reference = 'qualified'; Kind = 6; Suffix = ' This will break dependent extensions.' }
+                @{ Reference = 'qualified'; Kind = 6; Suffix = ' This will break dependent extensions.' },
+                @{ Reference = 'module-scoped'; Kind = 6; Suffix = '' },
+                @{ Reference = 'module-scoped qualified'; Kind = 6; Suffix = '' }
             ) {
                 param($Reference, $Kind, $Suffix)
                 $part.Kind = $Kind
                 $newPart.Kind = $Kind
                 if ($Reference -eq 'qualified') { $partExtension.TargetObject = 'Migration.PartProbe."Accountant Role Center"' }
+                if ($Reference -like 'module-scoped*') {
+                    $hostReference = if ($Reference -eq 'module-scoped qualified') { 'Migration.PartProbe."Accountant Role Center"' } else { $oldHost.Name }
+                    $partExtension.TargetObject = '#' + ([guid]$baseId).ToString('N') + '#' + $hostReference
+                    $part.TypeDefinition = $newPart.TypeDefinition = @{ Name = 'None' }
+                    $part.RelatedPagePartId = @{ Id = 9071; Name = '' }
+                    $newPart.RelatedPagePartId = @{ Id = 9071; Name = ''; ModuleId = $destinationId }
+                }
                 Write-PartApiPackages
                 $gate = New-ApiGateLayout
                 Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message "$partMessage$Suffix"
@@ -1004,12 +1235,17 @@ Describe 'Application API compatibility prototype' {
 
                 It 'verifies inherited parts and actions with a <Reference> customization target' -TestCases @(
                     @{ Reference = 'simple'; Suffix = '' },
-                    @{ Reference = 'qualified'; Suffix = ' This will break dependent extensions.' }
+                    @{ Reference = 'qualified'; Suffix = ' This will break dependent extensions.' },
+                    @{ Reference = 'module-scoped'; Suffix = '' }
                 ) {
                     param($Reference, $Suffix)
                     if ($Reference -eq 'qualified') {
                         $customization.TargetObject = $newCustomization.TargetObject = 'Migration.PartProbe."Business Manager Role Center"'
                         $part.Kind = $newPart.Kind = 6
+                    }
+                    if ($Reference -eq 'module-scoped') {
+                        $customization.TargetObject = $newCustomization.TargetObject = $partExtension.TargetObject =
+                            '#' + ([guid]$baseId).ToString('N') + '#' + $oldHost.Name
                     }
                     $action = @{ Name = 'IC Setup'; Kind = 'Action'; Properties = @(@{ Name = 'Caption'; Value = 'Intercompany Setup' }) }
                     $oldHost.Actions = @(@{ Name = 'Processing'; Kind = 'Area'; Actions = @($action) })
@@ -1096,6 +1332,7 @@ Describe 'Application API compatibility prototype' {
                 @{ Failure = 'the target page changes' },
                 @{ Failure = 'part properties change' },
                 @{ Failure = 'the host page changes' },
+                @{ Failure = 'the host module changes' },
                 @{ Failure = 'the host namespace changes' },
                 @{ Failure = 'the host reference is ambiguous' },
                 @{ Failure = 'two extensions provide the part' },
@@ -1114,6 +1351,9 @@ Describe 'Application API compatibility prototype' {
                     'the host page changes' {
                         $partExtension.TargetObject = 'Other Role Center'
                         $partCurrentCollections.Namespaces[0].Pages += @{ Id = 9028; Name = 'Other Role Center' }
+                    }
+                    'the host module changes' {
+                        $partExtension.TargetObject = '#' + ([guid]$destinationId).ToString('N') + '#' + $oldHost.Name
                     }
                     'the host namespace changes' { $partCurrentCollections.Namespaces[0].Name = 'Migration.Other' }
                     'the host reference is ambiguous' {
@@ -1425,12 +1665,17 @@ Describe 'Application API compatibility prototype' {
                 $script:cueMessage = "The cuegroup with name 'Intercompany' defined in Page 'O365 Activities' was found in the previous version, but is missing in the current extension."
             }
 
-            It 'reconciles an unchanged cuegroup and its child field with kind <Kind>' -TestCases @(
-                @{ Kind = 'CueGroup'; Suffix = ' This will break dependent extensions.' },
-                @{ Kind = 2; Suffix = '' }
+            It 'reconciles an unchanged cuegroup and its child field with <Encoding> metadata' -TestCases @(
+                @{ Encoding = 'named'; Kind = 'CueGroup'; Suffix = ' This will break dependent extensions.' },
+                @{ Encoding = 'numeric'; Kind = 2; Suffix = '' },
+                @{ Encoding = 'module-scoped'; Kind = 2; Suffix = '' }
             ) {
-                param($Kind, $Suffix)
+                param($Encoding, $Kind, $Suffix)
                 $cueGroup.Kind = $newCueGroup.Kind = $Kind
+                if ($Encoding -eq 'module-scoped') {
+                    $cueExtension.TargetObject = '#' + ([guid]$baseId).ToString('N') + '#' + $cueHost.Name
+                    foreach ($field in @($cueGroup.Controls) + @($newCueGroup.Controls)) { $field.Kind = 8 }
+                }
                 Write-CueGroupApiPackages
                 $gate = New-ApiGateLayout
                 Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message "$cueMessage$Suffix"
@@ -1547,11 +1792,15 @@ Describe 'Application API compatibility prototype' {
             It 'reconciles an unchanged field with <Encoding> metadata' -TestCases @(
                 @{ Encoding = 'string'; Kind = 'Field'; Suffix = ' This will break dependent extensions.' },
                 @{ Encoding = 'numeric'; Kind = 8; Suffix = '' },
+                @{ Encoding = 'module-scoped'; Kind = 8; Suffix = '' },
                 @{ Encoding = 'mixed field and part'; Kind = 'Field'; Suffix = '' }
             ) {
                 param($Encoding, $Kind, $Suffix)
                 $field.Kind = $newField.Kind = $Kind
                 if ($Encoding -eq 'numeric') { $fieldExtension.TargetObject = 'Migration.FieldProbe."Dim. Correct Ledger Entries"' }
+                if ($Encoding -eq 'module-scoped') {
+                    $fieldExtension.TargetObject = '#' + ([guid]$baseId).ToString('N') + '#' + $oldHost.Name
+                }
                 if ($Encoding -eq 'mixed field and part') {
                     $part = @{
                         Name = 'Activities'
@@ -1585,6 +1834,50 @@ Describe 'Application API compatibility prototype' {
                 $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
                 @($alerts.issues | Where-Object ruleId -EQ 'AS0032').Count | Should -Be 0
                 @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
+            }
+
+            It 'accepts an added tooltip on an otherwise unchanged relocated field' {
+                $field.Kind = $newField.Kind = 8
+                $fieldExtension.TargetObject = '#' + ([guid]$baseId).ToString('N') + '#' + $oldHost.Name
+                $newField.Properties += @{ Name = 'ToolTip'; Value = 'Specifies the intercompany partner code.' }
+                Write-FieldApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $fieldMessage
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $state.Status | Should -Be 'Passed'
+                ($state.AcceptedMoves | Where-Object FieldName -EQ 'IC Partner Code').CompatibleChanges |
+                    Should -Contain "Added tooltip to relocated field 'IC Partner Code'."
+            }
+
+            It 'does not use a new field tooltip to hide <Failure>' -TestCases @(
+                @{ Failure = 'a changed existing tooltip' },
+                @{ Failure = 'an empty tooltip' },
+                @{ Failure = 'a changed field type' },
+                @{ Failure = 'a changed source expression' },
+                @{ Failure = 'changed field visibility' },
+                @{ Failure = 'duplicate tooltips' },
+                @{ Failure = 'unknown tooltip metadata' }
+            ) {
+                param($Failure)
+                $tooltip = @{ Name = 'ToolTip'; Value = 'New tooltip' }
+                $newField.Properties += $tooltip
+                switch ($Failure) {
+                    'a changed existing tooltip' { $field.Properties += @{ Name = 'ToolTip'; Value = 'Original tooltip' } }
+                    'an empty tooltip' { $tooltip.Value = ' ' }
+                    'a changed field type' { $newField.TypeDefinition.Length = 100 }
+                    'a changed source expression' { $newField.Properties[0].Value = 'Rec."Source Code"' }
+                    'changed field visibility' { $newField.Properties[3].Value = 'true' }
+                    'duplicate tooltips' { $newField.Properties += @{ Name = 'ToolTip'; Value = 'Duplicate tooltip' } }
+                    'unknown tooltip metadata' { $tooltip.FutureMetadata = 'Changed' }
+                }
+                Write-FieldApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $fieldMessage
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                ($state.AcceptedMoves | Where-Object FieldName -EQ 'IC Partner Code').Accepted | Should -BeFalse
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0032'
             }
 
             It 'rejects a field relocation when <Failure>' -TestCases @(
@@ -1693,13 +1986,17 @@ Describe 'Application API compatibility prototype' {
 
             It 'reconciles an unchanged group, its child action and a standalone action with <Encoding> kinds' -TestCases @(
                 @{ Encoding = 'string'; Suffix = '' },
-                @{ Encoding = 'numeric'; Suffix = ' This will break dependent extensions.' }
+                @{ Encoding = 'numeric'; Suffix = ' This will break dependent extensions.' },
+                @{ Encoding = 'module-scoped'; Suffix = '' }
             ) {
                 param($Encoding, $Suffix)
-                if ($Encoding -eq 'numeric') {
+                if ($Encoding -in @('numeric', 'module-scoped')) {
                     $group.Kind = $newGroup.Kind = 1
                     $group.Actions[0].Kind = $newGroup.Actions[0].Kind = 2
                     $standalone.Kind = $newStandalone.Kind = 2
+                }
+                if ($Encoding -eq 'module-scoped') {
+                    $actionExtension.TargetObject = '#' + ([guid]$baseId).ToString('N') + '#' + $oldHost.Name
                 }
                 Write-ActionApiPackages
                 $gate = New-ApiGateLayout

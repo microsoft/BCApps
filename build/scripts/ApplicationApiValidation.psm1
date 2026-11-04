@@ -282,7 +282,12 @@ function Get-ApplicationApiRemovalDiagnostics {
 function Get-ApplicationApiHostCandidates {
     param([hashtable] $Objects, [string] $Kind, [string] $Reference)
 
-    foreach ($object in $Objects.Values | Where-Object Kind -CEQ $Kind) {
+    $ownerId = ''
+    if ($Reference -cmatch '^#(?<module>[0-9a-fA-F]{32})#(?<target>.+)$') {
+        $ownerId = ([guid]$Matches.module).ToString()
+        $Reference = $Matches.target
+    }
+    foreach ($object in $Objects.Values | Where-Object { $_.Kind -ceq $Kind -and (-not $ownerId -or $_.OwnerId -eq $ownerId) }) {
         $quotedName = '"' + $object.Name.Replace('"', '""') + '"'
         $references = @([string]$object.Id, $object.Name, $quotedName)
         if ($object.Namespace) { $references += "$($object.Namespace).$($object.Name)", "$($object.Namespace).$quotedName" }
@@ -296,7 +301,8 @@ function Get-ApplicationApiMemberMoveFailure {
         [hashtable] $Current,
         [object] $OldHost,
         [object] $NewHost,
-        [object] $Diagnostic
+        [object] $Diagnostic,
+        [System.Collections.Generic.List[string]] $CompatibleChanges
     )
 
     if ($OldHost.Kind -ceq 'PageCustomizations') {
@@ -343,7 +349,13 @@ function Get-ApplicationApiMemberMoveFailure {
     if ($new.MemberKind -cne $memberKind -or $new.OwnerId -eq $old.OwnerId -or $new.OwnerKey -cnotlike "${extensionKind}:*") {
         return 'The member has not moved to a matching extension in another exposed Application member.'
     }
-    if ($old.ContractHash -cne $new.ContractHash) { return 'The relocated member contract changed.' }
+    if ($old.ContractHash -cne $new.ContractHash) {
+        if ($memberKind -ne 'Field' -or -not $old.PSObject.Properties['Contract'] -or -not $new.PSObject.Properties['Contract'] -or
+            -not (Test-ApplicationApiAddedFieldTooltip -Baseline $old.Contract -Current $new.Contract)) {
+            return 'The relocated member contract changed.'
+        }
+        $CompatibleChanges.Add("Added tooltip to relocated field '$memberName'.")
+    }
     if ($memberKind -ne 'Part') { return '' }
     if ($old.TargetPageId -le 0) { return 'The baseline part does not identify its target page.' }
     $targetKey = "Pages:$($old.TargetPageId)"
@@ -361,7 +373,7 @@ function Add-ApplicationApiContractValues {
     param(
         [System.Text.Json.JsonElement] $Element,
         [string] $Path,
-        [hashtable] $Values
+        [System.Collections.IDictionary] $Values
     )
 
     if ($Element.ValueKind -eq [System.Text.Json.JsonValueKind]::Object -and @($Element.EnumerateObject()).Count -gt 0) {
@@ -386,8 +398,8 @@ function Get-ApplicationApiContractDifferences {
     try {
         $new = [System.Text.Json.JsonDocument]::Parse($Current)
         try {
-            $oldValues = @{}
-            $newValues = @{}
+            $oldValues = [System.Collections.Generic.Dictionary[string, string]]::new([StringComparer]::Ordinal)
+            $newValues = [System.Collections.Generic.Dictionary[string, string]]::new([StringComparer]::Ordinal)
             Add-ApplicationApiContractValues -Element $old.RootElement -Path '$' -Values $oldValues
             Add-ApplicationApiContractValues -Element $new.RootElement -Path '$' -Values $newValues
             $differences = @(
@@ -414,9 +426,206 @@ function Get-ApplicationApiContractDifferences {
     }
 }
 
+function Test-ApplicationApiAddedFieldTooltip {
+    param([string] $Baseline, [string] $Current)
+
+    $old = $Baseline | ConvertFrom-Json -AsHashtable
+    $new = $Current | ConvertFrom-Json -AsHashtable
+    if ($old['Kind'] -cnotin @('Field', 8) -or $new['Kind'] -cne $old['Kind'] -or
+        $old['Properties'] -isnot [array] -or $new['Properties'] -isnot [array]) { return $false }
+    $oldTooltip = @($old['Properties'] | Where-Object { $_['Name'] -ceq 'ToolTip' })
+    $newTooltip = @($new['Properties'] | Where-Object { $_['Name'] -ceq 'ToolTip' })
+    if ($oldTooltip.Count -ne 0 -or $newTooltip.Count -ne 1 -or $newTooltip[0]['Value'] -isnot [string] -or
+        [string]::IsNullOrWhiteSpace($newTooltip[0]['Value']) -or
+        @($newTooltip[0].Keys | Where-Object { $_ -cnotin @('Name', 'Value') }).Count -gt 0) { return $false }
+    $new['Properties'] = @($new['Properties'] | Where-Object { $_['Name'] -cne 'ToolTip' })
+    $remaining = Get-ApplicationApiContractDifferences -Baseline ($old | ConvertTo-Json -Depth 100 -Compress) -Current ($new | ConvertTo-Json -Depth 100 -Compress)
+    return $remaining.Differences.Count -eq 0
+}
+
+function Update-ApplicationApiOptionCaptions {
+    param([object] $Baseline, [object] $Current, [System.Collections.Generic.List[string]] $Changes, [string] $Path = '$')
+
+    if ($Baseline -is [System.Collections.IDictionary] -and $Current -is [System.Collections.IDictionary]) {
+        $type = $Baseline['TypeDefinition']
+        $newType = $Current['TypeDefinition']
+        if ($Baseline['Kind'] -in @('Field', 8) -and $Current['Kind'] -eq $Baseline['Kind'] -and
+            $type -is [System.Collections.IDictionary] -and $newType -is [System.Collections.IDictionary] -and
+            $type['Name'] -ceq 'Option' -and $newType['Name'] -ceq 'Option' -and $type['OptionMembers'] -is [array] -and
+            $Baseline['Properties'] -is [array] -and $Current['Properties'] -is [array]) {
+            $oldCaption = @($Baseline['Properties'] | Where-Object { $_['Name'] -ceq 'OptionCaption' })
+            $newCaption = @($Current['Properties'] | Where-Object { $_['Name'] -ceq 'OptionCaption' })
+            if ($oldCaption.Count -eq 1 -and $newCaption.Count -eq 1 -and
+                $oldCaption[0]['Value'] -is [string] -and $newCaption[0]['Value'] -is [string]) {
+                $oldLabels = $oldCaption[0]['Value'].Split(',')
+                $newLabels = $newCaption[0]['Value'].Split(',')
+                $prefixMatches = $newLabels.Count -gt $oldLabels.Count -and $newLabels.Count -eq $type['OptionMembers'].Count
+                if ($prefixMatches) {
+                    for ($i = 0; $i -lt $oldLabels.Count; $i++) {
+                        if ($oldLabels[$i] -cne $newLabels[$i]) { $prefixMatches = $false; break }
+                    }
+                    foreach ($label in $newLabels[$oldLabels.Count..($newLabels.Count - 1)]) {
+                        if ([string]::IsNullOrWhiteSpace($label)) { $prefixMatches = $false }
+                    }
+                }
+                if ($prefixMatches) {
+                    $newCaption[0]['Value'] = $oldCaption[0]['Value']
+                    $Changes.Add("Completed missing option captions at $Path.")
+                }
+            }
+        }
+        foreach ($key in $Baseline.Keys) {
+            if ($Current.Contains($key)) {
+                Update-ApplicationApiOptionCaptions -Baseline $Baseline[$key] -Current $Current[$key] -Changes $Changes -Path "$Path.$key"
+            }
+        }
+    }
+    elseif ($Baseline -is [array] -and $Current -is [array]) {
+        for ($i = 0; $i -lt [Math]::Min($Baseline.Count, $Current.Count); $i++) {
+            Update-ApplicationApiOptionCaptions -Baseline $Baseline[$i] -Current $Current[$i] -Changes $Changes -Path "$Path[$i]"
+        }
+    }
+}
+
+function Get-ApplicationApiControls {
+    param([object[]] $Controls)
+
+    foreach ($control in $Controls) {
+        $control
+        if ($control['Controls'] -is [array]) { Get-ApplicationApiControls -Controls $control['Controls'] }
+    }
+}
+
+function Add-ApplicationApiFieldsBeforeAnchor {
+    param([System.Collections.IDictionary] $Node, [string] $Anchor, [object[]] $Fields)
+
+    if ($Node['Controls'] -isnot [array]) { return }
+    $controls = [System.Collections.Generic.List[object]]::new()
+    foreach ($control in $Node['Controls']) {
+        if ($control['Name'] -ceq $Anchor) {
+            foreach ($field in $Fields) { $controls.Add($field) }
+        }
+        $controls.Add($control)
+        Add-ApplicationApiFieldsBeforeAnchor -Node $control -Anchor $Anchor -Fields $Fields
+    }
+    $Node['Controls'] = $controls.ToArray()
+}
+
+function Update-ApplicationApiRelocatedFields {
+    param(
+        [System.Collections.IDictionary] $Baseline,
+        [System.Collections.IDictionary] $Current,
+        [hashtable] $Snapshot,
+        [object] $Page,
+        [System.Collections.Generic.List[string]] $Changes
+    )
+
+    $oldFields = @(Get-ApplicationApiControls -Controls $Baseline['Controls'] | Where-Object { $_['Kind'] -cin @('Field', 8) })
+    $currentNames = @(Get-ApplicationApiControls -Controls $Current['Controls'] | ForEach-Object { $_['Name'] })
+    $missing = [System.Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
+    foreach ($field in $oldFields | Where-Object { $_['Name'] -cnotin $currentNames }) {
+        if ($missing.ContainsKey($field['Name'])) { return $false }
+        $missing.Add($field['Name'], [System.Collections.Generic.List[object]]::new())
+    }
+    if ($missing.Count -eq 0) { return $true }
+    $providers = [System.Collections.Generic.List[object]]::new()
+    foreach ($extension in $Snapshot.PageExtensionContracts.Values) {
+        $hosts = @(Get-ApplicationApiHostCandidates -Objects $Snapshot.Symbols -Kind Pages -Reference $extension.PageReference)
+        if (@($hosts | Where-Object Key -CEQ $Page.Key).Count -eq 0) { continue }
+        if ($hosts.Count -ne 1 -or $extension.OwnerId -ne $Page.OwnerId) { return $false }
+        $contract = $extension.Contract | ConvertFrom-Json -AsHashtable
+        $provider = @{ Extension = $extension; Contract = $contract }
+        $providers.Add($provider)
+        foreach ($change in $contract['ControlChanges']) {
+            foreach ($field in Get-ApplicationApiControls -Controls $change['Controls']) {
+                if ($field['Kind'] -cin @('Field', 8) -and $missing.ContainsKey($field['Name'])) {
+                    $missing[$field['Name']].Add($provider)
+                }
+            }
+        }
+    }
+    foreach ($name in $missing.Keys) {
+        if ($missing[$name].Count -ne 1) { return $false }
+    }
+    foreach ($provider in $providers) {
+        $contract = $provider.Contract
+        if (@($contract.Keys | Where-Object { $_ -cnotin @('Name', 'Id', 'TargetObject', 'ControlChanges') }).Count -gt 0 -or
+            $contract['ControlChanges'] -isnot [array]) { return $false }
+        foreach ($change in $contract['ControlChanges']) {
+            if (@($change.Keys | Where-Object { $_ -cnotin @('Anchor', 'ChangeKind', 'Controls') }).Count -gt 0 -or
+                $change['ChangeKind'] -cnotin @('AddBefore', 3) -or $change['Anchor'] -isnot [string] -or
+                $change['Controls'] -isnot [array] -or $change['Controls'].Count -eq 0) { return $false }
+            foreach ($field in $change['Controls']) {
+                if ($field['Kind'] -cnotin @('Field', 8) -or -not $missing.ContainsKey($field['Name'])) { return $false }
+            }
+            $anchors = @(Get-ApplicationApiControls -Controls $Current['Controls'] | Where-Object { $_['Name'] -ceq $change['Anchor'] })
+            if ($anchors.Count -ne 1) { return $false }
+            Add-ApplicationApiFieldsBeforeAnchor -Node $Current -Anchor $change['Anchor'] -Fields $change['Controls']
+            foreach ($field in $change['Controls']) {
+                $Changes.Add("Relocated field '$($field['Name'])' into page extension '$($provider.Extension.Name)'.")
+            }
+        }
+    }
+    return $true
+}
+
+function Get-ApplicationApiCompatibleAdditions {
+    param([string] $Baseline, [string] $Current, [hashtable] $Snapshot, [object] $Page)
+
+    $old = $Baseline | ConvertFrom-Json -AsHashtable
+    $new = $Current | ConvertFrom-Json -AsHashtable
+    $rejected = [PSCustomObject]@{ Compatible = $false; Changes = @() }
+    $changes = [System.Collections.Generic.List[string]]::new()
+    $methods = @()
+    foreach ($contract in @($old, $new)) {
+        if ($contract.ContainsKey('Methods') -and $contract.Methods -isnot [array]) { return $rejected }
+        $index = [System.Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
+        foreach ($method in $(if ($contract.ContainsKey('Methods')) { $contract.Methods })) {
+            if ($method -isnot [System.Collections.IDictionary] -or $method['Name'] -isnot [string] -or
+                [string]::IsNullOrWhiteSpace($method.Name) -or $index.ContainsKey($method.Name)) { return $rejected }
+            $index.Add($method.Name, $method)
+        }
+        $methods += ,$index
+    }
+    foreach ($name in $methods[0].Keys) {
+        if (-not $methods[1].ContainsKey($name)) { return $rejected }
+    }
+    foreach ($method in $methods[1].Values) {
+        if ($methods[0].ContainsKey($method.Name)) { continue }
+        $attributes = $method['Attributes']
+        if ($method['IsLocal'] -isnot [bool] -or -not $method.IsLocal -or $attributes -isnot [array] -or $attributes.Count -ne 1 -or
+            $attributes[0]['Name'] -cne 'IntegrationEvent' -or $attributes[0]['Arguments'] -isnot [array] -or
+            $attributes[0].Arguments.Count -ne 2 -or $attributes[0].Arguments[0]['Value'] -cne 'False' -or
+            $attributes[0].Arguments[1]['Value'] -cne 'False') { return $rejected }
+        if ($method.ContainsKey('ReturnTypeDefinition') -and $method.ReturnTypeDefinition['Name'] -cne 'None') { return $rejected }
+        $changes.Add("Added integration event '$($method.Name)'.")
+    }
+    if ($methods[0].Count -gt 0) {
+        $old.Methods = @($methods[0].Values | Sort-Object Name -CaseSensitive)
+        $new.Methods = @($methods[1].Values | Where-Object { $methods[0].ContainsKey($_.Name) } | Sort-Object Name -CaseSensitive)
+    }
+    else {
+        $null = $old.Remove('Methods')
+        $null = $new.Remove('Methods')
+    }
+    if ($Page -and $Page.Kind -ceq 'Pages' -and
+        -not (Update-ApplicationApiRelocatedFields -Baseline $old -Current $new -Snapshot $Snapshot -Page $Page -Changes $changes)) { return $rejected }
+    Update-ApplicationApiOptionCaptions -Baseline $old -Current $new -Changes $changes
+    if ($changes.Count -eq 0) { return $rejected }
+    $remaining = Get-ApplicationApiContractDifferences -Baseline ($old | ConvertTo-Json -Depth 100 -Compress) -Current ($new | ConvertTo-Json -Depth 100 -Compress)
+    if ($remaining.Differences.Count -gt 0) { return $rejected }
+    [PSCustomObject]@{ Compatible = $true; Changes = $changes.ToArray() }
+}
+
 <#
 .SYNOPSIS
     Checks object and member removals against the same published baseline used by AppSourceCop.
+.DESCRIPTION
+    Whole-object moves may add local, nonisolated integration events or complete missing
+    trailing option captions. Page fields may move unchanged into the destination app's
+    page extensions using addbefore at their original positions. Existing methods, option
+    values, and all other contracts must remain unchanged. Relocated fields may gain a
+    tooltip but cannot change an existing one. Accepted changes are recorded.
 #>
 function Test-ApplicationApiMoves {
     [CmdletBinding()]
@@ -444,6 +653,7 @@ function Test-ApplicationApiMoves {
         $key = if ($old) { $old.Key } else { $diagnostic.Key }
         $new = $currentObjects[$key]
         $reason = ''
+        $compatibleChanges = [System.Collections.Generic.List[string]]::new()
         if ($candidates.Count -gt 1) { $reason = 'The diagnostic does not identify an unambiguous object namespace.' }
         elseif (-not $old -or -not $new) { $reason = 'Object is missing, internal, or outside the exposed Application API.' }
         elseif ($old.OwnerId -ne $origin.Id -or $old.Name -cne $diagnostic.Name) { $reason = 'Diagnostic does not identify the baseline owner/object.' }
@@ -452,11 +662,19 @@ function Test-ApplicationApiMoves {
             $Baseline.Packages[$origin.Id].Name -cne $origin.BaselineName -or
             $Baseline.Packages[$origin.Id].Publisher -cne $origin.BaselinePublisher) { $reason = 'AppSourceCop and aggregate baselines disagree.' }
         elseif ($diagnostic.PartName -or $diagnostic.ActionName -or $diagnostic.FieldName -or $diagnostic.MethodName -or $diagnostic.CueGroupName -or $diagnostic.ControlName) {
-            $reason = Get-ApplicationApiMemberMoveFailure -Baseline $Baseline -Current $Current -OldHost $old -NewHost $new -Diagnostic $diagnostic
+            $reason = Get-ApplicationApiMemberMoveFailure -Baseline $Baseline -Current $Current -OldHost $old -NewHost $new -Diagnostic $diagnostic -CompatibleChanges $compatibleChanges
         }
         elseif ($old.OwnerId -eq $new.OwnerId) { $reason = 'Object has not moved to another Application member.' }
-        elseif ($old.Name -cne $new.Name -or $old.Namespace -cne $new.Namespace -or $old.ContractHash -cne $new.ContractHash) {
+        elseif ($old.Name -cne $new.Name -or $old.Namespace -cne $new.Namespace) {
             $reason = 'Moved object contract changed; automatic migration exception is unsafe.'
+        }
+        elseif ($old.ContractHash -cne $new.ContractHash) {
+            $compatible = if ($Baseline.ContainsKey('Contracts') -and $Current.ContainsKey('Contracts') -and
+                $Baseline.Contracts.ContainsKey($key) -and $Current.Contracts.ContainsKey($key)) {
+                Get-ApplicationApiCompatibleAdditions -Baseline $Baseline.Contracts[$key] -Current $Current.Contracts[$key] -Snapshot $Current -Page $new
+            }
+            if ($compatible -and $compatible.Compatible) { $compatibleChanges.AddRange([string[]]$compatible.Changes) }
+            else { $reason = 'Moved object contract changed; automatic migration exception is unsafe.' }
         }
         $contractDifferences = @()
         $contractDifferencesTruncated = $false
@@ -481,6 +699,7 @@ function Test-ApplicationApiMoves {
             ControlKind = $diagnostic.ControlKind
             Accepted = -not $reason
             Reason = $reason
+            CompatibleChanges = $compatibleChanges.ToArray()
             ContractDifferences = $contractDifferences
             ContractDifferencesTruncated = $contractDifferencesTruncated
             Baseline = $old
@@ -545,6 +764,10 @@ function Complete-ApplicationApiValidation {
             $baseline = Get-ApplicationApiGateSnapshot -Paths $baselinePaths -Keys $keys -PartNames $partNames -ActionNames $actionNames -FieldNames $fieldNames -MethodNames $methodNames -CueGroupNames $cueGroupNames -ControlNames $controlNames
             $current = Get-ApplicationApiGateSnapshot -Paths $currentPaths -Keys $keys -PartNames $partNames -ActionNames $actionNames -FieldNames $fieldNames -MethodNames $methodNames -CueGroupNames $cueGroupNames -ControlNames $controlNames
             $state.AcceptedMoves = @(Test-ApplicationApiMoves -Baseline $baseline -Current $current -Diagnostics $records.Diagnostics)
+            foreach ($move in @($state.AcceptedMoves | Where-Object { $_.CompatibleChanges.Count -gt 0 } | Group-Object Key)) {
+                $changes = @($move.Group.CompatibleChanges | Sort-Object -Unique -CaseSensitive)
+                Write-Host "Verified compatible additions for $($move.Group[0].Name): $($changes -join ' ')"
+            }
             $rejected = @($state.AcceptedMoves | Where-Object { -not $_.Accepted })
             if ($rejected.Count -gt 0) {
                 foreach ($issue in $rejected) {
@@ -557,7 +780,7 @@ function Complete-ApplicationApiValidation {
                         if ($issue.ContractDifferencesTruncated) { Write-Host '  Only the first 20 differences are included.' }
                     }
                 }
-                throw "$($rejected.Count) removal(s) were not verified as ownership-only Application moves."
+                throw "$($rejected.Count) removal(s) were not verified as compatible Application moves."
             }
         }
         $originals = Join-Path $root 'Originals'
@@ -568,7 +791,7 @@ function Complete-ApplicationApiValidation {
                 Copy-Item -LiteralPath $log.Path -Destination (Join-Path $originals "$([System.IO.Path]::GetFileName($log.Path)).txt")
                 Copy-Item -LiteralPath $log.StructuredPath -Destination $originals
                 foreach ($diagnostic in $accepted) {
-                    $log.Lines[$diagnostic.Line] = "[OUT] info BCAPPAPI: Verified ownership-only Application move ($($diagnostic.RuleId)): $($diagnostic.Name)."
+                    $log.Lines[$diagnostic.Line] = "[OUT] info BCAPPAPI: Verified compatible Application move ($($diagnostic.RuleId)): $($diagnostic.Name)."
                 }
                 $log.Structured.issues = @($log.Structured.issues | Where-Object { $_.ruleId -notin $script:DeferredRules })
                 $log.Lines | Set-Content -LiteralPath $log.Path -Encoding UTF8

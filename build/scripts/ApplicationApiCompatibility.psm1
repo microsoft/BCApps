@@ -178,23 +178,23 @@ function Add-ApplicationApiReferenceTypes {
 
 function Get-ApplicationApiReferenceIdentity {
     param(
-        [System.Text.Json.JsonElement] $Type,
+        [System.Text.Json.JsonElement] $Subtype,
+        [string] $TypeName,
         [string] $OwnerId,
         [hashtable] $ReferenceTypes
     )
 
     $name = [System.Text.Json.JsonElement]::new()
-    $subtype = [System.Text.Json.JsonElement]::new()
     $id = [System.Text.Json.JsonElement]::new()
-    if (-not $Type.TryGetProperty('Name', [ref]$name) -or -not $Type.TryGetProperty('Subtype', [ref]$subtype) -or
-        -not $subtype.TryGetProperty('Id', [ref]$id)) { return '' }
+    if (-not $Subtype.TryGetProperty('Id', [ref]$id)) { return '' }
     $module = [System.Text.Json.JsonElement]::new()
-    $moduleId = if ($subtype.TryGetProperty('ModuleId', [ref]$module)) { $module.GetString() } else { $OwnerId }
-    if ($ReferenceTypes["$($name.GetString()):$($id.GetInt32())"] -ne $moduleId) { return '' }
-    $target = $ReferenceTypes["${moduleId}:$($name.GetString()):$($id.GetInt32())"]
-    if (-not $target -or -not $subtype.TryGetProperty('Name', [ref]$name) -or $name.GetString() -cne $target.Name) { return '' }
+    $moduleId = if ($Subtype.TryGetProperty('ModuleId', [ref]$module)) { $module.GetString() } else { $OwnerId }
+    if ($ReferenceTypes["${TypeName}:$($id.GetInt32())"] -ne $moduleId) { return '' }
+    $target = $ReferenceTypes["${moduleId}:${TypeName}:$($id.GetInt32())"]
+    if (-not $target) { return '' }
+    if ($Subtype.TryGetProperty('Name', [ref]$name) -and $name.GetString() -and $name.GetString() -cne $target.Name) { return '' }
     $namespace = [System.Text.Json.JsonElement]::new()
-    if ($subtype.TryGetProperty('Namespace', [ref]$namespace) -and $namespace.GetString() -cne $target.Namespace) { return '' }
+    if ($Subtype.TryGetProperty('Namespace', [ref]$namespace) -and $namespace.GetString() -cne $target.Namespace) { return '' }
     return $target.Identity
 }
 
@@ -240,8 +240,11 @@ function Write-ApplicationApiContract {
                     $Writer.WriteStringValue($ReferenceIdentity)
                     continue
                 }
-                $reference = if ($property.Name -ceq 'Subtype') {
-                    Get-ApplicationApiReferenceIdentity -Type $Element -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes
+                $typeName = [System.Text.Json.JsonElement]::new()
+                $reference = if ($property.Name -ceq 'RelatedPagePartId') {
+                    Get-ApplicationApiReferenceIdentity -Subtype $property.Value -TypeName Page -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes
+                } elseif ($property.Name -ceq 'Subtype' -and $Element.TryGetProperty('Name', [ref]$typeName)) {
+                    Get-ApplicationApiReferenceIdentity -Subtype $property.Value -TypeName $typeName.GetString() -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes
                 } else { '' }
                 Write-ApplicationApiContract -Element $property.Value -Writer $Writer -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes -ReferenceIdentity $reference
             }
@@ -308,7 +311,8 @@ function Add-ApplicationApiPageMembers {
         [string] $OwnerKey,
         [string] $OwnerId,
         [string] $PageReference,
-        [hashtable] $Snapshot
+        [hashtable] $Snapshot,
+        [switch] $IncludeContracts
     )
 
     foreach ($control in $Elements.EnumerateArray()) {
@@ -334,8 +338,12 @@ function Add-ApplicationApiPageMembers {
             $subtype = [System.Text.Json.JsonElement]::new()
             $target = [System.Text.Json.JsonElement]::new()
             $targetId = 0
+            if ($isPart -and $control.TryGetProperty('RelatedPagePartId', [ref]$subtype) -and $subtype.TryGetProperty('Id', [ref]$target)) {
+                $targetId = $target.GetInt32()
+            }
             if ($isPart -and $control.TryGetProperty('TypeDefinition', [ref]$type) -and
                 $type.TryGetProperty('Subtype', [ref]$subtype) -and $subtype.TryGetProperty('Id', [ref]$target)) {
+                if ($targetId -ne 0 -and $targetId -ne $target.GetInt32()) { throw "Conflicting target pages for part '$name'." }
                 $targetId = $target.GetInt32()
             }
             $member = [PSCustomObject]@{
@@ -348,6 +356,7 @@ function Add-ApplicationApiPageMembers {
                 TargetPageId = $targetId
                 ContractHash = ''
             }
+            if ($IncludeContracts -and $memberKind -eq 'Field') { $member | Add-Member -NotePropertyName Contract -NotePropertyValue '' }
             Add-ApplicationApiContract -Element $control -Target $member -OwnerId $OwnerId -Snapshot $Snapshot
             $Snapshot[$Collection].Add($member)
         }
@@ -356,7 +365,7 @@ function Add-ApplicationApiPageMembers {
             $children = [System.Text.Json.JsonElement]::new()
             if ($control.TryGetProperty($nestedProperty, [ref]$children)) {
                 Add-ApplicationApiPageMembers -Elements $children -MemberNames $MemberNames -ChildrenProperty $nestedProperty `
-                    -Collection $Collection -OwnerKey $OwnerKey -OwnerId $OwnerId -PageReference $PageReference -Snapshot $Snapshot
+                    -Collection $Collection -OwnerKey $OwnerKey -OwnerId $OwnerId -PageReference $PageReference -Snapshot $Snapshot -IncludeContracts:$IncludeContracts
             }
         }
     }
@@ -457,13 +466,27 @@ function Add-ApplicationApiSymbols {
                 $selected = $SymbolKeys.Count -eq 0 -or $SymbolKeys.ContainsKey($key) -or $SymbolKeys.ContainsKey($nameSelector)
                 $inspectMembers = ($PartNames.Count -gt 0 -or $ActionNames.Count -gt 0 -or $FieldNames.Count -gt 0 -or $CueGroupNames.Count -gt 0 -or $ControlNames.Count -gt 0) -and $property.Name -cin @('Pages', 'PageExtensions')
                 $inspectMethods = $MethodNames.Count -gt 0 -and $methodHosts.ContainsKey($property.Name)
-                if (-not $selected -and -not $inspectMembers -and -not $inspectMethods) { continue }
+                $inspectExtension = $IncludeContracts -and $property.Name -ceq 'PageExtensions'
+                if (-not $selected -and -not $inspectMembers -and -not $inspectMethods -and -not $inspectExtension) { continue }
                 $properties = [System.Text.Json.JsonElement]::new()
                 if ($symbol.TryGetProperty('Properties', [ref]$properties)) {
                     $access = @($properties.EnumerateArray() | Where-Object { $_.GetProperty('Name').GetString() -ceq 'Access' })
                     if ($access.Count -eq 1 -and $access[0].GetProperty('Value').GetString() -ieq 'Internal') { continue }
                     $obsoleteState = @($properties.EnumerateArray() | Where-Object { $_.GetProperty('Name').GetString() -ceq 'ObsoleteState' })
                     if ($obsoleteState.Count -eq 1 -and $obsoleteState[0].GetProperty('Value').GetString() -iin @('Moved', 'Removed')) { continue }
+                }
+                if ($inspectExtension) {
+                    if ($Snapshot.PageExtensionContracts.ContainsKey($key)) { throw "Ambiguous exposed page extension '$key'." }
+                    $extension = [PSCustomObject]@{
+                        Name = $name
+                        OwnerId = $Package.Id
+                        PageReference = $symbol.GetProperty('TargetObject').GetString()
+                        ContractHash = ''
+                        Contract = ''
+                    }
+                    $Snapshot.PageExtensionContracts[$key] = $extension
+                    Add-ApplicationApiContract -Element $symbol -Target $extension -OwnerId $Package.Id -Snapshot $Snapshot
+                    if (-not $selected -and -not $inspectMembers -and -not $inspectMethods) { continue }
                 }
                 $memberCount = $Snapshot.PageParts.Count + $Snapshot.PageActions.Count + $Snapshot.PageFields.Count + $Snapshot.PageCueGroups.Count + $Snapshot.PageControls.Count + $Snapshot.Methods.Count
                 if ($inspectMembers) {
@@ -493,7 +516,7 @@ function Add-ApplicationApiSymbols {
                                 if ($container.TryGetProperty($childrenProperty, [ref]$children)) {
                                     $pageReference = if ($property.Name -ceq 'Pages') { [string]$id.GetInt32() } else { $symbol.GetProperty('TargetObject').GetString() }
                                     Add-ApplicationApiPageMembers -Elements $children -MemberNames $memberNames -ChildrenProperty $childrenProperty `
-                                        -Collection $collection -OwnerKey $key -OwnerId $Package.Id -PageReference $pageReference -Snapshot $Snapshot
+                                        -Collection $collection -OwnerKey $key -OwnerId $Package.Id -PageReference $pageReference -Snapshot $Snapshot -IncludeContracts:$IncludeContracts
                                 }
                             }
                         }
@@ -613,6 +636,7 @@ function Get-ApplicationApiSnapshot {
         Packages = @{}
         Symbols = @{}
         Contracts = @{}
+        PageExtensionContracts = @{}
         ReferenceTypes = @{}
         PendingContracts = [System.Collections.Generic.List[object]]::new()
         PageParts = [System.Collections.Generic.List[object]]::new()
@@ -676,6 +700,7 @@ function Get-ApplicationApiSnapshot {
             $contract = Get-ApplicationApiContractJson -Element $pendingContract.Element -IgnoredProperties $pendingContract.IgnoredProperties `
                 -OwnerId $pendingContract.OwnerId -ReferenceTypes $snapshot.ReferenceTypes
             $pendingContract.Target.ContractHash = [System.Convert]::ToBase64String($hash.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($contract)))
+            if ($pendingContract.Target.PSObject.Properties['Contract']) { $pendingContract.Target.Contract = $contract }
             if ($pendingContract.Key) { $snapshot.Contracts[$pendingContract.Key] = $contract }
         }
     }
