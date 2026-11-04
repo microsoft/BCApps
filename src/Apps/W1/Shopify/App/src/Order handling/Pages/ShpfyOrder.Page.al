@@ -703,7 +703,7 @@ page 30113 "Shpfy Order"
                         MissingIssues: List of [Text];
                     begin
                         CurrPage.Update(true);
-                        if Mapping.DoMappingWithIssues(Rec, MissingIssues, 'FindMappings') then
+                        if Mapping.DoMappingWithIssues(Rec, MissingIssues, "Shpfy Mapping Execution Mode"::FindMappings) then
                             Mapping.ClearMappingError(Rec)
                         else
                             Mapping.PersistMappingError(Rec, MissingIssues);

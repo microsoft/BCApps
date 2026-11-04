@@ -28,7 +28,7 @@ codeunit 30166 "Shpfy Process Order"
         ShopifyShop: Record "Shpfy Shop";
         OrderEvents: Codeunit "Shpfy Order Events";
         LastCreatedDocumentId: Guid;
-        MappingExecutionMode: Text[20];
+        MappingExecutionMode: Enum "Shpfy Mapping Execution Mode";
 
     trigger OnRun()
     var
@@ -42,11 +42,6 @@ codeunit 30166 "Shpfy Process Order"
         OrderHeader.Get(Rec."Shopify Order Id");
         ClearProcessingError(OrderHeader);
         OrderEvents.OnBeforeProcessSalesDocument(OrderHeader);
-        if MappingExecutionMode = '' then
-            if CurrentClientType() = ClientType::Background then
-                MappingExecutionMode := 'Background'
-            else
-                MappingExecutionMode := 'Manual';
         if not OrderMapping.DoMappingWithIssues(OrderHeader, MissingIssues, MappingExecutionMode) then
             Error(OrderMapping.GetMappingErrorMessage(MissingIssues));
 
@@ -70,7 +65,7 @@ codeunit 30166 "Shpfy Process Order"
         Rec.Get(OrderHeader."Shopify Order Id");
     end;
 
-    internal procedure SetMappingExecutionMode(ExecutionMode: Text[20])
+    internal procedure SetMappingExecutionMode(ExecutionMode: Enum "Shpfy Mapping Execution Mode")
     begin
         MappingExecutionMode := ExecutionMode;
     end;

@@ -16,6 +16,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
 using System.TestLibraries.Utilities;
+using System.Threading;
 
 codeunit 139608 "Shpfy Orders API Test"
 {
@@ -1979,7 +1980,7 @@ codeunit 139608 "Shpfy Orders API Test"
         MappingTipTok: Label 'TipAccount', Locked = true;
     begin
         this.Shop := this.CreateIncompleteMappingShop();
-        this.Shop.Code := CopyStr(this.Any.AlphabeticText(20), 1, MaxStrLen(this.Shop.Code));
+        this.Shop.Validate(Code, CopyStr(this.Any.AlphabeticText(20), 1, MaxStrLen(this.Shop.Code)));
         this.Shop.Insert(false);
         this.CreateIncompleteMappingOrder(OrderHeader);
         Customer := this.InitializeTest.GetDummyCustomer();
@@ -2019,7 +2020,7 @@ codeunit 139608 "Shpfy Orders API Test"
         if TempCases.FindSet() then
             repeat
                 OrderHeader.Get(TempCases."Shopify Order Id");
-                MappingResults.Add(OrderHeader."Shopify Order Id", OrderMapping.DoMappingWithIssues(OrderHeader, Issues, 'Mapping'));
+                MappingResults.Add(OrderHeader."Shopify Order Id", OrderMapping.DoMappingWithIssues(OrderHeader, Issues, "Shpfy Mapping Execution Mode"::Mapping));
                 Actual := '';
                 foreach Issue in Issues do
                     Actual += Issue + '|';
@@ -2059,6 +2060,7 @@ codeunit 139608 "Shpfy Orders API Test"
         RenderedError: Text;
         StoredErrorBody: Text;
     begin
+        LongestResult := 0;
         this.LibraryAssert.AreEqual(5, TempCases.Count(), MappingCasesMismatchErr);
         this.LibraryAssert.AreEqual(TempCases.Count(), ExpectedIssues.Count(), MappingCasesMismatchErr);
         this.LibraryAssert.AreEqual(TempCases.Count(), ActualIssues.Count(), MappingCasesMismatchErr);
@@ -2125,7 +2127,7 @@ codeunit 139608 "Shpfy Orders API Test"
         CaseNames.Add('Mapping');
         CaseNames.Add('Unrelated');
         foreach CaseName in CaseNames do begin
-            this.Shop.Code := CopyStr(this.Any.AlphabeticText(20), 1, MaxStrLen(this.Shop.Code));
+            this.Shop.Validate(Code, CopyStr(this.Any.AlphabeticText(20), 1, MaxStrLen(this.Shop.Code)));
             this.Shop.Insert(false);
             this.CreateIncompleteMappingOrder(OrderHeader);
             this.CreateUnmappedItemLine(OrderHeader."Shopify Order Id", OrderHeader."Shopify Order Id" * 10 + 1, false);
@@ -2214,6 +2216,7 @@ codeunit 139608 "Shpfy Orders API Test"
         OrderId: BigInteger;
     begin
         this.Shop := this.CreateIncompleteMappingShop();
+        this.Shop.Modify(false);
         this.SetAutomaticOrderCreation(true);
         OrderId := this.PrepareIncompleteOrderImport(true, ImportOrder, ImportLines);
         OrdersToImport.SetRange("Shop Id", this.Shop."Shop Id");
@@ -2238,6 +2241,7 @@ codeunit 139608 "Shpfy Orders API Test"
         MappingConflictLbl: Label 'Processed-order conflict. Preserve the entire original diagnostic.';
     begin
         this.Shop := this.CreateIncompleteMappingShop();
+        this.Shop.Modify(false);
         this.SetAutomaticOrderCreation(true);
         OrderId := this.PrepareIncompleteOrderImport(true, ImportOrder, ImportLines);
         this.RunMappingImport();
@@ -2396,6 +2400,7 @@ codeunit 139608 "Shpfy Orders API Test"
                 this.LibraryAssert.IsTrue(ActualError.EndsWith(ExpectedError), ErrorMessage);
                 this.LibraryAssert.IsTrue(StrLen(ActualError) > StrLen(ExpectedError), ErrorMessage);
                 this.LibraryAssert.IsTrue(Evaluate(ErrorTime, CopyStr(ActualError, 1, StrLen(ActualError) - StrLen(ExpectedError) - 1)), MappingTimestampErr);
+                this.LibraryAssert.AreEqual(Format(ErrorTime), CopyStr(ActualError, 1, StrLen(ActualError) - StrLen(ExpectedError) - 1), MappingTimestampErr);
             end else
                 this.LibraryAssert.AreEqual(ExpectedError, ActualError, ErrorMessage);
             this.LibraryAssert.AreEqual(Outcome.GetBoolean('expectedProcessed'), Outcome.GetBoolean('processed'), MappingProcessedErr);
@@ -2428,6 +2433,7 @@ codeunit 139608 "Shpfy Orders API Test"
         OrderId: BigInteger;
     begin
         this.Shop := this.CreateIncompleteMappingShop();
+        this.Shop.Modify(false);
         this.SetAutomaticOrderCreation(true);
         OrderId := this.PrepareIncompleteOrderImport(true, ImportOrder, ImportLines);
         JobQueueEntry.ID := CreateGuid();
@@ -2486,8 +2492,10 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     local procedure EnqueueMappingExchangeResponse(OrderId: BigInteger)
+    var
+        ExchangeResponseTok: Label '{"data":{"order":{"returns":{"nodes":[{"exchangeLineItems":{"nodes":[{"lineItems":[{"id":"gid://shopify/LineItem/%1"}]}]}}],"pageInfo":{"hasNextPage":false}}}}}', Locked = true, Comment = '%1 = Shopify exchange line item ID';
     begin
-        this.HttpResponses.Enqueue(StrSubstNo('{"data":{"order":{"returns":{"nodes":[{"exchangeLineItems":{"nodes":[{"lineItems":[{"id":"gid://shopify/LineItem/%1"}]}]}}],"pageInfo":{"hasNextPage":false}}}}}', OrderId * 10 + 5));
+        this.HttpResponses.Enqueue(StrSubstNo(ExchangeResponseTok, OrderId * 10 + 5));
     end;
 
     [ConfirmHandler]
@@ -2530,6 +2538,7 @@ codeunit 139608 "Shpfy Orders API Test"
         TaxLine: JsonObject;
         TaxLines: JsonArray;
         VariantJson: JsonObject;
+        LineIdTok: Label 'gid://shopify/LineItem/%1', Locked = true, Comment = '%1 = Shopify line item ID';
     begin
         OrdersResponse := OrderHandlingHelper.GetOrdersToImport(false);
         OrdersToImport.SetRange("Shop Id", this.Shop."Shop Id");
@@ -2597,7 +2606,7 @@ codeunit 139608 "Shpfy Orders API Test"
         ProductJson.Add('isGiftCard', false);
         VariantJson.Add('legacyResourceId', Variant.Id);
         Line.ReadFrom('{"quantity":1,"currentQuantity":1,"fulfillableQuantity":1,"taxable":true,"requiresShipping":true,"variantTitle":"","customAttributes":[],"discountAllocations":[]}');
-        Line.Add('id', StrSubstNo('gid://shopify/LineItem/%1', OrdersToImport.Id * 10 + 1));
+        Line.Add('id', StrSubstNo(LineIdTok, OrdersToImport.Id * 10 + 1));
         Line.Add('name', Item.Description);
         Line.Add('title', Item.Description);
         Line.Add('product', ProductJson);
@@ -2627,10 +2636,11 @@ codeunit 139608 "Shpfy Orders API Test"
         UnmappedCustomerId: BigInteger;
         UnmappedEmail: Text;
         UnmappedPhone: Text;
+        LineIdTok: Label 'gid://shopify/LineItem/%1', Locked = true, Comment = '%1 = Shopify line item ID';
     begin
         this.CreateMappingImportFixture(OrdersToImport, JShopifyOrder, JShopifyLineItems);
         UnmappedCustomerId := this.LibraryRandom.RandIntInRange(10000000, 99999999);
-        UnmappedEmail := StrSubstNo('unmapped-%1@example.com', UnmappedCustomerId);
+        UnmappedEmail := 'unmapped-' + Format(UnmappedCustomerId) + '@example.com';
         UnmappedPhone := StrSubstNo('+1%1', UnmappedCustomerId);
         JShopifyOrder.Remove('email');
         JShopifyOrder.Add('email', UnmappedEmail);
@@ -2657,13 +2667,13 @@ codeunit 139608 "Shpfy Orders API Test"
             JShopifyLineItems.Get(0, LineToken);
             Line := LineToken.AsObject();
             LineId := OrderId * 10 + 1;
-            Line.Replace('id', StrSubstNo('gid://shopify/LineItem/%1', LineId));
+            Line.Replace('id', StrSubstNo(LineIdTok, LineId));
             Variant.Get(Line.GetObject('variant').GetBigInteger('legacyResourceId'));
             Variant."Item SystemId" := CreateGuid();
             Variant.Modify(false);
             JShopifyLineItems.Set(0, Line);
             Line := Line.Clone().AsObject();
-            Line.Replace('id', StrSubstNo('gid://shopify/LineItem/%1', OrderId * 10 + 5));
+            Line.Replace('id', StrSubstNo(LineIdTok, OrderId * 10 + 5));
             JShopifyLineItems.Add(Line);
             this.AddMappingAccountImportLines(OrderId, Line, JShopifyLineItems);
             JShopifyOrder.Add('returnStatus', 'RETURNED');
@@ -2690,6 +2700,7 @@ codeunit 139608 "Shpfy Orders API Test"
         Money: JsonObject;
         NullValue: JsonValue;
         PriceSet: JsonObject;
+        LineIdTok: Label 'gid://shopify/LineItem/%1', Locked = true, Comment = '%1 = Shopify line item ID';
     begin
         Line := Line.Clone().AsObject();
         NullValue.SetValueToNull();
@@ -2700,12 +2711,12 @@ codeunit 139608 "Shpfy Orders API Test"
         Line.Replace('taxLines', EmptyLines);
         Line.Replace('product', NullValue);
         Line.Replace('name', 'Tip');
-        Line.Replace('id', StrSubstNo('gid://shopify/LineItem/%1', OrderId * 10 + 3));
+        Line.Replace('id', StrSubstNo(LineIdTok, OrderId * 10 + 3));
         Lines.Add(Line);
         Line := Line.Clone().AsObject();
         Line.Replace('name', 'Gift card');
         Line.Add('isGiftCard', true);
-        Line.Replace('id', StrSubstNo('gid://shopify/LineItem/%1', OrderId * 10 + 4));
+        Line.Replace('id', StrSubstNo(LineIdTok, OrderId * 10 + 4));
         Lines.Add(Line);
     end;
 
@@ -2808,17 +2819,17 @@ codeunit 139608 "Shpfy Orders API Test"
 
     local procedure CreateIncompleteMappingShop(): Record "Shpfy Shop"
     var
+        ShopLcl: Record "Shpfy Shop";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
     begin
-        this.Shop := CommunicationMgt.GetShopRecord();
-        this.Shop."Customer Import From Shopify" := this.Shop."Customer Import From Shopify"::None;
-        this.Shop."Auto Create Unknown Customers" := false;
-        this.Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::DefaultCustomer;
-        this.Shop."Default Customer No." := '';
-        this.Shop."Tip Account" := '';
-        this.Shop."Sold Gift Card Account" := '';
-        this.Shop.Modify(false);
-        exit(this.Shop);
+        ShopLcl := CommunicationMgt.GetShopRecord();
+        ShopLcl.Validate("Customer Import From Shopify", ShopLcl."Customer Import From Shopify"::None);
+        ShopLcl.Validate("Auto Create Unknown Customers", false);
+        ShopLcl.Validate("Customer Mapping Type", "Shpfy Customer Mapping"::DefaultCustomer);
+        ShopLcl.Validate("Default Customer No.", '');
+        ShopLcl.Validate("Tip Account", '');
+        ShopLcl.Validate("Sold Gift Card Account", '');
+        exit(ShopLcl);
     end;
 
     local procedure CreateIncompleteMappingOrder(var OrderHeader: Record "Shpfy Order Header")
@@ -2836,7 +2847,7 @@ codeunit 139608 "Shpfy Orders API Test"
         OrderHeader."Shop Code" := this.Shop.Code;
         OrderHeader."Sell-to Customer Name" := 'Unmapped test customer';
         OrderHeader."Bill-to Name" := 'Unmapped test customer';
-        OrderHeader."Ship-to Country/Region Code" := this.LibraryRandom.RandText(MaxStrLen(OrderHeader."Ship-to Country/Region Code"));
+        OrderHeader."Ship-to Country/Region Code" := CopyStr(this.LibraryRandom.RandText(MaxStrLen(OrderHeader."Ship-to Country/Region Code")), 1, MaxStrLen(OrderHeader."Ship-to Country/Region Code"));
         OrderHeader."Customer Id" := this.LibraryRandom.RandIntInRange(100000, 999999);
         OrderHeader.Insert(false);
 

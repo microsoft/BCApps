@@ -24,7 +24,7 @@ codeunit 30163 "Shpfy Order Mapping"
         BillToCustomerIssueTok: Label 'BillToCustomer', Locked = true;
         GiftCardAccountIssueTok: Label 'GiftCardAccount', Locked = true;
         ItemLineIssuePrefixTok: Label 'ItemLine:', Locked = true;
-        MappingErr: Label 'Not everything can be mapped.';
+        MappingErr: Label 'Not everything can be mapped.', Locked = true;
         SellToCustomerIssueTok: Label 'SellToCustomer', Locked = true;
         TipAccountIssueTok: Label 'TipAccount', Locked = true;
 
@@ -36,16 +36,22 @@ codeunit 30163 "Shpfy Order Mapping"
     var
         MissingIssues: List of [Text];
     begin
-        exit(DoMappingWithIssues(OrderHeader, MissingIssues, 'Mapping'));
+        exit(DoMappingWithIssues(OrderHeader, MissingIssues, "Shpfy Mapping Execution Mode"::Mapping));
     end;
 
-    internal procedure DoMappingWithIssues(var OrderHeader: Record "Shpfy Order Header"; var MissingIssues: List of [Text]; ExecutionMode: Text[20]) Result: Boolean
+    internal procedure DoMappingWithIssues(var OrderHeader: Record "Shpfy Order Header"; var MissingIssues: List of [Text]; ExecutionMode: Enum "Shpfy Mapping Execution Mode") Result: Boolean
     var
         CustomerTemplate: Record "Shpfy Customer Template";
         OrderLine: Record "Shpfy Order Line";
         Shop: Record "Shpfy Shop";
         LineMapped: Boolean;
     begin
+        if ExecutionMode = ExecutionMode::Unspecified then
+            if CurrentClientType() = ClientType::Background then
+                ExecutionMode := ExecutionMode::Background
+            else
+                ExecutionMode := ExecutionMode::Manual;
+
         Clear(MissingIssues);
         Shop.Get(OrderHeader."Shop Code");
 
@@ -115,7 +121,7 @@ codeunit 30163 "Shpfy Order Mapping"
         LogMappingIssues(MissingIssues, ExecutionMode);
     end;
 
-    local procedure LogMappingIssues(MissingIssues: List of [Text]; ExecutionMode: Text[20])
+    local procedure LogMappingIssues(MissingIssues: List of [Text]; ExecutionMode: Enum "Shpfy Mapping Execution Mode")
     var
         Categories: List of [Text];
         Category: Text;
@@ -132,7 +138,7 @@ codeunit 30163 "Shpfy Order Mapping"
                 Categories.Add(Category);
                 Clear(Dimensions);
                 Dimensions.Add('Category', Category);
-                Dimensions.Add('Mode', ExecutionMode);
+                Dimensions.Add('Mode', Format(ExecutionMode));
                 Session.LogMessage('SHPCOMPLETENESS', MappingTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
             end;
         end;
