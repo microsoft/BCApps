@@ -446,8 +446,7 @@ page 7209 "CDS Couple Salespersons"
                 end;
             until TempCRMSystemuser.Next() = 0;
 
-        TempCRMSystemuser.ModifyAll(IsSyncWithDirectory, false);
-        TempCRMSystemuser.ModifyAll(IsDisabled, false);
+        TempCRMSystemuser.ModifyAll(IsSyncWithDirectory, false, IsDisabled, false);
     end;
 
     local procedure ScheduleUncoupledUsersSynch()

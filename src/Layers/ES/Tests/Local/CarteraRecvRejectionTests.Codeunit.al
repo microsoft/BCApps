@@ -807,8 +807,7 @@ codeunit 147543 "Cartera Recv. Rejection Tests"
         // No extra Line Discounts per sold items
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, true);
-        SalesLine.ModifyAll(SalesLine."Line Discount Amount", 0, true);
+        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, SalesLine."Line Discount Amount", 0, true);
         SalesLine.FindFirst();
 
         VATPostingSetup.Get(SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group");
@@ -852,8 +851,7 @@ codeunit 147543 "Cartera Recv. Rejection Tests"
         // No extra Line Discounts per sold items
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, true);
-        SalesLine.ModifyAll(SalesLine."Line Discount Amount", 0, true);
+        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, SalesLine."Line Discount Amount", 0, true);
         SalesLine.FindFirst();
 
         VATPostingSetup.Get(SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group");

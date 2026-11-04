@@ -275,6 +275,47 @@ codeunit 139609 "Shpfy Order Test"
         LibraryAssert.AreEqual(Customer."No.", OrderHeader."Bill-to Customer No.", 'Bill-to Customer No. should fall back to Sell-to');
     end;
 
+    [Test]
+    procedure CreateSalesDocumentsActionFollowsFilteredView()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ShopifyOrders: TestPage "Shpfy Orders";
+        ExistingOrderId: BigInteger;
+        NonExistingOrderId: BigInteger;
+    begin
+        Initialize();
+        Codeunit.Run(Codeunit::"Shpfy Initialize Test");
+        Shop := CommunicationMgt.GetShopRecord();
+        CreateShopifyOrderHeader(OrderHeader);
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader.Modify();
+        ExistingOrderId := OrderHeader."Shopify Order Id";
+        NonExistingOrderId := ExistingOrderId;
+        repeat
+            NonExistingOrderId += 1;
+        until not OrderHeader.Get(NonExistingOrderId);
+
+        OrderHeader.SetRange("Shopify Order Id", ExistingOrderId);
+        ShopifyOrders.Trap();
+        Page.Run(Page::"Shpfy Orders", OrderHeader);
+        LibraryAssert.IsTrue(ShopifyOrders.CreateSalesDocuments.Enabled(), 'Create Sales Documents should be enabled when the filtered view contains an order.');
+        ShopifyOrders.Close();
+
+        OrderHeader.SetRange("Shopify Order Id", NonExistingOrderId);
+        ShopifyOrders.Trap();
+        Page.Run(Page::"Shpfy Orders", OrderHeader);
+        LibraryAssert.IsFalse(ShopifyOrders.CreateSalesDocuments.Enabled(), 'Create Sales Documents should be disabled when the filtered view is empty.');
+        ShopifyOrders.Close();
+
+        OrderHeader.SetRange("Shopify Order Id", ExistingOrderId);
+        ShopifyOrders.Trap();
+        Page.Run(Page::"Shpfy Orders", OrderHeader);
+        LibraryAssert.IsTrue(ShopifyOrders.CreateSalesDocuments.Enabled(), 'Create Sales Documents should be enabled when the filtered view contains an order again.');
+        ShopifyOrders.Close();
+    end;
+
     local procedure CreateShopifyOrderHeader(var OrderHeader: Record "Shpfy Order Header")
     begin
         OrderHeader.Init();

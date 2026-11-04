@@ -60,6 +60,7 @@ codeunit 139197 DocumentSendingPostTests
         ReportNo_SalesShptHeaderTxt: Label 'No_SalesShptHeader';
         IT_ReportNo_SalesShptHeaderTxt: Label 'No_SalesShipHdr';
         ReportNo_ReturnRcptHeaderTxt: Label 'No_ReturnRcptHeader';
+        DownloadedFileName: Text;
 
     [Test]
     [HandlerFunctions('PostAndSendHandlerNo')]
@@ -3281,6 +3282,32 @@ codeunit 139197 DocumentSendingPostTests
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure GetAttachmentFileNameReturnsLowerCaseFileExtensionUT()
+    var
+        ElectronicDocumentFormat: Record "Electronic Document Format";
+        FileManagement: Codeunit "File Management";
+        DummyRecordVariant: Variant;
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [Electronic Document] [UT]
+        // [SCENARIO 647180] TAB 61 ElectronicDocumentFormat.GetAttachmentFileName() returns file names with lower case file extensions
+        DocumentNo := LibraryUtility.GenerateGUID();
+
+        // [WHEN] Get the attachment file names for the "pdf", "xml" and "zip" file extensions
+        // [THEN] The file names end with the lower case file extensions "pdf", "xml" and "zip"
+        Assert.AreEqual(
+            'pdf', FileManagement.GetExtension(ElectronicDocumentFormat.GetAttachmentFileName(DummyRecordVariant, DocumentNo, SalesInvoiceTxt, 'pdf')),
+            'The PDF file extension must be in lower case.');
+        Assert.AreEqual(
+            'xml', FileManagement.GetExtension(ElectronicDocumentFormat.GetAttachmentFileName(DummyRecordVariant, DocumentNo, SalesInvoiceTxt, 'xml')),
+            'The XML file extension must be in lower case.');
+        Assert.AreEqual(
+            'zip', FileManagement.GetExtension(ElectronicDocumentFormat.GetAttachmentFileName(DummyRecordVariant, DocumentNo, SalesInvoiceTxt, 'zip')),
+            'The ZIP file extension must be in lower case.');
+    end;
+
+    [Test]
     [HandlerFunctions('SelectSendingOptionHandler,PurchaseQuoteReportRequestPageHandler')]
     [Scope('OnPrem')]
     procedure PurchaseQuote_PrintedWithSendActionButton()
@@ -3395,6 +3422,41 @@ codeunit 139197 DocumentSendingPostTests
 
         // [THEN] The Sales Invoice is successfuly posted
         SalesInvoiceHeader.Get(InvoiceNo);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SendPostedSalesInvoiceToDiskAsPDFWithLowerCaseFileExtension()
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        DocumentSendingPostTests: Codeunit DocumentSendingPostTests;
+        FileManagement: Codeunit "File Management";
+        FileName: Text;
+    begin
+        // [FEATURE] [Sales] [Invoice]
+        // [SCENARIO 647180] Posted sales invoice sent to disk as PDF is saved as a file with lower case "pdf" file extension
+        Initialize();
+
+        // [GIVEN] Document Sending Profile with Disk = PDF
+        DocumentSendingProfile.Init();
+        DocumentSendingProfile.Disk := DocumentSendingProfile.Disk::PDF;
+
+        // [GIVEN] Posted Sales Invoice "I"
+        LibrarySales.CreateSalesInvoice(SalesHeader);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesInvoiceHeader.SetRecFilter();
+
+        // [WHEN] Send the Posted Sales Invoice "I" with the Document Sending Profile
+        BindSubscription(DocumentSendingPostTests);
+        SalesInvoiceHeader.SendProfile(DocumentSendingProfile);
+        UnbindSubscription(DocumentSendingPostTests);
+
+        // [THEN] The PDF file for the Posted Sales Invoice "I" is saved with the lower case "pdf" file extension
+        FileName := DocumentSendingPostTests.GetDownloadedFileName();
+        Assert.IsTrue(StrPos(FileName, SalesInvoiceHeader."No.") > 0, 'The file name must contain the posted sales invoice number.');
+        Assert.AreEqual('pdf', FileManagement.GetExtension(FileName), 'The PDF file extension must be in lower case.');
     end;
 
     [Test]
@@ -5535,6 +5597,18 @@ codeunit 139197 DocumentSendingPostTests
     local procedure EnableTestModeOnIsTestMode(var TestMode: Boolean)
     begin
         TestMode := true
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnBeforeDownloadAttachmentFromStream', '', false, false)]
+    local procedure SaveFileNameOnBeforeDownloadAttachmentFromStream(var TempReportSelections: Record "Report Selections" temporary; RecordVariant: Variant; var AttachmentInStream: InStream; ClientAttachmentFileName: Text; var IsHandled: Boolean)
+    begin
+        DownloadedFileName := ClientAttachmentFileName;
+        IsHandled := true;
+    end;
+
+    procedure GetDownloadedFileName(): Text
+    begin
+        exit(DownloadedFileName);
     end;
 }
 

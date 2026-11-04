@@ -5,6 +5,7 @@
 namespace Microsoft.Bank.Documents;
 
 using Microsoft.Foundation.Attachment;
+using System.Automation;
 
 page 31265 "Iss. Payment Orders CZB"
 {
@@ -155,6 +156,21 @@ page 31265 "Iss. Payment Orders CZB"
                     DocumentAttachmentDetails.RunModal();
                 end;
             }
+            action(Approvals)
+            {
+                AccessByPermission = TableData "Posted Approval Entry" = R;
+                ApplicationArea = Basic, Suite;
+                Caption = 'Approvals';
+                Image = Approvals;
+                ToolTip = 'View a list of the records that are waiting to be approved. For example, you can see who requested the record to be approved, when it was sent, and when it is due to be approved.';
+
+                trigger OnAction()
+                var
+                    ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                begin
+                    ApprovalsMgmt.ShowPostedApprovalEntries(Rec.RecordId);
+                end;
+            }
         }
         area(Processing)
         {
@@ -254,6 +270,9 @@ page 31265 "Iss. Payment Orders CZB"
                 {
                 }
 #endif
+                actionref(Approvals_Promoted; Approvals)
+                {
+                }
             }
         }
     }

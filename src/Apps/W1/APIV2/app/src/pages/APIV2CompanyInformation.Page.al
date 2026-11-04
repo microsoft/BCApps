@@ -3,6 +3,7 @@ namespace Microsoft.API.V2;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Period;
+using System.Environment;
 using System.Environment.Configuration;
 
 page 30011 "APIV2 - Company Information"
@@ -20,7 +21,7 @@ page 30011 "APIV2 - Company Information"
     SaveValues = true;
     SourceTable = "Company Information";
     Extensible = false;
-    AboutText = 'Exposes company profile data including name, address, contact details, tax registration numbers, banking information, and branding attributes. Supports read-only access for retrieving company metadata, enabling external applications to automate document generation, compliance validation, and ensure consistent company information across integrated business systems. Ideal for scenarios requiring company-level context in multi-system integrations and administrative workflows.';
+    AboutText = 'Exposes company profile data including name, descriptions, address, contact details, tax registration numbers, banking information, and branding attributes. Supports read-only access for retrieving company and environment metadata, enabling external applications to automate document generation, compliance validation, and ensure consistent company information across integrated business systems. Ideal for scenarios requiring company-level context in multi-system integrations and administrative workflows.';
 
     layout
     {
@@ -36,6 +37,16 @@ page 30011 "APIV2 - Company Information"
                 field(displayName; Rec.Name)
                 {
                     Caption = 'Display Name';
+                }
+                field(companyDescription; CompanyDescription)
+                {
+                    Caption = 'Company Description';
+                    Editable = false;
+                }
+                field(environmentDescription; EnvironmentDescription)
+                {
+                    Caption = 'Environment Description';
+                    Editable = false;
                 }
                 field(addressLine1; Rec.Address)
                 {
@@ -153,10 +164,13 @@ page 30011 "APIV2 - Company Information"
     end;
 
     var
+        EnvironmentInformation: Codeunit "Environment Information";
         LCYCurrencyCode: Code[10];
         TaxRegistrationNumber: Text[50];
         FiscalYearStart: Date;
         Experience: Text;
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
         ExperienceUpdated: Boolean;
         SaveExperienceTierFailedErr: Label 'Failed to save experience tier for the current company.';
 
@@ -180,6 +194,8 @@ page 30011 "APIV2 - Company Information"
             TaxRegistrationNumber := Rec."VAT Registration No.";
 
         ApplicationAreaMgmtFacade.GetExperienceTierCurrentCompany(Experience);
+        CompanyDescription := Rec.GetCompanyDescription();
+        EnvironmentDescription := EnvironmentInformation.GetEnvironmentDescription();
         ExperienceUpdated := false;
     end;
 
@@ -195,4 +211,3 @@ page 30011 "APIV2 - Company Information"
             exit(false);
     end;
 }
-

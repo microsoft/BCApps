@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.AccessControl;
 
-using Microsoft.QualityManagement.Document;
-using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Security.User;
 
@@ -18,44 +16,25 @@ codeunit 20406 "Qlty. Permission Mgmt."
     Access = Internal;
 
     var
-        ActionCreateInspectionManuallyLbl: Label 'create inspection manually';
-        ActionCreateReinspectionLbl: Label 'create re-inspection';
         ActionChangeOthersInspectionLbl: Label 'change others inspection';
-        ActionFinishInspectionLbl: Label 'finish inspection';
         ActionReopenInspectionLbl: Label 'reopen inspection';
-        ActionDeleteOpenInspectionLbl: Label 'delete open inspection';
         ActionDeleteFinishedInspectionLbl: Label 'delete finished inspection';
-        ActionChangeItemTrackingLbl: Label 'change item tracking';
         ActionChangeSourceQuantityLbl: Label 'change source quantity';
-        ActionEditLineCommentLbl: Label 'edit line note/comment';
         AdminSupervisorRoleIDTxt: Label 'QltyMgmt - Admin', Locked = true;
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
-
-    /// <summary>
-    /// Verifies the current user can create a manual inspection. Throws an error if not permitted.
-    /// </summary>
-    internal procedure VerifyCanCreateManualInspection()
-    begin
-        if not CanInsertTableData(Database::"Qlty. Inspection Header") then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateInspectionManuallyLbl);
-    end;
-
-    /// <summary>
-    /// Verifies the current user can create a re-inspection. Throws an error if not permitted.
-    /// </summary>
-    internal procedure VerifyCanCreateReinspection()
-    begin
-        if not CanInsertTableData(Database::"Qlty. Inspection Header") then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionCreateReinspectionLbl);
-    end;
 
     /// <summary>
     /// Verifies the current user can change other users' inspections. Throws an error if not permitted.
     /// </summary>
     internal procedure VerifyCanChangeOtherInspections()
     begin
-        if not CanChangeOtherInspections() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeOthersInspectionLbl);
+        VerifyCanChangeOtherInspections(UserSecurityId());
+    end;
+
+    internal procedure VerifyCanChangeOtherInspections(UserSecurityIdToCheck: Guid)
+    begin
+        if not CanChangeOtherInspections(UserSecurityIdToCheck) then
+            Error(UserDoesNotHavePermissionToErr, GetUserName(UserSecurityIdToCheck), ActionChangeOthersInspectionLbl);
     end;
 
     /// <summary>
@@ -64,25 +43,12 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>True if the user can change other users' inspections; otherwise, false.</returns>
     internal procedure CanChangeOtherInspections(): Boolean
     begin
-        exit(HasAdminSupervisorRole());
+        exit(CanChangeOtherInspections(UserSecurityId()));
     end;
 
-    /// <summary>
-    /// Verifies the current user can finish an inspection. Throws an error if not permitted.
-    /// </summary>
-    internal procedure VerifyCanFinishInspection()
+    internal procedure CanChangeOtherInspections(UserSecurityIdToCheck: Guid): Boolean
     begin
-        if not CanFinishInspection() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionFinishInspectionLbl);
-    end;
-
-    /// <summary>
-    /// Checks if the current user can finish an inspection.
-    /// </summary>
-    /// <returns>True if the user can finish an inspection; otherwise, false.</returns>
-    internal procedure CanFinishInspection(): Boolean
-    begin
-        exit(CanModifyTableData(Database::"Qlty. Inspection Header"));
+        exit(HasAdminSupervisorRole(UserSecurityIdToCheck));
     end;
 
     /// <summary>
@@ -90,29 +56,22 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanReopenInspection()
     begin
-        if not CanReopenInspection() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionReopenInspectionLbl);
+        VerifyCanReopenInspection(UserSecurityId());
+    end;
+
+    internal procedure VerifyCanReopenInspection(UserSecurityIdToCheck: Guid)
+    begin
+        if not CanReopenInspection(UserSecurityIdToCheck) then
+            Error(UserDoesNotHavePermissionToErr, GetUserName(UserSecurityIdToCheck), ActionReopenInspectionLbl);
     end;
 
     /// <summary>
-    /// Checks if the current user can reopen an inspection.
+    /// Checks if the specified user can reopen an inspection.
     /// </summary>
     /// <returns>True if the user can reopen an inspection; otherwise, false.</returns>
-    local procedure CanReopenInspection(): Boolean
+    local procedure CanReopenInspection(UserSecurityIdToCheck: Guid): Boolean
     begin
-        if not CanModifyTableData(Database::"Qlty. Inspection Header") then
-            exit(false);
-
-        exit(HasAdminSupervisorRole());
-    end;
-
-    /// <summary>
-    /// Verifies the current user can delete an open inspection. Throws an error if not permitted.
-    /// </summary>
-    internal procedure VerifyCanDeleteOpenInspection()
-    begin
-        if not CanDeleteTableData(Database::"Qlty. Inspection Header") then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteOpenInspectionLbl);
+        exit(HasAdminSupervisorRole(UserSecurityIdToCheck));
     end;
 
     /// <summary>
@@ -120,8 +79,13 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanDeleteFinishedInspection()
     begin
-        if not CanDeleteFinishedInspection() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteFinishedInspectionLbl);
+        VerifyCanDeleteFinishedInspection(UserSecurityId());
+    end;
+
+    internal procedure VerifyCanDeleteFinishedInspection(UserSecurityIdToCheck: Guid)
+    begin
+        if not CanDeleteFinishedInspection(UserSecurityIdToCheck) then
+            Error(UserDoesNotHavePermissionToErr, GetUserName(UserSecurityIdToCheck), ActionDeleteFinishedInspectionLbl);
     end;
 
     /// <summary>
@@ -130,28 +94,12 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>True if the user can delete a finished inspection; otherwise, false.</returns>
     internal procedure CanDeleteFinishedInspection(): Boolean
     begin
-        if not CanDeleteTableData(Database::"Qlty. Inspection Header") then
-            exit(false);
-
-        exit(HasAdminSupervisorRole());
+        exit(CanDeleteFinishedInspection(UserSecurityId()));
     end;
 
-    /// <summary>
-    /// Verifies the current user can change item tracking on an inspection. Throws an error if not permitted.
-    /// </summary>
-    internal procedure VerifyCanChangeItemTracking()
+    internal procedure CanDeleteFinishedInspection(UserSecurityIdToCheck: Guid): Boolean
     begin
-        if not CanChangeItemTracking() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeItemTrackingLbl);
-    end;
-
-    /// <summary>
-    /// Checks if the current user can change the item tracking on an inspection.
-    /// </summary>
-    /// <returns>True if the user can change item tracking; otherwise, false.</returns>
-    internal procedure CanChangeItemTracking(): Boolean
-    begin
-        exit(CanModifyTableData(Database::"Qlty. Inspection Header"));
+        exit(HasAdminSupervisorRole(UserSecurityIdToCheck));
     end;
 
     /// <summary>
@@ -159,8 +107,13 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanChangeSourceQuantity()
     begin
-        if not CanChangeSourceQuantity() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeSourceQuantityLbl);
+        VerifyCanChangeSourceQuantity(UserSecurityId());
+    end;
+
+    internal procedure VerifyCanChangeSourceQuantity(UserSecurityIdToCheck: Guid)
+    begin
+        if not CanChangeSourceQuantity(UserSecurityIdToCheck) then
+            Error(UserDoesNotHavePermissionToErr, GetUserName(UserSecurityIdToCheck), ActionChangeSourceQuantityLbl);
     end;
 
     /// <summary>
@@ -169,59 +122,41 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>True if the user can change the source quantity; otherwise, false.</returns>
     internal procedure CanChangeSourceQuantity(): Boolean
     begin
-        if not CanModifyTableData(Database::"Qlty. Inspection Header") then
-            exit(false);
-
-        exit(HasAdminSupervisorRole());
+        exit(CanChangeSourceQuantity(UserSecurityId()));
     end;
 
-    /// <summary>
-    /// Verifies the current user can edit line comments. Throws an error if not permitted.
-    /// </summary>
-    internal procedure VerifyCanEditLineComments()
+    internal procedure CanChangeSourceQuantity(UserSecurityIdToCheck: Guid): Boolean
     begin
-        if not CanEditLineComments() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionEditLineCommentLbl);
+        exit(HasAdminSupervisorRole(UserSecurityIdToCheck));
     end;
 
-    /// <summary>
-    /// Checks if the current user can edit line notes and comments.
-    /// </summary>
-    /// <returns>True if the user can edit line comments; otherwise, false.</returns>
-    internal procedure CanEditLineComments(): Boolean
-    begin
-        exit(CanModifyTableData(Database::"Record Link"));
-    end;
-
-    /// <summary>
-    /// Determines whether the current user can assign an inspection to themselves and whether to prompt before assignment.
-    /// </summary>
-    /// <param name="ShouldPrompt">Set to true when a GUI is available and the user should be prompted; otherwise, false.</param>
-    /// <returns>True if the current user has write permission for inspection headers; otherwise, false.</returns>
-    internal procedure GetShouldAutoAssign(var ShouldPrompt: Boolean) ShouldAssign: Boolean
+    local procedure GetUserName(UserSecurityIdToCheck: Guid): Text
     var
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        User: Record User;
     begin
-        ShouldPrompt := GuiAllowed();
-        ShouldAssign := QltyInspectionHeader.WritePermission();
+        if UserSecurityIdToCheck = UserSecurityId() then
+            exit(UserId());
+
+        User.Get(UserSecurityIdToCheck);
+        exit(User."User Name");
     end;
 
     #region Verify Permissions
     /// <summary>
-    /// Determines whether the current user has the Quality Management administrator role or SUPER permissions.
+    /// Determines whether the specified user has the Quality Management administrator role or SUPER permissions.
     /// </summary>
     /// <returns>True if the user has administrator or SUPER permissions; otherwise, false.</returns>
-    local procedure HasAdminSupervisorRole() IsAssigned: Boolean
+    local procedure HasAdminSupervisorRole(UserSecurityIdToCheck: Guid) IsAssigned: Boolean
     var
         UserPermissions: Codeunit "User Permissions";
         CurrentExtensionModuleInfo: ModuleInfo;
     begin
-        IsAssigned := HasUserPermissionSetDirectlyAssigned(UserSecurityId(), AdminSupervisorRoleIDTxt);
+        IsAssigned := HasUserPermissionSetDirectlyAssigned(UserSecurityIdToCheck, AdminSupervisorRoleIDTxt);
         if not IsAssigned then
             if NavApp.GetCurrentModuleInfo(CurrentExtensionModuleInfo) then
-                IsAssigned := UserPermissions.HasUserPermissionSetAssigned(UserSecurityId(), CompanyName(), AdminSupervisorRoleIDTxt, 0, CurrentExtensionModuleInfo.Id());
+                IsAssigned := UserPermissions.HasUserPermissionSetAssigned(UserSecurityIdToCheck, CompanyName(), AdminSupervisorRoleIDTxt, 0, CurrentExtensionModuleInfo.Id());
         if not IsAssigned then
-            IsAssigned := UserPermissions.IsSuper(UserSecurityId());
+            IsAssigned := UserPermissions.IsSuper(UserSecurityIdToCheck);
     end;
 
     /// <summary>
@@ -241,46 +176,5 @@ codeunit 20406 "Qlty. Permission Mgmt."
         exit(not AccessControl.IsEmpty());
     end;
 
-    /// <summary>
-    /// Determines whether the current user has effective permission to insert data in a table.
-    /// </summary>
-    /// <param name="TableId">The ID of the table to check.</param>
-    /// <returns>True if the user has direct or indirect insert permission; otherwise, false.</returns>
-    local procedure CanInsertTableData(TableId: Integer): Boolean
-    var
-        TempExpandedPermission: Record "Expanded Permission" temporary;
-        UserPermissions: Codeunit "User Permissions";
-    begin
-        TempExpandedPermission := UserPermissions.GetEffectivePermission(TempExpandedPermission."Object Type"::"Table Data", TableId);
-        exit(TempExpandedPermission."Insert Permission" in [TempExpandedPermission."Insert Permission"::Yes, TempExpandedPermission."Insert Permission"::Indirect]);
-    end;
-
-    /// <summary>
-    /// Determines whether the current user has effective permission to modify data in a table.
-    /// </summary>
-    /// <param name="TableId">The ID of the table to check.</param>
-    /// <returns>True if the user has direct or indirect modify permission; otherwise, false.</returns>
-    local procedure CanModifyTableData(TableId: Integer): Boolean
-    var
-        TempExpandedPermission: Record "Expanded Permission" temporary;
-        UserPermissions: Codeunit "User Permissions";
-    begin
-        TempExpandedPermission := UserPermissions.GetEffectivePermission(TempExpandedPermission."Object Type"::"Table Data", TableId);
-        exit(TempExpandedPermission."Modify Permission" in [TempExpandedPermission."Modify Permission"::Yes, TempExpandedPermission."Modify Permission"::Indirect]);
-    end;
-
-    /// <summary>
-    /// Determines whether the current user has effective permission to delete data from a table.
-    /// </summary>
-    /// <param name="TableId">The ID of the table to check.</param>
-    /// <returns>True if the user has direct or indirect delete permission; otherwise, false.</returns>
-    local procedure CanDeleteTableData(TableId: Integer): Boolean
-    var
-        TempExpandedPermission: Record "Expanded Permission" temporary;
-        UserPermissions: Codeunit "User Permissions";
-    begin
-        TempExpandedPermission := UserPermissions.GetEffectivePermission(TempExpandedPermission."Object Type"::"Table Data", TableId);
-        exit(TempExpandedPermission."Delete Permission" in [TempExpandedPermission."Delete Permission"::Yes, TempExpandedPermission."Delete Permission"::Indirect]);
-    end;
     #endregion Verify Permissions
 }

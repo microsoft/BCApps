@@ -452,6 +452,27 @@ codeunit 5633 "FA Jnl.-Post Batch"
         SuppressCommit := NewSuppressCommit;
     end;
 
+    procedure MakeDerogatoryFAJnlLine(var NewFAJnlLine: Record "FA Journal Line"; FAJournalLine: Record "FA Journal Line"): Boolean
+    var
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+    begin
+        NewFAJnlLine.Copy(FAJournalLine);
+        exit(
+            DerogatoryPostingMgt.MakeDerogatoryJournalLine(
+                NewFAJnlLine, FAJournalLine, Enum::"Derogatory Posting Role"::Source));
+    end;
+
+    local procedure CreateAndPostDerogEntry(SourceFAJournalLine: Record "FA Journal Line")
+    var
+        FAJournalLine: Record "FA Journal Line";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+    begin
+        if not DerogatoryPostingMgt.PrepareAcquisitionCostAdjustment(FAJournalLine, SourceFAJournalLine) then
+            exit;
+
+        FAJnlPostLine.FAJnlPostLine(FAJournalLine, true);
+    end;
+
     local procedure PostLines()
     var
         IsHandled: Boolean;
@@ -491,6 +512,7 @@ codeunit 5633 "FA Jnl.-Post Batch"
             OnPostLinesOnBeforeFAJnlPostLine(FAJnlLine, FAJnlPostLine);
             FAJnlPostLine.FAJnlPostLine(FAJnlLine, false);
             OnPostLinesOnAfterFAJnlPostLine(FAJnlLine);
+            CreateAndPostDerogEntry(FAJnlLine);
             CreateCompressTable(FAJnlLine);
         until FAJnlLine.Next() = 0;
         PostCompressTable(FAJnlLine);
@@ -648,4 +670,3 @@ codeunit 5633 "FA Jnl.-Post Batch"
     begin
     end;
 }
-

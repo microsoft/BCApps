@@ -26,6 +26,7 @@ permissionset 11731 "CZ Core Pack - Edit CZL"
                   tabledata "Document Footer CZL" = IMD,
                   tabledata "EET Business Premises CZL" = IMD,
                   tabledata "EET Cash Register CZL" = IMD,
+                  tabledata "EET Cue CZL" = IMD,
                   tabledata "EET Entry CZL" = IMD,
                   tabledata "EET Entry Status Log CZL" = IMD,
                   tabledata "EET Service Setup CZL" = IMD,

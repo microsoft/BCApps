@@ -242,9 +242,7 @@ table 12472 "Posted FA Doc. Line"
                     FA.Validate("Responsible Employee", FALedgEntry."Employee No.");
                     FA.Modify(true);
                 end;
-                FALedgEntry.ModifyAll(Correction, true);
-                FALedgEntry.ModifyAll("Canceled from FA No.", PstdFADocLine."FA No.");
-                FALedgEntry.ModifyAll("FA No.", '');
+                FALedgEntry.ModifyAll(Correction, true, "Canceled from FA No.", PstdFADocLine."FA No.", "FA No.", '');
                 PstdFADocLine.Canceled := true;
                 PstdFADocLine.Modify();
                 LedgEntriesCanceled := true;
