@@ -125,27 +125,132 @@ function Read-ApplicationApiPackage {
     }
 }
 
+function Add-ApplicationApiReferenceTypes {
+    param(
+        [System.Text.Json.JsonElement] $Element,
+        [string] $Namespace,
+        [string] $OwnerId,
+        [hashtable] $ReferenceTypes
+    )
+
+    $kinds = @{
+        Tables = 'Record'; Codeunits = 'Codeunit'; Pages = 'Page'; Reports = 'Report'
+        XmlPorts = 'XmlPort'; Queries = 'Query'; EnumTypes = 'Enum'; Interfaces = 'Interface'
+    }
+    foreach ($property in $Element.EnumerateObject()) {
+        if ($property.Name -ceq 'Namespaces') {
+            foreach ($child in $property.Value.EnumerateArray()) {
+                $name = $child.GetProperty('Name').GetString()
+                $childNamespace = if ($Namespace) { "$Namespace.$name" } else { $name }
+                Add-ApplicationApiReferenceTypes -Element $child -Namespace $childNamespace -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes
+            }
+        }
+        elseif ($kinds.ContainsKey($property.Name)) {
+            foreach ($symbol in $property.Value.EnumerateArray()) {
+                $id = [System.Text.Json.JsonElement]::new()
+                if (-not $symbol.TryGetProperty('Id', [ref]$id)) { continue }
+                $properties = [System.Text.Json.JsonElement]::new()
+                if ($symbol.TryGetProperty('Properties', [ref]$properties)) {
+                    $hidden = @($properties.EnumerateArray() | Where-Object {
+                        ($_.GetProperty('Name').GetString() -ceq 'Access' -and $_.GetProperty('Value').GetString() -ieq 'Internal') -or
+                        ($_.GetProperty('Name').GetString() -ceq 'ObsoleteState' -and $_.GetProperty('Value').GetString() -iin @('Moved', 'Removed'))
+                    })
+                    if ($hidden.Count -gt 0) { continue }
+                }
+                $key = "${OwnerId}:$($kinds[$property.Name]):$($id.GetInt32())"
+                $aggregateKey = "$($kinds[$property.Name]):$($id.GetInt32())"
+                if ($ReferenceTypes.ContainsKey($key)) {
+                    $ReferenceTypes[$key] = $null
+                    $ReferenceTypes[$aggregateKey] = ''
+                    continue
+                }
+                if ($ReferenceTypes.ContainsKey($aggregateKey)) { $ReferenceTypes[$aggregateKey] = '' }
+                else { $ReferenceTypes[$aggregateKey] = $OwnerId }
+                $ReferenceTypes[$key] = @{
+                    Name = $symbol.GetProperty('Name').GetString()
+                    Namespace = $Namespace
+                    Identity = "$($property.Name):$($id.GetInt32()):${Namespace}:$($symbol.GetProperty('Name').GetString())"
+                }
+            }
+        }
+    }
+}
+
+function Get-ApplicationApiReferenceIdentity {
+    param(
+        [System.Text.Json.JsonElement] $Type,
+        [string] $OwnerId,
+        [hashtable] $ReferenceTypes
+    )
+
+    $name = [System.Text.Json.JsonElement]::new()
+    $subtype = [System.Text.Json.JsonElement]::new()
+    $id = [System.Text.Json.JsonElement]::new()
+    if (-not $Type.TryGetProperty('Name', [ref]$name) -or -not $Type.TryGetProperty('Subtype', [ref]$subtype) -or
+        -not $subtype.TryGetProperty('Id', [ref]$id)) { return '' }
+    $module = [System.Text.Json.JsonElement]::new()
+    $moduleId = if ($subtype.TryGetProperty('ModuleId', [ref]$module)) { $module.GetString() } else { $OwnerId }
+    if ($ReferenceTypes["$($name.GetString()):$($id.GetInt32())"] -ne $moduleId) { return '' }
+    $target = $ReferenceTypes["${moduleId}:$($name.GetString()):$($id.GetInt32())"]
+    if (-not $target -or -not $subtype.TryGetProperty('Name', [ref]$name) -or $name.GetString() -cne $target.Name) { return '' }
+    $namespace = [System.Text.Json.JsonElement]::new()
+    if ($subtype.TryGetProperty('Namespace', [ref]$namespace) -and $namespace.GetString() -cne $target.Namespace) { return '' }
+    return $target.Identity
+}
+
 function Write-ApplicationApiContract {
     param(
         [System.Text.Json.JsonElement] $Element,
         [System.Text.Json.Utf8JsonWriter] $Writer,
-        [string[]] $IgnoredProperties = @()
+        [string[]] $IgnoredProperties = @(),
+        [string] $OwnerId,
+        [hashtable] $ReferenceTypes,
+        [string] $ReferenceIdentity
     )
 
     switch ($Element.ValueKind) {
         Object {
             $Writer.WriteStartObject()
-            foreach ($property in @($Element.EnumerateObject() | Sort-Object Name -CaseSensitive)) {
+            $properties = @($Element.EnumerateObject())
+            if ($ReferenceIdentity -and -not @($properties | Where-Object Name -CEQ 'ModuleId').Count) {
+                $properties += @{ Name = 'ModuleId' }
+            }
+            foreach ($property in @($properties | Sort-Object Name -CaseSensitive)) {
                 if ($property.Name -ceq 'ReferenceSourceFileName' -or $property.Name -cin $IgnoredProperties) { continue }
+                if ($property.Name -ceq 'Variables') {
+                    # Private globals are implementation details; retain unfamiliar visibility metadata.
+                    $variables = @($property.Value.EnumerateArray() | Where-Object {
+                        $protected = [System.Text.Json.JsonElement]::new()
+                        ($_.TryGetProperty('Protected', [ref]$protected) -and $protected.GetBoolean()) -or
+                        @($_.EnumerateObject() | Where-Object {
+                            $_.Name -cnotin @('Name', 'TypeDefinition', 'Protected', 'Attributes', 'ArrayDimensions', 'OptionMembers', 'Type')
+                        }).Count -gt 0
+                    })
+                    if ($variables.Count -eq 0) { continue }
+                    $Writer.WritePropertyName($property.Name)
+                    $Writer.WriteStartArray()
+                    foreach ($variable in $variables) {
+                        Write-ApplicationApiContract -Element $variable -Writer $Writer -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes
+                    }
+                    $Writer.WriteEndArray()
+                    continue
+                }
                 $Writer.WritePropertyName($property.Name)
-                Write-ApplicationApiContract -Element $property.Value -Writer $Writer
+                if ($property.Name -ceq 'ModuleId' -and $ReferenceIdentity) {
+                    $Writer.WriteStringValue($ReferenceIdentity)
+                    continue
+                }
+                $reference = if ($property.Name -ceq 'Subtype') {
+                    Get-ApplicationApiReferenceIdentity -Type $Element -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes
+                } else { '' }
+                Write-ApplicationApiContract -Element $property.Value -Writer $Writer -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes -ReferenceIdentity $reference
             }
             $Writer.WriteEndObject()
         }
         Array {
             $Writer.WriteStartArray()
             foreach ($item in $Element.EnumerateArray()) {
-                Write-ApplicationApiContract -Element $item -Writer $Writer
+                Write-ApplicationApiContract -Element $item -Writer $Writer -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes
             }
             $Writer.WriteEndArray()
         }
@@ -156,13 +261,15 @@ function Write-ApplicationApiContract {
 function Get-ApplicationApiContractJson {
     param(
         [System.Text.Json.JsonElement] $Element,
-        [string[]] $IgnoredProperties = @()
+        [string[]] $IgnoredProperties = @(),
+        [string] $OwnerId,
+        [hashtable] $ReferenceTypes
     )
 
     $buffer = [System.IO.MemoryStream]::new()
     $writer = [System.Text.Json.Utf8JsonWriter]::new($buffer)
     try {
-        Write-ApplicationApiContract -Element $Element -Writer $writer -IgnoredProperties $IgnoredProperties
+        Write-ApplicationApiContract -Element $Element -Writer $writer -IgnoredProperties $IgnoredProperties -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes
         $writer.Flush()
         [System.Text.Encoding]::UTF8.GetString($buffer.ToArray())
     }
@@ -172,20 +279,24 @@ function Get-ApplicationApiContractJson {
     }
 }
 
-function Get-ApplicationApiContractHash {
+function Add-ApplicationApiContract {
     param(
         [System.Text.Json.JsonElement] $Element,
-        [string[]] $IgnoredProperties = @()
+        [object] $Target,
+        [string] $OwnerId,
+        [hashtable] $Snapshot,
+        [string[]] $IgnoredProperties = @(),
+        [string] $Key
     )
 
-    $contract = Get-ApplicationApiContractJson -Element $Element -IgnoredProperties $IgnoredProperties
-    $hash = [System.Security.Cryptography.SHA256]::Create()
-    try {
-        [System.Convert]::ToBase64String($hash.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($contract)))
-    }
-    finally {
-        $hash.Dispose()
-    }
+    # Resolve references only after all exposed packages have been indexed.
+    $Snapshot.PendingContracts.Add(@{
+        Element = $Element.Clone()
+        Target = $Target
+        OwnerId = $OwnerId
+        IgnoredProperties = $IgnoredProperties
+        Key = $Key
+    })
 }
 
 function Add-ApplicationApiPageMembers {
@@ -227,7 +338,7 @@ function Add-ApplicationApiPageMembers {
                 $type.TryGetProperty('Subtype', [ref]$subtype) -and $subtype.TryGetProperty('Id', [ref]$target)) {
                 $targetId = $target.GetInt32()
             }
-            $Snapshot[$Collection].Add([PSCustomObject]@{
+            $member = [PSCustomObject]@{
                 Name = $name
                 IsPart = $isPart
                 MemberKind = $memberKind
@@ -235,8 +346,10 @@ function Add-ApplicationApiPageMembers {
                 OwnerId = $OwnerId
                 PageReference = $PageReference
                 TargetPageId = $targetId
-                ContractHash = Get-ApplicationApiContractHash -Element $control
-            })
+                ContractHash = ''
+            }
+            Add-ApplicationApiContract -Element $control -Target $member -OwnerId $OwnerId -Snapshot $Snapshot
+            $Snapshot[$Collection].Add($member)
         }
         foreach ($nestedProperty in @('Controls', 'Actions')) {
             if ($nestedProperty -eq 'Actions' -and $Collection -ne 'PageActions') { continue }
@@ -278,15 +391,17 @@ function Add-ApplicationApiMethods {
         }
         $isLocal = $modifier -ieq 'Local' -or ($method.TryGetProperty('IsLocal', [ref]$access) -and $access.GetBoolean())
         if ($isLocal -and -not $isEvent) { continue }
-        $Snapshot.Methods.Add([PSCustomObject]@{
+        $member = [PSCustomObject]@{
             Name = $name
             MemberKind = 'Method'
             OwnerKey = $OwnerKey
             OwnerId = $OwnerId
             HostKind = $HostKind
             HostReference = $HostReference
-            ContractHash = Get-ApplicationApiContractHash -Element $method
-        })
+            ContractHash = ''
+        }
+        Add-ApplicationApiContract -Element $method -Target $member -OwnerId $OwnerId -Snapshot $Snapshot
+        $Snapshot.Methods.Add($member)
     }
 }
 
@@ -408,11 +523,6 @@ function Add-ApplicationApiSymbols {
                     ControlAddIns { @('PublicKeyToken') }
                     default { @() }
                 }
-                # Tables supply host identity only; schema validation remains with AppSourceCop.
-                $fingerprint = if ($isSchema) { '' } else { Get-ApplicationApiContractHash -Element $symbol -IgnoredProperties @($ignoredProperties) }
-                if ($IncludeContracts -and $selected -and -not $isSchema) {
-                    $Snapshot.Contracts[$key] = Get-ApplicationApiContractJson -Element $symbol -IgnoredProperties @($ignoredProperties)
-                }
                 $customizationTarget = [System.Text.Json.JsonElement]::new()
                 $hasCustomizationTarget = $property.Name -ceq 'PageCustomizations' -and $symbol.TryGetProperty('TargetObject', [ref]$customizationTarget)
                 $record = [PSCustomObject]@{
@@ -423,8 +533,14 @@ function Add-ApplicationApiSymbols {
                     Namespace = $Namespace
                     OwnerId = $Package.Id
                     OwnerName = $Package.Name
-                    ContractHash = $fingerprint
+                    ContractHash = ''
                     TargetObject = if ($hasCustomizationTarget) { $customizationTarget.GetString() } else { '' }
+                }
+                # Tables supply host identity only; schema validation remains with AppSourceCop.
+                if (-not $isSchema) {
+                    $contractKey = if ($IncludeContracts -and $selected) { $key } else { '' }
+                    Add-ApplicationApiContract -Element $symbol -Target $record -OwnerId $Package.Id -Snapshot $Snapshot `
+                        -IgnoredProperties @($ignoredProperties) -Key $contractKey
                 }
                 if ($inspectMethods) { $Snapshot.MethodObjects[$key] = $record }
                 if (-not $isSchema) { $Snapshot.Symbols[$key] = $record }
@@ -497,6 +613,8 @@ function Get-ApplicationApiSnapshot {
         Packages = @{}
         Symbols = @{}
         Contracts = @{}
+        ReferenceTypes = @{}
+        PendingContracts = [System.Collections.Generic.List[object]]::new()
         PageParts = [System.Collections.Generic.List[object]]::new()
         PageActions = [System.Collections.Generic.List[object]]::new()
         PageFields = [System.Collections.Generic.List[object]]::new()
@@ -530,6 +648,7 @@ function Get-ApplicationApiSnapshot {
                     throw "Manifest/symbol identity mismatch for '$attribute' in '$($package.Path)'."
                 }
             }
+            Add-ApplicationApiReferenceTypes -Element $symbols -Namespace '' -OwnerId $package.Id -ReferenceTypes $snapshot.ReferenceTypes
             Add-ApplicationApiSymbols -Element $symbols -Namespace '' -Package $package -Snapshot $snapshot `
                 -Names $names -SymbolKeys $selectedKeys -PartNames $PartNames -ActionNames $ActionNames -FieldNames $FieldNames -MethodNames $MethodNames -CueGroupNames $CueGroupNames -ControlNames $ControlNames -IncludeContracts:$IncludeContracts
         }
@@ -551,6 +670,20 @@ function Get-ApplicationApiSnapshot {
             $pending.Enqueue($candidates[0])
         }
     }
+    $hash = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        foreach ($pendingContract in $snapshot.PendingContracts) {
+            $contract = Get-ApplicationApiContractJson -Element $pendingContract.Element -IgnoredProperties $pendingContract.IgnoredProperties `
+                -OwnerId $pendingContract.OwnerId -ReferenceTypes $snapshot.ReferenceTypes
+            $pendingContract.Target.ContractHash = [System.Convert]::ToBase64String($hash.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($contract)))
+            if ($pendingContract.Key) { $snapshot.Contracts[$pendingContract.Key] = $contract }
+        }
+    }
+    finally {
+        $hash.Dispose()
+    }
+    $snapshot.Remove('PendingContracts')
+    $snapshot.Remove('ReferenceTypes')
     return $snapshot
 }
 
@@ -559,8 +692,9 @@ function Get-ApplicationApiSnapshot {
     Compares aggregate non-table symbol contracts without replacing AppSourceCop.
 .DESCRIPTION
     Unchanged means symbol equivalence, not full compatibility. Source file paths and
-    JSON property order and compiler-generated interface IDs/control-add-in tokens are
-    ignored; all remaining object metadata is compared strictly.
+    JSON property order, private variables, and compiler-generated interface IDs/control-add-in
+    tokens are ignored. Type references resolving to the same exposed aggregate type are
+    compared independently of their owning module; other metadata is compared strictly.
     Changed contracts require review, even for potentially compatible additions.
     Table/field schema and move metadata must still be validated by AppSourceCop.
 .EXAMPLE

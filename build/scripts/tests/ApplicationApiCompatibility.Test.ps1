@@ -476,6 +476,104 @@ Describe 'Application API compatibility prototype' {
             { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
         }
 
+        Context 'Resolved type references and private variables' {
+            BeforeEach {
+                $recordType = @{ Id = 15; Name = 'G/L Account' }
+                $enumType = @{ Id = 500; Name = 'G/L Account Type' }
+                $page.Methods[0].Parameters[0].TypeDefinition = @{
+                    Name = 'Record'; Subtype = @{ Id = $recordType.Id; Name = $recordType.Name }
+                }
+                $page.Controls = @(@{
+                    Name = 'AccountType'; Kind = 'Field'
+                    TypeDefinition = @{ Name = 'Enum'; Subtype = @{ Id = $enumType.Id; Name = $enumType.Name } }
+                })
+                $page.Variables = @(@{ Name = 'NameIndent'; TypeDefinition = @{ Name = 'Integer' } })
+                $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections @{
+                    Namespaces = @(@{
+                        Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page)
+                        Tables = @($recordType); EnumTypes = @($enumType)
+                    })
+                }
+                $page.Variables = @()
+                $page.Methods[0].Parameters[0].TypeDefinition.Subtype.ModuleId = $baseId
+                $page.Controls[0].TypeDefinition.Subtype.ModuleId = $baseId
+                $script:currentBase = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections @{
+                    Namespaces = @(@{
+                        Name = 'Microsoft.Intercompany.DataExchange'; Tables = @($recordType); EnumTypes = @($enumType)
+                    })
+                }
+                Write-ApiDestination
+            }
+
+            It 'accepts implicit-to-explicit references and private-variable removal on a moved page' {
+                $gate = New-ApiGateLayout
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $state.Status | Should -Be 'Passed'
+                $state.AcceptedMoves[0].Accepted | Should -BeTrue
+                $state.AcceptedMoves[0].ContractDifferences.Count | Should -Be 0
+            }
+
+            It 'resolves a reference when its target also moves to another exposed aggregate member' {
+                $page.Controls[0].TypeDefinition.Subtype.ModuleId = $destinationId
+                $script:currentBase = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections @{
+                    Namespaces = @(@{ Name = 'Microsoft.Intercompany.DataExchange'; Tables = @($recordType) })
+                }
+                Write-ApiDestination -ExtraCollections @{
+                    Namespaces = @(@{ Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page); EnumTypes = @($enumType) })
+                }
+                $gate = New-ApiGateLayout
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+            }
+
+            It 'rejects normalization when the reference has a <Failure>' -TestCases @(
+                @{ Failure = 'different ID' },
+                @{ Failure = 'different name' },
+                @{ Failure = 'different namespace' },
+                @{ Failure = 'different kind' },
+                @{ Failure = 'different external module' },
+                @{ Failure = 'wrong aggregate module' },
+                @{ Failure = 'missing target' },
+                @{ Failure = 'ambiguous target' }
+            ) {
+                param($Failure)
+                $type = $page.Methods[0].Parameters[0].TypeDefinition
+                switch ($Failure) {
+                    'different ID' { $type.Subtype.Id = 16 }
+                    'different name' { $type.Subtype.Name = 'Other Account' }
+                    'different kind' { $type.Name = 'Codeunit' }
+                    'different external module' { $type.Subtype.ModuleId = [guid]::NewGuid().ToString() }
+                    'wrong aggregate module' { $type.Subtype.ModuleId = $destinationId }
+                    'different namespace' {
+                        $script:currentBase = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections @{
+                            Namespaces = @(@{ Name = 'Microsoft.Other'; Tables = @($recordType); EnumTypes = @($enumType) })
+                        }
+                    }
+                    'missing target' {
+                        $script:currentBase = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections @{
+                            Namespaces = @(@{ Name = 'Microsoft.Intercompany.DataExchange'; EnumTypes = @($enumType) })
+                        }
+                    }
+                }
+                $extra = if ($Failure -eq 'ambiguous target') { @{ Tables = @($recordType) } } else { @{} }
+                Write-ApiDestination -ExtraCollections $extra
+                $gate = New-ApiGateLayout
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+                Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0029'
+            }
+
+            It 'keeps variable metadata with unknown visibility markers subject to review' {
+                $page.Variables = @(@{
+                    Name = 'UnknownScope'; TypeDefinition = @{ Name = 'Integer' }; FutureVisibility = 'Protected'
+                })
+                Write-ApiDestination
+                $gate = New-ApiGateLayout
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+            }
+        }
+
         It 'reconciles an unchanged <Kind> move using its symbol collection' -TestCases @(
             @{ Kind = 'PageExtension'; Collection = 'PageExtensions'; RuleId = 'AS0029' },
             @{ Kind = 'Report'; Collection = 'Reports'; RuleId = 'AS0088' },
@@ -516,7 +614,7 @@ Describe 'Application API compatibility prototype' {
             $symbol = @{
                 Id = 511
                 Name = 'Complete IC Inbox Action'
-                Variables = @(@{ Name = 'TempGenJnlLine'; TypeDefinition = @{ Name = 'Record'; Subtype = @{ Id = 81; Name = 'Gen. Journal Line' }; Temporary = $true } })
+                Variables = @(@{ Name = 'TempGenJnlLine'; Protected = $true; TypeDefinition = @{ Name = 'Record'; Subtype = @{ Id = 81; Name = 'Gen. Journal Line' }; Temporary = $true } })
             }
             $collections = @{ $Collection = @($symbol) }
             $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $collections
@@ -539,18 +637,22 @@ Describe 'Application API compatibility prototype' {
 
         It 'rejects protected-variable diagnostics when a moved report variable is <Failure>' -TestCases @(
             @{ Failure = 'removed' },
-            @{ Failure = 'changed' }
+            @{ Failure = 'changed' },
+            @{ Failure = 'made private' }
         ) {
             param($Failure)
             $symbol = @{
                 Id = 511
                 Name = 'Complete IC Inbox Action'
-                Variables = @(@{ Name = 'TempGenJnlLine'; TypeDefinition = @{ Name = 'Record'; Subtype = @{ Id = 81; Name = 'Gen. Journal Line' }; Temporary = $true } })
+                Variables = @(@{ Name = 'TempGenJnlLine'; Protected = $true; TypeDefinition = @{ Name = 'Record'; Subtype = @{ Id = 81; Name = 'Gen. Journal Line' }; Temporary = $true } })
             }
             $collections = @{ Reports = @($symbol) }
             $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $collections
-            if ($Failure -eq 'removed') { $symbol.Variables = @() }
-            else { $symbol.Variables[0].TypeDefinition.Temporary = $false }
+            switch ($Failure) {
+                removed { $symbol.Variables = @() }
+                changed { $symbol.Variables[0].TypeDefinition.Temporary = $false }
+                'made private' { $symbol.Variables[0].Protected = $false }
+            }
             $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections $collections
             $gate = New-ApiGateLayout -RuleId AS0088 -Kind Report -Id $symbol.Id -Name $symbol.Name
             Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0106 -Message "The variable 'TempGenJnlLine' of type 'Record ""Gen. Journal Line"" temporary' defined in Report 'Complete IC Inbox Action' was found in the previous version, but is missing in the current extension."
