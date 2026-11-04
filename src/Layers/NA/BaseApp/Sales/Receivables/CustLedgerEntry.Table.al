@@ -1836,6 +1836,7 @@ table 21 "Cust. Ledger Entry"
     internal procedure GetCreditMemoPartAmountByVAT(CreditMemoDocumentNo: Code[20]; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; SettledAmount: Decimal; var CreditMemoVATBusPostingGroup: Code[20]; var CreditMemoVATProdPostingGroup: Code[20]) CreditMemoPartAmount: Decimal
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        VATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]];
         CreditMemoAmount: Decimal;
         ExactVATGroupFound: Boolean;
     begin
@@ -1847,6 +1848,9 @@ table 21 "Cust. Ledger Entry"
         if SalesCrMemoLine.FindSet() then
             repeat
                 CreditMemoAmount += SalesCrMemoLine."Amount Including VAT";
+                AddCreditMemoVATGroupAmount(
+                  VATGroupAmounts, SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group",
+                  SalesCrMemoLine."Amount Including VAT");
                 if (SalesCrMemoLine."VAT Bus. Posting Group" = VATBusPostingGroup) and
                    (SalesCrMemoLine."VAT Prod. Posting Group" = VATProdPostingGroup)
                   then begin
@@ -1865,7 +1869,7 @@ table 21 "Cust. Ledger Entry"
         if not ExactVATGroupFound then
             CreditMemoPartAmount :=
                             GetEquivalentCreditMemoPartAmountByVAT(
-                                CreditMemoDocumentNo, VATBusPostingGroup, VATProdPostingGroup,
+                                VATGroupAmounts, VATBusPostingGroup, VATProdPostingGroup,
                                 CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup);
 
         CreditMemoPartAmount := CreditMemoPartAmount * Abs(SettledAmount) / Abs(CreditMemoAmount);
@@ -1873,25 +1877,41 @@ table 21 "Cust. Ledger Entry"
             CreditMemoPartAmount := -CreditMemoPartAmount;
     end;
 
-    local procedure GetEquivalentCreditMemoPartAmountByVAT(CreditMemoDocumentNo: Code[20]; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; var CreditMemoVATBusPostingGroup: Code[20]; var CreditMemoVATProdPostingGroup: Code[20]) CreditMemoPartAmount: Decimal
+    local procedure AddCreditMemoVATGroupAmount(var VATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]]; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; LineAmount: Decimal)
+    var
+        VATProdGroupAmounts: Dictionary of [Code[20], Decimal];
+        GroupAmount: Decimal;
+    begin
+        if not VATGroupAmounts.Get(VATBusPostingGroup, VATProdGroupAmounts) then
+            VATGroupAmounts.Add(VATBusPostingGroup, VATProdGroupAmounts);
+
+        if VATProdGroupAmounts.Get(VATProdPostingGroup, GroupAmount) then
+            VATProdGroupAmounts.Set(VATProdPostingGroup, GroupAmount + LineAmount)
+        else
+            VATProdGroupAmounts.Add(VATProdPostingGroup, LineAmount);
+    end;
+
+    local procedure GetEquivalentCreditMemoPartAmountByVAT(VATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]]; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; var CreditMemoVATBusPostingGroup: Code[20]; var CreditMemoVATProdPostingGroup: Code[20]) CreditMemoPartAmount: Decimal
     var
         InvoiceVATPostingSetup: Record "VAT Posting Setup";
         CreditMemoVATPostingSetup: Record "VAT Posting Setup";
-        SalesCrMemoLine: Record "Sales Cr.Memo Line";
-        TempDocumentVATPostingSetup: Record "VAT Posting Setup" temporary;
         TempEquivalentVATPostingSetup: Record "VAT Posting Setup" temporary;
+        VATProdGroupAmounts: Dictionary of [Code[20], Decimal];
+        DocumentVATBusPostingGroup: Code[20];
+        DocumentVATProdPostingGroup: Code[20];
     begin
         InvoiceVATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup);
 
-        InsertTempVATPostingSetupFromCreditMemo(TempDocumentVATPostingSetup, CreditMemoDocumentNo);
-        if TempDocumentVATPostingSetup.FindSet() then
-            repeat
+        foreach DocumentVATBusPostingGroup in VATGroupAmounts.Keys() do begin
+            VATProdGroupAmounts := VATGroupAmounts.Get(DocumentVATBusPostingGroup);
+            foreach DocumentVATProdPostingGroup in VATProdGroupAmounts.Keys() do begin
                 CreditMemoVATPostingSetup.Get(
-                  TempDocumentVATPostingSetup."VAT Bus. Posting Group", TempDocumentVATPostingSetup."VAT Prod. Posting Group");
+                  DocumentVATBusPostingGroup, DocumentVATProdPostingGroup);
                 if AreEquivalentSalesCashBasisVATPostingSetups(InvoiceVATPostingSetup, CreditMemoVATPostingSetup) then
                     InsertTempVATPostingSetup(
-                      TempEquivalentVATPostingSetup, TempDocumentVATPostingSetup."VAT Bus. Posting Group", TempDocumentVATPostingSetup."VAT Prod. Posting Group");
-            until TempDocumentVATPostingSetup.Next() = 0;
+                      TempEquivalentVATPostingSetup, DocumentVATBusPostingGroup, DocumentVATProdPostingGroup);
+            end;
+        end;
 
         if TempEquivalentVATPostingSetup.Count() <> 1 then
             exit;
@@ -1899,15 +1919,8 @@ table 21 "Cust. Ledger Entry"
         CreditMemoVATBusPostingGroup := TempEquivalentVATPostingSetup."VAT Bus. Posting Group";
         CreditMemoVATProdPostingGroup := TempEquivalentVATPostingSetup."VAT Prod. Posting Group";
 
-        SalesCrMemoLine.SetRange("Document No.", CreditMemoDocumentNo);
-        SalesCrMemoLine.SetFilter(Type, '<>%1', SalesCrMemoLine.Type::" ");
-        SalesCrMemoLine.SetLoadFields("Amount Including VAT");
-        SalesCrMemoLine.SetRange("VAT Bus. Posting Group", TempEquivalentVATPostingSetup."VAT Bus. Posting Group");
-        SalesCrMemoLine.SetRange("VAT Prod. Posting Group", TempEquivalentVATPostingSetup."VAT Prod. Posting Group");
-        if SalesCrMemoLine.FindSet() then
-            repeat
-                CreditMemoPartAmount += SalesCrMemoLine."Amount Including VAT";
-            until SalesCrMemoLine.Next() = 0;
+        VATProdGroupAmounts := VATGroupAmounts.Get(CreditMemoVATBusPostingGroup);
+        exit(VATProdGroupAmounts.Get(CreditMemoVATProdPostingGroup));
     end;
 
     internal procedure GetInvoiceVATPostingGroupForCreditMemoVATGroup(CreditMemoDocumentNo: Code[20]; CreditMemoVATBusPostingGroup: Code[20]; CreditMemoVATProdPostingGroup: Code[20]; var InvoiceVATBusPostingGroup: Code[20]; var InvoiceVATProdPostingGroup: Code[20]): Boolean

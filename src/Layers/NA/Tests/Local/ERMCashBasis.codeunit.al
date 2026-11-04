@@ -1425,6 +1425,43 @@
         Assert.AreEqual(SettledAmount, CreditMemoPartAmount, 'The nonzero VAT group must retain proportional allocation');
     end;
 
+    [Test]
+    procedure EquivalentVATGroupsWithOffsettingLinesRemainAmbiguous()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        InvoiceVATPostingSetup: Record "VAT Posting Setup";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoDocumentNo: Code[20];
+        CreditMemoVATBusPostingGroup: Code[20];
+        CreditMemoVATProdPostingGroup: Code[20];
+        CreditMemoPartAmount: Decimal;
+    begin
+        // [SCENARIO 648925] An equivalent VAT group with a zero total still makes the group mapping ambiguous.
+        Initialize();
+
+        // [GIVEN] Two equivalent credit memo VAT groups with totals of zero and 232
+        CreditMemoDocumentNo := CreateCrMemoWithOffsettingVATLines(VATPostingSetup, 116);
+
+        // [GIVEN] An invoice VAT group equivalent to both credit memo groups but with a different code
+        InvoiceVATPostingSetup."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(InvoiceVATPostingSetup, 16);
+        InvoiceVATPostingSetup.Validate("Sales VAT Account", VATPostingSetup[1]."Sales VAT Account");
+        InvoiceVATPostingSetup.Validate("Sales VAT Unreal. Account", VATPostingSetup[1]."Sales VAT Unreal. Account");
+        InvoiceVATPostingSetup.Modify(true);
+
+        // [WHEN] Calculate the invoice VAT group's share of a settlement of 116
+        CreditMemoPartAmount :=
+          CustLedgerEntry.GetCreditMemoPartAmountByVAT(
+            CreditMemoDocumentNo, InvoiceVATPostingSetup."VAT Bus. Posting Group",
+            InvoiceVATPostingSetup."VAT Prod. Posting Group", 116,
+            CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup);
+
+        // [THEN] No amount or VAT group is selected because both equivalent combinations must be considered
+        Assert.AreEqual(0, CreditMemoPartAmount, 'Ambiguous equivalent VAT groups must not allocate an amount');
+        Assert.AreEqual('', CreditMemoVATBusPostingGroup, 'An ambiguous mapping must not select a VAT business posting group');
+        Assert.AreEqual('', CreditMemoVATProdPostingGroup, 'An ambiguous mapping must not select a VAT product posting group');
+    end;
+
     local procedure CreateCrMemoWithOffsettingVATLines(var VATPostingSetup: array[2] of Record "VAT Posting Setup"; LineAmount: Decimal): Code[20]
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
