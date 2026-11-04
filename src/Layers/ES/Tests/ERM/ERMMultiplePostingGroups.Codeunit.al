@@ -552,7 +552,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         Customer.Validate("Currency Code", CurrencyCode);
         Customer.Modify();
         CustomerPostingGroup.Get(Customer."Customer Posting Group");
-        LibrarySales.CreateSalesDocumentWithItem(SalesHeader, SalesLine, "Sales Document Type"::Invoice, Customer."No.", '', 1, '', 0D);
+        LibrarySales.CreateFCYSalesDocumentWithItem(
+            SalesHeader, SalesLine, "Sales Document Type"::Invoice, Customer."No.", '', 1, '', 0D, CurrencyCode);
         LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup2);
         LibrarySales.CreateAltCustomerPostingGroup(Customer."Customer Posting Group", CustomerPostingGroup2.Code);
         SalesHeader.Validate("Customer Posting Group", CustomerPostingGroup2.Code);
@@ -733,7 +734,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         Vendor.Validate("Vendor Posting Group", VendorPostingGroup.Code);
         Vendor.Validate("Currency Code", CurrencyCode);
         Vendor.Modify();
-        LibraryPurchase.CreatePurchaseDocumentWithItem(PurchaseHeader, PurchaseLine, "Purchase Document Type"::Invoice, Vendor."No.", '', 1, '', 0D);
+        LibraryPurchase.CreateFCYPurchaseDocumentWithItem(
+            PurchaseHeader, PurchaseLine, "Purchase Document Type"::Invoice, Vendor."No.", '', 1, '', 0D, CurrencyCode);
         LibraryPurchase.CreateVendorPostingGroup(VendorPostingGroup2);
         LibraryPurchase.CreateAltVendorPostingGroup(
             CopyStr(VendorPostingGroup.Code, 1, 10), CopyStr(VendorPostingGroup2.Code, 1, 10));
