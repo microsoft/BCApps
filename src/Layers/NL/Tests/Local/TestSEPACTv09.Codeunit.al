@@ -1591,6 +1591,7 @@ codeunit 144103 "Test SEPA CT v09"
     procedure LegacyPriorityEventForcesNormalPriority()
     var
         BankAccount: Record "Bank Account";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         VendorBankAccount: Record "Vendor Bank Account";
         TestSEPACTv09: Codeunit "Test SEPA CT v09";
         ExportProtocolCode: Code[20];
@@ -1600,6 +1601,8 @@ codeunit 144103 "Test SEPA CT v09"
     begin
         // [SCENARIO] A legacy subscriber forces NORMAL priority and initializes InstrPrty to NORM.
         Initialize();
+        UpdateGLSetupCurrency(GeneralLedgerSetup."Local Currency"::Euro, '', 'EUR');
+        UpdateLocalInstrPrtyInGenLedgSetup(true);
         ExportProtocolCode := FindXMLPortEuroSEPAExportProtocol();
         SetupForExport(BankAccount, VendorBankAccount, ExportProtocolCode, TotalAmount, NoOfDocuments);
         BindSubscription(TestSEPACTv09);
