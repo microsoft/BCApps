@@ -1092,8 +1092,8 @@ codeunit 139175 "CRM Sales Order Integr. Test"
     [Scope('OnPrem')]
     procedure CRMSalesOrdersResetLineNumbersForEachOrder()
     var
-        CRMSalesorder: Record "CRM Salesorder";
-        CRMSalesorderdetail: Record "CRM Salesorderdetail";
+        CRMSalesorder: array[2] of Record "CRM Salesorder";
+        CRMSalesorderdetail: array[2] of Record "CRM Salesorderdetail";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         StandardSalesLine: Record "Standard Sales Line";
@@ -1102,25 +1102,26 @@ codeunit 139175 "CRM Sales Order Integr. Test"
         // [SCENARIO 654747] Reusing the importer does not carry line numbers over to another document.
         Initialize(false);
 
-        // [GIVEN] An order with two recurring lines imported by a codeunit instance.
-        CreateCRMSalesorderInLCY(CRMSalesorder);
-        LibraryCRMIntegration.CreateCRMSalesOrderLine(CRMSalesorder, CRMSalesorderdetail);
-        CreateAutomaticRecurringSalesLines(CRMSalesorder, StandardSalesLine, 2);
-        CRMSalesOrderToSalesOrder.CreateInNAV(CRMSalesorder, SalesHeader);
+        // [GIVEN] Two orders for different customers, with recurring lines only for the first customer.
+        CreateCRMSalesorderInLCY(CRMSalesorder[1]);
+        LibraryCRMIntegration.CreateCRMSalesOrderLine(CRMSalesorder[1], CRMSalesorderdetail[1]);
+        CreateAutomaticRecurringSalesLines(CRMSalesorder[1], StandardSalesLine, 2);
+        CreateCRMSalesorderInLCY(CRMSalesorder[2]);
+        LibraryCRMIntegration.CreateCRMSalesOrderLine(CRMSalesorder[2], CRMSalesorderdetail[2]);
+
+        // [GIVEN] The first order is imported by a codeunit instance.
+        CRMSalesOrderToSalesOrder.CreateInNAV(CRMSalesorder[1], SalesHeader);
         VerifyRecurringSalesLines(SalesHeader, StandardSalesLine);
         SalesLine.Get(SalesHeader."Document Type", SalesHeader."No.", 30000);
 
         // [WHEN] The same instance imports an order for another customer without recurring lines.
-        CreateCRMSalesorderInLCY(CRMSalesorder);
-        Clear(CRMSalesorderdetail);
-        LibraryCRMIntegration.CreateCRMSalesOrderLine(CRMSalesorder, CRMSalesorderdetail);
         Clear(SalesHeader);
-        CRMSalesOrderToSalesOrder.CreateInNAV(CRMSalesorder, SalesHeader);
+        CRMSalesOrderToSalesOrder.CreateInNAV(CRMSalesorder[2], SalesHeader);
 
         // [THEN] The second order starts at 10000, independently of the first order.
         SalesLine.Get(SalesHeader."Document Type", SalesHeader."No.", 10000);
         SalesLine.TestField(Type, SalesLine.Type::Item);
-        SalesLine.TestField(Quantity, CRMSalesorderdetail.Quantity);
+        SalesLine.TestField(Quantity, CRMSalesorderdetail[2].Quantity);
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         Assert.RecordCount(SalesLine, 1);
