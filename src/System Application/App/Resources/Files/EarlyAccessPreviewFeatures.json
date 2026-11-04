@@ -56,7 +56,7 @@
     },
     {
         "FeatureName": "Post Shopify payment transactions automatically",
-        "Description": "Enable automatic posting for selected Shopify payment methods and choose the general journal setup. Eligible sale, capture and refund transactions are posted when the related invoice or credit memo is posted, reducing manual payment handling.",
+        "Description": "Reduce manual journal work by automatically posting eligible Shopify payments and refunds when you post the related sales documents. From the Shopify Shop Card, open Payment Method Mapping. Specify an Auto-Post Journal Template of type Cash Receipts and an Auto-Post Journal Batch with a balancing account, then turn on Post Automatically for each mapping you want to automate. Automatic payment posting starts only after you finish posting all sales documents for the Shopify order or refund.",
         "Category": "Commerce",
         "HelpURL": "",
         "VideoURL": "",
