@@ -289,7 +289,7 @@ codeunit 30166 "Shpfy Process Order"
             AltCustVATReg.Validate("VAT Bus. Posting Group", CustomerTemplate."VAT Bus. Posting Group")
         else
             // Validating the general business group can populate its default VAT group; the template's blank value wins.
-            AltCustVATReg."VAT Bus. Posting Group" := '';
+            AltCustVATReg.Validate("VAT Bus. Posting Group", '');
 
         if not AltCustVATReg.Insert(true) then begin
             // Insert can return false for an existing primary-key record. Reuse only when the expected alternative exists.
