@@ -434,6 +434,7 @@ codeunit 13916 "Export XRechnung Document"
         RootXMLNode.Add(XmlElement.Create('InvoiceTypeCode', XmlNamespaceCBC, '380'));
         RootXMLNode.Add(XmlElement.Create('DocumentCurrencyCode', XmlNamespaceCBC, CurrencyCode));
         InsertBuyerReference(RootXMLNode, SalesInvoiceHeader);
+        InsertSalesInvHeaderInvoicePeriod(RootXMLNode, SalesInvoiceHeader);
         OnAfterInsertSalesInvHeaderData(RootXMLNode, SalesInvoiceHeader);
     end;
 
@@ -446,6 +447,7 @@ codeunit 13916 "Export XRechnung Document"
         RootXMLNode.Add(XmlElement.Create('CreditNoteTypeCode', XmlNamespaceCBC, '381'));
         RootXMLNode.Add(XmlElement.Create('DocumentCurrencyCode', XmlNamespaceCBC, CurrencyCode));
         InsertBuyerReference(RootXMLNode, SalesCrMemoHeader);
+        InsertSalesCrMemoHeaderInvoicePeriod(RootXMLNode, SalesCrMemoHeader);
         OnAfterInsertSalesCrMemoHeaderData(RootXMLNode, SalesCrMemoHeader);
     end;
 
@@ -1227,10 +1229,74 @@ codeunit 13916 "Export XRechnung Document"
     var
         InvoicePeriodElement: XmlElement;
     begin
+        if (StartDate = 0D) and (EndDate = 0D) then
+            exit;
+
         InvoicePeriodElement := XmlElement.Create('InvoicePeriod', XmlNamespaceCAC);
-        InvoicePeriodElement.Add(XmlElement.Create('StartDate', XmlNamespaceCBC, StartDate));
-        InvoicePeriodElement.Add(XmlElement.Create('EndDate', XmlNamespaceCBC, EndDate));
+        if StartDate <> 0D then
+            InvoicePeriodElement.Add(XmlElement.Create('StartDate', XmlNamespaceCBC, StartDate));
+        if EndDate <> 0D then
+            InvoicePeriodElement.Add(XmlElement.Create('EndDate', XmlNamespaceCBC, EndDate));
         RootElement.Add(InvoicePeriodElement);
+    end;
+
+    local procedure InsertSalesInvLineInvoicePeriod(var RootElement: XmlElement; SalesInvoiceLine: Record "Sales Invoice Line")
+    var
+        StartDate: Date;
+        EndDate: Date;
+    begin
+        StartDate := SalesInvoiceLine."Shipment Date";
+        EndDate := SalesInvoiceLine."Shipment Date";
+        OnBeforeInsertSalesInvLineInvoicePeriod(SalesInvoiceLine, StartDate, EndDate);
+        if not IsValidPeriod(StartDate, EndDate) then begin
+            StartDate := SalesInvoiceLine."Shipment Date";
+            EndDate := SalesInvoiceLine."Shipment Date";
+        end;
+        InsertInvoicePeriod(RootElement, StartDate, EndDate);
+    end;
+
+    local procedure InsertSalesCrMemoLineInvoicePeriod(var RootElement: XmlElement; SalesCrMemoLine: Record "Sales Cr.Memo Line")
+    var
+        StartDate: Date;
+        EndDate: Date;
+    begin
+        StartDate := SalesCrMemoLine."Shipment Date";
+        EndDate := SalesCrMemoLine."Shipment Date";
+        OnBeforeInsertSalesCrMemoLineInvoicePeriod(SalesCrMemoLine, StartDate, EndDate);
+        if not IsValidPeriod(StartDate, EndDate) then begin
+            StartDate := SalesCrMemoLine."Shipment Date";
+            EndDate := SalesCrMemoLine."Shipment Date";
+        end;
+        InsertInvoicePeriod(RootElement, StartDate, EndDate);
+    end;
+
+    local procedure InsertSalesInvHeaderInvoicePeriod(var RootElement: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header")
+    var
+        StartDate: Date;
+        EndDate: Date;
+    begin
+        OnBeforeInsertSalesInvHeaderInvoicePeriod(SalesInvoiceHeader, StartDate, EndDate);
+        if not IsValidPeriod(StartDate, EndDate) then
+            exit;
+        InsertInvoicePeriod(RootElement, StartDate, EndDate);
+    end;
+
+    local procedure InsertSalesCrMemoHeaderInvoicePeriod(var RootElement: XmlElement; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    var
+        StartDate: Date;
+        EndDate: Date;
+    begin
+        OnBeforeInsertSalesCrMemoHeaderInvoicePeriod(SalesCrMemoHeader, StartDate, EndDate);
+        if not IsValidPeriod(StartDate, EndDate) then
+            exit;
+        InsertInvoicePeriod(RootElement, StartDate, EndDate);
+    end;
+
+    local procedure IsValidPeriod(StartDate: Date; EndDate: Date): Boolean
+    begin
+        if (StartDate = 0D) or (EndDate = 0D) then
+            exit(true);
+        exit(StartDate <= EndDate);
     end;
 
     local procedure InsertSellersItemIdentification(var ItemElement: XmlElement; ItemNo: Code[20]);
@@ -1814,8 +1880,7 @@ codeunit 13916 "Export XRechnung Document"
             InvoiceLineElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, Format(SalesInvLine."Line No.")));
             InsertInvoicedQuantity(InvoiceLineElement, SalesInvLine);
             InvoiceLineElement.Add(XmlElement.Create('LineExtensionAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(SalesInvLine.Amount + SalesInvLine."Inv. Discount Amount" + GetLineLevelItemChargeAmount(SalesInvLine), AlwaysIncludeTwoDecimalPlacesForAmountFields)));
-            if SalesInvLine."Shipment Date" <> 0D then
-                InsertInvoicePeriod(InvoiceLineElement, SalesInvLine."Shipment Date", SalesInvLine."Shipment Date");
+            InsertSalesInvLineInvoicePeriod(InvoiceLineElement, SalesInvLine);
             InsertOrderLineReference(InvoiceLineElement, SalesInvLine."Line No.");
             if SalesInvLine."Line Discount Amount" > 0 then
                 InsertAllowanceCharge(
@@ -1855,8 +1920,7 @@ codeunit 13916 "Export XRechnung Document"
             CrMemoLineElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, Format(SalesCrMemoLine."Line No.")));
             InsertCreditedQuantity(CrMemoLineElement, SalesCrMemoLine);
             CrMemoLineElement.Add(XmlElement.Create('LineExtensionAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(SalesCrMemoLine.Amount + SalesCrMemoLine."Inv. Discount Amount" + GetLineLevelItemChargeAmount(SalesCrMemoLine), AlwaysIncludeTwoDecimalPlacesForAmountFields)));
-            if SalesCrMemoLine."Shipment Date" <> 0D then
-                InsertInvoicePeriod(CrMemoLineElement, SalesCrMemoLine."Shipment Date", SalesCrMemoLine."Shipment Date");
+            InsertSalesCrMemoLineInvoicePeriod(CrMemoLineElement, SalesCrMemoLine);
             InsertOrderLineReference(CrMemoLineElement, SalesCrMemoLine."Line No.");
             if SalesCrMemoLine."Line Discount Amount" > 0 then
                 InsertAllowanceCharge(
@@ -2445,6 +2509,26 @@ codeunit 13916 "Export XRechnung Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAddCrMemoLineElement(var CrMemoLineElement: XmlElement; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; Currency: Record Currency; CurrencyCode: Code[10]; PricesIncVAT: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertSalesInvLineInvoicePeriod(SalesInvoiceLine: Record "Sales Invoice Line"; var StartDate: Date; var EndDate: Date)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertSalesCrMemoLineInvoicePeriod(SalesCrMemoLine: Record "Sales Cr.Memo Line"; var StartDate: Date; var EndDate: Date)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertSalesInvHeaderInvoicePeriod(SalesInvoiceHeader: Record "Sales Invoice Header"; var StartDate: Date; var EndDate: Date)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertSalesCrMemoHeaderInvoicePeriod(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var StartDate: Date; var EndDate: Date)
     begin
     end;
 
