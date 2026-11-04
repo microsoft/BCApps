@@ -92,7 +92,7 @@ codeunit 6790 "WHT Employee Calculation"
         WHTBaseAmount := LineAmount;
         TaxableBaseAmount := LineAmount;
 
-        if not EvaluateThreshold(PostingSetup, Employee."No.", GenJnlLine."Posting Date", LineAmount, TaxableBaseAmount) then
+        if not EvaluateThresholdWithTaxableBase(PostingSetup, Employee."No.", GenJnlLine."Posting Date", LineAmount, TaxableBaseAmount) then
             exit;
 
         WHTBaseAmount := TaxableBaseAmount;
@@ -362,7 +362,14 @@ codeunit 6790 "WHT Employee Calculation"
         exit(BaseAmount * TaxRate / 100);
     end;
 
-    procedure EvaluateThreshold(PostingSetup: Record "Withholding Tax Posting Setup"; EmployeeNo: Code[20]; PostingDate: Date; BaseAmount: Decimal; var TaxableBaseAmount: Decimal): Boolean
+    procedure EvaluateThreshold(PostingSetup: Record "Withholding Tax Posting Setup"; EmployeeNo: Code[20]; PostingDate: Date; BaseAmount: Decimal): Boolean
+    var
+        TaxableBaseAmount: Decimal;
+    begin
+        exit(EvaluateThresholdWithTaxableBase(PostingSetup, EmployeeNo, PostingDate, BaseAmount, TaxableBaseAmount));
+    end;
+
+    local procedure EvaluateThresholdWithTaxableBase(PostingSetup: Record "Withholding Tax Posting Setup"; EmployeeNo: Code[20]; PostingDate: Date; BaseAmount: Decimal; var TaxableBaseAmount: Decimal): Boolean
     var
         ThresholdBase: Enum "Withholding Threshold Base";
         ThresholdAmount: Decimal;
