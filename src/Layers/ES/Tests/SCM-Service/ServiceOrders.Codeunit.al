@@ -17,9 +17,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.NoSeries;
-#if not CLEAN30
 using Microsoft.Foundation.Reporting;
-#endif
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -5769,7 +5767,6 @@ codeunit 136101 "Service Orders"
         Assert.AreEqual(Customer[2]."Country/Region Code", ServiceHeader."VAT Country/Region Code", VATCountryRegionLbl);
     end;
 
-#if not CLEAN30
     [Test]
     [HandlerFunctions('ServiceOrderReportRequestPageHandler')]
     procedure PrintServiceOrderWithWorkDescription()
@@ -5802,7 +5799,6 @@ codeunit 136101 "Service Orders"
 
         // [THEN] Verify no transaction error should occur.
     end;
-#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -8176,26 +8172,12 @@ codeunit 136101 "Service Orders"
             exit(ServiceInvoiceHeader."No.");
     end;
 
-#if not CLEAN30
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
-        CustomReportSelection: Record "Custom Report Selection";
-#pragma warning disable AL0432, AS0105
-        CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432, AS0105
+        LibraryReportSelection: Codeunit "Library - Report Selection";
     begin
-        CustomReportSelection.Init();
-        CustomReportSelection.Validate("Source Type", Database::Customer);
-        CustomReportSelection.Validate("Source No.", CustomerNo);
-        CustomReportSelection.Validate(Usage, ReportSelectionUsage);
-        CustomReportSelection.Validate(Sequence, 1);
-        CustomReportSelection.Validate("Report ID", ReportID);
-        CustomReportSelection.Validate("Use for Email Body", true);
-        CustomReportSelection.Validate(
-            "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
-        CustomReportSelection.Insert(true);
+        LibraryReportSelection.CreateCustomerEmailBodyLayout(CustomerNo, ReportSelectionUsage, ReportID, true);
     end;
-#endif
 
     local procedure CreateShipmentMethod(var ShipmentMethod: Record "Shipment Method")
     begin

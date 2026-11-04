@@ -4816,73 +4816,26 @@ codeunit 139197 DocumentSendingPostTests
         exit(LibraryUtility.GenerateGUID() + '@microsoft.com');
     end;
 
-    // Creates a customer document layout carrying a report layout for ReportID. The scenarios that use it
-    // assert one email per document layout row and the "Send To Email" fallback, which resolve from
-    // Usage + Sequence rather than from the layout - the layout only has to be present. Before 29.0 that
-    // is a legacy "Custom Report Layout"; from 29.0 it is the report layout name that superseded it.
-#if not CLEAN30
-    local procedure CreateCustomerDocumentLayoutForReport(CustomerNo: Code[20]; UsageValue: Enum "Report Selection Usage"; ReportID: Integer; EmailAddress: Text)
-    begin
-        LibrarySales.CreateCustomerDocumentLayout(CustomerNo, UsageValue, ReportID, FindCustomReportLayout(ReportID), EmailAddress);
-    end;
-#else
+    // Creates a customer document layout whose email attachment uses a tenant copy of the report's built-in Word layout.
+    // The scenarios that use it assert one email per document layout row and the "Send To Email" fallback.
     local procedure CreateCustomerDocumentLayoutForReport(CustomerNo: Code[20]; UsageValue: Enum "Report Selection Usage"; ReportID: Integer; EmailAddress: Text)
     var
         CustomReportSelection: Record "Custom Report Selection";
-        ReportLayoutList: Record "Report Layout List";
+        AttachmentLayout: Record "Report Layout List";
+        LibraryReportSelection: Codeunit "Library - Report Selection";
     begin
-        ReportLayoutList.SetRange("Report ID", ReportID);
-        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
-        ReportLayoutList.FindFirst();
+        LibraryReportSelection.CreateWordLayout(ReportID, AttachmentLayout);
 
         CustomReportSelection.Init();
         CustomReportSelection.Validate("Source Type", DATABASE::Customer);
         CustomReportSelection.Validate("Source No.", CustomerNo);
         CustomReportSelection.Validate(Usage, UsageValue);
         CustomReportSelection.Validate("Report ID", ReportID);
-        CustomReportSelection."Email Attachment Layout Name" := ReportLayoutList.Name;
-        CustomReportSelection."Email Attachment Layout AppID" := ReportLayoutList."Application ID";
+        CustomReportSelection."Email Attachment Layout Name" := AttachmentLayout.Name;
+        CustomReportSelection."Email Attachment Layout AppID" := AttachmentLayout."Application ID";
         CustomReportSelection.Validate("Send To Email", CopyStr(EmailAddress, 1, MaxStrLen(CustomReportSelection."Send To Email")));
         CustomReportSelection.Insert();
     end;
-#endif
-
-#if not CLEAN30
-    local procedure FindCustomReportLayout(ReportID: Integer): Code[20]
-    var
-#pragma warning disable AL0432, AS0105
-        CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432, AS0105
-        ReportLayoutList: Record "Report Layout List";
-        TempBlob: Codeunit "Temp Blob";
-        InStr: InStream;
-        OutStr: OutStream;
-    begin
-        CustomReportLayout.SetRange("Report ID", ReportID);
-        if not CustomReportLayout.FindFirst() then begin
-            ReportLayoutList.SetRange("Report ID", ReportID);
-            ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
-            ReportLayoutList.FindFirst();
-
-            TempBlob.CreateOutStream(OutStr);
-            ReportLayoutList.Layout.ExportStream(OutStr);
-            TempBlob.CreateInStream(InStr);
-
-            CustomReportLayout.Init();
-            CustomReportLayout."Report ID" := ReportID;
-            CustomReportLayout.Code := CopyStr(StrSubstNo('MS-X%1', Random(9999)), 1, 10);
-            CustomReportLayout."File Extension" := 'docx';
-            CustomReportLayout.Description := 'Test report layout';
-            CustomReportLayout.Type := CustomReportLayout.Type::Word;
-            CustomReportLayout.Layout.CreateOutStream(OutStr);
-
-            CopyStream(OutStr, InStr);
-
-            CustomReportLayout.Insert();
-        end;
-        exit(CustomReportLayout.Code);
-    end;
-#endif
 
     local procedure UnsupportedDocumentType(DocumentType: Enum "Sales Document Type")
     var

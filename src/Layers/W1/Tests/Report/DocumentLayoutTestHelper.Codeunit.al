@@ -60,26 +60,16 @@ codeunit 134767 "Document Layout Test Helper"
 
     procedure SetCompanyDefaultLayout(ReportLayoutList: Record "Report Layout List")
     var
-        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-        EmptyGuid: Guid;
+        LibraryReportSelection: Codeunit "Library - Report Selection";
     begin
-        // The same record the Report Layouts page writes when a layout is set as the default for the company
-        TenantReportLayoutSelection."Report ID" := ReportLayoutList."Report ID";
-        TenantReportLayoutSelection."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutSelection."Company Name"));
-        TenantReportLayoutSelection."User ID" := EmptyGuid;
-        TenantReportLayoutSelection."Layout Name" := ReportLayoutList.Name;
-        TenantReportLayoutSelection."App ID" := ReportLayoutList."Application ID";
-        if not TenantReportLayoutSelection.Insert(true) then
-            TenantReportLayoutSelection.Modify(true);
+        LibraryReportSelection.SetCompanyDefaultLayout(ReportLayoutList);
     end;
 
     procedure RemoveCompanyDefaultLayout(ReportID: Integer)
     var
-        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-        EmptyGuid: Guid;
+        LibraryReportSelection: Codeunit "Library - Report Selection";
     begin
-        if TenantReportLayoutSelection.Get(ReportID, CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutSelection."Company Name")), EmptyGuid) then
-            TenantReportLayoutSelection.Delete(true);
+        LibraryReportSelection.RemoveCompanyDefaultLayout(ReportID);
     end;
 
     procedure SetDocumentLayout(var CustomReportSelection: Record "Custom Report Selection"; ReportLayoutList: Record "Report Layout List")

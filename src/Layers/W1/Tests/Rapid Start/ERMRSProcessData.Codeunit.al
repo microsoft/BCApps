@@ -1,4 +1,3 @@
-#pragma warning disable AL0432, AS0105
 codeunit 136612 "ERM RS Process Data"
 {
     EventSubscriberInstance = Manual;
@@ -1532,7 +1531,9 @@ codeunit 136612 "ERM RS Process Data"
         ConfigPackageTable: Record "Config. Package Table";
         ConfigPackageFilter: Record "Config. Package Filter";
         ConfigTableProcessingRule: Record "Config. Table Processing Rule";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         ReportLayoutSelection: Record "Report Layout Selection";
         RecRef: RecordRef;
         CustomLayoutCode: Code[20];
@@ -1544,7 +1545,9 @@ codeunit 136612 "ERM RS Process Data"
 
         // [GIVEN] A Rule "Post" for Table 9650
         LibraryRapidStart.CreatePackage(ConfigPackage);
+#pragma warning disable AL0432, AS0105
         LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Custom Report Layout");
+#pragma warning restore AL0432, AS0105
         LibraryRapidStart.CreatePackageTableRule(
           ConfigTableProcessingRule, ConfigPackageTable, ConfigTableProcessingRule.Action::Post, 0);
 
@@ -1578,7 +1581,9 @@ codeunit 136612 "ERM RS Process Data"
         ConfigPackageFilter: Record "Config. Package Filter";
         ConfigTableProcessingRule: Record "Config. Table Processing Rule";
 #if not CLEAN30
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
 #endif
         ReportLayoutSelection: Record "Report Layout Selection";
     begin
@@ -2097,7 +2102,9 @@ codeunit 136612 "ERM RS Process Data"
 #if not CLEAN30
     local procedure CreateCustomReportLayouts(ReportQty: Integer; ReportID: Integer)
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         i: Integer;
     begin
         for i := 1 to ReportQty do begin
@@ -2128,5 +2135,4 @@ codeunit 136612 "ERM RS Process Data"
         end
     end;
 }
-#pragma warning restore AL0432, AS0105
 

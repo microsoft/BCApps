@@ -7,7 +7,156 @@ codeunit 131103 "Library - Report Selection"
     end;
 
     var
+        LibraryUtility: Codeunit "Library - Utility";
         EventHandledName: Text;
+        TestLayoutNameTok: Label 'TestLayout-%1-%2', Locked = true;
+        LayoutMimeTypeTok: Label 'reportlayout/%1', Locked = true;
+
+    /// <summary>
+    /// Creates an approved user-defined Word layout for the report, generated from the report dataset, that can be selected
+    /// on (custom) report selections. Works for reports without a built-in Word layout.
+    /// </summary>
+    procedure CreateWordLayout(ReportID: Integer; var ReportLayoutList: Record "Report Layout List")
+    begin
+        CreateLayout(ReportID, ReportLayoutList."Layout Format"::Word, ReportLayoutList);
+    end;
+
+    /// <summary>
+    /// Creates an approved user-defined layout of the given format (RDLC, Word or Excel) for the report, generated from the
+    /// report dataset.
+    /// </summary>
+    procedure CreateLayout(ReportID: Integer; LayoutFormat: Option; var ReportLayoutList: Record "Report Layout List")
+    var
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        ExcelSheetConfiguration: Enum "Excel Sheet Configuration";
+        LayoutName: Text[250];
+        ReturnReportID: Integer;
+        ReturnLayoutName: Text;
+        EmptyGuid: Guid;
+    begin
+        LayoutName := CopyStr(StrSubstNo(TestLayoutNameTok, ReportID, LibraryUtility.GenerateGUID()), 1, MaxStrLen(LayoutName));
+        ReportLayoutsImpl.InsertNewLayout(
+            ReportID, LayoutName, LayoutName, LayoutFormat, true, true, ExcelSheetConfiguration::Default, ReturnReportID, ReturnLayoutName);
+
+        ReportLayoutList.Get(ReportID, LayoutName, EmptyGuid);
+        ReportLayoutsImpl.SetSelectedCompany(CompanyName());
+        ReportLayoutsImpl.SetLayoutStatus(ReportLayoutList, Enum::"Report Layout Status"::Approved);
+        ReportLayoutList.Get(ReportID, LayoutName, EmptyGuid);
+    end;
+
+    /// <summary>
+    /// Creates a tenant report layout that is a copy of the report's built-in layout of the given format (RDLC, Word or Excel).
+    /// The platform rejects copies of built-in layouts that reference an attached template or fonts that are not installed;
+    /// use CreateLayout for those.
+    /// </summary>
+    procedure CreateLayoutFromBuiltIn(ReportID: Integer; LayoutFormat: Option; var ReportLayoutList: Record "Report Layout List")
+    var
+        BuiltInReportLayoutList: Record "Report Layout List";
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        TempBlob: Codeunit "Temp Blob";
+        LayoutInStream: InStream;
+        LayoutOutStream: OutStream;
+        EmptyGuid: Guid;
+    begin
+        BuiltInReportLayoutList.SetRange("Report ID", ReportID);
+        BuiltInReportLayoutList.SetRange("Layout Format", LayoutFormat);
+        BuiltInReportLayoutList.SetRange("User Defined", false);
+        BuiltInReportLayoutList.FindFirst();
+        TempBlob.CreateOutStream(LayoutOutStream);
+        BuiltInReportLayoutList.Layout.ExportStream(LayoutOutStream);
+        TempBlob.CreateInStream(LayoutInStream);
+
+        TenantReportLayout.Init();
+        TenantReportLayout."Report ID" := ReportID;
+        TenantReportLayout.Name := CopyStr(StrSubstNo(TestLayoutNameTok, ReportID, LibraryUtility.GenerateGUID()), 1, MaxStrLen(TenantReportLayout.Name));
+        TenantReportLayout.Description := TenantReportLayout.Name;
+        TenantReportLayout."Layout Format" := LayoutFormat;
+        TenantReportLayout."MIME Type" := GetLayoutMimeType(BuiltInReportLayoutList);
+        TenantReportLayout.Layout.ImportStream(LayoutInStream, TenantReportLayout.Description);
+        TenantReportLayout.Insert(true);
+
+        ReportLayoutList.Get(ReportID, TenantReportLayout.Name, EmptyGuid);
+        ReportLayoutsImpl.SetSelectedCompany(CompanyName());
+        ReportLayoutsImpl.SetLayoutStatus(ReportLayoutList, Enum::"Report Layout Status"::Approved);
+        ReportLayoutList.Get(ReportID, TenantReportLayout.Name, EmptyGuid);
+    end;
+
+    local procedure GetLayoutMimeType(ReportLayoutList: Record "Report Layout List"): Text[255]
+    begin
+        case ReportLayoutList."Layout Format" of
+            ReportLayoutList."Layout Format"::RDLC:
+                exit(StrSubstNo(LayoutMimeTypeTok, 'rdlc'));
+            ReportLayoutList."Layout Format"::Word:
+                exit(StrSubstNo(LayoutMimeTypeTok, 'docx'));
+            ReportLayoutList."Layout Format"::Excel:
+                exit(StrSubstNo(LayoutMimeTypeTok, 'xlsx'));
+        end;
+    end;
+
+    /// <summary>
+    /// Deletes the tenant report layouts created by CreateLayout, CreateWordLayout and CreateLayoutFromBuiltIn.
+    /// </summary>
+    procedure DeleteTestLayouts()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+    begin
+        TenantReportLayout.SetFilter(Name, StrSubstNo(TestLayoutNameTok, '*', '*'));
+        TenantReportLayout.DeleteAll(true);
+    end;
+
+    /// <summary>
+    /// Selects the layout as the company's default layout for its report, as the Report Layouts page does.
+    /// </summary>
+    procedure SetCompanyDefaultLayout(ReportLayoutList: Record "Report Layout List")
+    var
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        EmptyGuid: Guid;
+    begin
+        TenantReportLayoutSelection."Report ID" := ReportLayoutList."Report ID";
+        TenantReportLayoutSelection."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutSelection."Company Name"));
+        TenantReportLayoutSelection."User ID" := EmptyGuid;
+        TenantReportLayoutSelection."Layout Name" := ReportLayoutList.Name;
+        TenantReportLayoutSelection."App ID" := ReportLayoutList."Application ID";
+        if not TenantReportLayoutSelection.Insert(true) then
+            TenantReportLayoutSelection.Modify(true);
+    end;
+
+    /// <summary>
+    /// Removes the company's default layout for the report.
+    /// </summary>
+    procedure RemoveCompanyDefaultLayout(ReportID: Integer)
+    var
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        EmptyGuid: Guid;
+    begin
+        if TenantReportLayoutSelection.Get(ReportID, CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutSelection."Company Name")), EmptyGuid) then
+            TenantReportLayoutSelection.Delete(true);
+    end;
+
+    /// <summary>
+    /// Creates a customer document layout (Custom Report Selection) that uses a user-defined Word layout for the email body,
+    /// and optionally the report as attachment.
+    /// </summary>
+    procedure CreateCustomerEmailBodyLayout(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer; UseForEmailAttachment: Boolean)
+    var
+        CustomReportSelection: Record "Custom Report Selection";
+        EmailBodyLayout: Record "Report Layout List";
+    begin
+        CreateWordLayout(ReportID, EmailBodyLayout);
+
+        CustomReportSelection.Init();
+        CustomReportSelection.Validate("Source Type", Database::Customer);
+        CustomReportSelection.Validate("Source No.", CustomerNo);
+        CustomReportSelection.Validate(Usage, ReportSelectionUsage);
+        CustomReportSelection.Validate(Sequence, 1);
+        CustomReportSelection.Validate("Report ID", ReportID);
+        CustomReportSelection.Validate("Use for Email Body", true);
+        CustomReportSelection.Validate("Use for Email Attachment", UseForEmailAttachment);
+        CustomReportSelection."Email Body Layout Name" := EmailBodyLayout.Name;
+        CustomReportSelection."Email Body Layout AppID" := EmailBodyLayout."Application ID";
+        CustomReportSelection.Insert(true);
+    end;
 
     [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnBeforeSendEmailToCust', '', false, false)]
     local procedure HandleOnBeforeSendEmailToCust(ReportUsage: Integer; RecordVariant: Variant; DocNo: Code[20]; DocName: Text[150]; ShowDialog: Boolean; CustNo: Code[20]; var Handled: Boolean)

@@ -377,26 +377,6 @@
   {
     "codeunitId": 134600,
     "codeunitName": "Report Layout Test",
-    "method": "PrintSalesOrderProperFiltering"
-  },
-  {
-    "codeunitId": 134600,
-    "codeunitName": "Report Layout Test",
-    "method": "SalesOrder_Print_OrderConfirmation"
-  },
-  {
-    "codeunitId": 134600,
-    "codeunitName": "Report Layout Test",
-    "method": "SalesOrder_Print_PickInstruction"
-  },
-  {
-    "codeunitId": 134600,
-    "codeunitName": "Report Layout Test",
-    "method": "SalesOrder_Print_WorkOrder"
-  },
-  {
-    "codeunitId": 134600,
-    "codeunitName": "Report Layout Test",
     "method": "TestValidateCustomRrdlcOk"
   },
   {
