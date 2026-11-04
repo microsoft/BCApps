@@ -2081,7 +2081,7 @@ codeunit 134301 "Workflow Notification Test"
     end;
 
     [Test]
-    [HandlerFunctions('SendNotificationHandler,ApprovalMessageHandler,ConfirmHandlerNo')]
+    [HandlerFunctions('SendNotificationHandler,RecallNotificationHandler,ApprovalMessageHandler,ConfirmHandlerNo')]
     procedure FailedForegroundNotificationDoesNotBlockApprovalWorkflow()
     var
         Workflow: Record Workflow;
@@ -2095,6 +2095,7 @@ codeunit 134301 "Workflow Notification Test"
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         AzureADUserTestLibrary: Codeunit "Azure AD User Test Library";
         ConnectorMock: Codeunit "Connector Mock";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
     begin
         // [FEATURE] [Approval] [Notification]
         // [SCENARIO 652915] A failed instant approval notification sent in the foreground does not leave the workflow stuck in Processing.
@@ -2145,6 +2146,7 @@ codeunit 134301 "Workflow Notification Test"
         SalesHeader.TestField(Status, SalesHeader.Status::Released);
 
         UnbindSubscription(AzureADUserTestLibrary);
+        NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
     [Test]
@@ -3284,6 +3286,11 @@ codeunit 134301 "Workflow Notification Test"
 
     [SendNotificationHandler]
     procedure SendNotificationHandler(var Notification: Notification): Boolean
+    begin
+    end;
+
+    [RecallNotificationHandler]
+    procedure RecallNotificationHandler(var Notification: Notification): Boolean
     begin
     end;
 
