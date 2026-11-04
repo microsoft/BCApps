@@ -593,7 +593,7 @@ function Get-SelectedTestApps {
     }
 
     $bucketLabel = if ($TestType -eq 'Legacy') { $BucketNumber } else { 'n/a' }
-    Write-Host "::group::Test app selection"
+    Write-Host "Test app selection"
     Write-Host "Country: $Country | Test type: $TestType | Bucket: $bucketLabel"
     Write-Host "Churn-based testing: $selectionMode"
     Write-Host "Logging only: full bucket will run ($candidateCount test apps)."
@@ -605,7 +605,6 @@ function Get-SelectedTestApps {
     if ($proposedAppNames.Count -eq 0) {
         Write-Host "  No test apps proposed."
     }
-    Write-Host "::endgroup::"
 
     return $AppNamesToTest
 }

@@ -135,10 +135,8 @@ Describe "ParallelTestExecution churn selection" {
         Should -Invoke -ModuleName BuildOptimization Get-AffectedAppNames -Times 1 -Exactly -ParameterFilter {
             $BaseFolder -eq $script:selectionRepoRoot
         }
-        $start = $script:selectionLog.IndexOf('::group::Test app selection')
-        $end = $script:selectionLog.IndexOf('::endgroup::')
-        ($script:selectionLog[$start..$end] -join "`n") | Should -Be (@(
-            '::group::Test app selection'
+        ($script:selectionLog -join "`n") | Should -Be (@(
+            'Test app selection'
             'Country: w1 | Test type: IntegrationTest | Bucket: n/a'
             'Churn-based testing: Enabled; affected-app proposal'
             'Logging only: full bucket will run (3 test apps).'
@@ -146,11 +144,13 @@ Describe "ParallelTestExecution churn selection" {
             'Proposed test apps (candidate order):'
             '  - Tests C'
             '  - Tests A'
-            '::endgroup::'
         ) -join "`n")
+        Should -Invoke -ModuleName BuildOptimization Write-Host -Times 0 -Exactly -ParameterFilter {
+            $Object -match '^::(group|endgroup)::'
+        }
     }
 
-    It "includes the legacy bucket number in the selection group" {
+    It "includes the legacy bucket number in the selection log" {
         Mock -ModuleName ParallelTestExecution Get-ALGoSetting { 'Legacy' } -ParameterFilter { $Key -eq 'testType' }
         Mock -ModuleName ParallelTestExecution Get-ALGoSetting { 2 } -ParameterFilter { $Key -eq 'bucketNumber' }
 
@@ -194,7 +194,7 @@ Describe "ParallelTestExecution churn selection" {
         Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
         Should -Invoke -ModuleName BuildOptimization Write-Host -Times 1 -Exactly -ParameterFilter {
-            $Object -eq '::group::Test app selection'
+            $Object -eq 'Test app selection'
         }
     }
 
@@ -222,7 +222,7 @@ Describe "ParallelTestExecution churn selection" {
         $script:selectionLog | Should -Contain '  No test apps proposed.'
         $script:selectionLog | Should -Contain 'Logging only: full bucket will run (3 test apps).'
         Should -Invoke -ModuleName BuildOptimization Write-Host -Times 1 -Exactly -ParameterFilter {
-            $Object -eq '::group::Test app selection'
+            $Object -eq 'Test app selection'
         }
     }
 
