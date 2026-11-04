@@ -638,7 +638,6 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         GenBusPostingGroup: Code[20];
         VATBusPostingGroup: Code[20];
     begin
-        // Use another shop's template only as a source of valid test posting-group records.
         SourceShop := InitializeTest.CreateShop();
         SourceCustomerTemplate.Get(SourceShop."Customer Templ. Code");
         VATBusPostingGroup := VATCustomer."VAT Bus. Posting Group";
@@ -890,7 +889,6 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         VATPostingSetup: Record "VAT Posting Setup";
     begin
         if not VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then begin
-            // Reuse the product group's existing VAT rate when available so created documents keep realistic amounts.
             TmpltVATPostingSetup.SetRange("VAT Prod. Posting Group", VATProdPostingGroup);
             TmpltVATPostingSetup.SetFilter("VAT Calculation Type", '<>%1', TmpltVATPostingSetup."VAT Calculation Type"::"Sales Tax");
             if TmpltVATPostingSetup.FindFirst() then
@@ -918,7 +916,6 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         MyNotifications: Record "My Notifications";
         PostingSetupManagement: Codeunit PostingSetupManagement;
     begin
-        // Missing G/L account notifications come from shared test posting setups and are unrelated to the VAT prompts asserted here.
         if MyNotifications.Get(UserId(), PostingSetupManagement.GetPostingSetupNotificationID()) then begin
             MyNotifications.Enabled := false;
             MyNotifications.Modify();

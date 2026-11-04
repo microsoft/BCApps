@@ -202,8 +202,6 @@ codeunit 30166 "Shpfy Process Order"
         if not GetVATCustomer(SalesHeader, VATCustomer) then
             exit;
 
-        // Reset an interim alternative to the selected VAT customer's baseline before applying the final destination.
-        // The native ship-to method's no-match path displays a Message in GUI sessions, so only call it when a match exists.
         RestoreVATCustomerSetup(SalesHeader, xSalesHeader, VATCustomer);
         if not AltCustVATRegFacade.GetAlternativeCustVATReg(AltCustVATReg, VATCustomer."No.", SalesHeader."Ship-to Country/Region Code") then begin
             if not CreateAlternativeVATRegistration(ShopRecord, VATCustomer, SalesHeader."Ship-to Country/Region Code", IsB2B) then
@@ -212,15 +210,12 @@ codeunit 30166 "Shpfy Process Order"
                 exit;
         end;
 
-        // Native validation selects the alternative VAT country, but a blank posting value does not reliably
-        // restore the selected VAT customer's value. Reapply the final values independently below.
         AltCustVATRegFacade.UpdateSetupOnShipToCountryChangeInSalesHeader(SalesHeader, xSalesHeader);
         ApplyAlternativeVATSetup(SalesHeader, VATCustomer, AltCustVATReg);
     end;
 
     local procedure ApplyAlternativeVATSetup(var SalesHeader: Record "Sales Header"; VATCustomer: Record Customer; AltCustVATReg: Record "Alt. Cust. VAT Reg.")
     begin
-        // Keep each customer-derived value unless the corresponding alternative value is populated.
         SalesHeader.Validate("Alt. VAT Registration No.", false);
         SalesHeader.Validate("VAT Registration No.", VATCustomer."VAT Registration No.");
         if AltCustVATReg."VAT Registration No." <> '' then begin
@@ -261,7 +256,6 @@ codeunit 30166 "Shpfy Process Order"
         then
             exit(false);
 
-        // A concurrent insert of the same alternative is handled by re-reading after Insert returns false.
         if AltCustVATRegFacade.GetAlternativeCustVATReg(AltCustVATReg, VATCustomer."No.", CountryRegionCode) then
             exit(true);
 
@@ -284,11 +278,9 @@ codeunit 30166 "Shpfy Process Order"
         if CustomerTemplate."VAT Bus. Posting Group" <> '' then
             AltCustVATReg.Validate("VAT Bus. Posting Group", CustomerTemplate."VAT Bus. Posting Group")
         else
-            // Validating the general business group can populate its default VAT group; the template's blank value wins.
             AltCustVATReg.Validate("VAT Bus. Posting Group", '');
 
         if not AltCustVATReg.Insert(true) then begin
-            // Insert can return false for an existing primary-key record. Reuse only when the expected alternative exists.
             if AltCustVATRegFacade.GetAlternativeCustVATReg(AltCustVATReg, VATCustomer."No.", CountryRegionCode) then
                 exit(true);
             Error(AlternativeVATRegistrationInsertErr, VATCustomer."No.", CountryRegionCode);
@@ -311,7 +303,6 @@ codeunit 30166 "Shpfy Process Order"
 
     internal procedure PrepareImportedShipTo(var SalesHeader: Record "Sales Header"): Record "Sales Header"
     begin
-        // Clear an interim alternative before native ship-to validation, which can otherwise show a GUI message.
         ResetInterimVATSetup(SalesHeader);
         SalesHeader.Validate("Ship-to Code", '');
         exit(SalesHeader);
@@ -330,13 +321,10 @@ codeunit 30166 "Shpfy Process Order"
 
     local procedure RestoreVATCustomerSetup(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; VATCustomer: Record Customer)
     begin
-        // Reset an interim VAT country only when it has not otherwise changed since the customer was validated.
-        // Assign directly to avoid the native VAT-country notification during connector-driven creation.
         if (SalesHeader."VAT Country/Region Code" <> VATCustomer."Country/Region Code") and
             (xSalesHeader."VAT Country/Region Code" = SalesHeader."VAT Country/Region Code") then
             SalesHeader."VAT Country/Region Code" := VATCustomer."Country/Region Code";
 
-        // Match the native CopyFromCustomer field reset without its unconditional GUI Message.
         if SalesHeader."Alt. VAT Registration No." then begin
             SalesHeader.Validate("Alt. VAT Registration No.", false);
             SalesHeader.Validate("VAT Registration No.", VATCustomer."VAT Registration No.");
