@@ -724,7 +724,7 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
     end;
 #endif
 
-    procedure GetDimFromProdOrderLine(ProdOrderLine: Record "Prod. Order Line"; AddToExisting: Boolean)
+    internal procedure GetDimFromProdOrderLine(ProdOrderLine: Record "Prod. Order Line"; AddToExisting: Boolean)
     var
         DimensionManagement: Codeunit DimensionManagement;
         DimensionSetIDArr: array[10] of Integer;

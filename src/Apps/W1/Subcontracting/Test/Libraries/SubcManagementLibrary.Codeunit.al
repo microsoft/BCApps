@@ -601,4 +601,115 @@ codeunit 139983 "Subc. Management Library"
         PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
         PurchaseLineComp.SetRange("No.", ComponentItemNo);
     end;
+
+    /// <summary>
+    /// Creates an accepted purchase suggestion with the New action message for one unit of an item.
+    /// </summary>
+    /// <param name="RequisitionLine">Returns the created requisition line.</param>
+    /// <param name="TemplateName">The worksheet template of the line.</param>
+    /// <param name="BatchName">The worksheet batch of the line.</param>
+    /// <param name="VendorNo">The vendor of the suggestion.</param>
+    /// <param name="ItemNo">The item of the suggestion.</param>
+    procedure CreatePurchaseSuggestion(var RequisitionLine: Record "Requisition Line"; TemplateName: Code[10]; BatchName: Code[10]; VendorNo: Code[20]; ItemNo: Code[20])
+    var
+        LibraryPlanning: Codeunit "Library - Planning";
+    begin
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, TemplateName, BatchName);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", ItemNo);
+        RequisitionLine.Validate("Vendor No.", VendorNo);
+        RequisitionLine.Validate(Quantity, 1);
+        RequisitionLine."Replenishment System" := RequisitionLine."Replenishment System"::Purchase;
+        RequisitionLine."Ref. Order Type" := RequisitionLine."Ref. Order Type"::Purchase;
+        RequisitionLine."Action Message" := RequisitionLine."Action Message"::New;
+        RequisitionLine."Accept Action Message" := true;
+        RequisitionLine.Modify(true);
+    end;
+
+    /// <summary>
+    /// Creates an open purchase order for a vendor.
+    /// </summary>
+    /// <param name="PurchaseHeader">Returns the created purchase order.</param>
+    /// <param name="VendorNo">The buy-from vendor of the order.</param>
+    procedure CreateOpenPurchaseOrder(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20])
+    begin
+        Clear(PurchaseHeader);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, VendorNo);
+    end;
+
+    /// <summary>
+    /// Creates a worksheet batch with an accepted purchase suggestion that is assigned to an open purchase order of its vendor.
+    /// </summary>
+    /// <param name="RequisitionLine">Returns the assigned suggestion.</param>
+    /// <param name="PurchaseHeader">Returns the assigned purchase order.</param>
+    procedure CreateTargetedPurchaseSuggestion(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header")
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        CreatePurchaseSuggestion(RequisitionLine, ReqWkshTemplate.Name, RequisitionWkshName.Name, Vendor."No.", Item."No.");
+        RequisitionLine."Ref. Order No." := PurchaseHeader."No.";
+        RequisitionLine.Modify(true);
+    end;
+
+    /// <summary>
+    /// Creates a further suggestion in the batch of an existing line that is assigned to a new open purchase order of the same vendor.
+    /// </summary>
+    /// <param name="RequisitionLine">Returns the assigned suggestion.</param>
+    /// <param name="PurchaseHeader">Returns the new purchase order.</param>
+    /// <param name="FirstLine">The existing line that provides the batch and the vendor.</param>
+    procedure CreateSuggestionTargetingNewOrder(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header"; FirstLine: Record "Requisition Line")
+    var
+        Item: Record Item;
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        LibraryInventory.CreateItem(Item);
+        CreateOpenPurchaseOrder(PurchaseHeader, FirstLine."Vendor No.");
+        CreatePurchaseSuggestion(RequisitionLine, FirstLine."Worksheet Template Name", FirstLine."Journal Batch Name", FirstLine."Vendor No.", Item."No.");
+        RequisitionLine."Ref. Order No." := PurchaseHeader."No.";
+        RequisitionLine.Modify(true);
+    end;
+
+    /// <summary>
+    /// Creates a worksheet batch with a New purchase suggestion that has production context, and a compatible open purchase order.
+    /// </summary>
+    /// <param name="RequisitionLine">Returns the suggestion that a purchase order can be assigned to.</param>
+    /// <param name="PurchaseHeader">Returns the compatible open purchase order.</param>
+    procedure CreateAssignablePurchaseSuggestion(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header")
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+    begin
+        CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        CreateAssignablePurchaseSuggestionInBatch(RequisitionLine, PurchaseHeader, RequisitionWkshName);
+    end;
+
+    /// <summary>
+    /// Creates a New purchase suggestion that has production context in a worksheet batch, and a compatible open purchase order.
+    /// </summary>
+    /// <param name="RequisitionLine">Returns the suggestion that a purchase order can be assigned to.</param>
+    /// <param name="PurchaseHeader">Returns the compatible open purchase order.</param>
+    /// <param name="RequisitionWkshName">The worksheet batch of the suggestion.</param>
+    procedure CreateAssignablePurchaseSuggestionInBatch(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header"; RequisitionWkshName: Record "Requisition Wksh. Name")
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateOpenPurchaseOrder(PurchaseHeader, Vendor."No.");
+        CreatePurchaseSuggestion(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name, Vendor."No.", Item."No.");
+        RequisitionLine."Prod. Order No." := 'PRODTGT';
+        RequisitionLine."Prod. Order Line No." := 10000;
+        RequisitionLine."Operation No." := '10';
+        RequisitionLine.Modify();
+    end;
 }

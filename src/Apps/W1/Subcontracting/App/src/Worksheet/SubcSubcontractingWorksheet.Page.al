@@ -361,9 +361,14 @@ page 20504 "Subc. Subcontracting Worksheet"
                     ToolTip = 'Select an open purchase order for the current new subcontracting suggestion.';
 
                     trigger OnAction()
+                    var
+                        PurchaseHeader: Record "Purchase Header";
                     begin
+                        // Look up before saving: a modal page cannot open once SaveRecord has written in this transaction.
+                        if not Rec.LookupPurchaseOrderTarget(PurchaseHeader) then
+                            exit;
                         CurrPage.SaveRecord();
-                        Rec.AssignPurchaseOrderTarget();
+                        Rec.SetPurchaseOrderTarget(PurchaseHeader."No.");
                     end;
                 }
                 action(ClearPurchaseOrder)

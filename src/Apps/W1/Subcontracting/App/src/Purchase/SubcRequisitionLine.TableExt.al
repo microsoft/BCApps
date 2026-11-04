@@ -137,6 +137,13 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
     internal procedure AssignPurchaseOrderTarget()
     var
         PurchaseHeader: Record "Purchase Header";
+    begin
+        if LookupPurchaseOrderTarget(PurchaseHeader) then
+            SetPurchaseOrderTarget(PurchaseHeader."No.");
+    end;
+
+    internal procedure LookupPurchaseOrderTarget(var PurchaseHeader: Record "Purchase Header"): Boolean
+    var
         PurchaseOrderList: Page "Purchase Order List";
     begin
         TestField("Action Message", "Action Message"::New);
@@ -149,13 +156,18 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
         PurchaseOrderList.SetTableView(PurchaseHeader);
         PurchaseOrderList.LookupMode(true);
         if PurchaseOrderList.RunModal() <> Action::LookupOK then
-            exit;
+            exit(false);
 
         PurchaseOrderList.GetRecord(PurchaseHeader);
+        exit(true);
+    end;
+
+    internal procedure SetPurchaseOrderTarget(PurchaseOrderNo: Code[20])
+    begin
         "Ref. Order Type" := "Ref. Order Type"::Purchase;
         Clear("Ref. Order Status");
         "Ref. Line No." := 0;
-        "Ref. Order No." := PurchaseHeader."No.";
+        "Ref. Order No." := PurchaseOrderNo;
         CheckPurchaseOrderTarget();
         Modify(true);
     end;
