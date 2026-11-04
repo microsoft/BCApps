@@ -33,7 +33,7 @@ pageextension 130488 "Test Config. AL Test Suites" extends "AL Test Suites"
             action(OpenSuite)
             {
                 ApplicationArea = All;
-                Caption = 'Open Suite';
+                Caption = 'Open suite';
                 ToolTip = 'Opens the saved suite and its results without regenerating its lines.';
                 Image = View;
 
@@ -48,7 +48,7 @@ pageextension 130488 "Test Config. AL Test Suites" extends "AL Test Suites"
             action(RunSuite)
             {
                 ApplicationArea = All;
-                Caption = 'Run Suite';
+                Caption = 'Run suite';
                 ToolTip = 'Runs the saved suite normally without regenerating it.';
                 Image = TestReport;
 

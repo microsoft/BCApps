@@ -21,6 +21,9 @@ codeunit 130482 "Test Configuration Context"
     var
         CurrentConfiguration: Record "Test Configuration";
         CurrentSuiteName: Code[10];
+        InitialWorkDate: Date;
+        CurrentTestCodeunit: Integer;
+        HandlerError: Text;
 
     internal procedure Initialize(SuiteName: Code[10])
     var
@@ -28,9 +31,12 @@ codeunit 130482 "Test Configuration Context"
     begin
         Reset();
         ALTestSuite.Get(SuiteName);
-        if ALTestSuite."Created From Suite" <> '' then
-            CurrentConfiguration.Get(ALTestSuite."Created From Suite", ALTestSuite.Configuration);
+        if ALTestSuite."Created From Suite" = '' then
+            exit;
+
+        CurrentConfiguration.Get(ALTestSuite."Created From Suite", ALTestSuite.Configuration);
         CurrentSuiteName := SuiteName;
+        InitialWorkDate := WorkDate();
     end;
 
     procedure GetConfiguration(var TestConfiguration: Record "Test Configuration")
@@ -38,14 +44,53 @@ codeunit 130482 "Test Configuration Context"
         TestConfiguration := CurrentConfiguration;
     end;
 
+    procedure GetInitialWorkDate(): Date
+    begin
+        exit(InitialWorkDate);
+    end;
+
     internal procedure IsCurrentSuite(SuiteName: Code[10]): Boolean
     begin
         exit((CurrentSuiteName <> '') and (CurrentSuiteName = SuiteName));
     end;
 
+    internal procedure BeginCodeunit(CodeunitId: Integer)
+    begin
+        CurrentTestCodeunit := CodeunitId;
+        Clear(HandlerError);
+    end;
+
+    internal procedure IsCurrentCodeunit(CodeunitId: Integer): Boolean
+    begin
+        exit((CurrentTestCodeunit <> 0) and (CurrentTestCodeunit = CodeunitId));
+    end;
+
+    internal procedure HasActiveCodeunit(): Boolean
+    begin
+        exit(CurrentTestCodeunit <> 0);
+    end;
+
+    internal procedure SetHandlerError(ErrorText: Text)
+    begin
+        HandlerError := ErrorText;
+    end;
+
+    internal procedure GetHandlerError(): Text
+    begin
+        exit(HandlerError);
+    end;
+
+    internal procedure EndCodeunit()
+    begin
+        Clear(CurrentTestCodeunit);
+        Clear(HandlerError);
+    end;
+
     internal procedure Reset()
     begin
+        EndCodeunit();
         Clear(CurrentConfiguration);
         Clear(CurrentSuiteName);
+        Clear(InitialWorkDate);
     end;
 }

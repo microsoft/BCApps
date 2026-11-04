@@ -6,28 +6,30 @@
 namespace System.TestTools.TestStability;
 
 using System.TestLibraries.Utilities;
-using System.TestTools.TestRunner;
 
 codeunit 130485 "Seed Test Config. Provider" implements ITestConfigurationProvider
 {
+    SingleInstance = true;
+
     var
         Any: Codeunit Any;
         AnyConfiguration: Codeunit "Any Configuration";
         LibraryRandom: Codeunit "Library - Random";
+        SeedIsActive: Boolean;
 
     procedure Initialize(TestConfiguration: Record "Test Configuration")
     begin
         Reset();
         if TestConfiguration."Use Random Seed" then begin
+            SeedIsActive := true;
             AnyConfiguration.SetSeed(TestConfiguration."Random Seed");
-            Any.SetSeed(TestConfiguration."Random Seed");
-            LibraryRandom.SetSeed(TestConfiguration."Random Seed");
+            ApplyBeforeTestMethodRun();
         end;
     end;
 
     procedure ApplyBeforeTestMethodRun()
     begin
-        if AnyConfiguration.IsSet() then begin
+        if SeedIsActive and AnyConfiguration.IsSet() then begin
             Any.SetSeed(AnyConfiguration.GetSeed());
             LibraryRandom.SetSeed(AnyConfiguration.GetSeed());
         end;
@@ -35,14 +37,12 @@ codeunit 130485 "Seed Test Config. Provider" implements ITestConfigurationProvid
 
     procedure Reset()
     begin
+        if not SeedIsActive then
+            exit;
+
         AnyConfiguration.ClearSeed();
         Any.SetSeed(1);
         LibraryRandom.SetSeed(1);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"ALTestRunner Reset Environment", 'OnAfterInitialize', '', false, false)]
-    local procedure ApplySeedAfterEnvironmentInitialization()
-    begin
-        ApplyBeforeTestMethodRun();
+        SeedIsActive := false;
     end;
 }

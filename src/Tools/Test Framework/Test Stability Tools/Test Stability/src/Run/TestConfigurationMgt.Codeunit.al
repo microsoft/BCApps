@@ -100,11 +100,9 @@ codeunit 130483 "Test Configuration Mgt"
     var
         ALTestSuite: Record "AL Test Suite";
         TestConfigurationRunner: Codeunit "Test Configuration Runner";
-        ALTestRunnerResetEnvironment: Codeunit "ALTestRunner Reset Environment";
     begin
         ALTestSuite.Get(SuiteName);
         TestConfigurationRunner.Reset();
-        ALTestRunnerResetEnvironment.Initialize();
     end;
 
     /// <summary>

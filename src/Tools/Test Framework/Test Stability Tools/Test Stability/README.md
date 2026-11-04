@@ -10,7 +10,9 @@ or results. Initial PowerShell setup still uses the existing source-suite setup 
 it is included in the SaaS distribution for **Sandbox** environments and installed on environment updates.
 Production environments are excluded. On-premises installation remains optional.
 
-The app must be installed before using its UI actions or the PowerShell `-StabilityMode` switch.
+The app requires runtime 18.0 or later and server binaries supporting `ITestHandler`,
+`DefaultTestHandler`, and `TestHandlerContext`. It must be installed before using its UI actions
+or the PowerShell `-StabilityMode` switch.
 This app depends on **Test Runner**, **Any**, and **Application Test Library** (for Library - Random),
 including the application dependencies of that library.
 Test Runner and Any do not depend on this app or on each other.
@@ -18,6 +20,8 @@ Test Runner and Any do not depend on this app or on each other.
 Configuration, suite generation, page/table extensions, runtime providers, and Any Configuration
 are owned by this app in the `System.TestTools.TestStability` namespace. Assign **Test Stability Exec**
 to stability users; it includes **Test Runner - Exec** and the required configuration/library permissions.
+Ordinary test users do not need this permission set: global handler callbacks return without
+calling providers or libraries unless the saved suite is a generated stability suite.
 
 ## Configuration
 
@@ -44,22 +48,23 @@ with all configurations disabled, raises an error instead of silently creating d
 
 1. Select the parent in **AL Test Tool** and open **Test Configurations**.
 2. Configure the desired modes, or explicitly create the starter configurations.
-3. **Run All** replaces every generated suite belonging to the parent, including outputs whose
+3. **Run all** replaces every generated suite belonging to the parent, including outputs whose
    configuration was deleted or disabled, and runs the new suites sequentially.
-4. **Run Configuration** replaces only the selected parent/configuration pair.
-5. Open **Generated Suites** to inspect results, **Open Suite**, or **Run Suite** without regeneration.
+4. **Run configuration** replaces only the selected parent/configuration pair.
+5. Open **Generated Suites** to inspect results, **Open suite**, or **Run suite** without regeneration.
 
 Generated names use `S-00000001` and increment without overwriting other suites. The read-only
 **Created From Suite** and **Configuration** fields identify their owner and settings.
 Generated suites cannot start another stability generation.
+Deleting a parent suite also deletes its configurations, generated suites and their lines/results.
 
 Ordinary execution uses the saved lines and the current runtime settings of the assigned configuration.
 Changing One By One or Reverse Order takes effect only on regeneration. Deleting or renaming an
 assigned configuration makes an ordinary run of the old generated suite fail; full regeneration removes
 that old suite. No configuration-record identity tracking is performed.
 
-**Reset Stability Mode** resets active runtime state and libraries, preserving suite associations,
-layout and results. **Clear Results** separately clears errors, timing and results without changing Run flags.
+**Reset stability mode** clears only runtime state owned by an active stability scope, preserving suite associations,
+layout and results. **Clear results** separately clears errors, timing and results without changing Run flags.
 
 ## AL API
 
@@ -77,18 +82,42 @@ foreach SuiteName in SuiteNames do
 `RunTestConfigurations(Parent)` combines generation and sequential execution for the UI.
 
 Use `System.TestTools.TestStability` for the configuration API.
-The session-local `Test Configuration Context` retains the current record, loaded before test
-permissions are applied. Runtime providers implement `ITestConfigurationProvider` and are
-registered through the extensible `Test Configuration Provider` enum. Providers initialize on
-suite entry, apply per-method settings through `ApplyBeforeTestMethodRun()` and reset on normal
-completion. Layout is generated separately.
+The session-local `Test Configuration Context` retains the generated suite's configuration and
+original WorkDate, loaded before test permissions are applied. Ordinary suites leave it inactive.
+Runtime providers implement `ITestConfigurationProvider` and are registered through the extensible
+`Test Configuration Provider` enum. Providers initialize before each codeunit/block and reset after
+the codeunit and all its handlers return. Layout is generated separately.
+All interface methods have no-op defaults; enum values without an explicit implementation use the
+neutral default provider and do not change runtime state.
 
-The app subscribes to generic Test Runner lifecycle events. Seed application runs after environment
-initialization; per-method settings run after the standard method environment reset. This ordering
-prevents the legacy reset from overwriting configured seeds. Any's generic `OnBeforeInitializeSeed`
-event supplies the configured seed to fresh Any instances without a reverse app dependency.
+`Test Configuration Runner` implements the platform `ITestHandler`, registered globally through
+`DefaultTestHandler`. Its procedure and native data-driven case callbacks apply settings through
+`ApplyBeforeTestMethodRun()` after the standard legacy reset. Data-driven procedures receive a
+procedure callback and a callback for each case; providers must support repeated application.
+This does not add native data-driven generation or reporting to the existing runner.
+
+Generic Test Runner events supply the saved suite association and codeunit boundaries. Provider
+initialization stays outside the platform handler so initialization errors stop execution immediately.
+If per-test application fails, the handler skips the affected and remaining tests in that codeunit;
+the runner raises the saved error after cleanup. Cleanup errors retain the original application error.
+Application runs in a try function, so providers should change session state, not write database records.
+Provider state must survive callback instances, and reset must be harmless for uninitialized settings.
+
+WorkDate offsets always use the single suite-entry baseline, without accumulating across blocks or cases.
+Disabled seed mode and blank WorkDate offsets do not acquire or reset those settings. Enabled seed mode
+clears the optional override and seeds both libraries with 1 on cleanup; this is not restoration of a
+previously consumed random sequence. Enabled WorkDate mode restores the suite-entry date.
+Any's generic `OnBeforeInitializeSeed` event supplies the configured seed to fresh Any instances without
+a reverse app dependency.
 Explicit `Any.SetSeed`, `Any.SetDefaultSeed`, and `Library - Random.Init`/`SetSeed` calls are unchanged.
-Special recovery from fatal runtime errors remains deferred; the next suite entry resets stale state.
+Special recovery from fatal runtime errors remains deferred; the next suite entry cleans up only a
+previously activated unfinished stability scope.
+
+Default handlers run before codeunit-specific handlers in the same callback, so later test-specific
+setup can override stability defaults. Codeunit-only setup can be overwritten by later procedure/case
+callbacks. Ordering between separate global handlers is not guaranteed: handlers writing the same
+seed/date need an ownership agreement, and random calls advance the shared sequence. Final stability
+cleanup uses the runner boundary after handler teardown, not a global after-codeunit callback.
 
 ## PowerShell
 

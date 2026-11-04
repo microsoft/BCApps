@@ -21,6 +21,7 @@ permissionset 130482 "Test Stability Exec"
                   codeunit "Seed Test Config. Provider" = X,
                   codeunit "WorkDate Test Config. Prov." = X,
                   codeunit "Any Configuration" = X,
+                  codeunit "Default Test Config. Provider" = X,
                   codeunit Any = X,
                   codeunit "Library - Random" = X,
                   page "Test Configurations" = X,

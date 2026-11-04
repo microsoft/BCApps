@@ -44,7 +44,7 @@ pageextension 130487 "Test Config. Cmd Line Tool" extends "Command Line Test Too
             action(GenerateStabilitySuites)
             {
                 ApplicationArea = All;
-                Caption = 'Generate Stability Suites';
+                Caption = 'Generate stability suites';
                 ToolTip = 'Replaces all stability suites for the parent and returns their codes without running tests.';
                 Image = CreateDocuments;
 
@@ -73,7 +73,7 @@ pageextension 130487 "Test Config. Cmd Line Tool" extends "Command Line Test Too
             action(ResetStabilityMode)
             {
                 ApplicationArea = All;
-                Caption = 'Reset Stability Mode';
+                Caption = 'Reset stability mode';
                 ToolTip = 'Resets the active configuration and libraries without changing saved suites or results.';
                 Image = Undo;
 

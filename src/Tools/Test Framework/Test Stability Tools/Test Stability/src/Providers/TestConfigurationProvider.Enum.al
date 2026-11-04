@@ -6,11 +6,13 @@
 namespace System.TestTools.TestStability;
 
 /// <summary>
-/// Runtime providers initialized for each suite. Extensions can read their settings from the configuration.
+/// Runtime providers initialized for each generated-suite codeunit block.
+/// Extensions can read their settings from the configuration.
 /// </summary>
 enum 130482 "Test Configuration Provider" implements ITestConfigurationProvider
 {
     Extensible = true;
+    DefaultImplementation = ITestConfigurationProvider = "Default Test Config. Provider";
 
     value(0; Seed)
     {

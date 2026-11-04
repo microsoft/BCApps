@@ -14,11 +14,15 @@ codeunit 130486 "WorkDate Test Config. Prov." implements ITestConfigurationProvi
         ConfiguredWorkDate: Date;
 
     procedure Initialize(TestConfiguration: Record "Test Configuration")
+    var
+        TestConfigurationContext: Codeunit "Test Configuration Context";
     begin
-        InitialWorkDate := WorkDate();
-        Clear(ConfiguredWorkDate);
-        if Format(TestConfiguration."WorkDate Offset") <> '' then
-            ConfiguredWorkDate := CalcDate(TestConfiguration."WorkDate Offset", InitialWorkDate);
+        Reset();
+        if Format(TestConfiguration."WorkDate Offset") = '' then
+            exit;
+
+        InitialWorkDate := TestConfigurationContext.GetInitialWorkDate();
+        ConfiguredWorkDate := CalcDate(TestConfiguration."WorkDate Offset", InitialWorkDate);
     end;
 
     procedure ApplyBeforeTestMethodRun()

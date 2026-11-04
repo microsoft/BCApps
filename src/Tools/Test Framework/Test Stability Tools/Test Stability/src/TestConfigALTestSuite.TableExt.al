@@ -35,10 +35,13 @@ tableextension 130482 "Test Config. AL Test Suite" extends "AL Test Suite"
 
     trigger OnAfterDelete()
     var
+        GeneratedSuite: Record "AL Test Suite";
         TestConfiguration: Record "Test Configuration";
     begin
         if Rec.IsTemporary() then
             exit;
+        GeneratedSuite.SetRange("Created From Suite", Rec.Name);
+        GeneratedSuite.DeleteAll(true);
         TestConfiguration.SetRange("Test Suite", Rec.Name);
         TestConfiguration.DeleteAll(true);
     end;

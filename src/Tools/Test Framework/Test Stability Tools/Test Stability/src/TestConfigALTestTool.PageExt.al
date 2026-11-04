@@ -47,7 +47,7 @@ pageextension 130486 "Test Config. AL Test Tool" extends "AL Test Tool"
                 action(RunTestConfigurations)
                 {
                     ApplicationArea = All;
-                    Caption = 'Run Stability Tests';
+                    Caption = 'Run stability tests';
                     ToolTip = 'Replaces this parent''s generated suites and runs the enabled configurations sequentially. The parent''s results are unchanged.';
                     Image = TestReport;
                     Enabled = CanGenerate;
@@ -98,7 +98,7 @@ pageextension 130486 "Test Config. AL Test Tool" extends "AL Test Tool"
                 action(ResetStabilityMode)
                 {
                     ApplicationArea = All;
-                    Caption = 'Reset Stability Mode';
+                    Caption = 'Reset stability mode';
                     ToolTip = 'Resets the active configuration and libraries without changing this suite''s stored configuration, layout or results.';
                     Image = Undo;
 
@@ -113,7 +113,7 @@ pageextension 130486 "Test Config. AL Test Tool" extends "AL Test Tool"
                 action(ClearStabilityResults)
                 {
                     ApplicationArea = All;
-                    Caption = 'Clear Results';
+                    Caption = 'Clear results';
                     ToolTip = 'Clears this suite''s results, errors and timing without changing its definition or Run flags.';
                     Image = ClearLog;
 

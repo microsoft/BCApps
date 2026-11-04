@@ -87,7 +87,7 @@ page 130482 "Test Configurations"
             }
             action(RunAll)
             {
-                Caption = 'Run All';
+                Caption = 'Run all';
                 ToolTip = 'Replaces all generated suites for this parent and runs its enabled configurations sequentially.';
                 Image = TestReport;
 
@@ -101,7 +101,7 @@ page 130482 "Test Configurations"
             }
             action(RunConfiguration)
             {
-                Caption = 'Run Configuration';
+                Caption = 'Run configuration';
                 ToolTip = 'Replaces and runs the generated suite for the selected configuration.';
                 Image = TestFile;
 
