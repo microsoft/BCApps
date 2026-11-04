@@ -63,7 +63,8 @@ table 6786 "Withholding Tax Posting Setup"
         field(11; "Bal. Prepaid Account No."; Code[20])
         {
             Caption = 'Bal. Prepaid Account No.';
-            TableRelation = if ("Bal. Prepaid Account Type" = const("Bank Account")) "Bank Account"
+            TableRelation =
+            if ("Bal. Prepaid Account Type" = const("Bank Account")) "Bank Account"
             else
             if ("Bal. Prepaid Account Type" = const("G/L Account")) "G/L Account";
         }
@@ -76,7 +77,8 @@ table 6786 "Withholding Tax Posting Setup"
         field(13; "Bal. Payable Account No."; Code[20])
         {
             Caption = 'Bal. Payable Account No.';
-            TableRelation = if ("Bal. Payable Account Type" = const("Bank Account")) "Bank Account"
+            TableRelation =
+            if ("Bal. Payable Account Type" = const("Bank Account")) "Bank Account"
             else
             if ("Bal. Payable Account Type" = const("G/L Account")) "G/L Account";
         }
@@ -154,6 +156,16 @@ table 6786 "Withholding Tax Posting Setup"
                 if "WHT Threshold Period" <> "WHT Threshold Period"::" " then
                     if not ("WHT Threshold Base" in ["WHT Threshold Base"::"Category Period", "WHT Threshold Base"::"Total Period"]) then
                         Error(ThresholdPeriodNotAllowedErr, FieldCaption("WHT Threshold Period"), FieldCaption("WHT Threshold Base"), Format("WHT Threshold Base"::"Category Period"), Format("WHT Threshold Base"::"Total Period"));
+            end;
+        }
+        field(104; "Tax Amount Above Threshold"; Boolean)
+        {
+            Caption = 'Tax Only Amount Above Threshold';
+
+            trigger OnValidate()
+            begin
+                if "Tax Amount Above Threshold" then
+                    TestEmployeeParty(FieldCaption("Tax Amount Above Threshold"));
             end;
         }
     }

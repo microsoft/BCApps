@@ -133,6 +133,11 @@ page 6786 "Withholding Tax Posting Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the period for threshold accumulation: Month, Quarter, Year, or Fiscal Period. Applicable when Threshold Base is Category in Period or Total in Period.';
                 }
+                field("Tax Only Amount Above Threshold"; Rec."Tax Amount Above Threshold")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies whether withholding tax is calculated only on the amount that exceeds the configured threshold.';
+                }
             }
         }
     }
