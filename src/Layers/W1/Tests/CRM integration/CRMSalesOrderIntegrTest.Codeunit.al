@@ -1112,6 +1112,7 @@ codeunit 139175 "CRM Sales Order Integr. Test"
 
         // [WHEN] The same instance imports an order for another customer without recurring lines.
         CreateCRMSalesorderInLCY(CRMSalesorder);
+        Clear(CRMSalesorderdetail);
         LibraryCRMIntegration.CreateCRMSalesOrderLine(CRMSalesorder, CRMSalesorderdetail);
         Clear(SalesHeader);
         CRMSalesOrderToSalesOrder.CreateInNAV(CRMSalesorder, SalesHeader);
@@ -2242,6 +2243,7 @@ codeunit 139175 "CRM Sales Order Integr. Test"
         SalesLine: Record "Sales Line";
         LineNo: Integer;
     begin
+        StandardSalesLine.SetRange("Standard Sales Code", StandardSalesLine."Standard Sales Code");
         StandardSalesLine.FindSet();
         repeat
             LineNo += 10000;
