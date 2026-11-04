@@ -223,6 +223,12 @@ table 4325 "SOA Setup"
             ToolTip = 'Specifies the initials for the sales order agent instance.';
             DataClassification = SystemMetadata;
         }
+        field(36; "Auto-Deactivated At"; DateTime)
+        {
+            Caption = 'Auto-Deactivated At';
+            ToolTip = 'Specifies the date and time the agent was automatically deactivated because the company was unattended.';
+            DataClassification = SystemMetadata;
+        }
         field(50; "User Security ID"; Guid)
         {
             DataClassification = SystemMetadata;
