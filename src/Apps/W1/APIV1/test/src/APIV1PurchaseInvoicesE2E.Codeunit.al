@@ -445,27 +445,40 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
         PurchaseHeader.SETRANGE("No.", InvoiceNumber);
         PurchaseHeader.SETRANGE("Buy-from Vendor No.", VendorNo);
         Assert.IsTrue(PurchaseHeader.FINDFIRST(), UnpostedInvoiceExistErr);
+        // The Italian localization doesn't fill "Payment Discount %" on the header; the payment terms discount goes to its Payment Lines instead.
         if PurchaseHeader."Payment Discount %" = 0 then
             Assert.IsTrue(HasLocalizedPaymentDiscount(PurchaseHeader."No."), PaymentDiscountErr);
     end;
 
+    /// <summary>
+    /// Checks whether the purchase invoice has a payment discount on the Italian "Payment Lines" table (12170).
+    /// In IT, validating "Payment Terms Code" on a purchase header creates Payment Lines with the discount
+    /// instead of setting "Payment Discount %" on the header.
+    /// The table only exists in the IT localization, so it is accessed through RecordRef with field numbers;
+    /// in all other countries it returns false and the header assertion applies.
+    /// </summary>
     local procedure HasLocalizedPaymentDiscount(DocumentNo: Code[20]): Boolean
     var
         RecordField: Record Field;
         PaymentLineRecordRef: RecordRef;
         PaymentLineFieldRef: FieldRef;
     begin
+        // Table 12170 "Payment Lines" (IT only)
         RecordField.SetRange(TableNo, 12170);
         if RecordField.IsEmpty() then
             exit(false);
 
         PaymentLineRecordRef.Open(12170);
+        // Field 10 "Sales/Purchase" = Purchase (2)
         PaymentLineFieldRef := PaymentLineRecordRef.Field(10);
         PaymentLineFieldRef.SetRange(2);
+        // Field 1 "Type" = Invoice (2)
         PaymentLineFieldRef := PaymentLineRecordRef.Field(1);
         PaymentLineFieldRef.SetRange(2);
+        // Field 2 "Code" = the purchase invoice No.
         PaymentLineFieldRef := PaymentLineRecordRef.Field(2);
         PaymentLineFieldRef.SetRange(DocumentNo);
+        // Field 7 "Discount %" > 0
         PaymentLineFieldRef := PaymentLineRecordRef.Field(7);
         PaymentLineFieldRef.SetFilter('>%1', 0);
         exit(not PaymentLineRecordRef.IsEmpty());
