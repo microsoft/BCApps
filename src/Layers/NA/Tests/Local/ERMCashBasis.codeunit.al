@@ -999,14 +999,14 @@
     end;
 
     [Test]
-    procedure PartialCrMemoWithEquivalentDifferentVATGroupRealizesProportionalInvoiceVAT()
-    begin
-        VerifyPartialCrMemoWithEquivalentDifferentVATGroup(1);
-    end;
-
-    [Test]
     procedure PartialCrMemoWithRepeatedEquivalentVATGroupRealizesProportionalInvoiceVAT()
     begin
+        // [SCENARIO 648925] Repeated equivalent VAT groups preserve proportional invoice VAT realization
+        // [GIVEN] A posted invoice with two lines totaling 1000 plus 16% Cash Basis VAT in the same VAT group
+        // [GIVEN] An applied credit memo with two lines totaling 500 in a different but equivalent VAT product posting group
+        // [WHEN] The credit memo is posted
+        // [THEN] Half of the invoice unrealized VAT amount and base remain despite the repeated VAT groups
+        // [THEN] The credit memo VAT entries net to zero and no VAT G/L transfers are posted
         VerifyPartialCrMemoWithEquivalentDifferentVATGroup(2);
     end;
 
@@ -1339,46 +1339,25 @@
     procedure ExactVATGroupWithOffsettingLinesDoesNotUseEquivalentVATGroup()
     var
         VATPostingSetup: array[2] of Record "VAT Posting Setup";
-        SalesCrMemoLine: Record "Sales Cr.Memo Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoDocumentNo: Code[20];
         CreditMemoVATBusPostingGroup: Code[20];
         CreditMemoVATProdPostingGroup: Code[20];
         CreditMemoPartAmount: Decimal;
         SettledAmount: Decimal;
     begin
-        // [SCENARIO 648925] An exact VAT group with offsetting amounts must not be replaced by an equivalent group.
+        // [SCENARIO 648925] A positive settlement preserves the zero amount of an exact VAT group with offsetting lines.
         Initialize();
 
         // [GIVEN] Two equivalent Cash Basis VAT posting setups at 16% with different VAT product posting groups
-        CreateCashBasisVATPostingSetup(VATPostingSetup[1], 16);
-        VATPostingSetup[2]."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
-        CreateCashBasisVATPostingSetup(VATPostingSetup[2], 16);
-        VATPostingSetup[2].Validate("Sales VAT Account", VATPostingSetup[1]."Sales VAT Account");
-        VATPostingSetup[2].Validate("Sales VAT Unreal. Account", VATPostingSetup[1]."Sales VAT Unreal. Account");
-        VATPostingSetup[2].Modify(true);
-
         // [GIVEN] Credit Memo lines of 116 and -116 in the exact VAT group and 232 in the equivalent VAT group
         SettledAmount := 116;
-        SalesCrMemoLine."Document No." :=
-          LibraryUtility.GenerateRandomCode(SalesCrMemoLine.FieldNo("Document No."), DATABASE::"Sales Cr.Memo Line");
-        SalesCrMemoLine."Line No." := 10000;
-        SalesCrMemoLine.Type := SalesCrMemoLine.Type::"G/L Account";
-        SalesCrMemoLine."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
-        SalesCrMemoLine."VAT Prod. Posting Group" := VATPostingSetup[1]."VAT Prod. Posting Group";
-        SalesCrMemoLine."Amount Including VAT" := SettledAmount;
-        SalesCrMemoLine.Insert();
-        SalesCrMemoLine."Line No." += 10000;
-        SalesCrMemoLine."Amount Including VAT" := -SettledAmount;
-        SalesCrMemoLine.Insert();
-        SalesCrMemoLine."Line No." += 10000;
-        SalesCrMemoLine."VAT Prod. Posting Group" := VATPostingSetup[2]."VAT Prod. Posting Group";
-        SalesCrMemoLine."Amount Including VAT" := 2 * SettledAmount;
-        SalesCrMemoLine.Insert();
+        CreditMemoDocumentNo := CreateCrMemoWithOffsettingVATLines(VATPostingSetup, SettledAmount);
 
         // [WHEN] Calculate the exact VAT group's share of a positive settlement of 116
         CreditMemoPartAmount :=
           CustLedgerEntry.GetCreditMemoPartAmountByVAT(
-            SalesCrMemoLine."Document No.", VATPostingSetup[1]."VAT Bus. Posting Group",
+            CreditMemoDocumentNo, VATPostingSetup[1]."VAT Bus. Posting Group",
             VATPostingSetup[1]."VAT Prod. Posting Group", SettledAmount,
             CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup);
 
@@ -1390,24 +1369,170 @@
         Assert.AreEqual(
           VATPostingSetup[1]."VAT Prod. Posting Group", CreditMemoVATProdPostingGroup,
           'The exact VAT product posting group must be preserved');
+    end;
+
+    [Test]
+    procedure NegativeSettlementWithOffsettingLinesDoesNotUseEquivalentVATGroup()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoDocumentNo: Code[20];
+        CreditMemoPartAmount: Decimal;
+        SettledAmount: Decimal;
+    begin
+        // [SCENARIO 648925] A negative settlement preserves the zero amount of an exact VAT group with offsetting lines.
+        Initialize();
+
+        // [GIVEN] Two equivalent Cash Basis VAT posting setups at 16% with different VAT product posting groups
+        // [GIVEN] Credit Memo lines of 116 and -116 in the exact VAT group and 232 in the equivalent VAT group
+        SettledAmount := 116;
+        CreditMemoDocumentNo := CreateCrMemoWithOffsettingVATLines(VATPostingSetup, SettledAmount);
 
         // [WHEN] Calculate the exact VAT group's share of a negative settlement of -116
         CreditMemoPartAmount :=
           CustLedgerEntry.GetCreditMemoPartAmountByVAT(
-            SalesCrMemoLine."Document No.", VATPostingSetup[1]."VAT Bus. Posting Group",
+            CreditMemoDocumentNo, VATPostingSetup[1]."VAT Bus. Posting Group",
             VATPostingSetup[1]."VAT Prod. Posting Group", -SettledAmount);
 
         // [THEN] The share remains zero instead of using the equivalent VAT group's amount
         Assert.AreEqual(0, CreditMemoPartAmount, 'A negative settlement must preserve the zero exact VAT group amount');
+    end;
+
+    [Test]
+    procedure NonzeroVATGroupWithOffsettingEquivalentLinesRetainsProportionalAllocation()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoDocumentNo: Code[20];
+        CreditMemoPartAmount: Decimal;
+        SettledAmount: Decimal;
+    begin
+        // [SCENARIO 648925] A nonzero VAT group retains proportional allocation when an equivalent group's lines offset.
+        Initialize();
+
+        // [GIVEN] Two equivalent Cash Basis VAT posting setups at 16% with different VAT product posting groups
+        // [GIVEN] Credit Memo lines of 116 and -116 in the first VAT group and 232 in the second VAT group
+        SettledAmount := 116;
+        CreditMemoDocumentNo := CreateCrMemoWithOffsettingVATLines(VATPostingSetup, SettledAmount);
 
         // [WHEN] Calculate the nonzero VAT group's share of a positive settlement of 116
         CreditMemoPartAmount :=
           CustLedgerEntry.GetCreditMemoPartAmountByVAT(
-            SalesCrMemoLine."Document No.", VATPostingSetup[2]."VAT Bus. Posting Group",
+            CreditMemoDocumentNo, VATPostingSetup[2]."VAT Bus. Posting Group",
             VATPostingSetup[2]."VAT Prod. Posting Group", SettledAmount);
 
         // [THEN] The nonzero VAT group retains its proportional share of 116
         Assert.AreEqual(SettledAmount, CreditMemoPartAmount, 'The nonzero VAT group must retain proportional allocation');
+    end;
+
+    local procedure CreateCrMemoWithOffsettingVATLines(var VATPostingSetup: array[2] of Record "VAT Posting Setup"; LineAmount: Decimal): Code[20]
+    var
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+    begin
+        CreateCashBasisVATPostingSetup(VATPostingSetup[1], 16);
+        VATPostingSetup[2]."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(VATPostingSetup[2], 16);
+        VATPostingSetup[2].Validate("Sales VAT Account", VATPostingSetup[1]."Sales VAT Account");
+        VATPostingSetup[2].Validate("Sales VAT Unreal. Account", VATPostingSetup[1]."Sales VAT Unreal. Account");
+        VATPostingSetup[2].Modify(true);
+
+        SalesCrMemoLine."Document No." :=
+          LibraryUtility.GenerateRandomCode(SalesCrMemoLine.FieldNo("Document No."), DATABASE::"Sales Cr.Memo Line");
+        SalesCrMemoLine."Line No." := 10000;
+        SalesCrMemoLine.Type := SalesCrMemoLine.Type::"G/L Account";
+        SalesCrMemoLine."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        SalesCrMemoLine."VAT Prod. Posting Group" := VATPostingSetup[1]."VAT Prod. Posting Group";
+        SalesCrMemoLine."Amount Including VAT" := LineAmount;
+        SalesCrMemoLine.Insert();
+        SalesCrMemoLine."Line No." += 10000;
+        SalesCrMemoLine."Amount Including VAT" := -LineAmount;
+        SalesCrMemoLine.Insert();
+        SalesCrMemoLine."Line No." += 10000;
+        SalesCrMemoLine."VAT Prod. Posting Group" := VATPostingSetup[2]."VAT Prod. Posting Group";
+        SalesCrMemoLine."Amount Including VAT" := 2 * LineAmount;
+        SalesCrMemoLine.Insert();
+        exit(SalesCrMemoLine."Document No.");
+    end;
+
+    [Test]
+    procedure CreditMemoAllocationWithMissingInvoiceVATSetupRaisesError()
+    begin
+        VerifyMissingVATPostingSetupRaisesError(1, true);
+    end;
+
+    [Test]
+    procedure CreditMemoAllocationWithMissingCreditMemoVATSetupRaisesError()
+    begin
+        VerifyMissingVATPostingSetupRaisesError(2, true);
+    end;
+
+    [Test]
+    procedure InvoiceVATGroupMappingWithMissingCreditMemoVATSetupRaisesError()
+    begin
+        VerifyMissingVATPostingSetupRaisesError(2, false);
+    end;
+
+    [Test]
+    procedure InvoiceVATGroupMappingWithMissingInvoiceVATSetupRaisesError()
+    begin
+        VerifyMissingVATPostingSetupRaisesError(1, false);
+    end;
+
+    local procedure VerifyMissingVATPostingSetupRaisesError(MissingSetupIndex: Integer; CalculateCreditMemoAmount: Boolean)
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        InvoiceVATBusPostingGroup: Code[20];
+        InvoiceVATProdPostingGroup: Code[20];
+    begin
+        // [SCENARIO 648925] Missing VAT setup must raise an error instead of silently skipping VAT realization.
+        Initialize();
+
+        // [GIVEN] Invoice and credit memo lines with equivalent but different VAT posting groups
+        CreateCashBasisVATPostingSetup(VATPostingSetup[1], 16);
+        VATPostingSetup[2]."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(VATPostingSetup[2], 16);
+        VATPostingSetup[2].Validate("Sales VAT Account", VATPostingSetup[1]."Sales VAT Account");
+        VATPostingSetup[2].Validate("Sales VAT Unreal. Account", VATPostingSetup[1]."Sales VAT Unreal. Account");
+        VATPostingSetup[2].Modify(true);
+
+        SalesInvoiceLine."Document No." :=
+          LibraryUtility.GenerateRandomCode(SalesInvoiceLine.FieldNo("Document No."), DATABASE::"Sales Invoice Line");
+        SalesInvoiceLine."Line No." := 10000;
+        SalesInvoiceLine.Type := SalesInvoiceLine.Type::"G/L Account";
+        SalesInvoiceLine."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        SalesInvoiceLine."VAT Prod. Posting Group" := VATPostingSetup[1]."VAT Prod. Posting Group";
+        SalesInvoiceLine."Amount Including VAT" := 116;
+        SalesInvoiceLine.Insert();
+        CustLedgerEntry."Document No." := SalesInvoiceLine."Document No.";
+
+        SalesCrMemoLine."Document No." :=
+          LibraryUtility.GenerateRandomCode(SalesCrMemoLine.FieldNo("Document No."), DATABASE::"Sales Cr.Memo Line");
+        SalesCrMemoLine."Line No." := 10000;
+        SalesCrMemoLine.Type := SalesCrMemoLine.Type::"G/L Account";
+        SalesCrMemoLine."VAT Bus. Posting Group" := VATPostingSetup[2]."VAT Bus. Posting Group";
+        SalesCrMemoLine."VAT Prod. Posting Group" := VATPostingSetup[2]."VAT Prod. Posting Group";
+        SalesCrMemoLine."Amount Including VAT" := 116;
+        SalesCrMemoLine.Insert();
+
+        // [GIVEN] The required invoice or credit memo VAT posting setup is missing
+        VATPostingSetup[MissingSetupIndex].Delete(true);
+
+        // [WHEN] Calculate the credit memo allocation or map its VAT group to the invoice
+        if CalculateCreditMemoAmount then begin
+            asserterror CustLedgerEntry.GetCreditMemoPartAmountByVAT(
+                SalesCrMemoLine."Document No.", VATPostingSetup[1]."VAT Bus. Posting Group",
+                VATPostingSetup[1]."VAT Prod. Posting Group", 116);
+        end else begin
+            asserterror CustLedgerEntry.GetInvoiceVATPostingGroupForCreditMemoVATGroup(
+                SalesCrMemoLine."Document No.", VATPostingSetup[2]."VAT Bus. Posting Group",
+                VATPostingSetup[2]."VAT Prod. Posting Group", InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup);
+        end;
+
+        // [THEN] A record-not-found error identifies the missing VAT posting setup
+        Assert.ExpectedErrorCannotFind(DATABASE::"VAT Posting Setup", VATPostingSetup[MissingSetupIndex]."VAT Prod. Posting Group");
     end;
 
     [Test]

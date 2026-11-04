@@ -1881,18 +1881,16 @@ table 21 "Cust. Ledger Entry"
         TempDocumentVATPostingSetup: Record "VAT Posting Setup" temporary;
         TempEquivalentVATPostingSetup: Record "VAT Posting Setup" temporary;
     begin
-        if not InvoiceVATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then
-            exit;
+        InvoiceVATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup);
 
         InsertTempVATPostingSetupFromCreditMemo(TempDocumentVATPostingSetup, CreditMemoDocumentNo);
         if TempDocumentVATPostingSetup.FindSet() then
             repeat
-                if CreditMemoVATPostingSetup.Get(
-                     TempDocumentVATPostingSetup."VAT Bus. Posting Group", TempDocumentVATPostingSetup."VAT Prod. Posting Group")
-                then
-                    if AreEquivalentSalesCashBasisVATPostingSetups(InvoiceVATPostingSetup, CreditMemoVATPostingSetup) then
-                        InsertTempVATPostingSetup(
-                          TempEquivalentVATPostingSetup, TempDocumentVATPostingSetup."VAT Bus. Posting Group", TempDocumentVATPostingSetup."VAT Prod. Posting Group");
+                CreditMemoVATPostingSetup.Get(
+                  TempDocumentVATPostingSetup."VAT Bus. Posting Group", TempDocumentVATPostingSetup."VAT Prod. Posting Group");
+                if AreEquivalentSalesCashBasisVATPostingSetups(InvoiceVATPostingSetup, CreditMemoVATPostingSetup) then
+                    InsertTempVATPostingSetup(
+                      TempEquivalentVATPostingSetup, TempDocumentVATPostingSetup."VAT Bus. Posting Group", TempDocumentVATPostingSetup."VAT Prod. Posting Group");
             until TempDocumentVATPostingSetup.Next() = 0;
 
         if TempEquivalentVATPostingSetup.Count() <> 1 then
@@ -1941,18 +1939,16 @@ table 21 "Cust. Ledger Entry"
             exit(true);
         end;
 
-        if not CreditMemoVATPostingSetup.Get(CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup) then
-            exit(false);
+        CreditMemoVATPostingSetup.Get(CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup);
 
         InsertTempVATPostingSetupFromInvoice(TempDocumentVATPostingSetup, Rec."Document No.");
         if TempDocumentVATPostingSetup.FindSet() then
             repeat
-                if InvoiceVATPostingSetup.Get(
-                     TempDocumentVATPostingSetup."VAT Bus. Posting Group", TempDocumentVATPostingSetup."VAT Prod. Posting Group")
-                then
-                    if AreEquivalentSalesCashBasisVATPostingSetups(InvoiceVATPostingSetup, CreditMemoVATPostingSetup) then
-                        InsertTempVATPostingSetup(
-                          TempEquivalentVATPostingSetup, TempDocumentVATPostingSetup."VAT Bus. Posting Group", TempDocumentVATPostingSetup."VAT Prod. Posting Group");
+                InvoiceVATPostingSetup.Get(
+                  TempDocumentVATPostingSetup."VAT Bus. Posting Group", TempDocumentVATPostingSetup."VAT Prod. Posting Group");
+                if AreEquivalentSalesCashBasisVATPostingSetups(InvoiceVATPostingSetup, CreditMemoVATPostingSetup) then
+                    InsertTempVATPostingSetup(
+                      TempEquivalentVATPostingSetup, TempDocumentVATPostingSetup."VAT Bus. Posting Group", TempDocumentVATPostingSetup."VAT Prod. Posting Group");
             until TempDocumentVATPostingSetup.Next() = 0;
 
         if TempEquivalentVATPostingSetup.Count() <> 1 then
