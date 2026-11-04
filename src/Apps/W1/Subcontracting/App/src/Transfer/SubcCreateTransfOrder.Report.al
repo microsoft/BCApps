@@ -64,7 +64,7 @@ report 20501 "Subc. Create Transf. Order"
             end;
         }
     }
-#if not CLEAN29
+#if not CLEAN28
     trigger OnInitReport()
     var
 #pragma warning disable AL0432
