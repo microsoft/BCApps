@@ -31,6 +31,9 @@ codeunit 139555 "Aged Accounts Excel Reports"
         OtherPostingGroupTok: Label 'EXRTOPLIST2', Locked = true;
         OneRowExpectedErr: Label 'Only the customer or vendor in the filtered posting group should be returned';
         BalanceRowExpectedErr: Label 'The balance query should match the posting group on the ledger entry';
+        // Apostrophes at the start, in the middle and at the end of a No. of the full 20 characters, so the escaped filter token is longer than the field.
+        ApostropheAccountNoTok: Label '''T O''NEIL D''OR LOGI''', Locked = true;
+        TopListRowCountErr: Label 'Both accounts should be exported';
 
     [Test]
     [HandlerFunctions('EXRAgedAccPayableExcelHandler')]
@@ -489,6 +492,68 @@ codeunit 139555 "Aged Accounts Excel Reports"
     end;
 
     [Test]
+    [HandlerFunctions('EXRVendorTopListHandler')]
+    procedure VendorTopListExportsVendorWithApostropheInNo()
+    var
+        ApostropheVendor: Record Vendor;
+        OtherVendor: Record Vendor;
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [SCENARIO 11329] Vendor - Top List (Excel) runs when a Vendor No. in the top list contains an apostrophe
+        InitializeAgingData();
+
+        // [GIVEN] A vendor whose No. contains apostrophes and a second vendor, both with purchases and a balance
+        // Create vendors directly, as the scenario needs this No. and to avoid VAT posting setup requirements in some localizations
+        CreateVendorWithNo(ApostropheVendor, ApostropheAccountNoTok);
+        CreateVendorWithNo(OtherVendor, GenerateAccountNo());
+        CreateVendorLedgerData(ApostropheVendor."No.", '', -500, -100);
+        CreateVendorLedgerData(OtherVendor."No.", '', -250, -400);
+        Commit();
+
+        // [WHEN] Running the report
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Vendor Top List", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Vendor Top List", Variant, RequestPageXml);
+
+        // [THEN] Both vendors are exported with their name and both amounts, which are only filled in when the filters match them
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="TopVendorData"]');
+        Assert.AreEqual(2, LibraryReportDataset.RowCount(), TopListRowCountErr);
+        VerifyVendorTopListRow(ApostropheVendor, 500, 100);
+        VerifyVendorTopListRow(OtherVendor, 250, 400);
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRCustomerTopListHandler')]
+    procedure CustomerTopListExportsCustomerWithApostropheInNo()
+    var
+        ApostropheCustomer: Record Customer;
+        OtherCustomer: Record Customer;
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [SCENARIO 11329] Customer - Top List (Excel) runs when a Customer No. in the top list contains an apostrophe
+        InitializeAgingData();
+
+        // [GIVEN] A customer whose No. contains apostrophes and a second customer, both with sales and a balance
+        // Create customers directly, as the scenario needs this No. and to avoid VAT posting setup requirements in some localizations
+        CreateCustomerWithNo(ApostropheCustomer, ApostropheAccountNoTok);
+        CreateCustomerWithNo(OtherCustomer, GenerateAccountNo());
+        CreateCustomerLedgerData(ApostropheCustomer."No.", '', 500, 100);
+        CreateCustomerLedgerData(OtherCustomer."No.", '', 250, 400);
+        Commit();
+
+        // [WHEN] Running the report
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Customer Top List", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Customer Top List", Variant, RequestPageXml);
+
+        // [THEN] Both customers are exported with their name and both amounts, which are only filled in when the filters match them
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="TopCustomerData"]');
+        Assert.AreEqual(2, LibraryReportDataset.RowCount(), TopListRowCountErr);
+        VerifyCustomerTopListRow(ApostropheCustomer, 500, 100);
+        VerifyCustomerTopListRow(OtherCustomer, 250, 400);
+    end;
+
+    [Test]
     procedure TopCustomerBalanceQueryFiltersOnLedgerEntryPostingGroup()
     var
         FilteredCustomer: Record Customer;
@@ -733,6 +798,22 @@ codeunit 139555 "Aged Accounts Excel Reports"
         Vendor.Insert();
     end;
 
+    local procedure CreateCustomerWithNo(var Customer: Record Customer; CustomerNo: Code[20])
+    begin
+        Customer.Init();
+        Customer."No." := CustomerNo;
+        Customer.Name := Customer."No.";
+        Customer.Insert();
+    end;
+
+    local procedure CreateVendorWithNo(var Vendor: Record Vendor; VendorNo: Code[20])
+    begin
+        Vendor.Init();
+        Vendor."No." := VendorNo;
+        Vendor.Name := Vendor."No.";
+        Vendor.Insert();
+    end;
+
     local procedure CreateCustomerLedgerData(CustomerNo: Code[20]; PostingGroupCode: Code[20]; SalesLCY: Decimal; BalanceLCY: Decimal)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -804,6 +885,28 @@ codeunit 139555 "Aged Accounts Excel Reports"
     local procedure GenerateAccountNo() AccountNo: Code[20]
     begin
         exit(CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(AccountNo)));
+    end;
+
+    local procedure VerifyCustomerTopListRow(Customer: Record Customer; ExpectedAmountLCY: Decimal; ExpectedAmount2LCY: Decimal)
+    begin
+        // FindRow continues from the current row, so start from the first row
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="TopCustomerData"]');
+        LibraryReportDataset.MoveToRow(LibraryReportDataset.FindRow('CustomerNo', Customer."No.") + 1);
+        LibraryReportDataset.AssertCurrentRowValueEquals('CustomerName', Customer.Name);
+        LibraryReportDataset.AssertCurrentRowValueEquals('AmountLCY', ExpectedAmountLCY);
+        LibraryReportDataset.AssertCurrentRowValueEquals('Amount2LCY', ExpectedAmount2LCY);
+    end;
+
+    local procedure VerifyVendorTopListRow(Vendor: Record Vendor; ExpectedAmountLCY: Decimal; ExpectedAmount2LCY: Decimal)
+    begin
+        // FindRow continues from the current row, so start from the first row
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="TopVendorData"]');
+        LibraryReportDataset.MoveToRow(LibraryReportDataset.FindRow('VendorNo', Vendor."No.") + 1);
+        LibraryReportDataset.AssertCurrentRowValueEquals('VendorName', Vendor.Name);
+        LibraryReportDataset.AssertCurrentRowValueEquals('AmountLCY', ExpectedAmountLCY);
+        LibraryReportDataset.AssertCurrentRowValueEquals('Amount2LCY', ExpectedAmount2LCY);
     end;
 
     [RequestPageHandler]
@@ -891,5 +994,17 @@ codeunit 139555 "Aged Accounts Excel Reports"
         EXRAgedAccPayableExcel.PeriodCountOption.SetValue(1);
         EXRAgedAccPayableExcel."Skip Zero Balance Vendors".SetValue(true);
         EXRAgedAccPayableExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRVendorTopListHandler(var EXRVendorTopList: TestRequestPage "EXR Vendor Top List")
+    begin
+        EXRVendorTopList.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRCustomerTopListHandler(var EXRCustomerTopList: TestRequestPage "EXR Customer Top List")
+    begin
+        EXRCustomerTopList.OK().Invoke();
     end;
 }
