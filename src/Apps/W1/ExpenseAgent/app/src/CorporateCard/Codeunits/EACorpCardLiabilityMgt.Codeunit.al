@@ -53,7 +53,7 @@ codeunit 7449 "EA Corp Card Liability Mgt"
         BankAccountLedgerEntry.FindFirst();
         BankAccountLedgerEntry.TestField("Bank Account No.", BankAccount."No.");
         BankAccountLedgerEntry.TestField("Currency Code", BankAccount."Currency Code");
-        BankAccountLedgerEntry.TestField(Amount, GenJournalLine.Amount);
+        BankAccountLedgerEntry.TestField(Amount, -CorpCardTrans.GetAmountInCurrency(BankAccount."Currency Code"));
         BankAccountLedgerEntry.TestField("Amount (LCY)", PostedExpenseReportLine."Card Liability Amount (LCY)");
         BankAccountLedgerEntry.TestField("Dimension Set ID", PostedExpenseReportLine."Dimension Set ID");
         BankAccountLedgerEntry.TestField("Transaction No.");

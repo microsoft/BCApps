@@ -23,6 +23,7 @@ codeunit 148363 EACorpCardLiabilityTests
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    RequiredTestIsolation = Codeunit;
 
     var
         Assert: Codeunit Assert;
@@ -97,6 +98,7 @@ codeunit 148363 EACorpCardLiabilityTests
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DuplicateTransferIsRejectedWithoutNewEntries()
     var
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
@@ -109,6 +111,7 @@ codeunit 148363 EACorpCardLiabilityTests
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', '');
         LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
         BankEntryCount := BankAccountLedgerEntry.Count();
+        Commit();
 
         asserterror LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
 
@@ -118,6 +121,7 @@ codeunit 148363 EACorpCardLiabilityTests
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ExistingActiveBankEntryPreventsTransferWithoutAuditReferences()
     var
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
@@ -141,6 +145,7 @@ codeunit 148363 EACorpCardLiabilityTests
         GenJnlPostLine.SetIgnoreJournalTemplNameMandatoryCheck();
         GenJnlPostLine.RunWithCheck(GenJournalLine);
         BankEntryCount := BankAccountLedgerEntry.Count();
+        Commit();
 
         asserterror LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
 

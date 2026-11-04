@@ -333,6 +333,7 @@ codeunit 148356 EACorpCardImportBasicTests
     var
         CorpCard: Record "EA Corp Card";
         CorpCardTrans: Record "EA Corp Card Trans";
+        ExpensePaymentMethod: Record "Expense Payment Method";
         FirstExpense: Record Expense;
         SecondExpense: Record Expense;
         EnhancedMatchMgt: Codeunit "EA Corp Card Enh. Match Mgt";
@@ -344,11 +345,17 @@ codeunit 148356 EACorpCardImportBasicTests
         CorpCardTrans."Merchant Norm" := 'Bluebird Cafe';
         CorpCardTrans.Amount := 1234;
         CorpCardTrans."Currency Code" := UsdCurrencyCodeTok;
+        CorpCardTrans.Insert(true);
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
 
         LibraryExpense.CreateExpense(FirstExpense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, UsdCurrencyCodeTok, 1);
+        FirstExpense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+        FirstExpense.Validate("Corporate Card Id", CorpCard."Card Id");
         FirstExpense.Validate("Merchant Name", CorpCardTrans."Merchant Norm");
         FirstExpense.Modify(true);
         LibraryExpense.CreateExpense(SecondExpense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, UsdCurrencyCodeTok, 1);
+        SecondExpense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+        SecondExpense.Validate("Corporate Card Id", CorpCard."Card Id");
         SecondExpense.Validate("Merchant Name", CorpCardTrans."Merchant Norm");
         SecondExpense.Modify(true);
 
@@ -357,7 +364,7 @@ codeunit 148356 EACorpCardImportBasicTests
         Assert.AreEqual(FirstExpense."No.", MatchedExpenseNo, 'The first matching expense must be selected.');
         Assert.AreEqual(CorpCardTrans."Match Type"::Expense, CorpCardTrans."Match Type", 'The candidate must be selected by fuzzy merchant matching, not exact amount matching.');
 
-        FirstExpense."Credit Card Feed No." := 1;
+        FirstExpense."Credit Card Feed No." := CorpCardTrans."Entry No.";
         FirstExpense.Modify(true);
         EnhancedMatchMgt.RemoveCandidate(MatchedExpenseNo);
 
