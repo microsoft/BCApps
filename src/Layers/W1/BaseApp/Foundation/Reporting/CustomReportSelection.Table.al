@@ -83,18 +83,21 @@ table 9657 "Custom Report Selection"
 #endif
             end;
         }
-#if not CLEAN30
         field(8; "Custom Report Description"; Text[250])
         {
-            CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Custom Report Layout Code")));
             Caption = 'Custom Report Description';
+            ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+            ToolTip = 'Specifies a description of the custom report layout.';
+#if not CLEAN30
+            CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Custom Report Layout Code")));
             FieldClass = FlowField;
             ObsoleteState = Pending;
-            ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
             ObsoleteTag = '30.0';
-            ToolTip = 'Specifies a description of the custom report layout.';
-        }
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
 #endif
+        }
         field(9; "Send To Email"; Text[200])
         {
             Caption = 'Send To Email';
@@ -163,19 +166,22 @@ table 9657 "Custom Report Selection"
 #endif
             end;
         }
-#if not CLEAN30
         field(22; "Email Body Layout Description"; Text[250])
         {
-            CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Email Body Layout Code")));
             Caption = 'Email Body Layout Description';
             Editable = false;
+            ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+            ToolTip = 'Specifies a description of the custom email body layout that is used.';
+#if not CLEAN30
+            CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Email Body Layout Code")));
             FieldClass = FlowField;
             ObsoleteState = Pending;
-            ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
             ObsoleteTag = '30.0';
-            ToolTip = 'Specifies a description of the custom email body layout that is used.';
-        }
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
 #endif
+        }
         field(23; "Use Email from Contact"; Boolean)
         {
             Caption = 'Use Email from Contacts';

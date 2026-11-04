@@ -89,17 +89,20 @@ table 9651 "Report Layout Selection"
                     Type := Type::"Custom Layout";
             end;
         }
-#if not CLEAN30
         field(7; "Report Layout Description"; Text[250])
         {
-            CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Custom Report Layout Code")));
             Caption = 'Report Layout Description';
+            ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+#if not CLEAN30
+            CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Custom Report Layout Code")));
             FieldClass = FlowField;
             ObsoleteState = Pending;
-            ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
             ObsoleteTag = '30.0';
-        }
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
 #endif
+        }
         field(8; "Report Caption"; Text[80])
         {
             CalcFormula = lookup("Report Metadata".Caption where(ID = field("Report ID")));
