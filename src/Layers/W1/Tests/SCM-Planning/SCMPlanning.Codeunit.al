@@ -4896,6 +4896,63 @@ codeunit 137020 "SCM Planning"
     end;
 
     [Test]
+    [HandlerFunctions('CalculatePlanPlanWkshRequestPageHandlerWithResiliency,MessageHandlers,PlanningErrorLogModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure FixedReorderPlanningWhenItemReorderQtyNegativeLogsPlanningErrorAndPlansOtherItems()
+    var
+        InvalidItem: Record Item;
+        ValidItem: Record Item;
+        PlanningErrorLog: Record "Planning Error Log";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [SCENARIO 651103] Planning with resiliency logs the actual negative Reorder Quantity of an item with Fixed Reorder Qty. and still plans other items.
+        Initialize();
+
+        // [GIVEN] Item "A" with Reordering Policy = Fixed Reorder Qty., Reorder Point = 10 and Reorder Quantity = -5 stored before the field got MinValue = 0
+        LibraryInventory.CreateItem(InvalidItem);
+        InvalidItem.Validate("Reordering Policy", InvalidItem."Reordering Policy"::"Fixed Reorder Qty.");
+        InvalidItem.Validate("Reorder Point", LibraryRandom.RandIntInRange(10, 20));
+        InvalidItem."Reorder Quantity" := -LibraryRandom.RandInt(10);
+        InvalidItem.Modify(true);
+
+        // [GIVEN] Item "B" with Reordering Policy = Fixed Reorder Qty., Reorder Point = 10 and Reorder Quantity = 30, and no inventory
+        LibraryInventory.CreateItem(ValidItem);
+        ValidItem.Validate("Reordering Policy", ValidItem."Reordering Policy"::"Fixed Reorder Qty.");
+        ValidItem.Validate("Reorder Point", LibraryRandom.RandIntInRange(10, 20));
+        ValidItem.Validate("Reorder Quantity", LibraryRandom.RandIntInRange(30, 50));
+        ValidItem.Modify(true);
+        Commit();
+
+        // [WHEN] Calculate Regenerative Plan for both items with planning resiliency
+        CalcRegenPlanWithRequestPage(
+            StrSubstNo('%1|%2', InvalidItem."No.", ValidItem."No."), CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+
+        // [THEN] Planning Error Log has one entry for item "A" that shows the negative Reorder Quantity
+#pragma warning disable AA0210
+        PlanningErrorLog.SetRange("Item No.", InvalidItem."No.");
+#pragma warning restore AA0210
+        Assert.RecordCount(PlanningErrorLog, 1);
+        PlanningErrorLog.FindFirst();
+        Assert.IsTrue(
+            StrPos(PlanningErrorLog."Error Description", Format(InvalidItem."Reorder Quantity")) > 0,
+            'The planning error must show the negative Reorder Quantity.');
+        Assert.AreEqual(Database::Item, PlanningErrorLog."Table ID", 'The error must refer to the item.');
+        Assert.AreEqual(InvalidItem.GetPosition(), PlanningErrorLog."Table Position", 'The error must identify the item.');
+
+        // [THEN] No planning lines are created for item "A"
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", InvalidItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // [THEN] Item "B" is planned and gets a supply suggestion
+        RequisitionLine.SetRange("No.", ValidItem."No.");
+        Assert.RecordIsNotEmpty(RequisitionLine);
+
+        // Planning commits the error log; remove it so later tests on the same worksheet batch don't get the "continue from where it left off" confirmation.
+        PlanningErrorLog.DeleteAll();
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure PlanningWithLeadTimeCalculationDoesNotSuggestAboveMaxQty()
     var
@@ -5507,14 +5564,20 @@ codeunit 137020 "SCM Planning"
     end;
 
     local procedure CalcRegenPlanWithRequestPage(Item: Record Item; FromDate: Date; ToDate: Date)
+    begin
+        CalcRegenPlanWithRequestPage(Item."No.", FromDate, ToDate);
+    end;
+
+    local procedure CalcRegenPlanWithRequestPage(ItemNoFilter: Text; FromDate: Date; ToDate: Date)
     var
+        Item: Record Item;
         RequisitionWkshName: Record "Requisition Wksh. Name";
         CalculatePlanPlanWksh: Report "Calculate Plan - Plan. Wksh.";
     begin
         LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::Planning);
         CalculatePlanPlanWksh.InitializeRequest(FromDate, ToDate, true);
         CalculatePlanPlanWksh.SetTemplAndWorksheet(RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name, true);
-        Item.SetRange("No.", Item."No.");
+        Item.SetFilter("No.", ItemNoFilter);
         CalculatePlanPlanWksh.SetTableView(Item);
         CalculatePlanPlanWksh.UseRequestPage(true);
         CalculatePlanPlanWksh.Run();
