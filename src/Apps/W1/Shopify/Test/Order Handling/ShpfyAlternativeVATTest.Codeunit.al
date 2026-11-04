@@ -224,6 +224,57 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         this.VerifyCurrentSetupRefund(SalesHeader, PostedInvoice, SellToCustomer, BillToCustomer);
     end;
 
+    [Test]
+    [HandlerFunctions('FulfillmentOrdersHttpHandler')]
+    procedure AutoCreate_GenOnlyTemplate_PreservesCustomerVATGroup()
+    var
+        BillToCustomer: Record Customer;
+        CountryCustomerTemplate: Record "Customer Templ.";
+        OrderHeader: Record "Shpfy Order Header";
+        SellToCustomer: Record Customer;
+        VATCustomer: Record Customer;
+        DestinationCountry: Code[10];
+    begin
+        // [Scenario #8] A general-only template must not copy its general posting group's default VAT group into the alternative.
+        this.Initialize();
+
+        // [Given] B2C auto-create uses a general-only template whose general group has a default VAT group.
+        this.CreateGenOnlyAutoCreateScenario(OrderHeader, SellToCustomer, BillToCustomer, VATCustomer, DestinationCountry, CountryCustomerTemplate);
+
+        // [When] The B2C order is processed.
+        this.ProcessOrderManually(OrderHeader);
+
+        // [Then] The alternative retains a blank VAT group and the document retains the customer's baseline VAT group.
+        this.VerifyGenOnlyAutoCreateScenario(OrderHeader, SellToCustomer, BillToCustomer, VATCustomer, DestinationCountry, CountryCustomerTemplate);
+    end;
+
+    local procedure CreateGenOnlyAutoCreateScenario(var OrderHeader: Record "Shpfy Order Header"; var SellToCustomer: Record Customer; var BillToCustomer: Record Customer; var VATCustomer: Record Customer; var DestinationCountry: Code[10]; var CountryCustomerTemplate: Record "Customer Templ.")
+    var
+        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+        InterimShipToAddress: Record "Ship-to Address";
+        Shop: Record "Shpfy Shop";
+        DefaultVATGroupMissingErr: Label 'The general-only test template must have a blank VAT group and its general posting group must have a nonblank default VAT group.';
+    begin
+        this.CreateScenario(Shop, OrderHeader, VATCustomer, SellToCustomer, BillToCustomer, DestinationCountry, InterimShipToAddress, false, false, false, true);
+        CountryCustomerTemplate := this.EnableCustomerAutoCreate(Shop, DestinationCountry, VATCustomer, true, false);
+        GenBusinessPostingGroup.Get(CountryCustomerTemplate."Gen. Bus. Posting Group");
+        this.LibraryAssert.AreEqual('', CountryCustomerTemplate."VAT Bus. Posting Group", DefaultVATGroupMissingErr);
+        this.LibraryAssert.AreNotEqual('', GenBusinessPostingGroup."Def. VAT Bus. Posting Group", DefaultVATGroupMissingErr);
+        this.SetExpectedVATValues(DestinationCountry, VATCustomer."VAT Registration No.", CountryCustomerTemplate."Gen. Bus. Posting Group", VATCustomer."VAT Bus. Posting Group", false, true, false);
+    end;
+
+    local procedure VerifyGenOnlyAutoCreateScenario(OrderHeader: Record "Shpfy Order Header"; SellToCustomer: Record Customer; BillToCustomer: Record Customer; VATCustomer: Record Customer; DestinationCountry: Code[10]; CountryCustomerTemplate: Record "Customer Templ.")
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        AlternativeVATSetupErr: Label 'The general-only template must create an alternative with only its general business posting group.';
+    begin
+        this.VerifyScenario(OrderHeader, SellToCustomer, BillToCustomer, false, false);
+        this.LibraryAssert.IsTrue(this.AlternativeVATRegistrationExists(AltCustVATReg, VATCustomer."No.", DestinationCountry), AlternativeVATSetupErr);
+        this.LibraryAssert.AreEqual('', AltCustVATReg."VAT Registration No.", AlternativeVATSetupErr);
+        this.LibraryAssert.AreEqual(CountryCustomerTemplate."Gen. Bus. Posting Group", AltCustVATReg."Gen. Bus. Posting Group", AlternativeVATSetupErr);
+        this.LibraryAssert.AreEqual('', AltCustVATReg."VAT Bus. Posting Group", AlternativeVATSetupErr);
+    end;
+
     local procedure CreateExistingAlternativeScenario(var Shop: Record "Shpfy Shop"; var OrderHeader: Record "Shpfy Order Header"; var VATCustomer: Record Customer; var SellToCustomer: Record Customer; var BillToCustomer: Record Customer; var DestinationCountry: Code[10]; var InterimShipToAddress: Record "Ship-to Address"; var CountryCustomerTemplate: Record "Customer Templ."; var AltCustVATRegBefore: Record "Alt. Cust. VAT Reg.")
     begin
         this.CreateScenario(Shop, OrderHeader, VATCustomer, SellToCustomer, BillToCustomer, DestinationCountry, InterimShipToAddress, false, false, false, false);
@@ -260,13 +311,13 @@ codeunit 139614 "Shpfy Alternative VAT Test"
 
     local procedure ProcessOrderThenManuallyChangeShipToCountry(var SalesHeader: Record "Sales Header"; OrderHeader: Record "Shpfy Order Header"; ManualCountry: Code[10]; CountryCustomerTemplate: Record "Customer Templ."; VATCustomer: Record Customer)
     var
-        ManualValidationPromptMissingErr: Label 'Manual country validation after Shopify processing must retain standard interactive behavior.';
+        ManualVATPromptUnexpectedErr: Label 'The VAT confirmation prompt must not appear during Shopify-driven document creation.';
         SalesDocumentNotFoundErr: Label 'Sales document not created/found for the Shopify order.';
     begin
         this.SetExpectedVATValues(CopyStr(OrderHeader."Ship-to Country/Region Code", 1, MaxStrLen(this.ExpectedVATCountry)), VATCustomer."VAT Registration No.", CountryCustomerTemplate."Gen. Bus. Posting Group", CountryCustomerTemplate."VAT Bus. Posting Group", false, true, true);
         this.ManualVATPromptShown := false;
         this.ProcessOrderManually(OrderHeader);
-        this.LibraryAssert.IsFalse(this.ManualVATPromptShown, ManualValidationPromptMissingErr);
+        this.LibraryAssert.IsFalse(this.ManualVATPromptShown, ManualVATPromptUnexpectedErr);
         SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
         this.LibraryAssert.IsTrue(SalesHeader.FindFirst(), SalesDocumentNotFoundErr);
         this.LibrarySales.ReopenSalesDocument(SalesHeader);
@@ -767,9 +818,10 @@ codeunit 139614 "Shpfy Alternative VAT Test"
     local procedure EnsureCustomerPostingGroup(CustomerPostingGroupCode: Code[20])
     var
         CustomerPostingGroup: Record "Customer Posting Group";
+        MissingCustomerPostingGroupErr: Label 'Customer Posting Group ''%1'' does not exist. Create it in the test setup before processing the Shopify order.', Comment = '%1 = Customer posting group code';
     begin
         if not CustomerPostingGroup.Get(CustomerPostingGroupCode) then
-            exit;
+            Error(MissingCustomerPostingGroupErr, CustomerPostingGroupCode);
 
         if CustomerPostingGroup."Receivables Account" <> '' then
             exit;
