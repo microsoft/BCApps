@@ -860,17 +860,24 @@ codeunit 144173 "ERM IT Prepayment II"
     [Scope('OnPrem')]
     procedure CancelInvoiceWithPrepaymentReconcilesPrepaymentWhenRestoreQtyDisabled()
     begin
-        CancelInvoiceWithPrepaymentAndVerify(false);
+        CancelInvoiceWithPrepaymentAndVerify(false, false);
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure CancelPartialInvoiceRecalculatesPrepaymentWhenRestoreQtyDisabled()
     begin
-        CancelInvoiceWithPrepaymentAndVerify(true);
+        CancelInvoiceWithPrepaymentAndVerify(true, false);
     end;
 
-    local procedure CancelInvoiceWithPrepaymentAndVerify(PartiallyInvoice: Boolean)
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelPartialInvoiceWithExcessPrepaymentWhenRestoreQtyDisabled()
+    begin
+        CancelInvoiceWithPrepaymentAndVerify(true, true);
+    end;
+
+    local procedure CancelInvoiceWithPrepaymentAndVerify(PartiallyInvoice: Boolean; PrepaymentExceedsRemainder: Boolean)
     var
         GeneralPostingSetup: Record "General Posting Setup";
         Item: Record Item;
@@ -900,9 +907,14 @@ codeunit 144173 "ERM IT Prepayment II"
         // Fully invoiced lines have no remaining quantity from which to deduct prepayment.
         ExpectedPrepmtToDeduct := 0;
         if PartiallyInvoice then begin
-            InvoicedQuantity := LibraryRandom.RandIntInRange(1, 5);
-            // Keep the remaining line amount above the full 50% prepayment.
-            OrderQuantity := 2 * InvoicedQuantity + LibraryRandom.RandIntInRange(1, 5);
+            if PrepaymentExceedsRemainder then begin
+                OrderQuantity := 10;
+                InvoicedQuantity := 9;
+            end else begin
+                InvoicedQuantity := LibraryRandom.RandIntInRange(1, 5);
+                // Keep the remaining line amount above the full 50% prepayment.
+                OrderQuantity := 2 * InvoicedQuantity + LibraryRandom.RandIntInRange(1, 5);
+            end;
             ExpectedPrepmtToDeduct := OrderQuantity * 50;
             PurchasesPayablesSetup.Get();
             PurchasesPayablesSetup.Validate("Default Qty. to Receive", PurchasesPayablesSetup."Default Qty. to Receive"::Remainder);
@@ -986,7 +998,30 @@ codeunit 144173 "ERM IT Prepayment II"
         PrepaidPurchaseLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtToDeduct);
 
         if PartiallyInvoice then begin
-            // [THEN] The remaining quantity consumes the full released prepayment.
+            if PrepaymentExceedsRemainder then begin
+                // [GIVEN] The released prepayment of 500 exceeds the remaining order value of 100.
+                PrepaidPurchaseLine.TestField("Prepmt Amt to Deduct", 500);
+                PrepaidPurchaseLine.TestField("Qty. to Invoice", 1);
+
+                // [WHEN] The prepayment is credited and the order is reopened without requiring another prepayment.
+                PurchaseHeader.Find();
+                LibraryPurchase.SetCheckTotalOnPurchaseDocument(PurchaseHeader, true, false, false);
+                PrepaymentCreditMemoNo := LibraryPurchase.PostPurchasePrepaymentCreditMemo(PurchaseHeader);
+                PurchaseCrMemoHeader.Get(PrepaymentCreditMemoNo);
+                PurchaseCrMemoHeader.CalcFields(Amount, "Amount Including VAT");
+                PurchaseCrMemoHeader.TestField(Amount, ExpectedPrepmtToDeduct);
+                PurchaseCrMemoHeader.TestField("Amount Including VAT", PurchasePrepaymentInvoiceHeader."Amount Including VAT");
+                LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+                PrepaidPurchaseLine.Find();
+                PrepaidPurchaseLine.TestField("Prepmt. Amt. Inv.", 0);
+                PrepaidPurchaseLine.TestField("Prepmt Amt Deducted", 0);
+                PrepaidPurchaseLine.TestField("Prepmt Amt to Deduct", 0);
+                PrepaidPurchaseLine.Validate("Prepayment %", 0);
+                PrepaidPurchaseLine.Modify(true);
+                ExpectedPrepmtToDeduct := 0;
+            end;
+
+            // [THEN] The remaining quantity can be invoiced with the remaining prepayment deduction.
             // Posting resets pending quantities on the other line, which must remain unposted.
             RemainingPurchaseLine.Find();
             RemainingPurchaseLine.Validate("Qty. to Receive", 0);
@@ -1099,17 +1134,24 @@ codeunit 144173 "ERM IT Prepayment II"
     [Scope('OnPrem')]
     procedure CancelSalesInvoiceWithPrepaymentReconcilesPrepaymentWhenRestoreQtyDisabled()
     begin
-        CancelSalesInvoiceWithPrepaymentAndVerify(false);
+        CancelSalesInvoiceWithPrepaymentAndVerify(false, false);
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure CancelPartialSalesInvoiceRecalculatesPrepaymentWhenRestoreQtyDisabled()
     begin
-        CancelSalesInvoiceWithPrepaymentAndVerify(true);
+        CancelSalesInvoiceWithPrepaymentAndVerify(true, false);
     end;
 
-    local procedure CancelSalesInvoiceWithPrepaymentAndVerify(PartiallyInvoice: Boolean)
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelPartialSalesInvoiceWithExcessPrepaymentWhenRestoreQtyDisabled()
+    begin
+        CancelSalesInvoiceWithPrepaymentAndVerify(true, true);
+    end;
+
+    local procedure CancelSalesInvoiceWithPrepaymentAndVerify(PartiallyInvoice: Boolean; PrepaymentExceedsRemainder: Boolean)
     var
         Customer: Record Customer;
         GenJournalLine: Record "Gen. Journal Line";
@@ -1139,9 +1181,14 @@ codeunit 144173 "ERM IT Prepayment II"
         // Fully invoiced lines have no remaining quantity from which to deduct prepayment.
         ExpectedPrepmtToDeduct := 0;
         if PartiallyInvoice then begin
-            InvoicedQuantity := LibraryRandom.RandIntInRange(1, 5);
-            // Keep the remaining line amount above the full 50% prepayment.
-            OrderQuantity := 2 * InvoicedQuantity + LibraryRandom.RandIntInRange(1, 5);
+            if PrepaymentExceedsRemainder then begin
+                OrderQuantity := 10;
+                InvoicedQuantity := 9;
+            end else begin
+                InvoicedQuantity := LibraryRandom.RandIntInRange(1, 5);
+                // Keep the remaining line amount above the full 50% prepayment.
+                OrderQuantity := 2 * InvoicedQuantity + LibraryRandom.RandIntInRange(1, 5);
+            end;
             ExpectedPrepmtToDeduct := OrderQuantity * 50;
             SalesReceivablesSetup.Get();
             SalesReceivablesSetup.Validate("Default Quantity to Ship", SalesReceivablesSetup."Default Quantity to Ship"::Remainder);
@@ -1213,7 +1260,29 @@ codeunit 144173 "ERM IT Prepayment II"
         PrepaidSalesLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtToDeduct);
 
         if PartiallyInvoice then begin
-            // [THEN] The remaining quantity consumes the full released prepayment.
+            if PrepaymentExceedsRemainder then begin
+                // [GIVEN] The released prepayment of 500 exceeds the remaining order value of 100.
+                PrepaidSalesLine.TestField("Prepmt Amt to Deduct", 500);
+                PrepaidSalesLine.TestField("Qty. to Invoice", 1);
+
+                // [WHEN] The prepayment is credited and the order is reopened without requiring another prepayment.
+                SalesHeader.Find();
+                PrepaymentCreditMemoNo := LibrarySales.PostSalesPrepaymentCreditMemo(SalesHeader);
+                SalesCrMemoHeader.Get(PrepaymentCreditMemoNo);
+                SalesCrMemoHeader.CalcFields(Amount, "Amount Including VAT");
+                SalesCrMemoHeader.TestField(Amount, ExpectedPrepmtToDeduct);
+                SalesCrMemoHeader.TestField("Amount Including VAT", SalesPrepaymentInvoiceHeader."Amount Including VAT");
+                LibrarySales.ReopenSalesDocument(SalesHeader);
+                PrepaidSalesLine.Find();
+                PrepaidSalesLine.TestField("Prepmt. Amt. Inv.", 0);
+                PrepaidSalesLine.TestField("Prepmt Amt Deducted", 0);
+                PrepaidSalesLine.TestField("Prepmt Amt to Deduct", 0);
+                PrepaidSalesLine.Validate("Prepayment %", 0);
+                PrepaidSalesLine.Modify(true);
+                ExpectedPrepmtToDeduct := 0;
+            end;
+
+            // [THEN] The remaining quantity can be invoiced with the remaining prepayment deduction.
             // Posting resets pending quantities on the other line, which must remain unposted.
             RemainingSalesLine.Find();
             RemainingSalesLine.Validate("Qty. to Ship", 0);

@@ -8639,7 +8639,7 @@ codeunit 134327 "ERM Purchase Order"
         PurchaseLine.Modify(true);
         PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
 
-        // [GIVEN] A Corrective Credit Memo for the posted Quantity 5.
+        // [GIVEN] A Corrective Credit Memo for 2 of the 5 invoiced units.
         CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeaderCorrection);
         PurchaseHeaderCorrection.Validate("Vendor Cr. Memo No.", PurchaseHeaderCorrection."No.");
         PurchaseHeaderCorrection.Modify(true);
@@ -8647,7 +8647,7 @@ codeunit 134327 "ERM Purchase Order"
         PurchaseLineCorrection.SetRange("Document No.", PurchaseHeaderCorrection."No.");
         PurchaseLineCorrection.SetRange("No.", Item."No.");
         PurchaseLineCorrection.FindFirst();
-        PurchaseLineCorrection.Validate(Quantity, PurchaseLine."Qty. to Receive");
+        PurchaseLineCorrection.Validate(Quantity, 2);
         PurchaseLineCorrection.Modify(true);
 
         // [WHEN] The Corrective Credit Memo is posted.
