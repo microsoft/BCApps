@@ -181,7 +181,7 @@ codeunit 928 "Assembly Line Invt. Profile"
                     OppositeReservationEntry.Get(AssemblyReservationEntry."Entry No.", true);
                     // Rebuild the link without removing the component's item tracking or matching it to another supply.
                     ReservationEngineMgt.CloseSurplusTrackingEntry(OppositeReservationEntry);
-                    AssemblyReservationEntry."Reservation Status" := AssemblyReservationEntry."Reservation Status"::Surplus;
+                    AssemblyReservationEntry.Get(AssemblyReservationEntry."Entry No.", false);
                     AssemblyReservationEntry.Binding := AssemblyReservationEntry.Binding::" ";
                     AssemblyReservationEntry."Expected Receipt Date" := 0D;
                     AssemblyReservationEntry.Modify();
