@@ -278,5 +278,6 @@
                                                                     ]
                                                  }
                                 }
-                            ]
+                            ],
+    "preprocessorSymbols":  ["SERVICEMANAGEMENT_IT"]
 }

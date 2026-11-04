@@ -264,6 +264,43 @@ Describe "Test-PreprocessorSymbols" {
     }
 
 
+    It 'accepts exact declared country symbols alongside CLEAN symbols' {
+        Set-Content -Path TestDrive:\Country.al -Value @(
+            '#if SERVICEMANAGEMENT_APAC',
+            '#endif',
+            '#if not SERVICEMANAGEMENT_NO',
+            '#elseif SERVICEMANAGEMENT_APAC // Regional integration',
+            '#endif',
+            '#if CLEAN30',
+            '#endif'
+        )
+        $result = Test-PreprocessorSymbols -filePath 'TestDrive:\Country.al' `
+            -symbolConfigs @(@{ stem = 'CLEAN'; lowerBound = 26; upperBound = 30 }) `
+            -allowedSymbols @('SERVICEMANAGEMENT_APAC', 'SERVICEMANAGEMENT_NO')
+        $result | Should -BeNullOrEmpty
+    }
+
+    It 'rejects undeclared country symbols and suffixes' -TestCases @(
+        @{ Directive = '#if SERVICEMANAGEMENT_NORWAY' }
+        @{ Directive = '#if SERVICEMANAGEMENT_NO_EXTRA' }
+        @{ Directive = '#if SERVICEMANAGEMENT_NO or UNDECLARED' }
+    ) {
+        param($Directive)
+        Set-Content -Path TestDrive:\Country.al -Value @($Directive, '#endif')
+        $result = Test-PreprocessorSymbols -filePath 'TestDrive:\Country.al' `
+            -symbolConfigs @(@{ stem = 'CLEAN'; lowerBound = 26; upperBound = 30 }) `
+            -allowedSymbols @('SERVICEMANAGEMENT_NO')
+        $result.invalidPatternSymbols.Count | Should -Be 1
+    }
+
+    It 'rejects lowercase spellings of a declared country symbol' {
+        Set-Content -Path TestDrive:\Country.al -Value @('#if Servicemanagement_NO', '#endif')
+        $result = Test-PreprocessorSymbols -filePath 'TestDrive:\Country.al' `
+            -symbolConfigs @(@{ stem = 'CLEAN'; lowerBound = 26; upperBound = 30 }) `
+            -allowedSymbols @('SERVICEMANAGEMENT_NO')
+        $result.invalidStemSymbols.Count | Should -Be 1
+    }
+
     It 'returns errors' {
         $alcontent = @(
 'codeunit 123 TestPreprocessors
