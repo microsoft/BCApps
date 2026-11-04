@@ -9,6 +9,7 @@ page 7431 "EA Corp Card Cards"
     ApplicationArea = Basic, Suite;
     Caption = 'Corporate Cards';
     PageType = List;
+    PopulateAllFields = true;
     UsageCategory = Lists;
     SourceTable = "EA Corp Card";
 

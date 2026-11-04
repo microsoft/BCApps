@@ -861,7 +861,7 @@ table 6907 "Expense Report Line"
         {
             Caption = 'Corporate Card';
             DataClassification = AccountData;
-            TableRelation = "EA Corp Card"."Card Id" where("Expense User No." = field("Expense User No."), Blocked = const(false));
+            TableRelation = "EA Corp Card"."Card Id";
             ToolTip = 'Specifies the corporate card used to pay for the expense.';
 
             trigger OnValidate()
@@ -1170,11 +1170,14 @@ table 6907 "Expense Report Line"
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         RelevantFieldChanged: Boolean;
     begin
-        if ("Corporate Card Id" <> xRec."Corporate Card Id") or
-           ("Expense User No." <> xRec."Expense User No.") or
-           ("Expense Date" <> xRec."Expense Date") or
-           ("Reimbursement Type" <> xRec."Reimbursement Type") or
-           ("Credit Card Feed No." <> xRec."Credit Card Feed No.")
+        StoredExpenseReportLine := xRec;
+        if not Rec.IsTemporary() then
+            StoredExpenseReportLine.Get("Document No.", "Line No.");
+        if ("Corporate Card Id" <> StoredExpenseReportLine."Corporate Card Id") or
+           ("Expense User No." <> StoredExpenseReportLine."Expense User No.") or
+           ("Expense Date" <> StoredExpenseReportLine."Expense Date") or
+           ("Reimbursement Type" <> StoredExpenseReportLine."Reimbursement Type") or
+           ("Credit Card Feed No." <> StoredExpenseReportLine."Credit Card Feed No.")
         then
             CorpCardSelectionMgt.ValidateReportLine(Rec, false);
         UpdateExpenseUserOnModify();

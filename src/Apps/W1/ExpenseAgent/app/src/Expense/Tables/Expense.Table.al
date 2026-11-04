@@ -510,7 +510,7 @@ table 6900 Expense
         {
             Caption = 'Corporate Card';
             DataClassification = AccountData;
-            TableRelation = "EA Corp Card"."Card Id" where("Expense User No." = field("Expense User No."), Blocked = const(false));
+            TableRelation = "EA Corp Card"."Card Id";
             ToolTip = 'Specifies the corporate card used to pay for this expense, independently of whether a feed transaction has arrived.';
 
             trigger OnValidate()
@@ -799,13 +799,18 @@ table 6900 Expense
     end;
 
     trigger OnModify()
+    var
+        StoredExpense: Record Expense;
     begin
         CheckCorporateCardSourceFields();
-        if ("Corporate Card Id" <> xRec."Corporate Card Id") or
-           ("Expense User No." <> xRec."Expense User No.") or
-           ("Expense Date" <> xRec."Expense Date") or
-           ("Reimbursement Type" <> xRec."Reimbursement Type") or
-           ("Credit Card Feed No." <> xRec."Credit Card Feed No.")
+        StoredExpense := xRec;
+        if not Rec.IsTemporary() then
+            StoredExpense.Get("No.");
+        if ("Corporate Card Id" <> StoredExpense."Corporate Card Id") or
+           ("Expense User No." <> StoredExpense."Expense User No.") or
+           ("Expense Date" <> StoredExpense."Expense Date") or
+           ("Reimbursement Type" <> StoredExpense."Reimbursement Type") or
+           ("Credit Card Feed No." <> StoredExpense."Credit Card Feed No.")
         then
             CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
         UpdateExpenseUserOnModify();

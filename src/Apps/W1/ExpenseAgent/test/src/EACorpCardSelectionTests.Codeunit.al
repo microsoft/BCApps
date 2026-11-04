@@ -13,6 +13,7 @@ codeunit 148364 EACorpCardSelectionTests
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    RequiredTestIsolation = Codeunit;
 
     var
         Assert: Codeunit Assert;
@@ -100,12 +101,17 @@ codeunit 148364 EACorpCardSelectionTests
     procedure ExpenseUserCardCorporateCardsAreFilteredToCurrentExpenseUser()
     var
         CorpCard: Record "EA Corp Card";
+        UnassignedCorpCard: Record "EA Corp Card";
         ExpenseUser: Record "Expense User";
         ExpenseUserCard: TestPage "Expense User";
         CorporateCards: TestPage "EA Corp Card Cards";
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
+        UnassignedCorpCard := CorpCard;
+        UnassignedCorpCard."Card Id" := 'UNASSIGNED-CARD';
+        UnassignedCorpCard."Expense User No." := '';
+        UnassignedCorpCard.Insert(true);
         ExpenseUser.Get(CorpCard."Expense User No.");
         ExpenseUserCard.OpenView();
         ExpenseUserCard.GoToRecord(ExpenseUser);
@@ -119,6 +125,33 @@ codeunit 148364 EACorpCardSelectionTests
         until not CorporateCards.Next();
         CorporateCards.Close();
         ExpenseUserCard.Close();
+    end;
+
+    [Test]
+    procedure NewCorporateCardDefaultsToCurrentExpenseUser()
+    var
+        CorpCard: Record "EA Corp Card";
+        ExpenseUser: Record "Expense User";
+        ExpenseUserCard: TestPage "Expense User";
+        CorporateCards: TestPage "EA Corp Card Cards";
+    begin
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        ExpenseUser.Get(CorpCard."Expense User No.");
+        ExpenseUserCard.OpenView();
+        ExpenseUserCard.GoToRecord(ExpenseUser);
+        CorporateCards.Trap();
+        ExpenseUserCard.CorporateCards.Invoke();
+
+        CorporateCards.New();
+
+        CorporateCards."Expense User No.".AssertEquals(ExpenseUser."No.");
+        CorporateCards."Card Id".SetValue('NEW-USER-CARD');
+        CorporateCards."Provider Code".SetValue(CorpCard."Provider Code");
+        CorporateCards.Close();
+        ExpenseUserCard.Close();
+        CorpCard.Get('NEW-USER-CARD');
+        CorpCard.TestField("Expense User No.", ExpenseUser."No.");
     end;
 
     [Test]
@@ -246,7 +279,7 @@ codeunit 148364 EACorpCardSelectionTests
     end;
 
     [Test]
-    procedure CardSelectionRejectsBlockedAndExpiredCards()
+    procedure CardSelectionRejectsBlockedCards()
     var
         CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
@@ -258,8 +291,17 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard.Modify();
         asserterror Expense.Validate("Corporate Card Id", CorpCard."Card Id");
         Assert.ExpectedError(CorpCard.FieldCaption(Blocked));
+    end;
 
-        CorpCard.Blocked := false;
+    [Test]
+    procedure CardSelectionRejectsExpiredCards()
+    var
+        CorpCard: Record "EA Corp Card";
+        Expense: Record Expense;
+    begin
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        InitializeExpense(Expense, CorpCard);
         CorpCard."Valid To" := WorkDate() - 1;
         CorpCard.Modify();
         asserterror Expense.Validate("Corporate Card Id", CorpCard."Card Id");
@@ -303,10 +345,12 @@ codeunit 148364 EACorpCardSelectionTests
         Expense.Validate("Corporate Card Id", '');
         Expense.Modify(true);
         CorpCardSelectionMgt.ValidateExpenseCard(Expense, false);
+        Commit();
 
         asserterror Expense.PerformManualRelease();
 
         Assert.ExpectedError(Expense.FieldCaption("Corporate Card Id"));
+        Expense.Get(Expense."No.");
         Expense.Validate("Corporate Card Id", CorpCard."Card Id");
         Expense.Modify(true);
         Expense.PerformManualRelease();
@@ -352,6 +396,50 @@ codeunit 148364 EACorpCardSelectionTests
         asserterror Expense.Modify(true);
 
         Assert.ExpectedError(Expense.FieldCaption("Corporate Card Id"));
+    end;
+
+    [Test]
+    procedure FeedLinkedReportLineCardCannotBeClearedThroughDirectModification()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        CreateTransaction(CorpCardTrans, CorpCard);
+        ExpenseReportLine."Document No." := 'LINKED-REPORT';
+        ExpenseReportLine."Line No." := 10000;
+        ExpenseReportLine."Expense User No." := CorpCard."Expense User No.";
+        ExpenseReportLine."Reimbursement Type" := ExpenseReportLine."Reimbursement Type"::"Credit Card";
+        ExpenseReportLine."Expense Date" := WorkDate();
+        ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
+        ExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        ExpenseReportLine.Insert();
+        ExpenseReportLine."Corporate Card Id" := '';
+
+        asserterror ExpenseReportLine.Modify(true);
+
+        Assert.ExpectedError(ExpenseReportLine.FieldCaption("Corporate Card Id"));
+    end;
+
+    [Test]
+    procedure BlockedCardDoesNotPreventExpenseDescriptionChanges()
+    var
+        CorpCard: Record "EA Corp Card";
+        Expense: Record Expense;
+    begin
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        InsertExpense(Expense, CorpCard);
+        CorpCard.Blocked := true;
+        CorpCard.Modify();
+        Expense.Description := 'Updated receipt details';
+
+        Expense.Modify(true);
+
+        Expense.Get(Expense."No.");
+        Expense.TestField(Description, 'Updated receipt details');
     end;
 
     [Test]
