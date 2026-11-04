@@ -41,8 +41,8 @@ jobs:
       projects: ${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}
       projectDependenciesJson: ${{ steps.determineProjectsToBuild.outputs.ProjectDependenciesJson }}
       buildOrderJson: ${{ steps.determineProjectsToBuild.outputs.BuildOrderJson }}
-      baselineWorkflowRunId: ${{ steps.determineProjectsToBuild.outputs.BaselineWorkflowRunId }}
-      baselineWorkflowSHA: ${{ steps.determineProjectsToBuild.outputs.BaselineWorkflowSHA }}
+      baselineWorkflowRunId: ${{ steps.selectWarningBaseline.outputs.BaselineWorkflowRunId }}
+      baselineWorkflowSHA: ${{ steps.selectWarningBaseline.outputs.BaselineWorkflowSHA }}
       workflowDepth: ${{ steps.DetermineWorkflowDepth.outputs.WorkflowDepth }}
       artifactsRetentionDays: ${{ steps.DetermineWorkflowDepth.outputs.ArtifactsRetentionDays }}
       telemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
@@ -90,6 +90,14 @@ jobs:
         with:
           shell: powershell
           maxBuildDepth: ${{ env.workflowDepth }}
+
+      - name: Select validated warning baseline
+        id: selectWarningBaseline
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          BASELINE_RUN_ID: ${{ steps.determineProjectsToBuild.outputs.BaselineWorkflowRunId }}
+          BASELINE_SHA: ${{ steps.determineProjectsToBuild.outputs.BaselineWorkflowSHA }}
+        run: ./.github/scripts/SelectWarningBaseline.ps1 -BaselineRunId $env:BASELINE_RUN_ID -BaselineSHA $env:BASELINE_SHA
 
   Build1:
     needs: [ Initialization, CustomJob-VerifyAppChanges ]
