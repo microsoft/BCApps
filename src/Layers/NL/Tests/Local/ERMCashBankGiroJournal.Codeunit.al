@@ -4138,6 +4138,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         GenJournalLine.Validate("Payment Discount %", 0);
         GenJournalLine.Modify(true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, GenJournalLine."Document No.");
         CustLedgerEntry."Applies-to ID" := AppliesToID;
         CustLedgerEntry."Amount to Apply" := 1000;
@@ -4190,6 +4191,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         GenJournalLine.Validate("Payment Discount %", 0);
         GenJournalLine.Modify(true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        VendorLedgerEntry.SetRange("Vendor No.", Vendor."No.");
         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Invoice, GenJournalLine."Document No.");
         VendorLedgerEntry."Applies-to ID" := AppliesToID;
         VendorLedgerEntry."Amount to Apply" := -1000;
