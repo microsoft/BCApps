@@ -168,6 +168,7 @@ codeunit 30110 "Shpfy Create Customer"
                 Customer.Validate("VAT Bus. Posting Group", ShopifyTaxArea."VAT Bus. Posting Group");
         end;
 
+        UpdateCustomer.SetShop(Shop);
         if CompanyLocation."Shpfy Payment Terms Id" <> 0 then
             Customer.Validate("Payment Terms Code", UpdateCustomer.GetPaymentTermsCodeFromShopifyPaymentTermsId(CompanyLocation."Shpfy Payment Terms Id"));
 
