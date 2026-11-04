@@ -121,11 +121,7 @@ codeunit 30166 "Shpfy Process Order"
             SalesHeader."Bill-to Post Code" := CopyStr(ShopifyOrderHeader."Bill-to Post Code", 1, MaxStrLen(SalesHeader."Bill-to Post Code"));
             SalesHeader."Bill-to County" := CopyStr(ShopifyOrderHeader."Bill-to County", 1, MaxStrLen(SalesHeader."Bill-to County"));
             SalesHeader.Validate("Bill-to Contact No.", ShopifyOrderHeader."Bill-to Contact No.");
-            // Clear an interim alternative from a default ship-to first; native Ship-to Code validation shows a GUI Message otherwise.
-            ResetInterimVATSetup(SalesHeader);
-            SalesHeader.Validate("Ship-to Code", '');
-            // Capture the validated VAT customer and the current native VAT setup before imported destination overrides.
-            PreviousSalesHeader := SalesHeader;
+            PreviousSalesHeader := PrepareImportedShipTo(SalesHeader);
             SalesHeader."Ship-to Name" := CopyStr(ShopifyOrderHeader."Ship-to Name", 1, MaxStrLen(SalesHeader."Ship-to Name"));
             SalesHeader."Ship-to Name 2" := CopyStr(ShopifyOrderHeader."Ship-to Name 2", 1, MaxStrLen(SalesHeader."Ship-to Name 2"));
             SalesHeader."Ship-to Address" := copyStr(ShopifyOrderHeader."Ship-to Address", 1, MaxStrLen(SalesHeader."Ship-to Address"));
@@ -253,7 +249,7 @@ codeunit 30166 "Shpfy Process Order"
         CustomerTemplate: Record "Customer Templ.";
         ShpfyCustomerTemplate: Record "Shpfy Customer Template";
         AltCustVATRegFacade: Codeunit "Alt. Cust. VAT. Reg. Facade";
-        AlternativeVATRegistrationInsertErr: Label 'The alternative VAT registration could not be inserted.';
+        AlternativeVATRegistrationInsertErr: Label 'The alternative VAT registration could not be inserted for customer %1 and VAT country/region %2.', Comment = '%1 = Customer number, %2 = VAT country/region code';
         AutoCreateAlternativeVAT: Boolean;
     begin
         if IsB2B then
@@ -295,7 +291,7 @@ codeunit 30166 "Shpfy Process Order"
             // Insert can return false for an existing primary-key record. Reuse only when the expected alternative exists.
             if AltCustVATRegFacade.GetAlternativeCustVATReg(AltCustVATReg, VATCustomer."No.", CountryRegionCode) then
                 exit(true);
-            Error(AlternativeVATRegistrationInsertErr);
+            Error(AlternativeVATRegistrationInsertErr, VATCustomer."No.", CountryRegionCode);
         end;
         exit(true);
     end;
@@ -311,6 +307,14 @@ codeunit 30166 "Shpfy Process Order"
             if VATCustomer.Get(SalesHeader."Bill-to Customer No.") then
                 exit(true);
         exit(VATCustomer.Get(SalesHeader."Sell-to Customer No."));
+    end;
+
+    internal procedure PrepareImportedShipTo(var SalesHeader: Record "Sales Header"): Record "Sales Header"
+    begin
+        // Clear an interim alternative before native ship-to validation, which can otherwise show a GUI message.
+        ResetInterimVATSetup(SalesHeader);
+        SalesHeader.Validate("Ship-to Code", '');
+        exit(SalesHeader);
     end;
 
     internal procedure ResetInterimVATSetup(var SalesHeader: Record "Sales Header")

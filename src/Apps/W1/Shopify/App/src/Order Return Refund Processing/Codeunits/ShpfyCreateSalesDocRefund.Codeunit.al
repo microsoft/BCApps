@@ -103,11 +103,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                 SalesHeader."Bill-to Post Code" := CopyStr(OrderHeader."Bill-to Post Code", 1, MaxStrLen(SalesHeader."Bill-to Post Code"));
                 SalesHeader."Bill-to County" := CopyStr(OrderHeader."Bill-to County", 1, MaxStrLen(SalesHeader."Bill-to County"));
                 SalesHeader.Validate("Bill-to Contact No.", OrderHeader."Bill-to Contact No.");
-                // Clear an interim alternative from a default ship-to first; native Ship-to Code validation shows a GUI Message otherwise.
-                ProcessOrder.ResetInterimVATSetup(SalesHeader);
-                SalesHeader.Validate("Ship-to Code", '');
-                // Capture the validated VAT customer and the current native VAT setup before imported destination overrides.
-                PreviousSalesHeader := SalesHeader;
+                PreviousSalesHeader := ProcessOrder.PrepareImportedShipTo(SalesHeader);
                 SalesHeader."Ship-to Name" := CopyStr(OrderHeader."Ship-to Name", 1, MaxStrLen(SalesHeader."Ship-to Name"));
                 SalesHeader."Ship-to Name 2" := CopyStr(OrderHeader."Ship-to Name 2", 1, MaxStrLen(SalesHeader."Ship-to Name 2"));
                 SalesHeader."Ship-to Address" := CopyStr(OrderHeader."Ship-to Address", 1, MaxStrLen(SalesHeader."Ship-to Address"));

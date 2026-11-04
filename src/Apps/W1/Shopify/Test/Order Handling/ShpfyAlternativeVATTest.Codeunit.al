@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Registration;
@@ -33,6 +34,8 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
+        ScenarioGenProdPostingGroups: List of [Code[20]];
+        ScenarioVATProdPostingGroups: List of [Code[20]];
         ExpectedAltGenBusPostingGroup: Boolean;
         ExpectedAltVATBusPostingGroup: Boolean;
         ExpectedAltVATRegistration: Boolean;
@@ -395,8 +398,9 @@ codeunit 139614 "Shpfy Alternative VAT Test"
 
         this.SetVATCustomerPreference(UseBillToVATCustomer);
         OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, IsB2B);
-        this.EnsureVATPostingSetupForBusinessGroup(VATCustomer."VAT Bus. Posting Group");
-        this.EnsureGeneralPostingSetupForBusinessGroup(VATCustomer."Gen. Bus. Posting Group");
+        this.CollectScenarioItemPostingGroups(OrderHeader);
+        this.EnsureVATPostingSetupForBusinessGroup(Shop, VATCustomer."VAT Bus. Posting Group");
+        this.EnsureGeneralPostingSetupForBusinessGroup(Shop, VATCustomer."Gen. Bus. Posting Group");
         OrderHeader."Sell-to Customer No." := SellToCustomer."No.";
         OrderHeader."Bill-to Customer No." := BillToCustomer."No.";
         OrderHeader."Ship-to Country/Region Code" := DestinationCountry;
@@ -579,6 +583,7 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         SourceShop: Record "Shpfy Shop";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         InitializeTest: Codeunit "Shpfy Initialize Test";
+        LibraryTemplates: Codeunit "Library - Templates";
         GenBusPostingGroup: Code[20];
         VATBusPostingGroup: Code[20];
     begin
@@ -587,29 +592,27 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         SourceCustomerTemplate.Get(SourceShop."Customer Templ. Code");
         VATBusPostingGroup := VATCustomer."VAT Bus. Posting Group";
         if SetVATBusPostingGroup then begin
-            VATBusPostingGroup := CopyStr('ATVAT' + this.LibraryRandom.RandText(8), 1, MaxStrLen(VATBusPostingGroup));
-            VATBusinessPostingGroup.Code := VATBusPostingGroup;
-            VATBusinessPostingGroup.Insert();
+            this.LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+            VATBusPostingGroup := VATBusinessPostingGroup.Code;
         end;
         GenBusPostingGroup := VATCustomer."Gen. Bus. Posting Group";
         if SetGenBusPostingGroup then begin
-            GenBusPostingGroup := CopyStr('ATGEN' + this.LibraryRandom.RandText(8), 1, MaxStrLen(GenBusPostingGroup));
-            GenBusinessPostingGroup.Code := GenBusPostingGroup;
-            GenBusinessPostingGroup."Def. VAT Bus. Posting Group" := VATBusPostingGroup;
-            GenBusinessPostingGroup.Insert();
+            this.LibraryERM.CreateGenBusPostingGroup(GenBusinessPostingGroup);
+            GenBusinessPostingGroup.Validate("Def. VAT Bus. Posting Group", VATBusPostingGroup);
+            GenBusinessPostingGroup.Modify(true);
+            GenBusPostingGroup := GenBusinessPostingGroup.Code;
         end;
 
-        CountryCustomerTemplate.Init();
-        CountryCustomerTemplate.Code := CopyStr('ATVAT' + this.LibraryRandom.RandText(5), 1, MaxStrLen(CountryCustomerTemplate.Code));
-        CountryCustomerTemplate."Customer Posting Group" := SourceCustomerTemplate."Customer Posting Group";
+        LibraryTemplates.CreateCustomerTemplate(CountryCustomerTemplate);
+        CountryCustomerTemplate.Validate("Customer Posting Group", SourceCustomerTemplate."Customer Posting Group");
         if SetGenBusPostingGroup then
-            CountryCustomerTemplate."Gen. Bus. Posting Group" := GenBusPostingGroup;
+            CountryCustomerTemplate.Validate("Gen. Bus. Posting Group", GenBusPostingGroup);
         if SetVATBusPostingGroup then
-            CountryCustomerTemplate."VAT Bus. Posting Group" := VATBusPostingGroup;
-        CountryCustomerTemplate.Insert();
+            CountryCustomerTemplate.Validate("VAT Bus. Posting Group", VATBusPostingGroup);
+        CountryCustomerTemplate.Modify(true);
 
-        this.EnsureGeneralPostingSetupForBusinessGroup(GenBusPostingGroup);
-        this.EnsureVATPostingSetupForBusinessGroup(VATBusPostingGroup);
+        this.EnsureGeneralPostingSetupForBusinessGroup(Shop, GenBusPostingGroup);
+        this.EnsureVATPostingSetupForBusinessGroup(Shop, VATBusPostingGroup);
 
         CountrySetup.Init();
         CountrySetup."Shop Code" := Shop.Code;
@@ -639,13 +642,15 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         InitializeTest: Codeunit "Shpfy Initialize Test";
         AccessToken: SecretText;
     begin
+        Clear(this.ScenarioGenProdPostingGroups);
+        Clear(this.ScenarioVATProdPostingGroups);
         Shop := InitializeTest.CreateShop();
         DummyCustomer := InitializeTest.GetDummyCustomer();
         this.DisablePostingSetupNotification();
         this.EnsureCustomerPostingGroup(DummyCustomer."Customer Posting Group");
-        this.EnsureGeneralPostingSetupForBusinessGroup(DummyCustomer."Gen. Bus. Posting Group");
-        this.EnsureVATPostingSetupForBusinessGroup(Shop."VAT Bus. Posting Group");
-        this.EnsureVATPostingSetupForBusinessGroup(DummyCustomer."VAT Bus. Posting Group");
+        this.EnsureGeneralPostingSetupForBusinessGroup(Shop, DummyCustomer."Gen. Bus. Posting Group");
+        this.EnsureVATPostingSetupForBusinessGroup(Shop, Shop."VAT Bus. Posting Group");
+        this.EnsureVATPostingSetupForBusinessGroup(Shop, DummyCustomer."VAT Bus. Posting Group");
         Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
         Shop."Fulfillment Service Activated" := true;
         Shop.Modify();
@@ -789,15 +794,42 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         GeneralPostingSetup.Modify(true);
     end;
 
-    local procedure EnsureGeneralPostingSetupForBusinessGroup(GenBusPostingGroup: Code[20])
+    local procedure CollectScenarioItemPostingGroups(OrderHeader: Record "Shpfy Order Header")
     var
-        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        Item: Record Item;
+        OrderLine: Record "Shpfy Order Line";
+        Variant: Record "Shpfy Variant";
     begin
-        GenProductPostingGroup.SetLoadFields(Code);
-        if GenProductPostingGroup.FindSet() then
+        OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        if OrderLine.FindSet() then
             repeat
-                this.EnsureGeneralPostingSetup(GenBusPostingGroup, GenProductPostingGroup.Code);
-            until GenProductPostingGroup.Next() = 0;
+                if not (OrderLine.Tip or OrderLine."Gift Card") then begin
+                    if OrderLine."Item No." <> '' then
+                        Item.Get(OrderLine."Item No.")
+                    else begin
+                        Variant.Get(OrderLine."Shopify Variant Id");
+                        Item.GetBySystemId(Variant."Item SystemId");
+                    end;
+                    if not this.ScenarioGenProdPostingGroups.Contains(Item."Gen. Prod. Posting Group") then
+                        this.ScenarioGenProdPostingGroups.Add(Item."Gen. Prod. Posting Group");
+                    if not this.ScenarioVATProdPostingGroups.Contains(Item."VAT Prod. Posting Group") then
+                        this.ScenarioVATProdPostingGroups.Add(Item."VAT Prod. Posting Group");
+                end;
+            until OrderLine.Next() = 0;
+    end;
+
+    local procedure EnsureGeneralPostingSetupForBusinessGroup(Shop: Record "Shpfy Shop"; GenBusPostingGroup: Code[20])
+    var
+        ItemTemplate: Record "Item Templ.";
+        RefundAccount: Record "G/L Account";
+        GenProdPostingGroup: Code[20];
+    begin
+        ItemTemplate.Get(Shop."Item Templ. Code");
+        this.EnsureGeneralPostingSetup(GenBusPostingGroup, ItemTemplate."Gen. Prod. Posting Group");
+        RefundAccount.Get(Shop."Refund Account");
+        this.EnsureGeneralPostingSetup(GenBusPostingGroup, RefundAccount."Gen. Prod. Posting Group");
+        foreach GenProdPostingGroup in this.ScenarioGenProdPostingGroups do
+            this.EnsureGeneralPostingSetup(GenBusPostingGroup, GenProdPostingGroup);
     end;
 
     local procedure EnsureVATPostingSetup(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
@@ -844,15 +876,18 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         MyNotifications.InsertDefault(PostingSetupManagement.GetPostingSetupNotificationID(), '', '', false);
     end;
 
-    local procedure EnsureVATPostingSetupForBusinessGroup(VATBusPostingGroup: Code[20])
+    local procedure EnsureVATPostingSetupForBusinessGroup(Shop: Record "Shpfy Shop"; VATBusPostingGroup: Code[20])
     var
-        VATProductPostingGroup: Record "VAT Product Posting Group";
+        ItemTemplate: Record "Item Templ.";
+        RefundAccount: Record "G/L Account";
+        VATProdPostingGroup: Code[20];
     begin
-        VATProductPostingGroup.SetLoadFields(Code);
-        if VATProductPostingGroup.FindSet() then
-            repeat
-                this.EnsureVATPostingSetup(VATBusPostingGroup, VATProductPostingGroup.Code);
-            until VATProductPostingGroup.Next() = 0;
+        ItemTemplate.Get(Shop."Item Templ. Code");
+        this.EnsureVATPostingSetup(VATBusPostingGroup, ItemTemplate."VAT Prod. Posting Group");
+        RefundAccount.Get(Shop."Refund Account");
+        this.EnsureVATPostingSetup(VATBusPostingGroup, RefundAccount."VAT Prod. Posting Group");
+        foreach VATProdPostingGroup in this.ScenarioVATProdPostingGroups do
+            this.EnsureVATPostingSetup(VATBusPostingGroup, VATProdPostingGroup);
     end;
 
     local procedure SetVATCustomerPreference(UseBillToVATCustomer: Boolean)
