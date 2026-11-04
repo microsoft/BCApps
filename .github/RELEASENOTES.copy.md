@@ -2,6 +2,37 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### Settings sources in workflow logs
+
+The ReadSettings action now writes a **Settings sources** group to the workflow log for all resolved settings, including nested properties. It shows which defaults, files, and variables contributed to each setting without printing values in the group. Merged arrays and objects can list multiple sources; computed values retain their earlier source followed by their derivation. An accepted `overwriteSettings` replacement starts a new source list. See [Settings sources in workflow logs](Scenarios/settings.md#settings-sources).
+
+Source tracing is emitted after action-level transformations and includes pull-request or merge-group overrides and versioning-strategy build/revision calculations, so attribution reflects the exported settings.
+
+### Protected settings
+
+The optional `protectedSettings` array lets a settings source retain a value when a later source attempts to change it. For example, `{"protectedSettings":["country"],"country":"de"}` keeps `country` at `de` unless the later source also supplies and protects `country`. `overwriteSettings` alone does not bypass protection. This also applies to `customSettings` and to matching `ConditionalSettings`; nested properties can be protected within their parent object. The ReadSettings action reports each skipped override in a notice naming the sources, not the value. See [Protected settings](Scenarios/settings.md#protectedSettings) for examples and nested-object behavior.
+
+The meta settings `ConditionalSettings`, `overwriteSettings`, and `protectedSettings` cannot themselves be protected or overwritten. Listing any of them in either control is ignored. The `ConditionalSettings` array still merges into resolved settings and retains its source history, while conditional blocks continue to be evaluated per source. Both controls remain supported inside matching blocks' `settings` objects.
+
+### Preview: Support for GitHub Enterprise Edition with data residency
+
+AL-Go for GitHub is now supported on GitHub Enterprise Edition with data residency. When you create a GitHub Enterprise with data residency, you can create a number of organizations underneath this enterprise (much like we create organizations on github.com). In each of these organizations, you can create any number of internal or private repositories, you cannot create public repositories. The URL for your repository becomes https://enterprise.ghe.com/organization/repository instead of the normal https://github.com/organization/repository.
+
+> [!NOTE]
+> This feature is in preview
+
+### Copilot code review for AL pull requests
+
+AL-Go repositories can now opt in to AI-powered review of AL pull requests, with configurable models, target branches, excluded authors, and BCQuality skills and knowledge. See [Enable Copilot code review](Scenarios/Agents/CopilotCodeReview.md) for setup, organization policy requirements, and operational details.
+
+### Issues
+
+- Issue 2398 - Preserve dependency paths containing commas when passing a single app to Run-AlPipeline. Download Project Dependencies now warns with the complete path if a resolved dependency file is missing, without changing the output lists.
+
+- Issue 2390 - AnalyzeTests no longer crashes under strict mode when a page scripting test suite contains both passed and failed tests, preserving the failure summary.
+
+- Issue 2387 - Deployment environment discovery now paginates GitHub API results, so Publish To Environment and CI/CD can discover environments beyond the first 30 and read their branch policies.
+
 ## v10.0
 
 ### AL-Go Telemetry Enhancements
