@@ -154,6 +154,8 @@ codeunit 30163 "Shpfy Order Mapping"
         MissingIssue: Text;
         SellToCustomerMissingErr: Label 'Sell-to Customer No. is missing.';
         TipAccountMissingErr: Label 'Tip Account must have a value in Shopify Shop.';
+        UnknownMappingIssueErr: Label 'An unrecognized mapping issue was detected. Contact your administrator.';
+        UnknownMappingIssueTelemetryMsg: Label 'An unsupported Shopify order mapping issue token was encountered.', Locked = true;
     begin
         ErrorBuilder.AppendLine(MappingErr);
         foreach MissingIssue in MissingIssues do
@@ -170,6 +172,10 @@ codeunit 30163 "Shpfy Order Mapping"
                         ErrorBuilder.AppendLine(TipAccountMissingErr);
                     GiftCardAccountIssueTok:
                         ErrorBuilder.AppendLine(GiftCardAccountMissingErr);
+                    else begin
+                        ErrorBuilder.AppendLine(UnknownMappingIssueErr);
+                        Session.LogMessage('SHPMAPUNKNOWN', UnknownMappingIssueTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Shopify');
+                    end;
                 end;
 
         exit(ErrorBuilder.ToText());
@@ -190,7 +196,7 @@ codeunit 30163 "Shpfy Order Mapping"
 
         OrderHeader."Has Error" := true;
         OrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ErrorMessage, 1, MaxStrLen(OrderHeader."Error Message"));
-        OrderHeader.Modify();
+        OrderHeader.Modify(false);
     end;
 
     internal procedure SetMappingError(var OrderHeader: Record "Shpfy Order Header"; MissingIssues: List of [Text])
@@ -200,7 +206,7 @@ codeunit 30163 "Shpfy Order Mapping"
         ErrorMessage := Format(Time) + ' ' + GetMappingErrorMessage(MissingIssues);
         OrderHeader."Has Error" := true;
         OrderHeader."Error Message" := CopyStr(ErrorMessage, 1, MaxStrLen(OrderHeader."Error Message"));
-        OrderHeader.Modify();
+        OrderHeader.Modify(false);
     end;
 
     internal procedure ClearMappingError(var OrderHeader: Record "Shpfy Order Header")
@@ -210,7 +216,7 @@ codeunit 30163 "Shpfy Order Mapping"
 
         OrderHeader."Has Error" := false;
         OrderHeader."Error Message" := '';
-        OrderHeader.Modify();
+        OrderHeader.Modify(false);
     end;
 
     internal procedure IsMappingError(ErrorMessage: Text): Boolean
@@ -363,6 +369,10 @@ codeunit 30163 "Shpfy Order Mapping"
         ShopifyVariant: Record "Shpfy Variant";
         ProductImport: Codeunit "Shpfy Product Import";
     begin
+        Item.SetLoadFields("Sales Unit of Measure");
+        ItemVariant.SetLoadFields(Code);
+        ShopifyVariant.SetLoadFields("Item SystemId", "Item Variant SystemId", "UoM Option Id", "Option 1 Value", "Option 2 Value", "Option 3 Value");
+
         if not ShopifyVariant.Get(ShopifyOrderLine."Shopify Variant Id") or IsNullGuid(ShopifyVariant."Item SystemId") then begin
             ProductImport.SetShop(Shop);
             ProductImport.SetProduct(ShopifyOrderLine."Shopify Product Id");
