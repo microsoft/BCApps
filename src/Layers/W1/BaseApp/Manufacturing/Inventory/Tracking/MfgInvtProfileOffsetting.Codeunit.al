@@ -200,7 +200,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
             exit;
         if ReservationEntry.Positive then
             exit;
-        if not ProdComponentItemOnMultipleLines(ReservationEntry, false) then
+        if not ProdComponentItemOnMultipleLines(ReservationEntry, true) then
             exit;
 
         if SupplyReservationEntry.Get(ReservationEntry."Entry No.", true) then begin
@@ -245,6 +245,51 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         ItemLedgerEntry.SetReservationFilters(SupplyReservationEntry);
         SetRetainedInvtReservFilters(SupplyReservationEntry, true);
         ReduceUntrackedQtyByRetainedInvtReservation(InventoryProfile, RetainedInvtReservedQtyOnSupply(SupplyReservationEntry));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Plng. Component Invt. Profile", 'OnAfterTransferInventoryProfileFromPlanningComponent', '', true, false)]
+    local procedure ExcludeRetainedInvtReservFromPlanningComponentDemand(var InventoryProfile: Record "Inventory Profile"; var PlanningComponent: Record "Planning Component")
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        DemandReservationEntry: Record "Reservation Entry";
+    begin
+        if (InventoryProfile."Untracked Quantity" <= 0) or
+           (PlanningComponent."Ref. Order Type" <> PlanningComponent."Ref. Order Type"::"Prod. Order")
+        then
+            exit;
+
+        if not ProdOrderComponent.Get(
+             PlanningComponent."Ref. Order Status", PlanningComponent."Ref. Order No.",
+             PlanningComponent."Ref. Order Line No.", PlanningComponent."Line No.")
+        then
+            exit;
+
+        if not ItemOnMultipleProdOrderComponentLines(ProdOrderComponent, true) then
+            exit;
+
+        ProdOrderComponent.SetReservationFilters(DemandReservationEntry);
+        SetRetainedInvtReservFilters(DemandReservationEntry, false);
+        ReduceUntrackedQtyByRetainedInvtReservation(InventoryProfile, RetainedInvtReservedQtyOnDemand(DemandReservationEntry));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnBeforeUnfoldItemTracking', '', true, false)]
+    local procedure ExcludeRetainedInvtReservFromItemTrackingUnfolding(var ParentInvProfile: Record "Inventory Profile"; var ChildInvProfile: Record "Inventory Profile"; var TempItemTrkgEntry: Record "Reservation Entry" temporary)
+    var
+        SupplyReservationEntry: Record "Reservation Entry";
+    begin
+        TempItemTrkgEntry.Reset();
+        TempItemTrkgEntry.SetRange("Source Type", Database::"Prod. Order Component");
+        TempItemTrkgEntry.SetRange("Reservation Status", TempItemTrkgEntry."Reservation Status"::Reservation);
+        TempItemTrkgEntry.SetRange(Binding, TempItemTrkgEntry.Binding::"Order-to-Order");
+        if TempItemTrkgEntry.FindSet() then
+            repeat
+                if SupplyReservationEntry.Get(TempItemTrkgEntry."Entry No.", true) then
+                    if IsRetainedInvtReservation(TempItemTrkgEntry, SupplyReservationEntry) and
+                       ProdComponentItemOnMultipleLines(TempItemTrkgEntry, true)
+                    then
+                        TempItemTrkgEntry.Delete();
+            until TempItemTrkgEntry.Next() = 0;
+        TempItemTrkgEntry.Reset();
     end;
 
     local procedure SetRetainedInvtReservFilters(var ReservationEntry: Record "Reservation Entry"; IsPositive: Boolean)
