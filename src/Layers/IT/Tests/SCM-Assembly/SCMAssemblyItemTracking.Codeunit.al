@@ -246,9 +246,9 @@ codeunit 137926 "SCM Assembly Item Tracking"
             AddItemToInventory(ParentItem, LibraryRandom.RandIntInRange(DemandQty, DemandQty + 100), '', '');
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ParentItem."No.", DemandQty);
-        SalesLine.Validate("Shipment Date", WorkDate());
+        SalesLine.Validate("Shipment Date", WorkDate2);
         SalesLine.Modify(true);
-        LibraryAssembly.CreateAssemblyHeader(AssemblyHeader, WorkDate(), ParentItem."No.", '', AssemblyQty, '');
+        LibraryAssembly.CreateAssemblyHeader(AssemblyHeader, WorkDate2, ParentItem."No.", '', AssemblyQty, '');
         AssemblyLine.SetRange("Document Type", AssemblyHeader."Document Type");
         AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
         AssemblyLine.SetRange("No.", ComponentItem."No.");
