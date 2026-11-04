@@ -264,8 +264,9 @@ Describe "ParallelTestExecution churn selection" {
     }
 
     It "preserves the full-run fallback when git diff fails" {
+        $env:GITHUB_EVENT_NAME = 'push'
         $env:GITHUB_EVENT_PATH = Join-Path $TestDrive 'event.json'
-        @{ pull_request = @{ base = @{ sha = 'a' * 40 }; head = @{ sha = 'b' * 40 } } } |
+        @{ before = 'a' * 40; after = 'b' * 40 } |
             ConvertTo-Json -Depth 4 | Set-Content $env:GITHUB_EVENT_PATH
         $script:useRealAffectedAppNames = $true
         Mock -ModuleName BuildOptimization git {

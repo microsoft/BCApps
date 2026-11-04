@@ -215,6 +215,8 @@ function Resolve-MergeBaseForCI {
     Optional git diff-filter value, for example 'A' to return only newly added files.
     .PARAMETER CompareFromMergeBase
     Compare the head against the merge base instead of the current base-branch tip.
+    .PARAMETER CompareWithPullRequestMerge
+    For pull_request events, compare the verified checked-out merge against its first parent.
     .PARAMETER RequireChangeDetection
     Throw instead of returning null when the change set cannot be determined.
 .OUTPUTS
@@ -226,8 +228,13 @@ function Get-ChangedFilesForCI {
     param(
         [string] $DiffFilter,
         [switch] $CompareFromMergeBase,
+        [switch] $CompareWithPullRequestMerge,
         [switch] $RequireChangeDetection
     )
+
+    if ($CompareWithPullRequestMerge -and $CompareFromMergeBase) {
+        throw "CompareWithPullRequestMerge and CompareFromMergeBase cannot be combined."
+    }
 
     if (-not $env:GITHUB_ACTIONS) {
         if ($RequireChangeDetection) {
@@ -280,11 +287,34 @@ function Get-ChangedFilesForCI {
         return $null
     }
 
-    Write-Host "BUILD OPTIMIZATION: Comparing $($baseSha.Substring(0, 8))...$($headSha.Substring(0, 8))"
-
     $prevErrorAction = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
+        if ($CompareWithPullRequestMerge -and $env:GITHUB_EVENT_NAME -eq 'pull_request') {
+            $testedSha = & git rev-parse HEAD 2>$null
+            $parents = @()
+            if ($LASTEXITCODE -eq 0 -and $env:GITHUB_SHA -and $testedSha -eq $env:GITHUB_SHA) {
+                # Read raw headers: revision traversal hides parents at a shallow boundary.
+                $commit = @(& git cat-file -p $testedSha 2>$null)
+                if ($LASTEXITCODE -eq 0) {
+                    foreach ($line in $commit) {
+                        if ($line -eq '') { break }
+                        if ($line -match '^parent ([0-9a-f]{40,64})$') { $parents += $Matches[1] }
+                    }
+                }
+            }
+            if ($parents.Count -ne 2 -or $parents[1] -ne $headSha) {
+                $message = "Could not verify the checked-out PR merge against GITHUB_SHA and event head '$headSha'."
+                if ($RequireChangeDetection) { throw $message }
+                Write-Host "BUILD OPTIMIZATION: $message"
+                return $null
+            }
+            $baseSha = $parents[0]
+            $headSha = $testedSha
+        }
+
+        Write-Host "BUILD OPTIMIZATION: Comparing $($baseSha.Substring(0, 8))...$($headSha.Substring(0, 8))"
+
         # A depth-one PR merge checkout can be missing both event endpoints.
         foreach ($sha in @($baseSha, $headSha)) {
             & git cat-file -e "$sha^{commit}" 2>$null
@@ -431,7 +461,7 @@ function Get-AffectedAppNames {
         return [PSCustomObject]$runAll
     }
 
-    $changedFiles = Get-ChangedFilesForCI
+    $changedFiles = Get-ChangedFilesForCI -CompareWithPullRequestMerge
     if (-not $changedFiles) {
         Write-Host "BUILD OPTIMIZATION: Running all tests - could not determine changed files"
         return [PSCustomObject]$runAll

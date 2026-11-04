@@ -244,9 +244,11 @@ Describe "BuildOptimization" {
             }
         }
 
-        It "compares event endpoints from a depth-one checkout of the PR merge commit" {
-            $source = Join-Path $TestDrive 'merge-source'
-            $checkout = Join-Path $TestDrive 'merge-checkout'
+        It "compares a depth-one PR merge checkout with merge comparison <UseMerge>" -ForEach @(
+            @{ UseMerge = $false }, @{ UseMerge = $true }
+        ) {
+            $source = Join-Path $TestDrive "merge-source-$UseMerge"
+            $checkout = Join-Path $TestDrive "merge-checkout-$UseMerge"
             git init --quiet $source
             git -C $source -c user.name=Test -c user.email=test@example.com commit --quiet --allow-empty -m initial
             git -C $source checkout --quiet -b feature
@@ -260,6 +262,7 @@ Describe "BuildOptimization" {
             git -C $source -c user.name=Test -c user.email=test@example.com commit --quiet -m target
             $baseSha = git -C $source rev-parse HEAD
             git -C $source -c user.name=Test -c user.email=test@example.com merge --quiet --no-ff feature -m merge
+            $mergeSha = git -C $source rev-parse HEAD
             git clone --quiet --depth=1 ([uri]$source).AbsoluteUri $checkout
             $LASTEXITCODE | Should -Be 0
             git -C $checkout rev-parse --is-shallow-repository | Should -Be 'true'
@@ -269,8 +272,10 @@ Describe "BuildOptimization" {
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             $savedEventPath = $env:GITHUB_EVENT_PATH
+            $savedSha = $env:GITHUB_SHA
             $eventFile = Join-Path $TestDrive 'merge-event.json'
-            @{ pull_request = @{ base = @{ sha = $baseSha }; head = @{ sha = $headSha } } } |
+            $eventBase = if ($UseMerge) { git -C $source rev-parse "$baseSha~1" } else { $baseSha }
+            @{ pull_request = @{ base = @{ sha = $eventBase }; head = @{ sha = $headSha } } } |
                 ConvertTo-Json -Depth 5 | Set-Content $eventFile
             New-Item -ItemType Directory -Path (Join-Path $checkout 'build') | Out-Null
             Push-Location (Join-Path $checkout 'build')
@@ -278,16 +283,110 @@ Describe "BuildOptimization" {
                 $env:GITHUB_ACTIONS = 'true'
                 $env:GITHUB_EVENT_NAME = 'pull_request'
                 $env:GITHUB_EVENT_PATH = $eventFile
-                $result = @(Get-ChangedFilesForCI)
+                $env:GITHUB_SHA = $mergeSha
+                $result = @(Get-ChangedFilesForCI -CompareWithPullRequestMerge:$UseMerge)
                 $result | Should -Contain 'feature.txt'
-                $result | Should -Contain 'target.txt'
-                $result.Count | Should -Be 2
+                if ($UseMerge) {
+                    $result | Should -Not -Contain 'target.txt'
+                    $result.Count | Should -Be 1
+                    git cat-file -e "$baseSha^{commit}"
+                    $LASTEXITCODE | Should -Be 0
+                    git cat-file -e "$headSha^{commit}" 2>$null
+                    $LASTEXITCODE | Should -Not -Be 0
+                } else {
+                    $result | Should -Contain 'target.txt'
+                    $result.Count | Should -Be 2
+                }
             } finally {
                 Pop-Location
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
                 $env:GITHUB_EVENT_PATH = $savedEventPath
+                $env:GITHUB_SHA = $savedSha
             }
+        }
+
+        It "rejects an unverified tested merge: <Case>" -ForEach @(
+            @{ Case = 'missing workflow SHA'; WorkflowSha = ''; Parents = @('a', 'b') }
+            @{ Case = 'checkout mismatch'; WorkflowSha = 'd' * 40; Parents = @('a', 'b') }
+            @{ Case = 'non-merge'; WorkflowSha = 'c' * 40; Parents = @('a') }
+            @{ Case = 'wrong PR head'; WorkflowSha = 'c' * 40; Parents = @('a', 'd') }
+            @{ Case = 'more than two parents'; WorkflowSha = 'c' * 40; Parents = @('a', 'b', 'd') }
+        ) {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $savedSha = $env:GITHUB_SHA
+            $eventFile = Join-Path $TestDrive 'invalid-merge-event.json'
+            @{ pull_request = @{ base = @{ sha = 'a' * 40 }; head = @{ sha = 'b' * 40 } } } |
+                ConvertTo-Json -Depth 5 | Set-Content $eventFile
+            Mock -ModuleName BuildOptimization git -MockWith ({
+                $global:LASTEXITCODE = 0
+                if ($args -contains 'rev-parse') { return 'c' * 40 }
+                if ($args -contains '-p') {
+                    foreach ($parent in $Parents) { "parent $($parent * 40)" }
+                    ''
+                    "parent $('b' * 40)"
+                }
+            }.GetNewClosure())
+            Mock -ModuleName BuildOptimization Write-Host { }
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:GITHUB_EVENT_PATH = $eventFile
+                $env:GITHUB_SHA = $WorkflowSha
+                Get-ChangedFilesForCI -CompareWithPullRequestMerge | Should -BeNullOrEmpty
+                Should -Invoke -ModuleName BuildOptimization Write-Host -Times 1 -ParameterFilter {
+                    $Object -like '*Could not verify the checked-out PR merge*'
+                }
+                { Get-ChangedFilesForCI -CompareWithPullRequestMerge -RequireChangeDetection } |
+                    Should -Throw '*Could not verify the checked-out PR merge*'
+                Should -Invoke -ModuleName BuildOptimization git -Times 0 -ParameterFilter {
+                    $args -contains 'diff' -or $args -contains 'fetch'
+                }
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+                $env:GITHUB_SHA = $savedSha
+            }
+        }
+
+        It "preserves event endpoints for <EventName> when merge comparison is requested" -ForEach @(
+            @{ EventName = 'push' }, @{ EventName = 'merge_group' }, @{ EventName = 'pull_request_target' }
+        ) {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $eventFile = Join-Path $TestDrive 'other-event.json'
+            @{
+                before = 'a' * 40; after = 'b' * 40
+                merge_group = @{ base_sha = 'a' * 40; head_sha = 'b' * 40 }
+                pull_request = @{ base = @{ sha = 'a' * 40 }; head = @{ sha = 'b' * 40 } }
+            } | ConvertTo-Json -Depth 5 | Set-Content $eventFile
+            Mock -ModuleName BuildOptimization git {
+                $global:LASTEXITCODE = 0
+                if ($args -contains 'diff') { 'changed.al' }
+            }
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = $EventName
+                $env:GITHUB_EVENT_PATH = $eventFile
+                @(Get-ChangedFilesForCI -CompareWithPullRequestMerge) | Should -Be @('changed.al')
+                Should -Invoke -ModuleName BuildOptimization git -Times 1 -ParameterFilter {
+                    $args -contains 'diff' -and $args -contains ('a' * 40) -and $args -contains ('b' * 40)
+                }
+                Should -Invoke -ModuleName BuildOptimization git -Times 0 -ParameterFilter { $args -contains 'rev-parse' }
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+            }
+        }
+
+        It "rejects combining merge comparison modes" {
+            { Get-ChangedFilesForCI -CompareWithPullRequestMerge -CompareFromMergeBase } |
+                Should -Throw '*cannot be combined*'
         }
 
         It "reports <Failure> failure without returning diagnostic text as changed files" -ForEach @(
