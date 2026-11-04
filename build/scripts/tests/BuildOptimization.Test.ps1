@@ -114,6 +114,26 @@ Describe "BuildOptimization" {
         }
     }
 
+    Context "Initialize-GitCommit" {
+        It "returns only a boolean when fetch exits with <ExitCode> and writes stdout" -ForEach @(
+            @{ ExitCode = 0; Expected = $true }
+            @{ ExitCode = 128; Expected = $false }
+        ) {
+            InModuleScope BuildOptimization -Parameters @{ ExitCode = $ExitCode; Expected = $Expected } {
+                Mock git {
+                    $global:LASTEXITCODE = 128
+                    if ($args -contains 'fetch') {
+                        $global:LASTEXITCODE = $ExitCode
+                        'fetch output'
+                    }
+                }
+                $result = Initialize-GitCommit -CommitSha ('a' * 40)
+                $result | Should -BeOfType [bool]
+                $result | Should -Be $Expected
+            }
+        }
+    }
+
     Context "Get-ChangedFilesForCI" {
         It "returns null when not in CI" {
             $saved = $env:GITHUB_ACTIONS
@@ -199,7 +219,7 @@ Describe "BuildOptimization" {
                 } | ConvertTo-Json -Depth 5 | Set-Content $tempFile
                 $env:GITHUB_EVENT_PATH = $tempFile
 
-                $result = Get-ChangedFilesForCI
+                $result = @(Get-ChangedFilesForCI)
                 $result | Should -Not -BeNullOrEmpty
                 $result.Count | Should -BeGreaterOrEqual 1
             } finally {
@@ -233,7 +253,7 @@ Describe "BuildOptimization" {
                 } | ConvertTo-Json -Depth 5 | Set-Content $tempFile
                 $env:GITHUB_EVENT_PATH = $tempFile
 
-                $result = Get-ChangedFilesForCI
+                $result = @(Get-ChangedFilesForCI)
                 $result | Should -Not -BeNullOrEmpty
                 $result.Count | Should -BeGreaterOrEqual 1
             } finally {

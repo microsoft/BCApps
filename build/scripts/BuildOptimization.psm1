@@ -232,6 +232,39 @@ function Get-VerifiedPullRequestMerge {
 
 <#
 .SYNOPSIS
+    Makes a commit available locally, fetching it from origin if missing.
+.PARAMETER CommitSha
+    Commit required for change detection.
+.PARAMETER FetchHistory
+    Fetch without a depth limit when merge-base comparison requires history.
+.PARAMETER RequireChangeDetection
+    Throw on fetch failure instead of logging and returning false.
+#>
+function Initialize-GitCommit {
+    [OutputType([bool])]
+    param(
+        [string] $CommitSha,
+        [switch] $FetchHistory,
+        [switch] $RequireChangeDetection
+    )
+
+    $null = & git cat-file -e "$CommitSha^{commit}" 2>$null
+    if ($LASTEXITCODE -eq 0) { return $true }
+
+    Write-Host "BUILD OPTIMIZATION: Fetching missing commit $CommitSha"
+    $fetchArguments = @('fetch', 'origin', $CommitSha)
+    if (-not $FetchHistory) { $fetchArguments += '--depth=1' }
+    $null = & git @fetchArguments 2>$null
+    if ($LASTEXITCODE -eq 0) { return $true }
+
+    $message = "Could not fetch commit '$CommitSha' from origin (exitCode=$LASTEXITCODE, directory='$PWD')."
+    if ($RequireChangeDetection) { throw $message }
+    Write-Host "BUILD OPTIMIZATION: $message"
+    return $false
+}
+
+<#
+.SYNOPSIS
     Detects changed files from the GitHub Actions CI environment.
 .DESCRIPTION
     Reads the GitHub event payload ($GITHUB_EVENT_PATH) to extract base/head commit
@@ -334,18 +367,8 @@ function Get-ChangedFilesForCI {
 
         # A depth-one PR merge checkout can be missing both event endpoints.
         foreach ($sha in @($baseSha, $headSha)) {
-            & git cat-file -e "$sha^{commit}" 2>$null
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "BUILD OPTIMIZATION: Fetching missing commit $sha"
-                $fetchArguments = @('fetch', 'origin', $sha)
-                if (-not $CompareFromMergeBase) { $fetchArguments += '--depth=1' }
-                & git @fetchArguments 2>$null
-                if ($LASTEXITCODE -ne 0) {
-                    $message = "Could not fetch commit '$sha' from origin (exitCode=$LASTEXITCODE, directory='$PWD')."
-                    if ($RequireChangeDetection) { throw $message }
-                    Write-Host "BUILD OPTIMIZATION: $message"
-                    return $null
-                }
+            if (-not (Initialize-GitCommit -CommitSha $sha -FetchHistory:$CompareFromMergeBase -RequireChangeDetection:$RequireChangeDetection)) {
+                return $null
             }
         }
 
