@@ -484,7 +484,26 @@ codeunit 99000818 "Mfg. Carry Out Action"
                 CalculateProdOrder.TransferTaskInfo(ProdOrderRoutingLine, RequisitionLine."Routing Version Code");
             until PlanningRoutingLine.Next() = 0;
 
+        UpdateQtyReadyToStart(ProductionOrder, RoutingNo, RoutingRefNo);
+
         exit(not PlanningRoutingLine.IsEmpty);
+    end;
+
+    local procedure UpdateQtyReadyToStart(ProductionOrder: Record "Production Order"; RoutingNo: Code[20]; RoutingRefNo: Integer)
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
+    begin
+        // Runs after all lines are inserted, so that every predecessor operation exists when a line is calculated.
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", RoutingRefNo);
+        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
+        ProdOrderRoutingLine.SetLoadFields("Previous Operation No.", "Input Quantity", "Quantity Ready to Start");
+        if ProdOrderRoutingLine.FindSet(true) then
+            repeat
+                QtyReadyToStartMgt.UpdateQtyReadyToStart(ProdOrderRoutingLine);
+            until ProdOrderRoutingLine.Next() = 0;
     end;
 
     procedure TransferBOM(RequisitionLine: Record "Requisition Line"; ProductionOrder: Record "Production Order"; ProdOrderLineNo: Integer)

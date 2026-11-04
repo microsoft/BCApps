@@ -33,6 +33,16 @@ report 20505 "Subc. Calculate Subcontracts"
                 DataItemTableView = sorting(Type, "No.") where(Status = const(Released), Type = const("Work Center"), "Routing Status" = filter(< Finished));
                 RequestFilterFields = "Prod. Order No.", "Starting Date";
 
+                trigger OnPreDataItem()
+                begin
+                    if not IsReadinessGateOn then
+                        exit;
+
+                    FilterGroup(8);
+                    SetFilter("Quantity Ready to Start", '<>0');
+                    FilterGroup(0);
+                end;
+
                 trigger OnAfterGetRecord()
                 begin
                     TempProdOrderRoutingLine.Init();
@@ -66,9 +76,23 @@ report 20505 "Subc. Calculate Subcontracts"
 
     requestpage
     {
+        SaveValues = true;
 
         layout
         {
+            area(Content)
+            {
+                group(Options)
+                {
+                    Caption = 'Options';
+                    field("Only Operations Ready to Start"; IsReadinessGateOn)
+                    {
+                        ApplicationArea = Subcontracting;
+                        Caption = 'Only Operations Ready to Start';
+                        ToolTip = 'Specifies whether to create worksheet lines only for operations whose previous operations have posted enough output for them to start.';
+                    }
+                }
+            }
         }
 
         actions
@@ -127,6 +151,7 @@ report 20505 "Subc. Calculate Subcontracts"
         BaseQtyToPurch: Decimal;
         QtyToPurch: Decimal;
         GLSetupRead: Boolean;
+        IsReadinessGateOn: Boolean;
 
         ProcessingWorkCentersLbl: Label 'Processing Work Centers   #1##########\', Comment = '#1 = current work center number being processed';
         ProcessingOrdersLbl: Label 'Processing Orders         #2########## ', Comment = '#2 = current order number being processed';
@@ -140,6 +165,15 @@ report 20505 "Subc. Calculate Subcontracts"
             exit;
 #endif
         ReqLine := NewReqLine;
+    end;
+
+    /// <summary>
+    /// Switches the readiness gate on or off for a run without a request page.
+    /// </summary>
+    /// <param name="NewIsReadinessGateOn">Specifies whether to create worksheet lines only for operations whose Quantity Ready to Start is not zero.</param>
+    procedure SetOnlyOperationsReadyToStart(NewIsReadinessGateOn: Boolean)
+    begin
+        IsReadinessGateOn := NewIsReadinessGateOn;
     end;
 
     local procedure InsertReqWkshLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line")
