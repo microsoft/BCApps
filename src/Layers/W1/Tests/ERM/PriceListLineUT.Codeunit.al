@@ -3808,6 +3808,52 @@ codeunit 134123 "Price List Line UT"
         Assert.AreEqual(LineDisountPct, PriceListLine."Line Discount %", LineDiscountPctErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnitOfMeasureCodeOnInsertLineViaOData()
+    var
+        Item: Record Item;
+        ItemUnitofMeasure: Record "Item Unit of Measure";
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+        RequestBody: JsonObject;
+        RequestBodyText: Text;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [FEATURE] [Edit in Excel] [Unit Of Measure]
+        // [SCENARIO 640436] Inserting a price list line through OData (Edit in Excel) with "Unit of Measure Code" does not fail on empty "Product No."
+        Initialize();
+
+        // [GIVEN] Item 'I' with additional unit of measure 'UOM'
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitofMeasure, Item."No.", 2);
+
+        // [GIVEN] Sales price list 'PL'
+        LibraryPriceCalculation.CreatePriceHeader(
+            PriceListHeader, "Price Type"::Sale, "Price Source Type"::"All Customers", '');
+
+        // [GIVEN] Page "Price List Lines" is published as web service 'WS'
+        LibraryGraphMgt.EnsureWebServiceExist('PriceListLinesODataTest', Page::"Price List Lines");
+
+        // [WHEN] Post a new line to 'WS': "Price List Code" = 'PL', "Asset Type" = Item, "Asset No." = 'I', "Unit of Measure Code" = 'UOM'
+        RequestBody.Add('Price_List_Code', PriceListHeader.Code);
+        RequestBody.Add('Asset_Type', Format("Price Asset Type"::Item));
+        RequestBody.Add('Asset_No', Item."No.");
+        RequestBody.Add('Unit_of_Measure_Code', ItemUnitofMeasure.Code);
+        RequestBody.WriteTo(RequestBodyText);
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Price List Lines", 'PriceListLinesODataTest');
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBodyText, ResponseText, 201);
+
+        // [THEN] Line is inserted in 'PL' with "Asset No." = 'I' and "Unit of Measure Code" = 'UOM'
+        PriceListLine.SetRange("Price List Code", PriceListHeader.Code);
+        PriceListLine.FindFirst();
+        PriceListLine.TestField("Asset Type", "Price Asset Type"::Item);
+        PriceListLine.TestField("Asset No.", Item."No.");
+        PriceListLine.TestField("Unit of Measure Code", ItemUnitofMeasure.Code);
+    end;
+
     local procedure Initialize()
     begin
         Initialize(false);
