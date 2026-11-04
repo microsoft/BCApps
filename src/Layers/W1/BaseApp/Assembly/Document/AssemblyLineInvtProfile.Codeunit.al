@@ -147,6 +147,25 @@ codeunit 928 "Assembly Line Invt. Profile"
             InventoryProfile."Order Priority" := 470;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterShouldDeleteReservEntry', '', true, true)]
+    local procedure OnAfterShouldDeleteReservEntry(ReservationEntry: Record "Reservation Entry"; ToDate: Date; var DeleteCondition: Boolean; TemplateName: Code[10]; WorksheetName: Code[10])
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        if not DeleteCondition then
+            exit;
+        if ReservationEntry."Source Type" <> Database::"Assembly Line" then
+            exit;
+        if ReservationEntry.IsReservationOrTracking() or not ReservationEntry.TrackingExists() then
+            exit;
+
+        RequisitionLine.SetRefOrderFilters(
+            RequisitionLine."Ref. Order Type"::Assembly, ReservationEntry."Source Subtype", ReservationEntry."Source ID", 0);
+        RequisitionLine.SetOperationNoFilterToBlank();
+        if not RequisitionLine.IsEmpty() then
+            DeleteCondition := false;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnForecastConsumptionOnAfterSetPlanningSourceTypeFilter', '', true, true)]
     local procedure OnForecastConsumptionOnAfterSetPlanningSourceTypeFilter(var DemandInventoryProfile: Record "Inventory Profile")
     begin
