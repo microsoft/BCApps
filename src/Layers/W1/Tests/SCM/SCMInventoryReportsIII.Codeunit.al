@@ -50,6 +50,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         NothingToPostToGLMsg: Label 'There is nothing to post to the general ledger.';
         PostMethod: Option "per Posting Group","per Entry";
         PostValueEntryToGLExistsErr: Label 'Unexpected existence of the "Post Value Entry to G/L" entry.';
+        CostNotPostedToGLErr: Label 'The cost of the value entry is not fully posted to G/L.';
 
     [Test]
     [HandlerFunctions('ConfirmHandler,InventoryValuationRequestPageHandler')]
@@ -1256,6 +1257,57 @@ codeunit 137350 "SCM Inventory Reports - III"
 
     [Test]
     [HandlerFunctions('CleanUpPostValueEntriesRequestPageHandler,CleanUpPostValueEntriesMessageHandler')]
+    procedure CleanUpPostValueEntriesKeepsEntryWithActualCostToPostOnlyInACY()
+    var
+        ItemNo: Code[20];
+        ValueEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 1.0] [ACY]
+        // [SCENARIO] Report "Clean Up Post Value Entries" keeps entries whose actual cost is fully posted in LCY but not in additional reporting currency.
+        Initialize();
+        ItemNo := LibraryInventory.CreateItemNo();
+
+        // [GIVEN] Value entry "V" with "Cost Amount (Actual)" = "Cost Posted to G/L" = 100, "Cost Amount (Actual) (ACY)" = 100 and "Cost Posted to G/L (ACY)" = 0, listed in "Post Value Entry to G/L".
+        ValueEntryNo := MockValueEntryWithPostValueEntryToGL(ItemNo, 100, 100, 0, 0);
+        SetCostPostedToGLACY(ValueEntryNo, 0, 0);
+        Commit();
+
+        // [WHEN] Run report "Clean Up Post Value Entries" for the item.
+        RunCleanUpPostValueEntries(ItemNo, false);
+
+        // [THEN] The entry for "V" remains in "Post Value Entry to G/L".
+        VerifyPostValueEntryToGLExists(ValueEntryNo, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('CleanUpPostValueEntriesRequestPageHandler,CleanUpPostValueEntriesMessageHandler')]
+    procedure CleanUpPostValueEntriesKeepsEntryWithExpectedCostToPostOnlyInACYWhenExpectedCostPostingEnabled()
+    var
+        ItemNo: Code[20];
+        ValueEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 1.0] [ACY]
+        // [SCENARIO] Report "Clean Up Post Value Entries" keeps entries whose expected cost is fully posted in LCY but not in additional reporting currency when "Expected Cost Posting to G/L" is enabled.
+        Initialize();
+        ItemNo := LibraryInventory.CreateItemNo();
+
+        // [GIVEN] "Expected Cost Posting to G/L" is enabled in Inventory Setup.
+        SetExpectedCostPostingToGL(true);
+
+        // [GIVEN] Value entry "V" with "Cost Amount (Expected)" = "Expected Cost Posted to G/L" = 100, "Cost Amount (Expected) (ACY)" = 100 and "Exp. Cost Posted to G/L (ACY)" = 0, listed in "Post Value Entry to G/L".
+        ValueEntryNo := MockValueEntryWithPostValueEntryToGL(ItemNo, 0, 0, 100, 100);
+        SetCostPostedToGLACY(ValueEntryNo, 0, 0);
+        Commit();
+
+        // [WHEN] Run report "Clean Up Post Value Entries" for the item.
+        RunCleanUpPostValueEntries(ItemNo, false);
+
+        // [THEN] The entry for "V" remains in "Post Value Entry to G/L".
+        VerifyPostValueEntryToGLExists(ValueEntryNo, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('CleanUpPostValueEntriesRequestPageHandler,CleanUpPostValueEntriesMessageHandler')]
     procedure CleanUpPostValueEntriesKeepsEntryWithExpectedCostToPostWhenExpectedCostPostingEnabled()
     var
         ItemNo: Code[20];
@@ -1389,6 +1441,62 @@ codeunit 137350 "SCM Inventory Reports - III"
 
         // [THEN] No "Post Value Entry to G/L" entries remain for "X".
         VerifyPostValueEntryToGLCount(ItemNo, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('PostInventoryCostToGLRequestPageHandler,MessageHandler')]
+    procedure PostInvtCostToGLPerEntryPostsAndDeletesManyNonContiguousEntries()
+    var
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
+        ItemNo: Code[20];
+        OtherItemNo: Code[20];
+        NoOfEntries: Integer;
+    begin
+        // [FEATURE] [AI test 1.0] [Post Inventory Cost to GL]
+        // [SCENARIO] Report "Post Inventory Cost to G/L" posted per entry posts more than 1,500 non-contiguous value entries and deletes all their "Post Value Entry to G/L" entries.
+        Initialize();
+
+        // [GIVEN] More than 1,500 value entries of item "X" with cost to post, interleaved with fully posted value entries of item "Y".
+        NoOfEntries := CreateNonContiguousValueEntriesToPostToGL(ItemNo, OtherItemNo);
+
+        // [WHEN] Run "Post Inventory Cost to G/L" per entry with "Post" = true for item "X".
+        ValueEntryToPostToGL.SetRange("Item No.", ItemNo);
+        RunPostInventoryCostToGL(ValueEntryToPostToGL, PostMethod::"per Entry", '', EntriesPostedToGLMsg);
+
+        // [THEN] The cost of all value entries of "X" is posted to G/L and no "Post Value Entry to G/L" entries remain for "X".
+        VerifyValueEntriesFullyPostedToGL(ItemNo);
+        VerifyPostValueEntryToGLCount(ItemNo, 0);
+
+        // [THEN] The entries of "Y" in between remain.
+        VerifyPostValueEntryToGLCount(OtherItemNo, NoOfEntries);
+    end;
+
+    [Test]
+    [HandlerFunctions('PostInventoryCostToGLRequestPageHandler,MessageHandler')]
+    procedure PostInvtCostToGLPerPostingGroupPostsAndDeletesManyNonContiguousEntries()
+    var
+        ValueEntryToPostToGL: Record "Post Value Entry to G/L";
+        ItemNo: Code[20];
+        OtherItemNo: Code[20];
+        NoOfEntries: Integer;
+    begin
+        // [FEATURE] [AI test 1.0] [Post Inventory Cost to GL]
+        // [SCENARIO] Report "Post Inventory Cost to G/L" posted per posting group posts more than 1,500 non-contiguous value entries and deletes all their "Post Value Entry to G/L" entries.
+        Initialize();
+
+        // [GIVEN] More than 1,500 value entries of item "X" with cost to post, interleaved with fully posted value entries of item "Y".
+        NoOfEntries := CreateNonContiguousValueEntriesToPostToGL(ItemNo, OtherItemNo);
+
+        // [WHEN] Run "Post Inventory Cost to G/L" per posting group with "Post" = true for item "X".
+        ValueEntryToPostToGL.SetRange("Item No.", ItemNo);
+        RunPostInventoryCostToGL(ValueEntryToPostToGL, PostMethod::"per Posting Group", LibraryUtility.GenerateGUID(), EntriesPostedToGLMsg);
+
+        // [THEN] The cost of all value entries of "X" is posted to G/L and no "Post Value Entry to G/L" entries remain for "X".
+        VerifyValueEntriesFullyPostedToGL(ItemNo);
+        VerifyPostValueEntryToGLCount(ItemNo, 0);
+
+        // [THEN] The entries of "Y" in between remain.
+        VerifyPostValueEntryToGLCount(OtherItemNo, NoOfEntries);
     end;
 
     [Test]
@@ -2111,6 +2219,53 @@ codeunit 137350 "SCM Inventory Reports - III"
         InventorySetup.Get();
         InventorySetup."Expected Cost Posting to G/L" := ExpectedCostPostingToGL;
         InventorySetup.Modify();
+    end;
+
+    local procedure SetCostPostedToGLACY(ValueEntryNo: Integer; CostPostedToGLACY: Decimal; ExpCostPostedToGLACY: Decimal)
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.Get(ValueEntryNo);
+        ValueEntry."Cost Posted to G/L (ACY)" := CostPostedToGLACY;
+        ValueEntry."Exp. Cost Posted to G/L (ACY)" := ExpCostPostedToGLACY;
+        ValueEntry.Modify();
+    end;
+
+    local procedure CreateNonContiguousValueEntriesToPostToGL(var ItemNo: Code[20]; var OtherItemNo: Code[20]) NoOfEntries: Integer
+    var
+        TemplateValueEntry: Record "Value Entry";
+        ValueEntry: Record "Value Entry";
+        FirstValueEntryNo: Integer;
+        Index: Integer;
+    begin
+        // Copies of a posted purchase value entry of item "X" with cost to post, so that more than 1,500 entries are posted.
+        // A fully posted value entry of item "Y" is placed between the copies, so that no two entries of "X" have consecutive numbers.
+        NoOfEntries := 1501;
+        ItemNo := CreateItem();
+        OtherItemNo := LibraryInventory.CreateItemNo();
+        CreateAndPostPurchaseOrder(ItemNo, LibraryRandom.RandInt(10), LibraryRandom.RandInt(100));
+        TemplateValueEntry.SetRange("Item No.", ItemNo);
+        TemplateValueEntry.FindFirst();
+
+        FirstValueEntryNo := GetFirstFreeValueEntryNo();
+        for Index := 0 to NoOfEntries - 1 do begin
+            ValueEntry := TemplateValueEntry;
+            ValueEntry."Entry No." := FirstValueEntryNo + 2 * Index;
+            ValueEntry.Insert();
+            MockPostValueEntryToGL(ValueEntry."Entry No.", ItemNo);
+            MockItemValueEntryWithPostValueEntryToGL(FirstValueEntryNo + 2 * Index + 1, OtherItemNo, 100, 100, true);
+        end;
+    end;
+
+    local procedure VerifyValueEntriesFullyPostedToGL(ItemNo: Code[20])
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Item No.", ItemNo);
+        ValueEntry.FindSet();
+        repeat
+            Assert.AreEqual(ValueEntry."Cost Amount (Actual)", ValueEntry."Cost Posted to G/L", CostNotPostedToGLErr);
+        until ValueEntry.Next() = 0;
     end;
 
     local procedure RunCleanUpPostValueEntries(ItemNo: Code[20]; CountOnly: Boolean)

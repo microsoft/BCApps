@@ -41,16 +41,14 @@ report 5813 "Clean Up Post Value Entries"
                     if CountOnly then
                         DeletedCount += 1
                     else
-                        if PostValueEntryToGL.Delete() then begin
-                            DeletedCount += 1;
-                            CommitInBatches();
-                        end;
+                        AddEntryToDelete(PostValueEntryToGL."Value Entry No.");
 
                 UpdateProgress(false);
             end;
 
             trigger OnPostDataItem()
             begin
+                DeleteEntries();
                 if GuiAllowed() then begin
                     UpdateProgress(true);
                     Window.Close();
@@ -93,26 +91,43 @@ report 5813 "Clean Up Post Value Entries"
     end;
 
     var
+        TempPostValueEntryToGLToDelete: Record "Post Value Entry to G/L" temporary;
         Window: Dialog;
         TotalCount: Integer;
         CheckedCount: Integer;
         DeletedCount: Integer;
-        DeletedSinceCommitCount: Integer;
         LastWindowUpdate: DateTime;
         CountOnly: Boolean;
         ProgressTxt: Label 'Checking entry #1######## of #2########\Entries to delete: #3########\@4@@@@@@@@@@@@@@@@@@@@@@@@@', Comment = '#1: number of checked entries, #2: total number of entries, #3: number of entries deleted or to delete, @4: progress bar';
         CompletedMsg: Label '%1 entries were checked.\%2 entries were deleted.\%3 entries still have cost to post to the general ledger.', Comment = '%1, %2, %3: number of entries';
         CountOnlyCompletedMsg: Label '%1 entries were checked.\%2 entries can be deleted.\%3 entries still have cost to post to the general ledger.', Comment = '%1, %2, %3: number of entries';
 
-    local procedure CommitInBatches()
+    local procedure AddEntryToDelete(ValueEntryNo: Integer)
     begin
-        // Commit regularly so that a large clean-up does not block item posting, which inserts into the same table.
-        DeletedSinceCommitCount += 1;
-        if DeletedSinceCommitCount < 1000 then
+        TempPostValueEntryToGLToDelete.Init();
+        TempPostValueEntryToGLToDelete."Value Entry No." := ValueEntryNo;
+        TempPostValueEntryToGLToDelete.Insert();
+        if TempPostValueEntryToGLToDelete.Count() >= 1000 then
+            DeleteEntries();
+    end;
+
+    local procedure DeleteEntries()
+    var
+        PostValueEntryToGLToDelete: Record "Post Value Entry to G/L";
+    begin
+        // Entries are checked first without holding locks and deleted afterwards in ascending order, the same order report "Post Inventory Cost to G/L" uses.
+        // The clean-up therefore never waits for a value entry while it holds locks on entries it has deleted, which avoids deadlocks with posting.
+        // Committing after each batch keeps the locks short, so that item posting, which inserts into the same table, is not blocked.
+        if not TempPostValueEntryToGLToDelete.FindSet() then
             exit;
 
+        repeat
+            if PostValueEntryToGLToDelete.Get(TempPostValueEntryToGLToDelete."Value Entry No.") then
+                if PostValueEntryToGLToDelete.Delete() then
+                    DeletedCount += 1;
+        until TempPostValueEntryToGLToDelete.Next() = 0;
+        TempPostValueEntryToGLToDelete.DeleteAll();
         Commit();
-        DeletedSinceCommitCount := 0;
     end;
 
     local procedure UpdateProgress(Force: Boolean)
