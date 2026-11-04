@@ -495,6 +495,7 @@ function Get-AffectedAppNames {
     Write-Host "BUILD OPTIMIZATION: Affected apps ($($affectedNames.Count)):"
     foreach ($name in $sortedNames) { Write-Host "  - $name" }
 
+    # These tests validate objects and permissions across installed apps, regardless of changed dependencies.
     if ($affectedNames -notcontains 'Tests-NewObjects-Internal') {
         $affectedNames += 'Tests-NewObjects-Internal'
     }
@@ -555,6 +556,18 @@ function Test-ShouldSkipTestApp {
 <#
 .SYNOPSIS
     Logs the churn-based test proposal and returns all candidate apps unchanged.
+.PARAMETER AppNamesToTest
+    Candidate test app names in dispatch order; returned unchanged in logging-only mode.
+.PARAMETER BaseFolder
+    Repository root used to determine affected apps.
+.PARAMETER ChurnEnabled
+    Enables impact analysis for the logged proposal; false bypasses analysis without skipping tests.
+.PARAMETER Country
+    Project country shown in the selection log.
+.PARAMETER TestType
+    Project test type shown in the selection log.
+.PARAMETER BucketNumber
+    Legacy test bucket shown in the log; ignored for other test types.
 #>
 function Get-SelectedTestApps {
     [OutputType([string[]])]
