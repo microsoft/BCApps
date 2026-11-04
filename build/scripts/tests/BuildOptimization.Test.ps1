@@ -304,7 +304,7 @@ Describe "BuildOptimization" {
                 $global:LASTEXITCODE = 0
                 if ($Failure -eq 'fetch' -or $args -contains 'diff') {
                     $global:LASTEXITCODE = 128
-                    if ($args -contains 'diff') { Write-Error 'fatal: bad object' }
+                    if ($args -contains 'diff') { Write-Error 'fatal: bad object' -ErrorAction Continue }
                 }
             }.GetNewClosure())
             Mock -ModuleName BuildOptimization Write-Host { }
@@ -317,6 +317,32 @@ Describe "BuildOptimization" {
                     $Object -like $ExpectedMessage
                 }
                 { Get-ChangedFilesForCI -RequireChangeDetection } | Should -Throw $ExpectedMessage
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+            }
+        }
+
+        It "returns only paths when a successful diff writes a diagnostic to stderr" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $eventFile = Join-Path $TestDrive 'git-warning-event.json'
+            @{ pull_request = @{ base = @{ sha = 'a' * 40 }; head = @{ sha = 'b' * 40 } } } |
+                ConvertTo-Json -Depth 5 | Set-Content $eventFile
+            Mock -ModuleName BuildOptimization git {
+                $global:LASTEXITCODE = 0
+                if ($args -contains 'diff') {
+                    Write-Error 'warning: exhaustive rename detection was skipped' -ErrorAction Continue
+                    'src/Apps/Example/Changed.al'
+                }
+            }
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:GITHUB_EVENT_PATH = $eventFile
+                @(Get-ChangedFilesForCI) | Should -Be @('src/Apps/Example/Changed.al')
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent

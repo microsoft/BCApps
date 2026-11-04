@@ -323,9 +323,16 @@ function Get-ChangedFilesForCI {
         }
         $diffArguments += @($diffBase, $headSha, '--')
 
-        $files = @(& git @diffArguments 2>&1)
-        if ($LASTEXITCODE -ne 0) {
-            $message = "Git diff failed (exitCode=$LASTEXITCODE, directory='$PWD'): $($files -join [Environment]::NewLine)"
+        $stderrFile = [System.IO.Path]::GetTempFileName()
+        try {
+            $files = @(& git @diffArguments 2> $stderrFile)
+            $diffExitCode = $LASTEXITCODE
+            $diagnostic = Get-Content -Path $stderrFile -Raw
+        } finally {
+            Remove-Item -LiteralPath $stderrFile
+        }
+        if ($diffExitCode -ne 0) {
+            $message = "Git diff failed (exitCode=$diffExitCode, directory='$PWD'): $diagnostic"
             if ($RequireChangeDetection) {
                 throw $message
             }

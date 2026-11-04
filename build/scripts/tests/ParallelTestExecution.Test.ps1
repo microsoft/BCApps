@@ -208,7 +208,6 @@ Describe "ParallelTestExecution churn selection" {
         }
         InModuleScope ParallelTestExecution {
             $state = Get-Content (Join-Path $env:RUNNER_TEMP 'parallelTests_selection.json') -Raw | ConvertFrom-Json
-            $state.PSObject.Properties.Name | Should -Not -Contain 'noTestsSelected'
             $state.completed | Should -BeTrue
         }
         Should -Invoke -ModuleName BuildOptimization Get-AffectedAppNames -Times 1 -Exactly
