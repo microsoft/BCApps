@@ -302,7 +302,8 @@ function Get-ApplicationApiMemberMoveFailure {
         [object] $OldHost,
         [object] $NewHost,
         [object] $Diagnostic,
-        [System.Collections.Generic.List[string]] $CompatibleChanges
+        [System.Collections.Generic.List[string]] $CompatibleChanges,
+        [ref] $ContractComparison
     )
 
     if ($OldHost.Kind -ceq 'PageCustomizations') {
@@ -352,6 +353,9 @@ function Get-ApplicationApiMemberMoveFailure {
     if ($old.ContractHash -cne $new.ContractHash) {
         if ($memberKind -ne 'Field' -or -not $old.PSObject.Properties['Contract'] -or -not $new.PSObject.Properties['Contract'] -or
             -not (Test-ApplicationApiAddedFieldTooltip -Baseline $old.Contract -Current $new.Contract)) {
+            if ($ContractComparison -and $old.PSObject.Properties['Contract'] -and $new.PSObject.Properties['Contract']) {
+                $ContractComparison.Value = Get-ApplicationApiContractDifferences -Baseline $old.Contract -Current $new.Contract
+            }
             return 'The relocated member contract changed.'
         }
         $CompatibleChanges.Add("Added tooltip to relocated field '$memberName'.")
@@ -653,6 +657,7 @@ function Test-ApplicationApiMoves {
         $key = if ($old) { $old.Key } else { $diagnostic.Key }
         $new = $currentObjects[$key]
         $reason = ''
+        $memberComparison = $null
         $compatibleChanges = [System.Collections.Generic.List[string]]::new()
         if ($candidates.Count -gt 1) { $reason = 'The diagnostic does not identify an unambiguous object namespace.' }
         elseif (-not $old -or -not $new) { $reason = 'Object is missing, internal, or outside the exposed Application API.' }
@@ -662,7 +667,7 @@ function Test-ApplicationApiMoves {
             $Baseline.Packages[$origin.Id].Name -cne $origin.BaselineName -or
             $Baseline.Packages[$origin.Id].Publisher -cne $origin.BaselinePublisher) { $reason = 'AppSourceCop and aggregate baselines disagree.' }
         elseif ($diagnostic.PartName -or $diagnostic.ActionName -or $diagnostic.FieldName -or $diagnostic.MethodName -or $diagnostic.CueGroupName -or $diagnostic.ControlName) {
-            $reason = Get-ApplicationApiMemberMoveFailure -Baseline $Baseline -Current $Current -OldHost $old -NewHost $new -Diagnostic $diagnostic -CompatibleChanges $compatibleChanges
+            $reason = Get-ApplicationApiMemberMoveFailure -Baseline $Baseline -Current $Current -OldHost $old -NewHost $new -Diagnostic $diagnostic -CompatibleChanges $compatibleChanges -ContractComparison ([ref]$memberComparison)
         }
         elseif ($old.OwnerId -eq $new.OwnerId) { $reason = 'Object has not moved to another Application member.' }
         elseif ($old.Name -cne $new.Name -or $old.Namespace -cne $new.Namespace) {
@@ -678,7 +683,11 @@ function Test-ApplicationApiMoves {
         }
         $contractDifferences = @()
         $contractDifferencesTruncated = $false
-        if ($reason -and $old -and $new -and $old.ContractHash -cne $new.ContractHash -and
+        if ($memberComparison) {
+            $contractDifferences = $memberComparison.Differences
+            $contractDifferencesTruncated = $memberComparison.Truncated
+        }
+        elseif ($reason -and $old -and $new -and $old.ContractHash -cne $new.ContractHash -and
             $Baseline.ContainsKey('Contracts') -and $Current.ContainsKey('Contracts') -and
             $Baseline.Contracts.ContainsKey($key) -and $Current.Contracts.ContainsKey($key)) {
             $comparison = Get-ApplicationApiContractDifferences -Baseline $Baseline.Contracts[$key] -Current $Current.Contracts[$key]

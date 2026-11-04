@@ -527,6 +527,31 @@ Describe 'Application API compatibility prototype' {
                 { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
             }
 
+            It 'normalizes unqualified dependency-page references on a moved page' {
+                $dependencyPage = @{ Id = 9121; Name = 'Journal Errors Factbox' }
+                $page.Controls = @(@{
+                    Name = 'Journal Errors Factbox'; Kind = 6
+                    TypeDefinition = @{ Name = 'None' }
+                    RelatedPagePartId = @{ Name = ''; Id = $dependencyPage.Id }
+                })
+                $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections @{
+                    Namespaces = @(@{
+                        Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page, $dependencyPage)
+                        Tables = @($recordType); EnumTypes = @($enumType)
+                    })
+                }
+                $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections @{
+                    Namespaces = @(@{
+                        Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($dependencyPage)
+                        Tables = @($recordType); EnumTypes = @($enumType)
+                    })
+                }
+                Write-ApiDestination
+                $gate = New-ApiGateLayout
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+            }
+
             It 'rejects normalization when the reference has a <Failure>' -TestCases @(
                 @{ Failure = 'different ID' },
                 @{ Failure = 'different name' },
@@ -1214,6 +1239,58 @@ Describe 'Application API compatibility prototype' {
                 @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
             }
 
+            It 'handles an unqualified dependency-page part with <Failure>' -TestCases @(
+                @{ Failure = 'no change' },
+                @{ Failure = 'an incorrect explicit module' },
+                @{ Failure = 'an ambiguous aggregate page' },
+                @{ Failure = 'a mismatched target name' },
+                @{ Failure = 'a mismatched target namespace' }
+            ) {
+                param($Failure)
+                $part.TypeDefinition = $newPart.TypeDefinition = @{ Name = 'None' }
+                $part.RelatedPagePartId = @{ Id = 9071; Name = '' }
+                $newPart.RelatedPagePartId = @{ Id = 9071; Name = '' }
+                $partCurrentCollections.Namespaces[0].Pages += $newTarget
+                $partDestinationCollections.Namespaces[0].Pages = @($page)
+                switch ($Failure) {
+                    'an incorrect explicit module' { $newPart.RelatedPagePartId.ModuleId = $destinationId }
+                    'an ambiguous aggregate page' { $partDestinationCollections.Namespaces[0].Pages += $newTarget }
+                    'a mismatched target name' { $newPart.RelatedPagePartId.Name = 'Other Activities' }
+                    'a mismatched target namespace' { $newPart.RelatedPagePartId.Namespace = 'Other.Namespace' }
+                }
+                Write-PartApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $partMessage
+                if ($Failure -eq 'no change') {
+                    Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                    { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+                }
+                elseif ($Failure -eq 'an ambiguous aggregate page') {
+                    { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*Ambiguous exposed symbol*'
+                    { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+                }
+                else {
+                    { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                    $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                    ($state.AcceptedMoves | Where-Object PartName -EQ $part.Name).Accepted | Should -BeFalse
+                }
+            }
+
+            It 'reports the changed part contract rather than unrelated host-page changes' {
+                $newPart.Properties[0].Value = 'Basic'
+                Write-PartApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $partMessage
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $move = $state.AcceptedMoves | Where-Object PartName -EQ $part.Name
+                $move.Reason | Should -Be 'The relocated member contract changed.'
+                $move.ContractDifferences.Count | Should -Be 1
+                $move.ContractDifferences[0].Path | Should -Be '$.Properties[0].Value'
+                $move.ContractDifferences[0].Baseline | Should -Be '"Intercompany"'
+                $move.ContractDifferences[0].Current | Should -Be '"Basic"'
+            }
+
             Context 'Inherited members reported on page customizations' {
                 BeforeEach {
                     $oldHost.Name = $currentHost.Name = 'Business Manager Role Center'
@@ -1475,6 +1552,32 @@ Describe 'Application API compatibility prototype' {
                 $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
                 @($alerts.issues | Where-Object ruleId -EQ $RuleId).Count | Should -Be 0
                 @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
+            }
+
+            It 'reports precise relocated <Kind> differences instead of the host layout' -TestCases @(
+                @{ Kind = 'action'; SymbolKind = 2 },
+                @{ Kind = 'action group'; SymbolKind = 1 }
+            ) {
+                param($Kind, $SymbolKind)
+                $member.Kind = $newMember.Kind = $SymbolKind
+                $member.Id = 10
+                $newMember.Id = 11
+                $newMember.Properties[0].Value = 'Changed caption'
+                $hostPage.Controls[0].Controls = @()
+                $hostPage.Actions = @(@{ Name = 'Processing'; Kind = 0; Actions = @($member) })
+                $memberExtension.Remove('ControlChanges')
+                $memberExtension.ActionChanges = @(@{ Name = 'Processing'; Actions = @($newMember) })
+                Write-RoleCenterMemberApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message "The $Kind with name 'Extracted element' defined in Page 'Role Center Probe' was found in the previous version, but is missing in the current extension."
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $move = $state.AcceptedMoves | Where-Object RuleId -EQ 'AS0031'
+                $move.Reason | Should -Be 'The relocated member contract changed.'
+                $move.ContractDifferences.Count | Should -Be 2
+                $move.ContractDifferences.Path | Should -Contain '$.Id'
+                $move.ContractDifferences.Path | Should -Contain '$.Properties[0].Value'
+                $move.ContractDifferencesTruncated | Should -BeFalse
             }
 
             It 'rejects an additional control relocation when <Failure>' -TestCases @(
@@ -1848,6 +1951,22 @@ Describe 'Application API compatibility prototype' {
                 $state.Status | Should -Be 'Passed'
                 ($state.AcceptedMoves | Where-Object FieldName -EQ 'IC Partner Code').CompatibleChanges |
                     Should -Contain "Added tooltip to relocated field 'IC Partner Code'."
+            }
+
+            It 'reports a changed field ID without hiding it behind host-page layout differences' {
+                $field.Id = 188687427
+                $newField.Id = 188687428
+                Write-FieldApiPackages
+                $gate = New-ApiGateLayout
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0032 -Message $fieldMessage
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $move = $state.AcceptedMoves | Where-Object FieldName -EQ $field.Name
+                $move.Accepted | Should -BeFalse
+                $move.ContractDifferences.Count | Should -Be 1
+                $move.ContractDifferences[0].Path | Should -Be '$.Id'
+                $move.ContractDifferences[0].Baseline | Should -Be '188687427'
+                $move.ContractDifferences[0].Current | Should -Be '188687428'
             }
 
             It 'does not use a new field tooltip to hide <Failure>' -TestCases @(

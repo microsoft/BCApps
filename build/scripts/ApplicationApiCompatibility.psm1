@@ -181,14 +181,17 @@ function Get-ApplicationApiReferenceIdentity {
         [System.Text.Json.JsonElement] $Subtype,
         [string] $TypeName,
         [string] $OwnerId,
-        [hashtable] $ReferenceTypes
+        [hashtable] $ReferenceTypes,
+        [switch] $AllowImplicitAggregateModule
     )
 
     $name = [System.Text.Json.JsonElement]::new()
     $id = [System.Text.Json.JsonElement]::new()
     if (-not $Subtype.TryGetProperty('Id', [ref]$id)) { return '' }
     $module = [System.Text.Json.JsonElement]::new()
-    $moduleId = if ($Subtype.TryGetProperty('ModuleId', [ref]$module)) { $module.GetString() } else { $OwnerId }
+    $moduleId = if ($Subtype.TryGetProperty('ModuleId', [ref]$module)) { $module.GetString() }
+        elseif ($AllowImplicitAggregateModule) { $ReferenceTypes["${TypeName}:$($id.GetInt32())"] }
+        else { $OwnerId }
     if ($ReferenceTypes["${TypeName}:$($id.GetInt32())"] -ne $moduleId) { return '' }
     $target = $ReferenceTypes["${moduleId}:${TypeName}:$($id.GetInt32())"]
     if (-not $target) { return '' }
@@ -242,7 +245,8 @@ function Write-ApplicationApiContract {
                 }
                 $typeName = [System.Text.Json.JsonElement]::new()
                 $reference = if ($property.Name -ceq 'RelatedPagePartId') {
-                    Get-ApplicationApiReferenceIdentity -Subtype $property.Value -TypeName Page -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes
+                    # The compiler omits ModuleId on page-part references even for dependency pages.
+                    Get-ApplicationApiReferenceIdentity -Subtype $property.Value -TypeName Page -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes -AllowImplicitAggregateModule
                 } elseif ($property.Name -ceq 'Subtype' -and $Element.TryGetProperty('Name', [ref]$typeName)) {
                     Get-ApplicationApiReferenceIdentity -Subtype $property.Value -TypeName $typeName.GetString() -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes
                 } else { '' }
@@ -356,7 +360,7 @@ function Add-ApplicationApiPageMembers {
                 TargetPageId = $targetId
                 ContractHash = ''
             }
-            if ($IncludeContracts -and $memberKind -eq 'Field') { $member | Add-Member -NotePropertyName Contract -NotePropertyValue '' }
+            if ($IncludeContracts) { $member | Add-Member -NotePropertyName Contract -NotePropertyValue '' }
             Add-ApplicationApiContract -Element $control -Target $member -OwnerId $OwnerId -Snapshot $Snapshot
             $Snapshot[$Collection].Add($member)
         }
