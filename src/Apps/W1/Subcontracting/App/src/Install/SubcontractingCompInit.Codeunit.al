@@ -108,7 +108,8 @@ codeunit 20503 "Subcontracting Comp. Init."
 
     local procedure UpdateSubcontractingWorksheetPage(var ReqWkshTemplate: Record "Req. Wksh. Template")
     begin
-        if ReqWkshTemplate."Page ID" = Page::"Subc. Subcontracting Worksheet" then
+        // The obsolete Subcontracting Worksheet page may no longer be available in symbols.
+        if ReqWkshTemplate."Page ID" <> 99000886 then
             exit;
 
         ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");

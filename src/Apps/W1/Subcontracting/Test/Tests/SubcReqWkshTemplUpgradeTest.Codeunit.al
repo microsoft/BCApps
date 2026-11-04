@@ -626,13 +626,13 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         TemplateCreated: Boolean;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 647022] Reusing a Subcontracting template corrects only its incompatible page.
+        // [SCENARIO 647022] Reusing a Subcontracting template migrates only its legacy Subcontracting worksheet page.
         Initialize();
 
-        // [GIVEN] Subcontracting template "S" has a Planning page and custom metadata and batch.
+        // [GIVEN] Subcontracting template "S" has the legacy Subcontracting page and custom metadata and batch.
         PrepareUninitializedSetup(ManufacturingSetup);
         CreateSubcontractingTemplate(ExpectedReqWkshTemplate, 'CUSTOM');
-        ExpectedReqWkshTemplate."Page ID" := Page::"Planning Worksheet";
+        ExpectedReqWkshTemplate."Page ID" := 99000886;
         ExpectedReqWkshTemplate.Recurring := true;
         ExpectedReqWkshTemplate."Increment Batch Name" := true;
         ExpectedReqWkshTemplate.Modify();
@@ -659,14 +659,14 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 647022] Initialization repairs the selected template page without switching templates or resetting settings.
+        // [SCENARIO 647022] Initialization migrates the selected legacy Subcontracting page without switching templates or resetting settings.
         Initialize();
 
-        // [GIVEN] Non-first Subcontracting template "S" is selected with a Planning page.
+        // [GIVEN] Non-first Subcontracting template "S" is selected with the legacy Subcontracting page.
         PrepareUninitializedSetup(ManufacturingSetup);
         CreateSubcontractingTemplate(FirstReqWkshTemplate, 'AFIRST');
         CreateSubcontractingTemplate(SelectedReqWkshTemplate, 'ZSELECTED');
-        SelectedReqWkshTemplate."Page ID" := Page::"Planning Worksheet";
+        SelectedReqWkshTemplate."Page ID" := 99000886;
         SelectedReqWkshTemplate.Recurring := true;
         SelectedReqWkshTemplate."Increment Batch Name" := true;
         SelectedReqWkshTemplate.Modify();
@@ -683,6 +683,67 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         SelectedReqWkshTemplate."Page ID" := Page::"Subc. Subcontracting Worksheet";
         VerifyWorksheetUnchanged(SelectedReqWkshTemplate, RequisitionWkshName, 2, 1);
         VerifyConfiguredSetup(ManufacturingSetup, SelectedReqWkshTemplate.Name, RequisitionWkshName.Name);
+    end;
+
+    [Test]
+    procedure CreateReqWkshTemplatePreservesUnrelatedPage()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ExpectedReqWkshTemplate: Record "Req. Wksh. Template";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+        TemplateCreated: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647022] Reusing a Subcontracting template preserves a page other than the legacy Subcontracting worksheet.
+        Initialize();
+
+        // [GIVEN] Subcontracting template "S" has a Planning page selected by the customer.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateSubcontractingTemplate(ExpectedReqWkshTemplate, 'CUSTOM');
+        ExpectedReqWkshTemplate."Page ID" := Page::"Planning Worksheet";
+        ExpectedReqWkshTemplate.Modify();
+        CreateSubcontractingBatch(RequisitionWkshName, ExpectedReqWkshTemplate.Name, 'CUSTOMBAT');
+
+        // [WHEN] Default template creation is requested.
+        TemplateCreated := SubcontractingCompInit.CreateReqWkshTemplate(ReqWkshTemplate, false);
+
+        // [THEN] The existing template and its unrelated page are unchanged.
+        Assert.IsFalse(TemplateCreated, 'Reusing a template must not report creation.');
+        VerifyWorksheetUnchanged(ExpectedReqWkshTemplate, RequisitionWkshName, 1, 1);
+        Assert.AreEqualDateTime(ExpectedReqWkshTemplate.SystemModifiedAt, ReqWkshTemplate.SystemModifiedAt, 'An unrelated page must not cause template modification.');
+    end;
+
+    [Test]
+    procedure InitializePreservesSelectedTemplateUnrelatedPage()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647022] Initialization preserves an unrelated page on the selected Subcontracting template.
+        Initialize();
+
+        // [GIVEN] Subcontracting template "S" is selected with a Planning page.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateSubcontractingTemplate(ReqWkshTemplate, 'CUSTOM');
+        ReqWkshTemplate."Page ID" := Page::"Planning Worksheet";
+        ReqWkshTemplate.Modify();
+        CreateSubcontractingBatch(RequisitionWkshName, ReqWkshTemplate.Name, 'CUSTOMBAT');
+        ManufacturingSetup.Validate("Subcontracting Template Name", ReqWkshTemplate.Name);
+        ManufacturingSetup.Validate("Subcontracting Batch Name", RequisitionWkshName.Name);
+        ManufacturingSetup.Modify();
+
+        // [WHEN] Company defaults are initialized twice.
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [THEN] The selected worksheet and all configured settings remain unchanged.
+        VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
+        VerifyConfiguredSetup(ManufacturingSetup, ReqWkshTemplate.Name, RequisitionWkshName.Name);
     end;
 
     local procedure Initialize()
