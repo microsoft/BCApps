@@ -137,6 +137,7 @@ codeunit 148363 EACorpCardLiabilityTests
         GenJournalLine.Init();
         GenJournalLine.Validate("Posting Date", WorkDate());
         GenJournalLine.Validate("Document No.", PostedExpenseReportLine."Document No.");
+        GenJournalLine.Validate("Source Code", LibraryERM.FindGeneralJournalSourceCode());
         GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"Bank Account");
         GenJournalLine.Validate("Account No.", BankAccountNo);
         GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNo());
