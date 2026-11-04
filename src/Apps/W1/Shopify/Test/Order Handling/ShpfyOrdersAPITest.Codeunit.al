@@ -327,7 +327,6 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure Completeness_AllApplicableGapsAndFallback()
     var
         TempCases: Record "Shpfy Order Header" temporary;
@@ -351,7 +350,6 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure Completeness_ExecutionPathsAndErrorOwnership()
     var
         Cases: Dictionary of [Text, BigInteger];
@@ -373,7 +371,6 @@ codeunit 139608 "Shpfy Orders API Test"
 
     [Test]
     [HandlerFunctions('OrdersAPIHttpHandler')]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure Completeness_AutomaticUpdateFailurePersistsMappingError()
     var
         ImportLines: JsonArray;
@@ -396,7 +393,6 @@ codeunit 139608 "Shpfy Orders API Test"
 
     [Test]
     [HandlerFunctions('OrdersAPIHttpHandler')]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure Completeness_AutomaticUpdateRecoveryClearsMappingError()
     var
         ImportLines: JsonArray;
@@ -420,7 +416,6 @@ codeunit 139608 "Shpfy Orders API Test"
 
     [Test]
     [HandlerFunctions('OrdersAPIHttpHandler')]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure Completeness_AutomaticUpdatePreservesOrderStateError()
     var
         ImportLines: JsonArray;
@@ -444,7 +439,6 @@ codeunit 139608 "Shpfy Orders API Test"
 
     [Test]
     [HandlerFunctions('OrdersAPIHttpHandler,MappingConfirmHandler')]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure Completeness_RetryAfterMappingCorrection()
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -2091,6 +2085,8 @@ codeunit 139608 "Shpfy Orders API Test"
                     this.LibraryAssert.AreEqual(CustomerTemplate."Default Customer No.", OrderHeader."Bill-to Customer No.", StrSubstNo(MappingCustomerMismatchErr, OrderId));
                 end;
                 Issues := Actual.Split('|');
+                while Issues.Contains('') do
+                    Issues.Remove('');
                 RenderedError := OrderMapping.GetMappingErrorMessage(Issues);
                 PreviousItemErrorPosition := 0;
                 foreach Issue in Issues do
