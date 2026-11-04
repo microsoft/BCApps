@@ -238,6 +238,19 @@ codeunit 148318 "Expense Capabilities API Test"
             'aiAssistedPolicyEvaluation must be disabled when Evaluate Policies is false.');
     end;
 
+    [Test]
+    procedure CapabilitiesAdvancedApprovalsEnabled()
+    var
+        ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+    begin
+        // [SCENARIO] Advanced approvals are always supported.
+        Initialize();
+
+        // [THEN] The provider reports advancedApprovals as enabled.
+        Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AdvancedApprovals),
+            'advancedApprovals must always be enabled.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
