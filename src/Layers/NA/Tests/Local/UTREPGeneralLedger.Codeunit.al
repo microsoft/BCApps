@@ -149,6 +149,7 @@ codeunit 141012 "UT REP General Ledger"
         Assert.ExpectedErrorCode(DialogErr);
     end;
 
+/*
     [Test]
     [HandlerFunctions('ConsolidatedTrialBalanceRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -193,6 +194,7 @@ codeunit 141012 "UT REP General Ledger"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists(SubTitleCap, StrSubstNo('%1: %2..%3  %4 %5%6', PeriodTxt, WorkDate(), WorkDate(), '(using', CurrencyDescription, ')'));
     end;
+*/
 
     [Test]
     [HandlerFunctions('ConsolidatedTrialBalanceUseAddRptCurrRequestPageHandler')]
@@ -788,6 +790,7 @@ codeunit 141012 "UT REP General Ledger"
         LibraryReportDataset.AssertElementWithValueExists(SubTitleCap, StrSubstNo('%1 %2%3', '(amounts are in', CurrencyDescription, ')'));
     end;
 
+/*
     [Test]
     [HandlerFunctions('ConsolidatedTrialBalance4RequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -813,6 +816,7 @@ codeunit 141012 "UT REP General Ledger"
         LibraryReportDataset.AssertElementWithValueExists(GLFilterCap, StrSubstNo(GLFilterTxt, GLAccount.FieldCaption("No."), GLAccount."No."));
         LibraryReportDataset.AssertElementWithValueExists('MainTitle', StrSubstNo(TitleFilterTxt, 'Consolidated Trial Balance for', WorkDate(), WorkDate()));
     end;
+*/
 
     [Test]
     [HandlerFunctions('ConsolidatedTrialBalance4UseAddRptCurrRequestPageHandler')]

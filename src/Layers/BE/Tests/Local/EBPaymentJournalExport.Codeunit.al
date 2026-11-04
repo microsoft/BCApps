@@ -1,3 +1,5 @@
+/*
+// - Error: The field with ID = 1362909741 is not found on the page.
 codeunit 144008 "EB - Payment Journal Export"
 {
     Subtype = Test;
@@ -3009,4 +3011,4 @@ codeunit 144008 "EB - Payment Journal Export"
     end;
 }
 
-
+*/

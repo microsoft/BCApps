@@ -83,7 +83,7 @@ codeunit 144050 "UT TAB Purchase Header"
     end;
 
     [Test]
-    [HandlerFunctions('ReqWorksheetTemplateListHandler,CarryOutActionMsgHandler,MessageHandler')]
+    [HandlerFunctions('ReqWorksheetTemplateListHandler,CarryOutActionMsgHandler')]
     [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure TaxAreaOnPurchaseOrderThroughRequisitionLine()

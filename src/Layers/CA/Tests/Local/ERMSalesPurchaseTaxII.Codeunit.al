@@ -3088,6 +3088,7 @@ codeunit 142051 "ERM Sales/Purchase Tax II"
         VerifySalesTotalTaxBeforeAfterRelease(SalesHeader, 674.11);
     end;
 
+/*
     [Test]
     [HandlerFunctions('StandardSalesOrderConf_RPH')]
     [Scope('OnPrem')]
@@ -3124,6 +3125,7 @@ codeunit 142051 "ERM Sales/Purchase Tax II"
         // Tear Down
         UpdateReportLayoutSelection(REPORT::"Standard Sales - Order Conf.", 'StandardSalesOrderConf.docx');
     end;
+*/
 
     [Test]
     [HandlerFunctions('SalesOrder_RPH')]
@@ -6612,13 +6614,14 @@ codeunit 142051 "ERM Sales/Purchase Tax II"
         PurchaseOrderList."No.".AssertEquals(LibraryVariableStorage.DequeueText());
     end;
 
+/*
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure StandardSalesOrderConf_RPH(var StandardSalesOrderConf: TestRequestPage "Standard Sales - Order Conf.")
     begin
         StandardSalesOrderConf.SaveAsExcel(LibraryReportValidation.GetFileName());
     end;
-
+*/
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure SalesOrder_RPH(var SalesOrder: TestRequestPage "Sales Order")

@@ -139,6 +139,8 @@ codeunit 144011 "SEPADD08 IntegrationTest - BE"
         Assert.IsTrue(PaymentJnlExportErrorText.IsEmpty, EmptyErr);
     end;
 
+/*
+// Error: The operation cannot complete because it uses a feature that is not supported (.NET Framework Interoperability.)
     [Test]
     [HandlerFunctions('SuggestDomiciliationsRequestPageHandler')]
     [Scope('OnPrem')]
@@ -209,6 +211,7 @@ codeunit 144011 "SEPADD08 IntegrationTest - BE"
         LibraryXMLRead.VerifyNodeAbsenceInSubtree('Cdtr', 'OrgId');
         LibraryXMLRead.VerifyNodeAbsenceInSubtree('Cdtr', 'AnyBIC');
     end;
+*/
 
     [Test]
     [HandlerFunctions('SuggestDomiciliationsRequestPageHandler')]

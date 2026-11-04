@@ -1,3 +1,5 @@
+/*
+//   - Error: The operation cannot complete because it uses a feature that is not supported (.NET Framework Interoperability.)
 codeunit 144021 "Test VAT - Form Report"
 {
     // // [FEATURE] [VAT - Form] [Report]
@@ -538,3 +540,4 @@ codeunit 144021 "Test VAT - Form Report"
     end;
 }
 
+*/

@@ -19,7 +19,7 @@ codeunit 144026 "Test SR G/L Entries Foreign C."
         IncorrectSourceCurrencyAmountErr: Label 'Source Currency Amount on G/L entry for account %1 is incorrect.', Comment = '%1 = G/L Account No.';
 
     [Test]
-    [HandlerFunctions('ReportRequestPageHandler,GLAccountCreationMessageHandler')]
+    [HandlerFunctions('ReportRequestPageHandler')]
     [Scope('OnPrem')]
     procedure VerifyGLEntriesForeignCurrencyReportWithNoConstraints()
     var
@@ -41,7 +41,7 @@ codeunit 144026 "Test SR G/L Entries Foreign C."
     end;
 
     [Test]
-    [HandlerFunctions('ReportRequestPageHandler,GLAccountCreationMessageHandler')]
+    [HandlerFunctions('ReportRequestPageHandler')]
     [Scope('OnPrem')]
     procedure VerifyGLEntriesForeignCurrencyReportWithGLRegisterInput()
     var
@@ -65,7 +65,7 @@ codeunit 144026 "Test SR G/L Entries Foreign C."
     end;
 
     [Test]
-    [HandlerFunctions('ReportRequestPageHandler,GLAccountCreationMessageHandler')]
+    [HandlerFunctions('ReportRequestPageHandler')]
     [Scope('OnPrem')]
     procedure VerifyGLEntriesForeignCurrencyReportWithFilter()
     var
@@ -249,11 +249,5 @@ codeunit 144026 "Test SR G/L Entries Foreign C."
 
         // Save the report as XML
         GLEntriesForeginCurrency.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [MessageHandler]
-    [Scope('OnPrem')]
-    procedure GLAccountCreationMessageHandler(Message: Text[1024])
-    begin
     end;
 }

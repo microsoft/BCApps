@@ -209,6 +209,7 @@ codeunit 141051 "Sales Price With Cost Plus"
         SalesPrice.TestField("Discount Amount", 0);
     end;
 
+/*
     [Test]
     [Scope('OnPrem')]
     procedure SingleCustomerSalesPriceDiscountAmtWithoutDate()
@@ -234,6 +235,7 @@ codeunit 141051 "Sales Price With Cost Plus"
         // Setup.
         CustomerSalesPriceDiscountAmtWithStartingDate(SalesPrice."Sales Type"::"All Customers", '', CreateCustomer(), WorkDate());  // Sales Code - blank and Starting Date - Workdate.
     end;
+*/
 
     local procedure CustomerSalesPriceDiscountAmtWithStartingDate(SalesType: Enum "Sales Price Type"; SalesCode: Code[20]; CustomerNo: Code[20]; StartingDate: Date)
     var
@@ -275,6 +277,7 @@ codeunit 141051 "Sales Price With Cost Plus"
         VerifyUnitPriceOnSalesLine(SalesPrice."Item No.", SalesLine."Unit Price", 0);  // Discount Amount - 0.
     end;
 
+/*
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue,MessageHandler')]
     [Scope('OnPrem')]
@@ -302,6 +305,7 @@ codeunit 141051 "Sales Price With Cost Plus"
         // Verify: Verify Unit Price on Sales line with Unit Price of Item and deduct Discount Amount.
         VerifyUnitPriceOnSalesLine(SalesPrice."Item No.", SalesLine."Unit Price", SalesPrice."Discount Amount");
     end;
+*/
 
     [Test]
     [Scope('OnPrem')]

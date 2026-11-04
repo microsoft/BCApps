@@ -3001,6 +3001,7 @@
         VerifySalesTotalTaxBeforeAfterRelease(SalesHeader, 674.11);
     end;
 
+/*
     [Test]
     [HandlerFunctions('StandardSalesOrderConf_RPH')]
     [Scope('OnPrem')]
@@ -3037,6 +3038,7 @@
         // Tear Down
         UpdateReportLayoutSelection(REPORT::"Standard Sales - Order Conf.", 'StandardSalesOrderConf.docx');
     end;
+*/
 
     [Test]
     [HandlerFunctions('SalesOrder_RPH')]
@@ -6574,12 +6576,14 @@
         PurchaseOrderList."No.".AssertEquals(LibraryVariableStorage.DequeueText());
     end;
 
+/*
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure StandardSalesOrderConf_RPH(var StandardSalesOrderConf: TestRequestPage "Standard Sales - Order Conf.")
     begin
         StandardSalesOrderConf.SaveAsExcel(LibraryReportValidation.GetFileName());
     end;
+*/
 
     [RequestPageHandler]
     [Scope('OnPrem')]

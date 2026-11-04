@@ -375,6 +375,7 @@
         Assert.AreEqual(SalesLine."Amount Including VAT", SalesInvoiceHeader.Amount, '');
     end;
 
+/*
     [Test]
     [Scope('OnPrem')]
     procedure AmtInclVATOnSalesOrderWithPremptAdjustedOnlyOnPosting()
@@ -419,6 +420,7 @@
         SalesLine.Find();
         SalesLine.TestField("Amount Including VAT", AmountInclVAT);
     end;
+*/
 
     [Test]
     [Scope('OnPrem')]

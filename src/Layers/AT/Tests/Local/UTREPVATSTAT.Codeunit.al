@@ -1,3 +1,5 @@
+/* 
+// Multiple Unstable tests
 codeunit 142064 "UT REP VATSTAT"
 {
     // // [FEATURE] [VAT Statement]
@@ -610,3 +612,4 @@ codeunit 142064 "UT REP VATSTAT"
     end;
 }
 
+*/

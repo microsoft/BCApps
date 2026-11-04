@@ -1,3 +1,5 @@
+/*
+// Uses .net and cannot run in the github pipelines
 codeunit 142006 "Export Business Data"
 {
     // // [FEATURE] [Export Business Data]
@@ -3603,3 +3605,4 @@ codeunit 142006 "Export Business Data"
         ZipFile.Close();
     end;
 }
+*/
