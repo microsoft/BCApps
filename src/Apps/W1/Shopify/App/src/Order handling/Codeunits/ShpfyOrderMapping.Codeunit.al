@@ -156,7 +156,9 @@ codeunit 30163 "Shpfy Order Mapping"
         TipAccountMissingErr: Label 'Tip Account must have a value in Shopify Shop.';
         UnknownMappingIssueErr: Label 'An unrecognized mapping issue was detected. Contact your administrator.';
         UnknownMappingIssueTelemetryMsg: Label 'An unsupported Shopify order mapping issue token was encountered.', Locked = true;
+        UnknownIssueReported: Boolean;
     begin
+        UnknownIssueReported := false;
         ErrorBuilder.AppendLine(MappingErr);
         foreach MissingIssue in MissingIssues do
             if MissingIssue.StartsWith(ItemLineIssuePrefixTok) then begin
@@ -172,10 +174,12 @@ codeunit 30163 "Shpfy Order Mapping"
                         ErrorBuilder.AppendLine(TipAccountMissingErr);
                     GiftCardAccountIssueTok:
                         ErrorBuilder.AppendLine(GiftCardAccountMissingErr);
-                    else begin
-                        ErrorBuilder.AppendLine(UnknownMappingIssueErr);
-                        Session.LogMessage('SHPMAPUNKNOWN', UnknownMappingIssueTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Shopify');
-                    end;
+                    else
+                        if not UnknownIssueReported then begin
+                            ErrorBuilder.AppendLine(UnknownMappingIssueErr);
+                            Session.LogMessage('SHPMAPUNKNOWN', UnknownMappingIssueTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Shopify');
+                            UnknownIssueReported := true;
+                        end;
                 end;
 
         exit(ErrorBuilder.ToText());
@@ -211,6 +215,8 @@ codeunit 30163 "Shpfy Order Mapping"
 
     internal procedure ClearMappingError(var OrderHeader: Record "Shpfy Order Header")
     begin
+        if OrderHeader."Has Order State Error" then
+            exit;
         if not IsMappingError(OrderHeader."Error Message") then
             exit;
 
