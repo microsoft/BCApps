@@ -22,7 +22,6 @@ codeunit 148088 "Foreign Currencies CZL"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Foreign Currencies CZL");
 
         LibraryVariableStorage.Clear();
-
         if IsInitialized then
             exit;
 
@@ -77,7 +76,6 @@ codeunit 148088 "Foreign Currencies CZL"
             LibraryReportDataset.AssertElementWithValueExists('CLEDocumentNo_Fld', DocumentNo[1])
         else
             LibraryReportDataset.AssertElementWithValueNotExist('CLEDocumentNo_Fld', DocumentNo[1]);
-
         if AdjVend then
             LibraryReportDataset.AssertElementWithValueExists('VLEDocumentNo_Fld', DocumentNo[2])
         else
@@ -251,6 +249,270 @@ codeunit 148088 "Foreign Currencies CZL"
           OriginalAmountLCY + DetailedCustLedgEntry."Amount (LCY)", AmountErr);
     end;
 
+    [Test]
+    procedure IncrementalExchangePostingEnabledByDefault()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        // [WHEN] A new general ledger setup record is initialized
+        GeneralLedgerSetup.Init();
+
+        // [THEN] Incremental posting is not disabled
+        Assert.IsFalse(GeneralLedgerSetup."Disable Incr. Exch. Post. CZL", 'Incremental exchange posting must be enabled by default.');
+    end;
+
+    [Test]
+    [HandlerFunctions('RequestPageAdjustExchangeRatesHandler,StatisticsMessageHandler')]
+    procedure DisableIncrementalPostingReversesUnrealizedLoss()
+    var
+        InvoiceEntry: Record "Cust. Ledger Entry";
+        PaymentEntry: Record "Cust. Ledger Entry";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        InvoiceAmount: Decimal;
+        OriginalCurrencyFactor: Decimal;
+        AdjustedCurrencyFactor: Decimal;
+        PaymentCurrencyFactor: Decimal;
+    begin
+        Initialize();
+
+        // [GIVEN] Incremental posting is disabled
+        SetDisableIncrementalExchangePosting(true);
+        InvoiceAmount := 1000;
+        OriginalCurrencyFactor := 1;
+        AdjustedCurrencyFactor := 2;
+        PaymentCurrencyFactor := 4;
+
+        // [GIVEN] An invoice for 1,000 FCY (1,000 LCY) revalued to 500 LCY, with an unrealized loss of 500 LCY
+        CreateAdjustedCustomerInvoice(
+            InvoiceEntry, GenJournalBatch, InvoiceAmount, OriginalCurrencyFactor, AdjustedCurrencyFactor);
+        VerifyDetailedCustomerAmount(
+            InvoiceEntry."Entry No.", DetailedCustLedgEntry."Entry Type"::"Unrealized Loss",
+            Round(InvoiceAmount / AdjustedCurrencyFactor) - Round(InvoiceAmount / OriginalCurrencyFactor));
+
+        // [WHEN] A payment of 1,000 FCY (250 LCY) is posted and fully applied to the invoice
+        PostPaymentAndApplyCustomerInvoice(InvoiceEntry, GenJournalBatch, PaymentCurrencyFactor, PaymentEntry);
+
+        // [THEN] The unrealized loss is reversed and the realized loss is based on the original exchange rate
+        VerifyDetailedCustomerAmount(InvoiceEntry."Entry No.", DetailedCustLedgEntry."Entry Type"::"Unrealized Loss", 0);
+        VerifyDetailedCustomerAmount(
+            PaymentEntry."Entry No.", DetailedCustLedgEntry."Entry Type"::"Realized Loss",
+            Round(InvoiceAmount / PaymentCurrencyFactor) - Round(InvoiceAmount / OriginalCurrencyFactor));
+        VerifyCustomerEntryClosed(InvoiceEntry);
+        VerifyCustomerEntryClosed(PaymentEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('RequestPageAdjustExchangeRatesHandler,StatisticsMessageHandler')]
+    procedure KeepIncrementalPostingDoesNotReverseUnrealizedLoss()
+    var
+        InvoiceEntry: Record "Cust. Ledger Entry";
+        PaymentEntry: Record "Cust. Ledger Entry";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        InvoiceAmount: Decimal;
+        OriginalCurrencyFactor: Decimal;
+        AdjustedCurrencyFactor: Decimal;
+        PaymentCurrencyFactor: Decimal;
+    begin
+        Initialize();
+
+        // [GIVEN] Incremental posting remains enabled
+        SetDisableIncrementalExchangePosting(false);
+        InvoiceAmount := 1000;
+        OriginalCurrencyFactor := 1;
+        AdjustedCurrencyFactor := 2;
+        PaymentCurrencyFactor := 4;
+
+        // [GIVEN] An invoice for 1,000 FCY (1,000 LCY) revalued to 500 LCY, with an unrealized loss of 500 LCY
+        CreateAdjustedCustomerInvoice(
+            InvoiceEntry, GenJournalBatch, InvoiceAmount, OriginalCurrencyFactor, AdjustedCurrencyFactor);
+        VerifyDetailedCustomerAmount(
+            InvoiceEntry."Entry No.", DetailedCustLedgEntry."Entry Type"::"Unrealized Loss",
+            Round(InvoiceAmount / AdjustedCurrencyFactor) - Round(InvoiceAmount / OriginalCurrencyFactor));
+
+        // [WHEN] A payment of 1,000 FCY (250 LCY) is posted and fully applied to the invoice
+        PostPaymentAndApplyCustomerInvoice(InvoiceEntry, GenJournalBatch, PaymentCurrencyFactor, PaymentEntry);
+
+        // [THEN] The unrealized loss is not reversed; only the additional loss since revaluation is realized
+        VerifyDetailedCustomerAmount(
+            InvoiceEntry."Entry No.", DetailedCustLedgEntry."Entry Type"::"Unrealized Loss",
+            Round(InvoiceAmount / AdjustedCurrencyFactor) - Round(InvoiceAmount / OriginalCurrencyFactor));
+        VerifyDetailedCustomerAmount(
+            PaymentEntry."Entry No.", DetailedCustLedgEntry."Entry Type"::"Realized Loss",
+            Round(InvoiceAmount / PaymentCurrencyFactor) - Round(InvoiceAmount / AdjustedCurrencyFactor));
+        VerifyCustomerEntryClosed(InvoiceEntry);
+        VerifyCustomerEntryClosed(PaymentEntry);
+    end;
+
+    [Test]
+    procedure AppliedAmountLCYUsesAdjustedRateForIncrementalPosting()
+    var
+        NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer";
+        OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer";
+        OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer";
+        GenJnlPostLineMgtCZL: Codeunit "Gen. Jnl.-Post Line Mgt. CZL";
+        OldAppliedAmount: Decimal;
+        AppliedAmount: Decimal;
+        AppliedAmountLCY: Decimal;
+    begin
+        Initialize();
+
+        // [GIVEN] An application of 1,000 FCY and an entry revalued from a factor of 1 to a factor of 2
+        SetDisableIncrementalExchangePosting(false);
+        NewCVLedgEntryBuf."Currency Code" := 'EUR';
+        OldCVLedgEntryBuf2."Currency Code" := NewCVLedgEntryBuf."Currency Code";
+        OldCVLedgEntryBuf."Original Currency Factor" := 1;
+        OldCVLedgEntryBuf."Adjusted Currency Factor" := 2;
+        AppliedAmount := 1000;
+        OldAppliedAmount := AppliedAmount;
+        AppliedAmountLCY := Round(AppliedAmount / OldCVLedgEntryBuf."Original Currency Factor");
+
+        // [WHEN] The Czech calculation processes the W1 applied amount of 1,000 LCY
+        GenJnlPostLineMgtCZL.CalcAppliedAmountLCY(
+            NewCVLedgEntryBuf, OldCVLedgEntryBuf, OldCVLedgEntryBuf2, OldAppliedAmount, AppliedAmount, AppliedAmountLCY);
+
+        // [THEN] The applied amount is recalculated at the adjusted rate to 500 LCY
+        Assert.AreEqual(Round(AppliedAmount / OldCVLedgEntryBuf."Adjusted Currency Factor"), AppliedAmountLCY, AmountErr);
+    end;
+
+    [Test]
+    procedure DisabledIncrementalPostingPreservesOriginalRateAmount()
+    var
+        NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer";
+        OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer";
+        OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer";
+        GenJnlPostLineMgtCZL: Codeunit "Gen. Jnl.-Post Line Mgt. CZL";
+        OldAppliedAmount: Decimal;
+        AppliedAmount: Decimal;
+        AppliedAmountLCY: Decimal;
+        OriginalAppliedAmountLCY: Decimal;
+    begin
+        Initialize();
+
+        // [GIVEN] An application of 1,000 FCY with incremental posting disabled
+        SetDisableIncrementalExchangePosting(true);
+        NewCVLedgEntryBuf."Currency Code" := 'EUR';
+        OldCVLedgEntryBuf2."Currency Code" := NewCVLedgEntryBuf."Currency Code";
+        OldCVLedgEntryBuf."Original Currency Factor" := 1;
+        OldCVLedgEntryBuf."Adjusted Currency Factor" := 2;
+        AppliedAmount := 1000;
+        OldAppliedAmount := AppliedAmount;
+        OriginalAppliedAmountLCY := Round(AppliedAmount / OldCVLedgEntryBuf."Original Currency Factor");
+        AppliedAmountLCY := OriginalAppliedAmountLCY;
+
+        // [WHEN] The Czech calculation processes the W1 result
+        GenJnlPostLineMgtCZL.CalcAppliedAmountLCY(
+            NewCVLedgEntryBuf, OldCVLedgEntryBuf, OldCVLedgEntryBuf2, OldAppliedAmount, AppliedAmount, AppliedAmountLCY);
+
+        // [THEN] The amount at the original rate is preserved, rather than recalculated at the adjusted rate
+        Assert.AreEqual(OriginalAppliedAmountLCY, AppliedAmountLCY, AmountErr);
+    end;
+
+    [Test]
+    procedure UnrealizedCalculationSuppressedOnlyForIncrementalPosting()
+    var
+        GenJnlPostLineMgtCZL: Codeunit "Gen. Jnl.-Post Line Mgt. CZL";
+    begin
+        Initialize();
+
+        // [GIVEN] Incremental posting is enabled
+        SetDisableIncrementalExchangePosting(false);
+
+        // [THEN] The W1 unrealized calculation is suppressed
+        Assert.IsTrue(GenJnlPostLineMgtCZL.IsCalcCurrencyUnrealizedGainLossSuppressed(), 'Incremental posting must suppress unrealized reversals.');
+
+        // [WHEN] Incremental posting is disabled
+        SetDisableIncrementalExchangePosting(true);
+
+        // [THEN] The W1 unrealized calculation is allowed
+        Assert.IsFalse(GenJnlPostLineMgtCZL.IsCalcCurrencyUnrealizedGainLossSuppressed(), 'Disabling incremental posting must allow unrealized reversals.');
+    end;
+
+    local procedure CreateAdjustedCustomerInvoice(var InvoiceEntry: Record "Cust. Ledger Entry"; var GenJournalBatch: Record "Gen. Journal Batch"; InvoiceAmount: Decimal; OriginalCurrencyFactor: Decimal; AdjustedCurrencyFactor: Decimal)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        InstructionMgt: Codeunit "Instruction Mgt.";
+        CurrencyCode: Code[10];
+        InvoiceNo: Code[20];
+        AdjustmentDate: Date;
+    begin
+        LibraryERM.DisableMyNotifications(UserId(), InstructionMgt.GetPostingAfterWorkingDateNotificationId());
+        CurrencyCode := LibraryERM.CreateCurrencyWithGLAccountSetup();
+        LibraryERM.CreateExchangeRate(CurrencyCode, WorkDate(), OriginalCurrencyFactor, OriginalCurrencyFactor);
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        InvoiceNo := CreateJournalLine(
+            GenJournalLine, GenJournalBatch, GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Customer, LibrarySales.CreateCustomerNo(), InvoiceAmount, WorkDate(), CurrencyCode);
+        GenJournalLine.Validate("Payment Discount %", 0);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        InvoiceEntry.SetRange("Document Type", InvoiceEntry."Document Type"::Invoice);
+        InvoiceEntry.SetRange("Document No.", InvoiceNo);
+        InvoiceEntry.SetRange("Currency Code", CurrencyCode);
+        InvoiceEntry.FindFirst();
+
+        AdjustmentDate := CalcDate('<1D>', WorkDate());
+        LibraryERM.CreateExchangeRate(CurrencyCode, AdjustmentDate, AdjustedCurrencyFactor, AdjustedCurrencyFactor);
+        Commit();
+        RunAdjustExchangeRates(
+            CurrencyCode, WorkDate(), AdjustmentDate, GenerateDocumentNo(AdjustmentDate), true, false, false, false, true);
+    end;
+
+    local procedure PostPaymentAndApplyCustomerInvoice(InvoiceEntry: Record "Cust. Ledger Entry"; GenJournalBatch: Record "Gen. Journal Batch"; PaymentCurrencyFactor: Decimal; var PaymentEntry: Record "Cust. Ledger Entry")
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentNo: Code[20];
+        PaymentDate: Date;
+    begin
+        PaymentDate := CalcDate('<2D>', WorkDate());
+        LibraryERM.CreateExchangeRate(InvoiceEntry."Currency Code", PaymentDate, PaymentCurrencyFactor, PaymentCurrencyFactor);
+        InvoiceEntry.CalcFields("Original Amount");
+        PaymentNo := CreateJournalLine(
+            GenJournalLine, GenJournalBatch, GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Customer, InvoiceEntry."Customer No.", -InvoiceEntry."Original Amount",
+            PaymentDate, InvoiceEntry."Currency Code");
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceEntry."Document No.");
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        PaymentEntry.SetRange("Customer No.", InvoiceEntry."Customer No.");
+        PaymentEntry.SetRange("Document Type", PaymentEntry."Document Type"::Payment);
+        PaymentEntry.SetRange("Document No.", PaymentNo);
+        PaymentEntry.FindFirst();
+    end;
+
+    local procedure VerifyDetailedCustomerAmount(EntryNo: Integer; EntryType: Enum "Detailed CV Ledger Entry Type"; ExpectedAmountLCY: Decimal)
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", EntryNo);
+        DetailedCustLedgEntry.SetRange("Entry Type", EntryType);
+        Assert.RecordIsNotEmpty(DetailedCustLedgEntry);
+        DetailedCustLedgEntry.CalcSums("Amount (LCY)");
+        Assert.AreEqual(ExpectedAmountLCY, DetailedCustLedgEntry."Amount (LCY)", AmountErr);
+    end;
+
+    local procedure VerifyCustomerEntryClosed(var CustLedgerEntry: Record "Cust. Ledger Entry")
+    begin
+        CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
+        CustLedgerEntry.TestField(Open, false);
+        CustLedgerEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
+        CustLedgerEntry.TestField("Remaining Amount", 0);
+        CustLedgerEntry.TestField("Remaining Amt. (LCY)", 0);
+    end;
+
+    local procedure SetDisableIncrementalExchangePosting(DisableIncrementalPosting: Boolean)
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Disable Incr. Exch. Post. CZL", DisableIncrementalPosting);
+        GeneralLedgerSetup.Modify(true);
+    end;
+
     local procedure CreateCurrency(CurrExchRateDate: array[2] of Date): Code[10]
     var
         CurrencyCode: Code[10];
@@ -295,7 +557,6 @@ codeunit 148088 "Foreign Currencies CZL"
         Amount: Decimal;
     begin
         Amount := LibraryRandom.RandDec(1000, 2);
-
         if (AccountType = GenJournalLine."Account Type"::Vendor) or (AccountType = GenJournalLine."Account Type"::Employee) then
             Amount := -Amount;
 
