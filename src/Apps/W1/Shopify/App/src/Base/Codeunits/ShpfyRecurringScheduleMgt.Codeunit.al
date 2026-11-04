@@ -747,7 +747,6 @@ codeunit 30206 "Shpfy Recurring Schedule Mgt."
     internal procedure BuildExistingScheduleEntries(Shop: Record "Shpfy Shop"; var TempJobQueueEntryBuffer: Record "Job Queue Entry" temporary; var TempRecurringSyncBuffer: Record "Shpfy Recurring Sync Buffer" temporary)
     var
         JobQueueEntry: Record "Job Queue Entry";
-        JobQueueEntryToCopy: Record "Job Queue Entry";
         Workload: Enum "Shpfy Sync Workload";
         Coverage: Enum "Shpfy Sync Coverage";
         EntryNo: Integer;
@@ -764,26 +763,25 @@ codeunit 30206 "Shpfy Recurring Schedule Mgt."
         JobQueueEntry.SetLoadFields(XML, "Parameter String", "Record ID to Process", "No. of Minutes between Runs", "Starting Time", "Earliest Start Date/Time", Status, Description, "User ID");
         if JobQueueEntry.FindSet(false) then
             repeat
-                if IsRecognizedSchedule(JobQueueEntry, Shop.Code, Workload, Coverage) then
-                    if JobQueueEntryToCopy.Get(JobQueueEntry.ID) then begin
-                        TempJobQueueEntryBuffer := JobQueueEntryToCopy;
-                        TempJobQueueEntryBuffer.Insert(false);
+                if IsRecognizedSchedule(JobQueueEntry, Shop.Code, Workload, Coverage) then begin
+                    TempJobQueueEntryBuffer := JobQueueEntry;
+                    TempJobQueueEntryBuffer.Insert(false);
 
-                        EntryNo += 1;
-                        TempRecurringSyncBuffer.Init();
-                        TempRecurringSyncBuffer."Entry No." := EntryNo;
-                        TempRecurringSyncBuffer.Workload := Workload;
-                        TempRecurringSyncBuffer.Synchronization := GetScheduleDirection(Shop, Workload);
-                        TempRecurringSyncBuffer."Shop Display" := GetShopDisplay(Shop, Coverage);
-                        TempRecurringSyncBuffer.Frequency := JobQueueEntry."No. of Minutes between Runs";
-                        TempRecurringSyncBuffer."Starting Time" := JobQueueEntry."Starting Time";
-                        TempRecurringSyncBuffer."Next Run Date/Time" := JobQueueEntry."Earliest Start Date/Time";
-                        TempRecurringSyncBuffer."Job Queue Status" := GetScheduleStatusDisplay(JobQueueEntry);
-                        TempRecurringSyncBuffer.Description := JobQueueEntry.Description;
-                        TempRecurringSyncBuffer."Job Queue Entry ID" := JobQueueEntry.ID;
-                        TempRecurringSyncBuffer."User ID" := CopyStr(JobQueueEntry."User ID", 1, MaxStrLen(TempRecurringSyncBuffer."User ID"));
-                        TempRecurringSyncBuffer.Insert(false);
-                    end;
+                    EntryNo += 1;
+                    TempRecurringSyncBuffer.Init();
+                    TempRecurringSyncBuffer."Entry No." := EntryNo;
+                    TempRecurringSyncBuffer.Workload := Workload;
+                    TempRecurringSyncBuffer.Synchronization := GetScheduleDirection(Shop, Workload);
+                    TempRecurringSyncBuffer."Shop Display" := GetShopDisplay(Shop, Coverage);
+                    TempRecurringSyncBuffer.Frequency := JobQueueEntry."No. of Minutes between Runs";
+                    TempRecurringSyncBuffer."Starting Time" := JobQueueEntry."Starting Time";
+                    TempRecurringSyncBuffer."Next Run Date/Time" := JobQueueEntry."Earliest Start Date/Time";
+                    TempRecurringSyncBuffer."Job Queue Status" := GetScheduleStatusDisplay(JobQueueEntry);
+                    TempRecurringSyncBuffer.Description := JobQueueEntry.Description;
+                    TempRecurringSyncBuffer."Job Queue Entry ID" := JobQueueEntry.ID;
+                    TempRecurringSyncBuffer."User ID" := CopyStr(JobQueueEntry."User ID", 1, MaxStrLen(TempRecurringSyncBuffer."User ID"));
+                    TempRecurringSyncBuffer.Insert(false);
+                end;
             until JobQueueEntry.Next() = 0;
     end;
 
