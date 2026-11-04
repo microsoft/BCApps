@@ -126,12 +126,7 @@ codeunit 139685 "Contract Test Library"
         SourceCodeSetup.Modify(false);
     end;
 
-    /// <summary>
-    /// Ensures monthly accounting periods exist for the standard deferral schedule starting on the posting date.
-    /// </summary>
-    /// <param name="PostingDate">The posting date from which the deferral schedule starts.</param>
-    /// <param name="NumberOfPeriods">The number of periods in the deferral template.</param>
-    internal procedure CreateAccountingPeriodsForDeferrals(PostingDate: Date; NumberOfPeriods: Integer)
+    procedure CreateAccountingPeriodsForDeferrals(PostingDate: Date; NumberOfPeriods: Integer)
     var
         AccountingPeriod: Record "Accounting Period";
         AccountingPeriodMgt: Codeunit "Accounting Period Mgt.";
