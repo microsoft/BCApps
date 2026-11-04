@@ -8,6 +8,23 @@ using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 20519 "Subc. Work Center Extension"
 {
+    [EventSubscriber(ObjectType::Table, Database::"Work Center", OnAfterModifyEvent, '', false, false)]
+    local procedure OnAfterModifyWorkCenter(var Rec: Record "Work Center"; var xRec: Record "Work Center"; RunTrigger: Boolean)
+    var
+        SubcFeatureTelemetry: Codeunit "Subc. Feature Telemetry";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if not RunTrigger then
+            exit;
+
+        if (Rec."Subcontractor No." = '') or (Rec."Subcontractor No." = xRec."Subcontractor No.") then
+            exit;
+
+        SubcFeatureTelemetry.LogFeatureUptakeSetup();
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Work Center", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteWorkCenter(var Rec: Record "Work Center"; RunTrigger: Boolean)
     var
