@@ -697,9 +697,9 @@ table 472 "Job Queue Entry"
         end else
             JobQueueLogEntry.Status := JobQueueLogEntry.Status::Success;
         JobQueueLogEntry."End Date/Time" := CurrentDateTime();
-        OnBeforeModifyLogEntry(JobQueueLogEntry, Rec);
 
-        // Refresh from database to get the latest version, then apply computed values
+        // Refresh and lock the latest version, apply computed values, then let subscribers change the record that is written
+        RefreshedJobQueueLogEntry.ReadIsolation(IsolationLevel::UpdLock);
         if RefreshedJobQueueLogEntry.Get(JobQueueLogEntry."Entry No.") then begin
             RefreshedJobQueueLogEntry.Status := JobQueueLogEntry.Status;
             RefreshedJobQueueLogEntry."End Date/Time" := JobQueueLogEntry."End Date/Time";
@@ -708,9 +708,12 @@ table 472 "Job Queue Entry"
                 RefreshedJobQueueLogEntry.SetErrorCallStack(ErrorCallStackText);
                 RefreshedJobQueueLogEntry."Error Message Register Id" := JobQueueLogEntry."Error Message Register Id";
             end;
+            OnBeforeModifyLogEntry(RefreshedJobQueueLogEntry, Rec);
             RefreshedJobQueueLogEntry.Modify(true);
-        end else
+        end else begin
+            OnBeforeModifyLogEntry(JobQueueLogEntry, Rec);
             JobQueueLogEntry.Insert(true);
+        end;
     end;
 
     procedure SetStatus(NewStatus: Option)
