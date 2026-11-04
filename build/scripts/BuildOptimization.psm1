@@ -204,6 +204,34 @@ function Resolve-MergeBaseForCI {
 
 <#
 .SYNOPSIS
+    Returns the verified tested PR merge and its base, or null when verification fails.
+.PARAMETER ExpectedHeadSha
+    PR head commit from the event payload, expected as the merge's second parent.
+#>
+function Get-VerifiedPullRequestMerge {
+    param([string] $ExpectedHeadSha)
+
+    $testedSha = & git rev-parse HEAD 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $env:GITHUB_SHA -or $testedSha -ne $env:GITHUB_SHA) {
+        return $null
+    }
+
+    # Read raw headers: revision traversal hides parents at a shallow boundary.
+    $commit = @(& git cat-file -p $testedSha 2>$null)
+    if ($LASTEXITCODE -ne 0) { return $null }
+
+    $parents = @()
+    foreach ($line in $commit) {
+        if ($line -eq '') { break }
+        if ($line -match '^parent ([0-9a-f]{40,64})$') { $parents += $Matches[1] }
+    }
+    if ($parents.Count -ne 2 -or $parents[1] -ne $ExpectedHeadSha) { return $null }
+
+    return [PSCustomObject]@{ BaseSha = $parents[0]; MergeSha = $testedSha }
+}
+
+<#
+.SYNOPSIS
     Detects changed files from the GitHub Actions CI environment.
 .DESCRIPTION
     Reads the GitHub event payload ($GITHUB_EVENT_PATH) to extract base/head commit
@@ -291,26 +319,15 @@ function Get-ChangedFilesForCI {
     $ErrorActionPreference = 'Continue'
     try {
         if ($CompareWithPullRequestMerge -and $env:GITHUB_EVENT_NAME -eq 'pull_request') {
-            $testedSha = & git rev-parse HEAD 2>$null
-            $parents = @()
-            if ($LASTEXITCODE -eq 0 -and $env:GITHUB_SHA -and $testedSha -eq $env:GITHUB_SHA) {
-                # Read raw headers: revision traversal hides parents at a shallow boundary.
-                $commit = @(& git cat-file -p $testedSha 2>$null)
-                if ($LASTEXITCODE -eq 0) {
-                    foreach ($line in $commit) {
-                        if ($line -eq '') { break }
-                        if ($line -match '^parent ([0-9a-f]{40,64})$') { $parents += $Matches[1] }
-                    }
-                }
-            }
-            if ($parents.Count -ne 2 -or $parents[1] -ne $headSha) {
+            $merge = Get-VerifiedPullRequestMerge -ExpectedHeadSha $headSha
+            if ($null -eq $merge) {
                 $message = "Could not verify the checked-out PR merge against GITHUB_SHA and event head '$headSha'."
                 if ($RequireChangeDetection) { throw $message }
                 Write-Host "BUILD OPTIMIZATION: $message"
                 return $null
             }
-            $baseSha = $parents[0]
-            $headSha = $testedSha
+            $baseSha = $merge.BaseSha
+            $headSha = $merge.MergeSha
         }
 
         Write-Host "BUILD OPTIMIZATION: Comparing $($baseSha.Substring(0, 8))...$($headSha.Substring(0, 8))"
@@ -320,12 +337,9 @@ function Get-ChangedFilesForCI {
             & git cat-file -e "$sha^{commit}" 2>$null
             if ($LASTEXITCODE -ne 0) {
                 Write-Host "BUILD OPTIMIZATION: Fetching missing commit $sha"
-                if ($CompareFromMergeBase) {
-                    & git fetch origin $sha 2>$null
-                }
-                else {
-                    & git fetch origin $sha --depth=1 2>$null
-                }
+                $fetchArguments = @('fetch', 'origin', $sha)
+                if (-not $CompareFromMergeBase) { $fetchArguments += '--depth=1' }
+                & git @fetchArguments 2>$null
                 if ($LASTEXITCODE -ne 0) {
                     $message = "Could not fetch commit '$sha' from origin (exitCode=$LASTEXITCODE, directory='$PWD')."
                     if ($RequireChangeDetection) { throw $message }
