@@ -211,7 +211,7 @@
     },
     {
         "FeatureName": "Preview the impact of supply changes",
-        "Description": "Try a lower quantity or a later receipt date on a supply line before changing the document. What-if analysis shows the directly affected demand and lets you open the related documents, without keeping the simulated changes.",
+        "Description": "Check connected demand before accepting a supplier quantity reduction or delay. On a purchase order line, choose Supply Planning What-If Analysis, enter the proposed lower quantity or later date, and choose Run What-If Analysis. Use Show Document to review directly connected demand; the simulated changes aren't saved.",
         "Category": "Supply chain management",
         "HelpURL": "",
         "VideoURL": "",
@@ -226,7 +226,42 @@
     },
     {
         "FeatureName": "Set default number series for manufacturing versions",
-        "Description": "Choose default number series for production BOM versions and routing versions in Manufacturing Setup. New BOMs and routings inherit these defaults when they do not specify their own version number series; existing records and explicit choices are preserved.",
+        "Description": "Set version-number-series defaults once instead of repeating setup for each production BOM or routing. In Manufacturing Setup, enter Production BOM Version Nos. and Routing Version Nos. New BOM and routing headers inherit these defaults when Version Nos. is blank. Existing records and explicit choices stay unchanged.",
+        "Category": "Supply chain management",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Choose destination bins for quality transfers",
+        "Description": "Create quality transfer orders with the intended destination bin and less manual correction. Choose Create Transfer Order from a quality inspection, or configure the Create Transfer Order response in a quality workflow. Set the destination location and bin; the generated transfer lines retain the selected bin. Bin selection applies to supported bin-mandatory destinations without directed put-away and pick.",
+        "Category": "Supply chain management",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Invoice subcontracting receipts separately",
+        "Description": "Process a vendor invoice for eligible subcontracting receipts without returning to each subcontracting order. On a purchase invoice, choose Get Receipt Lines, select the subcontracting receipts, and post the invoice.\n\nItem tracking: Receipts for the last production routing operation on items with an Item Tracking Code must still be invoiced from the subcontracting order.",
+        "Category": "Supply chain management",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Keep subcontracting prices aligned with scheduled dates",
+        "Description": "Reduce price corrections when subcontracted work changes date. Maintain date-effective prices on Subcontractor Prices, then calculate and schedule subcontracting requirements. Automatic pricing follows the final Order Date and respects manual cost overrides.",
+        "Category": "Supply chain management",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Distinguish production BOM and routing statuses more easily",
+        "Description": "Recognize the status of production BOMs and routings at a glance. Open Production BOMs or Routings and review Status. Consistent styling also applies to the cards and versions; certification rules and status transitions are unchanged.",
+        "Category": "Supply chain management",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Work more easily with inventory planning and costs",
+        "Description": "Review inventory planning messages and item cost settings more easily. When Missing SKU Planning Policy is Item Card on Location Card, a missing stockkeeping unit produces an Attention warning for the Item Card fallback in Planning Worksheet. On Item Card, Overhead Rate now appears beside Indirect Cost % under Costs & Posting.",
         "Category": "Supply chain management",
         "HelpURL": "",
         "VideoURL": ""
