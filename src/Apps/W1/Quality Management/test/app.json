@@ -78,5 +78,5 @@
     "includeSourceInSymbolFile": true,
     "allowDownloadingSource": true
   },
-  "target": "Cloud"
+  "target": "OnPrem"
 }

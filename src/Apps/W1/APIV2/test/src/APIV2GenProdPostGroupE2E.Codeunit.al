@@ -1,7 +1,7 @@
 codeunit 139856 "APIV2 - GenProdPostGroup E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -16,6 +16,7 @@ codeunit 139856 "APIV2 - GenProdPostGroup E2E"
         ServiceNameTxt: Label 'generalProductPostingGroups';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetGenProdPostGroups()
     var
         GenProductPostingGroup: Record "Gen. Product Posting Group";
@@ -45,6 +46,12 @@ codeunit 139856 "APIV2 - GenProdPostGroup E2E"
 
     end;
 
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 
     local procedure Initialize()
     begin

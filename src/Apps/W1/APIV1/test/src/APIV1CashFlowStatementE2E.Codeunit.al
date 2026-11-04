@@ -3,7 +3,7 @@ codeunit 139717 "APIV1 - CashFlow Statement E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -22,6 +22,7 @@ codeunit 139717 "APIV1 - CashFlow Statement E2E"
         ServiceNameTxt: Label 'cashFlowStatement';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCashFlowRecords()
     var
         ResponseText: Text;
@@ -40,6 +41,7 @@ codeunit 139717 "APIV1 - CashFlow Statement E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateCashFlowRecord()
     var
         TempAccScheduleLineEntity: Record "Acc. Schedule Line Entity" temporary;
@@ -88,6 +90,13 @@ codeunit 139717 "APIV1 - CashFlow Statement E2E"
         JSONManagement.AddJPropertyToJObject("Newtonsoft.Json.Linq.JObject", 'display', AccScheduleLineEntity.Description);
 
         IncomeStatementJSON := JSONManagement.WriteObjectToString();
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

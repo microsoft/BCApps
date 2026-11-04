@@ -3,7 +3,7 @@ codeunit 139800 "APIV2 - Items E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -42,6 +42,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateSimpleItem()
     var
         ItemID: Text;
@@ -65,6 +66,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithInventoryAmount()
     var
         ItemID: Text;
@@ -87,6 +89,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithCategoryId()
     var
         ItemCategory: Record "Item Category";
@@ -117,6 +120,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithCategoryCode()
     var
         ItemCategory: Record "Item Category";
@@ -147,6 +151,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithUoMId()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -179,6 +184,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithUoMCode()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -211,6 +217,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithTemplate()
     var
         DummyItem: Record "Item";
@@ -253,6 +260,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithTemplateIgnoresFieldsSet()
     var
         DummyItem: Record "Item";
@@ -293,6 +301,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSimpleItem()
     var
         ItemID1: Text;
@@ -394,6 +403,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetItemWithCategory()
     var
         Item: Record "Item";
@@ -429,6 +439,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyItem()
     var
         Item: Record "Item";
@@ -468,6 +479,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchItemWithGenProdPostingGroup()
     var
         Item: Record "Item";
@@ -503,6 +515,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchItemWithInventoryPostingGroup()
     var
         Item: Record "Item";
@@ -538,6 +551,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestUnassignGenProdPostingGroup()
     var
         Item: Record "Item";
@@ -566,6 +580,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestUnassignInventoryPostingGroup()
     var
         Item: Record "Item";
@@ -594,6 +609,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetRelatedEntities()
     var
         Item: Record "Item";
@@ -643,6 +659,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyItemInventory()
     var
         Item: Record "Item";
@@ -680,6 +697,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteItem()
     var
         Item: Record "Item";
@@ -712,6 +730,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchItemWithCategoryCode()
     var
         Item: Record "Item";
@@ -743,6 +762,7 @@ codeunit 139800 "APIV2 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchItemWithCategoryId()
     var
         Item: Record "Item";
@@ -882,6 +902,13 @@ codeunit 139800 "APIV2 - Items E2E"
         Assert.AreEqual(ExpectedID, ItemIDValue, 'ItemId does not match');
         Item.SetRange("No.", ItemIDValue);
         Assert.IsFalse(Item.IsEmpty(), 'Item does not exist');
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

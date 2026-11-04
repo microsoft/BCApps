@@ -3,7 +3,7 @@ codeunit 139730 "APIV1 - GLEntries E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -41,7 +41,7 @@ codeunit 139730 "APIV1 - GLEntries E2E"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandlerTrue,MessageHandler,GeneralJournalTemplateHandler')]
+    [HandlerFunctions('ConfirmHandlerTrue,MessageHandler,GeneralJournalTemplateHandler,LocalServerRequestHandler')]
     procedure TestGetGLEntries()
     var
         GLEntry: Record "G/L Entry";
@@ -150,6 +150,13 @@ codeunit 139730 "APIV1 - GLEntries E2E"
     begin
         GeneralJournalTemplateList.FILTER.SETFILTER(Name, LibraryVariableStorage.DequeueText());
         GeneralJournalTemplateList.OK().INVOKE();
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

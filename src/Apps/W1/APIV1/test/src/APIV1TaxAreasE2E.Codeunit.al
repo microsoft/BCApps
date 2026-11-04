@@ -3,7 +3,7 @@ codeunit 139726 "APIV1 - Tax Areas E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -53,6 +53,7 @@ codeunit 139726 "APIV1 - Tax Areas E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetTaxAreas()
     var
         TaxAreaCode: array[2] of Text;
@@ -76,6 +77,7 @@ codeunit 139726 "APIV1 - Tax Areas E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetTaxArea()
     var
         TaxAreaCode: Text;
@@ -99,6 +101,7 @@ codeunit 139726 "APIV1 - Tax Areas E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateTaxArea()
     var
         TaxAreaBuffer: Record "Tax Area Buffer";
@@ -127,6 +130,7 @@ codeunit 139726 "APIV1 - Tax Areas E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyTaxArea()
     var
         TaxAreaBuffer: Record "Tax Area Buffer";
@@ -159,6 +163,7 @@ codeunit 139726 "APIV1 - Tax Areas E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteTaxArea()
     var
         TaxAreaCode: Text;
@@ -269,6 +274,13 @@ codeunit 139726 "APIV1 - Tax Areas E2E"
     local procedure FormatGuid(Value: Guid): Text
     begin
         EXIT(LOWERCASE(LibraryGraphMgt.StripBrackets(Value)));
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

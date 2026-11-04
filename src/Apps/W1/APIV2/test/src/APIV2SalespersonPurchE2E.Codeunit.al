@@ -1,7 +1,7 @@
 codeunit 139882 "APIV2 - Salesperson/Purch E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
 
     var
@@ -25,6 +25,7 @@ codeunit 139882 "APIV2 - Salesperson/Purch E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure GetSalespersonPurchaser()
     var
         SalespersonPurchaser: Record "Salesperson/Purchaser";
@@ -46,6 +47,7 @@ codeunit 139882 "APIV2 - Salesperson/Purch E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure CreateSalespersonPurchaser()
     var
         SalespersonPurchaser: Record "Salesperson/Purchaser";
@@ -71,6 +73,7 @@ codeunit 139882 "APIV2 - Salesperson/Purch E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure ModifySalespersonPurchaserJobTitle()
     var
         SalespersonPurchaser: Record "Salesperson/Purchaser";
@@ -101,6 +104,7 @@ codeunit 139882 "APIV2 - Salesperson/Purch E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure DeleteSalespersonPurchaser()
     var
         SalespersonPurchaser: Record "Salesperson/Purchaser";
@@ -171,5 +175,12 @@ codeunit 139882 "APIV2 - Salesperson/Purch E2E"
         LibraryGraphMgt.VerifyPropertyInJSON(JSON, 'phoneNo', SalespersonPurchaser."Phone No.");
         LibraryGraphMgt.VerifyPropertyInJSON(JSON, 'jobTitle', SalespersonPurchaser."Job Title");
         LibraryGraphMgt.VerifyPropertyInJSON(JSON, 'commisionPercent', Format(SalespersonPurchaser."Commission %", 0, 9));
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

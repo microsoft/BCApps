@@ -3,7 +3,7 @@ codeunit 139700 "APIV1 - Items E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -43,6 +43,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateSimpleItem()
     var
         ItemID: Text;
@@ -66,6 +67,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithInventoryAmount()
     var
         ItemID: Text;
@@ -88,6 +90,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithCategoryId()
     var
         ItemCategory: Record "Item Category";
@@ -118,6 +121,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithCategoryCode()
     var
         ItemCategory: Record "Item Category";
@@ -148,6 +152,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithComplexType()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -181,6 +186,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithTemplate()
     var
         DummyItem: Record "Item";
@@ -221,6 +227,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateItemWithTemplateIgnoresFieldsSet()
     var
         DummyItem: Record "Item";
@@ -276,6 +283,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSimpleItem()
     var
         ItemID1: Text;
@@ -377,6 +385,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetItemWithCategory()
     var
         Item: Record "Item";
@@ -412,6 +421,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetItemWithComplexType()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -446,6 +456,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyItem()
     var
         Item: Record "Item";
@@ -485,6 +496,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyItemInventory()
     var
         Item: Record "Item";
@@ -523,6 +535,7 @@ codeunit 139700 "APIV1 - Items E2E"
 
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyItemWithComplexType()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -566,6 +579,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestRemoveComplexTypeFromItemUsingNull()
     var
         Item: Record "Item";
@@ -611,6 +625,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestRemoveComplexTypeFromItemUsingBlankValue()
     var
         Item: Record "Item";
@@ -653,6 +668,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteItem()
     var
         Item: Record "Item";
@@ -685,6 +701,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostItemWithUoMIdCreatesItemUoM()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -717,6 +734,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchItemWithUoMIdCreatesItemUoM()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -755,6 +773,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchItemWithCategoryCode()
     var
         Item: Record "Item";
@@ -786,6 +805,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchItemWithCategoryId()
     var
         Item: Record "Item";
@@ -817,6 +837,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostItemWithUoMComplexTypeCreatesItemUoM()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -851,6 +872,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchItemWithUoMComplexTypeCreatesItemUoM()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -891,6 +913,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestUoMSync()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -937,6 +960,7 @@ codeunit 139700 "APIV1 - Items E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestUoMSyncErrors()
     var
         UnitOfMeasure: array[3] of Record "Unit of Measure";
@@ -1119,6 +1143,13 @@ codeunit 139700 "APIV1 - Items E2E"
         Assert.AreEqual(ExpectedID, ItemIDValue, 'ItemId does not match');
         Item.SetRange("No.", ItemIDValue);
         Assert.IsFalse(Item.IsEmpty(), 'Item does not exist');
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

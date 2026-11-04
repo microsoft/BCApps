@@ -1,7 +1,7 @@
 codeunit 139860 "APIV2 - G/L Setup E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
 
     var
@@ -10,6 +10,7 @@ codeunit 139860 "APIV2 - G/L Setup E2E"
         ServiceNameTxt: Label 'generalLedgerSetup';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetGLSetup()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -64,6 +65,12 @@ codeunit 139860 "APIV2 - G/L Setup E2E"
         Assert.AreEqual(GeneralLedgerSetup."Shortcut Dimension 8 Code", PropertyJsonToken.AsValue().AsText(), 'Expected the same shortcutDimension8Code for generalLedgerSetup');
     end;
 
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 
     local procedure Initialize()
     begin

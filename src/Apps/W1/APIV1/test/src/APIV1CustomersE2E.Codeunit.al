@@ -3,7 +3,7 @@ codeunit 139702 "APIV1 - Customers E2E"
     // version Test,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -44,6 +44,7 @@ codeunit 139702 "APIV1 - Customers E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSimpleCustomer()
     var
         Customer: Record "Customer";
@@ -65,6 +66,7 @@ codeunit 139702 "APIV1 - Customers E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCustomerWithComplexType()
     var
         Customer: Record "Customer";
@@ -88,6 +90,7 @@ codeunit 139702 "APIV1 - Customers E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCustomerWithAddressAndSpecialCharacters()
     var
         Customer: Record "Customer";
@@ -113,6 +116,7 @@ codeunit 139702 "APIV1 - Customers E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDetailedCustomer()
     var
         Customer: Record "Customer";
@@ -159,6 +163,7 @@ codeunit 139702 "APIV1 - Customers E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateCustomerWithComplexType()
     var
         TempCustomer: Record "Customer" temporary;
@@ -189,6 +194,7 @@ codeunit 139702 "APIV1 - Customers E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateCustomerWithTemplate()
     var
         ConfigTmplSelectionRules: Record "Config. Tmpl. Selection Rules";
@@ -233,6 +239,7 @@ codeunit 139702 "APIV1 - Customers E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteCustomer()
     var
         Customer: Record "Customer";
@@ -260,6 +267,7 @@ codeunit 139702 "APIV1 - Customers E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCustomer()
     var
         Customer: Record "Customer";
@@ -290,6 +298,7 @@ codeunit 139702 "APIV1 - Customers E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCustomerWithComplexType()
     var
         Customer: Record "Customer";
@@ -323,6 +332,7 @@ codeunit 139702 "APIV1 - Customers E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestRemoveComplexTypeFromCustomer()
     var
         Customer: Record "Customer";
@@ -474,6 +484,13 @@ codeunit 139702 "APIV1 - Customers E2E"
             Description := Code;
             INSERT(TRUE);
         END;
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

@@ -1,7 +1,7 @@
 codeunit 139842 "APIV2 - Pictures E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -40,6 +40,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureValueCustomer()
     var
@@ -66,6 +67,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureMetadataCustomer()
     var
@@ -92,6 +94,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureValueCustomerWithoutPicture()
     var
@@ -115,6 +118,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureMetadataCustomerWithoutPicture()
     var
@@ -140,6 +144,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureUploadCustomer()
     var
@@ -173,6 +178,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureReplaceCustomer()
     var
@@ -207,6 +213,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureDeleteCustomer()
     var
@@ -237,6 +244,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureValueVendor()
     var
@@ -263,6 +271,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureMetadataVendor()
     var
@@ -289,6 +298,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureValueVendorWithoutPicture()
     var
@@ -312,6 +322,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureMetadataVendorWithoutPicture()
     var
@@ -337,6 +348,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureUploadVendor()
     var
@@ -370,6 +382,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureReplaceVendor()
     var
@@ -404,6 +417,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureDeleteVendor()
     var
@@ -434,6 +448,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureValueEmployee()
     var
@@ -460,6 +475,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureMetadataEmployee()
     var
@@ -486,6 +502,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureValueEmployeeWithoutPicture()
     var
@@ -509,6 +526,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureMetadataEmployeeWithoutPicture()
     var
@@ -534,6 +552,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureUploadEmployee()
     var
@@ -567,6 +586,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureReplaceEmployee()
     var
@@ -601,6 +621,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureDeleteEmployee()
     var
@@ -631,6 +652,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureValueItem()
     var
@@ -657,6 +679,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureMetadataItem()
     var
@@ -683,6 +706,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureValueItemWithoutPicture()
     var
@@ -706,6 +730,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureMetadatItemWithoutPicture()
     var
@@ -731,6 +756,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureUploadItem()
     var
@@ -764,6 +790,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureReplaceItem()
     var
@@ -798,6 +825,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureDeleteItem()
     var
@@ -828,6 +856,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureValueContact()
     var
@@ -854,6 +883,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureMetadataContact()
     var
@@ -880,6 +910,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureValueContactWithoutPicture()
     var
@@ -903,6 +934,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetPictureMetadataContactWithoutPicture()
     var
@@ -928,6 +960,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureUploadContact()
     var
@@ -961,6 +994,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureReplaceContact()
     var
@@ -995,6 +1029,7 @@ codeunit 139842 "APIV2 - Pictures E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPictureDeleteContact()
     var
@@ -1175,5 +1210,12 @@ codeunit 139842 "APIV2 - Pictures E2E"
           'Recieved image is not the same as uploaded image');
     end;
 
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 }
 

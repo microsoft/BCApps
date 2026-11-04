@@ -2,7 +2,7 @@ codeunit 139918 "APIV2 - Approval UserSetup E2E"
 {
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -14,6 +14,7 @@ codeunit 139918 "APIV2 - Approval UserSetup E2E"
 
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetApprovalUserSetup()
     var
         UserSetup: Record "User Setup";
@@ -39,5 +40,12 @@ codeunit 139918 "APIV2 - Approval UserSetup E2E"
             Assert.ExpectedError('Request failed with error: ' + GetLastErrorText());
 
         Assert.IsTrue(LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', UserSetupId), 'Could not find approval user setup');
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

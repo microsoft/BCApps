@@ -3,7 +3,7 @@ codeunit 139907 "APIV2 - Fixed Assets E2E"
     // version Test,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -34,6 +34,7 @@ codeunit 139907 "APIV2 - Fixed Assets E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetFixedAsset()
     var
         FixedAsset: Record "Fixed Asset";
@@ -55,6 +56,7 @@ codeunit 139907 "APIV2 - Fixed Assets E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateFixedAsset()
     var
         FixedAsset: Record "Fixed Asset";
@@ -79,6 +81,7 @@ codeunit 139907 "APIV2 - Fixed Assets E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteFixedAsset()
     var
         FixedAsset: Record "Fixed Asset";
@@ -107,6 +110,7 @@ codeunit 139907 "APIV2 - Fixed Assets E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyFixedAsset()
     var
         FixedAsset: Record "Fixed Asset";
@@ -190,5 +194,12 @@ codeunit 139907 "APIV2 - Fixed Assets E2E"
     local procedure FormatGuid(Value: Guid): Text
     begin
         exit(LowerCase(LibraryGraphMgt.StripBrackets(Format(Value, 0, 9))));
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

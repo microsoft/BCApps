@@ -1,7 +1,7 @@
 codeunit 139743 "APIV1 - Customer Payments E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -30,6 +30,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
         isInitialized: Boolean;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCreateCustomerPayment()
     var
@@ -99,6 +100,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCreateCustomerPaymentWithoutDocNo()
     var
@@ -135,6 +137,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCreateCustomerPaymentWithInvoiceId()
     var
@@ -190,6 +193,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCreateCustomerPaymentWithIdThatIsNotFromSalesInvoice()
     var
@@ -226,6 +230,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetCustomerPayment()
     var
@@ -269,6 +274,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestModifyCustomerPayment()
     var
@@ -328,6 +334,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestModifyCustomerPaymentWithRandomDocNo()
     var
@@ -390,6 +397,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestDeleteCustomerPayment()
     var
@@ -432,6 +440,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCustomerAutofillWhenGivingInvoiceNumber()
     var
@@ -477,6 +486,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCustomerAutofillDoesNotOverwrite()
     var
@@ -524,6 +534,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCustomerNoAndIdSync()
     var
@@ -599,6 +610,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCustomerNoAndIdSyncErrors()
     var
@@ -640,6 +652,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestAppliesToInvoiceNoAndIdSync()
     var
@@ -726,6 +739,7 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestAppliesToInvoiceNoAndIdSyncErrors()
     var
@@ -806,6 +820,13 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
     local procedure GetCustomerPaymentURL(CustomerPaymentId: Text): Text
     begin
         exit(ServiceSubpageNameTxt + '(' + LibraryGraphMgt.StripBrackets(CustomerPaymentId) + ')');
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

@@ -3,7 +3,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -44,6 +44,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestFailsOnIDAbsense()
     var
         ResponseText: Text;
@@ -66,6 +67,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOrderLineDirectly()
     var
         PurchaseLine: Record "Purchase Line";
@@ -98,6 +100,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOrderLines()
     var
         PurchaseLine: Record "Purchase Line";
@@ -134,6 +137,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetOrderLinesDirectlyWithDocumentIdFilter()
     var
         PurchaseLine: Record "Purchase Line";
@@ -165,6 +169,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostOrderLines()
     var
         Item: Record "Item";
@@ -208,6 +213,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyOrderLines()
     var
         PurchaseLine: Record "Purchase Line";
@@ -253,6 +259,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyOrderLineFailsOnSequenceIdOrDocumentIdChange()
     var
         PurchaseLine: Record "Purchase Line";
@@ -296,6 +303,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteOrderLine()
     var
         PurchaseLine: Record "Purchase Line";
@@ -335,6 +343,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateLineThroughPageAndAPI()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -410,6 +419,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestInsertingLineUpdatesOrderDiscountPct()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -453,6 +463,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyingLineUpdatesOrderDiscountPct()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -501,6 +512,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineMovesOrderDiscountPct()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -551,6 +563,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineRemovesOrderDiscountPct()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -594,6 +607,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestInsertingLineKeepsOrderDiscountAmt()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -628,6 +642,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyingLineKeepsOrderDiscountAmt()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -669,6 +684,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletingLineKeepsOrderDiscountAmt()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -701,6 +717,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGettingLinesWithDifferentTypes()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -731,6 +748,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostingBlankLineDefaultsToCommentType()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -767,6 +785,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostingCommentLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -805,6 +824,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheIdToAccountChangesLineType()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -846,6 +866,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheIdToItemChangesLineType()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -892,6 +913,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPatchingTheTypeBlanksIds()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -929,6 +951,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostOrderLineWithItemVariant()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -976,6 +999,7 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestPostOrderLineWithWrongItemVariant()
     var
         Item1: Record "Item";
@@ -1269,5 +1293,12 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
     begin
         NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

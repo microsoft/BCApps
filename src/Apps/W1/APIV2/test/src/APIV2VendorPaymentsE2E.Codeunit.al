@@ -1,7 +1,7 @@
 codeunit 139843 "APIV2 - Vendor Payments E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -31,6 +31,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
         isInitialized: Boolean;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCreateVendorPayment()
     var
@@ -100,6 +101,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCreateVendorPaymentWithoutDocNo()
     var
@@ -136,6 +138,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCreateVendorPaymentWithInvoiceId()
     var
@@ -192,6 +195,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestCreateVendorPaymentWithIdThatIsNotFromPurchaseInvoice()
     var
@@ -228,6 +232,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetVendorPayment()
     var
@@ -272,6 +277,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestModifyVendorPayment()
     var
@@ -333,6 +339,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestModifyVendorPaymentWithRandomDocNo()
     var
@@ -397,6 +404,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestDeleteVendorPayment()
     var
@@ -442,6 +450,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestVendorAutofillWhenGivingInvoiceNumber()
     var
@@ -488,6 +497,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestVendorAutofillDoesNotOverwrite()
     var
@@ -536,6 +546,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestVendorNoAndIdSync()
     var
@@ -614,6 +625,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestVendorNoAndIdSyncErrors()
     var
@@ -655,6 +667,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestAppliesToInvoiceNoAndIdSync()
     var
@@ -744,6 +757,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestAppliesToInvoiceNoAndIdSyncErrors()
     var
@@ -788,6 +802,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetVendorPaymentWithoutInvoiceApplicationIsVisible()
     var
@@ -834,6 +849,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestAppliesToInvoiceNumberEmptyForNonInvoiceApplication()
     var
@@ -921,5 +937,12 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
     local procedure GetVendorPaymentURL(VendorPaymentId: Text): Text
     begin
         exit(ServiceSubpageNameTxt + '(' + LibraryGraphMgt.StripBrackets(VendorPaymentId) + ')');
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

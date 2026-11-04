@@ -7,7 +7,7 @@ namespace Microsoft.Finance.VAT.Reporting;
 codeunit 148018 "IRS 1099 API Tests"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -23,6 +23,7 @@ codeunit 148018 "IRS 1099 API Tests"
         IRS1099DocumentsServiceNameLbl: Label 'irs1099documents';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure IRS1099DocumentsAPISunshine()
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
@@ -130,5 +131,12 @@ codeunit 148018 "IRS 1099 API Tests"
     begin
         LibraryGraphMgt.VerifyIDInJson(ResponseJson);
         LibraryGraphMgt.VerifyPropertyInJSON(ResponseJson, 'reportType', Format(IRS1099FormReport."Report Type").Replace(' ', '_'));
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }

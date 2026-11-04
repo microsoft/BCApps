@@ -1,7 +1,7 @@
 codeunit 139840 "APIV2 - Customer Payments E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -32,6 +32,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateCustomerPayment()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -100,6 +101,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateCustomerPaymentWithoutDocNo()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -136,6 +138,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateCustomerPaymentWithInvoiceId()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -191,6 +194,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateCustomerPaymentWithIdThatIsNotFromSalesInvoice()
     var
         Customer: Record Customer;
@@ -227,6 +231,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetCustomerPayment()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -270,6 +275,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCustomerPayment()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -329,6 +335,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyCustomerPaymentWithRandomDocNo()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -391,6 +398,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteCustomerPayment()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -433,6 +441,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCustomerAutofillWhenGivingInvoiceNumber()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -478,6 +487,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCustomerAutofillDoesNotOverwrite()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -525,6 +535,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCustomerNoAndIdSync()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -600,6 +611,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCustomerNoAndIdSyncErrors()
     var
         Customer: Record Customer;
@@ -641,6 +653,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestAppliesToInvoiceNoAndIdSync()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -727,6 +740,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestAppliesToInvoiceNoAndIdSyncErrors()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -807,6 +821,13 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
     local procedure GetCustomerPaymentURL(CustomerPaymentId: Text): Text
     begin
         exit(ServiceSubpageNameTxt + '(' + LibraryGraphMgt.StripBrackets(CustomerPaymentId) + ')');
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

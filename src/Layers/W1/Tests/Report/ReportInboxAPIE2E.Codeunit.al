@@ -10,7 +10,7 @@ using System.Security.AccessControl;
 codeunit 135549 "Report Inbox API E2E"
 {
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -36,6 +36,7 @@ codeunit 135549 "Report Inbox API E2E"
         ApiCallerResolved: Boolean;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetReportInboxItems()
     var
@@ -58,6 +59,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetReportInboxItemsFiltersToCurrentUser()
     var
@@ -90,6 +92,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPatchReportInboxItemMarksRead()
     var
@@ -119,6 +122,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPostReportInboxItemsNotAllowed()
     var
@@ -139,6 +143,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetReportInboxContentRequiresKey()
     var
@@ -159,6 +164,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetReportInboxContentByKey()
     var
@@ -184,6 +190,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPostReportInboxContentNotAllowed()
     var
@@ -204,6 +211,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetReportInboxFileRequiresKey()
     var
@@ -224,6 +232,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetReportInboxFileByKey()
     var
@@ -249,6 +258,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPostReportInboxFileNotAllowed()
     var
@@ -269,6 +279,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetReportInboxCompanies()
     var
@@ -292,6 +303,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetReportInboxItemsAcrossCompanies()
     var
@@ -323,6 +335,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetReportInboxFileForEntryInAnotherCompanyIsNotWidenedSilently()
     var
@@ -355,6 +368,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetReportInboxFileForEntryInAnotherCompanyWhenNamed()
     var
@@ -389,6 +403,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestGetReportInboxContentDoesNotResolveAnotherCompany()
     var
@@ -421,6 +436,7 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     [Scope('OnPrem')]
     procedure TestPostReportInboxCompaniesNotAllowed()
     var
@@ -633,4 +649,10 @@ codeunit 135549 "Report Inbox API E2E"
         exit('');
     end;
 
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 }

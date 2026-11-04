@@ -3,7 +3,7 @@ codeunit 139808 "APIV2 - Tax Groups E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -53,6 +53,7 @@ codeunit 139808 "APIV2 - Tax Groups E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetTaxGroups()
     var
         TaxGroupCode: array[2] of Text;
@@ -76,6 +77,7 @@ codeunit 139808 "APIV2 - Tax Groups E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetTaxGroup()
     var
         TaxGroupCode: Text;
@@ -99,6 +101,7 @@ codeunit 139808 "APIV2 - Tax Groups E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateTaxGroup()
     var
         TaxGroupBuffer: Record "Tax Group Buffer";
@@ -127,6 +130,7 @@ codeunit 139808 "APIV2 - Tax Groups E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyTaxGroup()
     var
         TaxGroupBuffer: Record "Tax Group Buffer";
@@ -159,6 +163,7 @@ codeunit 139808 "APIV2 - Tax Groups E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteTaxGroup()
     var
         TaxGroupCode: Text;
@@ -270,6 +275,13 @@ codeunit 139808 "APIV2 - Tax Groups E2E"
     local procedure FormatGuid(Value: Guid): Text
     begin
         exit(LowerCase(LibraryGraphMgt.StripBrackets(Value)));
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
 

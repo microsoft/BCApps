@@ -3,7 +3,7 @@ codeunit 139847 "APIV2 - Sales Shipments E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -20,6 +20,7 @@ codeunit 139847 "APIV2 - Sales Shipments E2E"
         ShipmentServiceNameTxt: Label 'salesShipments';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetSalesShipments()
     var
         SalesHeader: Record "Sales Header";
@@ -53,6 +54,7 @@ codeunit 139847 "APIV2 - Sales Shipments E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestExpandDimensions()
     var
         SalesShipmentHeader: Record "Sales Shipment Header";
@@ -114,6 +116,13 @@ codeunit 139847 "APIV2 - Sales Shipments E2E"
         exit(TargetURL);
     end;
 
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
+    end;
 
     local procedure Initialize()
     begin

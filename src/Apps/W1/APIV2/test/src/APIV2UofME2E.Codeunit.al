@@ -3,7 +3,7 @@ codeunit 139812 "APIV2 - UofM E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -20,6 +20,7 @@ codeunit 139812 "APIV2 - UofM E2E"
         ServiceNameTxt: Label 'unitsOfMeasure';
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetUnitOfMeasure()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -40,6 +41,7 @@ codeunit 139812 "APIV2 - UofM E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyUnitOfMeasure()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -73,6 +75,7 @@ codeunit 139812 "APIV2 - UofM E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteUnitOfMeasure()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -94,6 +97,7 @@ codeunit 139812 "APIV2 - UofM E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestInsertUnitOfMeasure()
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -194,6 +198,13 @@ codeunit 139812 "APIV2 - UofM E2E"
         Assert.AreEqual(
           Format(UnitOfMeasure."International Standard Code"), InternationalStandardCode,
           StrSubstNo(WrongPropertyValueErr, 'internationalStandardCode'));
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 
     local procedure Initialize()

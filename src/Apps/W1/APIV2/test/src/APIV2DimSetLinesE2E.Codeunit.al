@@ -3,7 +3,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
@@ -34,6 +34,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateJournalLineDimensionSetLine()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -57,6 +58,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateSalesOrderDimensionSetLine()
     var
         SalesHeader: Record "Sales Header";
@@ -85,6 +87,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateSalesQuoteDimensionSetLine()
     var
         Customer: Record Customer;
@@ -116,6 +119,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateSalesCrMemoDimensionSetLine()
     var
         SalesHeader: Record "Sales Header";
@@ -143,6 +147,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateSalesInvoiceDimensionSetLine()
     var
         SalesHeader: Record "Sales Header";
@@ -170,6 +175,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreatePurchaseInvoiceDimensionSetLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -197,6 +203,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreatePurchaseOrderDimensionSetLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -224,6 +231,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateTimeRegEntryDimensionSetLine()
     var
         TimeSheetDetail: Record "Time Sheet Detail";
@@ -245,6 +253,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDimensionSetLineFailsWithoutParentId()
     var
         Dimension: Record "Dimension";
@@ -272,6 +281,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreateDoesntWorkWithAlreadyExistingCode()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -328,6 +338,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionSetLinesOfJournalLines()
     var
         JournalName: Code[10];
@@ -345,6 +356,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionSetLinesOfSalesOrder()
     var
         SalesHeader: Record "Sales Header";
@@ -367,6 +379,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionSetLinesOfSalesQuote()
     var
         SalesHeader: Record "Sales Header";
@@ -393,6 +406,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionSetLinesOfSalesCrMemo()
     var
         SalesHeader: Record "Sales Header";
@@ -415,6 +429,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionSetLinesOfSalesInvoice()
     var
         SalesHeader: Record "Sales Header";
@@ -437,6 +452,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionSetLinesOfPurchaseInvoice()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -459,6 +475,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionSetLinesOfPurchaseOrder()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -481,6 +498,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionSetLinesOfTimeRegEntry()
     var
         TimeSheetDetail: Record "Time Sheet Detail";
@@ -502,6 +520,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionSetLinesOfGLEntry()
     var
         SalesHeader: Record "Sales Header";
@@ -540,6 +559,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionSetLinesFailsWithoutFilter()
     var
         GLAccount: Record "G/L Account";
@@ -564,6 +584,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyDimensionSetLineOfGenJournalLine()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -585,6 +606,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyDimensionSetLineOfSalesOrder()
     var
         SalesHeader: Record "Sales Header";
@@ -612,6 +634,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyDimensionSetLineOfSalesQuote()
     var
         Customer: Record Customer;
@@ -643,6 +666,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifySalesCrMemoDimensionSetLine()
     var
         SalesHeader: Record "Sales Header";
@@ -670,6 +694,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifySalesInvoiceDimensionSetLine()
     var
         SalesHeader: Record "Sales Header";
@@ -697,6 +722,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyPurchaseInvoiceDimensionSetLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -724,6 +750,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyPurchaseOrderDimensionSetLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -751,6 +778,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyTimeRegEntryDimensionSetLine()
     var
         TimeSheetDetail: Record "Time Sheet Detail";
@@ -772,6 +800,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestCreatePurchaseCrMemoDimensionSetLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -799,6 +828,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestGetDimensionSetLinesOfPurchaseCrMemo()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -821,6 +851,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyPurchaseCrMemoDimensionSetLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -848,6 +879,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletePurchaseCrMemoDimensionSetLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -955,6 +987,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestModifyOfDimensionCodeDoesntWork()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -1014,6 +1047,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteDimensionSetLineOfGenJournalLines()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -1035,6 +1069,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteSalesOrderDimensionSetLine()
     var
         SalesHeader: Record "Sales Header";
@@ -1063,6 +1098,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteSalesQuoteDimensionSetLine()
     var
         Customer: Record Customer;
@@ -1094,6 +1130,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteSalesCrMemoDimensionSetLine()
     var
         SalesHeader: Record "Sales Header";
@@ -1121,6 +1158,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteSalesInvoiceDimensionSetLine()
     var
         SalesHeader: Record "Sales Header";
@@ -1148,6 +1186,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletePurchaseInvoiceDimensionSetLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -1174,6 +1213,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeletePurchaseOrderDimensionSetLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -1201,6 +1241,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     end;
 
     [Test]
+    [HandlerFunctions('LocalServerRequestHandler')]
     procedure TestDeleteTimeRegEntryDimensionSetLine()
     var
         TimeSheetDetail: Record "Time Sheet Detail";
@@ -1906,5 +1947,12 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
             TargetURL := TargetURL + '?' + UrlFilter;
 
         exit(TargetURL);
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocalServerRequestHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Assert.IsTrue(LibraryGraphMgt.IsLocalServerRequest(Request), 'Only requests to the local Business Central server are allowed.');
+        exit(true);
     end;
 }
