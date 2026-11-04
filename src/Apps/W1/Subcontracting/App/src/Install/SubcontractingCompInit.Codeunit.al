@@ -15,6 +15,8 @@ codeunit 20503 "Subcontracting Comp. Init."
         ReqWkshDescLbl: Label 'Subcontracting', MaxLength = 100;
         ReqWkshNameLbl: Label 'SUBCONTR', MaxLength = 10;
         DefaultCompTransferLeadTimeLbl: Label '<1D>', Locked = true;
+        TemplateNameCollisionTelemetryMsg: Label 'Subcontracting worksheet initialization was skipped because the default template name is already in use.', Locked = true;
+        SubcontractingTelemetryCategoryTok: Label 'Subcontracting', Locked = true;
 
     procedure CreateBasicSubcontractingMgtSetup()
     begin
@@ -60,8 +62,11 @@ codeunit 20503 "Subcontracting Comp. Init."
     begin
         if not ReqWkshTemplate.Get(ManufacturingSetup."Subcontracting Template Name") or
            (ReqWkshTemplate.Type <> ReqWkshTemplate.Type::Subcontracting)
-        then
+        then begin
             CreateReqWkshTemplate(ReqWkshTemplate, false);
+            if ReqWkshTemplate.Name = '' then
+                exit(false);
+        end;
 
         if not RequisitionWkshName.Get(ReqWkshTemplate.Name, ManufacturingSetup."Subcontracting Batch Name") then
             CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
@@ -82,7 +87,11 @@ codeunit 20503 "Subcontracting Comp. Init."
         ReqWkshTemplate.Recurring := Recurring;
         ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
         ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");
-        ReqWkshTemplate.Insert(true);
+        if not ReqWkshTemplate.Insert(true) then begin
+            Session.LogMessage('0001Q7P', TemplateNameCollisionTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SubcontractingTelemetryCategoryTok);
+            Clear(ReqWkshTemplate);
+            exit(false);
+        end;
         exit(true);
     end;
 
