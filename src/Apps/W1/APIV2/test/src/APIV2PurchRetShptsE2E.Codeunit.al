@@ -4,6 +4,7 @@ codeunit 139928 "APIV2 - Purch. Ret. Shpts. E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
