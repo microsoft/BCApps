@@ -24,7 +24,7 @@ codeunit 30163 "Shpfy Order Mapping"
         BillToCustomerIssueTok: Label 'BillToCustomer', Locked = true;
         GiftCardAccountIssueTok: Label 'GiftCardAccount', Locked = true;
         ItemLineIssuePrefixTok: Label 'ItemLine:', Locked = true;
-        MappingErr: Label 'Not everything can be mapped.';
+        MappingErr: Label 'Not everything can be mapped.', Locked = true;
         SellToCustomerIssueTok: Label 'SellToCustomer', Locked = true;
         TipAccountIssueTok: Label 'TipAccount', Locked = true;
 
