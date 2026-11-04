@@ -2863,7 +2863,10 @@ codeunit 139165 "Integration Table Synch. Test"
         StoredSynchError.TestField("Destination Record ID", LoggedSynchError."Destination Record ID");
         StoredSynchError.TestField(Message, LoggedSynchError.Message);
         StoredSynchError.TestField("Error Message", LoggedSynchError."Error Message");
-        StoredSynchError.TestField("Date/Time", LoggedSynchError."Date/Time");
+        // SQL Server rounds persisted DateTime values to its supported precision.
+        Assert.IsTrue(
+            Abs(StoredSynchError."Date/Time" - LoggedSynchError."Date/Time") < 10,
+            'The stored error time must match the event time within SQL Server precision.');
         LoggedSynchError.CalcFields("Exception Detail");
         LoggedSynchError."Exception Detail".CreateInStream(StackTraceInStream);
         StackTraceInStream.Read(ActualStackTrace);
@@ -2976,4 +2979,3 @@ codeunit 139165 "Integration Table Synch. Test"
     begin
     end;
 }
-
