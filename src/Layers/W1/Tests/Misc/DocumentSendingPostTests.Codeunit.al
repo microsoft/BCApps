@@ -4713,7 +4713,7 @@ codeunit 139197 DocumentSendingPostTests
     begin
         FormatCode := LibraryUtility.GenerateGUID();
         ElectronicDocumentFormat.InsertElectronicFormat(
-          FormatCode, FormatCode, Codeunit::"Dummy Electronic Doc. Export", 0,
+          FormatCode, FormatCode, Codeunit::Microsoft.Test.Foundation.Reporting."Dummy Electronic Doc. Export", 0,
           ElectronicDocumentFormat.Usage::"Sales Invoice".AsInteger());
     end;
 

@@ -1,3 +1,8 @@
+namespace Microsoft.Test.Foundation.Reporting;
+
+using System.IO;
+using System.Utilities;
+
 codeunit 139190 "Dummy Electronic Doc. Export"
 {
     Access = Internal;
