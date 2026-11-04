@@ -1176,14 +1176,14 @@ codeunit 8800 "Custom Layout Reporting"
         TestModeWebClient := TestModeSpoofWebClient;
     end;
 
-    local procedure GetReportedLayoutKey(var CustomReportSelection: Record "Custom Report Selection"): Text
+    local procedure GetReportedLayoutKey(var DocumentLayoutSelection: Record "Custom Report Selection"): Text
     begin
         // Identifies the layout a document layout prints with, or returns blank when it uses the report's default layout
-        if CustomReportSelection."Email Attachment Layout Name" <> '' then
-            exit(StrSubstNo(LayoutNameKeyTok, CustomReportSelection."Email Attachment Layout AppID", CustomReportSelection."Email Attachment Layout Name"));
+        if DocumentLayoutSelection."Email Attachment Layout Name" <> '' then
+            exit(StrSubstNo(LayoutNameKeyTok, DocumentLayoutSelection."Email Attachment Layout AppID", DocumentLayoutSelection."Email Attachment Layout Name"));
 
-        if ResolveCustomReportLayoutCode(CustomReportSelection) <> '' then
-            exit(StrSubstNo(LayoutCodeKeyTok, CustomReportSelection."Custom Report Layout Code"));
+        if ResolveCustomReportLayoutCode(DocumentLayoutSelection) <> '' then
+            exit(StrSubstNo(LayoutCodeKeyTok, DocumentLayoutSelection."Custom Report Layout Code"));
 
         exit('');
     end;
