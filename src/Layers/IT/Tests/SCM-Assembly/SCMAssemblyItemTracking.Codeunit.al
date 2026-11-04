@@ -147,28 +147,52 @@ codeunit 137926 "SCM Assembly Item Tracking"
     [Test]
     procedure SerialTrackingRemainsAfterPlanningAssemblyCancellation()
     begin
-        VerifyComponentTrackingAfterPlanning(true, true);
+        VerifyComponentTrackingAfterPlanning(true, true, false);
     end;
 
     [Test]
     procedure LotTrackingRemainsAfterPlanningAssemblyCancellation()
     begin
-        VerifyComponentTrackingAfterPlanning(false, true);
+        VerifyComponentTrackingAfterPlanning(false, true, false);
     end;
 
     [Test]
     procedure SerialTrackingRemainsAfterPlanningAssemblyQuantityReduction()
     begin
-        VerifyComponentTrackingAfterPlanning(true, false);
+        VerifyComponentTrackingAfterPlanning(true, false, false);
     end;
 
     [Test]
     procedure LotTrackingRemainsAfterPlanningAssemblyQuantityReduction()
     begin
-        VerifyComponentTrackingAfterPlanning(false, false);
+        VerifyComponentTrackingAfterPlanning(false, false, false);
     end;
 
-    local procedure VerifyComponentTrackingAfterPlanning(SerialTracking: Boolean; CancelAssembly: Boolean)
+    [Test]
+    procedure SerialOrderTrackingRemainsAfterPlanningAssemblyCancellation()
+    begin
+        VerifyComponentTrackingAfterPlanning(true, true, true);
+    end;
+
+    [Test]
+    procedure LotOrderTrackingRemainsAfterPlanningAssemblyCancellation()
+    begin
+        VerifyComponentTrackingAfterPlanning(false, true, true);
+    end;
+
+    [Test]
+    procedure SerialOrderTrackingRemainsAfterPlanningAssemblyQuantityReduction()
+    begin
+        VerifyComponentTrackingAfterPlanning(true, false, true);
+    end;
+
+    [Test]
+    procedure LotOrderTrackingRemainsAfterPlanningAssemblyQuantityReduction()
+    begin
+        VerifyComponentTrackingAfterPlanning(false, false, true);
+    end;
+
+    local procedure VerifyComponentTrackingAfterPlanning(SerialTracking: Boolean; CancelAssembly: Boolean; OrderTracking: Boolean)
     var
         ParentItem: Record Item;
         ComponentItem: Record Item;
@@ -234,6 +258,13 @@ codeunit 137926 "SCM Assembly Item Tracking"
                 SerialNo := StrSubstNo(SerialNoTok, SerialNoPrefix, i);
             LibraryItemTracking.CreateAssemblyLineItemTracking(ReservationEntry, AssemblyLine, SerialNo, LotNo, 1);
         end;
+        if OrderTracking then begin
+            EnableComponentOrderTracking(ComponentItem);
+            ReservationEntry.Reset();
+            AssemblyLine.SetReservationFilters(ReservationEntry);
+            ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Tracking);
+            Assert.AreEqual(AssemblyQty, ReservationEntry.Count(), TrackingEntryCountErr);
+        end;
 
         // [WHEN] Regenerative planning runs without carrying out its suggestions.
         PlanningItem.SetFilter("No.", '%1|%2', ParentItem."No.", ComponentItem."No.");
@@ -272,12 +303,33 @@ codeunit 137926 "SCM Assembly Item Tracking"
         ReservationEntry.SetRange("Lot No.");
         ReservationEntry.FindSet();
         repeat
+            if OrderTracking then begin
+                ReservationEntry.TestField("Reservation Status", ReservationEntry."Reservation Status"::Surplus);
+                ReservationEntry.TestField(Binding, ReservationEntry.Binding::" ");
+                ReservationEntry.TestField("Expected Receipt Date", 0D);
+            end;
             ReservationEntry.TestField("Quantity (Base)", -1);
             ReservationEntry.TestField("Qty. to Handle (Base)", -1);
             ReservationEntry.TestField("Qty. to Invoice (Base)", -1);
         until ReservationEntry.Next() = 0;
         ReservationEntry.CalcSums("Quantity (Base)");
         Assert.AreEqual(-AssemblyQty, ReservationEntry."Quantity (Base)", TrackingQtyChangedErr);
+    end;
+
+    local procedure EnableComponentOrderTracking(var ComponentItem: Record Item)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ReservationManagement: Codeunit "Reservation Management";
+    begin
+        ComponentItem."Order Tracking Policy" := ComponentItem."Order Tracking Policy"::"Tracking Only";
+        ComponentItem.Modify(true);
+        ItemLedgerEntry.SetRange("Item No.", ComponentItem."No.");
+        ItemLedgerEntry.SetRange(Open, true);
+        ItemLedgerEntry.FindSet();
+        repeat
+            ReservationManagement.SetReservSource(ItemLedgerEntry);
+            ReservationManagement.AutoTrack(ItemLedgerEntry."Remaining Quantity");
+        until ItemLedgerEntry.Next() = 0;
     end;
 
     [Test]
