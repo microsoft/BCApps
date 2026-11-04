@@ -15,8 +15,6 @@ codeunit 20503 "Subcontracting Comp. Init."
         ReqWkshDescLbl: Label 'Subcontracting', MaxLength = 100;
         ReqWkshNameLbl: Label 'SUBCONTR', MaxLength = 10;
         DefaultCompTransferLeadTimeLbl: Label '<1D>', Locked = true;
-        TemplateNameCollisionTelemetryMsg: Label 'Subcontracting worksheet initialization was skipped because the default template name is already in use.', Locked = true;
-        SubcontractingTelemetryCategoryTok: Label 'Subcontracting', Locked = true;
 
     procedure CreateBasicSubcontractingMgtSetup()
     begin
@@ -62,11 +60,10 @@ codeunit 20503 "Subcontracting Comp. Init."
     begin
         if not ReqWkshTemplate.Get(ManufacturingSetup."Subcontracting Template Name") or
            (ReqWkshTemplate.Type <> ReqWkshTemplate.Type::Subcontracting)
-        then begin
+        then
             CreateReqWkshTemplate(ReqWkshTemplate, false);
-            if ReqWkshTemplate.Name = '' then
-                exit(false);
-        end;
+
+        UpdateSubcontractingWorksheetPage(ReqWkshTemplate);
 
         if not RequisitionWkshName.Get(ReqWkshTemplate.Name, ManufacturingSetup."Subcontracting Batch Name") then
             CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
@@ -78,21 +75,44 @@ codeunit 20503 "Subcontracting Comp. Init."
     procedure CreateReqWkshTemplate(var ReqWkshTemplate: Record "Req. Wksh. Template"; Recurring: Boolean): Boolean
     begin
         ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Subcontracting);
-        if ReqWkshTemplate.FindFirst() then
+        if ReqWkshTemplate.FindFirst() then begin
+            UpdateSubcontractingWorksheetPage(ReqWkshTemplate);
             exit(false);
+        end;
 
         ReqWkshTemplate.Init();
-        ReqWkshTemplate.Validate(Name, ReqWkshTempNameLbl);
+        ReqWkshTemplate.Validate(Name, GetAvailableReqWkshTemplateName());
         ReqWkshTemplate.Validate(Description, ReqWkshTempDescLbl);
         ReqWkshTemplate.Recurring := Recurring;
         ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
         ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");
-        if not ReqWkshTemplate.Insert(true) then begin
-            Session.LogMessage('0001Q7P', TemplateNameCollisionTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SubcontractingTelemetryCategoryTok);
-            Clear(ReqWkshTemplate);
-            exit(false);
-        end;
+        ReqWkshTemplate.Insert(true);
         exit(true);
+    end;
+
+    local procedure GetAvailableReqWkshTemplateName(): Code[10]
+    var
+        ExistingReqWkshTemplate: Record "Req. Wksh. Template";
+        TemplateName: Code[10];
+        SuffixText: Text;
+        Suffix: Integer;
+    begin
+        TemplateName := CopyStr(ReqWkshTempNameLbl, 1, MaxStrLen(TemplateName));
+        while ExistingReqWkshTemplate.Get(TemplateName) do begin
+            Suffix += 1;
+            SuffixText := Format(Suffix, 0, 9);
+            TemplateName := CopyStr(CopyStr(ReqWkshTempNameLbl, 1, MaxStrLen(TemplateName) - StrLen(SuffixText)) + SuffixText, 1, MaxStrLen(TemplateName));
+        end;
+        exit(TemplateName);
+    end;
+
+    local procedure UpdateSubcontractingWorksheetPage(var ReqWkshTemplate: Record "Req. Wksh. Template")
+    begin
+        if ReqWkshTemplate."Page ID" = Page::"Subc. Subcontracting Worksheet" then
+            exit;
+
+        ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");
+        ReqWkshTemplate.Modify(true);
     end;
 
     procedure CreateRequisitionWkshName(var RequisitionWkshName: Record "Requisition Wksh. Name"; WorksheetTemplateName: Text)
