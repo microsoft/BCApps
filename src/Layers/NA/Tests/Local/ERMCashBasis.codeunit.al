@@ -1000,6 +1000,17 @@
 
     [Test]
     procedure PartialCrMemoWithEquivalentDifferentVATGroupRealizesProportionalInvoiceVAT()
+    begin
+        VerifyPartialCrMemoWithEquivalentDifferentVATGroup(1);
+    end;
+
+    [Test]
+    procedure PartialCrMemoWithRepeatedEquivalentVATGroupRealizesProportionalInvoiceVAT()
+    begin
+        VerifyPartialCrMemoWithEquivalentDifferentVATGroup(2);
+    end;
+
+    local procedure VerifyPartialCrMemoWithEquivalentDifferentVATGroup(LineCount: Integer)
     var
         VATPostingSetup: array[2] of Record "VAT Posting Setup";
         GLAccount: Record "G/L Account";
@@ -1011,6 +1022,7 @@
         CreditMemoNo: Code[20];
         InvoiceUnitPrice: Decimal;
         CreditMemoUnitPrice: Decimal;
+        LineIndex: Integer;
     begin
         // [SCENARIO 648925] Partial credit memo with an equivalent different VAT group realizes invoice VAT proportionally
         Initialize();
@@ -1023,14 +1035,16 @@
         VATPostingSetup[2].Validate("Sales VAT Unreal. Account", VATPostingSetup[1]."Sales VAT Unreal. Account");
         VATPostingSetup[2].Modify(true);
 
-        // [GIVEN] Posted Sales Invoice with one G/L Account line for 1000 using the first VAT product posting group
+        // [GIVEN] Posted Sales Invoice totaling 1000 with all G/L Account lines using the first VAT product posting group
         CreateGLAccount(GLAccount, VATPostingSetup[1]."VAT Prod. Posting Group");
         CustomerNo := CreateCustomer('', VATPostingSetup[1]."VAT Bus. Posting Group");
         InvoiceUnitPrice := 1000;
         CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
-        SalesLine.Validate("Unit Price", InvoiceUnitPrice);
-        SalesLine.Modify(true);
+        for LineIndex := 1 to LineCount do begin
+            LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+            SalesLine.Validate("Unit Price", InvoiceUnitPrice / LineCount);
+            SalesLine.Modify(true);
+        end;
         InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // [GIVEN] Partial Sales Credit Memo for 500 using the second VAT product posting group, applied to the invoice
@@ -1039,10 +1053,12 @@
         SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
         SalesHeader.Validate("Applies-to Doc. No.", InvoiceNo);
         SalesHeader.Modify(true);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
-        SalesLine.Validate("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
-        SalesLine.Validate("Unit Price", CreditMemoUnitPrice);
-        SalesLine.Modify(true);
+        for LineIndex := 1 to LineCount do begin
+            LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+            SalesLine.Validate("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
+            SalesLine.Validate("Unit Price", CreditMemoUnitPrice / LineCount);
+            SalesLine.Modify(true);
+        end;
 
         // [WHEN] Post the Sales Credit Memo
         CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
