@@ -127,17 +127,21 @@ table 77 "Report Selections"
 #endif
             end;
         }
-#if not CLEAN30
         field(22; "Email Body Layout Description"; Text[250])
         {
-            CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Email Body Layout Code")));
             Caption = 'Email Body Custom Layout Description';
             Editable = false;
+            ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+            ToolTip = 'Specifies a description of the custom email body layout that is used.';
+#if not CLEAN30
+            CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Email Body Layout Code")));
             FieldClass = Flowfield;
             ObsoleteState = Pending;
-            ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
             ObsoleteTag = '30.0';
-            ToolTip = 'Specifies a description of the custom email body layout that is used.';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
 
 #if not CLEAN28
             trigger OnLookup()
@@ -152,7 +156,6 @@ table 77 "Report Selections"
             end;
 #endif
         }
-#endif
         field(25; "Email Body Layout Type"; Enum "Email Body Layout Type")
         {
             Caption = 'Email Body Layout Type';
