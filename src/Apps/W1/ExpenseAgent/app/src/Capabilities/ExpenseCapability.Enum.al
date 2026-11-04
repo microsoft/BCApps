@@ -97,4 +97,11 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
+    /// <summary>
+    /// Credit card feed is available in the expense app.
+    /// </summary>
+    value(9; CreditCardFeed)
+    {
+        Caption = 'Credit Card Feed', Locked = true;
+    }
 }
