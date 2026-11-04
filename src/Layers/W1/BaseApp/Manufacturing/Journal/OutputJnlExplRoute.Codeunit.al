@@ -187,11 +187,12 @@ codeunit 5406 "Output Jnl.-Expl. Route"
         QtyPerLine := QtyToPost;
         if SplitForTracking then begin
             LinesToInsert := QtyToPost;
-            QtyPerLine := 1;
             CollectProdOrderTracking(ProdOrderLine, TempProdOrderTracking);
         end;
 
         for i := 1 to LinesToInsert do begin
+            if SplitForTracking then
+                QtyPerLine := 1;
             NextLineNo := NextLineNo + LineSpacing;
             ItemJnlLine."Line No." := NextLineNo;
             ItemJnlLine.Validate("Entry Type", ItemJnlLine."Entry Type"::Output);
