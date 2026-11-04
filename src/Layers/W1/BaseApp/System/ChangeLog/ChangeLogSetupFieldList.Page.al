@@ -188,10 +188,7 @@ page 594 "Change Log Setup (Field) List"
             TableMonitoredErrorInfo.AddNavigationAction(ShowMonitoredFieldsLbl);
             Error(TableMonitoredErrorInfo);
         end;
-        if ChangeLogSetupField."Monitor Sensitive Field" then begin
-            ChangeLogSetupField.Validate("Monitor Sensitive Field", false);
-            ChangeLogSetupField.Validate(Notify, false);
-        end;
+        ChangeLogSetupField.ClearOrphanedFieldMonitoring();
 
         if not (ChangeLogSetupField."Log Insertion" or ChangeLogSetupField."Log Modification" or ChangeLogSetupField."Log Deletion") then begin
             if ChangeLogSetupField.Delete() then;

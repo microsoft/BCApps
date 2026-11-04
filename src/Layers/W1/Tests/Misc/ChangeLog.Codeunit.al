@@ -2006,6 +2006,139 @@ codeunit 139031 "Change Log"
         TearDown();
     end;
 
+    [Test]
+    procedure ChangeLogTableRecreationClearsOrphanedMonitoringWhenDisabled()
+    begin
+        VerifyChangeLogTableSaveClearsOrphanedMonitoring(false, true);
+    end;
+
+    [Test]
+    procedure ChangeLogTableRecreationClearsOrphanedMonitoringWhenEnabled()
+    begin
+        VerifyChangeLogTableSaveClearsOrphanedMonitoring(true, true);
+    end;
+
+    [Test]
+    procedure ChangeLogTableUpdateClearsOrphanedMonitoringWhenDisabled()
+    begin
+        VerifyChangeLogTableSaveClearsOrphanedMonitoring(false, false);
+    end;
+
+    [Test]
+    procedure ChangeLogTableUpdateClearsOrphanedMonitoringWhenEnabled()
+    begin
+        VerifyChangeLogTableSaveClearsOrphanedMonitoring(true, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmNoHandler')]
+    procedure ChangeLogTableDisableRetainsFieldSelections()
+    var
+        ChangeLogSetupTable: Record "Change Log Setup (Table)";
+        ChangeLogSetupField: Record "Change Log Setup (Field)";
+        ChangeLogSetupTableListPage: TestPage "Change Log Setup (Table) List";
+    begin
+        // [SCENARIO 648216] Turning off table logging can still retain field selections.
+        Initialize();
+        SetTableForChangeLog(GlobalTableNo, LogOption::" ", LogOption::"Some Fields", LogOption::" ");
+        SetFieldsForChangeLog(GlobalTableNo, GlobalExtraFieldNo[3], false, true, true);
+        OpenChangeLogSetupTableList(ChangeLogSetupTableListPage, GlobalTableNo);
+
+        ChangeLogSetupTableListPage.LogModification.SetValue(LogOption::" ");
+        ChangeLogSetupTableListPage.Close();
+
+        Assert.IsFalse(ChangeLogSetupTable.Get(GlobalTableNo), 'The disabled table setup must be deleted.');
+        ChangeLogSetupField.Get(GlobalTableNo, GlobalExtraFieldNo[3]);
+        ChangeLogSetupField.TestField("Log Insertion", false);
+        ChangeLogSetupField.TestField("Log Modification", true);
+        ChangeLogSetupField.TestField("Log Deletion", true);
+        TearDown();
+    end;
+
+    local procedure VerifyChangeLogTableSaveClearsOrphanedMonitoring(MonitorStatus: Boolean; RecreateTable: Boolean)
+    var
+        ChangeLogSetupTable: Record "Change Log Setup (Table)";
+        ChangeLogSetupField: Record "Change Log Setup (Field)";
+        ChangeLogEntry: Record "Change Log Entry";
+        FieldMonitoringSetup: Record "Field Monitoring Setup";
+        RecRef: RecordRef;
+        xRecRef: RecordRef;
+        ChangeLogSetupTableListPage: TestPage "Change Log Setup (Table) List";
+    begin
+        // [SCENARIO 648216] Saving ordinary table logging repairs all retained monitored fields without editing them.
+        Initialize();
+        FieldMonitoringSetup.DeleteAll();
+        FieldMonitoringSetup.Init();
+        FieldMonitoringSetup."Monitor Status" := MonitorStatus;
+        FieldMonitoringSetup.Insert();
+        SetTableForChangeLog(GlobalTableNo, LogOption::"Some Fields", LogOption::" ", LogOption::"Some Fields");
+        SetFieldsForChangeLog(GlobalTableNo, GlobalExtraFieldNo[3], false, true, true);
+        SetFieldsForChangeLog(GlobalTableNo, GlobalExtraFieldNo[2], true, true, false);
+        SetFieldsForChangeLog(GlobalTableNo, GlobalExtraFieldNo[1], true, false, true);
+        ChangeLogSetupField.Get(GlobalTableNo, GlobalExtraFieldNo[3]);
+        ChangeLogSetupField."Monitor Sensitive Field" := true;
+        ChangeLogSetupField.Notify := true;
+        ChangeLogSetupField.Modify();
+        ChangeLogSetupField.Get(GlobalTableNo, GlobalExtraFieldNo[2]);
+        ChangeLogSetupField."Monitor Sensitive Field" := true;
+        ChangeLogSetupField.Notify := true;
+        ChangeLogSetupField.Modify();
+        if RecreateTable then begin
+            ChangeLogSetupTable.Get(GlobalTableNo);
+            ChangeLogSetupTable."Monitor Sensitive Field" := true;
+            ChangeLogSetupTable.Modify();
+            // Reproduce a removed monitoring parent whose field records survived.
+            ChangeLogSetupTable.Delete();
+        end;
+        OpenChangeLogSetupTableList(ChangeLogSetupTableListPage, GlobalTableNo);
+
+        ChangeLogSetupTableListPage.LogModification.SetValue(LogOption::"Some Fields");
+        ChangeLogSetupTableListPage.Close();
+
+        ChangeLogSetupTable.Get(GlobalTableNo);
+        ChangeLogSetupTable.TestField("Monitor Sensitive Field", false);
+        ChangeLogSetupTable.TestField("Log Modification", LogOption::"Some Fields");
+        ChangeLogSetupField.Get(GlobalTableNo, GlobalExtraFieldNo[3]);
+        ChangeLogSetupField.TestField("Monitor Sensitive Field", false);
+        ChangeLogSetupField.TestField(Notify, false);
+        ChangeLogSetupField.TestField("Log Insertion", false);
+        ChangeLogSetupField.TestField("Log Modification", true);
+        ChangeLogSetupField.TestField("Log Deletion", true);
+        ChangeLogSetupField.Get(GlobalTableNo, GlobalExtraFieldNo[2]);
+        ChangeLogSetupField.TestField("Monitor Sensitive Field", false);
+        ChangeLogSetupField.TestField(Notify, false);
+        ChangeLogSetupField.TestField("Log Insertion", true);
+        ChangeLogSetupField.TestField("Log Modification", true);
+        ChangeLogSetupField.TestField("Log Deletion", false);
+        ChangeLogSetupField.Get(GlobalTableNo, GlobalExtraFieldNo[1]);
+        ChangeLogSetupField.TestField("Monitor Sensitive Field", false);
+        ChangeLogSetupField.TestField(Notify, false);
+        ChangeLogSetupField.TestField("Log Insertion", true);
+        ChangeLogSetupField.TestField("Log Modification", false);
+        ChangeLogSetupField.TestField("Log Deletion", true);
+        ChangeLogManagement.InitChangeLog();
+        CreateModifyAndLogModify(RecRef, xRecRef);
+        ChangeLogEntry.Get(AssertEntry(RecRef, xRecRef, GlobalExtraFieldNo[3], TypeOfChangeOption::Modification));
+        ChangeLogEntry.TestField("Field Log Entry Feature", ChangeLogEntry."Field Log Entry Feature"::"Change Log");
+        ChangeLogEntry.Get(AssertEntry(RecRef, xRecRef, GlobalExtraFieldNo[2], TypeOfChangeOption::Modification));
+        ChangeLogEntry.TestField("Field Log Entry Feature", ChangeLogEntry."Field Log Entry Feature"::"Change Log");
+        AssertNoOfEntriesForPK(RecRef, TypeOfChangeOption::Modification, 2);
+        TearDown();
+    end;
+
+    local procedure OpenChangeLogSetupTableList(var ChangeLogSetupTableListPage: TestPage "Change Log Setup (Table) List"; TableNo: Integer)
+    var
+        AllObjWithCaption: Record AllObjWithCaption;
+        ChangeLogSetupTableList: Page "Change Log Setup (Table) List";
+    begin
+        AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
+        AllObjWithCaption.SetRange("Object ID", TableNo);
+        ChangeLogSetupTableList.SetSource();
+        ChangeLogSetupTableList.SetTableView(AllObjWithCaption);
+        ChangeLogSetupTableListPage.Trap();
+        ChangeLogSetupTableList.Run();
+    end;
+
     local procedure VerifyChangeLogFieldEditClearsOrphanedMonitorFlag(MonitorStatus: Boolean)
     var
         ChangeLogSetupField: Record "Change Log Setup (Field)";
