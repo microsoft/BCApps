@@ -998,6 +998,135 @@ codeunit 139175 "CRM Sales Order Integr. Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CRMSalesOrderWithAutomaticRecurringSalesLine()
+    var
+        CRMSalesorder: Record "CRM Salesorder";
+        CRMSalesorderdetail: Record "CRM Salesorderdetail";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        StandardSalesLine: Record "Standard Sales Line";
+    begin
+        // [SCENARIO 654747] CRM order creation preserves an automatic recurring line and appends the imported product.
+        Initialize(false);
+
+        // [GIVEN] A CRM order with a product and a customer with one automatic recurring sales line.
+        CreateCRMSalesorderInLCY(CRMSalesorder);
+        LibraryCRMIntegration.CreateCRMSalesOrderLine(CRMSalesorder, CRMSalesorderdetail);
+        CreateAutomaticRecurringSalesLines(CRMSalesorder, StandardSalesLine, 1);
+
+        // [WHEN] The order is created in Business Central.
+        CreateSalesOrderInNAV(CRMSalesorder, SalesHeader);
+
+        // [THEN] The recurring line is unchanged and the product is inserted at line 20000.
+        VerifyRecurringSalesLines(SalesHeader, StandardSalesLine);
+        SalesLine.Get(SalesHeader."Document Type", SalesHeader."No.", 20000);
+        SalesLine.TestField(Type, SalesLine.Type::Item);
+        SalesLine.TestField(Quantity, CRMSalesorderdetail.Quantity);
+        SalesLine.TestField("Unit Price", CRMSalesorderdetail.PricePerUnit);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        Assert.RecordCount(SalesLine, 2);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CRMSalesOrderWithRecurringLinesAndLongDescriptions()
+    var
+        CRMSalesorder: Record "CRM Salesorder";
+        CRMSalesorderdetail: array[2] of Record "CRM Salesorderdetail";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        DescriptionSalesLine: Record "Sales Line";
+        StandardSalesLine: Record "Standard Sales Line";
+        ImportedLineNo: Integer;
+        LineIndex: Integer;
+        ImportedDescription: Text;
+    begin
+        // [SCENARIO 654747] Multiple CRM products and their attached descriptions follow all recurring lines.
+        Initialize(false);
+
+        // [GIVEN] Two recurring lines and two CRM products with descriptions longer than a sales line.
+        CreateCRMSalesorderInLCY(CRMSalesorder);
+        CreateAutomaticRecurringSalesLines(CRMSalesorder, StandardSalesLine, 2);
+        for LineIndex := 1 to ArrayLen(CRMSalesorderdetail) do begin
+            LibraryCRMIntegration.CreateCRMSalesOrderLine(CRMSalesorder, CRMSalesorderdetail[LineIndex]);
+            CRMSalesorderdetail[LineIndex].SequenceNumber := LineIndex;
+            CRMSalesorderdetail[LineIndex].Modify();
+            MockLongCRMSalesorderdetailProductDescription(CRMSalesorderdetail[LineIndex]);
+        end;
+
+        // [WHEN] The order is created in Business Central.
+        CreateSalesOrderInNAV(CRMSalesorder, SalesHeader);
+
+        // [THEN] Recurring lines are preserved and each product's description is attached to its own main line.
+        VerifyRecurringSalesLines(SalesHeader, StandardSalesLine);
+        ImportedLineNo := 30000;
+        DescriptionSalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        DescriptionSalesLine.SetRange("Document No.", SalesHeader."No.");
+        for LineIndex := 1 to ArrayLen(CRMSalesorderdetail) do begin
+            SalesLine.Get(SalesHeader."Document Type", SalesHeader."No.", ImportedLineNo);
+            SalesLine.TestField(Type, SalesLine.Type::Item);
+            SalesLine.TestField(Quantity, CRMSalesorderdetail[LineIndex].Quantity);
+            SalesLine.TestField("Unit Price", CRMSalesorderdetail[LineIndex].PricePerUnit);
+            DescriptionSalesLine.SetRange("Attached to Line No.", ImportedLineNo);
+            Assert.RecordCount(
+                DescriptionSalesLine,
+                (StrLen(CRMSalesorderdetail[LineIndex].ProductDescription) + MaxStrLen(SalesLine.Description) - 1) div MaxStrLen(SalesLine.Description));
+            Clear(ImportedDescription);
+            DescriptionSalesLine.FindSet();
+            repeat
+                DescriptionSalesLine.TestField(Type, DescriptionSalesLine.Type::" ");
+                ImportedDescription += DescriptionSalesLine.Description;
+                ImportedLineNo += 10000;
+                DescriptionSalesLine.TestField("Line No.", ImportedLineNo);
+            until DescriptionSalesLine.Next() = 0;
+            Assert.AreEqual(CRMSalesorderdetail[LineIndex].ProductDescription, ImportedDescription, 'The imported description must be preserved.');
+            ImportedLineNo += 10000;
+        end;
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        Assert.RecordCount(SalesLine, ImportedLineNo div 10000 - 1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CRMSalesOrdersResetLineNumbersForEachOrder()
+    var
+        CRMSalesorder: Record "CRM Salesorder";
+        CRMSalesorderdetail: Record "CRM Salesorderdetail";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        StandardSalesLine: Record "Standard Sales Line";
+        CRMSalesOrderToSalesOrder: Codeunit "CRM Sales Order to Sales Order";
+    begin
+        // [SCENARIO 654747] Reusing the importer does not carry line numbers over to another document.
+        Initialize(false);
+
+        // [GIVEN] An order with two recurring lines imported by a codeunit instance.
+        CreateCRMSalesorderInLCY(CRMSalesorder);
+        LibraryCRMIntegration.CreateCRMSalesOrderLine(CRMSalesorder, CRMSalesorderdetail);
+        CreateAutomaticRecurringSalesLines(CRMSalesorder, StandardSalesLine, 2);
+        CRMSalesOrderToSalesOrder.CreateInNAV(CRMSalesorder, SalesHeader);
+        VerifyRecurringSalesLines(SalesHeader, StandardSalesLine);
+        SalesLine.Get(SalesHeader."Document Type", SalesHeader."No.", 30000);
+
+        // [WHEN] The same instance imports an order for another customer without recurring lines.
+        CreateCRMSalesorderInLCY(CRMSalesorder);
+        LibraryCRMIntegration.CreateCRMSalesOrderLine(CRMSalesorder, CRMSalesorderdetail);
+        Clear(SalesHeader);
+        CRMSalesOrderToSalesOrder.CreateInNAV(CRMSalesorder, SalesHeader);
+
+        // [THEN] The second order starts at 10000, independently of the first order.
+        SalesLine.Get(SalesHeader."Document Type", SalesHeader."No.", 10000);
+        SalesLine.TestField(Type, SalesLine.Type::Item);
+        SalesLine.TestField(Quantity, CRMSalesorderdetail.Quantity);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        Assert.RecordCount(SalesLine, 1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure LongProductDescriptionItem()
     var
         CRMSalesorder: Record "CRM Salesorder";
@@ -2085,6 +2214,42 @@ codeunit 139175 "CRM Sales Order Integr. Test"
         OutStream.Write(AnnotationText);
 
         CRMAnnotation.Modify();
+    end;
+
+    local procedure CreateAutomaticRecurringSalesLines(CRMSalesorder: Record "CRM Salesorder"; var StandardSalesLine: Record "Standard Sales Line"; LineCount: Integer)
+    var
+        Customer: Record Customer;
+        StandardSalesCode: Record "Standard Sales Code";
+        StandardCustomerSalesCode: Record "Standard Customer Sales Code";
+        CRMSalesOrderToSalesOrder: Codeunit "CRM Sales Order to Sales Order";
+        LineIndex: Integer;
+    begin
+        CRMSalesOrderToSalesOrder.GetCoupledCustomer(CRMSalesorder, Customer);
+        LibrarySales.CreateStandardSalesCode(StandardSalesCode);
+        for LineIndex := 1 to LineCount do begin
+            LibrarySales.CreateStandardSalesLine(StandardSalesLine, StandardSalesCode.Code);
+            StandardSalesLine.Validate(Description, StrSubstNo('%1 %2', StandardSalesCode.Code, LineIndex));
+            StandardSalesLine.Modify(true);
+        end;
+        LibrarySales.CreateCustomerSalesCode(StandardCustomerSalesCode, Customer."No.", StandardSalesCode.Code);
+        StandardCustomerSalesCode.Validate("Insert Rec. Lines On Orders", StandardCustomerSalesCode."Insert Rec. Lines On Orders"::Automatic);
+        StandardCustomerSalesCode.Modify(true);
+        StandardSalesLine.SetRange("Standard Sales Code", StandardSalesCode.Code);
+    end;
+
+    local procedure VerifyRecurringSalesLines(SalesHeader: Record "Sales Header"; StandardSalesLine: Record "Standard Sales Line")
+    var
+        SalesLine: Record "Sales Line";
+        LineNo: Integer;
+    begin
+        StandardSalesLine.FindSet();
+        repeat
+            LineNo += 10000;
+            SalesLine.Get(SalesHeader."Document Type", SalesHeader."No.", LineNo);
+            SalesLine.TestField(Type, StandardSalesLine.Type);
+            SalesLine.TestField(Description, StandardSalesLine.Description);
+            SalesLine.TestField("No.", StandardSalesLine."No.");
+        until StandardSalesLine.Next() = 0;
     end;
 
     local procedure PrepareCRMSalesOrder(var CRMSalesorder: Record "CRM Salesorder"; ManualDiscAmount: Decimal; VolumeDiscAmount: Decimal)
