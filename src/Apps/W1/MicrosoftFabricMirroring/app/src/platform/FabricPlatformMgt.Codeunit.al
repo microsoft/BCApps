@@ -130,15 +130,31 @@ codeunit 48520 "Fabric Platform Mgt"
     end;
 
     internal procedure EnsureRequiredLogTables()
+    begin
+        EnsureRequiredLogTables(false);
+    end;
+
+    internal procedure EnsureRequiredLogTables(AllowCapacityDeferral: Boolean)
     var
         TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricPlatformTelemetry: Codeunit "Fabric Platform Telemetry";
         MissingTableCount: Integer;
+        SelectedCount: Integer;
+        MaxTables: Integer;
     begin
         TenantFabricTables.LockTable();
         if not TenantFabricTables.Get(Database::"Tenant Fabric Export Details") then
             MissingTableCount += 1;
         if not TenantFabricTables.Get(Database::"Tenant Fabric Export Summary") then
             MissingTableCount += 1;
+        if AllowCapacityDeferral then begin
+            SelectedCount := SelectedTableCount();
+            MaxTables := MaxTableCount();
+            if SelectedCount + MissingTableCount > MaxTables then begin
+                FabricPlatformTelemetry.LogRequiredLogTablesDeferred(SelectedCount, MissingTableCount, MaxTables);
+                exit;
+            end;
+        end;
         EnsureCapacity(MissingTableCount);
 
         ClaimTable(Database::"Tenant Fabric Export Details", "Fabric Table Claim Source"::Manual, '');
@@ -225,6 +241,10 @@ codeunit 48520 "Fabric Platform Mgt"
         TenantFabricTables: Record "Tenant Fabric Tables";
     begin
         if TenantFabricTables.Get(TableId) then begin
+            if IsRequiredLogTable(TableId) and (TenantFabricTables."Fabric Schema Type" <> "Fabric Schema Type"::Logging) then begin
+                TenantFabricTables.Validate("Fabric Schema Type", "Fabric Schema Type"::Logging);
+                TenantFabricTables.Modify(true);
+            end;
             // Adopt a pre-existing (manually added) selection so a later package
             // release cannot delete it.
             if not HasAnyClaim(TableId) then

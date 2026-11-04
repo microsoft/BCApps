@@ -9,7 +9,7 @@ codeunit 48528 "Fabric Upgrade"
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
-        FabricPlatformMgt.EnsureRequiredLogTables();
+        FabricPlatformMgt.EnsureRequiredLogTables(true);
     end;
 
     trigger OnUpgradePerCompany()
