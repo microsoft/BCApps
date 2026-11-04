@@ -677,13 +677,19 @@ report 13416 "Service Order (FI)"
         DimSetEntry2: Record "Dimension Set Entry";
         LanguageMgt: Codeunit Language;
         FormatAddr: Codeunit "Format Address";
+#pragma warning disable AA0204
         NoOfCopies: Integer;
+#pragma warning restore AA0204
         NoOfLoops: Integer;
         OutputNo: Integer;
+#pragma warning disable AA0204
         ShowInternalInfo: Boolean;
+#pragma warning restore AA0204
         Continue: Boolean;
         ShowShippingAddr: Boolean;
+#pragma warning disable AA0204
         ArchiveDocument: Boolean;
+#pragma warning restore AA0204
         CustAddr: array[8] of Text[100];
         ShipToAddr: array[8] of Text[100];
         CompanyAddr: array[8] of Text[100];
@@ -692,7 +698,9 @@ report 13416 "Service Order (FI)"
         OldDimText: Text[120];
         Qty: Decimal;
         Amt: Decimal;
+#pragma warning disable AA0204
         ShowQty: Option Quantity,"Quantity Invoiced";
+#pragma warning restore AA0204
         GrossAmt: Decimal;
         TotalAmt: Decimal;
         TotalGrossAmt: Decimal;

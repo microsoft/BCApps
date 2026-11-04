@@ -492,11 +492,15 @@ report 13410 "Service Contract (FI)"
         CompanyAddr: array[8] of Text[100];
         SalesPersonText: Text[20];
         ShowShippingAddr: Boolean;
+#pragma warning disable AA0204
         ShowComments: Boolean;
         NoOfCopies: Integer;
+#pragma warning restore AA0204
         NoOfLoops: Integer;
         CopyText: Text[30];
+#pragma warning disable AA0204
         LogInteraction: Boolean;
+#pragma warning restore AA0204
         OutputNo: Integer;
         LogInteractionEnable: Boolean;
 

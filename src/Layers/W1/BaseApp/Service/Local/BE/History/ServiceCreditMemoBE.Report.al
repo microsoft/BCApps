@@ -766,14 +766,18 @@ report 11322 "Service - Credit Memo (BE)"
         TotalInclVATText: Text[50];
         VATClauseText: Text;
         MoreLines: Boolean;
+#pragma warning disable AA0204
         NoOfCopies: Integer;
+#pragma warning restore AA0204
         NoOfLoops: Integer;
         OutputNo: Integer;
         TypeInt: Integer;
         CopyText: Text[30];
         ShowShippingAddr: Boolean;
         DimText: Text[120];
+#pragma warning disable AA0204
         ShowInternalInfo: Boolean;
+#pragma warning restore AA0204
         FirstValueEntryNo: Integer;
         PostedReceiptDate: Date;
         NextEntryNo: Integer;

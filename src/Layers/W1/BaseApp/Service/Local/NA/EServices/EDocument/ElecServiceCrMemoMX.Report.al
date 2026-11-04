@@ -1081,6 +1081,7 @@ report 10478 "Elec. Service Cr Memo MX"
     end;
 
     var
+#pragma warning disable AA0074, AA0470
         Text000: Label 'Salesperson';
         Text001: Label 'Total %1';
         Text002: Label 'Total %1 Incl. VAT';
@@ -1089,6 +1090,7 @@ report 10478 "Elec. Service Cr Memo MX"
         Text005: Label 'Service - Credit Memo %1';
         Text006: Label 'Page %1';
         Text007: Label 'Total %1 Excl. VAT';
+#pragma warning restore AA0074, AA0470
         GLSetup: Record "General Ledger Setup";
         SalesPurchPerson: Record "Salesperson/Purchaser";
         CompanyBankAccount: Record "Bank Account";

@@ -1523,7 +1523,9 @@ report 11325 "Service Document - Test (BE)"
         end;
     end;
 
+#pragma warning disable AA0244
     local procedure VerifyCustomerNo(ServiceHeader: Record "Service Header")
+#pragma warning restore AA0244
     var
         ShipQtyExist: Boolean;
     begin
@@ -1559,7 +1561,9 @@ report 11325 "Service Document - Test (BE)"
                     Cust.TableCaption(), ServiceHeader."Customer No."));
     end;
 
+#pragma warning disable AA0244
     local procedure VerifyBilltoCustomerNo(ServiceHeader: Record "Service Header")
+#pragma warning restore AA0244
     begin
         if ServiceHeader."Bill-to Customer No." = '' then
             AddError(StrSubstNo(Text006, ServiceHeader.FieldCaption("Bill-to Customer No.")))
@@ -1586,7 +1590,9 @@ report 11325 "Service Document - Test (BE)"
                         Cust.TableCaption(), ServiceHeader."Bill-to Customer No."));
     end;
 
+#pragma warning disable AA0244
     local procedure VerifyPostingDate(ServiceHeader: Record "Service Header")
+#pragma warning restore AA0244
     var
         UserSetupManagement: Codeunit "User Setup Management";
         TempErrorText: Text[250];
@@ -1602,7 +1608,9 @@ report 11325 "Service Document - Test (BE)"
     end;
 
     [IntegrationEvent(false, false)]
+#pragma warning disable AA0244
     local procedure OnAfterCheckServiceDoc(ServiceHeader: Record "Service Header"; var ErrorText: array[99] of Text[250]; var ErrorCounter: Integer)
+#pragma warning restore AA0244
     begin
     end;
 

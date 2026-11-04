@@ -479,8 +479,10 @@ report 13412 "Service Contract Quote (FI)"
         ShipToAddr: array[8] of Text[100];
         CompanyAddr: array[8] of Text[100];
         ShowShippingAddr: Boolean;
+#pragma warning disable AA0204
         ShowComments: Boolean;
         NoOfCopies: Integer;
+#pragma warning restore AA0204
         NoOfLoops: Integer;
         CopyText: Text[30];
 #pragma warning disable AA0074
@@ -489,7 +491,9 @@ report 13412 "Service Contract Quote (FI)"
         Text002: Label 'Page %1';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
+#pragma warning disable AA0204
         LogInteraction: Boolean;
+#pragma warning restore AA0204
         OutputNo: Integer;
         LogInteractionEnable: Boolean;
         ServContractStartDtCptnLbl: Label 'Starting Date';

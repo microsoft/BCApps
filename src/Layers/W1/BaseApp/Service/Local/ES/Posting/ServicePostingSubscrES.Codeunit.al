@@ -24,9 +24,11 @@ codeunit 10789 "Service Posting Subscr. ES"
 {
     var
         CannotCreateCarteraDocErr: Label 'You do not have permissions to create Documents in Cartera.\Please, change the Payment Method.';
+#pragma warning disable AA0074
         Text1100000: Label 'The Credit Memo doesn''t have a Corrected Invoice No. Do you want to continue?';
         Text1100001: Label 'The posting process has been cancelled by the user.';
         Text1100002: Label 'Corrective Invoice';
+#pragma warning restore AA0074
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", 'OnAfterPostWithLines', '', true, true)]
     local procedure OnAfterPostWithLines(var PassedServiceHeader: Record "Service Header"; var IsHandled: Boolean)
@@ -143,9 +145,11 @@ codeunit 10789 "Service Posting Subscr. ES"
         CustLedgEntry: Record "Cust. Ledger Entry";
         Customer: Record Customer;
         ShowError: Boolean;
+#pragma warning disable AA0074, AA0198
         Text1100000: Label 'At least one document of %1 No. %2 is closed or in a Bill Group.';
         Text1100001: Label 'This will avoid the document to be settled.\';
         Text1100002: Label 'The posting process of %3 No. %4 will not settle any document.\';
+#pragma warning restore AA0074, AA0198
         ApplyToOldestErr: Label 'Due this customer is using Apply to Oldest Application Method, please remove the lines for the Bill Group before posting.';
         ManualApplicationErr: Label 'Please change the Applies-to Doc. No. or remove the applied document from the Bill Group before posting.';
     begin

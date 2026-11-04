@@ -835,7 +835,9 @@ report 11321 "Service - Invoice (BE)"
         TotalText: Text[50];
         TotalExclVATText: Text[50];
         TotalInclVATText: Text[50];
+#pragma warning disable AA0204
         NoOfCopies: Integer;
+#pragma warning restore AA0204
         NoOfLoops: Integer;
         CopyText: Text[30];
         ShowShippingAddr: Boolean;
@@ -844,7 +846,9 @@ report 11321 "Service - Invoice (BE)"
         OutputNo: Integer;
         TypeInt: Integer;
         DimText: Text[120];
+#pragma warning disable AA0204
         ShowInternalInfo: Boolean;
+#pragma warning restore AA0204
         TotalLineAmount: Decimal;
         TotalAmount: Decimal;
         TotalAmountInclVAT: Decimal;
@@ -855,7 +859,9 @@ report 11321 "Service - Invoice (BE)"
         IsServiceContractLine: Boolean;
         AccNo: Code[20];
         ServiceItemSerialNo: Code[50];
+#pragma warning disable AA0204
         DisplayAdditionalFeeNote: Boolean;
+#pragma warning restore AA0204
         FinishingDateText: Text[50];
 
 #pragma warning disable AA0074

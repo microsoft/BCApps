@@ -21,11 +21,13 @@ codeunit 12140 "Serv. Document Mgt. IT"
 {
     var
         ShipmentMethod: Record "Shipment Method";
+#pragma warning disable AA0074, AA0470
         Text1130013: Label 'You cannot change %1 because %2 is not blank';
         Text1130016: Label '%1 will be modified according to %2';
         Text1130017: Label '%1 cannot be less than %2';
         Text1130018: Label '%1 cannot be greater than %2';
         Text1130019: Label 'A Posting No. has been assigned to this record. You cannot delete this document.';
+#pragma warning restore AA0074, AA0470
 
     // Service Header
 

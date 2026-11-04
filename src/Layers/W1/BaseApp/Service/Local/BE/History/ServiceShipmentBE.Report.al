@@ -632,7 +632,9 @@ report 11323 "Service - Shipment (BE)"
         FormatAddr: Codeunit "Format Address";
         FormatDocument: Codeunit "Format Document";
         ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
+#pragma warning disable AA0204
         NoOfCopies: Integer;
+#pragma warning restore AA0204
         NoOfLoops: Integer;
         TrackingSpecCount: Integer;
         OldRefNo: Integer;
@@ -647,9 +649,13 @@ report 11323 "Service - Shipment (BE)"
         DimText: Text[120];
         ShowCustAddr: Boolean;
         MoreLines: Boolean;
+#pragma warning disable AA0204
         ShowInternalInfo: Boolean;
+#pragma warning restore AA0204
         ShowCorrectionLines: Boolean;
+#pragma warning disable AA0204
         ShowLotSN: Boolean;
+#pragma warning restore AA0204
         ShowTotal: Boolean;
         ShowGroup: Boolean;
         OutputNo: Integer;

@@ -14,10 +14,12 @@ codeunit 12193 "Serv. VAT Report Validation"
         IncludeinVATReportErrorLog: Record "Incl. in VAT Report Error Log";
         InclInVATReportValidation: Codeunit "Incl. in VAT Report Validation";
 
+#pragma warning disable AA0074, AA0470
         Text005: Label 'You must specify a value for the %1 field in the document header when the %2 field is selected and the %3 field is set to %4.';
         Text006: Label 'You must specify a value for the %1 field in the document header when the %2 field is not selected.';
         Text007: Label 'You must specify a value for the %1 field in the document header when the %2 field is set to %3.';
         Text011: Label 'You cannot select the %1 field when the %2 field is set to %3 and the %4 field is set to %5.';
+#pragma warning restore AA0074, AA0470
 
     procedure ValidateServiceHeader(ServiceHeader: Record "Service Header"; var IncludeVATReportErrorLogParam: Record "Incl. in VAT Report Error Log" temporary)
     var
