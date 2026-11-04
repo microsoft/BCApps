@@ -11,7 +11,6 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
-using Microsoft.Foundation.Period;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
@@ -115,24 +114,6 @@ codeunit 139685 "Contract Test Library"
         InitSourceCodeSetup();
 
         ContractsAppInitialized := true;
-    end;
-
-    internal procedure CreateAccountingPeriodsForDeferral(PostingDate: Date; NumberOfPeriods: Integer)
-    var
-        AccountingPeriod: Record "Accounting Period";
-        PeriodStartDate: Date;
-        PeriodIndex: Integer;
-    begin
-        PeriodStartDate := CalcDate('<-CM>', PostingDate);
-        // Straight-line deferrals can span an extra partial month and need a following period boundary.
-        for PeriodIndex := 0 to NumberOfPeriods + 1 do begin
-            if not AccountingPeriod.Get(PeriodStartDate) then begin
-                AccountingPeriod.Init();
-                AccountingPeriod.Validate("Starting Date", PeriodStartDate);
-                AccountingPeriod.Insert(false);
-            end;
-            PeriodStartDate := CalcDate('<1M>', PeriodStartDate);
-        end;
     end;
 
     procedure InitSourceCodeSetup()
