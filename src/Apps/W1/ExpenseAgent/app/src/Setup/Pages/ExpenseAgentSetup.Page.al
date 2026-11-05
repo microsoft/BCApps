@@ -311,8 +311,12 @@ page 6996 "Expense Agent Setup"
                         if ExpenseUsers.RunModal() = Action::LookupOK then begin
                             ExpenseUsers.GetRecord(ExpenseUser);
                             if ExpenseUser."No." <> Rec."Default Approver No." then begin
-                                if not ExpenseUser."Can Approve" then begin
-                                    ExpenseUser.Validate("Can Approve", true);
+                                if (not ExpenseUser."Can Approve") or (not ExpenseUser."Unlimited Approval") then begin
+                                    if not ExpenseUser."Can Approve" then
+                                        ExpenseUser.Validate("Can Approve", true);
+
+                                    if not ExpenseUser."Unlimited Approval" then
+                                        ExpenseUser.Validate("Unlimited Approval", true);
                                     ExpenseUser.Modify();
                                 end;
                                 Rec.Validate("Default Approver No.", ExpenseUser."No.");

@@ -19,6 +19,7 @@ codeunit 135301 "O365 Sales Item Charge Tests"
         IncorrectCreditMemoQtyAssignmentErr: Label 'ENU=Item charge assignment incorrect on corrective credit memo.';
         IncorrectAmountOfLinesErr: Label 'ENU=The amount of lines must be greater than 0.';
         QuantityIsNotAsExpectedErr: Label 'Quantity is not as expected.';
+        ItemChargeAssignmentIsNotAsExpectedErr: Label 'Item charge assignment is not as expected.';
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         isInitialized: Boolean;
 
@@ -303,6 +304,58 @@ codeunit 135301 "O365 Sales Item Charge Tests"
 
         // [THEN] Verify results
         VerifyItemChargeAssignmentLines(SalesHeaderInvoice, ItemCharge."No.", 5, 6);
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemChargeAssignmentPageHandler,SuggestItemChargeAssgntByAmountHandler')]
+    procedure SuggestItemChargeByAmountWithZeroPriceSalesLine()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        ItemCharge: Record "Item Charge";
+        ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)";
+        ItemChargeSalesLine: Record "Sales Line";
+        PricedSalesLine: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        ZeroPriceSalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO 653251] Suggesting item charge assignment by amount works when a sales order item line has no price.
+        Initialize();
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibraryInventory.CreateItem(Item);
+
+        LibrarySales.CreateSalesLine(ZeroPriceSalesLine, SalesHeader, ZeroPriceSalesLine.Type::Item, Item."No.", 1);
+        ZeroPriceSalesLine.Validate("Unit Price", 0);
+        ZeroPriceSalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(PricedSalesLine, SalesHeader, PricedSalesLine.Type::Item, Item."No.", 1);
+        PricedSalesLine.Validate("Unit Price", 100);
+        PricedSalesLine.Modify(true);
+
+        LibraryInventory.CreateItemCharge(ItemCharge);
+        LibrarySales.CreateSalesLine(
+            ItemChargeSalesLine, SalesHeader, ItemChargeSalesLine.Type::"Charge (Item)", ItemCharge."No.", 1);
+        ItemChargeSalesLine.Validate("Unit Price", 100);
+        ItemChargeSalesLine.Modify(true);
+
+        ItemChargeSalesLine.ShowItemChargeAssgnt();
+
+        ItemChargeAssignmentSales.SetRange("Document Type", SalesHeader."Document Type");
+        ItemChargeAssignmentSales.SetRange("Document No.", SalesHeader."No.");
+        ItemChargeAssignmentSales.SetRange("Document Line No.", ItemChargeSalesLine."Line No.");
+        ItemChargeAssignmentSales.SetRange("Applies-to Doc. Line No.", ZeroPriceSalesLine."Line No.");
+        Assert.IsTrue(ItemChargeAssignmentSales.FindFirst(), ItemChargeAssignmentIsNotAsExpectedErr);
+        Assert.AreEqual(0, ItemChargeAssignmentSales."Qty. to Assign", ItemChargeAssignmentIsNotAsExpectedErr);
+        Assert.AreEqual(0, ItemChargeAssignmentSales."Amount to Assign", ItemChargeAssignmentIsNotAsExpectedErr);
+
+        ItemChargeAssignmentSales.SetRange("Applies-to Doc. Line No.", PricedSalesLine."Line No.");
+        Assert.IsTrue(ItemChargeAssignmentSales.FindFirst(), ItemChargeAssignmentIsNotAsExpectedErr);
+        Assert.AreEqual(ItemChargeSalesLine.Quantity, ItemChargeAssignmentSales."Qty. to Assign", ItemChargeAssignmentIsNotAsExpectedErr);
+        Assert.IsTrue(ItemChargeAssignmentSales."Amount to Assign" <> 0, ItemChargeAssignmentIsNotAsExpectedErr);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
     local procedure Initialize()

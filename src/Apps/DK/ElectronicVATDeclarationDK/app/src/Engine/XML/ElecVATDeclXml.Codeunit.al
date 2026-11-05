@@ -17,10 +17,14 @@ codeunit 13618 "Elec. VAT Decl. Xml"
         DeeplinkXPathTok: Label '//%1:UrlIndicator', Locked = true;
         VATReturnStatusTok: Label '//%1:AdvisIdentifikator', Locked = true;
         ResponseTransactionIDXPathTok: Label '//%1:TransaktionIdentifier', Locked = true;
-        PeriodXPathTok: Label '//%1:AngivelseBetalingFristStruktur', Locked = true;
         DueDateXPathTok: Label '//%1:AngivelseFristKalenderBetalingDato', Locked = true;
-        PeriodDueDateXPathTok: Label './%1:AngivelseFristKalenderBetalingDato', Locked = true;
-        PeriodFrequencyXPathTok: Label './%1:AngivelseFrekvensNavn', Locked = true;
+        InvalidResponseXmlErr: Label 'The response received from SKAT is not a valid XML document.';
+        FrequencyXPathTok: Label '//ws:AngivelseFrekvensListe/ws:AngivelseFrekvens', Locked = true;
+        FrequencyTypeCodeXPathTok: Label './nv:AngivelseFrekvensTypeCode', Locked = true;
+        DeadlineXPathTok: Label './ws:AngivelseBetalingFristDatoListe/ws:AngivelseBetalingFristDato', Locked = true;
+        DeadlineFilingDateXPathTok: Label './nv:AngivelseFristKalenderFristDato', Locked = true;
+        SkatWsPrefixTok: Label 'ws', Locked = true;
+        SkatNvPrefixTok: Label 'nv', Locked = true;
         Error200XPathTok: Label '//%1:FejlIdentifikator', Locked = true;
         EncodingTypeTok: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary', Locked = true;
         X509TokenTypeTok: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3', Locked = true;
@@ -135,19 +139,46 @@ codeunit 13618 "Elec. VAT Decl. Xml"
         XmlDOMManagement.FindNodesWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(DueDateXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), DueDateNodes);
     end;
 
-    procedure TryGetPeriodNodesFromResponseText(ResponseText: Text) PeriodNodes: XmlNodeList
+    procedure GetFrequencyNodesFromResponseText(ResponseText: Text) FrequencyNodes: XmlNodeList
+    var
+        ResponseXmlDocument: XmlDocument;
     begin
-        XmlDOMManagement.FindNodesWithNamespace(TextToXmlNode(ResponseText), StrSubstNo(PeriodXPathTok, PrefixTok), PrefixTok, GetSkatNamespace1(), PeriodNodes);
+        if not XmlDocument.ReadFrom(ResponseText, ResponseXmlDocument) then
+            Error(InvalidResponseXmlErr);
+        ResponseXmlDocument.AsXmlNode().SelectNodes(FrequencyXPathTok, GetCalendarNamespaceManagerForDocument(ResponseXmlDocument), FrequencyNodes);
     end;
 
-    procedure TryGetDueDateNodeFromPeriodNode(PeriodNode: XmlNode; var DueDateNode: XmlNode): Boolean
+    procedure TryGetFrequencyTypeCodeNodeFromFrequencyNode(FrequencyNode: XmlNode; var FrequencyTypeCodeNode: XmlNode): Boolean
     begin
-        exit(XmlDOMManagement.FindNodeWithNamespace(PeriodNode, StrSubstNo(PeriodDueDateXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), DueDateNode));
+        exit(FrequencyNode.SelectSingleNode(FrequencyTypeCodeXPathTok, GetCalendarNamespaceManager(FrequencyNode), FrequencyTypeCodeNode));
     end;
 
-    procedure TryGetFrequencyNodeFromPeriodNode(PeriodNode: XmlNode; var FrequencyNode: XmlNode): Boolean
+    procedure GetDeadlineNodesFromFrequencyNode(FrequencyNode: XmlNode) DeadlineNodes: XmlNodeList
     begin
-        exit(XmlDOMManagement.FindNodeWithNamespace(PeriodNode, StrSubstNo(PeriodFrequencyXPathTok, PrefixTok), PrefixTok, GetSkatNamespace4(), FrequencyNode));
+        FrequencyNode.SelectNodes(DeadlineXPathTok, GetCalendarNamespaceManager(FrequencyNode), DeadlineNodes);
+    end;
+
+    procedure TryGetFilingDateNodeFromDeadlineNode(DeadlineNode: XmlNode; var FilingDateNode: XmlNode): Boolean
+    begin
+        exit(DeadlineNode.SelectSingleNode(DeadlineFilingDateXPathTok, GetCalendarNamespaceManager(DeadlineNode), FilingDateNode));
+    end;
+
+    local procedure GetCalendarNamespaceManager(ContextXmlNode: XmlNode): XmlNamespaceManager
+    var
+        ContextXmlDocument: XmlDocument;
+    begin
+        if ContextXmlNode.IsXmlDocument() then
+            ContextXmlDocument := ContextXmlNode.AsXmlDocument()
+        else
+            ContextXmlNode.GetDocument(ContextXmlDocument);
+        exit(GetCalendarNamespaceManagerForDocument(ContextXmlDocument));
+    end;
+
+    local procedure GetCalendarNamespaceManagerForDocument(ContextXmlDocument: XmlDocument) NamespaceManager: XmlNamespaceManager
+    begin
+        NamespaceManager.NameTable(ContextXmlDocument.NameTable());
+        NamespaceManager.AddNamespace(SkatWsPrefixTok, GetSkatNamespace1());
+        NamespaceManager.AddNamespace(SkatNvPrefixTok, GetSkatNamespace4());
     end;
 
     procedure TryGetErrorNodeFromResponseText(ResponseText: Text; var ErrorNode: XmlNode) NodeFound: Boolean

@@ -36,6 +36,41 @@ codeunit 139983 "Subc. Management Library"
         end;
     end;
 
+    /// <summary>
+    /// Creates a posted transfer shipment header and line for use in tests.
+    /// </summary>
+    /// <param name="TransferShipmentHeader">Returns the created transfer shipment header.</param>
+    /// <param name="TransferShipmentLine">Returns the created transfer shipment line.</param>
+    procedure CreatePostedTransferShipment(var TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
+    var
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        TransferShipmentHeader.Init();
+        TransferShipmentHeader."No." :=
+            CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(TransferShipmentHeader."No."));
+        TransferShipmentHeader.Insert();
+
+        TransferShipmentLine.Init();
+        TransferShipmentLine."Document No." := TransferShipmentHeader."No.";
+        TransferShipmentLine."Line No." := 10000;
+        TransferShipmentLine.Description :=
+            CopyStr(LibraryRandom.RandText(MaxStrLen(TransferShipmentLine.Description)), 1, MaxStrLen(TransferShipmentLine.Description));
+        TransferShipmentLine.Quantity := LibraryRandom.RandDec(10, 2);
+        TransferShipmentLine.Insert();
+    end;
+
+    /// <summary>
+    /// Deletes a posted transfer shipment header and line created for a test.
+    /// </summary>
+    /// <param name="TransferShipmentHeader">The transfer shipment header to delete.</param>
+    /// <param name="TransferShipmentLine">The transfer shipment line to delete.</param>
+    procedure DeletePostedTransferShipment(var TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
+    begin
+        TransferShipmentLine.Delete();
+        TransferShipmentHeader.Delete();
+    end;
+
     procedure CreateSubContractingPrice(var SubcontractorPrices: Record "Subcontractor Price"; WorkCenterNo: Code[20]; VendorNo: Code[20]; ItemNo: Code[20]; StandardTaskCode: Code[10]; VariantCode: Code[10]; StartDate: Date; UnitOfMeasureCode: Code[10]; MinimumQuantity: Decimal; CurrencyCode: Code[10])
     begin
         SubcontractorPrices.Init();

@@ -220,11 +220,21 @@ table 31105 "Statutory Reporting Setup CZL"
             Caption = 'Official Code';
             DataClassification = CustomerContent;
         }
+#if not CLEANSCHEMA33
         field(81; "Official Name"; Text[30])
         {
-            Caption = 'Official Name';
+            Caption = 'Official Name (Obsolete)';
             DataClassification = CustomerContent;
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by "Official Full Name" field with the longer length.';
         }
+#endif
         field(82; "Official First Name"; Text[30])
         {
             Caption = 'Official First Name';
@@ -238,6 +248,11 @@ table 31105 "Statutory Reporting Setup CZL"
         field(85; "Official Birth Date"; Date)
         {
             Caption = 'Official Birth Date';
+            DataClassification = CustomerContent;
+        }
+        field(86; "Official Full Name"; Text[255])
+        {
+            Caption = 'Official Full Name';
             DataClassification = CustomerContent;
         }
         field(87; "Official Reg.No.of Tax Adviser"; Text[36])

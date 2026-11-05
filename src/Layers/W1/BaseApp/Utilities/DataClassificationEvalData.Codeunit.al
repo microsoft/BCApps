@@ -969,6 +969,7 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(DATABASE::"Power BI Customer Reports");
         SetTableFieldsToNormal(DATABASE::"Power BI Blob");
         SetTableFieldsToNormal(DATABASE::"Power BI Default Selection");
+        SetTableFieldsToNormal(DATABASE::"Power BI Deployment");
         SetTableFieldsToNormal(DATABASE::"Profile Designer Diagnostic");
         SetTableFieldsToNormal(DATABASE::"Designer Diagnostic");
         SetTableFieldsToNormal(DATABASE::"Profile Import");

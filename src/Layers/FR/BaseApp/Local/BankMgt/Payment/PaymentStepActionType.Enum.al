@@ -1,4 +1,4 @@
-﻿#if not CLEAN28
+﻿#if not CLEANSCHEMA31
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -11,7 +11,9 @@ enum 10862 "Payment Step Action Type"
     AssignmentCompatibility = true;
     ObsoleteState = Pending;
     ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+#pragma warning disable AS0074
     ObsoleteTag = '28.0';
+#pragma warning restore AS0074
 
     value(0; "None") { Caption = 'None'; }
     value(1; "Ledger") { Caption = 'Ledger'; }

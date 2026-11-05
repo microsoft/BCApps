@@ -14,6 +14,8 @@ page 7137 "Travel Request Subform"
     SourceTable = "Spend Request Detail";
     AutoSplitKey = true;
     DelayedInsert = true;
+    Permissions = tabledata "Spend Request Detail" = rimd,
+                  tabledata "Spend Request" = rm;
 
     layout
     {

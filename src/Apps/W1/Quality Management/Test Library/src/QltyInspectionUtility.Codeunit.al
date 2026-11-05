@@ -41,6 +41,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Tracking;
 using System.Automation;
 using System.Reflection;
@@ -55,6 +56,16 @@ codeunit 139940 "Qlty. Inspection Utility"
         NoSeriesCodeunit: Codeunit "No. Series";
         DefaultResult2PassCodeLbl: Label 'PASS', Locked = true;
         AdminSupervisorRoleIDTok: Label 'QltyMgmt - Admin', Locked = true;
+
+    /// <summary>
+    /// Exposes the internal tracked inventory lookup to the Quality Management tests.
+    /// </summary>
+    internal procedure GetCurrentLocationOfTrackedInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBinContent: Record "Bin Content" temporary): Boolean
+    var
+        QltyInventoryAvailability: Codeunit "Qlty. Inventory Availability";
+    begin
+        exit(QltyInventoryAvailability.GetCurrentLocationOfTrackedInventory(QltyInspectionHeader, TempBinContent));
+    end;
 
     /// <summary>
     /// Ensures baseline Quality Management setup exists and grants the current user the admin/supervisor permission set.
@@ -1252,14 +1263,14 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for internal procedure HandleNotificationActionIgnore from Qlty. Notification Mgmt. codeunit.
+    /// Wrapper for internal procedure HandleDontShowAssignToYourself from Qlty. Notification Mgmt. codeunit.
     /// </summary>
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
-    internal procedure HandleNotificationActionIgnore(NotificationToShow: Notification)
+    internal procedure HandleDontShowAssignToYourself(NotificationToShow: Notification)
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
     begin
-        QltyNotificationMgmt.HandleNotificationActionIgnore(NotificationToShow);
+        QltyNotificationMgmt.HandleDontShowAssignToYourself(NotificationToShow);
     end;
 
     #endregion Qlty. Notification Mgmt. Wrappers

@@ -164,6 +164,26 @@ table 6153 "E-Document Sales Header"
             Caption = 'Buyer External Id';
             DataClassification = CustomerContent;
         }
+        field(28; "Buyer Endpoint Id"; Text[250])
+        {
+            Caption = 'Buyer Endpoint Id';
+            DataClassification = CustomerContent;
+        }
+        field(29; "Buyer Endpoint Scheme Id"; Text[10])
+        {
+            Caption = 'Buyer Endpoint Scheme Id';
+            DataClassification = CustomerContent;
+        }
+        field(30; "Seller Endpoint Id"; Text[250])
+        {
+            Caption = 'Seller Endpoint Id';
+            DataClassification = CustomerContent;
+        }
+        field(31; "Seller Endpoint Scheme Id"; Text[10])
+        {
+            Caption = 'Seller Endpoint Scheme Id';
+            DataClassification = CustomerContent;
+        }
         #endregion Sales fields
 
         #region Business Central Data - Validated fields [101-200]

@@ -71,6 +71,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         NextToDateBeforeFromDateErr: Label 'CalculateNextToDate returned %1 which is before FromDate %2. This would cause billing to get stuck.', Locked = true;
         NoContractLinesFoundErr: Label 'No contract lines were found that can be billed with the specified parameters.', Locked = true;
         ItemDeletedErr: Label 'Item created from catalog item should not be deleted when the billing invoice is deleted.', Locked = true;
+        UnitPriceErr: Label 'The unit price on the sales line does not match the expected value.', Locked = true;
         StrMenuHandlerStep: Integer;
 
     #region Tests
@@ -260,6 +261,59 @@ codeunit 139687 "Recurring Billing Docs Test"
 
         Assert.AreEqual(ExpectedDescription, SalesLine.Description,
             'Billing period description should use the document format region (en-US), not the operator format region (de-DE)');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure IsLineAttachedToBillingLineReturnsPerLineResultWhenSalesLineVariableIsReused()
+    var
+        BillingLineForLine: Record "Billing Line";
+        AttachedLineFound: Boolean;
+        NotAttachedLineFound: Boolean;
+        ExpectedAttached: Boolean;
+        IsLineAttachedMismatchErr: Label 'IsLineAttachedToBillingLine returned the wrong value for line %1 when the Sales Line variable was reused across lines.', Comment = '%1 = Sales Line "Line No."';
+    begin
+        // [SCENARIO] The public IsLineAttachedToBillingLine() returns the correct value for each line when the same
+        // Sales Line record variable is reused across lines without calling InitCachedVar() in between. An external
+        // caller must never receive a cached result belonging to a previously read line.
+        Initialize();
+
+        // [GIVEN] A customer contract with subscription lines and a billing proposal
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+
+        // [GIVEN] Billing documents are created (a Sales Invoice holding both billing lines and non-attached description lines)
+        CreateBillingDocuments();
+
+        // [GIVEN] The created Sales Invoice
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange(Partner, BillingTemplate.Partner);
+        BillingLine.FindFirst();
+        BillingLine.TestField("Document Type", BillingLine."Document Type"::Invoice);
+
+        // [WHEN] Iterating over every line of the document reusing the same Sales Line variable, without calling InitCachedVar()
+        // [THEN] Each line reports its own attachment state (ground truth read directly from the Billing Line table)
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", BillingLine.GetSalesDocumentTypeFromBillingDocumentType());
+        SalesLine.SetRange("Document No.", BillingLine."Document No.");
+        SalesLine.FindSet();
+        repeat
+            BillingLineForLine.Reset();
+            BillingLineForLine.FilterBillingLineOnDocumentLine(BillingLineForLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"), SalesLine."Document No.", SalesLine."Line No.");
+            ExpectedAttached := not BillingLineForLine.IsEmpty();
+
+            Assert.AreEqual(ExpectedAttached, SalesLine.IsLineAttachedToBillingLine(), StrSubstNo(IsLineAttachedMismatchErr, SalesLine."Line No."));
+
+            if ExpectedAttached then
+                AttachedLineFound := true
+            else
+                NotAttachedLineFound := true;
+        until SalesLine.Next() = 0;
+
+        // [THEN] The scenario actually exercised both an attached and a non-attached line with the reused variable
+        Assert.IsTrue(AttachedLineFound, 'Expected at least one line attached to a billing line.');
+        Assert.IsTrue(NotAttachedLineFound, 'Expected at least one line not attached to a billing line.');
     end;
 
     [Test]
@@ -2686,6 +2740,85 @@ codeunit 139687 "Recurring Billing Docs Test"
         // [THEN] NextToDate is not before FromDate
         Assert.IsTrue(NextToDate >= FromDate,
             StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsSellToCustomerPageHandler,MessageHandler')]
+    procedure CreateSalesDocumentPerSellToCustomerUsesContractCurrency()
+    var
+        Customer: Record Customer;
+        ExpectedUnitPrice: Decimal;
+    begin
+        Initialize();
+
+        // [GIVEN] A customer in local currency with a contract and contract lines for items
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
+        Customer.Get(CustomerContract."Sell-to Customer No.");
+        Customer.Validate("Currency Code", LibraryERM.CreateCurrencyWithRandomExchRates());
+        Customer.Modify(false);
+        CustomerContract.TestField("Currency Code", '');
+
+        // [GIVEN] A billing proposal is created for the customer
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+
+        // [WHEN] Billing documents are created for the customer.
+        CreateBillingDocuments();
+
+        // [THEN] The sales document uses the contract currency
+        BillingLine.FindLast();
+        SalesHeader.Get(BillingLine.GetSalesDocumentTypeFromBillingDocumentType(), BillingLine."Document No.");
+        SalesHeader.TestField("Currency Code", CustomerContract."Currency Code");
+        SalesHeader.TestField("Currency Factor", 0);
+        FilterSalesLineOnDocumentLine(SalesHeader."Document Type", BillingLine."Document No.", BillingLine."Document Line No.");
+        SalesLine.FindFirst();
+        BillingLine.Reset();
+        BillingLine.SetRange("Document Type", BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesHeader."Document Type"));
+        BillingLine.SetRange("Document No.", SalesHeader."No.");
+        BillingLine.SetRange("Document Line No.", SalesLine."Line No.");
+        if BillingLine.FindSet() then
+            repeat
+                ExpectedUnitPrice += BillingLine."Unit Price";
+            until BillingLine.Next() = 0;
+        Assert.AreEqual(ExpectedUnitPrice, SalesLine."Unit Price", UnitPriceErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CheckIfBillingLinesAreDeletedOnCreateVendorInvoiceWithError()
+    var
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 652758] Billing lines must be removed when Vendor Subscription Contract invoice creation fails (e.g. no vendor on the contract)
+        Initialize();
+
+        ContractTestLibrary.DeleteAllContractRecords();
+        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
+
+        // [GIVEN] The Vendor Subscription Contract has no vendor so the purchase document creation fails
+        VendorContract."Buy-from Vendor No." := '';
+        VendorContract."Pay-to Vendor No." := '';
+        VendorContract.Modify(false);
+        Commit(); // Persist the setup so only the billing lines created below are affected
+
+        // [WHEN] The billing proposal lines are created (same first step the Create Contract Invoice action performs)
+        BillingProposal.CreateBillingProposalForContract("Service Partner"::Vendor, VendorContract."No.", '', VendorContract.GetFilter("Billing Rhythm Filter"), WorkDate(), WorkDate());
+
+        // [THEN] The billing proposal created billing lines for the contract
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", '');
+        BillingLine.SetRange("Subscription Contract No.", VendorContract."No.");
+        Assert.RecordIsNotEmpty(BillingLine);
+
+        // [WHEN] The contract invoice creation fails
+        asserterror BillingProposal.CreateBillingDocument("Service Partner"::Vendor, VendorContract."No.", WorkDate(), WorkDate(), false, false);
+
+        // [THEN] No Billing lines remain for the Vendor Subscription Contract
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", '');
+        BillingLine.SetRange("Subscription Contract No.", VendorContract."No.");
+        Assert.RecordIsEmpty(BillingLine);
     end;
 
     #endregion Tests

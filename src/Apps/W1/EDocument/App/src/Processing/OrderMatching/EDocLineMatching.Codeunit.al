@@ -76,7 +76,7 @@ codeunit 6164 "E-Doc. Line Matching"
         RecordRef.Get(EDocument."Document Record ID");
         RecordRef.SetTable(PurchaseHeader);
         PurchaseHeader.Validate("Document Date", EDocument."Document Date");
-        PurchaseHeader.Validate("Vendor Invoice No.", EDocument."Incoming E-Document No.");
+        PurchaseHeader.Validate("Vendor Invoice No.", CopyStr(EDocument."Incoming E-Document No.", 1, MaxStrLen(PurchaseHeader."Vendor Invoice No.")));
         if PurchaseHeader.IsLinkedToEDoc(EDocument) then
             Error(PurchaseHeaderAlreadyLinkedErr);
         PurchaseHeader.Validate("E-Document Link", EDocument.SystemId);
