@@ -292,6 +292,12 @@ codeunit 4609 "Ext. SharePoint REST Helper"
         // Prepend site path if it exists and path doesn't already include it
         if (SitePath <> '') and (Path <> SitePath) and (not Path.StartsWith(SitePath + '/')) then
             Path := SitePath + Path;
+
+        // SharePoint returns 404 for GetFolderByServerRelativePath(decodedurl='.../Folder/'), so drop any trailing separator.
+        // Directory paths such as 'A/' (produced by the Storage Browser '..' navigation) must resolve to '.../A'.
+        Path := Path.TrimEnd(PathSeparator());
+        if Path = '' then
+            Path := PathSeparator();
     end;
 
     local procedure GetSitePathFromUrl(SharePointUrl: Text): Text
@@ -337,10 +343,10 @@ codeunit 4609 "Ext. SharePoint REST Helper"
             exit;
         end;
 
-        if SeparatorPosition = 1 then
-            ParentPath := PathSeparator()
-        else
-            ParentPath := TrimmedPath.Substring(1, SeparatorPosition - 1);
+        // Trim the parent as well, so a doubled separator before the file name ('.../Folder//file.txt') still resolves to '.../Folder'.
+        ParentPath := CopyStr(TrimmedPath, 1, SeparatorPosition - 1).TrimEnd(PathSeparator());
+        if ParentPath = '' then
+            ParentPath := PathSeparator();
         FileName := TrimmedPath.Substring(SeparatorPosition + 1);
     end;
 
