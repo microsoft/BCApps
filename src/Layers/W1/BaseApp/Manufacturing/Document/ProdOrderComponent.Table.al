@@ -1246,7 +1246,10 @@ table 5407 "Prod. Order Component"
             if IsHandled then
                 exit(NeededQty);
 
-            CompQtyBase := MfgCostCalcMgt.CalcActNeededQtyBase(ProdOrderLine, Rec, OutputQtyBase);
+            IsHandled := false;
+            OnGetNeededQtyOnBeforeCalcCompQtyBase(Rec, OutputQtyBase, CompQtyBase, IsHandled);
+            if not IsHandled then
+                CompQtyBase := MfgCostCalcMgt.CalcActNeededQtyBase(ProdOrderLine, Rec, OutputQtyBase);
             OnGetNeededQtyAfterCalcCompQtyBase(Rec, CompQtyBase, OutputQtyBase);
 
             NeededQty := UOMMgt.RoundToItemRndPrecision(CompQtyBase / "Qty. per Unit of Measure", RoundingPrecision);
@@ -1263,6 +1266,7 @@ table 5407 "Prod. Order Component"
                     exit(NeededQty);
                 exit(NeededQty);
             end;
+            OnGetNeededQtyOnBeforeExitAfterPreviousPosting(Rec, CompQtyBase, NeededQty);
             exit(NeededQty);
         end;
         OnGetNeededQtyOnAfterCalcBasedOn(Rec);
@@ -2074,12 +2078,21 @@ table 5407 "Prod. Order Component"
 
     procedure CalcBaseQty(Qty: Decimal; FromFieldName: Text; ToFieldName: Text) Result: Decimal
     var
+        UnroundedBaseQty: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeCalcBaseQty(Rec, CurrFieldNo, Qty, FromFieldName, ToFieldName, Result, IsHandled);
         if IsHandled then
             exit;
+
+        UnroundedBaseQty := Qty * "Qty. per Unit of Measure";
+        if (FromFieldName = FieldCaption(Quantity)) and
+           ("Qty. per Unit of Measure" > 0) and ("Qty. per Unit of Measure" < 1) and
+           (UnroundedBaseQty <> 0) and
+           (UOMMgt.RoundQty(UnroundedBaseQty, "Qty. Rounding Precision (Base)") = 0)
+        then
+            exit(UnroundedBaseQty);
 
         exit(UOMMgt.CalcBaseQty(
             "Item No.", "Variant Code", "Unit of Measure Code", Qty, "Qty. per Unit of Measure", "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FromFieldName, ToFieldName));
@@ -2398,6 +2411,16 @@ table 5407 "Prod. Order Component"
 
     [IntegrationEvent(false, false)]
     local procedure OnGetNeededQtyOnBeforeCalcActNeededQtyBase(var ProdOrderComponent: Record "Prod. Order Component"; var OutputQtyBase: Decimal; var Result: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetNeededQtyOnBeforeCalcCompQtyBase(var ProdOrderComponent: Record "Prod. Order Component"; var OutputQtyBase: Decimal; var CompQtyBase: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetNeededQtyOnBeforeExitAfterPreviousPosting(var ProdOrderComponent: Record "Prod. Order Component"; var CompQtyBase: Decimal; var Result: Decimal)
     begin
     end;
 

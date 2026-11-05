@@ -82,7 +82,7 @@ report 20505 "Subc. Calculate Subcontracts"
 
     trigger OnInitReport()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -116,7 +116,7 @@ report 20505 "Subc. Calculate Subcontracts"
         Item: Record Item;
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -133,7 +133,7 @@ report 20505 "Subc. Calculate Subcontracts"
 
     procedure SetWkShLine(NewReqLine: Record "Requisition Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
