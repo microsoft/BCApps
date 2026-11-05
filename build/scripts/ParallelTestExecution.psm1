@@ -408,58 +408,6 @@ function New-BcTestTenantTemplate {
 
 <#
 .SYNOPSIS
-    Returns T-SQL that ends every user session using a database and then drops it.
-.DESCRIPTION
-    The first result set lists the sessions that are ended, for diagnostics. Ending them
-    explicitly and switching to SINGLE_USER keeps the drop from waiting on a server
-    session that still holds the database (observed as ~30 minute stalls).
-.PARAMETER DatabaseName
-    Database to drop.
-#>
-function Get-BcTestTenantDatabaseDropQuery {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$DatabaseName
-    )
-
-    $literal = $DatabaseName.Replace("'", "''")
-    return @"
-SET NOCOUNT ON;
-DECLARE @db sysname = N'$literal';
-IF DB_ID(@db) IS NULL RETURN;
-DECLARE @sessions TABLE (session_id int PRIMARY KEY);
-INSERT INTO @sessions (session_id)
-SELECT s.session_id FROM sys.dm_exec_sessions s
-WHERE s.is_user_process = 1 AND s.session_id <> @@SPID AND s.database_id = DB_ID(@db)
-UNION
-SELECT l.request_session_id FROM sys.dm_tran_locks l
-JOIN sys.dm_exec_sessions s ON s.session_id = l.request_session_id
-WHERE s.is_user_process = 1 AND l.request_session_id <> @@SPID AND l.resource_database_id = DB_ID(@db);
-SELECT s.session_id, s.program_name, s.status, r.command, r.wait_type, r.blocking_session_id
-FROM @sessions x
-JOIN sys.dm_exec_sessions s ON s.session_id = x.session_id
-LEFT JOIN sys.dm_exec_requests r ON r.session_id = x.session_id;
-DECLARE @id int, @kill nvarchar(30);
-DECLARE session_cursor CURSOR LOCAL FAST_FORWARD FOR SELECT session_id FROM @sessions;
-OPEN session_cursor;
-FETCH NEXT FROM session_cursor INTO @id;
-WHILE @@FETCH_STATUS = 0
-BEGIN
-    SET @kill = N'KILL ' + CAST(@id AS nvarchar(10));
-    BEGIN TRY EXEC (@kill); END TRY BEGIN CATCH END CATCH;
-    FETCH NEXT FROM session_cursor INTO @id;
-END
-CLOSE session_cursor;
-DEALLOCATE session_cursor;
-DECLARE @statement nvarchar(400) = N'ALTER DATABASE ' + QUOTENAME(@db) + N' SET SINGLE_USER WITH ROLLBACK IMMEDIATE';
-EXEC (@statement);
-SET @statement = N'DROP DATABASE ' + QUOTENAME(@db);
-EXEC (@statement);
-"@
-}
-
-<#
-.SYNOPSIS
     Replaces a tenant database with a copy of an idle source database.
 .PARAMETER ContainerName
     Name of the BC container.
@@ -482,38 +430,25 @@ function Reset-BcTestTenant {
         [string]$TemplateDatabaseName
     )
 
-    $dropQuery = Get-BcTestTenantDatabaseDropQuery -DatabaseName $TenantDatabaseName
-
     Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -scriptblock {
-        Param($tenant, $tenantDatabaseName, $templateDatabaseName, $dropQuery)
+        Param($tenant, $tenantDatabaseName, $templateDatabaseName)
 
         $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
         $mountedTenant = Get-NAVTenant -ServerInstance $ServerInstance -Tenant $tenant -ErrorAction SilentlyContinue
         if ($mountedTenant) {
-            # End the tenant's server sessions first so none of them keeps the database in use.
-            # Internal sessions report negative IDs, which Remove-NAVServerSession rejects.
-            try {
-                $serverSessions = @(Get-NAVServerSession -ServerInstance $ServerInstance -Tenant $tenant -ErrorAction SilentlyContinue | Where-Object { $_.SessionId -ge 0 })
-            } catch {
-                Write-Host "WARNING: Could not list server sessions for tenant '$tenant': $($_.Exception.Message)"
-                $serverSessions = @()
-            }
-            foreach ($serverSession in $serverSessions) {
-                try {
-                    Remove-NAVServerSession -ServerInstance $ServerInstance -Tenant $tenant -SessionId $serverSession.SessionId -Force -ErrorAction Stop
-                } catch {
-                    Write-Host "WARNING: Could not end server session $($serverSession.SessionId) for tenant '$tenant': $($_.Exception.Message)"
-                }
-            }
             Dismount-NAVTenant -ServerInstance $ServerInstance -Tenant $tenant -Force | Out-Null
         }
+        $dismountSeconds = [math]::Round($stopwatch.Elapsed.TotalSeconds, 2)
 
+        # Bounded drop: Remove-NAVDatabase has no timeout and occasionally waits ~30 minutes.
         $databaseServer = Get-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName DatabaseServer
+        if (-not $databaseServer) { $databaseServer = 'localhost' }
         $databaseInstance = Get-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName DatabaseInstance
-        if ([string]::IsNullOrWhiteSpace($databaseServer)) { $databaseServer = 'localhost' }
+        $databaseLiteral = $tenantDatabaseName.Replace("'", "''")
+        $databaseIdentifier = $tenantDatabaseName.Replace(']', ']]')
         $sqlParameters = @{
-            ServerInstance = if ([string]::IsNullOrWhiteSpace($databaseInstance)) { $databaseServer } else { "$databaseServer\$databaseInstance" }
-            Query = $dropQuery
+            ServerInstance = if ($databaseInstance) { "$databaseServer\$databaseInstance" } else { $databaseServer }
+            Query = "IF DB_ID(N'$databaseLiteral') IS NOT NULL BEGIN ALTER DATABASE [$databaseIdentifier] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [$databaseIdentifier]; END"
             QueryTimeout = 120
             ErrorAction = 'Stop'
         }
@@ -526,11 +461,8 @@ function Reset-BcTestTenant {
         for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
             try {
                 $dropStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-                $endedSessions = @(Invoke-Sqlcmd @sqlParameters)
-                foreach ($session in $endedSessions) {
-                    Write-Host "Ended SQL session $($session.session_id) on '$tenantDatabaseName' (program '$($session.program_name)', status '$($session.status)', command '$($session.command)', wait '$($session.wait_type)', blocked by '$($session.blocking_session_id)')."
-                }
-                Write-Host "Dropped database '$tenantDatabaseName' in $([math]::Round($dropStopwatch.Elapsed.TotalSeconds, 2)) seconds after ending $($endedSessions.Count) SQL session(s)."
+                Invoke-Sqlcmd @sqlParameters | Out-Null
+                Write-Host "Dismounted tenant '$tenant' in $dismountSeconds seconds; dropped database '$tenantDatabaseName' in $([math]::Round($dropStopwatch.Elapsed.TotalSeconds, 2)) seconds."
 
                 Copy-NAVDatabase -SourceDatabaseName $templateDatabaseName -DestinationDatabaseName $tenantDatabaseName -DatabaseServer "." | Out-Null
                 break
@@ -559,7 +491,7 @@ function Reset-BcTestTenant {
 
         $stopwatch.Stop()
         Write-Host "Refreshed tenant '$tenant' from '$templateDatabaseName' in $([math]::Round($stopwatch.Elapsed.TotalSeconds, 2)) seconds."
-    } -argumentList $Tenant, $TenantDatabaseName, $TemplateDatabaseName, $dropQuery
+    } -argumentList $Tenant, $TenantDatabaseName, $TemplateDatabaseName
 }
 
 function Remove-BcTestTenantTemplate {
