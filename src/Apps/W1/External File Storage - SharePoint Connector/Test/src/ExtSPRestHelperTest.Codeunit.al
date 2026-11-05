@@ -130,7 +130,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
         TempBlob.CreateInStream(InStream);
 
         ConnectorImpl.CreateFile(Account.Id, ResourcePathFileName, InStream);
-        AssertDecodedRequestPath(FileAddPath, '/sites/test/Reports #50%/Literal%20Folder/');
+        AssertDecodedRequestPath(FileAddPath, '/sites/test/Reports #50%/Literal%20Folder');
         Assert.IsTrue(FileAddPath.Contains('Invoice%20%2350%2523.pdf'), 'Upload must encode the filename without decoding literal %23');
 
         ConnectorImpl.GetFile(Account.Id, ResourcePathFileName, InStream);
@@ -139,7 +139,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
         AssertDecodedRequestPath(DownloadPath, '/sites/test/Reports #50%/Literal%20Folder/' + ResourcePathFileName);
 
         Assert.IsTrue(ConnectorImpl.FileExists(Account.Id, ResourcePathFileName), 'FileExists must use the decoded parent folder');
-        AssertDecodedRequestPath(LastPath, '/sites/test/Reports #50%/Literal%20Folder/');
+        AssertDecodedRequestPath(LastPath, '/sites/test/Reports #50%/Literal%20Folder');
 
         ConnectorImpl.ListFiles(Account.Id, '', Pagination, TempContent);
         Assert.RecordCount(TempContent, 1);
@@ -246,6 +246,30 @@ codeunit 144586 "Ext. SP REST Helper Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateFileHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestCreateFileInSubfolderTargetsParentFolderWithoutTrailingSlash()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        OutStream: OutStream;
+    begin
+        // [GIVEN] A file to upload into a nested folder
+        Initialize(Account);
+        TempBlob.CreateOutStream(OutStream);
+        OutStream.WriteText('content');
+        TempBlob.CreateInStream(InStream);
+
+        // [WHEN] Creating the file
+        RestHelper.CreateFile(Account, 'Invoices/2026/file.txt', InStream);
+
+        // [THEN] The parent folder is addressed without a trailing slash, which SharePoint rejects with 404
+        AssertDecodedRequestPath(FileAddPath, '/sites/test/Invoices/2026');
+        Assert.IsTrue(FileAddPath.Contains('file.txt'), 'The upload should target the requested file name. Actual: ' + FileAddPath);
+    end;
+
+    [Test]
     [HandlerFunctions('CopyFileHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestCopyFileDownloadsSourceAndCreatesTargetWithoutDelete()
@@ -298,6 +322,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
 
         // [WHEN] / [THEN]
         Assert.IsTrue(RestHelper.FileExists(Account, 'file.txt'), 'FileExists should return true');
+        AssertDecodedRequestPath(LastPath, '/sites/test');
     end;
 
     [Test]
