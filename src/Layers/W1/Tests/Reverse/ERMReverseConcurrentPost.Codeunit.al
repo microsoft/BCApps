@@ -22,7 +22,6 @@ codeunit 134194 "ERM Reverse Concurrent Post"
     var
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryRandom: Codeunit "Library - Random";
         LibraryERM: Codeunit "Library - ERM";
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -165,7 +164,7 @@ codeunit 134194 "ERM Reverse Concurrent Post"
         asserterror ReversalEntry.ReverseRegister(GLRegisterNo);
 
         // [THEN] An error is raised that the register has already been reversed.
-        Assert.AreEqual(StrSubstNo(ReversalErr, GLRegisterNo), GetLastErrorText, 'Unexpected error message when reversing an already-reversed register.');
+        Assert.ExpectedError(StrSubstNo(ReversalErr, GLRegisterNo));
     end;
 
     [Test]
@@ -236,7 +235,7 @@ codeunit 134194 "ERM Reverse Concurrent Post"
         LibraryERM.CreateGeneralJnlLine(
             GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
             GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account",
-            GLAccountNo, LibraryRandom.RandInt(100));
+            GLAccountNo, 100);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
@@ -249,7 +248,7 @@ codeunit 134194 "ERM Reverse Concurrent Post"
         LibraryERM.CreateGeneralJnlLine(
             GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
             GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::Customer,
-            CustomerNo, -LibraryRandom.RandInt(100));
+            CustomerNo, -100);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
@@ -262,7 +261,7 @@ codeunit 134194 "ERM Reverse Concurrent Post"
         LibraryERM.CreateGeneralJnlLine(
             GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
             GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::Vendor,
-            VendorNo, LibraryRandom.RandInt(100));
+            VendorNo, 100);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 

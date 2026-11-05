@@ -39,6 +39,7 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         Assert: Codeunit Assert;
+        EmployeePostingGroupCode: Code[20];
         IsInitialized: Boolean;
         UnappliedErr: Label '%1 %2 field must be true after Unapply entries.', Locked = true;
         TotalAmountErr: Label 'Total Amount must be %1 in %2 table for %3 field : %4.', Locked = true;
@@ -672,16 +673,11 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     // -------------------------------------------------------------------------
 
     local procedure Initialize()
-    var
-        EmployeePostingGroup: Record "Employee Posting Group";
-        Employee: Record Employee;
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Concurrent Apply Unapply");
         LibrarySetupStorage.Restore();
 
-        EmployeePostingGroup.DeleteAll();
-        Employee.DeleteAll();
-        CreateEmployeePostingGroup(LibraryERM.CreateGLAccountNoWithDirectPosting());
+        EmployeePostingGroupCode := CreateEmployeePostingGroup(LibraryERM.CreateGLAccountNoWithDirectPosting());
         if IsInitialized then begin
             EnableConcurrentPosting(true);
             exit;
@@ -835,23 +831,21 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     // -------------------------------------------------------------------------
 
     local procedure CreateEmployee(var Employee: Record Employee)
-    var
-        EmployeePostingGroup: Record "Employee Posting Group";
     begin
         LibraryHumanResource.CreateEmployee(Employee);
-        EmployeePostingGroup.FindFirst();
-        Employee.Validate("Employee Posting Group", EmployeePostingGroup.Code);
+        Employee.Validate("Employee Posting Group", EmployeePostingGroupCode);
         Employee.Validate("Application Method", Employee."Application Method"::Manual);
         Employee.Modify(true);
     end;
 
-    local procedure CreateEmployeePostingGroup(GLAccountNo: Code[20])
+    local procedure CreateEmployeePostingGroup(GLAccountNo: Code[20]): Code[20]
     var
         EmployeePostingGroup: Record "Employee Posting Group";
     begin
         LibraryHumanResource.CreateEmployeePostingGroup(EmployeePostingGroup);
         EmployeePostingGroup.Validate("Payables Account", GLAccountNo);
         EmployeePostingGroup.Modify(true);
+        exit(EmployeePostingGroup.Code);
     end;
 
     local procedure CreateEmployeeJournalLine(var GenJournalLine: Record "Gen. Journal Line"; NoOfLine: Integer; EmployeeNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; Amount: Decimal)
@@ -929,19 +923,16 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     local procedure VerifyDtldCustLedgEntryApplicationSum(DocumentNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        TotalAmount: Decimal;
     begin
         DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
         DetailedCustLedgEntry.SetRange("Document No.", DocumentNo);
         DetailedCustLedgEntry.SetRange("Document Type", DocumentType);
-        DetailedCustLedgEntry.FindSet();
-        repeat
-            TotalAmount += DetailedCustLedgEntry.Amount;
-        until DetailedCustLedgEntry.Next() = 0;
+        Assert.RecordIsNotEmpty(DetailedCustLedgEntry);
+        DetailedCustLedgEntry.CalcSums(Amount);
         Assert.AreEqual(
-            0, TotalAmount,
+            0, DetailedCustLedgEntry.Amount,
             StrSubstNo(TotalAmountErr, 0, DetailedCustLedgEntry.TableCaption(),
-                DetailedCustLedgEntry.FieldCaption("Entry Type"), DetailedCustLedgEntry."Entry Type"));
+                DetailedCustLedgEntry.FieldCaption("Entry Type"), DetailedCustLedgEntry."Entry Type"::Application));
     end;
 
     local procedure VerifyUnappliedDtldVendLedgEntry(DocumentNo: Code[20]; VendorNo: Code[20])
@@ -973,19 +964,16 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     local procedure VerifyDtldVendLedgEntryApplicationSum(DocumentNo: Code[20]; VendorNo: Code[20])
     var
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
-        TotalAmount: Decimal;
     begin
         DetailedVendorLedgEntry.SetRange("Entry Type", DetailedVendorLedgEntry."Entry Type"::Application);
         DetailedVendorLedgEntry.SetRange("Document No.", DocumentNo);
         DetailedVendorLedgEntry.SetRange("Vendor No.", VendorNo);
-        DetailedVendorLedgEntry.FindSet();
-        repeat
-            TotalAmount += DetailedVendorLedgEntry.Amount;
-        until DetailedVendorLedgEntry.Next() = 0;
+        Assert.RecordIsNotEmpty(DetailedVendorLedgEntry);
+        DetailedVendorLedgEntry.CalcSums(Amount);
         Assert.AreEqual(
-            0, TotalAmount,
+            0, DetailedVendorLedgEntry.Amount,
             StrSubstNo(TotalAmountErr, 0, DetailedVendorLedgEntry.TableCaption(),
-                DetailedVendorLedgEntry.FieldCaption("Entry Type"), DetailedVendorLedgEntry."Entry Type"));
+                DetailedVendorLedgEntry.FieldCaption("Entry Type"), DetailedVendorLedgEntry."Entry Type"::Application));
     end;
 
     local procedure VerifyUnappliedDtldEmplLedgEntry(DocumentNo: Code[20]; EmployeeNo: Code[20])

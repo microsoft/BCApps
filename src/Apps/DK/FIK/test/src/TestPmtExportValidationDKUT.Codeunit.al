@@ -995,9 +995,9 @@ codeunit 148027 "TestPmtExport Validation DK UT"
         PaymentTypeValidation := FORMAT(PaymentMethod.PaymentTypeValidation);
 
         // Exercise
-        COMMIT();
-        GenJnlLine.SETRANGE("Journal Template Name", GenJnlLine."Journal Template Name");
-        GenJnlLine.SETRANGE("Journal Batch Name", GenJnlLine."Journal Batch Name");
+        Commit();
+        GenJnlLine.SetRange("Journal Template Name", GenJnlLine."Journal Template Name");
+        GenJnlLine.SetRange("Journal Batch Name", GenJnlLine."Journal Batch Name");
         ASSERTERROR CODEUNIT.RUN(CODEUNIT::"Exp. Flat File Validation", GenJnlLine);
 
         // Verify

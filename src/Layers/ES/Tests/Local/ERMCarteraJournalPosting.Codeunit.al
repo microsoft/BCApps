@@ -53,6 +53,11 @@ codeunit 144013 "ERM Cartera Journal Posting"
     var
         GenJournalLine: Record "Gen. Journal Line";
     begin
+        // [FEATURE] [Cartera] [Receivables] [Concurrent Posting]
+        // [SCENARIO] A receivable bill retains its G/L reservation despite an intervening sequence allocation.
+        // [GIVEN] Concurrent posting is enabled and a customer bill journal line is prepared.
+        // [WHEN] The bill is posted with an intervening G/L sequence allocation.
+        // [THEN] Posting uses its saved reservation, leaves the unrelated reservation unused, and balances.
         PostBillWithInterveningGLAllocation(GenJournalLine."Account Type"::Customer);
     end;
 
@@ -62,6 +67,11 @@ codeunit 144013 "ERM Cartera Journal Posting"
     var
         GenJournalLine: Record "Gen. Journal Line";
     begin
+        // [FEATURE] [Cartera] [Payables] [Concurrent Posting]
+        // [SCENARIO] Payment of a payable bill retains its G/L reservation despite an intervening sequence allocation.
+        // [GIVEN] Concurrent posting is enabled, a vendor bill is posted, and an applying payment is prepared.
+        // [WHEN] The payment is posted with an intervening G/L sequence allocation.
+        // [THEN] Posting uses its saved reservation, leaves the unrelated reservation unused, and balances.
         PostBillWithInterveningGLAllocation(GenJournalLine."Account Type"::Vendor);
     end;
 

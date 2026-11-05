@@ -389,6 +389,11 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     [Scope('OnPrem')]
     procedure SummarizedUnrealizedVATSkipsReservedGLEntryNo()
     begin
+        // [FEATURE] [VAT] [Unrealized VAT] [Concurrent Posting]
+        // [SCENARIO] Summarized VAT posting skips an unrelated G/L sequence reservation and preserves VAT links.
+        // [GIVEN] A posted invoice with unrealized VAT and G/L entry summarization enabled.
+        // [WHEN] Payment realizes VAT with an intervening G/L allocation before buffered VAT entries are flushed.
+        // [THEN] Posting skips the unrelated reservation and links VAT to the matching realized G/L entry.
         PostUnrealizedVATWithInterveningGLAllocation(true);
     end;
 
@@ -396,6 +401,11 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     [Scope('OnPrem')]
     procedure UnsummarizedUnrealizedVATSkipsReservedGLEntryNo()
     begin
+        // [FEATURE] [VAT] [Unrealized VAT] [Concurrent Posting]
+        // [SCENARIO] Unsummarized VAT posting skips an unrelated G/L sequence reservation and preserves VAT links.
+        // [GIVEN] A posted invoice with unrealized VAT and G/L entry summarization disabled.
+        // [WHEN] Payment realizes VAT with an intervening G/L allocation before buffered VAT entries are flushed.
+        // [THEN] Posting skips the unrelated reservation and links VAT to the matching realized G/L entry.
         PostUnrealizedVATWithInterveningGLAllocation(false);
     end;
 
@@ -703,6 +713,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Concurrent Gen.Jnl.Posting");
+        LibrarySetupStorage.Restore();
         if IsInitialized then
             exit;
 
@@ -754,7 +765,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
             LibraryERM.CreateGLAccountNoWithDirectPosting(),
             GenJournalLine."Account Type"::"G/L Account",
             LibraryERM.CreateGLAccountNoWithDirectPosting(),
-            LibraryRandom.RandDecInRange(1000, 10000, 2));
+            1000.25);
     end;
 
     local procedure CreateVATJournalLine(var GenJournalLine: Record "Gen. Journal Line"; var GenJournalBatch: Record "Gen. Journal Batch")
@@ -779,7 +790,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
             GLAccount."No.",
             GenJournalLine."Account Type"::"G/L Account",
             LibraryERM.CreateGLAccountNoWithDirectPosting(),
-            LibraryRandom.RandDecInRange(1000, 10000, 2));
+            1000.25);
     end;
 
     internal procedure StartCapturingNextVATEntryNo()

@@ -44,7 +44,10 @@ codeunit 144011 "ERM RU Purch. Unrealized VAT"
         InvoiceNo: Code[20];
         InvoiceAmount: Decimal;
     begin
-        // [SCENARIO] Russian vendor posting reserves a G/L sequence number before realizing VAT on an applied payment.
+        // [FEATURE] [Purchase] [Unrealized VAT] [Concurrent Posting]
+        // [SCENARIO] A Russian vendor payment fully realizes invoice VAT and preserves the matching G/L link.
+
+        // [GIVEN] Russian accounting and concurrent posting are enabled with percentage-based unrealized VAT.
         UpdateGLSetup(false);
         GLSetup.Get();
         GLSetup."Use Concurrent Posting" := true;
@@ -54,6 +57,8 @@ codeunit 144011 "ERM RU Purch. Unrealized VAT"
         VATPostingSetup.Validate("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::Percentage);
         VATPostingSetup.Validate("Purch. VAT Unreal. Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
         VATPostingSetup.Modify(true);
+
+        // [GIVEN] A posted purchase invoice with unrealized VAT.
         LibraryPurchases.CreateVendor(Vendor);
         Vendor.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         Vendor.Modify(true);
@@ -66,6 +71,7 @@ codeunit 144011 "ERM RU Purch. Unrealized VAT"
         InvoiceAmount := PurchaseLine."Amount Including VAT";
         InvoiceNo := LibraryPurchases.PostPurchaseDocument(PurchaseHeader, true, true);
 
+        // [GIVEN] A payment applies the full invoice amount.
         InitGenJnlLine(GenJournalLine);
         LibraryERM.CreateGeneralJnlLine(
             GenJournalLine, GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name",

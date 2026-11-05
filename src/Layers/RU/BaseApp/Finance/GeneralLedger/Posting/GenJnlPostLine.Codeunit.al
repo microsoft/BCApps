@@ -1887,7 +1887,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 end else
                     VendorFunds := Vend."VAT Payment Source Type" = Vend."VAT Payment Source Type"::"Vendor Funds";
                 if VendorFunds then begin
-                    NextEntryNo := NextEntryNo - 1;
+                    if GLSetup.UseConcurrentPosting() then
+                        NextEntryNo := PreviousEntryNo
+                    else
+                        NextEntryNo := NextEntryNo - 1;
                     UpdateVATAgentVendLedgEntry(VendLedgEntry);
                     InitVATAgentDtldVendLedgEntry(GenJournalLine, VendLedgEntry, DtldVendLedgEntry);
                     DtldVendLedgEntry.UpdateDebitCredit(GenJournalLine.Correction);
@@ -9101,7 +9104,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntry."Source Type" := GLEntry."Source Type"::Vendor;
         GLEntry."Source No." := DtldCVLedgEntryBuf."CV No.";
         GLEntry."Entry No." := DtldCVLedgEntryBuf."CV Ledger Entry No.";
-        NextEntryNo := NextEntryNo - 1;
+        if not GLSetup.UseConcurrentPosting() then
+            NextEntryNo := NextEntryNo - 1;
         InsertGLEntry(GenJnlLine, GLEntry, true);
 
         InsertVATAgentVATPmtGLEntry(GenJnlLine, DtldCVLedgEntryBuf."Amount (LCY)");
@@ -10643,7 +10647,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         VATAgentVATPmtAmount := 0;
         if VATAgentVATPayment then begin
-            NextEntryNo := NextEntryNo - 1;
+            if not GLSetup.UseConcurrentPosting() then
+                NextEntryNo := NextEntryNo - 1;
             LCYCurrency.InitRoundingPrecision();
             if GenJnlLine."Currency Code" <> '' then
                 FCYCurrency.Get(GenJnlLine."Currency Code")
