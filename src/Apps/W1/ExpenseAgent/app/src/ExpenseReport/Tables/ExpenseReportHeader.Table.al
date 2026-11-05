@@ -71,6 +71,9 @@ table 6906 "Expense Report Header"
                     Rec.Validate("Spend Request No.", '');
                     Rec."Final Approver No." := GetFinalApproverNo(Rec."Expense User No.");
                     Rec."Interim Approver No." := '';
+                    Rec."Alternate Approver No." := '';
+                    Rec."Primary Final Approver No." := '';
+                    Rec."Primary Interim Approver No." := '';
                 end;
 
                 Rec.CreateDimFromDefaultDim(Rec.FieldNo("Expense User No."));
@@ -544,6 +547,38 @@ table 6906 "Expense Report Header"
             FieldClass = FlowField;
             CalcFormula = lookup("Expense User".Name where("No." = field("Interim Approver No.")));
         }
+        field(72; "Alternate Approver No."; Code[20])
+        {
+            Caption = 'Alternate Approver No.';
+            ToolTip = 'Specifies the alternate approver assigned to the expense report.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+        }
+        field(73; "Alternate Approver Name"; Text[100])
+        {
+            Caption = 'Alternate Approver Name';
+            ToolTip = 'Specifies the name of the alternate approver assigned to the expense report.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Alternate Approver No.")));
+        }
+        field(74; "Primary Final Approver No."; Code[20])
+        {
+            Caption = 'Primary Final Approver No.';
+            ToolTip = 'Specifies the final approver that the report returns to when the alternate approver coverage ends.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+        }
+        field(75; "Primary Interim Approver No."; Code[20])
+        {
+            Caption = 'Primary Interim Approver No.';
+            ToolTip = 'Specifies the interim approver that the report returns to when the alternate approver coverage ends.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+        }
         field(100; "Spend Request No."; Code[20])
         {
             Caption = 'Travel Request No.';
@@ -675,6 +710,7 @@ table 6906 "Expense Report Header"
         ExpenseUserSetupNotExistErr: Label '%1 does not exist for %2.', Comment = '%1 = Table Caption, %2 = Field Value';
         CanModifyLinesQst: Label 'You have modified %1 which will also update the lines.\\Do you want to continue?', Comment = '%1 = Field Caption';
         CannotChangeExpenseUserErr: Label 'You cannot change %1 in Expense Report No. %2 as there are associated lines to it.', Comment = '%1 = Field Caption, %2 = Expense Report No.';
+        ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 - Expense User No.';
         ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
 
@@ -1191,7 +1227,7 @@ table 6906 "Expense Report Header"
                 if (Rec."Reimbursement Currency Code" <> xRec."Reimbursement Currency Code") and (xRec."No." <> '') then
                     UpdateReportLines(Rec.FieldCaption("Reimbursement Currency Code"));
             end else
-                UpdateCurrencyExchangeRates.ShowMissingExchangeRatesNotification("Reimbursement Currency Code");
+                Error(ReceiptDatedBeforeExchRateErr, CurrencyDate, Rec."Reimbursement Currency Code");
         end else begin
             Rec."Reimbursement Currency Factor" := 0;
             if "Reimbursement Currency Code" <> xRec."Reimbursement Currency Code" then
@@ -1347,6 +1383,13 @@ table 6906 "Expense Report Header"
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseReportApprovalMgmt.AssignInterimApprover(Rec, NewApproverExpenseUserNo, ActorExpenseUserNo);
+    end;
+
+    procedure AssignAlternateApprover(ActorExpenseUserNo: Code[20])
+    var
+        ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        ExpenseReportApprovalMgmt.AssignAlternateApprover(Rec, ActorExpenseUserNo);
     end;
 
     local procedure GetFinalApproverNo(ExpenseUserNo: Code[20]): Code[20]

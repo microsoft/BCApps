@@ -57,38 +57,13 @@ pageextension 5314 "Audit Export Doc. Card SIE" extends "Audit File Export Doc. 
             }
         }
 
-        modify(SplitByMonth)
+        modify(AuditFileExportFormat)
         {
-            Enabled = not SIEFormat;
-            Visible = not SIEFormat;
-        }
-        modify(SplitByDate)
-        {
-            Enabled = not SIEFormat;
-            Visible = not SIEFormat;
-        }
-        modify(CreateMultipleZipFiles)
-        {
-            Enabled = not SIEFormat;
-            Visible = not SIEFormat;
-        }
-        modify(LatestDataCheckDateTime)
-        {
-            Enabled = not SIEFormat;
-            Visible = not SIEFormat;
-        }
-        modify(DataCheckStatus)
-        {
-            Enabled = not SIEFormat;
-            Visible = not SIEFormat;
-        }
-    }
-    actions
-    {
-        modify(DataCheck)
-        {
-            Enabled = not SIEFormat;
-            Visible = not SIEFormat;
+            trigger OnAfterValidate()
+            begin
+                SIEFormat := IsSIEFormat();
+                CurrPage.Update();
+            end;
         }
     }
 

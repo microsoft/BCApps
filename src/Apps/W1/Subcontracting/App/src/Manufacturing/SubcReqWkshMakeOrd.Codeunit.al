@@ -10,7 +10,7 @@ using Microsoft.Purchases.Document;
 
 codeunit 20516 "Subc. Req. Wksh. Make Ord."
 {
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -20,7 +20,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnAfterInsertPurchOrderLine, '', false, false)]
     local procedure OnAfterInsertPurchOrderLine(var PurchOrderLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -32,7 +32,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnAfterInitPurchOrderLine, '', false, false)]
     local procedure OnAfterInitPurchOrderLine(var PurchaseLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -47,7 +47,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnBeforeCopyOrderDateFromPurchHeader, '', false, false)]
     local procedure OnBeforeCopyOrderDateFromPurchHeader(var RequisitionLine: Record "Requisition Line"; PurchOrderHeader: Record "Purchase Header"; PurchOrderLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -65,7 +65,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -86,7 +86,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         PurchaseLineWithService: Record "Purchase Line";
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -104,7 +104,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
     var
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -117,7 +117,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Carry Out Action", OnPurchOrderChgAndResheduleOnBeforePurchLineModify, '', false, false)]
     local procedure OnPurchOrderChgAndResheduleOnBeforePurchLineModify(var ReqLine: Record "Requisition Line"; var PurchLine: Record "Purchase Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

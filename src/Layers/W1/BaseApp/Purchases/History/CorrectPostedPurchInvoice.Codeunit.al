@@ -1096,8 +1096,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         IncomingDocument.Modify(true);
 
         IncomingDocumentAttachment.SetRange("Incoming Document Entry No.", IncomingDocument."Entry No.");
-        IncomingDocumentAttachment.ModifyAll("Document No.", '');
-        IncomingDocumentAttachment.ModifyAll("Posting Date", 0D);
+        IncomingDocumentAttachment.ModifyAll("Document No.", '', "Posting Date", 0D);
     end;
 
     local procedure CheckPurchaseOrderLinesCanAbsorbCancellation(PurchInvHeaderNo: Code[20])
