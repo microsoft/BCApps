@@ -2616,7 +2616,8 @@ codeunit 136309 "Job Posting"
         // [SCENARIO 643950] ACY project cost from an overridden source currency amount includes non-deductible VAT that is used for project cost.
         Initialize();
 
-        // [GIVEN] Additional Reporting Currency set up with a 1:1 exchange rate.
+        // [GIVEN] Additional Reporting Currency set up with a 1:1 exchange rate, and amounts rounded to 0.01.
+        LibraryERM.SetAmountRoundingPrecision(0.01);
         ACYCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
         LibraryERM.SetAddReportingCurrency(ACYCode);
 
@@ -2627,18 +2628,18 @@ codeunit 136309 "Job Posting"
         // [GIVEN] Normal VAT posting setup with 25% VAT that is 100% non-deductible.
         LibraryNonDeductibleVAT.CreateVATPostingSetupWithNonDeductibleDetail(VATPostingSetup, 25, 100);
 
-        // [GIVEN] Project G/L Journal purchase line of 125 LCY including 25 VAT, with an overridden ACY amount of 250.
+        // [GIVEN] Project G/L Journal purchase line of 125.03 LCY including 25.01 VAT, with an overridden ACY amount of 250.06.
         CreateJobWithJobTask(JobTask);
         LibraryJob.CreateJobGLJournalLine(GenJournalLine."Job Line Type"::Billable, JobTask, GenJournalLine);
         GenJournalLine.Validate("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
         GenJournalLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         GenJournalLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
         GenJournalLine.Validate("Job Quantity", 2);
-        GenJournalLine.Validate(Amount, 125);
+        GenJournalLine.Validate(Amount, 125.03);
         GenJournalLine.Validate("Job Unit Price (LCY)", 40);
         GenJournalLine.Validate("Bill-to/Pay-to No.", LibraryPurchase.CreateVendorNo());
         GenJournalLine."Source Currency Code" := ACYCode;
-        GenJournalLine."Source Currency Amount" := 250;
+        GenJournalLine."Source Currency Amount" := 250.06;
         GenJournalLine.Modify(true);
         ExpectedACYTotalPrice := GenJournalLine."Job Total Price (LCY)";
         ExpectedACYLineAmount := GenJournalLine."Job Line Amount (LCY)";
@@ -2646,17 +2647,17 @@ codeunit 136309 "Job Posting"
         // [WHEN] Post the Gen. Journal Line.
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
-        // [THEN] Project Ledger Entry "Total Cost (LCY)" = 125 and "Additional-Currency Total Cost" = 250 (200 net plus 50 non-deductible VAT).
-        VerifyJobLedgerEntryACYAmounts(JobTask."Job No.", 250, ExpectedACYTotalPrice, ExpectedACYLineAmount);
+        // [THEN] Project Ledger Entry "Total Cost (LCY)" = 125.03 and "Additional-Currency Total Cost" = 250.06:
+        // [THEN] 200.05 net plus 50.01 non-deductible VAT, rounded in ACY as VAT posting does, not 25.01 LCY converted to 50.02.
+        VerifyJobLedgerEntryACYAmounts(JobTask."Job No.", 250.06, ExpectedACYTotalPrice, ExpectedACYLineAmount);
         JobLedgerEntry.SetRange("Job No.", JobTask."Job No.");
         JobLedgerEntry.FindFirst();
-        JobLedgerEntry.TestField("Total Cost (LCY)", 125);
+        JobLedgerEntry.TestField("Total Cost (LCY)", 125.03);
     end;
 
     local procedure Initialize()
     var
         NoSeries: Record "No. Series";
-        VATSetup: Record "VAT Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Job Posting");
@@ -2685,8 +2686,6 @@ codeunit 136309 "Job Posting"
 
         LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
         LibrarySetupStorage.Save(DATABASE::"Purchases & Payables Setup");
-        if not VATSetup.Get() then
-            VATSetup.Insert();
         LibrarySetupStorage.Save(DATABASE::"VAT Setup");
         LibrarySetupStorage.SaveGeneralLedgerSetup();
 
