@@ -988,9 +988,10 @@
     [Test]
     procedure PartialGeneralJournalCrMemoRealizesMultipleInvoiceVATGroups()
     begin
-        // [SCENARIO 648925] A partial general journal credit memo realizes each invoice Cash Basis VAT group proportionally
+        // [SCENARIO 648925] A partial recurring journal credit memo realizes invoice VAT despite an unrelated sales document with the same number
         // [GIVEN] A posted sales invoice with two different Cash Basis VAT groups
-        // [GIVEN] A general journal credit memo for half the invoice amount applied to the invoice
+        // [GIVEN] An unrelated posted sales credit memo for another customer
+        // [GIVEN] A recurring journal credit memo with the same number for half the invoice amount applied to the invoice
         // [WHEN] The journal credit memo is posted
         // [THEN] Half of each invoice VAT group's amount and base remain unrealized
         // [THEN] One proportional VAT realization entry per group and the corresponding VAT G/L transfers are posted
@@ -1887,16 +1888,20 @@
     local procedure VerifyGeneralJournalCrMemoRealizesInvoiceVAT(SettledFraction: Decimal)
     var
         VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        UnrelatedVATPostingSetup: Record "VAT Posting Setup";
         VATEntry: Record "VAT Entry";
         GLEntry: Record "G/L Entry";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        SalesLine: Record "Sales Line";
         GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBalanceLine: Record "Gen. Journal Line";
         GenJournalTemplate: Record "Gen. Journal Template";
         BankAccount: Record "Bank Account";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         CustomerNo: Code[20];
         ItemNo: array[2] of Code[20];
         InvoiceNo: Code[20];
+        UnrelatedCreditMemoNo: Code[20];
         UnitPrice: array[2] of Decimal;
         InvoiceVATAmount: Decimal;
         GroupIndex: Integer;
@@ -1908,19 +1913,51 @@
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, InvoiceNo);
         CustLedgerEntry.CalcFields("Amount (LCY)");
 
-        // [WHEN] A credit memo is posted directly from a general journal and applied to the invoice.
+        // [GIVEN] An unrelated posted sales credit memo with separate VAT groups and accounts.
+        CreateCashBasisVATPostingSetup(UnrelatedVATPostingSetup, 16);
+        UnrelatedCreditMemoNo := CreateAndPostSalesDocument(
+          SalesLine, CreateCustomer('', UnrelatedVATPostingSetup."VAT Bus. Posting Group"),
+          SalesLine."Document Type"::"Credit Memo", SalesLine.Type::Item,
+          CreateItem(UnrelatedVATPostingSetup."VAT Prod. Posting Group"), 1, 1000);
+
+        // [GIVEN] A recurring journal credit memo reuses the unrelated sales credit memo number.
         LibraryERM.CreateBankAccount(BankAccount);
         CreatePaymentGenJournal(
           GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo, BankAccount."No.",
           GenJournalLine."Bank Payment Type"::" ", -CustLedgerEntry."Amount (LCY)" * SettledFraction,
           GenJournalTemplate.Type::General, GenJournalLine."Document Type"::"Credit Memo");
+        GenJournalTemplate.Get(GenJournalLine."Journal Template Name");
+        GenJournalTemplate.Validate(Recurring, true);
+        GenJournalTemplate.Modify(true);
+        GenJournalLine.Validate("Bal. Account No.", '');
+        GenJournalLine.Validate("Document No.", UnrelatedCreditMemoNo);
+        GenJournalLine.Validate("Recurring Method", GenJournalLine."Recurring Method"::"F  Fixed");
+        Evaluate(GenJournalLine."Recurring Frequency", '<1M>');
         GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
         GenJournalLine.Validate("Applies-to Doc. No.", InvoiceNo);
         GenJournalLine.Modify(true);
+
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalBalanceLine, GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name",
+          GenJournalBalanceLine."Document Type"::"Credit Memo", GenJournalBalanceLine."Account Type"::"Bank Account",
+          BankAccount."No.", CustLedgerEntry."Amount (LCY)" * SettledFraction);
+        GenJournalBalanceLine.Validate("Document No.", UnrelatedCreditMemoNo);
+        GenJournalBalanceLine.Validate("Recurring Method", GenJournalBalanceLine."Recurring Method"::"F  Fixed");
+        Evaluate(GenJournalBalanceLine."Recurring Frequency", '<1M>');
+        GenJournalBalanceLine.Modify(true);
+
+        // [WHEN] The recurring journal credit memo is posted and applied to the invoice.
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
-        // [THEN] No posted sales credit memo lines exist.
+        // [THEN] The journal credit memo uses the same number but has no posted sales lines for its customer.
+        CustLedgerEntry.Reset();
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::"Credit Memo");
+        CustLedgerEntry.SetRange("Document No.", UnrelatedCreditMemoNo);
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+        Assert.RecordCount(CustLedgerEntry, 1);
         SalesCrMemoLine.SetRange("Document No.", GenJournalLine."Document No.");
+        Assert.IsFalse(SalesCrMemoLine.IsEmpty(), 'Unrelated posted sales credit memo lines must exist with the journal document number');
+        SalesCrMemoLine.SetRange("Bill-to Customer No.", CustomerNo);
         Assert.IsTrue(SalesCrMemoLine.IsEmpty(), 'General journal credit memo must not create posted sales credit memo lines');
 
         for GroupIndex := 1 to ArrayLen(VATPostingSetup) do begin

@@ -4492,10 +4492,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
            (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") and
            (CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice)
         then begin
-            // General journal credit memos have no posted sales lines to allocate by VAT group.
-            SalesCrMemoLine.SetRange("Document No.", GenJnlLine."Document No.");
-            SalesCrMemoLine.SetFilter(Type, '<>%1', SalesCrMemoLine.Type::" ");
-            ShouldConsiderVATPostingGrouping := not SalesCrMemoLine.IsEmpty();
+            // Recurring journals can reuse a posted sales document number.
+            if GenJnlLine."Journal Batch Name" <> '' then
+                ShouldConsiderVATPostingGrouping := false
+            else begin
+                SalesCrMemoLine.SetRange("Document No.", GenJnlLine."Document No.");
+                SalesCrMemoLine.SetFilter(Type, '<>%1', SalesCrMemoLine.Type::" ");
+                ShouldConsiderVATPostingGrouping := not SalesCrMemoLine.IsEmpty();
+            end;
         end;
 
         if not ShouldConsiderVATPostingGrouping then
