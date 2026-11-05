@@ -5291,6 +5291,7 @@
       "hasTranslations": true,
       "supportedCountries": "ES",
       "runStaticCodeAnalysis": true,
+      "installOnEnvironmentUpdate": true,
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
