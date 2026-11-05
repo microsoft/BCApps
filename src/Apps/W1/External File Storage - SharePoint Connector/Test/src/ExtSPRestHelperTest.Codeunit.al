@@ -246,6 +246,30 @@ codeunit 144586 "Ext. SP REST Helper Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateFileHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestCreateFileInSubfolderTargetsParentFolderWithoutTrailingSlash()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        OutStream: OutStream;
+    begin
+        // [GIVEN] A file to upload into a nested folder
+        Initialize(Account);
+        TempBlob.CreateOutStream(OutStream);
+        OutStream.WriteText('content');
+        TempBlob.CreateInStream(InStream);
+
+        // [WHEN] Creating the file
+        RestHelper.CreateFile(Account, 'Invoices/2026/file.txt', InStream);
+
+        // [THEN] The parent folder is addressed without a trailing slash, which SharePoint rejects with 404
+        AssertDecodedRequestPath(FileAddPath, '/sites/test/Invoices/2026');
+        Assert.IsTrue(FileAddPath.Contains('file.txt'), 'The upload should target the requested file name. Actual: ' + FileAddPath);
+    end;
+
+    [Test]
     [HandlerFunctions('CopyFileHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestCopyFileDownloadsSourceAndCreatesTargetWithoutDelete()
@@ -298,6 +322,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
 
         // [WHEN] / [THEN]
         Assert.IsTrue(RestHelper.FileExists(Account, 'file.txt'), 'FileExists should return true');
+        AssertDecodedRequestPath(LastPath, '/sites/test');
     end;
 
     [Test]
