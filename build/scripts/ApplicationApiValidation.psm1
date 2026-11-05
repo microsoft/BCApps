@@ -329,6 +329,37 @@ function Update-ApplicationApiPageMemberIds {
     return $changed
 }
 
+function Update-ApplicationApiActionReferenceTarget {
+    param(
+        [System.Collections.IDictionary] $BaselineContract,
+        [System.Collections.IDictionary] $CurrentContract,
+        [object] $OldMember,
+        [object] $NewMember,
+        [hashtable] $Baseline,
+        [hashtable] $Current
+    )
+
+    if ($BaselineContract['TargetName'] -isnot [string] -or [string]::IsNullOrWhiteSpace($BaselineContract['TargetName']) -or
+        $BaselineContract['TargetName'] -cne $CurrentContract['TargetName']) { return $false }
+    $oldTargets = @($Baseline.PageActions | Where-Object {
+        $_.OwnerKey -ceq $OldMember.OwnerKey -and $_.MemberKind -ceq 'Action' -and $_.Name -ceq $BaselineContract['TargetName']
+    })
+    $newTargets = @($Current.PageActions | Where-Object {
+        $_.OwnerKey -ceq $NewMember.OwnerKey -and $_.MemberKind -ceq 'Action' -and $_.Name -ceq $CurrentContract['TargetName']
+    })
+    if ($oldTargets.Count -ne 1 -or $newTargets.Count -ne 1 -or
+        -not $oldTargets[0].PSObject.Properties['Contract'] -or -not $newTargets[0].PSObject.Properties['Contract']) { return $false }
+    $oldTarget = $oldTargets[0].Contract | ConvertFrom-Json -AsHashtable
+    $newTarget = $newTargets[0].Contract | ConvertFrom-Json -AsHashtable
+    if ($BaselineContract['TargetId'] -cne $oldTarget['Id'] -or $CurrentContract['TargetId'] -cne $newTarget['Id']) { return $false }
+    $null = Update-ApplicationApiPageMemberIds -Baseline $oldTarget -Current $newTarget -ChildrenProperty Actions
+    $comparison = Get-ApplicationApiContractDifferences -Baseline ($oldTarget | ConvertTo-Json -Depth 100 -Compress) `
+        -Current ($newTarget | ConvertTo-Json -Depth 100 -Compress)
+    if ($comparison.Differences.Count -gt 0) { return $false }
+    $CurrentContract['TargetId'] = $BaselineContract['TargetId']
+    return $true
+}
+
 function Get-ApplicationApiMemberMoveFailure {
     param(
         [hashtable] $Baseline,
@@ -387,13 +418,18 @@ function Get-ApplicationApiMemberMoveFailure {
     if ($old.ContractHash -cne $new.ContractHash) {
         $compatible = $false
         $idsChanged = $false
+        $targetIdChanged = $false
         $tooltipAdded = $false
         if ($memberKind -ne 'Method' -and $old.PSObject.Properties['Contract'] -and $new.PSObject.Properties['Contract']) {
             $oldContract = $old.Contract | ConvertFrom-Json -AsHashtable
             $newContract = $new.Contract | ConvertFrom-Json -AsHashtable
             $childrenProperty = if ($collection -ceq 'PageActions') { 'Actions' } else { 'Controls' }
-            # Only declaration IDs may be regenerated; IDs inside references remain contractual.
+            # Reference IDs require a separately verified equivalent target.
             $idsChanged = Update-ApplicationApiPageMemberIds -Baseline $oldContract -Current $newContract -ChildrenProperty $childrenProperty
+            if ($memberKind -ceq 'ActionRef' -and $oldContract['TargetId'] -cne $newContract['TargetId']) {
+                $targetIdChanged = Update-ApplicationApiActionReferenceTarget -BaselineContract $oldContract -CurrentContract $newContract `
+                    -OldMember $old -NewMember $new -Baseline $Baseline -Current $Current
+            }
             $oldJson = $oldContract | ConvertTo-Json -Depth 100 -Compress
             $newJson = $newContract | ConvertTo-Json -Depth 100 -Compress
             $compatible = (Get-ApplicationApiContractDifferences -Baseline $oldJson -Current $newJson).Differences.Count -eq 0
@@ -409,6 +445,7 @@ function Get-ApplicationApiMemberMoveFailure {
             return 'The relocated member contract changed.'
         }
         if ($idsChanged) { $CompatibleChanges.Add("Regenerated compiler IDs for relocated page member '$memberName'.") }
+        if ($targetIdChanged) { $CompatibleChanges.Add("Verified regenerated target ID for relocated actionref '$memberName'.") }
         if ($tooltipAdded) { $CompatibleChanges.Add("Added tooltip to relocated field '$memberName'.") }
     }
     if ($memberKind -ne 'Part') { return '' }
@@ -637,16 +674,20 @@ function Get-ApplicationApiCompatibleAdditions {
         $index = [System.Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
         foreach ($method in $(if ($contract.ContainsKey('Methods')) { $contract.Methods })) {
             if ($method -isnot [System.Collections.IDictionary] -or $method['Name'] -isnot [string] -or
-                [string]::IsNullOrWhiteSpace($method.Name) -or $index.ContainsKey($method.Name)) { return $rejected }
-            $index.Add($method.Name, $method)
+                [string]::IsNullOrWhiteSpace($method.Name)) { return $rejected }
+            $signature = $method | ConvertTo-Json -Depth 100 -Compress
+            if ($index.ContainsKey($signature)) { return $rejected }
+            $index.Add($signature, $method)
         }
         $methods += ,$index
     }
-    foreach ($name in $methods[0].Keys) {
-        if (-not $methods[1].ContainsKey($name)) { return $rejected }
+    foreach ($signature in $methods[0].Keys) {
+        if (-not $methods[1].ContainsKey($signature)) { return $rejected }
     }
-    foreach ($method in $methods[1].Values) {
-        if ($methods[0].ContainsKey($method.Name)) { continue }
+    foreach ($signature in $methods[1].Keys) {
+        if ($methods[0].ContainsKey($signature)) { continue }
+        $method = $methods[1][$signature]
+        if (@($methods[0].Values | Where-Object { $_['Name'] -ceq $method['Name'] }).Count -gt 0) { return $rejected }
         $attributes = $method['Attributes']
         if ($method['IsLocal'] -isnot [bool] -or -not $method.IsLocal -or $attributes -isnot [array] -or $attributes.Count -ne 1 -or
             $attributes[0]['Name'] -cne 'IntegrationEvent' -or $attributes[0]['Arguments'] -isnot [array] -or
@@ -656,8 +697,8 @@ function Get-ApplicationApiCompatibleAdditions {
         $changes.Add("Added integration event '$($method.Name)'.")
     }
     if ($methods[0].Count -gt 0) {
-        $old.Methods = @($methods[0].Values | Sort-Object Name -CaseSensitive)
-        $new.Methods = @($methods[1].Values | Where-Object { $methods[0].ContainsKey($_.Name) } | Sort-Object Name -CaseSensitive)
+        $old.Methods = @($methods[0].Keys | Sort-Object -CaseSensitive | ForEach-Object { $methods[0][$_] })
+        $new.Methods = @($methods[0].Keys | Sort-Object -CaseSensitive | ForEach-Object { $methods[1][$_] })
     }
     else {
         $null = $old.Remove('Methods')
@@ -681,7 +722,8 @@ function Get-ApplicationApiCompatibleAdditions {
     page extensions using addbefore at their original positions. Existing methods, option
     values, and all other contracts must remain unchanged. Relocated fields may gain a
     tooltip but cannot change an existing one. Verified page-member relocations may
-    regenerate declaration IDs, but not reference IDs. Accepted changes are recorded.
+    regenerate declaration IDs. Actionref target IDs require an unchanged, uniquely
+    identified source action in both owners. Accepted changes are recorded.
 #>
 function Test-ApplicationApiMoves {
     [CmdletBinding()]

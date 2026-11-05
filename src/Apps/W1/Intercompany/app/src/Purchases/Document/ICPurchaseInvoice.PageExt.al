@@ -46,13 +46,33 @@ pageextension 8456 ICPurchaseInvoice extends "Purchase Invoice"
     end;
 
     trigger OnOpenPage()
-    var
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
     begin
-        ICInboxOutboxMgt.CheckIncomingICPurchaseInvoiceDuplicates(Rec);
+        CheckIncomingICPurchaseInvoiceDuplicates(Rec);
     end;
 
     var
         SureToRejectMsg: Label 'Do you want to reject this Intercompany purchase invoice?';
+        ICIncomingInvoiceFromOriginalOrderMsg: Label 'This invoice was received through intercompany and it''s related to the purchase %1 with no. %2. You can delete that order and post this invoice.', Comment = '%1 - either "order", "invoice", or "posted invoice", %2 - a code';
         RejectICPurchaseInvoiceEnabled: Boolean;
+
+    local procedure CheckIncomingICPurchaseInvoiceDuplicates(var PurchaseHeader: Record "Purchase Header")
+    var
+        ICDuplicatePurchHeader: Record "Purchase Header";
+        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
+    begin
+        if not ICInboxOutboxMgt.IsPurchaseHeaderFromIncomingIC(PurchaseHeader) then
+            exit;
+        ICDuplicatePurchHeader.SetRange("IC Direction", ICDuplicatePurchHeader."IC Direction"::Incoming);
+        ICDuplicatePurchHeader.SetRange("IC Reference Document No.", PurchaseHeader."Vendor Order No.");
+        ICDuplicatePurchHeader.SetRange("Buy-from IC Partner Code", PurchaseHeader."Buy-from IC Partner Code");
+        ICDuplicatePurchHeader.SetRange("Document Type", ICDuplicatePurchHeader."Document Type"::Order);
+        if ICDuplicatePurchHeader.FindFirst() then
+            ICInboxOutboxMgt.ShowDuplicateICDocumentWarning(ICDuplicatePurchHeader);
+        ICDuplicatePurchHeader.Reset();
+        if ICDuplicatePurchHeader.Get(ICDuplicatePurchHeader."Document Type"::Order, CopyStr(PurchaseHeader."Your Reference", 1, MaxStrLen(PurchaseHeader."No."))) then
+            if (ICDuplicatePurchHeader."IC Direction" = ICDuplicatePurchHeader."IC Direction"::Outgoing) and
+               (ICDuplicatePurchHeader."Buy-from IC Partner Code" = PurchaseHeader."Buy-from IC Partner Code") and
+               (ICDuplicatePurchHeader."IC Status" = ICDuplicatePurchHeader."IC Status"::Sent) then
+                ICInboxOutboxMgt.ShowDuplicateICDocumentWarning(ICDuplicatePurchHeader, ICIncomingInvoiceFromOriginalOrderMsg);
+    end;
 }

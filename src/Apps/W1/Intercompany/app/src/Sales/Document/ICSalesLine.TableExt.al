@@ -282,15 +282,14 @@ tableextension 8481 ICSalesLine extends "Sales Line"
 
     internal procedure RunOnLookUpICPartnerReferenceTypeCaseElse()
     begin
-        OnLookUpICPartnerReferenceTypeCaseElse(Rec);
+        OnLookUpICPartnerReferenceTypeCaseElse();
     end;
 
     /// <summary>
     /// Raised for the else case when looking up IC partner reference type.
     /// </summary>
-    /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(true, false)]
-    local procedure OnLookUpICPartnerReferenceTypeCaseElse(var SalesLine: Record "Sales Line")
+    local procedure OnLookUpICPartnerReferenceTypeCaseElse()
     begin
     end;
 }

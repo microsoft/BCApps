@@ -99,13 +99,13 @@ codeunit 8410 "IC Gen. Journal Line"
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnCheckCustomerPartner', '', true, false)]
     local procedure OnCheckCustomerPartner(var GenJournalLine: Record "Gen. Journal Line"; Cust: Record Customer; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20])
     begin
-        GenJournalLine.CheckICPartner(Cust."IC Partner Code", AccountType, AccountNo);
+        GenJournalLine.RunCheckICPartner(Cust."IC Partner Code", AccountType, AccountNo);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnCheckVendorPartner', '', true, false)]
     local procedure OnCheckVendorPartner(var GenJournalLine: Record "Gen. Journal Line"; Vend: Record Vendor; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20])
     begin
-        GenJournalLine.CheckICPartner(Vend."IC Partner Code", AccountType, AccountNo);
+        GenJournalLine.RunCheckICPartner(Vend."IC Partner Code", AccountType, AccountNo);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnGetAccCurrencyCodeCaseElse', '', true, false)]

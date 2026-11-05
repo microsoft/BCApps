@@ -72,7 +72,6 @@ codeunit 427 ICInboxOutboxMgt
         TransactionAlreadyExistsInOutboxHandledQst: Label '%1 %2 has already been sent to intercompany partner %3. Resending it will create a duplicate %1 for them. Do you want to send it again?', Comment = '%1 - Document Type, %2 - Document No, %3 - IC parthner code';
         TransactionCantBeFoundErr: Label 'The Intercompany transaction that originated this document cannot be found.';
         DuplicateICDocumentMsg: Label 'An %1 with no. %2 has been previously received through intercompany. You have an order and an invoice for the same document which can lead to duplicating information. You can remove one of these documents or use Reject IC Document.', Comment = '%1 - either "order", "invoice", or "posted invoice", %2 - a code';
-        ICIncomingInvoiceFromOriginalOrderMsg: Label 'This invoice was received through intercompany and it''s related to the purchase %1 with no. %2. You can delete that order and post this invoice.', Comment = '%1 - either "order", "invoice", or "posted invoice", %2 - a code';
         PermissionToAutoAcceptICDocsErr: Label 'Auto-accepting intercompany documents requires scheduling permissions which you do not have assigned, delegated administrators can not schedule tasks.';
 
     /// <summary>
@@ -1510,32 +1509,6 @@ codeunit 427 ICInboxOutboxMgt
     procedure ShowDuplicateICDocumentWarning(var PurchaseHeader: Record "Purchase Header")
     begin
         ShowDuplicateICDocumentWarning(PurchaseHeader, DuplicateICDocumentMsg);
-    end;
-
-    /// <summary>
-    /// Checks for potential duplicate intercompany purchase invoices when a purchase invoice page opens.
-    /// Shows warnings if an incoming IC purchase invoice may have already been received as an order,
-    /// or if a related outgoing IC order has already been sent.
-    /// </summary>
-    /// <param name="PurchaseHeader">The purchase invoice header to check for duplicates</param>
-    procedure CheckIncomingICPurchaseInvoiceDuplicates(var PurchaseHeader: Record "Purchase Header")
-    var
-        ICDuplicatePurchHeader: Record "Purchase Header";
-    begin
-        if not IsPurchaseHeaderFromIncomingIC(PurchaseHeader) then
-            exit;
-        ICDuplicatePurchHeader.SetRange("IC Direction", ICDuplicatePurchHeader."IC Direction"::Incoming);
-        ICDuplicatePurchHeader.SetRange("IC Reference Document No.", PurchaseHeader."Vendor Order No.");
-        ICDuplicatePurchHeader.SetRange("Buy-from IC Partner Code", PurchaseHeader."Buy-from IC Partner Code");
-        ICDuplicatePurchHeader.SetRange("Document Type", ICDuplicatePurchHeader."Document Type"::Order);
-        if ICDuplicatePurchHeader.FindFirst() then
-            ShowDuplicateICDocumentWarning(ICDuplicatePurchHeader);
-        ICDuplicatePurchHeader.Reset();
-        if ICDuplicatePurchHeader.Get(ICDuplicatePurchHeader."Document Type"::Order, CopyStr(PurchaseHeader."Your Reference", 1, MaxStrLen(PurchaseHeader."No."))) then
-            if (ICDuplicatePurchHeader."IC Direction" = ICDuplicatePurchHeader."IC Direction"::Outgoing) and
-               (ICDuplicatePurchHeader."Buy-from IC Partner Code" = PurchaseHeader."Buy-from IC Partner Code") and
-               (ICDuplicatePurchHeader."IC Status" = ICDuplicatePurchHeader."IC Status"::Sent) then
-                ShowDuplicateICDocumentWarning(ICDuplicatePurchHeader, ICIncomingInvoiceFromOriginalOrderMsg);
     end;
 
     /// <summary>

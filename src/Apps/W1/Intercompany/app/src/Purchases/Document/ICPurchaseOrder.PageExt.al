@@ -49,6 +49,7 @@ pageextension 8457 ICPurchaseOrder extends "Purchase Order"
             {
                 ApplicationArea = Intercompany;
                 Caption = 'Reject IC Purchase Order';
+                Enabled = RejectICPurchaseOrderEnabled;
                 Image = Cancel;
                 ToolTip = 'Deletes the order and sends the rejection to the company that created it.';
 
@@ -66,6 +67,24 @@ pageextension 8457 ICPurchaseOrder extends "Purchase Order"
 
     }
 
+    trigger OnOpenPage()
+    begin
+        SetRejectICPurchaseOrderEnabled();
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        SetRejectICPurchaseOrderEnabled();
+    end;
+
     var
         SureToRejectMsg: Label 'Rejecting this order will remove it from your company and send it back to the partner company.\\Do you want to continue?';
+        RejectICPurchaseOrderEnabled: Boolean;
+
+    local procedure SetRejectICPurchaseOrderEnabled()
+    var
+        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
+    begin
+        RejectICPurchaseOrderEnabled := ICInboxOutboxMgt.IsPurchaseHeaderFromIncomingIC(Rec);
+    end;
 }

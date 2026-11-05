@@ -87,7 +87,12 @@ tableextension 8400 "IC Gen. Journal Line" extends "Gen. Journal Line"
         }
     }
 
-    procedure CheckICPartner(ICPartnerCode: Code[20]; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20])
+    internal procedure RunCheckICPartner(ICPartnerCode: Code[20]; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20])
+    begin
+        CheckICPartner(ICPartnerCode, AccountType, AccountNo);
+    end;
+
+    protected procedure CheckICPartner(ICPartnerCode: Code[20]; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20])
     var
         ICPartner: Record "IC Partner";
     begin

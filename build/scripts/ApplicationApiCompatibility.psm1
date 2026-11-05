@@ -201,6 +201,32 @@ function Get-ApplicationApiReferenceIdentity {
     return $target.Identity
 }
 
+function Get-ApplicationApiTableReferenceIdentity {
+    param([string] $Reference, [hashtable] $ReferenceTypes)
+
+    $moduleId = ''
+    if ($Reference -cmatch '^#(?<module>[0-9a-fA-F]{32})#(?<target>.+)$') {
+        $moduleId = ([guid]$Matches.module).ToString()
+        $Reference = $Matches.target
+    }
+    $candidates = @(
+        foreach ($key in $ReferenceTypes.Keys) {
+            if ($key -cnotmatch '^([^:]+):Record:([0-9]+)$') { continue }
+            $ownerId = $Matches[1]
+            $id = $Matches[2]
+            $target = $ReferenceTypes[$key]
+            if (-not $target -or ($moduleId -and $moduleId -ne $ownerId) -or
+                $ReferenceTypes["Record:$id"] -ne $ownerId) { continue }
+            $quotedName = '"' + $target.Name.Replace('"', '""') + '"'
+            $references = @($id, $target.Name, $quotedName)
+            if ($target.Namespace) { $references += "$($target.Namespace).$($target.Name)", "$($target.Namespace).$quotedName" }
+            if ($Reference -cin $references) { $target.Identity }
+        }
+    )
+    if ($candidates.Count -eq 1) { return $candidates[0] }
+    return ''
+}
+
 function Write-ApplicationApiContract {
     param(
         [System.Text.Json.JsonElement] $Element,
@@ -215,6 +241,8 @@ function Write-ApplicationApiContract {
         Object {
             $Writer.WriteStartObject()
             $properties = @($Element.EnumerateObject())
+            $name = [System.Text.Json.JsonElement]::new()
+            $propertyName = if ($Element.TryGetProperty('Name', [ref]$name) -and $name.ValueKind -eq [System.Text.Json.JsonValueKind]::String) { $name.GetString() } else { '' }
             if ($ReferenceIdentity -and -not @($properties | Where-Object Name -CEQ 'ModuleId').Count) {
                 $properties += @{ Name = 'ModuleId' }
             }
@@ -242,6 +270,27 @@ function Write-ApplicationApiContract {
                 if ($property.Name -ceq 'ModuleId' -and $ReferenceIdentity) {
                     $Writer.WriteStringValue($ReferenceIdentity)
                     continue
+                }
+                if ($property.Name -ceq 'Methods') {
+                    $Writer.WriteStartArray()
+                    foreach ($method in @($property.Value.EnumerateArray() | Sort-Object { $_.GetProperty('Name').GetString() } -CaseSensitive -Stable)) {
+                        Write-ApplicationApiContract -Element $method -Writer $Writer -OwnerId $OwnerId -ReferenceTypes $ReferenceTypes
+                    }
+                    $Writer.WriteEndArray()
+                    continue
+                }
+                if ($property.Value.ValueKind -eq [System.Text.Json.JsonValueKind]::String) {
+                    if ($property.Name -ceq 'RelatedTable' -or ($property.Name -ceq 'Value' -and $propertyName -ceq 'TableNo')) {
+                        $tableIdentity = Get-ApplicationApiTableReferenceIdentity -Reference $property.Value.GetString() -ReferenceTypes $ReferenceTypes
+                        if ($tableIdentity) {
+                            $Writer.WriteStringValue($tableIdentity)
+                            continue
+                        }
+                    }
+                    if ($property.Name -ceq 'Value' -and $propertyName -ceq 'RDLCLayout') {
+                        $Writer.WriteStringValue(($property.Value.GetString() -split '[\\/]')[-1])
+                        continue
+                    }
                 }
                 $typeName = [System.Text.Json.JsonElement]::new()
                 $reference = if ($property.Name -ceq 'RelatedPagePartId') {
@@ -383,7 +432,8 @@ function Add-ApplicationApiMethods {
         [string] $OwnerId,
         [string] $HostKind,
         [string] $HostReference,
-        [hashtable] $Snapshot
+        [hashtable] $Snapshot,
+        [switch] $IncludeContracts
     )
 
     $methods = [System.Text.Json.JsonElement]::new()
@@ -413,6 +463,7 @@ function Add-ApplicationApiMethods {
             HostReference = $HostReference
             ContractHash = ''
         }
+        if ($IncludeContracts) { $member | Add-Member -NotePropertyName Contract -NotePropertyValue '' }
         Add-ApplicationApiContract -Element $method -Target $member -OwnerId $OwnerId -Snapshot $Snapshot
         $Snapshot.Methods.Add($member)
     }
@@ -531,7 +582,7 @@ function Add-ApplicationApiSymbols {
                         elseif ($property.Name -ceq 'ReportExtensions') { $symbol.GetProperty('Target').GetString() }
                         else { $symbol.GetProperty('TargetObject').GetString() }
                     Add-ApplicationApiMethods -Symbol $symbol -MethodNames $MethodNames -OwnerKey $key -OwnerId $Package.Id `
-                        -HostKind $methodHosts[$property.Name] -HostReference $hostReference -Snapshot $Snapshot
+                        -HostKind $methodHosts[$property.Name] -HostReference $hostReference -Snapshot $Snapshot -IncludeContracts:$IncludeContracts
                 }
                 # Member checks also need potential host/target objects, not just diagnostic owners.
                 if (-not $selected -and $property.Name -cin @('TableExtensions', 'PageExtensions', 'ReportExtensions') -and
@@ -721,9 +772,10 @@ function Get-ApplicationApiSnapshot {
     Compares aggregate non-table symbol contracts without replacing AppSourceCop.
 .DESCRIPTION
     Unchanged means symbol equivalence, not full compatibility. Source file paths and
-    JSON property order, private variables, and compiler-generated interface IDs/control-add-in
-    tokens are ignored. Type references resolving to the same exposed aggregate type are
-    compared independently of their owning module; other metadata is compared strictly.
+    JSON property and method declaration order, private variables, RDLC layout directories,
+    and compiler-generated interface IDs/control-add-in tokens are ignored. Type and named
+    table references resolving to the same exposed aggregate type are compared independently
+    of their owning module; other metadata is compared strictly.
     Changed contracts require review, even for potentially compatible additions.
     Table/field schema and move metadata must still be validated by AppSourceCop.
 .EXAMPLE

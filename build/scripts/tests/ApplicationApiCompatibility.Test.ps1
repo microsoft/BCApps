@@ -248,6 +248,20 @@ Describe 'Application API compatibility prototype' {
         $result.UnchangedMoves.Count | Should -Be 0
     }
 
+    It 'ignores method declaration order without ignoring signatures' {
+        $page.Methods += @{ Name = 'AnotherMethod'; Parameters = @() }
+        $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections @{
+            Namespaces = @(@{ Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page) })
+        }
+        $oldSnapshot = Get-ApplicationApiSnapshot -ApplicationPackagePath $oldApplication.Path -DependencyPackagePaths @($oldBase.Path)
+        [array]::Reverse($page.Methods)
+        Write-ApiDestination
+        (Compare-ApplicationApiSnapshot -Baseline $oldSnapshot -Current (Get-ApiCurrentSnapshot)).Verdict | Should -Be 'Unchanged'
+        $page.Methods[1].Parameters[0].TypeDefinition.Name = 'Integer'
+        Write-ApiDestination
+        (Compare-ApplicationApiSnapshot -Baseline $oldSnapshot -Current (Get-ApiCurrentSnapshot)).Verdict | Should -Be 'ReviewRequired'
+    }
+
     It 'rejects an object whose access becomes internal' {
         $page.Properties = @(@{ Name = 'Access'; Value = 'Internal' })
         Write-ApiDestination
@@ -476,6 +490,32 @@ Describe 'Application API compatibility prototype' {
             { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
         }
 
+        It 'checks existing overloads when adding an integration event with <Change>' -TestCases @(
+            @{ Change = 'unchanged overloads' },
+            @{ Change = 'a changed overload' }
+        ) {
+            param($Change)
+            $overload = @{ Name = 'Process'; Parameters = @(@{ Name = 'Value'; TypeDefinition = @{ Name = 'Integer' } }) }
+            $page.Methods += $overload
+            $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections @{
+                Namespaces = @(@{ Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page) })
+            }
+            $page.Methods += @{
+                Name = 'OnBeforeAnotherOperation'; IsLocal = $true
+                Attributes = @(@{ Name = 'IntegrationEvent'; Arguments = @(@{ Value = 'False' }, @{ Value = 'False' }) })
+            }
+            if ($Change -eq 'a changed overload') { $overload.Parameters[0].TypeDefinition.Name = 'Boolean' }
+            Write-ApiDestination
+            $gate = New-ApiGateLayout
+            if ($Change -eq 'unchanged overloads') {
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+            }
+            else {
+                { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+            }
+        }
+
         Context 'Resolved type references and private variables' {
             BeforeEach {
                 $recordType = @{ Id = 15; Name = 'G/L Account' }
@@ -512,6 +552,59 @@ Describe 'Application API compatibility prototype' {
                 $state.Status | Should -Be 'Passed'
                 $state.AcceptedMoves[0].Accepted | Should -BeTrue
                 $state.AcceptedMoves[0].ContractDifferences.Count | Should -Be 0
+            }
+
+            It 'checks <Kind> named table references and layout paths with <Change>' -TestCases @(
+                @{ Kind = 'Codeunit'; Change = 'module qualification' },
+                @{ Kind = 'Report'; Change = 'module qualification' },
+                @{ Kind = 'Codeunit'; Change = 'an incorrect module' },
+                @{ Kind = 'Codeunit'; Change = 'an unresolved table' },
+                @{ Kind = 'Codeunit'; Change = 'an ambiguous table' },
+                @{ Kind = 'Report'; Change = 'a different table' },
+                @{ Kind = 'Report'; Change = 'a different layout' }
+            ) {
+                param($Kind, $Change)
+                $collection = if ($Kind -eq 'Codeunit') { 'Codeunits' } else { 'Reports' }
+                $symbol = @{ Id = 50099; Name = 'Named reference probe' }
+                if ($Kind -eq 'Codeunit') {
+                    $symbol.Properties = @(@{ Name = 'TableNo'; Value = $recordType.Name })
+                }
+                else {
+                    $symbol.Properties = @(@{ Name = 'RDLCLayout'; Value = './Finance/Intercompany/Reports/Probe.rdlc' })
+                    $symbol.DataItems = @(@{ Name = 'Account'; RelatedTable = $recordType.Name })
+                }
+                $oldCollections = @{
+                    Namespaces = @(@{
+                        Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page)
+                        Tables = @($recordType); EnumTypes = @($enumType); $collection = @($symbol)
+                    })
+                }
+                if ($Change -eq 'an ambiguous table') {
+                    $oldCollections.Namespaces += @{ Name = 'Other'; Tables = @(@{ Id = 16; Name = $recordType.Name }) }
+                }
+                $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections $oldCollections
+                $newSymbol = $symbol | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $reference = '#' + ([guid]$baseId).ToString('N') + '#' + $recordType.Name
+                if ($Change -eq 'an incorrect module') { $reference = '#' + ([guid]$destinationId).ToString('N') + '#' + $recordType.Name }
+                if ($Change -eq 'an unresolved table') { $reference = 'Unknown table' }
+                if ($Kind -eq 'Codeunit') { $newSymbol.Properties[0].Value = $reference }
+                else {
+                    $newSymbol.DataItems[0].RelatedTable = $reference
+                    $newSymbol.Properties[0].Value = './src/Reports/Probe.rdlc'
+                    if ($Change -eq 'a different table') { $newSymbol.DataItems[0].RelatedTable = 'Unknown table' }
+                    if ($Change -eq 'a different layout') { $newSymbol.Properties[0].Value = './src/Reports/Other.rdlc' }
+                }
+                Write-ApiDestination -ExtraCollections @{
+                    Namespaces = @(@{ Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page); $collection = @($newSymbol) })
+                }
+                $gate = New-ApiGateLayout -RuleId AS0088 -Kind $Kind -Id $symbol.Id -Name $symbol.Name
+                if ($Change -eq 'module qualification') {
+                    Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                    { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Not -Throw
+                }
+                else {
+                    { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                }
             }
 
             It 'resolves a reference when its target also moves to another exposed aggregate member' {
@@ -2254,6 +2347,33 @@ Describe 'Application API compatibility prototype' {
                     $alerts = Get-Content -LiteralPath (Join-Path $gate.Project 'alerts\Base Application_20261027_000000.errorLog.json') -Raw | ConvertFrom-Json
                     @($alerts.issues | Where-Object ruleId -EQ 'AS0031').Count | Should -Be 0
                     @($alerts.issues | Where-Object ruleId -EQ 'AA0021').Count | Should -Be 1
+                }
+
+                It 'verifies a regenerated actionref target ID with <Change>' -TestCases @(
+                    @{ Change = 'an unchanged target' },
+                    @{ Change = 'a changed target contract' },
+                    @{ Change = 'a mismatched target ID' }
+                ) {
+                    param($Change)
+                    $standalone.Id = $actionRef.TargetId = 123
+                    $newStandalone.Id = $newActionRef.TargetId = 456
+                    $actionRef.Id = 100
+                    $newActionRef.Id = 200
+                    if ($Change -eq 'a changed target contract') { $newStandalone.Properties[0].Value = 'Page "Different Journal"' }
+                    if ($Change -eq 'a mismatched target ID') { $newActionRef.TargetId = 789 }
+                    Write-ActionApiPackages
+                    $gate = New-ApiGateLayout
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message $actionRefMessage
+                    Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message $sourceActionMessage
+                    if ($Change -eq 'an unchanged target') {
+                        Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                        $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                        ($state.AcceptedMoves | Where-Object ActionName -EQ $actionRef.Name).CompatibleChanges |
+                            Should -Contain "Verified regenerated target ID for relocated actionref '$($actionRef.Name)'."
+                    }
+                    else {
+                        { Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled } | Should -Throw '*not verified*'
+                    }
                 }
 
                 It 'rejects promoted action relocations when <Failure>' -TestCases @(
