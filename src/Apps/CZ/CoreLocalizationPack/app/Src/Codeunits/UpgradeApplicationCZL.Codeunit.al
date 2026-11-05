@@ -60,11 +60,6 @@ codeunit 31017 "Upgrade Application CZL"
                   tabledata "Subst. Cust. Posting Group CZL" = i,
                   tabledata "Subst. Vend. Posting Group CZL" = i,
                   tabledata "Certificate Code CZL" = im,
-                  tabledata "EET Service Setup CZL" = im,
-                  tabledata "EET Business Premises CZL" = im,
-                  tabledata "EET Cash Register CZL" = im,
-                  tabledata "EET Entry CZL" = im,
-                  tabledata "EET Entry Status Log CZL" = im,
                   tabledata "Constant Symbol CZL" = i,
                   tabledata "Specific Movement CZL" = im,
                   tabledata "Intrastat Delivery Group CZL" = im,
@@ -143,6 +138,9 @@ codeunit 31017 "Upgrade Application CZL"
                   tabledata "VAT Entry" = m,
                   tabledata "Report Selections" = m,
                   tabledata "G/L Entry" = m,
+                  tabledata "EET Service Setup CZL" = m,
+                  tabledata "EET Business Premises CZL" = m,
+                  tabledata "EET Cash Register CZL" = m,
                   tabledata "Report Layout Selection" = im,
                   tabledata "Tenant Report Layout Selection" = im;
 
@@ -195,6 +193,8 @@ codeunit 31017 "Upgrade Application CZL"
         UpgradeDraftInvoiceAndProformaReportLayouts();
 #if not CLEANSCHEMA33
         UpgradeStatutoryReportingSetupOfficialFullName();
+        UpgradeEETTaxpayerCertificateCode();
+        UpgradeEETBusinessPremisesExtendedDescription();
 #endif
     end;
 
@@ -874,6 +874,57 @@ codeunit 31017 "Upgrade Application CZL"
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag());
     end;
+#if not CLEANSCHEMA33
+    local procedure UpgradeEETTaxpayerCertificateCode()
+    var
+        EETServiceSetupCZL: Record "EET Service Setup CZL";
+        EETBusinessPremisesCZL: Record "EET Business Premises CZL";
+        EETCashRegisterCZL: Record "EET Cash Register CZL";
+        EETServiceSetupDataTransfer: DataTransfer;
+        EETBusinessPremisesDataTransfer: DataTransfer;
+        EETCashRegisterDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetEETTaxpayerCertificateCodeUpgradeTag()) then
+            exit;
+
+        EETServiceSetupDataTransfer.SetTables(Database::"EET Service Setup CZL", Database::"EET Service Setup CZL");
+        EETServiceSetupDataTransfer.AddSourceFilter(EETServiceSetupCZL.FieldNo("Certificate Code"), '<>%1', '');
+        EETServiceSetupDataTransfer.AddSourceFilter(EETServiceSetupCZL.FieldNo("Taxpayer Certificate Code"), '=%1', '');
+        EETServiceSetupDataTransfer.AddFieldValue(EETServiceSetupCZL.FieldNo("Certificate Code"), EETServiceSetupCZL.FieldNo("Taxpayer Certificate Code"));
+        EETServiceSetupDataTransfer.CopyFields();
+
+        EETBusinessPremisesDataTransfer.SetTables(Database::"EET Business Premises CZL", Database::"EET Business Premises CZL");
+        EETBusinessPremisesDataTransfer.AddSourceFilter(EETBusinessPremisesCZL.FieldNo("Certificate Code"), '<>%1', '');
+        EETBusinessPremisesDataTransfer.AddSourceFilter(EETBusinessPremisesCZL.FieldNo("Taxpayer Certificate Code"), '=%1', '');
+        EETBusinessPremisesDataTransfer.AddFieldValue(EETBusinessPremisesCZL.FieldNo("Certificate Code"), EETBusinessPremisesCZL.FieldNo("Taxpayer Certificate Code"));
+        EETBusinessPremisesDataTransfer.CopyFields();
+
+        EETCashRegisterDataTransfer.SetTables(Database::"EET Cash Register CZL", Database::"EET Cash Register CZL");
+        EETCashRegisterDataTransfer.AddSourceFilter(EETCashRegisterCZL.FieldNo("Certificate Code"), '<>%1', '');
+        EETCashRegisterDataTransfer.AddSourceFilter(EETCashRegisterCZL.FieldNo("Taxpayer Certificate Code"), '=%1', '');
+        EETCashRegisterDataTransfer.AddFieldValue(EETCashRegisterCZL.FieldNo("Certificate Code"), EETCashRegisterCZL.FieldNo("Taxpayer Certificate Code"));
+        EETCashRegisterDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetEETTaxpayerCertificateCodeUpgradeTag());
+    end;
+
+    local procedure UpgradeEETBusinessPremisesExtendedDescription()
+    var
+        EETBusinessPremisesCZL: Record "EET Business Premises CZL";
+        EETBusinessPremisesDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetEETBusinessPremisesExtendedDescriptionUpgradeTag()) then
+            exit;
+
+        EETBusinessPremisesDataTransfer.SetTables(Database::"EET Business Premises CZL", Database::"EET Business Premises CZL");
+        EETBusinessPremisesDataTransfer.AddSourceFilter(EETBusinessPremisesCZL.FieldNo(Description), '<>%1', '');
+        EETBusinessPremisesDataTransfer.AddSourceFilter(EETBusinessPremisesCZL.FieldNo("Extended Description"), '=%1', '');
+        EETBusinessPremisesDataTransfer.AddFieldValue(EETBusinessPremisesCZL.FieldNo(Description), EETBusinessPremisesCZL.FieldNo("Extended Description"));
+        EETBusinessPremisesDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetEETBusinessPremisesExtendedDescriptionUpgradeTag());
+    end;
+#endif
 
     internal procedure IsReportLayoutSelectionCustomized(ReportId: Integer): Boolean
     var

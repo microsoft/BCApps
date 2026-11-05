@@ -30,6 +30,9 @@ codeunit 144024 "SEPA.03 CT Unit Test"
     trigger OnRun()
     begin
         // [FEATURE] [UT]    
+#if not CLEAN28
+        BindSubscription(this);
+#endif
     end;
 
     var
@@ -604,6 +607,7 @@ codeunit 144024 "SEPA.03 CT Unit Test"
     [Test]
     procedure PaymentStepsNewActionAvailable()
     var
+        PaymentClass: Record "Payment Class FR";
         PaymentStep: Record "Payment Step FR";
         PaymentSteps: TestPage "Payment Steps FR";
         "Code": Code[20];
@@ -614,7 +618,9 @@ codeunit 144024 "SEPA.03 CT Unit Test"
 
 
         // [GIVEN] Payment Steps page
+        LibraryFRLocalization.CreatePaymentClass(PaymentClass);
         PaymentSteps.OpenEdit();
+        PaymentSteps.FILTER.SetFilter("Payment Class", PaymentClass.Code);
 
         // [WHEN] Click New
         PaymentSteps.New();

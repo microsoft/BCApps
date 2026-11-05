@@ -99,7 +99,7 @@ codeunit 6256 "Sust. Item Post Subscriber"
         Sign: Integer;
     begin
         if ItemJournalLine.ShouldUpdateJournalLineWithPostingSign() then begin
-            CheckSustainabilityItemJnlLine(ItemJournalLine."Sust. Account No.", ItemJournalLine."Sust. Account Category", ItemJournalLine."Sust. Account Subcategory", ItemJournalLine."Total CO2e");
+            CheckSustainabilityItemJnlLine(ItemJournalLine."Sust. Account No.", ItemJournalLine."Sust. Account Category", ItemJournalLine."Sust. Account Subcategory", ItemJournalLine."Total CO2e", ItemJournalLine.IsSourceItemReclassJournal());
             GHGCredit := ItemJournalLine.IsGHGCreditLine();
             Sign := ItemJournalLine.GetPostingSign(GHGCredit);
         end;
@@ -155,7 +155,7 @@ codeunit 6256 "Sust. Item Post Subscriber"
         ItemJournalLine."Total CO2e" := (ProdOrderLine."Expected Operation Total CO2e" / ProdOrderLine.Quantity) * ItemJournalLine.Quantity;
     end;
 
-    local procedure CheckSustainabilityItemJnlLine(AccountNo: Code[20]; AccountCategory: Code[20]; AccountSubCategory: Code[20]; CO2eToPost: Decimal)
+    local procedure CheckSustainabilityItemJnlLine(AccountNo: Code[20]; AccountCategory: Code[20]; AccountSubCategory: Code[20]; CO2eToPost: Decimal; IsReclassification: Boolean)
     var
         SustAccountCategory: Record "Sustain. Account Category";
         SustainAccountSubcategory: Record "Sustain. Account Subcategory";
@@ -166,7 +166,7 @@ codeunit 6256 "Sust. Item Post Subscriber"
 
         if SustainAccountSubcategory.Get(AccountCategory, AccountSubCategory) then
             if not SustainAccountSubcategory."Renewable Energy" then
-                if (CO2eToPost = 0) then
+                if (CO2eToPost = 0) and not IsReclassification then
                     Error(CO2eMustNotBeZeroErr);
     end;
 
