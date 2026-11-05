@@ -97,4 +97,20 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
+
+    /// <summary>
+    /// Advanced approval features and the current approver number are available in the Expense Report API.
+    /// </summary>
+    value(9; AdvancedApprovals)
+    {
+        Caption = 'Advanced Approvals', Locked = true;
+    }
+
+    /// <summary>
+    /// Interim approvers can be assigned when Allow Interim Approvers is enabled in Expense Agent Setup.
+    /// </summary>
+    value(10; InterimApprover)
+    {
+        Caption = 'Interim Approver', Locked = true;
+    }
 }
