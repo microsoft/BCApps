@@ -220,44 +220,42 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         exit('MS-646070-RemoveLegacyPrivacyNotice-20260818');
     end;
 
-    local procedure UpgradeCorporateCardIdentity()
+    internal procedure UpgradeCorporateCardIdentity()
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         CorpCardTrans: Record "EA Corp Card Trans";
         UpgradeTag: Codeunit "Upgrade Tag";
+        CorporateCardIdentityDataTransfer: DataTransfer;
     begin
         if UpgradeTag.HasUpgradeTag(GetCorporateCardIdentityUpgradeTag()) then
             exit;
 
-        Expense.SetRange("Corporate Card Id", '');
-        Expense.SetFilter("Credit Card Feed No.", '<>%1', 0);
-        if Expense.FindSet(true) then
-            repeat
-                if CorpCardTrans.Get(Expense."Credit Card Feed No.") then begin
-                    Expense."Corporate Card Id" := CorpCardTrans."Card Id";
-                    Expense.Modify(false);
-                end;
-            until Expense.Next() = 0;
-        ExpenseReportLine.SetRange("Corporate Card Id", '');
-        ExpenseReportLine.SetFilter("Credit Card Feed No.", '<>%1', 0);
-        if ExpenseReportLine.FindSet(true) then
-            repeat
-                if CorpCardTrans.Get(ExpenseReportLine."Credit Card Feed No.") then begin
-                    ExpenseReportLine."Corporate Card Id" := CorpCardTrans."Card Id";
-                    ExpenseReportLine.Modify(false);
-                end;
-            until ExpenseReportLine.Next() = 0;
-        PostedExpenseReportLine.SetRange("Corporate Card Id", '');
-        PostedExpenseReportLine.SetFilter("Credit Card Feed No.", '<>%1', 0);
-        if PostedExpenseReportLine.FindSet(true) then
-            repeat
-                if CorpCardTrans.Get(PostedExpenseReportLine."Credit Card Feed No.") then begin
-                    PostedExpenseReportLine."Corporate Card Id" := CorpCardTrans."Card Id";
-                    PostedExpenseReportLine.Modify(false);
-                end;
-            until PostedExpenseReportLine.Next() = 0;
+        CorporateCardIdentityDataTransfer.SetTables(Database::"EA Corp Card Trans", Database::Expense);
+        CorporateCardIdentityDataTransfer.AddSourceFilter(CorpCardTrans.FieldNo("Entry No."), '<>%1', 0);
+        CorporateCardIdentityDataTransfer.AddJoin(CorpCardTrans.FieldNo("Entry No."), Expense.FieldNo("Credit Card Feed No."));
+        CorporateCardIdentityDataTransfer.AddDestinationFilter(Expense.FieldNo("Corporate Card Id"), '=%1', '');
+        CorporateCardIdentityDataTransfer.AddFieldValue(CorpCardTrans.FieldNo("Card Id"), Expense.FieldNo("Corporate Card Id"));
+        CorporateCardIdentityDataTransfer.AddConstantValue(Expense.Source::CorporateCard, Expense.FieldNo(Source));
+        CorporateCardIdentityDataTransfer.CopyFields();
+
+        Clear(CorporateCardIdentityDataTransfer);
+        CorporateCardIdentityDataTransfer.SetTables(Database::"EA Corp Card Trans", Database::"Expense Report Line");
+        CorporateCardIdentityDataTransfer.AddSourceFilter(CorpCardTrans.FieldNo("Entry No."), '<>%1', 0);
+        CorporateCardIdentityDataTransfer.AddJoin(CorpCardTrans.FieldNo("Entry No."), ExpenseReportLine.FieldNo("Credit Card Feed No."));
+        CorporateCardIdentityDataTransfer.AddDestinationFilter(ExpenseReportLine.FieldNo("Corporate Card Id"), '=%1', '');
+        CorporateCardIdentityDataTransfer.AddFieldValue(CorpCardTrans.FieldNo("Card Id"), ExpenseReportLine.FieldNo("Corporate Card Id"));
+        CorporateCardIdentityDataTransfer.CopyFields();
+
+        Clear(CorporateCardIdentityDataTransfer);
+        CorporateCardIdentityDataTransfer.SetTables(Database::"EA Corp Card Trans", Database::"Posted Expense Report Line");
+        CorporateCardIdentityDataTransfer.AddSourceFilter(CorpCardTrans.FieldNo("Entry No."), '<>%1', 0);
+        CorporateCardIdentityDataTransfer.AddJoin(CorpCardTrans.FieldNo("Entry No."), PostedExpenseReportLine.FieldNo("Credit Card Feed No."));
+        CorporateCardIdentityDataTransfer.AddDestinationFilter(PostedExpenseReportLine.FieldNo("Corporate Card Id"), '=%1', '');
+        CorporateCardIdentityDataTransfer.AddFieldValue(CorpCardTrans.FieldNo("Card Id"), PostedExpenseReportLine.FieldNo("Corporate Card Id"));
+        CorporateCardIdentityDataTransfer.CopyFields();
+
         UpgradeTag.SetUpgradeTag(GetCorporateCardIdentityUpgradeTag());
     end;
 
@@ -286,7 +284,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         exit('MS-ExpenseAgent-CardProviderShortName-VISA-AMEX-20261103');
     end;
 
-    local procedure GetCorporateCardIdentityUpgradeTag(): Code[250]
+    internal procedure GetCorporateCardIdentityUpgradeTag(): Code[250]
     begin
         exit('MS-ExpenseAgent-CorporateCardIdentity-20261103');
     end;

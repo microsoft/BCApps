@@ -15,27 +15,35 @@ codeunit 7440 "EA Corp Card Post Mgt"
         CorpCardStatement: Record "EA Corp Card Statement";
         TempCorpCardStatement: Record "EA Corp Card Statement" temporary;
         CorpCardTrans: Record "EA Corp Card Trans";
-        TempCorpCardTrans: Record "EA Corp Card Trans" temporary;
+        TempCorpCardTransEntry: Record Integer temporary;
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         Expense: Record Expense;
+        PostedReportCardTrans: Query "EA Posted Report Card Trans";
+        StatementEntryNos: Dictionary of [Integer, Integer];
     begin
         PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportNo);
         PostedExpenseReportLine.SetRange("Is Canceled", false);
         PostedExpenseReportLine.SetFilter("Credit Card Feed No.", '<>%1', 0);
-        if PostedExpenseReportLine.FindSet() then
-            repeat
-                CorpCardTrans.Get(PostedExpenseReportLine."Credit Card Feed No.");
-                if not TempCorpCardTrans.Get(CorpCardTrans."Entry No.") then begin
-                    TempCorpCardTrans := CorpCardTrans;
-                    TempCorpCardTrans.Insert();
+        PostedReportCardTrans.SetRange(PostedReportNo, PostedExpenseReportNo);
+        PostedReportCardTrans.Open();
+        while PostedReportCardTrans.Read() do begin
+            if PostedReportCardTrans.TransactionEntryNo = 0 then begin
+                PostedReportCardTrans.Close();
+                Error(ReportCardLinksChangedErr);
+            end;
+            if not StatementEntryNos.ContainsKey(PostedReportCardTrans.TransactionEntryNo) then begin
+                StatementEntryNos.Add(PostedReportCardTrans.TransactionEntryNo, PostedReportCardTrans.StatementEntryNo);
+                TempCorpCardTransEntry.Number := PostedReportCardTrans.TransactionEntryNo;
+                TempCorpCardTransEntry.Insert();
+            end;
+            if PostedReportCardTrans.StatementEntryNo <> 0 then
+                if not TempCorpCardStatement.Get(PostedReportCardTrans.StatementEntryNo) then begin
+                    TempCorpCardStatement.Init();
+                    TempCorpCardStatement."Statement Entry No." := PostedReportCardTrans.StatementEntryNo;
+                    TempCorpCardStatement.Insert();
                 end;
-                if CorpCardTrans."Statement Entry No." <> 0 then
-                    if not TempCorpCardStatement.Get(CorpCardTrans."Statement Entry No.") then begin
-                        TempCorpCardStatement.Init();
-                        TempCorpCardStatement."Statement Entry No." := CorpCardTrans."Statement Entry No.";
-                        TempCorpCardStatement.Insert();
-                    end;
-            until PostedExpenseReportLine.Next() = 0;
+        end;
+        PostedReportCardTrans.Close();
 
         CorpCardStatement.LockTable();
         if TempCorpCardStatement.FindSet() then
@@ -43,11 +51,12 @@ codeunit 7440 "EA Corp Card Post Mgt"
                 CorpCardStatement.Get(TempCorpCardStatement."Statement Entry No.");
             until TempCorpCardStatement.Next() = 0;
         CorpCardTrans.LockTable();
-        if TempCorpCardTrans.FindSet() then
+        // Keep transaction locks in entry-number order.
+        if TempCorpCardTransEntry.FindSet() then
             repeat
-                CorpCardTrans.Get(TempCorpCardTrans."Entry No.");
-                CorpCardTrans.TestField("Statement Entry No.", TempCorpCardTrans."Statement Entry No.");
-            until TempCorpCardTrans.Next() = 0;
+                CorpCardTrans.Get(TempCorpCardTransEntry.Number);
+                CorpCardTrans.TestField("Statement Entry No.", StatementEntryNos.Get(TempCorpCardTransEntry.Number));
+            until TempCorpCardTransEntry.Next() = 0;
 
         Expense.LockTable();
         Expense.SetRange("Posted Expense Report No.", PostedExpenseReportNo);
@@ -58,7 +67,7 @@ codeunit 7440 "EA Corp Card Post Mgt"
 
         if PostedExpenseReportLine.FindSet() then
             repeat
-                if not TempCorpCardTrans.Get(PostedExpenseReportLine."Credit Card Feed No.") then
+                if not StatementEntryNos.ContainsKey(PostedExpenseReportLine."Credit Card Feed No.") then
                     Error(ReportCardLinksChangedErr);
             until PostedExpenseReportLine.Next() = 0;
     end;

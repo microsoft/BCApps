@@ -116,7 +116,7 @@ page 7433 "EA Corp Card Trans List"
             action(TransferCardLiability)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Transfer Card Liability';
+                Caption = 'Transfer card liability';
                 Image = TransferToGeneralJournal;
                 AccessByPermission = codeunit "EA Corp Card Liability Mgt" = X;
                 Enabled = (Rec.Status = Rec.Status::Posted) and (Rec."Liability Transaction No." = 0);
@@ -136,7 +136,7 @@ page 7433 "EA Corp Card Trans List"
             action(ReverseCardLiability)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Reverse Card Liability Transfer';
+                Caption = 'Reverse card liability transfer';
                 Image = ReverseRegister;
                 AccessByPermission = codeunit "EA Corp Card Liability Mgt" = X;
                 Enabled = (Rec."Liability Transaction No." <> 0) and (Rec."Liability Reversal Trans. No." = 0);

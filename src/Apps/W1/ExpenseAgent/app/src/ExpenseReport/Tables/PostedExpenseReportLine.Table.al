@@ -341,12 +341,14 @@ table 6916 "Posted Expense Report Line"
         field(108; "Card Payable Account No."; Code[20])
         {
             Caption = 'Card Payable Account No.';
+            DataClassification = AccountData;
             TableRelation = "G/L Account"."No.";
             Editable = false;
         }
         field(109; "Card Liability Amount"; Decimal)
         {
             Caption = 'Card Liability Amount';
+            DataClassification = AccountData;
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Card Liability Currency Code";
             Editable = false;
@@ -354,6 +356,7 @@ table 6916 "Posted Expense Report Line"
         field(110; "Card Liability Amount (LCY)"; Decimal)
         {
             Caption = 'Card Liability Amount (LCY)';
+            DataClassification = AccountData;
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Editable = false;
@@ -361,12 +364,14 @@ table 6916 "Posted Expense Report Line"
         field(111; "Card Liability Currency Code"; Code[10])
         {
             Caption = 'Card Liability Currency Code';
+            DataClassification = AccountData;
             TableRelation = Currency.Code;
             Editable = false;
         }
         field(112; "Card Liability Currency Factor"; Decimal)
         {
             Caption = 'Card Liability Currency Factor';
+            DataClassification = AccountData;
             AutoFormatType = 0;
             DecimalPlaces = 0 : 15;
             Editable = false;

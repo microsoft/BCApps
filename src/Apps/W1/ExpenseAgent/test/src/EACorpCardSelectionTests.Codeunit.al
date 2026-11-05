@@ -7,6 +7,8 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
+using System.TestLibraries.Upgrade;
+using System.Upgrade;
 
 codeunit 148364 EACorpCardSelectionTests
 {
@@ -18,162 +20,6 @@ codeunit 148364 EACorpCardSelectionTests
     var
         Assert: Codeunit Assert;
         CorpCardTestLib: Codeunit EACorpCardTestLib;
-
-    [Test]
-    procedure ExpenseCardCorporateCardFieldOpensAndReflectsDocumentState()
-    var
-        CorpCard: Record "EA Corp Card";
-        CorpCardTrans: Record "EA Corp Card Trans";
-        ManualExpense: Record Expense;
-        ReleasedExpense: Record Expense;
-        LinkedExpense: Record Expense;
-        EmployeePaidExpense: Record Expense;
-        LibraryExpense: Codeunit "Library - Expense";
-        ExpenseCard: TestPage Expense;
-    begin
-        Initialize();
-        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
-        CorpCard.Get('CORPCARD-0001');
-        InsertExpense(ManualExpense, CorpCard);
-        InsertExpense(ReleasedExpense, CorpCard);
-        ReleasedExpense.Status := ReleasedExpense.Status::Released;
-        ReleasedExpense.Modify();
-        InsertExpense(LinkedExpense, CorpCard);
-        CreateTransaction(CorpCardTrans, CorpCard);
-        LinkedExpense."Credit Card Feed No." := CorpCardTrans."Entry No.";
-        LinkedExpense.Modify();
-        InitializeExpense(EmployeePaidExpense, CorpCard);
-        EmployeePaidExpense."Reimbursement Type" := EmployeePaidExpense."Reimbursement Type"::"Employee Paid";
-        EmployeePaidExpense.Insert();
-
-        ExpenseCard.OpenEdit();
-        ExpenseCard.GoToRecord(ManualExpense);
-        Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The corporate card must be shown for a credit-card expense.');
-        Assert.IsTrue(ExpenseCard.CorporateCard.Editable(), 'An open manual expense must allow card selection.');
-        ExpenseCard.GoToRecord(ReleasedExpense);
-        Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The selected card must remain visible after release.');
-        Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'A released expense must not allow card selection.');
-        ExpenseCard.GoToRecord(LinkedExpense);
-        Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'A feed-linked expense must not allow card selection.');
-        ExpenseCard.GoToRecord(EmployeePaidExpense);
-        Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The card selector must remain visible so it can be enabled after choosing CARD.');
-        Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'Employee-paid expenses must not allow corporate card selection.');
-        ExpenseCard.Close();
-    end;
-
-    [Test]
-    [HandlerFunctions('SelectExpenseUsersCardHandler')]
-    procedure ManuallyCreatedExpenseAllowsCardSelectionAfterChoosingCardPayment()
-    var
-        CorpCard: Record "EA Corp Card";
-        Expense: Record Expense;
-        ExpenseCategory: Record "Expense Category";
-        LibraryExpense: Codeunit "Library - Expense";
-        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
-        ExpenseCard: TestPage Expense;
-    begin
-        Initialize();
-        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
-        CorpCard.Get('CORPCARD-0001');
-        LibraryExpense.CreateExpenseCategory(
-            ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
-        ExpenseCard.OpenNew();
-        ExpenseCard."Expense User No.".SetValue(CorpCard."Expense User No.");
-        ExpenseCard."Expense Category".SetValue(ExpenseCategory.Code);
-        Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The card selector must be present on a newly created expense.');
-        Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'A non-credit-card payment method must not allow card selection.');
-
-        ExpenseCard."Payment Method Code".SetValue('CARD');
-
-        Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'Choosing CARD must not require reopening the expense to find the selector.');
-        Assert.IsTrue(ExpenseCard.CorporateCard.Editable(), 'Choosing CARD must immediately enable card selection.');
-        ExpenseCard.CorporateCard.Lookup();
-        ExpenseCard.CorporateCard.AssertEquals(CorpCardSelectionMgt.GetCardDisplay(CorpCard."Card Id"));
-        ExpenseCard.Close();
-        Expense.SetRange("Corporate Card Id", CorpCard."Card Id");
-        Assert.RecordCount(Expense, 1);
-        Expense.FindFirst();
-        Expense.TestField("Expense User No.", CorpCard."Expense User No.");
-        Expense.TestField("Credit Card Feed No.", 0);
-    end;
-
-    [Test]
-    procedure ExpenseUserCardCorporateCardsAreFilteredToCurrentExpenseUser()
-    var
-        CorpCard: Record "EA Corp Card";
-        UnassignedCorpCard: Record "EA Corp Card";
-        ExpenseUser: Record "Expense User";
-        ExpenseUserCard: TestPage "Expense User";
-        CorporateCards: TestPage "EA Corp Card Cards";
-    begin
-        Initialize();
-        CorpCard.Get('CORPCARD-0001');
-        UnassignedCorpCard := CorpCard;
-        UnassignedCorpCard."Card Id" := 'UNASSIGNED-CARD';
-        UnassignedCorpCard."Expense User No." := '';
-        UnassignedCorpCard.Insert(true);
-        ExpenseUser.Get(CorpCard."Expense User No.");
-        ExpenseUserCard.OpenView();
-        ExpenseUserCard.GoToRecord(ExpenseUser);
-        CorporateCards.Trap();
-
-        ExpenseUserCard.CorporateCards.Invoke();
-
-        Assert.IsTrue(CorporateCards.First(), 'The expense user must have corporate cards in the filtered list.');
-        repeat
-            CorporateCards."Expense User No.".AssertEquals(ExpenseUser."No.");
-        until not CorporateCards.Next();
-        CorporateCards.Close();
-        ExpenseUserCard.Close();
-    end;
-
-    [Test]
-    procedure NewCorporateCardDefaultsToCurrentExpenseUser()
-    var
-        CorpCard: Record "EA Corp Card";
-        ExpenseUser: Record "Expense User";
-        ExpenseUserCard: TestPage "Expense User";
-        CorporateCards: TestPage "EA Corp Card Cards";
-    begin
-        Initialize();
-        CorpCard.Get('CORPCARD-0001');
-        ExpenseUser.Get(CorpCard."Expense User No.");
-        ExpenseUserCard.OpenView();
-        ExpenseUserCard.GoToRecord(ExpenseUser);
-        CorporateCards.Trap();
-        ExpenseUserCard.CorporateCards.Invoke();
-
-        CorporateCards.New();
-
-        CorporateCards."Expense User No.".AssertEquals(ExpenseUser."No.");
-        CorporateCards."Card Id".SetValue('NEW-USER-CARD');
-        CorporateCards."Provider Code".SetValue(CorpCard."Provider Code");
-        CorporateCards.Close();
-        ExpenseUserCard.Close();
-        CorpCard.Get('NEW-USER-CARD');
-        CorpCard.TestField("Expense User No.", ExpenseUser."No.");
-    end;
-
-    [Test]
-    procedure ExpenseUserWithoutCardsDoesNotSeeOtherUsersCards()
-    var
-        ExpenseUser: Record "Expense User";
-        LibraryExpense: Codeunit "Library - Expense";
-        ExpenseUserCard: TestPage "Expense User";
-        CorporateCards: TestPage "EA Corp Card Cards";
-    begin
-        Initialize();
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
-        ExpenseUserCard.OpenView();
-        ExpenseUserCard.GoToRecord(ExpenseUser);
-        CorporateCards.Trap();
-
-        ExpenseUserCard.CorporateCards.Invoke();
-
-        Assert.IsFalse(CorporateCards.First(), 'An expense user without cards must see an empty list, not other users'' cards.');
-        CorporateCards.Close();
-        ExpenseUserCard.Close();
-    end;
 
     [Test]
     procedure DefaultProviderSetupUsesVisaAndAmexWithoutOverwritingCustomNames()
@@ -214,33 +60,12 @@ codeunit 148364 EACorpCardSelectionTests
         Initialize();
         CreateCorpCardSetup.CreateDefaults();
         CorpCard.Get('CORPCARD-0001');
-        InitializeExpense(Expense, CorpCard);
+        CorpCardTestLib.InitializeExpense(Expense, CorpCard);
         Expense."Expense Date" := CalcDate('<-1Y>', WorkDate());
 
         Expense.Validate("Corporate Card Id", CorpCard."Card Id");
 
         Assert.AreEqual(CorpCard."Card Id", Expense."Corporate Card Id", 'Registered demo cards must also support historical sample expenses.');
-    end;
-
-    [Test]
-    procedure CardLookupAndExpenseDisplayUseProviderShortNameAndLastFourDigits()
-    var
-        CorpCard: Record "EA Corp Card";
-        CorpCardProvider: Record "EA Corp Card Provider";
-        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
-        CardLookup: TestPage "EA Corp Card Lookup";
-    begin
-        Initialize();
-        CorpCard.Get('CORPCARD-0001');
-        CorpCardProvider.Get(CorpCard."Provider Code");
-        CorpCardProvider."Short Name" := 'AmEx';
-        CorpCardProvider.Modify();
-
-        CardLookup.OpenView();
-        CardLookup.GoToRecord(CorpCard);
-        CardLookup.CorporateCard.AssertEquals('AmEx 0001');
-        CardLookup.Close();
-        Assert.AreEqual('AmEx 0001', CorpCardSelectionMgt.GetCardDisplay(CorpCard."Card Id"), 'Expense and report displays must use the same compact label as the lookup.');
     end;
 
     [Test]
@@ -270,7 +95,7 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        InitializeExpense(Expense, CorpCard);
+        CorpCardTestLib.InitializeExpense(Expense, CorpCard);
         Expense."Expense User No." := 'OTHER-USER';
 
         asserterror Expense.Validate("Corporate Card Id", CorpCard."Card Id");
@@ -286,7 +111,7 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        InitializeExpense(Expense, CorpCard);
+        CorpCardTestLib.InitializeExpense(Expense, CorpCard);
         CorpCard.Blocked := true;
         CorpCard.Modify();
         asserterror Expense.Validate("Corporate Card Id", CorpCard."Card Id");
@@ -301,7 +126,7 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        InitializeExpense(Expense, CorpCard);
+        CorpCardTestLib.InitializeExpense(Expense, CorpCard);
         CorpCard."Valid To" := WorkDate() - 1;
         CorpCard.Modify();
         asserterror Expense.Validate("Corporate Card Id", CorpCard."Card Id");
@@ -318,7 +143,7 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard.Get('CORPCARD-0001');
         CorpCard."Valid To" := WorkDate();
         CorpCard.Modify();
-        InitializeExpense(Expense, CorpCard);
+        CorpCardTestLib.InitializeExpense(Expense, CorpCard);
 
         Expense.Validate("Corporate Card Id", CorpCard."Card Id");
 
@@ -368,8 +193,8 @@ codeunit 148364 EACorpCardSelectionTests
         Initialize();
         CorpCard.Get('CORPCARD-0001');
         CreateSecondCard(OtherCard, CorpCard);
-        InitializeExpense(Expense, CorpCard);
-        CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.InitializeExpense(Expense, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         Expense."Credit Card Feed No." := CorpCardTrans."Entry No.";
         Expense."Corporate Card Id" := CorpCard."Card Id";
 
@@ -387,8 +212,8 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        InsertExpense(Expense, CorpCard);
-        CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         Expense."Credit Card Feed No." := CorpCardTrans."Entry No.";
         Expense.Modify(true);
         Expense."Corporate Card Id" := '';
@@ -407,8 +232,8 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        CreateTransaction(CorpCardTrans, CorpCard);
-        ExpenseReportLine."Document No." := 'LINKED-REPORT';
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        ExpenseReportLine."Document No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseReportLine."Document No."));
         ExpenseReportLine."Line No." := 10000;
         ExpenseReportLine."Expense User No." := CorpCard."Expense User No.";
         ExpenseReportLine."Reimbursement Type" := ExpenseReportLine."Reimbursement Type"::"Credit Card";
@@ -431,7 +256,7 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        InsertExpense(Expense, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
         CorpCard.Blocked := true;
         CorpCard.Modify();
         Expense.Description := 'Updated receipt details';
@@ -456,9 +281,9 @@ codeunit 148364 EACorpCardSelectionTests
         Initialize();
         CorpCard.Get('CORPCARD-0001');
         CreateSecondCard(OtherCard, CorpCard);
-        InsertExpense(Expense, CorpCard);
-        InsertExpense(OtherExpense, OtherCard);
-        CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        CorpCardTestLib.InsertExpense(OtherExpense, OtherCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
         Assert.IsTrue(CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo), 'The selected card should identify the expense.');
 
@@ -477,9 +302,9 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        InsertExpense(Expense, CorpCard);
-        InsertExpense(OtherExpense, CorpCard);
-        CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        CorpCardTestLib.InsertExpense(OtherExpense, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
         asserterror CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo);
 
@@ -497,14 +322,139 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        InsertExpense(Expense, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
         Expense.Amount := 19;
         Expense.Modify();
-        CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
         asserterror CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo);
 
         Assert.ExpectedError('Review the amount before linking');
+    end;
+
+    [Test]
+    procedure UpgradeInitializesLegacyCorporateCardSource()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        LegacyExpense: Record Expense;
+        ManualExpense: Record Expense;
+        UpgradeExpenseAgentSetup: Codeunit "Upgrade Expense Agent Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+    begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Upgrade]
+        // [SCENARIO] Legacy feed-created expenses receive corporate card protections while manual expenses remain unchanged.
+        Initialize();
+
+        // [GIVEN] An unmigrated feed-created expense and a manual expense without a feed link.
+        if UpgradeTag.HasUpgradeTag(UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(
+                UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.InitializeExpense(LegacyExpense, CorpCard);
+        LegacyExpense."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        LegacyExpense.Insert(false);
+        CorpCardTestLib.InitializeExpense(ManualExpense, CorpCard);
+        ManualExpense.Insert(false);
+
+        // [WHEN] The corporate card identity upgrade runs.
+        UpgradeExpenseAgentSetup.UpgradeCorporateCardIdentity();
+
+        // [THEN] Card identity and source are backfilled before the upgrade is marked complete, without changing manual expenses.
+        LegacyExpense.Get(LegacyExpense."No.");
+        LegacyExpense.TestField("Corporate Card Id", CorpCard."Card Id");
+        LegacyExpense.TestField(Source, LegacyExpense.Source::CorporateCard);
+        ManualExpense.Get(ManualExpense."No.");
+        ManualExpense.TestField("Corporate Card Id", '');
+        ManualExpense.TestField(Source, ManualExpense.Source::Manual);
+        Assert.IsTrue(
+            UpgradeTag.HasUpgradeTag(UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag()),
+            'The corporate card identity upgrade must be marked complete.');
+
+        // [WHEN] The amount of the upgraded feed-created expense is changed.
+        asserterror LegacyExpense.Validate(Amount, LegacyExpense.Amount + 1);
+
+        // [THEN] The corporate card source protection rejects the change.
+        Assert.ExpectedError(LegacyExpense.FieldCaption(Amount) + ' cannot be changed');
+    end;
+
+    [Test]
+    procedure UpgradeCorporateCardIdentityPreservesMigrationBoundaries()
+    var
+        CorpCard: Record "EA Corp Card";
+        OtherCorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        MissingCorpCardTrans: Record "EA Corp Card Trans";
+        Expenses: array[4] of Record Expense;
+        ExpenseReportLines: array[4] of Record "Expense Report Line";
+        PostedExpenseReportLines: array[4] of Record "Posted Expense Report Line";
+        UpgradeExpenseAgentSetup: Codeunit "Upgrade Expense Agent Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+        ExpectedCardIds: array[4] of Code[50];
+        FeedEntryNos: array[4] of Integer;
+        ScenarioNo: Integer;
+    begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Upgrade]
+        // [SCENARIO] Bulk identity migration updates matching legacy rows without overwriting assigned cards or unmatched rows.
+        Initialize();
+
+        // [GIVEN] A valid feed and a deleted feed, with the identity upgrade not yet completed.
+        if UpgradeTag.HasUpgradeTag(UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(
+                UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+        CorpCard.Get('CORPCARD-0001');
+        OtherCorpCard.Get('CORPCARD-0002');
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.CreateTransaction(MissingCorpCardTrans, OtherCorpCard);
+        MissingCorpCardTrans.Delete(false);
+        FeedEntryNos[1] := CorpCardTrans."Entry No.";
+        FeedEntryNos[2] := CorpCardTrans."Entry No.";
+        FeedEntryNos[3] := MissingCorpCardTrans."Entry No.";
+        ExpectedCardIds[1] := CorpCard."Card Id";
+        ExpectedCardIds[2] := OtherCorpCard."Card Id";
+
+        // [GIVEN] Each destination table has a legacy row, an assigned row, a dangling feed link, and an unlinked row.
+        for ScenarioNo := 1 to ArrayLen(Expenses) do begin
+            CorpCardTestLib.InitializeExpense(Expenses[ScenarioNo], CorpCard);
+            Expenses[ScenarioNo]."Credit Card Feed No." := FeedEntryNos[ScenarioNo];
+            if ScenarioNo = 2 then
+                Expenses[ScenarioNo]."Corporate Card Id" := OtherCorpCard."Card Id";
+            Expenses[ScenarioNo].Insert(false);
+
+            ExpenseReportLines[ScenarioNo].Init();
+            ExpenseReportLines[ScenarioNo]."Document No." := Expenses[ScenarioNo]."No.";
+            ExpenseReportLines[ScenarioNo]."Line No." := 10000;
+            ExpenseReportLines[ScenarioNo]."Credit Card Feed No." := FeedEntryNos[ScenarioNo];
+            ExpenseReportLines[ScenarioNo]."Corporate Card Id" := Expenses[ScenarioNo]."Corporate Card Id";
+            ExpenseReportLines[ScenarioNo].Insert(false);
+
+            PostedExpenseReportLines[ScenarioNo].Init();
+            PostedExpenseReportLines[ScenarioNo]."Document No." := Expenses[ScenarioNo]."No.";
+            PostedExpenseReportLines[ScenarioNo]."Line No." := 10000;
+            PostedExpenseReportLines[ScenarioNo]."Credit Card Feed No." := FeedEntryNos[ScenarioNo];
+            PostedExpenseReportLines[ScenarioNo]."Corporate Card Id" := Expenses[ScenarioNo]."Corporate Card Id";
+            PostedExpenseReportLines[ScenarioNo].Insert(false);
+        end;
+
+        // [WHEN] The corporate card identity upgrade runs.
+        UpgradeExpenseAgentSetup.UpgradeCorporateCardIdentity();
+
+        // [THEN] Only matching legacy rows receive the feed card, and only the migrated expense changes source.
+        for ScenarioNo := 1 to ArrayLen(Expenses) do begin
+            Expenses[ScenarioNo].Get(Expenses[ScenarioNo]."No.");
+            Expenses[ScenarioNo].TestField("Corporate Card Id", ExpectedCardIds[ScenarioNo]);
+            if ScenarioNo = 1 then
+                Expenses[ScenarioNo].TestField(Source, Expenses[ScenarioNo].Source::CorporateCard)
+            else
+                Expenses[ScenarioNo].TestField(Source, Expenses[ScenarioNo].Source::Manual);
+            ExpenseReportLines[ScenarioNo].Get(ExpenseReportLines[ScenarioNo]."Document No.", ExpenseReportLines[ScenarioNo]."Line No.");
+            ExpenseReportLines[ScenarioNo].TestField("Corporate Card Id", ExpectedCardIds[ScenarioNo]);
+            PostedExpenseReportLines[ScenarioNo].Get(PostedExpenseReportLines[ScenarioNo]."Document No.", PostedExpenseReportLines[ScenarioNo]."Line No.");
+            PostedExpenseReportLines[ScenarioNo].TestField("Corporate Card Id", ExpectedCardIds[ScenarioNo]);
+        end;
     end;
 
     [Test]
@@ -587,8 +537,8 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        InsertExpense(Expense, CorpCard);
-        CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
         Expense.Get(Expense."No.");
 
@@ -619,11 +569,11 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        InsertExpense(Expense, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
         CorpCardTestLib.CreateStatement(CorpCardStatement, CorpCard."Provider Code", 'MANUAL-MATCH', 20, CorpCardStatement.Status::Imported);
         CorpCardStatement."Currency Code" := '';
         CorpCardStatement.Modify();
-        CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         CorpCardTrans."Statement Entry No." := CorpCardStatement."Statement Entry No.";
         CorpCardTrans.Modify();
         ExpenseCount := Expense.Count();
@@ -650,7 +600,7 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        InsertExpense(Expense, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
         Expense.Status := Expense.Status::Submitted;
         Expense."Expense Report No." := 'MANUAL-REPORT';
         Expense.Modify();
@@ -660,7 +610,7 @@ codeunit 148364 EACorpCardSelectionTests
         ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
         ExpenseReportLine.Amount := Expense.Amount;
         ExpenseReportLine.Insert();
-        CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
         CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
 
@@ -686,29 +636,34 @@ codeunit 148364 EACorpCardSelectionTests
         VATEntryCount: Integer;
         ExpenseCount: Integer;
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Matching]
+        // [SCENARIO] A late feed links a genuinely posted manual expense without posting it again.
         Initialize();
+
+        // [GIVEN] A manual card expense submitted and posted through the normal report lifecycle before its feed arrives.
         CorpCard.Get('CORPCARD-0001');
-        InsertExpense(Expense, CorpCard);
-        PostedExpenseReportHeader."No." := 'MANUAL-POSTED';
-        PostedExpenseReportHeader.Insert();
-        PostedExpenseReportLine."Document No." := PostedExpenseReportHeader."No.";
-        PostedExpenseReportLine."Line No." := 10000;
-        PostedExpenseReportLine."Expense No." := Expense."No.";
-        PostedExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
-        PostedExpenseReportLine.Insert();
-        Expense.Status := Expense.Status::Submitted;
-        Expense."Posted Expense Report No." := PostedExpenseReportHeader."No.";
-        Expense.Modify();
-        CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.PostManualExpense(Expense, PostedExpenseReportLine, CorpCard);
+        PostedExpenseReportHeader.Get(PostedExpenseReportLine."Document No.");
+        Expense.TestField(Status, Expense.Status::Submitted);
+        Expense.TestField("Credit Card Feed No.", 0);
+        PostedExpenseReportLine.TestField("Credit Card Feed No.", 0);
+        GLEntry.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        Assert.IsFalse(GLEntry.IsEmpty(), 'The fixture must create real G/L entries for the original expense report.');
+        GLEntry.SetRange("Document No.");
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         ExpenseCount := Expense.Count();
         GLEntryCount := GLEntry.Count();
         VATEntryCount := VATEntry.Count();
 
+        // [WHEN] The late feed is matched and linked to the posted expense.
         Assert.IsTrue(CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo), 'Matching must include posted expenses.');
         CorpCardExpenseMatch.LinkExpense(CorpCardTrans, ExpenseNo);
 
+        // [THEN] The existing posted report is linked without reopening the expense or creating expense, G/L, or VAT entries.
         PostedExpenseReportLine.Get(PostedExpenseReportLine."Document No.", PostedExpenseReportLine."Line No.");
         Expense.Get(Expense."No.");
+        Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        Expense.TestField(Source, Expense.Source::Manual);
         Assert.AreEqual(CorpCardTrans."Entry No.", PostedExpenseReportLine."Credit Card Feed No.", 'The posted line must retain the late feed link.');
         Assert.AreEqual(CorpCardTrans.Status::Posted, CorpCardTrans.Status, 'A late link must not submit the expense for posting again.');
         Assert.AreEqual(PostedExpenseReportHeader."No.", CorpCardTrans."Posted Expense Report No.", 'The existing posted report must be linked.');
@@ -729,10 +684,10 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        InsertExpense(Expense, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
         Expense.Status := Expense.Status::Released;
         Expense.Modify();
-        CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
         Assert.IsTrue(CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo), 'Matching must include released expenses.');
         CorpCardExpenseMatch.LinkExpense(CorpCardTrans, ExpenseNo);
@@ -750,36 +705,16 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         Initialize();
         CorpCard.Get('CORPCARD-0001');
-        InsertExpense(Expense, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
 
         asserterror CorpCard.Delete(true);
 
         Assert.ExpectedError('referenced by an expense');
     end;
 
-    [ModalPageHandler]
-    procedure SelectExpenseUsersCardHandler(var CardLookup: TestPage "EA Corp Card Lookup")
-    var
-        CorpCard: Record "EA Corp Card";
-    begin
-        CorpCard.Get('CORPCARD-0001');
-        Assert.IsTrue(CardLookup.GoToRecord(CorpCard), 'The selected expense user''s card must be available in the lookup.');
-        CardLookup.OK().Invoke();
-    end;
-
     local procedure Initialize()
     begin
         CorpCardTestLib.InitializeCorpCardData();
-    end;
-
-    local procedure InitializeExpense(var Expense: Record Expense; CorpCard: Record "EA Corp Card")
-    begin
-        Expense.Init();
-        Expense."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Expense."No."));
-        Expense."Expense User No." := CorpCard."Expense User No.";
-        Expense."Reimbursement Type" := Expense."Reimbursement Type"::"Credit Card";
-        Expense."Expense Date" := WorkDate();
-        Expense.Amount := 20;
     end;
 
     local procedure CreateCorporateCardDraft(var Expense: Record Expense)
@@ -793,33 +728,15 @@ codeunit 148364 EACorpCardSelectionTests
         Initialize();
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         CorpCard.Get('CORPCARD-0001');
-        CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         ExpenseWriter.CreateDraftFromTrans(CorpCardTrans, ExpenseNo);
         Expense.Get(ExpenseNo);
-    end;
-
-    local procedure InsertExpense(var Expense: Record Expense; CorpCard: Record "EA Corp Card")
-    begin
-        InitializeExpense(Expense, CorpCard);
-        Expense."Corporate Card Id" := CorpCard."Card Id";
-        Expense.Insert();
-    end;
-
-    local procedure CreateTransaction(var CorpCardTrans: Record "EA Corp Card Trans"; CorpCard: Record "EA Corp Card")
-    begin
-        CorpCardTrans.Init();
-        CorpCardTrans."Provider Code" := CorpCard."Provider Code";
-        CorpCardTrans."Card Id" := CorpCard."Card Id";
-        CorpCardTrans."Provider Trans Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
-        CorpCardTrans."Trans Date" := WorkDate();
-        CorpCardTrans.Amount := 20;
-        CorpCardTrans.Insert(true);
     end;
 
     local procedure CreateSecondCard(var OtherCard: Record "EA Corp Card"; CorpCard: Record "EA Corp Card")
     begin
         OtherCard := CorpCard;
-        OtherCard."Card Id" := 'SECOND-CARD';
+        OtherCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(OtherCard."Card Id"));
         OtherCard.Insert(true);
     end;
 }

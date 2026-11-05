@@ -106,9 +106,6 @@ codeunit 7449 "EA Corp Card Liability Mgt"
 
     local procedure LockTransaction(var CorpCardTrans: Record "EA Corp Card Trans"; var CorpCardStatement: Record "EA Corp Card Statement")
     var
-        Expense: Record Expense;
-        PostedExpenseReportHeader: Record "Posted Expense Report Header";
-        PostedExpenseReportLine: Record "Posted Expense Report Line";
         StatementEntryNo: Integer;
     begin
         StatementEntryNo := CorpCardTrans."Statement Entry No.";
@@ -118,9 +115,6 @@ codeunit 7449 "EA Corp Card Liability Mgt"
         CorpCardTrans.LockTable();
         CorpCardTrans.Get(CorpCardTrans."Entry No.");
         CorpCardTrans.TestField("Statement Entry No.", StatementEntryNo);
-        Expense.LockTable();
-        PostedExpenseReportHeader.LockTable();
-        PostedExpenseReportLine.LockTable();
     end;
 
     local procedure GetPostedLiability(CorpCardTrans: Record "EA Corp Card Trans"; var PostedExpenseReportLine: Record "Posted Expense Report Line"; PostingDate: Date)
@@ -136,16 +130,20 @@ codeunit 7449 "EA Corp Card Liability Mgt"
         CorpCardTrans.TestField("Expense No.");
         CorpCardTrans.TestField("Posted Expense Report No.");
         CorpCardTrans.TestField("Card Id");
+        // Keep the financial basis stable without escalating reads on other record instances.
+        Expense.ReadIsolation := IsolationLevel::RepeatableRead;
         Expense.Get(CorpCardTrans."Expense No.");
         Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
         Expense.TestField("Corporate Card Id", CorpCardTrans."Card Id");
         Expense.TestField("Posted Expense Report No.", CorpCardTrans."Posted Expense Report No.");
+        PostedExpenseReportHeader.ReadIsolation := IsolationLevel::RepeatableRead;
         PostedExpenseReportHeader.Get(CorpCardTrans."Posted Expense Report No.");
         PostedExpenseReportHeader.TestField(Canceled, false);
         PostedExpenseReportHeader.TestField("Posting Date");
         if (PostingDate = 0D) or (PostingDate < PostedExpenseReportHeader."Posting Date") then
             Error(InvalidPostingDateErr, PostedExpenseReportHeader."Posting Date");
 
+        PostedExpenseReportLine.ReadIsolation := IsolationLevel::RepeatableRead;
         PostedExpenseReportLine.SetRange("Document No.", CorpCardTrans."Posted Expense Report No.");
         PostedExpenseReportLine.SetRange("Expense No.", CorpCardTrans."Expense No.");
         PostedExpenseReportLine.SetRange("Is Canceled", false);

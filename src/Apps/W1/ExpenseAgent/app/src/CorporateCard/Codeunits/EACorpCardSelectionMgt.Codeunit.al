@@ -129,5 +129,5 @@ codeunit 7447 "EA Corp Card Selection Mgt"
     var
         CreditCardPaymentRequiredErr: Label 'A corporate card can only be selected for an expense paid by credit card. Clear the corporate card before changing the payment type.';
         CardNotValidOnDateErr: Label 'Corporate card %1 is not valid on expense date %2.', Comment = '%1 = corporate card identifier, %2 = expense date';
-        CardDisplayLbl: Label '%1 %2', Locked = true;
+        CardDisplayLbl: Label '%1 %2', Locked = true, Comment = '%1 = card provider short name, %2 = card last four digits';
 }

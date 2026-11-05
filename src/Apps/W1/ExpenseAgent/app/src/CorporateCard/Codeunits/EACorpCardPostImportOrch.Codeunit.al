@@ -21,8 +21,16 @@ codeunit 7423 "EA Corp Card Post Import Orch"
 
     var
         TransactionExpenseWriter: Interface "EA Corp Card Expense Writer";
+        TransactionExpenseMatch: Interface "EA Corp Card Expense Match";
 
     internal procedure ProcessStatementPostImport(StatementEntryNo: Integer; ExpenseWriter: Interface "EA Corp Card Expense Writer")
+    var
+        ExpenseMatch: Codeunit "EA Corp Card Expense Match";
+    begin
+        ProcessStatementPostImport(StatementEntryNo, ExpenseWriter, ExpenseMatch);
+    end;
+
+    internal procedure ProcessStatementPostImport(StatementEntryNo: Integer; ExpenseWriter: Interface "EA Corp Card Expense Writer"; ExpenseMatch: Interface "EA Corp Card Expense Match")
     var
         CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardTrans: Record "EA Corp Card Trans";
@@ -56,6 +64,7 @@ codeunit 7423 "EA Corp Card Post Import Orch"
             CorpCardTrans.Get(TransactionEntryNo);
             Clear(PostImportWorker);
             PostImportWorker.SetExpenseWriter(ExpenseWriter);
+            PostImportWorker.SetExpenseMatch(ExpenseMatch);
             CorpCardErrorContext.ClearErrorInfo();
             ClearLastError();
             if PostImportWorker.Run(CorpCardTrans) then begin
@@ -81,6 +90,11 @@ codeunit 7423 "EA Corp Card Post Import Orch"
         TransactionExpenseWriter := ExpenseWriter;
     end;
 
+    internal procedure SetExpenseMatch(ExpenseMatch: Interface "EA Corp Card Expense Match")
+    begin
+        TransactionExpenseMatch := ExpenseMatch;
+    end;
+
     local procedure ProcessTransaction(var CorpCardTrans: Record "EA Corp Card Trans")
     var
         CorpCardStatement: Record "EA Corp Card Statement";
@@ -90,7 +104,6 @@ codeunit 7423 "EA Corp Card Post Import Orch"
         CorpCardValidateMgt: Codeunit "EA Corp Card Validate Mgt";
         MerchantNorm: Codeunit "EA Corp Card Merchant Norm";
         EnhancedMatchMgt: Codeunit "EA Corp Card Enh. Match Mgt";
-        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
         AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
         MatchedExpenseNo: Code[20];
         DraftExpenseNo: Code[20];
@@ -119,17 +132,17 @@ codeunit 7423 "EA Corp Card Post Import Orch"
                 Error(ValidationReason);
             CorpCard.TestField("Card Id", CorpCardTrans."Card Id");
             CorpCardTrans.TestField("Expense Match No.", MatchedExpenseNo);
-            CorpCardExpenseMatch.LinkExpense(CorpCardTrans, MatchedExpenseNo);
+            TransactionExpenseMatch.LinkExpense(CorpCardTrans, MatchedExpenseNo);
         end else
-            if CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, MatchedExpenseNo) then
-                CorpCardExpenseMatch.LinkExpense(CorpCardTrans, MatchedExpenseNo)
+            if TransactionExpenseMatch.MatchExistingExpense(CorpCardTrans, MatchedExpenseNo) then
+                TransactionExpenseMatch.LinkExpense(CorpCardTrans, MatchedExpenseNo)
             else
                 if ExpenseAgentSetup."Corp Card Create Mode" = ExpenseAgentSetup."Corp Card Create Mode"::AutoDraft then begin
                     TransactionExpenseWriter.CreateDraftFromTrans(CorpCardTrans, DraftExpenseNo);
                     AuditSubscribers.LogDraftCreated(CorpCardTrans."Entry No.");
                 end else
                     if EnhancedMatchMgt.EnhancedMatchTransaction(CorpCardTrans, MatchedExpenseNo) then
-                        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, MatchedExpenseNo)
+                        TransactionExpenseMatch.LinkExpense(CorpCardTrans, MatchedExpenseNo)
                     else
                         if ExpenseAgentSetup."Corp Card Auto Create Draft" then begin
                             TransactionExpenseWriter.CreateDraftFromTrans(CorpCardTrans, DraftExpenseNo);

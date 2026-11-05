@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7448 "EA Corp Card Expense Match"
+codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Match"
 {
     Access = Internal;
     Permissions =
@@ -12,7 +12,7 @@ codeunit 7448 "EA Corp Card Expense Match"
         tabledata "Expense Report Line" = rm,
         tabledata "Posted Expense Report Line" = rm;
 
-    internal procedure MatchExistingExpense(CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]): Boolean
+    procedure MatchExistingExpense(CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]): Boolean
     var
         Expense: Record Expense;
         CorpCard: Record "EA Corp Card";
@@ -37,6 +37,7 @@ codeunit 7448 "EA Corp Card Expense Match"
         Expense.SetRange("Currency Code", CorpCardTrans."Currency Code");
         Expense.SetRange(Amount, CorpCardTrans.Amount);
         Expense.SetRange("Expense Date", CorpCardTrans."Trans Date" - MatchDateWindow, CorpCardTrans."Trans Date" + MatchDateWindow);
+        Expense.SetLoadFields("No.");
         if Expense.FindSet() then
             repeat
                 if ExpenseNo <> '' then
@@ -53,7 +54,7 @@ codeunit 7448 "EA Corp Card Expense Match"
         exit(false);
     end;
 
-    internal procedure LinkExpense(var CorpCardTrans: Record "EA Corp Card Trans"; ExpenseNo: Code[20])
+    procedure LinkExpense(var CorpCardTrans: Record "EA Corp Card Trans"; ExpenseNo: Code[20])
     var
         Expense: Record Expense;
         CorpCard: Record "EA Corp Card";

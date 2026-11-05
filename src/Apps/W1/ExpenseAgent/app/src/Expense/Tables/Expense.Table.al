@@ -753,6 +753,7 @@ table 6900 Expense
         field(64; Source; Enum "Expense Source")
         {
             Caption = 'Source';
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies how the expense was originally created.';
             Editable = false;
         }

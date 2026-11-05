@@ -14,6 +14,7 @@ page 7451 "Expense Corporate Cards API"
     EntityCaption = 'Corporate Card';
     EntitySetCaption = 'Corporate Cards';
     PageType = API;
+    DelayedInsert = true;
     ODataKeyFields = SystemId;
     SourceTable = "EA Corp Card";
     Editable = false;
@@ -31,7 +32,7 @@ page 7451 "Expense Corporate Cards API"
                 field(id; Rec.SystemId) { Caption = 'Id'; }
                 field(corporateCardId; Rec."Card Id") { Caption = 'Corporate Card Id'; }
                 field(expenseUserNumber; Rec."Expense User No.") { Caption = 'Expense User Number'; }
-                field(lastFourDigits; Rec.GetLastFourDigits()) { Caption = 'Last Four Digits'; }
+                field(lastFourDigits; Rec.GetLastFourDigits()) { Caption = 'Last Four Digits'; ToolTip = 'Specifies the last four digits used to identify the corporate card.'; }
                 field(providerCode; Rec."Provider Code") { Caption = 'Provider Code'; }
                 field(providerShortName; Rec."Provider Short Name") { Caption = 'Provider Short Name'; }
                 field(currencyCode; Rec."Currency Code") { Caption = 'Currency Code'; }

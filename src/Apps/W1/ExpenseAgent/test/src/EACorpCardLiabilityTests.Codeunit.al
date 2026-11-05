@@ -55,7 +55,11 @@ codeunit 148363 EACorpCardLiabilityTests
         VATEntryCount: Integer;
         ExpenseGLAmount: Decimal;
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] Transfer uses the original payable account and dimensions without reposting expense or VAT.
         Initialize();
+
+        // [GIVEN] A posted manual expense whose payable account setup has since changed and whose original account has VAT setup.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', '');
         EmployeePostingGroup.Get(EmployeePostingGroupCode);
         EmployeePostingGroup.Validate("Expense Payable Card Paid Acc.", LibraryERM.CreateGLAccountNo());
@@ -73,8 +77,10 @@ codeunit 148363 EACorpCardLiabilityTests
         GLEntry.CalcSums(Amount);
         ExpenseGLAmount := GLEntry.Amount;
 
+        // [WHEN] The original liability is transferred to the provider bank.
         LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
 
+        // [THEN] Only the original payable and bank accounts are posted, preserving dimensions and existing ledger totals.
         BankAccountLedgerEntry.Get(CorpCardTrans."Liability Bank Entry No.");
         Assert.AreEqual(BankAccountNo, BankAccountLedgerEntry."Bank Account No.", 'Transfer must credit the provider bank.');
         Assert.AreEqual(-2000, BankAccountLedgerEntry.Amount, 'The purchase must credit the bank.');
@@ -107,14 +113,20 @@ codeunit 148363 EACorpCardLiabilityTests
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
         BankEntryCount: Integer;
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] A liability cannot be transferred twice.
         Initialize();
+
+        // [GIVEN] A posted manual expense whose liability transfer is already committed.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', '');
         LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
         BankEntryCount := BankAccountLedgerEntry.Count();
         Commit();
 
+        // [WHEN] The same liability is transferred again.
         asserterror LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
 
+        // [THEN] The duplicate transfer is rejected without new bank entries.
         Assert.ExpectedError('already been transferred');
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'A repeated transfer must not post anything.');
     end;
@@ -132,7 +144,11 @@ codeunit 148363 EACorpCardLiabilityTests
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
         BankEntryCount: Integer;
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] An existing bank posting prevents duplicate liability transfer even without transfer audit references.
         Initialize();
+
+        // [GIVEN] A linked manual expense with a committed active bank entry posted through another path.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', '');
         GenJournalLine.Init();
         GenJournalLine.Validate("Posting Date", WorkDate());
@@ -148,8 +164,10 @@ codeunit 148363 EACorpCardLiabilityTests
         BankEntryCount := BankAccountLedgerEntry.Count();
         Commit();
 
+        // [WHEN] A liability transfer is requested for the same feed transaction.
         asserterror LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
 
+        // [THEN] The active bank entry is detected and no duplicate is posted.
         Assert.ExpectedError('already has an active bank account ledger entry');
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'Do not duplicate a liability posted by another path.');
     end;
@@ -175,7 +193,11 @@ codeunit 148363 EACorpCardLiabilityTests
         VATEntryCount: Integer;
         ClosedAt: DateTime;
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] Reversal uses persisted posting references despite changed card setup and invalidates statement closure.
         Initialize();
+
+        // [GIVEN] A transferred liability on a closed statement, with the card blocked and the provider bank cleared.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', '');
         LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
         OriginalBankEntryNo := CorpCardTrans."Liability Bank Entry No.";
@@ -196,8 +218,10 @@ codeunit 148363 EACorpCardLiabilityTests
         CorpCardStatement."Reconciled Amount" := 2000;
         CorpCardStatement.Modify();
 
+        // [WHEN] The transferred liability is reversed.
         LiabilityMgt.ReverseLiability(CorpCardTrans);
 
+        // [THEN] The original posting is reversed, reconciliation is invalidated, and expense, VAT, and audit history are preserved.
         CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
         Assert.AreEqual(CorpCardStatement.Status::ReconciliationRequired, CorpCardStatement.Status, 'Reverse must invalidate closure before modifying the transaction.');
         Assert.AreEqual(ClosedAt, CorpCardStatement."Previous Closed At", 'Preserve prior reconciliation history.');
@@ -215,10 +239,16 @@ codeunit 148363 EACorpCardLiabilityTests
         Assert.AreEqual(VATEntryCount, VATEntry.Count(), 'Transfer reversal must not reverse original VAT.');
         BankEntryCount := BankAccountLedgerEntry.Count();
 
+        // [WHEN] Reversal is requested again.
         LiabilityMgt.ReverseLiability(CorpCardTrans);
 
+        // [THEN] The repeated reversal posts nothing.
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'Repeating reversal must be a validated no-op.');
+
+        // [WHEN] A new transfer is requested after reversal.
         asserterror LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
+
+        // [THEN] The transfer is rejected to preserve the original audit references.
         Assert.ExpectedError('original audit references must be preserved');
     end;
 
@@ -232,12 +262,18 @@ codeunit 148363 EACorpCardLiabilityTests
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
         BankEntryCount: Integer;
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] Reversing a liability that was never transferred posts nothing.
         Initialize();
+
+        // [GIVEN] A linked manual expense without a liability transfer.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', '');
         BankEntryCount := BankAccountLedgerEntry.Count();
 
+        // [WHEN] Liability reversal is requested.
         LiabilityMgt.ReverseLiability(CorpCardTrans);
 
+        // [THEN] No bank entries are created.
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'A manual expense with no transfer has nothing to reverse.');
     end;
 
@@ -255,7 +291,11 @@ codeunit 148363 EACorpCardLiabilityTests
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
         OriginalExpenseTransactionNo: Integer;
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] Report cancellation reverses the original expense and its transferred liability without residual balances.
         Initialize();
+
+        // [GIVEN] A posted manual expense with an unreversed original posting and a transferred bank liability.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', '');
         ExpenseLedgerEntry.SetRange("Document No.", PostedExpenseReportLine."Document No.");
         ExpenseLedgerEntry.SetRange("Document Line No.", PostedExpenseReportLine."Line No.");
@@ -265,8 +305,10 @@ codeunit 148363 EACorpCardLiabilityTests
         LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
         PostedExpenseReportHeader.Get(PostedExpenseReportLine."Document No.");
 
+        // [WHEN] The posted expense report is canceled.
         CancelPostedExpenseReport.Run(PostedExpenseReportHeader);
 
+        // [THEN] The report is canceled, both postings are reversed, and no active bank liability or original payable remains.
         PostedExpenseReportHeader.Get(PostedExpenseReportHeader."No.");
         Assert.IsTrue(PostedExpenseReportHeader.Canceled, 'Cancellation must succeed when original expense reversal precedes liability reversal.');
         CorpCardTrans.Get(CorpCardTrans."Entry No.");
@@ -297,15 +339,21 @@ codeunit 148363 EACorpCardLiabilityTests
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
         BankEntryCount: Integer;
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] Transfer is rejected when the source expense card no longer matches the posted feed.
         Initialize();
+
+        // [GIVEN] A posted manual expense whose source corporate card was cleared after linking.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', '');
         Expense.Get(CorpCardTrans."Expense No.");
         Expense."Corporate Card Id" := '';
         Expense.Modify(false);
         BankEntryCount := BankAccountLedgerEntry.Count();
 
+        // [WHEN] The liability transfer is requested.
         asserterror LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
 
+        // [THEN] The card mismatch is reported without new bank entries.
         Assert.ExpectedError(Expense.FieldCaption("Corporate Card Id"));
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'The source and posted cards must both match the feed before transfer.');
     end;
@@ -320,14 +368,20 @@ codeunit 148363 EACorpCardLiabilityTests
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
         BankEntryCount: Integer;
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] Transfer requires an exact match to the original liability amount.
         Initialize();
+
+        // [GIVEN] A linked feed amount that differs from the original posted manual expense.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', '');
         CorpCardTrans.Amount := 1999;
         CorpCardTrans.Modify(true);
         BankEntryCount := BankAccountLedgerEntry.Count();
 
+        // [WHEN] The liability transfer is requested.
         asserterror LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
 
+        // [THEN] The amount mismatch is reported without new bank entries.
         Assert.ExpectedError('original liability amounts do not match');
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'Matching tolerance must not permit an arbitrary liability transfer.');
     end;
@@ -344,7 +398,11 @@ codeunit 148363 EACorpCardLiabilityTests
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
         BankEntryCount: Integer;
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] An already reversed original expense posting cannot be used for liability transfer.
         Initialize();
+
+        // [GIVEN] A linked manual expense whose original transaction has been reversed.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', '');
         ExpenseLedgerEntry.SetRange("Document No.", PostedExpenseReportLine."Document No.");
         ExpenseLedgerEntry.SetRange("Document Line No.", PostedExpenseReportLine."Line No.");
@@ -355,8 +413,10 @@ codeunit 148363 EACorpCardLiabilityTests
         ReversalEntry.ReverseTransaction(ExpenseLedgerEntry."Transaction No.");
         BankEntryCount := BankAccountLedgerEntry.Count();
 
+        // [WHEN] The liability transfer is requested.
         asserterror LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
 
+        // [THEN] The missing unreversed posting is reported without new bank entries.
         Assert.ExpectedError('original unreversed expense posting');
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'The real original G/L posting must still exist unreversed.');
     end;
@@ -369,11 +429,17 @@ codeunit 148363 EACorpCardLiabilityTests
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] An LCY liability cannot be transferred to a foreign-currency bank.
         Initialize();
+
+        // [GIVEN] A posted LCY manual expense linked to a provider bank denominated in USD.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', 'USD');
 
+        // [WHEN] The liability transfer is requested.
         asserterror LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
 
+        // [THEN] The unsupported cross-currency transfer is rejected.
         Assert.ExpectedError('Cross-currency liability transfers are not supported');
     end;
 
@@ -386,12 +452,18 @@ codeunit 148363 EACorpCardLiabilityTests
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] A foreign-currency bank transfer preserves original LCY despite a later exchange-rate change.
         Initialize();
+
+        // [GIVEN] A USD liability and USD provider bank with a different exchange rate on the next day.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, 'USD', 'USD');
         LibraryERM.CreateExchangeRate('USD', WorkDate() + 1, 2, 1);
 
+        // [WHEN] The liability is transferred on the next day.
         LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate() + 1);
 
+        // [THEN] The bank entry preserves both the original foreign-currency amount and historical LCY liability.
         BankAccountLedgerEntry.Get(CorpCardTrans."Liability Bank Entry No.");
         Assert.AreEqual(-2000, BankAccountLedgerEntry.Amount, 'Preserve the foreign-currency bank liability.');
         Assert.AreEqual(PostedExpenseReportLine."Card Liability Amount (LCY)", BankAccountLedgerEntry."Amount (LCY)", 'Clear original LCY, not the new exchange-rate amount.');
@@ -406,11 +478,17 @@ codeunit 148363 EACorpCardLiabilityTests
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] A foreign-currency liability can be transferred to an LCY bank using its historical LCY amount.
         Initialize();
+
+        // [GIVEN] A posted USD manual expense linked to an LCY provider bank.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, 'USD', '');
 
+        // [WHEN] The liability transfer is requested.
         LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
 
+        // [THEN] The bank is posted in LCY for the historical liability amount.
         BankAccountLedgerEntry.Get(CorpCardTrans."Liability Bank Entry No.");
         Assert.AreEqual('', BankAccountLedgerEntry."Currency Code", 'An LCY bank must be posted in LCY.');
         Assert.AreEqual(PostedExpenseReportLine."Card Liability Amount (LCY)", BankAccountLedgerEntry.Amount, 'Clear the historical liability in LCY.');
@@ -426,14 +504,20 @@ codeunit 148363 EACorpCardLiabilityTests
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
         BankEntryCount: Integer;
     begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] An LCY bank transfer rejects a feed LCY amount that differs from the original liability.
         Initialize();
+
+        // [GIVEN] A USD liability and LCY provider bank with a mismatched feed LCY amount.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, 'USD', '');
         CorpCardTrans."Amount (LCY)" := -PostedExpenseReportLine."Card Liability Amount (LCY)" + 1;
         CorpCardTrans.Modify(true);
         BankEntryCount := BankAccountLedgerEntry.Count();
 
+        // [WHEN] The liability transfer is requested.
         asserterror LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
 
+        // [THEN] The amount mismatch is reported without new bank entries.
         Assert.ExpectedError('original liability amounts do not match');
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'Do not post a bank amount that cannot both clear original LCY and satisfy statement reconciliation.');
     end;
