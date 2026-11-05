@@ -58,11 +58,10 @@ codeunit 30167 "Shpfy Process Orders"
                 ErrorMessage := GetLastErrorText();
                 if OrderMapping.IsMappingError(ErrorMessage) then
                     OrderMapping.PersistMappingErrorMessage(ShopifyOrderHeader, ErrorMessage)
-                else
-                    if not ShopifyOrderHeader."Has Error" or OrderMapping.IsMappingError(ShopifyOrderHeader."Error Message") then begin
-                        ShopifyOrderHeader."Has Error" := true;
-                        ShopifyOrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ErrorMessage, 1, MaxStrLen(ShopifyOrderHeader."Error Message"));
-                    end;
+                else begin
+                    ShopifyOrderHeader."Has Error" := true;
+                    ShopifyOrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ErrorMessage, 1, MaxStrLen(ShopifyOrderHeader."Error Message"));
+                end;
                 ShopifyOrderHeader."Sales Order No." := '';
                 ShopifyOrderHeader."Sales Invoice No." := '';
                 ProcessOrder.CleanUpLastCreatedDocument();

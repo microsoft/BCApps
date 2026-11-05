@@ -74,7 +74,10 @@ report 30104 "Shpfy Sync Orders from Shopify"
                                 if (OrdersToImport."Import Action" = OrdersToImport."Import Action"::New) and Shop."Auto Create Orders" then
                                     CreateSalesDocumentForOrders(OrderHeader);
                             end else
-                                OrderMapping.PersistMappingError(OrderHeader, MissingIssues);
+                                if OrderHeader.Processed then
+                                    OrderMapping.PersistMappingErrorUnlessUnrelated(OrderHeader, MissingIssues)
+                                else
+                                    OrderMapping.PersistMappingError(OrderHeader, MissingIssues);
                         end;
 
                     if GuiAllowed then begin
@@ -125,6 +128,8 @@ report 30104 "Shpfy Sync Orders from Shopify"
     local procedure CreateSalesDocumentForOrders(ShopifyOrderHeader: Record "Shpfy Order Header")
     var
         ProcessOrder: Codeunit "Shpfy Process Order";
+        OrderMapping: Codeunit "Shpfy Order Mapping";
+        ErrorMessage: Text;
     begin
         if not ShopifyOrderHeader.Processed then begin
             Commit();
@@ -133,8 +138,13 @@ report 30104 "Shpfy Sync Orders from Shopify"
             if not ProcessOrder.Run(ShopifyOrderHeader) then begin
                 SelectLatestVersion();
                 ShopifyOrderHeader.Get(ShopifyOrderHeader."Shopify Order Id");
-                ShopifyOrderHeader."Has Error" := true;
-                ShopifyOrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + GetLastErrorText(), 1, MaxStrLen(ShopifyOrderHeader."Error Message"));
+                ErrorMessage := GetLastErrorText();
+                if OrderMapping.IsMappingError(ErrorMessage) then
+                    OrderMapping.PersistMappingErrorMessage(ShopifyOrderHeader, ErrorMessage)
+                else begin
+                    ShopifyOrderHeader."Has Error" := true;
+                    ShopifyOrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ErrorMessage, 1, MaxStrLen(ShopifyOrderHeader."Error Message"));
+                end;
                 ShopifyOrderHeader."Sales Order No." := '';
                 ShopifyOrderHeader."Sales Invoice No." := '';
                 ProcessOrder.CleanUpLastCreatedDocument();

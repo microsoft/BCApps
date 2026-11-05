@@ -706,7 +706,7 @@ page 30113 "Shpfy Order"
                         if Mapping.DoMappingWithIssues(Rec, MissingIssues, "Shpfy Mapping Execution Mode"::FindMappings) then
                             Mapping.ClearMappingError(Rec)
                         else
-                            Mapping.PersistMappingError(Rec, MissingIssues);
+                            Mapping.PersistMappingErrorUnlessUnrelated(Rec, MissingIssues);
                         CurrPage.Update(false);
                     end;
                 }

@@ -187,19 +187,21 @@ codeunit 30163 "Shpfy Order Mapping"
 
     internal procedure PersistMappingError(var OrderHeader: Record "Shpfy Order Header"; MissingIssues: List of [Text])
     begin
-        if OrderHeader."Has Error" and not IsMappingError(OrderHeader."Error Message") then
-            exit;
-
         SetMappingError(OrderHeader, MissingIssues);
     end;
 
-    internal procedure PersistMappingErrorMessage(var OrderHeader: Record "Shpfy Order Header"; ErrorMessage: Text)
+    internal procedure PersistMappingErrorUnlessUnrelated(var OrderHeader: Record "Shpfy Order Header"; MissingIssues: List of [Text])
     begin
         if OrderHeader."Has Error" and not IsMappingError(OrderHeader."Error Message") then
             exit;
 
+        PersistMappingError(OrderHeader, MissingIssues);
+    end;
+
+    internal procedure PersistMappingErrorMessage(var OrderHeader: Record "Shpfy Order Header"; ErrorMessage: Text)
+    begin
         OrderHeader."Has Error" := true;
-        OrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ErrorMessage, 1, MaxStrLen(OrderHeader."Error Message"));
+        OrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ErrorMessage.Replace('\', GetLineBreak()), 1, MaxStrLen(OrderHeader."Error Message"));
         OrderHeader.Modify(false);
     end;
 
@@ -242,6 +244,15 @@ codeunit 30163 "Shpfy Order Mapping"
 
         TimestampText := CopyStr(ErrorMessage, 1, MappingErrorPosition - 2);
         exit(Evaluate(ErrorTime, TimestampText));
+    end;
+
+    local procedure GetLineBreak(): Text
+    var
+        LineBreak: Text[2];
+    begin
+        LineBreak[1] := 13;
+        LineBreak[2] := 10;
+        exit(LineBreak);
     end;
 
     local procedure AddUniqueIssue(var MissingIssues: List of [Text]; Issue: Text)

@@ -2323,14 +2323,8 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     local procedure ExpectedProcessingMappingDetails(OrderId: BigInteger; IncludeAccounts: Boolean): Text
-    var
-        LineBreak: Text[2];
     begin
-        // GetLastErrorText preserves the runtime's backslash line separators.
-        LineBreak := '  ';
-        LineBreak[1] := 13;
-        LineBreak[2] := 10;
-        exit(this.ExpectedMappingDetails(OrderId, IncludeAccounts).Replace(LineBreak, '\'));
+        exit(this.ExpectedMappingDetails(OrderId, IncludeAccounts));
     end;
 
     local procedure CaptureMappingOutcome(OrderId: BigInteger; ExpectedError: Text; Timestamped: Boolean; ExpectedOrderStateError: Boolean; ExpectedProcessed: Boolean; ExpectedDocumentCount: Integer; var Outcomes: JsonArray)
