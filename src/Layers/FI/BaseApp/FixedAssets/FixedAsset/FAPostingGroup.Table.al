@@ -900,6 +900,27 @@ table 5606 "FA Posting Group"
         exit("Derogatory Expense Acc.");
     end;
 
+    procedure InitializeDepreciationDifferenceAccounts(DepreciationDifferenceAccount: Code[20]; DepreciationDifferenceBalAccount: Code[20])
+    var
+        IsHandled: Boolean;
+    begin
+        OnInitializeDepreciationDifferenceAccounts(Rec, DepreciationDifferenceAccount, DepreciationDifferenceBalAccount, IsHandled);
+        if IsHandled then
+            exit;
+
+#if not CLEAN30
+#pragma warning disable AL0432
+        Validate("Depr. Difference Acc.", DepreciationDifferenceAccount);
+        Validate("Depr. Difference Bal. Acc.", DepreciationDifferenceBalAccount);
+#pragma warning restore AL0432
+#endif
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInitializeDepreciationDifferenceAccounts(var FAPostingGroup: Record "FA Posting Group"; DepreciationDifferenceAccount: Code[20]; DepreciationDifferenceBalAccount: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetPostingGroup(var FAPostingGroup: Record "FA Posting Group"; DepreciationBookCode: Code[10]; var Result: Boolean)
     begin
@@ -915,4 +936,3 @@ table 5606 "FA Posting Group"
     begin
     end;
 }
-

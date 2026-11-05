@@ -470,6 +470,60 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PostingGroupInitializationUsesExtensionAccounts()
+    var
+        FAPostingGroup: Record "FA Posting Group";
+        DepreciationDifferenceAccount: Code[20];
+        DepreciationDifferenceBalAccount: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Posting group initialization uses extension accounts when depreciation differences are enabled.
+        InitializeTest();
+
+        // [GIVEN] A posting group, two posting accounts, and the enabled feature.
+        CreateUninitializedFAPostingGroup(FAPostingGroup);
+        CreateDepreciationDifferenceAccounts(DepreciationDifferenceAccount, DepreciationDifferenceBalAccount);
+        EnableFeature();
+
+        // [WHEN] Depreciation difference accounts are initialized through the public setup entry point.
+        FAPostingGroup.InitializeDepreciationDifferenceAccounts(DepreciationDifferenceAccount, DepreciationDifferenceBalAccount);
+        FAPostingGroup.Modify(true);
+        DisableFeature();
+
+        // [THEN] Supplied accounts are stored in extension fields, not legacy fields.
+        VerifyDemoPostingGroupAccounts(FAPostingGroup, DepreciationDifferenceAccount, DepreciationDifferenceBalAccount, true);
+    end;
+
+#if not CLEAN30
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure PostingGroupInitializationRetainsLegacyAccountsWhenFeatureDisabled()
+    var
+        FAPostingGroup: Record "FA Posting Group";
+        DepreciationDifferenceAccount: Code[20];
+        DepreciationDifferenceBalAccount: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Posting group initialization retains legacy accounts while depreciation differences are disabled.
+        InitializeTest();
+
+        // [GIVEN] A posting group, two posting accounts, and the disabled feature.
+        CreateUninitializedFAPostingGroup(FAPostingGroup);
+        CreateDepreciationDifferenceAccounts(DepreciationDifferenceAccount, DepreciationDifferenceBalAccount);
+        SetFeatureEnabled(false);
+
+        // [WHEN] Depreciation difference accounts are initialized through the public setup entry point.
+        FAPostingGroup.InitializeDepreciationDifferenceAccounts(DepreciationDifferenceAccount, DepreciationDifferenceBalAccount);
+        FAPostingGroup.Modify(true);
+        DisableFeature();
+
+        // [THEN] Supplied accounts remain in legacy fields, leaving extension fields empty.
+        VerifyDemoPostingGroupAccounts(FAPostingGroup, DepreciationDifferenceAccount, DepreciationDifferenceBalAccount, false);
+    end;
+#endif
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ContosoDemoGeneratorInitializesExtensionAccounts()
     var
         ContosoDemoToolPage: TestPage "Contoso Demo Tool";
@@ -1067,6 +1121,7 @@ codeunit 148163 "Depr. Diff. Calculation FI"
         FAPostingGroup: Record "FA Posting Group";
         GLAccount: Record "G/L Account";
         CreateGLAccountFI: Codeunit "Create FI GL Accounts";
+        CreateGLAccount: Codeunit "Create G/L Account";
         DeprDifferenceAccount: Code[20];
         DeprDifferenceBalAccount: Code[20];
         PostingGroupCode: Code[20];
@@ -1080,25 +1135,47 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 
         foreach PostingGroupCode in GetContosoPostingGroupCodes() do begin
             FAPostingGroup.Get(PostingGroupCode);
-            if UseExtensionFields then begin
-                Assert.AreEqual(DeprDifferenceAccount, FAPostingGroup."Deprec. Difference Account", 'The extension depreciation difference account must be initialized.');
-                Assert.AreEqual(DeprDifferenceBalAccount, FAPostingGroup."Deprec. Difference Bal Acct", 'The extension depreciation difference balancing account must be initialized.');
-            end else begin
-                Assert.AreEqual('', FAPostingGroup."Deprec. Difference Account", 'The extension depreciation difference account must remain empty.');
-                Assert.AreEqual('', FAPostingGroup."Deprec. Difference Bal Acct", 'The extension depreciation difference balancing account must remain empty.');
-            end;
+            Assert.AreEqual(CreateGLAccount.DerogatoryAccount(), FAPostingGroup."Derogatory Acc.", 'The derogatory account must remain initialized.');
+            Assert.AreEqual(CreateGLAccount.DerogatoryAccount(), FAPostingGroup."Derogatory Account (Decrease)", 'The derogatory decrease account must remain initialized.');
+            Assert.AreEqual(CreateGLAccount.DerogExpenseAccForCredit(), FAPostingGroup."Derog. Bal. Account (Decrease)", 'The derogatory balancing account must remain initialized.');
+            Assert.AreEqual(CreateGLAccount.DerogExpenseAccForDebit(), FAPostingGroup."Derogatory Expense Acc.", 'The derogatory expense account must remain initialized.');
+            VerifyDemoPostingGroupAccounts(FAPostingGroup, DeprDifferenceAccount, DeprDifferenceBalAccount, UseExtensionFields);
+        end;
+    end;
+
+    local procedure CreateUninitializedFAPostingGroup(var FAPostingGroup: Record "FA Posting Group")
+    begin
+        FAPostingGroup.Init();
+        FAPostingGroup.Validate(Code, CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(FAPostingGroup.Code)));
+        FAPostingGroup.Insert(true);
+    end;
+
+    local procedure CreateDepreciationDifferenceAccounts(var DepreciationDifferenceAccount: Code[20]; var DepreciationDifferenceBalAccount: Code[20])
+    begin
+        DepreciationDifferenceAccount := LibraryERM.CreateGLAccountNoWithDirectPosting();
+        DepreciationDifferenceBalAccount := LibraryERM.CreateGLAccountNoWithDirectPosting();
+    end;
+
+    local procedure VerifyDemoPostingGroupAccounts(FAPostingGroup: Record "FA Posting Group"; DepreciationDifferenceAccount: Code[20]; DepreciationDifferenceBalAccount: Code[20]; UseExtensionFields: Boolean)
+    begin
+        if UseExtensionFields then begin
+            Assert.AreEqual(DepreciationDifferenceAccount, FAPostingGroup."Deprec. Difference Account", 'The extension depreciation difference account must be initialized.');
+            Assert.AreEqual(DepreciationDifferenceBalAccount, FAPostingGroup."Deprec. Difference Bal Acct", 'The extension depreciation difference balancing account must be initialized.');
+        end else begin
+            Assert.AreEqual('', FAPostingGroup."Deprec. Difference Account", 'The extension depreciation difference account must remain empty.');
+            Assert.AreEqual('', FAPostingGroup."Deprec. Difference Bal Acct", 'The extension depreciation difference balancing account must remain empty.');
+        end;
 #if not CLEAN30
 #pragma warning disable AL0432
-            if UseExtensionFields then begin
-                Assert.AreEqual('', FAPostingGroup."Depr. Difference Acc.", 'The legacy depreciation difference account must remain empty.');
-                Assert.AreEqual('', FAPostingGroup."Depr. Difference Bal. Acc.", 'The legacy depreciation difference balancing account must remain empty.');
-            end else begin
-                Assert.AreEqual(DeprDifferenceAccount, FAPostingGroup."Depr. Difference Acc.", 'The legacy depreciation difference account must be initialized.');
-                Assert.AreEqual(DeprDifferenceBalAccount, FAPostingGroup."Depr. Difference Bal. Acc.", 'The legacy depreciation difference balancing account must be initialized.');
-            end;
+        if UseExtensionFields then begin
+            Assert.AreEqual('', FAPostingGroup."Depr. Difference Acc.", 'The legacy depreciation difference account must remain empty.');
+            Assert.AreEqual('', FAPostingGroup."Depr. Difference Bal. Acc.", 'The legacy depreciation difference balancing account must remain empty.');
+        end else begin
+            Assert.AreEqual(DepreciationDifferenceAccount, FAPostingGroup."Depr. Difference Acc.", 'The legacy depreciation difference account must be initialized.');
+            Assert.AreEqual(DepreciationDifferenceBalAccount, FAPostingGroup."Depr. Difference Bal. Acc.", 'The legacy depreciation difference balancing account must be initialized.');
+        end;
 #pragma warning restore AL0432
 #endif
-        end;
     end;
 
     local procedure CreateFixedAsset(var FixedAsset: Record "Fixed Asset"; FAPostingGroup: Code[20])

@@ -134,6 +134,11 @@ codeunit 13414 "FI Contoso Localization"
         CreateCurrencyFI: Codeunit "Create Currency FI";
         CreateCurrencyExchRateFI: Codeunit "Create Currency Ex. Rate FI";
         CreateFADepreciationBookFI: Codeunit "Create FA Depreciation Book FI";
+#if not CLEAN30
+#pragma warning disable AL0432
+        CreateFAPostingGrpFI: Codeunit "Create FA Posting Grp. FI";
+#pragma warning restore AL0432
+#endif
         CreatePaymentTermsFI: Codeunit "Create Payment Terms FI";
         CreateAccScheduleLineFI: Codeunit "Create Acc. Schedule Line FI";
         CreateVatPostingGroupsFI: Codeunit "Create Vat Posting Groups FI";
@@ -184,7 +189,14 @@ codeunit 13414 "FI Contoso Localization"
                     BindSubscription(CreateVATStatementFI);
                 end;
             Enum::"Contoso Demo Data Module"::"Fixed Asset Module":
+#if not CLEAN30
+                begin
+                    BindSubscription(CreateFADepreciationBookFI);
+                    BindSubscription(CreateFAPostingGrpFI);
+                end;
+#else
                 BindSubscription(CreateFADepreciationBookFI);
+#endif
             Enum::"Contoso Demo Data Module"::"Human Resources Module":
                 BindSubscription(CreateEmployeeFI);
         end;
@@ -212,6 +224,11 @@ codeunit 13414 "FI Contoso Localization"
         CreateCurrencyFI: Codeunit "Create Currency FI";
         CreateCurrencyExchRateFI: Codeunit "Create Currency Ex. Rate FI";
         CreateFADepreciationBookFI: Codeunit "Create FA Depreciation Book FI";
+#if not CLEAN30
+#pragma warning disable AL0432
+        CreateFAPostingGrpFI: Codeunit "Create FA Posting Grp. FI";
+#pragma warning restore AL0432
+#endif
         CreatePaymentTermsFI: Codeunit "Create Payment Terms FI";
         CreateAccScheduleLineFI: Codeunit "Create Acc. Schedule Line FI";
         CreateVatPostingGroupsFI: Codeunit "Create Vat Posting Groups FI";
@@ -263,7 +280,14 @@ codeunit 13414 "FI Contoso Localization"
                     UnbindSubscription(CreateVATStatementFI);
                 end;
             Enum::"Contoso Demo Data Module"::"Fixed Asset Module":
+#if not CLEAN30
+                begin
+                    UnBindSubscription(CreateFADepreciationBookFI);
+                    UnBindSubscription(CreateFAPostingGrpFI);
+                end;
+#else
                 UnBindSubscription(CreateFADepreciationBookFI);
+#endif
 
             Enum::"Contoso Demo Data Module"::"Human Resources Module":
                 UnBindSubscription(CreateEmployeeFI);

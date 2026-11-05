@@ -6,9 +6,6 @@
 namespace Microsoft.DemoData.FixedAsset;
 
 using Microsoft.DemoData.Finance;
-#if not CLEAN30
-using Microsoft.FixedAssets.Depreciation;
-#endif
 using Microsoft.FixedAssets.FixedAsset;
 
 codeunit 13487 "Create Depr. Diff. FA Post Grp"
@@ -36,21 +33,13 @@ codeunit 13487 "Create Depr. Diff. FA Post Grp"
     end;
 
     local procedure ValidateRecordFields(var FAPostingGroup: Record "FA Posting Group"; DeprDifferenceAcc: Code[20]; DeprDifferenceBalAcc: Code[20])
-#if not CLEAN30
     var
-        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
-#endif
+        CreateGLAccount: Codeunit "Create G/L Account";
     begin
-#if not CLEAN30
-        if not DepreciationDifferencesFIFeature.IsEnabled() then begin
-#pragma warning disable AL0432
-            FAPostingGroup.Validate("Depr. Difference Acc.", DeprDifferenceAcc);
-            FAPostingGroup.Validate("Depr. Difference Bal. Acc.", DeprDifferenceBalAcc);
-#pragma warning restore AL0432
-            exit;
-        end;
-#endif
-        FAPostingGroup.Validate("Deprec. Difference Account", DeprDifferenceAcc);
-        FAPostingGroup.Validate("Deprec. Difference Bal Acct", DeprDifferenceBalAcc);
+        FAPostingGroup.InitializeDepreciationDifferenceAccounts(DeprDifferenceAcc, DeprDifferenceBalAcc);
+        FAPostingGroup.Validate("Derogatory Acc.", CreateGLAccount.DerogatoryAccount());
+        FAPostingGroup.Validate("Derogatory Account (Decrease)", CreateGLAccount.DerogatoryAccount());
+        FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", CreateGLAccount.DerogExpenseAccForCredit());
+        FAPostingGroup.Validate("Derogatory Expense Acc.", CreateGLAccount.DerogExpenseAccForDebit());
     end;
 }

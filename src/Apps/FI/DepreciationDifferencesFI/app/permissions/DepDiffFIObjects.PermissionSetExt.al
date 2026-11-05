@@ -24,5 +24,6 @@ permissionsetextension 13485 "Dep Diff FI - Objects" extends "D365 BASIC"
 #endif
 #endif
         codeunit "Dep Diff FI Upgrade Tag" = X,
+        codeunit "Dep Diff FI Setup" = X,
         codeunit "Dep Diff FI Data Class." = X;
 }

@@ -44,12 +44,7 @@ codeunit 101803 "Create FA Posting Group"
         "FA Posting Group".Validate("Derogatory Account (Decrease)", "FA Posting Group"."Accum. Depreciation Account");
         "FA Posting Group".Validate("Derogatory Expense Acc.", "FA Posting Group"."Depreciation Expense Acc.");
         "FA Posting Group".Validate("Derog. Bal. Account (Decrease)", "FA Posting Group"."Acquisition Cost Bal. Acc.");
-#if not CLEAN30
-#pragma warning disable AL0432
-        "FA Posting Group".Validate("Depr. Difference Acc.", CA.Convert("Depr. Difference Acc."));
-        "FA Posting Group".Validate("Depr. Difference Bal. Acc.", CA.Convert("Depr. Difference Bal. Acc."));
-#pragma warning restore AL0432
-#endif
+        "FA Posting Group".InitializeDepreciationDifferenceAccounts(CA.Convert("Depr. Difference Acc."), CA.Convert("Depr. Difference Bal. Acc."));
 
         "FA Posting Group".Insert();
     end;
@@ -75,4 +70,3 @@ codeunit 101803 "Create FA Posting Group"
         InsertData(XEQUIPMENT, '991220', '991240', '991230', '991240', '998840', '998840', '998640', '998820', '991645', '991646', '991220');
     end;
 }
-

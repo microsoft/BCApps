@@ -39,10 +39,7 @@ codeunit 13445 "Create FA Posting Grp. FI"
     var
         CreateGLAccount: Codeunit "Create G/L Account";
     begin
-#pragma warning disable AL0432
-        FAPostingGroup.Validate("Depr. Difference Acc.", DeprDifferenceAcc);
-        FAPostingGroup.Validate("Depr. Difference Bal. Acc.", DeprDifferenceBalAcc);
-#pragma warning restore AL0432
+        FAPostingGroup.InitializeDepreciationDifferenceAccounts(DeprDifferenceAcc, DeprDifferenceBalAcc);
         FAPostingGroup.Validate("Derogatory Acc.", CreateGLAccount.DerogatoryAccount());
         FAPostingGroup.Validate("Derogatory Account (Decrease)", CreateGLAccount.DerogatoryAccount());
         FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", CreateGLAccount.DerogExpenseAccForCredit());
