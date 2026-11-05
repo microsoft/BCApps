@@ -944,6 +944,7 @@ codeunit 148340 "Expense Policy Evaluation Test"
         ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
         ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
         Assert.RecordCount(ExpenseReportLinePerDiem, 2);
+        AssertPerDiemParentInformation(ExpenseReportLine);
         Assert.AreEqual(200, ExpenseReportLine.Amount, 'Two full days must receive the daily rate.');
         StoredExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual(ParentRowVersion, StoredExpenseReportLine.SystemRowVersion, 'Generating children must not write the stored parent.');
@@ -955,6 +956,7 @@ codeunit 148340 "Expense Policy Evaluation Test"
         Assert.AreEqual(EvaluatedVersion, ExpenseReportLine."Evaluated Policy Version", 'Generation must preserve the prior evaluated version.');
         Assert.AreEqual(EvaluatedAt, ExpenseReportLine."Policies Evaluated At", 'Generation must preserve the prior evaluation timestamp.');
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'The saved parent must remain stale.');
+        AssertPerDiemParentInformation(ExpenseReportLine);
 
         // [WHEN] A different child record instance inserts directly after bulk generation.
         Clear(ExpenseReportLinePerDiem);
@@ -965,6 +967,56 @@ codeunit 148340 "Expense Policy Evaluation Test"
 
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual(EvaluatedVersion + 2, ExpenseReportLine."Policy Eval Version", 'Bulk suppression must not disable invalidation for direct inserts.');
+    end;
+
+    [Test]
+    procedure PerDiemInitializationUsesUnsavedParentOnce()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        StoredExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
+        ExpenseLocation: Record "Expense Location";
+    begin
+        // [SCENARIO] Explicit initialization uses unsaved metadata, including blanks, for one insert only.
+        Initialize();
+        CreateEvaluatedPerDiemReportLine(ExpenseReportLine, ExpenseLocation);
+        StoredExpenseReportLine := ExpenseReportLine;
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::"Per Diem", ExpenseReportLine."Payment Method Code");
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseCategory.Code, true);
+        ExpenseReportLine."Expense Category" := ExpenseCategory.Code;
+        ExpenseReportLine."Expense Subcategory Code" := ExpenseSubcategory.Code;
+        ExpenseReportLine."Expense Location" := ExpenseLocation."No.";
+
+        ExpenseReportLinePerDiem."Expense Report No." := ExpenseReportLine."Document No.";
+        ExpenseReportLinePerDiem."Expense Report Line No." := ExpenseReportLine."Line No.";
+        ExpenseReportLinePerDiem."Line No." := 10000;
+        ExpenseReportLinePerDiem.InitializeFromParent(ExpenseReportLine);
+        ExpenseReportLinePerDiem.Insert(true);
+        AssertPerDiemParentInformation(ExpenseReportLine);
+
+        ExpenseReportLinePerDiem.Init();
+        ExpenseReportLinePerDiem."Line No." := 20000;
+        ExpenseReportLinePerDiem."Expense Subcategory Code" := ExpenseSubcategory.Code;
+        ExpenseReportLinePerDiem."Expense Location" := ExpenseLocation."No.";
+        ExpenseReportLine."Expense Subcategory Code" := '';
+        ExpenseReportLine."Expense Location" := '';
+        ExpenseReportLinePerDiem.InitializeFromParent(ExpenseReportLine);
+        ExpenseReportLinePerDiem.Insert(true);
+        ExpenseReportLinePerDiem.TestField("Expense Subcategory Code", '');
+        ExpenseReportLinePerDiem.TestField("Expense Location", '');
+
+        // [WHEN] The same child buffer inserts without explicit parent initialization.
+        ExpenseReportLinePerDiem.Init();
+        ExpenseReportLinePerDiem."Line No." := 30000;
+        ExpenseReportLinePerDiem.Insert(true);
+        ExpenseReportLinePerDiem.TestField("Expense No.", StoredExpenseReportLine."Expense No.");
+        ExpenseReportLinePerDiem.TestField("Expense Category Code", StoredExpenseReportLine."Expense Category");
+        ExpenseReportLinePerDiem.TestField("Expense Subcategory Code", StoredExpenseReportLine."Expense Subcategory Code");
+        ExpenseReportLinePerDiem.TestField("Expense Location", StoredExpenseReportLine."Expense Location");
+        StoredExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(ExpenseReportLine."Policy Eval Version" + 3, StoredExpenseReportLine."Policy Eval Version", 'Explicit metadata initialization must not suppress direct-insert policy invalidation.');
     end;
 
     [Test]
@@ -981,6 +1033,7 @@ codeunit 148340 "Expense Policy Evaluation Test"
         FieldIndex: Integer;
         EvaluatedVersion: Integer;
         EvaluatedAt: DateTime;
+        ParentFieldUnchangedErr: Label 'Regeneration must not change parent field %1.', Comment = '%1 = Parent field name';
     begin
         // [SCENARIO] Regenerating only child details still invalidates the parent exactly once.
         Initialize();
@@ -1012,7 +1065,7 @@ codeunit 148340 "Expense Policy Evaluation Test"
             LineField := LineRef.FieldIndex(FieldIndex);
             if (LineField.Class = FieldClass::Normal) and (LineField.Number < 2000000000) then begin
                 StoredLineField := StoredLineRef.Field(LineField.Number);
-                Assert.AreEqual(StoredLineField.Value(), LineField.Value(), StrSubstNo('Regeneration must not change parent field %1.', LineField.Name()));
+                Assert.AreEqual(StoredLineField.Value(), LineField.Value(), StrSubstNo(ParentFieldUnchangedErr, LineField.Name()));
             end;
         end;
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Pending child-only changes must make the held parent stale.');
@@ -1375,6 +1428,21 @@ codeunit 148340 "Expense Policy Evaluation Test"
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ", ExpensePaymentMethod.Code);
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
         LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', LibraryRandom.RandIntInRange(10, 100));
+    end;
+
+    local procedure AssertPerDiemParentInformation(ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+    begin
+        ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        ExpenseReportLinePerDiem.FindSet();
+        repeat
+            ExpenseReportLinePerDiem.TestField("Expense No.", ExpenseReportLine."Expense No.");
+            ExpenseReportLinePerDiem.TestField("Expense Category Code", ExpenseReportLine."Expense Category");
+            ExpenseReportLinePerDiem.TestField("Expense Subcategory Code", ExpenseReportLine."Expense Subcategory Code");
+            ExpenseReportLinePerDiem.TestField("Expense Location", ExpenseReportLine."Expense Location");
+        until ExpenseReportLinePerDiem.Next() = 0;
     end;
 
     local procedure CreateEvaluatedPerDiemReportLine(var ExpenseReportLine: Record "Expense Report Line"; var ExpenseLocation: Record "Expense Location")
