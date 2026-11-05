@@ -1548,7 +1548,7 @@ table 6906 "Expense Report Header"
         ExpenseReportLine.ApplyRule();
         ExpenseReportLine.Modify(true);
 
-        FeatureTelemetry.LogUsage('0000VF3', ExpenseAgentSetup.GetFeatureName(), PerDiemLineCreatedLbl);
+        FeatureTelemetry.LogUsage('0000WJ7', ExpenseAgentSetup.GetFeatureName(), PerDiemLineCreatedLbl);
     end;
 
     local procedure FindPerDiemCategoryForTravelRequest(SpendRequest: Record "Spend Request"): Code[20]
@@ -1573,7 +1573,7 @@ table 6906 "Expense Report Header"
                         exit(ExpenseCategory.Code);
             until ExpenseRuleHeader.Next() = 0;
 
-        FeatureTelemetry.LogError('0000VF4', ExpenseAgentSetup.GetFeatureName(), PerDiemLineCreationFailedLbl, NoPerDiemRuleTelemetryErr);
+        FeatureTelemetry.LogError('0000WJ6', ExpenseAgentSetup.GetFeatureName(), PerDiemLineCreationFailedLbl, NoPerDiemRuleTelemetryErr);
         Error(NoPerDiemRuleForTravelRequestErr, SpendRequest."Expense Location", TripStartDate, SpendRequest."No.");
     end;
 
