@@ -169,7 +169,7 @@ page 608 "IC Partner List"
             if ConfirmManagement.GetResponse(SetupICQst, true) then
                 Page.RunModal(Page::"Intercompany Setup");
 
-        ICSetup.Find();
+        ICSetup.Get();
         if ICSetup."IC Partner Code" = '' then
             Error('');
     end;
