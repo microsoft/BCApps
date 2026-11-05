@@ -255,6 +255,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
         InStream: InStream;
         OutStream: OutStream;
     begin
+        // [SCENARIO] Uploading a file into a nested folder addresses the parent folder without a trailing slash
         // [GIVEN] A file to upload into a nested folder
         Initialize(Account);
         TempBlob.CreateOutStream(OutStream);
