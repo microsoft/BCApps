@@ -1,7 +1,6 @@
 Describe "BuildOptimization" {
     BeforeAll {
         Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -Force
-        Import-Module "$PSScriptRoot\..\ParallelTestExecution.psm1" -Force
         Import-Module "$PSScriptRoot\..\BuildOptimization.psm1" -Force
         Import-Module "$PSScriptRoot\..\ALAppBuild.psm1"
         $baseFolder = Get-BaseFolder
@@ -125,9 +124,10 @@ Describe "BuildOptimization" {
             $script:compiledGraph = Get-AppDependencyGraph -BaseFolder $baseFolder -AppJsonPaths $script:compiledManifests
         }
 
-        It "uses the DE registry's aggregate test manifest and GDL source overrides" {
-            $apps = @(ALAppBuild\Get-ApplicationGroup -GroupName All -CountryCode DE -SkipLanguagePacks)
+        It "keeps all-country registered roots without duplicate ID loss, including GDL source overrides" {
+            $apps = @(ALAppBuild\Get-ApplicationGroup -GroupName All -SkipCountryCheck -SkipLanguagePacks)
             $countryGraph = Get-AppDependencyGraph -BaseFolder $baseFolder -AppJsonPaths $apps.AppJsonPath
+            $countryGraph.Count | Should -Be $apps.Count
             $countryGraph['0d60b215-6ee1-4789-8e53-866cfa50c23c'].AppFolder |
                 Should -Be (Join-Path $baseFolder 'src\System Application\Test')
             $gdl = $apps | Where-Object { $_.IsGDLProject } | Select-Object -First 1
@@ -168,11 +168,7 @@ Describe "BuildOptimization" {
                 Should -Throw '*Compiled app ID*occurs in both*'
         }
 
-        It "uses all registered source manifests for country '<Country>' in the churn proposal" -ForEach @(
-            @{ Country = 'DE'; ExpectedCountry = 'DE' }
-            @{ Country = 'base'; ExpectedCountry = 'w1' }
-            @{ Country = ''; ExpectedCountry = 'w1' }
-        ) {
+        It "uses registered source manifests without a country filter in the churn proposal" {
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
@@ -186,18 +182,63 @@ Describe "BuildOptimization" {
                 $env:GITHUB_ACTIONS = 'true'
                 $env:GITHUB_EVENT_NAME = 'pull_request'
                 $env:BUILD_OPTIMIZATION_DISABLED = $null
-                $result = Get-AffectedAppNames -BaseFolder $baseFolder -Country $Country
+                $result = Get-AffectedAppNames -BaseFolder $baseFolder
                 $result.RunAll | Should -BeFalse
                 $result.AppNames | Should -Contain 'System Application Test'
                 $result.AppNames | Should -Not -Contain 'Email Test'
                 Should -Invoke -ModuleName BuildOptimization Get-ApplicationGroup -Times 1 -ParameterFilter {
-                    $CountryCode -eq $ExpectedCountry -and $GroupName -eq 'All' -and $SkipLanguagePacks -and -not $SkipTests
+                    $SkipCountryCheck -and $GroupName -eq 'All' -and $SkipLanguagePacks -and -not $SkipTests
                 }
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
                 $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
             }
+        }
+
+        It "selects localized owners and dependents without forcing RunAll" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
+            Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/Apps/DE/EDocumentDE/app/Changed.al') }
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:BUILD_OPTIMIZATION_DISABLED = $null
+                $result = Get-AffectedAppNames -BaseFolder $baseFolder
+                $result.RunAll | Should -BeFalse
+                $result.AppNames | Should -Contain 'E-Document for Germany'
+                $result.AppNames | Should -Contain 'E-Document for Germany Tests'
+
+                Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/Apps/W1/EDocument/App/Changed.al') }
+                $cache = Join-Path $TestDrive 'all-country-skip.json'
+                Test-ShouldSkipTestApp -AppName 'E-Document for Germany Tests' -BaseFolder $baseFolder -CacheFile $cache |
+                    Should -BeFalse
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
+            }
+        }
+
+        It "initializes ALAppBuild prerequisites when imported alone in a fresh process" {
+            $output = & (Get-Process -Id $PID).Path -NoProfile -Command {
+                param($root)
+                $ErrorActionPreference = 'Stop'
+                $env:INETROOT = $null
+                $env:GITHUB_WORKSPACE = $root
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:BUILD_OPTIMIZATION_DISABLED = $null
+                Import-Module (Join-Path $root 'build\scripts\BuildOptimization.psm1')
+                if ($env:INETROOT -ne $root -or -not (Get-Command Write-Log)) { throw 'Prerequisites missing' }
+                & (Get-Module BuildOptimization) {
+                    function script:Get-ChangedFilesForCI { @('src/System Application/Test/Email/Changed.al') }
+                }
+                $result = Get-AffectedAppNames -BaseFolder $root
+                if ($result.RunAll -or $result.AppNames -notcontains 'System Application Test') { throw 'Standalone selection failed' }
+            } -args $baseFolder
+            $LASTEXITCODE | Should -Be 0 -Because ($output -join "`n")
         }
     }
 

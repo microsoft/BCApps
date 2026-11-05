@@ -1,18 +1,6 @@
 Import-Module (Join-Path $PSScriptRoot "EnlistmentHelperFunctions.psm1" -Resolve)
 Import-Module (Join-Path $PSScriptRoot "BuildOptimization.psm1" -Resolve)
 
-# ALAppBuild.psm1 expects $env:INETROOT to point at the repo root and uses Write-Log
-# internally. Set both up before importing so its functions work in CI runners that don't
-# have the full NAV build environment configured.
-if ([string]::IsNullOrEmpty($env:INETROOT)) {
-    $env:INETROOT = Get-BaseFolder
-}
-if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
-    function global:Write-Log {
-        param([Parameter(Position = 0)][string]$Message, [string]$ForegroundColor)
-        Write-Host $Message
-    }
-}
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 
 <#

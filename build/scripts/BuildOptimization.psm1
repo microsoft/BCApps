@@ -7,6 +7,19 @@
 #>
 
 $ErrorActionPreference = "Stop"
+Import-Module (Join-Path $PSScriptRoot 'EnlistmentHelperFunctions.psm1')
+
+# ALAppBuild requires the repository root and a logger, including for standalone callers.
+if ([string]::IsNullOrEmpty($env:INETROOT)) {
+    $env:INETROOT = Get-BaseFolder
+}
+if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
+    function global:Write-Log {
+        param([Parameter(Position = 0)][string]$Message, [string]$ForegroundColor)
+        $null = $ForegroundColor
+        Write-Host $Message
+    }
+}
 Import-Module (Join-Path $PSScriptRoot 'ALAppBuild.psm1')
 
 <#
@@ -501,8 +514,6 @@ function Test-FullBuildPatternsMatch {
     Selective results also retain Tests-NewObjects-Internal regardless of dependency changes.
 .PARAMETER BaseFolder
     Root of the repository.
-.PARAMETER Country
-    Country used to resolve registered production and test apps; absent or base means W1.
 .OUTPUTS
     PSCustomObject with RunAll (bool) and AppNames (string[]).
 #>
@@ -511,8 +522,7 @@ function Get-AffectedAppNames {
     [OutputType([PSCustomObject])]
     param(
         [Parameter(Mandatory)]
-        [string] $BaseFolder,
-        [string] $Country
+        [string] $BaseFolder
     )
 
     $runAll = @{ RunAll = $true; AppNames = @() }
@@ -544,8 +554,7 @@ function Get-AffectedAppNames {
         return [PSCustomObject]$runAll
     }
 
-    if ([string]::IsNullOrWhiteSpace($Country) -or $Country -eq 'base') { $Country = 'w1' }
-    $appJsonPaths = @(Get-ApplicationGroup -GroupName 'All' -CountryCode $Country -SkipLanguagePacks |
+    $appJsonPaths = @(Get-ApplicationGroup -GroupName 'All' -SkipCountryCheck -SkipLanguagePacks |
         Select-Object -ExpandProperty AppJsonPath -Unique)
     $graph = Get-AppDependencyGraph -BaseFolder $BaseFolder -AppJsonPaths $appJsonPaths
     $affectedIds = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $BaseFolder -Graph $graph
@@ -654,7 +663,7 @@ function Get-SelectedTestApps {
     $proposedAppNames = @($AppNamesToTest)
     $selectionMode = if ($ChurnEnabled) { 'Enabled; no candidate test apps' } else { 'Disabled; full bucket' }
     if ($AppNamesToTest.Count -gt 0 -and $ChurnEnabled) {
-        $affected = Get-AffectedAppNames -BaseFolder $BaseFolder -Country $Country
+        $affected = Get-AffectedAppNames -BaseFolder $BaseFolder
         $selectionMode = 'Enabled; full bucket (RunAll)'
         if (-not $affected.RunAll) {
             $selectionMode = 'Enabled; affected-app proposal'
