@@ -135,6 +135,7 @@ codeunit 139565 "Shpfy Create Customer Test"
     var
         Customer: Record Customer;
         TestShop: Record "Shpfy Shop";
+        TemplateEvents: Codeunit "Shpfy Company Import Test";
         CountryTemplateCode: Code[20];
         ExplicitTemplateCode: Code[20];
         CountryPaymentTermsCode: Code[10];
@@ -142,9 +143,16 @@ codeunit 139565 "Shpfy Create Customer Test"
     begin
         //[SCENARIO] An explicit customer template overrides country and shop customer templates.
 
-        //[GIVEN] The shop is created and configured for customer names.
-        //[GIVEN] An access token is registered for the shop.
-        //[GIVEN] Duplicate-contact search is disabled.
+        //[GIVEN] Customer number series exist.
+        //[GIVEN] The Shopify shop exists.
+        //[GIVEN] The shop company name source is configured.
+        //[GIVEN] The shop customer name source is configured.
+        //[GIVEN] The shop name configuration is saved.
+        //[GIVEN] An access token is generated for the shop.
+        //[GIVEN] The shop access token is registered.
+        //[GIVEN] Duplicate-contact auto-search is disabled.
+        //[GIVEN] Duplicate search string maintenance is disabled.
+        //[GIVEN] Marketing setup is saved.
         //[GIVEN] Initialized customer setup is committed.
         Initialize();
 
@@ -156,12 +164,19 @@ codeunit 139565 "Shpfy Create Customer Test"
         ExplicitTemplateCode := CreateCustomerTemplate(Shop, ExplicitPaymentTermsCode);
         //[GIVEN] The shop is copied for this selection.
         TestShop := Shop;
+        //[GIVEN] Template event subscribers are configured.
+        TemplateEvents.ConfigureTemplateEvents(TestShop.Code, 'US', '', false, '');
+        //[GIVEN] Template event subscribers are bound.
+        BindSubscription(TemplateEvents);
 
         //[WHEN] A B2C customer is created with the explicit template.
         Customer := CreateCustomerFromShopifyAddress(TestShop, ExplicitTemplateCode);
+        UnbindSubscription(TemplateEvents);
 
         //[THEN] The created customer uses the explicit template.
         LibraryAssert.AreEqual(ExplicitPaymentTermsCode, Customer."Payment Terms Code", 'Explicit template should be selected.');
+        //[THEN] Only the original create-customer events are raised.
+        TemplateEvents.VerifyTemplateEvents('', 'BeforeCreate;AfterCreate;');
     end;
 
     [Test]
@@ -169,14 +184,22 @@ codeunit 139565 "Shpfy Create Customer Test"
     var
         Customer: Record Customer;
         TestShop: Record "Shpfy Shop";
+        TemplateEvents: Codeunit "Shpfy Company Import Test";
         CountryTemplateCode: Code[20];
         CountryPaymentTermsCode: Code[10];
     begin
         //[SCENARIO] The country customer template takes precedence over the shop customer template.
 
-        //[GIVEN] The shop is created and configured for customer names.
-        //[GIVEN] An access token is registered for the shop.
-        //[GIVEN] Duplicate-contact search is disabled.
+        //[GIVEN] Customer number series exist.
+        //[GIVEN] The Shopify shop exists.
+        //[GIVEN] The shop company name source is configured.
+        //[GIVEN] The shop customer name source is configured.
+        //[GIVEN] The shop name configuration is saved.
+        //[GIVEN] An access token is generated for the shop.
+        //[GIVEN] The shop access token is registered.
+        //[GIVEN] Duplicate-contact auto-search is disabled.
+        //[GIVEN] Duplicate search string maintenance is disabled.
+        //[GIVEN] Marketing setup is saved.
         //[GIVEN] Initialized customer setup is committed.
         Initialize();
 
@@ -186,12 +209,110 @@ codeunit 139565 "Shpfy Create Customer Test"
         CreateShopifyCustomerTemplate('US', CountryTemplateCode);
         //[GIVEN] The shop customer template remains configured as a fallback.
         TestShop := Shop;
+        //[GIVEN] Template event subscribers are configured.
+        TemplateEvents.ConfigureTemplateEvents(TestShop.Code, 'US', '', false, '');
+        //[GIVEN] Template event subscribers are bound.
+        BindSubscription(TemplateEvents);
 
         //[WHEN] A B2C customer is created without an explicit template.
         Customer := CreateCustomerFromShopifyAddress(TestShop, '');
+        UnbindSubscription(TemplateEvents);
 
         //[THEN] The country customer template is applied.
         LibraryAssert.AreEqual(CountryPaymentTermsCode, Customer."Payment Terms Code", 'The country customer template should be selected.');
+        //[THEN] The original customer and template events run in order.
+        TemplateEvents.VerifyTemplateEvents(CountryTemplateCode, 'BeforeCreate;BeforeTemplate;AfterTemplate;AfterCreate;');
+    end;
+
+    [Test]
+    procedure UnitTestB2CTemplateBeforeEventHandlesSelectionWithoutDefaultTemplate()
+    var
+        Customer: Record Customer;
+        TestShop: Record "Shpfy Shop";
+        TemplateEvents: Codeunit "Shpfy Company Import Test";
+        OverrideTemplateCode: Code[20];
+        OverridePaymentTermsCode: Code[10];
+    begin
+        //[SCENARIO] A handled before event selects a B2C template without a shop default.
+
+        //[GIVEN] Customer number series exist.
+        //[GIVEN] The Shopify shop exists.
+        //[GIVEN] The shop company name source is configured.
+        //[GIVEN] The shop customer name source is configured.
+        //[GIVEN] The shop name configuration is saved.
+        //[GIVEN] An access token is generated for the shop.
+        //[GIVEN] The shop access token is registered.
+        //[GIVEN] Duplicate-contact auto-search is disabled.
+        //[GIVEN] Duplicate search string maintenance is disabled.
+        //[GIVEN] Marketing setup is saved.
+        //[GIVEN] Initialized customer setup is committed.
+        Initialize();
+        //[GIVEN] The test shop has no customer template.
+        TestShop := Shop;
+        //[GIVEN] The test shop customer template is blank.
+        TestShop."Customer Templ. Code" := '';
+        //[GIVEN] An override customer template exists.
+        OverrideTemplateCode := CreateCustomerTemplate(Shop, OverridePaymentTermsCode);
+        //[GIVEN] The template event handles selection and returns the override template.
+        TemplateEvents.ConfigureTemplateEvents(TestShop.Code, 'US', OverrideTemplateCode, true, '');
+
+        //[GIVEN] The template event subscriber is bound.
+        BindSubscription(TemplateEvents);
+
+        //[WHEN] A B2C customer is created.
+        Customer := CreateCustomerFromShopifyAddress(TestShop, '');
+        UnbindSubscription(TemplateEvents);
+
+        //[THEN] The original customer and template events run in order.
+        TemplateEvents.VerifyTemplateEvents(OverrideTemplateCode, 'BeforeCreate;BeforeTemplate;AfterTemplate;AfterCreate;');
+        //[THEN] The handled override template is applied.
+        LibraryAssert.AreEqual(OverridePaymentTermsCode, Customer."Payment Terms Code", 'The B2C before event should bypass automatic selection and validation when handled.');
+    end;
+
+    [Test]
+    procedure UnitTestB2CTemplateAfterEventOverridesAutomaticSelection()
+    var
+        Customer: Record Customer;
+        TemplateEvents: Codeunit "Shpfy Company Import Test";
+        CountryTemplateCode: Code[20];
+        OverrideTemplateCode: Code[20];
+        CountryPaymentTermsCode: Code[10];
+        OverridePaymentTermsCode: Code[10];
+    begin
+        //[SCENARIO] An after event overrides the automatically selected B2C country template.
+
+        //[GIVEN] Customer number series exist.
+        //[GIVEN] The Shopify shop exists.
+        //[GIVEN] The shop company name source is configured.
+        //[GIVEN] The shop customer name source is configured.
+        //[GIVEN] The shop name configuration is saved.
+        //[GIVEN] An access token is generated for the shop.
+        //[GIVEN] The shop access token is registered.
+        //[GIVEN] Duplicate-contact auto-search is disabled.
+        //[GIVEN] Duplicate search string maintenance is disabled.
+        //[GIVEN] Marketing setup is saved.
+        //[GIVEN] Initialized customer setup is committed.
+        Initialize();
+        //[GIVEN] A country customer template exists.
+        CountryTemplateCode := CreateCustomerTemplate(Shop, CountryPaymentTermsCode);
+        //[GIVEN] The US country row uses the country customer template.
+        CreateShopifyCustomerTemplate('US', CountryTemplateCode);
+        //[GIVEN] An after-event override template exists.
+        OverrideTemplateCode := CreateCustomerTemplate(Shop, OverridePaymentTermsCode);
+        //[GIVEN] The after event is configured to return the override template.
+        TemplateEvents.ConfigureTemplateEvents(Shop.Code, 'US', '', false, OverrideTemplateCode);
+
+        //[GIVEN] The template event subscriber is bound.
+        BindSubscription(TemplateEvents);
+
+        //[WHEN] A B2C customer is created.
+        Customer := CreateCustomerFromShopifyAddress(Shop, '');
+        UnbindSubscription(TemplateEvents);
+
+        //[THEN] The original customer and template events run in order.
+        TemplateEvents.VerifyTemplateEvents(CountryTemplateCode, 'BeforeCreate;BeforeTemplate;AfterTemplate;AfterCreate;');
+        //[THEN] The after-event override template is applied.
+        LibraryAssert.AreEqual(OverridePaymentTermsCode, Customer."Payment Terms Code", 'The B2C after event should override the selected country template.');
     end;
 
     [Test]

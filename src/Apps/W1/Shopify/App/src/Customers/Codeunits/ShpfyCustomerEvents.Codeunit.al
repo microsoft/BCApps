@@ -34,31 +34,6 @@ codeunit 30115 "Shpfy Customer Events"
     begin
     end;
 
-    [IntegrationEvent(false, false)]
-    /// <summary>
-    /// Raised after finding a customer template for a Shopify company.
-    /// </summary>
-    /// <param name="Shop">The Shopify shop.</param>
-    /// <param name="CountryCode">The mapped Business Central country/region code.</param>
-    /// <param name="ShopifyCountryCode">The Shopify ISO country code.</param>
-    /// <param name="TemplateCode">The selected customer template code.</param>
-    internal procedure OnAfterFindCompanyCustomerTemplate(Shop: Record "Shpfy Shop"; CountryCode: Code[20]; ShopifyCountryCode: Code[20]; var TemplateCode: Code[20]);
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    /// <summary>
-    /// Raised before finding a customer template for a Shopify company.
-    /// </summary>
-    /// <param name="Shop">The Shopify shop.</param>
-    /// <param name="CountryCode">The mapped Business Central country/region code.</param>
-    /// <param name="ShopifyCountryCode">The Shopify ISO country code.</param>
-    /// <param name="TemplateCode">The selected customer template code.</param>
-    /// <param name="Handled">Whether the company template has been selected.</param>
-    internal procedure OnBeforeFindCompanyCustomerTemplate(Shop: Record "Shpfy Shop"; CountryCode: Code[20]; ShopifyCountryCode: Code[20]; var TemplateCode: Code[20]; var Handled: Boolean);
-    begin
-    end;
-
 
     [IntegrationEvent(false, false)]
     /// <summary> 

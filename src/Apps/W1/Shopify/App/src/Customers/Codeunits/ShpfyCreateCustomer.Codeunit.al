@@ -112,26 +112,29 @@ codeunit 30110 "Shpfy Create Customer"
 
     local procedure FindCompanyCustomerTemplate(ShopifyShop: Record "Shpfy Shop"; CountryCode: Code[20]; ShopifyCountryCode: Code[20]) Result: Code[20]
     var
+        AutomaticTemplateCode: Code[20];
         IsHandled: Boolean;
     begin
-        CustomerEvents.OnBeforeFindCompanyCustomerTemplate(ShopifyShop, CountryCode, ShopifyCountryCode, Result, IsHandled);
+        CustomerEvents.OnBeforeFindCustomerTemplate(ShopifyShop, CountryCode, Result, IsHandled);
         if not IsHandled then begin
-            Result := GetCountryTemplateCode(ShopifyShop.Code, ShopifyCountryCode, true);
-            if (Result = '') and (ShopifyCountryCode <> CountryCode) then
-                Result := GetCountryTemplateCode(ShopifyShop.Code, CountryCode, true);
-            if Result = '' then
-                Result := ShopifyShop."Company Templ. Code";
-            if Result = '' then begin
-                Result := GetCountryTemplateCode(ShopifyShop.Code, ShopifyCountryCode, false);
-                if (Result = '') and (ShopifyCountryCode <> CountryCode) then
-                    Result := GetCountryTemplateCode(ShopifyShop.Code, CountryCode, false);
+            AutomaticTemplateCode := GetCountryTemplateCode(ShopifyShop.Code, ShopifyCountryCode, true);
+            if (AutomaticTemplateCode = '') and (ShopifyCountryCode <> CountryCode) then
+                AutomaticTemplateCode := GetCountryTemplateCode(ShopifyShop.Code, CountryCode, true);
+            if AutomaticTemplateCode = '' then
+                AutomaticTemplateCode := ShopifyShop."Company Templ. Code";
+            if AutomaticTemplateCode = '' then begin
+                AutomaticTemplateCode := GetCountryTemplateCode(ShopifyShop.Code, ShopifyCountryCode, false);
+                if (AutomaticTemplateCode = '') and (ShopifyCountryCode <> CountryCode) then
+                    AutomaticTemplateCode := GetCountryTemplateCode(ShopifyShop.Code, CountryCode, false);
             end;
+            if AutomaticTemplateCode <> '' then
+                Result := AutomaticTemplateCode;
             if Result = '' then begin
                 ShopifyShop.TestField("Customer Templ. Code");
                 Result := ShopifyShop."Customer Templ. Code";
             end;
         end;
-        CustomerEvents.OnAfterFindCompanyCustomerTemplate(ShopifyShop, CountryCode, ShopifyCountryCode, Result);
+        CustomerEvents.OnAfterFindCustomerTemplate(ShopifyShop, CountryCode, Result);
         exit(Result);
     end;
 
