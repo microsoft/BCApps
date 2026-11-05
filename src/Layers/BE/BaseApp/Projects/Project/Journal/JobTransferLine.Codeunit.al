@@ -733,7 +733,8 @@ codeunit 1004 "Job Transfer Line"
                 JobJnlLine."Total Cost (LCY)" :=
                     Round(JobJnlLine."Unit Cost (LCY)" * JobJnlLine.Quantity, LCYCurrency."Amount Rounding Precision");
 
-        if UsePreciseUnitCostForTotals(PurchLine) and not ((JobJnlLine."Currency Code" = '') and (PurchLine."Currency Code" <> '')) then begin
+        if UsePreciseUnitCostForTotals(PurchLine) then begin
+            // "Unit Cost (LCY)" is calculated from the LCY amount posted to G/L, so it is also used when the purchase is in foreign currency.
             JobJnlLine."Total Cost (LCY)" := Round(PreciseUnitCostLCY * JobJnlLine.Quantity, LCYCurrency."Amount Rounding Precision");
             // When the project currency is the purchase currency, "Total Cost" is already calculated from the unrounded "Unit Cost".
             if JobJnlLine."Currency Code" = '' then
