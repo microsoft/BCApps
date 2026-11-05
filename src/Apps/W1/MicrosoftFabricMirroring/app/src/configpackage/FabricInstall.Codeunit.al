@@ -1,6 +1,7 @@
 namespace Microsoft.FabricExport;
 
 using System.Environment.Configuration;
+using System.Fabric;
 using System.Media;
 
 codeunit 48522 "Fabric Install"
@@ -27,6 +28,7 @@ codeunit 48522 "Fabric Install"
     var
         LegacyPackage: Record "Fabric Config Package";
         FabricConfigPackageMgt: Codeunit "Fabric Config Package Mgt";
+        PackageCodes: List of [Code[20]];
         FinanceTableIds: List of [Integer];
         InventoryTableIds: List of [Integer];
         InventoryValuationTableIds: List of [Integer];
@@ -244,19 +246,92 @@ codeunit 48522 "Fabric Install"
         if not LegacyPackage.Get('MS-STD') then
             exit;
 
-        ActivatePackageIfNeeded('MS-FIN');
-        ActivatePackageIfNeeded('MS-INV');
-        ActivatePackageIfNeeded('MS-INV-VAL');
-        ActivatePackageIfNeeded('MS-MFG');
-        ActivatePackageIfNeeded('MS-PROJ');
-        ActivatePackageIfNeeded('MS-PUR');
-        ActivatePackageIfNeeded('MS-SALES');
-        ActivatePackageIfNeeded('MS-SUB-BILL');
-        ActivatePackageIfNeeded('MS-SUST');
+        PackageCodes.Add('MS-FIN');
+        PackageCodes.Add('MS-INV');
+        PackageCodes.Add('MS-INV-VAL');
+        PackageCodes.Add('MS-MFG');
+        PackageCodes.Add('MS-PROJ');
+        PackageCodes.Add('MS-PUR');
+        PackageCodes.Add('MS-SALES');
+        PackageCodes.Add('MS-SUB-BILL');
+        PackageCodes.Add('MS-SUST');
+        MigrateLegacyPackage(LegacyPackage, PackageCodes);
+    end;
 
+    local procedure MigrateLegacyPackage(var LegacyPackage: Record "Fabric Config Package"; PackageCodes: List of [Code[20]])
+    var
+        PackageLine: Record "Fabric Config Package Line";
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricConfigPackageMgt: Codeunit "Fabric Config Package Mgt";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        Telemetry: Codeunit "Fabric Platform Telemetry";
+        TableIds: List of [Integer];
+        Dimensions: Dictionary of [Text, Text];
+        PackageCode: Code[20];
+        RequiredTableCount: Integer;
+    begin
+        TenantFabricTables.LockTable();
+        foreach PackageCode in PackageCodes do begin
+            PackageLine.SetRange("Package Code", PackageCode);
+            if PackageLine.FindSet() then
+                repeat
+                    if not TableIds.Contains(PackageLine."Table ID") then
+                        TableIds.Add(PackageLine."Table ID");
+                until PackageLine.Next() = 0;
+        end;
+
+        // A shortage must leave the legacy selection intact so migration can be retried.
+        RequiredTableCount := GetMigrationTableCount(LegacyPackage, TableIds);
+        if RequiredTableCount > FabricPlatformMgt.MaxTableCount() then begin
+            Dimensions := Telemetry.GetDimensions();
+            Dimensions.Add('PackageCode', LegacyPackage.Code);
+            Dimensions.Add('RequiredTableCount', Format(RequiredTableCount));
+            Dimensions.Add('MaxTableCount', Format(FabricPlatformMgt.MaxTableCount()));
+            Session.LogMessage('0000WCC', 'Legacy config package migration deferred: the replacement packages would exceed the table export limit. The legacy package remains unchanged.',
+                Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+            exit;
+        end;
+
+        // Retained rows must have replacement claims before their legacy claim is released.
+        foreach PackageCode in PackageCodes do begin
+            PackageLine.SetRange("Package Code", PackageCode);
+            if PackageLine.FindSet() then
+                repeat
+                    if TenantFabricTables.Get(PackageLine."Table ID") then
+                        FabricPlatformMgt.ClaimTable(PackageLine."Table ID", "Fabric Table Claim Source"::Package, PackageCode);
+                until PackageLine.Next() = 0;
+        end;
         if LegacyPackage.Active then
             FabricConfigPackageMgt.Deactivate(LegacyPackage);
         LegacyPackage.Delete(true);
+
+        foreach PackageCode in PackageCodes do
+            ActivatePackageIfNeeded(PackageCode);
+    end;
+
+    local procedure GetMigrationTableCount(LegacyPackage: Record "Fabric Config Package"; TableIds: List of [Integer]) RequiredTableCount: Integer
+    var
+        PackageLine: Record "Fabric Config Package Line";
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        TableId: Integer;
+    begin
+        RequiredTableCount := FabricPlatformMgt.SelectedTableCount();
+        foreach TableId in TableIds do
+            if not TenantFabricTables.Get(TableId) then
+                RequiredTableCount += 1;
+
+        if not LegacyPackage.Active then
+            exit;
+
+        PackageLine.SetRange("Package Code", LegacyPackage.Code);
+        if PackageLine.FindSet() then
+            repeat
+                if not TableIds.Contains(PackageLine."Table ID") then
+                    if TenantFabricTables.Get(PackageLine."Table ID") then
+                        if not FabricPlatformMgt.IsClaimedByOthers(PackageLine."Table ID", "Fabric Table Claim Source"::Package, LegacyPackage.Code) then
+                            RequiredTableCount -= 1;
+            until PackageLine.Next() = 0;
     end;
 
     local procedure ActivatePackageIfNeeded(PackageCode: Code[20])

@@ -12,6 +12,7 @@ codeunit 48528 "Fabric Upgrade"
         // RegisterPackage skips work when a package is already at the current version,
         // so it is safe and cheap to re-run this on every upgrade. This also migrates
         // tenants from the legacy MS-STD package to the domain-specific packages.
+        // A capacity-deferred migration keeps MS-STD intact and is retried on the next upgrade.
         FabricInstall.EnsureMicrosoftPackages();
     end;
 }
