@@ -81,6 +81,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
         BuyerLegalOrganizationIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:SpecifiedLegalOrganization/ram:ID', Locked = true;
         ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
+        GuidelineIdPathTok: Label '/rsm:CrossIndustryInvoice/rsm:ExchangedDocumentContext/ram:GuidelineSpecifiedDocumentContextParameter/ram:ID', Locked = true;
+        ExtendedGuidelineIdTok: Label 'urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended', Locked = true;
         IsInitialized: Boolean;
         OriginalCompanyGLN: Code[13];
         OriginalCompanyUsesGLN: Boolean;
@@ -142,6 +144,66 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created
         VerifyHeaderData(SalesInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatDeclaresExtendedProfile()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] The guideline ID of a ZUGFeRD sales invoice matches the EXTENDED conformance level the platform writes into the PDF/A-3 XMP metadata
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The guideline ID declares the ZUGFeRD EXTENDED profile
+        Assert.AreEqual(ExtendedGuidelineIdTok, GetNodeByPathWithError(TempXMLBuffer, GuidelineIdPathTok), StrSubstNo(IncorrectValueErr, GuidelineIdPathTok));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatDeclaresExtendedProfile()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] The guideline ID of a ZUGFeRD sales credit memo matches the EXTENDED conformance level the platform writes into the PDF/A-3 XMP metadata
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Credit Memo.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The guideline ID declares the ZUGFeRD EXTENDED profile
+        Assert.AreEqual(ExtendedGuidelineIdTok, GetNodeByPathWithError(TempXMLBuffer, GuidelineIdPathTok), StrSubstNo(IncorrectValueErr, GuidelineIdPathTok));
+    end;
+
+    [Test]
+    procedure ZUGFeRDRenderingPayloadEmbedsXMLAsFacturXFile()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        RenderingPayload: JsonObject;
+        PrimaryDocumentToken: JsonToken;
+    begin
+        // [SCENARIO] The embedded ZUGFeRD XML uses the file name that the ZUGFeRD 2.x specification requires for the EXTENDED profile
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] The ZUGFeRD XML is added to the report rendering payload
+        ExportZUGFeRDDocument.SetEDocumentService(EDocumentService);
+        ExportZUGFeRDDocument.CreateAndAddXMLAttachmentToRenderingPayload(SalesInvoiceHeader, RenderingPayload);
+
+        // [THEN] The primary PDF attachment is named factur-x.xml
+        RenderingPayload.Get('primaryDocument', PrimaryDocumentToken);
+        Assert.AreEqual('factur-x.xml', PrimaryDocumentToken.AsValue().AsText(), 'Incorrect name of the embedded ZUGFeRD XML');
     end;
 
     [Test]
