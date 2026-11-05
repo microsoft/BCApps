@@ -254,6 +254,7 @@ codeunit 148088 "Foreign Currencies CZL"
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
+        // [SCENARIO] New companies use incremental posting of exchange gains and losses by default.
         // [WHEN] A new general ledger setup record is initialized
         GeneralLedgerSetup.Init();
 
@@ -274,6 +275,7 @@ codeunit 148088 "Foreign Currencies CZL"
         AdjustedCurrencyFactor: Decimal;
         PaymentCurrencyFactor: Decimal;
     begin
+        // [SCENARIO] With incremental posting disabled, final application reverses unrealized losses and realizes the loss from the original exchange rate.
         Initialize();
 
         // [GIVEN] Incremental posting is disabled
@@ -315,6 +317,7 @@ codeunit 148088 "Foreign Currencies CZL"
         AdjustedCurrencyFactor: Decimal;
         PaymentCurrencyFactor: Decimal;
     begin
+        // [SCENARIO] With incremental posting enabled, final application retains unrealized losses and realizes only the additional loss since revaluation.
         Initialize();
 
         // [GIVEN] Incremental posting remains enabled
@@ -356,6 +359,7 @@ codeunit 148088 "Foreign Currencies CZL"
         AppliedAmount: Decimal;
         AppliedAmountLCY: Decimal;
     begin
+        // [SCENARIO] Incremental posting values an application in local currency using the latest adjusted exchange rate.
         Initialize();
 
         // [GIVEN] An application of 1,000 FCY and an entry revalued from a factor of 1 to a factor of 2
@@ -388,6 +392,7 @@ codeunit 148088 "Foreign Currencies CZL"
         AppliedAmountLCY: Decimal;
         OriginalAppliedAmountLCY: Decimal;
     begin
+        // [SCENARIO] Disabling incremental posting preserves the applied local currency amount calculated using the original exchange rate.
         Initialize();
 
         // [GIVEN] An application of 1,000 FCY with incremental posting disabled
@@ -414,6 +419,7 @@ codeunit 148088 "Foreign Currencies CZL"
     var
         GenJnlPostLineMgtCZL: Codeunit "Gen. Jnl.-Post Line Mgt. CZL";
     begin
+        // [SCENARIO] Unrealized exchange gains and losses are reversed on application only when incremental posting is disabled.
         Initialize();
 
         // [GIVEN] Incremental posting is enabled
@@ -437,7 +443,7 @@ codeunit 148088 "Foreign Currencies CZL"
         InvoiceNo: Code[20];
         AdjustmentDate: Date;
     begin
-        LibraryERM.DisableMyNotifications(UserId(), InstructionMgt.GetPostingAfterWorkingDateNotificationId());
+        LibraryERM.DisableMyNotifications(CopyStr(UserId(), 0, 50), InstructionMgt.GetPostingAfterWorkingDateNotificationId());
         CurrencyCode := LibraryERM.CreateCurrencyWithGLAccountSetup();
         LibraryERM.CreateExchangeRate(CurrencyCode, WorkDate(), OriginalCurrencyFactor, OriginalCurrencyFactor);
         LibraryERM.SelectGenJnlBatch(GenJournalBatch);
