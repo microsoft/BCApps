@@ -1610,91 +1610,6 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         Assert.IsTrue(HybridCompany.Get(ReplacementCompanyName), 'The replacement hybrid company should not be removed.');
     end;
 
-    [Test]
-    procedure TestUpgradeNotCompletedWithoutUpgradeStatusRecords()
-    var
-        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
-        UpgradeCompleted: Boolean;
-    begin
-        // [SCENARIO] The upgrade is not completed when no hybrid company is replicated and there are no upgrade status records
-        InitializeCompletedReplicationWithoutReplicatedHybridCompany();
-
-        // [WHEN] Checking whether the upgrade is completed
-        UpgradeCompleted := HybridCloudManagement.IsUpgradeCompleted();
-
-        // [THEN] The upgrade is not completed
-        Assert.IsFalse(UpgradeCompleted, 'The upgrade should not be completed without upgrade status records.');
-    end;
-
-    [Test]
-    procedure TestUpgradeNotCompletedWhenOnlyPerDatabaseDataIsUpgraded()
-    var
-        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
-        UpgradeCompleted: Boolean;
-    begin
-        // [SCENARIO] The per-database upgrade status record alone does not complete the upgrade when no hybrid company is replicated
-        InitializeCompletedReplicationWithoutReplicatedHybridCompany();
-
-        // [GIVEN] Only the upgrade of the per-database data is completed
-        InsertReplicatedHybridCompanyStatus('', true);
-
-        // [WHEN] Checking whether the upgrade is completed
-        UpgradeCompleted := HybridCloudManagement.IsUpgradeCompleted();
-
-        // [THEN] The upgrade is not completed
-        Assert.IsFalse(UpgradeCompleted, 'The upgrade should not be completed when only the per-database data is upgraded.');
-    end;
-
-    [Test]
-    procedure TestUpgradeCompletedWhenReplicatedCompanyIsNotHybridCompany()
-    var
-        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
-        UpgradeCompleted: Boolean;
-    begin
-        // [SCENARIO] The upgrade status records are used when the replicated companies are missing from the hybrid companies
-        InitializeCompletedReplicationWithoutReplicatedHybridCompany();
-
-        // [GIVEN] The upgrade of the per-database data and of a replicated company is completed
-        InsertReplicatedHybridCompanyStatus('', true);
-        InsertReplicatedHybridCompanyStatus(LibraryUtility.GenerateGUID(), true);
-
-        // [WHEN] Checking whether the upgrade is completed
-        UpgradeCompleted := HybridCloudManagement.IsUpgradeCompleted();
-
-        // [THEN] The upgrade is completed
-        Assert.IsTrue(UpgradeCompleted, 'The upgrade should be completed when all replicated companies are upgraded.');
-    end;
-
-    [Test]
-    procedure TestUpgradeNotCompletedWhenReplicatedCompanyIsNotUpgraded()
-    var
-        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
-        UpgradeCompleted: Boolean;
-    begin
-        // [SCENARIO] The upgrade is not completed when a replicated company that is missing from the hybrid companies is not upgraded
-        InitializeCompletedReplicationWithoutReplicatedHybridCompany();
-
-        // [GIVEN] The upgrade of the per-database data is completed and the upgrade of a replicated company is pending
-        InsertReplicatedHybridCompanyStatus('', true);
-        InsertReplicatedHybridCompanyStatus(LibraryUtility.GenerateGUID(), false);
-
-        // [WHEN] Checking whether the upgrade is completed
-        UpgradeCompleted := HybridCloudManagement.IsUpgradeCompleted();
-
-        // [THEN] The upgrade is not completed
-        Assert.IsFalse(UpgradeCompleted, 'The upgrade should not be completed when a replicated company is not upgraded.');
-    end;
-
-    local procedure InitializeCompletedReplicationWithoutReplicatedHybridCompany()
-    var
-        HybridCompanyStatus: Record "Hybrid Company Status";
-    begin
-        // Initialize removes the replication details, so no hybrid company is replicated.
-        Initialize();
-        HybridCompanyStatus.DeleteAll();
-        InsertCompletedReplicationSummary();
-    end;
-
     local procedure InsertHybridCompaniesForExistingCompanies()
     var
         Company: Record Company;
@@ -1762,29 +1677,5 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         repeat
             Assert.IsTrue(HybridCompany.Get(Company.Name), StrSubstNo(HybridCompanyMissingErr, Company.Name));
         until Company.Next() = 0;
-    end;
-
-    local procedure InsertCompletedReplicationSummary()
-    var
-        HybridReplicationSummary: Record "Hybrid Replication Summary";
-    begin
-        HybridReplicationSummary.CreateInProgressRecord(Format(CreateGuid()), HybridReplicationSummary.ReplicationType::Normal);
-        HybridReplicationSummary.FindLast();
-        HybridReplicationSummary.Status := HybridReplicationSummary.Status::Completed;
-        HybridReplicationSummary.Modify();
-    end;
-
-    local procedure InsertReplicatedHybridCompanyStatus(StatusCompanyName: Text[50]; UpgradeCompleted: Boolean)
-    var
-        HybridCompanyStatus: Record "Hybrid Company Status";
-    begin
-        HybridCompanyStatus.Init();
-        HybridCompanyStatus.Name := StatusCompanyName;
-        HybridCompanyStatus.Replicated := true;
-        if UpgradeCompleted then
-            HybridCompanyStatus."Upgrade Status" := HybridCompanyStatus."Upgrade Status"::Completed
-        else
-            HybridCompanyStatus."Upgrade Status" := HybridCompanyStatus."Upgrade Status"::Pending;
-        HybridCompanyStatus.Insert();
     end;
 }

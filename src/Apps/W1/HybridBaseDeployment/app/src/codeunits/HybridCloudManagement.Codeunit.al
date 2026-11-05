@@ -2109,7 +2109,7 @@ codeunit 4001 "Hybrid Cloud Management"
 
         HybridCompany.SetRange(Replicated, true);
         if not HybridCompany.FindSet() then
-            exit(IsUpgradeCompletedForReplicatedCompanyStatuses());
+            exit;
 
         repeat
             if not HybridCompanyStatus.Get(HybridCompany.Name) then
@@ -2120,21 +2120,6 @@ codeunit 4001 "Hybrid Cloud Management"
         until HybridCompany.Next() = 0;
 
         exit(true);
-    end;
-
-    local procedure IsUpgradeCompletedForReplicatedCompanyStatuses(): Boolean
-    var
-        HybridCompanyStatus: Record "Hybrid Company Status";
-    begin
-        // The replicated companies can be missing from the Hybrid Company table, so the upgrade status records are used instead.
-        // The per-database record has an empty name and does not prove that a company was upgraded.
-        HybridCompanyStatus.SetRange(Replicated, true);
-        HybridCompanyStatus.SetFilter(Name, '<>''''');
-        if HybridCompanyStatus.IsEmpty() then
-            exit(false);
-
-        HybridCompanyStatus.SetFilter("Upgrade Status", '<>%1', HybridCompanyStatus."Upgrade Status"::Completed);
-        exit(HybridCompanyStatus.IsEmpty());
     end;
 
     procedure GetLastReplicationSummary(var HybridReplicationSummary: Record "Hybrid Replication Summary"): Boolean
