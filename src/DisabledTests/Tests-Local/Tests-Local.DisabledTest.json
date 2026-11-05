@@ -2091,7 +2091,7 @@
     "codeunitId": 142096,
     "codeunitName": "Export Electr. Accounting Test",
     "method": "*",
-    "bug": "Error: Assert.IsTrue failed. Could not find a part of the path 'C:\Program Files\Microsoft Dynamics NAV\App\BCApps\src\GDL\NA\App\Test\XMLSchemas\CatalogoCuentas_1_3.xsd'."
+    "bug": "Error: Assert.IsTrue failed. Could not find a part of the path .."
   },
   {
     "codeunitId": 142101,
@@ -20349,7 +20349,7 @@
     "codeunitId": 147529,
     "codeunitName": "SIIDocumentTests",
     "method": "*",
-    "bug": "ES: Error: Assert.IsTrue failed. Could not find a part of the path 'C:\Program Files\Microsoft Dynamics NAV\GDL\ES\App\Test\SiiXmlSchema\SuministroLR.xsd'."
+    "bug": "ES: Error: Assert.IsTrue failed. Could not find a part of the path ..."
   },
   {
     "codeunitId": 147531,
