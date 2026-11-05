@@ -1307,10 +1307,9 @@ table 6907 "Expense Report Line"
         // A change made after the line was evaluated always needs a recheck - even a change that
         // removed the last applicable policy. Evaluate subject staleness before policy-set currency
         // so that a changed line still requires evaluation against whatever policies apply now.
-        if (Rec."Policies Evaluated At" <> 0DT) and
-           (PolicyInvalidationPending or (Rec."Evaluated Policy Version" < Rec."Policy Eval Version"))
-        then
-            exit("Expense Policy Status"::Stale);
+        if Rec."Policies Evaluated At" <> 0DT then
+            if PolicyInvalidationPending or (Rec."Evaluated Policy Version" < Rec."Policy Eval Version") then
+                exit("Expense Policy Status"::Stale);
 
         // Policy changes do not rewrite every affected line. Currency is derived lazily by comparing
         // the currently applicable policy versions with the evaluations recorded for this subject version.
