@@ -1718,7 +1718,7 @@ codeunit 426 "Payment Tolerance Management"
         AmounttoApply: Decimal;
         PmtDiscAmount: Decimal;
         MaxPmtTolAmount: Decimal;
-        CBGStatementLineApplID: Code[20];
+        CBGStatementLineApplID: Code[50];
         ApplnRoundingPrecision: Decimal;
         CBGStatement: Record "CBG Statement";
         UseDocumentNo: Code[20];
@@ -3322,4 +3322,3 @@ codeunit 426 "Payment Tolerance Management"
     begin
     end;
 }
-
