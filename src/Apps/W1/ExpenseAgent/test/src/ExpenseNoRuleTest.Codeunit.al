@@ -6,8 +6,8 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
-using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.UOM;
 using System.Automation;
 using System.TestLibraries.Utilities;
