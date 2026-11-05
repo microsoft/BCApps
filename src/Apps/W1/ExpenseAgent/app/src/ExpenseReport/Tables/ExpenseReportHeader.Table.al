@@ -717,8 +717,6 @@ table 6906 "Expense Report Header"
         NoPerDiemRuleForTravelRequestErr: Label 'Travel request %3 includes per diem, but no per diem rule exists for expense location %1 that is effective on %2. Set up a per diem rule for an active per diem expense category and this location, and then approve the travel request again.', Comment = '%1 = Expense Location, %2 = Trip start date, %3 = Travel Request No.';
         PerDiemLineDescriptionTxt: Label 'Per diem for travel request %1, created on approval', Comment = '%1 = Travel Request No.', MaxLength = 100;
         PerDiemLineCreatedLbl: Label 'Per diem line created from approved travel request', Locked = true;
-        PerDiemLineCreationFailedLbl: Label 'Per diem line creation from approved travel request failed', Locked = true;
-        NoPerDiemRuleTelemetryErr: Label 'No per diem rule matches the expense location and trip start date of the travel request.', Locked = true;
 
     procedure AssistEdit() Result: Boolean
     begin
@@ -1557,7 +1555,6 @@ table 6906 "Expense Report Header"
     local procedure FindPerDiemCategoryForTravelRequest(SpendRequest: Record "Spend Request"): Code[20]
     var
         ExpenseRuleHeader: Record "Expense Rule Header";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
         PerDiemCategoryCode: Code[20];
         TripStartDate: Date;
     begin
@@ -1567,7 +1564,6 @@ table 6906 "Expense Report Header"
         if PerDiemCategoryCode <> '' then
             exit(PerDiemCategoryCode);
 
-        FeatureTelemetry.LogError('0000WJ6', ExpenseAgentSetup.GetFeatureName(), PerDiemLineCreationFailedLbl, NoPerDiemRuleTelemetryErr);
         Error(NoPerDiemRuleForTravelRequestErr, SpendRequest."Expense Location", TripStartDate, SpendRequest."No.");
     end;
 
