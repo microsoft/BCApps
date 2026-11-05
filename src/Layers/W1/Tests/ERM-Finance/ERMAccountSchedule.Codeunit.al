@@ -5995,7 +5995,7 @@ codeunit 134902 "ERM Account Schedule"
         // [GIVEN] An account schedule line with negative value
         Amount := -LibraryRandom.RandDec(100, 2);
         SetupForAccountScheduleOverviewPage(
-          AccScheduleLine, Enum::"Column Layout Show"::Always, Amount, Enum::"Analysis Rounding Factor"::None, '');
+          AccScheduleLine, Enum::"Column Layout Show"::Always, Amount, Enum::"Analysis Rounding Factor"::"1", '');
         FinancialReport.Get(AccScheduleLine."Schedule Name");
         FinancialReport."Financial Report Column Group" := LibraryVariableStorage.DequeueText();
         FinancialReport.Modify();
@@ -6009,7 +6009,8 @@ codeunit 134902 "ERM Account Schedule"
 
         // [THEN] Negative amount is displayed with a minus sign
         AccScheduleOverview.GoToRecord(AccScheduleLine);
-        AccScheduleOverview.ColumnValues1.AssertEquals(Format(Amount, 0, RoundingFormatTxt));
+        AccScheduleOverview.ColumnValues1.AssertEquals(
+          Format(Round(Amount, 1), 0, LibraryAccSchedule.GetCustomFormatString('0')));
     end;
 
     [Test]
@@ -6028,7 +6029,7 @@ codeunit 134902 "ERM Account Schedule"
         // [GIVEN] An account schedule line with negative value
         Amount := -LibraryRandom.RandDec(100, 2);
         SetupForAccountScheduleOverviewPage(
-          AccScheduleLine, Enum::"Column Layout Show"::Always, Amount, Enum::"Analysis Rounding Factor"::None, '');
+          AccScheduleLine, Enum::"Column Layout Show"::Always, Amount, Enum::"Analysis Rounding Factor"::"1", '');
         FinancialReport.Get(AccScheduleLine."Schedule Name");
         FinancialReport."Financial Report Column Group" := LibraryVariableStorage.DequeueText();
         FinancialReport.Modify();
@@ -6042,7 +6043,8 @@ codeunit 134902 "ERM Account Schedule"
 
         // [THEN] Negative amount is displayed with parentheses
         AccScheduleOverview.GoToRecord(AccScheduleLine);
-        AccScheduleOverview.ColumnValues1.AssertEquals('(' + Format(Abs(Amount), 0, RoundingFormatTxt) + ')');
+        AccScheduleOverview.ColumnValues1.AssertEquals(
+          '(' + Format(Round(Abs(Amount), 1), 0, LibraryAccSchedule.GetCustomFormatString('0')) + ')');
     end;
 
     [Test]

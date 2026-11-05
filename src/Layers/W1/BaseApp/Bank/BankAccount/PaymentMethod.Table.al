@@ -146,6 +146,14 @@ table 289 "Payment Method"
             Caption = 'Last Modified Date Time';
             Editable = false;
         }
+        /// <summary>
+        /// Payment means code used to identify how the payment is made when sending electronic documents.
+        /// </summary>
+        field(20; "Payment Means Code"; Code[3])
+        {
+            Caption = 'Payment Means Code';
+            ToolTip = 'Specifies the payment means in connection with electronic document sending. For example, when you send sales documents as electronic documents, the value in this field is used to populate the PaymentMeansCode element in the Payment Means group. The number is based on the UNCL4461 standard.';
+        }
     }
 
     keys

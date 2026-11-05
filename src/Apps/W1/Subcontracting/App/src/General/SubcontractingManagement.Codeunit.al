@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Company;
+using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
@@ -224,6 +225,19 @@ codeunit 20505 "Subcontracting Management"
             if ItemVariant."Production Blocked" = ItemVariant."Production Blocked"::Output then
                 Error(ProductionBlockedOutputItemVariantErr, VariantCode, Item.TableCaption(), ItemNo);
         end;
+    end;
+
+    internal procedure SetSubcontractingOrderDate(var RequisitionLine: Record "Requisition Line"; RoutingStartingDate: Date)
+    var
+        LeadTimeManagement: Codeunit "Lead-Time Management";
+    begin
+        RequisitionLine.Validate(
+            "Order Date",
+            LeadTimeManagement.GetPlannedStartingDate(
+                RequisitionLine."No.", RequisitionLine."Location Code", RequisitionLine."Variant Code", RequisitionLine."Vendor No.",
+                LeadTimeManagement.PurchaseLeadTime(
+                    RequisitionLine."No.", RequisitionLine."Location Code", RequisitionLine."Variant Code", RequisitionLine."Vendor No."),
+                RequisitionLine."Ref. Order Type"::Purchase, RoutingStartingDate));
     end;
 
     procedure UpdateSubcontractorPriceForRequisitionLine(var RequisitionLine: Record "Requisition Line")

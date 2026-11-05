@@ -295,7 +295,7 @@ report 10850 "Suggest Vend. Payments"
         TempPayableVendLedgEntry.Positive := (TempPayableVendLedgEntry.Amount > 0);
         TempPayableVendLedgEntry.Future := (VendLedgEntry."Due Date" > LastDueDateToPayReq);
         TempPayableVendLedgEntry."Currency Code" := VendLedgEntry."Currency Code";
-        TempPayableVendLedgEntry."Due Date" := VendLedgEntry."Due Date";
+        TempPayableVendLedgEntry."Due Date FR" := VendLedgEntry."Due Date";
         TempPayableVendLedgEntry.Insert();
         NextEntryNo := NextEntryNo + 1;
     end;
@@ -355,6 +355,24 @@ report 10850 "Suggest Vend. Payments"
         PaymentPostBufferTemp.Insert();
     end;
 
+    local procedure FindSummarizedPaymentPostBuffer(): Boolean
+    var
+        TempExistingPaymentPostBuffer: Record "Payment Post. Buffer FR" temporary;
+    begin
+        // The primary key also contains generated values (Payment Line No., Applies-to ID) carried over from the
+        // previously processed entry, so look up the summarization group by its grouping fields only.
+        TempExistingPaymentPostBuffer.Copy(TempPaymentPostBuffer, true);
+        TempExistingPaymentPostBuffer.Reset();
+        TempExistingPaymentPostBuffer.SetRange("Account No.", TempPaymentPostBuffer."Account No.");
+        TempExistingPaymentPostBuffer.SetRange("Currency Code", TempPaymentPostBuffer."Currency Code");
+        TempExistingPaymentPostBuffer.SetRange("Due Date", TempPaymentPostBuffer."Due Date");
+        if not TempExistingPaymentPostBuffer.FindFirst() then
+            exit(false);
+
+        TempPaymentPostBuffer := TempExistingPaymentPostBuffer;
+        exit(true);
+    end;
+
     local procedure MakeGenPayLines()
     var
         GenPayLine3: Record "Gen. Journal Line";
@@ -379,7 +397,7 @@ report 10850 "Suggest Vend. Payments"
 
                     if SummarizePer in [SummarizePer::Vendor, SummarizePer::"Due date"] then begin
                         TempPaymentPostBuffer."Auxiliary Entry No." := 0;
-                        if TempPaymentPostBuffer.Find() then begin
+                        if FindSummarizedPaymentPostBuffer() then begin
                             TempPaymentPostBuffer.Amount := TempPaymentPostBuffer.Amount + TempPayableVendLedgEntry.Amount;
                             TempPaymentPostBuffer."Amount (LCY)" := TempPaymentPostBuffer."Amount (LCY)" + TempPayableVendLedgEntry."Amount (LCY)";
                             TempPaymentPostBuffer.Modify();
@@ -480,10 +498,10 @@ report 10850 "Suggest Vend. Payments"
                         begin
                             if GenPayLine.Amount = 0 then
                                 SetAppliesToIDBlank(VendLedgEntry, TempPayableVendLedgEntry, TempPaymentPostBuffer);
-                            TempPayableVendLedgEntry.SetCurrentKey("Vendor No.", "Due Date");
+                            TempPayableVendLedgEntry.SetCurrentKey("Vendor No.", "Due Date FR");
                             TempPayableVendLedgEntry.SetRange("Vendor No.", TempPaymentPostBuffer."Account No.");
                             TempPayableVendLedgEntry.Find('-');
-                            GenPayLine."Due Date" := TempPayableVendLedgEntry."Due Date";
+                            GenPayLine."Due Date" := TempPayableVendLedgEntry."Due Date FR";
                             TempPayableVendLedgEntry.DeleteAll();
                         end;
                     SummarizePer::"Due date":
@@ -523,4 +541,3 @@ report 10850 "Suggest Vend. Payments"
         TempPayableVendorLedgEntry.SetRange("Vendor No.");
     end;
 }
-

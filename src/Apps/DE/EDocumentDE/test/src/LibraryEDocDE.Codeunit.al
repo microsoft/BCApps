@@ -4,14 +4,113 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
+using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.DirectDebit;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Setup;
 using System.Reflection;
 
 codeunit 13925 "Library - E-Doc DE"
 {
     Access = Internal;
+    EventSubscriberInstance = Manual;
 
     var
+        LibraryERM: Codeunit "Library - ERM";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryUtility: Codeunit "Library - Utility";
+        CapturedPaymentMeansHeaderRecordId: RecordId;
         DefaultCoarseRoutingTxt: Label '99', Locked = true;
+        SEPADirectDebitMeansCodeTok: Label '59', Locked = true;
+
+    /// <summary>
+    /// Returns the record ID of the header carried by the last payment means event of the XRechnung or
+    /// ZUGFeRD export. Bind this codeunit with BindSubscription before the export and unbind afterwards.
+    /// </summary>
+    /// <returns>The record ID of the header carried by the last captured payment means event.</returns>
+    procedure GetCapturedPaymentMeansHeaderRecordId(): RecordId
+    begin
+        exit(CapturedPaymentMeansHeaderRecordId);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnInsertPaymentMeansOnBeforeAddToRoot, '', false, false)]
+    local procedure CaptureXRechnungOnInsertPaymentMeansOnBeforeAddToRoot(var PaymentMeansElement: XmlElement; HeaderRecRef: RecordRef)
+    begin
+        CapturedPaymentMeansHeaderRecordId := HeaderRecRef.RecordId();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export ZUGFeRD Document", OnInsertPaymentMethodOnBeforeAddToRoot, '', false, false)]
+    local procedure CaptureZUGFeRDOnInsertPaymentMethodOnBeforeAddToRoot(var PaymentMethodElement: XmlElement; HeaderRecRef: RecordRef)
+    begin
+        CapturedPaymentMeansHeaderRecordId := HeaderRecRef.RecordId();
+    end;
+
+    /// <summary>
+    /// Creates a payment method with the SEPA direct debit payment means code '59'.
+    /// </summary>
+    /// <returns>The Code of the new payment method.</returns>
+    procedure CreateDirectDebitPaymentMethod(): Code[10]
+    begin
+        exit(CreatePaymentMethodWithMeansCode(SEPADirectDebitMeansCodeTok));
+    end;
+
+    /// <summary>
+    /// Creates a payment method with the given UNCL4461 payment means code.
+    /// </summary>
+    /// <param name="PaymentMeansCode">The payment means code to set up on the payment method.</param>
+    /// <returns>The Code of the new payment method.</returns>
+    procedure CreatePaymentMethodWithMeansCode(PaymentMeansCode: Code[3]): Code[10]
+    var
+        PaymentMethod: Record "Payment Method";
+    begin
+        LibraryERM.CreatePaymentMethod(PaymentMethod);
+        PaymentMethod.Validate("Payment Means Code", PaymentMeansCode);
+        PaymentMethod.Modify(true);
+        exit(PaymentMethod.Code);
+    end;
+
+    /// <summary>
+    /// Creates a customer with a bank account with an IBAN and a SEPA direct debit mandate for it.
+    /// </summary>
+    /// <param name="SEPADirectDebitMandate">Returns the new mandate.</param>
+    /// <param name="CustomerBankAccount">Returns the new customer bank account the mandate refers to.</param>
+    /// <param name="PaymentMethodCode">The payment method to set on the customer.</param>
+    /// <returns>The No. of the new customer.</returns>
+    procedure CreateCustomerWithDirectDebitMandate(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; PaymentMethodCode: Code[10]): Code[20]
+    var
+        Customer: Record Customer;
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        exit(AddDirectDebitMandateToCustomer(SEPADirectDebitMandate, CustomerBankAccount, Customer."No.", PaymentMethodCode));
+    end;
+
+    /// <summary>
+    /// Gives an existing customer a bank account with an IBAN and a SEPA direct debit mandate for it.
+    /// Use this when the test needs a customer built by its own suite, for example one with the
+    /// address and VAT data a format requires.
+    /// </summary>
+    /// <param name="SEPADirectDebitMandate">Returns the new mandate.</param>
+    /// <param name="CustomerBankAccount">Returns the new customer bank account the mandate refers to.</param>
+    /// <param name="CustomerNo">The customer that gets the bank account and the mandate.</param>
+    /// <param name="PaymentMethodCode">The payment method to set on the customer.</param>
+    /// <returns>The No. of the customer.</returns>
+    procedure AddDirectDebitMandateToCustomer(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; CustomerNo: Code[20]; PaymentMethodCode: Code[10]): Code[20]
+    var
+        Customer: Record Customer;
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Direct Debit Mandate Nos."));
+        Customer.Get(CustomerNo);
+        Customer.Validate("Payment Method Code", PaymentMethodCode);
+        Customer.Modify(true);
+        LibrarySales.CreateCustomerBankAccount(CustomerBankAccount, Customer."No.");
+        CustomerBankAccount.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        CustomerBankAccount.Modify(true);
+        LibrarySales.CreateCustomerMandate(SEPADirectDebitMandate, Customer."No.", CustomerBankAccount.Code, WorkDate(), CalcDate('<1Y>', WorkDate()));
+        Customer.Validate("Preferred Bank Account Code", CustomerBankAccount.Code);
+        Customer.Modify(true);
+        exit(Customer."No.");
+    end;
 
     procedure CreateValidRoutingNo(): Text[50]
     var

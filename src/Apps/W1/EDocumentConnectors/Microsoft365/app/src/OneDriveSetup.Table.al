@@ -34,6 +34,7 @@ table 6381 "OneDrive Setup"
                 if Rec.Enabled then begin
                     if (Rec."Imp. Documents Folder" = '') or (Rec."Documents Folder" = '') then
                         Error(URLsMustBeSpecifiedErr);
+                    DriveProcessing.CheckFoldersInSameDrive(Rec."Documents Folder", Rec."Drive Id", Rec."Imp. Documents Folder");
                     FeatureTelemetry.LogUptake('0000OB9', DriveProcessing.FeatureName(), Enum::"Feature Uptake Status"::Used);
                     FeatureTelemetry.LogUsage('0000OBA', DriveProcessing.FeatureName(), 'OneDrive');
                     Session.LogSecurityAudit(Rec.TableName(), SecurityOperationResult::Success, DriveIntegrationImpl.SecurityAuditLogSetupStatusDescription(Rec.FieldName(Enabled), Rec.TableName()), AuditCategory::CustomerFacing);
@@ -48,12 +49,16 @@ table 6381 "OneDrive Setup"
             trigger OnValidate()
             var
                 DriveProcessing: Codeunit "Drive Processing";
+                SiteId, DriveId : Text;
             begin
                 if Rec."Documents Folder" <> '' then begin
-                    Rec.SiteId := CopyStr(DriveProcessing.GetSiteId(Rec."Documents Folder"), 1, MaxStrLen(Rec.SiteId));
+                    DriveProcessing.GetSiteAndDriveId(Rec."Documents Folder", SiteId, DriveId);
+                    Rec.SiteId := CopyStr(SiteId, 1, MaxStrLen(Rec.SiteId));
+                    Rec."Drive Id" := CopyStr(DriveId, 1, MaxStrLen(Rec."Drive Id"));
                     Rec."Documents Folder Name" := CopyStr(DriveProcessing.GetName(Rec."Documents Folder"), 1, MaxStrLen(Rec."Documents Folder Name"))
                 end else begin
                     Rec.SiteId := '';
+                    Rec."Drive Id" := '';
                     Rec."Documents Folder Name" := ''
                 end;
             end;
@@ -86,6 +91,11 @@ table 6381 "OneDrive Setup"
         field(7; "Documents Folder Name"; Text[2048])
         {
             Caption = 'Documents Folder Name';
+            DataClassification = CustomerContent;
+        }
+        field(8; "Drive Id"; Text[2048])
+        {
+            Caption = 'Drive Id';
             DataClassification = CustomerContent;
         }
     }
