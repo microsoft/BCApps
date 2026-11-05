@@ -256,15 +256,17 @@ codeunit 4609 "Ext. SharePoint REST Helper"
     end;
 
     local procedure GetParentPath(Path: Text) ParentPath: Text
+    var
+        FileName: Text;
     begin
-        if (Path.TrimEnd(PathSeparator()).Contains(PathSeparator())) then
-            ParentPath := Path.TrimEnd(PathSeparator()).Substring(1, Path.LastIndexOf(PathSeparator()));
+        SplitPath(Path, ParentPath, FileName);
     end;
 
     local procedure GetFileName(Path: Text) FileName: Text
+    var
+        ParentPath: Text;
     begin
-        if (Path.TrimEnd(PathSeparator()).Contains(PathSeparator())) then
-            FileName := Path.TrimEnd(PathSeparator()).Substring(Path.LastIndexOf(PathSeparator()) + 1);
+        SplitPath(Path, ParentPath, FileName);
     end;
 
     local procedure InitPath(SharePointAccount: Record "Ext. SharePoint Account"; var Path: Text)
@@ -322,9 +324,24 @@ codeunit 4609 "Ext. SharePoint REST Helper"
     end;
 
     local procedure SplitPath(Path: Text; var ParentPath: Text; var FileName: Text)
+    var
+        TrimmedPath: Text;
+        SeparatorPosition: Integer;
     begin
-        ParentPath := Path.TrimEnd(PathSeparator()).Substring(1, Path.LastIndexOf(PathSeparator()));
-        FileName := Path.TrimEnd(PathSeparator()).Substring(Path.LastIndexOf(PathSeparator()) + 1);
+        // The parent folder must not end with a separator: GetFolderByServerRelativePath(decodedurl='.../') returns 404.
+        TrimmedPath := Path.TrimEnd(PathSeparator());
+        SeparatorPosition := TrimmedPath.LastIndexOf(PathSeparator());
+        if SeparatorPosition = 0 then begin
+            ParentPath := '';
+            FileName := TrimmedPath;
+            exit;
+        end;
+
+        if SeparatorPosition = 1 then
+            ParentPath := PathSeparator()
+        else
+            ParentPath := TrimmedPath.Substring(1, SeparatorPosition - 1);
+        FileName := TrimmedPath.Substring(SeparatorPosition + 1);
     end;
 
     #endregion
