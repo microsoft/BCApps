@@ -16,6 +16,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Receivables;
 
@@ -44,6 +45,8 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         CaptureNextVATEntryNo: Boolean;
         InsertedVATEntryNo: Integer;
         EventNextVATEntryNo: Integer;
+        ReserveSummarizedVATGLEntryNo: Boolean;
+        ReservedSummarizedVATGLEntryNo: Integer;
 
     [Test]
     [Scope('OnPrem')]
@@ -384,6 +387,102 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
     [Test]
     [Scope('OnPrem')]
+    procedure SummarizedUnrealizedVATSkipsReservedGLEntryNo()
+    begin
+        PostUnrealizedVATWithInterveningGLAllocation(true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnsummarizedUnrealizedVATSkipsReservedGLEntryNo()
+    begin
+        PostUnrealizedVATWithInterveningGLAllocation(false);
+    end;
+
+    local procedure PostUnrealizedVATWithInterveningGLAllocation(SummarizeGLEntries: Boolean)
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
+        VATEntry: Record "VAT Entry";
+        GLEntry: Record "G/L Entry";
+        GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
+        ERMConcurrentGenJnlPosting: Codeunit "ERM Concurrent Gen.Jnl.Posting";
+        InvoiceNo: Code[20];
+        InvoiceAmount: Decimal;
+    begin
+        // [SCENARIO] An intervening G/L sequence allocation cannot be used by buffered VAT entries or their links.
+        Initialize();
+        EnableConcurrentPosting(true);
+        LibraryERM.SetUnrealizedVAT(true);
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Summarize G/L Entries" := SummarizeGLEntries;
+        GeneralLedgerSetup.Modify();
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        VATPostingSetup.Validate("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::Percentage);
+        VATPostingSetup.Validate("Sales VAT Unreal. Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] A posted invoice with unrealized VAT.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
+            LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Sale), 1);
+        SalesLine.Validate("Unit Price", 1000);
+        SalesLine.Modify(true);
+        InvoiceAmount := SalesLine."Amount Including VAT";
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        CreateGenJnlBatch(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine2WithBalAcc(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer, Customer."No.",
+            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNoWithDirectPosting(), -InvoiceAmount);
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceNo);
+        GenJournalLine.Modify(true);
+        ERMConcurrentGenJnlPosting.StartReservingSummarizedVATGLEntryNo();
+        BindSubscription(ERMConcurrentGenJnlPosting);
+
+        // [WHEN] Payment realizes VAT and reserves an unrelated G/L number after buffering but before flushing.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        UnbindSubscription(ERMConcurrentGenJnlPosting);
+
+        // [THEN] Posting succeeds without using the unrelated reservation.
+        ERMConcurrentGenJnlPosting.VerifyReservedSummarizedVATGLEntryNoNotUsed();
+
+        // [THEN] The realized VAT entry links to the realized, not the unrealized, VAT G/L account.
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Payment);
+        VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        VATEntry.SetFilter("Unrealized VAT Entry No.", '<>0');
+        Assert.AreEqual(1, VATEntry.Count(), 'The payment must realize the invoice VAT');
+        VATEntry.FindFirst();
+        GLEntryVATEntryLink.SetRange("VAT Entry No.", VATEntry."Entry No.");
+        Assert.AreEqual(1, GLEntryVATEntryLink.Count(), 'Realized VAT must have exactly one G/L link');
+        GLEntryVATEntryLink.FindFirst();
+        GLEntry.Get(GLEntryVATEntryLink."G/L Entry No.");
+        GLEntry.TestField("G/L Account No.", VATPostingSetup."Sales VAT Account");
+        GLEntry.TestField("Document No.", GenJournalLine."Document No.");
+        GLEntry.TestField("G/L Register No.", VATEntry."G/L Register No.");
+        Assert.AreEqual(VATEntry.Amount, GLEntry.Amount, 'The VAT link must reference the matching realized amount');
+
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Sales VAT Unreal. Account");
+        Assert.AreEqual(1, GLEntry.Count(), 'The payment must reverse unrealized VAT');
+        GLEntry.FindFirst();
+        Assert.AreEqual(-VATEntry.Amount, GLEntry.Amount, 'Unrealized and realized VAT must balance');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure PostMultipleGenJnlLinesWithConcurrentPosting()
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -686,6 +785,31 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     internal procedure StartCapturingNextVATEntryNo()
     begin
         CaptureNextVATEntryNo := true;
+    end;
+
+    internal procedure StartReservingSummarizedVATGLEntryNo()
+    begin
+        ReserveSummarizedVATGLEntryNo := true;
+    end;
+
+    internal procedure VerifyReservedSummarizedVATGLEntryNoNotUsed()
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        Assert.IsTrue(ReservedSummarizedVATGLEntryNo > 0, 'An intervening G/L sequence allocation must have occurred');
+        Assert.IsFalse(GLEntry.Get(ReservedSummarizedVATGLEntryNo), 'Posting must not consume the unrelated G/L sequence reservation');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeInsertPostUnrealVATEntry, '', false, false)]
+    local procedure ReserveGLEntryNoBeforeUnrealizedVATFlush()
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        if not ReserveSummarizedVATGLEntryNo then
+            exit;
+
+        ReservedSummarizedVATGLEntryNo := GLEntry.GetNextEntryNo();
+        ReserveSummarizedVATGLEntryNo := false;
     end;
 
     internal procedure VerifyCapturedNextVATEntryNo()

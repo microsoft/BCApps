@@ -130,6 +130,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         UnrealizedCustLedgEntry: Record "Cust. Ledger Entry";
         UnrealizedVendLedgEntry: Record "Vendor Ledger Entry";
         TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary;
+        TempSummarizedVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary;
         TempVATEntry: Record "VAT Entry" temporary;
         TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary;
         TempCustLedgEntry: Record "Cust. Ledger Entry" temporary;
@@ -1176,6 +1177,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// <param name="SummarizeGLEntries">Flag if entries should be summarized.</param>
     /// <param name="GLEntry">G/L Entry for which VAT G/L Entry should be created or adjusted.</param>
     procedure SummarizeVAT(SummarizeGLEntries: Boolean; GLEntry: Record "G/L Entry")
+    begin
+        SummarizeVATEntry(SummarizeGLEntries, GLEntry);
+    end;
+
+    local procedure SummarizeVATEntry(SummarizeGLEntries: Boolean; GLEntry: Record "G/L Entry") SummarizedGLEntryNo: Integer
     var
         InsertedTempVAT: Boolean;
     begin
@@ -1190,14 +1196,20 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         TempGLEntryVAT."Additional-Currency Amount" :=
                           TempGLEntryVAT."Additional-Currency Amount" + GLEntry."Additional-Currency Amount";
                         TempGLEntryVAT.Modify();
+                        SummarizedGLEntryNo := TempGLEntryVAT."Entry No.";
                         InsertedTempVAT := true;
                     end;
                 until (TempGLEntryVAT.Next() = 0) or InsertedTempVAT;
         if not InsertedTempVAT or not SummarizeGLEntries then begin
             TempGLEntryVAT := GLEntry;
-            TempGLEntryVAT."Entry No." :=
-              TempGLEntryVAT."Entry No." + InsertedTempGLEntryVAT;
+            if GLSetup.UseConcurrentPosting() then
+                // Buffer identifiers are resolved to reserved G/L entry numbers when the buffer is flushed.
+                TempGLEntryVAT."Entry No." := InsertedTempGLEntryVAT + 1
+            else
+                TempGLEntryVAT."Entry No." :=
+                  TempGLEntryVAT."Entry No." + InsertedTempGLEntryVAT;
             TempGLEntryVAT.Insert();
+            SummarizedGLEntryNo := TempGLEntryVAT."Entry No.";
             InsertedTempGLEntryVAT := InsertedTempGLEntryVAT + 1;
         end;
     end;
@@ -1214,13 +1226,38 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if TempGLEntryVAT.FindSet() then begin
             repeat
-                InsertGLEntry(GenJnlLine, TempGLEntryVAT, true);
-                OnInsertSummarizedVATOnAfterInsertGLEntry(GenJnlLine, TempGLEntryVAT, NextEntryNo);
+                if GLSetup.UseConcurrentPosting() then
+                    InsertConcurrentSummarizedVATEntry(GenJnlLine)
+                else begin
+                    InsertGLEntry(GenJnlLine, TempGLEntryVAT, true);
+                    OnInsertSummarizedVATOnAfterInsertGLEntry(GenJnlLine, TempGLEntryVAT, NextEntryNo);
+                end;
             until TempGLEntryVAT.Next() = 0;
             TempGLEntryVAT.DeleteAll();
             InsertedTempGLEntryVAT := 0;
         end;
         NextConnectionNo := NextConnectionNo + 1;
+    end;
+
+    local procedure InsertConcurrentSummarizedVATEntry(var GenJnlLine: Record "Gen. Journal Line")
+    var
+        TempGLEntryToInsert: Record "G/L Entry" temporary;
+    begin
+        TempGLEntryToInsert := TempGLEntryVAT;
+        TempGLEntryToInsert."Entry No." := NextEntryNo;
+        TempGLEntryToInsert.Insert();
+
+        TempSummarizedVATEntryLink.SetRange("G/L Entry No.", TempGLEntryVAT."Entry No.");
+        if TempSummarizedVATEntryLink.FindSet() then
+            repeat
+                TempGLEntryVATEntryLink.InsertLinkSelf(
+                    TempGLEntryToInsert."Entry No.", TempSummarizedVATEntryLink."VAT Entry No.");
+            until TempSummarizedVATEntryLink.Next() = 0;
+        TempSummarizedVATEntryLink.DeleteAll();
+        TempSummarizedVATEntryLink.Reset();
+
+        InsertGLEntry(GenJnlLine, TempGLEntryToInsert, true);
+        OnInsertSummarizedVATOnAfterInsertGLEntry(GenJnlLine, TempGLEntryToInsert, NextEntryNo);
     end;
 
     local procedure CheckDescriptionForGL(GLAccount: Record "G/L Account"; Description: Text[100])
@@ -2441,10 +2478,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// <param name="Amount">Amount for the G/L entry in local currency</param>
     /// <param name="AmountAddCurr">Amount for the G/L entry in additional currency</param>
     /// <param name="VATEntry">Source VAT entry to copy posting details from</param>
-    /// <returns>Entry number of the created G/L entry</returns>
+    /// <returns>Buffer identifier for concurrent posting; otherwise, the initialized G/L entry number.</returns>
     procedure InitGLEntryVATCopy(GenJnlLine: Record "Gen. Journal Line"; AccNo: Code[20]; BalAccNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal; VATEntry: Record "VAT Entry"): Integer
     var
         GLEntry: Record "G/L Entry";
+        SummarizedGLEntryNo: Integer;
     begin
         OnBeforeInitGLEntryVATCopy(GenJnlLine, GLEntry, VATEntry, NextEntryNo);
         InitGLEntry(
@@ -2454,8 +2492,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntry."Bal. Account No." := BalAccNo;
         GLEntry.CopyPostingGroupsFromVATEntry(VATEntry);
         OnInitGLEntryVATCopyOnBeforeSummarizeVAT(GenJnlLine, GLEntry, VATEntry);
-        SummarizeVAT(GLSetup."Summarize G/L Entries", GLEntry);
+        SummarizedGLEntryNo := SummarizeVATEntry(GLSetup."Summarize G/L Entries", GLEntry);
         OnAfterInitGLEntryVATCopy(GenJnlLine, GLEntry);
+
+        if GLSetup.UseConcurrentPosting() then
+            exit(SummarizedGLEntryNo);
 
         exit(GLEntry."Entry No.");
     end;
@@ -6080,7 +6121,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeInsertPostUnrealVATEntry(VATEntry, GenJnlLine, VATEntry2);
         VATEntry.Insert(true);
         OnPostUnrealVATEntryOnBeforeInsertLinkSelf(TempGLEntryVATEntryLink, VATEntry, GLEntryNo, NextVATEntryNo);
-        TempGLEntryVATEntryLink.InsertLinkSelf(GLEntryNo + 1, NextVATEntryNo);
+        if GLSetup.UseConcurrentPosting() then
+            TempSummarizedVATEntryLink.InsertLinkSelf(GLEntryNo, NextVATEntryNo)
+        else
+            TempGLEntryVATEntryLink.InsertLinkSelf(GLEntryNo + 1, NextVATEntryNo);
         NextVATEntryNo := GetNextVATEntryNoForPosting(NextVATEntryNo);
 
         VATEntry2."Remaining Unrealized Amount" :=
