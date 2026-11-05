@@ -1253,6 +1253,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
     end;
 
     local procedure Initialize()
+    var
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Multiple Posting Groups");
 
@@ -1262,6 +1264,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"ERM Multiple Posting Groups");
+
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
 
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
         LibrarySetupStorage.Save(DATABASE::"Sales & Receivables Setup");
