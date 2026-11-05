@@ -47,7 +47,6 @@ codeunit 148306 "Expense Report Test"
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
         CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', Comment = '%1 = Manual Nos. setting, %2 = No. Series table caption, %3 = No. Series Code';
         ExpenseReportLineDoesNotExistErr: Label 'There is no expense report lines with the number %1.', Comment = '%1 - Document No.';
-        CannotReleaseDocumentWithNothingToRefundErr: Label 'Cannot release the Expense Report No. %1 because there is nothing to refund for this Line No. %2.', Comment = '%1 - Expense No. , %2 - Line No.';
         FieldShouldNotBeEditableErr: Label '%1 should not be editable in Page %2', Comment = '%1 = Field Caption , %2 = Page Caption';
         FieldShouldBeEditableErr: Label '%1 should be editable in Page %2', Comment = '%1 = Field Caption , %2 = Page Caption';
         FieldShouldBeVisibleErr: Label '%1 should be visible in Page %2', Comment = '%1 = Field Caption , %2 = Page Caption';
@@ -2597,7 +2596,7 @@ codeunit 148306 "Expense Report Test"
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
-    procedure CannotReleaseExpenseReportIfRefundableIsFalseAndReimbursementTypeIsEmployeePaid()
+    procedure ReleaseExpenseReportIfRefundableIsFalseAndReimbursementTypeIsEmployeePaid()
     var
         Expense: Record Expense;
         PostCode: Record "Post Code";
@@ -2611,7 +2610,7 @@ codeunit 148306 "Expense Report Test"
         Amount: Decimal;
         CurrencyCode: Code[10];
     begin
-        // [SCENARIO 614287] Verify that Expense Report cannot be released if Refundable is false and Reimbursement Type is Employee Paid.
+        // [SCENARIO 654115] Verify that Expense Report can be released if Refundable is false and Reimbursement Type is Employee Paid.
         Initialize();
 
         // [GIVEN] Find "Post Code".
@@ -2668,10 +2667,31 @@ codeunit 148306 "Expense Report Test"
             StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Reimbursable Amount (LCY)"), 0, ExpenseReportLine.TableCaption()));
 
         // [WHEN] Release Expense Report.
-        asserterror ReleaseExpenseReportDocument.PerformManualRelease(ExpenseReportHeader);
+        ReleaseExpenseReportDocument.PerformManualRelease(ExpenseReportHeader);
 
-        // [THEN] Verify that Expense Report cannot be released if Refundable is false and Reimbursement Type is Employee Paid.
-        Assert.ExpectedError(StrSubstNo(CannotReleaseDocumentWithNothingToRefundErr, ExpenseReportHeader."No.", ExpenseReportLine."Line No."));
+        // [THEN] Verify that Expense Report is released without reimbursing the non-refundable line.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.AreEqual(
+            ExpenseReportHeader.Status::Released,
+            ExpenseReportHeader.Status,
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportHeader.FieldCaption(Status), ExpenseReportHeader.Status::Released, ExpenseReportHeader.TableCaption()));
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(
+            false,
+            ExpenseReportLine.Refundable,
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption(Refundable), false, ExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            ExpenseReportLine."Reimbursement Type"::"Employee Paid",
+            ExpenseReportLine."Reimbursement Type",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Reimbursement Type"), ExpenseReportLine."Reimbursement Type"::"Employee Paid", ExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            0,
+            ExpenseReportLine."Reimbursable Amount",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Reimbursable Amount"), 0, ExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            0,
+            ExpenseReportLine."Reimbursable Amount (LCY)",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Reimbursable Amount (LCY)"), 0, ExpenseReportLine.TableCaption()));
     end;
 
     [Test]
