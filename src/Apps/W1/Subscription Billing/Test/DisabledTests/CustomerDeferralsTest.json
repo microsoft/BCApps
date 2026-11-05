@@ -1,0 +1,8 @@
+[
+  {
+    "bug": "657908",
+    "codeunitId": 139912,
+    "codeunitName": "Customer Deferrals Test",
+    "method": "DeferralCodeNotAllowedWithContractDeferralsOnSalesLine"
+  }
+]
