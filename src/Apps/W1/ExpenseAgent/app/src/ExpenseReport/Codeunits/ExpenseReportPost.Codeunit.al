@@ -727,7 +727,7 @@ codeunit 6987 "Expense Report-Post"
 
     local procedure PostItemizedJnlLines(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; PostedExpReportLine: Record "Posted Expense Report Line"; Refundable: Boolean; var PostedAmount: Decimal; var PostedAmountLCY: Decimal): Boolean
     var
-        ExpenseReportLineItem: Record "Expense Report Line Item";
+        TempExpenseReportLineItem: Record "Expense Report Line Item" temporary;
         ItemExpenseReportLine: Record "Expense Report Line";
         GenJournalLine: Record "Gen. Journal Line";
         ProjectGenJournalLine: Record "Gen. Journal Line";
@@ -736,22 +736,20 @@ codeunit 6987 "Expense Report-Post"
         ProjectAmountLCY: Decimal;
         EntryCopied: Boolean;
     begin
-        ExpenseReportLineItem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
-        ExpenseReportLineItem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
-        if not HasItemizationPostingGroup(ExpenseReportLine, ExpenseReportLineItem) then
+        if not BufferItemizationsForPosting(ExpenseReportLine, TempExpenseReportLineItem) then
             exit(false);
 
         OriginalAmountToEmployee := AmountToEmployee;
         OriginalAmountToEmployeeLCY := AmountToEmployeeLCY;
-        ExpenseReportLineItem.FindSet();
+        TempExpenseReportLineItem.FindSet();
         repeat
             ItemExpenseReportLine := ExpenseReportLine;
-            ItemExpenseReportLine."Expense Category" := ExpenseReportLineItem."Expense Category Code";
-            ItemExpenseReportLine."Expense Subcategory Code" := ExpenseReportLineItem."Expense Subcategory Code";
-            ItemExpenseReportLine.Amount := ExpenseReportLineItem.Amount;
+            ItemExpenseReportLine."Expense Category" := TempExpenseReportLineItem."Expense Category Code";
+            ItemExpenseReportLine."Expense Subcategory Code" := TempExpenseReportLineItem."Expense Subcategory Code";
+            ItemExpenseReportLine.Amount := TempExpenseReportLineItem.Amount;
             ItemExpenseReportLine."Non-Refundable Amount" := 0;
-            if ItemExpenseReportLine.Refundable and not ExpenseReportLineItem.Refundable then
-                ItemExpenseReportLine."Non-Refundable Amount" := ExpenseReportLineItem.Amount;
+            if ItemExpenseReportLine.Refundable and not TempExpenseReportLineItem.Refundable then
+                ItemExpenseReportLine."Non-Refundable Amount" := TempExpenseReportLineItem.Amount;
             ItemExpenseReportLine.UpdateAmounts();
 
             Clear(GenJournalLine);
@@ -767,8 +765,11 @@ codeunit 6987 "Expense Report-Post"
 
             if (GenJournalLine.Amount <> 0) or (GenJournalLine."Amount (LCY)" <> 0) then begin
                 if not EntryCopied then begin
-                    if Refundable or not ExpenseReportLine.Refundable then
+                    if Refundable or not ExpenseReportLine.Refundable then begin
                         GlobalExpenseLedgerEntry.CopyFromGenJnlLine(GenJournalLine);
+                        // The expense ledger summarizes the parent, not the first posted item.
+                        GlobalExpenseLedgerEntry.CopyFromPostedExpenseReportLine(PostedExpReportLine);
+                    end;
                     ProjectGenJournalLine := GenJournalLine;
                     EntryCopied := true;
                 end;
@@ -777,7 +778,7 @@ codeunit 6987 "Expense Report-Post"
                 PostedAmount += GenJournalLine.Amount + GenJournalLine."VAT Amount";
                 PostedAmountLCY += GenJournalLine."Amount (LCY)" + GenJournalLine."VAT Amount (LCY)";
             end;
-        until ExpenseReportLineItem.Next() = 0;
+        until TempExpenseReportLineItem.Next() = 0;
 
         // Reimburse the parent total once, independently of per-item currency rounding.
         AmountToEmployee := OriginalAmountToEmployee;
@@ -798,30 +799,34 @@ codeunit 6987 "Expense Report-Post"
         exit(true);
     end;
 
-    local procedure HasItemizationPostingGroup(ExpenseReportLine: Record "Expense Report Line"; ExpenseReportLineItem: Record "Expense Report Line Item"): Boolean
+    local procedure BufferItemizationsForPosting(ExpenseReportLine: Record "Expense Report Line"; var TempExpenseReportLineItem: Record "Expense Report Line Item" temporary): Boolean
     var
+        ExpenseReportLineItem: Record "Expense Report Line Item";
         ExpenseSubcategory: Record "Expense Subcategory";
+        HasPostingGroup: Boolean;
     begin
-        if not ExpenseReportLineItem.FindSet() then
-            exit(false);
-
         // Policy-only itemizations do not determine the parent's financial amounts.
         if ExpenseReportLine.IsEnforcedItemizationRequired() then
             exit(false);
 
+        ExpenseReportLineItem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineItem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        if not ExpenseReportLineItem.FindSet() then
+            exit(false);
+
         if ExpenseReportLine."Expense Subcategory Code" <> '' then begin
             ExpenseSubcategory.Get(ExpenseReportLine."Expense Category", ExpenseReportLine."Expense Subcategory Code");
-            if ExpenseSubcategory."Posting Group" <> '' then
-                exit(true);
+            HasPostingGroup := ExpenseSubcategory."Posting Group" <> '';
         end;
         repeat
-            if ExpenseReportLineItem."Expense Subcategory Code" <> '' then begin
+            TempExpenseReportLineItem := ExpenseReportLineItem;
+            TempExpenseReportLineItem.Insert();
+            if not HasPostingGroup and (ExpenseReportLineItem."Expense Subcategory Code" <> '') then begin
                 ExpenseSubcategory.Get(ExpenseReportLineItem."Expense Category Code", ExpenseReportLineItem."Expense Subcategory Code");
-                if ExpenseSubcategory."Posting Group" <> '' then
-                    exit(true);
+                HasPostingGroup := ExpenseSubcategory."Posting Group" <> '';
             end;
         until ExpenseReportLineItem.Next() = 0;
-        exit(false);
+        exit(HasPostingGroup);
     end;
 
     local procedure PostNonRefundableJnlLineFromSpecs(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; var ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.")
