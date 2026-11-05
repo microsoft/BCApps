@@ -15,10 +15,11 @@ reportextension 11400 "Date Compress G/L NL" extends "Date Compress General Ledg
                 SetRange(Open, true);
             end;
 
-            trigger OnBeforeAfterGetRecord()
+            trigger OnAfterPreDataItem()
+            var
+                DateCompressGLNL: Codeunit "Date Compress G/L NL";
             begin
-                if Amount <> "Remaining Amount" then
-                    CurrReport.Skip();
+                DateCompressGLNL.FilterUnappliedEntries("G/L Entry");
             end;
         }
     }

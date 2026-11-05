@@ -357,7 +357,7 @@ report 11000000 "Get Proposal Entries"
                                 "Value Date" := PmtDiscExpiryDate;
                         end;
                     }
-                    field(PartnerTypeReq; PartnerType)
+                    field(PartnerType; PartnerType)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Partner Type';

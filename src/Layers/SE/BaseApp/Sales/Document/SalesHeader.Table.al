@@ -328,7 +328,7 @@ table 36 "Sales Header"
                 Validate("Payment Terms Code");
                 Validate("Prepmt. Payment Terms Code");
                 Validate("Payment Method Code");
-                OnAfterValidateBillToCustomerPaymentFields(Rec);
+                OnValidateBillToCustomerNoOnAfterValidatePaymentFields(Rec);
                 Validate("Prepayment %");
 
                 if (xRec."Sell-to Customer No." = "Sell-to Customer No.") and
@@ -10409,7 +10409,7 @@ table 36 "Sales Header"
     /// </summary>
     /// <param name="SalesHeader">The sales header being updated, passed by reference so subscribers can modify its payment fields.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterValidateBillToCustomerPaymentFields(var SalesHeader: Record "Sales Header")
+    local procedure OnValidateBillToCustomerNoOnAfterValidatePaymentFields(var SalesHeader: Record "Sales Header")
     begin
     end;
 

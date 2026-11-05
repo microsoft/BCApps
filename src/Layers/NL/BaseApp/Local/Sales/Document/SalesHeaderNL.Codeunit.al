@@ -21,8 +21,8 @@ codeunit 11474 "Sales Header NL"
         SalesHeader."Bank Account Code" := Customer."Preferred Bank Account Code";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterValidateBillToCustomerPaymentFields', '', false, false)]
-    local procedure OnAfterValidateBillToCustomerPaymentFields(var SalesHeader: Record "Sales Header")
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnValidateBillToCustomerNoOnAfterValidatePaymentFields', '', false, false)]
+    local procedure OnValidateBillToCustomerNoOnAfterValidatePaymentFields(var SalesHeader: Record "Sales Header")
     begin
         SalesHeader.Validate("Transaction Mode Code");
     end;

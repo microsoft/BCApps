@@ -38,6 +38,8 @@ codeunit 11434 "SEPA CT pain.001.001.09 NL"
                 CreditorNameNode.ReplaceWith(NewCreditorNameNode);
             end;
 
+        Clear(XmlInStream);
+        Clear(TempBlob);
         TempBlob.CreateOutStream(XmlOutStream, TextEncoding::UTF8);
         PaymentXmlDocument.WriteTo(XmlOutStream);
     end;

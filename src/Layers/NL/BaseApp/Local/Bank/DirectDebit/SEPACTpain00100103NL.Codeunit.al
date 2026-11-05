@@ -27,6 +27,8 @@ codeunit 11433 "SEPA CT pain.001.001.03 NL"
             exit;
 
         XmlRootElement.Add(XmlAttribute.CreateNamespaceDeclaration('xsi', XmlSchemaInstanceNamespaceTok));
+        Clear(XmlInStream);
+        Clear(TempBlob);
         TempBlob.CreateOutStream(XmlOutStream, TextEncoding::UTF8);
         PaymentXmlDocument.WriteTo(XmlOutStream);
     end;

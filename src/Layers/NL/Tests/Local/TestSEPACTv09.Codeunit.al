@@ -1592,24 +1592,39 @@ codeunit 144103 "Test SEPA CT v09"
     var
         BankAccount: Record "Bank Account";
         GeneralLedgerSetup: Record "General Ledger Setup";
+        Vendor: Record Vendor;
         VendorBankAccount: Record "Vendor Bank Account";
         TestSEPACTv09: Codeunit "Test SEPA CT v09";
         ExportProtocolCode: Code[20];
         FileName: Text;
         TotalAmount: Decimal;
-        NoOfDocuments: Integer;
     begin
         // [SCENARIO] A legacy subscriber forces NORMAL priority and initializes InstrPrty to NORM.
         Initialize();
+
+        // [GIVEN] Five payment documents with local SEPA instruction priority enabled.
         UpdateGLSetupCurrency(GeneralLedgerSetup."Local Currency"::Euro, '', 'EUR');
         UpdateLocalInstrPrtyInGenLedgSetup(true);
         ExportProtocolCode := FindXMLPortEuroSEPAExportProtocol();
-        SetupForExport(BankAccount, VendorBankAccount, ExportProtocolCode, TotalAmount, NoOfDocuments);
+        SetupForExportByNumberOfDocuments(BankAccount, VendorBankAccount, ExportProtocolCode, 5, TotalAmount);
+
+        // [GIVEN] Truncating five full-length creditor names shortens the rewritten XML.
+        Vendor.SetRange("Transaction Mode Code", BankAccount."No.");
+        Vendor.FindSet();
+        repeat
+            Vendor.Name := PadStr(Vendor."No.", MaxStrLen(Vendor.Name), 'X');
+            Vendor.Modify();
+        until Vendor.Next() = 0;
+
+        // [GIVEN] A legacy subscriber that forces NORMAL priority.
         BindSubscription(TestSEPACTv09);
 
+        // [WHEN] Export the payments to XML.
         GetEntriesAndExportSEPAReport(BankAccount."No.", ExportProtocolCode);
 
         UnbindSubscription(TestSEPACTv09);
+
+        // [THEN] Both payment information groups have InstrPrty = NORM.
         FileName := CreateXMLFileFromCreditTransferRegisterExportedFile(BankAccount."No.");
         XMLReadHelper.Initialize(FileName, GetSEPACTNameSpace());
         XMLReadHelper.VerifyNodeCountWithValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:PmtTpInf/ns:InstrPrty', 'NORM', 2);
