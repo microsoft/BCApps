@@ -4,6 +4,7 @@ codeunit 139922 "APIV2 - Purch. Quotes E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -141,17 +142,16 @@ codeunit 139922 "APIV2 - Purch. Quotes E2E"
     procedure TestExpandPdfDocument()
     var
         PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
         ResponseText: Text;
         TargetURL: Text;
         PdfDocumentValue: Text;
     begin
         // [SCENARIO] GET a purchase quote with $expand=pdfDocument
-        // [GIVEN] A purchase quote
-        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Quote);
-        if not PurchaseHeader.FindFirst() then begin
-            LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Quote, '');
-            Commit();
-        end;
+        // [GIVEN] A purchase quote with a line
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Quote, '');
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, '', 1);
+        Commit();
 
         // [WHEN] we GET with expanded pdfDocument
         TargetURL := LibraryGraphMgt.CreateTargetURL(PurchaseHeader.SystemId, Page::"APIV2 - Purch. Quotes", ServiceNameTxt);

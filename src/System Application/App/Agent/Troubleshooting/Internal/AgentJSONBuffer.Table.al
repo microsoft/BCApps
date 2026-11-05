@@ -5,6 +5,8 @@
 
 namespace System.Agents.Troubleshooting;
 
+using System.Agents;
+
 table 4300 "Agent JSON Buffer"
 {
     TableType = Temporary;
@@ -31,17 +33,12 @@ table 4300 "Agent JSON Buffer"
 
     procedure GetJsonText(): Text
     var
-        JsonTextBuilder: TextBuilder;
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
         JsonTextInStream: InStream;
-        JsonTextLine: Text;
     begin
         Rec.CalcFields(Rec.Json);
         Rec.Json.CreateInStream(JsonTextInStream, GetDefaultEncoding());
-        while not JsonTextInStream.EOS do begin
-            JsonTextInStream.ReadText(JsonTextLine);
-            JsonTextBuilder.AppendLine(JsonTextLine);
-        end;
-        exit(JsonTextBuilder.ToText().Trim());
+        exit(AgentTaskImpl.ReadStreamToEnd(JsonTextInStream).Trim());
     end;
 
     procedure SetJsonText(NewJsonText: Text)

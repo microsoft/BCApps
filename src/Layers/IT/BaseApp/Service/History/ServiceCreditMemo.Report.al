@@ -999,8 +999,7 @@ report 5912 "Service - Credit Memo"
     local procedure CleanAmountsInVATAmountLine()
     begin
         TempVATAmountLine.SetRange("VAT Calculation Type", TempVATAmountLine."VAT Calculation Type"::"Full VAT");
-        TempVATAmountLine.ModifyAll("Line Amount", 0);
-        TempVATAmountLine.ModifyAll("Inv. Disc. Base Amount", 0);
+        TempVATAmountLine.ModifyAll("Line Amount", 0, "Inv. Disc. Base Amount", 0);
         TempVATAmountLine.SetRange("VAT Calculation Type");
     end;
 }

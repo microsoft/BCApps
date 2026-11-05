@@ -211,8 +211,7 @@ codeunit 6164 "E-Doc. Line Matching"
         EDocOrderMatch.DeleteAll();
 
         EDocImportedLine.SetRange("E-Document Entry No.", EDocument."Entry No");
-        EDocImportedLine.ModifyAll("Matched Quantity", 0);
-        EDocImportedLine.ModifyAll("Fully Matched", false);
+        EDocImportedLine.ModifyAll("Matched Quantity", 0, "Fully Matched", false);
 
         PurchaseLine.SetRange("Document Type", Enum::"Purchase Document Type"::Order);
         PurchaseLine.SetRange("Document No.", EDocument."Order No.");

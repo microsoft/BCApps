@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Intrastat;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Projects.Project.Ledger;
 
 tableextension 31305 "Job Ledger Entry CZ" extends "Job Ledger Entry"
@@ -14,6 +15,12 @@ tableextension 31305 "Job Ledger Entry CZ" extends "Job Ledger Entry"
         {
             Caption = 'Statistic Indication';
             TableRelation = "Statistic Indication CZ".Code;
+        }
+        field(31310; "Country/Reg. of Orig. Code CZ"; Code[10])
+        {
+            Caption = 'Country/Region of Origin Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Country/Region";
         }
     }
 

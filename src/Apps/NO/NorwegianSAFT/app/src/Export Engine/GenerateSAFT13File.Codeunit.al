@@ -607,6 +607,39 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         until SAFTSourceCode.Next() = 0;
     end;
 
+    internal procedure CalculateDebitCreditTotals(var SAFTExportHeader: Record "SAF-T Export Header")
+    var
+        SAFTSourceCode: Record "SAF-T Source Code";
+        TempSourceCode: Record "Source Code" temporary;
+        SAFTGLEntryTotal: Query "SAF-T G/L Entry Total";
+        SourceCodeFilter: Text;
+    begin
+        SAFTExportHeader."Total G/L Entry Debit" := 0;
+        SAFTExportHeader."Total G/L Entry Credit" := 0;
+        if not SAFTSourceCode.FindSet() then
+            SAFTSourceCode.Init();
+        repeat
+            PopulateSourceCodeBuffer(TempSourceCode, SAFTSourceCode);
+            SourceCodeFilter := GetSourceCodeFilter(TempSourceCode);
+            if SourceCodeFilter <> '' then begin
+                Clear(SAFTGLEntryTotal);
+                SAFTGLEntryTotal.SetRange(PostingDate, SAFTExportHeader."Starting Date", SAFTExportHeader."Ending Date");
+                SAFTGLEntryTotal.SetFilter(SourceCode, SourceCodeFilter);
+                SAFTGLEntryTotal.SetFilter(AmountFilter, '>%1', 0);
+                SAFTGLEntryTotal.Open();
+                if SAFTGLEntryTotal.Read() then
+                    SAFTExportHeader."Total G/L Entry Debit" += SAFTGLEntryTotal.TotalAmount;
+                SAFTGLEntryTotal.Close();
+
+                SAFTGLEntryTotal.SetFilter(AmountFilter, '<%1', 0);
+                SAFTGLEntryTotal.Open();
+                if SAFTGLEntryTotal.Read() then
+                    SAFTExportHeader."Total G/L Entry Credit" -= SAFTGLEntryTotal.TotalAmount;
+                SAFTGLEntryTotal.Close();
+            end;
+        until SAFTSourceCode.Next() = 0;
+    end;
+
     local procedure PopulateSourceCodeBuffer(var TempSourceCode: Record "Source Code" temporary; var SAFTSourceCode: Record "SAF-T Source Code")
     var
         SourceCode: Record "Source Code";

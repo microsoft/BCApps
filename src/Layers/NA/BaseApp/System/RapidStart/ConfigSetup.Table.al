@@ -5,7 +5,6 @@ using Microsoft.Finance.SalesTax;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Setup;
-using System;
 using System.Environment.Configuration;
 using System.Globalization;
 using System.Reflection;
@@ -363,7 +362,7 @@ table 8627 "Config. Setup"
     procedure ReadPackageHeader(DecompressedFileName: Text)
     var
         XMLDOMManagement: Codeunit "XML DOM Management";
-        PackageXML: DotNet XmlDocument;
+        PackageXML: XmlDocument;
     begin
         if "Package File Name" <> '' then begin
             XMLDOMManagement.LoadXMLDocumentFromFile(DecompressedFileName, PackageXML);
@@ -378,11 +377,10 @@ table 8627 "Config. Setup"
 
     procedure ReadPackageHeaderFromStream(InStream: InStream)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        PackageXML: DotNet XmlDocument;
+        PackageXML: XmlDocument;
     begin
         if "Package File Name" <> '' then begin
-            XMLDOMManagement.LoadXMLDocumentFromInStream(InStream, PackageXML);
+            XmlDocument.ReadFrom(InStream, PackageXML);
             ReadPackageHeaderCommon(PackageXML);
         end else begin
             "Package Code" := '';
@@ -392,35 +390,37 @@ table 8627 "Config. Setup"
         end;
     end;
 
-    local procedure ReadPackageHeaderCommon(PackageXML: DotNet XmlDocument)
+    local procedure ReadPackageHeaderCommon(PackageXML: XmlDocument)
     var
         ConfigPackage: Record "Config. Package";
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
-        DocumentElement: DotNet XmlElement;
+        DocumentElement: XmlElement;
+        DocumentElementNode: XmlNode;
         LanguageID: Text;
     begin
-        DocumentElement := PackageXML.DocumentElement;
+        PackageXML.GetRoot(DocumentElement);
+        DocumentElementNode := DocumentElement.AsXmlNode();
         "Package Code" :=
           CopyStr(
             ConfigXMLExchange.GetAttribute(
-              ConfigXMLExchange.GetElementName(ConfigPackage.FieldName(Code)), DocumentElement),
+              ConfigXMLExchange.GetElementName(ConfigPackage.FieldName(Code)), DocumentElementNode),
             1, MaxStrLen("Package Code"));
         if "Package Code" = '' then
             Error(PackageDataNotDefinedErr, FieldCaption("Package Code"));
         "Package Name" :=
           CopyStr(
             ConfigXMLExchange.GetAttribute(
-              ConfigXMLExchange.GetElementName(ConfigPackage.FieldName("Package Name")), DocumentElement),
+              ConfigXMLExchange.GetElementName(ConfigPackage.FieldName("Package Name")), DocumentElementNode),
             1, MaxStrLen("Package Name"));
         if "Package Name" = '' then
             Error(PackageDataNotDefinedErr, FieldCaption("Package Name"));
         "Product Version" :=
           CopyStr(
             ConfigXMLExchange.GetAttribute(
-              ConfigXMLExchange.GetElementName(ConfigPackage.FieldName("Product Version")), DocumentElement),
+              ConfigXMLExchange.GetElementName(ConfigPackage.FieldName("Product Version")), DocumentElementNode),
             1, MaxStrLen("Product Version"));
         LanguageID := ConfigXMLExchange.GetAttribute(
-            ConfigXMLExchange.GetElementName(ConfigPackage.FieldName("Language ID")), DocumentElement);
+            ConfigXMLExchange.GetElementName(ConfigPackage.FieldName("Language ID")), DocumentElementNode);
         if LanguageID <> '' then
             Evaluate("Language ID", LanguageID);
         Modify();
@@ -441,7 +441,7 @@ table 8627 "Config. Setup"
                     Error('');
 
         ConfigXMLExchange.SetHideDialog(HideDialog);
-        ConfigXMLExchange.ImportPackageXML(DecompressedFileName);
+        ConfigXMLExchange.ImportPackageXMLFromFile(DecompressedFileName);
         Commit();
     end;
 
@@ -459,7 +459,7 @@ table 8627 "Config. Setup"
                     Error('');
 
         ConfigXMLExchange.SetHideDialog(HideDialog);
-        ConfigXMLExchange.ImportPackageXMLFromStream(InStream);
+        ConfigXMLExchange.ImportPackageXML(InStream);
         Commit();
     end;
 
