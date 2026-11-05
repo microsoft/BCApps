@@ -1494,24 +1494,44 @@
     [Test]
     procedure CreditMemoAllocationWithMissingInvoiceVATSetupRaisesError()
     begin
+        // [SCENARIO 648925] Credit memo allocation must fail when the required invoice VAT setup is missing.
+        // [GIVEN] Invoice and credit memo lines with equivalent but different Cash Basis VAT groups
+        // [GIVEN] The invoice VAT posting setup has been deleted
+        // [WHEN] The credit memo amount is allocated to the invoice VAT group
+        // [THEN] A record-not-found error identifies the missing invoice VAT posting setup
         VerifyMissingVATPostingSetupRaisesError(1, true);
     end;
 
     [Test]
     procedure CreditMemoAllocationWithMissingCreditMemoVATSetupRaisesError()
     begin
+        // [SCENARIO 648925] Credit memo allocation must fail when a credit memo VAT setup is missing.
+        // [GIVEN] Invoice and credit memo lines with equivalent but different Cash Basis VAT groups
+        // [GIVEN] The credit memo VAT posting setup has been deleted
+        // [WHEN] The credit memo amount is allocated to the invoice VAT group
+        // [THEN] A record-not-found error identifies the missing credit memo VAT posting setup
         VerifyMissingVATPostingSetupRaisesError(2, true);
     end;
 
     [Test]
     procedure InvoiceVATGroupMappingWithMissingCreditMemoVATSetupRaisesError()
     begin
+        // [SCENARIO 648925] Invoice VAT group mapping must fail when the required credit memo VAT setup is missing.
+        // [GIVEN] Invoice and credit memo lines with equivalent but different Cash Basis VAT groups
+        // [GIVEN] The credit memo VAT posting setup has been deleted
+        // [WHEN] The credit memo VAT group is mapped to an invoice VAT group
+        // [THEN] A record-not-found error identifies the missing credit memo VAT posting setup
         VerifyMissingVATPostingSetupRaisesError(2, false);
     end;
 
     [Test]
     procedure InvoiceVATGroupMappingWithMissingInvoiceVATSetupRaisesError()
     begin
+        // [SCENARIO 648925] Invoice VAT group mapping must fail when an invoice VAT setup is missing.
+        // [GIVEN] Invoice and credit memo lines with equivalent but different Cash Basis VAT groups
+        // [GIVEN] The invoice VAT posting setup has been deleted
+        // [WHEN] The credit memo VAT group is mapped to an invoice VAT group
+        // [THEN] A record-not-found error identifies the missing invoice VAT posting setup
         VerifyMissingVATPostingSetupRaisesError(1, false);
     end;
 
