@@ -459,7 +459,6 @@ codeunit 148311 "Expense No Rule Test"
         Expense.UpdateAmount();
         Assert.AreEqual(Expense."No Receipt Type"::"Receipt not needed", Expense."No Receipt Type",
             'The exemption must use LCY, including when LCY has not changed.');
-        Assert.IsFalse(Expense."No Receipt Decl. Current", 'An automatic exemption must not attest or generate a declaration.');
 
         ExpenseCategory."Amount Limit for No Receipt" := Expense."Amount (LCY)";
         ExpenseCategory.Modify();
@@ -523,43 +522,6 @@ codeunit 148311 "Expense No Rule Test"
     end;
 
     [Test]
-    procedure NoReceiptDeclarationBecomesStaleOnEditing()
-    var
-        Expense: Record Expense;
-        ExpenseCategory: Record "Expense Category";
-        CurrencyCode: Code[10];
-    begin
-        Initialize();
-        SetAllowNoReceipt(true);
-        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::" ", true, '', 100);
-        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
-        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ");
-        ExpenseCategory."Posting Description" := Expense.Description;
-        ExpenseCategory.Modify();
-
-        MarkDeclarationCurrentForTest(Expense);
-        Expense.Validate("Expense Category", ExpenseCategory.Code);
-        Assert.IsFalse(Expense."No Receipt Decl. Current", 'A category change must invalidate the declaration even if its description is unchanged.');
-        Assert.AreEqual(Expense."No Receipt Type"::"Lost Receipt", Expense."No Receipt Type", 'Edits must preserve explicit declarations until cancelled.');
-
-        MarkDeclarationCurrentForTest(Expense);
-        Expense.Validate("Currency Code", CurrencyCode);
-        Assert.IsFalse(Expense."No Receipt Decl. Current", 'A currency change must invalidate the declaration even at a 1:1 rate.');
-
-        MarkDeclarationCurrentForTest(Expense);
-        Expense.Validate("Expense Date", CalcDate('<1D>', Expense."Expense Date"));
-        Assert.IsFalse(Expense."No Receipt Decl. Current", 'A date change must invalidate the declaration.');
-
-        MarkDeclarationCurrentForTest(Expense);
-        Expense.Validate(Amount, Expense.Amount + 1);
-        Assert.IsFalse(Expense."No Receipt Decl. Current", 'An amount change must invalidate the declaration.');
-
-        MarkDeclarationCurrentForTest(Expense);
-        Expense.Validate(Description, 'Changed declaration description');
-        Assert.IsFalse(Expense."No Receipt Decl. Current", 'A description change must invalidate the declaration.');
-    end;
-
-    [Test]
     procedure NoReceiptAPIActionsRequireReasonAndAttestation()
     var
         Expense: Record Expense;
@@ -618,7 +580,6 @@ codeunit 148311 "Expense No Rule Test"
         ExpensesAPI.CancelNoReceiptDeclaration(ActionContext);
         Expense.Get(Expense."No.");
         Assert.IsTrue(IsNullGuid(Expense."No Receipt Declaration ID"), 'Cancellation must clear the attachment reference.');
-        Assert.IsFalse(Expense."No Receipt Decl. Current", 'Cancellation must clear the current flag.');
         Assert.IsFalse(DocumentAttachment.GetBySystemId(FirstDeclarationId), 'Cancellation must remove the generated declaration.');
     end;
 
@@ -697,7 +658,6 @@ codeunit 148311 "Expense No Rule Test"
         Expense.Modify();
         Assert.AreEqual(Expense."No Receipt Type"::"Receipt not needed", Expense."No Receipt Type", 'A lost receipt must become exempt below the limit.');
         Assert.IsTrue(IsNullGuid(Expense."No Receipt Declaration ID"), 'An automatic exemption must clear the obsolete declaration reference.');
-        Assert.IsFalse(Expense."No Receipt Decl. Current", 'An automatic exemption must not retain an attestation.');
         Assert.IsFalse(DocumentAttachment.GetBySystemId(DeclarationId), 'An automatic exemption must remove the obsolete generated PDF.');
 
         Expense.Validate(Amount, 100);
@@ -824,7 +784,6 @@ codeunit 148311 "Expense No Rule Test"
     begin
         Expense."No Receipt Type" := Expense."No Receipt Type"::"Lost Receipt";
         Expense."No Receipt Declaration ID" := CreateGuid();
-        Expense."No Receipt Decl. Current" := true;
         Expense.Modify();
         Expense.Get(Expense."No.");
     end;

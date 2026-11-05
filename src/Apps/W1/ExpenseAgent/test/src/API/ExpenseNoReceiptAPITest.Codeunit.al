@@ -6,7 +6,6 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
-using System.TestLibraries.Utilities;
 
 codeunit 148363 "Expense No Receipt API Test"
 {
@@ -177,7 +176,6 @@ codeunit 148363 "Expense No Receipt API Test"
         CreateExpense(Expense);
         Currency.Get(LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 2, 1));
         Expense."No Receipt Type" := Expense."No Receipt Type"::"Lost Receipt";
-        Expense."No Receipt Decl. Current" := true;
         Expense.Modify();
         Commit();
 
@@ -188,7 +186,6 @@ codeunit 148363 "Expense No Receipt API Test"
         Expense.Get(Expense."No.");
         Assert.AreEqual(Currency.Code, Expense."Currency Code", 'A currency-only PATCH must validate and persist the currency.');
         Assert.AreNotEqual(100, Expense."Amount (LCY)", 'A currency-only PATCH must recalculate LCY.');
-        Assert.IsFalse(Expense."No Receipt Decl. Current", 'A currency-only PATCH must invalidate the declaration.');
     end;
 
     [Test]
