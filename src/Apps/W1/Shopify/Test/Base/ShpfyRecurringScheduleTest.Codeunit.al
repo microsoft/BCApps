@@ -205,7 +205,6 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
     [Test]
     procedure FinishIsDisabledWhenOnlyUnavailableWorkloadsRemain()
     var
-        JobQueueCategory: Record "Job Queue Category";
         JobQueueEntry: Record "Job Queue Entry";
         ShopifyShop: Record "Shpfy Shop";
         TempRecommendations: Record "Shpfy Recurring Sync Buffer" temporary;
@@ -222,7 +221,6 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.CreateShop(ShopifyShop, 'SCHEDUNAVAILABLE');
 
         //[GIVEN] Every ready workload is already scheduled.
-        JobQueueCategory.InsertRec('SHPFY', 'Shopify');
         this.ScheduleMgt.BuildRecommendations(ShopifyShop, TempRecommendations);
         TempRecommendations.SetRange(Selectable, true);
         if TempRecommendations.FindSet(false) then
@@ -259,9 +257,8 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         //[GIVEN] No recurring Shopify synchronization job queue entries or test shops exist.
         this.Initialize();
 
-        //[GIVEN] A shop ready for product synchronization and the Shopify job queue category exist.
+        //[GIVEN] A shop ready for product synchronization exists.
         this.CreateProductsToShopifyShop(ShopifyShop, 'SCHEDPERMISSIONS');
-        JobQueueCategory.InsertRec('SHPFY', 'Shopify');
 
         //[GIVEN] Only Shopify Admin and object execution permissions are assigned.
         this.PermissionsMock.Start();
@@ -2059,14 +2056,52 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         //[THEN] Coverage is current shop.
         this.LibraryAssert.AreEqual(Enum::"Shpfy Sync Coverage"::"Current Shop", Coverage, ShopCoverageErr);
     end;
+
+    [Test]
+    procedure IntervalScheduleKeepsFrequencyAcrossMidnight()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        ShopifyShop: Record "Shpfy Shop";
+        JobQueueDispatcher: Codeunit "Job Queue Dispatcher";
+        NextRunDateTime: DateTime;
+        BlankStartingTimeErr: Label 'Interval schedules must not set a daily Starting Time.';
+        FirstRunDelayErr: Label 'The first interval run must be delayed by Earliest Start Date/Time.';
+        NextRunAfterMidnightErr: Label 'An interval schedule must keep its frequency after midnight.';
+    begin
+        //[SCENARIO] Interval schedule keeps its frequency across midnight.
+
+        //[GIVEN] No recurring Shopify synchronization job queue entries or test shops exist.
+        this.Initialize();
+
+        //[GIVEN] Shop without order webhooks exists.
+        this.CreateShop(ShopifyShop, 'SCHEDMIDNIGHT');
+
+        //[WHEN] A 30-minute order schedule is created.
+        this.CreateScheduleForWorkload(ShopifyShop, Enum::"Shpfy Sync Workload"::Orders, 30, JobQueueEntry);
+
+        //[WHEN] The next run is calculated for a run that started just after midnight.
+        NextRunDateTime := JobQueueDispatcher.CalcNextRunTimeForRecurringJob(JobQueueEntry, CreateDateTime(Today(), 000500T));
+
+        //[THEN] Starting Time is blank.
+        this.LibraryAssert.AreEqual(0T, JobQueueEntry."Starting Time", BlankStartingTimeErr);
+
+        //[THEN] The first run is in the future.
+        this.LibraryAssert.IsTrue(JobQueueEntry."Earliest Start Date/Time" > CurrentDateTime(), FirstRunDelayErr);
+
+        //[THEN] The next run is 30 minutes later on the same day.
+        this.LibraryAssert.AreEqual(CreateDateTime(Today(), 003500T), NextRunDateTime, NextRunAfterMidnightErr);
+    end;
     #endregion Tests
 
     #region Initialize
     local procedure Initialize()
+    var
+        JobQueueCategory: Record "Job Queue Category";
     begin
         this.PermissionsMock.Stop();
         this.DeleteShopifyJobQueueEntries();
         this.DeleteRecurringScheduleTestShops();
+        JobQueueCategory.InsertRec('SHPFY', 'Shopify');
     end;
 
     local procedure DeleteShopifyJobQueueEntries()

@@ -499,7 +499,8 @@ codeunit 30206 "Shpfy Recurring Schedule Mgt."
         JobQueueEntry.Validate("Job Queue Category Code", JobQueueCategoryTok);
         JobQueueEntry.Validate("Maximum No. of Attempts to Run", 3);
         JobQueueEntry.Validate("Rerun Delay (sec.)", 60);
-        JobQueueEntry.Validate("Starting Time", StartingTime);
+        if StartingTime <> 0T then
+            JobQueueEntry.Validate("Starting Time", StartingTime);
         JobQueueEntry."Earliest Start Date/Time" := EarliestStartDateTime;
         JobQueueEntry.Description := CopyStr(RecurringSyncBuffer.Description, 1, MaxStrLen(JobQueueEntry.Description));
         JobQueueEntry.Status := JobQueueEntry.Status::"On Hold";
@@ -593,8 +594,9 @@ codeunit 30206 "Shpfy Recurring Schedule Mgt."
     local procedure GetIntervalStartingTime(OffsetMinutes: Integer; var StartingTime: Time; var EarliestStartDateTime: DateTime)
     begin
         // Interval workloads start 1-15 minutes after Finish, so a zero shop offset never schedules an immediate run.
+        // Starting Time stays blank: the dispatcher treats it as a daily lower limit, which would pause interval runs after midnight.
         EarliestStartDateTime := CurrentDateTime() + (OffsetMinutes + 1) * 60000;
-        StartingTime := DT2Time(EarliestStartDateTime);
+        StartingTime := 0T;
     end;
 
     local procedure GetReportParameters(ShopCode: Code[20]; Workload: Enum "Shpfy Sync Workload"): Text
