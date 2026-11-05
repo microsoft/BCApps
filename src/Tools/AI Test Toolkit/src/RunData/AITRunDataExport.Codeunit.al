@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 using System.Utilities;
 
-codeunit 149061 "AIT Run Data Export"
+codeunit 149050 "AIT Run Data Export"
 {
     Access = Internal;
 
