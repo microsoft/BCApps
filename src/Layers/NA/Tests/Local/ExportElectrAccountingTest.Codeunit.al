@@ -1,6 +1,4 @@
-﻿/*
-// - Error: Assert.IsTrue failed. Could not find a part of the path 'C:\Program Files\Microsoft Dynamics NAV\App\BCApps\src\GDL\NA\App\Test\XMLSchemas\CatalogoCuentas_1_3.xsd'.
-codeunit 142096 "Export Electr. Accounting Test"
+﻿codeunit 142096 "Export Electr. Accounting Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -1193,4 +1191,3 @@ codeunit 142096 "Export Electr. Accounting Test"
     end;
 }
 
-*/

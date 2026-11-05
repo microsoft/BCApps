@@ -1,6 +1,4 @@
-﻿/*
-//  - Error: File GU00000001.txt does not exist.
-codeunit 142500 "Export Payments File Handling"
+﻿codeunit 142500 "Export Payments File Handling"
 {
     // 1. Verify that no error of Input Qualifier while doing export payement.
     // 
@@ -579,4 +577,3 @@ codeunit 142500 "Export Payments File Handling"
     end;
 }
 
-*/

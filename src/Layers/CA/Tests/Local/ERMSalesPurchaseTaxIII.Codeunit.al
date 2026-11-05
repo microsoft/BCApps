@@ -22,7 +22,6 @@
         DummyTaxCountry: Option US,CA;
         IsInitialized: Boolean;
 
-/*
     [Test]
     [Scope('OnPrem')]
     procedure SalesPrepmtAndInvDiscEqualsTo100Pct_PrepmtExclTax()
@@ -154,7 +153,6 @@
         // [THEN] Posted final invoice has Amount = -31.02, Amount Including VAT = 0
         VerifySalesPostedPrepmtAndInvAmounts(PrepmtDocNo, InvoiceDocNo, AmountIncludingVAT, -31.02, 0);
     end;
-*/
 
     [Test]
     [Scope('OnPrem')]

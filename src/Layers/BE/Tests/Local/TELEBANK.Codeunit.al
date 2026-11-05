@@ -1,5 +1,3 @@
-/*
-// errors on file handling
 codeunit 144051 TELEBANK
 {
     // Validate report file format
@@ -187,4 +185,3 @@ codeunit 144051 TELEBANK
         FileInternationalPayments.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
-*/

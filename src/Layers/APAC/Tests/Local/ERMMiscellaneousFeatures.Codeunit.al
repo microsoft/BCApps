@@ -226,8 +226,6 @@ codeunit 141020 "ERM Miscellaneous Features"
         Assert.ExpectedError(StrSubstNo(LedgerEntryNotExistErr, VendorLedgerEntry.TableCaption(), AdjustmentAppliesTo));
     end;
 
-/*
-// - Error: The operation cannot complete because it uses a feature that is not supported (.NET Framework Interoperability.)
     [Test]
     [HandlerFunctions('ExportConsolidationRequestPageHandler')]
     [Scope('OnPrem')]
@@ -256,7 +254,6 @@ codeunit 141020 "ERM Miscellaneous Features"
         LibraryXMLRead.Initialize(FilePath);
         LibraryXMLRead.VerifyAttributeValue(GLAccountCap, NodeValueCap, GLAccount."No.");
     end;
-*/
 
     [Test]
     [HandlerFunctions('RemittanceAdviceJournalRequestPageHandler')]
@@ -542,7 +539,6 @@ codeunit 141020 "ERM Miscellaneous Features"
         Assert.AreNearlyEqual(GLEntry.Amount, Amount, LibraryERM.GetAmountRoundingPrecision(), AmountMustEqualMsg);
     end;
 
-/*
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure ExportConsolidationRequestPageHandler(var ExportConsolidation: TestRequestPage "Export Consolidation")
@@ -555,7 +551,6 @@ codeunit 141020 "ERM Miscellaneous Features"
         ExportConsolidation.EndDate.SetValue(WorkDate());
         ExportConsolidation.OK().Invoke();
     end;
-*/
 
     [RequestPageHandler]
     [Scope('OnPrem')]

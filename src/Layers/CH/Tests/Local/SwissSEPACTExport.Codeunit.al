@@ -1,6 +1,3 @@
-/*
-//- Error: The operation cannot complete because it uses a feature that is not supported (.NET Framework Interoperability.)
-
 codeunit 144352 "Swiss SEPA CT Export"
 {
     // // [FEATURE] [SEPA] [Credit Transfer] [Swiss]
@@ -4472,4 +4469,3 @@ codeunit 144352 "Swiss SEPA CT Export"
         Reply := true;
     end;
 }
-*/

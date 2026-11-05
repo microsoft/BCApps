@@ -1,6 +1,3 @@
-/*
-//  - Error: Assert.IsTrue failed. No test file generated in C:\ProgramData\Microsoft\Microsoft Dynamics NAV\300\Server\MicrosoftDynamicsNavServer$BC\users\tenant4\67f53f52-5167-4aa0-a00d-b45014558879\TEMP\GU00000158
-
 codeunit 144350 "CH DTA/EZAG File Reports"
 {
     // // [FEATURE] [DTA File] [EZAG File]
@@ -150,4 +147,3 @@ codeunit 144350 "CH DTA/EZAG File Reports"
     end;
 }
 
-*/

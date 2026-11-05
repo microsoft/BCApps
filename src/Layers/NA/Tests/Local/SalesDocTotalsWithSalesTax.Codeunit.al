@@ -19,7 +19,6 @@ codeunit 142054 SalesDocTotalsWithSalesTax
         Assert: Codeunit Assert;
         isInitialized: Boolean;
 
-/*
     [Test]
     [Scope('OnPrem')]
     procedure SalesInvoice()
@@ -96,7 +95,6 @@ codeunit 142054 SalesDocTotalsWithSalesTax
 
         VerifyFieldValues(SalesHeader, PreAmounts, PostAmounts, TotalTax, RoundingPrecision);
     end;
-*/
 
     [Test]
     [Scope('OnPrem')]
@@ -300,7 +298,6 @@ codeunit 142054 SalesDocTotalsWithSalesTax
         VerifyPostedFieldValues(SalesHeaderAmounts, SalesPostedAmounts);
     end;
 
-/*
     [Test]
     [Scope('OnPrem')]
     procedure SalesCreditMemo()
@@ -377,7 +374,6 @@ codeunit 142054 SalesDocTotalsWithSalesTax
 
         VerifyFieldValues(SalesHeader, PreAmounts, PostAmounts, TotalTax, RoundingPrecision);
     end;
-*/
 
     [Test]
     [Scope('OnPrem')]
@@ -445,7 +441,6 @@ codeunit 142054 SalesDocTotalsWithSalesTax
         VerifyPostedFieldValues(SalesHeaderAmounts, SalesPostedAmounts);
     end;
 
-/*
     [Test]
     [Scope('OnPrem')]
     procedure SalesQuote()
@@ -522,7 +517,6 @@ codeunit 142054 SalesDocTotalsWithSalesTax
 
         VerifyFieldValues(SalesHeader, PreAmounts, PostAmounts, TotalTax, RoundingPrecision);
     end;
-*/
 
     [Test]
     [Scope('OnPrem')]

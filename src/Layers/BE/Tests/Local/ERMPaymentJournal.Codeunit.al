@@ -180,8 +180,6 @@ codeunit 144003 "ERM Payment Journal"
         VerifyGenJnlLineDim(GenJnlBatch, DimValue, GenJnlBatch."Bal. Account No.");
     end;
 
-/*
-// errors with "Error: The field with ID = 727771273 is not found on the page."
     [Test]
     [HandlerFunctions('ExportPaymentJournalLinesHandler')]
     [Scope('OnPrem')]
@@ -301,7 +299,6 @@ codeunit 144003 "ERM Payment Journal"
         VerifyPaymentJournalLinesStatusNotChanged(TemplateName, BatchNameNoDigits);
         ValidateInternationalReportXml(BankAccountNo);
     end;
-*/
 
     [Test]
     [HandlerFunctions('SuggestVendorPaymentsEBRPH')]
@@ -1627,7 +1624,6 @@ codeunit 144003 "ERM Payment Journal"
         VendorLedgerEntry.FindFirst();
     end;
 
-/*
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure ExportPaymentJournalLinesHandler(var FileDomesticPayments: TestRequestPage "File Domestic Payments")
@@ -1657,7 +1653,7 @@ codeunit 144003 "ERM Payment Journal"
         FileInternationalPayments.FileName.SetValue(FileMgt.ServerTempFileName('txt'));
         FileInternationalPayments.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
-*/
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure SuggestVendorPaymentsEBRPH(var SuggestVendorPaymentsEB: TestRequestPage "Suggest Vendor Payments EB")
@@ -1665,7 +1661,6 @@ codeunit 144003 "ERM Payment Journal"
         SuggestVendorPaymentsEB.OK().Invoke();
     end;
 
-/*
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure TemplatesModalPageHandler(var EBPaymentJournalTemplates: TestPage "EB Payment Journal Templates")
@@ -1673,7 +1668,6 @@ codeunit 144003 "ERM Payment Journal"
         EBPaymentJournalTemplates.FILTER.SetFilter(Name, LibraryVariableStorage.DequeueText());
         EBPaymentJournalTemplates.OK().Invoke();
     end;
-*/
 
     [RequestPageHandler]
     procedure SuggestVendorPaymentsTakeDiscRPH(var SuggestVendorPaymentsEB: TestRequestPage "Suggest Vendor Payments EB")

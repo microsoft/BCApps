@@ -1,5 +1,3 @@
-/*
-// - Error: There is insufficient memory to execute this function. This can be caused by recursive function calls. Contact your system administrator.
 codeunit 144002 "Unit GST Prepayment-Sales"
 {
     Subtype = Test;
@@ -993,4 +991,3 @@ codeunit 144002 "Unit GST Prepayment-Sales"
     end;
 }
 
-*/

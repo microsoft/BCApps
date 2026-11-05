@@ -1,5 +1,3 @@
-/*
-// UI failures
 codeunit 142085 PurchDocTotalsSalesEntryUI
 {
     Subtype = Test;
@@ -2883,4 +2881,3 @@ codeunit 142085 PurchDocTotalsSalesEntryUI
     end;
 }
 
-*/

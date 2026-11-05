@@ -88,7 +88,6 @@ codeunit 141076 "ERM APAC Miscellaneous Reports"
         RunItemsRcdAndNotInvdRptAndVerifyXmlValues(PurchaseLine);
     end;
 
-/*
     [Test]
     [HandlerFunctions('StockCardRequestPageHandler')]
     [Scope('OnPrem')]
@@ -111,7 +110,6 @@ codeunit 141076 "ERM APAC Miscellaneous Reports"
         // Verify: Verify Received Quantity, Received Cost and Amount On Report - Stock Card.
         VerifyReceivedQuantityCostAndAmountOnStockCardReport(PurchaseLine);
     end;
-*/
 
     [Test]
     [HandlerFunctions('PurchaseInvoiceReportHandler')]
@@ -681,7 +679,6 @@ codeunit 141076 "ERM APAC Miscellaneous Reports"
         ItemsReceivedAndNotInvoiced.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
-/*
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure StockCardRequestPageHandler(var StockCard: TestRequestPage "Stock Card")
@@ -695,7 +692,6 @@ codeunit 141076 "ERM APAC Miscellaneous Reports"
         StockCard."Item Ledger Entry".SetFilter("Posting Date", Format(WorkDate()));
         StockCard.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
-*/
 
     [RequestPageHandler]
     [Scope('OnPrem')]

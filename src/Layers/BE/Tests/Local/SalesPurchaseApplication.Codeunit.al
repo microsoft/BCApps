@@ -463,11 +463,10 @@ codeunit 144002 "Sales/Purchase Application"
         Assert.ExpectedError('');
         GLPostingPreview.FILTER.SetFilter("Table Name", 'Job Ledger Entry');
         GLPostingPreview.First();
-// fails in github gate:        GLPostingPreview."No. of Records".AssertEquals(Format(1));
+        GLPostingPreview."No. of Records".AssertEquals(Format(1));
         GLPostingPreview.Close();
     end;
 
-/*  fails in github gate
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
     [Scope('OnPrem')]
@@ -519,7 +518,6 @@ codeunit 144002 "Sales/Purchase Application"
         GLPostingPreview."No. of Records".AssertEquals(Format(1));
         GLPostingPreview.Close();
     end;
-*/
 
     local procedure SalesApplication(UseWorkDate: Boolean; ApplicationDate: Date): Code[20]
     var

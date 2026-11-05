@@ -3090,7 +3090,6 @@
         LibraryReportDataset.AssertElementWithValueNotExist('Text004', 'Unapplied Amount');
     end;
 
-/*
     [Test]
     [HandlerFunctions('ExportElectronicPaymentsWordLayoutRequestPageHandler')]
     [Scope('OnPrem')]
@@ -3141,7 +3140,6 @@
         BankAccount.Get(BankAccount."No.");
         BankAccount.TestField("Last Remittance Advice No.", IncStr(IncStr(LastRemittanceAdviceNo)));
     end;
-*/
 
     local procedure Initialize()
     var

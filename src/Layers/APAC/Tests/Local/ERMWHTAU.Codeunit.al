@@ -2347,7 +2347,7 @@
 
         WHTEntry.FindFirst();
         WHTEntry.TestField("WHT %", WHTPostingSetup."WHT %");
-        Assert.AreEqual(Round(WHTEntry."Unrealized Amount (LCY)"), Round(ExpectedAmount), 'Unrealized amount differ.');
+        WHTEntry.TestField("Unrealized Amount (LCY)", ExpectedAmount);
     end;
 
     local procedure VerifyPrepaymentPurchaseUnrealizedWHTAmountCreditMemo(DocumentNo: Code[20]; PurchaseLine: Record "Purchase Line"; WHTPostingSetup: Record "WHT Posting Setup")
@@ -2363,7 +2363,7 @@
 
         WHTEntry.FindFirst();
         WHTEntry.TestField("WHT %", WHTPostingSetup."WHT %");
-        Assert.AreEqual(Round(WHTEntry."Unrealized Amount (LCY)"), Round(ExpectedAmount), 'Unrealized amount differ.');
+        WHTEntry.TestField("Unrealized Amount (LCY)", ExpectedAmount);
     end;
 
     local procedure VerifyPurchaseRealizedWHTAmount(DocumentNo: Code[20]; PurchaseLine: Record "Purchase Line"; WHTPostingSetup: Record "WHT Posting Setup")

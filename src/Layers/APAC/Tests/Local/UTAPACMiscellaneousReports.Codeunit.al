@@ -465,8 +465,6 @@ codeunit 141077 "UT APAC Miscellaneous Reports"
         Assert.IsTrue(LibraryReportValidation.CheckIfDecimalValueExists(Amount), 'Amount cell not found');
     end;
 
-/*
-// - Error: The operation cannot complete because it uses a feature that is not supported (.NET Framework Interoperability.)
     [Test]
     [HandlerFunctions('IncomeStatementRequestPageHandler')]
     [Scope('OnPrem')]
@@ -500,7 +498,6 @@ codeunit 141077 "UT APAC Miscellaneous Reports"
         Assert.AreEqual(Format(Round(Amount / 1000, 1)), LibraryXMLRead.GetElementValue('CurrentYTDNetChange'), 'The value is not rounded');
         LibraryVariableStorage.AssertEmpty();
     end;
-*/
 
     [Test]
     [HandlerFunctions('PurchaseReceiptsRequestPageHandlerSimple')]

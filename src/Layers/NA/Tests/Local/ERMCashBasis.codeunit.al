@@ -1,5 +1,4 @@
-﻿/*
-codeunit 144056 "ERM Cash Basis"
+﻿codeunit 144056 "ERM Cash Basis"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -1611,4 +1610,3 @@ codeunit 144056 "ERM Cash Basis"
 
 }
 
-*/
