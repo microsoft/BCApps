@@ -2,6 +2,8 @@ codeunit 135528 "WFWH Subscription E2E Tests"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestType = Uncategorized;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()

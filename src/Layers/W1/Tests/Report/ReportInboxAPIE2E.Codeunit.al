@@ -11,6 +11,8 @@ codeunit 135549 "Report Inbox API E2E"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestType = Uncategorized;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()

@@ -325,6 +325,11 @@
     "method": "RenumberDocNoOneLineWithAppliesToIdVendor"
   },
   {
+    "codeunitId": 134920,
+    "codeunitName": "ERM General Journal UT",
+    "method": "TestCreateGenJnlBatchPostWebService"
+  },
+  {
     "codeunitId": 134930,
     "codeunitName": "ERM Applies-To Doc. No.",
     "method": "AccountNoChangedFromBlankToCustomerWhenValidateApplToDocNo"
