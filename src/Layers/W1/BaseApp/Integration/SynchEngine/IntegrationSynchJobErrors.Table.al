@@ -111,7 +111,7 @@ table 5339 "Integration Synch. Job Errors"
         IntegrationSynchJobErrors."Exception Detail".CreateOutStream(StackTraceOutStream);
         StackTraceOutStream.Write(GetLastErrorCallstack);
         IntegrationSynchJobErrors.Insert(true);
-        OnAfterLogSynchError(Rec);
+        OnAfterLogSynchError(IntegrationSynchJobErrors);
     end;
 
     procedure SetDataIntegrationUIElementsVisible(var DataIntegrationCuesVisible: Boolean)
