@@ -7,54 +7,15 @@
 #>
 
 $ErrorActionPreference = "Stop"
-
-<#
-.SYNOPSIS
-    Resolves compiled app roots for a project using the pipeline's AL-Go settings helpers.
-.PARAMETER BaseFolder
-    Repository root.
-.PARAMETER Project
-    AL-Go project path relative to the repository root.
-#>
-function Get-CompiledAppFolders {
-    param([string] $BaseFolder, [string] $Project)
-
-    $alGo = Get-Module DetermineProjectsToBuild
-    if (-not $alGo) { throw 'Compiled app resolution requires the AL-Go pipeline module DetermineProjectsToBuild.' }
-    $buildMode = if ($env:_buildMode) { $env:_buildMode } else { 'Default' }
-    $pending = [System.Collections.Generic.Queue[string]]::new()
-    $pending.Enqueue($Project)
-    $visited = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
-    $folders = @()
-    while ($pending.Count -gt 0) {
-        $current = $pending.Dequeue()
-        if (-not $visited.Add($current)) { continue }
-        $settings = & $alGo {
-            param($root, $projectPath, $mode)
-            $resolved = ReadSettings -baseFolder $root -project $projectPath -buildMode $mode
-            if (-not $resolved.projectsToTest) {
-                ResolveProjectFolders -baseFolder $root -project $projectPath -projectSettings ([ref] $resolved)
-            }
-            return $resolved
-        } $BaseFolder $current $buildMode
-        if ($settings.projectsToTest) {
-            foreach ($dependency in $settings.projectsToTest) { $pending.Enqueue($dependency) }
-            continue
-        }
-        foreach ($folder in @($settings.appFolders) + @($settings.testFolders) + @($settings.bcptTestFolders)) {
-            $folders += [System.IO.Path]::GetFullPath((Join-Path (Join-Path $BaseFolder $current) $folder))
-        }
-    }
-    return @($folders | Sort-Object -Unique)
-}
+Import-Module (Join-Path $PSScriptRoot 'ALAppBuild.psm1')
 
 <#
 .SYNOPSIS
     Builds a dependency graph from compiled roots, or all manifests when roots are omitted.
 .PARAMETER BaseFolder
     Root of the repository.
-.PARAMETER AppFolders
-    Resolved compiled roots; when omitted, discover manifests under BaseFolder.
+.PARAMETER AppJsonPaths
+    Registered source manifests, including overrides; when omitted, discover manifests under BaseFolder.
 .OUTPUTS
     Hashtable keyed by lowercase app ID. Each value is a PSCustomObject with
     Id, Name, AppFolder, Dependencies (string[]), Dependents (List[string]).
@@ -65,12 +26,12 @@ function Get-AppDependencyGraph {
     param(
         [Parameter(Mandatory)]
         [string] $BaseFolder,
-        [string[]] $AppFolders
+        [string[]] $AppJsonPaths
     )
 
     $graph = @{}
-    $appJsonFiles = if ($PSBoundParameters.ContainsKey('AppFolders')) {
-        $AppFolders | ForEach-Object { Get-Item -LiteralPath (Join-Path $_ 'app.json') }
+    $appJsonFiles = if ($PSBoundParameters.ContainsKey('AppJsonPaths')) {
+        $AppJsonPaths | ForEach-Object { Get-Item -LiteralPath $_ }
     } else {
         Get-ChildItem -Path $BaseFolder -Recurse -Filter 'app.json' -File |
             Where-Object { $_.FullName -notmatch '[\\/]\.buildartifacts[\\/]' }
@@ -81,7 +42,7 @@ function Get-AppDependencyGraph {
         if (-not $json.id) { continue }
 
         $appId = $json.id.ToLowerInvariant()
-        if ($PSBoundParameters.ContainsKey('AppFolders') -and $graph.ContainsKey($appId)) {
+        if ($PSBoundParameters.ContainsKey('AppJsonPaths') -and $graph.ContainsKey($appId)) {
             throw "Compiled app ID '$appId' occurs in both '$($graph[$appId].AppFolder)' and '$($file.DirectoryName)'."
         }
         $depIds = @()
@@ -540,8 +501,8 @@ function Test-FullBuildPatternsMatch {
     Selective results also retain Tests-NewObjects-Internal regardless of dependency changes.
 .PARAMETER BaseFolder
     Root of the repository.
-.PARAMETER Project
-    Active AL-Go project; defaults to the pipeline's _project environment variable.
+.PARAMETER Country
+    Country used to resolve registered production and test apps; absent or base means W1.
 .OUTPUTS
     PSCustomObject with RunAll (bool) and AppNames (string[]).
 #>
@@ -551,7 +512,7 @@ function Get-AffectedAppNames {
     param(
         [Parameter(Mandatory)]
         [string] $BaseFolder,
-        [string] $Project = $env:_project
+        [string] $Country
     )
 
     $runAll = @{ RunAll = $true; AppNames = @() }
@@ -583,12 +544,10 @@ function Get-AffectedAppNames {
         return [PSCustomObject]$runAll
     }
 
-    $graph = if ($Project) {
-        $appFolders = @(Get-CompiledAppFolders -BaseFolder $BaseFolder -Project $Project)
-        Get-AppDependencyGraph -BaseFolder $BaseFolder -AppFolders $appFolders
-    } else {
-        Get-AppDependencyGraph -BaseFolder $BaseFolder
-    }
+    if ([string]::IsNullOrWhiteSpace($Country) -or $Country -eq 'base') { $Country = 'w1' }
+    $appJsonPaths = @(Get-ApplicationGroup -GroupName 'All' -CountryCode $Country -SkipLanguagePacks |
+        Select-Object -ExpandProperty AppJsonPath -Unique)
+    $graph = Get-AppDependencyGraph -BaseFolder $BaseFolder -AppJsonPaths $appJsonPaths
     $affectedIds = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $BaseFolder -Graph $graph
 
     # Full build triggered (unmapped src file or all apps affected)
@@ -695,7 +654,7 @@ function Get-SelectedTestApps {
     $proposedAppNames = @($AppNamesToTest)
     $selectionMode = if ($ChurnEnabled) { 'Enabled; no candidate test apps' } else { 'Disabled; full bucket' }
     if ($AppNamesToTest.Count -gt 0 -and $ChurnEnabled) {
-        $affected = Get-AffectedAppNames -BaseFolder $BaseFolder
+        $affected = Get-AffectedAppNames -BaseFolder $BaseFolder -Country $Country
         $selectionMode = 'Enabled; full bucket (RunAll)'
         if (-not $affected.RunAll) {
             $selectionMode = 'Enabled; affected-app proposal'

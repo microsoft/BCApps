@@ -1,7 +1,9 @@
 Describe "BuildOptimization" {
     BeforeAll {
         Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -Force
+        Import-Module "$PSScriptRoot\..\ParallelTestExecution.psm1" -Force
         Import-Module "$PSScriptRoot\..\BuildOptimization.psm1" -Force
+        Import-Module "$PSScriptRoot\..\ALAppBuild.psm1"
         $baseFolder = Get-BaseFolder
         $graph = Get-AppDependencyGraph -BaseFolder $baseFolder
     }
@@ -116,52 +118,22 @@ Describe "BuildOptimization" {
 
     Context "Compiled app ownership" {
         BeforeAll {
-            $script:createdAlGoModule = -not (Get-Module DetermineProjectsToBuild)
-            if ($script:createdAlGoModule) {
-                New-Module -Name DetermineProjectsToBuild -ScriptBlock {
-                    function ReadSettings {
-                        param($baseFolder, $project, $buildMode)
-                        $null = $baseFolder, $project, $buildMode
-                        throw 'AL-Go settings must be mocked in unit tests.'
-                    }
-                    function ResolveProjectFolders {
-                        param($baseFolder, $project, $projectSettings)
-                        $null = $baseFolder, $project, $projectSettings
-                        throw 'AL-Go folder resolution must be mocked in unit tests.'
-                    }
-                    Export-ModuleMember -Function @()
-                } | Import-Module
-            }
-            $script:compiledRoots = @(
+            $script:compiledManifests = @(
                 'src\System Application\App', 'src\System Application\Test',
                 'src\Apps\W1\EDocument\App', 'src\Apps\W1\EDocument\Test'
-            ) | ForEach-Object { Join-Path $baseFolder $_ }
-            $script:compiledGraph = Get-AppDependencyGraph -BaseFolder $baseFolder -AppFolders $script:compiledRoots
+            ) | ForEach-Object { Join-Path $baseFolder "$_\app.json" }
+            $script:compiledGraph = Get-AppDependencyGraph -BaseFolder $baseFolder -AppJsonPaths $script:compiledManifests
         }
 
-        AfterAll {
-            if ($script:createdAlGoModule) { Remove-Module DetermineProjectsToBuild }
-        }
-
-        It "follows projectsToTest and delegates effective country settings and folder resolution to AL-Go" {
-            Mock -ModuleName DetermineProjectsToBuild ReadSettings {
-                $settings = @{ appFolders = @(); testFolders = @(); bcptTestFolders = @(); projectsToTest = @() }
-                $json = Get-Content (Join-Path $baseFolder "$project\.AL-Go\settings.json") -Raw | ConvertFrom-Json
-                foreach ($key in @('appFolders', 'testFolders', 'bcptTestFolders', 'projectsToTest')) {
-                    if ($json.PSObject.Properties.Name -contains $key) { $settings[$key] = $json.$key }
-                }
-                return $settings
-            }
-            Mock -ModuleName DetermineProjectsToBuild ResolveProjectFolders { }
-            InModuleScope BuildOptimization -Parameters @{ Root = $baseFolder } {
-                $roots = @(Get-CompiledAppFolders -BaseFolder $Root -Project 'build/projects/Test Apps DE')
-                $roots | Should -Contain (Join-Path $Root 'src\System Application\Test')
-                $roots | Should -Not -Contain (Join-Path $Root 'src\System Application\Test\Email')
-                $countryGraph = Get-AppDependencyGraph -BaseFolder $Root -AppFolders $roots
-                $countryGraph['0d60b215-6ee1-4789-8e53-866cfa50c23c'].Name | Should -Be 'System Application Test'
-            }
-            Should -Invoke -ModuleName DetermineProjectsToBuild ReadSettings -Times 1 -ParameterFilter { $project -eq 'build/projects/Apps DE' }
-            Should -Invoke -ModuleName DetermineProjectsToBuild ResolveProjectFolders -Times 1 -Exactly -ParameterFilter { $project -eq 'build/projects/Apps DE' }
+        It "uses the DE registry's aggregate test manifest and GDL source overrides" {
+            $apps = @(ALAppBuild\Get-ApplicationGroup -GroupName All -CountryCode DE -SkipLanguagePacks)
+            $countryGraph = Get-AppDependencyGraph -BaseFolder $baseFolder -AppJsonPaths $apps.AppJsonPath
+            $countryGraph['0d60b215-6ee1-4789-8e53-866cfa50c23c'].AppFolder |
+                Should -Be (Join-Path $baseFolder 'src\System Application\Test')
+            $gdl = $apps | Where-Object { $_.IsGDLProject } | Select-Object -First 1
+            $manifest = Get-Content $gdl.AppJsonPath -Raw | ConvertFrom-Json
+            $countryGraph[$manifest.id].Name | Should -Be $manifest.name
+            $countryGraph[$manifest.id].AppFolder | Should -Be (Split-Path $gdl.AppJsonPath -Parent)
         }
 
         It "maps an Email test change to the compiled aggregate, not its nested component manifest" {
@@ -186,32 +158,40 @@ Describe "BuildOptimization" {
 
         It "uses a component root only when it is declared in the compilation graph" {
             $moduleGraph = Get-AppDependencyGraph -BaseFolder $baseFolder `
-                -AppFolders @($script:compiledRoots + (Join-Path $baseFolder 'src\System Application\App\Email'))
+                -AppJsonPaths @($script:compiledManifests + (Join-Path $baseFolder 'src\System Application\App\Email\app.json'))
             Get-AppForFile -FilePath 'src/System Application/App/Email/Changed.al' -BaseFolder $baseFolder -Graph $moduleGraph |
                 Should -Be '9c4a2cf2-be3a-4aa3-833b-99a5ffd11f25'
         }
 
         It "does not silently overwrite duplicate compiled app identities" {
-            { Get-AppDependencyGraph -BaseFolder $baseFolder -AppFolders @($script:compiledRoots[0], $script:compiledRoots[0]) } |
+            { Get-AppDependencyGraph -BaseFolder $baseFolder -AppJsonPaths @($script:compiledManifests[0], $script:compiledManifests[0]) } |
                 Should -Throw '*Compiled app ID*occurs in both*'
         }
 
-        It "uses the active compilation graph in the churn proposal" {
+        It "uses all registered source manifests for country '<Country>' in the churn proposal" -ForEach @(
+            @{ Country = 'DE'; ExpectedCountry = 'DE' }
+            @{ Country = 'base'; ExpectedCountry = 'w1' }
+            @{ Country = ''; ExpectedCountry = 'w1' }
+        ) {
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
             Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/System Application/Test/Email/Changed.al') }
-            Mock -ModuleName BuildOptimization Get-CompiledAppFolders { $script:compiledRoots }
+            Mock -ModuleName BuildOptimization Get-ApplicationGroup {
+                $script:compiledManifests | ForEach-Object {
+                    [PSCustomObject]@{ AppJsonPath = $_; ProjectFolder = 'unused'; ApplicationName = 'registry key' }
+                }
+            }
             try {
                 $env:GITHUB_ACTIONS = 'true'
                 $env:GITHUB_EVENT_NAME = 'pull_request'
                 $env:BUILD_OPTIMIZATION_DISABLED = $null
-                $result = Get-AffectedAppNames -BaseFolder $baseFolder -Project 'build/projects/Test Apps DE'
+                $result = Get-AffectedAppNames -BaseFolder $baseFolder -Country $Country
                 $result.RunAll | Should -BeFalse
                 $result.AppNames | Should -Contain 'System Application Test'
                 $result.AppNames | Should -Not -Contain 'Email Test'
-                Should -Invoke -ModuleName BuildOptimization Get-CompiledAppFolders -Times 1 -ParameterFilter {
-                    $Project -eq 'build/projects/Test Apps DE'
+                Should -Invoke -ModuleName BuildOptimization Get-ApplicationGroup -Times 1 -ParameterFilter {
+                    $CountryCode -eq $ExpectedCountry -and $GroupName -eq 'All' -and $SkipLanguagePacks -and -not $SkipTests
                 }
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
@@ -470,8 +450,8 @@ Describe "BuildOptimization" {
                 $files | Should -Contain 'src/Second/Code.al'
                 $files | Should -Contain '.github/config.json'
                 Test-FullBuildPatternsMatch -ChangedFiles $files -BaseFolder $baseFolder | Should -BeTrue
-                $renameGraph = Get-AppDependencyGraph -BaseFolder $repo -AppFolders @(
-                    (Join-Path $repo 'src\First'), (Join-Path $repo 'src\Second')
+                $renameGraph = Get-AppDependencyGraph -BaseFolder $repo -AppJsonPaths @(
+                    (Join-Path $repo 'src\First\app.json'), (Join-Path $repo 'src\Second\app.json')
                 )
                 $affected = @(Get-AffectedApps -ChangedFiles $files -BaseFolder $repo -Graph $renameGraph)
                 $affected | Should -Contain 'first'
