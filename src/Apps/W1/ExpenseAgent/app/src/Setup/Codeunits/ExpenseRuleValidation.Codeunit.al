@@ -75,6 +75,14 @@ codeunit 6902 "Expense Rule Validation"
         ValidateRuleFields(Expense, ExpenseRuleHeader);
     end;
 
+    /// <summary>
+    /// Mileage and per diem expenses are system-calculated and have no merchant or receipt, so the mandatory merchant name and receipt number requirements do not apply to them.
+    /// </summary>
+    procedure IsMerchantReceiptRequirementApplicable(ExpenseDetailRequired: Enum "Expense Detail Needed"): Boolean
+    begin
+        exit(not (ExpenseDetailRequired in [ExpenseDetailRequired::Mileage, ExpenseDetailRequired::"Per Diem"]));
+    end;
+
     procedure ShouldApplyRule(ExpenseDetailRequired: Enum "Expense Detail Needed"): Boolean
     begin
         ExpenseAgentSetup.GetRecordOnce();
@@ -127,11 +135,11 @@ codeunit 6902 "Expense Rule Validation"
         CheckEmployeePostingGroupOnExpense(Expense);
 
         if ExpenseAgentSetup."Receipt No. Mandatory" then
-            if (Expense."Expense Ext. Doc. No." = '') and (Expense."Expense Detail Required" <> Expense."Expense Detail Required"::Mileage) then
+            if (Expense."Expense Ext. Doc. No." = '') and IsMerchantReceiptRequirementApplicable(Expense."Expense Detail Required") then
                 ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(ReceiptNoMandatoryOnExpenseErr, Expense."No."));
 
         if ExpenseAgentSetup."Merchant Name Mandatory" then
-            if (Expense."Merchant Name" = '') and (Expense."Expense Detail Required" <> Expense."Expense Detail Required"::Mileage) then
+            if (Expense."Merchant Name" = '') and IsMerchantReceiptRequirementApplicable(Expense."Expense Detail Required") then
                 ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(MerchantNameMandatoryOnExpenseErr, Expense."No."));
 
         ValidateExpenseDetailRequirement(Expense);
@@ -149,11 +157,11 @@ codeunit 6902 "Expense Rule Validation"
         CheckEmployeePostingGroupOnExpenseReport(ExpenseReportLine);
 
         if ExpenseAgentSetup."Receipt No. Mandatory" then
-            if (ExpenseReportLine."Expense Ext. Doc. No." = '') and (ExpenseReportLine."Expense Detail Required" <> ExpenseReportLine."Expense Detail Required"::Mileage) then
+            if (ExpenseReportLine."Expense Ext. Doc. No." = '') and IsMerchantReceiptRequirementApplicable(ExpenseReportLine."Expense Detail Required") then
                 ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No."));
 
         if ExpenseAgentSetup."Merchant Name Mandatory" then
-            if (ExpenseReportLine."Merchant Name" = '') and (ExpenseReportLine."Expense Detail Required" <> ExpenseReportLine."Expense Detail Required"::Mileage) then
+            if (ExpenseReportLine."Merchant Name" = '') and IsMerchantReceiptRequirementApplicable(ExpenseReportLine."Expense Detail Required") then
                 ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(MerchantNameMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No."));
 
         ValidateExpenseDetailRequirementForReportLine(ExpenseReportLine);

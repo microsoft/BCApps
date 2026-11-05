@@ -19,6 +19,7 @@ using Microsoft.Utilities;
 using System.Globalization;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Telemetry;
 using System.Utilities;
 
 table 6906 "Expense Report Header"
@@ -713,6 +714,10 @@ table 6906 "Expense Report Header"
         ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 - Expense User No.';
         ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
+        NoPerDiemRuleForTravelRequestErr: Label 'Travel request %3 includes per diem, but no per diem rule exists for expense location %1 that is effective on %2. Set up a per diem rule for an active per diem expense category and this location, and then approve the travel request again.', Comment = '%1 = Expense Location, %2 = Trip start date, %3 = Travel Request No.';
+        PerDiemLineCreatedLbl: Label 'Per diem line created from approved travel request', Locked = true;
+        PerDiemLineCreationFailedLbl: Label 'Per diem line creation from approved travel request failed', Locked = true;
+        NoPerDiemRuleTelemetryErr: Label 'No per diem rule matches the expense location and trip start date of the travel request.', Locked = true;
 
     procedure AssistEdit() Result: Boolean
     begin
@@ -1466,6 +1471,9 @@ table 6906 "Expense Report Header"
 
     /// <summary>
     /// Creates an expense report for a traveler on an approved travel request, unless the traveler already has one.
+    /// When the travel request includes per diem, the new expense report gets one per diem line for the trip.
+    /// The line uses the first active per diem expense category that has a rule for the travel request's expense location
+    /// that is effective on the trip start date. If no such rule exists, an error is raised.
     /// </summary>
     /// <param name="SpendRequest">The approved travel request.</param>
     /// <param name="TravelerExpenseUserNo">The expense user of the traveler who receives the expense report.</param>
@@ -1500,11 +1508,73 @@ table 6906 "Expense Report Header"
         Rec.Validate("Spend Request No.", SpendRequest."No.");
         OnBeforeCreateFromApprovedTravelRequest(SpendRequest, Rec);
         Rec.Insert(true);
+        if SpendRequest."Per Diem Included" then
+            CreatePerDiemLineFromTravelRequest(SpendRequest);
         OnAfterCreateFromApprovedTravelRequest(SpendRequest, Rec);
         ExpenseActivityLogMgt.LogExpenseReportCreatedFromTravelRequest(Rec);
         // Also log on the travel request, so its history shows each expense report created from it, whichever path created it.
         ExpenseActivityLogMgt.LogTravelRequestExpenseReportCreated(SpendRequest, Rec);
         exit(true);
+    end;
+
+    local procedure CreatePerDiemLineFromTravelRequest(SpendRequest: Record "Spend Request")
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        PerDiemCategoryCode: Code[20];
+    begin
+        PerDiemCategoryCode := FindPerDiemCategoryForTravelRequest(SpendRequest);
+
+        ExpenseReportLine.Init();
+        ExpenseReportLine."Document No." := Rec."No.";
+        ExpenseReportLine."Line No." := ExpenseReportLine.GetNextExpenseReportLineNo(Rec."No.");
+        ExpenseReportLine.SetHideValidationDialog(true);
+        // Apply the per diem rule once, after all trip details are set.
+        ExpenseReportLine.SetSkipRuleApplication(true);
+        ExpenseReportLine.Insert(true);
+
+        // The category must be set first, because it resets the per diem fields and the travel request link.
+        ExpenseReportLine.Validate("Expense Category", PerDiemCategoryCode);
+        ExpenseReportLine.Validate("Expense Date", DT2Date(SpendRequest."Actual Start Date and Time"));
+        ExpenseReportLine.Validate("Expense Location", SpendRequest."Expense Location");
+        ExpenseReportLine.Validate("Starting Date and Time", SpendRequest."Actual Start Date and Time");
+        ExpenseReportLine.Validate("Ending Date and Time", SpendRequest."Actual End Date and Time");
+        if ExpenseReportLine.Refundable then begin
+            ExpenseReportLine."Spend Request No." := Rec."Spend Request No.";
+            ExpenseReportLine."Spend Request Close" := Rec."Spend Request Close";
+        end;
+
+        ExpenseReportLine.SetSkipRuleApplication(false);
+        ExpenseReportLine.ApplyRule();
+        ExpenseReportLine.Modify(true);
+
+        FeatureTelemetry.LogUsage('0000VF3', ExpenseAgentSetup.GetFeatureName(), PerDiemLineCreatedLbl);
+    end;
+
+    local procedure FindPerDiemCategoryForTravelRequest(SpendRequest: Record "Spend Request"): Code[20]
+    var
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseCategory: Record "Expense Category";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        TripStartDate: Date;
+    begin
+        TripStartDate := DT2Date(SpendRequest."Actual Start Date and Time");
+
+        ExpenseRuleHeader.SetRange("Expense Location", SpendRequest."Expense Location");
+        ExpenseRuleHeader.SetFilter("Effective Date", '<=%1|%2', TripStartDate, 0D);
+        ExpenseRuleHeader.SetLoadFields("Expense Category Code");
+        ExpenseCategory.SetLoadFields(Inactive, "Expense Detail Required");
+        if ExpenseRuleHeader.FindSet() then
+            repeat
+                if ExpenseCategory.Get(ExpenseRuleHeader."Expense Category Code") then
+                    if (not ExpenseCategory.Inactive) and
+                       (ExpenseCategory."Expense Detail Required" = ExpenseCategory."Expense Detail Required"::"Per Diem")
+                    then
+                        exit(ExpenseCategory.Code);
+            until ExpenseRuleHeader.Next() = 0;
+
+        FeatureTelemetry.LogError('0000VF4', ExpenseAgentSetup.GetFeatureName(), PerDiemLineCreationFailedLbl, NoPerDiemRuleTelemetryErr);
+        Error(NoPerDiemRuleForTravelRequestErr, SpendRequest."Expense Location", TripStartDate, SpendRequest."No.");
     end;
 
     internal procedure HasPostedTravelRequestReport(SpendRequest: Record "Spend Request"; TravelerExpenseUserNo: Code[20]): Boolean
