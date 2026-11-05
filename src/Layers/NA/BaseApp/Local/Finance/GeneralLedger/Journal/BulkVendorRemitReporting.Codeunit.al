@@ -482,25 +482,70 @@ codeunit 10250 "Bulk Vendor Remit Reporting"
             repeat
                 if ProcessLine(GenJournalLine) then
                     if LineHasErrors(GenJournalLine, TempErrorMessage) then
-                        RollbackDocumentNumberAssignment(GenJournalLine)
-                    else
-                        MarkLineAsExported(GenJournalLine);
+                        RollbackDocumentNumberAssignment(GenJournalLine);
+            until GenJournalLine.Next() = 0;
+
+        // Successful lines are marked after all rollbacks, because MarkLineAsExported commits and that commit must also
+        // persist the rollbacks. Otherwise a rollback done after the last commit is undone by the error shown afterwards.
+        if GenJournalLine.FindSet() then
+            repeat
+                if ProcessLine(GenJournalLine) then
+                    MarkLineAsExported(GenJournalLine);
             until GenJournalLine.Next() = 0;
     end;
 
     local procedure LineHasErrors(GenJournalLine: Record "Gen. Journal Line"; var TempErrorMessage: Record "Error Message" temporary): Boolean
+    var
+        PayeeGenJournalLine: Record "Gen. Journal Line";
     begin
+        // The remittance report runs once per payee and the logged error names only the payee's first line,
+        // so an error for any line of the same payee applies to all of the payee's lines.
+        PayeeGenJournalLine.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
+        PayeeGenJournalLine.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+        PayeeGenJournalLine.SetRange("Account Type", GenJournalLine."Account Type");
+        PayeeGenJournalLine.SetRange("Account No.", GenJournalLine."Account No.");
+        PayeeGenJournalLine.SetRange("Bal. Account Type", GenJournalLine."Bal. Account Type");
+        PayeeGenJournalLine.SetRange("Bal. Account No.", GenJournalLine."Bal. Account No.");
+        if PayeeGenJournalLine.FindSet() then
+            repeat
+                if ErrorReferencesLine(PayeeGenJournalLine, TempErrorMessage) then
+                    exit(true);
+            until PayeeGenJournalLine.Next() = 0;
+
+        exit(false);
+    end;
+
+    local procedure ErrorReferencesLine(GenJournalLine: Record "Gen. Journal Line"; var TempErrorMessage: Record "Error Message" temporary): Boolean
+    var
+        LineRecordIdText: Text;
+        RemainingMessage: Text;
+        Position: Integer;
+        NextCharPosition: Integer;
+    begin
+        LineRecordIdText := Format(GenJournalLine.RecordId);
         TempErrorMessage.Reset();
         if TempErrorMessage.FindSet() then
             repeat
-                if (StrPos(TempErrorMessage."Message", GenJournalLine."Journal Template Name") > 0) and
-                   (StrPos(TempErrorMessage."Message", GenJournalLine."Journal Batch Name") > 0) and
-                   (StrPos(TempErrorMessage."Message", Format(GenJournalLine."Line No.")) > 0)
-                then
-                    exit(true);
+                RemainingMessage := TempErrorMessage."Message";
+                Position := StrPos(RemainingMessage, LineRecordIdText);
+                while Position > 0 do begin
+                    // Require a non-digit after the record ID so that line 10000 does not match line 100000.
+                    NextCharPosition := Position + StrLen(LineRecordIdText);
+                    if NextCharPosition > StrLen(RemainingMessage) then
+                        exit(true);
+                    if not IsDigit(RemainingMessage[NextCharPosition]) then
+                        exit(true);
+                    RemainingMessage := CopyStr(RemainingMessage, NextCharPosition);
+                    Position := StrPos(RemainingMessage, LineRecordIdText);
+                end;
             until TempErrorMessage.Next() = 0;
 
         exit(false);
+    end;
+
+    local procedure IsDigit(Character: Char): Boolean
+    begin
+        exit(Character in ['0' .. '9']);
     end;
 
     local procedure RollbackDocumentNumberAssignment(var GenJournalLine: Record "Gen. Journal Line")
@@ -535,7 +580,7 @@ codeunit 10250 "Bulk Vendor Remit Reporting"
 
         CreateEFTRecord(EFTExport, GenJournalLine, BankAccountNo);
         UpdateCheckInfoForGenLedgLine(GenJournalLine, EFTExport);
-        CreateCreditTransferRegister(BankAccountNo, GenJournalLine."Bal. Account No.", BankPaymentType);
+        CreateCreditTransferRegister(BankAccountNo, GenJournalLine."Bal. Account No.", GenJournalLine."Bank Payment Type");
         UpdateApplication(GenJournalLine);
     end;
 }
