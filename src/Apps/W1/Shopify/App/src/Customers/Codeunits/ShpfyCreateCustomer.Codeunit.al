@@ -144,13 +144,16 @@ codeunit 30110 "Shpfy Create Customer"
     var
         CustomerTemplate: Record "Shpfy Customer Template";
     begin
+        if CountryCode = '' then
+            exit;
+
         if CustomerTemplate.Get(ShopCode, CountryCode) then
             exit;
 
         CustomerTemplate.Init();
         CustomerTemplate."Shop Code" := ShopCode;
         CustomerTemplate."Country/Region Code" := CountryCode;
-        CustomerTemplate.Insert();
+        CustomerTemplate.Insert(false);
     end;
 
     local procedure GetCountryTemplateCode(ShopCode: Code[20]; CountryCode: Code[20]; IsCompanyTemplate: Boolean) Result: Code[20]
