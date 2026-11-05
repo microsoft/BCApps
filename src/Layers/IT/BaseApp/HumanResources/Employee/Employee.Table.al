@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -828,6 +828,7 @@ table 5200 Employee
 
         if "Middle Name" = '' then
             exit("First Name" + ' ' + "Last Name");
+
         exit("First Name" + ' ' + "Middle Name" + ' ' + "Last Name");
     end;
 
