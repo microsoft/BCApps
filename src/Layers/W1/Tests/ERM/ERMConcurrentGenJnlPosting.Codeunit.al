@@ -460,11 +460,11 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         ERMConcurrentGenJnlPosting.VerifyReservedSummarizedVATGLEntryNoNotUsed();
 
         // [THEN] The realized VAT entry links to the realized, not the unrealized, VAT G/L account.
-        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Payment);
         VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
-        VATEntry.SetFilter("Unrealized VAT Entry No.", '<>0');
         Assert.AreEqual(1, VATEntry.Count(), 'The payment must realize the invoice VAT');
         VATEntry.FindFirst();
+        VATEntry.TestField("Document Type", VATEntry."Document Type"::Payment);
+        VATEntry.TestField("Unrealized VAT Entry No.");
         GLEntryVATEntryLink.SetRange("VAT Entry No.", VATEntry."Entry No.");
         Assert.AreEqual(1, GLEntryVATEntryLink.Count(), 'Realized VAT must have exactly one G/L link');
         GLEntryVATEntryLink.FindFirst();
