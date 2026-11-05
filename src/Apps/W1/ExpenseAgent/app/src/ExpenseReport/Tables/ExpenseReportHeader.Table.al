@@ -976,6 +976,18 @@ table 6906 "Expense Report Header"
     end;
 
     /// <summary>
+    /// Releases and submits an expense report, then assigns an interim approver in the same transaction.
+    /// </summary>
+    /// <param name="SubmitterExpenseUserNo">The expense user number of the submitter and assignment actor.</param>
+    /// <param name="SubmissionComment">The optional comment supplied by the submitter.</param>
+    /// <param name="InterimApproverExpenseUserNo">The expense user number of the interim approver.</param>
+    procedure SubmitAndAssignInterimApprover(SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text; InterimApproverExpenseUserNo: Code[20])
+    begin
+        PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, SubmissionComment);
+        AssignInterimApprover(InterimApproverExpenseUserNo, SubmitterExpenseUserNo);
+    end;
+
+    /// <summary>
     /// Approved the expense document if it's not already "Approved".
     /// </summary>
     /// <remarks>

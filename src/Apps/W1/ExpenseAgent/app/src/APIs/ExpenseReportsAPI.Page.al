@@ -487,6 +487,17 @@ page 6928 "Expense Reports API"
     end;
 
     [ServiceEnabled]
+    procedure SubmitAndAssignInterimApprover(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text; InterimApproverExpenseUserNo: Code[20])
+    begin
+        Rec.SubmitAndAssignInterimApprover(SubmitterExpenseUserNo, SubmissionComment, InterimApproverExpenseUserNo);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
     procedure ApprovedExpenseReport(var ActionContext: WebServiceActionContext; ApproverExpenseUserNo: Code[20])
     begin
         Rec.PerformManualApproved(ApproverExpenseUserNo);

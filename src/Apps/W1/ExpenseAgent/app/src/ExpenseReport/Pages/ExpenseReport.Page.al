@@ -483,7 +483,7 @@ page 6910 "Expense Report"
                     Caption = 'Assign Interim Approver';
                     Image = UserSetup;
                     ToolTip = 'Assign an optional interim approver who approves before the final approver.';
-                    Visible = AgentEnabled;
+                    Visible = InterimApproverAssignmentVisible;
                     Enabled = Rec.Status = Rec.Status::"Pending Approval";
 
                     trigger OnAction()
@@ -761,6 +761,7 @@ page 6910 "Expense Report"
         SubmitterComment: Text;
         ApprovalActionsEnabled: Boolean;
         AgentEnabled: Boolean;
+        InterimApproverAssignmentVisible: Boolean;
 
     protected var
         SubmitEnabled: Boolean;
@@ -779,6 +780,7 @@ page 6910 "Expense Report"
 
         ExpenseAgentSetup.GetRecordOnce();
         AgentEnabled := ExpenseAgentSetup."Enable Agent";
+        InterimApproverAssignmentVisible := ExpenseAgentSetup."Enable Agent" and ExpenseAgentSetup."Allow Interim Approvers";
         ApprovalActionsEnabled := ExpenseAgentSetup."Enable Agent" and ApproveEnabled and (Rec."Approver Expense User ID" = UserId());
     end;
 

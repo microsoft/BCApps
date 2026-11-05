@@ -97,4 +97,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
+
+    /// <summary>
+    /// Interim approvers can be assigned when Allow Interim Approvers is enabled in Expense Agent Setup.
+    /// </summary>
+    value(10; InterimApprover)
+    {
+        Caption = 'Interim Approver', Locked = true;
+    }
 }
