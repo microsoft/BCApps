@@ -100,7 +100,9 @@ xmlport 10 "IC G/L Account Import/Export"
 
             if Modified > 0 then begin
                 if MsgTxt <> '' then
+#pragma warning disable AA0139
                     MsgTxt := MsgTxt + '\';
+#pragma warning restore AA0139
                 if Modified = 1 then
                     MsgTxt := MsgTxt + StrSubstNo(Text003, Modified, OrgICGLAcc.TableCaption())
                 else
@@ -109,7 +111,9 @@ xmlport 10 "IC G/L Account Import/Export"
 
             if Deleted > 0 then begin
                 if MsgTxt <> '' then
+#pragma warning disable AA0139
                     MsgTxt := MsgTxt + '\';
+#pragma warning restore AA0139
                 if Deleted = 1 then
                     MsgTxt := MsgTxt + StrSubstNo(Text005, Deleted, OrgICGLAcc.TableCaption())
                 else

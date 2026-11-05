@@ -2288,8 +2288,8 @@ codeunit 134151 "ERM Intercompany"
         ICGLAccountBegin: Record "IC G/L Account";
         ICGLAccountPosting: Record "IC G/L Account";
         ICGLAccountEnd: Record "IC G/L Account";
-        ICChartOfAccounts: TestPage "IC Chart of Accounts";
         ERMIntercompany: Codeunit "ERM Intercompany";
+        ICChartOfAccounts: TestPage "IC Chart of Accounts";
     begin
         // [SCENARIO] Synchronize IC G/L Accounts from IC Partner.
         Initialize();
@@ -2410,8 +2410,8 @@ codeunit 134151 "ERM Intercompany"
         DimensionValue: Record "Dimension Value";
         ICDimension: Record "IC Dimension";
         ICDimensionValue: Record "IC Dimension Value";
-        ICDimensionsSelector: TestPage "IC Dimensions Selector";
         ERMIntercompany: Codeunit "ERM Intercompany";
+        ICDimensionsSelector: TestPage "IC Dimensions Selector";
         ICDimensionCode: Code[20];
         InitialICDimensionsNumber: Integer;
         FinalICDimensionsNumber: Integer;
@@ -2612,8 +2612,8 @@ codeunit 134151 "ERM Intercompany"
 
     local procedure Initialize()
     var
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         ICSetup: Record "IC Setup";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Intercompany");
         if not ICSetup.Get() then begin

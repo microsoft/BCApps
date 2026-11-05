@@ -205,6 +205,7 @@ codeunit 431 "IC Outbox Export"
                         ICPartner.TestField(Blocked, false);
                         if ICPartner."Inbox Details" = '' then
                             Error(EmailAddressMissingErr, ICPartner.Code);
+#pragma warning disable AA0139
                         ToName := ICPartner."Inbox Details";
                         if StrPos(ToName, ';') > 0 then begin
                             CcName := CopyStr(ToName, StrPos(ToName, ';') + 1);
@@ -212,6 +213,7 @@ codeunit 431 "IC Outbox Export"
                             if StrPos(CcName, ';') > 0 then
                                 CcName := CopyStr(CcName, 1, StrPos(CcName, ';') - 1);
                         end;
+#pragma warning restore AA0139
 
                         if IsWebClient() then begin
                             EmailItem."Send to" := ICPartner."Inbox Details";

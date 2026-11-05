@@ -70,7 +70,9 @@ codeunit 489 "IC Partner Change Monitor"
         CustomDimensions.Add('Activity Description', ActivityDescription);
         CustomDimensions.Add('Activity Message', ActivityMessage);
         FeatureTelemetry.LogUsage('0000LKV', ICMapping.GetFeatureTelemetryName(), ICCompanySetupPermissionSetNameTxt, CustomDimensions);
+#pragma warning disable AA0139
         ActivityLog.LogActivityForUser(ICPartner.RecordId, ActivityLog.Status::Success, Context, ActivityDescription, ActivityMessage, UserId);
+#pragma warning restore AA0139
         Session.LogSecurityAudit(Context, SecurityOperationResult::Success, (ActivityDescription + ActivityMessage), AuditCategory::UserManagement);
     end;
 

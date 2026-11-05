@@ -66,7 +66,9 @@ page 619 "IC Inbox/Outbox Jnl. Line Dim."
         ObjTransl: Record "Object Translation";
         NewTableID: Integer;
     begin
+#pragma warning disable AA0139
         NewTableID := GetTableID(Rec.GetFilter("Table ID"));
+#pragma warning restore AA0139
         if NewTableID = 0 then
             exit('');
 
@@ -74,7 +76,9 @@ page 619 "IC Inbox/Outbox Jnl. Line Dim."
             SourceTableName := ''
         else
             if NewTableID <> CurrTableID then
+#pragma warning disable AA0139
                 SourceTableName := ObjTransl.TranslateObject(ObjTransl."Object Type"::Table, NewTableID);
+#pragma warning restore AA0139
 
         CurrTableID := NewTableID;
 

@@ -117,10 +117,12 @@ table 413 "IC Partner"
                             end;
                         end;
                     "Inbox Type"::"File Location":
+#pragma warning disable AA0217
                         if "Inbox Details" = '' then
                             FileName := StrSubstNo('%1.xml', Code)
                         else
                             FileName := "Inbox Details" + StrSubstNo('\%1.xml', Code);
+#pragma warning restore AA0217
                 end;
                 AutosetICPartnerDetails();
             end;

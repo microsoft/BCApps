@@ -977,7 +977,9 @@ codeunit 427 ICInboxOutboxMgt
             else
                 if ICInboxSalesHeader."Posting Date" <> 0D then
                     SalesHeader.Validate("Posting Date", ICInboxSalesHeader."Posting Date");
+#pragma warning disable AA0139
             GetCurrency(ICInboxSalesHeader."Currency Code");
+#pragma warning restore AA0139
             SalesHeader.Validate("Currency Code", ICInboxSalesHeader."Currency Code");
             SalesHeader.Validate("Document Date", ICInboxSalesHeader."Document Date");
             SalesHeader.Validate("Prices Including VAT", ICInboxSalesHeader."Prices Including VAT");
@@ -1259,7 +1261,9 @@ codeunit 427 ICInboxOutboxMgt
             else
                 if ICInboxPurchHeader."Posting Date" <> 0D then
                     PurchHeader.Validate("Posting Date", ICInboxPurchHeader."Posting Date");
+#pragma warning disable AA0139
             GetCurrency(ICInboxPurchHeader."Currency Code");
+#pragma warning restore AA0139
             PurchHeader.Validate("Currency Code", ICInboxPurchHeader."Currency Code");
             PurchHeader.Validate("Document Date", ICInboxPurchHeader."Document Date");
             PurchHeader.Validate("Requested Receipt Date", ICInboxPurchHeader."Requested Receipt Date");

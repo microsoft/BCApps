@@ -13,6 +13,7 @@ pageextension 8560 "IC Customer Credit Mgmt. NA" extends "Customer List - Credit
         {
             field("IC Partner Code"; Rec."IC Partner Code")
             {
+                ApplicationArea = Intercompany;
                 Editable = false;
                 ToolTip = 'Specifies the code for the company''s intercompany (IC) partner.';
                 Visible = false;

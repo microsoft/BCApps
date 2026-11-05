@@ -312,13 +312,17 @@ page 605 "IC Chart of Accounts"
 
         StartFileName := ICSetup."IC Inbox Details";
         if StartFileName <> '' then begin
+#pragma warning disable AA0139
             if StartFileName[StrLen(StartFileName)] <> '\' then
                 StartFileName := StartFileName + '\';
             StartFileName := StartFileName + '*.xml';
+#pragma warning restore AA0139
         end;
 
+#pragma warning disable AA0139
         if not Upload(SelectFileToImportLbl, '', SupportedFileTypesLbl, StartFileName, FileName) then
             Error(RequestUserForFileNameLbl);
+#pragma warning restore AA0139
 
         IFile.Open(FileName);
         IFile.CreateInStream(IStr);

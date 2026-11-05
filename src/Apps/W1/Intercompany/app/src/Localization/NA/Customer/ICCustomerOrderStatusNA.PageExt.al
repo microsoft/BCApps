@@ -13,6 +13,7 @@ pageextension 8561 "IC Customer Order Status NA" extends "Customer List - Order 
         {
             field("IC Partner Code"; Rec."IC Partner Code")
             {
+                ApplicationArea = Intercompany;
                 Editable = false;
                 ToolTip = 'Specifies the code for the company''s intercompany (IC) partner.';
                 Visible = false;
