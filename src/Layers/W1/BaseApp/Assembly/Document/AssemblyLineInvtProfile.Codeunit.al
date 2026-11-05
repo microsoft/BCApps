@@ -167,7 +167,11 @@ codeunit 928 "Assembly Line Invt. Profile"
     var
         AssemblyReservationEntry: Record "Reservation Entry";
         OppositeReservationEntry: Record "Reservation Entry";
+        ItemTrackingMgt: Codeunit "Item Tracking Management";
         ReservationEngineMgt: Codeunit "Reservation Engine Mgt.";
+        PlanningSuggestionCache: Dictionary of [Text, Boolean];
+        SourceRowID: Text[250];
+        HasPlanningSuggestion: Boolean;
     begin
         AssemblyReservationEntry.CopyFilters(ReservationEntry);
         AssemblyReservationEntry.SetRange("Source Type", Database::"Assembly Line");
@@ -177,14 +181,24 @@ codeunit 928 "Assembly Line Invt. Profile"
         AssemblyReservationEntry.SetFilter("Shipment Date", '..%1', ToDate);
         if AssemblyReservationEntry.FindSet() then
             repeat
-                if AssemblyReservationEntry.TrackingExists() and HasAssemblyPlanningSuggestion(AssemblyReservationEntry) then begin
-                    OppositeReservationEntry.Get(AssemblyReservationEntry."Entry No.", true);
-                    // Rebuild the link without removing the component's item tracking or matching it to another supply.
-                    ReservationEngineMgt.CloseSurplusTrackingEntry(OppositeReservationEntry);
-                    AssemblyReservationEntry.Get(AssemblyReservationEntry."Entry No.", false);
-                    AssemblyReservationEntry.Binding := AssemblyReservationEntry.Binding::" ";
-                    AssemblyReservationEntry."Expected Receipt Date" := 0D;
-                    AssemblyReservationEntry.Modify();
+                if AssemblyReservationEntry.TrackingExists() then begin
+                    SourceRowID := ItemTrackingMgt.ComposeRowID(
+                        AssemblyReservationEntry."Source Type", AssemblyReservationEntry."Source Subtype",
+                        AssemblyReservationEntry."Source ID", AssemblyReservationEntry."Source Batch Name",
+                        AssemblyReservationEntry."Source Prod. Order Line", AssemblyReservationEntry."Source Ref. No.");
+                    if not PlanningSuggestionCache.Get(SourceRowID, HasPlanningSuggestion) then begin
+                        HasPlanningSuggestion := HasAssemblyPlanningSuggestion(AssemblyReservationEntry);
+                        PlanningSuggestionCache.Add(SourceRowID, HasPlanningSuggestion);
+                    end;
+                    if HasPlanningSuggestion then begin
+                        OppositeReservationEntry.Get(AssemblyReservationEntry."Entry No.", true);
+                        // Rebuild the link without removing the component's item tracking or matching it to another supply.
+                        ReservationEngineMgt.CloseSurplusTrackingEntry(OppositeReservationEntry);
+                        AssemblyReservationEntry.Get(AssemblyReservationEntry."Entry No.", false);
+                        AssemblyReservationEntry.Binding := AssemblyReservationEntry.Binding::" ";
+                        AssemblyReservationEntry."Expected Receipt Date" := 0D;
+                        AssemblyReservationEntry.Modify();
+                    end;
                 end;
             until AssemblyReservationEntry.Next() = 0;
     end;
