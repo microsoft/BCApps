@@ -459,6 +459,7 @@ page 30101 "Shpfy Shop Card"
                             exit;
 
                         SalesReceivablesSetup.Get();
+
                         if NoSeries.Get(SalesReceivablesSetup."Order Nos.") then
                             if not NoSeries."Manual Nos." then
                                 if Confirm(ManualNosNotEnabledQst, false, SalesReceivablesSetup."Order Nos.") then
@@ -467,6 +468,7 @@ page 30101 "Shpfy Shop Card"
                                     Rec."Use Shopify Order No." := false;
                                     exit;
                                 end;
+
                         if Rec."Create Invoices From Orders" then
                             if NoSeries.Get(SalesReceivablesSetup."Invoice Nos.") then
                                 if not NoSeries."Manual Nos." then
@@ -1274,6 +1276,7 @@ page 30101 "Shpfy Shop Card"
             ApiVersionExpiryDateTime := CommunicationMgt.GetApiVersionExpiryDate();
             ApiVersionExpiryDate := DT2Date(ApiVersionExpiryDateTime);
             Rec.CheckApiVersionExpiryDate(ApiVersion, ApiVersionExpiryDateTime);
+
             if AuthenticationMgt.CheckScopeChange(Rec) then
                 if Confirm(StrSubstNo(ScopeChangeConfirmLbl, Rec.Code)) then begin
                     Rec.RequestAccessToken();
@@ -1287,6 +1290,7 @@ page 30101 "Shpfy Shop Card"
             Rec.UpdateFulfillmentService();
 #endif
             ShopReview.MaybeShowReviewReminder(Rec.GetStoreName());
+
             if AuthenticationMgt.IsRefreshTokenExpired(Rec.GetStoreName()) then begin
                 RefreshTokenExpiredNotification.Message(StrSubstNo(RefreshTokenExpiredNotificationLbl, Rec.Code));
                 RefreshTokenExpiredNotification.SetData('ShopCode', Rec.Code);

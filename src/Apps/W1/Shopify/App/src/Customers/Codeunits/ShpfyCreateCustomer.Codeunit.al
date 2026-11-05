@@ -52,6 +52,7 @@ codeunit 30110 "Shpfy Create Customer"
     begin
 
         ShopifyCustomer.Get(CustomerAddress."Customer Id");
+
         if TemplateCode = '' then
             CurrentTemplateCode := FindCustomerTemplate(ShopifyShop, CustomerAddress."Country/Region Code")
         else
@@ -213,8 +214,10 @@ codeunit 30110 "Shpfy Create Customer"
 
         ICounty := Shop."County Source";
         Customer.Validate(County, ICounty.County(CompanyLocation));
+
         if CompanyLocation."Phone No." <> '' then
             Customer.Validate("Phone No.", CompanyLocation."Phone No.");
+
         if ShopifyTaxArea.Get(CompanyLocation."Country/Region Code", CompanyLocation."Province Name") then begin
             if (ShopifyTaxArea."Tax Area Code" <> '') then begin
                 Customer.Validate("Tax Area Code", ShopifyTaxArea."Tax Area Code");
@@ -223,6 +226,7 @@ codeunit 30110 "Shpfy Create Customer"
             if (ShopifyTaxArea."VAT Bus. Posting Group" <> '') then
                 Customer.Validate("VAT Bus. Posting Group", ShopifyTaxArea."VAT Bus. Posting Group");
         end;
+
         if CompanyLocation."Shpfy Payment Terms Id" <> 0 then
             Customer.Validate("Payment Terms Code", UpdateCustomer.GetPaymentTermsCodeFromShopifyPaymentTermsId(CompanyLocation."Shpfy Payment Terms Id"));
 
@@ -230,6 +234,7 @@ codeunit 30110 "Shpfy Create Customer"
         ITaxRegistrationIdMapping.UpdateTaxRegistrationId(Customer, CompanyLocation."Tax Registration Id");
 
         Customer.Modify();
+
         if not ShopifyCustomer.Get(TempShopifyCustomer.Id) then begin
             ShopifyCustomer.Copy(TempShopifyCustomer);
             ShopifyCustomer."Customer SystemId" := Customer.SystemId;
