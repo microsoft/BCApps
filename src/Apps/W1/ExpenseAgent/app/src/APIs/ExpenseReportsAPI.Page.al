@@ -167,7 +167,7 @@ page 6928 "Expense Reports API"
                     Caption = 'Submitter Comment';
                     Editable = false;
                 }
-                field(approverExpenseUserNo; Rec."Approver Expense User No.")
+                field(activeApproverExpenseUserNo; Rec."Approver Expense User No.")
                 {
                     Caption = 'Approver Expense User No.';
                     Editable = false;
