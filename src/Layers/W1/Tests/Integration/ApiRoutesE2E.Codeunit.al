@@ -2,8 +2,6 @@ codeunit 135548 "API Routes E2E"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
-    TestType = Uncategorized;
-    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
