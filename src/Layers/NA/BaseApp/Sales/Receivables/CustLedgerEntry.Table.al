@@ -1891,7 +1891,7 @@ table 21 "Cust. Ledger Entry"
             VATProdGroupAmounts.Add(VATProdPostingGroup, LineAmount);
     end;
 
-    local procedure GetEquivalentCreditMemoPartAmountByVAT(VATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]]; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; var CreditMemoVATBusPostingGroup: Code[20]; var CreditMemoVATProdPostingGroup: Code[20]) CreditMemoPartAmount: Decimal
+    local procedure GetEquivalentCreditMemoPartAmountByVAT(VATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]]; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; var CreditMemoVATBusPostingGroup: Code[20]; var CreditMemoVATProdPostingGroup: Code[20]): Decimal
     var
         InvoiceVATPostingSetup: Record "VAT Posting Setup";
         CreditMemoVATPostingSetup: Record "VAT Posting Setup";
@@ -1914,7 +1914,7 @@ table 21 "Cust. Ledger Entry"
         end;
 
         if TempEquivalentVATPostingSetup.Count() <> 1 then
-            exit;
+            exit(0);
         TempEquivalentVATPostingSetup.FindFirst();
         CreditMemoVATBusPostingGroup := TempEquivalentVATPostingSetup."VAT Bus. Posting Group";
         CreditMemoVATProdPostingGroup := TempEquivalentVATPostingSetup."VAT Prod. Posting Group";
