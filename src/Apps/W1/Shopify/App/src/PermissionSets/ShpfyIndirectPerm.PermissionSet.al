@@ -29,6 +29,7 @@ permissionset 30101 "Shpfy Indirect Perm"
     Permissions =
         tabledata "Country/Region" = r,
         tabledata Customer = rimd,
+        tabledata "Customer Templ." = r,
         tabledata "Dimensions Template" = r,
         tabledata "Extended Text Header" = r,
         tabledata "Extended Text Line" = r,

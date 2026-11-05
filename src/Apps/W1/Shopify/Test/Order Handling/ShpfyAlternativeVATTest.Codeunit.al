@@ -215,13 +215,36 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         this.Initialize();
 
         // [Given] A refund refers to a posted invoice whose alternative VAT setup has since changed.
-        RefundId := this.CreateCurrentSetupRefundScenario(PostedInvoice, SellToCustomer, BillToCustomer);
+        RefundId := this.CreateCurrentSetupRefundScenario(PostedInvoice, SellToCustomer, BillToCustomer, "Sales Document Type"::"Credit Memo", false);
 
         // [When] The refund is processed as a credit memo.
-        SalesHeader := this.CreateRefundCreditMemo(RefundId);
+        SalesHeader := this.CreateRefundSalesDocument(RefundId);
 
         // [Then] The credit memo uses current VAT values and the posted invoice remains unchanged.
-        this.VerifyCurrentSetupRefund(SalesHeader, PostedInvoice, SellToCustomer, BillToCustomer);
+        this.VerifyCurrentSetupRefund(SalesHeader, PostedInvoice, SellToCustomer, BillToCustomer, "Sales Document Type"::"Credit Memo");
+    end;
+
+    [Test]
+    [HandlerFunctions('FulfillmentOrdersHttpHandler')]
+    procedure RefundReturnOrder_UsesCurrentVATSetup()
+    var
+        BillToCustomer: Record Customer;
+        PostedInvoice: Record "Sales Invoice Header";
+        SalesHeader: Record "Sales Header";
+        SellToCustomer: Record Customer;
+        RefundId: BigInteger;
+    begin
+        // [Scenario #8] A refund return order uses the current alternative VAT setup with the customer's registration number.
+        this.Initialize();
+
+        // [Given] Returns are processed as return orders and the posted invoice's alternative now has a blank registration and distinct groups.
+        RefundId := this.CreateCurrentSetupRefundScenario(PostedInvoice, SellToCustomer, BillToCustomer, "Sales Document Type"::"Return Order", true);
+
+        // [When] The refund is processed as a return order.
+        SalesHeader := this.CreateRefundSalesDocument(RefundId);
+
+        // [Then] The return order uses the current alternative groups, keeps the customer's registration and the posted invoice remains unchanged.
+        this.VerifyCurrentSetupRefund(SalesHeader, PostedInvoice, SellToCustomer, BillToCustomer, "Sales Document Type"::"Return Order");
     end;
 
     [Test]
@@ -235,7 +258,7 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         VATCustomer: Record Customer;
         DestinationCountry: Code[10];
     begin
-        // [Scenario #8] A general-only template must not copy its general posting group's default VAT group into the alternative.
+        // [Scenario #9] A general-only template must not copy its general posting group's default VAT group into the alternative.
         this.Initialize();
 
         // [Given] B2C auto-create uses a general-only template whose general group has a default VAT group.
@@ -246,6 +269,204 @@ codeunit 139614 "Shpfy Alternative VAT Test"
 
         // [Then] The alternative retains a blank VAT group and the document retains the customer's baseline VAT group.
         this.VerifyGenOnlyAutoCreateScenario(OrderHeader, SellToCustomer, BillToCustomer, VATCustomer, DestinationCountry, CountryCustomerTemplate);
+    end;
+
+    [Test]
+    [HandlerFunctions('FulfillmentOrdersHttpHandler')]
+    procedure ExistingAlternative_B2C_UsesDistinctGroupsAndCustomerVATRegNo()
+    var
+        AltCustVATRegBefore: Record "Alt. Cust. VAT Reg.";
+        BillToCustomer: Record Customer;
+        OrderHeader: Record "Shpfy Order Header";
+        SellToCustomer: Record Customer;
+        VATCustomer: Record Customer;
+        AlternativeCountBefore: Integer;
+    begin
+        // [Scenario #10] A pre-created alternative with blank registration and distinct posting groups is applied to a B2C order.
+        this.Initialize();
+
+        // [Given] A B2C order ships to a country whose existing alternative has a blank registration and distinct posting groups.
+        this.CreateExistingDistinctAlternativeScenario(OrderHeader, VATCustomer, SellToCustomer, BillToCustomer, AltCustVATRegBefore, AlternativeCountBefore, false, true);
+
+        // [When] The B2C order is processed.
+        this.ProcessOrderManually(OrderHeader);
+
+        // [Then] The order uses the alternative groups, keeps the customer's registration and leaves the alternative untouched.
+        this.VerifyExistingDistinctAlternativeScenario(OrderHeader, SellToCustomer, BillToCustomer, AltCustVATRegBefore, AlternativeCountBefore, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('FulfillmentOrdersHttpHandler')]
+    procedure ExistingAlternative_B2B_UsesDistinctGroupsAndCustomerVATRegNo()
+    var
+        AltCustVATRegBefore: Record "Alt. Cust. VAT Reg.";
+        BillToCustomer: Record Customer;
+        OrderHeader: Record "Shpfy Order Header";
+        SellToCustomer: Record Customer;
+        VATCustomer: Record Customer;
+        AlternativeCountBefore: Integer;
+    begin
+        // [Scenario #11] A pre-created alternative with blank registration and distinct posting groups is applied to a B2B order.
+        this.Initialize();
+
+        // [Given] A B2B order ships to a country whose existing alternative has a blank registration and distinct posting groups.
+        this.CreateExistingDistinctAlternativeScenario(OrderHeader, VATCustomer, SellToCustomer, BillToCustomer, AltCustVATRegBefore, AlternativeCountBefore, true, true);
+
+        // [When] The B2B order is processed.
+        this.ProcessOrderManually(OrderHeader);
+
+        // [Then] The order uses the alternative groups, keeps the customer's registration and leaves the alternative untouched.
+        this.VerifyExistingDistinctAlternativeScenario(OrderHeader, SellToCustomer, BillToCustomer, AltCustVATRegBefore, AlternativeCountBefore, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('FulfillmentOrdersHttpHandler')]
+    procedure ExistingAlternative_VATGroupOnly_KeepsCustomerGenBusGroup()
+    var
+        AltCustVATRegBefore: Record "Alt. Cust. VAT Reg.";
+        BillToCustomer: Record Customer;
+        OrderHeader: Record "Shpfy Order Header";
+        SellToCustomer: Record Customer;
+        VATCustomer: Record Customer;
+        AlternativeCountBefore: Integer;
+    begin
+        // [Scenario #12] A pre-created alternative with only a VAT business posting group keeps the customer's general group and registration.
+        this.Initialize();
+
+        // [Given] A B2C order ships to a country whose existing alternative has only a distinct VAT business posting group.
+        this.CreateExistingDistinctAlternativeScenario(OrderHeader, VATCustomer, SellToCustomer, BillToCustomer, AltCustVATRegBefore, AlternativeCountBefore, false, false);
+
+        // [When] The B2C order is processed.
+        this.ProcessOrderManually(OrderHeader);
+
+        // [Then] The order uses the alternative VAT group, keeps the customer's general group and registration, and leaves the alternative untouched.
+        this.VerifyExistingDistinctAlternativeScenario(OrderHeader, SellToCustomer, BillToCustomer, AltCustVATRegBefore, AlternativeCountBefore, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('FulfillmentOrdersHttpHandler')]
+    procedure AutoCreate_BothTemplateGroupsBlank_CreatesNothing()
+    var
+        BillToCustomer: Record Customer;
+        OrderHeader: Record "Shpfy Order Header";
+        SellToCustomer: Record Customer;
+        VATCustomer: Record Customer;
+        DestinationCountry: Code[10];
+    begin
+        // [Scenario #13] B2C auto-creation creates nothing when both template posting groups are blank.
+        this.Initialize();
+
+        // [Given] B2C auto-create is enabled and the destination-country template has blank posting groups.
+        this.CreateBlankTemplateAutoCreateScenario(OrderHeader, SellToCustomer, BillToCustomer, VATCustomer, DestinationCountry);
+
+        // [When] The B2C order is processed.
+        this.ProcessOrderManually(OrderHeader);
+
+        // [Then] No alternative is created and the document retains the VAT customer's baseline setup.
+        this.VerifyNoAlternativeCreated(OrderHeader, SellToCustomer, BillToCustomer, VATCustomer, DestinationCountry, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('FulfillmentOrdersHttpHandler')]
+    procedure AutoCreate_B2C_DoesNotUseCompanyPreference()
+    var
+        BillToCustomer: Record Customer;
+        OrderHeader: Record "Shpfy Order Header";
+        SellToCustomer: Record Customer;
+        VATCustomer: Record Customer;
+        DestinationCountry: Code[10];
+    begin
+        // [Scenario #14] B2C auto-creation does not use the company preference.
+        this.Initialize();
+
+        // [Given] A B2C order has an eligible destination-country template, but only company auto-create is enabled.
+        this.CreateB2CCompanyPreferenceScenario(OrderHeader, SellToCustomer, BillToCustomer, VATCustomer, DestinationCountry);
+
+        // [When] The B2C order is processed.
+        this.ProcessOrderManually(OrderHeader);
+
+        // [Then] No alternative is created and the document retains the VAT customer's baseline setup.
+        this.VerifyNoAlternativeCreated(OrderHeader, SellToCustomer, BillToCustomer, VATCustomer, DestinationCountry, false);
+    end;
+
+    local procedure CreateExistingDistinctAlternativeScenario(var OrderHeader: Record "Shpfy Order Header"; var VATCustomer: Record Customer; var SellToCustomer: Record Customer; var BillToCustomer: Record Customer; var AltCustVATRegBefore: Record "Alt. Cust. VAT Reg."; var AlternativeCountBefore: Integer; IsB2B: Boolean; SetGenBusPostingGroup: Boolean)
+    var
+        InterimShipToAddress: Record "Ship-to Address";
+        Shop: Record "Shpfy Shop";
+        DestinationCountry: Code[10];
+        DistinctAlternativeErr: Label 'The pre-created alternative must have a blank registration and posting groups that differ from the customer.';
+    begin
+        this.CreateScenario(Shop, OrderHeader, VATCustomer, SellToCustomer, BillToCustomer, DestinationCountry, InterimShipToAddress, IsB2B, false, false, true);
+        AltCustVATRegBefore := this.CreateAlternativeWithDistinctGroups(Shop, VATCustomer, DestinationCountry, SetGenBusPostingGroup, true);
+        AlternativeCountBefore := this.CountAlternativeVATRegistrations(VATCustomer."No.");
+        this.LibraryAssert.AreEqual('', AltCustVATRegBefore."VAT Registration No.", DistinctAlternativeErr);
+        this.LibraryAssert.AreNotEqual('', VATCustomer."VAT Registration No.", DistinctAlternativeErr);
+        this.LibraryAssert.AreNotEqual(VATCustomer."VAT Bus. Posting Group", AltCustVATRegBefore."VAT Bus. Posting Group", DistinctAlternativeErr);
+        if SetGenBusPostingGroup then begin
+            this.LibraryAssert.AreNotEqual(VATCustomer."Gen. Bus. Posting Group", AltCustVATRegBefore."Gen. Bus. Posting Group", DistinctAlternativeErr);
+            this.SetExpectedVATValues(DestinationCountry, VATCustomer."VAT Registration No.", AltCustVATRegBefore."Gen. Bus. Posting Group", AltCustVATRegBefore."VAT Bus. Posting Group", false, true, true);
+        end else begin
+            this.LibraryAssert.AreEqual('', AltCustVATRegBefore."Gen. Bus. Posting Group", DistinctAlternativeErr);
+            this.SetExpectedVATValues(DestinationCountry, VATCustomer."VAT Registration No.", VATCustomer."Gen. Bus. Posting Group", AltCustVATRegBefore."VAT Bus. Posting Group", false, false, true);
+        end;
+    end;
+
+    local procedure VerifyExistingDistinctAlternativeScenario(OrderHeader: Record "Shpfy Order Header"; SellToCustomer: Record Customer; BillToCustomer: Record Customer; AltCustVATRegBefore: Record "Alt. Cust. VAT Reg."; AlternativeCountBefore: Integer; IsB2B: Boolean)
+    begin
+        this.VerifyScenario(OrderHeader, SellToCustomer, BillToCustomer, false, IsB2B);
+        this.VerifyAlternativeUnchanged(AltCustVATRegBefore, AlternativeCountBefore);
+    end;
+
+    local procedure VerifyAlternativeUnchanged(AltCustVATRegBefore: Record "Alt. Cust. VAT Reg."; AlternativeCountBefore: Integer)
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        AlternativeVATSetupChangedErr: Label 'Document creation must not create or update alternative VAT registrations when a matching one already exists.';
+    begin
+        this.LibraryAssert.AreEqual(AlternativeCountBefore, this.CountAlternativeVATRegistrations(AltCustVATRegBefore."Customer No."), AlternativeVATSetupChangedErr);
+        this.GetAlternativeVATRegistration(AltCustVATReg, AltCustVATRegBefore."Customer No.", AltCustVATRegBefore."VAT Country/Region Code");
+        this.LibraryAssert.AreEqual(AltCustVATRegBefore."VAT Registration No.", AltCustVATReg."VAT Registration No.", AlternativeVATSetupChangedErr);
+        this.LibraryAssert.AreEqual(AltCustVATRegBefore."Gen. Bus. Posting Group", AltCustVATReg."Gen. Bus. Posting Group", AlternativeVATSetupChangedErr);
+        this.LibraryAssert.AreEqual(AltCustVATRegBefore."VAT Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group", AlternativeVATSetupChangedErr);
+    end;
+
+    local procedure CreateBlankTemplateAutoCreateScenario(var OrderHeader: Record "Shpfy Order Header"; var SellToCustomer: Record Customer; var BillToCustomer: Record Customer; var VATCustomer: Record Customer; var DestinationCountry: Code[10])
+    var
+        CountryCustomerTemplate: Record "Customer Templ.";
+        InterimShipToAddress: Record "Ship-to Address";
+        Shop: Record "Shpfy Shop";
+        CountryTemplateNotBlankErr: Label 'The test country template must have blank general and VAT business posting groups.';
+    begin
+        this.CreateScenario(Shop, OrderHeader, VATCustomer, SellToCustomer, BillToCustomer, DestinationCountry, InterimShipToAddress, false, false, false, true);
+        CountryCustomerTemplate := this.EnableCustomerAutoCreate(Shop, DestinationCountry, VATCustomer, false, false);
+        this.LibraryAssert.AreEqual('', CountryCustomerTemplate."Gen. Bus. Posting Group", CountryTemplateNotBlankErr);
+        this.LibraryAssert.AreEqual('', CountryCustomerTemplate."VAT Bus. Posting Group", CountryTemplateNotBlankErr);
+        this.SetExpectedVATSetup(VATCustomer, DestinationCountry, false);
+    end;
+
+    local procedure CreateB2CCompanyPreferenceScenario(var OrderHeader: Record "Shpfy Order Header"; var SellToCustomer: Record Customer; var BillToCustomer: Record Customer; var VATCustomer: Record Customer; var DestinationCountry: Code[10])
+    var
+        CountryCustomerTemplate: Record "Customer Templ.";
+        InterimShipToAddress: Record "Ship-to Address";
+        Shop: Record "Shpfy Shop";
+        CountryTemplateInvalidErr: Label 'The test country template must contain both posting groups.';
+    begin
+        this.CreateScenario(Shop, OrderHeader, VATCustomer, SellToCustomer, BillToCustomer, DestinationCountry, InterimShipToAddress, false, false, false, true);
+        CountryCustomerTemplate := this.CreateCountryCustomerTemplate(Shop, DestinationCountry, VATCustomer, true, true);
+        Shop."Auto Create Alt. VAT Reg. Cust" := false;
+        Shop."Auto Create Alt. VAT Reg. Co." := true;
+        Shop.Modify();
+        this.LibraryAssert.IsTrue(CountryCustomerTemplate."Gen. Bus. Posting Group" <> '', CountryTemplateInvalidErr);
+        this.LibraryAssert.IsTrue(CountryCustomerTemplate."VAT Bus. Posting Group" <> '', CountryTemplateInvalidErr);
+        this.SetExpectedVATSetup(VATCustomer, DestinationCountry, false);
+    end;
+
+    local procedure VerifyNoAlternativeCreated(OrderHeader: Record "Shpfy Order Header"; SellToCustomer: Record Customer; BillToCustomer: Record Customer; VATCustomer: Record Customer; DestinationCountry: Code[10]; IsB2B: Boolean)
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        AlternativeVATSetupUnexpectedErr: Label 'No alternative VAT registration must be created for the destination country.';
+    begin
+        this.VerifyScenario(OrderHeader, SellToCustomer, BillToCustomer, false, IsB2B);
+        this.LibraryAssert.IsFalse(this.AlternativeVATRegistrationExists(AltCustVATReg, VATCustomer."No.", DestinationCountry), AlternativeVATSetupUnexpectedErr);
     end;
 
     local procedure CreateGenOnlyAutoCreateScenario(var OrderHeader: Record "Shpfy Order Header"; var SellToCustomer: Record Customer; var BillToCustomer: Record Customer; var VATCustomer: Record Customer; var DestinationCountry: Code[10]; var CountryCustomerTemplate: Record "Customer Templ.")
@@ -565,7 +786,7 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         this.LibraryAssert.AreEqual(InvoiceBefore."VAT Bus. Posting Group", InvoiceAfter."VAT Bus. Posting Group", HistoricalInvoiceUnchangedLbl);
     end;
 
-    local procedure CreateCurrentSetupRefundScenario(var PostedInvoice: Record "Sales Invoice Header"; var SellToCustomer: Record Customer; var BillToCustomer: Record Customer) RefundId: BigInteger
+    local procedure CreateCurrentSetupRefundScenario(var PostedInvoice: Record "Sales Invoice Header"; var SellToCustomer: Record Customer; var BillToCustomer: Record Customer; ProcessReturnsAs: Enum "Sales Document Type"; UseCustomerVATRegistrationNo: Boolean) RefundId: BigInteger
     var
         AltCustVATReg: Record "Alt. Cust. VAT Reg.";
         CountryCustomerTemplate: Record "Customer Templ.";
@@ -590,21 +811,27 @@ codeunit 139614 "Shpfy Alternative VAT Test"
 
         CountryCustomerTemplate := this.CreateCountryCustomerTemplate(Shop, DestinationCountry, VATCustomer, true, true);
         this.GetAlternativeVATRegistration(AltCustVATReg, VATCustomer."No.", DestinationCountry);
-        AltCustVATReg.Validate("VAT Registration No.", CopyStr('CURRENT-' + VATCustomer."No.", 1, MaxStrLen(AltCustVATReg."VAT Registration No.")));
+        if UseCustomerVATRegistrationNo then
+            AltCustVATReg."VAT Registration No." := ''
+        else
+            AltCustVATReg.Validate("VAT Registration No.", CopyStr('CURRENT-' + VATCustomer."No.", 1, MaxStrLen(AltCustVATReg."VAT Registration No.")));
         AltCustVATReg.Validate("Gen. Bus. Posting Group", CountryCustomerTemplate."Gen. Bus. Posting Group");
         AltCustVATReg.Validate("VAT Bus. Posting Group", CountryCustomerTemplate."VAT Bus. Posting Group");
         AltCustVATReg.Modify(true);
-        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
+        Shop."Process Returns As" := ProcessReturnsAs;
         Shop.Modify(false);
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
         OrderLine.FindFirst();
         RefundId := OrderRefundsHelper.CreateRefundHeader(OrderHeader."Shopify Order Id", 0, 156.38, Shop.Code);
         OrderRefundsHelper.CreateRefundLine(RefundId, OrderLine."Line Id", "Shpfy Restock Type"::Return);
 
-        this.SetExpectedVATValues(DestinationCountry, AltCustVATReg."VAT Registration No.", AltCustVATReg."Gen. Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group", true, true, true);
+        if UseCustomerVATRegistrationNo then
+            this.SetExpectedVATValues(DestinationCountry, VATCustomer."VAT Registration No.", AltCustVATReg."Gen. Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group", false, true, true)
+        else
+            this.SetExpectedVATValues(DestinationCountry, AltCustVATReg."VAT Registration No.", AltCustVATReg."Gen. Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group", true, true, true);
     end;
 
-    local procedure CreateRefundCreditMemo(RefundId: BigInteger): Record "Sales Header"
+    local procedure CreateRefundSalesDocument(RefundId: BigInteger): Record "Sales Header"
     var
         ErrorInfo: ErrorInfo;
         RefundDocumentNotCreatedErr: Label 'The Shopify refund should be eligible for sales document creation.';
@@ -615,11 +842,11 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         exit(ReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId));
     end;
 
-    local procedure VerifyCurrentSetupRefund(SalesHeader: Record "Sales Header"; PostedInvoice: Record "Sales Invoice Header"; SellToCustomer: Record Customer; BillToCustomer: Record Customer)
+    local procedure VerifyCurrentSetupRefund(SalesHeader: Record "Sales Header"; PostedInvoice: Record "Sales Invoice Header"; SellToCustomer: Record Customer; BillToCustomer: Record Customer; ExpectedDocumentType: Enum "Sales Document Type")
     var
-        DocumentTypeErr: Label 'The Shopify refund should create a credit memo.';
+        DocumentTypeErr: Label 'The Shopify refund should create the configured sales document type.';
     begin
-        this.LibraryAssert.AreEqual("Sales Document Type"::"Credit Memo", SalesHeader."Document Type", DocumentTypeErr);
+        this.LibraryAssert.AreEqual(ExpectedDocumentType, SalesHeader."Document Type", DocumentTypeErr);
         this.VerifyExpectedVATSetup(SalesHeader);
         this.VerifyCustomerUnchanged(SellToCustomer);
         this.VerifyCustomerUnchanged(BillToCustomer);
@@ -741,6 +968,35 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         if SetVATBusPostingGroup then
             AltCustVATReg."VAT Bus. Posting Group" := VATCustomer."VAT Bus. Posting Group";
         AltCustVATReg.Insert(true);
+    end;
+
+    local procedure CreateAlternativeWithDistinctGroups(Shop: Record "Shpfy Shop"; VATCustomer: Record Customer; CountryRegionCode: Code[10]; SetGenBusPostingGroup: Boolean; SetVATBusPostingGroup: Boolean) AltCustVATReg: Record "Alt. Cust. VAT Reg."
+    var
+        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+    begin
+        AltCustVATReg."Customer No." := VATCustomer."No.";
+        AltCustVATReg."VAT Country/Region Code" := CountryRegionCode;
+        AltCustVATReg."VAT Registration No." := '';
+        if SetGenBusPostingGroup then begin
+            this.LibraryERM.CreateGenBusPostingGroup(GenBusinessPostingGroup);
+            this.EnsureGeneralPostingSetupForBusinessGroup(Shop, GenBusinessPostingGroup.Code);
+            AltCustVATReg."Gen. Bus. Posting Group" := GenBusinessPostingGroup.Code;
+        end;
+        if SetVATBusPostingGroup then begin
+            this.LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+            this.EnsureVATPostingSetupForBusinessGroup(Shop, VATBusinessPostingGroup.Code);
+            AltCustVATReg."VAT Bus. Posting Group" := VATBusinessPostingGroup.Code;
+        end;
+        AltCustVATReg.Insert(true);
+    end;
+
+    local procedure CountAlternativeVATRegistrations(CustomerNo: Code[20]): Integer
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+    begin
+        AltCustVATReg.SetRange("Customer No.", CustomerNo);
+        exit(AltCustVATReg.Count());
     end;
 
     local procedure CreateShipToAddress(var ShipToAddress: Record "Ship-to Address"; CustomerNo: Code[20]; ShipToCode: Code[10]; CountryRegionCode: Code[10])
