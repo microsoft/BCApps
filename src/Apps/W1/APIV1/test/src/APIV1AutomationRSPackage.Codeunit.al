@@ -139,8 +139,10 @@ codeunit 139731 "APIV1 - Automation RS Package"
 
         StartTime := CURRENTDATETIME();
 
+        // The action only schedules the work in a background session, so poll until it finishes (max. 3 minutes).
+        // SelectLatestVersion makes FIND read the status committed by that session instead of a cached version.
         REPEAT
-            Sleep(100);
+            Sleep(1000);
             SelectLatestVersion();
             ConfigPackage.FIND();
         UNTIL (NOT IsImportPending(ConfigPackage)) OR
@@ -189,8 +191,10 @@ codeunit 139731 "APIV1 - Automation RS Package"
 
         StartTime := CURRENTDATETIME();
 
+        // The action only schedules the work in a background session, so poll until it finishes (max. 3 minutes).
+        // SelectLatestVersion makes FIND read the status committed by that session instead of a cached version.
         REPEAT
-            Sleep(100);
+            Sleep(1000);
             SelectLatestVersion();
             ConfigPackage.FIND();
         UNTIL (NOT IsImportPending(ConfigPackage)) OR
@@ -241,8 +245,10 @@ codeunit 139731 "APIV1 - Automation RS Package"
 
         StartTime := CURRENTDATETIME();
 
+        // The action only schedules the work in a background session, so poll until it finishes (max. 3 minutes).
+        // SelectLatestVersion makes FIND read the status committed by that session instead of a cached version.
         REPEAT
-            Sleep(100);
+            Sleep(1000);
             SelectLatestVersion();
             ConfigPackage.FIND();
         UNTIL (NOT IsApplyPending(ConfigPackage)) OR
