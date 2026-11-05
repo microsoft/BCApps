@@ -310,7 +310,7 @@ table 88 "Financial Report"
                     AccSchedManagement.CheckPerspectiveAnalysisView(Rec."Financial Report Row Group", Rec.DimPerspective);
             end;
         }
-#if not CLEAN30
+#if not CLEAN29
         field(62; "Last Run by User"; DateTime)
         {
             Caption = 'Your Last Run';
