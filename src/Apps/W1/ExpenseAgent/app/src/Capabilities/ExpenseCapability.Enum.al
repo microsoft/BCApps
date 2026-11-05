@@ -97,4 +97,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
+
+    /// <summary>
+    /// Advanced approval features and the current approver number are available in the Expense Report API.
+    /// </summary>
+    value(9; AdvancedApprovals)
+    {
+        Caption = 'Advanced Approvals', Locked = true;
+    }
 }
