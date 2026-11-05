@@ -322,7 +322,7 @@ table 88 "Financial Report"
             Editable = false;
             ObsoleteReason = 'This field could not be calculated because the user filter was not resolvable. Use "Last Run by Current User" together with the "User Security ID Filter" flow filter instead.';
             ObsoleteState = Pending;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '29.0';
         }
 #endif
         field(63; CategoryCode; Code[20])
