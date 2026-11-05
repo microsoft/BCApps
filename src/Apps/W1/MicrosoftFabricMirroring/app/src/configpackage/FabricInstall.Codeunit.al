@@ -10,9 +10,9 @@ codeunit 48522 "Fabric Install"
 
     trigger OnInstallAppPerDatabase()
     var
-        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        FabricUpgrade: Codeunit "Fabric Upgrade";
     begin
-        FabricPlatformMgt.EnsureRequiredLogTables();
+        FabricUpgrade.InitializeRequiredLogTables();
     end;
 
     trigger OnInstallAppPerCompany()

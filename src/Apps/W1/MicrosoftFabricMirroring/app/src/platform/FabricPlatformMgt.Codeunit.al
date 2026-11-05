@@ -135,9 +135,13 @@ codeunit 48520 "Fabric Platform Mgt"
     end;
 
     internal procedure EnsureRequiredLogTables(AllowCapacityDeferral: Boolean)
+    begin
+        TryEnsureRequiredLogTables(AllowCapacityDeferral);
+    end;
+
+    internal procedure TryEnsureRequiredLogTables(AllowCapacityDeferral: Boolean): Boolean
     var
         TenantFabricTables: Record "Tenant Fabric Tables";
-        FabricPlatformTelemetry: Codeunit "Fabric Platform Telemetry";
         MissingTableCount: Integer;
         SelectedCount: Integer;
         MaxTables: Integer;
@@ -150,15 +154,14 @@ codeunit 48520 "Fabric Platform Mgt"
         if AllowCapacityDeferral then begin
             SelectedCount := SelectedTableCount();
             MaxTables := MaxTableCount();
-            if SelectedCount + MissingTableCount > MaxTables then begin
-                FabricPlatformTelemetry.LogRequiredLogTablesDeferred(SelectedCount, MissingTableCount, MaxTables);
-                exit;
-            end;
+            if SelectedCount + MissingTableCount > MaxTables then
+                exit(false);
         end;
         EnsureCapacity(MissingTableCount);
 
         ClaimTable(Database::"Tenant Fabric Export Details", "Fabric Table Claim Source"::Manual, '');
         ClaimTable(Database::"Tenant Fabric Export Summary", "Fabric Table Claim Source"::Manual, '');
+        exit(true);
     end;
 
     internal procedure IsRequiredLogTable(TableId: Integer): Boolean
