@@ -153,9 +153,7 @@ codeunit 6912 "Expense Auto Population"
             ExpenseReportLinePerDiem."Expense Report No." := ExpenseReportLine."Document No.";
             ExpenseReportLinePerDiem."Expense Report Line No." := ExpenseReportLine."Line No.";
             ExpenseReportLinePerDiem."Line No." := ExpenseLineNo;
-            ExpenseReportLinePerDiem."Expense Category Code" := ExpenseReportLine."Expense Category";
-            ExpenseReportLinePerDiem."Expense Subcategory Code" := ExpenseReportLine."Expense Subcategory Code";
-            ExpenseReportLinePerDiem."Expense Location" := ExpenseReportLine."Expense Location";
+            ExpenseReportLinePerDiem.InitializeFromParent(ExpenseReportLine);
             ExpenseReportLinePerDiem.Description := StrSubstNo(PerDiemForLbl, Format(CurrentDate));
             ExpenseReportLinePerDiem.Date := CurrentDate;
             ExpenseReportLinePerDiem."Per Diem Amount" := DayPerDiemAmount;
