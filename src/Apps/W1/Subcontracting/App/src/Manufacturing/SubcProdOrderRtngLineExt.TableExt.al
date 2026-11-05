@@ -154,13 +154,13 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
 
     local procedure ClearTransferWIPItemForNonWorkCenter()
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -176,13 +176,13 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
     local procedure ClearTransferWIPItemForNonSubcontractingWorkCenter()
     var
         WorkCenter: Record "Work Center";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -206,14 +206,14 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
 
     local procedure UpdateLinkedComponentsAfterRoutingLinkCodeChange()
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -233,14 +233,14 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
 
     local procedure UpdateSubcPriceListAndTransferStandardTaskComments()
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -346,13 +346,13 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
     var
         ProdOrderLine: Record "Prod. Order Line";
         PurchLine: Record "Purchase Line";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -392,13 +392,13 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
         ProdOrderLine: Record "Prod. Order Line";
         PurchLine: Record "Purchase Line";
         PrevProdOrderRoutingLine: Record "Prod. Order Routing Line";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
