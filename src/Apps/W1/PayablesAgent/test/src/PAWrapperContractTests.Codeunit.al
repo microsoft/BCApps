@@ -7,7 +7,7 @@ namespace System.Test.Agents.PayablesAgent;
 
 using Microsoft.Agent.PayablesAgent;
 
-// PA-owned source, setup and instruction contracts that do not require Agent Framework backing.
+// PA-owned source, setup and instruction contracts that do not require the Agent Framework.
 codeunit 133735 "PA Wrapper Contract Tests"
 {
     Access = Internal;
@@ -17,23 +17,27 @@ codeunit 133735 "PA Wrapper Contract Tests"
     [Test]
     procedure RejectedSourceRemainsVisibleWithoutAgentTask()
     var
-        StoredTask: Record "Payables Agent Task";
-        Collection: Codeunit "PA Task Collection";
-        Source: Codeunit "PA Task Source";
-        RejectedSourceIds: List of [Guid];
+        StoredWorkItem: Record "Payables Agent Work Item";
+        Collection: Codeunit "PA Work Item Collection";
+        WorkItem: Codeunit "PA Work Item";
+        VisibleWorkItem: Codeunit "PA Work Item";
+        Found: Boolean;
     begin
-        StoredTask."File Name" := 'rejected.pdf';
-        StoredTask.Insert();
-        Check(Source.Load(StoredTask.SystemId), 'The received source must load before admission.');
+        StoredWorkItem."File Name" := 'rejected.pdf';
+        StoredWorkItem.Insert();
+        Check(WorkItem.Load(StoredWorkItem.SystemId), 'The received source must load before admission.');
 
-        Source.MarkRejected('Rejected by policy');
+        WorkItem.MarkRejected('Rejected by policy');
 
-        StoredTask.Get(StoredTask."Entry No.");
-        Check(StoredTask."Agent Task ID" = 0, 'Rejection must not create or bind an Agent Framework task.');
-        Check(StoredTask."Intake Status" = "PA Task Intake Status"::Rejected, 'The source must persist its rejected status.');
-        Check(StoredTask."Rejection Reason" = 'Rejected by policy', 'The source must persist its rejection reason.');
-        Collection.GetRejectedSourceIds(RejectedSourceIds);
-        Check(RejectedSourceIds.Contains(StoredTask.SystemId), 'The rejected source must remain available to supervision.');
+        StoredWorkItem.Get(StoredWorkItem."Entry No.");
+        Check(StoredWorkItem."Agent Task ID" = 0, 'Rejection must not create or bind an Agent Framework task.');
+        Check(StoredWorkItem."Admission Status" = "PA Work Item Admission Status"::Rejected, 'The source must persist its rejected status.');
+        Check(StoredWorkItem."Rejection Reason" = 'Rejected by policy', 'The source must persist its rejection reason.');
+        Collection.OpenByState("PA Work Item State"::Rejected);
+        while Collection.Next(VisibleWorkItem) do
+            if VisibleWorkItem.GetId() = StoredWorkItem.SystemId then
+                Found := true;
+        Check(Found, 'The rejected source must remain available to supervision.');
     end;
 
     [Test]
@@ -43,10 +47,10 @@ codeunit 133735 "PA Wrapper Contract Tests"
         Stored: Codeunit "PA Setup";
         BeforeMonitoring: Boolean;
     begin
-        Proposal.GetSetup();
+        Proposal.LoadOrCreateSetup();
         BeforeMonitoring := Proposal.GetMonitorOutlook();
         Proposal.SetMonitorOutlook(not BeforeMonitoring);
-        Stored.GetSetup();
+        Stored.LoadOrCreateSetup();
         Check(Stored.GetMonitorOutlook() = BeforeMonitoring, 'Editing a proposal must not persist it.');
         Proposal.PrepareForApply(false);
         Check(not Proposal.GetMonitorOutlook(), 'Deactivation must normalize the proposed monitoring flag.');
@@ -58,10 +62,10 @@ codeunit 133735 "PA Wrapper Contract Tests"
         Proposal: Codeunit "PA Setup";
         Stored: Codeunit "PA Setup";
     begin
-        Proposal.GetSetup();
+        Proposal.LoadOrCreateSetup();
         Proposal.SetMonitorOutlook(true);
         Proposal.ApplySetup(false);
-        Stored.GetSetup();
+        Stored.LoadOrCreateSetup();
         Check(not Stored.GetMonitorOutlook(), 'A disabled configuration cannot persist monitoring on.');
     end;
 
@@ -71,7 +75,7 @@ codeunit 133735 "PA Wrapper Contract Tests"
         Proposal: Codeunit "PA Setup";
         MissingAccountId: Guid;
     begin
-        Proposal.GetSetup();
+        Proposal.LoadOrCreateSetup();
         Proposal.SetMonitorOutlook(true);
         Proposal.SetMailboxSelection(MissingAccountId, '', '');
         Proposal.SetEmailReviewPolicy("PA Email Review Policy"::Always);

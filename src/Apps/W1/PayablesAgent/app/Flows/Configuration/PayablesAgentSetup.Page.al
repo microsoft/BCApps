@@ -610,13 +610,13 @@ page 3304 "Payables Agent Setup"
 
     local procedure CalcOpenAgentDemoGuideVisible()
     begin
-        OpenAgentDemoGuideVisible := PADemoGuide.DemoExperienceAvailable() and not (PATrial.IsEligibleToStart() or PATrial.IsActive());
+        OpenAgentDemoGuideVisible := PADemoGuide.DemoExperienceAvailable() and not (PATrial.IsEligibleToStart() or PATrial.CheckActiveAndEndIfExhausted());
     end;
 
     local procedure CalcTrialExperienceVisible()
     begin
         IsEligibleForTrialVisible := PATrial.IsEligibleToStart();
-        IsInTrialModeVisible := PATrial.IsActive();
+        IsInTrialModeVisible := PATrial.CheckActiveAndEndIfExhausted();
         TrialExperienceVisible := IsEligibleForTrialVisible or IsInTrialModeVisible;
         if IsInTrialModeVisible then
             TrialProgressText := StrSubstNo(TrialProgressLbl, PATrial.GetTrialInvoiceCount(), PATrial.GetTrialInvoiceLimit());

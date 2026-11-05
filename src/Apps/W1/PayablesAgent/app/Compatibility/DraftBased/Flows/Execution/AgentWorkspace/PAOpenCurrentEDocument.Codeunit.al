@@ -39,18 +39,19 @@ codeunit 3308 "PA Open Current E-Document"
 
     local procedure CurrentDocumentNo(): Integer
     var
-        EDocument: Record "E-Document";
-        Task: Codeunit "Payables Agent Task";
-        Source: Codeunit "PA Task Source";
+        AgentAccess: Codeunit "PA Agent Access";
+        WorkItem: Codeunit "PA Work Item";
+        DraftBasedWorkItem: Codeunit "PA Draft Based Work Item";
+        AgentTaskId: BigInteger;
     begin
-        if not Task.LoadCurrentSession() then
+        // UI scoping follows a development simulation as well as the real runtime session.
+        if not AgentAccess.TryGetAgentViewTaskId(AgentTaskId) then
             exit(0);
-        if Task.GetVersion() <> "PA Version"::V1 then
+        if not WorkItem.LoadByAgentTaskId(AgentTaskId) then
             exit(0);
-        Task.GetSource(Source);
-        if EDocument.GetBySystemId(Source.GetId()) then
-            exit(EDocument."Entry No");
-        exit(0);
+        if not DraftBasedWorkItem.Load(WorkItem.GetId()) then
+            exit(0);
+        exit(DraftBasedWorkItem.GetEntryNo());
     end;
 }
 #if not CLEAN27

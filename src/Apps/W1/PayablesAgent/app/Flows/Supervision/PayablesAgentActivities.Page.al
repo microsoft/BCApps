@@ -30,7 +30,7 @@ page 3310 "Payables Agent Activities"
 
                     trigger OnDrillDown()
                     begin
-                        Presentation.DrillDownByState("PA Task State"::"Pending Processing");
+                        Presentation.DrillDownByState("PA Work Item State"::"Pending Processing");
                     end;
                 }
                 field(NeedAttention; NeedAttention)
@@ -41,7 +41,7 @@ page 3310 "Payables Agent Activities"
 
                     trigger OnDrillDown()
                     begin
-                        Presentation.DrillDownByState("PA Task State"::"Needs Attention");
+                        Presentation.DrillDownByState("PA Work Item State"::"Needs Attention");
                     end;
                 }
                 field(ReadyForReview; ReadyForReview)
@@ -52,7 +52,7 @@ page 3310 "Payables Agent Activities"
 
                     trigger OnDrillDown()
                     begin
-                        Presentation.DrillDownByState("PA Task State"::"Ready For Review");
+                        Presentation.DrillDownByState("PA Work Item State"::"Ready For Review");
                     end;
                 }
                 field(ProcessedThisMonth; ProcessedThisMonth)
@@ -63,7 +63,7 @@ page 3310 "Payables Agent Activities"
 
                     trigger OnDrillDown()
                     begin
-                        Presentation.DrillDownByState("PA Task State"::Processed);
+                        Presentation.DrillDownByState("PA Work Item State"::Processed);
                     end;
                 }
                 field(Rejected; Rejected)
@@ -74,7 +74,7 @@ page 3310 "Payables Agent Activities"
 
                     trigger OnDrillDown()
                     begin
-                        Presentation.DrillDownByState("PA Task State"::Rejected);
+                        Presentation.DrillDownByState("PA Work Item State"::Rejected);
                     end;
                 }
             }
@@ -82,15 +82,19 @@ page 3310 "Payables Agent Activities"
         }
     }
     trigger OnOpenPage()
-    begin
-        PendingProcessing := PATaskCollection.CountByState("PA Task State"::"Pending Processing");
-        NeedAttention := PATaskCollection.CountByState("PA Task State"::"Needs Attention");
-        ReadyForReview := PATaskCollection.CountByState("PA Task State"::"Ready For Review");
-        ProcessedThisMonth := PATaskCollection.CountByState("PA Task State"::Processed);
-        Rejected := PATaskCollection.CountByState("PA Task State"::Rejected);
-    end;
     var
-        PATaskCollection: Codeunit "PA Task Collection";
-        Presentation: Codeunit "PA Task Presentation";
+        Counts: Dictionary of [Enum "PA Work Item State", Integer];
+    begin
+        WorkItems.GetCountsByState(Counts);
+        PendingProcessing := Counts.Get("PA Work Item State"::"Pending Processing");
+        NeedAttention := Counts.Get("PA Work Item State"::"Needs Attention");
+        ReadyForReview := Counts.Get("PA Work Item State"::"Ready For Review");
+        ProcessedThisMonth := Counts.Get("PA Work Item State"::Processed);
+        Rejected := Counts.Get("PA Work Item State"::Rejected);
+    end;
+
+    var
+        WorkItems: Codeunit "PA Work Item Collection";
+        Presentation: Codeunit "PA Work Item Presentation";
         PendingProcessing, NeedAttention, ReadyForReview, ProcessedThisMonth, Rejected : Integer;
 }

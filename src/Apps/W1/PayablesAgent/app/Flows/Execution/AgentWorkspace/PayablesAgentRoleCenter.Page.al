@@ -24,12 +24,12 @@ page 3337 "Payables Agent Role Center"
     {
         area(Embedding)
         {
-            action(PayablesAgentTasks)
+            action(PayablesAgentWorkItems)
             {
                 ApplicationArea = All;
-                Caption = 'Payables Agent Tasks';
-                ToolTip = 'View the tasks of the payables agent, what they came from and what they produced.';
-                RunObject = page "Payables Agent Tasks";
+                Caption = 'Payables Agent Work Items';
+                ToolTip = 'View the work items of the payables agent, what they came from and what they produced.';
+                RunObject = page "Payables Agent Work Items";
             }
             action(PurchaseInvoices)
             {

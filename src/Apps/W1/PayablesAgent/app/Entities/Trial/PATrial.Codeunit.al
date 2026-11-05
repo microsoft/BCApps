@@ -73,7 +73,7 @@ codeunit 3318 "PA Trial"
     end;
 
     [Scope('OnPrem')]
-    procedure IsActive(): Boolean
+    procedure CheckActiveAndEndIfExhausted(): Boolean
     var
         StartedText: Text;
         CanContinue: Boolean;

@@ -9,16 +9,12 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 
-// Follows only invoice/credit-memo posting; it neither completes tasks nor commits the posting transaction.
-codeunit 3331 "PA Task Posting"
+// Set-level outcome maintenance follows posting; no task completion, attachments, title updates or commits.
+codeunit 3331 "PA Work Item Posting"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-
-    var
-        EmptyPreviousOutcomeErr: Label 'An existing outcome reference is required for replacement.';
-        InvalidOutcomeErr: Label 'The outcome must be an existing purchase invoice, purchase order, purchase credit memo, posted purchase invoice, or posted purchase credit memo.';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnAfterFinalizePostingOnBeforeCommit, '', false, false)]
     local procedure OnBeforePostingCommit(var PurchHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; PreviewMode: Boolean)
@@ -42,39 +38,18 @@ codeunit 3331 "PA Task Posting"
 
     local procedure ReplaceReferences(PreviousOutcome: RecordId; PostedOutcome: RecordId)
     var
-        StoredTask: Record "Payables Agent Task";
-        DraftBasedTask: Codeunit "PA Draft Based Task";
+        StoredWorkItem: Record "Payables Agent Work Item";
+        DraftBasedWorkItem: Codeunit "PA Draft Based Work Item";
+        PurchaseOutcomes: Codeunit "PA Purchase Outcomes";
+        EmptyPreviousOutcomeErr: Label 'An existing outcome reference is required for replacement.';
     begin
         if PreviousOutcome.TableNo = 0 then
             Error(EmptyPreviousOutcomeErr);
-        ValidateOutcome(PostedOutcome);
+        PurchaseOutcomes.ValidateForRegistration(PostedOutcome);
         if PreviousOutcome = PostedOutcome then
             exit;
-
-        StoredTask.SetRange(Outcome, PreviousOutcome);
-        StoredTask.ModifyAll(Outcome, PostedOutcome);
-        DraftBasedTask.ReplaceOutcomeReferences(PreviousOutcome, PostedOutcome);
-    end;
-
-    local procedure ValidateOutcome(OutcomeRecordId: RecordId)
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PostedInvoice: Record "Purch. Inv. Header";
-        PostedCreditMemo: Record "Purch. Cr. Memo Hdr.";
-    begin
-        PurchaseHeader.ReadIsolation := IsolationLevel::UpdLock;
-        case OutcomeRecordId.TableNo of
-            Database::"Purchase Header":
-                if PurchaseHeader.Get(OutcomeRecordId) then
-                    if PurchaseHeader."Document Type" in [PurchaseHeader."Document Type"::Invoice, PurchaseHeader."Document Type"::Order, PurchaseHeader."Document Type"::"Credit Memo"] then
-                        exit;
-            Database::"Purch. Inv. Header":
-                if PostedInvoice.Get(OutcomeRecordId) then
-                    exit;
-            Database::"Purch. Cr. Memo Hdr.":
-                if PostedCreditMemo.Get(OutcomeRecordId) then
-                    exit;
-        end;
-        Error(InvalidOutcomeErr);
+        StoredWorkItem.SetRange(Outcome, PreviousOutcome);
+        StoredWorkItem.ModifyAll(Outcome, PostedOutcome);
+        DraftBasedWorkItem.ReplaceOutcomeReferences(PreviousOutcome, PostedOutcome);
     end;
 }

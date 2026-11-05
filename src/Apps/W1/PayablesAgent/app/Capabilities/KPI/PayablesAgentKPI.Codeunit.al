@@ -17,12 +17,12 @@ codeunit 3306 "Payables Agent KPI"
     local procedure CountPurchaseInvoiceCreatedByAgent(var Rec: Record "Purchase Header"; RunTrigger: Boolean)
     var
         PayablesAgentKPI: Record "Payables Agent KPI";
-        PayablesAgent: Codeunit "Payables Agent Metadata";
+        AgentAccess: Codeunit "PA Agent Access";
         AgentTaskId: BigInteger;
     begin
         if Rec.IsTemporary() or (Rec."Document Type" <> Rec."Document Type"::Invoice) then
             exit;
-        if not PayablesAgent.IsPayablesAgentSession(AgentTaskId) or (AgentTaskId = 0) then
+        if not AgentAccess.TryGetRuntimeAgentTaskId(AgentTaskId) or (AgentTaskId = 0) then
             exit;
         PayablesAgentKPI.InsertKPIEntry("PA KPI Scenario"::"Purchase Invoices created by Agent");
     end;

@@ -70,8 +70,7 @@ page 3305 "PA Agent Email Task"
                 var
                     WebLink: Text;
                 begin
-                    PATask.GetSource(Source);
-                    WebLink := Presentation.GetEmailWebLink(Source);
+                    WebLink := Presentation.GetEmailWebLink(WorkItem);
                     if WebLink <> '' then
                         HyperLink(WebLink);
                 end;
@@ -86,8 +85,7 @@ page 3305 "PA Agent Email Task"
 
                 trigger OnAction()
                 begin
-                    PATask.GetSource(Source);
-                    Presentation.ViewSourcePdf(Source);
+                    Presentation.ViewSourcePdf(WorkItem);
                 end;
             }
         }
@@ -104,22 +102,20 @@ page 3305 "PA Agent Email Task"
     var
         SenderName: Text;
     begin
-        if not PATask.Load(Rec."Task ID") then
+        if not WorkItem.LoadByAgentTaskId(Rec."Task ID") then
             exit;
-        PATask.GetSource(Source);
-        EmailFrom := Source.GetEmailFrom();
-        SenderName := Source.GetSenderName();
+        EmailFrom := WorkItem.GetEmailFrom();
+        SenderName := WorkItem.GetSenderName();
         if SenderName <> '' then
             EmailFrom := StrSubstNo(EmailFromTxt, SenderName, EmailFrom);
-        EmailSubject := Source.GetEmailSubject();
-        EmailContent := Source.GetSourceEmailBody();
-        ViewPDFVisible := Source.HasPdf();
+        EmailSubject := WorkItem.GetEmailSubject();
+        EmailContent := WorkItem.GetSourceEmailBody();
+        ViewPDFVisible := WorkItem.HasPdf();
     end;
 
     var
-        PATask: Codeunit "Payables Agent Task";
-        Source: Codeunit "PA Task Source";
-        Presentation: Codeunit "PA Task Presentation";
+        WorkItem: Codeunit "PA Work Item";
+        Presentation: Codeunit "PA Work Item Presentation";
         EmailSubject: Text;
         EmailFrom: Text;
         EmailContent: Text;
@@ -130,12 +126,11 @@ page 3305 "PA Agent Email Task"
 
     local procedure GetCaption(): Text[250]
     var
-        CaptionPATask: Codeunit "Payables Agent Task";
-        CaptionSource: Codeunit "PA Task Source";
+        CaptionWorkItem: Codeunit "PA Work Item";
     begin
-        if CaptionPATask.Load(Rec."Task ID") then;
-        CaptionPATask.GetSource(CaptionSource);
-        if CaptionSource.HasPdf() then
+        if not CaptionWorkItem.LoadByAgentTaskId(Rec."Task ID") then
+            exit(NoPDFReceivedFromEmailTxt);
+        if CaptionWorkItem.HasPdf() then
             exit(PDFReceivedFromEmailTxt);
         exit(NoPDFReceivedFromEmailTxt);
     end;

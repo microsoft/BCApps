@@ -11,7 +11,7 @@ page 3338 "PA Email Review"
     PageType = Card;
     ApplicationArea = All;
     UsageCategory = None;
-    SourceTable = "PA Detailed Task";
+    SourceTable = "PA Work Item List Row";
     SourceTableTemporary = true;
     Editable = false;
     InsertAllowed = false;
@@ -64,35 +64,33 @@ page 3338 "PA Email Review"
         EmailFrom := Rec."Email From";
         if Rec."Sender Name" <> '' then
             EmailFrom := StrSubstNo(EmailFromTxt, Rec."Sender Name", Rec."Email From");
-        EmailBody := Source.GetSourceEmailBody();
+        EmailBody := WorkItem.GetSourceEmailBody();
         DisplaySubject := Rec."Email Subject";
         if (EmailFrom = '') and (DisplaySubject = '') and (EmailBody = '') then
             DisplaySubject := EmailNotAvailableTxt;
     end;
 
     var
-        Task: Codeunit "Payables Agent Task";
-        Source: Codeunit "PA Task Source";
-        TaskNotFoundErr: Label 'The task does not exist.';
+        WorkItem: Codeunit "PA Work Item";
+        WorkItemNotFoundErr: Label 'The work item does not exist.';
         EmailFrom: Text;
         EmailBody: Text;
         DisplaySubject: Text;
         EmailNotAvailableTxt: Label 'This email is no longer available.';
         EmailFromTxt: Label '%1 <%2>', Comment = '%1 = sender name, %2 = sender address';
 
-    internal procedure SetTask(NewTask: Codeunit "Payables Agent Task")
+    internal procedure SetWorkItem(NewWorkItem: Codeunit "PA Work Item")
     var
-        Presentation: Codeunit "PA Task Presentation";
+        Presentation: Codeunit "PA Work Item Presentation";
     begin
         // Pin this page to its own task handle rather than retain the caller's mutable wrapper.
-        if not Task.Load(NewTask.GetAgentTaskId()) then
-            Error(TaskNotFoundErr);
-        Task.GetSource(Source);
+        if not WorkItem.Load(NewWorkItem.GetId()) then
+            Error(WorkItemNotFoundErr);
         Rec.Reset();
         Rec.DeleteAll();
         Rec.Init();
         Rec."Entry No." := 1;
-        Presentation.PopulateListRow(Rec, Task);
+        Presentation.PopulateRow(Rec, WorkItem);
         Rec.Insert();
     end;
 }

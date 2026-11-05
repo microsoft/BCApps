@@ -149,7 +149,6 @@ codeunit 3321 "PA Setup Update Parameters"
         exit(TrialUploadPending);
     end;
 
-    // Retrieval does not consume the upload; the flow clears it only after successful handoff.
     procedure TryGetTrialUpload(var FileName: Text; var TempBlob: Codeunit "Temp Blob"): Boolean
     begin
         Clear(FileName);

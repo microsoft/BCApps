@@ -36,21 +36,17 @@ codeunit 3351 "PA Known Senders"
         exit("PA Setup Change Impact"::None);
     end;
 
-    /// <summary>
-    /// Only emails are subject to review. A configured subfolder explicitly trusts its contents; otherwise
-    /// sender authentication, policy and the known-senders list determine whether supervisor review is needed.
-    /// </summary>
-    internal procedure ShouldRequestReview(Source: Codeunit "PA Task Source"): Boolean
+    internal procedure ShouldRequestReview(WorkItem: Codeunit "PA Work Item"): Boolean
     var
         KnownSender: Record "PA Known Sender";
         PASetup: Codeunit "PA Setup";
         HeaderValue: Text;
         SenderAuthenticated: Boolean;
     begin
-        if Source.GetSourceType() <> "PA Source Type"::Email then
+        if WorkItem.GetSourceType() <> "PA Source Type"::Email then
             exit(false);
 
-        PASetup.GetSetup();
+        PASetup.LoadOrCreateSetup();
         case PASetup.GetEmailReviewPolicy() of
             "PA Email Review Policy"::Always,
             "PA Email Review Policy"::Unset:
@@ -60,24 +56,24 @@ codeunit 3351 "PA Known Senders"
         end;
         if PASetup.GetEmailFolder() <> '' then
             exit(false);
-        if Source.TryGetEmailHeader('Authentication-Results', HeaderValue) then
+        if WorkItem.TryGetEmailHeader('Authentication-Results', HeaderValue) then
             SenderAuthenticated := CompAuthPassed(HeaderValue);
         if not SenderAuthenticated then
-            SenderAuthenticated := IsSenderInternal(Source);
+            SenderAuthenticated := IsSenderInternal(WorkItem);
         if not SenderAuthenticated then
             exit(true);
-        if KnownSender.GetForSource(Source, KnownSender) then
+        if KnownSender.GetForWorkItem(WorkItem, KnownSender) then
             exit(KnownSender."Sender Policy" <> "PA Sender Policy"::Approve);
-        if IsSenderInternal(Source) then
+        if IsSenderInternal(WorkItem) then
             exit(false);
         exit(true);
     end;
 
-    local procedure IsSenderInternal(Source: Codeunit "PA Task Source"): Boolean
+    local procedure IsSenderInternal(WorkItem: Codeunit "PA Work Item"): Boolean
     var
         HeaderValue: Text;
     begin
-        if Source.TryGetEmailHeader('X-MS-Exchange-Organization-AuthAs', HeaderValue) then
+        if WorkItem.TryGetEmailHeader('X-MS-Exchange-Organization-AuthAs', HeaderValue) then
             exit(LowerCase(HeaderValue).Trim() = 'internal');
         exit(false);
     end;

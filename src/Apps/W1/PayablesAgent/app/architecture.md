@@ -20,7 +20,7 @@ The Payables Agent supports the following user-level capabilities:
 
 ### Payables Agent V1 and V2
 
-There are two versions of the Payables Agent, distinguished by the entity that they base their work on. In version 1, the agent operates by receiving an "E-Document" (which in practice is limited to only PDFs received via e-mail or uploaded manually) and creates a Purchase Invoice by processing the E-Document. In version 2, the input is represented by a "Payables Agent Task" and the agent user directly creates the Purchase Invoice.
+There are two versions of the Payables Agent, distinguished by the entity that they base their work on. In version 1, the agent operates by receiving an "E-Document" (which in practice is limited to only PDFs received via e-mail or uploaded manually) and creates a Purchase Invoice by processing the E-Document. In version 2, the received document is represented by a Payables Agent Work Item and the agent user directly creates the Purchase Invoice. The app-owned Work Item entity also gives V1 E-Documents a common PA-facing lifecycle.
 
 #### Version 1: Draft-based Payables Agent
 
@@ -32,11 +32,11 @@ After the E-Document processing pipeline has done it's best, the BC-agent-framew
 
 Once the user is satisfied with the values in the draft page, the agent proceeds with E-Document finalization, which creates a Purchase Invoice or, for a recognized vendor credit note, a Purchase Credit Memo. The E-Document pipeline owns credit-note classification, amount normalization and application to the referenced posted invoice.
 
-> Note: Within this version, there is an ECS experiment that skips the E-Document logic that fills in values and changes the agent prompt to do this logic itself instead. 
+> Note: Within this version, there is an ECS experiment that skips the E-Document-owned logic that fills in values and changes the agent prompt to do this logic itself instead.
 
 #### Version 2: Payables Agent
 
-In this version, the entity at the center is the Payables Agent Task. Defined in this AL app. There is no involvement of the E-Document framework.
+In this version, the entity at the center is the Payables Agent Work Item, backed by an app-owned record. There is no involvement of the E-Document processing framework.
 
 The agent task is created with direct information about its source, the agent user directly consults it, and creates the appropriate Purchase Invoice directly, without any draft page. Credit memo creation is not supported in version 2.
 
@@ -53,6 +53,7 @@ Current gaps of version 2 with respect to version 1, and their plan:
 
 ### Flows
 
+TODO: what is a good definition of a flow?
 These are the high-level flows that can be found in this AL app:
 
 - Registration of the agent: Platform-hooks for registering the BC-agent-runtime agent.
@@ -90,6 +91,7 @@ Application-wide mechanisms support several owners without deciding a business s
 
 - Telemetry: Root `PA Telemetry` emits shared flow/capability and operational events and supplies the common category dimensions. Draft-based billing and demo-email events are emitted by `PA Draft Based Telemetry` within Compatibility, reusing those shared dimensions.
 - Security: Declares agent and human permission sets, entitlements and access surfaces. Configuration owns the flow for obtaining consent and assigning access.
+- Outcomes: Stateless purchase-document outcome validation and document/vendor facts, with data-only temporary output. These support entity invariants, execution and presentation without representing Work Item state.
 
 Feature-specific integration, such as a feature's audit event, can remain with its flow, entity or capability owner.
 
@@ -105,21 +107,33 @@ Clean-up tool for a livesite problem: Technically not a concern of this AL app, 
 
 Across the flows and cross-cutting concerns, data persistance may be required. This is done via entities, owning state, invariants independent of their consumers. These materialize in different patterns of AL constructs:
 - Tables: If derived state is required for a specific instance, it can live as part of the state of the record.
-- Wrapping codeunits: Another approach is to wrap the table, and have derived state live also here as getters that read the appropriate state. This pattern is heavier, but aids in treating under the same contract entities with different backing tables as the v1-v2 change requires.
+- Wrapping codeunits: Another approach is to wrap the table, and have derived state live also here as getters that read the appropriate state. This pattern is heavier, but aids in treating under the same contract entities stored in different tables as the v1-v2 change requires.
 - Wrapping temporary tables: This approach is used only to supply AL pages that are backed by such table. Useful for pages showing derived values, which we would like sort by.
 
-Entity wrappers own data access, updates and persisted invariants, hiding their backing representations. The Task Source wrapper owns its V2 backing directly and delegates V1 E-Document reads and source creation to the draft-based source adapter; it does not start the V1 import pipeline. Navigation, formatting and caller-specific enrichment belong to consumers. `PA Detailed Task` is only the temporary, sortable backing of task list pages; other code consumes task/source getters directly.
+Entities own persistence access and operations required to prevent invalid stored state, including relationships across their stored records. They may also expose queries and derived facts. They do not own an entire scenario merely because that scenario ultimately writes their records. Intake policy, trial/billing, runtime setup and UI sequencing are orchestrated by flows that depend on entities, never by entities calling back into those flows. Optional entity regions separate stored state, loading/identity, queries and persisted commands. Private helper groups should name their actual responsibility; Work Item uses agent-task validation, email metadata cache, and handle lifecycle guards/reset rather than an opaque implementation bucket.
 
-The Setup wrapper may hold an invalid editable proposal, but applying it persists settings and configures backing monitoring together: disabling the agent also disables monitoring, and requesting monitoring on v2 fails until its importer exists. The setup page uses a temporary `Payables Agent Setup` record for the platform UI and initializes it from a read-only Setup projection. Before applying changes or opening the sample guide, the page translates only editable fields into semantic setters on `PA Setup Update Parameters`; no backing-table record is transported through that flow. `PA Setup` also owns the company-to-framework-Agent association: `TryFindAgent` is a read-only lookup by stored user ID with a company-name fallback, while `FindAgentAndReconcileSetup` explicitly creates/repairs the persisted association. The latter uses separate stored records so it does not overwrite an editable proposal. Registration metadata owns the agent display name and summary. `PA Setup Update Parameters` initializes the proposal and framework buffer from stored state; initialization may create the setup singleton and reconcile the agent association unless agent configuration is skipped. It is a request for the configuration flow, not a persisted entity. `PA Setup Update` owns consent, runtime configuration and operation order; wrappers do not commit.
+`PA Work Item` is the single semantic entity for received, rejected and accepted material. It owns its V2 table and delegates V1 E-Document persistence/correlation to `PA Draft Based Work Item`. `PA Work Item List Row` is only a temporary sortable UI projection; `PA Purchase Outcome Facts` is data-only output from stateless purchase-reference queries. Neither is another persisted entity.
 
-A received Task Source exists before admission and may be accepted or rejected. Intake evaluates external policy such as known senders, setup, trial and agent availability. For a V1 PDF upload, Intake first creates the source, then calls the draft-based intake operation to process the E-Document; its import subscriber calls the same authoritative Intake entry point to create the Agent Framework task. V2 intake creates that task directly after source creation. Acceptance binds the source exactly once. The accepted Task aggregate has one identity, the Agent Framework Task ID, and loads the framework task together with exactly one v1 or v2 source backing. Historical v1 and current v2 tasks therefore share one list without copying e-documents into the v2 table; task capabilities disable actions unsupported by a particular version. Rejected v2 sources remain visible as rejected intake rows without pretending to have an Agent Framework task.
+The Setup wrapper may hold an invalid editable proposal, but applying it persists settings and configures version-specific mailbox monitoring together: disabling the agent also disables monitoring, and requesting monitoring on v2 fails until its importer exists. The setup page uses a temporary `Payables Agent Setup` record for the platform UI and initializes it from a read-only Setup projection. Before applying changes or opening the sample guide, the page translates only editable fields into semantic setters on `PA Setup Update Parameters`; no stored setup record is transported through that flow. `PA Setup` also owns the company-to-framework-Agent association: `TryFindAgent` is a read-only lookup by stored user ID with a company-name fallback, while `FindAgentAndReconcileSetup` explicitly creates/repairs the persisted association. The latter uses separate stored records so it does not overwrite an editable proposal. Registration metadata owns the agent display name and summary. `PA Setup Update Parameters` initializes the proposal and framework buffer from stored state; initialization reads stored state/defaults without creating the setup singleton or reconciling its agent association. It is a request for the configuration flow, not a persisted entity. `PA Setup Update` owns consent, runtime configuration and operation order; wrappers do not commit.
 
-Task mutations reload current state and update only their intended fields. Outcomes must refer to existing purchase invoices, orders, credit memos, posted purchase invoices or posted purchase credit memos; the caller judges business completeness. Only V2 accepts explicit outcome registration; V1 gets its outcome through E-Document finalization. Until the Agent Framework can attach the source PDF to a V2 outcome, the Task entity attaches it during outcome registration through a private helper in its `Agent runtime limitations` region. A posting subscriber conditionally replaces invoice/credit-memo outcome references before the posting commit, ignoring preview and order posting. This is an explicit set-level exception to per-task backing access: the posting flow updates every V2 task row and AGENT-service V1 E-Document still referencing the old outcome, without invoking per-task registration, PDF attachment or title updates.
+Work Item identity is the SystemId of its stored record: the existing E-Document GUID in V1 or table 3327's SystemId in V2. `Load(Guid)` is the document-side entry; `LoadByAgentTaskId(BigInteger)` and `LoadCurrentSession` resolve the same entity from a framework association.
+
+The current agent session has one home, `PA Agent Access` (Shared/Security), with two deliberately separate questions:
+
+- `TryGetRuntimeAgentTaskId`: the real Payables Agent runtime only. Billing, KPI, V1 document binding and `PA Work Item.LoadCurrentSession` use it; they must never act on a simulation.
+- `TryGetAgentViewTaskId` / `IsAgentView`: what agent-facing UI behaves as. In DEVELOPMENT this falls back to the development settings' simulated agent task, so the work item list and counts, the V1 current E-Document scoping, agent-only actions and hidden supervisor actions match a real agent session. Simulation without a task sees no work items. Runtime association validates company, PA ownership and exactly one stored record. V1 retains its existing numeric external/message correlation; no E-Document copying or identity migration is introduced. V2 keeps its stored association and admission fields. Missing V1 tasks are not reinterpreted as historical policy rejection.
+
+`PA Work Item Intake` coordinates source acquisition, admission policy, runtime instructions, trial/billing and framework task construction. `ReceivePdf` and `Admit` use the same Work Item handle before and after acceptance. V1 import orchestration stays in its compatibility flow; its subscriber invokes authoritative admission. The entity's association/rejection commands preserve stored-record invariants without importing documents, consuming trial, creating runtime tasks or committing.
+
+Work Item mutations reload the current stored record and patch only their intended fields. Registering an outcome validates an existing supported purchase reference; business completeness remains the caller's concern. `PA Purchase Outcomes` under `Shared/Outcomes` is stateless and centralizes that validation and document facts; its temporary facts type belongs to the same supporting mechanism, not the Work Item entity. `PA Work Item Outcome` orchestrates registration, source attachment and framework title synchronization. Its isolated runtime-attachment bridge retains direct access to the V2 entry number solely to preserve the existing attachment naming/idempotency scheme until the framework owns attachments.
+
+The posting flow follows invoice/credit-memo references before commit, ignoring preview/order posting. Its deliberate set-level stored-record write exception updates V2 rows and AGENT-service V1 documents, without per-item attachment, title updates or commits.
+
+Collection owns scoped enumeration/counts and yields loaded Work Items directly to presentation. To preserve existing behavior, supervision still lists accepted framework-backed work and rejected V2 receipts, not every unaccepted V1 E-Document. State mapping and the unfiltered monthly cue remain as acknowledged in `ack-v1-preserved-gaps.md`. Metadata is a lazy snapshot per Work Item handle and is invalidated on load/refresh.
 
 Currently the identified entities are:
 - Setup: Agent's configured state and derived views of that configuration.
-- Task Source: Received source information before admission, backed by the active version's source records.
-- Task: An accepted Agent Framework task together with exactly one v1 or v2 source backing, runtime and outcome associations, and derived lifecycle views.
+- Work Item: A received document across admission, execution and outcome, with a GUID identity, version-specific storage and optional framework task association.
 - KnownSender: Senders that we have received tasks from in the past and their assigned handling policies.
 - KPI: Aggregate and individual KPI entries, with insertion and aggregate lookup owned by the record itself. Historical KPI migrations remain in Upgrade.
 - Trial: Eligibility and per-company trial state in isolated storage, including starting, consumption, expiration and reset. Telemetry is emitted through Shared/Telemetry rather than through Registration.
@@ -137,14 +151,13 @@ Flows/
     Intake/
     Execution/
         AgentWorkspace/                 Agent profile, role center and agent-only dialog
-        Supporting/                     Execution processing (e.g. PDF text extraction)
+        Supporting/                     Runtime callbacks, extraction, outcome/posting support and agent permissions
     Supervision/                        Human task monitoring and shared task-list presentation
     Upgrade/
 
 Entities/
     Setup/
-    Task/
-    TaskSource/
+    WorkItem/                           Entity, table and collection
     KnownSender/
     KPI/                                KPI record, scenario enum and record operations
     Trial/                              Trial state and lifecycle
@@ -155,9 +168,10 @@ Capabilities/
     Feedback/
 
 Shared/
+    Outcomes/                           Stateless validation and data-only facts for purchase-document outcomes
     Telemetry/                           Shared emission and dimensions, grouped by flow and capability
     Security/                           Shared human roles and V2 agent permission sets
-    Versioning/                         Shared V1/V2 selection and vocabulary, not V1-only behavior
+    Versioning/                         Active V1/V2 selection and stored work-item version lookup
 
 Compatibility/
     DraftBased/                         Irreducibly V1/E-Document behavior and declarative surfaces
@@ -168,7 +182,7 @@ Compatibility/
             Execution/
                 AgentWorkspace/                 V1 draft, purchase invoice and purchase credit memo customizations
         Entities/
-            TaskSource/                 V1 E-Document source backing adapter
+            WorkItem/                   V1 E-Document storage and legacy correlation
         Capabilities/
             Billing/
         Shared/
@@ -182,19 +196,19 @@ Operations/
 TestSupport/                            App-owned semantic fixture API and version dispatch for test apps
 
 _Development/                           DEVELOPMENT-only objects (underscore retained)
-_Obsolete/                              Historical schema/lifecycle objects (underscore retained)
+_Obsolete/                              Whole-object obsoletion only; active owners retain obsolete members
 .resources/
 ```
 
-Setup and Task entities use the shared version selector. Keeping that selector under Shared avoids making entities depend on a registration flow; registering the agent still belongs to Flows/Registration.
+Setup and Work Item creation use the shared version selector; existing Work Items resolve the version they are stored in. Keeping that selector under Shared avoids making entities depend on a registration flow; registering the agent still belongs to Flows/Registration.
 
-`Payables Agent Tasks` is one page shared by people and the agent. Its list, sortable temporary backing and presentation helper are under Supervision by dominant use; the page still hosts intake actions and an agent-only extraction workaround. `PA Register Outcome` stays in the agent workspace. V1-only profile, page customizations and agent permission sets remain in Compatibility, in a structure parallel to the populated root areas; shared human permission sets stay at the root. The V1/V2 Setup and Task wrappers retain backing access in Entities.
+`Payables Agent Work Items` is one page shared by people and the agent. Its list, sortable temporary list rows and presentation helper are under Supervision by dominant use; the page still hosts intake actions and an agent-only extraction workaround. `PA Register Outcome` stays in the agent workspace. V1-only profile, page customizations and agent permission sets remain in Compatibility, in a structure parallel to the populated root areas; shared human permission sets stay at the root. Setup and Work Item retain table access in Entities; the temporary outcome bridge and posting exceptions are explicitly gated.
 
 Declarative objects directly bound to draft-based surfaces, such as profiles and page customizations, remain draft-based when their definitions cannot be shared; a shared helper does not make the containing object version-neutral.
 
 ## Other code conventions
 - All code is `internal` when possible (pages can't be), the extensibility of the agents is a separate story and not done via traditional AL customizations.
-- AI tests use app-owned semantic fixture entry points. `TestSupport` hides version dispatch, while backing-specific fixture implementations stay under the corresponding compatibility boundary; the AI test app does not reference E-Document backing records directly. Some BCApps non-AI wrapper contract tests still inspect V2 backing data directly; treat those as explicit test-boundary review items, not examples for new AI tests.
+- AI tests use app-owned semantic fixture entry points. `TestSupport` hides version dispatch, while version-specific fixture implementations stay under the corresponding compatibility boundary; the AI test app does not reference E-Document records directly. Some BCApps non-AI wrapper contract tests still inspect V2 table data directly; treat those as explicit test-boundary review items, not examples for new AI tests.
 - var block location
 
 ### Architectural static validations
@@ -203,7 +217,6 @@ Declarative objects directly bound to draft-based surfaces, such as profiles and
 
 ```powershell
 ./build/scripts/Test-PayablesAgentArchitecture.ps1
-./build/scripts/Test-PayablesAgentArchitecture.ps1 -WarningsAsErrors
 $architectureTests = Get-ChildItem ./build/scripts/tests/ALArchitecture*.Test.ps1
 Invoke-Pester -Script $architectureTests.FullName
 ```
@@ -212,45 +225,25 @@ Paths above are repository-relative. CI runs the same entry point in PR validati
 
 #### Small checks, not another AL parser
 
-The checker masks comments and single-quoted strings, preserving line numbers. Quoted identifiers are opaque, including embedded comment markers and escaped quotes. Object declarations must start on conventional declaration lines. All preprocessor branches are scanned; the checker does not evaluate AL expressions or bind symbols through `using` directives.
+`PA V1V2 Flag` hosts both `IsV2Active()` and `GetVersion(Guid)`. Active selection is Boolean; version lookup returns 1/2 and 0 for not found. There is no shared `PA Version` enum or separate diagnostics codeunit. Work Item uses private loaded/V2 flags; the development override retains a local default/V1/V2 option with ordinal values 0/1/2.
 
-- **Local dependencies** (`check: dependencies`): `from` selects callers and `to` selects target objects by app-relative paths and optional object kinds. References are matched by **type and name**, so `Record "Payables Agent Task"` is not a dependency on the same-named codeunit. Explicit typed references/object constants, direct object-valued properties (`SourceTable`, navigation, `RoleCenter`, `Profile`), simple `TableRelation = Table[.Field]`, and extension/customization targets are recognized. A short `symbols` list of `{ kind, name }` can replace `to` for framework contracts such as task builders. There is no external source scan.
-- **External boundaries** (`check: namespaces`): namespace imports, declarations and fully qualified uses are a conservative proxy for an external dependency, even for unused imports. Prefixes include child namespaces, but not similarly named siblings. E-Document namespaces are checked separately from local dependencies. Other external boundaries can use the same check without adding catalogs.
-- **Object properties** (`check: properties`): require explicit, unconditional object-header properties. `Access = Internal` applies only to supporting kinds; `Extensible = false` applies to pages, tables and enums. Specific temporary table/page projections are pinned independently. Values are booleans or simple unquoted AL identifiers, not general AL expressions. Field/control properties cannot satisfy an object property requirement.
-- **Code ownership** (`check: forbiddenCode`): small, named code-pattern policies reject explicit entity commits and interactive UI, and centralize telemetry emission. They examine code with comments, strings and quoted identifiers masked, not procedure bodies or a call graph.
-- **Development isolation** (`check: developmentOnly`): `_Development` files require a whole-file `#if DEVELOPMENT` wrapper, without an outer `#else` or code after its closing directive.
-- **Manifest policy** (`check: manifest`): restrict friend-app IDs, test-library dependencies and production preprocessor symbols.
-- **Placement** (`check: placement`): require the app namespace and approved owner paths. Existing `_Obsolete` paths are explicitly listed, preventing that directory from becoming a home for new code.
+PA024 restricts calls to the reserved `GetVersion` member name (including quoted syntax) to telemetry/semantic fixtures, independently of access to the common version codeunit. It is a bounded method-name convention, not receiver/type binding. Work Item itself exposes no version getter. PA025 pins its exported API as explicit one-line procedure declarations, including parameter/return types, so a new text or Boolean version alias requires a conscious contract change. Local helpers remain implementation details. This is a conservative declaration-pattern policy, not AL symbol binding or a call-graph parser; unsupported/multiline exported declarations fail closed. Negative tests exercise these boundaries in `build/scripts/tests/ALArchitectureWorkItem.Test.ps1`.
 
-Selectors have required `paths` and optional `kinds`. Fields are ANDed, array entries are ORed. Only case-insensitive `*` and `?` globs are supported; **`*` spans directories** (there is no separate `**` syntax). File selectors are app-relative forward-slash paths. A rule whose source selector matches nothing, or whose dependency target selector matches no objects, fails configuration validation.
+PA027 applies the whole-file obsoletion heuristic: a negative CLEAN/CLEANSCHEMA guard enclosing all non-comment content belongs under `_Obsolete/`. It does not evaluate conditions or classify object/member obsoletion; see `_Obsolete/README.md`.
 
-Example local boundary:
+`Execution/Supporting` retains its previous locations and validations; the separate PA026 allowlist was reverted. Its README distinguishes current temporary bridges from normal integration. The agent should behave through the user UI, not acquire server-side business reasoning through this folder.
 
-```json
-{
-    "id": "PA005",
-    "check": "dependencies",
-    "description": "Entities must not depend on flow implementations.",
-    "severity": "warning",
-    "from": { "paths": ["Entities/*"] },
-    "to": { "paths": ["Flows/*", "Compatibility/DraftBased/*"] },
-    "exceptions": [
-        {
-            "from": { "paths": ["Entities/TaskSource/PATaskSource.Codeunit.al"] },
-            "target": "Compatibility/DraftBased/Entities/TaskSource/PADraftBasedTaskSource.Codeunit.al",
-            "reason": "The source wrapper delegates its V1 backing representation to this adapter."
-        }
-    ]
-}
-```
+The existing DEVELOPMENT manifest override is still a blocking PA017 finding in this working tree; these refactors do not relax production policy.
 
-Exceptions need a source selector and a reason; an optional `target` glob narrows them. Dependency targets are object paths (or `kind:name` for explicit symbols), namespace targets are configured prefixes, property targets are property names, and manifest targets use `symbol:`, `friend:` or `dependency:` prefixes. Exceptions that no longer suppress a finding fail the gate, including on warning rules. Temporary backing references and declarative grants need explicit exceptions rather than inferred exemptions.
 
-#### Deliberate limitations and rollout
+# Decision guides
 
-This gate does **not** resolve numeric/dynamic object IDs, indirect calls, aliases, implicit enum expressions, page parts/dataitems, compound/qualified table relations, CalcFormula expressions, transitive commits, effective action visibility or persisted-versus-temporary use. Explicitly qualified local references can be compared with the declared target namespace, but unqualified same-type/same-name objects are conservatively potential matches; no namespace binding is attempted. These limitations belong in a future custom analyzer, not an expanding PowerShell parser.
+## When is a procedure internal, local, or public?
 
-The original cleanup boundaries remain warnings until their callers are migrated. Visibility/extensibility, fixture isolation, entity commit/UI ownership, telemetry ownership, development wrappers, manifest access and projection contracts are blocking. Historical non-extensible-property exceptions name only existing obsolete files. The `DEVELOPMENT` manifest rule is temporarily a warning: the base-block's V2 evaluation override currently requires that symbol. Removing it must be coordinated with a production-safe evaluation/version-selection seam, not done as a static-check side effect.
+## Comments discipline
 
-The NAV AI-test app owns its own gate; BCApps does not depend on that private checkout. The reusable namespace and manifest checks can enforce the same E-Document isolation there. V1/V2 behavior, diagnostics semantics, monitoring reconciliation and task invariants remain responsibilities of AL contract tests and scenario runs, not these textual checks.
+## Order of procedures in an object
 
+## Where are the boundaries of the responsibilities of an Entity?
+
+An entity owns procedures needed to prevent invalid state from being persisted in its represented records and relationships, plus practical queries over that state. Cross-owner policy, billing, runtime configuration, navigation and presentation remain scenario orchestration. A Work Item can exist without an Agent Framework task; the association is a lifecycle fact, not its identity.

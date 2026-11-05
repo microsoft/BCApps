@@ -8,9 +8,9 @@ namespace Microsoft.Agent.PayablesAgent;
 using Microsoft.Purchases.Vendor;
 using System.Agents;
 
-table 3332 "PA Detailed Task"
+table 3332 "PA Work Item List Row"
 {
-    Caption = 'Payables Agent Task';
+    Caption = 'Payables Agent Work Item';
     Access = Internal;
     InherentEntitlements = RIMDX;
     InherentPermissions = RIMDX;
@@ -25,9 +25,9 @@ table 3332 "PA Detailed Task"
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
         }
-        field(2; "Source Id"; Guid)
+        field(2; "Work Item ID"; Guid)
         {
-            Caption = 'Source Id';
+            Caption = 'Work Item ID';
             DataClassification = SystemMetadata;
         }
         field(4; "Agent Task ID"; BigInteger)
@@ -52,7 +52,7 @@ table 3332 "PA Detailed Task"
             DataClassification = SystemMetadata;
         }
         /// <summary>
-        /// The vendor of the Purchase Invoice registered as the outcome.
+        /// The vendor of the purchase document registered as the outcome.
         /// </summary>
         field(10; "Vendor No."; Code[20])
         {
@@ -125,7 +125,7 @@ table 3332 "PA Detailed Task"
             Caption = 'Has Agent Task';
             DataClassification = SystemMetadata;
         }
-        field(34; State; Enum "PA Task State")
+        field(34; State; Enum "PA Work Item State")
         {
             Caption = 'State';
             DataClassification = SystemMetadata;
@@ -140,9 +140,9 @@ table 3332 "PA Detailed Task"
             Caption = 'Can Register Outcome';
             DataClassification = SystemMetadata;
         }
-        field(37; "Intake Status"; Enum "PA Task Intake Status")
+        field(37; "Admission Status"; Enum "PA Work Item Admission Status")
         {
-            Caption = 'Intake Status';
+            Caption = 'Admission Status';
             DataClassification = SystemMetadata;
         }
         field(38; "Rejection Reason"; Text[250])

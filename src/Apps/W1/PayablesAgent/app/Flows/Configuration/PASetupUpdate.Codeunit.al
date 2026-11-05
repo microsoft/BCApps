@@ -108,6 +108,8 @@ codeunit 3344 "PA Setup Update"
     begin
         if DesiredSetup.GetEmailMonitoringConsent() then
             exit(true);
+        if not GuiAllowed() then
+            exit(false);
         if not CustomerConsentMgt.ConfirmUserConsentToMicrosoftService() then
             exit(false);
         DesiredSetup.SetEmailMonitoringConsent(true);
@@ -207,7 +209,7 @@ codeunit 3344 "PA Setup Update"
     local procedure ProcessTrialUploadIfPending(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
     var
         TempBlob: Codeunit "Temp Blob";
-        PATaskIntake: Codeunit "PA Task Intake";
+        WorkItemIntake: Codeunit "PA Work Item Intake";
         FileName: Text;
         InStream: InStream;
     begin
@@ -215,7 +217,7 @@ codeunit 3344 "PA Setup Update"
             exit;
 
         TempBlob.CreateInStream(InStream);
-        PATaskIntake.CreateTask(FileName, InStream);
+        WorkItemIntake.ReceivePdf(FileName, InStream);
         PATelemetry.LogTrialUpload();
 
         PASetupUpdateParameters.ClearTrialUpload();

@@ -8,7 +8,7 @@ namespace Microsoft.Agent.PayablesAgent;
 using System.Agents;
 using System.Agents.TaskPane;
 
-codeunit 3327 "PA Task Upload"
+codeunit 3327 "PA Work Item Upload"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -20,17 +20,17 @@ codeunit 3327 "PA Task Upload"
 
     internal procedure UploadInvoiceWithAgent(): Boolean
     var
-        SourceId: Guid;
+        WorkItemId: Guid;
     begin
-        exit(UploadInvoiceWithAgent(SourceId));
+        exit(UploadInvoiceWithAgent(WorkItemId));
     end;
 
-    internal procedure UploadInvoiceWithAgent(var SourceId: Guid): Boolean
+    internal procedure UploadInvoiceWithAgent(var WorkItemId: Guid): Boolean
     var
         PayablesAgent: Codeunit "Payables Agent Metadata";
         PAAgentAccess: Codeunit "PA Agent Access";
         PASetupUpdate: Codeunit "PA Setup Update";
-        PATaskIntake: Codeunit "PA Task Intake";
+        WorkItemIntake: Codeunit "PA Work Item Intake";
         PATelemetry: Codeunit "PA Telemetry";
         PATrialGuide: Page "PA Trial Guide";
         FileName: Text;
@@ -38,7 +38,7 @@ codeunit 3327 "PA Task Upload"
         AlreadyActivated: Boolean;
         AgentExistInEnvironment: Boolean;
     begin
-        Clear(SourceId);
+        Clear(WorkItemId);
         if not PAAgentAccess.CanShowAgentActions() then
             exit(false);
         if not UploadIntoStream(SelectFileLbl, '', PdfFileFilterLbl, FileName, InStream) then
@@ -46,7 +46,7 @@ codeunit 3327 "PA Task Upload"
 
         AgentExistInEnvironment := PayablesAgent.PayablesAgentExistsAcrossAllCompanies();
         PASetupUpdate.EnsureActivated(AlreadyActivated);
-        SourceId := PATaskIntake.CreateTask(FileName, InStream);
+        WorkItemId := WorkItemIntake.ReceivePdf(FileName, InStream);
         PATelemetry.LogInvoiceUploaded();
 
         if not AgentExistInEnvironment then begin

@@ -61,17 +61,9 @@ table 3308 "PA Known Sender"
         SenderAddedAuditLbl: Label 'Added Payables Agent known sender %1.', Locked = true;
         SenderApprovedAuditLbl: Label 'Payables Agent known sender %1 was set to Approve, allowing its emails to be processed without review.', Locked = true;
 
-    internal procedure InsertIfNew(PATask: Codeunit "Payables Agent Task")
-    var
-        Source: Codeunit "PA Task Source";
+    internal procedure RecordIfNew(WorkItem: Codeunit "PA Work Item")
     begin
-        PATask.GetSource(Source);
-        InsertSenderIfNew(Source.GetSenderAddress());
-    end;
-
-    internal procedure InsertSourceIfNew(PATaskSource: Codeunit "PA Task Source")
-    begin
-        InsertSenderIfNew(PATaskSource.GetSenderAddress());
+        InsertSenderIfNew(WorkItem.GetSenderAddress());
     end;
 
     local procedure InsertSenderIfNew(SenderEmail: Text[250])
@@ -86,7 +78,7 @@ table 3308 "PA Known Sender"
             exit;
         Rec.Init();
         Rec.Email := SenderEmail;
-        PASetup.GetSetup();
+        PASetup.LoadOrCreateSetup();
         if PASetup.GetEmailReviewPolicy() = "PA Email Review Policy"::OnlyIfUntrusted then
             Rec."Sender Policy" := "PA Sender Policy"::Approve
         else
@@ -94,17 +86,9 @@ table 3308 "PA Known Sender"
         Rec.Insert(true);
     end;
 
-    internal procedure GetForTask(PATask: Codeunit "Payables Agent Task"; var KnownSender: Record "PA Known Sender"): Boolean
-    var
-        Source: Codeunit "PA Task Source";
+    internal procedure GetForWorkItem(WorkItem: Codeunit "PA Work Item"; var KnownSender: Record "PA Known Sender"): Boolean
     begin
-        PATask.GetSource(Source);
-        exit(GetForSender(Source.GetSenderAddress(), KnownSender));
-    end;
-
-    internal procedure GetForSource(PATaskSource: Codeunit "PA Task Source"; var KnownSender: Record "PA Known Sender"): Boolean
-    begin
-        exit(GetForSender(PATaskSource.GetSenderAddress(), KnownSender));
+        exit(GetForSender(WorkItem.GetSenderAddress(), KnownSender));
     end;
 
     local procedure GetForSender(SenderEmail: Text[250]; var KnownSender: Record "PA Known Sender"): Boolean

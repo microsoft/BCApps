@@ -54,7 +54,7 @@ codeunit 133722 "PA Trial Tests"
     begin
         PATrial.ResetTrial();
         PATrial.StartTrial();
-        Assert.IsTrue(PATrial.IsActive(), 'Should be in trial mode when under the limit');
+        Assert.IsTrue(PATrial.CheckActiveAndEndIfExhausted(), 'Should be in trial mode when under the limit');
         PATrial.ResetTrial();
     end;
 
@@ -62,7 +62,7 @@ codeunit 133722 "PA Trial Tests"
     procedure IsNotInTrialModeWhenTrialNotStarted()
     begin
         PATrial.ResetTrial();
-        Assert.IsFalse(PATrial.IsActive(), 'Should not be in trial mode when trial has not been started');
+        Assert.IsFalse(PATrial.CheckActiveAndEndIfExhausted(), 'Should not be in trial mode when trial has not been started');
     end;
 
     [Test]
@@ -74,7 +74,7 @@ codeunit 133722 "PA Trial Tests"
         PATrial.StartTrial();
         for i := 1 to PATrial.GetTrialInvoiceLimit() do
             PATrial.IncrementTrialInvoiceCount();
-        Assert.IsFalse(PATrial.IsActive(), 'Should not be in trial mode when limit is reached');
+        Assert.IsFalse(PATrial.CheckActiveAndEndIfExhausted(), 'Should not be in trial mode when limit is reached');
         Assert.AreEqual(PATrial.GetTrialInvoiceLimit(), PATrial.GetTrialInvoiceCount(), 'Count should equal limit');
         PATrial.ResetTrial();
     end;

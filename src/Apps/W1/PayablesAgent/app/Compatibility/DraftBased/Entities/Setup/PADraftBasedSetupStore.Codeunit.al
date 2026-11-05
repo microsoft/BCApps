@@ -12,7 +12,7 @@ using Microsoft.EServices.EDocumentConnector.Microsoft365;
 using System.Email;
 
 // Owns the editable legacy mailbox proposal and its persisted monitoring configuration, without UI or commits.
-codeunit 3338 "PA Draft Based Setup Backing"
+codeunit 3338 "PA Draft Based Setup Store"
 {
     Access = Internal;
     InherentEntitlements = X;

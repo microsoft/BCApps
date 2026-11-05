@@ -9,9 +9,9 @@ using System.Agents;
 using System.Email;
 using System.Utilities;
 
-table 3327 "Payables Agent Task"
+table 3327 "Payables Agent Work Item"
 {
-    Caption = 'Payables Agent Task';
+    Caption = 'Payables Agent Work Item';
     Access = Internal;
     DataClassification = CustomerContent;
     Extensible = false;
@@ -38,9 +38,9 @@ table 3327 "Payables Agent Task"
             Caption = 'Outcome';
             DataClassification = CustomerContent;
         }
-        field(6; "Intake Status"; Enum "PA Task Intake Status")
+        field(6; "Admission Status"; Enum "PA Work Item Admission Status")
         {
-            Caption = 'Intake Status';
+            Caption = 'Admission Status';
             DataClassification = SystemMetadata;
         }
         field(7; "Rejection Reason"; Text[250])
@@ -64,9 +64,9 @@ table 3327 "Payables Agent Task"
             Caption = 'File Content';
             DataClassification = CustomerContent;
         }
-        field(41; "File Content As Text"; Blob)
+        field(41; "Extracted Text"; Blob)
         {
-            Caption = 'File Content As Text';
+            Caption = 'Extracted Text';
             DataClassification = CustomerContent;
         }
     }
@@ -83,7 +83,7 @@ table 3327 "Payables Agent Task"
         key(ByOutcome; Outcome)
         {
         }
-        key(ByIntakeStatus; "Intake Status", "Agent Task ID")
+        key(ByAdmissionStatus; "Admission Status", "Agent Task ID")
         {
         }
     }
@@ -101,28 +101,28 @@ table 3327 "Payables Agent Task"
         Rec."File Content".ExportStream(FileOutStream);
     end;
 
-    procedure HasFileContentAsText(): Boolean
+    procedure HasExtractedText(): Boolean
     begin
-        Rec.CalcFields("File Content As Text");
-        exit(Rec."File Content As Text".HasValue());
+        Rec.CalcFields("Extracted Text");
+        exit(Rec."Extracted Text".HasValue());
     end;
 
-    procedure GetFileContentAsText() FileContentAsText: Text
+    procedure GetExtractedText() ExtractedText: Text
     var
         TextInStream: InStream;
     begin
-        if not HasFileContentAsText() then
+        if not HasExtractedText() then
             exit('');
-        Rec."File Content As Text".CreateInStream(TextInStream, TextEncoding::UTF8);
-        TextInStream.Read(FileContentAsText);
+        Rec."Extracted Text".CreateInStream(TextInStream, TextEncoding::UTF8);
+        TextInStream.Read(ExtractedText);
     end;
 
-    procedure SetFileContentAsText(NewFileContentAsText: Text)
+    procedure SetExtractedText(NewExtractedText: Text)
     var
         TextOutStream: OutStream;
     begin
-        Clear(Rec."File Content As Text");
-        Rec."File Content As Text".CreateOutStream(TextOutStream, TextEncoding::UTF8);
-        TextOutStream.WriteText(NewFileContentAsText);
+        Clear(Rec."Extracted Text");
+        Rec."Extracted Text".CreateOutStream(TextOutStream, TextEncoding::UTF8);
+        TextOutStream.WriteText(NewExtractedText);
     end;
 }

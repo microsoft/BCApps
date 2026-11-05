@@ -141,6 +141,24 @@ table 3303 "Payables Agent Setup"
             Caption = 'Email Monitoring Consent';
             DataClassification = SystemMetadata;
         }
+#if not CLEANSCHEMA33
+        // Temporary production opt-in for the V2 preview; only effective in the designated preview tenant.
+        field(19; "Preview Version"; Option)
+        {
+            Caption = 'Preview version';
+            OptionMembers = " ","V2 Preview";
+            OptionCaption = ' ,V2 Preview';
+            DataClassification = SystemMetadata;
+            ObsoleteReason = 'Temporary V2 preview selector, removed once version 2 no longer needs a preview opt-in.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+        }
+#endif
     }
     keys
     {
@@ -152,19 +170,17 @@ table 3303 "Payables Agent Setup"
 
     internal procedure GetOrCreateSetup()
     begin
-        if GetSetup(true) then;
+        if TryGetSetup() then
+            exit;
+        Rec.Insert();
     end;
 
-    internal procedure GetSetup(InsertIfMissing: Boolean): Boolean
+    internal procedure TryGetSetup(): Boolean
     begin
         if Rec.FindFirst() then
             exit(true);
 
         Clear(Rec);
-        if InsertIfMissing then begin
-            Rec.Insert();
-            exit(true);
-        end;
         exit(false);
     end;
 }

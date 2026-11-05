@@ -22,9 +22,9 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
 
                 trigger OnAction()
                 var
-                    TaskUpload: Codeunit "PA Task Upload";
+                    WorkItemUpload: Codeunit "PA Work Item Upload";
                 begin
-                    TaskUpload.UploadInvoiceWithAgent();
+                    WorkItemUpload.UploadInvoiceWithAgent();
                 end;
             }
         }
@@ -40,9 +40,9 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
 
                 trigger OnAction()
                 var
-                    TaskUpload: Codeunit "PA Task Upload";
+                    WorkItemUpload: Codeunit "PA Work Item Upload";
                 begin
-                    TaskUpload.UploadInvoiceWithAgent();
+                    WorkItemUpload.UploadInvoiceWithAgent();
                 end;
             }
         }
