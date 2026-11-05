@@ -715,6 +715,7 @@ table 6906 "Expense Report Header"
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 - Expense User No.';
         ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
         NoPerDiemRuleForTravelRequestErr: Label 'Travel request %3 includes per diem, but no per diem rule exists for expense location %1 that is effective on %2. Set up a per diem rule for an active per diem expense category and this location, and then approve the travel request again.', Comment = '%1 = Expense Location, %2 = Trip start date, %3 = Travel Request No.';
+        PerDiemLineDescriptionTxt: Label 'Per diem for travel request %1, created on approval', Comment = '%1 = Travel Request No.', MaxLength = 100;
         PerDiemLineCreatedLbl: Label 'Per diem line created from approved travel request', Locked = true;
         PerDiemLineCreationFailedLbl: Label 'Per diem line creation from approved travel request failed', Locked = true;
         NoPerDiemRuleTelemetryErr: Label 'No per diem rule matches the expense location and trip start date of the travel request.', Locked = true;
@@ -1543,6 +1544,8 @@ table 6906 "Expense Report Header"
             ExpenseReportLine."Spend Request No." := Rec."Spend Request No.";
             ExpenseReportLine."Spend Request Close" := Rec."Spend Request Close";
         end;
+
+        ExpenseReportLine.Validate(Description, CopyStr(StrSubstNo(PerDiemLineDescriptionTxt, SpendRequest."No."), 1, MaxStrLen(ExpenseReportLine.Description)));
 
         ExpenseReportLine.SetSkipRuleApplication(false);
         ExpenseReportLine.ApplyRule();

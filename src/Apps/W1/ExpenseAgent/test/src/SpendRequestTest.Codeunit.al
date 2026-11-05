@@ -92,6 +92,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestNotPostableErr: Label 'Expense report %1 cannot be posted because travel request %2 has status %3.', Comment = '%1 = Expense Report No., %2 = Travel Request No., %3 = Travel Request Status', Locked = true;
         NoPerDiemRuleForTravelRequestErr: Label 'Travel request %1 includes per diem, but no per diem rule exists for expense location %2 that is effective on %3.', Comment = '%1 = Travel Request No., %2 = Expense Location, %3 = Trip start date', Locked = true;
         DailyRateConditionMissingErr: Label 'Daily Rate condition is missing for Per Diem rule.', Locked = true;
+        PerDiemLineDescriptionTxt: Label 'Per diem for travel request %1, created on approval', Comment = '%1 = Travel Request No.', Locked = true;
         MerchantNameMandatoryFilterTok: Label 'Merchant Name is mandatory*', Locked = true;
         ReceiptNoMandatoryFilterTok: Label 'Receipt No. is mandatory*', Locked = true;
         ApproverUserIdRecordedMsg: Label 'The approving or rejecting user ID should be recorded on the travel request.';
@@ -3573,6 +3574,8 @@ codeunit 148339 "Spend Request Test"
         Assert.AreEqual(SpendRequest."Actual Start Date and Time", ExpenseReportLine."Starting Date and Time", 'The per diem line must start with the trip.');
         Assert.AreEqual(SpendRequest."Actual End Date and Time", ExpenseReportLine."Ending Date and Time", 'The per diem line must end with the trip.');
         Assert.AreEqual(SpendRequest."No.", ExpenseReportLine."Spend Request No.", 'The per diem line must be linked to the travel request.');
+        Assert.AreEqual(
+            StrSubstNo(PerDiemLineDescriptionTxt, SpendRequest."No."), ExpenseReportLine.Description, 'The per diem line must describe that it was created from the travel request.');
         Assert.AreEqual(ExpectedAmount, ExpenseReportLine.Amount, 'The per diem line amount must be the sum of the daily rates.');
 
         ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
