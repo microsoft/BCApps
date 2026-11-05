@@ -92,6 +92,8 @@ codeunit 148339 "Spend Request Test"
         TravelRequestNotPostableErr: Label 'Expense report %1 cannot be posted because travel request %2 has status %3.', Comment = '%1 = Expense Report No., %2 = Travel Request No., %3 = Travel Request Status', Locked = true;
         NoPerDiemRuleForTravelRequestErr: Label 'Travel request %1 includes per diem, but no per diem rule exists for expense location %2 that is effective on %3.', Comment = '%1 = Travel Request No., %2 = Expense Location, %3 = Trip start date', Locked = true;
         DailyRateConditionMissingErr: Label 'Daily Rate condition is missing for Per Diem rule.', Locked = true;
+        NoPerDiemRuleForLocationErr: Label 'There is no per diem rule for expense location %1.', Comment = '%1 = Expense Location', Locked = true;
+        NoPerDiemRuleOnTripStartErr: Label 'No per diem rule for expense location %1 is in effect on %2, the trip start date.', Comment = '%1 = Expense Location, %2 = Trip start date', Locked = true;
         PerDiemLineDescriptionTxt: Label 'Per diem for travel request %1, created on approval', Comment = '%1 = Travel Request No.', Locked = true;
         MerchantNameMandatoryFilterTok: Label 'Merchant Name is mandatory*', Locked = true;
         ReceiptNoMandatoryFilterTok: Label 'Receipt No. is mandatory*', Locked = true;
@@ -503,7 +505,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] A releasable travel request with per diem included and all per diem details except the expense location.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
+        SetPerDiemDetailsWithRule(SpendRequest);
         SpendRequest.Validate("Expense Location", '');
         SpendRequest.Modify(true);
 
@@ -526,7 +528,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] A releasable travel request with per diem included and all per diem details except the actual start.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
+        SetPerDiemDetailsWithRule(SpendRequest);
         SpendRequest.Validate("Actual Start Date and Time", 0DT);
         SpendRequest.Modify(true);
 
@@ -549,7 +551,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] A releasable travel request with per diem included and all per diem details except the actual end.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
+        SetPerDiemDetailsWithRule(SpendRequest);
         SpendRequest.Validate("Actual End Date and Time", 0DT);
         SpendRequest.Modify(true);
 
@@ -573,7 +575,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] A releasable travel request with per diem included and all per diem details.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
+        SetPerDiemDetailsWithRule(SpendRequest);
 
         // [WHEN] The travel request is released.
         ReleaseSpendRequest.Release(SpendRequest);
@@ -581,6 +583,56 @@ codeunit 148339 "Spend Request Test"
         // [THEN] The travel request is Released.
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, SpendReqReleasedMsg);
+    end;
+
+    [Test]
+    procedure ExpenseLocationWithoutPerDiemRuleCannotBeUsed()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ExpenseLocation: Record "Expense Location";
+    begin
+        // [SCENARIO] A travel request with per diem cannot use an expense location that has no per diem rule.
+        Initialize();
+
+        // [GIVEN] An open travel request with per diem included, and an expense location without a per diem rule.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreatePerDiemLocation(ExpenseLocation);
+        SpendRequest.Validate("Per Diem Included", true);
+
+        // [WHEN] The expense location is set on the travel request.
+        asserterror SpendRequest.Validate("Expense Location", ExpenseLocation."No.");
+
+        // [THEN] It fails because the expense location has no per diem rule.
+        Assert.ExpectedError(StrSubstNo(NoPerDiemRuleForLocationErr, ExpenseLocation."No."));
+    end;
+
+    [Test]
+    procedure ReleaseTravelReqPerDiemFailsWhenRuleStartsAfterTrip()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ExpenseLocation: Record "Expense Location";
+        ExpenseCategory: Record "Expense Category";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+    begin
+        // [SCENARIO] Releasing a travel request with per diem fails when no per diem rule for its expense location is in effect on the trip start date.
+        Initialize();
+
+        // [GIVEN] An expense location whose only per diem rule starts after the trip start date.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreatePerDiemLocation(ExpenseLocation);
+        CreatePerDiemCategory(ExpenseCategory);
+        CreatePerDiemRule(ExpenseCategory.Code, ExpenseLocation."No.", SpendRequest."Expected Start Date" + 1, LibraryRandom.RandIntInRange(10, 100));
+
+        // [GIVEN] A releasable travel request with per diem for that expense location.
+        SetPerDiemDetails(SpendRequest, ExpenseLocation."No.");
+
+        // [WHEN] The travel request is released.
+        asserterror ReleaseSpendRequest.Release(SpendRequest);
+
+        // [THEN] Release fails because no per diem rule is in effect on the trip start date.
+        Assert.ExpectedError(StrSubstNo(NoPerDiemRuleOnTripStartErr, ExpenseLocation."No.", SpendRequest."Expected Start Date"));
     end;
 
     [Test]
@@ -640,7 +692,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] An open travel request with per diem included and an expense location.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
+        SetPerDiemDetailsWithRule(SpendRequest);
         SpendRequest.TestField("Expense Location");
 
         // [WHEN] Per diem is turned off.
@@ -664,7 +716,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] An open travel request with actual dates.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
+        SetPerDiemDetailsWithRule(SpendRequest);
         TravelRequestCard.OpenEdit();
         TravelRequestCard.GoToRecord(SpendRequest);
 
@@ -699,7 +751,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] A releasable travel request whose actual end was saved before its actual start without running triggers.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
+        SetPerDiemDetailsWithRule(SpendRequest);
         SpendRequest."Actual End Date and Time" := SpendRequest."Actual Start Date and Time" - 3600000;
         SpendRequest.Modify(false);
 
@@ -1363,6 +1415,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseUser: Record "Expense User";
         OtherExpenseUser: Record "Expense User";
         ExpenseCategory: Record "Expense Category";
+        ExpenseLocation: Record "Expense Location";
         DailyRate: Decimal;
     begin
         // [SCENARIO] Approving a travel request with per diem adds a per diem line with daily rows to every traveler's new expense report.
@@ -1373,10 +1426,11 @@ codeunit 148339 "Spend Request Test"
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         LibraryExpense.CreateExpenseUser(OtherExpenseUser);
         LibraryExpense.CreateTraveler(SpendRequest."No.", OtherExpenseUser."No.");
-        SetPerDiemDetails(SpendRequest);
+        CreatePerDiemLocation(ExpenseLocation);
         CreatePerDiemCategory(ExpenseCategory);
         DailyRate := LibraryRandom.RandIntInRange(10, 100);
-        CreatePerDiemRule(ExpenseCategory.Code, SpendRequest."Expense Location", 0D, DailyRate);
+        CreatePerDiemRule(ExpenseCategory.Code, ExpenseLocation."No.", 0D, DailyRate);
+        SetPerDiemDetails(SpendRequest, ExpenseLocation."No.");
 
         // [WHEN] The travel request is released and approved automatically.
         ReleaseAndApproveTravelRequest(SpendRequest);
@@ -1391,7 +1445,6 @@ codeunit 148339 "Spend Request Test"
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
-        ExpenseCategory: Record "Expense Category";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
@@ -1406,9 +1459,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] An approved travel request with per diem, which created a per diem line without merchant name and receipt no.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
-        CreatePerDiemCategory(ExpenseCategory);
-        CreatePerDiemRule(ExpenseCategory.Code, SpendRequest."Expense Location", 0D, LibraryRandom.RandIntInRange(10, 100));
+        SetPerDiemDetailsWithRule(SpendRequest);
         ReleaseAndApproveTravelRequest(SpendRequest);
         ExpenseReportHeader := GetTravelerExpenseReport(SpendRequest, ExpenseUser);
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
@@ -1433,6 +1484,7 @@ codeunit 148339 "Spend Request Test"
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
+        ExpenseLocation: Record "Expense Location";
         CategoryCodes: array[3] of Code[20];
         i: Integer;
     begin
@@ -1442,10 +1494,11 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] A releasable travel request with per diem, and three per diem categories with a rule for its expense location.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
+        CreatePerDiemLocation(ExpenseLocation);
         CreateSortedPerDiemCategories(CategoryCodes);
         for i := 1 to ArrayLen(CategoryCodes) do
-            CreatePerDiemRule(CategoryCodes[i], SpendRequest."Expense Location", WorkDate(), LibraryRandom.RandIntInRange(10, 100));
+            CreatePerDiemRule(CategoryCodes[i], ExpenseLocation."No.", WorkDate(), LibraryRandom.RandIntInRange(10, 100));
+        SetPerDiemDetails(SpendRequest, ExpenseLocation."No.");
 
         // [WHEN] The travel request is released and approved automatically.
         ReleaseAndApproveTravelRequest(SpendRequest);
@@ -1460,6 +1513,7 @@ codeunit 148339 "Spend Request Test"
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
         ExpenseCategory: Record "Expense Category";
+        ExpenseLocation: Record "Expense Location";
         CategoryCodes: array[3] of Code[20];
         i: Integer;
     begin
@@ -1467,20 +1521,23 @@ codeunit 148339 "Spend Request Test"
         Initialize();
         SetFullRatePerDiemCalculation();
 
-        // [GIVEN] A releasable travel request with per diem, and three per diem categories with a rule for its expense location.
+        // [GIVEN] A releasable travel request, and three per diem categories with a rule for an expense location.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
+        CreatePerDiemLocation(ExpenseLocation);
         CreateSortedPerDiemCategories(CategoryCodes);
 
         // [GIVEN] The first category's rule starts after the trip start date.
-        CreatePerDiemRule(CategoryCodes[1], SpendRequest."Expense Location", DT2Date(SpendRequest."Actual Start Date and Time") + 1, LibraryRandom.RandIntInRange(10, 100));
+        CreatePerDiemRule(CategoryCodes[1], ExpenseLocation."No.", SpendRequest."Expected Start Date" + 1, LibraryRandom.RandIntInRange(10, 100));
 
         // [GIVEN] The second category is inactive.
         for i := 2 to ArrayLen(CategoryCodes) do
-            CreatePerDiemRule(CategoryCodes[i], SpendRequest."Expense Location", WorkDate(), LibraryRandom.RandIntInRange(10, 100));
+            CreatePerDiemRule(CategoryCodes[i], ExpenseLocation."No.", WorkDate(), LibraryRandom.RandIntInRange(10, 100));
         ExpenseCategory.Get(CategoryCodes[2]);
         ExpenseCategory.Validate(Inactive, true);
         ExpenseCategory.Modify(true);
+
+        // [GIVEN] The travel request includes per diem for that expense location, starting on the expected start date.
+        SetPerDiemDetails(SpendRequest, ExpenseLocation."No.");
 
         // [WHEN] The travel request is released and approved automatically.
         ReleaseAndApproveTravelRequest(SpendRequest);
@@ -1498,15 +1555,18 @@ codeunit 148339 "Spend Request Test"
         ReleaseSpendRequest: Codeunit "Release Spend Request";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
-        // [SCENARIO] Approving a travel request with per diem fails when no per diem rule exists for its expense location.
+        // [SCENARIO] Approving a travel request with per diem fails when its per diem rule was removed after release.
         Initialize();
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
 
-        // [GIVEN] A released travel request with per diem and an assigned approver, and no per diem rule for its expense location.
+        // [GIVEN] A released travel request with per diem and an assigned approver.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
+        SetPerDiemDetailsWithRule(SpendRequest);
         ReleaseSpendRequest.Release(SpendRequest);
         CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+
+        // [GIVEN] The per diem rule for its expense location is then deleted.
+        DeletePerDiemRules(SpendRequest."Expense Location");
         Commit();
 
         // [WHEN] The approver approves the travel request.
@@ -1527,6 +1587,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseCategory: Record "Expense Category";
         ExpenseRuleHeader: Record "Expense Rule Header";
         ExpenseRuleCondition: Record "Expense Rule Condition";
+        ExpenseLocation: Record "Expense Location";
         ReleaseSpendRequest: Codeunit "Release Spend Request";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
@@ -1534,18 +1595,19 @@ codeunit 148339 "Spend Request Test"
         Initialize();
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
 
-        // [GIVEN] A released travel request with per diem and an assigned approver.
-        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
-        ReleaseSpendRequest.Release(SpendRequest);
-        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
-
-        // [GIVEN] A per diem rule for the expense location without a Daily Rate condition.
+        // [GIVEN] A per diem rule for an expense location without a Daily Rate condition.
+        CreatePerDiemLocation(ExpenseLocation);
         CreatePerDiemCategory(ExpenseCategory);
         LibraryExpense.CreateExpenseRuleWithCondition(
-            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseCategory.Code, SpendRequest."Expense Location", 0D,
+            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseCategory.Code, ExpenseLocation."No.", 0D,
             "Expense Justification"::" ", '', '', "Expense Rule Condition Type"::"Daily Rate", LibraryRandom.RandIntInRange(10, 100));
         ExpenseRuleCondition.Delete(true);
+
+        // [GIVEN] A released travel request with per diem for that expense location and an assigned approver.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        SetPerDiemDetails(SpendRequest, ExpenseLocation."No.");
+        ReleaseSpendRequest.Release(SpendRequest);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
         Commit();
 
         // [WHEN] The approver approves the travel request.
@@ -1583,6 +1645,7 @@ codeunit 148339 "Spend Request Test"
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
         ExpenseCategory: Record "Expense Category";
+        ExpenseLocation: Record "Expense Location";
     begin
         // [SCENARIO] When the setup does not calculate per diem, approval still adds the per diem line, with a zero amount.
         Initialize();
@@ -1591,9 +1654,10 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] A releasable travel request with per diem and a per diem rule for its expense location.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        SetPerDiemDetails(SpendRequest);
+        CreatePerDiemLocation(ExpenseLocation);
         CreatePerDiemCategory(ExpenseCategory);
-        CreatePerDiemRule(ExpenseCategory.Code, SpendRequest."Expense Location", 0D, LibraryRandom.RandIntInRange(10, 100));
+        CreatePerDiemRule(ExpenseCategory.Code, ExpenseLocation."No.", 0D, LibraryRandom.RandIntInRange(10, 100));
+        SetPerDiemDetails(SpendRequest, ExpenseLocation."No.");
 
         // [WHEN] The travel request is released and approved automatically.
         ReleaseAndApproveTravelRequest(SpendRequest);
@@ -3467,18 +3531,31 @@ codeunit 148339 "Spend Request Test"
         SpendRequest.Modify(true);
     end;
 
-    local procedure SetPerDiemDetails(var SpendRequest: Record "Spend Request")
+    local procedure SetPerDiemDetailsWithRule(var SpendRequest: Record "Spend Request")
     var
         ExpenseLocation: Record "Expense Location";
+        ExpenseCategory: Record "Expense Category";
+    begin
+        CreatePerDiemLocation(ExpenseLocation);
+        CreatePerDiemCategory(ExpenseCategory);
+        CreatePerDiemRule(ExpenseCategory.Code, ExpenseLocation."No.", 0D, LibraryRandom.RandIntInRange(10, 100));
+        SetPerDiemDetails(SpendRequest, ExpenseLocation."No.");
+    end;
+
+    local procedure SetPerDiemDetails(var SpendRequest: Record "Spend Request"; ExpenseLocationCode: Code[20])
+    begin
+        SpendRequest.Validate("Per Diem Included", true);
+        SpendRequest.Validate("Expense Location", ExpenseLocationCode);
+        SpendRequest.Validate("Actual Start Date and Time", CreateDateTime(SpendRequest."Expected Start Date", 080000T));
+        SpendRequest.Validate("Actual End Date and Time", CreateDateTime(SpendRequest."Expected End Date", 180000T));
+        SpendRequest.Modify(true);
+    end;
+
+    local procedure CreatePerDiemLocation(var ExpenseLocation: Record "Expense Location")
     begin
         CreateExpenseLocation(ExpenseLocation);
         // Expense locations are deleted between tests, so a regenerated code can still have rules from an earlier test.
         DeletePerDiemRules(ExpenseLocation."No.");
-        SpendRequest.Validate("Per Diem Included", true);
-        SpendRequest.Validate("Expense Location", ExpenseLocation."No.");
-        SpendRequest.Validate("Actual Start Date and Time", CreateDateTime(SpendRequest."Expected Start Date", 080000T));
-        SpendRequest.Validate("Actual End Date and Time", CreateDateTime(SpendRequest."Expected End Date", 180000T));
-        SpendRequest.Modify(true);
     end;
 
     local procedure CreateExpenseLocation(var ExpenseLocation: Record "Expense Location")

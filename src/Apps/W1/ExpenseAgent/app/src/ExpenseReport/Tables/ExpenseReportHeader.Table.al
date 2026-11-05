@@ -1557,24 +1557,15 @@ table 6906 "Expense Report Header"
     local procedure FindPerDiemCategoryForTravelRequest(SpendRequest: Record "Spend Request"): Code[20]
     var
         ExpenseRuleHeader: Record "Expense Rule Header";
-        ExpenseCategory: Record "Expense Category";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        PerDiemCategoryCode: Code[20];
         TripStartDate: Date;
     begin
+        // Release checks this too, but the rules can change between release and approval.
         TripStartDate := DT2Date(SpendRequest."Actual Start Date and Time");
-
-        ExpenseRuleHeader.SetRange("Expense Location", SpendRequest."Expense Location");
-        ExpenseRuleHeader.SetFilter("Effective Date", '<=%1|%2', TripStartDate, 0D);
-        ExpenseRuleHeader.SetLoadFields("Expense Category Code");
-        ExpenseCategory.SetLoadFields(Inactive, "Expense Detail Required");
-        if ExpenseRuleHeader.FindSet() then
-            repeat
-                if ExpenseCategory.Get(ExpenseRuleHeader."Expense Category Code") then
-                    if (not ExpenseCategory.Inactive) and
-                       (ExpenseCategory."Expense Detail Required" = ExpenseCategory."Expense Detail Required"::"Per Diem")
-                    then
-                        exit(ExpenseCategory.Code);
-            until ExpenseRuleHeader.Next() = 0;
+        PerDiemCategoryCode := ExpenseRuleHeader.FindPerDiemCategory(SpendRequest."Expense Location", TripStartDate);
+        if PerDiemCategoryCode <> '' then
+            exit(PerDiemCategoryCode);
 
         FeatureTelemetry.LogError('0000WJ6', ExpenseAgentSetup.GetFeatureName(), PerDiemLineCreationFailedLbl, NoPerDiemRuleTelemetryErr);
         Error(NoPerDiemRuleForTravelRequestErr, SpendRequest."Expense Location", TripStartDate, SpendRequest."No.");

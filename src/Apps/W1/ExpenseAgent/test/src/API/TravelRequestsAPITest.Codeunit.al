@@ -50,6 +50,7 @@ codeunit 148347 "Travel Requests API Test"
         StatusNotOpenErr: Label 'must have the status', Locked = true;
         ExpenseLocationRequiresPerDiemErr: Label 'Expense Location can only be specified when Per Diem Included is selected.', Locked = true;
         ActualEndBeforeStartErr: Label 'Actual End Date and Time cannot be before Actual Start Date and Time.', Locked = true;
+        NoPerDiemRuleForLocationErr: Label 'There is no per diem rule for expense location %1.', Comment = '%1 = Expense Location', Locked = true;
 
     [Test]
     procedure TravelersAPIMapsEmployeeNumberToExpenseUser()
@@ -903,10 +904,11 @@ codeunit 148347 "Travel Requests API Test"
         // [SCENARIO] The expense location requires per diem, regardless of the order of the fields in the PATCH payload.
         Initialize();
 
-        // [GIVEN] An open travel request without per diem and an expense location.
+        // [GIVEN] An open travel request without per diem, and an expense location with a per diem rule.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
         LibraryExpense.CreateExpenseLocation(ExpenseLocation, '', CopyStr(LibraryRandom.RandText(MaxStrLen(ExpenseLocation.City)), 1, MaxStrLen(ExpenseLocation.City)));
+        CreatePerDiemRuleForLocation(ExpenseLocation."No.");
         Commit();
         TargetURL := LibraryGraphMgt.CreateTargetURL(
             Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
@@ -938,6 +940,46 @@ codeunit 148347 "Travel Requests API Test"
         TravelRequest.Get(TravelRequest."No.");
         TravelRequest.TestField("Per Diem Included", true);
         TravelRequest.TestField("Expense Location", ExpenseLocation."No.");
+    end;
+
+    [Test]
+    procedure TravelRequestsAPIRejectsExpenseLocationWithoutPerDiemRule()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseLocation: Record "Expense Location";
+        TravelRequest: Record "Spend Request";
+        Request: JsonObject;
+        RequestBody: Text;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] The API rejects an expense location without a per diem rule, regardless of the order of the fields in the PATCH payload.
+        Initialize();
+
+        // [GIVEN] An open travel request without per diem, and an expense location without a per diem rule.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        LibraryExpense.CreateExpenseLocation(ExpenseLocation, '', CopyStr(LibraryRandom.RandText(MaxStrLen(ExpenseLocation.City)), 1, MaxStrLen(ExpenseLocation.City)));
+        DeletePerDiemRulesForLocation(ExpenseLocation."No.");
+        Commit();
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+
+        // [WHEN] PATCH sets the expense location before per diem in the same payload.
+        Request.Add('expenseLocation', ExpenseLocation."No.");
+        Request.Add('perDiemIncluded', true);
+        Request.WriteTo(RequestBody);
+        Clear(ResponseText);
+        asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+
+        // [THEN] The API rejects it because the expense location has no per diem rule, and nothing is saved.
+        Assert.ExpectedError(BadRequestResponseErr);
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError(StrSubstNo(NoPerDiemRuleForLocationErr, ExpenseLocation."No."));
+        SelectLatestVersion();
+        TravelRequest.Get(TravelRequest."No.");
+        TravelRequest.TestField("Per Diem Included", false);
+        TravelRequest.TestField("Expense Location", '');
     end;
 
     [Test]
@@ -1353,6 +1395,31 @@ codeunit 148347 "Travel Requests API Test"
         TravelRequest.Validate("Actual End Date and Time", CreateDateTime(WorkDate() + 2, 180000T));
         TravelRequest.Modify(true);
         LibraryExpense.SetSpendRequestStatus(TravelRequest, TravelRequest.Status::Released);
+    end;
+
+    local procedure CreatePerDiemRuleForLocation(ExpenseLocationNo: Code[20])
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+    begin
+        DeletePerDiemRulesForLocation(ExpenseLocationNo);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::"Per Diem");
+        LibraryExpense.CreateExpenseRuleWithCondition(
+            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseCategory.Code, ExpenseLocationNo, 0D,
+            "Expense Justification"::" ", '', '', "Expense Rule Condition Type"::"Daily Rate", LibraryRandom.RandIntInRange(10, 100));
+    end;
+
+    local procedure DeletePerDiemRulesForLocation(ExpenseLocationNo: Code[20])
+    var
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+    begin
+        // Expense locations are deleted between tests, so a regenerated code can still have rules from an earlier test.
+        ExpenseRuleCondition.SetRange("Expense Location", ExpenseLocationNo);
+        ExpenseRuleCondition.DeleteAll();
+        ExpenseRuleHeader.SetRange("Expense Location", ExpenseLocationNo);
+        ExpenseRuleHeader.DeleteAll();
     end;
 
     local procedure CreateApprover(var ExpenseUser: Record "Expense User")

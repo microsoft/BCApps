@@ -141,6 +141,37 @@ table 6927 "Expense Rule Header"
         exit(false);
     end;
 
+    /// <summary>
+    /// Finds the first active per diem expense category, in key order, that has a rule for the expense location.
+    /// </summary>
+    /// <param name="ExpenseLocationCode">The expense location that the rule must be for.</param>
+    /// <param name="EffectiveOnDate">Only rules in effect on this date are used. Use 0D to accept rules with any effective date.</param>
+    /// <returns>The expense category code, or an empty code if no rule matches.</returns>
+    internal procedure FindPerDiemCategory(ExpenseLocationCode: Code[20]; EffectiveOnDate: Date): Code[20]
+    var
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseCategory: Record "Expense Category";
+    begin
+        if ExpenseLocationCode = '' then
+            exit('');
+
+        ExpenseRuleHeader.SetRange("Expense Location", ExpenseLocationCode);
+        if EffectiveOnDate <> 0D then
+            ExpenseRuleHeader.SetFilter("Effective Date", '<=%1|%2', EffectiveOnDate, 0D);
+        ExpenseRuleHeader.SetLoadFields("Expense Category Code");
+        ExpenseCategory.SetLoadFields(Inactive, "Expense Detail Required");
+        if ExpenseRuleHeader.FindSet() then
+            repeat
+                if ExpenseCategory.Get(ExpenseRuleHeader."Expense Category Code") then
+                    if (not ExpenseCategory.Inactive) and
+                       (ExpenseCategory."Expense Detail Required" = ExpenseCategory."Expense Detail Required"::"Per Diem")
+                    then
+                        exit(ExpenseCategory.Code);
+            until ExpenseRuleHeader.Next() = 0;
+
+        exit('');
+    end;
+
     local procedure CheckSpecificMerchantAllowedForCategory()
     var
         ExpenseCategory: Record "Expense Category";
