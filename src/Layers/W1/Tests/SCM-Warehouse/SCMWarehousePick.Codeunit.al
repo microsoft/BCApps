@@ -3155,13 +3155,10 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
         LotNo: array[2] of Code[50];
         LotQty: Decimal;
-        OriginalWorkDate: Date;
     begin
         // [FEATURE] [Item Tracking] [Bin] [Purchase Return]
         // [SCENARIO 651793] The remaining lot can be selected on a purchase return warehouse shipment after a partial shipment wrote the shipment bin back to the purchase line.
         Initialize();
-        OriginalWorkDate := WorkDate();
-        WorkDate(20250101D);
 
         // [GIVEN] A FEFO warehouse location contains two lots of a lot-tracked item without lot warehouse tracking.
         LotQty := LibraryRandom.RandIntInRange(10, 20);
@@ -3200,7 +3197,6 @@ codeunit 137055 "SCM Warehouse Pick"
             LotNo[2], LotQty);
         VerifyPickTakeAndPlaceQuantity(Location.Code, PurchaseHeader."No.", LotQty);
 
-        WorkDate(OriginalWorkDate);
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -3219,13 +3215,10 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
         LotNo: array[2] of Code[50];
         LotQty: Decimal;
-        OriginalWorkDate: Date;
     begin
         // [FEATURE] [Item Tracking] [Bin] [Transfer]
         // [SCENARIO 651793] The remaining lot can be selected on a transfer warehouse shipment after a partial shipment wrote the shipment bin back to the transfer line.
         Initialize();
-        OriginalWorkDate := WorkDate();
-        WorkDate(20250101D);
 
         // [GIVEN] A FEFO warehouse location contains two lots of a lot-tracked item without lot warehouse tracking.
         LotQty := LibraryRandom.RandIntInRange(10, 20);
@@ -3266,7 +3259,6 @@ codeunit 137055 "SCM Warehouse Pick"
             LotNo[2], LotQty);
         VerifyPickTakeAndPlaceQuantity(Location.Code, TransferHeader."No.", LotQty);
 
-        WorkDate(OriginalWorkDate);
         LibraryVariableStorage.AssertEmpty();
     end;
 
