@@ -3907,15 +3907,14 @@ codeunit 134776 "Document Attachment Tests"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerDeleteFromUnfilteredList')]
-    procedure DeleteFromUnfilteredAttachmentListOnlyRemembersMarkedSelection()
+    procedure DeleteMarkedSelectionFromUnfilteredAttachmentListDeletesOnlySelected()
     var
         Customer: array[2] of Record Customer;
         FactboxDocumentAttachment: Record "Document Attachment";
         SelectedDocumentAttachment: Record "Document Attachment";
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
-        UnselectedAttachmentSystemId: Guid;
     begin
-        // [SCENARIO 653614] A confirmed delete from an unfiltered attachment list only remembers the records that were selected
+        // [SCENARIO 653614] A confirmed delete of a marked selection from an unfiltered attachment list asks once and deletes only the selected attachments
         Initialize();
 
         // [GIVEN] Customers "C1" and "C2" with two attachments each
@@ -3923,20 +3922,39 @@ codeunit 134776 "Document Attachment Tests"
         CreateCustomerWithAttachments(Customer[2]);
 
         // [GIVEN] The attachments of "C1" are selected with marks, as CurrPage.SetSelectionFilter does for a multi-row selection
-        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[1]);
-        if SelectedDocumentAttachment.FindSet() then
-            repeat
-                SelectedDocumentAttachment.Mark(true);
-            until SelectedDocumentAttachment.Next() = 0;
-        SelectedDocumentAttachment.SetRange("Table ID");
-        SelectedDocumentAttachment.SetRange("No.");
-        SelectedDocumentAttachment.MarkedOnly(true);
-        Assert.AreEqual(2, SelectedDocumentAttachment.Count(), 'Only the marked attachments must be selected.');
+        MarkCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1]);
 
         // [WHEN] The selected attachments are deleted from an attachment list without any filters and the user confirms
         LibraryVariableStorage.Enqueue(true);
         Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
+
+        // [THEN] The confirmation is shown once, the attachments of "C1" are deleted and the attachments of "C2" are kept
+        LibraryVariableStorage.AssertEmpty();
         Assert.IsFalse(CustomerAttachmentExists(Customer[1]), AttachmentNotDeletedErr);
+        Assert.IsTrue(CustomerAttachmentExists(Customer[2]), AttachmentDeletedErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerDeleteFromUnfilteredList')]
+    procedure DeleteFromUnfilteredAttachmentListAsksAgainForRecordOutsideConfirmedSelection()
+    var
+        Customer: array[2] of Record Customer;
+        FactboxDocumentAttachment: Record "Document Attachment";
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        UnselectedAttachmentSystemId: Guid;
+    begin
+        // [SCENARIO 653614] A confirmed delete from an unfiltered attachment list does not authorize deleting attachments that were not selected
+        Initialize();
+
+        // [GIVEN] Customers "C1" and "C2" with two attachments each
+        CreateCustomerWithAttachments(Customer[1]);
+        CreateCustomerWithAttachments(Customer[2]);
+
+        // [GIVEN] The marked attachments of "C1" were deleted from an attachment list without any filters and the user confirmed
+        MarkCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1]);
+        LibraryVariableStorage.Enqueue(true);
+        Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
 
         // [WHEN] An attachment of "C2", which was not selected, is deleted on its own from the same attachment list and the user declines
         SelectedDocumentAttachment.ClearMarks();
@@ -3952,7 +3970,6 @@ codeunit 134776 "Document Attachment Tests"
         LibraryVariableStorage.AssertEmpty();
         Assert.IsTrue(AttachmentExistsBySystemId(UnselectedAttachmentSystemId), AttachmentDeletedErr);
     end;
-
     [Test]
     [HandlerFunctions('ListProductionFlow')]
     [Scope('OnPrem')]
@@ -5327,6 +5344,18 @@ codeunit 134776 "Document Attachment Tests"
         exit(not DocumentAttachment.IsEmpty());
     end;
 
+    local procedure MarkCustomerAttachmentSelection(var SelectedDocumentAttachment: Record "Document Attachment"; Customer: Record Customer)
+    begin
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer, Customer);
+        if SelectedDocumentAttachment.FindSet() then
+            repeat
+                SelectedDocumentAttachment.Mark(true);
+            until SelectedDocumentAttachment.Next() = 0;
+        SelectedDocumentAttachment.SetRange("Table ID");
+        SelectedDocumentAttachment.SetRange("No.");
+        SelectedDocumentAttachment.MarkedOnly(true);
+        Assert.AreEqual(2, SelectedDocumentAttachment.Count(), 'Only the marked attachments must be selected.');
+    end;
     local procedure SetCustomerAttachmentSelection(var SelectedDocumentAttachment: Record "Document Attachment"; Customer1: Record Customer; Customer2: Record Customer)
     begin
         SelectedDocumentAttachment.SetRange("Table ID", Database::Customer);
