@@ -1642,12 +1642,13 @@
     begin
         Assert.IsTrue(ReservedVATEntryNo > 0, 'An intervening VAT sequence number must have been reserved');
         VATEntry.SetRange(Type, VATEntry.Type::Sale);
-        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Payment);
         VATEntry.SetRange("Document No.", PaymentDocumentNo);
         Assert.AreEqual(2, VATEntry.Count(), 'The payment must realize both VAT groups');
         VATEntry.FindFirst();
+        VATEntry.TestField("Document Type", VATEntry."Document Type"::Payment);
         Assert.IsTrue(VATEntry."Entry No." < ReservedVATEntryNo, 'The first realized entry must precede the intervening allocation');
         VATEntry.FindLast();
+        VATEntry.TestField("Document Type", VATEntry."Document Type"::Payment);
         Assert.IsTrue(VATEntry."Entry No." > ReservedVATEntryNo, 'The successor must skip the reserved VAT entry number');
         Assert.IsTrue(VATEntry.GetNextEntryNo() > VATEntry."Entry No.", 'A subsequent sequence allocation must not reuse a realized entry number');
     end;
