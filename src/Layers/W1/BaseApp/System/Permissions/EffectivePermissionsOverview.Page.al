@@ -144,6 +144,15 @@ page 9886 "Effective Permissions Overview"
                         ApplyFilters();
                     end;
                 }
+                field(ExecuteFilter; ExecuteFilter)
+                {
+                    Caption = 'Execute';
+                    ToolTip = 'Specifies whether permissions are filtered by execute access.';
+                    trigger OnValidate()
+                    begin
+                        ApplyFilters();
+                    end;
+                }
             }
             repeater(General)
             {
@@ -226,7 +235,7 @@ page 9886 "Effective Permissions Overview"
         CompanyFilter: Text[30];
         ObjTypeFilter: Option " ","Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query",System;
         ObjIDFilter: Text;
-        ReadFilter, InsertFilter, ModifyFilter, DeleteFilter : Option " ",No,Yes,Indirect;
+        ReadFilter, InsertFilter, ModifyFilter, DeleteFilter, ExecuteFilter : Option " ",No,Yes,Indirect;
 
     trigger OnOpenPage()
     var
@@ -279,6 +288,10 @@ page 9886 "Effective Permissions Overview"
             Rec.SetRange("Delete Permission")
         else
             Rec.SetRange("Delete Permission", DeleteFilter - 1);
+        if ExecuteFilter = ExecuteFilter::" " then
+            Rec.SetRange("Execute Permission")
+        else
+            Rec.SetRange("Execute Permission", ExecuteFilter - 1);
         if Update then
             CurrPage.Update(false);
     end;
