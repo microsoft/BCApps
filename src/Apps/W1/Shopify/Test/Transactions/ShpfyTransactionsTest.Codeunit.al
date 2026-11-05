@@ -487,7 +487,7 @@ codeunit 139697 "Shpfy Transactions Test"
         Initialize();
 
         //[GIVEN] Shopify returns no orders.
-        DiscoveryResponse := '{"data":{"orders":{"nodes":[]}}}';
+        DiscoveryResponse := NavApp.GetResourceAsText('Transactions/NoOrdersDiscoveryResponse.txt', TextEncoding::UTF8);
 
         //[WHEN] Payment method discovery runs.
         DiscoverPaymentMethods.Discover(Shop.Code, HasOrders, CreatedMappingCount);
@@ -584,24 +584,18 @@ codeunit 139697 "Shpfy Transactions Test"
     end;
 
     local procedure CreateNormalizedMappingDiscoveryResponse(Gateway: Text[30]; CardCompanyFirst: Text[50]; CardCompanySecond: Text[50]; FifthGateway: Text[30]; IgnoredGateway: Text[30]; ExistingGateway: Text[30]; ExistingCardCompany: Text[50]; SecondOrderGateway: Text[30]): Text
-    var
-        ResponseLbl: Label '{"data":{"orders":{"nodes":[{"transactions":[{"gateway":"%1","manualPaymentGateway":true,"paymentDetails":{"company":"%2"}},{"gateway":"%1","manualPaymentGateway":false,"paymentDetails":{"company":"%3"}},{"gateway":"%1","manualPaymentGateway":false,"paymentDetails":null},{"gateway":"","manualPaymentGateway":true,"paymentDetails":{"company":"Ignored Card"}},{"gateway":"%4","manualPaymentGateway":false,"paymentDetails":{"company":"Fifth Card"}},{"gateway":"%5","manualPaymentGateway":true,"paymentDetails":{"company":"Ignored Sixth Card"}}]},{"transactions":[{"gateway":"%6","manualPaymentGateway":true,"paymentDetails":{"company":"%7"}},{"gateway":"%8","manualPaymentGateway":true,"paymentDetails":null}]}]}}}', Locked = true;
     begin
-        exit(StrSubstNo(ResponseLbl, Gateway, CardCompanyFirst, CardCompanySecond, FifthGateway, IgnoredGateway, ExistingGateway, ExistingCardCompany, SecondOrderGateway));
+        exit(StrSubstNo(NavApp.GetResourceAsText('Transactions/NormalizedMappingDiscoveryResponse.txt', TextEncoding::UTF8), Gateway, CardCompanyFirst, CardCompanySecond, FifthGateway, IgnoredGateway, ExistingGateway, ExistingCardCompany, SecondOrderGateway));
     end;
 
     local procedure CreateRollbackDiscoveryResponse(FirstGateway: Text[30]; FailingGateway: Text[30]): Text
-    var
-        ResponseLbl: Label '{"data":{"orders":{"nodes":[{"transactions":[{"gateway":"%1","manualPaymentGateway":true,"paymentDetails":{"company":"Rollback First Card"}},{"gateway":"%2","manualPaymentGateway":true,"paymentDetails":{"company":"Rollback Failing Card"}}]}]}}}', Locked = true;
     begin
-        exit(StrSubstNo(ResponseLbl, FirstGateway, FailingGateway));
+        exit(StrSubstNo(NavApp.GetResourceAsText('Transactions/RollbackDiscoveryResponse.txt', TextEncoding::UTF8), FirstGateway, FailingGateway));
     end;
 
     local procedure CreateReadFailureDiscoveryResponse(Gateway: Text[30]): Text
-    var
-        ResponseLbl: Label '{"data":{"orders":{"nodes":[{"transactions":[{"gateway":"%1","manualPaymentGateway":true,"paymentDetails":null}]}]}} ,"errors":[{"message":"discovery read failed"}]}', Locked = true;
     begin
-        exit(StrSubstNo(ResponseLbl, Gateway));
+        exit(StrSubstNo(NavApp.GetResourceAsText('Transactions/ReadFailureDiscoveryResponse.txt', TextEncoding::UTF8), Gateway));
     end;
 
     local procedure GetNextTransactionId(): BigInteger
