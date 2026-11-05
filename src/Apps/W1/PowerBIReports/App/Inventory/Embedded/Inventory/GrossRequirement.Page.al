@@ -11,8 +11,8 @@ page 37027 "Gross Requirement"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Gross Requirement';
-    AboutTitle = 'About Gross Requirement';
+    Caption = 'Gross Requirement (Power BI)';
+    AboutTitle = 'About Gross Requirement (Power BI)';
     AboutText = 'The Gross Requirement report visualizes Gross Requirements against Projected Available Balance over time, offering a clear view of inventory demands. A table matrix breaks down this data by item, showcasing key metrics like Gross Requirement, Projected Available Balance, and quantities from demand documents (sales orders and purchase return orders). ';
 
     layout

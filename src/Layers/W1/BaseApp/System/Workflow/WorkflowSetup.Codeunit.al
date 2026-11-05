@@ -261,16 +261,21 @@ codeunit 1502 "Workflow Setup"
     begin
         Workflow.SetRange(Template, true);
         Workflow.SetFilter(Code, '%1', GetWorkflowTemplateToken() + '*');
-        Workflow.DeleteAll();
-
-        WorkflowStep.SetFilter("Workflow Code", '%1', GetWorkflowTemplateToken() + '*');
-        if WorkflowStep.FindSet() then begin
+        if Workflow.FindSet() then
             repeat
-                WorkflowStepArgument.SetRange(ID, WorkflowStep.Argument);
-                WorkflowStepArgument.DeleteAll();
-            until WorkflowStep.Next() = 0;
-            WorkflowStep.DeleteAll();
-        end;
+                // Only delete the steps that belong to the template itself. Workflows created from a
+                // template keep the template token prefix in their code (e.g. MS-XYZ-01) but are not
+                // templates, so filtering steps by the token wildcard would also delete their steps.
+                WorkflowStep.SetRange("Workflow Code", Workflow.Code);
+                if WorkflowStep.FindSet() then begin
+                    repeat
+                        WorkflowStepArgument.SetRange(ID, WorkflowStep.Argument);
+                        WorkflowStepArgument.DeleteAll();
+                    until WorkflowStep.Next() = 0;
+                    WorkflowStep.DeleteAll();
+                end;
+            until Workflow.Next() = 0;
+        Workflow.DeleteAll();
 
         InitWorkflow();
     end;
@@ -1524,6 +1529,11 @@ codeunit 1502 "Workflow Setup"
     end;
 
     procedure InsertDocApprovalWorkflowSteps(Workflow: Record Workflow; DocSendForApprovalConditionString: Text; DocSendForApprovalEventCode: Code[128]; DocCanceledConditionString: Text; DocCanceledEventCode: Code[128]; WorkflowStepArgument: Record "Workflow Step Argument"; ShowConfirmationMessage: Boolean)
+    begin
+        InsertDocApprovalWorkflowSteps(Workflow, DocSendForApprovalConditionString, DocSendForApprovalEventCode, DocCanceledConditionString, DocCanceledEventCode, WorkflowStepArgument, ShowConfirmationMessage, WorkflowResponseHandling.OpenDocumentCode());
+    end;
+
+    procedure InsertDocApprovalWorkflowSteps(Workflow: Record Workflow; DocSendForApprovalConditionString: Text; DocSendForApprovalEventCode: Code[128]; DocCanceledConditionString: Text; DocCanceledEventCode: Code[128]; WorkflowStepArgument: Record "Workflow Step Argument"; ShowConfirmationMessage: Boolean; DocRejectedResponseCode: Code[128])
     var
         SentForApprovalEventID: Integer;
         SetStatusToPendingApprovalResponseID: Integer;
@@ -1580,7 +1590,7 @@ codeunit 1502 "Workflow Setup"
         RejectAllApprovalsResponseID := InsertResponseStep(Workflow, WorkflowResponseHandling.RejectAllApprovalRequestsCode(),
             OnRequestRejectedEventID);
         InsertNotificationArgument(RejectAllApprovalsResponseID, true, '', WorkflowStepArgument."Link Target Page", '');
-        InsertResponseStep(Workflow, WorkflowResponseHandling.OpenDocumentCode(), RejectAllApprovalsResponseID);
+        InsertResponseStep(Workflow, DocRejectedResponseCode, RejectAllApprovalsResponseID);
 
         OnRequestCanceledEventID := InsertEventStep(Workflow, DocCanceledEventCode,
             SendApprovalRequestResponseID);
@@ -2660,4 +2670,3 @@ codeunit 1502 "Workflow Setup"
     begin
     end;
 }
-

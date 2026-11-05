@@ -11,8 +11,8 @@ page 37097 "Prod. Order - List"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Production Order - List';
-    AboutTitle = 'About Production Order - List';
+    Caption = 'Production Order - List (Power BI)';
+    AboutTitle = 'About Production Order - List (Power BI)';
     AboutText = 'View all production orders and analyze detailed production order information, including status, due date, and planned versus finished quantities.';
 
     layout

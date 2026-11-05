@@ -169,7 +169,7 @@ codeunit 135647 "EDoc MLLM Tests"
         ItemObj: JsonObject;
         QuantityObj: JsonObject;
     begin
-        // [SCENARIO] Line with quantity 0 defaults to 1
+        // [SCENARIO] Line with an explicit quantity of 0 keeps 0
         LibraryLowerPermission.SetOutsideO365Scope();
 
         ItemObj.Add('name', 'Zero Qty Item');
@@ -182,8 +182,31 @@ codeunit 135647 "EDoc MLLM Tests"
         EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine, '');
 
         TempLine.FindFirst();
-        Assert.AreEqual(1, TempLine.Quantity, 'Zero quantity should default to 1');
+        Assert.AreEqual(0, TempLine.Quantity, 'Explicit zero quantity should be kept as 0');
         Assert.AreEqual('Zero Qty Item', TempLine.Description, 'Description');
+    end;
+
+    [Test]
+    procedure MapLines_MissingQuantity()
+    var
+        TempLine: Record "E-Document Purchase Line" temporary;
+        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
+        LinesArray: JsonArray;
+        LineObj: JsonObject;
+        ItemObj: JsonObject;
+    begin
+        // [SCENARIO] Line without a quantity in the JSON defaults to 1
+        LibraryLowerPermission.SetOutsideO365Scope();
+
+        ItemObj.Add('name', 'No Qty Item');
+        LineObj.Add('item', ItemObj);
+        LinesArray.Add(LineObj);
+
+        EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine, '');
+
+        TempLine.FindFirst();
+        Assert.AreEqual(1, TempLine.Quantity, 'Missing quantity should default to 1');
+        Assert.AreEqual('No Qty Item', TempLine.Description, 'Description');
     end;
 
     [Test]

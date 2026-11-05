@@ -154,6 +154,12 @@ table 3901 "Retention Policy Setup"
             Access = Internal;
             Editable = false;
         }
+        field(101; "End Current Run"; Boolean)
+        {
+            DataClassification = SystemMetadata;
+            Access = Internal;
+            Editable = false;
+        }
     }
 
     keys

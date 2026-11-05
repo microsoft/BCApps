@@ -117,6 +117,12 @@ page 99000760 "Machine Center Card"
                 {
                     ApplicationArea = Manufacturing;
                 }
+                field("Calendar Entries Available Until"; Rec."Calendar Entries Avail. Until")
+                {
+                    ApplicationArea = Manufacturing;
+                    Editable = false;
+                    StyleExpr = CalendarHorizonStyleTxt;
+                }
             }
             group("Routing Setup")
             {
@@ -359,6 +365,14 @@ page 99000760 "Machine Center Card"
         UpdateEnabled();
     end;
 
+    trigger OnAfterGetRecord()
+    begin
+        Rec.CalcFields("Calendar Entries Avail. Until");
+        CalendarHorizonStyleTxt := '';
+        if (Rec."Calendar Entries Avail. Until" <> 0D) and (Rec."Calendar Entries Avail. Until" < WorkDate()) then
+            CalendarHorizonStyleTxt := 'Unfavorable';
+    end;
+
     trigger OnInit()
     begin
         FromProductionBinCodeEnable := true;
@@ -375,6 +389,7 @@ page 99000760 "Machine Center Card"
         OpenShopFloorBinCodeEnable: Boolean;
         ToProductionBinCodeEnable: Boolean;
         FromProductionBinCodeEnable: Boolean;
+        CalendarHorizonStyleTxt: Text;
 
     local procedure UpdateEnabled()
     var

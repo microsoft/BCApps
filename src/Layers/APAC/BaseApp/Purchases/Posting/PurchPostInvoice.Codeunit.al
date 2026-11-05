@@ -384,6 +384,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         InvoicePostingBuffer."Dimension Set ID" := PurchLine."Dimension Set ID";
         InvoicePostingBuffer."Job No." := PurchLine."Job No.";
         InvoicePostingBuffer."VAT %" := PurchLine.GetVATPct();
+        InvoicePostingBuffer."Spend Request No." := PurchLine."Spend Request No.";
+        InvoicePostingBuffer."Spend Request Close" := PurchLine."Spend Request Close";
         NonDeductibleVAT.Copy(InvoicePostingBuffer, PurchLine);
         PurchHeader.Get(PurchLine."Document Type", PurchLine."Document No.");
         InvoicePostingBuffer.Adjustment := PurchHeader.Adjustment;
@@ -572,9 +574,12 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
     procedure PostLines(DocumentHeaderVar: Variant; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var Window: Dialog; var TotalAmount: Decimal)
     var
-        PurchHeader: Record "Purchase Header";
         GenJnlLine: Record "Gen. Journal Line";
         JobPurchLine: Record "Purchase Line";
+        PurchHeader: Record "Purchase Header";
+        TempJobSourcePurchLine: Record "Purchase Line" temporary;
+        JobLineViews: Dictionary of [Integer, List of [Text]];
+        JobLineGLEntryNos: Dictionary of [Integer, List of [Integer]];
         GLEntryNo: Integer;
         LineCount: Integer;
     begin
@@ -608,13 +613,12 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
                 if (TempInvoicePostingBuffer."Job No." <> '') and
                    (TempInvoicePostingBuffer.Type = TempInvoicePostingBuffer.Type::"G/L Account")
-                then begin
-                    SetJobLineFilters(JobPurchLine, TempInvoicePostingBuffer);
-                    JobPostLine.PostJobPurchaseLines(JobPurchLine.GetView(), GLEntryNo);
-                end;
-
+                then
+                    PostJobLine(TempInvoicePostingBuffer, GLEntryNo, JobPurchLine, TempJobSourcePurchLine, JobLineViews, JobLineGLEntryNos);
                 InsertGST(PurchHeader, TempInvoicePostingBuffer, GenJnlPostLine.GetVATEntryNo());
             until TempInvoicePostingBuffer.Next(-1) = 0;
+
+        PostDeferredJobLines(TempJobSourcePurchLine, JobLineViews, JobLineGLEntryNos);
 
         TempInvoicePostingBuffer.CalcSums(Amount);
         TotalAmount := TempInvoicePostingBuffer.Amount;
@@ -1041,6 +1045,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."WHT Business Posting Group" := PurchHeader."WHT Business Posting Group";
         GenJnlLine."Vendor Exchange Rate (ACY)" := PurchHeader."Vendor Exchange Rate (ACY)";
         GenJnlLine."System-Created Entry" := true;
+        GenJnlLine."Spend Request No." := PurchHeader."Spend Request No.";
+        GenJnlLine."Spend Request Close" := PurchHeader."Spend Request Close";
 
         GenJnlLine.CopyFromPurchHeaderApplyTo(PurchHeader);
         GenJnlLine.CopyFromPurchHeaderPayment(PurchHeader);
@@ -1701,6 +1707,51 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                     FADeprBook2.Insert(true);
                 until FADeprBook.Next() = 0;
         end;
+    end;
+
+    local procedure PostJobLine(InvoicePostingBuffer: Record "Invoice Posting Buffer"; GLEntryNo: Integer; var JobPurchLine: Record "Purchase Line"; var TempJobSourcePurchLine: Record "Purchase Line" temporary; var JobLineViews: Dictionary of [Integer, List of [Text]]; var JobLineGLEntryNos: Dictionary of [Integer, List of [Integer]])
+    var
+        Views: List of [Text];
+        GLEntryNos: List of [Integer];
+        SourceLineNo: Integer;
+    begin
+        SetJobLineFilters(JobPurchLine, InvoicePostingBuffer);
+
+        SourceLineNo := InvoicePostingBuffer."Fixed Asset Line No.";
+        if SourceLineNo <> 0 then
+            PurchSetup.Get();
+        if (SourceLineNo = 0) or not PurchSetup."Copy Line Descr. to G/L Entry" then begin
+            JobPostLine.PostJobPurchaseLines(JobPurchLine.GetView(), GLEntryNo);
+            exit;
+        end;
+
+        // The posting buffer is processed in descending key order, so project posting is deferred to follow the source line order.
+        if JobLineViews.ContainsKey(SourceLineNo) then begin
+            Views := JobLineViews.Get(SourceLineNo);
+            GLEntryNos := JobLineGLEntryNos.Get(SourceLineNo);
+        end else begin
+            TempJobSourcePurchLine."Line No." := SourceLineNo;
+            TempJobSourcePurchLine.Insert();
+        end;
+        Views.Add(JobPurchLine.GetView());
+        GLEntryNos.Add(GLEntryNo);
+        JobLineViews.Set(SourceLineNo, Views);
+        JobLineGLEntryNos.Set(SourceLineNo, GLEntryNos);
+    end;
+
+    local procedure PostDeferredJobLines(var TempJobSourcePurchLine: Record "Purchase Line" temporary; JobLineViews: Dictionary of [Integer, List of [Text]]; JobLineGLEntryNos: Dictionary of [Integer, List of [Integer]])
+    var
+        Views: List of [Text];
+        GLEntryNos: List of [Integer];
+        Index: Integer;
+    begin
+        if TempJobSourcePurchLine.FindSet() then
+            repeat
+                Views := JobLineViews.Get(TempJobSourcePurchLine."Line No.");
+                GLEntryNos := JobLineGLEntryNos.Get(TempJobSourcePurchLine."Line No.");
+                for Index := 1 to Views.Count() do
+                    JobPostLine.PostJobPurchaseLines(Views.Get(Index), GLEntryNos.Get(Index));
+            until TempJobSourcePurchLine.Next() = 0;
     end;
 
     [IntegrationEvent(false, false)]

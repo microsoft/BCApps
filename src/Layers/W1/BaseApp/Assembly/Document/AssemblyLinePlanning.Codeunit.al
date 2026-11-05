@@ -15,9 +15,6 @@ codeunit 99000851 "Assembly Line-Planning"
 
     var
         AssemblyHeader: Record "Assembly Header";
-#if not CLEAN27
-        GetUnplannedDemand: Codeunit "Get Unplanned Demand";
-#endif
         AssemblyTxt: Label 'Assembly';
 
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnSetDemandTypeFromUnplannedDemand', '', false, false)]
@@ -144,9 +141,6 @@ codeunit 99000851 "Assembly Line-Planning"
         DemandQtyBase: Decimal;
     begin
         OnBeforeGetUnplannedAsmLine(UnplannedDemand, AssemblyLine);
-#if not CLEAN27
-        GetUnplannedDemand.RunOnBeforeGetUnplannedAsmLine(UnplannedDemand, AssemblyLine);
-#endif
         AssemblyLine.SetRange("Document Type", "Assembly Document Type"::Order);
         AssemblyLine.SetFilter("No.", ItemFilter.ToText());
         if AssemblyLine.FindSet() then
@@ -161,9 +155,6 @@ codeunit 99000851 "Assembly Line-Planning"
                         sender.InsertUnplannedDemand(
                           UnplannedDemand, UnplannedDemand."Demand Type"::Assembly, AssemblyLine."Document Type".AsInteger(), AssemblyLine."Document No.", AssemblyHeader.Status);
                         OnGetUnplannedAsmLineOnAfterInsertUnplannedDemand(UnplannedDemand);
-#if not CLEAN27
-                        GetUnplannedDemand.RunOnGetUnplannedAsmLineOnAfterInsertUnplannedDemand(UnplannedDemand);
-#endif
                     end;
                     InsertAssemblyLine(UnplannedDemand, AssemblyLine, DemandQtyBase);
                 end;
@@ -190,9 +181,6 @@ codeunit 99000851 "Assembly Line-Planning"
           DemandQtyBase, AssemblyLine."Due Date");
         UnplannedDemand.Reserve := AssemblyLine.Reserve = AssemblyLine.Reserve::Always;
         OnInsertAsmLineOnBeforeInsert(UnplannedDemand, AssemblyLine);
-#if not CLEAN27
-        GetUnplannedDemand.RunOnInsertAsmLineOnBeforeInsert(UnplannedDemand, AssemblyLine);
-#endif
         UnplannedDemand.Insert();
         UnplannedDemand.Copy(UnplannedDemand2);
     end;

@@ -468,6 +468,10 @@ page 4363 "Agent Instruction Editor"
     trigger OnOpenPage()
     begin
         SetupFiltering();
+
+        if GlobalAgent.Substate = GlobalAgent.Substate::Archived then
+            ThrowArchivedAgentCannotBeTestedError(GlobalAgentUserSecurityId);
+
         InitializeControls();
     end;
 
@@ -498,6 +502,24 @@ page 4363 "Agent Instruction Editor"
     procedure SetUserSecurityId(NewUserSecId: Guid)
     begin
         GlobalAgentUserSecurityId := NewUserSecId;
+    end;
+
+    internal procedure ThrowArchivedAgentCannotBeTestedError(AgentSecurityId: Guid)
+    var
+        Agent: Record Agent;
+        AgentArchivedErrorInfo: ErrorInfo;
+    begin
+        AgentArchivedErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        AgentArchivedErrorInfo.Title := ArchivedAgentCannotBeTestedTitleErr;
+        AgentArchivedErrorInfo.Message := ArchivedAgentCannotBeTestedErr;
+
+        if Agent.Get(AgentSecurityId) then begin
+            AgentArchivedErrorInfo.PageNo := Page::"Agent Card";
+            AgentArchivedErrorInfo.RecordId := Agent.RecordId();
+            AgentArchivedErrorInfo.AddNavigationAction(ShowAgentCardLbl);
+        end;
+
+        Error(AgentArchivedErrorInfo);
     end;
 
     local procedure ValidateUserSecurityId()
@@ -545,4 +567,7 @@ page 4363 "Agent Instruction Editor"
         EditTemplateQst: Label 'Template was created. Do you want to edit the template now?';
         AgentNotFoundErr: Label 'The agent with ID ''%1'' was not found.', Comment = '%1 is the agent user security ID.';
         AgentTaskNotFoundErr: Label 'The agent task with ID ''%1'' was not found.', Comment = '%1 is the agent task ID.';
+        ArchivedAgentCannotBeTestedTitleErr: Label 'This agent is archived';
+        ArchivedAgentCannotBeTestedErr: Label 'This agent is archived and can no longer be tested. Its instructions, tasks, and logs remain available for auditing from the agent card.';
+        ShowAgentCardLbl: Label 'Show agent card';
 }

@@ -7,8 +7,8 @@ page 8097 "Billing Schedule Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Billing Schedule';
-    AboutTitle = 'About Billing Schedule';
+    Caption = 'Billing Schedule (Power BI)';
+    AboutTitle = 'About Billing Schedule (Power BI)';
     AboutText = 'The Billing Schedule report provides a forecast of vendor and customer invoiced amounts according to the contractual billing rhythm. It helps to identify future development of incoming and outgoing cash from billed subscriptions.';
 
     layout

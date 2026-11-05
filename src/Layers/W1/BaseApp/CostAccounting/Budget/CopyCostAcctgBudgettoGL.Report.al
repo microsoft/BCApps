@@ -14,6 +14,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 report 1136 "Copy Cost Acctg. Budget to G/L"
 {
     Caption = 'Copy Cost Acctg. Budget to G/L';
+    ToolTip = 'Copy selected cost budget entries into the general ledger. Multiplication factors and multiple copies with date offsets are also possible.';
     ProcessingOnly = true;
 
     dataset

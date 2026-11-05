@@ -229,6 +229,7 @@ codeunit 10042 "IRS Reporting Period"
             repeat
                 NewIRS1099VendorFormBoxAdj := IRS1099VendorFormBoxAdj;
                 NewIRS1099VendorFormBoxAdj."Period No." := ToPeriodNo;
+                NewIRS1099VendorFormBoxAdj.Amount := 0;
                 NewIRS1099VendorFormBoxAdj.Insert();
             until IRS1099VendorFormBoxAdj.Next() = 0;
             UpdateSummaryMessage(SetupCompletedMessage, SomethingHasBeenCopied, IRS1099VendorFormBoxAdj.TableCaption, IRS1099VendorFormBoxAdj.Count(), SummaryMessageCreated);

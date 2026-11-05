@@ -59,8 +59,22 @@ Describe "BuildOptimization" {
         It "returns the E-Document Core change as affecting the full connector/test/demo-data set" {
             $affected = Get-AffectedApps -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $baseFolder -Graph $graph
             # E-Document Core fans out to every connector, country demo-data, format and test app that depends on it.
-            $affected.Count | Should -Be 50
-            $affected | Should -Contain 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
+            # Derive the expected set from the graph (E-Document Core + all transitive dependents) so the
+            # assertion stays correct when new E-Document apps are added or removed.
+            $edocCoreId = 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
+            $expectedIds = [System.Collections.Generic.HashSet[string]]::new()
+            $bfsQueue = [System.Collections.Generic.Queue[string]]::new()
+            $bfsQueue.Enqueue($edocCoreId)
+            while ($bfsQueue.Count -gt 0) {
+                $current = $bfsQueue.Dequeue()
+                if ($expectedIds.Contains($current)) { continue }
+                [void]$expectedIds.Add($current)
+                foreach ($dep in $graph[$current].Dependents) {
+                    if (-not $expectedIds.Contains($dep)) { $bfsQueue.Enqueue($dep) }
+                }
+            }
+            $affected.Count | Should -Be $expectedIds.Count
+            $affected | Should -Contain $edocCoreId
         }
 
         It "includes all connectors and tests for E-Document Core change" {
@@ -227,6 +241,43 @@ Describe "BuildOptimization" {
                 $env:GITHUB_EVENT_NAME = $savedEvent
                 $env:GITHUB_EVENT_PATH = $savedEventPath
                 if ($tempFile) { Remove-Item $tempFile -ErrorAction SilentlyContinue }
+            }
+        }
+
+        It "returns only newly added files when the A diff filter is requested" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $tempFile = [System.IO.Path]::GetTempFileName()
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                @{
+                    pull_request = @{
+                        base = @{ sha = 'base-sha' }
+                        head = @{ sha = 'head-sha' }
+                    }
+                } | ConvertTo-Json -Depth 5 | Set-Content $tempFile
+                $env:GITHUB_EVENT_PATH = $tempFile
+                Mock -ModuleName BuildOptimization git {
+                    $global:LASTEXITCODE = 0
+                    if ($args -contains 'merge-base') {
+                        return 'merge-base-sha'
+                    }
+                    if ($args -contains '--diff-filter=A') {
+                        return 'src/Apps/W1/Example/App/Added.al'
+                    }
+                }
+
+                $result = @(Get-ChangedFilesForCI -DiffFilter 'A' -CompareFromMergeBase -RequireChangeDetection)
+
+                $result | Should -Be @('src/Apps/W1/Example/App/Added.al')
+            }
+            finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+                Remove-Item $tempFile -ErrorAction SilentlyContinue
             }
         }
     }

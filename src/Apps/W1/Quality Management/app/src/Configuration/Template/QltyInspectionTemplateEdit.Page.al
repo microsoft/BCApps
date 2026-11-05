@@ -229,6 +229,9 @@ page 20440 "Qlty. Inspection Template Edit"
         ChooseAValidInspectionFirstBeforeChoosingLineErr: Label 'Please choose a valid existing inspection before choosing a line.';
         ChooseAValidInspectionFirstBeforeTestingErr: Label 'Please choose a valid existing inspection before testing this expression.';
 
+    /// <summary>
+    /// Appends the selected table field name as an expression placeholder.
+    /// </summary>
     local procedure HandleOnAddFieldFromTable()
     var
         RecordRefToLookup: RecordRef;
@@ -243,6 +246,13 @@ page 20440 "Qlty. Inspection Template Edit"
         end;
     end;
 
+    /// <summary>
+    /// Opens the expression editor for a table and writes accepted HTML-formatted content back to the template text.
+    /// </summary>
+    /// <param name="TableNo2">The table whose fields can be inserted into the expression.</param>
+    /// <param name="OptionalNameFilter2">The optional field-name filter used by field lookup.</param>
+    /// <param name="ExistingTemplate">The expression to edit and the accepted edited result.</param>
+    /// <returns>The action used to close the modal editor.</returns>
     procedure RunModalWith(TableNo2: Integer; OptionalNameFilter2: Text; var ExistingTemplate: Text) ResultAction: Action
     begin
         TableNo := TableNo2;
@@ -257,6 +267,9 @@ page 20440 "Qlty. Inspection Template Edit"
             ExistingTemplate := QltyExpressionMgmt.ConvertCarriageReturnsToHTMLBRs(HtmlContentText);
     end;
 
+    /// <summary>
+    /// Opens a test lookup for all tests or only tests on the restricted template.
+    /// </summary>
     local procedure HandleOnAddQltyInspectionTest()
     begin
         if LimitedToTemplateCode = '' then
@@ -265,6 +278,9 @@ page 20440 "Qlty. Inspection Template Edit"
             LookupOnlyTestsInTemplate();
     end;
 
+    /// <summary>
+    /// Appends a selected quality test code as an expression placeholder.
+    /// </summary>
     local procedure LookupAnyQltyInspectionTest()
     var
         QltyTest: Record "Qlty. Test";
@@ -278,6 +294,9 @@ page 20440 "Qlty. Inspection Template Edit"
         end;
     end;
 
+    /// <summary>
+    /// Appends a selected test from the restricted template as an expression placeholder.
+    /// </summary>
     local procedure LookupOnlyTestsInTemplate()
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -306,6 +325,10 @@ page 20440 "Qlty. Inspection Template Edit"
         end;
     end;
 
+    /// <summary>
+    /// Restricts test insertion to tests used by a template.
+    /// </summary>
+    /// <param name="TemplateCode">The template whose tests may be inserted.</param>
     procedure RestrictTestsToThoseOnTemplate(TemplateCode: Code[20])
     begin
         LimitedToTemplateCode := TemplateCode;

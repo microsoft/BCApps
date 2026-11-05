@@ -26,6 +26,7 @@ codeunit 134284 "Non Ded. VAT Misc."
         InCorrectProjLedgEntryAmtErr: Label 'Incorrect amount in Project Ledger Entry';
         IsInitialized: Boolean;
         FALedgerEntryAmtErr: Label 'FA Ledger Entry amount should be equal to GL Entry amount';
+        DeferralAccountNetsToZeroErr: Label 'Deferral account must net to zero with 100% non-deductible VAT';
 
     [Test]
     [Scope('OnPrem')]
@@ -1099,30 +1100,39 @@ codeunit 134284 "Non Ded. VAT Misc."
         // [GIVEN] VAT Posting Setup, where "Tax Calculation Type"::"Normal VAT", 'Deductible %' is '60'
         DeductiblePercent := LibraryRandom.RandInt(90);
         CreateNonDeductibleVATPostingSetup(VATPostingSetup, "Tax Calculation Type"::"Normal VAT", '', DeductiblePercent);
-        // [GIVEN] Job "X" with currency which factor is 0.5
+        // [GIVEN] Job "X" with a foreign currency
         LibrarySales.CreateCustomer(Customer);
         LibraryJob.CreateJob(Job, Customer."No.");
-        Job.Validate("Currency Code", LibraryERM.CreateCurrencyWithRandomExchRates());
+        Job.Validate("Currency Code", LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 2, 2));
         Job.Modify(true);
         LibraryJob.CreateJobTask(Job, JobTask);
-        // [GIVEN] General journal line where line contains "Non-Deductible VAT Amount" = 100, "Job No." = "X" "Job Line Type" = 'Billable'
-        // [GIVEN] "Job Quantity" = 2, "Job Unit Cost" = 50
+        // [GIVEN] General journal line in LCY for Job "X" with non-deductible VAT
         CreateJobGLJournalLine(GenJnlLine, JobTask, VATPostingSetup);
 
         // [WHEN] Run FromGenJnlLineToJnlLine
         JobTransferLine.FromGenJnlLineToJnlLine(GenJnlLine, JobJnlLine);
 
-        // [THEN] JobJnlLine contains "Unit Cost LCY" = ("Job Unit Cost" + "Non-Deductible VAT Amount") * "Currency Factor" / "Job Quantity" = (50 + 100) * 0.5 / 2 = 37.5
+        // [THEN] LCY costs include the LCY non-deductible VAT amount
         Assert.AreEqual(
             Round(JobJnlLine."Unit Cost (LCY)"),
             Round(GenJnlLine."Job Total Cost (LCY)" / GenJnlLine."Job Quantity") +
-            Round(Round(GenJnlLine."Non-Deductible VAT Amount" * GenJnlLine."Job Currency Factor") / GenJnlLine."Job Quantity"),
+            Round(GenJnlLine."Non-Deductible VAT Amount LCY" / GenJnlLine."Job Quantity"),
             'Unit Cost (LCY) with Non-Deductible VAT amount is not correct in Job Journal Line');
-        // [THEN] JobJnlLine contains "Total Unit Cost" = ("Job Unit Cost" + "Non-Deductible VAT Amount") * "Currency Factor" = (50 + 100) * 0.5 = 75
         Assert.AreEqual(
             Round(JobJnlLine."Total Cost (LCY)"),
-            Round(GenJnlLine."Job Total Cost (LCY)" + Round(GenJnlLine."Non-Deductible VAT Amount" * GenJnlLine."Job Currency Factor")),
+            Round(GenJnlLine."Job Total Cost (LCY)" + GenJnlLine."Non-Deductible VAT Amount LCY"),
             'Total Cost (LCY) with Non-Deductible VAT amount is not correct in Job Journal Line');
+
+        // [THEN] Project currency costs include the non-deductible VAT amount converted to project currency
+        Assert.AreEqual(
+            Round(JobJnlLine."Unit Cost"),
+            Round(GenJnlLine."Job Total Cost" / GenJnlLine."Job Quantity") +
+            Round(Round(GenJnlLine."Non-Deductible VAT Amount" * GenJnlLine."Job Currency Factor") / GenJnlLine."Job Quantity"),
+            'Unit Cost with Non-Deductible VAT amount is not correct in Job Journal Line');
+        Assert.AreEqual(
+            Round(JobJnlLine."Total Cost"),
+            Round(GenJnlLine."Job Total Cost" + Round(GenJnlLine."Non-Deductible VAT Amount" * GenJnlLine."Job Currency Factor")),
+            'Total Cost with Non-Deductible VAT amount is not correct in Job Journal Line');
     end;
 
     [Test]
@@ -1211,6 +1221,51 @@ codeunit 134284 "Non Ded. VAT Misc."
         Assert.AreEqual(FALedgEntry.Amount, GLEntry.Amount, FALedgerEntryAmtErr);
     end;
 
+    [Test]
+    procedure DeferralAccountNetsToZeroWith100PctNonDedVATAndMultiplePeriods()
+    var
+        DeferralTemplate: Record "Deferral Template";
+        GLEntry: Record "G/L Entry";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PostedInvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Deferral]
+        // [SCENARIO 640614] Deferral account nets to zero with 100% non-deductible VAT and multiple periods
+        Initialize();
+
+        // [GIVEN] VAT Posting Setup with random VAT% and Deductible% = 0 (100% non-deductible)
+        CreateNonDeductibleVATPostingSetup(
+            VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT",
+            LibraryERM.CreateGLAccountNo(), 0);
+
+        // [GIVEN] Deferral Template with periods, Equal per Period, starting at Beginning of Next Period
+        LibraryERM.CreateDeferralTemplate(
+            DeferralTemplate, DeferralTemplate."Calc. Method"::"Equal per Period",
+            DeferralTemplate."Start Date"::"Beginning of Next Period", 1);
+
+        // [GIVEN] Purchase Invoice with random amount and deferral
+        CreatePurchInvoiceWithDeferralAndDedVAT(
+            PurchaseHeader, PurchaseLine, WorkDate(), VATPostingSetup,
+            DeferralTemplate."Deferral Code", LibraryRandom.RandDecInRange(1000, 2000, 2));
+
+        // [WHEN] Post the purchase invoice
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Deferral G/L entries were posted on the deferral account
+        GLEntry.SetRange("Document No.", PostedInvoiceNo);
+        GLEntry.SetRange("Document Type", GLEntry."Document Type"::Invoice);
+        GLEntry.SetRange("G/L Account No.", DeferralTemplate."Deferral Account");
+        Assert.RecordIsNotEmpty(GLEntry);
+
+        // [THEN] The deferral account balance nets to exactly zero (no rounding residual)
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(0, GLEntry.Amount, DeferralAccountNetsToZeroErr);
+
+        TearDownLastUsedDateInPurchInvoiceNoSeries();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1224,6 +1279,7 @@ codeunit 134284 "Non Ded. VAT Misc."
         LibraryNonDeductibleVAT.EnableNonDeductibleVAT();
         LibraryERMCountryData.UpdatePurchasesPayablesSetup();
         LibrarySetupStorage.Save(Database::"VAT Setup");
+        LibrarySetupStorage.Save(Database::"Purchases & Payables Setup");
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Non Ded. VAT Misc.");

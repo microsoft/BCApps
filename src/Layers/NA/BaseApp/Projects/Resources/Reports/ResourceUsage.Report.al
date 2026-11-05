@@ -10,6 +10,7 @@ report 10200 "Resource Usage"
 {
     ApplicationArea = Jobs;
     Caption = 'Resource Usage';
+    ToolTip = 'View the resource utilization that has taken place. The report includes the resource capacity, quantity of usage, and the remaining balance.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

@@ -122,6 +122,28 @@ codeunit 13915 "Import XRechnung Document"
             exit(TempXMLBuffer.Value);
     end;
 
+    local procedure GetTaxRegistrationNoByScheme(var TempXMLBuffer: Record "XML Buffer" temporary; PartyPath: Text; TaxSchemeID: Text): Text
+    var
+        PartyTaxSchemeEntryNo: Integer;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, PartyPath + '/cac:PartyTaxScheme/cac:TaxScheme/cbc:ID');
+        TempXMLBuffer.SetRange(Value, TaxSchemeID);
+        if not TempXMLBuffer.FindFirst() then
+            exit('');
+
+        TempXMLBuffer.Get(TempXMLBuffer."Parent Entry No.");
+        PartyTaxSchemeEntryNo := TempXMLBuffer."Parent Entry No.";
+
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, PartyPath + '/cac:PartyTaxScheme/cbc:CompanyID');
+        TempXMLBuffer.SetRange("Parent Entry No.", PartyTaxSchemeEntryNo);
+        if TempXMLBuffer.FindFirst() then
+            exit(TempXMLBuffer.Value);
+    end;
+
     local procedure ParseAccountingSupplierParty(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentType: Text)
     var
         Vendor: Record Vendor;
@@ -129,17 +151,21 @@ codeunit 13915 "Import XRechnung Document"
         EDocumentHelper: Codeunit "E-Document Helper";
         VendorName, VendorAddress : Text;
         VATRegistrationNo: Text[20];
+        RegistrationNo: Text[20];
         GLN: Text[13];
         VendorID: Text[200];
         VendorNo: Code[20];
+        PartyPath: Text;
     begin
-        VATRegistrationNo := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID'), 1, MaxStrLen(VATRegistrationNo));
+        PartyPath := '/' + DocumentType + '/cac:AccountingSupplierParty/cac:Party';
+        VATRegistrationNo := CopyStr(GetTaxRegistrationNoByScheme(TempXMLBuffer, PartyPath, 'VAT'), 1, MaxStrLen(VATRegistrationNo));
+        RegistrationNo := CopyStr(GetTaxRegistrationNoByScheme(TempXMLBuffer, PartyPath, 'FC'), 1, MaxStrLen(RegistrationNo));
 
         if VATRegistrationNo = '' then
             VATRegistrationNo := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID'), 1, MaxStrLen(VATRegistrationNo));
 
         GLN := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID'), 1, MaxStrLen(GLN));
-        VendorNo := EDocumentImportHelper.FindVendor('', GLN, VATRegistrationNo);
+        VendorNo := EDocumentImportHelper.FindVendor('', GLN, VATRegistrationNo, RegistrationNo);
 
         // If vendor not found, try to find by Service Participant.
         if VendorNo = '' then begin
@@ -165,7 +191,10 @@ codeunit 13915 "Import XRechnung Document"
     end;
 
     local procedure ParseAccountingCustomerParty(var EDocument: Record "E-Document"; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentType: Text)
+    var
+        PartyPath: Text;
     begin
+        PartyPath := '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party';
         EDocument."Receiving Company Name" := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName'), 1, MaxStrLen(EDocument."Receiving Company Name"));
         EDocument."Receiving Company Address" := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PostalAddress/cbc:StreetName'), 1, MaxStrLen(EDocument."Receiving Company Address"));
 
@@ -174,8 +203,9 @@ codeunit 13915 "Import XRechnung Document"
             if GetAttributeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID') = '0094' then
                 EDocument."Receiving Company GLN" := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID'), 1, MaxStrLen(EDocument."Receiving Company GLN"));
 
-        EDocument."Receiving Company VAT Reg. No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID'), 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
-        if EDocument."Receiving Company VAT Reg. No." = '' then
+        EDocument."Receiving Company VAT Reg. No." := CopyStr(GetTaxRegistrationNoByScheme(TempXMLBuffer, PartyPath, 'VAT'), 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
+        EDocument."Receiving Company Reg. No." := CopyStr(GetNodeByPath(TempXMLBuffer, PartyPath + '/cac:PartyLegalEntity/cbc:CompanyID'), 1, MaxStrLen(EDocument."Receiving Company Reg. No."));
+        if (EDocument."Receiving Company VAT Reg. No." = '') and (EDocument."Receiving Company Reg. No." = '') then
             if GetAttributeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID') in ['EM', '0198', '9930'] then
                 EDocument."Receiving Company VAT Reg. No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID'), 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
     end;
@@ -225,7 +255,7 @@ codeunit 13915 "Import XRechnung Document"
             RecRef.GetTable(PurchaseLine);
             EDocumentImportHelper.FindGLAccountForLine(EDocument, RecRef);
             PurchaseLine."No." := RecRef.Field(PurchaseLine.FieldNo("No.")).Value;
-            PurchaseLine.Insert();
+            PurchaseLine.Insert(true);
             LineNo += 10000;
         end;
     end;
@@ -276,7 +306,7 @@ codeunit 13915 "Import XRechnung Document"
     begin
         PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Invoice;
         PurchaseHeader."No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cbc:ID'), 1, MaxStrLen(PurchaseHeader."No."));
-        PurchaseHeader.Insert();
+        PurchaseHeader.Insert(true);
 
         LastLineNo := GetLastLineNo(PurchaseHeader);
 
@@ -292,8 +322,8 @@ codeunit 13915 "Import XRechnung Document"
         AddAttachment(DocumentAttachment, DocumentAttachmentData, EDocument);
 
         // Insert last line
-        PurchaseLine.Insert();
-        PurchaseHeader.Modify();
+        PurchaseLine.Insert(true);
+        PurchaseHeader.Modify(true);
 
         CreateAllowanceChargeLines(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, DocumentType);
     end;
@@ -351,7 +381,7 @@ codeunit 13915 "Import XRechnung Document"
             '/' + DocumentType + '/cac:InvoiceLine':
                 begin
                     if PurchaseLine."Document No." <> '' then
-                        PurchaseLine.Insert();
+                        PurchaseLine.Insert(true);
 
                     PurchaseLine.Init();
                     PurchaseLine."Document Type" := PurchaseHeader."Document Type";
@@ -439,7 +469,7 @@ codeunit 13915 "Import XRechnung Document"
     begin
         PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::"Credit Memo";
         PurchaseHeader."No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cbc:ID'), 1, MaxStrLen(PurchaseHeader."No."));
-        PurchaseHeader.Insert();
+        PurchaseHeader.Insert(true);
 
         LastLineNo := GetLastLineNo(PurchaseHeader);
 
@@ -455,8 +485,8 @@ codeunit 13915 "Import XRechnung Document"
         AddAttachment(DocumentAttachment, DocumentAttachmentData, EDocument);
 
         // Insert last line
-        PurchaseLine.Insert();
-        PurchaseHeader.Modify();
+        PurchaseLine.Insert(true);
+        PurchaseHeader.Modify(true);
 
         CreateAllowanceChargeLines(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer, DocumentType);
     end;
@@ -488,7 +518,7 @@ codeunit 13915 "Import XRechnung Document"
             '/' + DocumentType + '/cac:CreditNoteLine':
                 begin
                     if PurchaseLine."Document No." <> '' then
-                        PurchaseLine.Insert();
+                        PurchaseLine.Insert(true);
 
                     PurchaseLine.Init();
                     PurchaseLine."Document Type" := PurchaseHeader."Document Type";

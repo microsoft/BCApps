@@ -10,6 +10,7 @@ permissionset 9862 "Permission Sets - Objects"
     Access = Internal;
     Assignable = false;
     Permissions =
+        codeunit "Permission Set Card Subscriber" = X,
         codeunit "Permission Set Relation" = X,
         codeunit "Permissions Overview" = X,
         codeunit "Log Activity Permissions" = X,

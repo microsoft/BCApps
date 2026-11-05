@@ -244,6 +244,70 @@ page 6788 "Withholding Tax Entries"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies an auto-generated field based on the no. series defined in the Withholding Tax Posting Setup for a particular Withholding Tax Report Type.';
                 }
+                field("Party Type"; Rec."Party Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the type of party (Vendor, Customer, or Employee) that this withholding tax entry relates to.';
+                }
+                field("Employee No."; Rec."Employee No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the employee number if this withholding tax entry originated from an employee transaction.';
+                }
+                field("Empl. Ledger Entry No."; Rec."Empl. Ledger Entry No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the employee ledger entry number that this withholding tax entry is linked to.';
+                    Visible = false;
+                }
+                field("Calculation Base"; Rec."Calculation Base")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies whether the withholding tax was calculated on the gross or net (gross-up) base amount.';
+                    Visible = false;
+                }
+                field("Calculation Method"; Rec."Calculation Method")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the calculation method used: Simple or Compound.';
+                    Visible = false;
+                }
+                field("Component Order"; Rec."Component Order")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the order in which this tax component was applied when using compound calculation.';
+                    Visible = false;
+                }
+                field("Threshold Base"; Rec."Threshold Base")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the threshold evaluation level: Record, Document, Category in Period, or Total in Period.';
+                    Visible = false;
+                }
+                field("Threshold Evaluated"; Rec."Threshold Evaluated")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies whether the threshold was evaluated for this entry.';
+                    Visible = false;
+                }
+                field("Threshold Exceeded"; Rec."Threshold Exceeded")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies whether the threshold was exceeded for this entry.';
+                    Visible = false;
+                }
+                field("WHT Group Code"; Rec."WHT Group Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the withholding tax group code if a multi-component tax group was used.';
+                    Visible = false;
+                }
+                field("Taxable Base Amount"; Rec."Taxable Base Amount")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the effective taxable base amount after threshold evaluation. This may differ from the original base when thresholds apply.';
+                    Visible = false;
+                }
             }
         }
     }

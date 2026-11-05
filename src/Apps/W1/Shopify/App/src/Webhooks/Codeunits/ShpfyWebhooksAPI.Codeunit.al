@@ -15,7 +15,7 @@ codeunit 30251 "Shpfy Webhooks API"
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         JsonHelper: Codeunit "Shpfy Json Helper";
 
-    internal procedure RegisterWebhookSubscription(var Shop: Record "Shpfy Shop"; WebhookTopic: Text): Text
+    internal procedure RegisterWebhookSubscription(var Shop: Record "Shpfy Shop"; WebhookTopic: Enum "Shpfy Webhook Topic"): Text
     var
         GraphQLType: Enum "Shpfy GraphQL Type";
         JResponse: JsonToken;
@@ -24,8 +24,9 @@ codeunit 30251 "Shpfy Webhooks API"
     begin
         CommunicationMgt.SetShop(Shop);
         GraphQLType := GraphQLType::Base_CreateWebhookSubscription;
-        Parameters.Add('WebhookTopic', WebhookTopic);
+        Parameters.Add('WebhookTopic', WebhookTopic.Names.Get(WebhookTopic.Ordinals.IndexOf(WebhookTopic.AsInteger())));
         Parameters.Add('NotificationUrl', GetNotificationUrl());
+        Parameters.Add('IncludeFields', GetWebhookSubscriptionIncludeFields(WebhookTopic));
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters, false);
         ExtractWebhookSubscriptionId(JResponse.AsObject(), SubscriptionId);
         exit(SubscriptionId);
@@ -90,5 +91,15 @@ codeunit 30251 "Shpfy Webhooks API"
         WebhookManagement: Codeunit "Webhook Management";
     begin
         exit(WebhookManagement.GetNotificationUrl());
+    end;
+
+    local procedure GetWebhookSubscriptionIncludeFields(WebhookTopic: Enum "Shpfy Webhook Topic"): Text
+    begin
+        case WebhookTopic of
+            WebhookTopic::BULK_OPERATIONS_FINISH:
+                exit('[\"admin_graphql_api_id\", \"type\"]');
+            WebhookTopic::ORDERS_CREATE:
+                exit('[\"id\"]');
+        end;
     end;
 }

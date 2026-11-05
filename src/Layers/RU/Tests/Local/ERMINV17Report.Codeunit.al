@@ -434,26 +434,32 @@ codeunit 144704 "ERM INV-17 Report"
 
     local procedure RunINV17Report(InvtActHeader: Record "Invent. Act Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         InvActRep: Report "Invent. Act INV-17";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(InvtActHeader."No.");
         InvtActHeader.SetRecFilter();
         InvActRep.SetFileNameSilent(LibraryReportValidation.GetFileName());
         InvActRep.SetTableView(InvtActHeader);
         InvActRep.UseRequestPage(false);
         InvActRep.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunINV17SupplementReport(InvtActHeader: Record "Invent. Act Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SupplementInvActRep: Report "Supplement to INV-17";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(InvtActHeader."No.");
         InvtActHeader.SetRecFilter();
         SupplementInvActRep.SetFileNameSilent(LibraryReportValidation.GetFileName());
         SupplementInvActRep.SetTableView(InvtActHeader);
         SupplementInvActRep.UseRequestPage(false);
         SupplementInvActRep.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyReportHeader(ReasonDocNo: Code[20]; ReasonDocDate: Date; DocNo: Code[20]; DocDate: Date; InvDate: Date)

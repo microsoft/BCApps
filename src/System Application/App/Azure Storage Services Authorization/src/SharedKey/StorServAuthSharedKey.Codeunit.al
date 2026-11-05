@@ -38,6 +38,7 @@ codeunit 9064 "Stor. Serv. Auth. Shared Key" implements "Storage Service Authori
         ApiVersion := NewApiVersion;
     end;
 
+    [NonDebuggable]
     local procedure GetSharedKeySignature(HttpRequestMessage: HttpRequestMessage; StorageAccount: Text): Text
     var
         StringToSign: Text;

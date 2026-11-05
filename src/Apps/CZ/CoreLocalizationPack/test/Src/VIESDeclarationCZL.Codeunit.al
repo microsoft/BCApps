@@ -45,7 +45,6 @@ codeunit 148067 "VIES Declaration CZL"
         VIESDeclarationHeaderCZL.DeleteAll(false);
         VIESDeclarationLineCZL.Reset();
         VIESDeclarationLineCZL.DeleteAll(false);
-
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"VIES Declaration CZL");
@@ -237,9 +236,21 @@ codeunit 148067 "VIES Declaration CZL"
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
         InStream: InStream;
+        XmlDoc: XmlDocument;
+        XmlNodeVar: XmlNode;
+        XmlText: Text;
+        OfficialFullName: Text[255];
     begin
         // [SCENARIO] Export released VIES Declaration
         Initialize();
+
+        // [GIVEN] Official full name with the maximum supported length has been set
+        StatutoryReportingSetupCZL.Get();
+#pragma warning disable AA0139
+        OfficialFullName := LibraryRandom.RandText(255);
+#pragma warning restore AA0139
+        StatutoryReportingSetupCZL."Official Full Name" := OfficialFullName;
+        StatutoryReportingSetupCZL.Modify();
 
         // [GIVEN] New EU Customer has been created
         CreateCustomer();
@@ -273,7 +284,8 @@ codeunit 148067 "VIES Declaration CZL"
 
         // [THEN] Exported XML document will exist
         TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
-        XMLBufferWriter.InitializeXMLBufferFromText(TempXMLBuffer, TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.CRLFSeparator()));
+        XmlText := TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.CRLFSeparator());
+        XMLBufferWriter.InitializeXMLBufferFromText(TempXMLBuffer, XmlText);
 
         // [THEN] Exported XML document will have VetaD
 #pragma warning disable AA0210
@@ -285,6 +297,12 @@ codeunit 148067 "VIES Declaration CZL"
 #pragma warning restore AA0210
         TempXMLBuffer.FindFirst();
         Assert.AreEqual('R', TempXMLBuffer.Value, 'shvies_forma');
+
+        // [THEN] Exported VetaP will contain the full 255-character official name (XML Buffer Value is limited to 250 characters)
+        XmlDocument.ReadFrom(XmlText, XmlDoc);
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/Pisemnost/DPHSHV/VetaP/@zast_nazev', XmlNodeVar), 'zast_nazev node');
+        Assert.AreEqual(255, StrLen(XmlNodeVar.AsXmlAttribute().Value()), 'zast_nazev length');
+        Assert.AreEqual(OfficialFullName, XmlNodeVar.AsXmlAttribute().Value(), 'zast_nazev');
 
         // [THEN] Exported XML document will have VetaR
         TempXMLBuffer.SetFilter(Path, '/Pisemnost/DPHSHV/vetaR/*');

@@ -20,7 +20,9 @@ Nearly every test codeunit uses a module-level `isInitialized: Boolean` that gat
 
 Complex or stable JSON response payloads are stored as `.txt` files under `.resources/` and loaded via `NavApp.GetResource()`. This avoids embedding large JSON strings in AL code and makes it easy to update response formats.
 
-**Example**: In `ShpfyBulkOperationsTest`, the `BulkOperationHttpHandler` loads different resources based on which GraphQL operation was requested. It uses `Library - Variable Storage` as a queue (`GraphQLResponses.Enqueue('StagedUpload')`) to control which response to return for each sequential API call. The handler dequeues the next expected response type and loads the corresponding resource file.
+**Example**: In `ShpfyBulkOperationsTest`, the `BulkOperationHttpHandler` loads different resources based on which GraphQL operation was requested. It uses `Library - Variable Storage` as a queue (`GraphQLResponses.Enqueue('StagedUpload')`) to control which response to return for each sequential API call. The handler dequeues the next expected response type and loads the corresponding resource file. Product export tests use the same pattern for `ProductUpdateResponse.txt` and `ProductVariantsBulkUpdateResponse.txt`, while shipping tests use it for market-driven feature detection before loading market shipping methods.
+
+*Updated: 2026-07-29 -- Product export and shipping tests now use additional resource-backed mock responses*
 
 **Gotcha**: Resource files use `%1`, `%2` placeholders filled by `StrSubstNo`. If your response needs a literal `%` character, you must escape it. Also, resource files must be under the `.resources/` path declared in `app.json`'s `resourceFolders` -- putting them elsewhere means they won't be compiled into the app.
 
@@ -58,11 +60,43 @@ All Shopify GraphQL requests hit the same endpoint (`/admin/api/graphql.json`), 
 
 ## Disabled tests tracking
 
-Known-failing test methods are tracked in JSON files under `DisabledTests/` rather than being deleted or commented out. Each entry records the bug ID, codeunit ID, codeunit name, and method name.
+Known-failing test methods are still tracked as JSON, but not inside the Shopify test app folder. The local `Test/DisabledTests/` directory was removed; `RunTestsInBcContainer.ps1` now searches for central `DisabledTests/<app name>/*.json` folders and passes those entries to the test runner. For this app, the app-name folder is `Shopify_Connector_Test`.
 
-**Example**: `DisabledTests/ShpfyProductPriceCalcTest.json` disables `UnitTestCalcPriceTest` from codeunit 139605 with bug reference 621557.
+**Example**: A central entry contains `codeunitId`, `codeunitName`, and `method`; the build script derives the folder name by replacing spaces in the app name with underscores.
 
-**Gotcha**: The disabled tests mechanism is read by the test runner infrastructure. If you rename a test method or codeunit, update the JSON file too, otherwise the filter won't match and the test will run (and presumably fail).
+**Gotcha**: Do not add new `Test/DisabledTests/*.json` files. If you rename a test method or codeunit, update the central app-name disabled-test file, otherwise the filter will not match the intended method.
+
+*Updated: 2026-07-29 -- App-local DisabledTests JSON files were removed and the build uses the central app-name folder mechanism*
+
+## Price calculation state isolation
+
+Price calculation tests are sensitive to cached state because `Shpfy Product Price Calc.` is SingleInstance and keeps temporary sales context. Tests that depend on Work Date must change `WorkDate()` deliberately, call `SetShop()` for each calculation, and restore the original Work Date before asserting so failures do not leak state into later tests.
+
+**Example**: `ShpfyProductPriceCalcTest.UnitTestCalcPriceUsesCurrentWorkDate` creates two dated All Customers discounts around a boundary date, calculates once after the boundary and once before it, and proves the second call uses the current Work Date instead of a stale cached document date.
+
+**Gotcha**: Legacy price tests that exercise Sales Price / Sales Line Discount data should explicitly choose the V15 handler with `LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 15.0)")`. Disabling extended pricing is not enough when the tenant defaults have already moved to the newer price engine.
+
+*Updated: 2026-07-29 -- Price calculation tests now guard against stale Work Date and explicit legacy handler selection*
+
+## Suppressing duplicate-contact confirmations
+
+Customer creation and update tests can cascade into contact creation. In demo or localized data, Marketing Setup may have duplicate-contact auto-search enabled, which raises an interactive confirm while tests run with UI handlers enabled.
+
+**Example**: `ShpfyCreateCustomerTest.Initialize()` turns off `Marketing Setup."Autosearch for Duplicates"` and `"Maintain Dupl. Search Strings"` before committing setup. The tests then verify no-default-address customer creation and update paths without needing a confirm handler.
+
+**Gotcha**: Prefer disabling the data-dependent confirmation at setup time for these integration tests. A confirm handler would hide the source of the prompt and could accidentally approve unrelated confirmations.
+
+*Updated: 2026-07-29 -- Customer creation tests now avoid duplicate-contact confirms through setup data*
+
+## GraphQL rate-limit elapsed-time checks
+
+The rate limiter tests measure elapsed time, so they use broad tolerances and explicit sleeps only where the production behavior is time-based.
+
+**Example**: `ShpfyGraphQLRateLimitTest.UnitTestWaitForRequestAvailableAfterElapsedTime` sets availability below the next query cost, sleeps for part of the restore interval, then asserts that `WaitForRequestAvailable` waits only the remaining time.
+
+**Gotcha**: These tests should verify a range around the expected wait rather than exact milliseconds. The purpose is to catch under-waiting or restarting the full wait after elapsed time, not scheduler jitter.
+
+*Updated: 2026-07-29 -- Rate-limit tests now cover elapsed restore time*
 
 ## Legacy patterns
 

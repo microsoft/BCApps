@@ -5,20 +5,18 @@
 namespace Microsoft.Manufacturing.Setup;
 
 using Microsoft.Finance.GeneralLedger.Setup;
-#if not CLEAN27
-using Microsoft.Foundation.Calendar;
-#endif
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.BOM.Tree;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
-#if not CLEAN27
-using Microsoft.Inventory.Setup;
-#endif
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Forecast;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Wizard;
+using Microsoft.Manufacturing.WorkCenter;
 using System.Telemetry;
 using System.Utilities;
 
@@ -130,45 +128,31 @@ table 99000765 "Manufacturing Setup"
             ToolTip = 'Specifies the number series code to use when assigning numbers to routings.';
             TableRelation = "No. Series";
         }
+#if not CLEANSCHEMA30
         field(35; "Current Production Forecast"; Code[10])
         {
             Caption = 'Current Demand Forecast';
             ToolTip = 'Specifies the name of the relevant demand forecast to use to calculate a plan. Use Inventory Setup page to change this field.';
             TableRelation = "Production Forecast Name".Name;
             ObsoleteReason = 'Field moved to same field in table Inventory Setup';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
         field(36; "Use Forecast on Variants"; Boolean)
         {
             Caption = 'Use forecast on variants';
             ToolTip = 'Specifies that actual demand for the selected demand forecast is nettet for the specified item variant. If you leave the check box empty, the program regards the demand forecast as valid for all variants. Use Inventory Setup page to change this field.';
             ObsoleteReason = 'Field moved to same field in table Inventory Setup';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
         field(37; "Use Forecast on Locations"; Boolean)
         {
             Caption = 'Use forecast on locations';
             ToolTip = 'Specifies that actual demand for the selected demand forecast is nettet for the specified location only. If you leave the check box empty, the program regards the demand forecast as valid for all locations. Use Inventory Setup page to change this field.';
             ObsoleteReason = 'Field moved to same field in table Inventory Setup';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
         field(38; "Combined MPS/MRP Calculation"; Boolean)
         {
@@ -177,40 +161,24 @@ table 99000765 "Manufacturing Setup"
             ToolTip = 'Specifies if both master production schedule and material requirements plan are run when you choose the Calc. Regenerative Plan action in the planning worksheet. Use Inventory Setup page to change this field.';
             InitValue = true;
             ObsoleteReason = 'Field moved to same field in table Inventory Setup';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
+#endif
         field(39; "Components at Location"; Code[10])
         {
             Caption = 'Components at Location';
             ToolTip = 'Specifies the inventory location from where the production order components are to be taken.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
+#if not CLEANSCHEMA30
         field(40; "Default Dampener Period"; DateFormula)
         {
             Caption = 'Default Dampener Period';
             ToolTip = 'Specifies a period of time during which you do not want the planning system to propose to reschedule existing supply order''s forward. This value in this field applies to all items except for items that have a different value in the Dampener Period field on the item card. When a dampener time is set, an order is only rescheduled when the defined dampener time has passed since the order s original due date. Note: The dampener time that is applied to an item can never be higher than the value in the item''s Lot Accumulation Period field. This is because the inventory build-up time that occurs during a dampener period would conflict with the build-up period defined by the item''s lot accumulation period. Accordingly, the default dampener period generally applies to all items. However, if an item''s lot accumulation period is shorter than the default dampener period, then the item''s dampener time equals its lot accumulation period. Use Inventory Setup page to change this field.';
             ObsoleteReason = 'Field moved to same field in table Inventory Setup';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
-#if not CLEAN27
-            trigger OnValidate()
-            var
-                CalendarMgt: Codeunit "Calendar Management";
-            begin
-                CalendarMgt.CheckDateFormulaPositive("Default Dampener Period");
-            end;
-#endif
         }
         field(41; "Default Dampener %"; Decimal)
         {
@@ -220,26 +188,16 @@ table 99000765 "Manufacturing Setup"
             DecimalPlaces = 1 : 1;
             MinValue = 0;
             ObsoleteReason = 'Field moved to same field in table Inventory Setup';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
         field(42; "Default Safety Lead Time"; DateFormula)
         {
             Caption = 'Default Safety Lead Time';
             ToolTip = 'Specifies a time period that is added to the lead time of all items that do not have another value specified in the Safety Lead Time field. Use Inventory Setup page to change this field.';
             ObsoleteReason = 'Field moved to same field in table Inventory Setup';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
         field(43; "Blank Overflow Level"; Option)
         {
@@ -248,14 +206,10 @@ table 99000765 "Manufacturing Setup"
             OptionCaption = 'Allow Default Calculation,Use Item/SKU Values Only';
             OptionMembers = "Allow Default Calculation","Use Item/SKU Values Only";
             ObsoleteReason = 'Field moved to same field in table Inventory Setup';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
+#endif
         field(50; "Show Capacity In"; Code[10])
         {
             Caption = 'Show Capacity In';
@@ -336,6 +290,96 @@ table 99000765 "Manufacturing Setup"
             InitValue = "Pick + Manual";
             ToolTip = 'Specifies default flushing method assigned to new items. A different flushing method on item cards will override this default.';
         }
+        field(301; "Show Rtng BOM Select Both"; Enum "Prod. Definition Display")
+        {
+            Caption = 'Show BOM/Routing (Both Available)';
+            DataClassification = CustomerContent;
+            InitValue = Edit;
+            ToolTip = 'Specifies whether the BOM/Routing selection step is shown when both a BOM and a Routing exist for the item. This setting only applies in Create Production Order mode. In Define Item Structure mode, the BOM and Routing steps are always shown in Edit mode.';
+        }
+        field(302; "Show Rtng BOM Select Partial"; Enum "Prod. Definition Display")
+        {
+            Caption = 'Show BOM/Routing (Partially Available)';
+            DataClassification = CustomerContent;
+            InitValue = Edit;
+            ToolTip = 'Specifies whether the BOM/Routing selection step is shown when only one of BOM or Routing exists. This setting only applies in Create Production Order mode. In Define Item Structure mode, the BOM and Routing steps are always shown in Edit mode.';
+        }
+        field(303; "Show Rtng BOM Select Nothing"; Enum "Prod. Definition Display")
+        {
+            Caption = 'Show BOM/Routing (None Available)';
+            DataClassification = CustomerContent;
+            InitValue = Edit;
+            ToolTip = 'Specifies whether the BOM/Routing selection step is shown when neither a BOM nor a Routing exists. This setting only applies in Create Production Order mode. In Define Item Structure mode, the BOM and Routing steps are always shown in Edit mode.';
+        }
+        field(304; "Show Prod Comp Select Both"; Enum "Prod. Definition Display")
+        {
+            Caption = 'Show Prod. Components (Both Available)';
+            DataClassification = CustomerContent;
+            InitValue = Edit;
+            ToolTip = 'Specifies whether the components/routing preview steps are shown when both a BOM and a Routing exist. This setting only applies in Create Production Order mode. In Define Item Structure mode, the components and production routing steps are never shown.';
+        }
+        field(305; "Show Prod Comp Select Partial"; Enum "Prod. Definition Display")
+        {
+            Caption = 'Show Prod. Components (Partially Available)';
+            DataClassification = CustomerContent;
+            InitValue = Edit;
+            ToolTip = 'Specifies whether the components/routing preview steps are shown when only one of BOM or Routing exists. This setting only applies in Create Production Order mode. In Define Item Structure mode, the components and production routing steps are never shown.';
+        }
+        field(306; "Show Prod Comp Select Nothing"; Enum "Prod. Definition Display")
+        {
+            Caption = 'Show Prod. Components (None Available)';
+            DataClassification = CustomerContent;
+            InitValue = Edit;
+            ToolTip = 'Specifies whether the components/routing preview steps are shown when neither BOM nor Routing exists. This setting only applies in Create Production Order mode. In Define Item Structure mode, the components and production routing steps are never shown.';
+        }
+        field(307; "Always Save Modified Versions"; Boolean)
+        {
+            Caption = 'Always Save Modified Versions';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies that newly created BOM/Routing versions are always kept even when the Save option is set to Empty when using the production order creation wizard.';
+        }
+        field(308; "Allow Edit UI Selection"; Boolean)
+        {
+            Caption = 'Allow Edit UI Selection';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies that users can override the step visibility settings (Show/Edit/Hide) on the wizard introduction step.';
+        }
+        field(309; "Def. Wiz. Work Center No."; Code[20])
+        {
+            Caption = 'Default Prod. Wiz. Work Center No.';
+            DataClassification = CustomerContent;
+            TableRelation = "Work Center";
+            ToolTip = 'Specifies the fallback work center to use when creating new routing lines without an explicit work center.';
+        }
+        field(310; "Def. Wiz. Comp Item No."; Code[20])
+        {
+            Caption = 'Default Prod. Wiz. Component Item No.';
+            DataClassification = CustomerContent;
+            TableRelation = Item where(Type = filter(Inventory | "Non-Inventory"));
+            ToolTip = 'Specifies the default item to use when initializing a new BOM from scratch through the production order creation wizard.';
+        }
+        field(311; "Def. Wiz. Flushing Method"; Enum "Flushing Method")
+        {
+            Caption = 'Default Prod. Wiz. Flushing Method';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the default flushing method applied to Production Order Components when creating a new production BOM from scratch through the production order creation wizard. This is only used for temporary BOM creation; existing BOMs retain their original flushing method.';
+        }
+        field(312; "Production BOM Version Nos."; Code[20])
+        {
+            AccessByPermission = TableData "Production BOM Header" = R;
+            Caption = 'Production BOM Version Nos.';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number series used to assign codes to new production BOM versions when the production BOM does not specify its own version number series.';
+            TableRelation = "No. Series";
+        }
+        field(313; "Routing Version Nos."; Code[20])
+        {
+            AccessByPermission = TableData "Routing Header" = R;
+            Caption = 'Routing Version Nos.';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number series used to assign codes to new routing versions when the routing does not specify its own version number series.';
+            TableRelation = "No. Series";
+        }
         field(5500; "Preset Output Quantity"; Option)
         {
             Caption = 'Preset Output Quantity';
@@ -364,11 +408,11 @@ table 99000765 "Manufacturing Setup"
         field(12180; "Subcontr. Ship. Reason Code"; Code[10])
         {
             Caption = 'Subcontr. Ship. Reason Code';
-#if not CLEAN27
-            TableRelation = "Transport Reason Code";
+#if not CLEAN28
+            TableRelation = Microsoft.Inventory.Setup."Transport Reason Code";
 #endif
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
@@ -379,11 +423,11 @@ table 99000765 "Manufacturing Setup"
         field(12181; "Subcontr. Return Reason Code"; Code[10])
         {
             Caption = 'Subcontr. Return Reason Code';
-#if not CLEAN27
-            TableRelation = "Transport Reason Code";
+#if not CLEAN28
+            TableRelation = Microsoft.Inventory.Setup."Transport Reason Code";
 #endif
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
@@ -427,7 +471,6 @@ table 99000765 "Manufacturing Setup"
     begin
         if (xRec."Finish Order without Output") and (not Rec."Finish Order without Output") then
             Error(NotAllowedDisableFinishOrderWithoutOutputErr, Rec.FieldCaption("Finish Order without Output"));
-
         if not ConfirmManagement.GetResponseOrDefault(
             StrSubstNo(FinishOrderWithoutOutputQst, Rec.FieldCaption("Finish Order without Output")),
             false)

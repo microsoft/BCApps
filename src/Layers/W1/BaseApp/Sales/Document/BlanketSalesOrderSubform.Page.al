@@ -1217,11 +1217,14 @@ page 508 "Blanket Sales Order Subform"
     end;
 
     local procedure UpdateTypeText()
+    var
+        RecRef: RecordRef;
     begin
         if not TypeAsTextFieldVisible then
             exit;
 
-        TypeAsText := Rec.FormatType();
+        RecRef.GetTable(Rec);
+        TypeAsText := TempOptionLookupBuffer.FormatOption(RecRef.Field(Rec.FieldNo(Type)));
     end;
 
     /// <summary>

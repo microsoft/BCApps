@@ -6,9 +6,11 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 
 codeunit 139799 "E-Doc. Helper Test"
 {
@@ -20,11 +22,13 @@ codeunit 139799 "E-Doc. Helper Test"
         Assert: Codeunit "Assert";
         LibraryEDoc: Codeunit "Library - E-Document";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        MultipleVendorsWithRegistrationNoErr: Label 'Multiple vendors match the registration number on the electronic document.';
 
     trigger OnRun()
     begin
         // [FEATURE] [E-Document]
     end;
+
 
     [Test]
     procedure ValidateLineDiscountTest()
@@ -53,6 +57,69 @@ codeunit 139799 "E-Doc. Helper Test"
     begin
         VendorNo := EDocumentImportHelper.FindVendor('', '', '');
         Assert.IsTrue(VendorNo = '', 'Vendor No. should be empty');
+    end;
+
+    [Test]
+    procedure FindVendorByRegistrationNo()
+    var
+        Vendor: Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        LibraryUtility: Codeunit "Library - Utility";
+        RegistrationNo: Text[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 646793] A vendor can be resolved by Registration No. when other identifiers are unavailable.
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        CreateVendorForLookup(Vendor);
+        Vendor."Use Reg. No. in E-Document" := true;
+        Vendor."Registration Number" := RegistrationNo;
+        Vendor.Modify();
+
+        Assert.AreEqual(Vendor."No.", EDocumentImportHelper.FindVendor('', '', '', RegistrationNo), 'Vendor should be matched by Registration No.');
+    end;
+
+    [Test]
+    procedure DoesNotFindVendorByRegistrationNoWithoutSetup()
+    var
+        Vendor: Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        LibraryUtility: Codeunit "Library - Utility";
+        RegistrationNo: Text[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 646793] Registration No. matching requires explicit vendor setup.
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        CreateVendorForLookup(Vendor);
+        Vendor."Registration Number" := RegistrationNo;
+        Vendor.Modify();
+
+        Assert.AreEqual('', EDocumentImportHelper.FindVendor('', '', '', RegistrationNo), 'Vendor should not be matched by Registration No. without setup.');
+    end;
+
+    [Test]
+    procedure ErrorsWhenMultipleVendorsMatchByRegistrationNo()
+    var
+        Vendor: array[2] of Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        LibraryUtility: Codeunit "Library - Utility";
+        RegistrationNo: Text[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 646793] Vendor matching fails when a registration number identifies multiple vendors.
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        CreateVendorForLookup(Vendor[1]);
+        Vendor[1]."Use Reg. No. in E-Document" := true;
+        Vendor[1]."Registration Number" := RegistrationNo;
+        Vendor[1].Modify();
+        CreateVendorForLookup(Vendor[2]);
+        Vendor[2]."Use Reg. No. in E-Document" := true;
+        Vendor[2]."Registration Number" := RegistrationNo;
+        Vendor[2].Modify();
+
+        asserterror EDocumentImportHelper.FindVendor('', '', '', RegistrationNo);
+
+        Assert.ExpectedError(MultipleVendorsWithRegistrationNoErr);
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -99,6 +166,39 @@ codeunit 139799 "E-Doc. Helper Test"
     end;
 
     [Test]
+    procedure OpenDraftPageForOutgoingEDocumentOpensEDocumentCard()
+    var
+        EDocument: Record "E-Document";
+        EDocService: Record "E-Document Service";
+        EDocumentHelper: Codeunit "E-Document Helper";
+        EDocumentPage: TestPage "E-Document";
+    begin
+        // [SCENARIO] Drilling into an outgoing E-Document should open the E-Document card, regardless of the
+        // configured Import Process, since outgoing documents have no draft staging data.
+        LibraryLowerPermission.SetOutsideO365Scope();
+
+        // [GIVEN] An E-Document Service using the "Version 2.0" import process
+        EDocService.Get(LibraryEDoc.CreateService(Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock", Enum::"E-Document Import Process"::"Version 2.0"));
+
+        // [GIVEN] An outgoing E-Document linked to that service
+        EDocument.Init();
+        EDocument.Direction := EDocument.Direction::Outgoing;
+        EDocument.Service := EDocService.Code;
+        EDocument.Insert(true);
+
+        // [WHEN] Opening the draft page for the outgoing E-Document
+        EDocumentPage.Trap();
+        EDocumentHelper.OpenDraftPage(EDocument);
+
+        // [THEN] The E-Document card is opened, not the E-Document Purchase Draft page
+        Assert.AreEqual(Format(EDocument.Direction::Outgoing), EDocumentPage.Direction.Value(), 'Expected the E-Document card to open for the outgoing E-Document.');
+
+        // Cleanup
+        EDocumentPage.Close();
+        EDocument.Delete();
+    end;
+
+    [Test]
     procedure ValidateReceivingCompanyInfoFallsBackToVATWhenNoServiceParticipant()
     var
         EDocument: Record "E-Document";
@@ -132,4 +232,86 @@ codeunit 139799 "E-Doc. Helper Test"
         // Cleanup
         EDocument.Delete();
     end;
+
+    [Test]
+    procedure ValidateReceivingCompanyInfoIgnoresGLNWhenUseGLNIsDisabled()
+    var
+        EDocument: Record "E-Document";
+        CompanyInformation: Record "Company Information";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        EDocErrorHelper: Codeunit "E-Document Error Helper";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        LibraryLowerPermission.SetOutsideO365Scope();
+        // [SCENARIO 650323] GLN is not validated when "Use GLN in Electronic Documents" is disabled in Company Information
+        
+        // [GIVEN] Company Information with GLN filled, VAT Registration No. filled and "Use GLN in Electronic Documents" = false
+        CompanyInformation.Get();
+        CompanyInformation.GLN := CopyStr(LibraryUtility.GenerateRandomNumericText(MaxStrLen(CompanyInformation.GLN)), 1, MaxStrLen(CompanyInformation.GLN));
+        CompanyInformation."VAT Registration No." := CopyStr(LibraryUtility.GenerateRandomNumericText(MaxStrLen(CompanyInformation."VAT Registration No.")), 1, MaxStrLen(CompanyInformation."VAT Registration No."));
+        CompanyInformation."Use GLN in Electronic Document" := false;
+        CompanyInformation.Modify();
+
+        // [GIVEN] An incoming E-Document with matching VAT Registration No. and no GLN
+        EDocument.Init();
+        EDocument."Entry No" := 0;
+        EDocument."Receiving Company VAT Reg. No." := CompanyInformation."VAT Registration No.";
+        EDocument."Receiving Company GLN" := '';
+        EDocument.Insert(true);
+
+        // [WHEN] Validating receiving company info
+        EDocumentImportHelper.ValidateReceivingCompanyInfo(EDocument);
+
+        // [THEN] No GLN mismatch error is logged
+        Assert.IsFalse(EDocErrorHelper.HasErrors(EDocument), 'GLN must not be validated when "Use GLN in Electronic Documents" is disabled');
+
+        // Cleanup
+        EDocument.Delete();
+    end;
+
+    [Test]
+    procedure ValidateReceivingCompanyInfoChecksGLNWhenUseGLNIsEnabled()
+    var
+        EDocument: Record "E-Document";
+        CompanyInformation: Record "Company Information";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        EDocErrorHelper: Codeunit "E-Document Error Helper";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        LibraryLowerPermission.SetOutsideO365Scope();
+        // [SCENARIO 650323] GLN is validated when "Use GLN in Electronic Documents" is enabled in Company Information
+        
+        // [GIVEN] Company Information with GLN filled, VAT Registration No. filled and "Use GLN in Electronic Documents" = true
+        CompanyInformation.Get();
+        CompanyInformation.GLN := CopyStr(LibraryUtility.GenerateRandomNumericText(MaxStrLen(CompanyInformation.GLN)), 1, MaxStrLen(CompanyInformation.GLN));
+        CompanyInformation."VAT Registration No." := CopyStr(LibraryUtility.GenerateRandomNumericText(MaxStrLen(CompanyInformation."VAT Registration No.")), 1, MaxStrLen(CompanyInformation."VAT Registration No."));
+        CompanyInformation."Use GLN in Electronic Document" := true;
+        CompanyInformation.Modify();
+
+        // [GIVEN] An incoming E-Document with matching VAT Registration No. and no GLN
+        EDocument.Init();
+        EDocument."Entry No" := 0;
+        EDocument."Receiving Company VAT Reg. No." := CompanyInformation."VAT Registration No.";
+        EDocument."Receiving Company GLN" := '';
+        EDocument.Insert(true);
+
+        // [WHEN] Validating receiving company info
+        EDocumentImportHelper.ValidateReceivingCompanyInfo(EDocument);
+
+        // [THEN] GLN mismatch error is logged
+        Assert.IsTrue(EDocErrorHelper.HasErrors(EDocument), 'GLN mismatch must be reported when "Use GLN in Electronic Documents" is enabled');
+
+        // Cleanup
+        EDocument.Delete();
+    end;
+
+    local procedure CreateVendorForLookup(var Vendor: Record Vendor)
+    var
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        Vendor.Init();
+        Vendor."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Vendor."No."));
+        Vendor.Insert();
+    end;
+
 }

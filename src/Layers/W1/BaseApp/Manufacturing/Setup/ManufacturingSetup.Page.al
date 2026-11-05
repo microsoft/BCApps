@@ -115,7 +115,15 @@ page 99000768 "Manufacturing Setup"
                 {
                     ApplicationArea = Manufacturing;
                 }
+                field("Production BOM Version Nos."; Rec."Production BOM Version Nos.")
+                {
+                    ApplicationArea = Manufacturing;
+                }
                 field("Routing Nos."; Rec."Routing Nos.")
+                {
+                    ApplicationArea = Manufacturing;
+                }
+                field("Routing Version Nos."; Rec."Routing Version Nos.")
                 {
                     ApplicationArea = Manufacturing;
                 }
@@ -123,87 +131,10 @@ page 99000768 "Manufacturing Setup"
             group(Planning)
             {
                 Caption = 'Planning';
-#if not CLEAN27
-                field("Current Production Forecast"; Rec."Current Production Forecast")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Use Forecast on Locations"; Rec."Use Forecast on Locations")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Use Forecast on Variants"; Rec."Use Forecast on Variants")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Default Safety Lead Time"; Rec."Default Safety Lead Time")
-                {
-                    ApplicationArea = Manufacturing, Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Blank Overflow Level"; Rec."Blank Overflow Level")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Combined MPS/MRP Calculation"; Rec."Combined MPS/MRP Calculation")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-#endif
                 field("Components at Location"; Rec."Components at Location")
                 {
                     ApplicationArea = Manufacturing, Planning;
                 }
-#if not CLEAN27
-                field("Default Dampener Period"; Rec."Default Dampener Period")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Default Dampener %"; Rec."Default Dampener %")
-                {
-                    ApplicationArea = Planning;
-                    AutoFormatType = 0;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-#endif
                 field("Manual Scheduling"; Rec."Manual Scheduling")
                 {
                     ApplicationArea = Manufacturing;
@@ -211,6 +142,75 @@ page 99000768 "Manufacturing Setup"
                 field("Safety Lead Time for Man. Sch."; Rec."Safety Lead Time for Man. Sch.")
                 {
                     ApplicationArea = Manufacturing;
+                }
+            }
+            group(ProductionDefinitionWizard)
+            {
+                Caption = 'Production Definition Wizard';
+
+                group(BOMRoutingDisplayGroup)
+                {
+                    Caption = 'BOM/Routing Step Display';
+
+                    field("Show Rtng BOM Select Both"; Rec."Show Rtng BOM Select Both")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Show Rtng BOM Select Partial"; Rec."Show Rtng BOM Select Partial")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Show Rtng BOM Select Nothing"; Rec."Show Rtng BOM Select Nothing")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                }
+                group(ProdCompDisplayGroup)
+                {
+                    Caption = 'Components/Routing Preview Step Display';
+
+                    field("Show Prod Comp Select Both"; Rec."Show Prod Comp Select Both")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Show Prod Comp Select Partial"; Rec."Show Prod Comp Select Partial")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Show Prod Comp Select Nothing"; Rec."Show Prod Comp Select Nothing")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                }
+                group(GeneralWizardOptions)
+                {
+                    Caption = 'General Options';
+
+                    field("Always Save Modified Versions"; Rec."Always Save Modified Versions")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Allow Edit UI Selection"; Rec."Allow Edit UI Selection")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                }
+                group(WizardDefaults)
+                {
+                    Caption = 'Defaults';
+
+                    field("Def. Wiz. Work Center No."; Rec."Def. Wiz. Work Center No.")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Def. Wiz. Comp Item No."; Rec."Def. Wiz. Comp Item No.")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
+                    field("Def. Wiz. Flushing Method"; Rec."Def. Wiz. Flushing Method")
+                    {
+                        ApplicationArea = Manufacturing;
+                    }
                 }
             }
         }
@@ -247,4 +247,3 @@ page 99000768 "Manufacturing Setup"
     end;
 
 }
-

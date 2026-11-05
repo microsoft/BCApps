@@ -224,6 +224,8 @@ table 5332 "Coupling Record Buffer"
                 "Saved CRM Option Id" := "CRM Option Id";
             end;
         end;
+
+        OnAfterInitialize(Rec);
     end;
 
     procedure Initialize(NAVRecordID: RecordID)
@@ -424,6 +426,11 @@ table 5332 "Coupling Record Buffer"
 
     [IntegrationEvent(false, false)]
     local procedure OnFindCRMOptionByName(CRMTableID: Integer; var EntityName: Text; var FieldName: Text; var Handled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitialize(var CouplingRecordBuffer: Record "Coupling Record Buffer")
     begin
     end;
 }

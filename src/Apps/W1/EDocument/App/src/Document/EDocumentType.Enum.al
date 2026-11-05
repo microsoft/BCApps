@@ -12,6 +12,7 @@ enum 6121 "E-Document Type" implements IEDocumentFinishDraft
 {
     Extensible = true;
     DefaultImplementation = IEDocumentFinishDraft = "E-Doc. Unspecified Impl.";
+    UnknownValueImplementation = IEDocumentFinishDraft = "E-Doc. Unspecified Impl.";
 
     value(0; "None")
     {
@@ -107,5 +108,17 @@ enum 6121 "E-Document Type" implements IEDocumentFinishDraft
     value(22; "Order Response")
     {
         Caption = 'Order Response';
+    }
+    value(23; "Remittance Advice")
+    {
+        Caption = 'Remittance Advice';
+    }
+    value(24; "Self-Billed Purchase Invoice")
+    {
+        Caption = 'Self-Billed Purchase Invoice';
+    }
+    value(25; "Self-Billed Purch. Cr. Memo")
+    {
+        Caption = 'Self-Billed Purchase Credit Memo';
     }
 }

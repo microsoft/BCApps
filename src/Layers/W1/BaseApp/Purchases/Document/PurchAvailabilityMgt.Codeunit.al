@@ -288,6 +288,7 @@ codeunit 99000973 "Purch. Availability Mgt."
     var
         PurchHeader: Record "Purchase Header";
         RecRef: RecordRef;
+        IsHandled: Boolean;
     begin
         PurchHeader.Get(SourceSubtype, SourceID);
         RecRef.GetTable(PurchHeader);
@@ -310,9 +311,18 @@ codeunit 99000973 "Purch. Availability Mgt."
                     InventoryPageData."Gross Requirement" := InventoryEventBuffer."Remaining Quantity (Base)";
                     InventoryPageData."Reserved Requirement" := InventoryEventBuffer."Reserved Quantity (Base)";
                 end;
-            else
-                Error(UnsupportedEntitySourceErr, SourceType, SourceSubtype);
+            else begin
+                IsHandled := false;
+                OnTransferPurchaseLineOnBeforeUnsupportedSourceError(InventoryPageData, InventoryEventBuffer, IsHandled, SourceType, SourceSubtype, SourceID, PurchHeader);
+                if not IsHandled then
+                    Error(UnsupportedEntitySourceErr, SourceType, SourceSubtype);
+            end;
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnTransferPurchaseLineOnBeforeUnsupportedSourceError(var InventoryPageData: Record "Inventory Page Data"; InventoryEventBuffer: Record "Inventory Event Buffer"; var IsHandled: Boolean; SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; PurchaseHeader: Record "Purchase Header")
+    begin
     end;
 
     // Page "Item Availability Line List"

@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
-pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
+pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 {
     layout
     {
@@ -15,7 +15,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             trigger OnAfterValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
                 if not SubcontractingEnabled then
                     exit;
 #endif
@@ -26,7 +26,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             trigger OnAfterValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
                 if not SubcontractingEnabled then
                     exit;
 #endif
@@ -42,7 +42,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
                 ApplicationArea = Subcontracting;
-                Enabled = TransferWIPItemEnabled;
+                Enabled = SubcontractingUIEnabled;
             }
             field("Transfer Description"; Rec."Transfer Description")
             {
@@ -77,6 +77,29 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     }
     actions
     {
+        addafter("Co&mments")
+        {
+            action("Subc. Subcontracting Comments")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting Comments';
+                Enabled = SubcontractingUIEnabled;
+                Image = ViewComments;
+                RunObject = Page "Subc. Prod. Rtng. Comments";
+                RunPageLink = Status = field(Status),
+                              "Prod. Order No." = field("Prod. Order No."),
+                              "Routing Reference No." = field("Routing Reference No."),
+                              "Routing No." = field("Routing No."),
+                              "Operation No." = field("Operation No.");
+                ToolTip = 'View or edit subcontracting comments for the production order routing line.';
+            }
+        }
+        addafter("Co&mments_Promoted")
+        {
+            actionref("Subc. SubcontractingComments_Promoted"; "Subc. Subcontracting Comments")
+            {
+            }
+        }
         addafter("Allocated Capacity")
         {
             action("Subcontracting Purchase Lines")
@@ -144,13 +167,13 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         }
     }
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
         SubcontractingEnabled: Boolean;
 #endif
-        TransferWIPItemEnabled: Boolean;
+        SubcontractingUIEnabled: Boolean;
         SubcontractingActionsEnabled: Boolean;
         CreateSubcontractingVisible: Boolean;
         NoPurchOrderCreatedMsg: Label 'No subcontracting order was created for the selected operations in production order %1. Please check whether the operation or operations have already been completed.', Comment = '%1=Production Order No.';
@@ -159,7 +182,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     var
         StatusFilter: Text;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
 #pragma warning restore AL0432
@@ -175,7 +198,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 
     trigger OnAfterGetRecord()
     begin
-#if not CLEAN29
+#if not CLEAN28
         if not SubcontractingEnabled then
             exit;
 #endif
@@ -184,7 +207,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 
     trigger OnAfterGetCurrRecord()
     begin
-#if not CLEAN29
+#if not CLEAN28
         if not SubcontractingEnabled then
             exit;
 #endif
@@ -195,7 +218,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     local procedure UpdateWIPEnabled()
     begin
         Rec.Calcfields(Subcontracting);
-        TransferWIPItemEnabled := Rec.Subcontracting;
+        SubcontractingUIEnabled := Rec.Subcontracting and (Rec.Type = Rec.Type::"Work Center");
     end;
 
     internal procedure CreateSubcontractingOrders(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
@@ -216,14 +239,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
             PurchaseLine.SetRange("Operation No.", Rec."Operation No.");
             if PurchaseLine.IsEmpty() then
                 Message(NoPurchOrderCreatedMsg, ProdOrderRoutingLine."Prod. Order No.")
-        end else begin
-            if NoOfCreatedPurchOrder = 1 then begin
-                SubcPurchaseOrderCreator.ClearOperationNoForCreatedPurchaseOrder();
-                SubcPurchaseOrderCreator.SetOperationNoForCreatedPurchaseOrder(Rec."Operation No.");
-                SubcPurchaseOrderCreator.ClearRoutingReferenceNoForCreatedPurchaseOrder();
-                SubcPurchaseOrderCreator.SetRoutingReferenceNoForCreatedPurchaseOrder(Rec."Routing Reference No.");
-            end;
+        end else
             SubcPurchaseOrderCreator.ShowCreatedPurchaseOrder(Rec."Prod. Order No.", NoOfCreatedPurchOrder);
-        end;
     end;
 }

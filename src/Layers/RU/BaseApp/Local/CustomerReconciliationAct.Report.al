@@ -618,7 +618,9 @@ report 14910 "Customer - Reconciliation Act"
                 dataitem(VendInvoices; "Vendor Ledger Entry")
                 {
                     DataItemLink = "Vendor No." = field("No."), "Agreement No." = field("Agreement Filter");
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                     DataItemTableView = sorting("Vendor No.", "Posting Date", "Currency Code", "Agreement No.") where("Document Type" = filter(" " | Invoice | "Credit Memo"), Reversed = const(false));
+#pragma warning restore AL0254
                     dataitem(AppldVendPays2; "Integer")
                     {
                         DataItemTableView = sorting(Number) where(Number = filter(1 ..));

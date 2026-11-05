@@ -1119,7 +1119,6 @@ page 27 "Vendor List"
                     Caption = 'Vendor - Trial Balance';
                     Image = "Report";
                     RunObject = Report "Vendor - Trial Balance";
-                    ToolTip = 'View the beginning and ending balance for vendors with entries within a specified period. The report can be used to verify that the balance for a vendor posting group is equal to the balance on the corresponding general ledger account on a certain date.';
                 }
                 action("Aged Accounts Payable")
                 {
@@ -1197,7 +1196,6 @@ page 27 "Vendor List"
                     Caption = 'Vendor - Purchase List';
                     Image = "Report";
                     RunObject = Report "Vendor - Purchase List";
-                    ToolTip = 'View a list of vendor purchases for a selected period.';
                 }
                 action("Vendor/Item Purchases")
                 {

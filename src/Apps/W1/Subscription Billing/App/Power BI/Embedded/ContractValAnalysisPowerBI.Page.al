@@ -7,8 +7,8 @@ page 8099 "Contract Val Analysis Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Total Contract Value Analysis';
-    AboutTitle = 'About Total Contract Value Analysis';
+    Caption = 'Total Contract Value Analysis (Power BI)';
+    AboutTitle = 'About Total Contract Value Analysis (Power BI)';
     AboutText = 'The Total Contract Value Analysis report breaks down Total Contract Value by various dimension such as billing rhythm, contract type or customer.';
 
     layout

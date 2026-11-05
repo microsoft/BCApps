@@ -348,6 +348,11 @@ page 139 "Posted Purch. Invoice Subform"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
             }
             group(Control31)
             {

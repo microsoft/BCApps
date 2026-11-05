@@ -73,11 +73,11 @@ table 99000779 "Production BOM Version"
 
             trigger OnValidate()
             var
-                ProdBOMHeader: Record "Production BOM Header";
                 PlanningAssignment: Record "Planning Assignment";
+                ProdBOMHeader: Record "Production BOM Header";
                 ProdBOMCheck: Codeunit "Production BOM-Check";
-                SkipCommit: Boolean;
                 IsHandled: Boolean;
+                SkipCommit: Boolean;
             begin
                 IsHandled := false;
                 OnBeforeOnValidateStatus(Rec, xRec, IsHandled);
@@ -85,6 +85,7 @@ table 99000779 "Production BOM Version"
                     exit;
 
                 if (Status <> xRec.Status) and (Status = Status::Certified) then begin
+                    CheckVariantMandatoryOnLines();
                     ProdBOMCheck.ProdBOMLineCheck("Production BOM No.", "Version Code");
                     TestField("Unit of Measure Code");
                     ProdBOMHeader.Get("Production BOM No.");
@@ -168,6 +169,33 @@ table 99000779 "Production BOM Version"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
+    local procedure CheckVariantMandatoryOnLines()
+    var
+        ProdBOMLineRec: Record "Production BOM Line";
+    begin
+        ProdBOMLineRec.SetLoadFields("Production BOM No.", "Version Code", "Line No.", Type, "No.", "Variant Code");
+        ProdBOMLineRec.SetRange("Production BOM No.", "Production BOM No.");
+        ProdBOMLineRec.SetRange("Version Code", "Version Code");
+        if ProdBOMLineRec.FindSet() then
+            repeat
+                CheckVariantIfMandatory(ProdBOMLineRec);
+            until ProdBOMLineRec.Next() = 0;
+    end;
+
+    local procedure CheckVariantIfMandatory(var ProductionBOMLine: Record "Production BOM Line")
+    var
+        Item: Record Item;
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeCheckVariantIfMandatory(Rec, xRec, ProductionBOMLine, IsHandled);
+        if IsHandled then
+            exit;
+
+        if Item.IsVariantMandatory(ProductionBOMLine.Type = ProductionBOMLine.Type::Item, ProductionBOMLine."No.") then
+            ProductionBOMLine.TestField("Variant Code");
+    end;
+
     procedure AssistEdit(OldProdBOMVersion: Record "Production BOM Version"): Boolean
     var
         NoSeries: Codeunit "No. Series";
@@ -218,6 +246,11 @@ table 99000779 "Production BOM Version"
 
     [IntegrationEvent(true, false)]
     local procedure OnBeforeOnValidateStatus(var ProductionBOMVersion: Record "Production BOM Version"; var xProductionBOMVersion: Record "Production BOM Version"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckVariantIfMandatory(var ProductionBOMVersion: Record "Production BOM Version"; xProductionBOMVersion: Record "Production BOM Version"; var ProductionBOMLine: Record "Production BOM Line"; var IsHandled: Boolean)
     begin
     end;
 }

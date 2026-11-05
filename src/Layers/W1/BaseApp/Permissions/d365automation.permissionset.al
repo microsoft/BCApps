@@ -769,9 +769,7 @@ permissionset 5117 "D365 AUTOMATION"
                   tabledata "Exchange Service Setup" = RIMD,
                   tabledata "Contact Sync User" = RIMD,
                   tabledata "Outlook Contacts" = RIMD,
-#if not CLEAN28
                   tabledata "Exchange Sync" = RIMD,
-#endif
                   tabledata "Exp. Invt. Order Tracking" = RIMD,
                   tabledata "Experience Tier Buffer" = RIMD,
                   tabledata "Experience Tier Setup" = RIMD,
@@ -1392,6 +1390,9 @@ permissionset 5117 "D365 AUTOMATION"
                   tabledata "Source Code" = RIMD,
                   tabledata "Source Code Setup" = RIMD,
                   tabledata "Special Equipment" = RIMD,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request" = Rimd,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request Detail" = Rimd,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request To G/L Link" = Rimd,
                   tabledata "Standard Address" = Rimd,
                   tabledata Microsoft.Manufacturing.StandardCost."Standard Cost Worksheet" = RIMD,
                   tabledata Microsoft.Manufacturing.StandardCost."Standard Cost Worksheet Name" = RIMD,

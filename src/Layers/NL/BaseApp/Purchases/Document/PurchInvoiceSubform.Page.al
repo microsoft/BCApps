@@ -333,8 +333,10 @@ page 55 "Purch. Invoice Subform"
 
                     trigger OnDrillDown()
                     var
+                        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
                         MatchedOrderLines: Page "Matched Order Lines";
                     begin
+                        MatchedOrderLineMgmt.CheckLineCanBeMatched(Rec);
                         MatchedOrderLines.InitializePage("Matched Order Line Source"::"Purchase Invoice", false, Rec.SystemId);
                         MatchedOrderLines.RunModal();
                     end;
@@ -619,6 +621,12 @@ page 55 "Purch. Invoice Subform"
                     ApplicationArea = FixedAssets;
                     Visible = false;
                 }
+                field("Maintenance Code"; Rec."Maintenance Code")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies a maintenance code.';
+                    Visible = false;
+                }
                 field("Depr. until FA Posting Date"; Rec."Depr. until FA Posting Date")
                 {
                     ApplicationArea = FixedAssets;
@@ -800,6 +808,11 @@ page 55 "Purch. Invoice Subform"
                     Visible = false;
                 }
                 field("Units per Parcel"; Rec."Units per Parcel")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
+                field("Spend Request No."; Rec."Spend Request No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = false;
@@ -1196,8 +1209,10 @@ page 55 "Purch. Invoice Subform"
 
                         trigger OnAction()
                         var
+                            MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
                             MatchedOrderLines: Page "Matched Order Lines";
                         begin
+                            MatchedOrderLineMgmt.CheckLineCanBeMatched(Rec);
                             MatchedOrderLines.InitializePage("Matched Order Line Source"::"Purchase Invoice", false, Rec.SystemId);
                             MatchedOrderLines.RunModal();
                         end;
@@ -1473,7 +1488,8 @@ page 55 "Purch. Invoice Subform"
            (xRec."No." <> '')
         then
             CurrPage.SaveRecord();
-        if Rec.Type = Rec.Type::"G/L Account" then
+
+        if (Rec.Type = Rec.Type::"G/L Account") and (Rec."No." <> xRec."No.") then
             Rec.Validate(Quantity, 1);
 
         OnAfterNoOnAfterValidate(Rec, xRec);
@@ -1676,4 +1692,3 @@ page 55 "Purch. Invoice Subform"
     begin
     end;
 }
-

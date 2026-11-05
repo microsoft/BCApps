@@ -2067,11 +2067,6 @@
   {
     "codeunitId": 134051,
     "codeunitName": "ERM VAT Tool - Sales Doc",
-    "method": "VATToolSalesOrdPartShpVATAmt"
-  },
-  {
-    "codeunitId": 134051,
-    "codeunitName": "ERM VAT Tool - Sales Doc",
     "method": "VATToolSalesQuoteBoth"
   },
   {

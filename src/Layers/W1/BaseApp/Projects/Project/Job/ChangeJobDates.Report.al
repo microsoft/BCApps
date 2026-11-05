@@ -11,6 +11,7 @@ report 1087 "Change Job Dates"
     AdditionalSearchTerms = 'Change Job Planning Line Dates';
     ApplicationArea = Jobs;
     Caption = 'Change Project Planning Line Dates';
+    ToolTip = 'Use a batch job to help you move planning lines on a project from one date interval to another.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

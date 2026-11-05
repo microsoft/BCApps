@@ -48,6 +48,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         NotFirstLoop: Boolean;
         AssistEditTemplateValue: Text;
         SourceCustomTok: Label 'Source Custom 1', Locked = true;
@@ -92,6 +93,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ResultCode2Tok: Label '"|\/?&*()';
         CannotBeRemovedExistingInspectionErr: Label 'This result cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this result consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the result.';
         TestAddedExactlyOnceErr: Label 'Test %1 should be added exactly once.', Comment = '%1 = quality test code';
+        UnexpectedFallbackIntentErr: Label 'Incorrect setup fallback intent for table %1.', Comment = '%1 = source table ID';
+        UnexpectedFallbackCertaintyErr: Label 'Incorrect setup fallback certainty for table %1.', Comment = '%1 = source table ID';
         IsInitialized: Boolean;
 
     [Test]
@@ -1637,46 +1640,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure Table_InspectionAssignSelfOnModify()
-    var
-        Location: Record Location;
-        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-    begin
-        // [SCENARIO] Inspection is automatically assigned to current user on modification
-
-        Initialize();
-
-        // [GIVEN] Quality management setup is configured
-        QltyInspectionUtility.EnsureSetupExists();
-
-        // [GIVEN] A generation rule is created for purchase lines
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
-
-        // [GIVEN] A location is created
-        LibraryWarehouse.CreateLocation(Location);
-
-        // [GIVEN] An inspection is created from purchase with no assigned user
-        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
-
-        // [GIVEN] Inspection has no assigned user initially
-        LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Should not have assigned user.');
-
-        // [WHEN] Inspection is modified by changing source quantity
-        QltyInspectionHeader."Source Quantity (Base)" := 99;
-        QltyInspectionHeader.Modify(true);
-
-        // [THEN] Inspection is automatically assigned to current user
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
-        LibraryAssert.AreEqual(UserId(), QltyInspectionHeader."Assigned User ID", 'Should be assigned to current user.');
-    end;
-
-    [Test]
     procedure Table_GetReferenceRecordId_TriggeringRecord()
     var
         Location: Record Location;
@@ -2156,6 +2119,101 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] Cleanup generation rule
         QltyInspectionGenRule.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure ReopenInspectionHandledResetsStatusChangeGuard()
+    var
+        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        QltyChangeStatusSubscr: Codeunit "Qlty. Change Status Subscr.";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+    begin
+        // [SCENARIO 620326] A handled Reopen must reset the status-change guard so a finished inspection stays protected.
+
+        Initialize();
+
+        // [GIVEN] Quality management setup is configured
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template and generation rule are created for purchase lines
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        // [GIVEN] A location is created
+        LibraryWarehouse.CreateLocation(Location);
+
+        // [GIVEN] A finished inspection
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        QltyInspectionHeader.Modify();
+
+        // [GIVEN] A subscriber marks the reopen as handled
+        BindSubscription(QltyChangeStatusSubscr);
+
+        // [WHEN] Reopen is requested but handled by the subscriber (early exit)
+        QltyInspectionHeader.ReopenInspection();
+        UnbindSubscription(QltyChangeStatusSubscr);
+
+        // [THEN] The inspection is still finished (reopen was handled)
+        LibraryAssert.AreEqual(QltyInspectionHeader.Status::Finished, QltyInspectionHeader.Status, 'Inspection should still be finished.');
+
+        // [THEN] The status-change guard was reset, so the finished inspection cannot be modified
+        asserterror QltyInspectionHeader.Modify(true);
+        LibraryAssert.ExpectedErrorCode('TestField');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure FinishInspectionHandledResetsStatusChangeGuard()
+    var
+        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        QltyChangeStatusSubscr: Codeunit "Qlty. Change Status Subscr.";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+    begin
+        // [SCENARIO 620326] A handled Finish must reset the status-change guard so a later modify still honors TestStatusOpen.
+
+        Initialize();
+
+        // [GIVEN] Quality management setup is configured
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template and generation rule are created for purchase lines
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        // [GIVEN] A location is created
+        LibraryWarehouse.CreateLocation(Location);
+
+        // [GIVEN] An open inspection
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+
+        // [GIVEN] A subscriber marks the finish as handled
+        BindSubscription(QltyChangeStatusSubscr);
+
+        // [WHEN] Finish is requested but handled by the subscriber (early exit)
+        QltyInspectionHeader.FinishInspection();
+        UnbindSubscription(QltyChangeStatusSubscr);
+
+        // [GIVEN] The inspection is set to finished directly (no trigger)
+        QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        QltyInspectionHeader.Modify();
+
+        // [THEN] The status-change guard was reset, so the finished inspection cannot be modified through the trigger
+        asserterror QltyInspectionHeader.Modify(true);
+        LibraryAssert.ExpectedErrorCode('TestField');
     end;
 
     [Test]
@@ -4662,12 +4720,281 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryAssert.AreEqual(4, QltyInspectionTemplateLine.Count(), 'No new template lines should be created when all selected tests are already present.');
     end;
 
+    [Test]
+    procedure TriggerIntentFallbackWithoutSetup()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Missing setup cannot infer production or warehouse intent.
+        Initialize();
+
+        // [GIVEN] No quality setup exists.
+        QltyInspectionUtility.EnsureSetupExists();
+        Clear(LibrarySetupStorage);
+        LibrarySetupStorage.Save(Database::"Qlty. Management Setup");
+        QltyManagementSetup.DeleteAll();
+
+        // [WHEN] Unfiltered journal and ledger rules infer intent.
+        // [THEN] All setup fallback paths leave the intent unknown.
+        VerifyUnknownTriggerFallbacks();
+        QltyManagementSetup.Init();
+        QltyManagementSetup.Insert();
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure TriggerIntentFallbackWithNoEnabledTriggers()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Seven enum-specific NoTrigger values do not count as enabled triggers.
+        Initialize();
+
+        // [GIVEN] Quality setup has all triggers disabled.
+        PrepareTriggerFallbackSetup(QltyManagementSetup);
+
+        // [WHEN] Unfiltered journal and ledger rules infer intent.
+        // [THEN] No fallback chooses an intent.
+        VerifyUnknownTriggerFallbacks();
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure TriggerIntentFallbackWithOnlyProduction()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Exactly one production trigger matches item rules but not warehouse rules.
+        Initialize();
+
+        // [GIVEN] Only the production trigger is enabled.
+        PrepareTriggerFallbackSetup(QltyManagementSetup);
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::OnProductionOrderRelease;
+        QltyManagementSetup.Modify();
+
+        // [WHEN] Item and warehouse rules infer intent.
+        // [THEN] Only item rules infer production with Maybe certainty.
+        VerifyTriggerFallback(Database::"Item Journal Line", Enum::"Qlty. Gen. Rule Intent"::Production, Enum::"Qlty. Certainty"::Maybe);
+        VerifyTriggerFallback(Database::"Item Ledger Entry", Enum::"Qlty. Gen. Rule Intent"::Production, Enum::"Qlty. Certainty"::Maybe);
+        VerifyTriggerFallback(Database::"Warehouse Journal Line", Enum::"Qlty. Gen. Rule Intent"::Unknown, Enum::"Qlty. Certainty"::No);
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure TriggerIntentFallbackWithOnlyReceipt()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Exactly one receipt trigger matches warehouse rules but not production rules.
+        Initialize();
+
+        // [GIVEN] Only the warehouse receipt trigger is enabled.
+        PrepareTriggerFallbackSetup(QltyManagementSetup);
+        QltyManagementSetup."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
+        QltyManagementSetup.Modify();
+
+        // [WHEN] Warehouse and item rules infer intent.
+        // [THEN] Only the warehouse rule infers receipt with Maybe certainty.
+        VerifyTriggerFallback(Database::"Warehouse Journal Line", Enum::"Qlty. Gen. Rule Intent"::"Warehouse Receipt", Enum::"Qlty. Certainty"::Maybe);
+        VerifyTriggerFallback(Database::"Item Journal Line", Enum::"Qlty. Gen. Rule Intent"::Unknown, Enum::"Qlty. Certainty"::No);
+        VerifyTriggerFallback(Database::"Item Ledger Entry", Enum::"Qlty. Gen. Rule Intent"::Unknown, Enum::"Qlty. Certainty"::No);
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure TriggerIntentFallbackWithOnlyMovement()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A lone movement trigger falls through the receipt check and infers movement.
+        Initialize();
+
+        // [GIVEN] Only the warehouse movement trigger is enabled.
+        PrepareTriggerFallbackSetup(QltyManagementSetup);
+        QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::OnWhseMovementRegister;
+        QltyManagementSetup.Modify();
+
+        // [WHEN] Warehouse and item rules infer intent.
+        // [THEN] The receipt check does not consume the sole nonmatching trigger.
+        VerifyTriggerFallback(Database::"Warehouse Journal Line", Enum::"Qlty. Gen. Rule Intent"::"Warehouse Movement", Enum::"Qlty. Certainty"::Maybe);
+        VerifyTriggerFallback(Database::"Item Journal Line", Enum::"Qlty. Gen. Rule Intent"::Unknown, Enum::"Qlty. Certainty"::No);
+        VerifyTriggerFallback(Database::"Item Ledger Entry", Enum::"Qlty. Gen. Rule Intent"::Unknown, Enum::"Qlty. Certainty"::No);
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure TriggerIntentFallbackWithOnlyAssembly()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A lone late assembly trigger does not match production or warehouse intent.
+        Initialize();
+
+        // [GIVEN] Only the final trigger in setup is enabled.
+        PrepareTriggerFallbackSetup(QltyManagementSetup);
+        QltyManagementSetup."Assembly Trigger" := QltyManagementSetup."Assembly Trigger"::OnAssemblyOutputPost;
+        QltyManagementSetup.Modify();
+
+        // [WHEN] Unfiltered rules infer intent.
+        // [THEN] Exactly one nonmatching trigger still yields unknown.
+        VerifyUnknownTriggerFallbacks();
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure TriggerIntentFallbackProductionCompetesWithAssembly()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] The final assembly trigger disproves an earlier production match.
+        Initialize();
+
+        // [GIVEN] Exactly production and assembly triggers are enabled.
+        PrepareTriggerFallbackSetup(QltyManagementSetup);
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::OnProductionOrderRelease;
+        QltyManagementSetup."Assembly Trigger" := QltyManagementSetup."Assembly Trigger"::OnAssemblyOutputPost;
+        QltyManagementSetup.Modify();
+
+        // [WHEN] Unfiltered rules infer intent.
+        // [THEN] A matching trigger is not sufficient when a second trigger is enabled.
+        VerifyUnknownTriggerFallbacks();
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure TriggerIntentFallbackReceiptCompetesWithMovement()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Two warehouse triggers make both warehouse fallback alternatives ambiguous.
+        Initialize();
+
+        // [GIVEN] Exactly the receipt and movement triggers are enabled.
+        PrepareTriggerFallbackSetup(QltyManagementSetup);
+        QltyManagementSetup."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
+        QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::OnWhseMovementRegister;
+        QltyManagementSetup.Modify();
+
+        // [WHEN] Unfiltered rules infer intent.
+        // [THEN] Neither receipt nor movement is inferred.
+        VerifyUnknownTriggerFallbacks();
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure TriggerIntentFallbackReceiptCompetesWithAssembly()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A late assembly trigger disproves an earlier receipt match.
+        Initialize();
+
+        // [GIVEN] Exactly receipt and assembly triggers are enabled.
+        PrepareTriggerFallbackSetup(QltyManagementSetup);
+        QltyManagementSetup."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
+        QltyManagementSetup."Assembly Trigger" := QltyManagementSetup."Assembly Trigger"::OnAssemblyOutputPost;
+        QltyManagementSetup.Modify();
+
+        // [WHEN] Unfiltered rules infer intent.
+        // [THEN] Receipt is not inferred before all competing triggers are considered.
+        VerifyUnknownTriggerFallbacks();
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure TriggerIntentFallbackMovementCompetesWithAssembly()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A late assembly trigger disproves a movement fallback match.
+        Initialize();
+
+        // [GIVEN] Exactly movement and assembly triggers are enabled.
+        PrepareTriggerFallbackSetup(QltyManagementSetup);
+        QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::OnWhseMovementRegister;
+        QltyManagementSetup."Assembly Trigger" := QltyManagementSetup."Assembly Trigger"::OnAssemblyOutputPost;
+        QltyManagementSetup.Modify();
+
+        // [WHEN] Unfiltered rules infer intent.
+        // [THEN] Neither warehouse fallback may accept the competing triggers.
+        VerifyUnknownTriggerFallbacks();
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure TriggerIntentFallbackWithAllTriggers()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Multiple early and late enabled triggers prevent every setup fallback.
+        Initialize();
+
+        // [GIVEN] All seven triggers are enabled.
+        PrepareTriggerFallbackSetup(QltyManagementSetup);
+        QltyManagementSetup."Purchase Order Trigger" := QltyManagementSetup."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
+        QltyManagementSetup."Sales Return Trigger" := QltyManagementSetup."Sales Return Trigger"::OnSalesReturnOrderPostReceive;
+        QltyManagementSetup."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
+        QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::OnWhseMovementRegister;
+        QltyManagementSetup."Transfer Order Trigger" := QltyManagementSetup."Transfer Order Trigger"::OnTransferOrderPostReceive;
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::OnProductionOrderRelease;
+        QltyManagementSetup."Assembly Trigger" := QltyManagementSetup."Assembly Trigger"::OnAssemblyOutputPost;
+        QltyManagementSetup.Modify();
+
+        // [WHEN] Unfiltered rules infer intent.
+        // [THEN] Early ambiguity cannot become a matching intent later in the scan.
+        VerifyUnknownTriggerFallbacks();
+        LibrarySetupStorage.Restore();
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
             exit;
         LibraryERMCountryData.CreateVATData();
         IsInitialized := true;
+    end;
+
+    local procedure PrepareTriggerFallbackSetup(var QltyManagementSetup: Record "Qlty. Management Setup")
+    begin
+        QltyInspectionUtility.EnsureSetupExists();
+        Clear(LibrarySetupStorage);
+        LibrarySetupStorage.Save(Database::"Qlty. Management Setup");
+        QltyManagementSetup.Get();
+        QltyInspectionUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
+    end;
+
+    local procedure VerifyUnknownTriggerFallbacks()
+    begin
+        VerifyTriggerFallback(Database::"Item Journal Line", Enum::"Qlty. Gen. Rule Intent"::Unknown, Enum::"Qlty. Certainty"::No);
+        VerifyTriggerFallback(Database::"Item Ledger Entry", Enum::"Qlty. Gen. Rule Intent"::Unknown, Enum::"Qlty. Certainty"::No);
+        VerifyTriggerFallback(Database::"Warehouse Journal Line", Enum::"Qlty. Gen. Rule Intent"::Unknown, Enum::"Qlty. Certainty"::No);
+    end;
+
+    local procedure VerifyTriggerFallback(SourceTableNo: Integer; ExpectedIntent: Enum "Qlty. Gen. Rule Intent"; ExpectedCertainty: Enum "Qlty. Certainty")
+    var
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
+        Certainty: Enum "Qlty. Certainty";
+    begin
+        QltyInspectionGenRule."Source Table No." := SourceTableNo;
+        GenRuleIntent := GenRuleIntent::Unknown;
+        Certainty := Certainty::No;
+
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+
+        LibraryAssert.AreEqual(ExpectedIntent, GenRuleIntent, StrSubstNo(UnexpectedFallbackIntentErr, SourceTableNo));
+        LibraryAssert.AreEqual(ExpectedCertainty, Certainty, StrSubstNo(UnexpectedFallbackCertaintyErr, SourceTableNo));
     end;
 
     [ConfirmHandler]

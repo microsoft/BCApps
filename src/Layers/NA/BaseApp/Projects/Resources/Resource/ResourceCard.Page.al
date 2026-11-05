@@ -574,7 +574,6 @@ page 76 "Resource Card"
                 Caption = 'Resource Statistics';
                 Image = "Report";
                 RunObject = Report "Resource Statistics";
-                ToolTip = 'View detailed, historical information for the resource.';
             }
             action("Resource Usage")
             {
@@ -582,7 +581,6 @@ page 76 "Resource Card"
                 Caption = 'Resource Usage';
                 Image = "Report";
                 RunObject = Report "Resource Usage";
-                ToolTip = 'View the resource utilization that has taken place. The report includes the resource capacity, quantity of usage, and the remaining balance.';
             }
             action("Cost Breakdown")
             {

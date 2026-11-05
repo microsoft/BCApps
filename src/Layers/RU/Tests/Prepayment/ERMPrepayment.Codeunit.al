@@ -4369,6 +4369,31 @@
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CannotReduceSalesOrderQuantityToInvoicedQuantityAfterPrepayment()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO 646136] Reduce Sales Order quantity after prepayment and partial invoicing
+
+        // [GIVEN] Posted 50% Prepayment Invoice for Sales Order
+        InitSalesPrepaymentScenario(SalesHeader, SalesLine, false, 50, '');
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        // [GIVEN] Order is partially shipped and invoiced
+        PostPartialSalesInvoice(SalesHeader, SalesLine);
+        LibrarySales.ReopenSalesDocument(SalesHeader);
+        SalesLine.Find();
+
+        // [WHEN] Reduce Quantity to the invoiced quantity
+        asserterror SalesLine.Validate(Quantity, SalesLine."Quantity Invoiced");
+
+        // [THEN] Error occurs because the posted prepayment exceeds the new line amount
+        Assert.ExpectedError(SalesLine.FieldCaption("Prepmt. Line Amount"));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

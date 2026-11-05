@@ -18,7 +18,7 @@ codeunit 4302 "SOA Validation Function" implements "AOAI Function"
         IrrelevantReason: Text;
         Irrelevant: Boolean;
         LoadToolErr: Label 'Failed to parse the validate tool. Expected a valid JSON object.';
-        IrrelevanceValidateToolTok: Label 'Prompts/MessageValidation/irrelevance-validate-tool.md', Locked = true;
+        IrrelevanceValidateToolTok: Label 'Prompts/MessageValidation/irrelevance-validate-tool.json', Locked = true;
 
     procedure GetPrompt(): JsonObject
     var

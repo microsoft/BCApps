@@ -1,6 +1,7 @@
 codeunit 139741 "VAT Group Sub. Status Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = BlockOutboundRequests;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 

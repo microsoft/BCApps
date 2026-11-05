@@ -14,6 +14,7 @@ report 5205 "Employee - Absences by Causes"
     RDLCLayout = './HumanResources/Reports/EmployeeAbsencesbyCauses.rdlc';
     ApplicationArea = BasicHR;
     Caption = 'Employee Absences by Causes';
+    ToolTip = 'View a list of all your employee absences categorized by absence code.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

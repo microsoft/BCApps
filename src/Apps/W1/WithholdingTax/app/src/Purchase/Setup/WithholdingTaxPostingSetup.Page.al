@@ -113,6 +113,26 @@ page 6786 "Withholding Tax Posting Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the sequence in which the withholding tax posting setup information must be displayed in reports.';
                 }
+                field("Calculation Base"; Rec."Calculation Base")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies whether withholding tax is calculated on the gross amount or the net amount (gross-up). Net (gross-up) is applicable for employee transactions where the entered amount represents the net payable.';
+                }
+                field("Calculation Method"; Rec."Calculation Method")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the calculation method. Simple calculates each component independently. Compound adjusts the base of later components to include earlier component taxes.';
+                }
+                field("WHT Threshold Base"; Rec."WHT Threshold Base")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies level at which the threshold is evaluated: per record/line, per document, per category in a period, or total across all categories in a period.';
+                }
+                field("WHT Threshold Period"; Rec."WHT Threshold Period")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the period for threshold accumulation: Month, Quarter, Year, or Fiscal Period. Applicable when Threshold Base is Category in Period or Total in Period.';
+                }
             }
         }
     }

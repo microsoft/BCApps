@@ -109,6 +109,12 @@ page 99000755 "Work Center List"
                 {
                     ApplicationArea = Planning;
                 }
+                field("Calendar Entries Available Until"; Rec."Calendar Entries Avail. Until")
+                {
+                    ApplicationArea = Manufacturing;
+                    Editable = false;
+                    StyleExpr = CalendarHorizonStyleTxt;
+                }
                 field("Search Name"; Rec."Search Name")
                 {
                     ApplicationArea = Manufacturing;
@@ -287,32 +293,6 @@ page 99000755 "Work Center List"
         }
         area(reporting)
         {
-#if not CLEAN27
-            action("Work Center Load")
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Work Center Load';
-                Image = "Report";
-                RunObject = Report "Work Center Load";
-                ToolTip = 'Get an overview of availability at the work center, such as the capacity, the allocated quantity, availability after order, and the load in percent.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'This report has been replaced by the "Work/Machine Center Load" report and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-            action("Work Center Load/Bar")
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Work Center Load/Bar';
-                Image = "Report";
-                //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
-                //PromotedCategory = "Report";
-                RunObject = Report "Work Center Load/Bar";
-                ToolTip = 'View a list of work centers that are overloaded according to the plan. The efficiency or overloading is shown by efficiency bars.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'This report has been replaced by the "Work/Machine Center Load" report and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-#endif
             action("Work/Machine Center Load")
             {
                 ApplicationArea = Manufacturing;
@@ -343,14 +323,6 @@ page 99000755 "Work Center List"
             group(Category_Report)
             {
                 Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
-#if not CLEAN27
-                actionref("Work Center Load_Promoted"; "Work Center Load")
-                {
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'This report has been replaced by the "Work/Machine Center Load" report and will be removed in a future release.';
-                    ObsoleteTag = '27.0';
-                }
-#endif
                 actionref("Work/Machine Center Load_Promoted"; "Work/Machine Center Load")
                 {
                 }
@@ -380,6 +352,17 @@ page 99000755 "Work Center List"
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        Rec.CalcFields("Calendar Entries Avail. Until");
+        CalendarHorizonStyleTxt := '';
+        if (Rec."Calendar Entries Avail. Until" <> 0D) and (Rec."Calendar Entries Avail. Until" < WorkDate()) then
+            CalendarHorizonStyleTxt := 'Unfavorable';
+    end;
+
+    var
+        CalendarHorizonStyleTxt: Text;
 
     procedure GetCurrSelectionFilter(): Text
     var

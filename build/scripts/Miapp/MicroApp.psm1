@@ -123,8 +123,8 @@ function Invoke-Miapp
 
     try {
 
-    if(-not (Initialize-MiappRepoBranchName)) {
-        Throw "Cannot determine base branch. Set `$env:RepoBranchName to the base branch name (for example 'main')."
+    if(-not (Get-MiappBaseBranch)) {
+        Throw "Cannot determine the base branch from 'origin/HEAD'. Ensure the repository has an 'origin' remote with a resolvable default branch (for example: git remote set-head origin --auto)."
     }
 
     $params = @{
@@ -200,11 +200,11 @@ function Assert-RepositoryIsNotBehindTheRemote {
         Throw "Your branch is behind, pull before continuing."
     }
 
-    if(Test-PendingChangeFromBranch "origin/$env:RepoBranchName") {
-        Throw "Your branch is behind origin/$($env:RepoBranchName), merge or rebase before continuing."
+    if(Test-PendingChangeFromBranch "origin/$(Get-MiappBaseBranch)") {
+        Throw "Your branch is behind origin/$(Get-MiappBaseBranch), merge or rebase before continuing."
     }
 
-    if(-not (Test-GitBranchHasAtLeastOneCommit "origin/$env:RepoBranchName")) {
+    if(-not (Test-GitBranchHasAtLeastOneCommit "origin/$(Get-MiappBaseBranch)")) {
         Throw "You need to commit at least once before continuing."
     }
 }

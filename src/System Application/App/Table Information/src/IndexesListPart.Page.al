@@ -32,26 +32,64 @@ page 8704 "Indexes List Part"
         {
             repeater(Indexes)
             {
-                field("Index name"; Rec."Index Name")
-                {
-                    Width = 30;
-                    Caption = 'Index Name';
-                    ToolTip = 'Specifies the name of the index.';
-                }
+                FreezeColumn = "Index Fields";
                 field(Enabled; Rec.Enabled)
                 {
                     Caption = 'Enabled in Database';
                     ToolTip = 'Specifies whether the index is enabled in the database.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("AL defined"; Rec."Metadata Defined")
                 {
                     Caption = 'AL Defined';
                     ToolTip = 'Specifies whether the index is defined as an AL key or automatically created to improve performance.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("Unique"; Rec.Unique)
                 {
                     Caption = 'Unique';
                     ToolTip = 'Specifies whether the index is defined as unique in AL.';
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("Index name"; Rec."Index Name")
+                {
+                    Width = 30;
+                    Caption = 'Index Name';
+                    ToolTip = 'Specifies the name of the index.';
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("Index Type"; Rec."Index Type")
+                {
+                    Caption = 'Index Type';
+                    ToolTip = 'Specifies whether the row represents a regular database index or a SIFT structure.';
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("Index Fields"; Rec."Column Names")
+                {
+                    Width = 40;
+                    Caption = 'Index Fields';
+                    ToolTip = 'Specifies the fields that are part of the index.';
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("Maintain SIFT"; MaintainVSIFT)
+                {
+                    Caption = 'Maintain SIFT';
+                    ToolTip = 'Specifies whether the SIFT index is actively maintained for this key.';
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("SIFT Fields"; VSIFTFields)
+                {
+                    Width = 40;
+                    Caption = 'SIFT Fields';
+                    ToolTip = 'Specifies the fields maintained in SIFT (Sum Index Field Technology) for aggregation purposes.';
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("Included Columns"; Rec."Included Fields")
+                {
+                    Width = 40;
+                    Caption = 'Included Columns';
+                    ToolTip = 'Specifies the non-key fields included in the index for covering queries.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("Fragmentation"; Rec."Fragmentation %")
                 {
@@ -59,60 +97,80 @@ page 8704 "Indexes List Part"
                     ToolTip = 'Specifies the percentage of fragmentation in the index.';
                     AutoFormatType = 0;
                     DecimalPlaces = 0;
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("Index size in KB"; Rec."Index Size (KB)")
                 {
                     Caption = 'Index Size (kB)';
                     ToolTip = 'Specifies the size of the index in kilobytes.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("User seeks"; Rec."User seeks")
                 {
                     Width = 10;
                     Caption = 'Seeks';
                     ToolTip = 'Specifies the number of user seeks on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("User scans"; Rec."User scans")
                 {
                     Width = 10;
                     Caption = 'Scans';
                     ToolTip = 'Specifies the number of user scans on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("User lookups"; Rec."User lookups")
                 {
                     Width = 10;
                     Caption = 'Lookups';
                     ToolTip = 'Specifies the number of user lookups on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
                 field("User updates"; Rec."User updates")
                 {
                     Width = 10;
                     Caption = 'Updates';
                     ToolTip = 'Specifies the number of user updates on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
-                field("Last seek"; Rec."Last seek")
+                field("Read/Write Ratio"; ReadWriteRatio)
+                {
+                    Width = 10;
+                    Caption = 'Reads/Writes';
+                    ToolTip = 'Specifies the ratio of reads (seeks + scans + lookups) to writes (updates). A higher value indicates the index is more read-heavy.';
+                    AutoFormatType = 0;
+                    DecimalPlaces = 2;
+                    StyleExpr = IndexStyleExpr;
+                }
+                field("Last seek"; LastSeekText)
                 {
                     Caption = 'Last Seek';
                     ToolTip = 'Specifies the timestamp of the last user seek on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
-                field("Last scan"; Rec."Last scan")
+                field("Last scan"; LastScanText)
                 {
                     Caption = 'Last Scan';
                     ToolTip = 'Specifies the timestamp of the last user scan on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
-                field("Last lookup"; Rec."Last lookup")
+                field("Last lookup"; LastLookupText)
                 {
                     Caption = 'Last Lookup';
                     ToolTip = 'Specifies the timestamp of the last user lookup on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
-                field("Last Update"; Rec."Last update")
+                field("Last Update"; LastUpdateText)
                 {
                     Caption = 'Last Update';
                     ToolTip = 'Specifies the timestamp of the last user update on this index since the database was last started.';
+                    StyleExpr = IndexStyleExpr;
                 }
-                field("Stat updated at"; Rec."Statistics rebuild at")
+                field("Stat updated at"; FormatDateTime(Rec."Statistics rebuild at"))
                 {
                     Caption = 'Statistics updated at';
                     ToolTip = 'Specifies the last time the index''s corresponding statistics was rebuild. Statistics are updated automatically by the database engine based on certain thresholds of data changes, or when an index is re-enabled.';
+                    StyleExpr = IndexStyleExpr;
                 }
             }
         }
@@ -179,7 +237,7 @@ page 8704 "Indexes List Part"
 
                     if Company.FindSet() then
                         repeat
-                            if DatabaseIndex.Get(Rec.TableId, Rec."Index Name", Company.Name, Rec."Source App ID") then
+                            if DatabaseIndex.Get(Rec.TableId, Rec."Index Name", Company.Name, Rec."Source App ID", Rec."Index Type") then
                                 IndexManagement.DisableIndex(DatabaseIndex);
                         until Company.Next() = 0;
 
@@ -203,10 +261,9 @@ page 8704 "Indexes List Part"
                 trigger OnAction()
                 var
                     KeyRec: Record "Key";
-                    IndexManagement: Codeunit "Index Management";
                 begin
                     if FindKeyFromDatabaseIndex(Rec, KeyRec) then
-                        IndexManagement.EnableKey(KeyRec, Rec."Company Name");
+                        EnableIndex(KeyRec, Rec."Company Name", Rec."Index Type" = Rec."Index Type"::SIFT);
 
                     Message(TurnOnIndexQueueInfoMsg);
                 end;
@@ -222,14 +279,13 @@ page 8704 "Indexes List Part"
                 var
                     Company: Record Company;
                     KeyRec: Record "Key";
-                    IndexManagement: Codeunit "Index Management";
                 begin
                     if not FindKeyFromDatabaseIndex(Rec, KeyRec) then
                         exit;
 
                     if Company.FindSet() then
                         repeat
-                            IndexManagement.EnableKey(KeyRec, Company.Name);
+                            EnableIndex(KeyRec, Company.Name, Rec."Index Type" = Rec."Index Type"::SIFT);
                         until Company.Next() = 0;
 
                     Message(TurnOnIndexQueueInfoMsg);
@@ -237,6 +293,49 @@ page 8704 "Indexes List Part"
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    var
+        KeyRec: Record "Key";
+    begin
+        if Rec.Enabled then
+            IndexStyleExpr := 'Standard'
+        else
+            IndexStyleExpr := 'Subordinate';
+
+        if FindKeyFromDatabaseIndex(Rec, KeyRec) then begin
+            MaintainVSIFT := KeyRec.MaintainSIFTIndex;
+            VSIFTFields := KeyRec.SumIndexFields;
+        end else begin
+            MaintainVSIFT := false;
+            VSIFTFields := '';
+        end;
+
+        if Rec."User seeks" <> 0 then
+            LastSeekText := Format(Rec."Last seek")
+        else
+            LastSeekText := '';
+
+        if Rec."User scans" <> 0 then
+            LastScanText := Format(Rec."Last scan")
+        else
+            LastScanText := '';
+
+        if Rec."User lookups" <> 0 then
+            LastLookupText := Format(Rec."Last lookup")
+        else
+            LastLookupText := '';
+
+        if Rec."User updates" <> 0 then
+            LastUpdateText := Format(Rec."Last update")
+        else
+            LastUpdateText := '';
+
+        if Rec."User updates" <> 0 then
+            ReadWriteRatio := (Rec."User seeks" + Rec."User scans" + Rec."User lookups") / Rec."User updates"
+        else
+            ReadWriteRatio := (Rec."User seeks" + Rec."User scans" + Rec."User lookups") / 1;
+    end;
 
     trigger OnFindRecord(Which: Text): Boolean
     var
@@ -265,6 +364,7 @@ page 8704 "Indexes List Part"
     var
         DatabaseIndex: Record "Database Index";
         KeyRec: Record "Key";
+        IndexName: Text[128];
     begin
         // Combines the indexes from "Database Index" and "Key" virtual tables. "Database Index" contains all indexes currently in the database,
         // including those automatically created by the database engine, while "Key" contains all metadata defined keys.
@@ -282,22 +382,39 @@ page 8704 "Indexes List Part"
         KeyRec.SetRange(KeyRec.SQLIndex);
         if KeyRec.FindSet() then
             repeat
-                if Rec.Get(LinkTableId, KeyRec."Key name", SetCompanyName, KeyRec."Source App ID") then
-                    continue;
+                if KeyRec.MaintainSQLIndex or not KeyRec.Enabled then begin
+                    IndexName := GetKeyIndexName(KeyRec, false);
+                    if not Rec.Get(LinkTableId, IndexName, SetCompanyName, KeyRec."Source App ID", Rec."Index Type"::Index) then
+                        InsertDisabledIndex(KeyRec, false);
+                end;
 
-                Clear(Rec);
-
-                Rec.TableId := KeyRec.TableNo;
-                Rec."Column Names" := KeyRec."Key";
-                Rec."Company Name" := CopyStr(SetCompanyName, 1, MaxStrLen(Rec."Company Name"));
-                Rec.Unique := KeyRec.Unique;
-                Rec.Enabled := false;
-                Rec."Metadata Defined" := true;
-                Rec."Index Name" := KeyRec."Key name";
-                Rec."Source App ID" := KeyRec."Source App ID";
-
-                Rec.Insert();
+                if KeyRec.MaintainSIFTIndex then begin
+                    IndexName := GetKeyIndexName(KeyRec, true);
+                    if not Rec.Get(LinkTableId, IndexName, SetCompanyName, KeyRec."Source App ID", Rec."Index Type"::SIFT) then
+                        InsertDisabledIndex(KeyRec, true);
+                end;
             until KeyRec.Next() = 0;
+    end;
+
+    local procedure InsertDisabledIndex(KeyRec: Record "Key"; IsSift: Boolean)
+    begin
+        Clear(Rec);
+
+        Rec.TableId := KeyRec.TableNo;
+        Rec."Column Names" := CopyStr(KeyRec."Key", 1, MaxStrLen(Rec."Column Names"));
+        Rec."Company Name" := CopyStr(SetCompanyName, 1, MaxStrLen(Rec."Company Name"));
+        Rec.Unique := KeyRec.Unique and not IsSift;
+        Rec.Enabled := false;
+        Rec."Metadata Defined" := true;
+        Rec."Index Name" := GetKeyIndexName(KeyRec, IsSift);
+        Rec."Source App ID" := KeyRec."Source App ID";
+        if IsSift then begin
+            Rec."Index Type" := Rec."Index Type"::SIFT;
+            Rec."Included Fields" := CopyStr(KeyRec.SumIndexFields, 1, MaxStrLen(Rec."Included Fields"));
+        end else
+            Rec."Index Type" := Rec."Index Type"::Index;
+
+        Rec.Insert();
     end;
 
     procedure SetCompanyFilter(NewCompanyName: Text)
@@ -309,14 +426,60 @@ page 8704 "Indexes List Part"
     end;
 
     local procedure FindKeyFromDatabaseIndex(DatabaseIndex: Record "Database Index"; var KeyRec: Record "Key"): Boolean
+    var
+        IsSift: Boolean;
     begin
         KeyRec.SetRange(KeyRec.TableNo, DatabaseIndex.TableId);
-        KeyRec.SetRange(KeyRec."Key name", DatabaseIndex."Index Name");
-        exit(KeyRec.FindFirst());
+        KeyRec.SetRange(KeyRec."Source App ID", DatabaseIndex."Source App ID");
+        IsSift := DatabaseIndex."Index Type" = DatabaseIndex."Index Type"::SIFT;
+        if KeyRec.FindSet() then
+            repeat
+                if GetKeyIndexName(KeyRec, IsSift) = DatabaseIndex."Index Name" then
+                    exit(true);
+            until KeyRec.Next() = 0;
+
+        exit(false);
+    end;
+
+    local procedure GetKeyIndexName(KeyRec: Record "Key"; IsSift: Boolean): Text[128]
+    var
+        IndexManagement: Codeunit "Index Management";
+    begin
+        if KeyRec."Key name" <> '' then
+            exit(KeyRec."Key name");
+
+        exit(IndexManagement.GetKeyIndexName(KeyRec, IsSift));
+    end;
+
+    local procedure FormatDateTime(DateTimeValue: DateTime): Text
+    begin
+        if (DateTimeValue = 0DT) or (DateTimeValue = CreateDateTime(00000101D, 0T)) then
+            exit(NoDateTimeValueLbl);
+
+        exit(Format(DateTimeValue));
+    end;
+
+    local procedure EnableIndex(KeyRec: Record "Key"; CompanyName: Text; IsSift: Boolean)
+    var
+        IndexManagement: Codeunit "Index Management";
+    begin
+        if IsSift then
+            IndexManagement.EnableSiftKey(KeyRec, CompanyName)
+        else
+            IndexManagement.EnableKey(KeyRec, CompanyName);
     end;
 
     var
         SetCompanyName: Text;
+        IndexStyleExpr: Text;
+        VSIFTFields: Text;
+        LastSeekText: Text;
+        LastScanText: Text;
+        LastLookupText: Text;
+        LastUpdateText: Text;
+        ReadWriteRatio: Decimal;
+        MaintainVSIFT: Boolean;
+        NoDateTimeValueLbl: Label '-', Locked = true;
         TurnOffIndexWarningQst: Label 'Turning a non-AL defined index off cannot be undone. Please confirm.';
         TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on. It will be attempted during the subsequent maintenance window (overnight local time).';
 }

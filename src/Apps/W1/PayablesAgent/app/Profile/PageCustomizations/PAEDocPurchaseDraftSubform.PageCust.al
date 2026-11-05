@@ -26,10 +26,54 @@ pagecustomization "PA EDoc Purchase Draft Subform" customizes "E-Doc. Purchase D
         {
             Visible = true;
         }
+        modify("Line Type")
+        {
+            Visible = true;
+        }
+        modify("No.")
+        {
+            Visible = true;
+        }
+        modify("Item Reference No.")
+        {
+            Visible = true;
+        }
+        modify("Deferral Code")
+        {
+            Visible = true;
+        }
+        modify("Unit Of Measure")
+        {
+            Visible = true;
+        }
     }
     actions
     {
         modify(MatchToOrderLine)
+        {
+            Visible = true;
+        }
+        modify(LookupItemReferences)
+        {
+            Visible = true;
+        }
+        modify(OpenTextToAccountMappings)
+        {
+            Visible = true;
+        }
+        modify(OpenHistoricalPurchaseLines)
+        {
+            Visible = true;
+        }
+        modify(OpenChartOfAccounts)
+        {
+            Visible = true;
+        }
+        modify(OpenItems)
+        {
+            Visible = true;
+        }
+        modify(OpenDeferralTemplates)
         {
             Visible = true;
         }

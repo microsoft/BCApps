@@ -18,6 +18,7 @@ report 10164 "Item/Vendor Catalog"
     RDLCLayout = './Inventory/Reports/ItemVendorCatalog.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Item/Vendor Catalog';
+    ToolTip = 'View a list of the vendors for the selected items. For each combination of item and vendor, it shows direct unit cost, lead time calculation and the vendor''s item number.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
 

@@ -72,10 +72,10 @@ page 20415 "Qlty. Create Inspection API"
     end;
 
     /// <summary>
-    /// Creates an inspection from a known table.
+    /// Creates an inspection for the record identified by the page System ID and a table name or ID.
     /// </summary>
+    /// <param name="ActionContext">The web service action context updated with the creation result.</param>
     /// <param name="tableName">The table ID or table name to create an inspection for.</param>
-    /// <param name="ActionContext"></param>
     [ServiceEnabled]
     procedure CreateInspectionFromRecordID(var ActionContext: WebServiceActionContext; tableName: Text)
     var
@@ -106,11 +106,11 @@ page 20415 "Qlty. Create Inspection API"
     end;
 
     /// <summary>
-    /// Creates an inspection with a table and table filter to identify a record.
+    /// Creates an inspection for the single record identified by a table and table view.
     /// </summary>
-    /// <param name="ActionContext">VAR WebServiceActionContext.</param>
-    /// <param name="tableName">Text. The table ID, or table name, or table caption.</param>
-    /// <param name="tableNameFilter">The table filter that can identify a specific record.</param>
+    /// <param name="ActionContext">The web service action context updated with the creation result.</param>
+    /// <param name="tableName">The table ID, name, or caption containing the source record.</param>
+    /// <param name="tableNameFilter">The table view that must identify exactly one source record.</param>
     [ServiceEnabled]
     procedure CreateInspectionFromTableIDAndFilter(var ActionContext: WebServiceActionContext; tableName: Text; tableNameFilter: Text)
     var

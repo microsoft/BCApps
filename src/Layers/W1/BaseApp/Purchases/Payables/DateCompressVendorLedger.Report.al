@@ -16,6 +16,7 @@ report 398 "Date Compress Vendor Ledger"
 {
     ApplicationArea = Suite;
     Caption = 'Date Compress Vendor Ledger';
+    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
     Permissions = TableData "G/L Entry" = rimd,
                   TableData "Vendor Ledger Entry" = rimd,
                   TableData "G/L Register" = rimd,

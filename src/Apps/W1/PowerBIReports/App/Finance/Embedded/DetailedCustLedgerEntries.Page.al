@@ -11,8 +11,8 @@ page 36997 "Detailed Cust. Ledger Entries"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Detailed Cust. Ledger Entries';
-    AboutTitle = 'About Detailed Cust. Ledger Entries';
+    Caption = 'Detailed Cust. Ledger Entries (Power BI)';
+    AboutTitle = 'About Detailed Cust. Ledger Entries (Power BI)';
     AboutText = 'The Detailed Customer Ledger Entries report provides granular detail about the entries posted to Customer Ledger and Detailed Customer Sub Ledger.';
 
     layout

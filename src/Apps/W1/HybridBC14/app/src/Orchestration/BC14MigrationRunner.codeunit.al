@@ -356,6 +356,7 @@ codeunit 46875 "BC14 Migration Runner"
         Changed: Boolean;
     begin
         ActionList.Add("BC14 Post Migration Action"::"Journal Post");
+        ActionList.Add("BC14 Post Migration Action"::"Item Journal Post");
 
         CountBefore := ActionList.Count();
         OnAfterPopulateActions(ActionList, NewActions, Changed);
@@ -512,6 +513,7 @@ codeunit 46875 "BC14 Migration Runner"
         MigratorEnums.Add("BC14 Setup Migrator"::"Customer Posting Group");
         MigratorEnums.Add("BC14 Setup Migrator"::"Vendor Posting Group");
         MigratorEnums.Add("BC14 Setup Migrator"::"Inventory Posting Group");
+        MigratorEnums.Add("BC14 Setup Migrator"::"Inventory Posting Setup");
         MigratorEnums.Add("BC14 Setup Migrator"::"General Posting Setup");
         MigratorEnums.Add("BC14 Setup Migrator"::"VAT Posting Setup");
         MigratorEnums.Add("BC14 Setup Migrator"::"Payment Terms");
@@ -587,6 +589,9 @@ codeunit 46875 "BC14 Migration Runner"
         Changed: Boolean;
     begin
         MigratorEnums.Add("BC14 Transaction Migrator"::"G/L Entries");
+        MigratorEnums.Add("BC14 Transaction Migrator"::"Customer Ledger Entries");
+        MigratorEnums.Add("BC14 Transaction Migrator"::"Vendor Ledger Entries");
+        MigratorEnums.Add("BC14 Transaction Migrator"::"Item Ledger Entries");
 
         CountBefore := MigratorEnums.Count();
         OnAfterPopulateTransactionMigrators(MigratorEnums, NewMigrators, Changed);
@@ -612,6 +617,9 @@ codeunit 46875 "BC14 Migration Runner"
     begin
         MigratorEnums.Add("BC14 Historical Migrator"::"Posted Sales Invoice");
         MigratorEnums.Add("BC14 Historical Migrator"::"Old G/L Entry");
+        MigratorEnums.Add("BC14 Historical Migrator"::"Old Customer Ledger Entry");
+        MigratorEnums.Add("BC14 Historical Migrator"::"Old Vendor Ledger Entry");
+        MigratorEnums.Add("BC14 Historical Migrator"::"Old Item Ledger Entry");
 
         CountBefore := MigratorEnums.Count();
         OnAfterPopulateHistoricalMigrators(MigratorEnums, NewMigrators, Changed);

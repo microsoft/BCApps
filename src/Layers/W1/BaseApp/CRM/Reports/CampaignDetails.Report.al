@@ -11,6 +11,7 @@ report 5060 "Campaign - Details"
 {
     ApplicationArea = RelationshipMgmt;
     Caption = 'Campaign - Details';
+    ToolTip = 'Show detailed information about the campaign.';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = Campaign;
     DefaultRenderingLayout = RDLCLayout;

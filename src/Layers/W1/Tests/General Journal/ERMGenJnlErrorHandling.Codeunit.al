@@ -431,6 +431,7 @@ codeunit 134932 "ERM Gen. Jnl. Error Handling"
         GenJournalLine.Modify();
 
         // [WHEN] Open general journal for batch "XXX"
+        Commit();
         GeneralJournal.Trap();
         Page.Run(Page::"General Journal", GenJournalLine);
 

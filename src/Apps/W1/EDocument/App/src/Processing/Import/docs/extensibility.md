@@ -1,129 +1,162 @@
 # Import pipeline extensibility
 
-The import pipeline is built on extensible enums backed by interfaces. Every stage dispatches through an interface, so extensions replace behavior by adding enum values with new implementations. The interfaces live in `src/Processing/Interfaces/`.
+The import pipeline is built on extensible enums backed by interfaces. Every stage dispatches through an interface, so extensions replace behavior by adding enum values with implementations. The import-specific interfaces are selected by `ImportEDocumentProcess.Codeunit.al`; the contracts live in `src/Processing/Interfaces/` and, for sales-specific providers, under `Import/Sales/`.
 
-## Add a new document format parser
+*Updated: 2026-07-29 -- Added the current reader selection chain, Data Exchange bridge, purchase credit memo, and sales order extension points.*
 
-To support a new file format (e.g. CSV invoices), implement two things:
+## Add a new inbound format
 
-**File format detection.** Extend the `"E-Doc. File Format"` enum with a new value whose `IEDocFileFormat` implementation returns the file extension, a content preview method, and a preferred structure implementation:
+*Updated: 2026-07-29 -- Documented service Draft Format fallback and the process draft value returned by each reader.*
 
+To support a new structured inbound format, the central extension point is `E-Doc. Read into Draft`. The user or service integration selects the implementation through `E-Document."Read into Draft Impl."`; if the document does not set one, V2 import falls back to `E-Document Service."Read into Draft Impl."`, shown as **Draft Format** on the service card.
+
+Extend the enum with a value whose implementation parses the structured blob into staging records and returns the next process draft route:
+
+```al
+interface IStructuredFormatReader
+    procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
+    procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
 ```
+
+A purchase invoice reader inserts `E-Document Purchase Header` and `E-Document Purchase Line` records and returns `Purchase Invoice`. A purchase credit memo reader uses the same purchase staging tables and returns `Purchase Credit Memo`. A sales order reader inserts `E-Document Sales Header` and `E-Document Sales Line` records and returns `Sales Order`.
+
+Built-in examples:
+
+- PEPPOL reads invoices, credit notes, orders, and order responses in `EDocumentPEPPOLHandler.Codeunit.al`.
+
+- Data Exchange Purchase runs configured Data Exchange definitions and bridges intermediate data into purchase staging.
+
+- MLLM and ADI read JSON output from their structuring stage into purchase staging.
+
+Country apps follow the same pattern. XRechnung and OIOUBL extend `E-Doc. Read into Draft`, implement `IStructuredFormatReader`, populate purchase staging, and return either `Purchase Invoice` or `Purchase Credit Memo`.
+
+## Add a new file type or structuring mechanism
+
+*Updated: 2026-07-29 -- Updated PDF default to MLLM and clarified reader override behavior from structured data.*
+
+Use these interfaces when your source blob is not already in the shape your reader consumes.
+
+**File format detection.** Extend the `E-Doc. File Format` enum with an `IEDocFileFormat` implementation:
+
+```al
 interface IEDocFileFormat
     procedure FileExtension(): Text
     procedure PreviewContent(FileName: Text; TempBlob: Codeunit "Temp Blob")
     procedure PreferredStructureDataImplementation(): Enum "Structure Received E-Doc."
 ```
 
-The built-in implementations are in `FileFormat/`: XML returns `"Already Structured"`, PDF returns `"ADI"`, JSON returns `"Already Structured"`. Your format should point to whichever structuring implementation makes sense.
+XML and JSON return `Already Structured`. PDF now returns `MLLM`; ADI remains available but is no longer the default PDF preference in the core PDF file format.
 
-**Structured format reader.** Extend the `"E-Doc. Read into Draft"` enum with a new value whose `IStructuredFormatReader` implementation parses the structured blob into `E-Document Purchase Header` / `E-Document Purchase Line` records:
+**Structuring.** Extend the `Structure Received E-Doc.` enum with an `IStructureReceivedEDocument` implementation:
 
-```
-interface IStructuredFormatReader
-    procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
-    procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
-```
-
-`ReadIntoDraft` must insert the staging records and return the `"E-Doc. Process Draft"` enum value that determines which Prepare Draft implementation runs. See `EDocumentPEPPOLHandler.Codeunit.al` for a complete XML example and `EDocumentADIHandler.Codeunit.al` for a JSON example.
-
-## Add a new structuring mechanism
-
-If you have a non-trivial conversion step (e.g. a custom OCR service for scanned documents), extend the `"Structure Received E-Doc."` enum with a new value whose `IStructureReceivedEDocument` implementation converts the raw blob:
-
-```
+```al
 interface IStructureReceivedEDocument
     procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
 ```
 
-Your implementation receives the raw blob and must return an `IStructuredDataType` -- a stateful object that holds the file format, the text content, and optionally specifies which `IStructuredFormatReader` to use downstream:
+Your implementation returns an `IStructuredDataType` object:
 
-```
+```al
 interface IStructuredDataType
     procedure GetFileFormat(): Enum "E-Doc. File Format"
     procedure GetContent(): Text
     procedure GetReadIntoDraftImpl(): Enum "E-Doc. Read into Draft"
 ```
 
-The ADI handler (`EDocumentADIHandler.Codeunit.al`) implements all three interfaces (`IStructureReceivedEDocument`, `IStructuredDataType`, `IStructuredFormatReader`) in a single codeunit because it owns the entire chain from PDF to staging tables.
+`GetReadIntoDraftImpl()` is important. If it returns a value other than `Unspecified`, the structure step writes it to the E-Document and the read step uses it, even if the service has a different Draft Format. Use this when the conversion result implies exactly one downstream reader, such as MLLM JSON or ADI JSON.
 
-## Customize vendor resolution
+## Use Data Exchange definitions in V2
 
-Extend the `"E-Doc. Proc. Customizations"` enum. This is a multi-interface enum that bundles five provider interfaces with defaults from `EDocProviders.Codeunit.al`. Your new enum value provides custom implementations for any or all of:
+*Updated: 2026-07-29 -- Added bridge pattern guidance.*
 
-```
+If your format is already modeled as Data Exchange Definitions, use or mimic the `Data Exchange Purchase` reader rather than duplicating the final document creation logic. The bridge pattern is:
+
+1. Configure one or more import Data Exchange Definitions on the E-Document Service.
+2. Let `EDocDataExchPurchHandler` choose a definition by XML root namespace.
+3. Run `DataExchDef.ProcessDataExchange()` so the standard Data Exchange framework fills `Intermediate Data Import`.
+4. Map intermediate rows into `E-Document Purchase Header` and `E-Document Purchase Line`.
+5. Return `Purchase Invoice` or `Purchase Credit Memo` so the normal V2 Prepare and Finish stages handle vendor resolution, matching, validation, links, attachments, and history.
+
+This bridge exists to preserve older Data Exchange mapping investments while still gaining the V2 draft review and finalization pipeline. It should not bypass staging tables or create the purchase document directly.
+
+## Customize purchase resolution
+
+*Updated: 2026-07-29 -- Added current provider behavior and VAT product posting group note.*
+
+Extend the `E-Doc. Proc. Customizations` enum. This multi-interface enum bundles the provider and finalizer interfaces used during Prepare Draft and Finish Draft.
+
+For purchase drafts, the default value provides:
+
+```al
 interface IVendorProvider
     procedure GetVendor(EDocument: Record "E-Document"): Record Vendor
-```
 
-The default implementation (`EDocProviders.GetVendor`) tries VAT ID + GLN lookup, then Service Participant matching, then name + address search. Replace it to add your own vendor matching logic -- for example, looking up a custom identifier from a localized field.
+interface IPurchaseOrderProvider
+    procedure GetPurchaseOrder(EDocumentPurchaseHeader: Record "E-Document Purchase Header"): Record "Purchase Header"
 
-## Customize line resolution
+interface IUnitOfMeasureProvider
+    procedure GetUnitOfMeasure(EDocument: Record "E-Document"; EDocumentLineId: Integer; ExternalUnitOfMeasure: Text): Record "Unit of Measure"
 
-The same `"E-Doc. Proc. Customizations"` enum also controls line-level resolution:
-
-```
 interface IPurchaseLineProvider
     procedure GetPurchaseLine(var EDocumentPurchaseLine: Record "E-Document Purchase Line")
 ```
 
-The default implementation tries Item Reference by vendor + product code, then Text-to-Account Mapping by description. Your implementation receives the draft line with external data populated and should set `[BC] Purchase Line Type`, `[BC] Purchase Type No.`, and related fields.
+The default vendor provider tries VAT ID and GLN, service participant, then name and address. Purchase history can still fill a missing vendor after the provider runs. The default line provider tries item references and then Text-to-Account Mapping. VAT product posting group resolution is not an interface; it is controlled by purchase setup and uses the vendor VAT business posting group plus the extracted line VAT rate.
 
-Note: `IPurchaseLineAccountProvider` (same signature pattern but with explicit out-parameters for account type and number) is **obsolete as of v27** -- replaced by `IPurchaseLineProvider`.
+`IPurchaseLineAccountProvider` is obsolete as of v27 and should not be used for new work.
 
-```
-interface IUnitOfMeasureProvider
-    procedure GetUnitOfMeasure(EDocument: Record "E-Document"; EDocumentLineId: Integer; ExternalUnitOfMeasure: Text): Record "Unit of Measure"
-```
+## Customize purchase finalization
 
-The default tries UOM Code, then International Standard Code, then Description. Override this if your vendors use non-standard UOM identifiers.
+*Updated: 2026-07-29 -- Added credit memo creation and clarified when to override create versus finish contracts.*
 
-## Customize purchase order matching
+Purchase invoice creation is controlled by `IEDocumentCreatePurchaseInvoice`, and purchase credit memo creation by `IEDocumentCreatePurchaseCreditMemo`. Both are bundled into `E-Doc. Proc. Customizations`.
 
-```
-interface IPurchaseOrderProvider
-    procedure GetPurchaseOrder(EDocumentPurchaseHeader: Record "E-Document Purchase Header"): Record "Purchase Header"
-```
-
-The default looks up `"Purchase Order No."` from the draft header. Override to implement custom PO matching logic -- for example, matching by a combination of vendor and date range.
-
-## Customize invoice creation
-
-```
+```al
 interface IEDocumentCreatePurchaseInvoice
     procedure CreatePurchaseInvoice(EDocument: Record "E-Document"): Record "Purchase Header"
+
+interface IEDocumentCreatePurchaseCreditMemo
+    procedure CreatePurchaseCreditMemo(EDocument: Record "E-Document"): Record "Purchase Header"
 ```
 
-The `"E-Doc. Create Purchase Invoice"` enum is extensible and defaults to `EDocCreatePurchaseInvoice.Codeunit.al`. Override to change how purchase invoices are created -- for example, to set custom fields, apply different discount logic, or create credit memos instead.
+The Finish Draft dispatcher itself uses `IEDocumentFinishDraft`, selected from `E-Document Type`:
 
-The Finish Draft step also uses:
-
-```
+```al
 interface IEDocumentFinishDraft
     procedure ApplyDraftToBC(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"): RecordId
     procedure RevertDraftActions(EDocument: Record "E-Document")
 ```
 
-This is controlled by the `"E-Document Type"` enum set during Prepare Draft. Currently only `"Purchase Invoice"` is implemented, routing to `EDocCreatePurchaseInvoice.Codeunit.al`.
+Override the create interfaces when you only need to alter how the BC purchase document is built. Add or replace an `IEDocumentFinishDraft` implementation only when you are introducing a new document type or a different finish or undo contract.
 
-## Register AI tools for line matching
+## Customize sales order import
 
-The Copilot matching subsystem uses `IEDocAISystem` to register AI-powered processing tools:
+*Updated: 2026-07-29 -- Added inbound sales order providers and finalizer.*
 
+Sales order import uses the same pipeline but different staging tables and providers. Extend `E-Doc. Proc. Customizations` to provide custom implementations for:
+
+```al
+interface ICustomerProvider
+    procedure GetCustomer(EDocument: Record "E-Document"): Record Customer
+
+interface ISalesLineProvider
+    procedure GetSalesLine(var EDocumentSalesLine: Record "E-Document Sales Line")
+
+interface IEDocumentCreateSalesOrder
+    procedure CreateSalesOrder(EDocument: Record "E-Document"): Record "Sales Header"
 ```
-interface IEDocAISystem
-    procedure GetSystemPrompt(UserLanguage: Text): SecretText
-    procedure GetTools(): List of [Interface "AOAI Function"]
-    procedure GetFeatureName(): Text
-```
 
-Extensions can register new AI systems by extending the `"E-Doc. AI System"` enum. Each system provides a system prompt, a set of AOAI Function tool implementations (for function-calling), and a feature name for telemetry. The built-in systems cover historical matching, GL account matching, and deferral matching. Add your own to support custom matching scenarios -- for example, matching lines to projects or jobs.
+The default customer provider tries buyer GLN, service participant identifiers, buyer VAT ID, and name plus address. The default sales line provider tries seller item ID, GTIN or bar-code item reference, then buyer item reference for the resolved customer. Override these when partner identifiers or line matching rules differ from the built-in assumptions.
+
+The sales route itself is driven by `IProcessStructuredDataSales`, which extends `IProcessStructuredData` with the sales-specific draft operations. `Prepare Sales E-Doc. Draft` (codeunit 6429) is the built-in implementation, so a new sales reader implements the extended interface rather than the purchase one.
 
 ## Add a new draft preparation strategy
 
-Extend the `"E-Doc. Process Draft"` enum to add a new `IProcessStructuredData` implementation:
+*Updated: 2026-07-29 -- Updated current routes and obsoleted `Purchase Document` guidance.*
 
-```
+Extend `E-Doc. Process Draft` to add a new `IProcessStructuredData` implementation:
+
+```al
 interface IProcessStructuredData
     procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"): Enum "E-Document Type"
     procedure GetVendor(EDocument: Record "E-Document"; Customizations: Enum "E-Doc. Proc. Customizations"): Record Vendor
@@ -131,18 +164,44 @@ interface IProcessStructuredData
     procedure CleanUpDraft(EDocument: Record "E-Document")
 ```
 
-Currently only `"Purchase Document"` exists. A future value could handle general journal lines or service invoices. Your `IStructuredFormatReader.ReadIntoDraft()` returns the appropriate enum value to route to your preparation logic.
+Current core routes are `Purchase Invoice`, `Purchase Credit Memo`, and `Sales Order`. The obsolete `Purchase Document` value remains only behind a cleanup symbol and should not be used for new readers.
+
+A reader controls routing by returning the process draft enum value from `ReadIntoDraft()`.
+
+## Register AI tools for line matching
+
+*Updated: 2026-07-29 -- Added prompt-resource guidance and obsoleted PO Matching Copilot note.*
+
+The import-time AI matching subsystem uses `IEDocAISystem` and AOAI Function implementations. The built-in systems include historical matching, similar descriptions, GL account matching, and deferral matching.
+
+```al
+interface IEDocAISystem
+    procedure GetSystemPrompt(UserLanguage: Text): SecretText
+    procedure GetTools(): List of [Interface "AOAI Function"]
+    procedure GetFeatureName(): Text
+```
+
+Prompts live in `App/.resources/Prompts/`. The MLLM extraction prompt now includes a content and format monitoring section that tells the model to extract only visible values, distinguish buyer from vendor using the prefilled customer party, and emit decimals in XML format. The GL account matching prompt now tells the model to process every plausible line and call one tool per line.
+
+The older Purchase Order Matching Copilot objects are obsolete. New AI work should plug into the import-time tool processor or a new `IEDocAISystem`, not the old PO matching Copilot pages and buffers.
 
 ## Extension patterns summary
 
-| Goal | Extend this enum | Implement this interface |
-|------|-----------------|------------------------|
-| New file type detection | `"E-Doc. File Format"` | `IEDocFileFormat` |
-| New structuring method (OCR, etc.) | `"Structure Received E-Doc."` | `IStructureReceivedEDocument` + `IStructuredDataType` |
-| New format reader | `"E-Doc. Read into Draft"` | `IStructuredFormatReader` |
-| New draft preparation | `"E-Doc. Process Draft"` | `IProcessStructuredData` |
-| Custom providers (vendor, item, UOM, PO, invoice) | `"E-Doc. Proc. Customizations"` | Any combination of 5 provider interfaces |
-| New AI matching tool | `"E-Doc. AI System"` | `IEDocAISystem` |
-| Custom invoice creation | `"E-Doc. Create Purchase Invoice"` | `IEDocumentCreatePurchaseInvoice` |
+*Updated: 2026-07-29 -- Updated current enum and interface matrix.*
 
-Two interfaces in `src/Processing/Interfaces/` are not part of the import pipeline: `IExportEligibilityEvaluator` (outbound filtering) and `IBlobToStructuredDataConverter` / `IBlobType` (obsolete as of v26, replaced by `IEDocFileFormat` and `IStructureReceivedEDocument`).
+| Goal | Extend this enum | Implement this interface |
+|------|-----------------|--------------------------|
+| New file type detection | `E-Doc. File Format` | `IEDocFileFormat` |
+| New structuring method | `Structure Received E-Doc.` | `IStructureReceivedEDocument` and `IStructuredDataType` |
+| New structured reader or inbound format | `E-Doc. Read into Draft` | `IStructuredFormatReader` |
+| Reuse Data Exchange definitions in V2 | `E-Doc. Read into Draft` or service Draft Format | `IStructuredFormatReader` that bridges intermediate data to staging |
+| New draft preparation route | `E-Doc. Process Draft` | `IProcessStructuredData` |
+| Custom purchase providers | `E-Doc. Proc. Customizations` | `IVendorProvider`, `IPurchaseOrderProvider`, `IPurchaseLineProvider`, `IUnitOfMeasureProvider` |
+| Custom sales providers | `E-Doc. Proc. Customizations` | `ICustomerProvider`, `ISalesLineProvider` |
+| Custom purchase invoice creation | `E-Doc. Proc. Customizations` | `IEDocumentCreatePurchaseInvoice` |
+| Custom purchase credit memo creation | `E-Doc. Proc. Customizations` | `IEDocumentCreatePurchaseCreditMemo` |
+| Custom sales order creation | `E-Doc. Proc. Customizations` | `IEDocumentCreateSalesOrder` |
+| New AI matching tool | AI system implementation | `IEDocAISystem` and `AOAI Function` |
+| Custom finish or undo contract | `E-Document Type` | `IEDocumentFinishDraft` |
+
+Two interfaces in `src/Processing/Interfaces/` are not part of the current import route: `IExportEligibilityEvaluator` is for outbound filtering, and `IBlobToStructuredDataConverter` / `IBlobType` are obsolete as of v26, replaced by `IEDocFileFormat` and `IStructureReceivedEDocument`.

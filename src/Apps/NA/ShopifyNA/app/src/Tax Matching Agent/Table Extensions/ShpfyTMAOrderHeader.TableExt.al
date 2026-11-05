@@ -1,0 +1,73 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Integration.Shopify;
+
+/// <summary>
+/// TableExtension Shpfy TMA Order Header (ID 30476) extends Shpfy Order Header.
+/// Marks orders whose Tax Area was populated by Shopify Tax Matching, so the
+/// status can propagate to the resulting Sales Header for human review, flags
+/// orders that must be held for review because a matched rate conflicts with BC,
+/// and flags orders where one or more tax lines are still without a jurisdiction
+/// after matching and so must be completed by a human.
+/// </summary>
+tableextension 30476 "Shpfy TMA Order Header" extends "Shpfy Order Header"
+{
+    fields
+    {
+        field(30476; "Tax Match Applied"; Boolean)
+        {
+            Caption = 'Tax Match Applied';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies whether Shopify Tax Matching populated the Tax Area Code on this Shopify order.';
+        }
+        field(30477; "Tax Match Reviewed"; Boolean)
+        {
+            Caption = 'Tax Match Reviewed';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies whether a user has approved the tax match for this order. Depending on the shop''s Tax Match Review Mode, a Sales Document is not created until the match is approved on the Tax Match Review page.';
+        }
+        field(30478; "Tax Rate Conflict"; Boolean)
+        {
+            Caption = 'Tax Rate Conflict';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies whether Shopify Tax Matching matched a Tax Jurisdiction whose Tax Detail Rate differs from the rate Shopify charged. Such an order is always held for human review, regardless of the shop''s Tax Match Review Mode, so the rate difference can be accepted or corrected before a Sales Document is created.';
+        }
+        field(30479; "Tax Match Incomplete"; Boolean)
+        {
+            Caption = 'Tax Match Incomplete';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies whether Shopify Tax Matching left one or more tax lines without a Tax Jurisdiction, for example because no matching Tax Jurisdiction was found or a tax-line title was not recognizable. Such an order is always held for human review, regardless of the shop''s Tax Match Review Mode, so a user can assign the missing Tax Jurisdiction before a Sales Document is created.';
+        }
+        field(30480; "Tax Match Low Confidence"; Boolean)
+        {
+            Caption = 'Tax Match Low Confidence';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies whether Shopify Tax Matching produced at least one match on this order that is not high confidence. This includes a match to a provisional (AI-created, not yet verified) Tax Jurisdiction, which is always forced to low confidence. When the shop uses the Low Confidence Only review mode, such an order is held for human review.';
+        }
+        field(30481; "Tax Match Attempted At"; DateTime)
+        {
+            Caption = 'Tax Match Attempted At';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies when Shopify Tax Matching last attempted to process this order.';
+        }
+    }
+
+    keys
+    {
+        key(TMASalesOrderNo; "Sales Order No.")
+        {
+        }
+        key(TMAAttemptedAt; "Tax Match Attempted At")
+        {
+        }
+    }
+}

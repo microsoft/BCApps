@@ -5,25 +5,12 @@ codeunit 101761 "Create Std. Gen. Journal Line"
     begin
         exit; // RU
 
-        LineNo := 0;
-        InsertData(XGENERAL, XPAYROLL, 0, '998710', 100000, XPayrollJournal, XADM);
-        InsertData(XGENERAL, XPAYROLL, 0, '998720', 30000, XPayrollJournal, XADM);
-        InsertData(XGENERAL, XPAYROLL, 0, '998730', 1000, XPayrollJournal, XADM);
-        InsertData(XGENERAL, XPAYROLL, 0, '998750', 8000, XPayrollJournal, XADM);
-        InsertData(XGENERAL, XPAYROLL, 0, '995830', -8000, XPayrollJournal, XADM);
-        InsertData(XGENERAL, XPAYROLL, 0, '998740', 25000, XPayrollJournal, XADM);
-        InsertData(XGENERAL, XPAYROLL, 3, XWWBOPERATING, -156000, XPayrollJournal, XADM);
     end;
 
     var
         StdGenJnlLine: Record "Standard General Journal Line";
         CA: Codeunit "Make Adjustments";
         LineNo: Integer;
-        XGENERAL: Label 'GENERAL';
-        XPAYROLL: Label 'PAYROLL';
-        XPayrollJournal: Label 'Payroll Journal';
-        XADM: Label 'ADM';
-        XWWBOPERATING: Label 'WWB-OPERATING';
 
     procedure InsertData(JournalTemplateName: Code[10]; StdGenJnlCode: Code[10]; AccountType: Integer; No: Code[20]; Amount: Decimal; Description: Text[50]; Department: Code[20])
     var

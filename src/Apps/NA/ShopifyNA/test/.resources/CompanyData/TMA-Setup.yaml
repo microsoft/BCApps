@@ -1,0 +1,21 @@
+test_setup:
+  shopSettings:
+    shopCode: TMATEST
+    shopifyUrl: https://tma-test-shop.myshopify.com
+    taxMatchingAgentEnabled: true
+    autoCreateTaxJurisdictions: false
+    autoCreateTaxAreas: true
+    taxAreaNamingPattern: SHPFY-
+  taxJurisdictionsToCreate:
+    - Code: NYSTAX
+      Description: New York State Tax
+      Country/Region Code: US
+    - Code: NYCTAX
+      Description: New York City Tax
+      Country/Region Code: US
+    - Code: MTATAX
+      Description: MTA Surcharge
+      Country/Region Code: US
+  taxGroupsToCreate:
+    - Code: TAXABLE
+      Description: Taxable Items

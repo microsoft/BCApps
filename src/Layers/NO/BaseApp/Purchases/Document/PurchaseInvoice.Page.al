@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -278,6 +278,12 @@ page 51 "Purchase Invoice"
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = VendorInvoiceNoMandatory;
                     Editable = IsVendorInvoiceEditable;
+                }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                    ToolTip = 'Specifies the spend request that this purchase document relates to.';
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
@@ -726,8 +732,8 @@ page 51 "Purchase Invoice"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Name 2';
-                            Editable = PayToOptions = PayToOptions::"Another Vendor";
-                            Enabled = PayToOptions = PayToOptions::"Another Vendor";
+                            Editable = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
+                            Enabled = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
                             Importance = Additional;
                             QuickEntry = false;
                             Visible = false;

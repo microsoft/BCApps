@@ -505,12 +505,18 @@ report 7000096 "Redraw Receivable Bills"
     }
 
     trigger OnPreReport()
+    var
+        IsHandled: Boolean;
     begin
-        if NewDueDate = 0D then
-            Error(Text1100000);
+        IsHandled := false;
+        OnBeforeOnPreReport(PostingDate, NewDueDate, NewPmtMethod, IncludeDiscCollExpenses, IncludeRejExpenses, IncludeFinanceCharges, TemplName, BatchName, IsHandled);
+        if not IsHandled then begin
+            if NewDueDate = 0D then
+                Error(Text1100000);
 
-        if not GenJnlBatch.Get(TemplName, BatchName) then
-            Error(Text1100001);
+            if not GenJnlBatch.Get(TemplName, BatchName) then
+                Error(Text1100001);
+        end;
     end;
 
     var
@@ -833,6 +839,11 @@ report 7000096 "Redraw Receivable Bills"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnOpenRequestPagePage(var PostingDate: Date; var NewDueDate: Date; var NewPmtMethod: Code[10]; var IncludeDiscCollExpenses: Boolean; var IncludeRejExpenses: Boolean; var IncludeFinanceCharges: Boolean; var TemplName: Code[10]; var BatchName: Code[10])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnPreReport(var PostingDate: Date; var NewDueDate: Date; var NewPmtMethod: Code[10]; var IncludeDiscCollExpenses: Boolean; var IncludeRejExpenses: Boolean; var IncludeFinanceCharges: Boolean; var TemplName: Code[10]; var BatchName: Code[10]; var IsHandled: Boolean)
     begin
     end;
 }
