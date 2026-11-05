@@ -20,13 +20,12 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
     Subtype = Install;
     Permissions = tabledata User = R, tabledata Agent = R, tabledata "Agent Task Message" = R;
 
-    #region IAgentMetadata
     var
         PayablesAgentInitialsTok: Label 'PA', Locked = true, Comment = 'Initials for payables agent.', MaxLength = 4;
         AgentDisplayNameLbl: Label 'Payables Agent', Locked = true, Comment = 'Display name of the agent.';
         AgentSummaryLbl: Label 'Monitors incoming emails for vendor invoices, matches senders to registered vendors, and creates purchase document drafts for review.';
 
-
+    #region IAgentMetadata
     procedure GetInitials(AgentUserId: Guid): Text[4]
     begin
         exit(PayablesAgentInitialsTok);
@@ -44,7 +43,7 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
 
     procedure GetAgentTaskMessagePageId(AgentUserId: Guid; MessageId: Guid) PageId: Integer
     var
-        Presentation: Codeunit "PA Task Presentation";
+        Presentation: Codeunit "PA Work Item Presentation";
     begin
         PageId := Presentation.GetMessagePageId(MessageId);
     end;
@@ -124,7 +123,7 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
         exit(false);
     end;
     #endregion
-
+    #region Other
     trigger OnInstallAppPerDatabase()
     begin
         RegisterCapability();
@@ -149,7 +148,7 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Billing Log");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Billing Task Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Known Sender");
-        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Payables Agent Task");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Payables Agent Work Item");
     end;
 
     internal procedure RegisterCapability()
@@ -183,18 +182,5 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
             until User.Next() = 0;
         exit(false);
     end;
-
-    procedure IsPayablesAgentSession(var SessionTaskID: BigInteger): Boolean
-    var
-        AgentSession: Codeunit "Agent Session";
-        CurrentAgentMetadataProvider: Enum "Agent Metadata Provider";
-    begin
-        if not AgentSession.IsAgentSession(CurrentAgentMetadataProvider) then
-            exit(false);
-        if CurrentAgentMetadataProvider <> "Agent Metadata Provider"::"Payables Agent" then
-            exit(false);
-
-        SessionTaskID := AgentSession.GetCurrentSessionAgentTaskId();
-        exit(true);
-    end;
+    #endregion
 }

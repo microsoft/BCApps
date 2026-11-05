@@ -14,14 +14,35 @@ function Get-ArchitectureMatches([string] $Text, [string] $Pattern) {
     [regex]::Matches($Text, $Pattern, 'IgnoreCase, Multiline', [TimeSpan]::FromSeconds(2))
 }
 
-function Hide-ALTrivia([string] $Text, [switch] $Identifiers) {
+function Hide-ALTrivia([string] $Text, [switch] $Identifiers, [switch] $CommentsOnly) {
     # Match quoted identifiers first so //, /* and apostrophes inside them stay opaque.
     $pattern = '"(?:[^"]|"")*"|//[^\r\n]*|/\*[\s\S]*?\*/|''(?:[^'']|'''')*'''
     [regex]::Replace($Text, $pattern, [System.Text.RegularExpressions.MatchEvaluator] {
         param($match)
+        if ($CommentsOnly -and -not ($match.Value.StartsWith('//') -or $match.Value.StartsWith('/*'))) { return $match.Value }
         if (-not $Identifiers -and $match.Value.StartsWith('"')) { return $match.Value }
         return [regex]::Replace($match.Value, '[^\r\n]', ' ')
     }, 'None', [TimeSpan]::FromSeconds(2))
+}
+
+function Test-ALWholeFileGuard([string] $Text, [string] $OpeningPattern) {
+    # Textual wrapper heuristic only: no symbol values or AL/preprocessor expressions are evaluated.
+    $source = (Hide-ALTrivia $Text -CommentsOnly).Trim()
+    if ($source -notmatch $OpeningPattern) { return $false }
+    $directives = Hide-ALTrivia $source -Identifiers
+    $depth = 0
+    foreach ($directive in Get-ArchitectureMatches $directives '^[ \t]*#(?<directive>if|else|elif|endif)\b[^\r\n]*') {
+        switch ($directive.Groups['directive'].Value.ToLowerInvariant()) {
+            'if' { $depth++ }
+            'endif' {
+                $depth--
+                if ($depth -eq 0 -and $source.Substring($directive.Index + $directive.Length).Trim()) { return $false }
+            }
+            default { if ($depth -eq 1) { return $false } }
+        }
+        if ($depth -lt 0) { return $false }
+    }
+    return $depth -eq 0
 }
 
 function Test-ArchitectureGlob([string] $Value, [string[]] $Patterns) {
@@ -184,20 +205,16 @@ function Get-ArchitectureFindings($Rule, $File, [object[]] $Files, [object[]] $R
             }
         }
         'developmentOnly' {
-            # Require one outer #if SYMBOL, with no outer #else or content after #endif.
-            $trimmed = $File.Source.Trim()
-            $valid = $trimmed -match ('^#if\s+' + [regex]::Escape($Rule.symbol) + '\s*\r?\n')
-            $depth = 0
-            foreach ($directive in Get-ArchitectureMatches $trimmed '^\s*#(?<directive>if|else|endif)\b[^\r\n]*') {
-                switch ($directive.Groups['directive'].Value.ToLowerInvariant()) {
-                    'if' { $depth++ }
-                    'endif' { $depth--; if ($depth -eq 0 -and $trimmed.Substring($directive.Index + $directive.Length).Trim()) { $valid = $false } }
-                    default { if ($depth -eq 1) { $valid = $false } }
-                }
-                if ($depth -lt 0) { $valid = $false }
-            }
-            if (-not $valid -or $depth -ne 0) {
+            $opening = '^#if[ \t]+' + [regex]::Escape($Rule.symbol) + '[ \t]*\r?\n'
+            if (-not (Test-ALWholeFileGuard $File.Text $opening)) {
                 New-ArchitectureFinding -Target $Rule.symbol -Index 0 -Detail "require whole file guarded by #if $($Rule.symbol)"
+            }
+        }
+        'obsoleteGuard' {
+            # A whole-file negative CLEAN/CLEANSCHEMA guard is the project's pragmatic removal convention.
+            $opening = '^#if[ \t]+not[ \t]+CLEAN(?:SCHEMA)?[0-9]+[ \t]*\r?\n'
+            if ((Test-ALWholeFileGuard $File.Text $opening) -and -not (Test-ArchitectureGlob $File.Path $Rule.allowedPaths)) {
+                New-ArchitectureFinding -Target 'path' -Index 0 -Detail "whole-file CLEAN removal guard belongs under $($Rule.allowedPaths -join ', ')"
             }
         }
         'placement' {

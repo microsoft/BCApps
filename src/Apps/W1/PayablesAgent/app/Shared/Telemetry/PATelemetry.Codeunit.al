@@ -24,49 +24,36 @@ codeunit 3325 "PA Telemetry"
     #endregion
 
     #region Intake
-    local procedure GetTaskDimensions(PATask: Codeunit "Payables Agent Task") CustomDimensions: Dictionary of [Text, Text]
+    local procedure EnsureSetupAndBuildWorkItemDimensions(WorkItem: Codeunit "PA Work Item") CustomDimensions: Dictionary of [Text, Text]
     var
-        PASetup: Codeunit "PA Setup";
-        Source: Codeunit "PA Task Source";
+        Setup: Codeunit "PA Setup";
+        Versions: Codeunit "PA V1V2 Flag";
     begin
-        PASetup.GetSetup();
-        PATask.GetSource(Source);
-        // 'Category' (capitalized) is kept for the task events that always used it.
+        Setup.LoadOrCreateSetup();
+        // Keep existing event names, dimensions and version serialization for telemetry compatibility.
         CustomDimensions.Set('Category', CategoryTok);
-        CustomDimensions.Set('Version', Format(PATask.GetVersion(), 0, 9));
-        CustomDimensions.Set('SystemId', LowerCase(Format(Source.GetId())).Replace('{', '').Replace('}', ''));
-        CustomDimensions.Set('AgentTaskId', Format(PATask.GetAgentTaskId(), 0, 9));
-        CustomDimensions.Set('SourceType', Format(Source.GetSourceType(), 0, 9));
-        CustomDimensions.Set('EmailReviewPolicy', Format(PASetup.GetEmailReviewPolicy(), 0, 9));
+        CustomDimensions.Set('Version', Format(Versions.GetVersion(WorkItem.GetId()), 0, 9));
+        CustomDimensions.Set('SystemId', LowerCase(Format(WorkItem.GetId())).Replace('{', '').Replace('}', ''));
+        CustomDimensions.Set('SourceType', Format(WorkItem.GetSourceType(), 0, 9));
+        CustomDimensions.Set('EmailReviewPolicy', Format(Setup.GetEmailReviewPolicy(), 0, 9));
     end;
 
-    local procedure GetSourceDimensions(PATaskSource: Codeunit "PA Task Source") CustomDimensions: Dictionary of [Text, Text]
-    var
-        PASetup: Codeunit "PA Setup";
-    begin
-        PASetup.GetSetup();
-        CustomDimensions.Set('Category', CategoryTok);
-        CustomDimensions.Set('Version', Format(PATaskSource.GetVersion(), 0, 9));
-        CustomDimensions.Set('SystemId', LowerCase(Format(PATaskSource.GetId())).Replace('{', '').Replace('}', ''));
-        CustomDimensions.Set('SourceType', Format(PATaskSource.GetSourceType(), 0, 9));
-        CustomDimensions.Set('EmailReviewPolicy', Format(PASetup.GetEmailReviewPolicy(), 0, 9));
-    end;
-
-    internal procedure LogTaskReceived(PATask: Codeunit "Payables Agent Task"; RequiresReview: Boolean)
+    internal procedure LogWorkItemAdmitted(WorkItem: Codeunit "PA Work Item"; RequiresReview: Boolean)
     var
         Telemetry: Codeunit Telemetry;
         CustomDimensions: Dictionary of [Text, Text];
     begin
-        CustomDimensions := GetTaskDimensions(PATask);
+        CustomDimensions := EnsureSetupAndBuildWorkItemDimensions(WorkItem);
+        CustomDimensions.Set('AgentTaskId', Format(WorkItem.GetAgentTaskId(), 0, 9));
         CustomDimensions.Set('RequiresReview', Format(RequiresReview, 0, 9));
         Telemetry.LogMessage('0000PJA', 'Payables Agent Task Received', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
     end;
 
-    internal procedure LogTaskSkippedSenderRejected(PATaskSource: Codeunit "PA Task Source")
+    internal procedure LogWorkItemRejected(WorkItem: Codeunit "PA Work Item")
     var
         Telemetry: Codeunit Telemetry;
     begin
-        Telemetry.LogMessage('0000QJ2', 'Payables Agent Task Skipped: sender rejected', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetSourceDimensions(PATaskSource));
+        Telemetry.LogMessage('0000QJ2', 'Payables Agent Task Skipped: sender rejected', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, EnsureSetupAndBuildWorkItemDimensions(WorkItem));
     end;
 
     internal procedure LogInvoiceUploaded()

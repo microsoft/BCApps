@@ -20,8 +20,8 @@ codeunit 3312 "PA Draft Based Subscribers"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
     local procedure ImportStepOfEDocumentCompleted(EDocument: Record "E-Document"; StartState: Enum "Import E-Doc. Proc. Status"; DesiredEndState: Enum "Import E-Doc. Proc. Status")
     var
-        PATaskIntake: Codeunit "PA Task Intake";
-        PATaskSource: Codeunit "PA Task Source";
+        WorkItemIntake: Codeunit "PA Work Item Intake";
+        WorkItem: Codeunit "PA Work Item";
     begin
         if PAV1V2Flag.IsV2Active() then
             exit;
@@ -36,27 +36,27 @@ codeunit 3312 "PA Draft Based Subscribers"
         EDocument.CalcFields("Import Processing Status");
         if EDocument."Import Processing Status" in ["Import E-Doc. Proc. Status"::Processed] then
             exit;
-        if not PATaskSource.LoadDraftBased(EDocument.SystemId) then
+        if not WorkItem.Load(EDocument.SystemId) then
             exit;
-        if PATaskIntake.CreateTask(PATaskSource) then;
+        if WorkItemIntake.Admit(WorkItem) then;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
     local procedure RecordKnownSenderOnAgentProcessingStep(EDocument: Record "E-Document")
     var
         KnownSender: Record "PA Known Sender";
-        PayablesAgent: Codeunit "Payables Agent Metadata";
-        EDocumentPATask: Codeunit "Payables Agent Task";
+        AgentAccess: Codeunit "PA Agent Access";
+        WorkItem: Codeunit "PA Work Item";
         SessionID: BigInteger;
     begin
         if PAV1V2Flag.IsV2Active() then
             exit;
         if not WasEDocumentCreatedByAgent(EDocument) then
             exit;
-        if not PayablesAgent.IsPayablesAgentSession(SessionID) then
+        if not AgentAccess.TryGetRuntimeAgentTaskId(SessionID) then
             exit;
-        if EDocumentPATask.Load(SessionID) then
-            KnownSender.InsertIfNew(EDocumentPATask);
+        if WorkItem.LoadByAgentTaskId(SessionID) then
+            KnownSender.RecordIfNew(WorkItem);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Purchase Draft Utility", OnInsertedEDocumentPurchaseHeader, '', false, false)]
@@ -117,14 +117,15 @@ codeunit 3312 "PA Draft Based Subscribers"
         CategoryDescription := ProcessedByPayablesAgentEmailCategoryTok;
     end;
 
-    local procedure TryFindAgentTaskID(EDocument: Record "E-Document"; var AgentTaskID: BigInteger) Found: Boolean
+    local procedure TryFindAgentTaskID(EDocument: Record "E-Document"; var AgentTaskID: BigInteger): Boolean
     var
-        AgentTaskMessage: Record "Agent Task Message";
+        DraftBasedWorkItem: Codeunit "PA Draft Based Work Item";
     begin
-        AgentTaskMessage.SetRange("External ID", Format(EDocument."Entry No"));
-        Found := AgentTaskMessage.FindFirst();
-        AgentTaskID := AgentTaskMessage."Task ID";
-        exit(Found);
+        Clear(AgentTaskID);
+        if not DraftBasedWorkItem.Load(EDocument.SystemId) then
+            exit(false);
+        AgentTaskID := DraftBasedWorkItem.FindAgentTaskId();
+        exit(AgentTaskID <> 0);
     end;
 
     local procedure WasEDocumentCreatedByAgent(EDocument: Record "E-Document"): Boolean

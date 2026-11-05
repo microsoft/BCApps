@@ -6,7 +6,7 @@
     "required": ["version","rules"],
     "properties": {
         "$schema": {"type":"string"},
-        "version": {"const":3},
+        "version": {"const": 1},
         "rules": {
             "type": "array",
             "minItems": 1,
@@ -111,6 +111,19 @@
                             "forbiddenSymbols": {"$ref":"#/definitions/strings"},
                             "allowedFriends": {"$ref":"#/definitions/strings"},
                             "forbiddenDependencies": {"$ref":"#/definitions/strings"}
+                        }
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id","description","from","check","allowedPaths"],
+                        "properties": {
+                            "id": {"type":"string","pattern":"^[A-Z][A-Z0-9-]*$"},
+                            "description": {"type":"string","pattern":"\\S"},
+                            "from": {"$ref":"#/definitions/selector"},
+                            "exceptions": {"type":"array","items":{"$ref":"#/definitions/exception"}},
+                            "check": {"const":"obsoleteGuard"},
+                            "allowedPaths": {"$ref":"#/definitions/paths"}
                         }
                     },
                     {

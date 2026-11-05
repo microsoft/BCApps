@@ -10,17 +10,17 @@ codeunit 3320 "PA Draft Based Setup"
 
     procedure AllowCreditMemosOnAgentEDocumentService()
     var
-        DraftBasedSetupBacking: Codeunit "PA Draft Based Setup Backing";
+        DraftBasedSetupStore: Codeunit "PA Draft Based Setup Store";
     begin
-        DraftBasedSetupBacking.AllowCreditMemos();
+        DraftBasedSetupStore.AllowCreditMemos();
     end;
 
     procedure OpenAdditionalFieldsSetup(): Boolean
     var
-        DraftBasedSetupBacking: Codeunit "PA Draft Based Setup Backing";
+        DraftBasedSetupStore: Codeunit "PA Draft Based Setup Store";
         EDocAdditionalFieldsSetup: Page "EDoc Additional Fields Setup";
     begin
-        EDocAdditionalFieldsSetup.SetEDocumentService(DraftBasedSetupBacking.GetOrCreateService());
+        EDocAdditionalFieldsSetup.SetEDocumentService(DraftBasedSetupStore.GetOrCreateService());
         Commit();
         EDocAdditionalFieldsSetup.LookupMode := true;
         exit(EDocAdditionalFieldsSetup.RunModal() = Action::LookupOK);

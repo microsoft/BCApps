@@ -16,20 +16,17 @@ codeunit 3326 "PA Test Fixtures"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata Agent = RD, tabledata "Agent Task" = R, tabledata "Payables Agent Task" = D;
+    Permissions = tabledata Agent = RD, tabledata "Agent Task" = R, tabledata "Payables Agent Setup" = RIM, tabledata "Payables Agent Work Item" = D;
 
     #region AI evaluation fixtures
 
-    /// <summary>
-    /// Ensures the product agent is activated through its normal setup flow and hands the PDF to intake.
-    /// Test-environment Copilot capability activation and waiting for the runtime remain owned by the AI test app.
-    /// </summary>
     var
         PASetupUpdate: Codeunit "PA Setup Update";
+        Versions: Codeunit "PA V1V2 Flag";
 #if DEVELOPMENT
         DevelopmentSettings: Codeunit "PA Development Settings";
 #endif
-        TaskNotFoundErr: Label 'Agent task %1 does not work on a Payables Agent task.', Locked = true;
+        TaskNotFoundErr: Label 'Agent task %1 does not work on a Payables Agent work item.', Locked = true;
         VendorNotFoundErr: Label 'Vendor not found for the given name %1', Locked = true;
         AccountNotFoundErr: Label 'Account not found for the given code %1', Locked = true;
         PurchaseInvoiceOutcomeRequiredErr: Label 'Agent task %1 must have an existing purchase invoice registered as its outcome.', Locked = true;
@@ -37,16 +34,16 @@ codeunit 3326 "PA Test Fixtures"
         UnexpectedOutcomeErr: Label 'The task outcome %1 is not an existing purchase invoice.', Locked = true;
         UnknownEvaluationVersionErr: Label 'An evaluation must select version 1 or version 2 of the Payables Agent.';
 #if not DEVELOPMENT
-        EvaluationVersionUnavailableErr: Label 'Payables Agent version %1 is not available in this build.', Comment = '%1 = Payables Agent version';
+        EvaluationVersionUnavailableErr: Label 'Payables Agent version %1 is not available in this environment.', Comment = '%1 = Payables Agent version';
 #endif
 
-    internal procedure EnsureActivatedAndCreateTaskFromPdf(FileName: Text; PdfInStream: InStream; var PATask: Codeunit "Payables Agent Task"): Boolean
+    internal procedure EnsureActivatedAndReceivePdf(FileName: Text; PdfInStream: InStream; var WorkItem: Codeunit "PA Work Item"): Boolean
     var
-        PATaskIntake: Codeunit "PA Task Intake";
+        WorkItemIntake: Codeunit "PA Work Item Intake";
         AlreadyActivated: Boolean;
     begin
         PASetupUpdate.EnsureActivated(AlreadyActivated);
-        exit(PATaskIntake.CreateTask(FileName, PdfInStream, PATask));
+        exit(WorkItemIntake.ReceivePdf(FileName, PdfInStream, WorkItem));
     end;
 
     /// <summary>
@@ -58,14 +55,14 @@ codeunit 3326 "PA Test Fixtures"
         PurchaseHeader: Record "Purchase Header";
         Vendor: Record Vendor;
         DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
-        Task: Codeunit "Payables Agent Task";
+        WorkItem: Codeunit "PA Work Item";
     begin
         Clear(ErrorText);
-        if not Task.Load(AgentTaskId) then begin
+        if not WorkItem.LoadByAgentTaskId(AgentTaskId) then begin
             ErrorText := StrSubstNo(TaskNotFoundErr, AgentTaskId);
             exit(false);
         end;
-        if Task.GetVersion() = "PA Version"::V1 then
+        if Versions.GetVersion(WorkItem.GetId()) = 1 then
             exit(DraftBasedFixtures.SelectVendor(AgentTaskId, VendorName, ErrorText));
 
         Vendor.SetRange(Name, VendorName);
@@ -73,7 +70,7 @@ codeunit 3326 "PA Test Fixtures"
             ErrorText := StrSubstNo(VendorNotFoundErr, VendorName);
             exit(false);
         end;
-        if not TryGetOutcomePurchaseInvoice(Task, PurchaseHeader, ErrorText) then
+        if not TryGetOutcomePurchaseInvoice(WorkItem, PurchaseHeader, ErrorText) then
             exit(false);
         PurchaseHeader.Validate("Buy-from Vendor No.", Vendor."No.");
         PurchaseHeader.Modify(true);
@@ -90,25 +87,25 @@ codeunit 3326 "PA Test Fixtures"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
-        Task: Codeunit "Payables Agent Task";
+        WorkItem: Codeunit "PA Work Item";
         LineDeferralCode: Code[10];
         LineUnitOfMeasureCode: Code[10];
         LineDescription: Text[100];
         LineDirectUnitCost, LineQuantity : Decimal;
     begin
         Clear(ErrorText);
-        if not Task.Load(AgentTaskId) then begin
+        if not WorkItem.LoadByAgentTaskId(AgentTaskId) then begin
             ErrorText := StrSubstNo(TaskNotFoundErr, AgentTaskId);
             exit(false);
         end;
-        if Task.GetVersion() = "PA Version"::V1 then
+        if Versions.GetVersion(WorkItem.GetId()) = 1 then
             exit(DraftBasedFixtures.SelectAccount(AgentTaskId, AccountCode, ErrorText));
 
         if not GLAccount.Get(AccountCode) then begin
             ErrorText := StrSubstNo(AccountNotFoundErr, AccountCode);
             exit(false);
         end;
-        if not TryGetOutcomePurchaseInvoice(Task, PurchaseHeader, ErrorText) then
+        if not TryGetOutcomePurchaseInvoice(WorkItem, PurchaseHeader, ErrorText) then
             exit(false);
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
@@ -143,13 +140,13 @@ codeunit 3326 "PA Test Fixtures"
     /// </summary>
     internal procedure IsReviewOfTaskResult(AgentTaskId: BigInteger; ReviewRecordId: RecordId): Boolean
     var
-        PATask: Codeunit "Payables Agent Task";
+        WorkItem: Codeunit "PA Work Item";
     begin
         if ReviewRecordId.TableNo() = 0 then
             exit(false);
-        if not PATask.Load(AgentTaskId) then
+        if not WorkItem.LoadByAgentTaskId(AgentTaskId) then
             exit(false);
-        exit(PATask.IsResultRecord(ReviewRecordId));
+        exit(WorkItem.IsResultRecord(ReviewRecordId));
     end;
 
     /// <summary>
@@ -167,21 +164,21 @@ codeunit 3326 "PA Test Fixtures"
         exit('');
     end;
 
-    local procedure TryGetOutcomePurchaseInvoice(Task: Codeunit "Payables Agent Task"; var PurchaseHeader: Record "Purchase Header"; var ErrorText: Text): Boolean
+    local procedure TryGetOutcomePurchaseInvoice(WorkItem: Codeunit "PA Work Item"; var PurchaseHeader: Record "Purchase Header"; var ErrorText: Text): Boolean
     var
         Outcome: RecordId;
     begin
-        Outcome := Task.GetOutcome();
+        Outcome := WorkItem.GetOutcome();
         if Outcome.TableNo <> Database::"Purchase Header" then begin
-            ErrorText := StrSubstNo(PurchaseInvoiceOutcomeRequiredErr, Task.GetAgentTaskId());
+            ErrorText := StrSubstNo(PurchaseInvoiceOutcomeRequiredErr, WorkItem.GetAgentTaskId());
             exit(false);
         end;
         if not PurchaseHeader.Get(Outcome) then begin
-            ErrorText := StrSubstNo(PurchaseInvoiceOutcomeRequiredErr, Task.GetAgentTaskId());
+            ErrorText := StrSubstNo(PurchaseInvoiceOutcomeRequiredErr, WorkItem.GetAgentTaskId());
             exit(false);
         end;
         if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Invoice then begin
-            ErrorText := StrSubstNo(PurchaseInvoiceOutcomeRequiredErr, Task.GetAgentTaskId());
+            ErrorText := StrSubstNo(PurchaseInvoiceOutcomeRequiredErr, WorkItem.GetAgentTaskId());
             exit(false);
         end;
         exit(true);
@@ -192,29 +189,41 @@ codeunit 3326 "PA Test Fixtures"
     #region Evaluation diagnostics and cleanup
 
     /// <summary>
-    /// Selects the Payables Agent version for the evaluation run. The persisted override is visible to the agent's separate runtime sessions.
+    /// Selects the Payables Agent version for the evaluation run; the persisted choice is visible to the agent's runtime sessions.
+    /// DEVELOPMENT persists an override over the development setting. Production uses the V2 preview opt-in, which only
+    /// takes effect in the designated preview tenant; requesting V2 elsewhere fails instead of silently evaluating V1.
     /// </summary>
-    internal procedure PrepareEvaluationVersion(Version: Enum "PA Version")
+    internal procedure PrepareEvaluationVersion(Version: Integer)
     begin
-        if Version = Version::Unknown then
+        if not (Version in [1, 2]) then
             Error(UnknownEvaluationVersionErr);
 #if DEVELOPMENT
         DevelopmentSettings.SetEvaluationVersionOverride(Version);
 #else
-        if Version <> Version::V1 then
+#if not CLEAN30
+        SetV2PreviewSelected(Version = 2);
+        if Versions.IsV2Active() <> (Version = 2) then
             Error(EvaluationVersionUnavailableErr, Version);
+#else
+        if Version <> 1 then
+            Error(EvaluationVersionUnavailableErr, Version);
+#endif
 #endif
     end;
 
     /// <summary>
-    /// Gets the version explicitly prepared by the evaluation harness, or Unknown when no override is active.
+    /// Gets the version explicitly prepared by the evaluation harness, or 0 when none is prepared.
     /// </summary>
-    internal procedure GetPreparedEvaluationVersion(): Enum "PA Version"
+    internal procedure GetPreparedEvaluationVersion(): Integer
     begin
 #if DEVELOPMENT
-        exit(DevelopmentSettings.GetEvaluationVersionOverride());
+        exit(DevelopmentSettings.EnsureSettingsAndGetEvaluationVersionOverride());
 #else
-        exit("PA Version"::Unknown);
+#if not CLEAN30
+        if IsV2PreviewSelected() then
+            exit(2);
+#endif
+        exit(0);
 #endif
     end;
 
@@ -227,8 +236,39 @@ codeunit 3326 "PA Test Fixtures"
         DeleteAllTaskAndEDocumentDataForEvaluation();
 #if DEVELOPMENT
         DevelopmentSettings.ClearEvaluationVersionOverride();
+#else
+#if not CLEAN30
+        SetV2PreviewSelected(false);
+#endif
 #endif
     end;
+
+#if not DEVELOPMENT
+#if not CLEAN30
+#pragma warning disable AL0432
+    local procedure SetV2PreviewSelected(Selected: Boolean)
+    var
+        Setup: Record "Payables Agent Setup";
+    begin
+        Setup.GetOrCreateSetup();
+        if Selected then
+            Setup."Preview Version" := Setup."Preview Version"::"V2 Preview"
+        else
+            Setup."Preview Version" := Setup."Preview Version"::" ";
+        Setup.Modify();
+    end;
+
+    local procedure IsV2PreviewSelected(): Boolean
+    var
+        Setup: Record "Payables Agent Setup";
+    begin
+        if not Setup.TryGetSetup() then
+            exit(false);
+        exit(Setup."Preview Version" = Setup."Preview Version"::"V2 Preview");
+    end;
+#pragma warning restore AL0432
+#endif
+#endif
 
     /// <summary>
     /// Deletes V2 tasks, plus every E-Document and all E-Doc. Vendor Assign. History in the test company.
@@ -236,10 +276,10 @@ codeunit 3326 "PA Test Fixtures"
     /// </summary>
     internal procedure DeleteAllTaskAndEDocumentDataForEvaluation()
     var
-        StoredTask: Record "Payables Agent Task";
+        StoredWorkItem: Record "Payables Agent Work Item";
         DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
     begin
-        StoredTask.DeleteAll(false);
+        StoredWorkItem.DeleteAll(false);
         DraftBasedFixtures.DeleteAllEDocumentDataForEvaluation();
     end;
 
@@ -249,7 +289,7 @@ codeunit 3326 "PA Test Fixtures"
     /// </summary>
     internal procedure GetTaskDiagnosticEvidence(AgentTaskId: BigInteger; var Diagnostics: JsonObject): Boolean
     var
-        Task: Codeunit "Payables Agent Task";
+        WorkItem: Codeunit "PA Work Item";
         DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
         Outcome: RecordId;
         Errors: JsonArray;
@@ -258,17 +298,17 @@ codeunit 3326 "PA Test Fixtures"
         HasPurchaseInvoice: Boolean;
     begin
         Clear(Diagnostics);
-        if not Task.Load(AgentTaskId) then
+        if not WorkItem.LoadByAgentTaskId(AgentTaskId) then
             exit(false);
 
         Diagnostics.Add('schemaVersion', 1);
-        case Task.GetVersion() of
-            "PA Version"::V1:
+        case Versions.GetVersion(WorkItem.GetId()) of
+            1:
                 Diagnostics.Add('paVersion', 'V1');
-            "PA Version"::V2:
+            2:
                 Diagnostics.Add('paVersion', 'V2');
         end;
-        Outcome := Task.GetOutcome();
+        Outcome := WorkItem.GetOutcome();
         if Outcome.TableNo <> 0 then begin
             HasPurchaseInvoice := BuildCreatedPurchaseInvoice(Outcome, PurchaseInvoice);
             if HasPurchaseInvoice then
@@ -278,9 +318,9 @@ codeunit 3326 "PA Test Fixtures"
                 AddDiagnosticError(Errors, 'Outcome', StrSubstNo(UnexpectedOutcomeErr, Format(Outcome)));
             end;
         end else
-            if Task.GetVersion() = "PA Version"::V1 then begin
+            if Versions.GetVersion(WorkItem.GetId()) = 1 then begin
                 OutcomeStatus := 'InvoiceProposed';
-                HasPurchaseInvoice := DraftBasedFixtures.BuildProposedPurchaseInvoice(Task, PurchaseInvoice, Errors);
+                HasPurchaseInvoice := DraftBasedFixtures.BuildProposedPurchaseInvoice(WorkItem, PurchaseInvoice, Errors);
             end else
                 OutcomeStatus := 'None';
 
@@ -453,24 +493,24 @@ codeunit 3326 "PA Test Fixtures"
 
     /// <summary>
     /// Fabricates receipt of an email by the currently implemented mailbox integration, without admitting it to the agent.
-    /// The fixture owns the integration-specific backing representation.
+    /// The fixture owns the version-specific storage.
     /// </summary>
-    internal procedure ReceiveEmail(SenderEmail: Text; Subject: Text; var PATaskSource: Codeunit "PA Task Source"): Boolean
+    internal procedure ReceiveEmail(SenderEmail: Text; Subject: Text; var WorkItem: Codeunit "PA Work Item"): Boolean
     var
         DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
     begin
-        exit(DraftBasedFixtures.ReceiveEmail(SenderEmail, Subject, PATaskSource));
+        exit(DraftBasedFixtures.ReceiveEmail(SenderEmail, Subject, WorkItem));
     end;
 
     /// <summary>
     /// Creates the semantic scenario used to verify the wrapper contract over a draft-based upload.
-    /// Backing records and framework correlation details remain inside the compatibility fixture.
+    /// Stored records and framework correlation details remain inside the compatibility fixture.
     /// </summary>
-    internal procedure CreateDraftBasedUploadContractScenario(var PATaskSource: Codeunit "PA Task Source"; var Task: Codeunit "Payables Agent Task"; var ExpectedResult: RecordId; var UnrelatedResult: RecordId): Boolean
+    internal procedure CreateDraftBasedUploadContractScenario(var WorkItem: Codeunit "PA Work Item"; var ExpectedResult: RecordId; var UnrelatedResult: RecordId): Boolean
     var
         DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
     begin
-        exit(DraftBasedFixtures.CreateUploadTaskContractScenario(PATaskSource, Task, ExpectedResult, UnrelatedResult));
+        exit(DraftBasedFixtures.CreateUploadWorkItemContractScenario(WorkItem, ExpectedResult, UnrelatedResult));
     end;
 
     internal procedure SeedDraftBasedImporterEnabled()
@@ -544,7 +584,7 @@ codeunit 3326 "PA Test Fixtures"
                 Agent.Delete();
         end;
 
-        PASetup.GetSetup();
+        PASetup.LoadOrCreateSetup();
         PASetup.ResetProposal();
         PASetup.ApplySetup(false);
         PASetup.DeleteSetup(CopyStr(CompanyName(), 1, 30));
@@ -553,11 +593,11 @@ codeunit 3326 "PA Test Fixtures"
     /// <summary>
     /// Hands a received source that does not yet have an Agent Framework task to the intake flow.
     /// </summary>
-    internal procedure StartSource(var PATaskSource: Codeunit "PA Task Source"; var PATask: Codeunit "Payables Agent Task"): Boolean
+    internal procedure AdmitWorkItem(var WorkItem: Codeunit "PA Work Item"): Boolean
     var
-        PATaskIntake: Codeunit "PA Task Intake";
+        Intake: Codeunit "PA Work Item Intake";
     begin
-        exit(PATaskIntake.CreateTask(PATaskSource, PATask));
+        exit(Intake.Admit(WorkItem));
     end;
 
     #endregion

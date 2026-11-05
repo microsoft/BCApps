@@ -20,10 +20,10 @@ codeunit 3334 "PA Billing Binding"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", OnAfterInitialization, '', false, false)]
     local procedure RegisterSubscribersOnAfterLogin()
     var
-        PayablesAgent: Codeunit "Payables Agent Metadata";
+        AgentAccess: Codeunit "PA Agent Access";
         PayablesAgentSessionID: BigInteger;
     begin
-        if not PayablesAgent.IsPayablesAgentSession(PayablesAgentSessionID) then
+        if not AgentAccess.TryGetRuntimeAgentTaskId(PayablesAgentSessionID) then
             exit;
 
         // Agent login must fail if we cannot register agent subscribers or if there are too many unpaid entries

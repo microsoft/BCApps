@@ -44,7 +44,7 @@ permissionset 3346 "Payables Agent - Run"
         tabledata "VAT Registration Log" = i, // Validating VAT Registration No. on the vendor card writes an audit entry to the VAT Registration Log
                                               // Change Log
         tabledata "Change Log Entry" = i, // Needed when the customer has Change Log or Monitor Sensitive Fields enabled for tables the agent writes to (e.g. User Environment Login on login)
-                                          // Payables Agent tasks: "Payables Agent Task" carries inherent permissions.
+                                          // Payables Agent tasks: "Payables Agent Work Item" carries inherent permissions.
         tabledata "Email Inbox" = R, // Read the source email (sender, subject, body) through the Email module
                                      // Other
         tabledata "Agent Task Message" = R, // Needed to resolve the task the current session works on

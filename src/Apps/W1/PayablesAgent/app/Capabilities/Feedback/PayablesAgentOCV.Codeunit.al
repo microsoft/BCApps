@@ -122,7 +122,7 @@ codeunit 3317 "Payables Agent OCV"
         EnvironmentInfo: Codeunit "Environment Information";
         LastActivated: DateTime;
     begin
-        PASetup.GetSetup();
+        PASetup.LoadOrCreateSetup();
         LastActivated := PASetup.GetLastActivated();
         if PASetup.TryFindAgent(Agent) and (LastActivated = 0DT) then
             if Agent.State = Agent.State::Enabled then
@@ -136,16 +136,14 @@ codeunit 3317 "Payables Agent OCV"
 
     local procedure GetInvoice(AgentTaskId: Text; var TempBlob: Codeunit "Temp Blob"; var FileName: Text): Boolean
     var
-        PATask: Codeunit "Payables Agent Task";
-        Source: Codeunit "PA Task Source";
+        WorkItem: Codeunit "PA Work Item";
         AgentTaskIdValue: BigInteger;
     begin
         if not Evaluate(AgentTaskIdValue, AgentTaskId) then
             exit(false);
-        if not PATask.Load(AgentTaskIdValue) then
+        if not WorkItem.LoadByAgentTaskId(AgentTaskIdValue) then
             exit(false);
-        PATask.GetSource(Source);
-        exit(Source.GetSourcePdf(TempBlob, FileName));
+        exit(WorkItem.GetSourcePdf(TempBlob, FileName));
     end;
 
     local procedure IsAgentDraftPageFeedbackContext(Context: Dictionary of [Text, Text]; var Handled: Boolean)

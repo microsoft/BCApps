@@ -74,23 +74,25 @@ page 3334 "PA Register Outcome"
     }
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        OutcomeFlow: Codeunit "PA Work Item Outcome";
     begin
         if CloseAction = Action::OK then
-            Task.RegisterOutcome(GetOutcome());
+            OutcomeFlow.Register(WorkItem, GetOutcome());
         exit(true);
     end;
 
     var
-        Task: Codeunit "Payables Agent Task";
-        TaskNotFoundErr: Label 'The task does not exist.';
+        WorkItem: Codeunit "PA Work Item";
+        WorkItemNotFoundErr: Label 'The work item does not exist.';
         RecordType: Option "Purchase Invoice","Purchase Order","Purchase Credit Memo","Posted Purchase Invoice","Posted Purchase Credit Memo";
         DocumentNo: Code[20];
         DocumentNotFoundErr: Label 'The selected purchase document %1 does not exist.', Comment = '%1 = document number';
 
-    internal procedure SetTask(NewTask: Codeunit "Payables Agent Task")
+    internal procedure SetWorkItem(NewWorkItem: Codeunit "PA Work Item")
     begin
-        if not Task.Load(NewTask.GetAgentTaskId()) then
-            Error(TaskNotFoundErr);
+        if not WorkItem.Load(NewWorkItem.GetId()) then
+            Error(WorkItemNotFoundErr);
     end;
 
     local procedure GetOutcome(): RecordId

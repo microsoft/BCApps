@@ -45,7 +45,7 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
     }
 
     var
-        DraftBasedSetupBacking: Codeunit "PA Draft Based Setup Backing";
+        DraftBasedSetupStore: Codeunit "PA Draft Based Setup Store";
 
     local procedure CreatePATask(Files: List of [FileUpload])
     var
@@ -65,7 +65,7 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
             Error(AgentNotActiveErr);
         foreach FileUpload in Files do begin
             FileUpload.CreateInStream(InStream);
-            EDocImport.CreateFromType(EDocument, DraftBasedSetupBacking.GetOrCreateService(), "E-Doc. File Format"::PDF, FileUpload.FileName, InStream);
+            EDocImport.CreateFromType(EDocument, DraftBasedSetupStore.GetOrCreateService(), "E-Doc. File Format"::PDF, FileUpload.FileName, InStream);
 
             EDocument."Source Details" := StrSubstNo(SourceDetailsTok, FileUpload.FileName);
             EDocument.Modify();

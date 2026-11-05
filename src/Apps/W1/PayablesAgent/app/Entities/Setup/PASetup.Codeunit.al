@@ -8,7 +8,7 @@ namespace Microsoft.Agent.PayablesAgent;
 using System.Agents;
 using System.Email;
 
-// Applies configuration and backing monitoring together; editable proposals may be invalid until applied.
+// Applies configuration and version-specific mailbox monitoring together; editable proposals may be invalid until applied.
 codeunit 3343 "PA Setup"
 {
     Access = Internal;
@@ -18,7 +18,7 @@ codeunit 3343 "PA Setup"
 
     var
         PayablesAgentSetupRecord: Record "Payables Agent Setup";
-        DraftBasedSetupBacking: Codeunit "PA Draft Based Setup Backing";
+        DraftBasedSetupStore: Codeunit "PA Draft Based Setup Store";
         PAV1V2Flag: Codeunit "PA V1V2 Flag";
         IsV2: Boolean;
         AgentUserNameLbl: Label 'Payables Agent', Comment = 'User name of the agent.', Locked = true;
@@ -33,27 +33,31 @@ codeunit 3343 "PA Setup"
         EnabledAgentRequiredErr: Label 'Email monitoring requires an enabled Payables Agent.';
         MailboxUnavailableErr: Label 'The selected Microsoft 365 mailbox is no longer available.';
 
-    internal procedure GetSetup()
+    internal procedure LoadOrCreateSetup()
     begin
-        if GetSetup(true) then;
+        if LoadSetup(true) then;
     end;
 
-    internal procedure GetSetup(InsertIfMissing: Boolean): Boolean
+    local procedure LoadSetup(CreateIfMissing: Boolean): Boolean
     var
         Exists: Boolean;
     begin
         Clear(PayablesAgentSetupRecord);
-        Clear(DraftBasedSetupBacking);
+        Clear(DraftBasedSetupStore);
         IsV2 := PAV1V2Flag.IsV2Active();
-        Exists := PayablesAgentSetupRecord.GetSetup(InsertIfMissing);
+        if CreateIfMissing then begin
+            PayablesAgentSetupRecord.GetOrCreateSetup();
+            Exists := true;
+        end else
+            Exists := PayablesAgentSetupRecord.TryGetSetup();
         if not IsV2 then
-            DraftBasedSetupBacking.LoadStored();
+            DraftBasedSetupStore.LoadStored();
         exit(Exists);
     end;
 
     internal procedure LoadStoredOrDefaults()
     begin
-        if GetSetup(false) then;
+        if LoadSetup(false) then;
     end;
 
     // A read-only lookup: neither the stored setup nor this editable proposal is changed.
@@ -62,7 +66,7 @@ codeunit 3343 "PA Setup"
         StoredSetup: Record "Payables Agent Setup";
     begin
         Clear(Agent);
-        if StoredSetup.GetSetup(false) then
+        if StoredSetup.TryGetSetup() then
             if Agent.Get(StoredSetup."User Security Id") then
                 exit(true);
         Agent.SetRange("User Name", AgentUserName());
@@ -89,7 +93,7 @@ codeunit 3343 "PA Setup"
         StoredSetup: Record "Payables Agent Setup";
         Agent: Record Agent;
     begin
-        if not StoredSetup.GetSetup(false) then
+        if not StoredSetup.TryGetSetup() then
             exit(false);
         if not Agent.Get(StoredSetup."User Security Id") then
             exit(false);
@@ -105,7 +109,7 @@ codeunit 3343 "PA Setup"
     var
         PageRecord: Record "Payables Agent Setup";
     begin
-        // Project logical settings only, without storage system fields or obsolete backing references.
+        // Project logical settings only, without storage system fields or obsolete storage references.
         PageRecord.Id := PayablesAgentSetupRecord.Id;
         PageRecord."Monitor Outlook" := PayablesAgentSetupRecord."Monitor Outlook";
         PageRecord."Email Review Policy" := PayablesAgentSetupRecord."Email Review Policy";
@@ -124,10 +128,10 @@ codeunit 3343 "PA Setup"
     internal procedure ResetProposal()
     begin
         Clear(PayablesAgentSetupRecord);
-        Clear(DraftBasedSetupBacking);
+        Clear(DraftBasedSetupStore);
         IsV2 := PAV1V2Flag.IsV2Active();
         if not IsV2 then
-            DraftBasedSetupBacking.ResetProposal();
+            DraftBasedSetupStore.ResetProposal();
     end;
 
     internal procedure GetMonitorOutlook(): Boolean
@@ -157,34 +161,34 @@ codeunit 3343 "PA Setup"
         PayablesAgentSetupRecord."Email Folder" := FolderName;
         PayablesAgentSetupRecord."Email Folder Id" := FolderId;
         if not IsV2 then
-            DraftBasedSetupBacking.SetMailboxSelection(AccountId, FolderName, FolderId);
+            DraftBasedSetupStore.SetMailboxSelection(AccountId, FolderName, FolderId);
     end;
 
     internal procedure GetEmailAccountId(): Guid
     begin
-        if not IsV2 and DraftBasedSetupBacking.HasMailboxProposal() then
-            exit(DraftBasedSetupBacking.GetEmailAccountId());
+        if not IsV2 and DraftBasedSetupStore.HasMailboxProposal() then
+            exit(DraftBasedSetupStore.GetEmailAccountId());
         exit(PayablesAgentSetupRecord."Email Account Id");
     end;
 
     internal procedure GetEmailFolder(): Text[2048]
     begin
-        if not IsV2 and DraftBasedSetupBacking.HasMailboxProposal() then
-            exit(DraftBasedSetupBacking.GetEmailFolder());
+        if not IsV2 and DraftBasedSetupStore.HasMailboxProposal() then
+            exit(DraftBasedSetupStore.GetEmailFolder());
         exit(PayablesAgentSetupRecord."Email Folder");
     end;
 
     internal procedure GetEmailFolderId(): Text[2048]
     begin
-        if not IsV2 and DraftBasedSetupBacking.HasMailboxProposal() then
-            exit(DraftBasedSetupBacking.GetEmailFolderId());
+        if not IsV2 and DraftBasedSetupStore.HasMailboxProposal() then
+            exit(DraftBasedSetupStore.GetEmailFolderId());
         exit(PayablesAgentSetupRecord."Email Folder Id");
     end;
 
     internal procedure GetEmailMonitoringConsent(): Boolean
     begin
-        if not IsV2 and DraftBasedSetupBacking.HasMailboxProposal() then
-            exit(DraftBasedSetupBacking.GetEmailMonitoringConsent());
+        if not IsV2 and DraftBasedSetupStore.HasMailboxProposal() then
+            exit(DraftBasedSetupStore.GetEmailMonitoringConsent());
         exit(PayablesAgentSetupRecord."Email Monitoring Consent");
     end;
 
@@ -192,13 +196,13 @@ codeunit 3343 "PA Setup"
     begin
         PayablesAgentSetupRecord."Email Monitoring Consent" := Value;
         if not IsV2 then
-            DraftBasedSetupBacking.SetEmailMonitoringConsent(Value);
+            DraftBasedSetupStore.SetEmailMonitoringConsent(Value);
     end;
 
     internal procedure GetLastSyncAt(): DateTime
     begin
-        if not IsV2 and DraftBasedSetupBacking.HasMailboxProposal() then
-            exit(DraftBasedSetupBacking.GetLastSyncAt());
+        if not IsV2 and DraftBasedSetupStore.HasMailboxProposal() then
+            exit(DraftBasedSetupStore.GetLastSyncAt());
         exit(PayablesAgentSetupRecord."Last Sync At");
     end;
 
@@ -271,7 +275,7 @@ codeunit 3343 "PA Setup"
             Error(MailboxRequiredErr);
     end;
 
-    // No Commit: backing configuration and persisted state participate in the caller's transaction.
+    // No Commit: configuration and persisted state participate in the caller's transaction.
     internal procedure ApplySetup(Enabling: Boolean)
     var
         StoredSetup: Record "Payables Agent Setup";
@@ -292,9 +296,9 @@ codeunit 3343 "PA Setup"
                 Error(MailboxUnavailableErr);
         end;
         if not IsV2 then
-            DraftBasedSetupBacking.Synchronize(Enabling, GetMonitorOutlook(), GetEmailAccountId(), GetEmailFolder(), GetEmailFolderId(), GetEmailMonitoringConsent())
+            DraftBasedSetupStore.Synchronize(Enabling, GetMonitorOutlook(), GetEmailAccountId(), GetEmailFolder(), GetEmailFolderId(), GetEmailMonitoringConsent())
         else
-            DraftBasedSetupBacking.DisableMonitoring(); // Stop any remaining old importer when monitoring is off after a version switch.
+            DraftBasedSetupStore.DisableMonitoring(); // Stop any remaining old importer when monitoring is off after a version switch.
 
         StoredSetup.GetOrCreateSetup();
         StoredSetup."Monitor Outlook" := PayablesAgentSetupRecord."Monitor Outlook";
@@ -308,7 +312,7 @@ codeunit 3343 "PA Setup"
         StoredSetup."Applied Instr. Config Hash" := PayablesAgentSetupRecord."Applied Instr. Config Hash";
         StoredSetup."Last Sync At" := GetLastSyncAt();
         StoredSetup.Modify();
-        GetSetup();
+        LoadOrCreateSetup();
     end;
 
     internal procedure SaveUserSecurityId(UserSecurityId: Guid)

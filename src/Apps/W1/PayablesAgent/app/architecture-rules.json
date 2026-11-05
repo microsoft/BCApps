@@ -1,29 +1,37 @@
 {
     "$schema": "./architecture-rules.schema.json",
-    "version": 3,
+    "version": 1,
     "rules": [
         {
             "id": "PA001",
             "check": "dependencies",
-            "description": "Keep active-version selection in the approved backing adapters and import guard.",
+            "description": "The common version codeunit is used only by active-selection owners and approved version-query consumers.",
             "from": {"paths":["*"]},
             "to": {"paths":["Shared/Versioning/PAV1V2Flag.Codeunit.al"]},
             "exceptions": [
                 {
                     "from": {"paths":["Entities/Setup/PASetup.Codeunit.al"]},
-                    "reason": "Setup chooses its active-version backing representation."
+                    "reason": "Setup chooses its active-version storage."
                 },
                 {
                     "from": {"paths":["Flows/Configuration/PAAgentInstructions.Codeunit.al"]},
                     "reason": "Agent Instructions selects the version-specific runtime instructions resource."
                 },
                 {
-                    "from": {"paths":["Entities/TaskSource/PATaskSource.Codeunit.al"]},
-                    "reason": "Source acquisition chooses the configured version's backing representation."
+                    "from": {"paths":["Entities/WorkItem/PAWorkItem.Codeunit.al"]},
+                    "reason": "Work Item acquisition stores new work in the active version."
                 },
                 {
                     "from": {"paths":["Compatibility/DraftBased/Flows/Intake/PADraftBasedSubscribers.Codeunit.al"]},
                     "reason": "Draft import subscribers must not handle v2 intake."
+                },
+                {
+                    "from": {"paths":["Shared/Telemetry/PATelemetry.Codeunit.al"]},
+                    "reason": "This consumer serializes or dispatches on the version of an existing work item."
+                },
+                {
+                    "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
+                    "reason": "This consumer serializes or dispatches on the version of an existing work item."
                 }
             ]
         },
@@ -40,7 +48,7 @@
                 },
                 {
                     "from": {"paths":["_Development/PADevelopmentSettings.Page.al"]},
-                    "reason": "The development-only settings editor is bound to its backing table."
+                    "reason": "The development-only settings editor is bound to its table."
                 }
             ]
         },
@@ -56,9 +64,14 @@
                     "reason": "Irreducibly draft-specific integrations and declarative surfaces live here."
                 },
                 {
+                    "from": {"paths":["_Obsolete/AgentTaskList.PageExt.al"]},
+                    "target": "Microsoft.eServices.EDocument",
+                    "reason": "The wholly obsolete upload pageextension retains its frozen V1 E-Document integration until CLEAN30."
+                },
+                {
                     "from": {"paths":["Entities/Setup/PayablesAgentSetup.Table.al"]},
                     "target": "Microsoft.eServices.EDocument",
-                    "reason": "Historical table 3303 field 2 retains its obsolete E-Document Service relation until CLEANSCHEMA33; no runtime backing access is permitted."
+                    "reason": "Historical table 3303 field 2 retains its obsolete E-Document Service relation until CLEANSCHEMA33; no runtime access to it is permitted."
                 },
                 {
                     "from": {"paths":["Shared/Security/PayablesAgAdm.Permissionset.al"]},
@@ -70,34 +83,39 @@
         {
             "id": "PA004",
             "check": "dependencies",
-            "description": "Backing table references belong to their owners; temporary and declarative references need explicit exceptions.",
+            "description": "Table references belong to their owners; temporary and declarative references need explicit exceptions.",
             "from": {"paths":["*"]},
-            "to": {"paths":["Entities/Task/PayablesAgentTask.Table.al","Entities/Setup/PayablesAgentSetup.Table.al"]},
+            "to": {"paths":["Entities/WorkItem/PayablesAgentWorkItem.Table.al","Entities/Setup/PayablesAgentSetup.Table.al"]},
             "exceptions": [
                 {
-                    "from": {"paths":["Entities/Task/*"]},
-                    "target": "Entities/Task/PayablesAgentTask.Table.al",
-                    "reason": "Task owns its backing records."
+                    "from": {"paths":["Entities/WorkItem/PAWorkItem.Codeunit.al"]},
+                    "target": "Entities/WorkItem/PayablesAgentWorkItem.Table.al",
+                    "reason": "The Work Item entity owns its V2 table."
                 },
                 {
-                    "from": {"paths":["Entities/TaskSource/*"]},
-                    "target": "Entities/Task/PayablesAgentTask.Table.al",
-                    "reason": "The source wrapper owns its v2 backing record."
+                    "from": {"paths":["Entities/WorkItem/PAWorkItemCollection.Codeunit.al"]},
+                    "target": "Entities/WorkItem/PayablesAgentWorkItem.Table.al",
+                    "reason": "Collection owns set-oriented reads of V2 receipts."
                 },
                 {
-                    "from": {"paths":["Flows/Execution/Supporting/PATaskPosting.Codeunit.al"]},
-                    "target": "Entities/Task/PayablesAgentTask.Table.al",
+                    "from": {"paths":["Shared/Versioning/PAV1V2Flag.Codeunit.al"]},
+                    "target": "Entities/WorkItem/PayablesAgentWorkItem.Table.al",
+                    "reason": "The common version codeunit resolves the stored version of a work item; PA024 restricts calls to that query."
+                },
+                {
+                    "from": {"paths":["Flows/Execution/Supporting/PAWorkItemPosting.Codeunit.al"]},
+                    "target": "Entities/WorkItem/PayablesAgentWorkItem.Table.al",
                     "reason": "Posting deliberately replaces matching v2 outcome references as one set-level operation."
                 },
                 {
                     "from": {"paths":["Entities/Setup/*"]},
                     "target": "Entities/Setup/PayablesAgentSetup.Table.al",
-                    "reason": "Setup owns its backing records."
+                    "reason": "Setup owns its stored records."
                 },
                 {
                     "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
-                    "target": "Entities/Task/PayablesAgentTask.Table.al",
-                    "reason": "The app-owned test cleanup facade deletes v2 task backing data while hiding its representation from test apps."
+                    "target": "Entities/WorkItem/PayablesAgentWorkItem.Table.al",
+                    "reason": "The app-owned test cleanup facade deletes V2 work item data while hiding its representation from test apps."
                 },
                 {
                     "from": {"paths":["Flows/Upgrade/PayablesAgentUpgrade.Codeunit.al"]},
@@ -107,12 +125,12 @@
                 {
                     "from": {"paths":["Flows/Registration/PayablesAgentMetadata.Codeunit.al"]},
                     "target": "Entities/Setup/PayablesAgentSetup.Table.al",
-                    "reason": "Registration supplies the table ID to data classification; it does not load a backing record."
+                    "reason": "Registration supplies the table ID to data classification; it does not load a stored record."
                 },
                 {
                     "from": {"paths":["Flows/Registration/PayablesAgentMetadata.Codeunit.al"]},
-                    "target": "Entities/Task/PayablesAgentTask.Table.al",
-                    "reason": "Registration supplies the task table ID to data classification; it does not load a backing record."
+                    "target": "Entities/WorkItem/PayablesAgentWorkItem.Table.al",
+                    "reason": "Registration supplies the task table ID to data classification; it does not load a stored record."
                 },
                 {
                     "from": {"paths":["Flows/Configuration/PayablesAgentSetup.Page.al"]},
@@ -120,19 +138,12 @@
                     "reason": "The setup page edits an explicitly temporary projection; PA021 pins that property."
                 },
                 {
-                    "from": {
-                        "paths": [
-                            "Flows/Supervision/PAAccPayablesAdministratorRC.PageExt.al",
-                            "Flows/Supervision/PABusinessManagerRC.PageExt.al"
-                        ]
-                    },
+                    "from": {"paths":["Flows/Supervision/PAAccPayablesAdministratorRC.PageExt.al","Flows/Supervision/PABusinessManagerRC.PageExt.al"]},
                     "target": "Entities/Setup/PayablesAgentSetup.Table.al",
                     "reason": "Role-center visibility reads the setup row; retain as an explicit cleanup exception."
                 },
                 {
-                    "from": {
-                        "paths": ["Shared/Security/PayablesAgAdm.Permissionset.al","Shared/Security/PayablesAgRead.Permissionset.al"]
-                    },
+                    "from": {"paths":["Shared/Security/PayablesAgAdm.Permissionset.al","Shared/Security/PayablesAgRead.Permissionset.al"]},
                     "target": "Entities/Setup/PayablesAgentSetup.Table.al",
                     "reason": "Human permission sets grant declarative setup access; this matcher does not distinguish permissions from runtime references."
                 },
@@ -140,42 +151,66 @@
                     "from": {"paths":["_Obsolete/PAMLLMSetup.Page.al"]},
                     "target": "Entities/Setup/PayablesAgentSetup.Table.al",
                     "reason": "The frozen pre-CLEAN29 MLLM rollout page remains bound to its historical setup schema; placement forbids new obsolete objects."
+                },
+                {
+                    "from": {"paths":["Flows/Execution/Supporting/PAWorkItemOutcome.Codeunit.al"]},
+                    "target": "Entities/WorkItem/PayablesAgentWorkItem.Table.al",
+                    "reason": "The isolated runtime PDF-attachment bridge retains the old entry-number file-name scheme for attachment idempotency; normal outcome persistence stays in Work Item."
+                },
+                {
+                    "from": {"paths":["Shared/Versioning/PAV1V2Flag.Codeunit.al"]},
+                    "target": "Entities/Setup/PayablesAgentSetup.Table.al",
+                    "reason": "The temporary production V2 preview selector reads its opt-in from the setup row."
+                },
+                {
+                    "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
+                    "target": "Entities/Setup/PayablesAgentSetup.Table.al",
+                    "reason": "Production evaluations set and clear the temporary V2 preview opt-in through the semantic fixture API."
+                },
+                {
+                    "from": {"paths":["_Obsolete/PAV2PreviewSetup.Page.al"]},
+                    "target": "Entities/Setup/PayablesAgentSetup.Table.al",
+                    "reason": "The unsearchable temporary preview page is the only UI for the V2 preview opt-in."
                 }
             ]
         },
         {
             "id": "PA005",
             "check": "dependencies",
-            "description": "Entities must use concrete backing adapters instead of application flows, registration, UI or draft service orchestration.",
+            "description": "Entities must use concrete storage adapters instead of application flows, registration, UI or draft service orchestration.",
             "from": {"paths":["Entities/*"]},
             "to": {"paths":["Flows/*","Compatibility/DraftBased/*"]},
             "exceptions": [
                 {
-                    "from": {"paths":["Entities/TaskSource/PATaskSource.Codeunit.al"]},
-                    "target": "Compatibility/DraftBased/Entities/TaskSource/PADraftBasedTaskSource.Codeunit.al",
-                    "reason": "The logical source delegates its v1 backing representation to the compatibility entity adapter."
+                    "from": {"paths":["Entities/WorkItem/PAWorkItem.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Entities/WorkItem/PADraftBasedWorkItem.Codeunit.al",
+                    "reason": "Work Item delegates V1 storage and correlation to its concrete compatibility adapter."
                 },
                 {
                     "from": {"paths":["Entities/Setup/PASetup.Codeunit.al"]},
-                    "target": "Compatibility/DraftBased/Entities/Setup/PADraftBasedSetupBacking.Codeunit.al",
-                    "reason": "Setup delegates its V1 editable proposal and service synchronization to the concrete draft backing owner."
-                },
-                {
-                    "from": {"paths":["Entities/Task/PayablesAgentTask.Codeunit.al"]},
-                    "target": "Compatibility/DraftBased/Entities/Task/PADraftBasedTask.Codeunit.al",
-                    "reason": "Task delegates resolved V1 backing reads and lifecycle mapping to the concrete draft task adapter without rediscovering source identity."
+                    "target": "Compatibility/DraftBased/Entities/Setup/PADraftBasedSetupStore.Codeunit.al",
+                    "reason": "Setup delegates its V1 editable proposal and service synchronization to the concrete draft-based Setup Store."
                 }
             ]
         },
         {
             "id": "PA006",
             "check": "dependencies",
-            "description": "Runtime task construction belongs to the authoritative Task Intake flow.",
+            "description": "Framework task construction belongs to the authoritative Work Item Intake orchestration.",
             "from": {"paths":["*"]},
-            "symbols": [{"kind":"codeunit","name":"Agent Task Builder"},{"kind":"codeunit","name":"Agent Task Message Builder"}],
+            "symbols": [
+                {
+                    "kind": "codeunit",
+                    "name": "Agent Task Builder"
+                },
+                {
+                    "kind": "codeunit",
+                    "name": "Agent Task Message Builder"
+                }
+            ],
             "exceptions": [
                 {
-                    "from": {"paths":["Flows/Intake/PATaskIntake.Codeunit.al"]},
+                    "from": {"paths":["Flows/Intake/PAWorkItemIntake.Codeunit.al"]},
                     "reason": "Task Intake is the single app-owned entry point for runtime task construction."
                 }
             ]
@@ -197,14 +232,14 @@
                     "reason": "The setup page deliberately delegates the guarded v1-only additional-fields dialog."
                 },
                 {
-                    "from": {"paths":["Entities/TaskSource/PATaskSource.Codeunit.al"]},
-                    "target": "Compatibility/DraftBased/Entities/TaskSource/PADraftBasedTaskSource.Codeunit.al",
-                    "reason": "The version-neutral source delegates v1 backing access through one compatibility entity adapter."
+                    "from": {"paths":["Entities/WorkItem/PAWorkItem.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Entities/WorkItem/PADraftBasedWorkItem.Codeunit.al",
+                    "reason": "Work Item delegates V1 storage and correlation to its concrete compatibility adapter."
                 },
                 {
-                    "from": {"paths":["Flows/Intake/PATaskIntake.Codeunit.al"]},
-                    "target": "Compatibility/DraftBased/Flows/Intake/PADraftBasedSourceIntake.Codeunit.al",
-                    "reason": "Authoritative task intake invokes the v1 import processing entry point after creating its source."
+                    "from": {"paths":["Flows/Intake/PAWorkItemIntake.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Flows/Intake/PADraftWorkItemIntake.Codeunit.al",
+                    "reason": "Work Item Intake invokes the V1 import orchestration entry point after receipt creation."
                 },
                 {
                     "from": {"paths":["Flows/Upgrade/PayablesAgentUpgrade.Codeunit.al"]},
@@ -218,17 +253,12 @@
                 },
                 {
                     "from": {"paths":["Entities/Setup/PASetup.Codeunit.al"]},
-                    "target": "Compatibility/DraftBased/Entities/Setup/PADraftBasedSetupBacking.Codeunit.al",
-                    "reason": "Setup delegates its V1 editable proposal and service synchronization to the concrete draft backing owner."
+                    "target": "Compatibility/DraftBased/Entities/Setup/PADraftBasedSetupStore.Codeunit.al",
+                    "reason": "Setup delegates its V1 editable proposal and service synchronization to the concrete draft-based Setup Store."
                 },
                 {
-                    "from": {"paths":["Entities/Task/PayablesAgentTask.Codeunit.al"]},
-                    "target": "Compatibility/DraftBased/Entities/Task/PADraftBasedTask.Codeunit.al",
-                    "reason": "Task delegates resolved V1 backing reads and lifecycle mapping to the concrete draft task adapter without rediscovering source identity."
-                },
-                {
-                    "from": {"paths":["Flows/Execution/Supporting/PATaskPosting.Codeunit.al"]},
-                    "target": "Compatibility/DraftBased/Entities/Task/PADraftBasedTask.Codeunit.al",
+                    "from": {"paths":["Flows/Execution/Supporting/PAWorkItemPosting.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Entities/WorkItem/PADraftBasedWorkItem.Codeunit.al",
                     "reason": "Posting delegates only the AGENT-service V1 set-level outcome replacement; the flow retains transaction ownership and the V2 set-write exception."
                 },
                 {
@@ -257,25 +287,28 @@
                     "reason": "The frozen obsolete download page retains its historical concrete demo-file download entry point until removal."
                 },
                 {
+                    "from": {"paths":["_Obsolete/AgentTaskList.PageExt.al"]},
+                    "target": "Compatibility/DraftBased/Entities/Setup/PADraftBasedSetupStore.Codeunit.al",
+                    "reason": "The frozen obsolete V1 upload action still resolves the legacy AGENT service through the draft-based Setup Store."
+                },
+                {
                     "from": {"paths":["_Obsolete/PABillingLog.Table.al"]},
                     "target": "Compatibility/DraftBased/Capabilities/Billing/PABillingOperation.Enum.al",
                     "reason": "The frozen obsolete billing log retains the persisted operation enum identity; this is historical schema, not runtime billing orchestration."
+                },
+                {
+                    "from": {"paths":["Shared/Versioning/PAV1V2Flag.Codeunit.al"]},
+                    "target": "Compatibility/DraftBased/Entities/WorkItem/PADraftBasedWorkItem.Codeunit.al",
+                    "reason": "The common version codeunit resolves the stored version of a work item; PA024 restricts calls to that query."
                 }
             ]
         },
         {
             "id": "PA008",
             "check": "dependencies",
-            "description": "Capabilities and shared mechanisms must not depend on flow implementations except designated runtime session identification.",
+            "description": "Capabilities and shared mechanisms must not depend on flow implementations.",
             "from": {"paths":["Capabilities/*","Shared/*"],"kinds":["codeunit","table"]},
-            "to": {"paths":["Flows/*"]},
-            "exceptions": [
-                {
-                    "from": {"paths":["Capabilities/KPI/PayablesAgentKPI.Codeunit.al"]},
-                    "target": "Flows/Registration/PayablesAgentMetadata.Codeunit.al",
-                    "reason": "The KPI purchase-invoice subscriber uses registration metadata only to identify the current Payables Agent runtime session before counting."
-                }
-            ]
+            "to": {"paths":["Flows/*"]}
         },
         {
             "id": "PA009",
@@ -286,7 +319,7 @@
             "exceptions": [
                 {
                     "from": {"paths":["TestSupport/*"]},
-                    "reason": "The semantic fixture facade delegates to backing-specific fixture implementations."
+                    "reason": "The semantic fixture facade delegates to version-specific fixture implementations."
                 }
             ]
         },
@@ -295,25 +328,21 @@
             "check": "properties",
             "description": "Implementation objects are internal; assignable permission sets remain public.",
             "from": {"paths":["*"],"kinds":["codeunit","table","enum","query","report","xmlport","interface"]},
-            "properties": {"Access":"Internal"}
+            "properties": {
+                "Access": "Internal"
+            }
         },
         {
             "id": "PA011",
             "check": "properties",
             "description": "The app does not expose traditional AL extensibility.",
             "from": {"paths":["*"],"kinds":["page","table","enum"]},
-            "properties": {"Extensible":false},
+            "properties": {
+                "Extensible": false
+            },
             "exceptions": [
                 {
-                    "from": {
-                        "paths": [
-                            "_Obsolete/PABillingLog.Table.al",
-                            "_Obsolete/PABillingOverview.Page.al",
-                            "_Obsolete/PABillingTaskSetup.Table.al",
-                            "_Obsolete/PADemoFile.Table.al",
-                            "_Obsolete/PADemoFilesToDownload.Page.al"
-                        ]
-                    },
+                    "from": {"paths":["_Obsolete/PABillingLog.Table.al","_Obsolete/PABillingOverview.Page.al","_Obsolete/PABillingTaskSetup.Table.al","_Obsolete/PADemoFile.Table.al","_Obsolete/PADemoFilesToDownload.Page.al"]},
                     "target": "Extensible",
                     "reason": "Retain historical obsolete surfaces unchanged; the placement rule freezes the allowed obsolete files."
                 }
@@ -402,8 +431,7 @@
                 "Flows/Supervision/*",
                 "Flows/Upgrade/*",
                 "Entities/Setup/*",
-                "Entities/Task/*",
-                "Entities/TaskSource/*",
+                "Entities/WorkItem/*",
                 "Entities/KnownSender/*",
                 "Entities/KPI/*",
                 "Entities/Trial/*",
@@ -412,6 +440,7 @@
                 "Capabilities/Feedback/*",
                 "Capabilities/KnownSenders/*",
                 "Shared/Telemetry/*",
+                "Shared/Outcomes/*",
                 "Shared/Security/*",
                 "Shared/Versioning/*",
                 "Compatibility/DraftBased/*",
@@ -423,101 +452,35 @@
                 "_Obsolete/PABillingTaskSetup.Table.al",
                 "_Obsolete/PADemoFile.Table.al",
                 "_Obsolete/PADemoFilesToDownload.Page.al",
-                "_Obsolete/PAMLLMSetup.Page.al"
+                "_Obsolete/PAMLLMSetup.Page.al",
+                "_Obsolete/AgentTaskList.PageExt.al",
+                "_Obsolete/PAV2PreviewSetup.Page.al"
             ]
         },
         {
             "id": "PA020",
             "check": "properties",
-            "description": "Sortable task-list rows are temporary projections.",
-            "from": {"paths":["Flows/Supervision/PADetailedTask.Table.al"]},
-            "properties": {"TableType":"Temporary"}
+            "description": "Work item list rows and stateless outcome facts remain temporary projections.",
+            "from": {"paths":["Flows/Supervision/PAWorkItemListRow.Table.al","Shared/Outcomes/PAPurchaseOutcomeFacts.Table.al"]},
+            "properties": {
+                "TableType": "Temporary"
+            }
         },
         {
             "id": "PA021",
             "check": "properties",
-            "description": "Projection pages must not edit persisted backing records directly.",
-            "from": {
-                "paths": [
-                    "Flows/Supervision/PayablesAgentTasks.Page.al",
-                    "Flows/Supervision/PAEmailReview.Page.al",
-                    "Flows/Configuration/PayablesAgentSetup.Page.al"
-                ]
-            },
-            "properties": {"SourceTableTemporary":true}
-        },
-        {
-            "id": "PA022",
-            "check": "forbiddenCode",
-            "description": "Explicit PA Version enum vocabulary belongs only to designated backing, intake, selector, compatibility and fixture owners.",
-            "from": {"paths":["*"]},
-            "pattern": "(?<![\\w.\"])Enum\\s+\"PA Version\"(?!\")|(?<!\")\"PA Version\"\\s*::",
-            "includeQuotedIdentifiers": true,
-            "exceptions": [
-                {
-                    "from": {"paths":["Entities/Task/PayablesAgentTask.Codeunit.al"]},
-                    "target": "code",
-                    "reason": "Task owns loaded-version identity, backing dispatch and supported operations."
-                },
-                {
-                    "from": {"paths":["Entities/TaskSource/PATaskSource.Codeunit.al"]},
-                    "target": "code",
-                    "reason": "Source owns acquisition and loaded-version identity across V1 and V2 backing representations."
-                },
-                {
-                    "from": {"paths":["Flows/Intake/PATaskIntake.Codeunit.al"]},
-                    "target": "code",
-                    "reason": "Authoritative intake dispatches received sources to V1 import or V2 task construction."
-                },
-                {
-                    "from": {"paths":["Shared/Versioning/PAV1V2Flag.Codeunit.al"]},
-                    "target": "code",
-                    "reason": "The existing selector owns active-version vocabulary; PA001 independently restricts its consumers."
-                },
-                {
-                    "from": {"paths":["Compatibility/DraftBased/Capabilities/Billing/PABilling.Codeunit.al"]},
-                    "target": "code",
-                    "reason": "Draft billing verifies that the loaded logical task has V1 backing before charging draft usage."
-                },
-                {
-                    "from": {"paths":["Compatibility/DraftBased/Flows/Execution/AgentWorkspace/PAOpenCurrentEDocument.Codeunit.al"]},
-                    "target": "code",
-                    "reason": "Draft navigation verifies that the loaded logical task has V1 backing before opening its E-Document."
-                },
-                {
-                    "from": {"paths":["Compatibility/DraftBased/TestSupport/PADraftBasedTestFixtures.Codeunit.al"]},
-                    "target": "code",
-                    "reason": "The compatibility fixture verifies V1 backing before building draft diagnostics."
-                },
-                {
-                    "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
-                    "target": "code",
-                    "reason": "The semantic fixture facade owns evaluation version dispatch and serializes task-version diagnostics."
-                },
-                {
-                    "from": {"paths":["_Development/PADevelopmentSettings.Codeunit.al"]},
-                    "target": "code",
-                    "reason": "The development API owns the explicit evaluation-version override."
-                },
-                {
-                    "from": {"paths":["_Development/PADevelopmentSettings.Table.al"]},
-                    "target": "code",
-                    "reason": "Development settings persist the explicit evaluation-version override using the shared enum."
-                }
-            ]
+            "description": "Projection pages must not edit stored records directly.",
+            "from": {"paths":["Flows/Supervision/PayablesAgentWorkItems.Page.al","Flows/Supervision/PAEmailReview.Page.al","Flows/Configuration/PayablesAgentSetup.Page.al"]},
+            "properties": {
+                "SourceTableTemporary": true
+            }
         },
         {
             "id": "PA023",
             "check": "dependencies",
-            "description": "Development API objects are usable only by the exact selector, simulation and semantic fixture seams or the development editor.",
+            "description": "Development API objects are usable only by the exact selector, agent-view simulation and semantic fixture seams or the development editor.",
             "from": {"paths":["*"]},
-            "to": {
-                "paths":["_Development/*"],
-                "kinds": [
-                    "codeunit",
-                    "page"
-                ]
-            },
+            "to": {"paths":["_Development/*"],"kinds":["codeunit","page"]},
             "exceptions": [
                 {
                     "from": {"paths":["Shared/Versioning/PAV1V2Flag.Codeunit.al"]},
@@ -525,9 +488,9 @@
                     "reason": "The existing DEVELOPMENT selector reads the explicit evaluation override and V2 switch."
                 },
                 {
-                    "from": {"paths":["Flows/Execution/AgentWorkspace/PAAgentExperience.Codeunit.al"]},
+                    "from": {"paths":["Shared/Security/PAAgentAccess.Codeunit.al"]},
                     "target": "_Development/PADevelopmentSettings.Codeunit.al",
-                    "reason": "The existing DEVELOPMENT simulation seam reads the agent-experience override without changing session identity."
+                    "reason": "The DEVELOPMENT agent-view seam reads the simulated agent task so UI scoping matches a real agent session; runtime-only queries ignore it."
                 },
                 {
                     "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
@@ -540,6 +503,76 @@
                     "reason": "The DEVELOPMENT-only editor loads settings and clears the evaluation override through its owner API."
                 }
             ]
+        },
+        {
+            "id": "PA024",
+            "check": "forbiddenCode",
+            "description": "Only telemetry and semantic fixtures may call GetVersion on the common version codeunit; IsV2Active keeps its separate owner access.",
+            "from": {"paths":["*"]},
+            "exceptions": [
+                {
+                    "from": {"paths":["Shared/Telemetry/PATelemetry.Codeunit.al"]},
+                    "reason": "Telemetry serializes the existing version dimension."
+                },
+                {
+                    "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
+                    "reason": "The semantic fixture facade owns version dispatch and diagnostic evidence."
+                }
+            ],
+            "pattern": "\\.\\s*(?:GetVersion|\"GetVersion\")\\s*\\(",
+            "includeQuotedIdentifiers": true
+        },
+        {
+            "id": "PA025",
+            "check": "forbiddenCode",
+            "description": "The semantic Work Item API is an explicit one-line declaration contract; new or changed exported members require a conscious policy update, including version aliases.",
+            "from": {"paths":["Entities/WorkItem/PAWorkItem.Codeunit.al"]},
+            "pattern": "(?m)^[ \\t]*(?:internal[ \\t]+)?procedure[ \\t]+(?!(?:Load\\(WorkItemId:[ \\t]+Guid\\):[ \\t]+Boolean|LoadByAgentTaskId\\(AgentTaskId:[ \\t]+BigInteger\\):[ \\t]+Boolean|LoadCurrentSession\\(\\):[ \\t]+Boolean|Refresh\\(\\)|GetId\\(\\):[ \\t]+Guid|GetAdmissionStatus\\(\\):[ \\t]+Enum[ \\t]+\"PA[ \\t]+Work[ \\t]+Item[ \\t]+Admission[ \\t]+Status\"|IsAccepted\\(\\):[ \\t]+Boolean|HasAgentTask\\(\\):[ \\t]+Boolean|GetAgentTaskId\\(\\):[ \\t]+BigInteger|GetAgentTaskExternalId\\(\\):[ \\t]+Text\\[2048\\]|GetTitle\\(\\):[ \\t]+Text\\[150\\]|GetAgentTaskStatus\\(\\):[ \\t]+Enum[ \\t]+\"Agent[ \\t]+Task[ \\t]+Status\"|GetState\\(\\):[ \\t]+Enum[ \\t]+\"PA[ \\t]+Work[ \\t]+Item[ \\t]+State\"|GetRejectionReason\\(\\):[ \\t]+Text|GetSourceType\\(\\):[ \\t]+Enum[ \\t]+\"PA[ \\t]+Source[ \\t]+Type\"|GetFileName\\(\\):[ \\t]+Text|HasPdf\\(\\):[ \\t]+Boolean|GetSourcePdf\\(var[ \\t]+TempBlob:[ \\t]+Codeunit[ \\t]+\"Temp[ \\t]+Blob\";[ \\t]+var[ \\t]+FileName:[ \\t]+Text\\):[ \\t]+Boolean|GetEmailFrom\\(\\):[ \\t]+Text|GetSenderAddress\\(\\):[ \\t]+Text\\[250\\]|GetSenderName\\(\\):[ \\t]+Text|GetEmailSubject\\(\\):[ \\t]+Text|GetEmailExternalId\\(\\):[ \\t]+Text|GetEmailReceivedAt\\(\\):[ \\t]+DateTime|GetSourceEmailBody\\(\\):[ \\t]+Text|TryGetEmailHeader\\(HeaderName:[ \\t]+Text;[ \\t]+var[ \\t]+HeaderValue:[ \\t]+Text\\):[ \\t]+Boolean|GetCreatedAt\\(\\):[ \\t]+DateTime|GetUpdatedAt\\(\\):[ \\t]+DateTime|CanExtractText\\(\\):[ \\t]+Boolean|CanRegisterOutcome\\(\\):[ \\t]+Boolean|GetExtractedText\\(\\):[ \\t]+Text|GetOutcome\\(\\):[ \\t]+RecordId|IsResultRecord\\(Candidate:[ \\t]+RecordId\\):[ \\t]+Boolean|CreateFromPdf\\(FileName:[ \\t]+Text;[ \\t]+PdfInStream:[ \\t]+InStream\\):[ \\t]+Boolean|AssociateAgentTask\\(AgentTaskId:[ \\t]+BigInteger\\)|MarkRejected\\(Reason:[ \\t]+Text\\)|SetExtractedText\\(NewText:[ \\t]+Text\\)|RegisterOutcome\\(OutcomeId:[ \\t]+RecordId\\))[ \\t]*\\r?$)[^\\r\\n]+",
+            "includeQuotedIdentifiers": true
+        },
+        {
+            "id": "PA027",
+            "check": "obsoleteGuard",
+            "description": "A negative CLEAN/CLEANSCHEMA guard enclosing all non-comment content is the project's whole-file obsoletion heuristic.",
+            "from": {"paths":["*"]},
+            "allowedPaths": ["_Obsolete/*"]
+        },
+        {
+            "id": "PA028",
+            "check": "forbiddenCode",
+            "description": "The temporary V2 preview opt-in is referenced only by its schema, its unsearchable page, the production selector and the semantic evaluation fixture.",
+            "from": {"paths":["*"]},
+            "pattern": "\"Preview Version\"|\"V2 Preview\"|\\bV2 Preview\\b",
+            "includeQuotedIdentifiers": true,
+            "exceptions": [
+                {
+                    "from": {"paths":["Entities/Setup/PayablesAgentSetup.Table.al"]},
+                    "target": "code",
+                    "reason": "The setup table declares the temporary obsolete preview field."
+                },
+                {
+                    "from": {"paths":["_Obsolete/PAV2PreviewSetup.Page.al"]},
+                    "target": "code",
+                    "reason": "The unsearchable preview page is the only UI exposing the field."
+                },
+                {
+                    "from": {"paths":["Shared/Versioning/PAV1V2Flag.Codeunit.al"]},
+                    "target": "code",
+                    "reason": "The production selector activates V2 only for the preview tenant when the field selects V2 Preview."
+                },
+                {
+                    "from": {"paths":["TestSupport/PATestFixtures.Codeunit.al"]},
+                    "target": "code",
+                    "reason": "Production V2 evaluations select and clear the preview through the semantic fixture API."
+                }
+            ]
+        },
+        {
+            "id": "PA029",
+            "check": "forbiddenCode",
+            "description": "The temporary V2 preview page must stay out of search and navigation.",
+            "from": {"paths":["_Obsolete/PAV2PreviewSetup.Page.al"]},
+            "pattern": "\\bUsageCategory\\s*=|\\bAdditionalSearchTerms\\s*="
         }
     ]
 }

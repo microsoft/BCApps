@@ -15,6 +15,9 @@
     "application": "30.0.0.0",
     "platform": "30.0.0.0",
     "target": "OnPrem",
+    "preprocessorSymbols": [
+        "DEVELOPMENT"
+    ],
     "dependencies": [
         {
             "id": "e1d97edc-c239-46b4-8d84-6368bdf67c8b",

@@ -5,7 +5,7 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-enum 3345 "PA Task State"
+enum 3345 "PA Work Item State"
 {
     Access = Internal;
     Extensible = false;

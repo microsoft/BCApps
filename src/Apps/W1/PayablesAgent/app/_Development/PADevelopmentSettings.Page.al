@@ -41,6 +41,30 @@ page 3314 "PA Development Settings"
                 {
                     ApplicationArea = All;
                 }
+                field("Simulated Agent Task ID"; Rec."Simulated Agent Task ID")
+                {
+                    ApplicationArea = All;
+                    Editable = Rec."Simulate Agent Experience";
+
+                    trigger OnValidate()
+                    var
+                        DevelopmentSettings: Codeunit "PA Development Settings";
+                    begin
+                        DevelopmentSettings.ValidateSimulatedAgentTaskId(Rec."Simulated Agent Task ID");
+                    end;
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        DevelopmentSettings: Codeunit "PA Development Settings";
+                        AgentTaskId: BigInteger;
+                    begin
+                        AgentTaskId := Rec."Simulated Agent Task ID";
+                        if not DevelopmentSettings.LookupSimulatedAgentTaskId(AgentTaskId) then
+                            exit(false);
+                        Text := Format(AgentTaskId);
+                        exit(true);
+                    end;
+                }
             }
         }
     }
@@ -61,7 +85,7 @@ page 3314 "PA Development Settings"
                     DevelopmentSettings: Codeunit "PA Development Settings";
                 begin
                     DevelopmentSettings.ClearEvaluationVersionOverride();
-                    DevelopmentSettings.GetSettings(Rec);
+                    DevelopmentSettings.GetOrCreateSettings(Rec);
                     CurrPage.Update(false);
                 end;
             }
@@ -72,7 +96,7 @@ page 3314 "PA Development Settings"
     var
         DevelopmentSettings: Codeunit "PA Development Settings";
     begin
-        DevelopmentSettings.GetSettings(Rec);
+        DevelopmentSettings.GetOrCreateSettings(Rec);
     end;
 }
 #endif

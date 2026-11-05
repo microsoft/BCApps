@@ -16,20 +16,20 @@ codeunit 133736 "PA Draft Based Contract Tests"
 
     [Test]
     [CommitBehavior(CommitBehavior::Error)]
-    procedure DeactivationStopsBackingImporter()
+    procedure DeactivationStopsDraftImporter()
     var
         Fixtures: Codeunit "PA Test Fixtures";
         Proposal: Codeunit "PA Setup";
         Stored: Codeunit "PA Setup";
     begin
         Fixtures.SeedDraftBasedImporterEnabled();
-        Proposal.GetSetup();
+        Proposal.LoadOrCreateSetup();
         Proposal.SetMonitorOutlook(true);
         Proposal.ApplySetup(false);
 
-        Stored.GetSetup();
+        Stored.LoadOrCreateSetup();
         Check(not Stored.GetMonitorOutlook(), 'Deactivation must persist monitoring off.');
-        Check(not Fixtures.IsDraftBasedImporterEnabled(), 'Deactivation must also turn the backing importer off.');
+        Check(not Fixtures.IsDraftBasedImporterEnabled(), 'Deactivation must also turn the V1 importer off.');
     end;
 
     local procedure Check(Condition: Boolean; Message: Text)

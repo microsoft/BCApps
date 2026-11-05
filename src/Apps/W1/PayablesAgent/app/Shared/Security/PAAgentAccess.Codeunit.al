@@ -17,6 +17,46 @@ codeunit 3350 "PA Agent Access"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+#if DEVELOPMENT
+    var
+        DevelopmentSettings: Codeunit "PA Development Settings";
+
+#endif
+    #region Current agent session
+    // Real Payables Agent runtime only. Billing, KPI and document binding must never act on a simulation.
+    internal procedure TryGetRuntimeAgentTaskId(var AgentTaskId: BigInteger): Boolean
+    var
+        AgentSession: Codeunit "Agent Session";
+        Provider: Enum "Agent Metadata Provider";
+    begin
+        AgentTaskId := 0;
+        if not AgentSession.IsAgentSession(Provider) then
+            exit(false);
+        if Provider <> Provider::"Payables Agent" then
+            exit(false);
+        AgentTaskId := AgentSession.GetCurrentSessionAgentTaskId();
+        exit(true);
+    end;
+
+    internal procedure TryGetAgentViewTaskId(var AgentTaskId: BigInteger): Boolean
+    begin
+        if TryGetRuntimeAgentTaskId(AgentTaskId) then
+            exit(true);
+#if DEVELOPMENT
+        exit(DevelopmentSettings.TryGetSimulatedAgentTaskId(AgentTaskId));
+#else
+        exit(false);
+#endif
+    end;
+
+    internal procedure IsAgentView(): Boolean
+    var
+        AgentTaskId: BigInteger;
+    begin
+        exit(TryGetAgentViewTaskId(AgentTaskId));
+    end;
+    #endregion
+
     internal procedure CanShowAgentActions(): Boolean
     var
         Agent: Record Agent;
@@ -27,7 +67,7 @@ codeunit 3350 "PA Agent Access"
         AgentMetadataProvider: Enum "Agent Metadata Provider";
     begin
         // Upload and setup actions are for people supervising the agent, never for the agent runtime user.
-        if AgentSession.IsAgentSession(AgentMetadataProvider) then
+        if AgentSession.IsAgentSession(AgentMetadataProvider) or IsAgentView() then
             exit(false);
         if not AgentUtilities.IsAgentsFeatureEnabled() then
             exit(false);

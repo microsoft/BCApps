@@ -9,6 +9,7 @@ using System.AI;
 using System.Text;
 using System.Utilities;
 
+// Temporary bridge until the agent can consume the source PDF directly; see Supporting/README.md.
 codeunit 3336 "PA PDF Text Extraction"
 {
     Access = Internal;
@@ -21,18 +22,18 @@ codeunit 3336 "PA PDF Text Extraction"
         UserPromptTxt: Label 'Extract all text from the attached PDF document.', Locked = true;
         ExtractionFailedErr: Label 'The text could not be extracted from the file.';
 
-    procedure ExtractText(var Task: Codeunit "Payables Agent Task")
+    procedure ExtractText(var WorkItem: Codeunit "PA Work Item")
     var
         ExtractedText: Text;
     begin
-        if not Task.CanExtractText() then
+        if not WorkItem.CanExtractText() then
             Error(ExtractionFailedErr);
-        ExtractedText := GenerateText(Task);
+        ExtractedText := GenerateText(WorkItem);
         // The entity reloads and patches only extracted text after the potentially slow model call.
-        Task.SetSourceText(ExtractedText);
+        WorkItem.SetExtractedText(ExtractedText);
     end;
 
-    local procedure GenerateText(Task: Codeunit "Payables Agent Task") ExtractedText: Text
+    local procedure GenerateText(WorkItem: Codeunit "PA Work Item") ExtractedText: Text
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
         AOAIDeployments: Codeunit "AOAI Deployments";
@@ -42,12 +43,10 @@ codeunit 3336 "PA PDF Text Extraction"
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         Base64Convert: Codeunit "Base64 Convert";
         TempBlob: Codeunit "Temp Blob";
-        Source: Codeunit "PA Task Source";
         PdfInStream: InStream;
         FileName: Text;
     begin
-        Task.GetSource(Source);
-        if not Source.GetSourcePdf(TempBlob, FileName) then
+        if not WorkItem.GetSourcePdf(TempBlob, FileName) then
             Error(ExtractionFailedErr);
         TempBlob.CreateInStream(PdfInStream);
 

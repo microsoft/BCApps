@@ -7,13 +7,13 @@ namespace Microsoft.Agent.PayablesAgent;
 
 using System.Agents;
 
-page 3333 "Payables Agent Tasks"
+page 3333 "Payables Agent Work Items"
 {
-    Caption = 'Payables Agent Tasks';
+    Caption = 'Payables Agent Work Items';
     PageType = List;
     ApplicationArea = All;
     UsageCategory = Lists;
-    SourceTable = "PA Detailed Task";
+    SourceTable = "PA Work Item List Row";
     SourceTableTemporary = true;
     Editable = false;
     InsertAllowed = false;
@@ -29,31 +29,31 @@ page 3333 "Payables Agent Tasks"
     {
         area(Content)
         {
-            repeater(Tasks)
+            repeater(WorkItems)
             {
                 field(Name; Rec.Name)
                 {
                     Caption = 'Name';
-                    ToolTip = 'Specifies the name of the task.';
+                    ToolTip = 'Specifies the name of the work item.';
                 }
                 field(Source; Rec."Source Description")
                 {
                     Caption = 'Source';
-                    ToolTip = 'Specifies what the task came from, such as an email or a PDF file.';
+                    ToolTip = 'Specifies what the work item came from, such as an email or a PDF file.';
                 }
                 field(Result; Rec."Result Description")
                 {
                     Caption = 'Result';
-                    ToolTip = 'Specifies the record that was registered as the outcome of the task.';
+                    ToolTip = 'Specifies the record that was registered as the outcome of the work item.';
                 }
                 field("Vendor No."; Rec."Vendor No.")
                 {
-                    ToolTip = 'Specifies the vendor of the purchase invoice that was registered as the outcome of the task.';
+                    ToolTip = 'Specifies the vendor of the purchase invoice that was registered as the outcome of the work item.';
                 }
                 field(AgentTaskId; Rec."Agent Task ID")
                 {
                     Caption = 'Agent Task No.';
-                    ToolTip = 'Specifies the number of the agent task that works on this task.';
+                    ToolTip = 'Specifies the number of the agent task associated with this work item.';
                     Editable = false;
                     ExtendedDatatype = Task;
                     BlankNumbers = BlankZero;
@@ -66,9 +66,9 @@ page 3333 "Payables Agent Tasks"
                 field("Agent Task Status"; Rec."Agent Task Status")
                 {
                     HideValue = AgentTaskStatusHidden;
-                    ToolTip = 'Specifies the status of the agent task that works on this task.';
+                    ToolTip = 'Specifies the status of the agent task associated with this work item.';
                 }
-                field("Intake Status"; Rec."Intake Status")
+                field("Admission Status"; Rec."Admission Status")
                 {
                     ToolTip = 'Specifies whether the received source was accepted as an agent task or rejected during intake.';
                 }
@@ -92,20 +92,20 @@ page 3333 "Payables Agent Tasks"
                 action(OpenEmail)
                 {
                     Caption = 'Open email';
-                    ToolTip = 'Open the email that the task came from.';
+                    ToolTip = 'Open the email that the work item came from.';
                     Image = Email;
                     Enabled = IsEmailSourced;
 
                     trigger OnAction()
                     begin
-                        LoadCurrentTask(PATask);
-                        Presentation.OpenSourceEmail(PATask);
+                        LoadCurrentWorkItem(WorkItem);
+                        Presentation.OpenSourceEmail(WorkItem);
                     end;
                 }
                 action(OpenEmailExternally)
                 {
                     Caption = 'Open externally';
-                    ToolTip = 'Open the email that the task came from in Outlook on the web.';
+                    ToolTip = 'Open the email that the work item came from in Outlook on the web.';
                     Image = Web;
                     Enabled = HasEmailWebLink;
 
@@ -123,7 +123,7 @@ page 3333 "Payables Agent Tasks"
                 action(UploadPdf)
                 {
                     Caption = 'Upload';
-                    ToolTip = 'Upload a PDF invoice to create a new task for the payables agent.';
+                    ToolTip = 'Upload a PDF invoice to create a new work item for the payables agent.';
                     Image = Import;
                     Visible = CanUploadPdf;
 
@@ -135,70 +135,68 @@ page 3333 "Payables Agent Tasks"
                 action(DownloadPdf)
                 {
                     Caption = 'Download';
-                    ToolTip = 'Download the PDF file of the task.';
+                    ToolTip = 'Download the PDF file of the work item.';
                     Image = Download;
                     Enabled = IsPdfSourced;
 
                     trigger OnAction()
                     begin
-                        LoadCurrentTask(PATask);
-                        PATask.GetSource(TaskSource);
-                        Presentation.DownloadSourcePdf(TaskSource);
+                        LoadCurrentWorkItem(WorkItem);
+                        Presentation.DownloadSourcePdf(WorkItem);
                     end;
                 }
                 action(ViewPdf)
                 {
                     Caption = 'View';
-                    ToolTip = 'View the PDF file of the task.';
+                    ToolTip = 'View the PDF file of the work item.';
                     Image = View;
                     Enabled = IsPdfSourced;
 
                     trigger OnAction()
                     begin
-                        LoadCurrentTask(PATask);
-                        PATask.GetSource(TaskSource);
-                        Presentation.OpenSourcePdf(TaskSource);
+                        LoadCurrentWorkItem(WorkItem);
+                        Presentation.OpenSourcePdf(WorkItem);
                     end;
                 }
             }
-            action(RefreshTasks)
+            action(RefreshWorkItems)
             {
                 Caption = 'Refresh';
-                ToolTip = 'Reload the latest state of the payables agent tasks.';
+                ToolTip = 'Reload the latest state of the payables agent work items.';
                 Image = Refresh;
 
                 trigger OnAction()
                 begin
-                    ReloadTasks();
+                    ReloadWorkItems();
                 end;
             }
             action(OpenSource)
             {
                 Caption = 'Open source';
-                ToolTip = 'Open what the task came from. A task that came from an email opens the email.';
+                ToolTip = 'Open what the work item came from. A work item that came from an email opens the email.';
                 Image = Navigate;
                 Enabled = HasSource;
 
                 trigger OnAction()
                 begin
-                    LoadCurrentTask(PATask);
-                    if AgentExperience.IsActive() and PATask.CanExtractText() then
-                        AgentExperience.ShowSourceText(PATask)
+                    LoadCurrentWorkItem(WorkItem);
+                    if UseAgentExperience and WorkItem.CanExtractText() then
+                        AgentExperience.ShowSourceText(WorkItem)
                     else
-                        Presentation.OpenSource(PATask);
+                        Presentation.OpenSource(WorkItem);
                 end;
             }
             action(OpenOutcome)
             {
                 Caption = 'Open outcome';
-                ToolTip = 'Open the record that was registered as the outcome of the task.';
+                ToolTip = 'Open the record that was registered as the outcome of the work item.';
                 Image = ViewDetails;
                 Enabled = HasOutcome;
 
                 trigger OnAction()
                 begin
-                    LoadCurrentTask(PATask);
-                    Presentation.OpenOutcome(PATask);
+                    LoadCurrentWorkItem(WorkItem);
+                    Presentation.OpenOutcome(WorkItem);
                 end;
             }
             group(Agent)
@@ -216,15 +214,15 @@ page 3333 "Payables Agent Tasks"
 
                     trigger OnAction()
                     begin
-                        LoadCurrentTask(PATask);
-                        AgentExperience.ExtractSourceText(PATask);
-                        RefreshCurrentTask();
+                        LoadCurrentWorkItem(WorkItem);
+                        AgentExperience.ExtractSourceText(WorkItem);
+                        RefreshCurrentWorkItem();
                     end;
                 }
                 action(RegisterOutcome)
                 {
                     Caption = 'Register outcome';
-                    ToolTip = 'Register the purchase document that is the outcome of the task.';
+                    ToolTip = 'Register the purchase document that is the outcome of the work item.';
                     Image = Approve;
                     Enabled = CanRegisterOutcome;
 
@@ -232,11 +230,11 @@ page 3333 "Payables Agent Tasks"
                     var
                         PARegisterOutcome: Page "PA Register Outcome";
                     begin
-                        LoadCurrentTask(PATask);
-                        PARegisterOutcome.SetTask(PATask);
+                        LoadCurrentWorkItem(WorkItem);
+                        PARegisterOutcome.SetWorkItem(WorkItem);
                         if PARegisterOutcome.RunModal() <> Action::OK then
                             exit;
-                        RefreshCurrentTask();
+                        RefreshCurrentWorkItem();
                     end;
                 }
             }
@@ -247,7 +245,7 @@ page 3333 "Payables Agent Tasks"
             {
                 ApplicationArea = All;
                 Caption = 'New from PDF';
-                ToolTip = 'Upload a PDF invoice to create a new task for the payables agent.';
+                ToolTip = 'Upload a PDF invoice to create a new work item for the payables agent.';
                 Image = Sparkle;
                 Visible = CanUploadPdf;
 
@@ -284,7 +282,7 @@ page 3333 "Payables Agent Tasks"
                 {
                 }
             }
-            actionref(RefreshTasks_Promoted; RefreshTasks)
+            actionref(RefreshWorkItems_Promoted; RefreshWorkItems)
             {
             }
             actionref(OpenSource_Promoted; OpenSource)
@@ -310,7 +308,7 @@ page 3333 "Payables Agent Tasks"
 
     trigger OnOpenPage()
     begin
-        UseAgentExperience := AgentExperience.IsActive();
+        UseAgentExperience := PAAgentAccess.IsAgentView();
         CanUploadPdf := PAAgentAccess.CanShowAgentActions();
         RebuildRows();
         if Rec.FindFirst() then;
@@ -331,22 +329,20 @@ page 3333 "Payables Agent Tasks"
         CanRegisterOutcome := Rec."Has Agent Task" and Rec."Can Register Outcome";
         EmailWebLink := '';
         if IsEmailSourced then begin
-            LoadCurrentTask(PATask);
-            PATask.GetSource(TaskSource);
-            EmailWebLink := Presentation.GetEmailWebLink(TaskSource);
+            LoadCurrentWorkItem(WorkItem);
+            EmailWebLink := Presentation.GetEmailWebLink(WorkItem);
         end;
         HasEmailWebLink := EmailWebLink <> '';
     end;
 
     var
-        PATask: Codeunit "Payables Agent Task";
-        Presentation: Codeunit "PA Task Presentation";
+        WorkItem: Codeunit "PA Work Item";
+        Presentation: Codeunit "PA Work Item Presentation";
         AgentExperience: Codeunit "PA Agent Experience";
         PAAgentAccess: Codeunit "PA Agent Access";
-        TaskSource: Codeunit "PA Task Source";
         HasStateScope: Boolean;
-        ScopeState: Enum "PA Task State";
-        TaskNotFoundErr: Label 'The task does not exist.';
+        ScopeState: Enum "PA Work Item State";
+        WorkItemNotFoundErr: Label 'The work item does not exist.';
         EmailWebLink: Text;
         UseAgentExperience: Boolean;
         IsEmailSourced: Boolean;
@@ -359,7 +355,7 @@ page 3333 "Payables Agent Tasks"
         CanRegisterOutcome: Boolean;
         AgentTaskStatusHidden: Boolean;
 
-    internal procedure OpenByState(State: Enum "PA Task State")
+    internal procedure OpenByState(State: Enum "PA Work Item State")
     begin
         HasStateScope := true;
         ScopeState := State;
@@ -367,7 +363,7 @@ page 3333 "Payables Agent Tasks"
 
     local procedure RebuildRows()
     var
-        TempSavedView: Record "PA Detailed Task" temporary;
+        TempSavedView: Record "PA Work Item List Row" temporary;
     begin
         TempSavedView.Copy(Rec);
         if HasStateScope then
@@ -379,61 +375,54 @@ page 3333 "Payables Agent Tasks"
         Rec."Entry No." := 0;
     end;
 
-    local procedure ReloadTasks()
+    local procedure ReloadWorkItems()
     var
-        CurrentAgentTaskId: BigInteger;
-        CurrentSourceId: Guid;
+        CurrentWorkItemId: Guid;
     begin
-        if Rec."Has Agent Task" then
-            CurrentAgentTaskId := Rec."Agent Task ID";
-        CurrentSourceId := Rec."Source Id";
+        CurrentWorkItemId := Rec."Work Item ID";
         RebuildRows();
-        if not SelectRow(CurrentAgentTaskId, CurrentSourceId) then
+        if not SelectRow(CurrentWorkItemId) then
             if Rec.FindFirst() then;
         CurrPage.Update(false);
     end;
 
-    local procedure SelectRow(SelectedAgentTaskId: BigInteger; SourceId: Guid): Boolean
+    local procedure SelectRow(WorkItemId: Guid): Boolean
     var
-        TempVisibleRow: Record "PA Detailed Task" temporary;
+        TempVisibleRow: Record "PA Work Item List Row" temporary;
     begin
         TempVisibleRow.Copy(Rec, true);
-        if TempVisibleRow.FindSet() then
-            repeat
-                if ((SelectedAgentTaskId <> 0) and TempVisibleRow."Has Agent Task" and (TempVisibleRow."Agent Task ID" = SelectedAgentTaskId)) or
-                   ((SelectedAgentTaskId = 0) and (TempVisibleRow."Source Id" = SourceId)) then begin
-                    Rec := TempVisibleRow;
-                    exit(true);
-                end;
-            until TempVisibleRow.Next() = 0;
-        exit(false);
+        TempVisibleRow.SetRange("Work Item ID", WorkItemId);
+        if not TempVisibleRow.FindFirst() then
+            exit(false);
+        Rec := TempVisibleRow;
+        exit(true);
     end;
 
-    local procedure RefreshCurrentTask()
+    local procedure RefreshCurrentWorkItem()
     begin
-        ReloadTasks();
+        ReloadWorkItems();
     end;
 
     local procedure UploadPdfForAgent()
     var
-        TaskUpload: Codeunit "PA Task Upload";
-        UploadedSource: Codeunit "PA Task Source";
-        SourceId: Guid;
+        Upload: Codeunit "PA Work Item Upload";
+        UploadedWorkItem: Codeunit "PA Work Item";
+        WorkItemId: Guid;
     begin
-        if not TaskUpload.UploadInvoiceWithAgent(SourceId) then
+        if not Upload.UploadInvoiceWithAgent(WorkItemId) then
             exit;
-        ReloadTasks();
-        if SelectRow(0, SourceId) then
+        ReloadWorkItems();
+        if SelectRow(WorkItemId) then
             CurrPage.Update(false)
         else
-            if UploadedSource.Load(SourceId) then
-                if UploadedSource.GetAgentTaskId() <> 0 then
-                    Presentation.OpenAgentTask(UploadedSource.GetAgentTaskId());
+            if UploadedWorkItem.Load(WorkItemId) then
+                if UploadedWorkItem.HasAgentTask() then
+                    Presentation.OpenAgentTask(UploadedWorkItem.GetAgentTaskId());
     end;
 
-    local procedure LoadCurrentTask(var Task: Codeunit "Payables Agent Task")
+    local procedure LoadCurrentWorkItem(var CurrentWorkItem: Codeunit "PA Work Item")
     begin
-        if not Task.Load(Rec."Agent Task ID") then
-            Error(TaskNotFoundErr);
+        if not CurrentWorkItem.Load(Rec."Work Item ID") then
+            Error(WorkItemNotFoundErr);
     end;
 }

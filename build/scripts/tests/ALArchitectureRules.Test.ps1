@@ -8,6 +8,7 @@ Describe 'Lightweight AL architecture checks' {
         $script:runner = Join-Path $PSScriptRoot '../Test-PayablesAgentArchitecture.ps1'
         $script:paApp = Join-Path $PSScriptRoot '../../../src/Apps/W1/PayablesAgent/app'
         $script:schema = Join-Path $script:paApp 'architecture-rules.schema.json'
+        $script:policyVersion = (Get-Content -LiteralPath $script:schema -Raw | ConvertFrom-Json).properties.version.const
         function Assert-Value($Actual, $Expected) {
             if ($Actual -cne $Expected) { throw "Expected '$Expected', got '$Actual'." }
         }
@@ -26,7 +27,7 @@ Describe 'Lightweight AL architecture checks' {
             Set-File 'Consumers/Caller.al' "$Preamble`n$Kind 50104 Caller`n{`n$Body`n}"
         }
         function Set-Policy($Rule) {
-            @{ version = 3; rules = @($Rule) } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $layout.Rules -Encoding UTF8
+            @{ version = $script:policyVersion; rules = @($Rule) } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $layout.Rules -Encoding UTF8
         }
         function New-Rule([string] $Check, [hashtable] $Settings) {
             $rule = @{ id = 'TEST'; check = $Check; description = 'Test policy.'; from = @{ paths = @('Consumers/*') } }
@@ -39,18 +40,18 @@ Describe 'Lightweight AL architecture checks' {
     BeforeEach {
         $root = Join-Path $TestDrive ([Guid]::NewGuid().ToString('N'))
         $script:layout = @{ App = (Join-Path $root 'App'); Rules = (Join-Path $root 'architecture-rules.json') }
-        Set-File 'Entities/Backing.Table.al' "namespace Demo;`ntable 50100 Backing`n{`n    Access = Internal;`n}"
-        Set-File 'Entities/Backing.Codeunit.al' "namespace Demo;`ncodeunit 50101 Backing`n{`n    Access = Internal;`n}"
+        Set-File 'Entities/Store.Table.al' "namespace Demo;`ntable 50100 Store`n{`n    Access = Internal;`n}"
+        Set-File 'Entities/Store.Codeunit.al' "namespace Demo;`ncodeunit 50101 Store`n{`n    Access = Internal;`n}"
         Set-Caller ''
-        $rule = New-Rule 'dependencies' @{ to = @{ paths = @('Entities/Backing.Table.al') } }
+        $rule = New-Rule 'dependencies' @{ to = @{ paths = @('Entities/Store.Table.al') } }
         Set-Policy $rule
         Copy-Item -LiteralPath $script:schema -Destination (Join-Path $root 'architecture-rules.schema.json')
     }
 
     It 'distinguishes Record/Database/TableData from a codeunit with the same name' {
-        Set-Caller 'var Wrapper: Codeunit Backing;'
+        Set-Caller 'var Wrapper: Codeunit Store;'
         Assert-Value (Get-Result).Diagnostics.Count 0
-        foreach ($reference in @('Record Backing', 'Database::Backing', 'TableData Backing')) {
+        foreach ($reference in @('Record Store', 'Database::Store', 'TableData Store')) {
             Set-Caller "var R: $reference;"
             Assert-Value (Get-Result).Diagnostics.Count 1
         }
@@ -59,18 +60,18 @@ Describe 'Lightweight AL architecture checks' {
     It 'selects target objects by paths and optional kinds, with case-insensitive recursive globs' {
         $rule.to = @{ paths = @('entities/*'); kinds = @('table') }
         Set-Policy $rule
-        Set-Caller 'var R: Record BACKING; Wrapper: Codeunit Backing;'
+        Set-Caller 'var R: Record STORE; Wrapper: Codeunit Store;'
         Assert-Value (Get-Result).Diagnostics.Count 1
     }
 
     It 'ignores comments, strings and quoted identifiers containing fake references, preserving lines' {
         Set-Caller @'
-// Record Backing;
-/* Record Backing;
-   Database::Backing; */
-var L: Label 'Record Backing; ''still a string''';
-    "Record Backing": Integer;
-procedure Read(): Record Backing
+// Record Store;
+/* Record Store;
+   Database::Store; */
+var L: Label 'Record Store; ''still a string''';
+    "Record Store": Integer;
+procedure Read(): Record Store
 begin
 end;
 '@
@@ -80,26 +81,26 @@ end;
     }
 
     It 'treats comment markers in quoted object names as opaque and supports escaped quotes' {
-        Set-File 'Entities/Backing.Table.al' "namespace Demo;`ntable 50100 `"Back`"`"ing//`"`n{ }"
-        Set-Caller 'var R: Record "Back""ing//";'
+        Set-File 'Entities/Store.Table.al' "namespace Demo;`ntable 50100 `"Sto`"`"re//`"`n{ }"
+        Set-Caller 'var R: Record "Sto""re//";'
         Assert-Value (Get-Result).Diagnostics.Count 1
     }
 
     It 'matches whole identifiers and does not infer a table from a matching field name' {
-        Set-Caller 'var R: Record BackingExtra; Backing: Integer; procedure P() begin Use(Rec.Backing); end;'
+        Set-Caller 'var R: Record StoreExtra; Store: Integer; procedure P() begin Use(Rec.Store); end;'
         Assert-Value (Get-Result).Diagnostics.Count 0
     }
 
     It 'accepts qualified identifiers without resolving using directives' {
-        Set-Caller 'var R: Record Demo.Backing;'
+        Set-Caller 'var R: Record Demo.Store;'
         Assert-Value (Get-Result).Diagnostics.Count 1
-        Set-Caller -Body 'var R: Record Other.Backing;' -Kind 'codeunit' -Preamble "namespace Demo;`nusing Other;"
+        Set-Caller -Body 'var R: Record Other.Store;' -Kind 'codeunit' -Preamble "namespace Demo;`nusing Other;"
         Assert-Value (Get-Result).Diagnostics.Count 0
     }
 
     It 'does not scan external source catalogs' {
         Set-File 'app.json' '{"dependencies":[{"name":"Missing external source"}]}'
-        Set-Caller 'var R: Record Backing;'
+        Set-Caller 'var R: Record Store;'
         Assert-Value (Get-Result).Diagnostics.Count 1
     }
 
@@ -110,29 +111,29 @@ end;
     }
 
     It 'counts temporary references and deduplicates all preprocessor branches' {
-        Set-Caller "#if FEATURE`nvar R: Record Backing temporary;`n#else`nvar S: Record Backing;`n#endif"
+        Set-Caller "#if FEATURE`nvar R: Record Store temporary;`n#else`nvar S: Record Store;`n#endif"
         Assert-Value (Get-Result).Diagnostics.Count 1
     }
 
     It 'supports repeated declarations of one identity under preprocessor branches' {
-        Set-File 'Consumers/Caller.al' "namespace Demo;`n#if FEATURE`ncodeunit 50104 Caller implements IWork`n#else`ncodeunit 50104 Caller`n#endif`n{ var R: Record Backing; }"
+        Set-File 'Consumers/Caller.al' "namespace Demo;`n#if FEATURE`ncodeunit 50104 Caller implements IWork`n#else`ncodeunit 50104 Caller`n#endif`n{ var R: Record Store; }"
         Assert-Value (Get-Result).Diagnostics.Count 1
     }
 
     It 'recognizes simple SourceTable and TableRelation bindings as table references' {
-        Set-Caller 'SourceTable = Backing;' 'page'
+        Set-Caller 'SourceTable = Store;' 'page'
         Assert-Value (Get-Result).Diagnostics.Count 1
-        Set-Caller 'fields { field(1; Id; Integer) { TableRelation = Backing.Id; } }' 'table'
+        Set-Caller 'fields { field(1; Id; Integer) { TableRelation = Store.Id; } }' 'table'
         Assert-Value (Get-Result).Diagnostics.Count 1
     }
 
     It 'recognizes inheritance, RunObject and event subscriber object constants' {
-        Set-File 'Consumers/Caller.al' "namespace Demo;`ntableextension 50104 Caller extends Backing`n{ }"
+        Set-File 'Consumers/Caller.al' "namespace Demo;`ntableextension 50104 Caller extends Store`n{ }"
         Assert-Value (Get-Result).Diagnostics.Count 1
-        Set-Caller '[EventSubscriber(ObjectType::Table, Database::Backing, ''OnAfterInsertEvent'', '''', false, false)] local procedure P() begin end;'
+        Set-Caller '[EventSubscriber(ObjectType::Table, Database::Store, ''OnAfterInsertEvent'', '''', false, false)] local procedure P() begin end;'
         Assert-Value (Get-Result).Diagnostics.Count 1
-        Set-Policy (New-Rule 'dependencies' @{ to = @{ paths = @('Entities/Backing.Codeunit.al') } })
-        Set-Caller 'actions { area(Processing) { action(A) { RunObject = codeunit Backing; } } }' 'page'
+        Set-Policy (New-Rule 'dependencies' @{ to = @{ paths = @('Entities/Store.Codeunit.al') } })
+        Set-Caller 'actions { area(Processing) { action(A) { RunObject = codeunit Store; } } }' 'page'
         Assert-Value (Get-Result).Diagnostics.Count 1
     }
 
@@ -143,12 +144,12 @@ end;
     }
 
     It 'deliberately does not resolve numeric IDs, dynamic references or implicit enum types' {
-        Set-Caller 'procedure P() begin Use(Database::50100); Codeunit.Run(50101); Use(Backing::Open); end;'
+        Set-Caller 'procedure P() begin Use(Database::50100); Codeunit.Run(50101); Use(Store::Open); end;'
         Assert-Value (Get-Result).Diagnostics.Count 0
     }
 
     It 'never treats an object declaration as its own dependency' {
-        $rule.from.paths = @('Entities/Backing.Table.al')
+        $rule.from.paths = @('Entities/Store.Table.al')
         Set-Policy $rule
         Assert-Value (Get-Result).Diagnostics.Count 0
     }
@@ -247,6 +248,54 @@ end;
         Assert-Value (Get-Result).Diagnostics.Count 0
     }
 
+    It 'classifies only a negative CLEAN guard around all non-comment content as obsolete placement' {
+        Set-Policy (New-Rule 'obsoleteGuard' @{ allowedPaths = @('_Obsolete/*') })
+        $object = "namespace Demo;`ncodeunit 50104 Caller`n{`n}"
+        foreach ($symbol in @('CLEAN30', 'CLEANSCHEMA33')) {
+            Set-Caller -Body '' # overwritten with a whole-file fixture below
+            Set-File 'Consumers/Caller.al' "// lead`n/* comment */`n#if not $symbol // removal guard`n$object`n#endif`n// trailing`n"
+            Assert-Value (Get-Result).Diagnostics.Count 1
+        }
+        foreach ($source in @(
+            "namespace Demo;`n#if not CLEAN30`ncodeunit 50104 Caller`n{`n}`n#endif",
+            "#if not CLEAN30`n$object`n#endif`n#pragma warning disable AA0000",
+            "#if not CLEAN30`n$object`n#else`n$object`n#endif",
+            "#if DEVELOPMENT`n$object`n#endif",
+            "#if not CLEAN30 and FEATURE`n$object`n#endif",
+            "namespace Demo;`ntable 50104 Caller`n{`n fields`n {`n#if not CLEAN30`n field(1; Old; Integer) { ObsoleteState = Pending; }`n#endif`n }`n}"
+        )) {
+            Set-File 'Consumers/Caller.al' $source
+            Assert-Value (Get-Result).Diagnostics.Count 0
+        }
+    }
+
+    It 'allows archived CLEAN wrappers with nested branches and ignores comment/string directive text' {
+        $rule = New-Rule 'obsoleteGuard' @{ from = @{ paths = @('_Obsolete/*') }; allowedPaths = @('_Obsolete/*') }
+        Set-Policy $rule
+        Set-File '_Obsolete/Legacy.al' @'
+#if not CLEANSCHEMA33
+namespace Demo;
+table 50106 Legacy
+{
+#if not CLEAN30
+    ObsoleteState = Pending;
+#else
+    ObsoleteState = Removed;
+#endif
+    fields
+    {
+        field(1; Text; Text[50])
+        {
+            Caption = '#endif';
+        }
+    }
+}
+#endif
+// #if ignored
+'@
+        Assert-Value (Get-Result).Diagnostics.Count 0
+    }
+
     It 'checks production symbols, friend IDs and forbidden dependency IDs/names in manifests' {
         Set-Policy (New-Rule 'manifest' @{ from = @{ paths = @('app.json') }; forbiddenSymbols = @('DEVELOPMENT'); allowedFriends = @('approved'); forbiddenDependencies = @('Tests-*', 'blocked-id') })
         Set-File 'app.json' '{"preprocessorSymbols":["DEVELOPMENT"],"internalsVisibleTo":[{"id":"other","name":"Other"}],"dependencies":[{"id":"x","name":"Tests-Toolkit"},{"id":"blocked-id","name":"Renamed"}]}'
@@ -267,8 +316,8 @@ end;
     }
 
     It 'applies target-scoped reasoned exceptions and fails stale ones' {
-        $rule.exceptions = @(@{ from = @{ paths = @('Consumers/Caller.al') }; target = 'Entities/Backing.Table.al'; reason = 'Approved projection.' })
-        Set-Caller 'var R: Record Backing;'
+        $rule.exceptions = @(@{ from = @{ paths = @('Consumers/Caller.al') }; target = 'Entities/Store.Table.al'; reason = 'Approved projection.' })
+        Set-Caller 'var R: Record Store;'
         Set-Policy $rule
         Assert-Value (Get-Result).Diagnostics.Count 0
         Set-Caller ''
@@ -281,8 +330,8 @@ end;
 
     It 'does not let a table exception hide a dependency on the same-named codeunit' {
         $rule.to.paths = @('Entities/*')
-        $rule.exceptions = @(@{ from = @{ paths = @('Consumers/*') }; target = 'Entities/Backing.Table.al'; reason = 'Storage only.' })
-        Set-Caller 'var R: Record Backing; C: Codeunit Backing;'
+        $rule.exceptions = @(@{ from = @{ paths = @('Consumers/*') }; target = 'Entities/Store.Table.al'; reason = 'Storage only.' })
+        Set-Caller 'var R: Record Store; C: Codeunit Store;'
         Set-Policy $rule
         Assert-Value (Get-Result).Diagnostics.Count 1
     }
@@ -291,11 +340,11 @@ end;
         Set-Content -LiteralPath $layout.Rules -Value '{invalid' -Encoding UTF8
         Assert-Failure { Get-Result }
         foreach ($invalid in @(
-            @{ version = 3; rules = @($rule); catalogs = @() },
-            @{ version = 2; rules = @($rule) },
-            @{ version = 3; rules = @((New-Rule 'dependencies' @{ to = @{ paths = @() } })) },
-            @{ version = 3; rules = @((New-Rule 'dependencies' @{ to = @{ paths = @('Entities/*') }; includeTemporary = $false })) },
-            @{ version = 3; rules = @((New-Rule 'namespaces' @{ namespaces = @('External'); symbols = @(@{kind='table';name='X'}) })) }
+            @{ version = $script:policyVersion; rules = @($rule); catalogs = @() },
+            @{ version = ($script:policyVersion + 1); rules = @($rule) },
+            @{ version = $script:policyVersion; rules = @((New-Rule 'dependencies' @{ to = @{ paths = @() } })) },
+            @{ version = $script:policyVersion; rules = @((New-Rule 'dependencies' @{ to = @{ paths = @('Entities/*') }; includeTemporary = $false })) },
+            @{ version = $script:policyVersion; rules = @((New-Rule 'namespaces' @{ namespaces = @('External'); symbols = @(@{kind='table';name='X'}) })) }
         )) {
             $invalid | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $layout.Rules -Encoding UTF8
             Assert-Failure { Get-Result }
@@ -310,7 +359,7 @@ end;
     }
 
     It 'rejects duplicate IDs, invalid regexes, path traversal and missing source/target paths' {
-        @{version=3;rules=@($rule,$rule)} | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $layout.Rules
+        @{version=$script:policyVersion;rules=@($rule,$rule)} | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $layout.Rules
         Assert-Failure { Get-Result } 'Duplicate rule ID'
         Set-Policy (New-Rule 'forbiddenCode' @{ pattern = '[' })
         Assert-Failure { Get-Result }
@@ -332,12 +381,12 @@ end;
     }
 
     It 'runner fails all findings, with error annotations and clean-scan PassThru' {
-        Set-Caller 'var R: Record Backing;'
+        Set-Caller 'var R: Record Store;'
         Assert-Failure { & $script:runner -AppRoot $layout.App -RulesPath $layout.Rules *> $null } 'architecture checks failed'
         Set-Caller ''
         $result = & $script:runner -AppRoot $layout.App -RulesPath $layout.Rules -PassThru 6> $null
         Assert-Value $result.Diagnostics.Count 0
-        Set-Caller 'var R: Record Backing;'
+        Set-Caller 'var R: Record Store;'
         $previous = $env:GITHUB_ACTIONS
         try {
             $env:GITHUB_ACTIONS = 'true'
@@ -371,7 +420,7 @@ end;
             Copy-Item -LiteralPath (Join-Path $sourceRoot $name) -Destination (Join-Path $layout.App $name)
         }
         $layout.Rules = Join-Path $layout.App 'architecture-rules.json'
-        Set-File 'Entities/Task/BadOwner.Codeunit.al' @'
+        Set-File 'Entities/WorkItem/BadOwner.Codeunit.al' @'
 namespace Microsoft.Agent.PayablesAgent;
 using Microsoft.eServices.EDocument.Processing.Import;
 codeunit 50120 "Bad Owner"
@@ -380,19 +429,27 @@ codeunit 50120 "Bad Owner"
     var
         Fixtures: Codeunit "PA Test Fixtures";
         VendorPage: Page "Vendor Card";
+        RawWorkItem: Record "Payables Agent Work Item";
+        Versions: Codeunit "PA V1V2 Flag";
+        WorkItemId: Guid;
     procedure P()
     begin
         Commit();
         Message('Interactive UI');
         Session.LogMessage('event');
+        Versions.GetVersion(WorkItemId);
     end;
 }
 '@
+        Set-File 'Flows/Intake/PreviewLeak.Codeunit.al' "namespace Microsoft.Agent.PayablesAgent;`ncodeunit 50125 PreviewLeak`n{`n    Access = Internal;`n    procedure P(var Setup: Record `"Payables Agent Setup`")`n    begin`n        Setup.`"Preview Version`" := Setup.`"Preview Version`"::`"V2 Preview`";`n    end;`n}"
+        $previewPage = Join-Path $layout.App '_Obsolete/PAV2PreviewSetup.Page.al'
+        Set-Content -LiteralPath $previewPage -Value ((Get-Content -LiteralPath $previewPage -Raw).Replace('PageType = Card;', "PageType = Card;`n    UsageCategory = Administration;")) -Encoding UTF8
+        Set-File 'Flows/Intake/LegacyGuard.Codeunit.al' "#if not CLEAN99`nnamespace Microsoft.Agent.PayablesAgent;`ncodeunit 50124 LegacyGuard`n{ Access = Internal; }`n#endif"
         Set-File '_Development/Unguarded.Codeunit.al' "namespace Microsoft.Agent.PayablesAgent;`ncodeunit 50121 Unguarded`n{ Access = Internal; }"
         Set-File '_Obsolete/New.Page.al' "namespace Microsoft.Agent.PayablesAgent;`npage 50122 NewPage`n{ Extensible = false; }"
         Set-File 'Flows/Supervision/Missing.Table.al' "namespace Microsoft.Agent.PayablesAgent;`ntable 50123 Missing`n{ }"
         $ids = @((Get-Result).Diagnostics | ForEach-Object RuleId)
-        foreach ($id in @('PA003', 'PA009', 'PA010', 'PA011', 'PA012', 'PA013', 'PA015', 'PA016', 'PA019')) {
+        foreach ($id in @('PA003', 'PA004', 'PA009', 'PA010', 'PA011', 'PA012', 'PA013', 'PA015', 'PA016', 'PA019', 'PA024', 'PA027', 'PA028', 'PA029')) {
             if ($id -notin $ids) { throw "Concrete policy failed to detect $id" }
         }
         if ('CONFIG' -in $ids) { throw 'Copying source should not invalidate existing exceptions.' }
