@@ -537,6 +537,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
         PaymentNo: Code[20];
         CurrencyCode: Code[10];
         TotalAmount: Decimal;
+        TotalAmountLCY: Decimal;
         LastGLRegNo: Integer;
     begin
         Initialize();
@@ -562,6 +563,9 @@ codeunit 134195 "ERM Multiple Posting Groups"
         TotalAmount := SalesHeader."Amount Including VAT";
 
         InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Invoice, InvoiceNo);
+        CustLedgerEntry.CalcFields("Amount (LCY)");
+        TotalAmountLCY := Abs(CustLedgerEntry."Amount (LCY)");
 
         GLRegister.FindLast();
         LastGLRegNo := GLRegister."No.";
@@ -588,8 +592,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         GLEntry.Reset();
         GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
         Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", -TotalAmount * 2, -TotalAmount);
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", TotalAmount * 2, TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", -TotalAmountLCY, -TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", TotalAmountLCY, TotalAmount);
 
         // Unapply payment - should post 2 reversal G/L entries between Receivables accounts
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
@@ -600,8 +604,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         GLEntry.Reset();
         GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
         Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", TotalAmount * 2, TotalAmount);
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", -TotalAmount * 2, -TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup2."Receivables Account", TotalAmountLCY, TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, CustomerPostingGroup."Receivables Account", -TotalAmountLCY, -TotalAmount);
     end;
 
     [Test]
@@ -722,6 +726,7 @@ codeunit 134195 "ERM Multiple Posting Groups"
         PaymentNo: Code[20];
         CurrencyCode: Code[10];
         TotalAmount: Decimal;
+        TotalAmountLCY: Decimal;
         LastGLRegNo: Integer;
     begin
         Initialize();
@@ -751,6 +756,9 @@ codeunit 134195 "ERM Multiple Posting Groups"
         TotalAmount := PurchaseHeader."Amount Including VAT";
 
         InvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, "Gen. Journal Document Type"::Invoice, InvoiceNo);
+        VendorLedgerEntry.CalcFields("Amount (LCY)");
+        TotalAmountLCY := Abs(VendorLedgerEntry."Amount (LCY)");
 
         GLRegister.FindLast();
         LastGLRegNo := GLRegister."No.";
@@ -777,8 +785,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         GLEntry.Reset();
         GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
         Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup2."Payables Account", TotalAmount * 2, TotalAmount);
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup."Payables Account", -TotalAmount * 2, -TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup2."Payables Account", TotalAmountLCY, TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup."Payables Account", -TotalAmountLCY, -TotalAmount);
 
         // Unapply payment - should post 2 reversal G/L entries between Payables accounts
         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, "Gen. Journal Document Type"::Payment, PaymentNo);
@@ -789,8 +797,8 @@ codeunit 134195 "ERM Multiple Posting Groups"
         GLEntry.Reset();
         GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
         Assert.AreEqual(2, GLEntry.Count(), 'application G/L entry for invoice not found');
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup2."Payables Account", -TotalAmount * 2, -TotalAmount);
-        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup."Payables Account", TotalAmount * 2, TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup2."Payables Account", -TotalAmountLCY, -TotalAmount);
+        VerifyGLEntryForGLAccountAndAddCurrAmount(GLEntry, VendorPostingGroup."Payables Account", TotalAmountLCY, TotalAmount);
     end;
 
     [Test]
