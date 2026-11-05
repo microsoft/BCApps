@@ -114,6 +114,113 @@ Describe "BuildOptimization" {
         }
     }
 
+    Context "Compiled app ownership" {
+        BeforeAll {
+            $script:createdAlGoModule = -not (Get-Module DetermineProjectsToBuild)
+            if ($script:createdAlGoModule) {
+                New-Module -Name DetermineProjectsToBuild -ScriptBlock {
+                    function ReadSettings {
+                        param($baseFolder, $project, $buildMode)
+                        $null = $baseFolder, $project, $buildMode
+                        throw 'AL-Go settings must be mocked in unit tests.'
+                    }
+                    function ResolveProjectFolders {
+                        param($baseFolder, $project, $projectSettings)
+                        $null = $baseFolder, $project, $projectSettings
+                        throw 'AL-Go folder resolution must be mocked in unit tests.'
+                    }
+                    Export-ModuleMember -Function @()
+                } | Import-Module
+            }
+            $script:compiledRoots = @(
+                'src\System Application\App', 'src\System Application\Test',
+                'src\Apps\W1\EDocument\App', 'src\Apps\W1\EDocument\Test'
+            ) | ForEach-Object { Join-Path $baseFolder $_ }
+            $script:compiledGraph = Get-AppDependencyGraph -BaseFolder $baseFolder -AppFolders $script:compiledRoots
+        }
+
+        AfterAll {
+            if ($script:createdAlGoModule) { Remove-Module DetermineProjectsToBuild }
+        }
+
+        It "follows projectsToTest and delegates effective country settings and folder resolution to AL-Go" {
+            Mock -ModuleName DetermineProjectsToBuild ReadSettings {
+                $settings = @{ appFolders = @(); testFolders = @(); bcptTestFolders = @(); projectsToTest = @() }
+                $json = Get-Content (Join-Path $baseFolder "$project\.AL-Go\settings.json") -Raw | ConvertFrom-Json
+                foreach ($key in @('appFolders', 'testFolders', 'bcptTestFolders', 'projectsToTest')) {
+                    if ($json.PSObject.Properties.Name -contains $key) { $settings[$key] = $json.$key }
+                }
+                return $settings
+            }
+            Mock -ModuleName DetermineProjectsToBuild ResolveProjectFolders { }
+            InModuleScope BuildOptimization -Parameters @{ Root = $baseFolder } {
+                $roots = @(Get-CompiledAppFolders -BaseFolder $Root -Project 'build/projects/Test Apps DE')
+                $roots | Should -Contain (Join-Path $Root 'src\System Application\Test')
+                $roots | Should -Not -Contain (Join-Path $Root 'src\System Application\Test\Email')
+                $countryGraph = Get-AppDependencyGraph -BaseFolder $Root -AppFolders $roots
+                $countryGraph['0d60b215-6ee1-4789-8e53-866cfa50c23c'].Name | Should -Be 'System Application Test'
+            }
+            Should -Invoke -ModuleName DetermineProjectsToBuild ReadSettings -Times 1 -ParameterFilter { $project -eq 'build/projects/Apps DE' }
+            Should -Invoke -ModuleName DetermineProjectsToBuild ResolveProjectFolders -Times 1 -Exactly -ParameterFilter { $project -eq 'build/projects/Apps DE' }
+        }
+
+        It "maps an Email test change to the compiled aggregate, not its nested component manifest" {
+            $id = Get-AppForFile -FilePath 'src/System Application/Test/Email/Changed.al' -BaseFolder $baseFolder -Graph $script:compiledGraph
+            $script:compiledGraph[$id].Name | Should -Be 'System Application Test'
+        }
+
+        It "includes compiled dependents of a component app change" {
+            $affected = Get-AffectedApps -ChangedFiles @('src/System Application/App/Email/Changed.al') `
+                -BaseFolder $baseFolder -Graph $script:compiledGraph
+            $names = @($affected | ForEach-Object { $script:compiledGraph[$_].Name })
+            $names | Should -Contain 'System Application'
+            $names | Should -Contain 'System Application Test'
+        }
+
+        It "keeps ordinary extension ownership and observes root path boundaries" {
+            Get-AppForFile -FilePath 'src/Apps/W1/EDocument/App/src/Changed.al' -BaseFolder $baseFolder -Graph $script:compiledGraph |
+                Should -Be 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
+            Get-AppForFile -FilePath 'src/System Application/Application/Changed.al' -BaseFolder $baseFolder -Graph $script:compiledGraph |
+                Should -BeNullOrEmpty
+        }
+
+        It "uses a component root only when it is declared in the compilation graph" {
+            $moduleGraph = Get-AppDependencyGraph -BaseFolder $baseFolder `
+                -AppFolders @($script:compiledRoots + (Join-Path $baseFolder 'src\System Application\App\Email'))
+            Get-AppForFile -FilePath 'src/System Application/App/Email/Changed.al' -BaseFolder $baseFolder -Graph $moduleGraph |
+                Should -Be '9c4a2cf2-be3a-4aa3-833b-99a5ffd11f25'
+        }
+
+        It "does not silently overwrite duplicate compiled app identities" {
+            { Get-AppDependencyGraph -BaseFolder $baseFolder -AppFolders @($script:compiledRoots[0], $script:compiledRoots[0]) } |
+                Should -Throw '*Compiled app ID*occurs in both*'
+        }
+
+        It "uses the active compilation graph in the churn proposal" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
+            Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/System Application/Test/Email/Changed.al') }
+            Mock -ModuleName BuildOptimization Get-CompiledAppFolders { $script:compiledRoots }
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:BUILD_OPTIMIZATION_DISABLED = $null
+                $result = Get-AffectedAppNames -BaseFolder $baseFolder -Project 'build/projects/Test Apps DE'
+                $result.RunAll | Should -BeFalse
+                $result.AppNames | Should -Contain 'System Application Test'
+                $result.AppNames | Should -Not -Contain 'Email Test'
+                Should -Invoke -ModuleName BuildOptimization Get-CompiledAppFolders -Times 1 -ParameterFilter {
+                    $Project -eq 'build/projects/Test Apps DE'
+                }
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
+            }
+        }
+    }
+
     Context "Initialize-GitCommit" {
         It "returns only a boolean when fetch exits with <ExitCode> and writes stdout" -ForEach @(
             @{ ExitCode = 0; Expected = $true }
@@ -323,6 +430,59 @@ Describe "BuildOptimization" {
                 $env:GITHUB_EVENT_NAME = $savedEvent
                 $env:GITHUB_EVENT_PATH = $savedEventPath
                 $env:GITHUB_SHA = $savedSha
+            }
+        }
+
+        It "includes both rename owners and a moved-out full-build path only for impact analysis" {
+            $repo = Join-Path $TestDrive 'renames'
+            git init --quiet $repo
+            git -C $repo config diff.renames true
+            foreach ($folder in @('src\First', 'src\Second', '.github', 'docs')) {
+                New-Item -ItemType Directory -Path (Join-Path $repo $folder) -Force | Out-Null
+            }
+            foreach ($name in @('First', 'Second')) {
+                @{ id = $name; name = $name; dependencies = @() } | ConvertTo-Json |
+                    Set-Content (Join-Path $repo "src\$name\app.json")
+            }
+            Set-Content (Join-Path $repo 'src\First\Code.al') 'unchanged AL content'
+            Set-Content (Join-Path $repo '.github\config.json') '{"unchanged":true}'
+            git -C $repo add .
+            git -C $repo -c user.name=Test -c user.email=test@example.com commit --quiet -m initial
+            $baseSha = git -C $repo rev-parse HEAD
+            git -C $repo mv src/First/Code.al src/Second/Code.al
+            git -C $repo mv .github/config.json docs/config.json
+            Set-Content (Join-Path $repo 'src\Second\New.al') 'new AL content'
+            git -C $repo add .
+            git -C $repo -c user.name=Test -c user.email=test@example.com commit --quiet -m rename
+            $headSha = git -C $repo rev-parse HEAD
+            $eventFile = Join-Path $TestDrive 'rename-event.json'
+            @{ before = $baseSha; after = $headSha } | ConvertTo-Json | Set-Content $eventFile
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            Push-Location $repo
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'push'
+                $env:GITHUB_EVENT_PATH = $eventFile
+                $files = @(Get-ChangedFilesForCI -CompareWithPullRequestMerge)
+                $files | Should -Contain 'src/First/Code.al'
+                $files | Should -Contain 'src/Second/Code.al'
+                $files | Should -Contain '.github/config.json'
+                Test-FullBuildPatternsMatch -ChangedFiles $files -BaseFolder $baseFolder | Should -BeTrue
+                $renameGraph = Get-AppDependencyGraph -BaseFolder $repo -AppFolders @(
+                    (Join-Path $repo 'src\First'), (Join-Path $repo 'src\Second')
+                )
+                $affected = @(Get-AffectedApps -ChangedFiles $files -BaseFolder $repo -Graph $renameGraph)
+                $affected | Should -Contain 'first'
+                $affected | Should -Contain 'second'
+                @(Get-ChangedFilesForCI -DiffFilter A -CompareFromMergeBase -RequireChangeDetection) |
+                    Should -Be @('src/Second/New.al')
+            } finally {
+                Pop-Location
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
             }
         }
 

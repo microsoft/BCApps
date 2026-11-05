@@ -8,12 +8,53 @@
 
 $ErrorActionPreference = "Stop"
 
+<#
+.SYNOPSIS
+    Resolves compiled app roots for a project using the pipeline's AL-Go settings helpers.
+.PARAMETER BaseFolder
+    Repository root.
+.PARAMETER Project
+    AL-Go project path relative to the repository root.
+#>
+function Get-CompiledAppFolders {
+    param([string] $BaseFolder, [string] $Project)
+
+    $alGo = Get-Module DetermineProjectsToBuild
+    if (-not $alGo) { throw 'Compiled app resolution requires the AL-Go pipeline module DetermineProjectsToBuild.' }
+    $buildMode = if ($env:_buildMode) { $env:_buildMode } else { 'Default' }
+    $pending = [System.Collections.Generic.Queue[string]]::new()
+    $pending.Enqueue($Project)
+    $visited = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $folders = @()
+    while ($pending.Count -gt 0) {
+        $current = $pending.Dequeue()
+        if (-not $visited.Add($current)) { continue }
+        $settings = & $alGo {
+            param($root, $projectPath, $mode)
+            $resolved = ReadSettings -baseFolder $root -project $projectPath -buildMode $mode
+            if (-not $resolved.projectsToTest) {
+                ResolveProjectFolders -baseFolder $root -project $projectPath -projectSettings ([ref] $resolved)
+            }
+            return $resolved
+        } $BaseFolder $current $buildMode
+        if ($settings.projectsToTest) {
+            foreach ($dependency in $settings.projectsToTest) { $pending.Enqueue($dependency) }
+            continue
+        }
+        foreach ($folder in @($settings.appFolders) + @($settings.testFolders) + @($settings.bcptTestFolders)) {
+            $folders += [System.IO.Path]::GetFullPath((Join-Path (Join-Path $BaseFolder $current) $folder))
+        }
+    }
+    return @($folders | Sort-Object -Unique)
+}
 
 <#
 .SYNOPSIS
-    Builds a dependency graph from all app.json files under the given base folder.
+    Builds a dependency graph from compiled roots, or all manifests when roots are omitted.
 .PARAMETER BaseFolder
     Root of the repository.
+.PARAMETER AppFolders
+    Resolved compiled roots; when omitted, discover manifests under BaseFolder.
 .OUTPUTS
     Hashtable keyed by lowercase app ID. Each value is a PSCustomObject with
     Id, Name, AppFolder, Dependencies (string[]), Dependents (List[string]).
@@ -23,18 +64,26 @@ function Get-AppDependencyGraph {
     [OutputType([hashtable])]
     param(
         [Parameter(Mandatory)]
-        [string] $BaseFolder
+        [string] $BaseFolder,
+        [string[]] $AppFolders
     )
 
     $graph = @{}
-    $appJsonFiles = Get-ChildItem -Path $BaseFolder -Recurse -Filter 'app.json' -File |
-        Where-Object { $_.FullName -notmatch '[\\/]\.buildartifacts[\\/]' }
+    $appJsonFiles = if ($PSBoundParameters.ContainsKey('AppFolders')) {
+        $AppFolders | ForEach-Object { Get-Item -LiteralPath (Join-Path $_ 'app.json') }
+    } else {
+        Get-ChildItem -Path $BaseFolder -Recurse -Filter 'app.json' -File |
+            Where-Object { $_.FullName -notmatch '[\\/]\.buildartifacts[\\/]' }
+    }
 
     foreach ($file in $appJsonFiles) {
         $json = Get-Content -Path $file.FullName -Raw | ConvertFrom-Json
         if (-not $json.id) { continue }
 
         $appId = $json.id.ToLowerInvariant()
+        if ($PSBoundParameters.ContainsKey('AppFolders') -and $graph.ContainsKey($appId)) {
+            throw "Compiled app ID '$appId' occurs in both '$($graph[$appId].AppFolder)' and '$($file.DirectoryName)'."
+        }
         $depIds = @()
         if ($json.dependencies) {
             $depIds = @($json.dependencies | ForEach-Object { $_.id.ToLowerInvariant() })
@@ -62,11 +111,13 @@ function Get-AppDependencyGraph {
 
 <#
 .SYNOPSIS
-    Determines which app (if any) a file belongs to by walking up to the nearest app.json.
+    Maps a file to its deepest compiled root, or nearest manifest when no graph is supplied.
 .PARAMETER FilePath
     Path to the changed file (absolute or relative to BaseFolder).
 .PARAMETER BaseFolder
     Root of the repository.
+.PARAMETER Graph
+    When supplied, map to the deepest compiled root in this graph instead of a nested manifest.
 .OUTPUTS
     The app ID (lowercase GUID) or $null if the file is not inside any app folder.
 #>
@@ -77,13 +128,27 @@ function Get-AppForFile {
         [Parameter(Mandatory)]
         [string] $FilePath,
         [Parameter(Mandatory)]
-        [string] $BaseFolder
+        [string] $BaseFolder,
+        [hashtable] $Graph
     )
 
     if (-not [System.IO.Path]::IsPathRooted($FilePath)) {
         $FilePath = Join-Path $BaseFolder $FilePath
     }
     $FilePath = [System.IO.Path]::GetFullPath($FilePath)
+
+    if ($PSBoundParameters.ContainsKey('Graph')) {
+        $owner = $null
+        foreach ($node in $Graph.Values) {
+            $root = $node.AppFolder.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+            if ($FilePath.StartsWith($root, [StringComparison]::OrdinalIgnoreCase) -and
+                ($null -eq $owner -or $node.AppFolder.Length -gt $owner.AppFolder.Length)) {
+                $owner = $node
+            }
+        }
+        if ($owner) { return $owner.Id }
+        return $null
+    }
 
     $dir = [System.IO.Path]::GetDirectoryName($FilePath)
     $baseFolderNorm = [System.IO.Path]::GetFullPath($BaseFolder).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
@@ -137,7 +202,7 @@ function Get-AffectedApps {
     # Map changed files to apps
     $directlyChanged = [System.Collections.Generic.HashSet[string]]::new()
     foreach ($file in $ChangedFiles) {
-        $appId = Get-AppForFile -FilePath $file -BaseFolder $BaseFolder
+        $appId = Get-AppForFile -FilePath $file -BaseFolder $BaseFolder -Graph $Graph
         if ($appId) {
             [void]$directlyChanged.Add($appId)
         } elseif ($file.Replace('\', '/') -match '(^|/)src/') {
@@ -277,7 +342,7 @@ function Initialize-GitCommit {
     .PARAMETER CompareFromMergeBase
     Compare the head against the merge base instead of the current base-branch tip.
     .PARAMETER CompareWithPullRequestMerge
-    For pull_request events, compare the verified checked-out merge against its first parent.
+    For impact analysis, include both rename paths and compare normal PRs to the tested merge's first parent.
     .PARAMETER RequireChangeDetection
     Throw instead of returning null when the change set cannot be determined.
 .OUTPUTS
@@ -385,6 +450,7 @@ function Get-ChangedFilesForCI {
         }
 
         $diffArguments = @('-c', 'core.quotePath=false', 'diff', '--name-only')
+        if ($CompareWithPullRequestMerge) { $diffArguments += '--no-renames' }
         if (-not [string]::IsNullOrWhiteSpace($DiffFilter)) {
             $diffArguments += "--diff-filter=$DiffFilter"
         }
@@ -474,6 +540,8 @@ function Test-FullBuildPatternsMatch {
     Selective results also retain Tests-NewObjects-Internal regardless of dependency changes.
 .PARAMETER BaseFolder
     Root of the repository.
+.PARAMETER Project
+    Active AL-Go project; defaults to the pipeline's _project environment variable.
 .OUTPUTS
     PSCustomObject with RunAll (bool) and AppNames (string[]).
 #>
@@ -482,7 +550,8 @@ function Get-AffectedAppNames {
     [OutputType([PSCustomObject])]
     param(
         [Parameter(Mandatory)]
-        [string] $BaseFolder
+        [string] $BaseFolder,
+        [string] $Project = $env:_project
     )
 
     $runAll = @{ RunAll = $true; AppNames = @() }
@@ -514,7 +583,12 @@ function Get-AffectedAppNames {
         return [PSCustomObject]$runAll
     }
 
-    $graph = Get-AppDependencyGraph -BaseFolder $BaseFolder
+    $graph = if ($Project) {
+        $appFolders = @(Get-CompiledAppFolders -BaseFolder $BaseFolder -Project $Project)
+        Get-AppDependencyGraph -BaseFolder $BaseFolder -AppFolders $appFolders
+    } else {
+        Get-AppDependencyGraph -BaseFolder $BaseFolder
+    }
     $affectedIds = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $BaseFolder -Graph $graph
 
     # Full build triggered (unmapped src file or all apps affected)
