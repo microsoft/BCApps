@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using System.Utilities;
+
 codeunit 7440 "EA Corp Card Post Mgt"
 {
     Access = Internal;
