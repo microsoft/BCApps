@@ -411,8 +411,25 @@ codeunit 6902 "Expense Rule Validation"
         DuplicateExpenseReportLine.SetRange("Merchant Name", ExpenseReportLine."Merchant Name");
         DuplicateExpenseReportLine.SetRange(Amount, ExpenseReportLine.Amount);
         DuplicateExpenseReportLine.SetFilter(SystemId, '<>%1', ExpenseReportLine.SystemId); // Exclude current record to not consider it as duplicate of itself.
+        if not IsTravelRequestPerDiemLine(ExpenseReportLine) then
+            exit(not DuplicateExpenseReportLine.IsEmpty());
+
+        DuplicateExpenseReportLine.SetFilter("Spend Request No.", '<>%1', ExpenseReportLine."Spend Request No.");
         if not DuplicateExpenseReportLine.IsEmpty() then
             exit(true);
+
+        DuplicateExpenseReportLine.SetRange("Spend Request No.", ExpenseReportLine."Spend Request No.");
+        DuplicateExpenseReportLine.SetRange("Expense User No.", ExpenseReportLine."Expense User No.");
+        exit(not DuplicateExpenseReportLine.IsEmpty());
+    end;
+
+    /// <summary>
+    /// Per diem lines created for each traveler of a travel request share the same date and amount and have no receipt or merchant,
+    /// so per diem lines of other travelers on the same travel request must not be treated as duplicates.
+    /// </summary>
+    local procedure IsTravelRequestPerDiemLine(ExpenseReportLine: Record "Expense Report Line"): Boolean
+    begin
+        exit((ExpenseReportLine."Expense Detail Required" = ExpenseReportLine."Expense Detail Required"::"Per Diem") and (ExpenseReportLine."Spend Request No." <> ''));
     end;
 
     local procedure ExistDuplicateInPostedExpenseReportLine(ExpenseReportLine: Record "Expense Report Line"): Boolean
@@ -428,8 +445,16 @@ codeunit 6902 "Expense Rule Validation"
 
         PostedExpenseReportLine.SetRange("Merchant Name", ExpenseReportLine."Merchant Name");
         PostedExpenseReportLine.SetRange(Amount, ExpenseReportLine.Amount);
+        if not IsTravelRequestPerDiemLine(ExpenseReportLine) then
+            exit(not PostedExpenseReportLine.IsEmpty());
+
+        PostedExpenseReportLine.SetFilter("Spend Request No.", '<>%1', ExpenseReportLine."Spend Request No.");
         if not PostedExpenseReportLine.IsEmpty() then
             exit(true);
+
+        PostedExpenseReportLine.SetRange("Spend Request No.", ExpenseReportLine."Spend Request No.");
+        PostedExpenseReportLine.SetRange("Expense User No.", ExpenseReportLine."Expense User No.");
+        exit(not PostedExpenseReportLine.IsEmpty());
     end;
 
     local procedure TryGetNegativeExpenseDateFormula(var NegativeExpenseAgeFormula: DateFormula): Boolean

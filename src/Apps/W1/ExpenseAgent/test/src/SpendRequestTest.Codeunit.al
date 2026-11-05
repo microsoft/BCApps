@@ -97,6 +97,7 @@ codeunit 148339 "Spend Request Test"
         PerDiemLineDescriptionTxt: Label 'Per diem for travel request %1, created on approval', Comment = '%1 = Travel Request No.', Locked = true;
         MerchantNameMandatoryFilterTok: Label 'Merchant Name is mandatory*', Locked = true;
         ReceiptNoMandatoryFilterTok: Label 'Receipt No. is mandatory*', Locked = true;
+        DuplicateExpenseReportFilterTok: Label 'An expense report already exists*', Locked = true;
         ApproverUserIdRecordedMsg: Label 'The approving or rejecting user ID should be recorded on the travel request.';
         ApproverUserNameRecordedMsg: Label 'The approving or rejecting user name should be recorded on the travel request.';
         ApproverDateTimeRecordedMsg: Label 'The approval or rejection date and time should be recorded on the travel request.';
@@ -1477,6 +1478,89 @@ codeunit 148339 "Spend Request Test"
         Assert.RecordIsEmpty(ExpenseReportRuleViolation);
 
         SetMerchantAndReceiptMandatory(false);
+    end;
+
+    [Test]
+    procedure PerDiemLinesOfTravelersOnSameTravelRequestAreNotDuplicates()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
+    begin
+        // [SCENARIO] The per diem lines created for each traveler of a travel request share date and amount, but are not duplicates of each other.
+        Initialize();
+        SetFullRatePerDiemCalculation();
+
+        // [GIVEN] An approved travel request with per diem for two travelers, which created an identical per diem line for each traveler.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.CreateExpenseUser(OtherExpenseUser);
+        LibraryExpense.CreateTraveler(SpendRequest."No.", OtherExpenseUser."No.");
+        SetPerDiemDetailsWithRule(SpendRequest);
+        ReleaseAndApproveTravelRequest(SpendRequest);
+
+        // [WHEN] The per diem lines are validated against the rules.
+        // [THEN] No duplicate rule violation is raised for either traveler.
+        VerifyPerDiemLineDuplicateViolation(GetTravelerExpenseReport(SpendRequest, ExpenseUser), false);
+        VerifyPerDiemLineDuplicateViolation(GetTravelerExpenseReport(SpendRequest, OtherExpenseUser), false);
+    end;
+
+    [Test]
+    procedure PerDiemLineDuplicatedForSameTravelerIsFlagged()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] A copy of a traveler's per diem line from a travel request is still a duplicate.
+        Initialize();
+        SetFullRatePerDiemCalculation();
+
+        // [GIVEN] An approved travel request with per diem, which created a per diem line for the traveler.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        SetPerDiemDetailsWithRule(SpendRequest);
+        ReleaseAndApproveTravelRequest(SpendRequest);
+        ExpenseReportHeader := GetTravelerExpenseReport(SpendRequest, ExpenseUser);
+
+        // [GIVEN] The traveler adds a copy of the per diem line to the expense report.
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        ExpenseReportLine."Line No." += 10000;
+        ExpenseReportLine.Insert();
+
+        // [WHEN] The per diem line is validated against the rules.
+        // [THEN] A duplicate rule violation is raised.
+        VerifyPerDiemLineDuplicateViolation(ExpenseReportHeader, true);
+    end;
+
+    [Test]
+    procedure PerDiemLinesOfDifferentTravelRequestsAreDuplicates()
+    var
+        SpendRequest: Record "Spend Request";
+        OtherSpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
+        ExpenseLocation: Record "Expense Location";
+        ExpenseCategory: Record "Expense Category";
+    begin
+        // [SCENARIO] Per diem lines with the same date and amount from different travel requests are still duplicates.
+        Initialize();
+        SetFullRatePerDiemCalculation();
+
+        // [GIVEN] Two approved travel requests with per diem for the same expense location and dates, for different travelers.
+        CreatePerDiemLocation(ExpenseLocation);
+        CreatePerDiemCategory(ExpenseCategory);
+        CreatePerDiemRule(ExpenseCategory.Code, ExpenseLocation."No.", 0D, LibraryRandom.RandIntInRange(10, 100));
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        SetPerDiemDetails(SpendRequest, ExpenseLocation."No.");
+        ReleaseAndApproveTravelRequest(SpendRequest);
+        CreateReleasableSpendRequest(OtherSpendRequest, OtherExpenseUser);
+        SetPerDiemDetails(OtherSpendRequest, ExpenseLocation."No.");
+        ReleaseAndApproveTravelRequest(OtherSpendRequest);
+
+        // [WHEN] The per diem line of the second travel request is validated against the rules.
+        // [THEN] A duplicate rule violation is raised.
+        VerifyPerDiemLineDuplicateViolation(GetTravelerExpenseReport(OtherSpendRequest, OtherExpenseUser), true);
     end;
 
     [Test]
@@ -3658,6 +3742,25 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
         ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
         Assert.RecordCount(ExpenseReportLinePerDiem, GetTripDays(SpendRequest));
+    end;
+
+    local procedure VerifyPerDiemLineDuplicateViolation(ExpenseReportHeader: Record "Expense Report Header"; DuplicateExpected: Boolean)
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+    begin
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+
+        ExpenseReportRuleViolation.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportRuleViolation.SetRange("Report Line No.", ExpenseReportLine."Line No.");
+        ExpenseReportRuleViolation.SetFilter(Description, DuplicateExpenseReportFilterTok);
+        if DuplicateExpected then
+            Assert.RecordIsNotEmpty(ExpenseReportRuleViolation)
+        else
+            Assert.RecordIsEmpty(ExpenseReportRuleViolation);
     end;
 
     local procedure VerifyPerDiemLineCategory(ExpenseReportHeader: Record "Expense Report Header"; ExpenseCategoryCode: Code[20])
