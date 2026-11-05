@@ -12,7 +12,7 @@
   "artifact": "bcinsider/Sandbox/29.1.57579.0//latest",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "29.1",
+  "repoVersion": "29.2",
   "memoryLimit": "16G",
   "numberOfTenantsForTesting": 4,
   "maxTestAppReruns": 2,
