@@ -780,7 +780,7 @@ codeunit 140011 "Test FAB Config Package"
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] The built-in package is (re)registered, as happens on install/upgrade
-        FabricInstall.EnsureMsStdPackage();
+        FabricInstall.EnsureMicrosoftPackages();
 
         //[THEN] The package header and its full curated table set are registered
         VerifyMsStdPackageRegistered();
