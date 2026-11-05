@@ -1298,11 +1298,16 @@ codeunit 13916 "Export XRechnung Document"
     end;
 
     local procedure InsertPartyTaxScheme(var PartyElement: XmlElement; VATRegistrationNo: Text[20]; CountryCode: Code[10]);
+    begin
+        InsertPartyTaxScheme(PartyElement, GetVATRegistrationNo(VATRegistrationNo, CountryCode));
+    end;
+
+    local procedure InsertPartyTaxScheme(var PartyElement: XmlElement; VATRegistrationNo: Text)
     var
         PartyTaxSchemeElement: XmlElement;
     begin
         PartyTaxSchemeElement := XmlElement.Create('PartyTaxScheme', XmlNamespaceCAC);
-        PartyTaxSchemeElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, GetVATRegistrationNo(VATRegistrationNo, CountryCode)));
+        PartyTaxSchemeElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, VATRegistrationNo));
         InsertTaxScheme(PartyTaxSchemeElement);
         PartyElement.Add(PartyTaxSchemeElement);
     end;
@@ -1468,7 +1473,7 @@ codeunit 13916 "Export XRechnung Document"
             CustomerRegistrationNo := Customer."Registration Number";
         ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Invoice", SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections);
         InsertCustomerParty(
-              AccountingCustomerParty, Customer."VAT Registration No.", CustomerGLN, CustomerRegistrationNo,
+              AccountingCustomerParty, SalesInvoiceHeader."VAT Registration No.", SalesInvoiceHeader."VAT Country/Region Code", CustomerGLN, CustomerRegistrationNo,
               SalesInvoiceHeader."Bill-to Name", BillToAddress, SalesInvoiceHeader."Sell-to Customer Name",
               SalesInvoiceHeader."Sell-to Contact",
               ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Invoice".AsInteger(), SalesInvoiceHeader, SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections));
@@ -1499,17 +1504,23 @@ codeunit 13916 "Export XRechnung Document"
             CustomerRegistrationNo := Customer."Registration Number";
         ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Cr.Memo", SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections);
         InsertCustomerParty(
-              AccountingCustomerParty, Customer."VAT Registration No.", CustomerGLN, CustomerRegistrationNo,
+              AccountingCustomerParty, SalesCrMemoHeader."VAT Registration No.", SalesCrMemoHeader."VAT Country/Region Code", CustomerGLN, CustomerRegistrationNo,
               SalesCrMemoHeader."Bill-to Name", BillToAddress, SalesCrMemoHeader."Sell-to Customer Name",
               SalesCrMemoHeader."Sell-to Contact",
               ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Cr.Memo".AsInteger(), SalesCrMemoHeader, SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections));
         RootXMLNode.Add(AccountingCustomerParty);
     end;
 
-    local procedure InsertCustomerParty(var AccountingCustomerParty: XmlElement; VATRegNo: Text[20]; CustomerGLN: Code[13]; CustomerRegistrationNo: Text[50]; PartyName: Text[100]; PostalAddress: Record "Standard Address"; CustomerName: Text[100]; ContactName: Text[100]; ContactEMail: Text[250]);
+    local procedure InsertCustomerParty(var AccountingCustomerParty: XmlElement; VATRegNo: Text[20]; VATCountryCode: Code[10]; CustomerGLN: Code[13]; CustomerRegistrationNo: Text[50]; PartyName: Text[100]; PostalAddress: Record "Standard Address"; CustomerName: Text[100]; ContactName: Text[100]; ContactEMail: Text[250]);
     var
+        Customer: Record Customer;
         PartyElement: XmlElement;
+        FormattedVATRegistrationNo: Text;
     begin
+        if VATCountryCode = '' then
+            VATCountryCode := PostalAddress."Country/Region Code";
+        if VATRegNo <> '' then
+            FormattedVATRegistrationNo := Customer.FormatVATRegistrationNo(VATRegNo, GetCountryRegionCode(VATCountryCode));
         if ContactName = '' then
             ContactName := CustomerName;
         PartyElement := XmlElement.Create('Party', XmlNamespaceCAC);
@@ -1518,12 +1529,12 @@ codeunit 13916 "Export XRechnung Document"
             InsertPartyIdentification(PartyElement, CustomerGLN, GLNSchemeIDTok)
         else
             if VATRegNo <> '' then
-                InsertPartyIdentification(PartyElement, GetVATRegistrationNo(VATRegNo, PostalAddress."Country/Region Code"));
+                InsertPartyIdentification(PartyElement, FormattedVATRegistrationNo);
 
         InsertPartyName(PartyElement, PartyName);
         InsertAddress(PartyElement, 'PostalAddress', PostalAddress);
         if (VATRegNo <> '') and not AllLinesNotSubjectToVAT then
-            InsertPartyTaxScheme(PartyElement, VATRegNo, PostalAddress."Country/Region Code");
+            InsertPartyTaxScheme(PartyElement, FormattedVATRegistrationNo);
         InsertCustomerPartyLegalEntity(PartyElement, CustomerName, CustomerGLN, CustomerRegistrationNo);
         InsertContact(PartyElement, ContactName, ContactEMail);
         AccountingCustomerParty.Add(PartyElement);

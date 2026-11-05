@@ -12,6 +12,7 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Clause;
+using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
@@ -57,6 +58,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryEdocument: Codeunit "Library - E-Document";
         LibraryEDocDE: Codeunit "Library - E-Doc DE";
+        LibraryAltCustVATReg: Codeunit "Library - Alt. Cust. VAT Reg.";
         Assert: Codeunit Assert;
         ExportXRechnungFormat: Codeunit "XRechnung Format";
         DEXMLDocumentValidator: Codeunit "DE XML Document Validator";
@@ -97,6 +99,175 @@ codeunit 13918 "XRechnung XML Document Tests"
         OriginalCompanyRegistrationNo: Text[20];
 
     #region SalesInvoice
+    [Test]
+    procedure ExportSalesInvoiceWithAlternativeVATCountry()
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] XRechnung uses the posted alternative VAT identity independently of the current customer.
+        Initialize();
+
+        // [GIVEN] Invoice "SI" is posted with a German alternative VAT registration for Italian customer "C".
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithAlternativeVAT("Sales Document Type"::Invoice));
+
+        // [GIVEN] The primary VAT registration of "C" changes after posting.
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer."VAT Registration No." := 'IT99999999999';
+        Customer.Modify(true);
+
+        // [WHEN] The posted invoice is exported.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The buyer uses the posted German VAT number and retains the Italian postal country and email endpoint.
+        VerifyBuyerVATWithItalianAddress(TempXMLBuffer, '/ubl:Invoice', 'DE123456789', 'DE123456789');
+    end;
+
+    [Test]
+    procedure ExportSalesCreditMemoWithAlternativeVATCountry()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] XRechnung credit notes use the posted alternative VAT registration.
+        Initialize();
+
+        // [GIVEN] Credit memo "SC" is posted with a German alternative VAT registration for Italian customer "C".
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithAlternativeVAT("Sales Document Type"::"Credit Memo"));
+
+        // [WHEN] The posted credit memo is exported.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The buyer has the German fiscal identity and Italian postal country.
+        VerifyBuyerVATWithItalianAddress(TempXMLBuffer, '/ns0:CreditNote', 'DE123456789', 'DE123456789');
+    end;
+
+    [Test]
+    procedure ExportServiceInvoiceWithDifferentVATCountry()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Service invoice VAT formatting uses the document VAT country's ISO code.
+        Initialize();
+
+        // [GIVEN] Service invoice "SI" has an Italian buyer and a German VAT number without its prefix.
+        CreateServiceDocumentWithVATCountry(ServiceHeader, ServiceHeader."Document Type"::Invoice);
+        ServiceHeader."VAT Registration No." := '123 456 789';
+        ServiceHeader.Modify(true);
+        ServiceInvoiceHeader.Get(PostServiceDocument(ServiceHeader));
+
+        // [WHEN] The posted service invoice is exported.
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The fiscal identity is formatted with DE, not the internal country code or postal country.
+        VerifyBuyerVATWithItalianAddress(TempXMLBuffer, '/ubl:Invoice', 'DE123456789', 'DE123456789');
+    end;
+
+    [Test]
+    procedure ExportServiceCreditMemoWithDifferentVATCountry()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] XRechnung service credit notes preserve separate fiscal and postal countries.
+        Initialize();
+
+        // [GIVEN] Service credit memo "SC" is posted with German VAT data for an Italian buyer.
+        CreateServiceDocumentWithVATCountry(ServiceHeader, ServiceHeader."Document Type"::"Credit Memo");
+        ServiceCrMemoHeader.Get(PostServiceCrMemoDocument(ServiceHeader));
+
+        // [WHEN] The posted service credit memo is exported.
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The buyer has the German fiscal identity and Italian postal country.
+        VerifyBuyerVATWithItalianAddress(TempXMLBuffer, '/ns0:CreditNote', 'DE123456789', 'DE123456789');
+    end;
+
+    [Test]
+    procedure ExportBuyerVATFallsBackToBillToCountry()
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Blank document VAT country falls back to the buyer postal country rather than the seller country.
+        Initialize();
+
+        // [GIVEN] Invoice "SI" has Italian VAT data without a prefix and no VAT country.
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithAlternativeVAT(AltCustVATReg));
+        CreateSalesLine(SalesHeader, "Sales Line Type"::Item, false);
+        SalesHeader."VAT Country/Region Code" := '';
+        SalesHeader."VAT Registration No." := '12345678901';
+        SalesHeader.Modify(true);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] The posted invoice is exported.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The buyer VAT number is prefixed with the bill-to country's ISO code.
+        VerifyBuyerVATWithItalianAddress(TempXMLBuffer, '/ubl:Invoice', 'IT12345678901', 'IT12345678901');
+    end;
+
+    [Test]
+    procedure ExportBuyerVATPreservesDomesticCountryFallback()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] The existing company-country fallback is preserved when both buyer country fields are blank.
+        Initialize();
+
+        // [GIVEN] Posted invoice "SI" has an unprefixed VAT number and neither buyer country field is populated.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, "Sales Line Type"::Item, false));
+        SalesInvoiceHeader."VAT Country/Region Code" := '';
+        SalesInvoiceHeader."Bill-to Country/Region Code" := '';
+        SalesInvoiceHeader."VAT Registration No." := '123456789';
+        SalesInvoiceHeader.Modify(true);
+
+        // [WHEN] The posted invoice is exported.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Both fiscal and postal identity retain the existing domestic-country fallback.
+        VerifyBuyerVATWithCompanyCountry(TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportBuyerGLNWithAlternativeVATCountry()
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] GLN selection remains independent of the posted alternative VAT registration.
+        Initialize();
+
+        // [GIVEN] Invoice "SI" has German VAT data and Italian buyer "C" is configured to use GLN.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithAlternativeVAT("Sales Document Type"::Invoice));
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer.GLN := CustomerGLN();
+        Customer."Use GLN in Electronic Document" := true;
+        Customer.Modify(true);
+
+        // [WHEN] The posted invoice is exported.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] GLN still identifies the party, while the tax identity uses the German document VAT number.
+        VerifyBuyerVATWithItalianAddress(TempXMLBuffer, '/ubl:Invoice', 'DE123456789', CustomerGLN());
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, CustomerPartyIdTok);
+    end;
+
     [Test]
     procedure CheckSalesInvoiceInXRechnungFormatVATRegNoNotMandatoryWithCustomerReference();
     var
@@ -4051,6 +4222,96 @@ codeunit 13918 "XRechnung XML Document Tests"
                 exit(TempXMLBufferAttribute.Value);
         end;
         Error(AttributeNotFoundErr, AttributeName, ElementXPath);
+    end;
+
+    local procedure CreateCustomerWithAlternativeVAT(var AltCustVATReg: Record "Alt. Cust. VAT Reg."): Code[20]
+    var
+        CountryRegion: Record "Country/Region";
+        Customer: Record Customer;
+    begin
+        Customer.Get(CreateCustomer());
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'IT';
+        CountryRegion.Modify(true);
+        Customer."Country/Region Code" := CountryRegion.Code;
+        Customer."VAT Registration No." := 'IT12345678901';
+        Customer.GLN := '';
+        Customer."Use GLN in Electronic Document" := false;
+        Customer.Modify(true);
+
+        Clear(CountryRegion);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'DE';
+        CountryRegion.Modify(true);
+        LibraryAltCustVATReg.CreateAlternativeCustVATReg(
+            AltCustVATReg, Customer."No.", CountryRegion.Code, 'DE123456789',
+            Customer."Gen. Bus. Posting Group", Customer."VAT Bus. Posting Group");
+        exit(Customer."No.");
+    end;
+
+    local procedure CreateAndPostSalesDocumentWithAlternativeVAT(DocumentType: Enum "Sales Document Type"): Code[20]
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType, CreateCustomerWithAlternativeVAT(AltCustVATReg));
+        SalesHeader.SetHideValidationDialog(true);
+        SalesHeader.Validate("VAT Country/Region Code", AltCustVATReg."VAT Country/Region Code");
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, "Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateServiceDocumentWithVATCountry(var ServiceHeader: Record "Service Header"; DocumentType: Enum "Service Document Type")
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        CustomerNo: Code[20];
+    begin
+        CustomerNo := CreateCustomerWithAlternativeVAT(AltCustVATReg);
+        case DocumentType of
+            DocumentType::Invoice:
+                CreateServiceHeader(ServiceHeader, CustomerNo);
+            DocumentType::"Credit Memo":
+                CreateServiceCrMemoHeader(ServiceHeader, CustomerNo);
+        end;
+        ServiceHeader."VAT Country/Region Code" := AltCustVATReg."VAT Country/Region Code";
+        ServiceHeader."VAT Registration No." := AltCustVATReg."VAT Registration No.";
+        ServiceHeader.Modify(true);
+        CreateServiceLine(ServiceHeader);
+    end;
+
+    local procedure VerifyBuyerVATWithItalianAddress(var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text; ExpectedVATRegistrationNo: Text; ExpectedPartyID: Text)
+    var
+        PartyPath: Text;
+    begin
+        PartyPath := RootPath + '/cac:AccountingCustomerParty/cac:Party';
+        Assert.AreEqual(
+            ExpectedVATRegistrationNo, GetNodeByPathWithError(TempXMLBuffer, PartyPath + '/cac:PartyTaxScheme/cbc:CompanyID'),
+            'The buyer tax identifier must use the posted VAT number and fiscal country.');
+        Assert.AreEqual(
+            ExpectedPartyID, GetNodeByPathWithError(TempXMLBuffer, PartyPath + '/cac:PartyIdentification/cbc:ID'),
+            'The buyer party identifier must retain GLN priority or use the posted fiscal identity.');
+        Assert.AreEqual(
+            'IT', GetNodeByPathWithError(TempXMLBuffer, PartyPath + '/cac:PostalAddress/cac:Country/cbc:IdentificationCode'),
+            'The buyer postal country must remain Italian.');
+        Assert.AreEqual(
+            'EM', GetAttributeByPathWithError(TempXMLBuffer, PartyPath + '/cbc:EndpointID', 'schemeID'),
+            'The email endpoint scheme must remain unchanged.');
+    end;
+
+    local procedure VerifyBuyerVATWithCompanyCountry(var TempXMLBuffer: Record "XML Buffer" temporary)
+    var
+        CountryRegion: Record "Country/Region";
+        PartyPath: Text;
+    begin
+        CountryRegion.Get(CompanyInformation."Country/Region Code");
+        PartyPath := '/ubl:Invoice/cac:AccountingCustomerParty/cac:Party';
+        Assert.AreEqual(
+            CountryRegion."ISO Code" + '123456789', GetNodeByPathWithError(TempXMLBuffer, PartyPath + '/cac:PartyTaxScheme/cbc:CompanyID'),
+            'The existing domestic buyer VAT prefix must be retained.');
+        Assert.AreEqual(
+            CountryRegion."ISO Code", GetNodeByPathWithError(TempXMLBuffer, PartyPath + '/cac:PostalAddress/cac:Country/cbc:IdentificationCode'),
+            'The existing domestic buyer postal country must be retained.');
     end;
 
     local procedure CreateAndPostSalesDocument(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; InvoiceDiscount: Boolean): Code[20];

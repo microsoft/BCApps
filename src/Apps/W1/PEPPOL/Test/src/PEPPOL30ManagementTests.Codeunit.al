@@ -759,6 +759,191 @@ codeunit 139235 "PEPPOL30 Management Tests"
     end;
 
     [Test]
+    procedure CustomerVATPartyUsesDocumentVATCountry()
+    var
+        SalesHeader: Record "Sales Header";
+        Peppol30: Codeunit "PEPPOL30";
+        EndpointID: Text;
+        SchemeID: Text;
+        PartyIdentificationID: Text;
+        PartyIDSchemeID: Text;
+        CustomerName: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] The buyer endpoint uses the document VAT country even without the alternative registration flag.
+        Initialize();
+
+        // [GIVEN] Customer "C" in Italy and a document with a German VAT number and VAT country.
+        CreateCustomerVATCountryHeader(SalesHeader);
+        Assert.IsFalse(SalesHeader."Alt. VAT Registration No.", 'The VAT country must not depend on the alternative registration flag.');
+
+        // [WHEN] The BIS buyer party is generated.
+        Peppol30.GetAccountingCustomerPartyInfoBIS(
+            SalesHeader, EndpointID, SchemeID, PartyIdentificationID, PartyIDSchemeID, CustomerName);
+
+        // [THEN] The document VAT number is paired with the German endpoint scheme.
+        VerifyCustomerEndpoint('DE123456789', '9930', EndpointID, SchemeID);
+    end;
+
+    [Test]
+    procedure CustomerVATPartyFallsBackToBillToCountry()
+    var
+        SalesHeader: Record "Sales Header";
+        Peppol30: Codeunit "PEPPOL30";
+        EndpointID: Text;
+        SchemeID: Text;
+        PartyIdentificationID: Text;
+        PartyIDSchemeID: Text;
+        CustomerName: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A blank document VAT country preserves bill-to-country selection.
+        Initialize();
+
+        // [GIVEN] Customer "C" in Italy and a document with no VAT country and an Italian VAT number.
+        CreateCustomerVATCountryHeader(SalesHeader);
+        SalesHeader."VAT Country/Region Code" := '';
+        SalesHeader."VAT Registration No." := 'IT12345678901';
+
+        // [WHEN] The BIS buyer party is generated.
+        Peppol30.GetAccountingCustomerPartyInfoBIS(
+            SalesHeader, EndpointID, SchemeID, PartyIdentificationID, PartyIDSchemeID, CustomerName);
+
+        // [THEN] The existing Italian scheme and identifier are retained.
+        VerifyCustomerEndpoint('IT12345678901', '0097', EndpointID, SchemeID);
+    end;
+
+    [Test]
+    procedure CustomerTaxIdentifierUsesVATCountryPrefix()
+    var
+        SalesHeader: Record "Sales Header";
+        Peppol30: Codeunit "PEPPOL30";
+        TaxCompanyID: Text;
+        TaxCompanyIDSchemeID: Text;
+        TaxSchemeID: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] An unprefixed, space-containing document VAT number receives the VAT country's tax prefix.
+        Initialize();
+
+        // [GIVEN] Customer "C" in Italy and a German document VAT country with an unprefixed number.
+        CreateCustomerVATCountryHeader(SalesHeader);
+        SalesHeader."VAT Registration No." := '123 456 789';
+
+        // [WHEN] The BIS buyer tax identifier is generated.
+        Peppol30.GetAccountingCustomerPartyTaxSchemeBIS(SalesHeader, TaxCompanyID, TaxCompanyIDSchemeID, TaxSchemeID);
+
+        // [THEN] BT-48 is prefixed with DE and its BIS scheme attribute remains omitted.
+        VerifyCustomerTaxIdentifier('DE123456789', '', TaxCompanyID, TaxCompanyIDSchemeID, TaxSchemeID);
+    end;
+
+    [Test]
+    procedure CustomerVATPartyUsesVATCountryForNonBIS()
+    var
+        SalesHeader: Record "Sales Header";
+        Peppol30: Codeunit "PEPPOL30";
+        TaxCompanyID: Text;
+        TaxCompanyIDSchemeID: Text;
+        TaxSchemeID: Text;
+        LegalEntityName: Text;
+        LegalEntityCompanyID: Text;
+        LegalEntitySchemeID: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Non-BIS VAT-derived tax and legal-entity schemes use the document VAT country.
+        Initialize();
+
+        // [GIVEN] Customer "C" in Italy and a document with a German VAT number and VAT country.
+        CreateCustomerVATCountryHeader(SalesHeader);
+
+        // [WHEN] Non-BIS buyer tax and legal-entity identifiers are generated.
+        Peppol30.GetAccountingCustomerPartyTaxScheme(SalesHeader, TaxCompanyID, TaxCompanyIDSchemeID, TaxSchemeID);
+        Peppol30.GetAccountingCustomerPartyLegalEntity(SalesHeader, LegalEntityName, LegalEntityCompanyID, LegalEntitySchemeID);
+
+        // [THEN] Both VAT-derived schemes are German without changing the identifier source.
+        VerifyCustomerTaxIdentifier('DE123456789', '9930', TaxCompanyID, TaxCompanyIDSchemeID, TaxSchemeID);
+        VerifyCustomerVATCompanyID('DE123456789', '9930', LegalEntityCompanyID, LegalEntitySchemeID);
+    end;
+
+    [Test]
+    procedure CustomerVATPartyUsesDanishVATCountryFormatting()
+    var
+        SalesHeader: Record "Sales Header";
+        Peppol30: Codeunit "PEPPOL30";
+        EndpointID: Text;
+        SchemeID: Text;
+        PartyIdentificationID: Text;
+        PartyIDSchemeID: Text;
+        CustomerName: Text;
+        LegalEntityName: Text;
+        LegalEntityCompanyID: Text;
+        LegalEntitySchemeID: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Existing Danish BIS endpoint and legal-entity formatting follows the VAT country, not the address country.
+        Initialize();
+
+        // [GIVEN] Customer "C" in Italy and a document with a Danish VAT country and unprefixed number.
+        CreateCustomerVATCountryHeader(SalesHeader);
+        SalesHeader."VAT Country/Region Code" := CreateVATCountryRegion('DK', '0184');
+        SalesHeader."VAT Registration No." := '12345678';
+
+        // [WHEN] The BIS buyer party is generated.
+        Peppol30.GetAccountingCustomerPartyInfoBIS(
+            SalesHeader, EndpointID, SchemeID, PartyIdentificationID, PartyIDSchemeID, CustomerName);
+        Peppol30.GetAccountingCustomerPartyLegalEntityBIS(SalesHeader, LegalEntityName, LegalEntityCompanyID, LegalEntitySchemeID);
+
+        // [THEN] Danish prefixes and schemes are applied to the VAT-derived identifiers.
+        VerifyCustomerEndpoint('DK12345678', '0184', EndpointID, SchemeID);
+        VerifyCustomerVATCompanyID('DK12345678', '0184', LegalEntityCompanyID, LegalEntitySchemeID);
+    end;
+
+    [Test]
+    procedure CustomerGLNPartyPreservesBillToIdentityWithForeignVAT()
+    var
+        SalesHeader: Record "Sales Header";
+        BillToCustomer: Record Customer;
+        SellToCustomer: Record Customer;
+        Peppol30: Codeunit "PEPPOL30";
+        EndpointID: Text;
+        SchemeID: Text;
+        PartyIdentificationID: Text;
+        PartyIDSchemeID: Text;
+        CustomerName: Text;
+        TaxCompanyID: Text;
+        TaxCompanyIDSchemeID: Text;
+        TaxSchemeID: Text;
+        LegalEntityName: Text;
+        LegalEntityCompanyID: Text;
+        LegalEntitySchemeID: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A bill-to GLN remains the receiving identity while the document VAT country controls the tax identifier.
+        Initialize();
+
+        // [GIVEN] Bill-to customer "C1" has a GLN and sell-to customer "C2" has a different GLN.
+        CreateCustomerVATCountryHeader(SalesHeader);
+        BillToCustomer.Get(SalesHeader."Bill-to Customer No.");
+        BillToCustomer.Validate(GLN, '1234567891231');
+        BillToCustomer."Use GLN in Electronic Document" := true;
+        BillToCustomer.Modify(true);
+        LibrarySales.CreateCustomer(SellToCustomer);
+        SellToCustomer.Validate(GLN, '1234567890128');
+        SellToCustomer."Use GLN in Electronic Document" := true;
+        SellToCustomer.Modify(true);
+        SalesHeader."Sell-to Customer No." := SellToCustomer."No.";
+
+        // [WHEN] BIS buyer endpoint, tax and legal-entity information is generated.
+        Peppol30.GetAccountingCustomerPartyInfoBIS(
+            SalesHeader, EndpointID, SchemeID, PartyIdentificationID, PartyIDSchemeID, CustomerName);
+        Peppol30.GetAccountingCustomerPartyTaxSchemeBIS(SalesHeader, TaxCompanyID, TaxCompanyIDSchemeID, TaxSchemeID);
+        Peppol30.GetAccountingCustomerPartyLegalEntityBIS(SalesHeader, LegalEntityName, LegalEntityCompanyID, LegalEntitySchemeID);
+
+        // [THEN] Bill-to GLN and name are preserved while the tax identifier remains German.
+        VerifyCustomerGLNParty(BillToCustomer, EndpointID, SchemeID, CustomerName, TaxCompanyID, LegalEntityCompanyID, LegalEntitySchemeID);
+    end;
+
+    [Test]
     procedure GetAccountingCustomerPartyPostalAddr()
     var
         CountryRegion: Record "Country/Region";
@@ -3946,6 +4131,65 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Customer.Modify(false);
     end;
 
+    local procedure CreateCustomerVATCountryHeader(var SalesHeader: Record "Sales Header")
+    var
+        Customer: Record Customer;
+        BillToCountryCode: Code[10];
+    begin
+        BillToCountryCode := CreateVATCountryRegion('IT', '0097');
+        LibrarySales.CreateCustomer(Customer);
+        Customer."Country/Region Code" := BillToCountryCode;
+        Customer.GLN := '';
+        Customer."Use GLN in Electronic Document" := false;
+        Customer.Modify(true);
+
+        SalesHeader."Bill-to Customer No." := Customer."No.";
+        SalesHeader."Bill-to Name" := Customer.Name;
+        SalesHeader."Bill-to Country/Region Code" := BillToCountryCode;
+        SalesHeader."VAT Country/Region Code" := CreateVATCountryRegion('DE', '9930');
+        SalesHeader."VAT Registration No." := 'DE123456789';
+    end;
+
+    local procedure CreateVATCountryRegion(ISOCode: Code[2]; VATScheme: Code[10]): Code[10]
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := ISOCode;
+        CountryRegion."VAT Scheme" := VATScheme;
+        CountryRegion.Modify(true);
+        exit(CountryRegion.Code);
+    end;
+
+    local procedure VerifyCustomerEndpoint(ExpectedEndpointID: Text; ExpectedSchemeID: Text; EndpointID: Text; SchemeID: Text)
+    begin
+        Assert.AreEqual(ExpectedEndpointID, EndpointID, 'The endpoint must retain the document VAT identifier.');
+        Assert.AreEqual(ExpectedSchemeID, SchemeID, 'The endpoint scheme must follow the VAT country.');
+    end;
+
+    local procedure VerifyCustomerTaxIdentifier(ExpectedTaxID: Text; ExpectedSchemeID: Text; TaxCompanyID: Text; TaxCompanyIDSchemeID: Text; TaxSchemeID: Text)
+    begin
+        Assert.AreEqual(ExpectedTaxID, TaxCompanyID, 'The tax identifier must be formatted with the VAT country.');
+        Assert.AreEqual(ExpectedSchemeID, TaxCompanyIDSchemeID, 'The tax identifier scheme must follow the VAT country and format.');
+        Assert.AreEqual('VAT', TaxSchemeID, 'The tax scheme must be unchanged.');
+    end;
+
+    local procedure VerifyCustomerVATCompanyID(ExpectedCompanyID: Text; ExpectedSchemeID: Text; CompanyID: Text; SchemeID: Text)
+    begin
+        Assert.AreEqual(ExpectedCompanyID, CompanyID, 'The legal-entity fallback must retain the document VAT identifier.');
+        Assert.AreEqual(ExpectedSchemeID, SchemeID, 'The legal-entity scheme must follow the VAT country and format.');
+    end;
+
+    local procedure VerifyCustomerGLNParty(BillToCustomer: Record Customer; EndpointID: Text; SchemeID: Text; CustomerName: Text; TaxCompanyID: Text; LegalEntityCompanyID: Text; LegalEntitySchemeID: Text)
+    begin
+        Assert.AreEqual(BillToCustomer.GLN, EndpointID, 'The endpoint must use the bill-to GLN.');
+        Assert.AreEqual('0088', SchemeID, 'The GLN endpoint scheme must be unchanged.');
+        Assert.AreEqual(BillToCustomer.Name, CustomerName, 'The buyer name must come from the bill-to customer.');
+        Assert.AreEqual('DE123456789', TaxCompanyID, 'The tax identifier must use the document VAT country.');
+        Assert.AreEqual(BillToCustomer.GLN, LegalEntityCompanyID, 'The GLN legal-entity identifier must be unchanged.');
+        Assert.AreEqual('0088', LegalEntitySchemeID, 'The GLN legal-entity scheme must be unchanged.');
+    end;
+
     local procedure CreateCountryRegion(var CountryRegion: Record "Country/Region")
     begin
         LibraryERM.CreateCountryRegion(CountryRegion);
@@ -4558,4 +4802,3 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Reply := false;
     end;
 }
-

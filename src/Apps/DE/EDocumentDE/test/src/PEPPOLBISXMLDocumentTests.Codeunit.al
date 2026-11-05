@@ -8,6 +8,7 @@ using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.IO.Peppol;
+using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
@@ -32,6 +33,7 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
         EDocumentService: Record "E-Document Service";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryAltCustVATReg: Codeunit "Library - Alt. Cust. VAT Reg.";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
         LibraryERM: Codeunit "Library - ERM";
@@ -134,6 +136,46 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
 
         // [THEN] Buyer endpoint (BT-49) retains schemeID attribute
         Assert.AreNotEqual('', GetNodeByPath(TempXMLBuffer, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'), StrSubstNo(IncorrectValueErr, 'BT-49 schemeID'));
+    end;
+
+    [Test]
+    procedure ExportSalesInvoiceWithAlternativeVATCountry()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] German PEPPOL export preserves a German alternative VAT endpoint for an Italian buyer.
+        Initialize();
+
+        // [GIVEN] Invoice "SI" is posted with a German alternative VAT registration for Italian customer "C".
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithAlternativeVAT("Sales Document Type"::Invoice));
+
+        // [WHEN] The invoice is exported through the German E-Document format.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The final XML retains scheme 9930, the German VAT identifier, and the Italian postal country.
+        VerifyGermanBuyerVATWithItalianAddress(TempXMLBuffer, '/Invoice');
+    end;
+
+    [Test]
+    procedure ExportSalesCreditMemoWithAlternativeVATCountry()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] German PEPPOL credit-note export uses the VAT country independently of the Italian buyer address.
+        Initialize();
+
+        // [GIVEN] Credit memo "SC" is posted with a German alternative VAT registration for Italian customer "C".
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithAlternativeVAT("Sales Document Type"::"Credit Memo"));
+
+        // [WHEN] The credit memo is exported through the German E-Document format.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The final XML retains scheme 9930, the German VAT identifier, and the Italian postal country.
+        VerifyGermanBuyerVATWithItalianAddress(TempXMLBuffer, '/CreditNote');
     end;
 
     [Test]
@@ -461,6 +503,59 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
         CompanyInformation."Registration No." := RegistrationNo;
         CompanyInformation."Use Reg. No. in E-Document" := true;
         CompanyInformation.Modify();
+    end;
+
+    local procedure CreateAndPostSalesDocumentWithAlternativeVAT(DocumentType: Enum "Sales Document Type"): Code[20]
+    var
+        CountryRegion: Record "Country/Region";
+        Customer: Record Customer;
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        SalesHeader: Record "Sales Header";
+    begin
+        Customer.Get(CreateCustomer());
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'IT';
+        CountryRegion."VAT Scheme" := '0097';
+        CountryRegion.Modify(true);
+        Customer."Country/Region Code" := CountryRegion.Code;
+        Customer."VAT Registration No." := 'IT12345678901';
+        Customer.GLN := '';
+        Customer."Use GLN in Electronic Document" := false;
+        Customer.Modify(true);
+
+        Clear(CountryRegion);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'DE';
+        CountryRegion."VAT Scheme" := '9930';
+        CountryRegion.Modify(true);
+        LibraryAltCustVATReg.CreateAlternativeCustVATReg(
+            AltCustVATReg, Customer."No.", CountryRegion.Code, 'DE123456789',
+            Customer."Gen. Bus. Posting Group", Customer."VAT Bus. Posting Group");
+        CreateSalesHeader(SalesHeader, DocumentType, Customer."No.");
+        SalesHeader.SetHideValidationDialog(true);
+        SalesHeader.Validate("VAT Country/Region Code", CountryRegion.Code);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure VerifyGermanBuyerVATWithItalianAddress(var TempXMLBuffer: Record "XML Buffer" temporary; RootPath: Text)
+    var
+        PartyPath: Text;
+    begin
+        PartyPath := RootPath + '/cac:AccountingCustomerParty/cac:Party';
+        Assert.AreEqual(
+            'DE123456789', GetNodeByPath(TempXMLBuffer, PartyPath + '/cbc:EndpointID'),
+            'The endpoint must use the German document VAT number.');
+        Assert.AreEqual(
+            '9930', GetNodeByPath(TempXMLBuffer, PartyPath + '/cbc:EndpointID/@schemeID'),
+            'German post-processing must preserve the German endpoint scheme.');
+        Assert.AreEqual(
+            'DE123456789', GetNodeByPath(TempXMLBuffer, PartyPath + '/cac:PartyTaxScheme/cbc:CompanyID'),
+            'The buyer tax identifier must use the VAT country.');
+        Assert.AreEqual(
+            'IT', GetNodeByPath(TempXMLBuffer, PartyPath + '/cac:PostalAddress/cac:Country/cbc:IdentificationCode'),
+            'The buyer postal country must remain Italian.');
     end;
 
     local procedure CreateAndPostSalesDocument(DocumentType: Enum "Sales Document Type"): Code[20]
