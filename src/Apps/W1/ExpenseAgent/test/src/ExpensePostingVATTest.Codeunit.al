@@ -1426,6 +1426,7 @@ codeunit 148330 "Expense Posting VAT Test"
     local procedure VerifySubcategoryPostingWithoutVAT(Refundable: Boolean; Itemized: Boolean)
     var
         Expense: Record Expense;
+        ExpenseVATSpecification: Record "Expense VAT Specification";
         ExpenseUser: Record "Expense User";
         ExpenseCategory: Record "Expense Category";
         ExpenseSubcategory: array[2] of Record "Expense Subcategory";
@@ -1472,13 +1473,14 @@ codeunit 148330 "Expense Posting VAT Test"
             Expense.Validate("Job Task No.", JobTask."Job Task No.");
             Expense.Modify(true);
         end;
-        Expense.TestField("VAT Liable", false);
+        ExpenseVATSpecification.SetRange("Expense No.", Expense."No.");
+        Assert.RecordCount(ExpenseVATSpecification, 0);
         ReleaseExpenseAndUpdateAccounts(Expense, ExpenseUser);
 
         PostExpenseReport(ExpenseReportHeader, Expense, ExpenseUser);
 
         FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
-        PostedExpenseReportLineVATSpec.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        PostedExpenseReportLineVATSpec.SetRange("Expense Report No.", PostedExpenseReportHeader."No.");
         Assert.RecordCount(PostedExpenseReportLineVATSpec, 0);
         if Refundable then begin
             Sign := 1;
