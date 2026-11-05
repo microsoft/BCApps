@@ -18,6 +18,11 @@ codeunit 6972 "Create Expense No. Series"
         InsertNoSeries(ExpenseNoSeries(), ExpenseNoSeriesDescriptionTok, ExpenseStartingNoLbl, ExpenseEndingNoLbl, '', '', 1, Enum::"No. Series Implementation"::Sequence, true);
         InsertNoSeries(ExpenseReportNoSeries(), ExpenseReportNoSeriesDescriptionTok, ExpenseReportStartingNoLbl, ExpenseReportEndingNoLbl, '', '', 1, Enum::"No. Series Implementation"::Sequence, true);
         InsertNoSeries(PostedExpenseReportNoSeries(), PostedExpenseReportNoSeriesDescriptionTok, PostedExpenseReportStartingNoLbl, PostedExpenseReportEndingNoLbl, '', '', 1, Enum::"No. Series Implementation"::Normal, true);
+        InsertExpenseVendorNoSeries();
+    end;
+
+    internal procedure InsertExpenseVendorNoSeries()
+    begin
         InsertNoSeries(ExpenseVendorNoSeries(), ExpenseVendorNoSeriesDescriptionTok, ExpenseVendorStartingNoLbl, ExpenseVendorEndingNoLbl, '', '', 1, Enum::"No. Series Implementation"::Sequence, true);
     end;
 
