@@ -81,6 +81,7 @@ report 99001046 "Calculate Work Center Calendar"
                                             until Calendar.Next() = 0;
                                             if Calendar2.Capacity <> 0 then begin
                                                 Calendar2.Validate(Capacity);
+                                                OnWorkCenterOnAfterGetRecordOnBeforeInsertConsolidatedCalendarEntry(Calendar, Calendar2);
                                                 Calendar2.Insert();
                                             end;
                                         end;
@@ -187,5 +188,9 @@ report 99001046 "Calculate Work Center Calendar"
     local procedure OnAfterDeleteWorkCenterCalendarEntries(var WorkCenter: Record "Work Center"; StartingDate: Date; EndingDate: Date)
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnWorkCenterOnAfterGetRecordOnBeforeInsertConsolidatedCalendarEntry(var SourceCalendarEntries: Record "Calendar Entry"; var ConsolidatedCalendarEntry: Record "Calendar Entry")
+    begin
+    end;
+}

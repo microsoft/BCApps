@@ -1113,7 +1113,7 @@ table 181 "Posted Gen. Journal Line"
         /// <summary>
         /// Specifies the spend request that this journal line relates to.
         /// </summary>
-        field(140; "Spend Request No."; Code[20])
+        field(146; "Spend Request No."; Code[20])
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this journal line relates to.';
@@ -1123,7 +1123,7 @@ table 181 "Posted Gen. Journal Line"
         /// <summary>
         /// Specifies that the spend request will be closed when the journal line is posted.
         /// </summary>
-        field(141; "Spend Request Close"; Boolean)
+        field(147; "Spend Request Close"; Boolean)
         {
             Caption = 'Spend Request Close';
             ToolTip = 'Specifies that the spend request will be closed when the journal line is posted.';
@@ -1816,23 +1816,58 @@ table 181 "Posted Gen. Journal Line"
             Caption = 'Entry No.';
             Editable = false;
         }
+#if not CLEANSCHEMA33
         field(10861; "Derogatory Line"; Boolean)
         {
             Caption = 'Derogatory Line';
             Editable = false;
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
         field(10862; "Delayed Unrealized VAT"; Boolean)
         {
             Caption = 'Delayed Unrealized VAT';
+            ObsoleteReason = 'Use Delayed Unreal. VAT in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(10863; "Realize VAT"; Boolean)
         {
             Caption = 'Realize VAT';
+            ObsoleteReason = 'Use Realize Delayed VAT in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(10864; "Created from No."; Code[20])
         {
             Caption = 'Created from No.';
+            ObsoleteReason = 'Use Created From Pmt. Slip No. in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
     }
 
     keys

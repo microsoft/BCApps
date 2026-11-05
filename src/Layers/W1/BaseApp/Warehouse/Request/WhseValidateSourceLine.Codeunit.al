@@ -113,6 +113,9 @@ codeunit 5777 "Whse. Validate Source Line"
         if NewTransLine."Unit of Measure Code" <> OldTransLine."Unit of Measure Code" then
             NewTransLine.FieldError("Unit of Measure Code", StrSubstNo(Text000, TableCaptionValue, NewTransLine.TableCaption));
 
+        if NewTransLine."Direct Transfer" <> OldTransLine."Direct Transfer" then
+            NewTransLine.FieldError("Direct Transfer", StrSubstNo(Text000, TableCaptionValue, NewTransLine.TableCaption));
+
         IsHandled := false;
         OnTransLineCommonVerificationOnBeforeQuantityCheck(OldTransLine, NewTransLine, IsHandled);
         if not IsHandled then

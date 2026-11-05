@@ -74,6 +74,8 @@ codeunit 30163 "Shpfy Order Mapping"
                     else
                         Result := Result and MapVariant(OrderLine, Shop);
             until OrderLine.Next() = 0;
+
+        OrderEvents.OnAfterMapShopifyOrder(OrderHeader, Result);
     end;
 
     /// <summary> 
@@ -138,6 +140,7 @@ codeunit 30163 "Shpfy Order Mapping"
         MapShippingMethodCode(OrderHeader);
         MapShippingAgent(OrderHeader);
         MapPaymentMethodCode(OrderHeader);
+        MapTaxArea(OrderHeader);
         OrderHeader.Modify();
         exit((OrderHeader."Bill-to Customer No." <> '') and (OrderHeader."Sell-to Customer No." <> ''));
     end;
@@ -182,11 +185,12 @@ codeunit 30163 "Shpfy Order Mapping"
         MapShippingAgent(OrderHeader);
         MapPaymentMethodCode(OrderHeader);
         MapLocationCode(OrderHeader);
+        MapTaxArea(OrderHeader);
         OrderHeader.Modify();
         exit((OrderHeader."Bill-to Customer No." <> '') and (OrderHeader."Sell-to Customer No." <> ''));
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Description for MapVariant.
     /// </summary>
     /// <param name="ShopifyOrderLine">Parameter of type Record "Shopify Order Line".</param>
@@ -363,5 +367,20 @@ codeunit 30163 "Shpfy Order Mapping"
         end;
 
         exit((OrderHeader."Bill-to Customer No." <> '') and (OrderHeader."Sell-to Customer No." <> ''));
+    end;
+
+    local procedure MapTaxArea(var OrderHeader: Record "Shpfy Order Header")
+    var
+        ShopifyTaxArea: Record "Shpfy Tax Area";
+        OrderMgt: Codeunit "Shpfy Order Mgt.";
+    begin
+        if OrderHeader."Tax Area Code" <> '' then
+            exit;
+
+        if OrderMgt.FindTaxArea(OrderHeader, ShopifyTaxArea) and (ShopifyTaxArea."Tax Area Code" <> '') then begin
+            OrderHeader."Tax Area Code" := ShopifyTaxArea."Tax Area Code";
+            if not OrderHeader."Tax Exempt" then
+                OrderHeader."Tax Liable" := ShopifyTaxArea."Tax Liable";
+        end;
     end;
 }

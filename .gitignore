@@ -320,6 +320,12 @@ TestResults.xml
 #Build files
 *.al.bak
 
+# AL code review output
+.bc-review/
+
+# A view metadata for W1 and country-specific layers
+src/Layers/*/.view/*
+
 # Jupyter Notebook
 *.ipynb_checkpoints
 *.ipynb

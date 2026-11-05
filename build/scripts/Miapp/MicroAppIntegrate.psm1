@@ -177,7 +177,7 @@ function IntegrateBranchedObjects {
             if($Params.Country)
             {
                 # Match country code from paths like src/Layers/CZ/, src/Layers/MX/, etc.
-                $Matched = $branch -match 'src/Layers/(?<Country>.+?(?=/)'
+                $Matched = $branch -match 'src/Layers/(?<Country>.+?(?=/))'
                 if($Matched)
                 {
                     $Matched = $Matches.Country -eq $Params.Country

@@ -75,6 +75,10 @@ pageextension 20405 "Qlty. Sales Order Subform" extends "Sales Order Subform"
         }
     }
 
+    /// <summary>
+    /// Determines whether the current sales order line identifies a persisted item.
+    /// </summary>
+    /// <returns>True if the line has a system ID, is an item line, and has a number; otherwise, false.</returns>
     local procedure CanBeProcessed(): Boolean
     begin
         if IsNullGuid(Rec.SystemId) then

@@ -1164,10 +1164,12 @@ page 189 "Incoming Document"
         ReplaceMainAttachmentEnabled := Rec.CanReplaceMainAttachment();
     end;
 
+#pragma warning disable AL0547 // Accepted violation: turning off global variable access is a breaking change for existing subscribers of this published event.
     [IntegrationEvent(true, true)]
     local procedure OnCloseIncomingDocumentFromAction(var IncomingDocument: Record "Incoming Document")
     begin
     end;
+#pragma warning restore AL0547
 
     local procedure VerifyCanBeSentToOCR(): Boolean
     begin

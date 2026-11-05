@@ -114,7 +114,7 @@ page 6915 "Exp. Report Line Per Diem API"
         if ExpenseReportLine.Get(Rec."Expense Report No.", Rec."Expense Report Line No.") then begin
             ExpenseReportLine.ApplyRule();
 #pragma warning disable AA0214
-            ExpenseReportLine.Modify();
+            ExpenseReportLine.Modify(true);
 #pragma warning restore AA0214
         end;
 

@@ -1,6 +1,7 @@
 namespace Microsoft.Sustainability.Certificate;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Sustainability.Ledger;
 using Microsoft.Sustainability.Setup;
 
 pageextension 6271 "Sust. Item List" extends "Item List"
@@ -42,6 +43,19 @@ pageextension 6271 "Sust. Item List" extends "Item List"
                 begin
                     CalculateCO2e.Run();
                 end;
+            }
+        }
+        addafter("&Warehouse Entries")
+        {
+            action("Sustainability Value Entries")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Sustainability Value Entries';
+                Image = ValueLedger;
+                Visible = SustainabilityVisible;
+                RunObject = Page "Sustainability Value Entries";
+                RunPageLink = Type = const(Item), "No." = field("No.");
+                ToolTip = 'View the sustainability value entries for the item.';
             }
         }
     }

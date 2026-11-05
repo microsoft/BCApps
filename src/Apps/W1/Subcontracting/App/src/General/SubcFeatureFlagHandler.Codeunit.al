@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Setup;
 
-codeunit 99001569 "Subc. Feature Flag Handler"
+codeunit 20569 "Subc. Feature Flag Handler"
 {
     ObsoleteState = Pending;
     ObsoleteTag = '28.0';

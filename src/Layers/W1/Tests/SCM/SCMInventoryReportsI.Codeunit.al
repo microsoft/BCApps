@@ -10,26 +10,27 @@ codeunit 137301 "SCM Inventory Reports - I"
 
     var
         Assert: Codeunit Assert;
-        LibraryERM: Codeunit "Library - ERM";
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryInventory: Codeunit "Library - Inventory";
-        LibrarySales: Codeunit "Library - Sales";
         LibraryCosting: Codeunit "Library - Costing";
-        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryDimension: Codeunit "Library - Dimension";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibrarySales: Codeunit "Library - Sales";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibraryRandom: Codeunit "Library - Random";
         isInitialized: Boolean;
         IncorrectValueInCellErr: Label 'Row count in report Inventory Validation before posting purchase order should be the same as after posting purchase order', Comment = '%1 - row % 2 - column';
-        QuantityErr: Label 'Quantity Must Be %1 for %2  Document No. %3';
         NothingToPostTxt: Label 'There is nothing to post to the general ledger.';
-        ValueEntriesWerePostedTxt: Label 'value entries have been posted to the general ledger.';
+        QuantityErr: Label 'Quantity Must Be %1 for %2  Document No. %3';
         SetupBlockedErr: Label 'Setup is blocked in %1 for %2 %3 and %4 %5.', Comment = '%1 - General/Inventory Posting Setup, %2 %3 %4 %5 - posting groups.';
+        ValueEntriesWerePostedTxt: Label 'value entries have been posted to the general ledger.';
 
     [Test]
     [HandlerFunctions('InvtCostAndPriceListRepRequestPageHandler')]
@@ -1551,6 +1552,39 @@ codeunit 137301 "SCM Inventory Reports - I"
         LibraryReportDataset.AssertCurrentRowValueEquals('SalesLCY', ItemJournalLine.Amount);
     end;
 
+    [Test]
+    [HandlerFunctions('PostInvtCostToGLRequestPageHandler')]
+    procedure PostInventoryCostToGLWithDimensionTextLongerThan250Characters()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        PostMethod: Option "per Posting Group","per Entry";
+        DimensionSetID: Integer;
+        ExpectedDimText: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 649269] Post Inventory Cost to G/L does not fail when dimension text exceeds 250 characters.
+        Initialize();
+
+        // [GIVEN] A positive item adjustment with six 20-character dimension codes and values.
+        CreateItem(Item);
+        CreateMaxLengthDimensionSet(DimensionSetID, ExpectedDimText);
+        CreateAndPostItemJournalLineWithDimension(ItemJournalLine, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", DimensionSetID);
+
+        // [WHEN] Run the Post Inventory Cost to G/L report per posting group without posting.
+        Commit();
+        LibraryVariableStorage.Enqueue(PostMethod::"per Posting Group");
+        LibraryVariableStorage.Enqueue(Item."No.");
+        LibraryVariableStorage.Enqueue(false);
+        PostValueEntryToGL.SetRange("Item No.", Item."No.");
+        Report.Run(Report::"Post Inventory Cost to G/L", true, false, PostValueEntryToGL);
+
+        // [THEN] The report contains the five complete pairs that fit and omits the sixth pair.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('DimText', ExpectedDimText);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1941,6 +1975,49 @@ codeunit 137301 "SCM Inventory Reports - I"
         NoSeriesLine.Validate("Starting No.", NoSeries.Code);
         NoSeriesLine.Validate("Increment-by No.", 10);
         NoSeriesLine.Modify(true);
+    end;
+
+    local procedure CreateMaxLengthDimensionSet(var DimensionSetID: Integer; var ExpectedDimText: Text)
+    var
+        Dimension: Record Dimension;
+        DimensionValue: Record "Dimension Value";
+        DimensionCode: Code[20];
+        DimensionValueCode: Code[20];
+        i: Integer;
+    begin
+        for i := 1 to 6 do begin
+            DimensionCode := 'DIMENSIONS-CODE-000' + Format(i);
+            Dimension.Init();
+            Dimension.Validate(Code, DimensionCode);
+            Dimension.Insert(true);
+
+            DimensionValueCode := 'DIMENSIONS-VAL-0000' + Format(i);
+            LibraryDimension.CreateDimensionValueWithCode(DimensionValue, DimensionValueCode, DimensionCode);
+            DimensionSetID := LibraryDimension.CreateDimSet(DimensionSetID, DimensionCode, DimensionValueCode);
+
+            if i <= 5 then
+                if ExpectedDimText = '' then
+                    ExpectedDimText := StrSubstNo('%1 - %2', DimensionCode, DimensionValueCode)
+                else
+                    ExpectedDimText += StrSubstNo('; %1 - %2', DimensionCode, DimensionValueCode);
+        end;
+    end;
+
+    local procedure CreateAndPostItemJournalLineWithDimension(var ItemJournalLine: Record "Item Journal Line"; EntryType: Enum "Item Ledger Document Type"; ItemNo: Code[20]; DimensionSetID: Integer)
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalBatch."Template Type"::Item, ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          EntryType, ItemNo, LibraryRandom.RandDec(100, 2));
+        ItemJournalLine.Validate("Unit Amount", LibraryRandom.RandDec(100, 2));
+        if DimensionSetID <> 0 then
+            ItemJournalLine.Validate("Dimension Set ID", DimensionSetID);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
     end;
 
     [MessageHandler]

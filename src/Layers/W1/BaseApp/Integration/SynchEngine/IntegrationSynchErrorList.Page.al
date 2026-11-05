@@ -75,7 +75,9 @@ page 5339 "Integration Synch. Error List"
                             HyperLink(HelpLinkUrl);
                     end;
                 }
+#pragma warning disable AW0004 // Accepted: pre-existing page field; changing the source expression would be a breaking change.
                 field("Exception Detail"; Rec."Exception Detail")
+#pragma warning restore AW0004
                 {
                     ApplicationArea = Suite;
                     Visible = false;

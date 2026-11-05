@@ -6,6 +6,7 @@ namespace Microsoft.Finance.CashDesk;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Attachment;
+using System.Automation;
 
 page 31165 "Posted Cash Document CZP"
 {
@@ -270,6 +271,21 @@ page 31165 "Posted Cash Document CZP"
                     DocumentAttachmentDetails.RunModal();
                 end;
             }
+            action(Approvals)
+            {
+                AccessByPermission = TableData "Posted Approval Entry" = R;
+                ApplicationArea = Basic, Suite;
+                Caption = 'Approvals';
+                Image = Approvals;
+                ToolTip = 'View a list of the records that are waiting to be approved. For example, you can see who requested the record to be approved, when it was sent, and when it is due to be approved.';
+
+                trigger OnAction()
+                var
+                    ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                begin
+                    ApprovalsMgmt.ShowPostedApprovalEntries(Rec.RecordId);
+                end;
+            }
         }
         area(reporting)
         {
@@ -390,6 +406,9 @@ page 31165 "Posted Cash Document CZP"
                 {
                 }
                 actionref(DocAttachPromoted; DocAttach)
+                {
+                }
+                actionref(ApprovalsPromoted; Approvals)
                 {
                 }
             }

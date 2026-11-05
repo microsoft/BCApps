@@ -226,7 +226,9 @@ codeunit 6912 "Expense Auto Population"
         case Expense."Expense Detail Required" of
             "Expense Detail Needed"::" ":
                 begin
-                    DeleteItemization(Expense);
+                    if not Expense.IsItemizationRequired() then
+                        DeleteItemization(Expense);
+
                     DeletePerDiem(Expense);
                     DeleteParticipants(Expense);
                 end;
@@ -237,12 +239,16 @@ codeunit 6912 "Expense Auto Population"
                 end;
             "Expense Detail Needed"::Participants:
                 begin
-                    DeleteItemization(Expense);
+                    if not Expense.IsItemizationRequired() then
+                        DeleteItemization(Expense);
+
                     DeletePerDiem(Expense);
                 end;
             "Expense Detail Needed"::"Per Diem":
                 begin
-                    DeleteItemization(Expense);
+                    if not Expense.IsItemizationRequired() then
+                        DeleteItemization(Expense);
+
                     DeleteParticipants(Expense);
                 end;
         end;
@@ -263,7 +269,9 @@ codeunit 6912 "Expense Auto Population"
         case ExpenseReportLine."Expense Detail Required" of
             "Expense Detail Needed"::" ":
                 begin
-                    DeleteItemization(ExpenseReportLine);
+                    if not ExpenseReportLine.IsItemizationRequired() then
+                        DeleteItemization(ExpenseReportLine);
+
                     DeletePerDiem(ExpenseReportLine);
                     DeleteParticipants(ExpenseReportLine);
                 end;
@@ -274,12 +282,16 @@ codeunit 6912 "Expense Auto Population"
                 end;
             "Expense Detail Needed"::Participants:
                 begin
-                    DeleteItemization(ExpenseReportLine);
+                    if not ExpenseReportLine.IsItemizationRequired() then
+                        DeleteItemization(ExpenseReportLine);
+
                     DeletePerDiem(ExpenseReportLine);
                 end;
             "Expense Detail Needed"::"Per Diem":
                 begin
-                    DeleteItemization(ExpenseReportLine);
+                    if not ExpenseReportLine.IsItemizationRequired() then
+                        DeleteItemization(ExpenseReportLine);
+
                     DeleteParticipants(ExpenseReportLine);
                 end;
         end;
@@ -365,10 +377,13 @@ codeunit 6912 "Expense Auto Population"
             else
                 ExpenseCurrency.Get(Expense."Currency Code");
 
-            Expense.Validate(Amount, Round(GetEffectiveDistance(Expense.Mileage, Expense."Round Trip") * GetStandardRateOfMileage(Expense."Expense Date", Expense."Currency Code", Expense."Currency Factor", ExpenseAgentSetup."Standard Rate of Mileage"), ExpenseCurrency."Amount Rounding Precision"));
+            Expense.Validate(Amount, Round(GetEffectiveDistance(Expense.Mileage, Expense."Round Trip") * GetStandardRateOfMileage(Expense."Expense Date", Expense."Currency Code", Expense."Currency Factor", ExpenseAgentSetup."Standard Rate of Mileage", Expense."Vehicle Type"), ExpenseCurrency."Amount Rounding Precision"));
             if Expense."Unit of Measure Code" = '' then
                 Expense.Validate("Unit of Measure Code", ExpenseAgentSetup."Default Mileage UOM");
         end;
+
+        if Expense.IsItemizationRequired() then
+            UpdateExpenseItemizationCurrency(Expense);
 
         if Expense."Expense Detail Required" = Expense."Expense Detail Required"::Itemize then
             UpdateItemizationInformationOnExpense(Expense);
@@ -399,6 +414,41 @@ codeunit 6912 "Expense Auto Population"
         ExpenseReportLine."Non-Refundable Amount" := ExpenseReportLineItemization.Amount;
     end;
 
+    local procedure UpdateExpenseItemizationCurrency(Expense: Record Expense)
+    var
+        ExpenseItemization: Record "Expense Itemization";
+        Currency: Record Currency;
+    begin
+        Currency.Initialize(Expense."Currency Code");
+
+        ExpenseItemization.SetRange("Expense No.", Expense."No.");
+        if ExpenseItemization.FindSet(true) then
+            repeat
+                ExpenseItemization."Currency Code" := Expense."Currency Code";
+                ExpenseItemization."Daily Rate" := Round(ExpenseItemization."Daily Rate", Currency."Amount Rounding Precision");
+                ExpenseItemization.Amount := Round(ExpenseItemization.Quantity * ExpenseItemization."Daily Rate", Currency."Amount Rounding Precision");
+                ExpenseItemization.Modify(false);
+            until ExpenseItemization.Next() = 0;
+    end;
+
+    local procedure UpdateExpenseReportItemizationCurrency(ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportLineItemization: Record "Expense Report Line Item";
+        Currency: Record Currency;
+    begin
+        Currency.Initialize(ExpenseReportLine."Expense Currency Code");
+
+        ExpenseReportLineItemization.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineItemization.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        if ExpenseReportLineItemization.FindSet(true) then
+            repeat
+                ExpenseReportLineItemization."Currency Code" := ExpenseReportLine."Expense Currency Code";
+                ExpenseReportLineItemization."Daily Rate" := Round(ExpenseReportLineItemization."Daily Rate", Currency."Amount Rounding Precision");
+                ExpenseReportLineItemization.Amount := Round(ExpenseReportLineItemization.Quantity * ExpenseReportLineItemization."Daily Rate", Currency."Amount Rounding Precision");
+                ExpenseReportLineItemization.Modify(false);
+            until ExpenseReportLineItemization.Next() = 0;
+    end;
+
     local procedure UpdateFromRuleForReportLine(var ExpenseReportLine: Record "Expense Report Line"; ExpenseRuleHeader: Record "Expense Rule Header")
     begin
         ExpenseReportLine."Applied Rule Id" := ExpenseRuleHeader.SystemId;
@@ -422,10 +472,13 @@ codeunit 6912 "Expense Auto Population"
             else
                 ExpenseCurrency.Get(ExpenseReportLine."Expense Currency Code");
 
-            ExpenseReportLine.Validate(Amount, Round(GetEffectiveDistance(ExpenseReportLine.Mileage, ExpenseReportLine."Round Trip") * GetStandardRateOfMileage(ExpenseReportLine."Expense Date", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor", ExpenseAgentSetup."Standard Rate of Mileage"), ExpenseCurrency."Amount Rounding Precision"));
+            ExpenseReportLine.Validate(Amount, Round(GetEffectiveDistance(ExpenseReportLine.Mileage, ExpenseReportLine."Round Trip") * GetStandardRateOfMileage(ExpenseReportLine."Expense Date", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor", ExpenseAgentSetup."Standard Rate of Mileage", ExpenseReportLine."Vehicle Type"), ExpenseCurrency."Amount Rounding Precision"));
             if ExpenseReportLine."Unit of Measure Code" = '' then
                 ExpenseReportLine.Validate("Unit of Measure Code", ExpenseAgentSetup."Default Mileage UOM");
         end;
+
+        if ExpenseReportLine.IsItemizationRequired() then
+            UpdateExpenseReportItemizationCurrency(ExpenseReportLine);
 
         if ExpenseReportLine."Expense Detail Required" = ExpenseReportLine."Expense Detail Required"::Itemize then
             UpdateItemizationInformationOnExpenseReportLine(ExpenseReportLine);
@@ -447,18 +500,33 @@ codeunit 6912 "Expense Auto Population"
     end;
 
     procedure GetStandardRateOfMileage(ExpenseDate: Date; CurrencyCode: Code[10]; CurrencyFactor: Decimal; StandardRateOfMileage: Decimal): Decimal
+    begin
+        exit(GetStandardRateOfMileage(ExpenseDate, CurrencyCode, CurrencyFactor, StandardRateOfMileage, ''));
+    end;
+
+    procedure GetStandardRateOfMileage(ExpenseDate: Date; CurrencyCode: Code[10]; CurrencyFactor: Decimal; StandardRateOfMileage: Decimal; VehicleType: Code[20]): Decimal
     var
         CurrencyExchangeRate: Record "Currency Exchange Rate";
         ExpenseCurrency: Record Currency;
+        MileageRateSetup: Record "Mileage Rate Setup";
+        EffectiveRate: Decimal;
+        RateCurrencyCode: Code[10];
     begin
-        if CurrencyCode = '' then
-            exit(StandardRateOfMileage);
+        if MileageRateSetup.FindEffectiveRate(ExpenseDate, CurrencyCode, VehicleType) then begin
+            EffectiveRate := MileageRateSetup.Rate;
+            RateCurrencyCode := MileageRateSetup."Currency Code";
+        end else begin
+            EffectiveRate := StandardRateOfMileage;
+            RateCurrencyCode := '';
+        end;
+
+        if RateCurrencyCode = CurrencyCode then
+            exit(EffectiveRate);
 
         if CurrencyCode = '' then
-            ExpenseCurrency.InitRoundingPrecision()
-        else
-            ExpenseCurrency.Get(CurrencyCode);
+            exit(EffectiveRate);
 
-        exit(Round(CurrencyExchangeRate.ExchangeAmtLCYToFCY(ExpenseDate, CurrencyCode, StandardRateOfMileage, CurrencyFactor), ExpenseCurrency."Unit-Amount Rounding Precision"));
+        ExpenseCurrency.Get(CurrencyCode);
+        exit(Round(CurrencyExchangeRate.ExchangeAmtLCYToFCY(ExpenseDate, CurrencyCode, EffectiveRate, CurrencyFactor), ExpenseCurrency."Unit-Amount Rounding Precision"));
     end;
 }

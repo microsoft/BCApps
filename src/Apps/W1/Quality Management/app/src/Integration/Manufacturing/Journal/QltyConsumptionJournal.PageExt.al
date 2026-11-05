@@ -81,6 +81,10 @@ pageextension 20408 "Qlty. Consumption Journal" extends "Consumption Journal"
         }
     }
 
+    /// <summary>
+    /// Determines whether the current consumption journal line identifies a persisted item line.
+    /// </summary>
+    /// <returns>True if the line has a system ID and an item number; otherwise, false.</returns>
     local procedure CanBeProcessed(): Boolean
     begin
         if IsNullGuid(Rec.SystemId) then

@@ -24,6 +24,9 @@ codeunit 5639 "FA Get Journal"
         GenJnlBatch: Record "Gen. Journal Batch";
         InsuranceJnlTempl: Record "Insurance Journal Template";
         InsuranceJnlBatch: Record "Insurance Journal Batch";
+#if not CLEAN30
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         TemplateName2: Code[10];
         BatchName2: Code[10];
 
@@ -135,8 +138,16 @@ codeunit 5639 "FA Get Journal"
                 exit(DeprBook."G/L Integration - Maintenance");
             FAPostingType::"Salvage Value":
                 exit(false);
+#if not CLEAN30
             FAPostingType::Derogatory:
-                exit(DeprBook."G/L Integration - Derogatory");
+                if AcceleratedDeprFeature.IsEnabled() then
+                    exit(DeprBook."Integration G/L - Derogatory")
+                else
+                    exit(DeprBook."G/L Integration - Derogatory");
+#else
+            FAPostingType::Derogatory:
+                exit(DeprBook."Integration G/L - Derogatory");
+#endif
         end;
 
         OnAfterCalcGLIntegration(DeprBook, FAPostingType, Result);
@@ -147,4 +158,3 @@ codeunit 5639 "FA Get Journal"
     begin
     end;
 }
-

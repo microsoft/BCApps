@@ -2434,7 +2434,7 @@ codeunit 10750 "SII XML Creator"
                 Amount[i], CustNo, CustLedgerEntry."Document Type".AsInteger(), CustLedgerEntry."Document No.",
                 CustLedgerEntry."Posting Date", IsService, true, IsLocalRule, false);
         end;
-        UpdateAmountBufferWithOneStopShop(HasEntries, Amount, TempVATEntry);
+        UpdateAmountBufferWithOneStopShop(HasEntries, Amount, TempVATEntry, CustLedgerEntry."Document Type" = CustLedgerEntry."Document Type"::"Credit Memo");
         ExportNonTaxableVATEntries(
           TipoDesgloseXMLNode, DesgloseFacturaXMLNode, DomesticXMLNode,
           DesgloseTipoOperacionXMLNode, EUXMLNode, IsService, DomesticCustomer, HasEntries, RegimeCodes, Amount);
@@ -2462,13 +2462,13 @@ codeunit 10750 "SII XML Creator"
                 OldCustLedgerEntry."Posting Date", IsService, true, IsLocalRule);
             ReplacementAmount[i] := Abs(OldAmount + Amount);
         end;
-        UpdateAmountBufferWithOneStopShop(HasEntries, ReplacementAmount, TempVATEntry);
+        UpdateAmountBufferWithOneStopShop(HasEntries, ReplacementAmount, TempVATEntry, CustLedgerEntry."Document Type" = CustLedgerEntry."Document Type"::"Credit Memo");
         ExportNonTaxableVATEntries(
           TipoDesgloseXMLNode, DesgloseFacturaXMLNode, DomesticXMLNode, DesgloseTipoOperacionXMLNode, EUXMLNode, IsService, DomesticCustomer,
           HasEntries, RegimeCodes, ReplacementAmount);
     end;
 
-    local procedure UpdateAmountBufferWithOneStopShop(var HasEntries: array[2] of Boolean; var Amount: array[2] of Decimal; var TempVATEntry: Record "VAT Entry" temporary)
+    local procedure UpdateAmountBufferWithOneStopShop(var HasEntries: array[2] of Boolean; var Amount: array[2] of Decimal; var TempVATEntry: Record "VAT Entry" temporary; IsCreditMemo: Boolean)
     var
         HasOneStopShopEntries: Boolean;
     begin
@@ -2479,7 +2479,11 @@ codeunit 10750 "SII XML Creator"
         if not HasOneStopShopEntries then
             exit;
         HasEntries[2] := true;
-        Amount[2] += Abs(TempVATEntry.Base);
+        // For One-Stop-Shop, credit memos must report a negative ImporteTAIReglasLocalizacion, while invoices stay positive
+        if IsCreditMemo then
+            Amount[2] += -Abs(TempVATEntry.Base)
+        else
+            Amount[2] += Abs(TempVATEntry.Base);
     end;
 
     local procedure ExportNonTaxableVATEntries(var TipoDesgloseXMLNode: DotNet XmlNode; var DesgloseFacturaXMLNode: DotNet XmlNode; var DomesticXMLNode: DotNet XmlNode; var DesgloseTipoOperacionXMLNode: DotNet XmlNode; var EUXMLNode: DotNet XmlNode; IsService: Boolean; DomesticCustomer: Boolean; HasEntries: array[2] of Boolean; RegimeCodes: array[3] of Code[2]; Amount: array[2] of Decimal)

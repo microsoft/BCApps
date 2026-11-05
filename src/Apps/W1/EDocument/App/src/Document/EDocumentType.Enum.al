@@ -113,4 +113,12 @@ enum 6121 "E-Document Type" implements IEDocumentFinishDraft
     {
         Caption = 'Remittance Advice';
     }
+    value(24; "Self-Billed Purchase Invoice")
+    {
+        Caption = 'Self-Billed Purchase Invoice';
+    }
+    value(25; "Self-Billed Purch. Cr. Memo")
+    {
+        Caption = 'Self-Billed Purchase Credit Memo';
+    }
 }

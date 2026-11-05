@@ -11,11 +11,8 @@ using System.AI;
 using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Security.AccessControl;
 using System.Telemetry;
 using System.Utilities;
-#pragma warning disable AS0031
-#pragma warning disable AA0073
 page 6991 "Expense Agent Setup Wizard"
 {
     PageType = ConfigurationDialog;
@@ -38,6 +35,52 @@ page 6991 "Expense Agent Setup Wizard"
             {
                 ApplicationArea = All;
                 UpdatePropagation = Both;
+            }
+
+            group(GetStarted)
+            {
+                Caption = 'Start for free';
+                InstructionalText = 'The first receipts you upload to the Expense Agent will be processed for free. After you run out of free expenses, standard billing applies.';
+
+                group(TrialRemaining)
+                {
+                    Caption = 'You still have free expenses remaining';
+                    InstructionalText = 'The number of free expenses is shared across all expense users and companies in this environment.';
+                    Visible = TrialExpensesRemaining > 0;
+
+                    field(RemainingExpenses; TrialExpensesText)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies the number of free expenses left.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if ExpenseDashboardUrl <> '' then
+                                Hyperlink(ExpenseDashboardUrl);
+                        end;
+                    }
+
+                }
+                group(TrialEnded)
+                {
+                    Caption = 'You don''t have any free expenses remaining';
+                    InstructionalText = 'You can continue using the Expense Agent, and normal billing applies.';
+                    Visible = TrialExpensesRemaining <= 0;
+
+                    field(UseExpenseAgent; ExpenseDashboardLinkTxt)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Opens the Expense app in a new browser tab so registered users can submit and review their expenses.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if ExpenseDashboardUrl <> '' then
+                                Hyperlink(ExpenseDashboardUrl);
+                        end;
+                    }
+                }
             }
             group(AccessAndSubmission)
             {
@@ -156,9 +199,13 @@ page 6991 "Expense Agent Setup Wizard"
                                 if ExpenseUsers.RunModal() = Action::LookupOK then begin
                                     ExpenseUsers.GetRecord(ExpenseUser);
                                     if ExpenseUser."No." <> Rec."Default Approver No." then begin
-                                        if not ExpenseUser."Can Approve" then begin
+                                        if (not ExpenseUser."Can Approve") or not (ExpenseUser."Unlimited Approval") then begin
                                             ExpenseUser.ReadIsolation(IsolationLevel::UpdLock);
                                             ExpenseUser.Get(ExpenseUser."No.");
+                                            if not ExpenseUser."Can Approve" then
+                                                ExpenseUser.Validate("Can Approve", true);
+                                            if not ExpenseUser."Unlimited Approval" then
+                                                ExpenseUser.Validate("Unlimited Approval", true);
                                             ExpenseUser.Validate("Can Approve", true);
                                             ExpenseUser.Modify();
                                             Commit(); // because we ask a question in the validate trigger later
@@ -167,7 +214,13 @@ page 6991 "Expense Agent Setup Wizard"
                                         ConfigUpdated();
                                         CurrPage.Update(true);
                                     end;
-                                end;
+                                end else
+                                    if Rec."Default Approver No." <> '' then
+                                        if Confirm(ClearDefaultApproverQst, false) then begin
+                                            Rec."Default Approver No." := '';
+                                            ConfigUpdated();
+                                            CurrPage.Update(true);
+                                        end;
                             end;
                         }
                     }
@@ -490,8 +543,20 @@ page 6991 "Expense Agent Setup Wizard"
                             ConfigUpdated();
                         end;
                     }
-                }
+                    field(ManagementRulesLink; ManagementRulesLinkTxt)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies a link that opens the expense management rules.';
 
+                        trigger OnDrillDown()
+                        var
+                            ExpenseManagementRules: Page "Expense Management Rules";
+                        begin
+                            ExpenseManagementRules.RunModal();
+                        end;
+                    }
+                }
                 group(DetectOutdatedExpenseSection)
                 {
                     ShowCaption = false;
@@ -561,6 +626,60 @@ page 6991 "Expense Agent Setup Wizard"
                 }
 
             }
+            group(EvaluatePoliciesTab)
+            {
+                Caption = 'Policy compliance';
+
+                group(EvaluatePoliciesSection)
+                {
+                    Caption = 'Evaluate compliance with AI';
+                    InstructionalText = 'Use AI to evaluate compliance according to organization guidelines.';
+                    field("Evaluate Policies"; Rec."Evaluate Policies")
+                    {
+                        ShowCaption = false;
+                        ToolTip = 'Specifies whether the agent evaluates expenses against the configured policies. Rules are evaluated by code, while policies are evaluated by AI, so enabling this consumes additional AI credits.';
+
+                        trigger OnValidate()
+                        begin
+                            if Rec."Evaluate Policies" and (not xRec."Evaluate Policies") then
+                                if not Confirm(ActivatePolicyEvalQst, false) then
+                                    Error('');
+                            ConfigUpdated();
+                        end;
+                    }
+                    field(ExpensePoliciesLink; ExpensePoliciesLinkTxt)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies a link that opens the expense policies.';
+
+                        trigger OnDrillDown()
+                        var
+                            ExpensePoliciesPage: Page "Expense Policies";
+                        begin
+                            ExpensePoliciesPage.Editable(true);
+                            ExpensePoliciesPage.RunModal();
+                        end;
+                    }
+                    group(SubmitterRunEvaluationSection)
+                    {
+                        Caption = 'Enable pre-submission evaluation';
+                        InstructionalText = 'Let submitters run a compliance evaluation of the expense reports.';
+                        Enabled = Rec."Evaluate Policies";
+
+                        field("Submitter-run Evaluation"; Rec."Submitter-run Evaluation")
+                        {
+                            ShowCaption = false;
+                            ToolTip = 'Specifies whether submitters can run an AI evaluation to check expense reports for compliance before submitting them.';
+
+                            trigger OnValidate()
+                            begin
+                                ConfigUpdated();
+                            end;
+                        }
+                    }
+                }
+            }
             group(CommunicationGroup)
             {
                 Caption = 'Communication';
@@ -614,9 +733,40 @@ page 6991 "Expense Agent Setup Wizard"
                     }
                     field("Open Report Notif. Freq."; Rec."Open Report Notif. Freq.")
                     {
-                        Caption = 'Notification frequency';
+                        Caption = 'Frequency';
                         ToolTip = 'Specifies how often the system should send notifications for open expense reports.';
                         Enabled = Rec."Enable Open Report Notif.";
+
+                        trigger OnValidate()
+                        begin
+                            ConfigUpdated();
+                        end;
+                    }
+                    field("Notif. Day of Week"; Rec."Notif. Day of Week")
+                    {
+                        Caption = 'Day of week';
+                        Enabled = Rec."Enable Open Report Notif." and (Rec."Open Report Notif. Freq." = Rec."Open Report Notif. Freq."::Weekly);
+
+                        trigger OnValidate()
+                        begin
+                            ConfigUpdated();
+                        end;
+                    }
+                    field("Notif. Day In A Month"; Rec."Notif. Day In A Month")
+                    {
+                        Caption = 'Day of month';
+                        Enabled = Rec."Enable Open Report Notif." and (Rec."Open Report Notif. Freq." = Rec."Open Report Notif. Freq."::Monthly);
+
+                        trigger OnValidate()
+                        begin
+                            ConfigUpdated();
+                        end;
+                    }
+                    field("Custom Notif. Formula"; Rec."Custom Notif. Formula")
+                    {
+                        Caption = 'Custom formula';
+                        ToolTip = 'Specifies a date formula for the next reminder date, based on the last reminder run, such as 1D (one day), 1W (one week), or 1M (one month). A result on or before the last run date is moved to the following day.';
+                        Enabled = Rec."Enable Open Report Notif." and (Rec."Open Report Notif. Freq." = Rec."Open Report Notif. Freq."::Custom);
 
                         trigger OnValidate()
                         begin
@@ -652,6 +802,7 @@ page 6991 "Expense Agent Setup Wizard"
                 {
                     Caption = 'Rate per unit';
                     ToolTip = 'Specifies the reimbursement amount per unit of distance used to calculate mileage expenses.';
+                    Enabled = StandardRateOfMileageEnabled;
 
                     trigger OnValidate()
                     begin
@@ -683,6 +834,26 @@ page 6991 "Expense Agent Setup Wizard"
                     trigger OnValidate()
                     begin
                         ConfigUpdated();
+                    end;
+                }
+                field("Only Shortest Route"; Rec."Only Shortest Route")
+                {
+                    trigger OnValidate()
+                    begin
+                        ConfigUpdated();
+                    end;
+                }
+                field(MileageRateSetupLink; MileageRateSetupLinkTxt)
+                {
+                    ShowCaption = false;
+                    Editable = false;
+                    ToolTip = 'Specifies where to configure mileage rates by vehicle type.';
+
+                    trigger OnDrillDown()
+                    var
+                        MileageRateSetup: Page "Mileage Rate Setup";
+                    begin
+                        MileageRateSetup.RunModal();
                     end;
                 }
             }
@@ -770,8 +941,8 @@ page 6991 "Expense Agent Setup Wizard"
             }
             group(CanaryGroup)
             {
-                Caption = 'Canary';
-                InstructionalText = 'Route this environment''s Expense Agent service calls through the canary endpoint.';
+                Caption = 'Canary (allowlisted tenants)';
+                InstructionalText = 'These settings are shown for allowlisted tenants or when canary is already enabled. Choose whether the agent uses the canary service endpoint.';
                 Visible = CanaryToggleVisible;
 
                 field(UseCanaryEndpoint; UseCanaryEndpoint)
@@ -782,7 +953,7 @@ page 6991 "Expense Agent Setup Wizard"
 
                     trigger OnValidate()
                     begin
-                        // Changing the endpoint only takes effect for service calls after this point; it does not automatically re-register the ERP configuration.
+                        // Register and unregister use this selection on Update; changing it does not migrate an existing registration.
                         Rec."Use Canary Endpoint" := UseCanaryEndpoint;
                         Rec.Modify();
                         ConfigUpdated();
@@ -824,7 +995,7 @@ page 6991 "Expense Agent Setup Wizard"
             Error(CapabilityDisabledErr, Enum::"Copilot Capability"::"Expense Agent");
 
         FeatureTelemetry.LogUptake('0000UBU', Rec.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
-
+        if not EAHttpClient.TryEnableHttpRequestForExpenseAgentApp() then;
         IsConfigUpdated := false;
         LoadSetup();
         ExpenseDashboardUrl := GetExpenseDashboardUrl();
@@ -835,42 +1006,48 @@ page 6991 "Expense Agent Setup Wizard"
         CurrPage.AgentSetupPart.Page.Initialize(AgentUserSecurityID, "Agent Metadata Provider"::"Expense Agent", AgentUserName(), AgentDisplayNameLbl, AgentSummaryLbl);
         UpdateAgentSetupBuffer();
 
-        InitialState := AgentSetupBuffer.State;
+        InitialState := TempAgentSetupBuffer.State;
+        InitializeRemainingTrial();
         UpdateControls();
     end;
 
     trigger OnAfterGetCurrRecord()
     var
+        MileageRateSetup: Record "Mileage Rate Setup";
         CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
     begin
         UpdateAgentSetupBuffer();
-        IsConfigUpdated := IsConfigUpdated or AgentSetup.GetChangesMade(AgentSetupBuffer);
+        IsConfigUpdated := IsConfigUpdated or AgentSetup.GetChangesMade(TempAgentSetupBuffer);
         EnableSendingEmailWithReceipts := EnableSendingEmailWithReceipts or (Rec."Email Address" <> '');
         if Rec."Default Mileage UOM" = '' then
             Rec."Default Mileage UOM" := CreateExpenseAgentSetup.GetDefaultMileageUOM();
         RefreshPerDiemSummaries();
+        StandardRateOfMileageEnabled := MileageRateSetup.IsEmpty();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        EAHttpClient: Codeunit "EA Http Client";
     begin
         if CloseAction = CloseAction::Cancel then
             exit(true);
+
+        if StateChanged() then
+            if EAHttpClient.IsCurrentUserGuestUser() then
+                Error(GuestUserErr);
 
         if not ValidateManagementRulesDependencies() then
             exit(false);
 
         UpdateAgentSetupBuffer();
-
         if AgentBeingEnabled() then
             if not ConfirmMissingAccountWarnings() then
                 exit(false);
 
         VerifySchedulingMailboxAccess();
-
         if AgentBeingEnabled() and StateChanged() then
             if not ActivateAgent() then
                 exit(false);
-
         if AgentBeingDisabled() and StateChanged() then
             if not DeactivateAgent() then
                 exit(false);
@@ -882,8 +1059,9 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     var
-        AgentSetupBuffer: Record "Agent Setup Buffer";
+        TempAgentSetupBuffer: Record "Agent Setup Buffer";
         AgentSetup: Codeunit "Agent Setup";
+        TrialExpensesRemaining: Integer;
         InitialState: Option;
         EnableMailboxChanged: Boolean;
         IsConfigUpdated: Boolean;
@@ -904,9 +1082,11 @@ page 6991 "Expense Agent Setup Wizard"
         ExpenseDashboardUrl: Text;
         PartialDayRuleSummary: Text;
         MealReductionsSummary: Text;
+        TrialExpensesText: Text;
         PartialDayRuleEnabled: Boolean;
         UseCanaryEndpoint: Boolean;
         CanaryToggleVisible: Boolean;
+        StandardRateOfMileageEnabled: Boolean;
         PaymentMethodsLinkTxt: Label 'Preview the default payment methods that will be added';
         PaymentMethodsAppliedLinkTxt: Label 'View payment methods including new defaults';
         PostingGroupsLinkTxt: Label 'Preview the default expense posting groups that will be added';
@@ -917,8 +1097,12 @@ page 6991 "Expense Agent Setup Wizard"
         LocationsAppliedLinkTxt: Label 'View expense locations including new defaults';
         RulesLinkTxt: Label 'Preview the default management rules that will be added';
         RulesAppliedLinkTxt: Label 'View management rules including new defaults';
+        ManagementRulesLinkTxt: Label 'View rules';
+        ExpensePoliciesLinkTxt: Label 'View expense policies';
+        TrialExpensesRemainingTxt: Label '%1 free expenses remaining', Comment = '%1=Number of free expenses remaining';
         NoSeriesLinkTxt: Label 'Preview the default number series that will be added';
         NoSeriesAppliedLinkTxt: Label 'View number series including new defaults';
+        MileageRateSetupLinkTxt: Label 'Configure mileage rates by vehicle type';
         ExpenseDashboardLinkTxt: Label 'Go to Expense app (opens in new window)';
         ExpenseDashboardUrlOnPremTxt: Label 'http://localhost:5173/', Locked = true;
         ExpenseDashboardUrlProdTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2365219', Locked = true;
@@ -930,14 +1114,16 @@ page 6991 "Expense Agent Setup Wizard"
         IncludeCategoriesForRulesQst: Label 'Default management rules require default expense categories. Do you want to add them to the configuration?';
         IncludeCategoriesAndPostingGroupsForRulesQst: Label 'Default management rules require default expense categories and posting groups. Do you want to add them to the configuration?';
         PrivacyNoticeNotAcceptedMsg: Label 'To use the Expense Agent, you must first accept the privacy notice. Please accept the privacy notice and try again.';
-        ExpenseAgentPermissionSetLbl: Label 'Expense Agent', Locked = true;
         NoExpenseUsersErr: Label 'You must first specify who can access.';
         NoSystemUsersErr: Label 'You must first specify a user in Business Central as expense user.';
+        GuestUserErr: Label 'You cannot enable or disable Expense Agent. Guest users and external administrators have currently limited access to the Expense Agent.';
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
         ApprovalWorkflowConflictErr: Label 'You must turn off "%1" in Expense Agent Setup to enable Expense Agent.', Comment = '%1 = Field Caption';
+        ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
         AgentUserNameLbl: Label 'Expense Agent', Locked = true;
         AgentDisplayNameLbl: Label 'Expense Agent', MaxLength = 80;
         AgentSummaryLbl: Label 'Processes employee expense reports by extracting receipt data, validating against company policies, and routing for approval.';
+        ClearDefaultApproverQst: Label 'Do you want to remove the current default approver?';
 
     local procedure LoadSetup()
     var
@@ -965,10 +1151,7 @@ page 6991 "Expense Agent Setup Wizard"
         IncludeManagementRules := Rec."Management Rules Applied";
         ApplyNoSeries := Rec."No. Series Applied";
         UseCanaryEndpoint := Rec."Use Canary Endpoint";
-
         if IsFirstTimeSetup then begin
-            Rec."Enable Email with Receipts" := true;
-            Rec."Enable Communication" := true;
             Rec."Use Rules" := true;
             ApplyAccountingDefaultsSelection(true);
             ApplyManagementDefaultsSelection(true);
@@ -992,7 +1175,6 @@ page 6991 "Expense Agent Setup Wizard"
             end;
             exit;
         end;
-
         if not NoSeriesLocked then
             ApplyNoSeries := false;
         if not PaymentMethodsLocked then
@@ -1017,11 +1199,18 @@ page 6991 "Expense Agent Setup Wizard"
             end;
             exit;
         end;
-
         if not ExpLocationsLocked then
             ApplyExpLocations := false;
         if not ManagementRulesLocked then
             IncludeManagementRules := false;
+    end;
+
+    local procedure InitializeRemainingTrial()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+    begin
+        TrialExpensesRemaining := ExpenseConsumptionHandler.GetRemainingFeatureTrialQuota();
+        TrialExpensesText := StrSubstNo(TrialExpensesRemainingTxt, TrialExpensesRemaining);
     end;
 
     local procedure IsNoSeriesDataEmpty(): Boolean
@@ -1076,8 +1265,8 @@ page 6991 "Expense Agent Setup Wizard"
         if not ExpenseAgentSetup.Get() then
             ExpenseAgentSetup.Insert(true);
         ExpenseAgentSetup.TransferFields(Rec, false);
-        if not IsNullGuid(AgentSetupBuffer."User Security ID") then
-            ExpenseAgentSetup."User Security ID" := AgentSetupBuffer."User Security ID";
+        if not IsNullGuid(TempAgentSetupBuffer."User Security ID") then
+            ExpenseAgentSetup."User Security ID" := TempAgentSetupBuffer."User Security ID";
         ExpenseAgentSetup.Modify(true);
     end;
 
@@ -1089,7 +1278,6 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if ExpenseAgentSetup.Get() then
             AgentUserSecurityID := ExpenseAgentSetup."User Security ID";
-
         if not IsNullGuid(AgentUserSecurityID) then
             if Agent.Get(AgentUserSecurityID) then
                 exit(AgentUserSecurityID);
@@ -1139,7 +1327,6 @@ page 6991 "Expense Agent Setup Wizard"
             ConfirmQst := IncludeCategoriesAndPostingGroupsForRulesQst
         else
             ConfirmQst := IncludeCategoriesForRulesQst;
-
         if not Confirm(ConfirmQst, true) then
             exit(false);
 
@@ -1157,29 +1344,23 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if not ExpenseAgentSetup.Get() then
             exit;
-
         if ApplyNoSeries and not NoSeriesLocked then
             ExpenseAgentSetup.CreateNoSeriesDefaults();
-
         if ApplyPaymentMethods and not PaymentMethodsLocked then
             ExpenseAgentSetup.CreatePaymentMethodsDefaults();
-
         if ApplyPostingGroups and not PostingGroupsLocked then
             ExpenseAgentSetup.CreatePostingGroupsDefaults();
-
         if IncludeExpCategories and not ExpCategoriesLocked then
             ExpenseAgentSetup.CreateExpenseCategoriesDefaults();
-
         if ApplyExpLocations and not ExpLocationsLocked then
             ExpenseAgentSetup.CreateExpenseLocationsDefaults();
-
         if IncludeManagementRules and not ManagementRulesLocked then
             ExpenseAgentSetup.CreateManagementRulesDefaults();
     end;
 
     local procedure UpdateAgentSetupBuffer()
     begin
-        CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(AgentSetupBuffer);
+        CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
     end;
 
     local procedure EditPerDiemPartialSettings()
@@ -1219,7 +1400,6 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if Rec."Full Per-Diem Calculation" = Rec."Full Per-Diem Calculation"::None then
             exit(NotApplicableLbl);
-
         case Rec."Partial Day Rules" of
             Rec."Partial Day Rules"::"Flat Percentage Of Full Rate":
                 exit(StrSubstNo(FlatRateSummaryLbl, FormatPercentage(Rec."Percentage For Partial Day")));
@@ -1256,6 +1436,7 @@ page 6991 "Expense Agent Setup Wizard"
     local procedure UpdateControls()
     begin
         ValidateSelectedMailboxExists();
+        ValidateNoreplyMailboxExists();
     end;
 
     local procedure ConfigUpdated()
@@ -1265,27 +1446,50 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure StateChanged(): Boolean
     begin
-        exit(AgentSetupBuffer.State <> InitialState);
+        exit(TempAgentSetupBuffer.State <> InitialState);
     end;
 
     local procedure ValidateSelectedMailboxExists()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailAccountCU: Codeunit "Email Account";
     begin
         if IsNullGuid(Rec."Email Account ID") then
             exit;
 
-        EmailAccountCU.GetAllAccounts(false, EmailAccount);
-        EmailAccount.SetRange("Account Id", Rec."Email Account ID");
-        EmailAccount.SetRange(Connector, Rec."Email Connector");
-        if not EmailAccount.IsEmpty() then
+        EmailAccountCU.GetAllAccounts(false, TempEmailAccount);
+        TempEmailAccount.SetRange("Account Id", Rec."Email Account ID");
+        TempEmailAccount.SetRange(Connector, Rec."Email Connector");
+        if not TempEmailAccount.IsEmpty() then
             exit;
 
+        // Stage the repair only; validating Enable Agent here would cancel live tasks before Update.
         Rec.ClearMailboxAndDependents();
-        if Rec."Enable Agent" then
-            Rec.Validate("Enable Agent", false);
         Rec.Modify();
+        EnableMailboxChanged := true;
+        ConfigUpdated();
+    end;
+
+    local procedure ValidateNoreplyMailboxExists()
+    var
+        TempEmailAccount: Record "Email Account";
+        EmailAccountCU: Codeunit "Email Account";
+    begin
+        if IsNullGuid(Rec."Noreply Email Account ID") then
+            exit;
+
+        EmailAccountCU.GetAllAccounts(false, TempEmailAccount);
+        TempEmailAccount.SetRange("Account Id", Rec."Noreply Email Account ID");
+        TempEmailAccount.SetRange(Connector, Rec."Noreply Email Connector");
+        if not TempEmailAccount.IsEmpty() then
+            exit;
+
+        Rec."Noreply Email Address" := '';
+        Clear(Rec."Noreply Email Account ID");
+        Clear(Rec."Noreply Email Connector");
+        Rec.Modify();
+        EnableMailboxChanged := true;
+        ConfigUpdated();
     end;
 
     local procedure ScheduleAllTasks()
@@ -1308,7 +1512,6 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if ExpPrivacyNoticeReg.IsPrivacyNoticeApproved() then
             exit;
-
         if not ExpPrivacyNoticeReg.ConfirmPrivacyNoticeApproval() then
             Error(PrivacyNoticeNotAcceptedMsg);
     end;
@@ -1330,12 +1533,12 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure AgentBeingEnabled(): Boolean
     begin
-        exit(AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled);
+        exit(TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Enabled);
     end;
 
     local procedure AgentBeingDisabled(): Boolean
     begin
-        exit(AgentSetupBuffer.State = AgentSetupBuffer.State::Disabled);
+        exit(TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled);
     end;
 
     local procedure ScheduleAffectingChange(): Boolean
@@ -1353,15 +1556,16 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     local procedure ActivateAgent(): Boolean
+    var
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
         ValidatePrivacyNoticeApproval();
         ValidateCapabilityIsEnabled();
-
         if Rec."Enable Approval Workflow" then
             Error(ApprovalWorkflowConflictErr, Rec.FieldCaption("Enable Approval Workflow"));
 
         EnsureCurrentUserHasAccess();
-        EnableAadApplication();
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
         Commit();
         if not RegisterErpConfiguration() then
             exit(false);
@@ -1370,11 +1574,15 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     local procedure DeactivateAgent(): Boolean
+    var
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
+        ExpenseAgentEntraApp.VerifyCanDisableAadApplicationForCurrentCompany();
         if not Rec.ShowDeactivationAccessWarning() then
             exit(false);
         if not UnregisterErpConfiguration() then
             exit(false);
+        ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
         Rec.LogAgentDisabledTelemetry();
         exit(true);
     end;
@@ -1390,10 +1598,10 @@ page 6991 "Expense Agent Setup Wizard"
         // creating a duplicate through the platform CreateAgent branch.
         ExpenseAgentSetup.ReadIsolation := IsolationLevel::UpdLock;
         if ExpenseAgentSetup.Get() then;
-        if IsNullGuid(AgentSetupBuffer."User Security ID") then
-            AgentSetupBuffer."User Security ID" := ResolveAgentUserSecurityID();
+        if IsNullGuid(TempAgentSetupBuffer."User Security ID") then
+            TempAgentSetupBuffer."User Security ID" := ResolveAgentUserSecurityID();
 
-        AgentSetup.SaveChanges(AgentSetupBuffer);
+        AgentSetup.SaveChanges(TempAgentSetupBuffer);
         SaveSetup();
         ApplyDefaultsIfRequested();
     end;
@@ -1431,63 +1639,8 @@ page 6991 "Expense Agent Setup Wizard"
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Expense Agent", true) then
             if Confirm(CapabilityDisabledQst, false, Enum::"Copilot Capability"::"Expense Agent", CopilotAiCapabilities.Caption) then
                 if CopilotAiCapabilities.RunModal() in [Action::OK] then;
-
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Expense Agent", true) then
             Error(CapabilityDisabledErr, Enum::"Copilot Capability"::"Expense Agent");
-    end;
-
-    local procedure EnableAadApplication()
-    var
-        AadApplication: Record "AAD Application";
-        ExpenseAgentApiValidation: Codeunit "Expense Agent API Validation";
-    begin
-        AadApplication.SetRange("Client Id", ExpenseAgentApiValidation.GetAadAppId());
-        if not AadApplication.FindFirst() then
-            exit;
-
-        // We need to enable the AAD application first because enabling creates the user record.
-        // Once the user exists, we disable it, add the permission set, and re-enable it.
-        if AadApplication.State <> AadApplication.State::Enabled then begin
-            AadApplication.Validate(State, AadApplication.State::Enabled);
-            AadApplication.Modify(true);
-        end;
-
-        if HasExpenseAgentPermissionSet(AadApplication) then
-            exit;
-
-        AadApplication.Validate(State, AadApplication.State::Disabled);
-        AadApplication.Modify(true);
-
-        AddExpenseAgentPermissionSet(AadApplication);
-
-        AadApplication.Validate(State, AadApplication.State::Enabled);
-        AadApplication.Modify(true);
-    end;
-
-    local procedure HasExpenseAgentPermissionSet(AadApplication: Record "AAD Application"): Boolean
-    var
-        AccessControl: Record "Access Control";
-    begin
-        AccessControl.SetRange("User Security ID", AadApplication."User ID");
-        AccessControl.SetRange("Role ID", ExpenseAgentPermissionSetLbl);
-        exit(not AccessControl.IsEmpty());
-    end;
-
-    local procedure AddExpenseAgentPermissionSet(AadApplication: Record "AAD Application")
-    var
-        AccessControl: Record "Access Control";
-        AggregatePermissionSet: Record "Aggregate Permission Set";
-    begin
-        AggregatePermissionSet.SetRange("Role ID", ExpenseAgentPermissionSetLbl);
-        if not AggregatePermissionSet.FindFirst() then
-            exit;
-
-        AccessControl.Init();
-        AccessControl.Validate("User Security ID", AadApplication."User ID");
-        AccessControl.Validate("Role ID", ExpenseAgentPermissionSetLbl);
-        AccessControl.Validate("App ID", AggregatePermissionSet."App ID");
-        AccessControl.Validate("Company Name", CompanyName());
-        AccessControl.Insert(true);
     end;
 
     local procedure OnAssistEditMailbox()
@@ -1522,7 +1675,7 @@ page 6991 "Expense Agent Setup Wizard"
         // The Agent service is only reachable on SaaS. Skip ERP registration when running locally to allow testing of the agent without requiring the service.
         if not EnvironmentInfo.IsSaaSInfrastructure() then
             exit(true);
-        exit(EAHttpClient.RegisterErpConfiguration());
+        exit(EAHttpClient.RegisterErpConfiguration(Rec."Use Canary Endpoint"));
     end;
 
     local procedure UnregisterErpConfiguration(): Boolean
@@ -1532,7 +1685,7 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if not EnvironmentInfo.IsSaaSInfrastructure() then
             exit(true);
-        exit(EAHttpClient.UnregisterErpConfiguration());
+        exit(EAHttpClient.UnregisterErpConfiguration(Rec."Use Canary Endpoint"));
     end;
 
     local procedure GetExpenseDashboardUrl(): Text
@@ -1542,17 +1695,13 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if EnvironmentInfo.IsOnPrem() then
             exit(ExpenseDashboardUrlOnPremTxt);
-
         if not EnvironmentInfo.IsSaaSInfrastructure() then
             exit('');
-
         if URLHelper.IsTIE() or URLHelper.IsPPE() then
             exit(ExpenseDashboardUrlTieTxt);
-
         if EnvironmentInfo.IsSaaSInfrastructure() then
             exit(ExpenseDashboardUrlProdTxt);
 
         exit('');
     end;
 }
-#pragma warning restore AS0031

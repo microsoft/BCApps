@@ -2331,8 +2331,7 @@ codeunit 137153 "SCM Warehouse - Journal"
 
         // [GIVEN] Set lot no. = "L1" in warehouse pick lines, set "Qty. to Handle" = 2 to pick partial quantitiy
         WarehouseActivityLine.SetRange("Item No.", ComponentItem."No.");
-        WarehouseActivityLine.ModifyAll("Lot No.", LotNo);
-        WarehouseActivityLine.ModifyAll("Qty. to Handle", StockQty);
+        WarehouseActivityLine.ModifyAll("Lot No.", LotNo, "Qty. to Handle", StockQty);
 
         // [WHEN] Register the warehouse pick
         RegisterWarehouseActivity(

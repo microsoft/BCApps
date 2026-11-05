@@ -77,6 +77,15 @@ table 10041 "IRS 1099 Form Statement Line"
         FilterTxt: Label '%1=FILTER(%2)', Locked = true;
         WhereTxt: Label '%1 WHERE(%2)', Locked = true;
 
+    procedure SetFormBoxFilter(FormBoxNo: Code[20])
+    var
+        IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
+    begin
+        IRS1099FormDocLine.SetRange("Form Box No.", FormBoxNo);
+        "Record View String" := CopyStr(IRS1099FormDocLine.GetView(false), 1, MaxStrLen("Record View String"));
+        "Filter Expression" := CopyStr(IRS1099FormDocLine.GetFilters(), 1, MaxStrLen("Filter Expression"));
+    end;
+
     local procedure LookupFilterExpression()
     var
         IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";

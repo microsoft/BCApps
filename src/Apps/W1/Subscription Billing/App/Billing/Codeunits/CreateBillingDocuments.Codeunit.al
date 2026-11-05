@@ -1,5 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
@@ -247,6 +248,7 @@ codeunit 8060 "Create Billing Documents"
         SubContractsItemManagement: Codeunit "Sub. Contracts Item Management";
         TransferExtendedText: Codeunit "Transfer Extended Text";
         UsageBasedDocTypeConv: Codeunit "Usage Based Doc. Type Conv.";
+        UnitPrice: Decimal;
         BillingLineNo: Integer;
     begin
         ServiceObject.Get(TempBillingLine."Subscription Header No.");
@@ -274,8 +276,11 @@ codeunit 8060 "Create Billing Documents"
         if SalesLine."Unit of Measure Code" <> ServiceObject."Unit of Measure" then
             SalesLine.Validate("Unit of Measure Code", ServiceObject."Unit of Measure");
         SalesLine.Validate(Quantity, TempBillingLine.GetSign() * ServiceObject.Quantity);
+        UnitPrice := SalesLine.GetSalesDocumentSign() * TempBillingLine."Unit Price";
+        if SalesHeader."Prices Including VAT" then
+            UnitPrice := ToVATInclusiveUnitPrice(UnitPrice, SalesLine."VAT %", SalesLine."VAT Calculation Type" = SalesLine."VAT Calculation Type"::"Full VAT", SalesLine."Currency Code");
         // Unit Price is assigned directly; the following Validate("Line Discount %") recalculates the line amount.
-        SalesLine."Unit Price" := SalesLine.GetSalesDocumentSign() * TempBillingLine."Unit Price";
+        SalesLine."Unit Price" := UnitPrice;
         SalesLine.Validate("Line Discount %", TempBillingLine."Discount %");
         SalesLine.Validate("Unit Cost (LCY)", TempBillingLine."Unit Cost (LCY)");
         SalesLine."Recurring Billing from" := TempBillingLine."Billing from";
@@ -312,9 +317,7 @@ codeunit 8060 "Create Billing Documents"
         BillingLine.SetRange(Rebilling, TempBillingLine.Rebilling);
         if CreateContractInvoice then
             BillingLine.SetRange("Billing Template Code", '');
-        BillingLine.ModifyAll("Document Type", BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"), false);
-        BillingLine.ModifyAll("Document No.", SalesLine."Document No.", false);
-        BillingLine.ModifyAll("Document Line No.", SalesLine."Line No.", false);
+        BillingLine.ModifyAll("Document Type", BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"), "Document No.", SalesLine."Document No.", "Document Line No.", SalesLine."Line No.", false);
 
         if ServiceCommitment."Usage Based Billing" then begin
             UsageDataBilling.SetRange(Partner, Enum::"Service Partner"::Customer);
@@ -334,10 +337,28 @@ codeunit 8060 "Create Billing Documents"
         OnAfterInsertSalesLineFromBillingLine(CustomerContractLine, SalesLine);
     end;
 
+    local procedure ToVATInclusiveUnitPrice(NetUnitPrice: Decimal; VATPercent: Decimal; IsFullVAT: Boolean; CurrencyCode: Code[10]): Decimal
+    var
+        Currency: Record Currency;
+        VATFactor: Decimal;
+    begin
+        if IsFullVAT then
+            exit(NetUnitPrice);
+        VATFactor := 1 + VATPercent / 100;
+        if VATFactor = 0 then
+            exit(NetUnitPrice);
+        if CurrencyCode = '' then
+            Currency.InitRoundingPrecision()
+        else
+            Currency.Get(CurrencyCode);
+        exit(Round(NetUnitPrice * VATFactor, Currency."Unit-Amount Rounding Precision"));
+    end;
+
     local procedure SetInvoicePriceFromUsageDataBilling(var SalesLine: Record "Sales Line"; var BillingLine: Record "Billing Line")
     var
         UsageDataBilling: Record "Usage Data Billing";
         ServiceCommitment: Record "Subscription Line";
+        UnitPrice: Decimal;
     begin
         if not ServiceCommitment.Get(BillingLine."Subscription Line Entry No.") then
             exit;
@@ -359,9 +380,12 @@ codeunit 8060 "Create Billing Documents"
         UsageDataBilling.SetRange(Quantity);
         UsageDataBilling.CalcSums(Amount);
         if SalesLine.Quantity <> 0 then
-            SalesLine.Validate("Unit Price", SalesLine.GetSalesDocumentSign() * UsageDataBilling.Amount / SalesLine.Quantity)
+            UnitPrice := SalesLine.GetSalesDocumentSign() * UsageDataBilling.Amount / SalesLine.Quantity
         else
-            SalesLine.Validate("Unit Price", UsageDataBilling."Unit Price");
+            UnitPrice := UsageDataBilling."Unit Price";
+        if SalesHeader."Prices Including VAT" then
+            UnitPrice := ToVATInclusiveUnitPrice(UnitPrice, SalesLine."VAT %", SalesLine."VAT Calculation Type" = SalesLine."VAT Calculation Type"::"Full VAT", SalesLine."Currency Code");
+        SalesLine.Validate("Unit Price", UnitPrice);
         SalesLine.Validate("Line Discount %", ServiceCommitment."Discount %");
     end;
 
@@ -375,6 +399,7 @@ codeunit 8060 "Create Billing Documents"
         UsageBasedDocTypeConv: Codeunit "Usage Based Doc. Type Conv.";
         SubContractsItemManagement: Codeunit "Sub. Contracts Item Management";
         TransferExtendedText: Codeunit "Transfer Extended Text";
+        DirectUnitCost: Decimal;
         BillingLineNo: Integer;
     begin
         ServiceObject.Get(TempBillingLine."Subscription Header No.");
@@ -397,8 +422,11 @@ codeunit 8060 "Create Billing Documents"
         if PurchaseLine."Unit of Measure Code" <> ServiceObject."Unit of Measure" then
             PurchaseLine.Validate("Unit of Measure Code", ServiceObject."Unit of Measure");
         PurchaseLine.Validate(Quantity, TempBillingLine.GetSign() * ServiceObject.Quantity);
+        DirectUnitCost := PurchaseLine.GetPurchaseDocumentSign() * TempBillingLine."Unit Price";
+        if PurchaseHeader."Prices Including VAT" then
+            DirectUnitCost := ToVATInclusiveUnitPrice(DirectUnitCost, PurchaseLine."VAT %", PurchaseLine."VAT Calculation Type" = PurchaseLine."VAT Calculation Type"::"Full VAT", PurchaseLine."Currency Code");
         // Direct Unit Cost is assigned directly; the following Validate("Line Discount %") recalculates the line amount.
-        PurchaseLine."Direct Unit Cost" := PurchaseLine.GetPurchaseDocumentSign() * TempBillingLine."Unit Price";
+        PurchaseLine."Direct Unit Cost" := DirectUnitCost;
         PurchaseLine.Validate("Line Discount %", TempBillingLine."Discount %");
         PurchaseLine."Recurring Billing from" := TempBillingLine."Billing from";
         PurchaseLine."Recurring Billing to" := TempBillingLine."Billing to";
@@ -425,9 +453,7 @@ codeunit 8060 "Create Billing Documents"
         BillingLine.SetRange("Subscription Line Entry No.", TempBillingLine."Subscription Line Entry No.");
         BillingLine.SetRange(Rebilling, TempBillingLine.Rebilling);
 
-        BillingLine.ModifyAll("Document Type", BillingLine.GetBillingDocumentTypeFromSalesDocumentType(PurchaseLine."Document Type"), false);
-        BillingLine.ModifyAll("Document No.", PurchaseLine."Document No.", false);
-        BillingLine.ModifyAll("Document Line No.", PurchaseLine."Line No.", false);
+        BillingLine.ModifyAll("Document Type", BillingLine.GetBillingDocumentTypeFromSalesDocumentType(PurchaseLine."Document Type"), "Document No.", PurchaseLine."Document No.", "Document Line No.", PurchaseLine."Line No.", false);
 
         UsageDataBilling.SetRange(Partner, Enum::"Service Partner"::Vendor);
         UsageDataBilling.SetRange("Subscription Contract No.", ServiceCommitment."Subscription Contract No.");
@@ -449,6 +475,7 @@ codeunit 8060 "Create Billing Documents"
     var
         UsageDataBilling: Record "Usage Data Billing";
         ServiceCommitment: Record "Subscription Line";
+        DirectUnitCost: Decimal;
     begin
         if not ServiceCommitment.Get(BillingLine."Subscription Line Entry No.") then
             exit;
@@ -470,9 +497,12 @@ codeunit 8060 "Create Billing Documents"
         UsageDataBilling.SetRange(Quantity);
         UsageDataBilling.CalcSums("Cost Amount");
         if PurchLine.Quantity <> 0 then
-            PurchLine.Validate("Direct Unit Cost", PurchLine.GetPurchaseDocumentSign() * UsageDataBilling."Cost Amount" / PurchLine.Quantity)
+            DirectUnitCost := PurchLine.GetPurchaseDocumentSign() * UsageDataBilling."Cost Amount" / PurchLine.Quantity
         else
-            PurchLine.Validate("Direct Unit Cost", 0);
+            DirectUnitCost := 0;
+        if PurchaseHeader."Prices Including VAT" then
+            DirectUnitCost := ToVATInclusiveUnitPrice(DirectUnitCost, PurchLine."VAT %", PurchLine."VAT Calculation Type" = PurchLine."VAT Calculation Type"::"Full VAT", PurchLine."Currency Code");
+        PurchLine.Validate("Direct Unit Cost", DirectUnitCost);
         PurchLine.Validate("Line Discount %", ServiceCommitment."Discount %");
     end;
 
@@ -616,6 +646,11 @@ codeunit 8060 "Create Billing Documents"
         SalesHeader.Validate("Posting Date", PostingDate);
         SalesHeader.Validate("Document Date", DocumentDate);
         SalesHeader.Validate("Currency Code");
+        SalesHeader.Validate("External Document No.");
+        if SalesHeader."Payment Terms Code" <> OldSalesHeader."Payment Terms Code" then begin
+            SalesHeader."Payment Terms Code" := OldSalesHeader."Payment Terms Code";
+            SalesHeader.Validate("Payment Terms Code", CustomerContract."Payment Terms Code");
+        end;
         SalesHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
         TranslationHelper.SetGlobalLanguageByCode(SalesHeader."Language Code");
         SalesHeader."Posting Description" := CustomerContractLbl + ' ' + CustomerContract."No.";
@@ -662,6 +697,8 @@ codeunit 8060 "Create Billing Documents"
         DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(false);
         PurchaseHeader.Validate("Document Date", DocumentDate);
         PurchaseHeader.Validate("Currency Code");
+        if PurchaseHeader."Payment Terms Code" <> OldPurchaseHeader."Payment Terms Code" then
+            PurchaseHeader.Validate("Payment Terms Code", VendorContract."Payment Terms Code");
         PurchaseHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
         TranslationHelper.SetGlobalLanguageByCode(PurchaseHeader."Language Code");
         PurchaseHeader."Posting Description" := VendorContractLbl + ' ' + VendorContract."No.";
@@ -672,6 +709,8 @@ codeunit 8060 "Create Billing Documents"
     end;
 
     local procedure CreateSalesHeaderForCustomerNo(CustomerNo: Code[20])
+    var
+        CustomerContract: Record "Customer Subscription Contract";
     begin
         SalesHeader.Init();
         SalesHeader."Document Type" := TempBillingLine.GetSalesDocumentTypeForCustomerNo();
@@ -682,7 +721,11 @@ codeunit 8060 "Create Billing Documents"
         SalesHeader.Validate("Sell-to Customer No.", CustomerNo);
         SalesHeader.Validate("Posting Date", PostingDate);
         SalesHeader.Validate("Document Date", DocumentDate);
-        SalesHeader.Validate("Currency Code");
+        SalesHeader.Validate("Currency Code", CopyStr(TempBillingLine."Currency Code", 1, MaxStrLen(SalesHeader."Currency Code")));
+        CustomerContract.SetLoadFields("External Document No.");
+        if CustomerContract.Get(TempBillingLine."Subscription Contract No.") then
+            if CustomerContract."External Document No." <> '' then
+                SalesHeader.Validate("External Document No.", CustomerContract."External Document No.");
         SalesHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
         TranslationHelper.SetGlobalLanguageByCode(SalesHeader."Language Code");
         SalesHeader."Posting Description" := CustomerContractLbl + ' ' + TempBillingLine."Subscription Contract No.";
@@ -873,11 +916,13 @@ codeunit 8060 "Create Billing Documents"
         PartnerBillingLine: Record "Billing Line";
     begin
         PartnerBillingLine.CopyFilters(BillingLine);
+        PartnerBillingLine.FilterGroup(2);
         PartnerBillingLine.SetRange(Partner, Enum::"Service Partner"::Customer);
         CustomerBillingLinesFound := not PartnerBillingLine.IsEmpty();
 
         PartnerBillingLine.SetRange(Partner, Enum::"Service Partner"::Vendor);
         VendorBillingLinesFound := not PartnerBillingLine.IsEmpty();
+        PartnerBillingLine.FilterGroup(0);
 
         if (CustomerBillingLinesFound and VendorBillingLinesFound) then begin
             DisplayOrLogUnspecificError(OnlyOneServicePartnerErr);
@@ -1029,7 +1074,7 @@ codeunit 8060 "Create Billing Documents"
                 ErrorTextInfo.TableId := Database::"Billing Template";
             end;
             ErrorTextInfo.Verbosity := Verbosity::Error;
-            Error(ErrorText);
+            Error(ErrorTextInfo);
         end;
     end;
 
@@ -1056,7 +1101,7 @@ codeunit 8060 "Create Billing Documents"
             ErrorTextInfo.SystemId := BillingLine.SystemId;
             ErrorTextInfo.TableId := Database::"Billing Line";
             ErrorTextInfo.Verbosity := Verbosity::Error;
-            Error(ErrorText);
+            Error(ErrorTextInfo);
         end;
     end;
 
@@ -1309,7 +1354,7 @@ codeunit 8060 "Create Billing Documents"
         // (incl. automated/background billing) without committing inside the per-line loop.
         // When posting follows, creation and posting are kept atomic and PostCreatedDocuments
         // manages its own commit/rollback.
-        if not PostDocuments then
+        if (not PostDocuments) and (DocumentsCreatedCount > 0) then
             Commit();
     end;
 

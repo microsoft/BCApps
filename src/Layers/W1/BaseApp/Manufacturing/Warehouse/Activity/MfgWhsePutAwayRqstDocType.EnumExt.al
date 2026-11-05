@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.Activity;
 
+#pragma warning disable AL0659 // Accepted: renaming the enum is a breaking change
 enumextension 99000780 "Mfg. Whse. PutAway Rqst. Doc. Type" extends "Warehouse Put-away Request Document Type"
+#pragma warning restore AL0659
 {
     value(2; "Production") { Caption = 'Production'; }
 }

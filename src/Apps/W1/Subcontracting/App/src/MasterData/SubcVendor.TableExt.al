@@ -8,12 +8,12 @@ using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 
-tableextension 99001507 "Subc. Vendor" extends Vendor
+tableextension 20507 "Subc. Vendor" extends Vendor
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001515; "Subc. Location Code"; Code[10])
+        field(20515; "Subc. Location Code"; Code[10])
         {
             Caption = 'Subcontracting Location Code';
             DataClassification = CustomerContent;
@@ -21,14 +21,14 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
             trigger OnValidate()
             var
                 Location: Record Location;
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
                 ErrorInfo: ErrorInfo;
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -48,14 +48,14 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
                 end;
             end;
         }
-        field(99001516; "Subc. Linked to Work Center"; Boolean)
+        field(20516; "Subc. Linked to Work Center"; Boolean)
         {
             CalcFormula = exist("Work Center" where("Subcontractor No." = field("No.")));
             Caption = 'Linked to Work Center';
             Editable = false;
             FieldClass = FlowField;
         }
-        field(99001517; "Subc. Work Center No."; Code[20])
+        field(20517; "Subc. Work Center No."; Code[20])
         {
             Caption = 'Work Center No.';
             DataClassification = CustomerContent;

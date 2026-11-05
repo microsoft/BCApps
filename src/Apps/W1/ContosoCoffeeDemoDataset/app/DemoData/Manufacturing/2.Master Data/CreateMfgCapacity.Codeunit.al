@@ -120,11 +120,11 @@ codeunit 4775 "Create Mfg Capacity"
         ContosoManufacturing.InsertWorkCenter(WorkCenter600(), LocalAssemblyTok, WorkCenterGroup5(), 0, MfgCapUnitOfMeasure.Minutes(), 40, ShopCalendarOneShift(), 1, CommonPostingGroup.Retail(), MfgVendor.LocalSubcontractorVendor(), true);
 
 
-        CalcMachineCenterCalendar.InitializeRequest(ContosoUtilities.AdjustDate(19020101D), ContosoUtilities.AdjustDate(19031231D));
+        CalcMachineCenterCalendar.InitializeRequest(ContosoUtilities.AdjustDate(19020101D), ContosoUtilities.AdjustDate(19041231D));
         CalcMachineCenterCalendar.UseRequestPage(false);
         CalcMachineCenterCalendar.RunModal();
 
-        CalculateWorkCenterCalendar.InitializeRequest(ContosoUtilities.AdjustDate(19020101D), ContosoUtilities.AdjustDate(19031231D));
+        CalculateWorkCenterCalendar.InitializeRequest(ContosoUtilities.AdjustDate(19020101D), ContosoUtilities.AdjustDate(19041231D));
         CalculateWorkCenterCalendar.UseRequestPage(false);
         CalculateWorkCenterCalendar.RunModal();
     end;

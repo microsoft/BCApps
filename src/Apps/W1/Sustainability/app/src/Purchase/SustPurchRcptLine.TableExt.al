@@ -177,6 +177,13 @@ tableextension 6216 "Sust. Purch. Rcpt. Line" extends "Purch. Rcpt. Line"
             MaxValue = 1;
             DataClassification = CustomerContent;
         }
+        field(6242; "EUDR Relevant"; Boolean)
+        {
+            Caption = 'EUDR';
+            Editable = false;
+            ToolTip = 'Indicates that the item on the posted purchase receipt line is subject to the EU Deforestation Regulation.';
+            DataClassification = CustomerContent;
+        }
     }
 
     var

@@ -2,6 +2,78 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### Settings sources in workflow logs
+
+The ReadSettings action now writes a **Settings sources** group to the workflow log for all resolved settings, including nested properties. It shows which defaults, files, and variables contributed to each setting without printing values in the group. Merged arrays and objects can list multiple sources; computed values retain their earlier source followed by their derivation. An accepted `overwriteSettings` replacement starts a new source list. See [Settings sources in workflow logs](Scenarios/settings.md#settings-sources).
+
+Source tracing is emitted after action-level transformations and includes pull-request or merge-group overrides and versioning-strategy build/revision calculations, so attribution reflects the exported settings.
+
+### Protected settings
+
+The optional `protectedSettings` array lets a settings source retain a value when a later source attempts to change it. For example, `{"protectedSettings":["country"],"country":"de"}` keeps `country` at `de` unless the later source also supplies and protects `country`. `overwriteSettings` alone does not bypass protection. This also applies to `customSettings` and to matching `ConditionalSettings`; nested properties can be protected within their parent object. The ReadSettings action reports each skipped override in a notice naming the sources, not the value. See [Protected settings](Scenarios/settings.md#protectedSettings) for examples and nested-object behavior.
+
+The meta settings `ConditionalSettings`, `overwriteSettings`, and `protectedSettings` cannot themselves be protected or overwritten. Listing any of them in either control is ignored. The `ConditionalSettings` array still merges into resolved settings and retains its source history, while conditional blocks continue to be evaluated per source. Both controls remain supported inside matching blocks' `settings` objects.
+
+### Preview: Support for GitHub Enterprise Edition with data residency
+
+AL-Go for GitHub is now supported on GitHub Enterprise Edition with data residency. When you create a GitHub Enterprise with data residency, you can create a number of organizations underneath this enterprise (much like we create organizations on github.com). In each of these organizations, you can create any number of internal or private repositories, you cannot create public repositories. The URL for your repository becomes https://enterprise.ghe.com/organization/repository instead of the normal https://github.com/organization/repository.
+
+> [!NOTE]
+> This feature is in preview
+
+### Copilot code review for AL pull requests
+
+AL-Go repositories can now opt in to AI-powered review of AL pull requests, with configurable models, target branches, excluded authors, and BCQuality skills and knowledge. See [Enable Copilot code review](Scenarios/Agents/CopilotCodeReview.md) for setup, organization policy requirements, and operational details.
+
+### Issues
+
+- Issue 2398 - Preserve dependency paths containing commas when passing a single app to Run-AlPipeline. Download Project Dependencies now warns with the complete path if a resolved dependency file is missing, without changing the output lists.
+
+- Issue 2390 - AnalyzeTests no longer crashes under strict mode when a page scripting test suite contains both passed and failed tests, preserving the failure summary.
+
+- Issue 2387 - Deployment environment discovery now paginates GitHub API results, so Publish To Environment and CI/CD can discover environments beyond the first 30 and read their branch policies.
+
+## v10.0
+
+### AL-Go Telemetry Enhancements
+
+AL-Go now includes `RepositoryIsFork` and `GitHubHostingType` in Microsoft and partner telemetry. These identify whether the workflow repository is a fork and whether it runs on GitHub.com, GitHub Enterprise Cloud with data residency (`*.ghe.com`), or GitHub Enterprise Server. GitHub.com includes Enterprise Cloud customers hosted there; this classification does not identify subscription plans or send server hostnames. Unavailable metadata is reported as `Unknown`.
+
+Action telemetry now includes structured `ActionName` and `ActionConclusion` dimensions. The action wrapper reports `Success` or `Failure`, allowing consumers to group action outcomes without parsing message text. Handled error events do not independently mark the action as failed.
+
+### Allow pre-release packages as NuGet dependencies
+
+AL-Go now supports including pre-release versions of Business Central app packages from NuGet feeds. To enable this, append `-allowPrerelease` to the `nuGetFeedSelectMode` setting in your project configuration. For example, `LatestMatching-allowPrerelease` will select the latest matching version of the package, including pre-release versions.
+
+### New `unpublishOldVersions` setting for deployment
+
+The `DeployTo<environment>` setting now supports an opt-in `unpublishOldVersions` boolean (default `false`). When enabled, AL-Go unpublishes old, uninstalled versions of the deployed apps from the environment after a successful deployment, keeping Extension Management clean. This only applies to PTE deployments (Scope PTE / automation API), uses the Automation API v2.0 `Microsoft.NAV.unpublish` action, and is non-fatal (failures are reported as warnings and never fail the deployment).
+
+### Expanded AL-Go telemetry dashboard
+
+The starter Azure Data Explorer dashboard now includes dedicated views for workflow reliability, run exploration, test quality, workflow duration, runner efficiency, and AL-Go maintenance. It also provides repository, workflow, branch, and repository-type filtering, clearer empty states, and repository-level runtime supportability information.
+
+### Create Release checks AL-Go system file updates separately
+
+The `Create Release` workflow now checks for available AL-Go system file updates in a separate job that runs in parallel with and independently of release creation. This allows the release to be created without waiting for the update check and can reduce the overall workflow duration.
+
+### Local development environments use cacheImageName
+
+localDevEnv now passes the configured cacheImageName to Run-AlPipeline, allowing BcContainerHelper to reuse artifact-specific images.
+To retain the previous behavior, set `cacheImageName` to an empty string in .AL-Go/localDevEnv.settings.json.
+
+### Issues
+
+- Workflow finalization telemetry failures, including GitHub API errors, no longer fail an otherwise successful workflow.
+- Issue 2358 - Update AL-Go System Files no longer creates a commit or pull request when only the template SHA would change, avoiding unnecessary CI/CD runs.
+- Issue 2370 - Retry CI/CD baseline discovery when no eligible run is returned, logging result counts for diagnostics and URL-encoding query values so discovery URLs render correctly in logs. The existing full-build fallback is preserved when no baseline is found after retries.
+- Issue 2113 - Fix device-login initialization in Create Online Dev. Environment and Publish To Environment when authentication secrets are unavailable.
+- Issue 2375 - Project/App folder with umlaut breaks incremental build check
+- Issue 2381 - Dependency artifacts from the current build are not downloaded when the branch name contains glob-special characters (e.g. `,`), silently falling back to baseline artifacts
+- Issue 2389 - URLs in localdevenv and the settings schema are wrong when running a self-hosted AL-Go from a fork
+
+## v9.2
+
 ### New `doNotPerformUpgrade` setting
 
 AL-Go now supports a new `doNotPerformUpgrade` setting that is passed through to `Run-AlPipeline`. Use it to skip the upgrade phase while still running the rest of the pipeline.
@@ -33,6 +105,10 @@ As part of this, the warning comparison now also parses the raw AL compiler outp
 ### Valid SARIF URIs for file paths containing spaces
 
 `ProcessALCodeAnalysisLogs` now URI-encodes each segment of the artifact location path when writing SARIF (for example `1.Setup Data/Foo.al` becomes `1.Setup%20Data/Foo.al`). Paths that contain spaces or other characters that are not valid in a URI previously caused `github/codeql-action/upload-sarif` to log "is not a valid URI" warnings and could prevent AL code scanning alerts from mapping to the correct files. The `/` path separators are preserved so the path structure is unchanged.
+
+### AL alerts for the workspace compilation build
+
+The `trackALAlertsInGitHub` setting now also works when `workspaceCompilation` (preview) is enabled. When both are turned on, AL-Go passes `--errorlogdirectory` to `altool workspace compile` so each project emits an `*.errorLog.json` diagnostics file into `.buildartifacts/ErrorLogs/`, which is processed into SARIF and surfaced as code scanning alerts — matching the classic Run-AlPipeline behavior. If the consumed compiler version does not yet support `--errorlogdirectory`, the option is skipped and a warning is logged (the rest of the build is unaffected).
 
 ## v9.1
 

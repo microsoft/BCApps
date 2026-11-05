@@ -626,7 +626,7 @@ codeunit 90 "Purch.-Post"
         TempPurchLineLocal.Modify();
         PurchLine.Get(TempPurchLineLocal.RecordId);
         OnModifyTempLineOnBeforeTransferFields(PurchLine, TempPurchLineLocal);
-        PurchLine.TransferFields(TempPurchLineLocal, false);
+        PurchLine.TransferFields(TempPurchLineLocal, false, true);
         PurchLine.Modify();
         OnAfterModifyTempLine(PurchLine);
     end;
@@ -1781,10 +1781,7 @@ codeunit 90 "Purch.-Post"
         if IsHandled then
             exit;
 
-        if (QtyToBeInvoicedBase <> 0) and (PurchaseLine.Type = PurchaseLine.Type::Item) then
-            Factor := QtyToBeInvoicedBase / PurchaseLine."Qty. to Invoice (Base)"
-        else
-            Factor := QtyToBeInvoiced / PurchaseLine."Qty. to Invoice";
+        Factor := QtyToBeInvoiced / PurchaseLine."Qty. to Invoice";
         OnPostItemJnlLineOnAfterSetFactor(PurchaseLine, Factor, GenJnlLineExtDocNo, ItemJnlLine);
         ItemJnlLine.Amount := PurchaseLine.Amount * Factor + RemAmt;
         if not PurchaseLine."Item Charge Has Non.Ded. VAT" then
@@ -6726,7 +6723,7 @@ codeunit 90 "Purch.-Post"
                 QtyToBeInvoiced := RemQtyToBeInvoiced - PurchLine."Qty. to Receive";
                 QtyToBeInvoicedBase := RemQtyToBeInvoicedBase - PurchLine."Qty. to Receive (Base)";
             end;
-        if Abs(QtyToBeInvoiced) > Abs(PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced") then begin
+        if Abs(QtyToBeInvoiced) >= Abs(PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced") then begin
             QtyToBeInvoiced := PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced";
             QtyToBeInvoicedBase := PurchRcptLine."Quantity (Base)" - PurchRcptLine."Qty. Invoiced (Base)";
         end;
@@ -7012,7 +7009,7 @@ codeunit 90 "Purch.-Post"
 
         if not IsHandled then begin
             PurchRcptHeader.Init();
-            PurchRcptHeader.TransferFields(PurchHeader);
+            PurchRcptHeader.TransferFields(PurchHeader, true, true);
             AssignPostedDocumentNo(PurchRcptHeader."No.", PurchHeader."Receiving No.");
             if PurchHeader."Document Type" = PurchHeader."Document Type"::Order then begin
                 PurchRcptHeader."Order No. Series" := PurchHeader."No. Series";
@@ -7137,7 +7134,7 @@ codeunit 90 "Purch.-Post"
         OnBeforeInsertReturnShipmentHeader(PurchHeader, ReturnShptHeader, IsHandled);
         if not IsHandled then begin
             ReturnShptHeader.Init();
-            ReturnShptHeader.TransferFields(PurchHeader);
+            ReturnShptHeader.TransferFields(PurchHeader, true, true);
             AssignPostedDocumentNo(ReturnShptHeader."No.", PurchHeader."Return Shipment No.");
             if PurchHeader."Document Type" = PurchHeader."Document Type"::"Return Order" then begin
                 ReturnShptHeader."Return Order No. Series" := PurchHeader."No. Series";
@@ -7276,7 +7273,7 @@ codeunit 90 "Purch.-Post"
             exit;
 
         PurchInvHeader.Init();
-        PurchInvHeader.TransferFields(PurchHeader);
+        PurchInvHeader.TransferFields(PurchHeader, true, true);
 
         AssignPostedDocumentNo(PurchInvHeader."No.", PurchHeader."Posting No.");
         if PurchHeader."Document Type" = PurchHeader."Document Type"::Order then begin
@@ -7333,7 +7330,7 @@ codeunit 90 "Purch.-Post"
             exit;
 
         PurchCrMemoHdr.Init();
-        PurchCrMemoHdr.TransferFields(PurchHeader);
+        PurchCrMemoHdr.TransferFields(PurchHeader, true, true);
         AssignPostedDocumentNo(PurchCrMemoHdr."No.", PurchHeader."No.");
         if PurchHeader."Document Type" = PurchHeader."Document Type"::"Return Order" then begin
             AssignPostedDocumentNo(PurchCrMemoHdr."No.", PurchHeader."Posting No.");
@@ -7374,7 +7371,7 @@ codeunit 90 "Purch.-Post"
     begin
         SalesShptHeader.Init();
         SalesOrderHeader.CalcFields("Work Description");
-        SalesShptHeader.TransferFields(SalesOrderHeader);
+        SalesShptHeader.TransferFields(SalesOrderHeader, true, true);
         AssignPostedDocumentNo(SalesShptHeader."No.", SalesOrderHeader."Shipping No.");
         SalesShptHeader."Order No." := SalesOrderHeader."No.";
         SalesShptHeader."Posting Date" := PurchHeader."Posting Date";
@@ -7390,7 +7387,7 @@ codeunit 90 "Purch.-Post"
         IsHandled: Boolean;
     begin
         SalesShptLine.Init();
-        SalesShptLine.TransferFields(SalesOrderLine);
+        SalesShptLine.TransferFields(SalesOrderLine, true, true);
         SalesShptLine."Posting Date" := SalesShptHeader."Posting Date";
         SalesShptLine."Document No." := SalesShptHeader."No.";
         SalesShptLine.Quantity := DropShptPostBuffer.Quantity;
@@ -7830,7 +7827,7 @@ codeunit 90 "Purch.-Post"
                         if SalesOrderLine.FindSet() then
                             repeat
                                 SalesShptLine.Init();
-                                SalesShptLine.TransferFields(SalesOrderLine);
+                                SalesShptLine.TransferFields(SalesOrderLine, true, true);
                                 SalesShptLine."Document No." := SalesShptHeader."No.";
                                 SalesShptLine."Order No." := SalesOrderLine."Document No.";
                                 SalesShptLine."Order Line No." := SalesOrderLine."Line No.";
@@ -8497,6 +8494,7 @@ codeunit 90 "Purch.-Post"
     local procedure PostUpdateOrderNo(var PurchInvHeader: Record "Purch. Inv. Header")
     var
         PurchInvLine: Record "Purch. Inv. Line";
+        OrderNo: Code[20];
     begin
         if PurchInvHeader."No." = '' then
             exit;
@@ -8513,13 +8511,32 @@ codeunit 90 "Purch.-Post"
         PurchInvLine.SetFilter("Order No.", '<>%1', '');
         if not PurchInvLine.FindFirst() then
             exit;
+        OrderNo := PurchInvLine."Order No.";
 
         // If all the lines have the same 'Order No.' then set 'Order No.' field on the header
-        PurchInvLine.SetFilter("Order No.", '<>%1', PurchInvLine."Order No.");
-        if PurchInvLine.IsEmpty() then begin
-            PurchInvHeader.Validate("Order No.", PurchInvLine."Order No.");
-            PurchInvHeader.Modify(true);
-        end;
+        PurchInvLine.SetFilter("Order No.", '<>%1', OrderNo);
+        if PurchInvLine.FindSet() then
+            repeat
+                if not IsInvoiceRoundingLine(PurchInvHeader."Vendor Posting Group", PurchInvLine) then
+                    exit;
+            until PurchInvLine.Next() = 0;
+
+        PurchInvHeader.Validate("Order No.", OrderNo);
+        PurchInvHeader.Modify(true);
+    end;
+
+    local procedure IsInvoiceRoundingLine(VendorPostingGroupCode: Code[20]; PurchInvLine: Record "Purch. Inv. Line"): Boolean
+    var
+        VendorPostingGroup: Record "Vendor Posting Group";
+    begin
+        if (PurchInvLine."Order No." <> '') or
+           (PurchInvLine.Type <> PurchInvLine.Type::"G/L Account") or
+           not PurchInvLine."System-Created Entry"
+        then
+            exit(false);
+
+        VendorPostingGroup.Get(VendorPostingGroupCode);
+        exit(PurchInvLine."No." = VendorPostingGroup."Invoice Rounding Account");
     end;
 
     /// <summary>

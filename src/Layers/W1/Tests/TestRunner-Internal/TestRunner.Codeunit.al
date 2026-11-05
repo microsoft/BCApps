@@ -59,8 +59,7 @@ codeunit 130020 "Test Runner"
         AzureKeyVaultTestLibrary: Codeunit "Azure Key Vault Test Library";
     begin
         OpenWindow();
-        TestLine.ModifyAll(Result, TestLine.Result::" ");
-        TestLine.ModifyAll("First Error", '');
+        TestLine.ModifyAll(Result, TestLine.Result::" ", "First Error", '');
         Commit();
         Filter := TestLine.GetView();
         WindowNoOfTestCodeunitTotal := CountTestCodeunitsToRun(TestLine);
@@ -190,7 +189,9 @@ codeunit 130020 "Test Runner"
             // todo: move to subscribers
             PermissionErrors := PermissionTestCatalog.GetPermissionErrors(FunctionTestPermissions);
             if IsSuccess and (PermissionErrors <> '') then begin // Only show permission errors once everything else succeeds
+#pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this test runner intentionally executes assertions to surface reusable test infrastructure failures. Tracked by AB#640773.
                 asserterror Error(PermissionErrors);
+#pragma warning restore AA0161, AS0058, PTE0007
                 IsSuccess := false;
             end;
 

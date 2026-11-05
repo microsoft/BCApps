@@ -263,8 +263,7 @@ codeunit 6721 "Booking Manager"
         if InvoicedBookingItem.IsEmpty() then
             exit;
 
-        InvoicedBookingItem.ModifyAll(Posted, true);
-        InvoicedBookingItem.ModifyAll("Document No.", SalesInvHdrNo);
+        InvoicedBookingItem.ModifyAll(Posted, true, "Document No.", SalesInvHdrNo);
         InvoicedBookingItem.SetRange("Document No.", SalesInvHdrNo);
         if InvoicedBookingItem.FindFirst() then
             SetBookingItemInvoiced(InvoicedBookingItem);

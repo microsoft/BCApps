@@ -44,7 +44,7 @@ page 30109 "Shpfy Tax Areas"
                 field(VATBusPostingGroup; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the VAT business posting group applicable to the state.';
+                    ToolTip = 'Specifies the VAT business posting group to use when the country/region and county in the default customer address exactly match this tax area. If no default address exists, the first address determines the match. For a new customer, a nonblank value overrides the VAT business posting group from the Customer/Company Template Code setup. When synchronization can update an existing mapped customer, a nonblank value replaces the current value. Leave this field blank to keep the value from the template or existing customer.';
                 }
             }
         }

@@ -52,6 +52,17 @@ table 6922 "Expense Report Line VAT Spec."
             MinValue = 0;
             MaxValue = 100;
             ToolTip = 'Specifies the VAT rate.';
+
+            trigger OnValidate()
+            begin
+                InitializeCurrency();
+                "VAT Amount" := Round(Amount * "VAT %" / (100 + "VAT %"), Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
+                "VAT Base Amount" := Round(Amount - "VAT Amount", Currency."Amount Rounding Precision");
+                "VAT Difference" := 0;
+                "VAT Amount (LCY)" := CalcVATAmountLCY();
+                "VAT Base Amount (LCY)" := "Amount (LCY)" - "VAT Amount (LCY)";
+                UpdateReimbursementAmounts();
+            end;
         }
         field(11; "VAT Base Amount"; Decimal)
         {
@@ -73,6 +84,11 @@ table 6922 "Expense Report Line VAT Spec."
             AutoFormatType = 1;
             Caption = 'Amount';
             ToolTip = 'Specifies the total amount (including VAT) that the expense line consists of.';
+
+            trigger OnValidate()
+            begin
+                ValidateAmount();
+            end;
         }
         /// <summary>
         /// Calculated difference between expected and actual VAT amount allowing for VAT tolerance variations.
@@ -162,12 +178,50 @@ table 6922 "Expense Report Line VAT Spec."
             Caption = 'Expense Category';
             TableRelation = "Expense Category".Code;
             ToolTip = 'Specifies the expense category associated with this VAT specification line, used to identify the type of expense for reporting and VAT reclaim purposes.';
+
+            trigger OnValidate()
+            var
+                ExpenseCategory: Record "Expense Category";
+            begin
+                if "Expense Category" = '' then
+                    exit;
+                if ExpenseCategory.Get("Expense Category") then begin
+                    ExpenseCategory.TestField(Inactive, false);
+                    if "Expense Subcategory" <> '' then
+                        exit;
+                    "VAT Prod. Posting Group" := ExpenseCategory."VAT Prod. Posting Group";
+                    "VAT %" := ExpenseCategory."Default VAT %";
+                    Validate("VAT %");
+                end;
+            end;
         }
         field(28; "Expense Subcategory"; Code[20])
         {
             Caption = 'Expense Subcategory';
             TableRelation = "Expense Subcategory".Code where("Expense Category Code" = field("Expense Category"));
             ToolTip = 'Specifies the expense subcategory associated with this VAT specification line, providing a more detailed classification within the expense category.';
+
+            trigger OnValidate()
+            var
+                ExpenseCategory: Record "Expense Category";
+                ExpenseSubcategory: Record "Expense Subcategory";
+            begin
+                if "Expense Subcategory" <> '' then begin
+                    if ExpenseSubcategory.Get("Expense Category", "Expense Subcategory") then begin
+                        ExpenseSubcategory.TestField(Inactive, false);
+                        "VAT Prod. Posting Group" := ExpenseSubcategory."VAT Prod. Posting Group";
+                        "VAT %" := ExpenseSubcategory."Default VAT %";
+                        Validate("VAT %");
+                    end;
+                end else
+                    if "Expense Category" <> '' then
+                        if ExpenseCategory.Get("Expense Category") then begin
+                            ExpenseCategory.TestField(Inactive, false);
+                            "VAT Prod. Posting Group" := ExpenseCategory."VAT Prod. Posting Group";
+                            "VAT %" := ExpenseCategory."Default VAT %";
+                            Validate("VAT %");
+                        end;
+            end;
         }
         field(30; Reclaimable; Boolean)
         {
@@ -192,22 +246,11 @@ table 6922 "Expense Report Line VAT Spec."
             ToolTip = 'Specifies the reclaim percentage for partial deductibility.';
 
             trigger OnValidate()
-            var
-                Currency: Record Currency;
-                GLSetup: Record "General Ledger Setup";
-                CurrAmountRoundingPrecision: Decimal;
-                LCYAmountRoundingPrecision: Decimal;
             begin
                 if "Reclaim %" <> xRec."Reclaim %" then
                     "Reclaim Status" := "Reclaim Status"::"Pending";
 
-                GLSetup.Get();
-                LCYAmountRoundingPrecision := GLSetup."Amount Rounding Precision";
-                CurrAmountRoundingPrecision := LCYAmountRoundingPrecision;
-                if ("Currency Code" <> '') and Currency.Get("Currency Code") then
-                    CurrAmountRoundingPrecision := Currency."Amount Rounding Precision";
-                "Reclaim VAT Amount" := Round("VAT Amount" * "Reclaim %" / 100, CurrAmountRoundingPrecision);
-                "Reclaim VAT Amount (LCY)" := Round("VAT Amount (LCY)" * "Reclaim %" / 100, LCYAmountRoundingPrecision);
+                UpdateReclaimAmounts();
             end;
         }
         field(32; "Reclaim Reason"; Text[250])
@@ -304,6 +347,45 @@ table 6922 "Expense Report Line VAT Spec."
                 Rec."Reclaim Approved At" := CurrentDateTime();
             end;
         }
+        /// <summary>
+        /// VAT amount converted to local currency for accounting and reporting purposes.
+        /// </summary>
+        field(50; "VAT Base Amount (RCY)"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetReimbursementCurrencyCode();
+            Caption = 'VAT Base Amount (RCY)';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ToolTip = 'Specifies the VAT base amount in reimbursement currency for this rate.';
+        }
+        field(51; "VAT Amount (RCY)"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetReimbursementCurrencyCode();
+            Caption = 'VAT Amount (RCY)';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ToolTip = 'Specifies the VAT amount in reimbursement currency for this rate.';
+        }
+        field(52; "Amount (RCY)"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetReimbursementCurrencyCode();
+            Caption = 'Amount (RCY)';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ToolTip = 'Specifies the total amount in reimbursement currency for this rate.';
+        }
+        field(53; "Reclaim VAT Amount (RCY)"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetReimbursementCurrencyCode();
+            Caption = 'Reclaim VAT Amount (RCY)';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ToolTip = 'Specifies the reclaim VAT amount in reimbursement currency for this rate.';
+        }
     }
 
     keys
@@ -314,6 +396,152 @@ table 6922 "Expense Report Line VAT Spec."
         }
         key(Reclaim; "Document No.", Reclaimable, "Reclaim Status") { }
     }
+
+    var
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+
+    local procedure CalcVATAmountLCY(): Decimal
+    var
+        LCYCurrency: Record Currency;
+        VATAmountLCY: Decimal;
+    begin
+        if "Currency Code" = '' then
+            exit("VAT Amount");
+
+        LCYCurrency.InitRoundingPrecision();
+        InitializeCurrency();
+
+        "VAT Difference" :=
+            "VAT Amount" -
+            Round(Amount * "VAT %" / (100 + "VAT %"), Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
+
+        if "VAT Difference" = 0 then
+            VATAmountLCY := Round("Amount (LCY)" * "VAT %" / (100 + "VAT %"), LCYCurrency."Amount Rounding Precision", LCYCurrency.VATRoundingDirection())
+        else begin
+            GetExpenseReportLine();
+            VATAmountLCY :=
+                Round(
+                    CurrencyExchangeRate.ExchangeAmtFCYToLCY(ExpenseReportLine."Expense Date", "Currency Code", "VAT Amount", "Currency Factor"),
+                    LCYCurrency."Amount Rounding Precision", LCYCurrency.VATRoundingDirection());
+        end;
+
+        exit(VATAmountLCY);
+    end;
+
+    local procedure GetExpenseReportHeader()
+    begin
+        if "Document No." <> ExpenseReportHeader."No." then begin
+            ExpenseReportHeader.SetLoadFields("Reimbursement Currency Code");
+            ExpenseReportHeader.Get("Document No.");
+        end;
+    end;
+
+    local procedure GetExpenseReportLine()
+    begin
+        if ("Document No." <> ExpenseReportLine."Document No.") or ("Document Line No." <> ExpenseReportLine."Line No.") then begin
+            ExpenseReportLine.SetLoadFields("Expense Date");
+            ExpenseReportLine.Get("Document No.", "Document Line No.");
+        end;
+    end;
+
+    local procedure GetReimbursementCurrencyCode(): Code[20]
+    begin
+        GetExpenseReportHeader();
+        exit(ExpenseReportHeader."Reimbursement Currency Code");
+    end;
+
+    local procedure InitializeCurrency()
+    begin
+        if "Currency Code" = '' then begin
+            Clear(Currency);
+            Currency.InitRoundingPrecision();
+        end else
+            if "Currency Code" <> Currency.Code then begin
+                Currency.Get("Currency Code");
+                Currency.TestField("Amount Rounding Precision");
+            end;
+    end;
+
+    local procedure UpdateReclaimAmounts()
+    begin
+        GetExpenseReportHeader();
+        UpdateReclaimAmounts(ExpenseReportHeader."Reimbursement Currency Code");
+    end;
+
+    local procedure UpdateReclaimAmounts(ReimbursementCurrencyCode: Code[10])
+    var
+        GLSetup: Record "General Ledger Setup";
+        ReimbursementCurrency: Record Currency;
+        CurrencyAmountRoundingPrecision: Decimal;
+        LCYAmountRoundingPrecision: Decimal;
+        ReimbursementAmountRoundingPrecision: Decimal;
+    begin
+        GLSetup.Get();
+        LCYAmountRoundingPrecision := GLSetup."Amount Rounding Precision";
+        CurrencyAmountRoundingPrecision := LCYAmountRoundingPrecision;
+        if ("Currency Code" <> '') and Currency.Get("Currency Code") then
+            CurrencyAmountRoundingPrecision := Currency."Amount Rounding Precision";
+
+        ReimbursementCurrency.Initialize(ReimbursementCurrencyCode);
+        ReimbursementAmountRoundingPrecision := ReimbursementCurrency."Amount Rounding Precision";
+
+        "Reclaim VAT Amount" := Round("VAT Amount" * "Reclaim %" / 100, CurrencyAmountRoundingPrecision);
+        "Reclaim VAT Amount (LCY)" := Round("VAT Amount (LCY)" * "Reclaim %" / 100, LCYAmountRoundingPrecision);
+        "Reclaim VAT Amount (RCY)" := Round("VAT Amount (RCY)" * "Reclaim %" / 100, ReimbursementAmountRoundingPrecision);
+    end;
+
+    internal procedure UpdateReimbursementAmounts()
+    begin
+        GetExpenseReportHeader();
+        UpdateReimbursementAmounts(ExpenseReportHeader);
+    end;
+
+    internal procedure UpdateReimbursementAmounts(NewExpenseReportHeader: Record "Expense Report Header")
+    var
+        ReimbursementCurrency: Record Currency;
+    begin
+        ReimbursementCurrency.Initialize(NewExpenseReportHeader."Reimbursement Currency Code");
+
+        if NewExpenseReportHeader."Reimbursement Currency Code" = '' then begin
+            "VAT Base Amount (RCY)" := "VAT Base Amount (LCY)";
+            "VAT Amount (RCY)" := "VAT Amount (LCY)";
+            "Amount (RCY)" := "Amount (LCY)";
+        end else begin
+            "VAT Base Amount (RCY)" :=
+                Round(
+                    CurrencyExchangeRate.ExchangeAmtLCYToFCY(
+                        NewExpenseReportHeader."Posting Date", NewExpenseReportHeader."Reimbursement Currency Code",
+                        "VAT Base Amount (LCY)", NewExpenseReportHeader."Reimbursement Currency Factor"),
+                    ReimbursementCurrency."Amount Rounding Precision");
+            "VAT Amount (RCY)" :=
+                Round(
+                    CurrencyExchangeRate.ExchangeAmtLCYToFCY(
+                        NewExpenseReportHeader."Posting Date", NewExpenseReportHeader."Reimbursement Currency Code",
+                        "VAT Amount (LCY)", NewExpenseReportHeader."Reimbursement Currency Factor"),
+                    ReimbursementCurrency."Amount Rounding Precision");
+            "Amount (RCY)" := "VAT Base Amount (RCY)" + "VAT Amount (RCY)";
+        end;
+
+        UpdateReclaimAmounts(NewExpenseReportHeader."Reimbursement Currency Code");
+    end;
+
+    local procedure ValidateAmount()
+    begin
+        InitializeCurrency();
+        if "Currency Code" = '' then
+            "Amount (LCY)" := Amount
+        else begin
+            GetExpenseReportLine();
+            "Amount (LCY)" := Round(
+                CurrencyExchangeRate.ExchangeAmtFCYToLCY(ExpenseReportLine."Expense Date", "Currency Code", Amount, "Currency Factor"));
+        end;
+
+        Amount := Round(Amount, Currency."Amount Rounding Precision");
+        Validate("VAT %");
+    end;
 
     /// <summary>Stores a UTF-8 reclaim justification text into the blob.</summary>
     procedure SetJustification(NewText: Text)

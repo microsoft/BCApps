@@ -26,6 +26,8 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
         FileFormat: Enum "E-Doc. File Format";
         ReadIntoDraftImpl: Enum "E-Doc. Read into Draft";
         FeatureNameTxt: label 'E-Document Matching Assistance', Locked = true;
+        ADIExtractionResultMsg: Label 'ADI extraction result classified.', Locked = true;
+        NoExtractableInvoiceDataErr: Label 'No data could be extracted from the PDF. Check that the document is a readable invoice and try again.';
 
     procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
     var
@@ -35,6 +37,8 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
         FromTempBlob: Codeunit "Temp Blob";
         Instream: InStream;
         Data: Text;
+        StructuredDataJson: JsonObject;
+        HasExtractedInvoiceData: Boolean;
     begin
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document Analysis") then
             AzureDocumentIntelligence.RegisterCopilotCapability(Enum::"Copilot Capability"::"E-Document Analysis", Enum::"Copilot Availability"::Preview, '');
@@ -45,15 +49,19 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
         FromTempBlob.CreateInStream(InStream, TextEncoding::UTF8);
         Data := Base64Convert.ToBase64(InStream);
         StructuredData := AzureDocumentIntelligence.AnalyzeInvoice(Data);
-        // If the call to ADI fails the system module will return an empty string, in such case we want to carry on with a blank draft
-        if StructuredData = '' then begin
-            FileFormat := "E-Doc. File Format"::Unspecified;
-            ReadIntoDraftImpl := "E-Doc. Read into Draft"::"Blank Draft";
-        end else begin
+        if StructuredData <> '' then
+            if StructuredDataJson.ReadFrom(StructuredData) then
+                HasExtractedInvoiceData := EDocumentJsonHelper.HasADIExtractedInvoiceData(StructuredDataJson);
+
+        Session.LogMessage('0000V2R', ADIExtractionResultMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameTxt, 'ExtractedInvoice', Format(HasExtractedInvoiceData, 0, 9));
+
+        if HasExtractedInvoiceData then begin
             FileFormat := "E-Doc. File Format"::JSON;
             ReadIntoDraftImpl := "E-Doc. Read into Draft"::ADI;
+            exit(this);
         end;
-        exit(this);
+
+        Error(NoExtractableInvoiceDataErr);
     end;
 
     procedure GetFileFormat(): Enum "E-Doc. File Format"

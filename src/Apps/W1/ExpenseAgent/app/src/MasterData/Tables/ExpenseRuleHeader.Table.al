@@ -12,6 +12,7 @@ table 6927 "Expense Rule Header"
     Access = Internal;
     Caption = 'Expense Rule Header';
     DataClassification = CustomerContent;
+    LookupPageId = "Expense Management Rules";
     ReplicateData = false;
 
     fields

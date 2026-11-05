@@ -142,7 +142,7 @@ page 108 "Financial Reports"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("Last Run by User"; Rec."Last Run by User")
+                field("Last Run by User"; Rec."Last Run by Current User")
                 {
                     ApplicationArea = Basic, Suite;
                 }
@@ -401,10 +401,13 @@ page 108 "Financial Reports"
         }
         area(Promoted)
         {
-            actionref(ViewFinancialReport_Promoted; ViewFinancialReport) { }
-            actionref(Print_Promoted; Print) { }
-            actionref(Packages_Promoted; Packages) { }
-
+            group(RunReport)
+            {
+                Caption = 'Run Report';
+                actionref(ViewFinancialReport_Promoted; ViewFinancialReport) { }
+                actionref(Print_Promoted; Print) { }
+                actionref(Packages_Promoted; Packages) { }
+            }
             group(Category_Edit)
             {
                 Caption = 'Definitions';
@@ -447,12 +450,12 @@ page 108 "Financial Reports"
         FinancialReportStatus: Record "Financial Report Status";
         LastFilterGroup: Integer;
     begin
-        if not FinancialReportStatus.WritePermission() then begin
-            LastFilterGroup := Rec.FilterGroup();
-            Rec.FilterGroup(4);
+        LastFilterGroup := Rec.FilterGroup();
+        Rec.FilterGroup(4);
+        Rec.SetRange("User Security ID Filter", UserSecurityId());
+        if not FinancialReportStatus.WritePermission() then
             Rec.SetRange("Status Blocked", false);
-            Rec.FilterGroup(LastFilterGroup);
-        end;
+        Rec.FilterGroup(LastFilterGroup);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -487,7 +490,6 @@ page 108 "Financial Reports"
         if Rec."Financial Report Row Group" <> '' then
             if AccScheduleName.Get(Rec."Financial Report Row Group") then
                 AnalysisViewRow := AccScheduleName."Analysis View Name";
-
         if Rec."Financial Report Column Group" <> '' then
             if ColumnLayoutName.Get(Rec."Financial Report Column Group") then
                 AnalysisViewColumn := ColumnLayoutName."Analysis View Name";

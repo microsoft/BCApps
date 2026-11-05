@@ -199,6 +199,9 @@ table 8064 "Billing Line Archive"
         key(SK1; "Subscription Contract No.", "Subscription Contract Line No.", "Billing from")
         {
         }
+        key(SK2; "Subscription Line Entry No.")
+        {
+        }
     }
 
     fieldgroups

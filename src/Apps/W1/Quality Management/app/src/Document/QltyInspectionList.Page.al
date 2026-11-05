@@ -741,26 +741,54 @@ page 20408 "Qlty. Inspection List"
             CanUnassign := RowActionsAreEnabled;
     end;
 
+    /// <summary>
+    /// Opens the inspection list filtered by the source document of the supplied record.
+    /// </summary>
+    /// <param name="RecordVariant">The record whose source document identifies inspections.</param>
+    /// <returns>The action used to close the inspection list.</returns>
     procedure RunModalSourceDocumentFilterWithRecord(RecordVariant: Variant) ResultAction: Action
     begin
         ResultAction := RunModalFilterWith(RecordVariant, false, false, true);
     end;
 
+    /// <summary>
+    /// Opens the inspection list filtered by the source item of the supplied record.
+    /// </summary>
+    /// <param name="RecordVariant">The record whose source item identifies inspections.</param>
+    /// <returns>The action used to close the inspection list.</returns>
     procedure RunModalSourceItemFilterWithRecord(RecordVariant: Variant) ResultAction: Action
     begin
         ResultAction := RunModalFilterWith(RecordVariant, true, false, false);
     end;
 
+    /// <summary>
+    /// Opens the inspection list filtered by the source item and document of the supplied record.
+    /// </summary>
+    /// <param name="RecordVariant">The record whose source item and document identify inspections.</param>
+    /// <returns>The action used to close the inspection list.</returns>
     procedure RunModalSourceItemAndSourceDocumentFilterWithRecord(RecordVariant: Variant) ResultAction: Action
     begin
         ResultAction := RunModalFilterWith(RecordVariant, true, false, true);
     end;
 
+    /// <summary>
+    /// Opens the inspection list filtered by the source item tracking of the supplied record.
+    /// </summary>
+    /// <param name="RecordVariant">The record whose source item tracking identifies inspections.</param>
+    /// <returns>The action used to close the inspection list.</returns>
     procedure RunModalSourceItemTrackingFilterWithRecord(RecordVariant: Variant) ResultAction: Action
     begin
         ResultAction := RunModalFilterWith(RecordVariant, true, true, false);
     end;
 
+    /// <summary>
+    /// Applies the selected source filters and opens the inspection list modally.
+    /// </summary>
+    /// <param name="RecordVariant">The source record used to derive inspection filters.</param>
+    /// <param name="UseItem">Specifies whether to filter by source item.</param>
+    /// <param name="UseTracking">Specifies whether to filter by source item tracking.</param>
+    /// <param name="UseDocument">Specifies whether to filter by source document.</param>
+    /// <returns>The action used to close the inspection list.</returns>
     local procedure RunModalFilterWith(RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; UseDocument: Boolean) ResultAction: Action
     begin
         Rec.SetRecordFiltersToFindInspectionFor(true, RecordVariant, UseItem, UseTracking, UseDocument);

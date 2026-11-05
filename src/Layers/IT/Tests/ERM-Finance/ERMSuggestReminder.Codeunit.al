@@ -16,8 +16,9 @@
         LibrarySales: Codeunit "Library - Sales";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
+        Language: Codeunit Language;
         IsInitialized: Boolean;
-        ReminderCaptionTxt: Label 'Reminder Text - %1 %2 Beginning', Comment = '%1=Reminder Terms Code;%2=Reminder Level';
+        ReminderLevelCommunicationCaptionTxt: Label 'Reminder Level Communication - %1 ∙ %2', Comment = '%1 = Reminder Terms Code, %2 = Reminder Level No.';
         CaptionErr: Label 'Page Captions must match.';
         ReminderLineExistErr: Label 'Reminder Line must not exist.';
 
@@ -35,6 +36,45 @@
 
         // Verify: Verify the Creation of Reminder Lines.
         VerifyReminderLine(ReminderHeaderNo);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SuggestReminderUsesTermsAttachmentTextWhenLevelTextIsMissing()
+    var
+        Customer: Record Customer;
+        ReminderTerms: Record "Reminder Terms";
+        ReminderLevel: Record "Reminder Level";
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
+        ReminderLine: Record "Reminder Line";
+        CustomerNo: Code[20];
+        ReminderNo: Code[20];
+        BeginningText: Text[100];
+        EndingText: Text[100];
+    begin
+        Initialize();
+        CustomerNo := CreateCustomer();
+        Customer.Get(CustomerNo);
+        ReminderTerms.Get(Customer."Reminder Terms Code");
+        FindReminderLevel(ReminderLevel, ReminderTerms.Code);
+        Assert.IsTrue(IsNullGuid(ReminderLevel."Reminder Attachment Text"), 'The reminder level must not have attachment text.');
+        BeginningText := CopyStr(LibraryRandom.RandText(MaxStrLen(BeginningText)), 1, MaxStrLen(BeginningText));
+        EndingText := CopyStr(LibraryRandom.RandText(MaxStrLen(EndingText)), 1, MaxStrLen(EndingText));
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderTerms, Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Beginning Line", BeginningText);
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Ending Line", EndingText);
+
+        ReminderNo := CreateAndSuggestReminderLine(LibraryRandom.RandInt(10), CustomerNo);
+
+        Assert.IsTrue(
+            ReminderTextLineExists(ReminderNo, ReminderLine."Line Type"::"Beginning Text", BeginningText),
+            'The terms-level beginning text was not added to the reminder.');
+        Assert.IsTrue(
+            ReminderTextLineExists(ReminderNo, ReminderLine."Line Type"::"Ending Text", EndingText),
+            'The terms-level ending text was not added to the reminder.');
     end;
 
     [Test]
@@ -68,33 +108,44 @@
     [Scope('OnPrem')]
     procedure ReminderTextPageCaption()
     var
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
+        ReminderEmailText: Record "Reminder Email Text";
         ReminderLevel: Record "Reminder Level";
         ReminderTerms: Record "Reminder Terms";
-        ReminderText: Record "Reminder Text";
-        ReminderLevels: TestPage "Reminder Levels";
-        ReminderTextPage: TestPage "Reminder Text";
+        ReminderLevelCommunication: TestPage "Reminder Level Communication";
+        ReminderTermsSetup: TestPage "Reminder Terms Setup";
         ReminderTermsCode: Code[10];
         BeginningText: Text[100];
     begin
-        // Check Reminder Text Page's caption updated according to Reminder Terms.
+        // Check Reminder Level Communication Page's caption.
 
-        // Setup: Create Reminder Terms with Reminder Level and Beginning Text.
+        // Setup: Create Reminder Terms with Reminder Level and Beginning Attachment Text.
         Initialize();
         ReminderTermsCode := CreateReminderTerms(true);
         BeginningText := ReminderTermsCode + Format(LibraryRandom.RandInt(10));  // Create any Beginning Text using Random.
+        ReminderTerms.Get(ReminderTermsCode);
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderTerms, Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderEmailText(ReminderEmailText, ReminderTerms, Language.GetUserLanguageCode());
         FindReminderLevel(ReminderLevel, ReminderTermsCode);
-        LibraryERM.CreateReminderText(ReminderText, ReminderTermsCode, ReminderLevel."No.",
-          ReminderText.Position::Beginning, BeginningText);
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderLevel, Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Beginning Line", BeginningText);
+        LibraryERM.CreateReminderEmailText(ReminderEmailText, ReminderLevel, Language.GetUserLanguageCode());
+        LibraryERM.SetReminderEmailTextBody(ReminderEmailText, BeginningText);
 
-        // Open Reminder Text Page from Reminder Levels Page.
-        OpenReminderTextPage(ReminderLevels, ReminderTermsCode, ReminderLevel."No.");
-        ReminderTextPage.Trap();
+        // Open Reminder Terms Setup Page from Reminder Terms List.
+        OpenReminderTermsSetupPage(ReminderTermsSetup, ReminderTermsCode, ReminderLevel."No.");
+        ReminderLevelCommunication.Trap();
 
-        // Exercise: Invoke Reminder Text Page.
-        ReminderLevels.BeginningText.Invoke();
+        // Exercise: Invoke Reminder Level Communication Page.
+        ReminderTermsSetup.ReminderLevelSetup.CustomerCommunications.Invoke();
 
-        // Verify: Verify page caption for Reminder Text Page.
-        Assert.AreEqual(StrSubstNo(ReminderCaptionTxt, ReminderTermsCode, ReminderLevel."No."), ReminderTextPage.Caption, CaptionErr);
+        // Verify: Verify page caption for Reminder Level Communication Page.
+        Assert.AreEqual(
+            StrSubstNo(ReminderLevelCommunicationCaptionTxt, ReminderTermsCode, ReminderLevel."No."),
+            ReminderLevelCommunication.Caption,
+            CaptionErr);
 
         // Tear Down: Delete Reminder Terms created earlier.
         ReminderTerms.Get(ReminderTermsCode);
@@ -192,18 +243,8 @@
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        FeatureKey: Record "Feature Key";
-        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Suggest Reminder");
-        if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
-        end;
-        if FeatureKeyUpdateStatus.Get('ReminderTermsCommunicationTexts', CompanyName()) then begin
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
-            FeatureKeyUpdateStatus.Modify();
-        end;
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"ERM Suggest Reminder");
@@ -347,15 +388,15 @@
         ReminderLevel.FindFirst();
     end;
 
-    local procedure OpenReminderTextPage(var ReminderLevels: TestPage "Reminder Levels"; "Code": Code[10]; No: Integer)
+    local procedure OpenReminderTermsSetupPage(var ReminderTermsSetup: TestPage "Reminder Terms Setup"; "Code": Code[10]; No: Integer)
     var
-        ReminderTerms: TestPage "Reminder Terms";
+        ReminderTermsList: TestPage "Reminder Terms List";
     begin
-        ReminderTerms.OpenEdit();
-        ReminderTerms.FILTER.SetFilter(Code, Code);
-        ReminderLevels.Trap();
-        ReminderTerms."&Levels".Invoke();
-        ReminderLevels.FILTER.SetFilter("No.", Format(No));
+        ReminderTermsList.OpenView();
+        ReminderTermsList.FILTER.SetFilter(Code, Code);
+        ReminderTermsSetup.Trap();
+        ReminderTermsList.Edit().Invoke();
+        ReminderTermsSetup.ReminderLevelSetup.FILTER.SetFilter("No.", Format(No));
     end;
 
     local procedure VerifyReminderLine(ReminderNo: Code[20])
@@ -364,5 +405,20 @@
     begin
         ReminderLine.SetRange("Reminder No.", ReminderNo);
         ReminderLine.FindFirst();
+    end;
+
+    local procedure ReminderTextLineExists(ReminderNo: Code[20]; LineType: Enum "Reminder Line Type"; ExpectedText: Text[100]): Boolean
+    var
+        ReminderLine: Record "Reminder Line";
+    begin
+        ReminderLine.SetRange("Reminder No.", ReminderNo);
+        ReminderLine.SetRange("Line Type", LineType);
+        if ReminderLine.FindSet() then
+            repeat
+                if ReminderLine.Description = ExpectedText then
+                    exit(true);
+            until ReminderLine.Next() = 0;
+
+        exit(false);
     end;
 }

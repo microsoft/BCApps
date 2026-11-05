@@ -1076,17 +1076,6 @@ table 5992 "Service Invoice Header"
         end;
     end;
 
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the ServiceStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure OpenStatistics()
-    var
-        StatPageID: Integer;
-    begin
-        StatPageID := Page::"Service Invoice Statistics";
-        OnOpenStatisticsOnAfterSetStatPageID(Rec, StatPageID);
-        Page.RunModal(StatPageID, Rec);
-    end;
-#endif
     procedure ShowActivityLog()
     var
         ActivityLog: Record "Activity Log";
@@ -1158,14 +1147,6 @@ table 5992 "Service Invoice Header"
     local procedure OnBeforeSetSecurityFilterOnRespCenter(var ServiceInvoiceHeader: Record "Service Invoice Header"; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the ServiceStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnOpenStatisticsOnAfterSetStatPageID(var ServiceInvoiceHeader: Record "Service Invoice Header"; var StatPageID: Integer);
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnLookupAppliestoDocNoOnAfterSetFilters(ServiceInvoiceHeader: Record "Service Invoice Header"; var CustLedgerEntry: Record "Cust. Ledger Entry")

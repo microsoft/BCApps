@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.Currency;
+
 table 6911 "Expense Report Line Item"
 {
     Access = Internal;
@@ -102,27 +104,36 @@ table 6911 "Expense Report Line Item"
         }
         field(11; "Daily Rate"; Decimal)
         {
-            AutoFormatType = 0;
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
             Caption = 'Daily Rate';
 
             trigger OnValidate()
+            var
+                ExpenseReportLine: Record "Expense Report Line";
             begin
                 TestStatusOpenOfExpenseReport();
 
-                if Rec."Daily Rate" <> 0 then
-                    Rec.TestField("Expense Subcategory Code");
+                if Rec."Daily Rate" <> 0 then begin
+                    ExpenseReportLine.Get(Rec."Expense Report No.", Rec."Expense Report Line No.");
+                    if not ExpenseReportLine.IsEnforcedItemizationRequired() then
+                        Rec.TestField("Expense Subcategory Code");
+                end;
+                Rec."Daily Rate" := RoundAmount(Rec."Daily Rate");
 
                 Rec.Validate("Amount", Quantity * "Daily Rate");
             end;
         }
         field(12; "Amount"; Decimal)
         {
-            AutoFormatType = 0;
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
             Caption = 'Amount';
             Editable = false;
 
             trigger OnValidate()
             begin
+                Rec.Amount := RoundAmount(Rec.Amount);
                 if Rec.Amount <> xRec.Amount then
                     UpdateItemizationInformationOnExpenseReportLine(false);
             end;
@@ -130,6 +141,12 @@ table 6911 "Expense Report Line Item"
         field(13; "Refundable"; Boolean)
         {
             Caption = 'Refundable';
+            Editable = false;
+        }
+        field(14; "Currency Code"; Code[10])
+        {
+            Caption = 'Currency Code';
+            TableRelation = Currency;
             Editable = false;
         }
     }
@@ -151,9 +168,20 @@ table 6911 "Expense Report Line Item"
         Rec.TestField("Expense Report No.");
         Rec.TestField("Expense Report Line No.");
         Rec.TestField("Expense Category Code");
-        Rec.TestField("Expense Subcategory Code");
-
         UpdateExpenseReportLineInformation(Rec."Expense Report No.", Rec."Expense Report Line No.");
+        if not ExpenseReportLine.IsEnforcedItemizationRequired() then
+            Rec.TestField("Expense Subcategory Code");
+
+        InvalidateParentPolicy();
+    end;
+
+    trigger OnModify()
+    begin
+        ExpenseReportLine := ExpenseReportHelper.GetExpenseReportLine(Rec."Expense Report No.", Rec."Expense Report Line No.");
+        if not ExpenseReportLine.IsEnforcedItemizationRequired() then
+            Rec.TestField("Expense Subcategory Code");
+
+        InvalidateParentPolicy();
     end;
 
     trigger OnDelete()
@@ -161,17 +189,36 @@ table 6911 "Expense Report Line Item"
         TestStatusOpenOfExpenseReport();
 
         UpdateItemizationInformationOnExpenseReportLine(true);
+
+        InvalidateParentPolicy();
     end;
 
     var
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportHelper: Codeunit "Expense Report";
 
+    local procedure RoundAmount(CurrAmount: Decimal): Decimal
+    var
+        Currency: Record Currency;
+    begin
+        Currency.Initialize(Rec."Currency Code");
+        exit(Round(CurrAmount, Currency."Amount Rounding Precision"));
+    end;
+
+    local procedure InvalidateParentPolicy()
+    var
+        ParentExpenseReportLine: Record "Expense Report Line";
+    begin
+        if ParentExpenseReportLine.Get(Rec."Expense Report No.", Rec."Expense Report Line No.") then
+            ParentExpenseReportLine.InvalidatePolicyEvaluation();
+    end;
+
     local procedure UpdateExpenseReportLineInformation(ExpenseReportNo: Code[20]; ExpenseReportLineNo: Integer)
     begin
         ExpenseReportLine := ExpenseReportHelper.GetExpenseReportLine(ExpenseReportNo, ExpenseReportLineNo);
 
         Rec.Validate("Expense No.", ExpenseReportLine."Expense No.");
+        Rec."Currency Code" := ExpenseReportLine."Expense Currency Code";
         Rec.Validate("Expense Category Code", ExpenseReportLine."Expense Category");
 
         if Rec.Description = '' then
@@ -183,6 +230,8 @@ table 6911 "Expense Report Line Item"
         ExpenseReportLineItemization: Record "Expense Report Line Item";
     begin
         ExpenseReportLine := ExpenseReportHelper.GetExpenseReportLine(Rec."Expense Report No.", Rec."Expense Report Line No.");
+        if ExpenseReportLine.IsEnforcedItemizationRequired() then
+            exit;
 
         ExpenseReportLineItemization.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
         ExpenseReportLineItemization.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");

@@ -11,7 +11,7 @@ page 7234 "Master Data Full Synch. Review"
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = true;
-    Permissions = tabledata "Master Data Full Synch. R. Ln." = imd;
+    Permissions = tabledata "Master Data Full Synch. R. Ln." = rimd;
 
     layout
     {

@@ -20,6 +20,7 @@ codeunit 6790 "WHT Employee Calculation"
     procedure IsEmployeeWHTApplicable(GenJnlLine: Record "Gen. Journal Line"): Boolean
     var
         Employee: Record Employee;
+        IsApplicable: Boolean;
     begin
         if not IsWithholdingTaxEnabled() then
             exit(false);
@@ -33,10 +34,10 @@ codeunit 6790 "WHT Employee Calculation"
         if GenJnlLine."Wthldg. Tax Bus. Post. Group" = '' then
             exit(false);
 
-        if GenJnlLine."Wthldg. Tax Prod. Post. Group" = '' then
-            exit(false);
+        IsApplicable := true;
 
-        exit(true);
+        OnAfterIsEmployeeWHTApplicable(GenJnlLine, Employee, IsApplicable);
+        exit(IsApplicable);
     end;
 
     procedure CalcEmployeeWHT(var GenJnlLine: Record "Gen. Journal Line"; var WHTAmount: Decimal; var WHTBaseAmount: Decimal)
@@ -73,12 +74,13 @@ codeunit 6790 "WHT Employee Calculation"
         if LineAmount = 0 then
             exit;
 
-        PostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group");
+        HasGroup := ResolveWHTGroupComponents(GenJnlLine, WHTGroupCode);
+
+        if not HasGroup then
+            PostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group");
 
         CalcBase := PostingSetup."Calculation Base";
         CalcMethod := PostingSetup."Calculation Method";
-
-        HasGroup := ResolveWHTGroupComponents(GenJnlLine, WHTGroupCode);
 
         if CalcBase = CalcBase::Net then begin
             LineAmount := CalcGrossUpAmount(LineAmount, PostingSetup, WHTGroupCode, HasGroup);
@@ -581,6 +583,11 @@ codeunit 6790 "WHT Employee Calculation"
     procedure IsThresholdIncludeded(ThresholdCalculated: Boolean)
     begin
         ThresholdApplied := ThresholdCalculated;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsEmployeeWHTApplicable(GenJnlLine: Record "Gen. Journal Line"; Employee: Record Employee; var IsApplicable: Boolean)
+    begin
     end;
 
     [IntegrationEvent(false, false)]

@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using System.Upgrade;
 
-codeunit 99001501 "Subcontracting Install"
+codeunit 20501 "Subcontracting Install"
 {
     Subtype = Install;
 
@@ -44,7 +44,9 @@ codeunit 99001501 "Subcontracting Install"
     local procedure HandleReinstallPerCompany()
     var
         SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+        SubcReqWkshTemplUpgrade: Codeunit "Subc. Req Wksh Templ Upgrade";
     begin
+        SubcReqWkshTemplUpgrade.MigrateReqWkshTemplateTypeFromLegacyValue();
         SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
         SetSubcontractingFeatureOnInstall();
     end;
