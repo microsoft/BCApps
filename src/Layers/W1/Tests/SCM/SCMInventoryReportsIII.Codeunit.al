@@ -2233,7 +2233,7 @@ codeunit 137350 "SCM Inventory Reports - III"
 
     local procedure CreateNonContiguousValueEntriesToPostToGL(var ItemNo: Code[20]; var OtherItemNo: Code[20]) NoOfEntries: Integer
     var
-        TemplateValueEntry: Record "Value Entry";
+        PostedPurchValueEntry: Record "Value Entry";
         ValueEntry: Record "Value Entry";
         FirstValueEntryNo: Integer;
         Index: Integer;
@@ -2244,12 +2244,12 @@ codeunit 137350 "SCM Inventory Reports - III"
         ItemNo := CreateItem();
         OtherItemNo := LibraryInventory.CreateItemNo();
         CreateAndPostPurchaseOrder(ItemNo, LibraryRandom.RandInt(10), LibraryRandom.RandInt(100));
-        TemplateValueEntry.SetRange("Item No.", ItemNo);
-        TemplateValueEntry.FindFirst();
+        PostedPurchValueEntry.SetRange("Item No.", ItemNo);
+        PostedPurchValueEntry.FindFirst();
 
         FirstValueEntryNo := GetFirstFreeValueEntryNo();
         for Index := 0 to NoOfEntries - 1 do begin
-            ValueEntry := TemplateValueEntry;
+            ValueEntry := PostedPurchValueEntry;
             ValueEntry."Entry No." := FirstValueEntryNo + 2 * Index;
             ValueEntry.Insert();
             MockPostValueEntryToGL(ValueEntry."Entry No.", ItemNo);
