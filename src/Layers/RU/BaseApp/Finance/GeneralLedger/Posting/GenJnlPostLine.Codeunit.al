@@ -1800,7 +1800,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 VendLedgEntry."Vendor VAT Invoice Date" := GenJournalLine."Posting Date";
                 VendLedgEntry."Vendor VAT Invoice Rcvd Date" := GenJournalLine."Posting Date";
             end;
-            NextEntryNo += 1;
+            IncrNextEntryNo();
         end;
 
         OnPostVendOnAfterInitVendLedgEntry(GenJournalLine, VendLedgEntry, Vend, TaxAmount, TaxAmountLCY);

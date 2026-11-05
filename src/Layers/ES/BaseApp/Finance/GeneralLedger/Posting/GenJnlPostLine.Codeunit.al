@@ -8812,7 +8812,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if (DocAmountLCY <> 0) or (CollDocAmountLCY <> 0) then
             if NextEntryNo2 = NextEntryNo then
-                NextEntryNo := NextEntryNo - 1;
+                if GLSetup.UseConcurrentPosting() then
+                    NextEntryNo := PreviousEntryNo
+                else
+                    NextEntryNo := NextEntryNo - 1;
         if DocAmountLCY <> 0 then begin
             GLAccNo := GetGLAccountForPayablesDocs(GenJnlLine, VendPostingGr, DocAmountLCY, CollDocAmountLCY);
             CreateGLEntryBalAcc(GenJnlLine,
@@ -8837,7 +8840,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         //
         // The saved entry number is only reused by the "DocAmountLCY <> 0" branch below, so restrict the fix to that
-        // case. For the other branches (Disc/Coll/Rej/Fact) keep the original NextEntryNo decrement so NextEntryNo stays
+        // case. For the other branches (Disc/Coll/Rej/Fact) keep the existing reservation-reuse path so NextEntryNo stays
         // in sync when DocAmountLCY is 0 while one of those amounts is non-zero.
         NeedsSaveEntryNoFix := (SaveEntryNo <> 0) and (NextEntryNo2 <> NextEntryNo) and (DocAmountLCY <> 0);
         if not NeedsSaveEntryNoFix then
@@ -8845,7 +8848,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                (DiscRiskFactAmountLCY <> 0) or (DiscUnriskFactAmountLCY <> 0) or (CollFactAmountLCY <> 0)
             then
                 if NextEntryNo2 = NextEntryNo then
-                    NextEntryNo := NextEntryNo - 1;
+                    if GLSetup.UseConcurrentPosting() then
+                        NextEntryNo := PreviousEntryNo
+                    else
+                        NextEntryNo := NextEntryNo - 1;
         if DocAmountLCY <> 0 then begin
             if GenJnlLine."Currency Code" = AddCurrency.Code then
                 DocAmountAddCurr := GenJnlLine.Amount

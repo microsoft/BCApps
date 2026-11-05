@@ -28,6 +28,77 @@ codeunit 144011 "ERM RU Purch. Unrealized VAT"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ConcurrentVendorPaymentRealizesVAT()
+    var
+        GLSetup: Record "General Ledger Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
+        VATEntry: Record "VAT Entry";
+        UnrealizedVATEntry: Record "VAT Entry";
+        GLEntry: Record "G/L Entry";
+        GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
+        InvoiceNo: Code[20];
+        InvoiceAmount: Decimal;
+    begin
+        // [SCENARIO] Russian vendor posting reserves a G/L sequence number before realizing VAT on an applied payment.
+        UpdateGLSetup(false);
+        GLSetup.Get();
+        GLSetup."Use Concurrent Posting" := true;
+        GLSetup.Modify();
+        LibraryERM.SetUnrealizedVAT(true);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        VATPostingSetup.Validate("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::Percentage);
+        VATPostingSetup.Validate("Purch. VAT Unreal. Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        VATPostingSetup.Modify(true);
+        LibraryPurchases.CreateVendor(Vendor);
+        Vendor.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Vendor.Modify(true);
+        LibraryPurchases.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchases.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account",
+            LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Purchase), 1);
+        PurchaseLine.Validate("Direct Unit Cost", 1000);
+        PurchaseLine.Modify(true);
+        InvoiceAmount := PurchaseLine."Amount Including VAT";
+        InvoiceNo := LibraryPurchases.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        InitGenJnlLine(GenJournalLine);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name",
+            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor, Vendor."No.", InvoiceAmount);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceNo);
+        GenJournalLine.Modify(true);
+
+        // [WHEN] Payment posting realizes VAT and flushes both unrealized and realized VAT G/L entries.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] The realized VAT entry links to the matching G/L entry and the invoice VAT is fully realized.
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Payment);
+        VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        VATEntry.SetFilter("Unrealized VAT Entry No.", '<>0');
+        Assert.AreEqual(1, VATEntry.Count(), 'The payment must realize the invoice VAT');
+        VATEntry.FindFirst();
+        GLEntryVATEntryLink.SetRange("VAT Entry No.", VATEntry."Entry No.");
+        Assert.AreEqual(1, GLEntryVATEntryLink.Count(), 'Realized VAT must have exactly one G/L link');
+        GLEntryVATEntryLink.FindFirst();
+        GLEntry.Get(GLEntryVATEntryLink."G/L Entry No.");
+        GLEntry.TestField("G/L Account No.", VATPostingSetup."Purchase VAT Account");
+        GLEntry.TestField("Document No.", GenJournalLine."Document No.");
+        Assert.AreEqual(VATEntry.Amount, GLEntry.Amount, 'The VAT link must reference the matching realized amount');
+        UnrealizedVATEntry.Get(VATEntry."Unrealized VAT Entry No.");
+        UnrealizedVATEntry.TestField("Remaining Unrealized Amount", 0);
+        UnrealizedVATEntry.TestField("Remaining Unrealized Base", 0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure RealizedGainApply()
     begin
         // Pass TRUE for Raise Exch. Rate, FALSE for Unapply, FALSE for Summarize Gains/Losses
@@ -413,4 +484,3 @@ codeunit 144011 "ERM RU Purch. Unrealized VAT"
         end;
     end;
 }
-
