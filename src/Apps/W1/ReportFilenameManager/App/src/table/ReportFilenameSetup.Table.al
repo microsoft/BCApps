@@ -6,7 +6,8 @@ namespace Microsoft.Foundation.Reporting.FileNaming;
 
 table 8130 "Report Filename Setup"
 {
-    // No row means the defaults (disabled, 100 characters), so nothing is created at install.
+    // Company initialization enables new companies; installation and upgrade preserve existing choices.
+    // A missing row still reads as disabled, with a 100-character limit.
 
     Caption = 'Report Filename Setup';
     DataClassification = CustomerContent;
@@ -55,7 +56,7 @@ table 8130 "Report Filename Setup"
     }
 
     /// <summary>
-    /// The stored row, or the defaults. Never inserts: the setup page is the only place the row is created.
+    /// The stored row, or the defaults. Never inserts while a report is being named.
     /// </summary>
     internal procedure GetSettings()
     begin
