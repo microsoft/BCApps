@@ -391,6 +391,86 @@ codeunit 139647 "Shpfy Company Import Test"
     end;
 
     [Test]
+    procedure UnitTestCompanyCustomerCreatesMissingMappedCountryTemplateRow()
+    var
+        Customer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        ShopifyCustomerTemplate: Record "Shpfy Customer Template";
+    begin
+        //[SCENARIO] B2B template selection creates only the missing mapped-country setup row.
+
+        //[GIVEN] Random test data uses a stable seed.
+        //[GIVEN] Customer number series exist.
+        //[GIVEN] The Shopify shop exists.
+        //[GIVEN] An access token is generated for the shop.
+        //[GIVEN] The shop access token is registered.
+        //[GIVEN] The initialized shop setup is committed.
+        Initialize();
+        //[GIVEN] A Shopify ISO code is mapped to a distinct BC country code.
+        CreateCountryRegionMapping(CountryRegion, 'QK');
+        //[GIVEN] The mapped-country template row does not exist.
+        LibraryAssert.IsFalse(ShopifyCustomerTemplate.Get(InitializedShop.Code, CountryRegion.Code), 'The mapped-country row should be missing before customer creation.');
+        //[GIVEN] The Shopify ISO template row does not exist.
+        LibraryAssert.IsFalse(ShopifyCustomerTemplate.Get(InitializedShop.Code, 'QK'), 'The ISO row should be missing before customer creation.');
+
+        //[WHEN] A B2B customer is created from the Shopify ISO country.
+        Customer := CreateCustomerFromCompany(InitializedShop, 'QK', '');
+
+        //[THEN] The mapped-country template row is created.
+        LibraryAssert.IsTrue(ShopifyCustomerTemplate.Get(InitializedShop.Code, CountryRegion.Code), 'The mapped-country row should be created.');
+        //[THEN] The new row has blank customer and company templates.
+        LibraryAssert.AreEqual('', ShopifyCustomerTemplate."Customer Templ. Code", 'The inserted row should keep the customer template blank.');
+        //[THEN] The inserted company template remains blank.
+        LibraryAssert.AreEqual('', ShopifyCustomerTemplate."Company Templ. Code", 'The inserted row should keep the company template blank.');
+        //[THEN] No additional ISO template row is created.
+        LibraryAssert.IsFalse(ShopifyCustomerTemplate.Get(InitializedShop.Code, 'QK'), 'Template selection should create only the mapped-country row.');
+        //[THEN] The customer was created using the shop fallback template.
+        LibraryAssert.IsTrue(Customer."No." <> '', 'The shop customer template should allow customer creation.');
+    end;
+
+    [Test]
+    procedure UnitTestCompanyCustomerPreservesExistingMappedCountryTemplateRow()
+    var
+        Customer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        ShopifyCustomerTemplate: Record "Shpfy Customer Template";
+        CustomerTemplateCode: Code[20];
+        CompanyTemplateCode: Code[20];
+        CustomerPaymentTermsCode: Code[10];
+        CompanyPaymentTermsCode: Code[10];
+    begin
+        //[SCENARIO] B2B template selection preserves both codes on an existing mapped-country row.
+
+        //[GIVEN] Random test data uses a stable seed.
+        //[GIVEN] Customer number series exist.
+        //[GIVEN] The Shopify shop exists.
+        //[GIVEN] An access token is generated for the shop.
+        //[GIVEN] The shop access token is registered.
+        //[GIVEN] The initialized shop setup is committed.
+        Initialize();
+        //[GIVEN] A Shopify ISO code is mapped to a distinct BC country code.
+        CreateCountryRegionMapping(CountryRegion, 'QJ');
+        //[GIVEN] A customer template exists for the mapped country row.
+        CustomerTemplateCode := CreateCustomerTemplate(InitializedShop, CustomerPaymentTermsCode);
+        //[GIVEN] A distinct company template exists for the mapped country row.
+        CompanyTemplateCode := CreateCustomerTemplate(InitializedShop, CompanyPaymentTermsCode);
+        //[GIVEN] The mapped-country row contains both template codes.
+        CreateShopifyCustomerTemplate(CountryRegion.Code, CustomerTemplateCode, CompanyTemplateCode);
+
+        //[WHEN] A B2B customer is created from the Shopify ISO country.
+        Customer := CreateCustomerFromCompany(InitializedShop, 'QJ', '');
+
+        //[THEN] The company template is selected.
+        LibraryAssert.AreEqual(CompanyPaymentTermsCode, Customer."Payment Terms Code", 'The mapped-country company template should be selected.');
+        //[THEN] The existing mapped-country row is retrieved.
+        LibraryAssert.IsTrue(ShopifyCustomerTemplate.Get(InitializedShop.Code, CountryRegion.Code), 'The mapped-country row should remain available.');
+        //[THEN] The customer template code is preserved.
+        LibraryAssert.AreEqual(CustomerTemplateCode, ShopifyCustomerTemplate."Customer Templ. Code", 'The existing customer template code must not be overwritten.');
+        //[THEN] The company template code is preserved.
+        LibraryAssert.AreEqual(CompanyTemplateCode, ShopifyCustomerTemplate."Company Templ. Code", 'The existing company template code must not be overwritten.');
+    end;
+
+    [Test]
     procedure UnitTestCompanyTemplateBeforeEventHandlesSelectionWithoutDefaultTemplate()
     var
         Customer: Record Customer;
