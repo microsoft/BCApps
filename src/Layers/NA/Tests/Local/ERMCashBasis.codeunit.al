@@ -1578,15 +1578,14 @@
         VATPostingSetup[MissingSetupIndex].Delete(true);
 
         // [WHEN] Calculate the credit memo allocation or map its VAT group to the invoice
-        if CalculateCreditMemoAmount then begin
+        if CalculateCreditMemoAmount then
             asserterror CustLedgerEntry.GetCreditMemoPartAmountByVAT(
                 SalesCrMemoLine."Document No.", VATPostingSetup[1]."VAT Bus. Posting Group",
-                VATPostingSetup[1]."VAT Prod. Posting Group", 116);
-        end else begin
+                VATPostingSetup[1]."VAT Prod. Posting Group", 116)
+        else
             asserterror CustLedgerEntry.GetInvoiceVATPostingGroupForCreditMemoVATGroup(
                 SalesCrMemoLine."Document No.", VATPostingSetup[2]."VAT Bus. Posting Group",
                 VATPostingSetup[2]."VAT Prod. Posting Group", InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup);
-        end;
 
         // [THEN] A record-not-found error identifies the missing VAT posting setup
         Assert.ExpectedErrorCannotFind(DATABASE::"VAT Posting Setup", VATPostingSetup[MissingSetupIndex]."VAT Prod. Posting Group");
