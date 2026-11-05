@@ -1574,6 +1574,43 @@ codeunit 139656 "Hybrid Cloud Management Tests"
     end;
 
     [Test]
+    procedure TestDeleteCompanyMovesWebhookToFirstRemainingCompany()
+    var
+        Company: Record Company;
+        HybridCompany: Record "Hybrid Company";
+        WebhookSubscription: Record "Webhook Subscription";
+        DeletedCompanyName: Text[30];
+        ReplacementCompanyName: Text[30];
+        SubscriptionId: Text[150];
+    begin
+        // [SCENARIO] The first remaining company receives the webhook even when a later company is not a hybrid company
+        Initialize();
+        InsertHybridCompaniesForExistingCompanies();
+        DeletedCompanyName := CreateHybridCompany();
+        CreateHybridCompany();
+
+        // [GIVEN] The first remaining company is hybrid and the last remaining company is not
+        Company.SetFilter(Name, '<>%1', DeletedCompanyName);
+        Company.FindLast();
+        HybridCompany.Get(Company.Name);
+        HybridCompany.Delete();
+        Company.FindFirst();
+        ReplacementCompanyName := Company.Name;
+        Assert.IsTrue(HybridCompany.Get(ReplacementCompanyName), 'The first remaining company should be a hybrid company.');
+        SubscriptionId := InsertWebhookSubscription(DeletedCompanyName);
+
+        // [WHEN] The company holding the webhook is deleted
+        Company.Reset();
+        Company.Get(DeletedCompanyName);
+        Company.Delete();
+
+        // [THEN] The webhook is moved to the first remaining company, regardless of hybrid status
+        WebhookSubscription.Get(SubscriptionId, '');
+        Assert.AreEqual(ReplacementCompanyName, WebhookSubscription."Company Name", 'The webhook should be moved to the first remaining company.');
+        Assert.IsTrue(HybridCompany.Get(ReplacementCompanyName), 'The replacement hybrid company should not be removed.');
+    end;
+
+    [Test]
     procedure TestUpgradeNotCompletedWithoutUpgradeStatusRecords()
     var
         HybridCloudManagement: Codeunit "Hybrid Cloud Management";
