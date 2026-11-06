@@ -89,8 +89,8 @@ codeunit 3342 "PA Work Item Collection"
     internal procedure GetCountsByState(var Counts: Dictionary of [Enum "PA Work Item State", Integer])
     var
         Candidates: Record "Agent Task";
-        AgentScope: Boolean;
         WorkItem: Codeunit "PA Work Item";
+        AgentScope: Boolean;
         State: Enum "PA Work Item State";
         Ordinal: Integer;
     begin

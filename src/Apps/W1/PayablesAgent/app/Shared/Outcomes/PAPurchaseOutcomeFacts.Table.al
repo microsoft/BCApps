@@ -7,7 +7,6 @@ namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.Purchases.Document;
 
-// Data-only output of stateless purchase-outcome queries; never persisted.
 table 3352 "PA Purchase Outcome Facts"
 {
     Access = Internal;

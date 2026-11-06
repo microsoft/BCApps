@@ -22,12 +22,12 @@ codeunit 3340 "PA Purchase Outcomes"
 
     internal procedure ValidateForRegistration(OutcomeId: RecordId)
     var
-        Facts: Record "PA Purchase Outcome Facts" temporary;
+        TempFacts: Record "PA Purchase Outcome Facts" temporary;
         InvalidOutcomeErr: Label 'The outcome must be an existing purchase invoice, purchase order, purchase credit memo, posted purchase invoice, or posted purchase credit memo.';
     begin
-        if TryReadFacts(OutcomeId, true, Facts) then
-            if Facts.Posted or
-               (Facts."Document Type" in [Facts."Document Type"::Invoice, Facts."Document Type"::Order, Facts."Document Type"::"Credit Memo"]) then
+        if TryReadFacts(OutcomeId, true, TempFacts) then
+            if TempFacts.Posted or
+               (TempFacts."Document Type" in [TempFacts."Document Type"::Invoice, TempFacts."Document Type"::Order, TempFacts."Document Type"::"Credit Memo"]) then
                 exit;
         Error(InvalidOutcomeErr);
     end;

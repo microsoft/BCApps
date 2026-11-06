@@ -110,13 +110,13 @@ codeunit 3347 "PA Draft Based Test Fixtures"
     internal procedure CreateUploadWorkItemContractScenario(var WorkItem: Codeunit "PA Work Item"; var ExpectedResult: RecordId; var UnrelatedResult: RecordId): Boolean
     var
         Agent: Record Agent;
-        PASetup: Codeunit "PA Setup";
         AgentTask: Record "Agent Task";
         AgentTaskMessage: Record "Agent Task Message";
         Document: Record "E-Document";
         OtherDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PASetup: Codeunit "PA Setup";
         DraftBasedSetupStore: Codeunit "PA Draft Based Setup Store";
     begin
         Clear(WorkItem);

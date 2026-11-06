@@ -226,13 +226,13 @@ codeunit 3330 "PA Work Item Presentation"
 
     local procedure PopulateDescriptions(var TempRow: Record "PA Work Item List Row" temporary)
     var
-        Facts: Record "PA Purchase Outcome Facts" temporary;
+        TempFacts: Record "PA Purchase Outcome Facts" temporary;
         PurchaseOutcomes: Codeunit "PA Purchase Outcomes";
     begin
         TempRow."Source Description" := CopyStr(DescribeSource(TempRow), 1, MaxStrLen(TempRow."Source Description"));
-        if PurchaseOutcomes.TryGetFacts(TempRow.Outcome, Facts) then begin
-            TempRow."Vendor No." := Facts."Vendor No.";
-            TempRow."Result Description" := CopyStr(DescribeOutcome(Facts), 1, MaxStrLen(TempRow."Result Description"));
+        if PurchaseOutcomes.TryGetFacts(TempRow.Outcome, TempFacts) then begin
+            TempRow."Vendor No." := TempFacts."Vendor No.";
+            TempRow."Result Description" := CopyStr(DescribeOutcome(TempFacts), 1, MaxStrLen(TempRow."Result Description"));
         end else
             if TempRow.Outcome.TableNo <> 0 then
                 TempRow."Result Description" := CopyStr(Format(TempRow.Outcome), 1, MaxStrLen(TempRow."Result Description"));

@@ -65,7 +65,7 @@ codeunit 3313 "PA Work Item Outcome"
     local procedure UpdateAgentTaskTitle(AgentTaskId: BigInteger; OutcomeId: RecordId)
     var
         AgentTask: Record "Agent Task";
-        Facts: Record "PA Purchase Outcome Facts" temporary;
+        TempFacts: Record "PA Purchase Outcome Facts" temporary;
         PurchaseOutcomes: Codeunit "PA Purchase Outcomes";
         DocumentNo: Text;
         DocumentKind: Text;
@@ -74,21 +74,21 @@ codeunit 3313 "PA Work Item Outcome"
         CreditMemoTitleLbl: Label 'Credit memo';
         OrderTitleLbl: Label 'Order';
     begin
-        if not PurchaseOutcomes.TryGetFacts(OutcomeId, Facts) then
+        if not PurchaseOutcomes.TryGetFacts(OutcomeId, TempFacts) then
             exit;
-        case Facts."Document Type" of
-            Facts."Document Type"::Invoice:
+        case TempFacts."Document Type" of
+            TempFacts."Document Type"::Invoice:
                 DocumentKind := InvoiceTitleLbl;
-            Facts."Document Type"::"Credit Memo":
+            TempFacts."Document Type"::"Credit Memo":
                 DocumentKind := CreditMemoTitleLbl;
             else
                 DocumentKind := OrderTitleLbl;
         end;
-        DocumentNo := Facts."Vendor Document No.";
+        DocumentNo := TempFacts."Vendor Document No.";
         if DocumentNo = '' then
-            DocumentNo := Facts."Document No.";
+            DocumentNo := TempFacts."Document No.";
         AgentTask.Get(AgentTaskId);
-        AgentTask.Title := CopyStr(StrSubstNo(OutcomeTitleLbl, DocumentKind, DocumentNo, Facts."Vendor Name"), 1, MaxStrLen(AgentTask.Title));
+        AgentTask.Title := CopyStr(StrSubstNo(OutcomeTitleLbl, DocumentKind, DocumentNo, TempFacts."Vendor Name"), 1, MaxStrLen(AgentTask.Title));
         AgentTask.Modify(true);
     end;
 }
