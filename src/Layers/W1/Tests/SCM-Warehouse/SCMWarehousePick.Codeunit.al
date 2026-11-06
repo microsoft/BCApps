@@ -2614,6 +2614,77 @@ codeunit 137055 "SCM Warehouse Pick"
     end;
 
     [Test]
+    [HandlerFunctions('WhseItemTrackingLinesAssignLotAndExpirationPageHandler')]
+    [Scope('OnPrem')]
+    procedure FEFOPickWithoutBreakbulkAssignsLotOnlyQtyStoredInRequestedUnitOfMeasure()
+    var
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        LargeItemUnitOfMeasure: Record "Item Unit of Measure";
+        SmallItemUnitOfMeasure: Record "Item Unit of Measure";
+        PickZone: Record Zone;
+        Bin: array[3] of Record Bin;
+        SalesHeader: Record "Sales Header";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        FirstLotNo: Code[50];
+        SecondLotNo: Code[50];
+    begin
+        // [FEATURE] [FEFO] [Item Tracking] [Unit of Measure]
+        // [SCENARIO 654123] Without breakbulk, FEFO must give a lot only the quantity that is stored in the requested unit of measure.
+        // [SCENARIO 654123] Otherwise the first-expiring lot reserves quantity that is stored in another unit of measure and cannot be picked,
+        // the next lot gets too little and the pick is created for less than the shipment quantity.
+        Initialize();
+
+        // [GIVEN] Directed put-away and pick location with Pick According to FEFO and Allow Breakbulk = false.
+        LibraryWarehouse.CreateFullWMSLocation(Location, 3);
+        Location.Validate("Pick According to FEFO", true);
+        Location.Validate("Allow Breakbulk", false);
+        Location.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+        LibraryWarehouse.FindZone(PickZone, Location.Code, LibraryWarehouse.SelectBinType(false, false, true, true), false);
+        LibraryWarehouse.FindBin(Bin[1], Location.Code, PickZone.Code, 1);
+        LibraryWarehouse.FindBin(Bin[2], Location.Code, PickZone.Code, 2);
+        LibraryWarehouse.FindBin(Bin[3], Location.Code, PickZone.Code, 3);
+
+        // [GIVEN] Lot-tracked item with expiration dates and units of measure "LARGE" = 10 and "SMALL" = 4.
+        CreateItemWithLotTrackingAndExpirationDate(Item, ItemTrackingCode);
+        LibraryInventory.CreateItemUnitOfMeasureCode(LargeItemUnitOfMeasure, Item."No.", 10);
+        LibraryInventory.CreateItemUnitOfMeasureCode(SmallItemUnitOfMeasure, Item."No.", 4);
+        EnsureGeneralPostingSetupForItem(Item);
+
+        // [GIVEN] Lot "L1" expires first: 2 "LARGE" in bin "B1" and 1 "SMALL" in bin "B2" (24 base units in total, 20 of them in "LARGE").
+        // [GIVEN] Lot "L2" expires later: 3 "LARGE" in bin "B3".
+        FirstLotNo := LibraryUtility.GenerateGUID();
+        SecondLotNo := LibraryUtility.GenerateGUID();
+        LibraryWarehouse.WarehouseJournalSetup(Location.Code, WarehouseJournalTemplate, WarehouseJournalBatch);
+        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+        CreateWhseJournalLineWithUoMLotAndExpiration(Bin[1], Item."No.", LargeItemUnitOfMeasure, 2, FirstLotNo, CalcDate('<1Y>', WorkDate()));
+        CreateWhseJournalLineWithUoMLotAndExpiration(Bin[2], Item."No.", SmallItemUnitOfMeasure, 1, FirstLotNo, CalcDate('<1Y>', WorkDate()));
+        CreateWhseJournalLineWithUoMLotAndExpiration(Bin[3], Item."No.", LargeItemUnitOfMeasure, 3, SecondLotNo, CalcDate('<2Y>', WorkDate()));
+        CalculateAndPostWhseAdjustment(Item, Location.Code);
+
+        // [GIVEN] Released sales order for 4 "LARGE" with a warehouse shipment.
+        CreateSalesDocWithItemLocationQtyAndUoM(SalesHeader, SalesHeader."Document Type"::Order, Item."No.", Location.Code, 4, LargeItemUnitOfMeasure.Code);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader);
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeader."No.");
+
+        // [WHEN] Create pick from the warehouse shipment.
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        // [THEN] Lot "L1" is picked only for the 20 base units stored in "LARGE", lot "L2" covers the remaining 20 base units.
+        VerifyPickTakeQtyBaseForLot(SalesHeader."No.", FirstLotNo, 20);
+        VerifyPickTakeQtyBaseForLot(SalesHeader."No.", SecondLotNo, 20);
+
+        // [THEN] The pick covers the full shipment quantity of 40 base units.
+        VerifyPickTakeQtyBaseForLot(SalesHeader."No.", '', 40);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('ItemTrackingLinesSelectEntriesPageHandler,ItemTrackingSummaryPageHandler')]
     [Scope('OnPrem')]
     procedure LotTrackingFlowsToSecondPickAfterPartialWarehouseShipment()
@@ -4185,6 +4256,24 @@ codeunit 137055 "SCM Warehouse Pick"
         CalculateAndPostWhseAdjustment(Item, LocationCode);
     end;
 
+    local procedure CreateWhseJournalLineWithUoMLotAndExpiration(Bin: Record Bin; ItemNo: Code[20]; ItemUnitOfMeasure: Record "Item Unit of Measure"; Quantity: Decimal; LotNo: Code[50]; ExpirationDate: Date)
+    var
+        WarehouseJournalLine: Record "Warehouse Journal Line";
+    begin
+        LibraryWarehouse.CreateWhseJournalLine(
+          WarehouseJournalLine, WarehouseJournalBatch."Journal Template Name", WarehouseJournalBatch.Name,
+          Bin."Location Code", Bin."Zone Code", Bin.Code,
+          WarehouseJournalLine."Entry Type"::"Positive Adjmt.", ItemNo, Quantity);
+        WarehouseJournalLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        WarehouseJournalLine.Validate(Quantity, Quantity);
+        WarehouseJournalLine.Modify(true);
+
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(ExpirationDate);
+        LibraryVariableStorage.Enqueue(Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure");
+        WarehouseJournalLine.OpenItemTrackingLines();
+    end;
+
     local procedure UpdateInventoryInPickBinWithLotAndExpirationWithoutWarehouseTracking(Item: Record Item; LocationCode: Code[10]; Quantity: Decimal; LotNo: Code[50]; ExpirationDate: Date)
     var
         Zone: Record Zone;
@@ -4431,6 +4520,19 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseActivityLine.FindFirst();
         WarehouseActivityLine.TestField("Item No.", ItemNo);
         WarehouseActivityLine.TestField("Location Code", LocationCode);
+    end;
+
+    local procedure VerifyPickTakeQtyBaseForLot(SourceNo: Code[20]; LotNo: Code[50]; ExpectedQtyBase: Decimal)
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        WarehouseActivityLine.SetRange("Source No.", SourceNo);
+        WarehouseActivityLine.SetRange("Action Type", WarehouseActivityLine."Action Type"::Take);
+        if LotNo <> '' then
+            WarehouseActivityLine.SetRange("Lot No.", LotNo);
+        WarehouseActivityLine.CalcSums("Qty. (Base)");
+        Assert.AreEqual(ExpectedQtyBase, WarehouseActivityLine."Qty. (Base)", StrSubstNo('Pick take quantity (base) for lot %1', LotNo));
     end;
 
     local procedure VerifyQuantityOnBin(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; LotNo: Code[50]; ExpectedQty: Decimal)
