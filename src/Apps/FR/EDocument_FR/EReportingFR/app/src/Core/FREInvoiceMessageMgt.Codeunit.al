@@ -158,6 +158,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     var
         CompanyInformation: Record "Company Information";
         EDocumentService: Record "E-Document Service";
+        FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
     begin
         EDocumentService.Get(EDocument.Service);
         FREInvoiceMessage."Sender Platform ID" := EDocumentService."FR Sender Platform ID";
@@ -171,11 +172,10 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         EDocumentService.TestField("FR Sender Platform Scheme");
         EDocumentService.TestField("FR Sender Platform Name");
         CompanyInformation.Get();
-        CompanyInformation.TestField("Registration No.");
         CompanyInformation.TestField(Name);
         FREInvoiceMessage."Invoice Issue Date" := EDocument."Document Date";
         FREInvoiceMessage."Invoice Receipt At" := EDocument."Clearance Date";
-        FREInvoiceMessage."Invoice Issuer ID" := NormalizeSIREN(CompanyInformation."Registration No.");
+        FREInvoiceMessage."Invoice Issuer ID" := FRLegalIdentifiers.GetCompanySIREN(CompanyInformation);
         FREInvoiceMessage."Invoice Issuer Scheme" := SIRENSchemeTok;
         FREInvoiceMessage."Invoice Issuer Name" := CompanyInformation.Name;
     end;
@@ -403,16 +403,6 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         exit(Currency."Amount Rounding Precision");
     end;
 
-    local procedure NormalizeSIREN(RegistrationNo: Text): Code[9]
-    var
-        NormalizedSIREN: Text;
-    begin
-        NormalizedSIREN := DelChr(RegistrationNo, '=', ' .-/');
-        if (StrLen(NormalizedSIREN) <> 9) or (DelChr(NormalizedSIREN, '=', '0123456789') <> '') then
-            Error(InvalidSIRENErr, RegistrationNo);
-        exit(CopyStr(NormalizedSIREN, 1, 9));
-    end;
-
     local procedure ResolveCurrencyCode(CurrencyCode: Code[10]): Code[10]
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -537,5 +527,4 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         VATBreakdownErr: Label 'A reportable VAT breakdown could not be determined for posted sales invoice %1.', Comment = '%1 = posted sales invoice number';
         VATEntryCurrencyErr: Label 'VAT entry %1 does not contain amounts in lifecycle currency %2.', Comment = '%1 = VAT entry number, %2 = currency code';
         OriginalVATBreakdownErr: Label 'The VAT breakdown for original French invoice message %1 does not exist.', Comment = '%1 = French invoice message entry number';
-        InvalidSIRENErr: Label 'Company registration number %1 cannot be normalized to a nine-digit SIREN.', Comment = '%1 = company registration number';
 }

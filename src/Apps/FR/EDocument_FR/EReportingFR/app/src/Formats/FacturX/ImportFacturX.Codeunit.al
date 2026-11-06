@@ -8,7 +8,6 @@ using Microsoft.eServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
-using System.IO;
 using System.Telemetry;
 using System.Utilities;
 
@@ -28,6 +27,7 @@ codeunit 10982 "Import Factur-X"
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         FREDocHelpers: Codeunit "EDoc. Helpers";
+        FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
         CIIXmlBlob: Codeunit "Temp Blob";
         XmlDoc: XmlDocument;
         NamespaceMgr: XmlNamespaceManager;
@@ -38,8 +38,10 @@ codeunit 10982 "Import Factur-X"
         DueDateText: Text;
         AmountText: Text;
         CurrencyCode: Text;
-        SellerVATId: Text[20];
-        SellerGLN: Code[13];
+        SellerVATId: Text;
+        SellerGLN: Text;
+        SIREN: Text;
+        SIRET: Text;
         VendorNo: Code[20];
         PdfInStr: InStream;
     begin
@@ -99,22 +101,15 @@ codeunit 10982 "Import Factur-X"
             FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineOne'),
             1, MaxStrLen(EDocument."Receiving Company Address"));
         EDocument."Receiving Company VAT Reg. No." := CopyStr(
-            FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'),
+            FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID="VA"]'),
             1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
 
-        // Try to match vendor by GLN, VAT Registration No., or name+address
-        SellerVATId := CopyStr(
-            FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'),
-            1, MaxStrLen(SellerVATId));
-        SellerGLN := CopyStr(
-            FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:GlobalID'),
-            1, MaxStrLen(SellerGLN));
-
-        VendorNo := EDocumentImportHelper.FindVendor('', SellerGLN, SellerVATId);
-        if VendorNo = '' then
-            VendorNo := EDocumentImportHelper.FindVendorByNameAndAddress(
-                EDocument."Bill-to/Pay-to Name",
-                FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:PostalTradeAddress/ram:LineOne'));
+        FRLegalIdentifiers.ReadCIIIdentifiers(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty', SIREN, SIRET);
+        SellerVATId := FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID="VA"]');
+        SellerGLN := FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:GlobalID[@schemeID="0088"]');
+        VendorNo := FRLegalIdentifiers.FindVendor(
+            SIREN, SIRET, SellerVATId, SellerGLN, EDocument."Bill-to/Pay-to Name",
+            FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:PostalTradeAddress/ram:LineOne'), '', '');
 
         if VendorNo <> '' then
             EDocument."Bill-to/Pay-to No." := VendorNo;
@@ -200,13 +195,9 @@ codeunit 10982 "Import Factur-X"
 
     local procedure ExtractCIIXmlFromPdf(var PdfBlob: Codeunit "Temp Blob"; var CIIXmlBlob: Codeunit "Temp Blob")
     var
-        PDFDocument: Codeunit "PDF Document";
-        PdfInStr: InStream;
+        FacturXHandler: Codeunit "E-Document Factur-X Handler";
     begin
-        PdfBlob.CreateInStream(PdfInStr);
-        if not PDFDocument.GetDocumentAttachmentStream(PdfInStr, CIIXmlBlob) then
-            // Fallback: if no embedded attachment found, assume input is raw CII XML
-            CIIXmlBlob := PdfBlob;
+        CIIXmlBlob := FacturXHandler.ExtractCIIXml(PdfBlob);
     end;
 
     local procedure ParseLineItem(var PurchaseLine: Record "Purchase Line" temporary; DocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20]; LineNode: XmlNode; NamespaceMgr: XmlNamespaceManager; LineCounter: Integer)
