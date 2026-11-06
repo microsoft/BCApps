@@ -154,8 +154,6 @@ table 6909 "Expense Report Line Per Diem"
         TestField("Line No.");
 
         UpdateExpenseReportLineInformation("Expense Report No.", "Expense Report Line No.");
-
-        InvalidateParentPolicy();
     end;
 
     trigger OnModify()
