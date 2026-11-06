@@ -607,19 +607,6 @@ table 31256 "Payment Order Header CZB"
 
         exit(Today() - DT2Date("Unreliable Pay. Check DateTime") >= 2);
     end;
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the PaymentOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure ShowStatistics()
-    var
-        BankingDocStatisticsCZB: Page "Banking Doc. Statistics CZB";
-    begin
-        TestField("Bank Account No.");
-        TestField("Document Date");
-        CalcFields(Amount);
-        BankingDocStatisticsCZB.SetValues("Bank Account No.", "Document Date", -Amount);
-        BankingDocStatisticsCZB.Run();
-    end;
-#endif
 
     procedure CheckPaymentOrderIssueRestrictions()
     begin
