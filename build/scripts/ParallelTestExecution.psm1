@@ -438,14 +438,31 @@ function Reset-BcTestTenant {
         if ($mountedTenant) {
             Dismount-NAVTenant -ServerInstance $ServerInstance -Tenant $tenant -Force | Out-Null
         }
+        $dismountSeconds = [math]::Round($stopwatch.Elapsed.TotalSeconds, 2)
+
+        # Bounded drop: Remove-NAVDatabase has no timeout and occasionally waits ~30 minutes.
+        $databaseServer = Get-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName DatabaseServer
+        if (-not $databaseServer) { $databaseServer = 'localhost' }
+        $databaseInstance = Get-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName DatabaseInstance
+        $databaseLiteral = $tenantDatabaseName.Replace("'", "''")
+        $databaseIdentifier = $tenantDatabaseName.Replace(']', ']]')
+        $sqlParameters = @{
+            ServerInstance = if ($databaseInstance) { "$databaseServer\$databaseInstance" } else { $databaseServer }
+            Query = "IF DB_ID(N'$databaseLiteral') IS NOT NULL BEGIN ALTER DATABASE [$databaseIdentifier] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [$databaseIdentifier]; END"
+            QueryTimeout = 120
+            ErrorAction = 'Stop'
+        }
+        if ((Get-Command Invoke-Sqlcmd).Parameters.ContainsKey('TrustServerCertificate')) {
+            $sqlParameters['TrustServerCertificate'] = $true
+        }
 
         $maxAttempts = 3
         $retryDelaySeconds = 5
         for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
             try {
-                if (Test-NAVDatabase -DatabaseName $tenantDatabaseName) {
-                    Remove-NAVDatabase -DatabaseName $tenantDatabaseName | Out-Null
-                }
+                $dropStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+                Invoke-Sqlcmd @sqlParameters | Out-Null
+                Write-Host "Dismounted tenant '$tenant' in $dismountSeconds seconds; dropped database '$tenantDatabaseName' in $([math]::Round($dropStopwatch.Elapsed.TotalSeconds, 2)) seconds."
 
                 Copy-NAVDatabase -SourceDatabaseName $templateDatabaseName -DestinationDatabaseName $tenantDatabaseName -DatabaseServer "." | Out-Null
                 break
