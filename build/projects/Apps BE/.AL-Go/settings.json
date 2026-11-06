@@ -287,5 +287,6 @@
                                                                     ]
                                                  }
                                 }
-                            ]
+                            ],
+    "preprocessorSymbols":  ["SERVICEMANAGEMENT_BE"]
 }

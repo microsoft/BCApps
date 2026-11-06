@@ -285,5 +285,6 @@
                                                                     ]
                                                  }
                                 }
-                            ]
+                            ],
+    "preprocessorSymbols":  ["SERVICEMANAGEMENT_FI"]
 }

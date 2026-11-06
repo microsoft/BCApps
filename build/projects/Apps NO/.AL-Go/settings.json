@@ -293,5 +293,6 @@
                                                                     ]
                                                  }
                                 }
-                            ]
+                            ],
+    "preprocessorSymbols":  ["SERVICEMANAGEMENT_NO"]
 }
