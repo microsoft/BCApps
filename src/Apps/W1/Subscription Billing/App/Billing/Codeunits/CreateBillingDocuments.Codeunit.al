@@ -581,17 +581,23 @@ codeunit 8060 "Create Billing Documents"
     local procedure InsertContractDescriptionPurchaseLines(BillingLine: Record "Billing Line")
     var
         ContractTypeDescription: Text;
+        IsHandled: Boolean;
     begin
-        TranslationHelper.SetGlobalLanguageByCode(PurchaseHeader."Language Code");
-        if FirstContractDescriptionLineInserted then
-            InsertDescriptionPurchaseLine('', 0);
-        InsertDescriptionPurchaseLine(StrSubstNo(ContractNoTxt, BillingLine."Subscription Contract No."), 0);
-        ContractTypeDescription := GetContractTypeDescription(BillingLine."Subscription Contract No.", BillingLine.Partner, PurchaseHeader."Language Code");
-        if ContractTypeDescription <> '' then
-            InsertDescriptionPurchaseLine(ContractTypeDescription, 0);
-        if VendorRecurringBillingGrouping <> VendorRecurringBillingGrouping::Contract then
-            FirstContractDescriptionLineInserted := true;
-        TranslationHelper.RestoreGlobalLanguage();
+        IsHandled := false;
+        OnBeforeInsertContractDescriptionPurchaseLines(PurchaseHeader, BillingLine, FirstContractDescriptionLineInserted, VendorRecurringBillingGrouping, IsHandled);
+        if not IsHandled then begin
+            TranslationHelper.SetGlobalLanguageByCode(PurchaseHeader."Language Code");
+            if FirstContractDescriptionLineInserted then
+                InsertDescriptionPurchaseLine('', 0);
+            InsertDescriptionPurchaseLine(StrSubstNo(ContractNoTxt, BillingLine."Subscription Contract No."), 0);
+            ContractTypeDescription := GetContractTypeDescription(BillingLine."Subscription Contract No.", BillingLine.Partner, PurchaseHeader."Language Code");
+            if ContractTypeDescription <> '' then
+                InsertDescriptionPurchaseLine(ContractTypeDescription, 0);
+            if VendorRecurringBillingGrouping <> VendorRecurringBillingGrouping::Contract then
+                FirstContractDescriptionLineInserted := true;
+            TranslationHelper.RestoreGlobalLanguage();
+        end;
+        OnAfterInsertContractDescriptionPurchaseLines(PurchaseHeader, BillingLine, FirstContractDescriptionLineInserted, VendorRecurringBillingGrouping);
     end;
 
     internal procedure GetContractTypeDescription(ContractNo: Code[20]; Partner: Enum "Service Partner"; LanguageCode: Code[10]): Text[50]
@@ -1396,6 +1402,16 @@ codeunit 8060 "Create Billing Documents"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertContractDescriptionSalesLines(SalesHeader: Record "Sales Header"; BillingLine: Record "Billing Line"; var FirstContractDescriptionLineInserted: Boolean; CustomerRecurringBillingGrouping: Enum "Customer Rec. Billing Grouping")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertContractDescriptionPurchaseLines(PurchaseHeader: Record "Purchase Header"; BillingLine: Record "Billing Line"; var FirstContractDescriptionLineInserted: Boolean; VendorRecurringBillingGrouping: Enum "Vendor Rec. Billing Grouping"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertContractDescriptionPurchaseLines(PurchaseHeader: Record "Purchase Header"; BillingLine: Record "Billing Line"; var FirstContractDescriptionLineInserted: Boolean; VendorRecurringBillingGrouping: Enum "Vendor Rec. Billing Grouping")
     begin
     end;
 
