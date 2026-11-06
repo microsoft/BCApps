@@ -1447,6 +1447,8 @@ codeunit 148330 "Expense Posting VAT Test"
         Initialize();
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpensePostingGroup(CategoryPostingGroup);
+        ExpenseCategory.Validate("Posting Group", CategoryPostingGroup.Code);
         if not Refundable then
             ExpenseCategory."Reimbursement Type" := ExpenseCategory."Reimbursement Type"::"Company Paid";
         if Itemized then
@@ -1455,7 +1457,6 @@ codeunit 148330 "Expense Posting VAT Test"
         LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory[1], ExpenseCategory.Code, true);
         LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory[2], ExpenseCategory.Code, true);
         SetSubcategoryPostingGroup(ExpenseSubcategory[1], ExpensePostingGroup);
-        CategoryPostingGroup.Get(ExpenseCategory."Posting Group");
         LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubcategory[1].Code, '', Refundable, '', 150);
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpenseCategory."Reimbursement Type");
         Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
