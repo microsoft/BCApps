@@ -6,6 +6,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Period;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -925,7 +926,10 @@ codeunit 139913 "Vendor Deferrals Test"
     [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
     procedure DeferralCodeNotAllowedWithContractDeferralsOnPurchaseLine()
     var
+        AccountingPeriod: Record "Accounting Period";
         DeferralTemplate: Record "Deferral Template";
+        PeriodStartDate: Date;
+        PeriodIndex: Integer;
         DeferralCodeCannotBeUsedWithContractDeferralsErr: Label 'A Deferral Code cannot be used on a line where Subscription Contract Deferrals are active. Either remove the Deferral Code or disable Contract Deferrals on the subscription line or contract.', Locked = true;
     begin
         // [SCENARIO] A standard Deferral Code must not be assigned to a purchase invoice line
@@ -939,6 +943,17 @@ codeunit 139913 "Vendor Deferrals Test"
         // [GIVEN] A standard BC deferral template
         LibraryERM.CreateDeferralTemplate(DeferralTemplate, Enum::"Deferral Calculation Method"::"Straight-Line",
             Enum::"Deferral Calculation Start Date"::"Posting Date", 3);
+
+        // [GIVEN] Accounting periods covering the entire deferral schedule and its closing boundary
+        PeriodStartDate := CalcDate('<-CM>', PurchaseHeader."Posting Date");
+        for PeriodIndex := 0 to DeferralTemplate."No. of Periods" + 1 do begin
+            if not AccountingPeriod.Get(PeriodStartDate) then begin
+                AccountingPeriod.Init();
+                AccountingPeriod.Validate("Starting Date", PeriodStartDate);
+                AccountingPeriod.Insert(true);
+            end;
+            PeriodStartDate := CalcDate('<1M>', PeriodStartDate);
+        end;
 
         // [WHEN] Assigning the Deferral Code to the purchase line that has contract deferrals
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
