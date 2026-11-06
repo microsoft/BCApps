@@ -9,9 +9,10 @@ codeunit 48528 "Fabric Upgrade"
     var
         FabricInstall: Codeunit "Fabric Install";
     begin
-        // RegisterPackage skips work when the package is already at the current version,
-        // so it is safe and cheap to re-run this on every upgrade — this is what picks up
-        // table additions/removals to the built-in MS-STD package for already-installed tenants.
-        FabricInstall.EnsureMsStdPackage();
+        // RegisterPackage skips work when a package is already at the current version,
+        // so it is safe and cheap to re-run this on every upgrade. This also migrates
+        // tenants from the legacy MS-STD package to the domain-specific packages.
+        // A capacity-deferred migration keeps MS-STD intact and is retried on the next upgrade.
+        FabricInstall.EnsureMicrosoftPackages();
     end;
 }
