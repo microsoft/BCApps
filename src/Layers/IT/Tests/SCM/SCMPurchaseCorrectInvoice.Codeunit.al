@@ -1301,6 +1301,53 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         end;
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelInvoiceWithUnequalRebatesAssignedToSalesReturnReceipts()
+    var
+        Vendor: Record Vendor;
+        PurchaseInvoice: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GLPurchaseLine: Record "Purchase Line";
+        ItemLedgerEntry: array[2] of Record "Item Ledger Entry";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        CreditMemoNo: Code[20];
+        TargetIndex: Integer;
+    begin
+        // [SCENARIO 653898] Cancellation preserves unequal rebate shares on the original sales return receipts.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Payment Method Code", '');
+        Vendor.Validate("Prepayment %", 0);
+        Vendor.Modify(true);
+
+        // [GIVEN] An unpaid positive-total invoice with a rebate of 3 units at -10 and no prepayment.
+        CreateItemChargeInvoice(PurchaseInvoice, PurchaseLine, Vendor."No.", 3);
+        PurchaseLine.Validate("Direct Unit Cost", -10);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(
+            GLPurchaseLine, PurchaseInvoice, GLPurchaseLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithPurchSetup(), 1);
+        GLPurchaseLine.Validate("Direct Unit Cost", 100);
+        GLPurchaseLine.Modify(true);
+
+        // [GIVEN] The rebate is assigned 1:2 to two posted sales return receipts.
+        for TargetIndex := 1 to ArrayLen(ItemLedgerEntry) do begin
+            CreatePostedItemChargeTarget(
+                ItemLedgerEntry[TargetIndex], Vendor, "Purchase Applies-to Document Type"::"Return Receipt", '', 1);
+            AssignItemChargeToPostedEntry(
+                PurchaseLine, ItemLedgerEntry[TargetIndex], "Purchase Applies-to Document Type"::"Return Receipt", TargetIndex);
+        end;
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseInvoice, true, true));
+
+        // [WHEN] The posted purchase invoice is canceled.
+        CreditMemoNo := CancelItemChargeInvoice(PurchInvHeader);
+
+        // [THEN] The original -10/-20 costs are reversed by +10/+20 on the same entries.
+        for TargetIndex := 1 to ArrayLen(ItemLedgerEntry) do
+            VerifyItemChargeReversed(
+                ItemLedgerEntry[TargetIndex], PurchaseLine."No.", PurchInvHeader."No.", CreditMemoNo, -10 * TargetIndex, true);
+    end;
+
     local procedure VerifyCancelInvoiceWithItemCharge(AppliesToDocType: Enum "Purchase Applies-to Document Type")
     var
         Vendor: Record Vendor;

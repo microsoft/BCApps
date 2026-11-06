@@ -2536,7 +2536,7 @@ codeunit 6620 "Copy Document Mgt."
                         QtyToAssign := 0
                     else
                         QtyToAssign :=
-                          Sign(ToPurchLine.Quantity) * Abs(ItemChargeCostAmount) * CurrencyFactor / ToPurchLine."Unit Cost";
+                          Sign(ToPurchLine.Quantity) * Abs(ItemChargeCostAmount) * CurrencyFactor / Abs(ToPurchLine."Unit Cost");
                     SumQtyToAssign += QtyToAssign;
                     SupportedValueEntryCount += 1;
 
