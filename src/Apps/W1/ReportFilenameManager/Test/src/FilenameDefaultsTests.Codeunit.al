@@ -16,8 +16,9 @@ using System.Upgrade;
 codeunit 149549 "Filename Defaults Tests"
 {
     Subtype = Test;
+    TestType = UnitTest;
     TestPermissions = Disabled;
-    RequiredTestIsolation = Function;
+    RequiredTestIsolation = Codeunit;
 
     var
         Assert: Codeunit "Library Assert";
@@ -89,6 +90,43 @@ codeunit 149549 "Filename Defaults Tests"
         TempPurchCrMemoHdr.Insert();
         DocumentRecRef.GetTable(TempPurchCrMemoHdr);
         AssertDefaultName(DocumentRecRef);
+        DocumentRecRef.Close();
+    end;
+
+    [Test]
+    procedure PlatformNamingPreservesServerPathsAndStillNamesClientOutput()
+    var
+        TempSalesInvoiceHeader: Record "Sales Invoice Header" temporary;
+        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
+        ReportFilenameSubscribers: Codeunit "Report Filename Subscribers";
+        DocumentRecRef: RecordRef;
+        Payload: JsonObject;
+        FileName: Text;
+        ServerPath: Text;
+        Success: Boolean;
+    begin
+        Initialize();
+        ReportFilenameDefaults.InitializeSetup(true);
+        TempSalesInvoiceHeader."No." := 'DEFAULT-100';
+        TempSalesInvoiceHeader.Insert();
+        DocumentRecRef.GetTable(TempSalesInvoiceHeader);
+        Payload.Add('intent', 'Save');
+        ServerPath := 'C:\Temp\report-filename-defaults.pdf';
+        FileName := ServerPath;
+
+        ReportFilenameSubscribers.NameFromPlatformEvent(
+            Report::"Standard Sales - Invoice", Payload, '.pdf', DocumentRecRef, FileName, Success);
+
+        Assert.AreEqual(ServerPath, FileName, 'The caller must be able to reopen its explicit server output path.');
+        Assert.IsFalse(Success, 'Preserving a server path must leave platform naming unhandled.');
+
+        Clear(FileName);
+        ReportFilenameSubscribers.NameFromPlatformEvent(
+            Report::"Standard Sales - Invoice", Payload, '.pdf', DocumentRecRef, FileName, Success);
+
+        Assert.IsTrue(Success, 'A server render must not suppress the next client filename.');
+        Assert.AreNotEqual('', FileName, 'The default must still name a client Save operation.');
+        Assert.IsTrue(FileName.EndsWith('.pdf'), 'Client output must retain its file extension.');
         DocumentRecRef.Close();
     end;
 
