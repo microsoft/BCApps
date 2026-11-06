@@ -60,7 +60,7 @@ jobs:
     steps:
       - name: Get Official Branches
         id: getOfficialBranches
-        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@1def6c08aa5bbc2ffed195bf575e6cc958594b5a # releases/29.0/StrictMode
         with:
           include: "['main', 'releases/*']"
 
@@ -101,7 +101,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Update unstable tests
-        uses: microsoft/BCApps/.github/actions/UpdateUnstableTestsCombined@main
+        uses: microsoft/BCApps/.github/actions/UpdateUnstableTestsCombined@1def6c08aa5bbc2ffed195bf575e6cc958594b5a # releases/29.0/StrictMode
         with:
           branch: ${{ matrix.branch }}
           run-limit: ${{ inputs.runLimit || 3 }}

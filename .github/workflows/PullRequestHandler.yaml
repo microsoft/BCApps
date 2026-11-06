@@ -217,12 +217,12 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
   
-      - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
+      - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@1def6c08aa5bbc2ffed195bf575e6cc958594b5a # releases/29.0/StrictMode
   
-      - uses: microsoft/BCApps/.github/actions/TestObsoleteTagPreprocessors@main
+      - uses: microsoft/BCApps/.github/actions/TestObsoleteTagPreprocessors@1def6c08aa5bbc2ffed195bf575e6cc958594b5a # releases/29.0/StrictMode
   
-      - uses: microsoft/BCApps/.github/actions/TestObjectIdsAndManifests@main
+      - uses: microsoft/BCApps/.github/actions/TestObjectIdsAndManifests@1def6c08aa5bbc2ffed195bf575e6cc958594b5a # releases/29.0/StrictMode
   
-      - uses: microsoft/BCApps/.github/actions/VerifyMiappSync@main
+      - uses: microsoft/BCApps/.github/actions/VerifyMiappSync@1def6c08aa5bbc2ffed195bf575e6cc958594b5a # releases/29.0/StrictMode
   
-      - uses: microsoft/BCApps/.github/actions/ValidateCountryProjects@main
+      - uses: microsoft/BCApps/.github/actions/ValidateCountryProjects@1def6c08aa5bbc2ffed195bf575e6cc958594b5a # releases/29.0/StrictMode
