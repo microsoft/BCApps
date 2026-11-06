@@ -15,6 +15,7 @@ if ([string]::IsNullOrEmpty($env:INETROOT)) {
 }
 if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
     function global:Write-Log {
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidGlobalFunctions', '', Justification = 'ALAppBuild class methods resolve Write-Log from global scope.')]
         param([Parameter(Position = 0)][string]$Message, [string]$ForegroundColor)
         $null = $ForegroundColor
         Write-Host $Message
