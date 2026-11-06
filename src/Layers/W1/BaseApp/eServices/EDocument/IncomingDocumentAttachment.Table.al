@@ -10,11 +10,12 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
+#if not CLEAN30
 using System;
+#endif
 using System.IO;
 using System.Reflection;
 using System.Utilities;
-using System.Xml;
 
 table 133 "Incoming Document Attachment"
 {
@@ -472,8 +473,9 @@ table 133 "Incoming Document Attachment"
     var
         IncomingDocument: Record "Incoming Document";
         TempBlob: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XMLRootNode: DotNet XmlNode;
+        XmlDoc: XmlDocument;
+        RootXmlElement: XmlElement;
+        RootXmlNode: XmlNode;
         InStream: InStream;
     begin
         if Type <> Type::XML then
@@ -483,15 +485,69 @@ table 133 "Incoming Document Attachment"
             TempBlob.FromRecord(Rec, FieldNo(Content));
 
         TempBlob.CreateInStream(InStream);
-        if not XMLDOMManagement.LoadXMLNodeFromInStream(InStream, XMLRootNode) then
+        if not XmlDocument.ReadFrom(InStream, XmlDoc) then
+            exit;
+        if not XmlDoc.GetRoot(RootXmlElement) then
             exit;
         if not IncomingDocument.Get(Rec."Incoming Document Entry No.") then
             exit;
-        ExtractHeaderFields(XMLRootNode, IncomingDocument);
+        RootXmlNode := RootXmlElement.AsXmlNode();
+        ExtractHeaderFields(RootXmlNode, IncomingDocument);
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use ExtractHeaderFields with a native XmlNode parameter instead.', '30.0')]
     procedure ExtractHeaderFields(var XMLRootNode: DotNet XmlNode; var IncomingDocument: Record "Incoming Document")
+    var
+        XmlDoc: XmlDocument;
+        RootXmlElement: XmlElement;
+        RootXmlNode: XmlNode;
+        NodePath: Text;
+    begin
+        // Convert the supplied node itself, not only the document root, so that relative XPaths keep working.
+        if GetDotNetXmlNodePath(XMLRootNode, NodePath) then begin
+            XmlDocument.ReadFrom(XMLRootNode.OwnerDocument.OuterXml(), XmlDoc);
+            XmlDoc.SelectSingleNode(NodePath, RootXmlNode);
+        end else begin
+            XmlDocument.ReadFrom(XMLRootNode.OuterXml(), XmlDoc);
+            XmlDoc.GetRoot(RootXmlElement);
+            RootXmlNode := RootXmlElement.AsXmlNode();
+        end;
+        ExtractHeaderFields(RootXmlNode, IncomingDocument);
+    end;
+
+    local procedure GetDotNetXmlNodePath(DotNetXmlNode: DotNet XmlNode; var NodePath: Text): Boolean
+    var
+        DotNetXmlNodeType: DotNet XmlNodeType;
+        CurrentDotNetXmlNode: DotNet XmlNode;
+    begin
+        // Positional path such as /*[1]/*[3]/@*[name()='id'], which identifies the node regardless of namespaces.
+        NodePath := '';
+        CurrentDotNetXmlNode := DotNetXmlNode;
+        if CurrentDotNetXmlNode.NodeType.Equals(DotNetXmlNodeType.Attribute) then begin
+            NodePath := '/@*[name()=''' + CurrentDotNetXmlNode.Name + ''']';
+            CurrentDotNetXmlNode := CurrentDotNetXmlNode.SelectSingleNode('..');
+        end else
+            if not CurrentDotNetXmlNode.NodeType.Equals(DotNetXmlNodeType.Element) then
+                CurrentDotNetXmlNode := CurrentDotNetXmlNode.ParentNode;
+        while not IsNull(CurrentDotNetXmlNode) do begin
+            if not CurrentDotNetXmlNode.NodeType.Equals(DotNetXmlNodeType.Element) then
+                exit(CurrentDotNetXmlNode.NodeType.Equals(DotNetXmlNodeType.Document) and (NodePath <> ''));
+            NodePath := '/*[' + Format(CurrentDotNetXmlNode.SelectNodes('preceding-sibling::*').Count + 1, 0, 9) + ']' + NodePath;
+            CurrentDotNetXmlNode := CurrentDotNetXmlNode.ParentNode;
+        end;
+        exit(false);
+    end;
+#endif
+
+    /// <summary>
+    /// Extracts the header fields of an incoming document from the XML of an attachment, using the Data Exchange Definition paths of the incoming document.
+    /// </summary>
+    /// <param name="XmlRootNode">The root element of the XML attachment.</param>
+    /// <param name="IncomingDocument">The incoming document to update.</param>
+    [Scope('OnPrem')]
+    procedure ExtractHeaderFields(var XmlRootNode: XmlNode; var IncomingDocument: Record "Incoming Document")
     var
         TempFieldBuffer: Record "Field Buffer" temporary;
     begin
@@ -517,18 +573,17 @@ table 133 "Incoming Document Attachment"
         TempFieldBuffer.Reset();
         TempFieldBuffer.FindSet();
         repeat
-            ExtractHeaderField(XMLRootNode, IncomingDocument, TempFieldBuffer."Field ID");
+            ExtractHeaderField(XmlRootNode, IncomingDocument, TempFieldBuffer."Field ID");
         until TempFieldBuffer.Next() = 0;
     end;
 
-    local procedure ExtractHeaderField(var XMLRootNode: DotNet XmlNode; var IncomingDocument: Record "Incoming Document"; FieldNo: Integer)
+    local procedure ExtractHeaderField(var XmlRootNode: XmlNode; var IncomingDocument: Record "Incoming Document"; FieldNo: Integer)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         OCRServiceMgt: Codeunit "OCR Service Mgt.";
         ImportXMLFileToDataExch: Codeunit "Import XML File to Data Exch.";
         RecRef: RecordRef;
         FieldRef: FieldRef;
-        XmlNamespaceManager: DotNet XmlNamespaceManager;
+        XmlNamespaceManager: XmlNamespaceManager;
         DateVar: Date;
         DecimalVar: Decimal;
         IntegerVar: Integer;
@@ -543,8 +598,8 @@ table 133 "Incoming Document Attachment"
         XPath := ImportXMLFileToDataExch.EscapeMissingNamespacePrefix(XPath);
         RecRef.GetTable(IncomingDocument);
         FieldRef := RecRef.Field(FieldNo);
-        XMLDOMManagement.AddNamespaces(XmlNamespaceManager, XMLRootNode.OwnerDocument);
-        XmlValue := XMLDOMManagement.FindNodeTextNs(XMLRootNode, XPath, XmlNamespaceManager);
+        AddNamespaces(XmlNamespaceManager, XmlRootNode);
+        XmlValue := FindNodeTextNs(XmlRootNode, XPath, XmlNamespaceManager);
 
         case FieldRef.Type of
             FieldType::Text, FieldType::Code:
@@ -569,6 +624,44 @@ table 133 "Incoming Document Attachment"
 
         OnAfterSetValueOnExtractHeaderField(IncomingDocument, FieldNo);
         IncomingDocument.Modify();
+    end;
+
+    local procedure AddNamespaces(var XmlNamespaceManager: XmlNamespaceManager; XmlRootNode: XmlNode)
+    var
+        XmlDoc: XmlDocument;
+        RootXmlElement: XmlElement;
+        RootXmlAttribute: XmlAttribute;
+    begin
+        XmlRootNode.GetDocument(XmlDoc);
+        XmlNamespaceManager.NameTable(XmlDoc.NameTable());
+        XmlDoc.GetRoot(RootXmlElement);
+
+        if RootXmlElement.NamespaceUri() <> '' then
+            XmlNamespaceManager.AddNamespace('', RootXmlElement.NamespaceUri());
+
+        foreach RootXmlAttribute in RootXmlElement.Attributes() do
+            if StrPos(RootXmlAttribute.Name(), 'xmlns:') = 1 then
+                XmlNamespaceManager.AddNamespace(DelStr(RootXmlAttribute.Name(), 1, 6), RootXmlAttribute.Value());
+    end;
+
+    local procedure FindNodeTextNs(XmlRootNode: XmlNode; NodePath: Text; XmlNamespaceManager: XmlNamespaceManager): Text
+    var
+        FoundXmlNode: XmlNode;
+    begin
+        if not XmlRootNode.SelectSingleNode(NodePath, XmlNamespaceManager, FoundXmlNode) then
+            exit('');
+
+        case true of
+            FoundXmlNode.IsXmlElement():
+                exit(FoundXmlNode.AsXmlElement().InnerText());
+            FoundXmlNode.IsXmlAttribute():
+                exit(FoundXmlNode.AsXmlAttribute().Value());
+            FoundXmlNode.IsXmlText():
+                exit(FoundXmlNode.AsXmlText().Value());
+            FoundXmlNode.IsXmlCData():
+                exit(FoundXmlNode.AsXmlCData().Value());
+        end;
+        exit('');
     end;
 
     local procedure CheckMainAttachment()
