@@ -21,6 +21,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Peppol;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -62,6 +63,44 @@ codeunit 139235 "PEPPOL30 Management Tests"
         NoItemDescriptionErr: Label 'Description field is empty.';
         NoUnitOfMeasureErr: Label 'The Invoice %1 contains lines on which the Unit of Measure Code field is empty.', Comment = '%1 - Invoice Number';
         SalespersonTxt: Label 'Salesperson';
+
+    [Test]
+    procedure RequestedDeliveryPeriodProvidersReturnAndClearDates()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase";
+        PODeliveryPeriod: Interface "PEPPOL PO Delivery Period";
+        POLineDeliveryPeriod: Interface "PEPPOL PO Line Delivery Period";
+        HeaderStartDate: Text;
+        HeaderEndDate: Text;
+        LineStartDate: Text;
+        LineEndDate: Text;
+    begin
+        PurchaseHeader."Requested Receipt Date" := DMY2Date(15, 2, 2026);
+        PurchaseLine."Requested Receipt Date" := DMY2Date(20, 2, 2026);
+        PEPPOLPurchaseFormat := PEPPOLPurchaseFormat::"PEPPOL 3.0 - Purchase";
+        PODeliveryPeriod := PEPPOLPurchaseFormat;
+        POLineDeliveryPeriod := PEPPOLPurchaseFormat;
+
+        PODeliveryPeriod.GetRequestedDeliveryPeriod(PurchaseHeader, HeaderStartDate, HeaderEndDate);
+        POLineDeliveryPeriod.GetLineRequestedDeliveryPeriod(PurchaseLine, LineStartDate, LineEndDate);
+
+        Assert.AreEqual('2026-02-15', HeaderStartDate, 'Unexpected header start date.');
+        Assert.AreEqual(HeaderStartDate, HeaderEndDate, 'Header start and end dates should match.');
+        Assert.AreEqual('2026-02-20', LineStartDate, 'Unexpected line start date.');
+        Assert.AreEqual(LineStartDate, LineEndDate, 'Line start and end dates should match.');
+
+        PurchaseHeader."Requested Receipt Date" := 0D;
+        PurchaseLine."Requested Receipt Date" := 0D;
+        PODeliveryPeriod.GetRequestedDeliveryPeriod(PurchaseHeader, HeaderStartDate, HeaderEndDate);
+        POLineDeliveryPeriod.GetLineRequestedDeliveryPeriod(PurchaseLine, LineStartDate, LineEndDate);
+
+        Assert.AreEqual('', HeaderStartDate, 'Header start date should be cleared when no date is set.');
+        Assert.AreEqual('', HeaderEndDate, 'Header end date should be cleared when no date is set.');
+        Assert.AreEqual('', LineStartDate, 'Line start date should be cleared when no date is set.');
+        Assert.AreEqual('', LineEndDate, 'Line end date should be cleared when no date is set.');
+    end;
 
     [Test]
     procedure UnknownFormatValidationRaisesControlledError()

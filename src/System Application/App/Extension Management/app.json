@@ -76,6 +76,12 @@
       "name": "VS Code Integration",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
+    },
+    {
+      "id": "c56e3ef4-7ab0-4636-ae87-013a62f12213",
+      "name": "User Permissions",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
     }
   ],
   "internalsVisibleTo": [
