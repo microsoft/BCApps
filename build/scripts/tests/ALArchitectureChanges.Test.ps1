@@ -20,9 +20,9 @@ Describe 'Payables Agent architecture change selection' {
             $eventPayload | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $path -Encoding utf8
             return $path
         }
-        function Get-TestChange([string] $Name = 'pull_request', [switch] $FetchMissingBase) {
+        function Get-TestChange([string] $Name = 'pull_request') {
             Get-PayablesAgentArchitectureChange -RepoRoot $script:repo -EventName $Name -EventPath (New-ChangeEvent $Name) `
-                -ExpectedHead $script:headSha -FetchMissingBase:$FetchMissingBase
+                -ExpectedHead $script:headSha
         }
     }
 
@@ -36,7 +36,6 @@ Describe 'Payables Agent architecture change selection' {
             Calls = $script:calls
             DiffOutput = @()
             BaseMissing = $false
-            FetchFails = $false
             DiffFails = $false
         }
         # Explicit shared state keeps module mocks compatible with both Pester 3 and 5.
@@ -49,10 +48,6 @@ Describe 'Payables Agent architecture change selection' {
                     if ($Arguments -contains 'HEAD^{commit}') { return $script:gitState.HeadSha }
                     if ($script:gitState.BaseMissing) { throw 'Comparison commit is missing.' }
                     return $script:gitState.BaseSha
-                }
-                'fetch' {
-                    if ($script:gitState.FetchFails) { throw 'Fetch unavailable.' }
-                    $script:gitState.BaseMissing = $false
                 }
                 'diff' {
                     if ($script:gitState.DiffFails) { throw 'Diff unavailable.' }
@@ -158,39 +153,20 @@ Describe 'Payables Agent architecture change selection' {
         }
     }
 
-    It 'runs if a shallow checkout lacks the base and fetching was not authorized' {
-        $script:gitState.BaseMissing = $true
-        Assert-ChangeValue (Get-TestChange).Required $true
-        Assert-ChangeValue @($script:calls | Where-Object { $_.Arguments[0] -eq 'fetch' }).Count 0
+    It 'runs without fetching if the checkout lacks the comparison base' {
+        foreach ($name in @('pull_request', 'merge_group')) {
+            $script:gitState.BaseMissing = $true
+            Assert-ChangeValue (Get-TestChange $name).Required $true
+        }
+        $result = Get-PayablesAgentArchitectureChange -RepoRoot $script:repo -EventName workflow_dispatch -BaselineRef 'missing-branch'
+        Assert-ChangeValue $result.Required $true
+        Assert-ChangeValue @($script:calls | Where-Object { $_.Arguments[0] -notin @('rev-parse', 'diff') }).Count 0
+        Assert-ChangeValue @($script:calls | Where-Object { $_.Arguments[0] -eq 'diff' }).Count 0
     }
 
-    It 'can fetch only the missing comparison commit for shallow CI checkouts' {
-        $script:gitState.BaseMissing = $true
-        Assert-ChangeValue (Get-TestChange -FetchMissingBase).Required $false
-        $fetch = @($script:calls | Where-Object { $_.Arguments[0] -eq 'fetch' })
-        Assert-ChangeValue $fetch.Count 1
-        Assert-ChangeValue ($fetch[0].Arguments -join ' ') "fetch --no-tags --depth=1 origin $script:baseSha"
-    }
-
-    It 'does not fetch when the base is already available' {
-        Assert-ChangeValue (Get-TestChange -FetchMissingBase).Required $false
-        Assert-ChangeValue @($script:calls | Where-Object { $_.Arguments[0] -eq 'fetch' }).Count 0
-    }
-
-    It 'runs on failed fetches or diff commands rather than treating an error as an empty diff' {
-        $script:gitState.BaseMissing = $true
-        $script:gitState.FetchFails = $true
-        Assert-ChangeValue (Get-TestChange -FetchMissingBase).Required $true
-        $script:gitState.BaseMissing = $false
+    It 'runs on failed diff commands rather than treating an error as an empty diff' {
         $script:gitState.DiffFails = $true
         Assert-ChangeValue (Get-TestChange).Required $true
-    }
-
-    It 'does not fetch arbitrary unresolved baseline refs' {
-        $script:gitState.BaseMissing = $true
-        $result = Get-PayablesAgentArchitectureChange -RepoRoot $script:repo -EventName workflow_dispatch -BaselineRef 'missing-branch' -FetchMissingBase
-        Assert-ChangeValue $result.Required $true
-        Assert-ChangeValue @($script:calls | Where-Object { $_.Arguments[0] -eq 'fetch' }).Count 0
     }
 
     It 'writes skip/run outputs at the CLI boundary without running the checker or tests' {
@@ -218,7 +194,7 @@ Describe 'Payables Agent architecture change selection' {
         $build = [IO.File]::ReadAllText((Join-Path $script:repo '.github/workflows/_BuildALGoProject.yaml'))
         if ($build.Contains('ALAppArchitecture') -or $build.Contains('AL_APP_ARCHITECTURE')) { throw 'The AL-Go project build must not host the architecture gate.' }
         $actionScript = [IO.File]::ReadAllText((Join-Path $script:repo '.github/actions/TestALAppArchitecture/action.ps1'))
-        foreach ($argument in @('build\scripts\Test-ALAppArchitecture.ps1', '-RepoRoot (Get-Location).Path', '-FetchMissingBase')) {
+        foreach ($argument in @('build\scripts\Test-ALAppArchitecture.ps1', '-RepoRoot (Get-Location).Path')) {
             if (-not $actionScript.Contains($argument)) { throw "Missing action argument: $argument" }
         }
     }

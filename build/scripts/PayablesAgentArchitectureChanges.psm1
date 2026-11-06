@@ -47,8 +47,6 @@ function Invoke-PayablesAgentArchitectureGit {
     Workflow commit SHA. A different checkout requires validation instead of skipping.
 .PARAMETER BaselineRef
     Explicit comparison base for manual or local checks.
-.PARAMETER FetchMissingBase
-    Allows a shallow fetch of a missing comparison SHA. Does not fetch arbitrary refs.
 .OUTPUTS
     An object containing Required, Base, Head and a human-readable Reason.
 #>
@@ -61,8 +59,7 @@ function Get-PayablesAgentArchitectureChange {
         [string] $EventName,
         [string] $EventPath,
         [string] $ExpectedHead,
-        [string] $BaselineRef,
-        [switch] $FetchMissingBase
+        [string] $BaselineRef
     )
 
     $shaPattern = '^(?:[0-9a-f]{40}|[0-9a-f]{64})$'
@@ -107,18 +104,9 @@ function Get-PayablesAgentArchitectureChange {
             $base = $BaselineRef
         }
 
+        # A comparison base missing from the checkout means RUN, without fetching.
         $resolveArguments = @('rev-parse', '--verify', '--end-of-options', "${base}^{commit}")
-        try {
-            $resolvedBase = (@(Invoke-PayablesAgentArchitectureGit -RepoRoot $RepoRoot -Arguments $resolveArguments) -join '').Trim()
-        }
-        catch {
-            if (-not $FetchMissingBase -or $base -notmatch $shaPattern) {
-                throw
-            }
-            # Two commit trees suffice; do not fetch the entire repository history.
-            $null = Invoke-PayablesAgentArchitectureGit -RepoRoot $RepoRoot -Arguments @('fetch', '--no-tags', '--depth=1', 'origin', $base)
-            $resolvedBase = (@(Invoke-PayablesAgentArchitectureGit -RepoRoot $RepoRoot -Arguments $resolveArguments) -join '').Trim()
-        }
+        $resolvedBase = (@(Invoke-PayablesAgentArchitectureGit -RepoRoot $RepoRoot -Arguments $resolveArguments) -join '').Trim()
         if ($resolvedBase -notmatch $shaPattern) {
             throw 'Cannot resolve the comparison base.'
         }
