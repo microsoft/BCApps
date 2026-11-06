@@ -5815,6 +5815,7 @@ table 37 "Sales Line"
             if not PrePaymentLineAmountEntered then begin
                 "Prepmt. Line Amount" := Round((OutstandingAmountExclTax) * "Prepayment %" / 100, Currency."Amount Rounding Precision");
                 "Prepmt. Line Amount" := "Prepmt. Line Amount" + "Prepmt Amt Deducted";
+                CapPrepmtLineAmountAfterOverDeduction();
             end;
             PrePaymentLineAmountEntered := false;
         end;
@@ -11407,6 +11408,25 @@ table 37 "Sales Line"
     local procedure CheckReceiptOrderStatus()
     begin
         OnCheckReceiptOrderStatus(Rec);
+    end;
+
+    local procedure CapPrepmtLineAmountAfterOverDeduction()
+    var
+        TotalPrepmtLineAmount: Decimal;
+    begin
+        if "Prepmt Amt Deducted" = 0 then
+            exit;
+        if "Prepmt. Line Amount" <= "Prepmt. Amt. Inv." then
+            exit;
+
+        TotalPrepmtLineAmount := Round(("Line Amount" - "Inv. Discount Amount") * "Prepayment %" / 100, Currency."Amount Rounding Precision");
+        if "Prepmt. Line Amount" <= TotalPrepmtLineAmount then
+            exit;
+
+        if TotalPrepmtLineAmount > "Prepmt. Amt. Inv." then
+            "Prepmt. Line Amount" := TotalPrepmtLineAmount
+        else
+            "Prepmt. Line Amount" := "Prepmt. Amt. Inv.";
     end;
 
     /// <summary>
