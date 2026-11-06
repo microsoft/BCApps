@@ -100,4 +100,36 @@ codeunit 132802 "Upgrade Test Data Setup"
         WarehouseRequest."Source No." := 'UPG-SALES-01';
         WarehouseRequest.Insert();
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Test Data Setup Mgt.", 'OnSetupDataPerCompany', '', false, false)]
+    local procedure SetupOrphanReminderLines()
+    var
+        ReminderHeader: Record "Reminder Header";
+        ReminderLine: Record "Reminder Line";
+    begin
+        ReminderLine.SetRange("Reminder No.", '');
+        ReminderLine.DeleteAll(false);
+
+        ReminderLine.Init();
+        ReminderLine."Line No." := 10000;
+        ReminderLine."Line Type" := ReminderLine."Line Type"::"Beginning Text";
+        ReminderLine.Insert(false);
+
+        ReminderLine.Init();
+        ReminderLine."Line No." := 20000;
+        ReminderLine."Line Type" := ReminderLine."Line Type"::"Ending Text";
+        ReminderLine.Insert(false);
+
+        if ReminderHeader.Get('UPG-RMD-VALID') then
+            ReminderHeader.Delete(true);
+        ReminderHeader.Init();
+        ReminderHeader."No." := 'UPG-RMD-VALID';
+        ReminderHeader.Insert(false);
+
+        ReminderLine.Init();
+        ReminderLine."Reminder No." := ReminderHeader."No.";
+        ReminderLine."Line No." := 10000;
+        ReminderLine."Line Type" := ReminderLine."Line Type"::"Beginning Text";
+        ReminderLine.Insert(false);
+    end;
 }
