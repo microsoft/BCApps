@@ -337,7 +337,8 @@ table 6907 "Expense Report Line"
         field(21; "Account No."; Code[20])
         {
             Caption = 'Account No.';
-            TableRelation = if ("Account Type" = const(" ")) "Standard Text"
+            TableRelation =
+            if ("Account Type" = const(" ")) "Standard Text"
             else
             if ("Account Type" = const(Resource)) Resource
             else
@@ -1111,6 +1112,22 @@ table 6907 "Expense Report Line"
             CalcFormula = exist("Expense Policy Evaluation" where("Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line"), "Subject Version" = field("Evaluated Policy Version"), "Compliant" = const(false)));
             Editable = false;
         }
+        field(110; "Original Amount"; Decimal)
+        {
+            AutoFormatExpression = Rec."Expense Currency Code";
+            AutoFormatType = 1;
+            BlankZero = true;
+            Caption = 'Original Amount';
+            ToolTip = 'Specifies the amount of the expense before it was split into several lines or shared with other users.';
+            Editable = false;
+        }
+        field(111; "Split from Line No."; Integer)
+        {
+            BlankZero = true;
+            Caption = 'Split from Line No.';
+            ToolTip = 'Specifies the number of the original expense report line that this line was split from.';
+            Editable = false;
+        }
     }
     keys
     {
@@ -1486,7 +1503,9 @@ table 6907 "Expense Report Line"
             Rec.FieldNo("User Confirmed"),
             Rec.FieldNo("Policies Evaluated At"),
             Rec.FieldNo("Policy Eval Version"),
-            Rec.FieldNo("Evaluated Policy Version"):
+            Rec.FieldNo("Evaluated Policy Version"),
+            Rec.FieldNo("Original Amount"),
+            Rec.FieldNo("Split from Line No."):
                 exit(true);
         end;
         exit(false);
@@ -2400,6 +2419,7 @@ table 6907 "Expense Report Line"
         NewLine."Policies Evaluated At" := 0DT;
         NewLine."Policy Eval Version" := 0;
         NewLine."Evaluated Policy Version" := 0;
+        NewLine."Split from Line No." := 0;
         NewLine."Document No." := TargetExpenseReportNo;
         NewLine."Line No." := GetNextExpenseReportLineNo(TargetExpenseReportNo);
         NewLine."Posted Date" := TargetExpenseReportHeader."Posting Date";
