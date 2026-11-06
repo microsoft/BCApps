@@ -29,6 +29,7 @@ permissionset 6905 "Expense Mgmt. Admin"
         tabledata "Expense Agent Status" = IMD,
         tabledata "Expense User" = IMD,
         tabledata "Expense Team" = IMD,
+        tabledata "Expense Spend Limit" = IMD,
         tabledata "Expense Approval Setup" = IMD,
         tabledata "Expense Rule Condition" = IMD,
         tabledata "Expense Rule Header" = IMD,

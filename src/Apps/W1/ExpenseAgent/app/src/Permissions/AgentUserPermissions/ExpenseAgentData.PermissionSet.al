@@ -52,6 +52,7 @@ permissionset 6953 "Expense Agent - Data"
                   tabledata "Expense Agent Access Control" = R,
                   tabledata "Expense Agent Setup" = R,
                   tabledata "Expense Team" = R,
+                  tabledata "Expense Spend Limit" = R,
                   tabledata "Expense Approval Setup" = R,
                   tabledata "Expense Alternate Approver" = R,
                   tabledata "EA Scheduler Task" = R,
