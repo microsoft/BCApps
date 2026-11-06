@@ -158,11 +158,8 @@ codeunit 6169 "E-Doc. Attachment Processor"
     begin
         case DocumentAttachment."Table ID" of
             Database::"E-Document":
-                begin
-                    RecRef.Open(Database::"E-Document");
-                    if EDocument.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(EDocument);
-                end;
+                if EDocument.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(EDocument);
         end;
     end;
 

@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Format;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.AI;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
@@ -78,14 +79,16 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIUserMessage: Codeunit "AOAI User Message";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
-        AOAIDeployments: Codeunit "AOAI Deployments";
+        EDocAIToolProcessor: Codeunit "E-Doc. AI Tool Processor";
         EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
         FromTempBlob: Codeunit "Temp Blob";
         CustomDimensions: Dictionary of [Text, Text];
         InStream: InStream;
         Base64Data: Text;
+        DeploymentName: Text;
         StartTime: DateTime;
         DurationMs: Integer;
+        UseCase: Option "Matching Assistance","PDF Extraction";
     begin
         // Load schema and convert PDF to base64
         FromTempBlob := EDocumentDataStorage.GetTempBlob();
@@ -93,7 +96,8 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         Base64Data := Base64Convert.ToBase64(InStream);
 
         // Build AOAI call
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
+        DeploymentName := EDocAIToolProcessor.GetChatCompletionsDeployment(UseCase::"PDF Extraction");
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", DeploymentName);
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis");
 
         AOAIChatCompletionParams.SetTemperature(0);
@@ -111,6 +115,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
 
         CustomDimensions := GetCustomDimensions();
         CustomDimensions.Add('DurationMs', Format(DurationMs));
+        CustomDimensions.Add('Model', DeploymentName);
 
         if not AOAIOperationResponse.IsSuccess() then begin
             Telemetry.LogMessage('0000SGS', MLLMApiCallFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
