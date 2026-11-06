@@ -8,7 +8,8 @@ codeunit 148018 "IRS 1099 API Tests"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     var
