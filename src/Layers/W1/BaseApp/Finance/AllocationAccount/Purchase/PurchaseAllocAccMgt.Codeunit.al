@@ -261,6 +261,7 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
     /// <summary>
     /// Creates individual purchase lines from allocation account distribution lines based on allocation percentages or amounts.
     /// Processes allocation account configuration and generates corresponding G/L account lines with calculated amounts.
+    /// Recalculates VAT for VAT-inclusive prices after assigning the final allocated amounts.
     /// </summary>
     /// <param name="AllocationAccountPurchaseLine">Source purchase line containing allocation account to be distributed</param>
     procedure CreateLinesFromAllocationAccountLine(var AllocationAccountPurchaseLine: Record "Purchase Line")
@@ -385,6 +386,8 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
         MoveQuantities(PurchaseLine, AllocationPurchaseLine);
 
         PurchaseLine."VAT Difference" := AllocationLine.Percentage * AllocationPurchaseLine."VAT Difference" / 100;
+        if PurchaseLine.GetPurchHeader()."Prices Including VAT" then
+            PurchaseLine.UpdateVATAmounts();
         PurchaseLine."Deferral Code" := AllocationPurchaseLine."Deferral Code";
         CopyDeferralSchedule(PurchaseLine, AllocationPurchaseLine);
         TransferDimensionSetID(PurchaseLine, AllocationLine, AllocationPurchaseLine."Alloc. Acc. Modified by User");

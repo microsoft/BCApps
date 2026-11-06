@@ -12,6 +12,7 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryJournals: Codeunit "Library - Journals";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         Any: Codeunit Any;
@@ -1287,6 +1288,201 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
             ExpectedVATExclusiveAmount2, ExpectedVATAmount2);
     end;
 
+    [Test]
+    procedure GenerateLinesFromAllocAccLineRecalculatesNonDedVATWithPricesInclVAT()
+    var
+        NonDedVATPostingSetup: Record "VAT Posting Setup";
+        DestinationGLAccount: array[2] of Record "G/L Account";
+        AllocationAccount: Record "Allocation Account";
+        AllocationPurchaseHeader: Record "Purchase Header";
+        ManualPurchaseHeader: Record "Purchase Header";
+        AllocationPurchaseLine: Record "Purchase Line";
+        GeneratedPurchaseLine: Record "Purchase Line";
+        VendorNo: Code[20];
+    begin
+        // [FEATURE] [Allocation Account] [Non-Deductible VAT] [Prices Including VAT]
+        // [SCENARIO 658001] Generate lines from Allocation Account Line recalculates Non-Deductible VAT when Prices Including VAT is enabled
+        Initialize();
+
+        // [GIVEN] Non-Deductible VAT enabled and VAT Posting Setup "V" with 20% VAT and 50% Non-Deductible VAT
+        // [GIVEN] Fixed allocation account "AA" splitting amount 75% to G/L Account "G1" and 25% to G/L Account "G2", both with "V"
+        CreateNonDedVATAllocationAccountSetup(NonDedVATPostingSetup, DestinationGLAccount, AllocationAccount);
+        VendorNo := CreateVendorForVATPostingSetup(NonDedVATPostingSetup);
+
+        // [GIVEN] Purchase Invoice "PI" with "Prices Including VAT" and allocation account line "AA" for 100
+        CreatePurchInvoiceWithPricesInclVAT(AllocationPurchaseHeader, VendorNo);
+        CreatePurchaseLineWithDirectUnitCost(AllocationPurchaseLine, AllocationPurchaseHeader, AllocationPurchaseLine.Type::"Allocation Account", AllocationAccount."No.", 1, 100);
+
+        // [GIVEN] Purchase Invoice "MI" with "Prices Including VAT" and manually entered lines "G1" for 75 and "G2" for 25
+        CreatePurchInvoiceWithPricesInclVAT(ManualPurchaseHeader, VendorNo);
+        CreateManualAllocationLines(ManualPurchaseHeader, DestinationGLAccount, 1);
+
+        // [WHEN] Generate lines from Allocation Account Line on "PI"
+        CreateLinesFromAllocationAccountLine(AllocationPurchaseLine);
+        AllocationPurchaseLine.Delete(true);
+
+        // [THEN] Line "G1" has VAT Base 62.50, Non-Deductible VAT Base 31.25 and Non-Deductible VAT Amount 6.25
+        FindGeneratedPurchaseLine(GeneratedPurchaseLine, AllocationPurchaseHeader, DestinationGLAccount[1]."No.");
+        GeneratedPurchaseLine.TestField("Amount Including VAT", 75);
+        GeneratedPurchaseLine.TestField("VAT Base Amount", 62.5);
+        LibraryNonDeductibleVAT.VerifyNonDeductibleAmountsInPurchLine(GeneratedPurchaseLine, 50, 31.25, 6.25);
+
+        // [THEN] Generated lines in "PI" have the same VAT and Non-Deductible VAT amounts as the manual lines in "MI"
+        VerifyNonDedVATOnGeneratedLinesMatchesManualLines(AllocationPurchaseHeader, ManualPurchaseHeader, NonDedVATPostingSetup."VAT Prod. Posting Group", 2);
+    end;
+
+    [Test]
+    procedure GenerateLinesFromMultipleAllocAccLinesKeepsNonDedVATWithPricesInclVAT()
+    var
+        NonDedVATPostingSetup: Record "VAT Posting Setup";
+        NormalVATPostingSetup: Record "VAT Posting Setup";
+        DestinationGLAccount: array[2] of Record "G/L Account";
+        AllocationAccount: Record "Allocation Account";
+        AllocationPurchaseHeader: Record "Purchase Header";
+        ManualPurchaseHeader: Record "Purchase Header";
+        AllocationPurchaseLine: array[3] of Record "Purchase Line";
+        NormalVATPurchaseLine: Record "Purchase Line";
+        PurchaseInvoice: TestPage "Purchase Invoice";
+        NormalVATGLAccountNo: Code[20];
+        VendorNo: Code[20];
+        Index: Integer;
+    begin
+        // [FEATURE] [Allocation Account] [Non-Deductible VAT] [Prices Including VAT] [UI]
+        // [SCENARIO 658001] Generating lines from several Allocation Account Lines keeps correct Non-Deductible VAT on all generated lines
+        Initialize();
+
+        // [GIVEN] Non-Deductible VAT enabled and VAT Posting Setup "V" with 20% VAT and 50% Non-Deductible VAT
+        // [GIVEN] Fixed allocation account "AA" splitting amount 75% to G/L Account "G1" and 25% to G/L Account "G2", both with "V"
+        CreateNonDedVATAllocationAccountSetup(NonDedVATPostingSetup, DestinationGLAccount, AllocationAccount);
+        VendorNo := CreateVendorForVATPostingSetup(NonDedVATPostingSetup);
+
+        // [GIVEN] G/L Account "N" with normal 20% VAT and no Non-Deductible VAT
+        CreateNormalVATPostingSetup(NormalVATPostingSetup, NonDedVATPostingSetup."VAT Bus. Posting Group", 20);
+        NormalVATGLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(NormalVATPostingSetup, "General Posting Type"::Purchase);
+
+        // [GIVEN] Purchase Invoice "PI" with "Prices Including VAT" and lines: "AA" 100, "N" 500 x 12, "AA" 100, "AA" 100, "N" 50 x 12
+        CreatePurchInvoiceWithPricesInclVAT(AllocationPurchaseHeader, VendorNo);
+        CreatePurchaseLineWithDirectUnitCost(AllocationPurchaseLine[1], AllocationPurchaseHeader, AllocationPurchaseLine[1].Type::"Allocation Account", AllocationAccount."No.", 1, 100);
+        CreatePurchaseLineWithDirectUnitCost(NormalVATPurchaseLine, AllocationPurchaseHeader, NormalVATPurchaseLine.Type::"G/L Account", NormalVATGLAccountNo, 500, 12);
+        CreatePurchaseLineWithDirectUnitCost(AllocationPurchaseLine[2], AllocationPurchaseHeader, AllocationPurchaseLine[2].Type::"Allocation Account", AllocationAccount."No.", 1, 100);
+        CreatePurchaseLineWithDirectUnitCost(AllocationPurchaseLine[3], AllocationPurchaseHeader, AllocationPurchaseLine[3].Type::"Allocation Account", AllocationAccount."No.", 1, 100);
+        CreatePurchaseLineWithDirectUnitCost(NormalVATPurchaseLine, AllocationPurchaseHeader, NormalVATPurchaseLine.Type::"G/L Account", NormalVATGLAccountNo, 50, 12);
+
+        // [GIVEN] Purchase Invoice "MI" with "Prices Including VAT" and the same lines entered manually as G/L Account lines
+        CreatePurchInvoiceWithPricesInclVAT(ManualPurchaseHeader, VendorNo);
+        CreateManualAllocationLines(ManualPurchaseHeader, DestinationGLAccount, 1);
+        CreatePurchaseLineWithDirectUnitCost(NormalVATPurchaseLine, ManualPurchaseHeader, NormalVATPurchaseLine.Type::"G/L Account", NormalVATGLAccountNo, 500, 12);
+        CreateManualAllocationLines(ManualPurchaseHeader, DestinationGLAccount, 2);
+        CreatePurchaseLineWithDirectUnitCost(NormalVATPurchaseLine, ManualPurchaseHeader, NormalVATPurchaseLine.Type::"G/L Account", NormalVATGLAccountNo, 50, 12);
+
+        PurchaseInvoice.OpenEdit();
+        PurchaseInvoice.GoToRecord(AllocationPurchaseHeader);
+        for Index := 1 to ArrayLen(AllocationPurchaseLine) do begin
+            // [WHEN] Run "Generate lines from Allocation Account Line" for each allocation account line in "PI"
+            PurchaseInvoice.PurchLines.GoToRecord(AllocationPurchaseLine[Index]);
+            PurchaseInvoice.PurchLines.ReplaceAllocationAccountWithLines.Invoke();
+
+            // [THEN] All generated lines, including lines generated earlier, match the manual lines in "MI"
+            VerifyNonDedVATOnGeneratedLinesMatchesManualLines(AllocationPurchaseHeader, ManualPurchaseHeader, NonDedVATPostingSetup."VAT Prod. Posting Group", Index * 2);
+        end;
+        PurchaseInvoice.Close();
+    end;
+
+    local procedure CreateNonDedVATAllocationAccountSetup(var NonDedVATPostingSetup: Record "VAT Posting Setup"; var DestinationGLAccount: array[2] of Record "G/L Account"; var AllocationAccount: Record "Allocation Account")
+    begin
+        LibraryNonDeductibleVAT.EnableNonDeductibleVAT();
+        LibraryNonDeductibleVAT.CreateVATPostingSetupWithNonDeductibleDetail(NonDedVATPostingSetup, 20, 50);
+        DestinationGLAccount[1].Get(LibraryERM.CreateGLAccountWithVATPostingSetup(NonDedVATPostingSetup, "General Posting Type"::Purchase));
+        DestinationGLAccount[2].Get(LibraryERM.CreateGLAccountWithVATPostingSetup(NonDedVATPostingSetup, "General Posting Type"::Purchase));
+        CreateFixedAllocationAccountWithTwoDistributions(AllocationAccount, DestinationGLAccount[1]."No.", 75, DestinationGLAccount[2]."No.", 25);
+    end;
+
+    local procedure CreateNormalVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATBusPostingGroupCode: Code[20]; VATRate: Decimal)
+    var
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroupCode, VATProductPostingGroup.Code);
+        VATPostingSetup."VAT Identifier" := VATProductPostingGroup.Code;
+        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT %", VATRate);
+        VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+    end;
+
+    local procedure CreateVendorForVATPostingSetup(VATPostingSetup: Record "VAT Posting Setup"): Code[20]
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        LibraryERM.FindGeneralPostingSetup(GeneralPostingSetup);
+        exit(LibraryPurchase.CreateVendorWithBusPostingGroups(GeneralPostingSetup."Gen. Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group"));
+    end;
+
+    local procedure CreatePurchInvoiceWithPricesInclVAT(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20])
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        PurchaseHeader.Validate("Prices Including VAT", true);
+        PurchaseHeader.Modify(true);
+    end;
+
+    local procedure CreatePurchaseLineWithDirectUnitCost(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; LineType: Enum "Purchase Line Type"; No: Code[20]; Quantity: Decimal; DirectUnitCost: Decimal)
+    begin
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, LineType, No, Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure CreateManualAllocationLines(PurchaseHeader: Record "Purchase Header"; DestinationGLAccount: array[2] of Record "G/L Account"; NumberOfAllocations: Integer)
+    var
+        PurchaseLine: Record "Purchase Line";
+        Index: Integer;
+    begin
+        for Index := 1 to NumberOfAllocations do begin
+            CreatePurchaseLineWithDirectUnitCost(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", DestinationGLAccount[1]."No.", 1, 75);
+            CreatePurchaseLineWithDirectUnitCost(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", DestinationGLAccount[2]."No.", 1, 25);
+        end;
+    end;
+
+    local procedure FindGeneratedPurchaseLine(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; GLAccountNo: Code[20])
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::"G/L Account");
+        PurchaseLine.SetRange("No.", GLAccountNo);
+        PurchaseLine.FindFirst();
+    end;
+
+    local procedure VerifyNonDedVATOnGeneratedLinesMatchesManualLines(AllocationPurchaseHeader: Record "Purchase Header"; ManualPurchaseHeader: Record "Purchase Header"; VATProdPostingGroupCode: Code[20]; ExpectedLineCount: Integer)
+    var
+        GeneratedPurchaseLine: Record "Purchase Line";
+        ManualPurchaseLine: Record "Purchase Line";
+    begin
+        GeneratedPurchaseLine.SetRange("Document Type", AllocationPurchaseHeader."Document Type");
+        GeneratedPurchaseLine.SetRange("Document No.", AllocationPurchaseHeader."No.");
+        GeneratedPurchaseLine.SetRange(Type, GeneratedPurchaseLine.Type::"G/L Account");
+        GeneratedPurchaseLine.SetRange("VAT Prod. Posting Group", VATProdPostingGroupCode);
+        Assert.RecordCount(GeneratedPurchaseLine, ExpectedLineCount);
+
+        ManualPurchaseLine.SetRange("Document Type", ManualPurchaseHeader."Document Type");
+        ManualPurchaseLine.SetRange("Document No.", ManualPurchaseHeader."No.");
+        ManualPurchaseLine.SetRange(Type, ManualPurchaseLine.Type::"G/L Account");
+        ManualPurchaseLine.SetRange("VAT Prod. Posting Group", VATProdPostingGroupCode);
+        ManualPurchaseLine.FindSet();
+
+        GeneratedPurchaseLine.FindSet();
+        repeat
+            GeneratedPurchaseLine.TestField("No.", ManualPurchaseLine."No.");
+            GeneratedPurchaseLine.TestField("Line Amount", ManualPurchaseLine."Line Amount");
+            GeneratedPurchaseLine.TestField(Amount, ManualPurchaseLine.Amount);
+            GeneratedPurchaseLine.TestField("Amount Including VAT", ManualPurchaseLine."Amount Including VAT");
+            GeneratedPurchaseLine.TestField("VAT Base Amount", ManualPurchaseLine."VAT Base Amount");
+            LibraryNonDeductibleVAT.VerifyNonDeductibleAmountsInPurchLine(
+                GeneratedPurchaseLine, ManualPurchaseLine."Non-Deductible VAT %",
+                ManualPurchaseLine."Non-Deductible VAT Base", ManualPurchaseLine."Non-Deductible VAT Amount");
+            ManualPurchaseLine.Next();
+        until GeneratedPurchaseLine.Next() = 0;
+    end;
     [Test]
     procedure AllocationAccountNoCannotBeModifiedWhenStatusIsPendingApproval()
     var
