@@ -16,38 +16,6 @@ tableextension 11754 "Purchase Line CZL" extends "Purchase Line"
             Caption = 'Negative';
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA27
-        field(11773; "Ext. Amount CZL"; Decimal)
-        {
-            AutoFormatExpression = "Currency Code";
-            AutoFormatType = 1;
-            Caption = 'Ext. Amount';
-            Editable = false;
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-            ObsoleteReason = 'The field is not used anymore.';
-        }
-        field(11774; "Ext. Amount Incl. VAT CZL"; Decimal)
-        {
-            AutoFormatExpression = "Currency Code";
-            AutoFormatType = 1;
-            Caption = 'Ext. Amount Including VAT';
-            Editable = false;
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-            ObsoleteReason = 'The field is not used anymore.';
-        }
-#endif
-#if not CLEANSCHEMA25
-        field(31064; "Physical Transfer CZL"; Boolean)
-        {
-            Caption = 'Physical Transfer';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions.';
-        }
-#endif
         field(31065; "Tariff No. CZL"; Code[20])
         {
             Caption = 'Tariff No.';
@@ -66,24 +34,5 @@ tableextension 11754 "Purchase Line CZL" extends "Purchase Line"
                 end;
             end;
         }
-#if not CLEANSCHEMA25
-        field(31066; "Statistic Indication CZL"; Code[10])
-        {
-            Caption = 'Statistic Indication';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions.';
-        }
-        field(31067; "Country/Reg. of Orig. Code CZL"; Code[10])
-        {
-            Caption = 'Country/Region of Origin Code';
-            TableRelation = "Country/Region";
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions. This field is not used any more.';
-        }
-#endif
     }
 }

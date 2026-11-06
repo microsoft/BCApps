@@ -1304,16 +1304,6 @@ table 27 Item
             ToolTip = 'Specifies the ID of a user who is working in the Application Worksheet window.';
             DataClassification = EndUserIdentifiableInformation;
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dynamics 365 Sales';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(721; "Coupled to Dataverse"; Boolean)
         {
             FieldClass = FlowField;
@@ -2251,36 +2241,11 @@ table 27 Item
             FieldClass = FlowField;
             AutoFormatType = 0;
         }
-#if not CLEANSCHEMA25
-        field(11500; "No Stockkeeping"; Boolean)
-        {
-            Caption = 'No Stockkeeping';
-            ObsoleteReason = 'Removing local functionality and adding Non-Inventory Item Type';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(11501; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
             TableRelation = Location;
         }
-#if not CLEANSCHEMA25
-        field(11503; "Sale blocked"; Boolean)
-        {
-            Caption = 'Sale blocked';
-            ObsoleteReason = 'The field has been reproduced in W1 and will now have a new ID and be called Blocked for sale.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-        field(11504; "Purchase blocked"; Boolean)
-        {
-            Caption = 'Purchase blocked';
-            ObsoleteReason = 'The field has been reproduced in W1 and will now have a new ID and be called Blocked for purchase.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(11505; "Inventory Price"; Decimal)
         {
             AutoFormatType = 2;

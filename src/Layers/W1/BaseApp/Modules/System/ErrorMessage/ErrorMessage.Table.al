@@ -43,16 +43,6 @@ table 700 "Error Message"
             OptionCaption = 'Error,Warning,Information';
             OptionMembers = Error,Warning,Information;
         }
-#if not CLEANSCHEMA25
-        field(5; "Description"; Text[250])
-        {
-            Caption = 'Description';
-            Editable = false;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Replaced by "Message" which has an increase in field length.';
-        }
-#endif
         field(6; "Additional Information"; Text[250])
         {
             Caption = 'Additional Information';

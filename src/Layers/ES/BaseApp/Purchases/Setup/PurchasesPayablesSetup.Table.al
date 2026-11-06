@@ -346,8 +346,6 @@ table 312 "Purchases & Payables Setup"
             ObsoleteReason = 'Discontinued function';
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-        }
-#endif        
         field(58; "Copy Vendor Name to Entries"; Boolean)
         {
             Caption = 'Copy Vendor Name to Entries';

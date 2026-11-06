@@ -3915,22 +3915,6 @@ table 39 "Purchase Line"
                 end;
             end;
         }
-#if not CLEANSCHEMA25
-        field(5005396; "Order No. (Old)"; Code[20])
-        {
-            Caption = 'Order No. (Old)';
-            ObsoleteReason = 'Merged to W1';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-        field(5005397; "Order Line No. (Old)"; Integer)
-        {
-            Caption = 'Order Line No. (Old)';
-            ObsoleteReason = 'Merged to W1';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(99000755; "Overhead Rate"; Decimal)
         {
             AutoFormatType = 0;

@@ -156,15 +156,6 @@ table 5 "Finance Charge Terms"
             Caption = 'Detailed Lines Description';
             ToolTip = 'Specifies a description to be used in the Description field on the finance charge memo lines if multiple interest rates are set up for different payment delay periods and the description must show the sum of these.';
         }
-#if not CLEANSCHEMA26
-        field(3010590; "Multiple Lines Description"; Text[50])
-        {
-            Caption = 'Multiple Lines Description';
-            ObsoleteReason = 'Use "Detailed Lines Description" field instead.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
     }
 
     keys

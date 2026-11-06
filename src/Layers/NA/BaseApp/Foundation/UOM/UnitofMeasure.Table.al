@@ -45,16 +45,6 @@ table 204 "Unit of Measure"
             Caption = 'Last Modified Date Time';
             Editable = false;
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dynamics 365 Sales';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(721; "Coupled to Dataverse"; Boolean)
         {
             FieldClass = FlowField;

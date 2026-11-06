@@ -32,16 +32,6 @@ table 10 "Shipment Method"
             Caption = 'Last Modified Date Time';
             Editable = false;
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dataverse';
-            Editable = false;
-            ObsoleteReason = 'Replaced by page control Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(11300; "Incoterm in Intrastat Decl."; Code[10])
         {
             Caption = 'Incoterm in Intrastat Decl.';

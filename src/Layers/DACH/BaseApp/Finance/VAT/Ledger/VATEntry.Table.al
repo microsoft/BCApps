@@ -846,16 +846,6 @@ table 254 "VAT Entry"
             Caption = 'Non-Deductible VAT Difference ACY';
             Editable = false;
         }
-#if not CLEANSCHEMA25
-        field(11000; "G/L Account No."; Code[20])
-        {
-            Caption = 'G/L Account No.';
-            ObsoleteReason = '"The field is moved to W1 G/L Acc. No."';
-            ObsoleteState = Removed;
-            TableRelation = "G/L Account";
-            ObsoleteTag = '25.0';
-        }
-#endif
 
     }
 

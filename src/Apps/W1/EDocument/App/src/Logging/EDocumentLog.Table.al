@@ -49,24 +49,6 @@ table 6124 "E-Document Log"
         {
             Caption = 'E-Document Status';
         }
-#if not CLEANSCHEMA29
-#pragma warning disable AL0432
-        field(7; "Service Integration"; Enum "E-Document Integration")
-#pragma warning restore AL0432
-        {
-            Caption = 'Service Integration Code';
-            ObsoleteReason = 'Replaced by Service Integration V2.';
-#if CLEAN26
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#endif
-        }
-#endif
         field(8; "Document Type"; Enum "E-Document Type")
         {
             Caption = 'Document Type';
@@ -109,22 +91,6 @@ table 6124 "E-Document Log"
             IncludedFields = Status;
             MaintainSiftIndex = false;
         }
-#if not CLEANSCHEMA29
-        key(Key3; Status, "Service Code", "Document Format", "Service Integration")
-        {
-            Clustered = false;
-            ObsoleteReason = 'Replaced by Key4.';
-#if CLEAN26
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#endif
-        }
-#endif
         key(Key4; Status, "Service Code", "Document Format", "Service Integration V2")
         {
             Clustered = false;

@@ -545,16 +545,6 @@ table 312 "Purchases & Payables Setup"
             Caption = 'Check Doc. Total Amounts';
             ToolTip = 'Specifies if you want the Doc. Amount Incl. VAT field in Purchase Invoice and Purchase Credit Memo to be compared to the sum of the VAT amounts fields in the purchase lines. If the amounts are not the same, you will be notified when posting the document. The totals will always be checked for invoices received from e-documents.';
         }
-#if not CLEANSCHEMA26
-        field(11214; "Part. Pay. Nos."; Code[20])
-        {
-            Caption = 'Part. Pay. Nos.';
-            TableRelation = "No. Series";
-            ObsoleteReason = 'The field is not used and will be obsoleted';
-			ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
     }
 
     keys

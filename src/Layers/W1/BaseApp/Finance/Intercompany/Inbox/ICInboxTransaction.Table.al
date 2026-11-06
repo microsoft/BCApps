@@ -39,26 +39,6 @@ table 418 "IC Inbox Transaction"
             Editable = false;
             TableRelation = "IC Partner";
         }
-#if not CLEANSCHEMA29
-        /// <summary>
-        /// Source type for the intercompany transaction (obsolete, replaced by IC Source Type).
-        /// </summary>
-        field(3; "Source Type"; Enum "IC Transaction Source Type")
-        {
-            Caption = 'Source Type';
-            Editable = false;
-            ObsoleteReason = 'Replaced by IC Source Type for Enum typing';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
-        }
-#endif
         /// <summary>
         /// Type of source document or transaction originating this IC transaction.
         /// </summary>
@@ -136,18 +116,6 @@ table 418 "IC Inbox Transaction"
         {
             Caption = 'Original Document No.';
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// IC partner G/L account number (obsolete, replaced by IC Account No.).
-        /// </summary>
-        field(12; "IC Partner G/L Acc. No."; Code[20])
-        {
-            Caption = 'IC Partner G/L Acc. No.';
-            ObsoleteReason = 'Replaced by IC Account No.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         /// <summary>
         /// Source line number for referencing original document line.
         /// </summary>

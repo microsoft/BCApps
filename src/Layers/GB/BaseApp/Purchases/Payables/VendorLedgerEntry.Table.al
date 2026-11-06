@@ -750,15 +750,6 @@ table 25 "Vendor Ledger Entry"
                     Validate("On Hold", NewOnHold);
             end;
         }
-#if not CLEANSCHEMA26
-        field(10500; "Invoice Receipt Date"; Date)
-        {
-
-            ObsoleteReason = 'Replaced by W1 field "Invoice Received Date".';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
     }
 
     keys

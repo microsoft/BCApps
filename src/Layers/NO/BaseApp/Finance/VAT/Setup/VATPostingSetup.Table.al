@@ -315,16 +315,6 @@ table 325 "VAT Posting Setup"
                 NonDeductibleVAT.CheckVATPostingSetupChangeIsAllowed(Rec);
             end;
         }
-#if not CLEANSCHEMA26
-        field(6201; "Non-Ded. Sales VAT Account"; Code[20])
-        {
-            Caption = 'Non-Deductible Sales VAT Account';
-            TableRelation = "G/L Account";
-            ObsoleteReason = 'Non-Deductible VAT is not implemented for Sales.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         /// <summary>
         /// G/L account for posting non-deductible purchase VAT amounts that are added to asset or expense costs.
         /// </summary>
@@ -363,16 +353,6 @@ table 325 "VAT Posting Setup"
             Caption = 'Proportional Deduction VAT %';
             DecimalPlaces = 0 : 5;
         }
-#if not CLEANSCHEMA26
-        field(10606; "VAT Code"; Code[10])
-        {
-            Caption = 'VAT Code';
-            TableRelation = "VAT Code".Code;
-            ObsoleteReason = 'Use the field "VAT Number" instead';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(10607; "VAT Number"; Code[20])
         {
             TableRelation = "VAT Reporting Code".Code;
@@ -397,26 +377,6 @@ table 325 "VAT Posting Setup"
             OptionCaption = 'Normal,Medium,Low';
             OptionMembers = Normal,Medium,Low;
         }
-#if not CLEANSCHEMA26
-        field(10609; "Sales VAT Reporting Code"; Code[10])
-        {
-            Caption = 'Sales VAT Reporting Code';
-            TableRelation = "VAT Code".Code;
-            ObsoleteReason = 'Use the field "Sale VAT Reporting Code" in BaseApp W1.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
-#if not CLEANSCHEMA26
-        field(10610; "Purchase VAT Reporting Code"; Code[10])
-        {
-            Caption = 'Purchase VAT Reporting Code';
-            TableRelation = "VAT Code".Code;
-            ObsoleteReason = 'Use the field "Purch. VAT Reporting Code" in BaseApp W1.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
     }
 
     keys

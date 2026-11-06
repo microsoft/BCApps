@@ -34,22 +34,6 @@ table 6164 "E-Doc. Order Match"
             Caption = 'E-Document Imported Line No.';
             TableRelation = "E-Doc. Imported Line"."Line No." where("E-Document Entry No." = field("E-Document Entry No."));
         }
-#if not CLEANSCHEMA29
-        field(5; Quantity; Integer)
-        {
-            Caption = 'Quantity';
-            ObsoleteReason = 'This field has been replaced by the Precise Quantity field.';
-#if CLEAN26
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#endif
-        }
-#endif
         field(6; "E-Document Direct Unit Cost"; Decimal)
         {
             Caption = 'E-Document Unit Cost';

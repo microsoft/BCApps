@@ -322,16 +322,6 @@ table 325 "VAT Posting Setup"
                 NonDeductibleVAT.CheckVATPostingSetupChangeIsAllowed(Rec);
             end;
         }
-#if not CLEANSCHEMA26
-        field(6201; "Non-Ded. Sales VAT Account"; Code[20])
-        {
-            Caption = 'Non-Deductible Sales VAT Account';
-            TableRelation = "G/L Account";
-            ObsoleteReason = 'Non-Deductible VAT is not implemented for Sales.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         /// <summary>
         /// G/L account for posting non-deductible purchase VAT amounts that are added to asset or expense costs.
         /// </summary>

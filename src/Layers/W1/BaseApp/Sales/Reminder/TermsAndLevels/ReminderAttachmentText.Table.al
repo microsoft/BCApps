@@ -53,29 +53,6 @@ table 502 "Reminder Attachment Text"
             ToolTip = 'Specifies the file name of the attachment.';
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA29
-        /// <summary>
-        /// Contains the text that appears at the beginning of the reminder attachment.
-        /// </summary>
-        field(5; "Beginning Line"; Text[100])
-        {
-            Caption = 'Beginning Line';
-            DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteReason = 'To support the use of multiple lines, this field will be replaced by the Reminder Attachment Text Line table.';
-            ObsoleteState = Pending;
-#pragma warning disable AS0074
-            ObsoleteTag = '27.0';
-#pragma warning restore AS0074
-#else
-            ObsoleteReason = 'To support the use of multiple lines, this is replaced by Reminder Attachment Text Line table.';
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
-        }
-#endif
         /// <summary>
         /// Specifies the description text for inline fees shown on the reminder attachment.
         /// </summary>
@@ -85,29 +62,6 @@ table 502 "Reminder Attachment Text"
             ToolTip = 'Specifies the description line that will appear in the attachment along side the fee.';
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA29
-        /// <summary>
-        /// Contains the text that appears at the end of the reminder attachment.
-        /// </summary>
-        field(7; "Ending Line"; Text[100])
-        {
-            Caption = 'Ending Line';
-            DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteReason = 'To support the use of multiple lines, this field will be replaced by the Reminder Attachment Text Line table.';
-            ObsoleteState = Pending;
-#pragma warning disable AS0074
-            ObsoleteTag = '27.0';
-#pragma warning restore AS0074
-#else
-            ObsoleteReason = 'To support the use of multiple lines, this is replaced by Reminder Attachment Text Line table.';
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
-        }
-#endif
         /// <summary>
         /// Indicates whether beginning text lines exist for this attachment configuration.
         /// </summary>

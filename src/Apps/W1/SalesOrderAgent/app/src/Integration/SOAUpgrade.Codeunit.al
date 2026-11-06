@@ -43,9 +43,6 @@ codeunit 4589 "SOA Upgrade"
         UpgradeOwnerUserSecurityID();
         UpgradeAgentIdentity();
         ResetReplyAttempts();
-#if not CLEAN29
-        UpgradeSOAKPIToPerAgent();
-#endif
     end;
 
     // This procedure intentionally runs on every upgrade without an upgrade tag.
@@ -241,67 +238,7 @@ codeunit 4589 "SOA Upgrade"
     end;
 
 #if not CLEAN29
-    local procedure UpgradeSOAKPIToPerAgent()
-    var
-        SOASetup: Record "SOA Setup";
-        LegacySOAKPI: Record "SOA KPI";
-        SOAKPISummary: Record "SOA KPI Summary";
-        SOASetupCU: Codeunit "SOA Setup";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        TargetAgentSecurityID: Guid;
-        SkippedRecords: Integer;
-    begin
-        if UpgradeTag.HasUpgradeTag(GetSOAKPIPerAgentTag()) then
-            exit;
 
-        if not LegacySOAKPI.FindSet() then begin
-            UpgradeTag.SetUpgradeTag(GetSOAKPIPerAgentTag());
-            exit;
-        end;
-
-        // Legacy KPI records predate per agent tracking, so they are attributed to an agent that is still
-        // in use, because the KPI pages never show an archived agent. When every agent is archived the
-        // history is still migrated onto one of them rather than dropped, since the table is deleted below.
-        if SOASetupCU.FindFirstNonArchivedSetup(SOASetup) and (not IsNullGuid(SOASetup."User Security ID")) then
-            TargetAgentSecurityID := SOASetup."User Security ID"
-        else begin
-            SOASetup.Reset();
-            if SOASetup.FindFirst() then
-                TargetAgentSecurityID := SOASetup."User Security ID";
-        end;
-
-        repeat
-            if IsNullGuid(LegacySOAKPI."User Security ID") then begin
-                if not IsNullGuid(TargetAgentSecurityID) then
-                    MergeSOAKPIIntoSummary(SOAKPISummary, LegacySOAKPI, TargetAgentSecurityID)
-                else
-                    SkippedRecords += 1;
-            end else
-                MergeSOAKPIIntoSummary(SOAKPISummary, LegacySOAKPI, LegacySOAKPI."User Security ID");
-        until LegacySOAKPI.Next() = 0;
-
-        if SkippedRecords > 0 then
-            Session.LogMessage('0000UAO', StrSubstNo(SkippedKPIRecordsTxt, SkippedRecords), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'SOA Upgrade');
-
-        LegacySOAKPI.DeleteAll();
-
-        UpgradeTag.SetUpgradeTag(GetSOAKPIPerAgentTag());
-    end;
-
-    local procedure MergeSOAKPIIntoSummary(var SOAKPISummary: Record "SOA KPI Summary"; LegacySOAKPI: Record "SOA KPI"; TargetAgentSecurityID: Guid)
-    begin
-        SOAKPISummary.GetSafe(TargetAgentSecurityID);
-
-        SOAKPISummary."Received Emails" += LegacySOAKPI."Received Emails";
-        SOAKPISummary."Total Emails" += LegacySOAKPI."Total Emails";
-        SOAKPISummary."Total Quotes Created" += LegacySOAKPI."Total Quotes Created";
-        SOAKPISummary."Total Orders Created" += LegacySOAKPI."Total Orders Created";
-        SOAKPISummary."Total Amount Orders" += LegacySOAKPI."Total Amount Orders";
-        if LegacySOAKPI."Last Updated DateTime" > SOAKPISummary."Last Updated DateTime" then
-            SOAKPISummary."Last Updated DateTime" := LegacySOAKPI."Last Updated DateTime";
-
-        SOAKPISummary.Modify();
-    end;
 #endif
 
     // Attempt counts recorded before the Failed status existed represented terminal state on their own, and messages

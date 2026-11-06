@@ -1300,16 +1300,6 @@ table 27 Item
             ToolTip = 'Specifies the ID of a user who is working in the Application Worksheet window.';
             DataClassification = EndUserIdentifiableInformation;
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dynamics 365 Sales';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(721; "Coupled to Dataverse"; Boolean)
         {
             FieldClass = FlowField;
@@ -2247,19 +2237,6 @@ table 27 Item
             FieldClass = FlowField;
             AutoFormatType = 0;
         }
-#if not CLEANSCHEMA28
-        field(12400; "CD Specific Tracking"; Boolean)
-        {
-            Caption = 'CD Specific Tracking';
-            ObsoleteReason = 'Moved to extension';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-
-            trigger OnValidate()
-            begin
-            end;
-        }
-#endif
         field(12401; "Gross Weight Mandatory"; Boolean)
         {
             Caption = 'Gross Weight Mandatory';

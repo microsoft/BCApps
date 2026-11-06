@@ -63,34 +63,6 @@ tableextension 11713 "General Ledger Setup CZL" extends "General Ledger Setup"
                 end;
             end;
         }
-#if not CLEANSCHEMA27
-        field(11778; "Allow VAT Posting From CZL"; Date)
-        {
-            Caption = 'Allow VAT Posting From';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-            ObsoleteReason = 'Replaced by "Allow VAT Date From" field from "VAT Setup" table.';
-        }
-        field(11779; "Allow VAT Posting To CZL"; Date)
-        {
-            Caption = 'Allow VAT Posting To';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-            ObsoleteReason = 'Replaced by "Allow VAT Date To" field from "VAT Setup" table.';
-        }
-#endif
-#if not CLEANSCHEMA25
-        field(11780; "Use VAT Date CZL"; Boolean)
-        {
-            Caption = 'Use VAT Date';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Replaced by VAT Reporting Date.';
-        }
-#endif
         field(11781; "Do Not Check Dimensions CZL"; Boolean)
         {
             Caption = 'Do Not Check Dimensions';

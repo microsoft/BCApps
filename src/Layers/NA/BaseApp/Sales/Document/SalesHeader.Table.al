@@ -2964,16 +2964,6 @@ table 36 "Sales Header"
         {
             Caption = 'Payment Service Set ID';
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dynamics 365 Sales';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         /// <summary>
         /// Indicates whether this document is coupled to Dynamics 365 Sales.
         /// </summary>
@@ -3738,16 +3728,6 @@ table 36 "Sales Header"
             Caption = 'Trailer 2';
             TableRelation = "Fixed Asset" where("SAT Trailer Type" = filter(<> ''));
         }
-#if not CLEANSCHEMA26
-        field(10055; "Transit-to Location"; Code[10])
-        {
-            Caption = 'Transit-to Location';
-            TableRelation = Location where("Use As In-Transit" = const(false));
-            ObsoleteReason = 'Replaced with SAT Address ID.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(10056; "Medical Insurer Name"; Text[50])
         {
             Caption = 'Medical Insurer Name';

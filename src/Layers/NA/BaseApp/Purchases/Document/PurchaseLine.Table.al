@@ -4025,15 +4025,6 @@ table 39 "Purchase Line"
                 end;
             end;
         }
-#if not CLEANSCHEMA28
-        field(10022; "IRS 1099 Liable"; Boolean)
-        {
-            Caption = 'IRS 1099 Liable';
-            ObsoleteReason = 'Moved to IRS Forms App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(10025; "GST/HST"; Enum "GST HST Tax Type")
         {
             Caption = 'GST/HST';

@@ -462,20 +462,6 @@ tableextension 18004 "GST Gen. Journal Line Ext" extends "Gen. Journal Line"
             DataClassification = CustomerContent;
         }
 
-#if not CLEANSCHEMA26
-        field(18038; "e-Commerce Merchant Id"; Code[30])
-        {
-            Caption = 'e-Commerce Merchant Id';
-            DataClassification = CustomerContent;
-            TableRelation = "E-Commerce Merchant"."Merchant Id"
-                where(
-                    "Merchant Id" = field("e-Commerce Merchant Id"),
-                    "Customer No." = field("e-Commerce Customer"));
-            ObsoleteReason = 'New field introduced as E-Comm. Merchant Id';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(18052; "E-Comm. Merchant Id"; Code[30])
         {
             Caption = 'e-Commerce Merchant Id';

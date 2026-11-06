@@ -52,20 +52,6 @@ table 9153 "My Account"
             ToolTip = 'Specifies the name of the G/L account.';
             Editable = false;
         }
-#if not CLEANSCHEMA29
-        /// <summary>
-        /// Legacy account balance field, replaced by "Acc. Balance" to avoid modification issues.
-        /// </summary>
-        field(5; "Account Balance"; Decimal)
-        {
-            AutoFormatType = 0;
-            Caption = 'Account Balance (to be removed)';
-            Editable = false;
-            ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
-            ObsoleteReason = 'Replaced by "Acc. Balance" to avoid modification in My Accounts page.';
-        }
-#endif
         /// <summary>
         /// The totaling filter from the G/L account, used for calculating balances of total-type accounts.
         /// </summary>

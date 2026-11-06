@@ -28,17 +28,6 @@ tableextension 30101 "Shpfy Sales Header" extends "Sales Header"
             Editable = false;
         }
 
-#if not CLEANSCHEMA28
-        field(30102; "Shpfy Risk Level"; Enum "Shpfy Risk Level")
-        {
-            Caption = 'Risk Level';
-            FieldClass = FlowField;
-            CalcFormula = lookup("Shpfy Order Header"."Risk Level" where("Shopify Order Id" = field("Shpfy Order Id")));
-            ObsoleteReason = 'This field is not imported.';
-                            ObsoleteState = Removed;
-                            ObsoleteTag = '28.0';
-        }
-#endif
         field(30103; "Shpfy Refund Id"; BigInteger)
         {
             Caption = 'Shopify Refund Id';

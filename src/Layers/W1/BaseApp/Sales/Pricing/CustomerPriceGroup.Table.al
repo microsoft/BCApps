@@ -75,16 +75,6 @@ table 6 "Customer Price Group"
             Caption = 'Description';
             ToolTip = 'Specifies the description of the customer price group.';
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dynamics 365 Sales';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         /// <summary>
         /// Indicates whether the customer price group is coupled to a record in Dynamics 365 Sales.
         /// </summary>

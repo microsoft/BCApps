@@ -1787,16 +1787,6 @@ table 83 "Item Journal Line"
             OptionCaption = ' ,Item,SKU';
             OptionMembers = " ",Item,SKU;
         }
-#if not CLEANSCHEMA25
-        field(10800; "Shipment Method Code"; Code[10])
-        {
-            Caption = 'Shipment Method Code';
-            ObsoleteReason = 'Merge to W1';
-            ObsoleteState = Removed;
-            TableRelation = "Shipment Method";
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(99000755; "Overhead Rate"; Decimal)
         {
             AutoFormatType = 0;

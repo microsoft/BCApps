@@ -70,22 +70,6 @@ table 9500 "Email Item"
         {
             Caption = 'Body';
         }
-#if not CLEANSCHEMA28
-        field(9; "Attachment File Path"; Text[250])
-        {
-            Caption = 'Attachment File Path';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(10; "Attachment Name"; Text[250])
-        {
-            Caption = 'Attachment Name';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(11; "Plaintext Formatted"; Boolean)
         {
             Caption = 'Plaintext Formatted';
@@ -105,27 +89,6 @@ table 9500 "Email Item"
 #endif
             end;
         }
-#if not CLEANSCHEMA30
-        field(12; "Body File Path"; Text[250])
-        {
-            Caption = 'Body File Path';
-            ObsoleteReason = 'Replaced with field Body. You can use the new procedure SetBody to update the value of the html formatted body.';
-#if CLEAN27
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
-#if not CLEAN27
-            trigger OnValidate()
-            begin
-                if "Body File Path" <> '' then
-                    TestField("Plaintext Formatted", false);
-            end;
-#endif
-        }
-#endif
         field(13; "Message Type"; Option)
         {
             Caption = 'Message Type';
@@ -137,92 +100,6 @@ table 9500 "Email Item"
             Caption = 'Send as HTML';
             InitValue = true;
         }
-#if not CLEANSCHEMA28
-        field(21; "Attachment File Path 2"; Text[250])
-        {
-            Caption = 'Attachment File Path 2';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(22; "Attachment Name 2"; Text[50])
-        {
-            Caption = 'Attachment Name 2';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(23; "Attachment File Path 3"; Text[250])
-        {
-            Caption = 'Attachment File Path 3';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(24; "Attachment Name 3"; Text[50])
-        {
-            Caption = 'Attachment Name 3';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(25; "Attachment File Path 4"; Text[250])
-        {
-            Caption = 'Attachment File Path 4';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(26; "Attachment Name 4"; Text[50])
-        {
-            Caption = 'Attachment Name 4';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(27; "Attachment File Path 5"; Text[250])
-        {
-            Caption = 'Attachment File Path 5';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(28; "Attachment Name 5"; Text[50])
-        {
-            Caption = 'Attachment Name 5';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(29; "Attachment File Path 6"; Text[250])
-        {
-            Caption = 'Attachment File Path 6';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(30; "Attachment Name 6"; Text[50])
-        {
-            Caption = 'Attachment Name 6';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(31; "Attachment File Path 7"; Text[250])
-        {
-            Caption = 'Attachment File Path 7';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(32; "Attachment Name 7"; Text[50])
-        {
-            Caption = 'Attachment Name 7';
-            ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
     }
 
     keys

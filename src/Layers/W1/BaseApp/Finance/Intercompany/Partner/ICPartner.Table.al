@@ -256,20 +256,6 @@ table 413 "IC Partner"
             ExtendedDatatype = Masked;
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA27
-        /// <summary>
-        /// Encrypted authority URL key for OAuth authentication (obsolete, replaced by token endpoint).
-        /// </summary>
-        field(104; "Authority Url Key"; Guid)
-        {
-            Caption = 'Authority URL Key';
-            ExtendedDatatype = Masked;
-            DataClassification = SystemMetadata;
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-            ObsoleteReason = 'Usage of authority url is moved to token endpoint.';
-        }
-#endif
         /// <summary>
         /// Encrypted redirect URL key for OAuth authentication flow with the partner.
         /// </summary>

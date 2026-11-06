@@ -354,16 +354,6 @@ table 79 "Company Information"
             Caption = 'Industrial Classification';
             ToolTip = 'Specifies the company''s industrial classification code.';
         }
-#if not CLEANSCHEMA25
-        field(43; "IC Inbox Details"; Text[250])
-        {
-            AccessByPermission = TableData "IC G/L Account" = R;
-            Caption = 'IC Inbox Details';
-            ObsoleteReason = 'Replaced by the same field from "IC Setup" table.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(46; "System Indicator"; Option)
         {
             Caption = 'System Indicator';

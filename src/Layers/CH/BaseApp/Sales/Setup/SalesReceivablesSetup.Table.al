@@ -573,8 +573,6 @@ table 311 "Sales & Receivables Setup"
             ObsoleteReason = 'Discontinued function';
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-        }
-#endif
         /// <summary>
         /// Indicates whether the customer name from the customer card is copied to customer ledger entries during posting.
         /// </summary>
@@ -1000,19 +998,6 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Posting Date Check on Posting';
             ToolTip = 'Specifies if you want the program to warn you when you post a sales document with a posting date that is different from the Work Date.';
         }
-#if not CLEANSCHEMA25
-        field(11501; "Line Amt. Round LCY"; Decimal)
-        {
-            Caption = 'Line Amt. Round LCY';
-            InitValue = 0.01;
-            MaxValue = 10;
-            MinValue = 0.01;
-            NotBlank = true;
-            ObsoleteReason = 'The functionality that depended on this setting was removed.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(11502; "Apply Inv. Round. Amt. To VAT"; Boolean)
         {
             Caption = 'Apply Inv. Round. Amt. To VAT';

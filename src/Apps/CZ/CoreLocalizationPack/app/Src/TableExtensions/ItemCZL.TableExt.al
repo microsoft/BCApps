@@ -8,28 +8,6 @@ using Microsoft.Inventory.Ledger;
 
 tableextension 11745 "Item CZL" extends Item
 {
-#if not CLEANSCHEMA25
-    fields
-    {
-        field(31066; "Statistic Indication CZL"; Code[10])
-        {
-            Caption = 'Statistic Indication';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions.';
-
-        }
-        field(31067; "Specific Movement CZL"; Code[10])
-        {
-            Caption = 'Specific Movement';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions.';
-        }
-    }
-#endif
 
     procedure CheckOpenItemLedgerEntriesCZL()
     var

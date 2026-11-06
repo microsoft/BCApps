@@ -61,16 +61,6 @@ table 13 "Salesperson/Purchaser"
             Caption = 'Privacy Blocked';
             ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dataverse';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(721; "Coupled to Dataverse"; Boolean)
         {
             FieldClass = FlowField;

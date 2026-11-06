@@ -1077,26 +1077,6 @@ table 15 "G/L Account"
             Caption = 'API Account Type';
             Editable = false;
         }
-#if not CLEANSCHEMA25
-        field(11200; "Auto. Acc. Group"; Code[10])
-        {
-            Caption = 'Auto. Acc. Group';
-            TableRelation = "Automatic Acc. Header";
-            ObsoleteReason = 'Moved to Automatic Account Codes app.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
-#if not CLEANSCHEMA26
-        field(11201; "SRU-code"; Code[10])
-        {
-            Caption = 'SRU-code';
-            Numeric = true;
-            ObsoleteReason = 'Moved to Standard Import Export (SIE) app.';
-			ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
     }
 
     keys

@@ -13,17 +13,6 @@ tableextension 11737 "VAT Entry CZL" extends "VAT Entry"
 {
     fields
     {
-#if not CLEANSCHEMA25
-        field(11710; "VAT Date CZL"; Date)
-        {
-            Caption = 'VAT Date';
-            Editable = false;
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Replaced by VAT Reporting Date.';
-        }
-#endif
         field(11711; "VAT Settlement No. CZL"; Code[20])
         {
             Caption = 'VAT Settlement No.';

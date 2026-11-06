@@ -45,28 +45,6 @@ table 6752 "Reminder Action Log"
         field(5; "Total Records Processed"; Integer)
         {
         }
-#if not CLEANSCHEMA29
-        /// <summary>
-        /// Contains the total number of errors encountered during this action.
-        /// </summary>
-        field(6; "Total Errors"; Integer)
-        {
-            ToolTip = 'Specifies the total number of errors that occurred during the action job.';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This field is obsolete and should not be used.';
-#pragma warning disable AS0074
-            ObsoleteTag = '27.0';
-#pragma warning restore AS0074
-#else
-            ObsoleteState = Removed;
-            ObsoleteReason = 'This field is obsolete and should not be used.';
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
-        }
-#endif
         /// <summary>
         /// Specifies the record ID of the last record processed by this action.
         /// </summary>

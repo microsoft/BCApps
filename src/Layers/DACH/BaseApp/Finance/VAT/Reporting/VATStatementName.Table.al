@@ -50,15 +50,6 @@ table 257 "VAT Statement Name"
             Caption = 'Date Filter';
             FieldClass = FlowFilter;
         }
-#if not CLEANSCHEMA25
-        field(11000; "Sales VAT Adv. Notification"; Boolean)
-        {
-            Caption = 'Sales VAT Adv. Notification';
-            ObsoleteReason = 'Moved to Elster extension, new field Sales VAT Adv. Notif.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

@@ -10,16 +10,6 @@ tableextension 11748 "VAT Statement Template CZL" extends "VAT Statement Templat
 {
     fields
     {
-#if not CLEANSCHEMA29
-        field(11770; "XML Format CZL"; Enum "VAT Statement XML Format CZL")
-        {
-            Caption = 'XML Format (obsoleted)';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
-            ObsoleteReason = 'Replaced by "XML Format CZL" field in VAT Statement Name table.';
-        }
-#endif
         field(11771; "Allow Comments/Attachments CZL"; Boolean)
         {
             Caption = 'Allow Comments/Attachments';
