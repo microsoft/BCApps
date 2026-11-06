@@ -62,7 +62,8 @@ codeunit 8067 "Customer Deferrals Mngmt."
         CustContractLine: Record "Cust. Sub. Contract Line";
         CustomerContractDeferral: Record "Cust. Sub. Contract Deferral";
         CurrExchRate: Record "Currency Exchange Rate";
-        BillingLine: Record "Billing Line";
+        ContractNo: Code[20];
+        ContractLineNo: Integer;
         Sign: Integer;
     begin
         if DocumentNo = '' then
@@ -78,9 +79,9 @@ codeunit 8067 "Customer Deferrals Mngmt."
         if not SalesLine.CreateContractDeferrals() then
             exit;
 
-        BillingLine.FilterBillingLineOnDocumentLine(BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"), SalesLine."Document No.", SalesLine."Line No.");
-        BillingLine.FindFirst();
-        CustContractHeader.Get(BillingLine."Subscription Contract No.");
+        if not SalesLine.GetSubscriptionContractFromLineOrBillingLine(ContractNo, ContractLineNo) then
+            exit;
+        CustContractHeader.Get(ContractNo);
         GLSetup.Get();
 
         CustomerContractDeferral.Init();
@@ -89,7 +90,7 @@ codeunit 8067 "Customer Deferrals Mngmt."
         CustomerContractDeferral."Subscription Contract Type" := CustContractHeader."Contract Type";
         CustomerContractDeferral."User ID" := CopyStr(UserId(), 1, MaxStrLen(CustomerContractDeferral."User ID"));
         CustomerContractDeferral."Document Posting Date" := SalesHeader."Posting Date";
-        CustContractLine.Get(CustContractHeader."No.", BillingLine."Subscription Contract Line No.");
+        CustContractLine.Get(CustContractHeader."No.", ContractLineNo);
         CustomerContractDeferral."Subscription Line Description" := CustContractLine."Subscription Line Description";
         CustomerContractDeferral."Subscription Description" := CustContractLine."Subscription Description";
         CustomerContractDeferral."Subscription Contract No." := CustContractLine."Subscription Contract No.";
@@ -362,14 +363,6 @@ codeunit 8067 "Customer Deferrals Mngmt."
             exit;
         CustomerContractDeferrals.Get(DeferralEntryNo);
         GenJournalLine."Subscription Contract No." := CustomerContractDeferrals."Subscription Contract No.";
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeInsertGlobalGLEntry, '', false, false)]
-    local procedure TransferContractNoToGLEntry(var GlobalGLEntry: Record "G/L Entry"; GenJournalLine: Record "Gen. Journal Line")
-    begin
-        if GenJournalLine."Subscription Contract No." = '' then
-            exit;
-        GlobalGLEntry."Subscription Contract No." := GenJournalLine."Subscription Contract No.";
     end;
 
     internal procedure SetDeferralNo(NewDeferralNo: Integer)
