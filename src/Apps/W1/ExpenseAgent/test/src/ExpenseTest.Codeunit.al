@@ -223,6 +223,72 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
+    procedure ExpenseVendorNoSeriesPreviewIncludesMissingDefaults()
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        TempNoSeries: Record "No. Series" temporary;
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+        CreateExpenseNoSeries: Codeunit "Create Expense No. Series";
+    begin
+        Initialize();
+
+        NoSeriesLine.SetRange("Series Code", CreateExpenseNoSeries.ExpenseVendorNoSeries());
+        NoSeriesLine.DeleteAll();
+        if NoSeries.Get(CreateExpenseNoSeries.ExpenseVendorNoSeries()) then
+            NoSeries.Delete();
+
+        CreateExpenseNoSeries.LoadNoSeriesPreview(TempNoSeries, TempNoSeriesLine);
+
+        TempNoSeries.Get(CreateExpenseNoSeries.ExpenseVendorNoSeries());
+        Assert.IsFalse(NoSeries.Get(TempNoSeries.Code), 'Preview must not create the vendor number series.');
+        Assert.RecordIsEmpty(NoSeriesLine);
+
+        CreateExpenseNoSeries.InsertExpenseVendorNoSeries();
+        NoSeries.Get(TempNoSeries.Code);
+        NoSeriesLine.FindFirst();
+        TempNoSeries.TestField(Description, NoSeries.Description);
+        TempNoSeriesLine.Get(NoSeriesLine."Series Code", NoSeriesLine."Line No.");
+        TempNoSeriesLine.TestField("Starting No.", NoSeriesLine."Starting No.");
+        TempNoSeriesLine.TestField("Ending No.", NoSeriesLine."Ending No.");
+        TempNoSeriesLine.TestField(Implementation, NoSeriesLine.Implementation);
+    end;
+
+    [Test]
+    procedure ExpenseVendorNoSeriesPreviewPreservesExistingSeries()
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        TempNoSeries: Record "No. Series" temporary;
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+        CreateExpenseNoSeries: Codeunit "Create Expense No. Series";
+    begin
+        Initialize();
+
+        CreateExpenseNoSeries.InsertExpenseVendorNoSeries();
+        NoSeries.Get(CreateExpenseNoSeries.ExpenseVendorNoSeries());
+        NoSeries.Description := 'Custom vendor numbering';
+        NoSeries.Modify();
+        NoSeriesLine.SetRange("Series Code", NoSeries.Code);
+        NoSeriesLine.FindFirst();
+        NoSeriesLine."Starting No." := 'CUSTOM001';
+        NoSeriesLine."Ending No." := 'CUSTOM999';
+        NoSeriesLine."Last No. Used" := 'CUSTOM010';
+        NoSeriesLine.Implementation := Enum::"No. Series Implementation"::Normal;
+        NoSeriesLine.Modify();
+
+        CreateExpenseNoSeries.LoadNoSeriesPreview(TempNoSeries, TempNoSeriesLine);
+
+        TempNoSeries.Get(NoSeries.Code);
+        TempNoSeries.TestField(Description, NoSeries.Description);
+        TempNoSeriesLine.Get(NoSeriesLine."Series Code", NoSeriesLine."Line No.");
+        TempNoSeriesLine.TestField("Starting No.", NoSeriesLine."Starting No.");
+        TempNoSeriesLine.TestField("Ending No.", NoSeriesLine."Ending No.");
+        TempNoSeriesLine.TestField("Last No. Used", NoSeriesLine."Last No. Used");
+        TempNoSeriesLine.TestField(Implementation, NoSeriesLine.Implementation);
+    end;
+
+    [Test]
     procedure ExpenseVendorNosIsNotOverwrittenByCreateNoSeriesDefaults()
     var
         NoSeries: Record "No. Series";

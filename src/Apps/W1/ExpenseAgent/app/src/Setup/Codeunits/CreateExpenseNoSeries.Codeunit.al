@@ -65,9 +65,9 @@ codeunit 6972 "Create Expense No. Series"
 
     procedure GetExpenseNoSeriesFilter(): Text
     var
-        FilterTok: Label '%1|%2|%3|%4', Locked = true;
+        FilterTok: Label '%1|%2|%3|%4|%5', Locked = true;
     begin
-        exit(StrSubstNo(FilterTok, ExpenseNoSeriesTok, ExpenseUserSeriesTok, ExpenseReportNoSeriesTok, PostedExpenseReportNoSeriesTok));
+        exit(StrSubstNo(FilterTok, ExpenseNoSeriesTok, ExpenseUserSeriesTok, ExpenseReportNoSeriesTok, PostedExpenseReportNoSeriesTok, ExpenseVendorNoSeriesTok));
     end;
 
     /// <summary>
@@ -102,6 +102,7 @@ codeunit 6972 "Create Expense No. Series"
         AddNoSeriesSeed(TempNoSeries, TempNoSeriesLine, ExpenseUserSeriesTok, ExpenseUserSeriesDescriptionTok, ExpenseUserStartingNoLbl, '', Enum::"No. Series Implementation"::Sequence);
         AddNoSeriesSeed(TempNoSeries, TempNoSeriesLine, ExpenseReportNoSeriesTok, ExpenseReportNoSeriesDescriptionTok, ExpenseReportStartingNoLbl, ExpenseReportEndingNoLbl, Enum::"No. Series Implementation"::Sequence);
         AddNoSeriesSeed(TempNoSeries, TempNoSeriesLine, PostedExpenseReportNoSeriesTok, PostedExpenseReportNoSeriesDescriptionTok, PostedExpenseReportStartingNoLbl, PostedExpenseReportEndingNoLbl, Enum::"No. Series Implementation"::Normal);
+        AddNoSeriesSeed(TempNoSeries, TempNoSeriesLine, ExpenseVendorNoSeriesTok, ExpenseVendorNoSeriesDescriptionTok, ExpenseVendorStartingNoLbl, ExpenseVendorEndingNoLbl, Enum::"No. Series Implementation"::Sequence);
     end;
 
     local procedure AddNoSeriesSeed(var TempNoSeries: Record "No. Series" temporary; var TempNoSeriesLine: Record "No. Series Line" temporary; SeriesCode: Code[20]; Description: Text[100]; StartingNo: Code[20]; EndingNo: Code[20]; Implementation: Enum "No. Series Implementation")
