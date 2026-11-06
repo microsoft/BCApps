@@ -141,6 +141,14 @@ page 130455 "Command Line Test Tool"
                 ToolTip = 'Specifies the latest execution of the test as JSON';
             }
 
+            field(DisabledTestsJson; DisabledTestsJSONText)
+            {
+                ApplicationArea = All;
+                Caption = 'Disabled Tests JSON';
+                Editable = false;
+                ToolTip = 'Specifies the tests that were disabled (Run = false) for the current suite as JSON';
+            }
+
             field(CCTrackingType; CCTrackingType)
             {
                 ApplicationArea = All;
@@ -378,6 +386,23 @@ page 130455 "Command Line Test Tool"
                 end;
             }
 
+            action(GetDisabledTests)
+            {
+                ApplicationArea = All;
+                ToolTip = 'Returns the tests that were disabled (Run = false) for the current suite as JSON.';
+                Caption = 'Get Disabled Tests';
+                Image = TestReport;
+
+                trigger OnAction()
+                var
+                    TestMethodLine: Record "Test Method Line";
+                    TestSuiteMgt: Codeunit "Test Suite Mgt.";
+                begin
+                    TestMethodLine.Copy(Rec);
+                    DisabledTestsJSONText := TestSuiteMgt.GetDisabledTestsToJSON(TestMethodLine);
+                end;
+            }
+
             action(ClearTestResults)
             {
                 ApplicationArea = All;
@@ -498,6 +523,7 @@ page 130455 "Command Line Test Tool"
         RequiredTestIsolation: Integer;
         RemoveTestMethod: Text;
         TestResultsJSONText: Text;
+        DisabledTestsJSONText: Text;
         CCResultsCSVText: Text;
         CCMapCSVText: Text;
         CCInfo: Text;
