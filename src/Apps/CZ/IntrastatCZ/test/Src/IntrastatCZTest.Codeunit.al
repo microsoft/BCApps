@@ -1,8 +1,44 @@
+namespace Microsoft.Inventory.Intrastat;
+
+using Microsoft.CRM.Contact;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Shipping;
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Projects.Project.Journal;
+using Microsoft.Projects.Project.Ledger;
+using Microsoft.Purchases.Archive;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Archive;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Service.Archive;
+using Microsoft.Service.Document;
+using Microsoft.Service.History;
+using Microsoft.Service.Item;
+using Microsoft.Service.Test;
+using Microsoft.Utilities;
+using System.IO;
+using System.TestLibraries.Utilities;
+using System.Utilities;
+
 codeunit 148125 "Intrastat CZ Test"
 {
     Subtype = Test;
     TestType = Uncategorized;
     TestPermissions = Disabled;
+    RequiredTestIsolation = Codeunit;
     EventSubscriberInstance = Manual;
 
     trigger OnRun()
@@ -25,7 +61,11 @@ codeunit 148125 "Intrastat CZ Test"
         LibraryRandom: Codeunit "Library - Random";
         LibraryMarketing: Codeunit "Library - Marketing";
         LibraryWarehouse: Codeunit "Library - Warehouse";
+        ArchiveManagement: Codeunit ArchiveManagement;
+        ServiceDocumentArchiveMgmt: Codeunit "Service Document Archive Mgmt.";
         IsInitialized: Boolean;
+        CountryOfOriginErr: Label 'Country/Region of Origin Code is incorrect in %1.', Comment = '%1 = Table caption';
+        UnexpectedMessageErr: Label 'Unexpected Message: %1', Comment = '%1 = Message text';
         ValidationErr: Label '%1 must be %2 in %3.', Comment = '%1 = FieldCaption(Quantity),%2 = SalesLine.Quantity,%3 = TableCaption(SalesShipmentLine).';
         LineNotExistErr: Label 'Intrastat Report Lines incorrectly created.';
         LineCountErr: Label 'The number of %1 entries is incorrect.', Comment = '%1 = Intrastat Report Line table';
@@ -279,7 +319,9 @@ codeunit 148125 "Intrastat CZ Test"
 
         // [THEN] Verify Undone Quantity on Sales Shipment Line.
         SalesShipmentLine.SetRange("Document No.", DocumentNo);
+#pragma warning disable AA0210
         SalesShipmentLine.SetFilter("Appl.-from Item Entry", '<>0');
+#pragma warning restore AA0210
         SalesShipmentLine.FindFirst();
         Assert.AreEqual(
           -SalesLine.Quantity, SalesShipmentLine.Quantity,
@@ -800,11 +842,9 @@ codeunit 148125 "Intrastat CZ Test"
         // [GIVEN] Purchase Order with empty Country/Region Code on 01.Jan with Item "X"
         LibraryPurchase.CreatePurchHeader(
           PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryCZIntrastat.CreateVendor(LibraryCZIntrastat.GetCountryRegionCode()));
-        with PurchaseHeader do begin
-            Validate("Posting Date", CalcDate('<+1Y-CM>', WorkDate()));
-            Validate("Buy-from Country/Region Code", '');
-            Modify(true);
-        end;
+        PurchaseHeader.Validate("Posting Date", CalcDate('<+1Y-CM>', WorkDate()));
+        PurchaseHeader.Validate("Buy-from Country/Region Code", '');
+        PurchaseHeader.Modify(true);
         LibraryCZIntrastat.CreatePurchaseLine(PurchaseHeader, PurchaseLine, PurchaseLine.Type::Item, LibraryCZIntrastat.CreateItem());
 
         // [GIVEN] Item Charge Purchase Line
@@ -912,22 +952,20 @@ codeunit 148125 "Intrastat CZ Test"
 
         LibraryMarketing.CreateCompanyContact(Contact);
         LibraryPurchase.CreateVendor(Vendor);
-        with IntrastatReportSetup do begin
-            Validate("Intrastat Contact Type", "Intrastat Contact Type"::Contact);
-            Validate("Intrastat Contact No.", Contact."No.");
-            Validate("Intrastat Contact Type", "Intrastat Contact Type"::Vendor);
-            TestField("Intrastat Contact No.", '');
-            Validate("Intrastat Contact No.", Vendor."No.");
-            Validate("Intrastat Contact Type", "Intrastat Contact Type"::Contact);
-            TestField("Intrastat Contact No.", '');
-            Validate("Intrastat Contact No.", Contact."No.");
-            Validate("Intrastat Contact Type", "Intrastat Contact Type"::" ");
-            TestField("Intrastat Contact No.", '');
-            Validate("Intrastat Contact Type", "Intrastat Contact Type"::Vendor);
-            Validate("Intrastat Contact No.", Vendor."No.");
-            Validate("Intrastat Contact Type", "Intrastat Contact Type"::" ");
-            TestField("Intrastat Contact No.", '');
-        end;
+        IntrastatReportSetup.Validate("Intrastat Contact Type", IntrastatReportSetup."Intrastat Contact Type"::Contact);
+        IntrastatReportSetup.Validate("Intrastat Contact No.", Contact."No.");
+        IntrastatReportSetup.Validate("Intrastat Contact Type", IntrastatReportSetup."Intrastat Contact Type"::Vendor);
+        IntrastatReportSetup.TestField("Intrastat Contact No.", '');
+        IntrastatReportSetup.Validate("Intrastat Contact No.", Vendor."No.");
+        IntrastatReportSetup.Validate("Intrastat Contact Type", IntrastatReportSetup."Intrastat Contact Type"::Contact);
+        IntrastatReportSetup.TestField("Intrastat Contact No.", '');
+        IntrastatReportSetup.Validate("Intrastat Contact No.", Contact."No.");
+        IntrastatReportSetup.Validate("Intrastat Contact Type", IntrastatReportSetup."Intrastat Contact Type"::" ");
+        IntrastatReportSetup.TestField("Intrastat Contact No.", '');
+        IntrastatReportSetup.Validate("Intrastat Contact Type", IntrastatReportSetup."Intrastat Contact Type"::Vendor);
+        IntrastatReportSetup.Validate("Intrastat Contact No.", Vendor."No.");
+        IntrastatReportSetup.Validate("Intrastat Contact Type", IntrastatReportSetup."Intrastat Contact Type"::" ");
+        IntrastatReportSetup.TestField("Intrastat Contact No.", '');
     end;
 
     [Test]
@@ -1160,8 +1198,7 @@ codeunit 148125 "Intrastat CZ Test"
         // [GIVEN] A Intrastat Report with empty Quantity and "Supplementary Units" = false
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
-        IntrastatReportLine.ModifyAll(Quantity, 0);
-        IntrastatReportLine.ModifyAll("Supplementary Units", false);
+        IntrastatReportLine.ModifyAll(Quantity, 0, "Supplementary Units", false);
 
         // [WHEN] Running checklist
         IntrastatReportPage.OpenEdit();
@@ -1206,8 +1243,7 @@ codeunit 148125 "Intrastat CZ Test"
         // [GIVEN] A Intrastat Report with empty "Total Weight" and "Supplementary Units" = true
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
-        IntrastatReportLine.ModifyAll("Total Weight", 0);
-        IntrastatReportLine.ModifyAll("Supplementary Units", true);
+        IntrastatReportLine.ModifyAll("Total Weight", 0, "Supplementary Units", true);
 
         // [WHEN] Running checklist
         IntrastatReportPage.OpenEdit();
@@ -1252,8 +1288,7 @@ codeunit 148125 "Intrastat CZ Test"
         // [GIVEN] A Intrastat Report with empty "Country/Region of Origin Code" and Type = Receipt
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
-        IntrastatReportLine.ModifyAll("Country/Region of Origin Code", '');
-        IntrastatReportLine.ModifyAll(Type, IntrastatReportLine.Type::Receipt);
+        IntrastatReportLine.ModifyAll("Country/Region of Origin Code", '', Type, IntrastatReportLine.Type::Receipt);
 
         // [WHEN] Running checklist
         IntrastatReportPage.OpenEdit();
@@ -1298,8 +1333,7 @@ codeunit 148125 "Intrastat CZ Test"
         // [GIVEN] A Intrastat Report with empty "Partner VAT ID" and Type = Receipt
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
-        IntrastatReportLine.ModifyAll("Partner VAT ID", '');
-        IntrastatReportLine.ModifyAll(Type, IntrastatReportLine.Type::Receipt);
+        IntrastatReportLine.ModifyAll("Partner VAT ID", '', Type, IntrastatReportLine.Type::Receipt);
 
         // [WHEN] Running checklist
         IntrastatReportPage.OpenEdit();
@@ -1452,6 +1486,8 @@ codeunit 148125 "Intrastat CZ Test"
         InvoiceDate := CalcDate('<5Y>');
         LibraryCZIntrastat.CreateAndPostSalesOrder(SalesLine, InvoiceDate);
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo);
+        IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
+        IntrastatReportLine.ModifyAll("Transaction Type", '');
         Commit();
 
         // [GIVEN] A Intrastat Report
@@ -1912,7 +1948,9 @@ codeunit 148125 "Intrastat CZ Test"
 
         // [THEN] "Shpt. Method Code" in the Intrastat Report Line = "SMC"
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
+#pragma warning disable AA0210
         IntrastatReportLine.SetRange("Item No.", ItemNo);
+#pragma warning restore AA0210
         IntrastatReportLine.FindFirst();
         Assert.IsTrue(1 = 1, ShptMethodCodeErr);
         Assert.AreEqual(ShipmentMethod.Code, IntrastatReportLine."Shpt. Method Code", ShptMethodCodeErr);
@@ -3606,7 +3644,7 @@ codeunit 148125 "Intrastat CZ Test"
         LibrarySales.PostSalesDocument(SalesHeader, true, false);
 
         // [GIVEN] Post purchase order
-        PurchaseHeader.Find();
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.FindFirst();
@@ -3698,7 +3736,7 @@ codeunit 148125 "Intrastat CZ Test"
         LibrarySales.PostSalesDocument(SalesHeader, true, false);
 
         // [GIVEN] Post purchase order
-        PurchaseHeader.Find();
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
         PurchReceiptNo := PurchaseHeader."Last Receiving No.";
 
         // [WHEN] do not include drop shipment
@@ -3786,7 +3824,7 @@ codeunit 148125 "Intrastat CZ Test"
         LibrarySales.PostSalesDocument(SalesHeader, true, false);
 
         // [GIVEN] Post purchase order
-        PurchaseHeader.Find();
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
         PurchReceiptNo := PurchaseHeader."Last Receiving No.";
 
         // [WHEN] do not include drop shipment
@@ -4388,13 +4426,1145 @@ codeunit 148125 "Intrastat CZ Test"
         Assert.ExpectedError(PurchaseHeader.FieldName("Transport Method"));
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginSetupDefaultAndPage()
+    var
+        IntrastatReportSetup: Record "Intrastat Report Setup";
+        IntrastatReportSetupPage: TestPage "Intrastat Report Setup";
+    begin
+        // [FEATURE] [UT] [Setup]
+        // [SCENARIO] "Get Country/Region of Origin" is "Item Card" by default and can be set on Intrastat Report Setup page
+        Initialize();
+
+        // [GIVEN] New Intrastat Report Setup record
+        IntrastatReportSetup.Init();
+
+        // [THEN] "Get Country/Region of Origin" is "Item Card"
+        IntrastatReportSetup.TestField("Get Ctry/Reg. of Origin CZ", IntrastatReportSetup."Get Ctry/Reg. of Origin CZ"::"Item Card");
+
+        // [WHEN] Open Intrastat Report Setup page
+        IntrastatReportSetupPage.OpenEdit();
+
+        // [THEN] The field is visible, editable and "Item Card"
+        Assert.IsTrue(IntrastatReportSetupPage."Get Ctry/Reg. of Origin CZ".Visible(), '');
+        Assert.IsTrue(IntrastatReportSetupPage."Get Ctry/Reg. of Origin CZ".Editable(), '');
+        IntrastatReportSetupPage."Get Ctry/Reg. of Origin CZ".AssertEquals(Format(Enum::"Get Country/Reg. of Origin CZ"::"Item Card"));
+
+        // [WHEN] Set "Posted Entries" on the page
+        IntrastatReportSetupPage."Get Ctry/Reg. of Origin CZ".SetValue(Format(Enum::"Get Country/Reg. of Origin CZ"::"Posted Entries"));
+        IntrastatReportSetupPage.Close();
+
+        // [THEN] "Get Country/Region of Origin" is "Posted Entries" in the setup
+        IntrastatReportSetup.Get();
+        IntrastatReportSetup.TestField("Get Ctry/Reg. of Origin CZ", IntrastatReportSetup."Get Ctry/Reg. of Origin CZ"::"Posted Entries");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginOnPurchaseLineFromItem()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Purchase]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" in Purchase Line is filled from Item on validating "No." and the manual change is preserved
+        Initialize();
+
+        // [GIVEN] Item with Country/Region of Origin Code = "A", Purchase Order
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        LibraryCZIntrastat.CreatePurchaseHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Order, WorkDate(), LibraryCZIntrastat.CreateVendor(LibraryCZIntrastat.GetCountryRegionCode()));
+
+        // [WHEN] Validate "No." in Purchase Line
+        LibraryCZIntrastat.CreatePurchaseLine(PurchaseHeader, PurchaseLine, PurchaseLine.Type::Item, ItemNo);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" = "A"
+        PurchaseLine.TestField("Country/Reg. of Orig. Code CZ", ItemCountryCode);
+
+        // [WHEN] Set "Country/Reg. of Orig. Code CZ" = "B" manually and validate other fields
+        PurchaseLine.Validate("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+        PurchaseLine.Validate(Quantity, PurchaseLine.Quantity + 1);
+        PurchaseLine.Validate("Direct Unit Cost", PurchaseLine."Direct Unit Cost" + 1);
+        PurchaseLine.Modify(true);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" = "B"
+        PurchaseLine.TestField("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+
+        // [WHEN] Validate "No." with Item without Country/Region of Origin Code
+        Clear(PurchaseLine);
+        LibraryCZIntrastat.CreatePurchaseLine(PurchaseHeader, PurchaseLine, PurchaseLine.Type::Item, LibraryCZIntrastat.CreateItem());
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" is blank
+        PurchaseLine.TestField("Country/Reg. of Orig. Code CZ", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginOnSalesLineFromItem()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" in Sales Line is filled from Item on validating "No." and the manual change is preserved
+        Initialize();
+
+        // [GIVEN] Item with Country/Region of Origin Code = "A", Sales Order
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        LibraryCZIntrastat.CreateSalesHeader(SalesHeader, LibraryCZIntrastat.CreateCustomer(), WorkDate(), SalesHeader."Document Type"::Order);
+
+        // [WHEN] Validate "No." in Sales Line
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, 1);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" = "A"
+        SalesLine.TestField("Country/Reg. of Orig. Code CZ", ItemCountryCode);
+
+        // [WHEN] Set "Country/Reg. of Orig. Code CZ" = "B" manually and validate other fields
+        SalesLine.Validate("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+        SalesLine.Validate(Quantity, SalesLine.Quantity + 1);
+        SalesLine.Validate("Unit Price", SalesLine."Unit Price" + 1);
+        SalesLine.Modify(true);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" = "B"
+        SalesLine.TestField("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+
+        // [WHEN] Validate "No." with Item without Country/Region of Origin Code
+        Clear(SalesLine);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryCZIntrastat.CreateItem(), 1);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" is blank
+        SalesLine.TestField("Country/Reg. of Orig. Code CZ", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginOnServiceLineFromItem()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Service]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" in Service Line is filled from Item on validating "No." and the manual change is preserved
+        Initialize();
+
+        // [GIVEN] Item with Country/Region of Origin Code = "A", Service Invoice
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        LibraryCZIntrastat.CreateServiceHeader(ServiceHeader, LibraryCZIntrastat.CreateCustomer(), WorkDate(), ServiceHeader."Document Type"::Invoice);
+
+        // [WHEN] Validate "No." in Service Line
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, ItemNo);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" = "A"
+        ServiceLine.TestField("Country/Reg. of Orig. Code CZ", ItemCountryCode);
+
+        // [WHEN] Set "Country/Reg. of Orig. Code CZ" = "B" manually and validate other fields
+        ServiceLine.Validate("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+        ServiceLine.Validate(Quantity, LibraryRandom.RandIntInRange(2, 10));
+        ServiceLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        ServiceLine.Modify(true);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" = "B"
+        ServiceLine.TestField("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+
+        // [WHEN] Validate "No." with Item without Country/Region of Origin Code
+        Clear(ServiceLine);
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryCZIntrastat.CreateItem());
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" is blank
+        ServiceLine.TestField("Country/Reg. of Orig. Code CZ", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginOnTransferLineFromItem()
+    var
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Transfer]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" in Transfer Line is filled from Item on validating "Item No." and the manual change is preserved
+        Initialize();
+
+        // [GIVEN] Item with Country/Region of Origin Code = "A", Transfer Order
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(FromLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ToLocation);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code, InTransitLocation.Code);
+
+        // [WHEN] Validate "Item No." in Transfer Line
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, ItemNo, 1);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" = "A"
+        TransferLine.TestField("Country/Reg. of Orig. Code CZ", ItemCountryCode);
+
+        // [WHEN] Set "Country/Reg. of Orig. Code CZ" = "B" manually and validate Quantity
+        TransferLine.Validate("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+        TransferLine.Validate(Quantity, TransferLine.Quantity + 1);
+        TransferLine.Modify(true);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" = "B"
+        TransferLine.TestField("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+
+        // [WHEN] Validate "Item No." with Item without Country/Region of Origin Code
+        Clear(TransferLine);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, LibraryCZIntrastat.CreateItem(), 1);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" is blank
+        TransferLine.TestField("Country/Reg. of Orig. Code CZ", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginOnItemJournalLineFromItem()
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Item Journal]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" in Item Journal Line is filled from Item on validating "Item No." and the manual change is preserved
+        Initialize();
+
+        // [GIVEN] Item with Country/Region of Origin Code = "A", Item Journal batch
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        LibraryInventory.CreateItemJournalTemplate(ItemJournalTemplate);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
+
+        // [WHEN] Validate "Item No." in Item Journal Line
+        LibraryInventory.CreateItemJournalLine(
+            ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemNo, 1);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" = "A"
+        ItemJournalLine.TestField("Country/Reg. of Orig. Code CZ", ItemCountryCode);
+
+        // [WHEN] Set "Country/Reg. of Orig. Code CZ" = "B" manually and validate Quantity
+        ItemJournalLine.Validate("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+        ItemJournalLine.Validate(Quantity, ItemJournalLine.Quantity + 1);
+        ItemJournalLine.Modify(true);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" = "B"
+        ItemJournalLine.TestField("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+
+        // [WHEN] Validate "Item No." with Item without Country/Region of Origin Code
+        ItemJournalLine.Validate("Item No.", LibraryCZIntrastat.CreateItem());
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" is blank
+        ItemJournalLine.TestField("Country/Reg. of Orig. Code CZ", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginOnJobJournalLineFromItem()
+    var
+        JobJournalLine: Record "Job Journal Line";
+        Location: Record Location;
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Job]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" in Job Journal Line is filled from Item on validating "No." and the manual change is preserved
+        Initialize();
+
+        // [GIVEN] Item with Country/Region of Origin Code = "A"
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [WHEN] Create Job Journal Line with the Item
+        LibraryCZIntrastat.CreateJobJournalLineWithItem(JobJournalLine, ItemNo, Location.Code);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" = "A"
+        JobJournalLine.TestField("Country/Reg. of Orig. Code CZ", ItemCountryCode);
+
+        // [WHEN] Set "Country/Reg. of Orig. Code CZ" = "B" manually and validate Quantity
+        JobJournalLine.Validate("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+        JobJournalLine.Validate(Quantity, JobJournalLine.Quantity + 1);
+        JobJournalLine.Modify(true);
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" = "B"
+        JobJournalLine.TestField("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+
+        // [WHEN] Validate "No." with Item without Country/Region of Origin Code
+        JobJournalLine.Validate("No.", LibraryCZIntrastat.CreateItem());
+
+        // [THEN] "Country/Reg. of Orig. Code CZ" is blank
+        JobJournalLine.TestField("Country/Reg. of Orig. Code CZ", '');
+    end;
+
+#pragma warning disable AA0210
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginPostPurchaseOrder()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchInvLine: Record "Purch. Inv. Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Purchase]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" from Purchase Line is posted to Item Ledger Entry, Purch. Rcpt. Line and Purch. Inv. Line
+        Initialize();
+
+        // [GIVEN] Purchase Order with Item (Country/Region of Origin Code = "A") and "Country/Reg. of Orig. Code CZ" = "B" in the line
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        CreatePurchaseLineWithOrigin(PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order, ItemNo, ManualCountryCode);
+
+        // [WHEN] Receive and invoice the order
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Item Ledger Entry, Purch. Rcpt. Line and Purch. Inv. Line have "Country/Reg. of Orig. Code CZ" = "B"
+        VerifyItemLedgerEntryCountryOfOrigin(ItemNo, Enum::"Item Ledger Entry Type"::Purchase, ManualCountryCode);
+        PurchRcptLine.SetRange("No.", ItemNo);
+        PurchRcptLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, PurchRcptLine."Country/Reg. of Orig. Code CZ", PurchRcptLine.TableCaption());
+        PurchInvLine.SetRange("No.", ItemNo);
+        PurchInvLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, PurchInvLine."Country/Reg. of Orig. Code CZ", PurchInvLine.TableCaption());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginPostPurchaseReturnOrder()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnShipmentLine: Record "Return Shipment Line";
+        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Purchase] [Return Order]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" from Purchase Line is posted to Item Ledger Entry, Return Shipment Line and Purch. Cr. Memo Line
+        Initialize();
+
+        // [GIVEN] Purchase Return Order with Item (Country/Region of Origin Code = "A") and "Country/Reg. of Orig. Code CZ" = "B" in the line
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        CreatePurchaseLineWithOrigin(PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::"Return Order", ItemNo, ManualCountryCode);
+
+        // [WHEN] Ship and invoice the return order
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Item Ledger Entry, Return Shipment Line and Purch. Cr. Memo Line have "Country/Reg. of Orig. Code CZ" = "B"
+        VerifyItemLedgerEntryCountryOfOrigin(ItemNo, Enum::"Item Ledger Entry Type"::Purchase, ManualCountryCode);
+        ReturnShipmentLine.SetRange("No.", ItemNo);
+        ReturnShipmentLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, ReturnShipmentLine."Country/Reg. of Orig. Code CZ", ReturnShipmentLine.TableCaption());
+        PurchCrMemoLine.SetRange("No.", ItemNo);
+        PurchCrMemoLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, PurchCrMemoLine."Country/Reg. of Orig. Code CZ", PurchCrMemoLine.TableCaption());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginPostSalesOrder()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" from Sales Line is posted to Item Ledger Entry, Sales Shipment Line and Sales Invoice Line
+        Initialize();
+
+        // [GIVEN] Sales Order with Item (Country/Region of Origin Code = "A") and "Country/Reg. of Orig. Code CZ" = "B" in the line
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        CreateSalesLineWithOrigin(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, ItemNo, ManualCountryCode);
+
+        // [WHEN] Ship and invoice the order
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Item Ledger Entry, Sales Shipment Line and Sales Invoice Line have "Country/Reg. of Orig. Code CZ" = "B"
+        VerifyItemLedgerEntryCountryOfOrigin(ItemNo, Enum::"Item Ledger Entry Type"::Sale, ManualCountryCode);
+        SalesShipmentLine.SetRange("No.", ItemNo);
+        SalesShipmentLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, SalesShipmentLine."Country/Reg. of Orig. Code CZ", SalesShipmentLine.TableCaption());
+        SalesInvoiceLine.SetRange("No.", ItemNo);
+        SalesInvoiceLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, SalesInvoiceLine."Country/Reg. of Orig. Code CZ", SalesInvoiceLine.TableCaption());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginPostSalesReturnOrder()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ReturnReceiptLine: Record "Return Receipt Line";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Sales] [Return Order]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" from Sales Line is posted to Item Ledger Entry, Return Receipt Line and Sales Cr.Memo Line
+        Initialize();
+
+        // [GIVEN] Sales Return Order with Item (Country/Region of Origin Code = "A") and "Country/Reg. of Orig. Code CZ" = "B" in the line
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        CreateSalesLineWithOrigin(SalesHeader, SalesLine, SalesHeader."Document Type"::"Return Order", ItemNo, ManualCountryCode);
+
+        // [WHEN] Receive and invoice the return order
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Item Ledger Entry, Return Receipt Line and Sales Cr.Memo Line have "Country/Reg. of Orig. Code CZ" = "B"
+        VerifyItemLedgerEntryCountryOfOrigin(ItemNo, Enum::"Item Ledger Entry Type"::Sale, ManualCountryCode);
+        ReturnReceiptLine.SetRange("No.", ItemNo);
+        ReturnReceiptLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, ReturnReceiptLine."Country/Reg. of Orig. Code CZ", ReturnReceiptLine.TableCaption());
+        SalesCrMemoLine.SetRange("No.", ItemNo);
+        SalesCrMemoLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, SalesCrMemoLine."Country/Reg. of Orig. Code CZ", SalesCrMemoLine.TableCaption());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginPostServiceInvoice()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ServiceShipmentLine: Record "Service Shipment Line";
+        ServiceInvoiceLine: Record "Service Invoice Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Service]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" from Service Line is posted to Item Ledger Entry, Service Shipment Line and Service Invoice Line
+        Initialize();
+
+        // [GIVEN] Shipment on Invoice in Service Mgt. Setup
+        LibraryCZIntrastat.UpdateShipmentOnInvoiceServiceSetup(true);
+
+        // [GIVEN] Service Invoice with Item (Country/Region of Origin Code = "A") and "Country/Reg. of Orig. Code CZ" = "B" in the line
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        CreateServiceLineWithOrigin(ServiceHeader, ServiceLine, ServiceHeader."Document Type"::Invoice, ItemNo, ManualCountryCode);
+
+        // [WHEN] Post the invoice
+        LibraryService.PostServiceOrder(ServiceHeader, false, false, false);
+
+        // [THEN] Item Ledger Entry, Service Shipment Line and Service Invoice Line have "Country/Reg. of Orig. Code CZ" = "B"
+        VerifyItemLedgerEntryCountryOfOrigin(ItemNo, Enum::"Item Ledger Entry Type"::Sale, ManualCountryCode);
+        ServiceShipmentLine.SetRange("No.", ItemNo);
+        ServiceShipmentLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, ServiceShipmentLine."Country/Reg. of Orig. Code CZ", ServiceShipmentLine.TableCaption());
+        ServiceInvoiceLine.SetRange("No.", ItemNo);
+        ServiceInvoiceLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, ServiceInvoiceLine."Country/Reg. of Orig. Code CZ", ServiceInvoiceLine.TableCaption());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginPostServiceCreditMemo()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ServiceCrMemoLine: Record "Service Cr.Memo Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Service] [Credit Memo]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" from Service Line is posted to Item Ledger Entry and Service Cr.Memo Line
+        Initialize();
+
+        // [GIVEN] Service Credit Memo with Item (Country/Region of Origin Code = "A") and "Country/Reg. of Orig. Code CZ" = "B" in the line
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        CreateServiceLineWithOrigin(ServiceHeader, ServiceLine, ServiceHeader."Document Type"::"Credit Memo", ItemNo, ManualCountryCode);
+
+        // [WHEN] Post the credit memo
+        LibraryService.PostServiceOrder(ServiceHeader, false, false, false);
+
+        // [THEN] Item Ledger Entry and Service Cr.Memo Line have "Country/Reg. of Orig. Code CZ" = "B"
+        VerifyItemLedgerEntryCountryOfOrigin(ItemNo, Enum::"Item Ledger Entry Type"::Sale, ManualCountryCode);
+        ServiceCrMemoLine.SetRange("No.", ItemNo);
+        ServiceCrMemoLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, ServiceCrMemoLine."Country/Reg. of Orig. Code CZ", ServiceCrMemoLine.TableCaption());
+    end;
+#pragma warning restore AA0210
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginPostTransferOrder()
+    var
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        TransferReceiptLine: Record "Transfer Receipt Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Transfer]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" from Transfer Line is posted to Item Ledger Entries, Transfer Shipment Line and Transfer Receipt Line
+        Initialize();
+
+        // [GIVEN] Item (Country/Region of Origin Code = "A") on inventory
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(FromLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ToLocation);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        LibraryCZIntrastat.CreateAndPostPurchaseItemJournalLine(FromLocation.Code, ItemNo);
+
+        // [GIVEN] Transfer Order with "Country/Reg. of Orig. Code CZ" = "B" in the line
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code, InTransitLocation.Code);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, ItemNo, 1);
+        TransferLine.Validate("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+        TransferLine.Modify(true);
+
+        // [WHEN] Ship and receive the transfer order
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+
+        // [THEN] Transfer Item Ledger Entries, Transfer Shipment Line and Transfer Receipt Line have "Country/Reg. of Orig. Code CZ" = "B"
+        VerifyItemLedgerEntryCountryOfOrigin(ItemNo, Enum::"Item Ledger Entry Type"::Transfer, ManualCountryCode);
+        TransferShipmentLine.SetRange("Item No.", ItemNo);
+        TransferShipmentLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, TransferShipmentLine."Country/Reg. of Orig. Code CZ", TransferShipmentLine.TableCaption());
+        TransferReceiptLine.SetRange("Item No.", ItemNo);
+        TransferReceiptLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, TransferReceiptLine."Country/Reg. of Orig. Code CZ", TransferReceiptLine.TableCaption());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('MessageHandlerEmpty')]
+    internal procedure CountryOfOriginPostDirectTransfer()
+    var
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InventorySetup: Record "Inventory Setup";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        DirectTransLine: Record "Direct Trans. Line";
+        TransferOrder: TestPage "Transfer Order";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Transfer] [Direct Transfer]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" from Transfer Line is posted to Item Ledger Entries and Direct Trans. Line
+        Initialize();
+
+        // [GIVEN] Item (Country/Region of Origin Code = "A") on inventory
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(FromLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ToLocation);
+        LibraryCZIntrastat.CreateAndPostPurchaseItemJournalLine(FromLocation.Code, ItemNo);
+
+        // [GIVEN] Inventory Setup with "Direct Transfer" as "Direct Transfer Posting Type"
+        InventorySetup.Get();
+        InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
+        InventorySetup.Modify();
+
+        // [GIVEN] Direct Transfer Order with "Country/Reg. of Orig. Code CZ" = "B" in the line
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code, '');
+        TransferHeader.Validate("Direct Transfer", true);
+        TransferHeader.Modify(true);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, ItemNo, 1);
+        TransferLine.Validate("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+        TransferLine.Modify(true);
+
+        // [WHEN] Post the transfer order
+        TransferOrder.OpenEdit();
+        TransferOrder.GoToRecord(TransferHeader);
+        TransferOrder.Post.Invoke();
+
+        // [THEN] Transfer Item Ledger Entries and Direct Trans. Line have "Country/Reg. of Orig. Code CZ" = "B"
+        VerifyItemLedgerEntryCountryOfOrigin(ItemNo, Enum::"Item Ledger Entry Type"::Transfer, ManualCountryCode);
+        DirectTransLine.SetRange("Item No.", ItemNo);
+        DirectTransLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, DirectTransLine."Country/Reg. of Orig. Code CZ", DirectTransLine.TableCaption());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginPostItemJournal()
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Item Journal]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" from Item Journal Line is posted to Item Ledger Entry
+        Initialize();
+
+        // [GIVEN] Item Journal Line with Item (Country/Region of Origin Code = "A") and "Country/Reg. of Orig. Code CZ" = "B"
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        LibraryInventory.CreateItemJournalTemplate(ItemJournalTemplate);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJournalLine(
+            ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemNo, 1);
+        ItemJournalLine.Validate("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+        ItemJournalLine.Modify(true);
+
+        // [WHEN] Post the Item Journal Line
+        LibraryInventory.PostItemJournalLine(ItemJournalTemplate.Name, ItemJournalBatch.Name);
+
+        // [THEN] Item Ledger Entry has "Country/Reg. of Orig. Code CZ" = "B"
+        VerifyItemLedgerEntryCountryOfOrigin(ItemNo, Enum::"Item Ledger Entry Type"::"Positive Adjmt.", ManualCountryCode);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginPostJobJournal()
+    var
+        JobJournalLine: Record "Job Journal Line";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        Location: Record Location;
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Job]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" from Job Journal Line is posted to Job Ledger Entry
+        Initialize();
+
+        // [GIVEN] Job Journal Line with Item (Country/Region of Origin Code = "A") and "Country/Reg. of Orig. Code CZ" = "B"
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryCZIntrastat.CreateJobJournalLineWithItem(JobJournalLine, ItemNo, Location.Code);
+        JobJournalLine.Validate("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+        JobJournalLine.Modify(true);
+
+        // [WHEN] Post the Job Journal Line
+        LibraryCZIntrastat.PostJobJournalLine(JobJournalLine);
+
+        // [THEN] Job Ledger Entry has "Country/Reg. of Orig. Code CZ" = "B"
+        JobLedgerEntry.SetRange("No.", ItemNo);
+        JobLedgerEntry.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, JobLedgerEntry."Country/Reg. of Orig. Code CZ", JobLedgerEntry.TableCaption());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandler,MessageHandlerEmpty')]
+    internal procedure CountryOfOriginArchiveAndRestoreSalesOrder()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesHeaderArchive: Record "Sales Header Archive";
+        SalesLineArchive: Record "Sales Line Archive";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Sales] [Archive]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" is stored to Sales Line Archive and is restored back to Sales Line
+        Initialize();
+
+        // [GIVEN] Sales Order with Item (Country/Region of Origin Code = "A") and "Country/Reg. of Orig. Code CZ" = "B" in the line
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        CreateSalesLineWithOrigin(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, ItemNo, ManualCountryCode);
+
+        // [WHEN] Archive the order
+        ArchiveManagement.ArchSalesDocumentNoConfirm(SalesHeader);
+
+        // [THEN] Sales Line Archive has "Country/Reg. of Orig. Code CZ" = "B"
+        SalesLineArchive.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLineArchive.SetRange("Document No.", SalesHeader."No.");
+        SalesLineArchive.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, SalesLineArchive."Country/Reg. of Orig. Code CZ", SalesLineArchive.TableCaption());
+
+        // [GIVEN] "Country/Reg. of Orig. Code CZ" in the Sales Line is changed to "A"
+        SalesLine.Validate("Country/Reg. of Orig. Code CZ", ItemCountryCode);
+        SalesLine.Modify(true);
+
+        // [WHEN] Restore the order from the archive
+        SalesHeaderArchive.SetRange("Document Type", SalesHeader."Document Type");
+        SalesHeaderArchive.SetRange("No.", SalesHeader."No.");
+        SalesHeaderArchive.FindLast();
+        ArchiveManagement.RestoreSalesDocument(SalesHeaderArchive);
+
+        // [THEN] Restored Sales Line has "Country/Reg. of Orig. Code CZ" = "B"
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, SalesLine."Country/Reg. of Orig. Code CZ", SalesLine.TableCaption());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginArchivePurchaseOrder()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineArchive: Record "Purchase Line Archive";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Purchase] [Archive]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" is stored to Purchase Line Archive
+        Initialize();
+
+        // [GIVEN] Purchase Order with Item (Country/Region of Origin Code = "A") and "Country/Reg. of Orig. Code CZ" = "B" in the line
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        CreatePurchaseLineWithOrigin(PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order, ItemNo, ManualCountryCode);
+
+        // [WHEN] Archive the order
+        ArchiveManagement.ArchPurchDocumentNoConfirm(PurchaseHeader);
+
+        // [THEN] Purchase Line Archive has "Country/Reg. of Orig. Code CZ" = "B"
+        PurchaseLineArchive.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLineArchive.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLineArchive.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, PurchaseLineArchive."Country/Reg. of Orig. Code CZ", PurchaseLineArchive.TableCaption());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginArchiveServiceDocument()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ServiceLineArchive: Record "Service Line Archive";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Service] [Archive]
+        // [SCENARIO] "Country/Reg. of Orig. Code CZ" is stored to Service Line Archive
+        Initialize();
+
+        // [GIVEN] Service Invoice with Item (Country/Region of Origin Code = "A") and "Country/Reg. of Orig. Code CZ" = "B" in the line
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        CreateServiceLineWithOrigin(ServiceHeader, ServiceLine, ServiceHeader."Document Type"::Invoice, ItemNo, ManualCountryCode);
+
+        // [WHEN] Archive the document
+        ServiceDocumentArchiveMgmt.ArchServiceDocumentNoConfirm(ServiceHeader);
+
+        // [THEN] Service Line Archive has "Country/Reg. of Orig. Code CZ" = "B"
+        ServiceLineArchive.SetRange("Document Type", ServiceHeader."Document Type");
+        ServiceLineArchive.SetRange("Document No.", ServiceHeader."No.");
+        ServiceLineArchive.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, ServiceLineArchive."Country/Reg. of Orig. Code CZ", ServiceLineArchive.TableCaption());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandler,MessageHandlerEmpty')]
+    internal procedure CountryOfOriginArchiveAndRestoreServiceOrder()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ServiceItem: Record "Service Item";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceHeaderArchive: Record "Service Header Archive";
+        ServiceLineArchive: Record "Service Line Archive";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        ManualCountryCode: Code[10];
+    begin
+        // [FEATURE] [Service] [Archive]
+        // [SCENARIO] Restoring a service order preserves the archived country of origin when Service Item No. is revalidated
+        Initialize();
+
+        // [GIVEN] Service Order with an item from country "A", a linked service item and manual country of origin "B"
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        ManualCountryCode := CreateCountryRegionCode();
+        CreateServiceLineWithOrigin(ServiceHeader, ServiceLine, ServiceHeader."Document Type"::Order, ItemNo, ManualCountryCode);
+        LibraryService.CreateServiceItem(ServiceItem, ServiceHeader."Customer No.");
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, ServiceItem."No.");
+        ServiceLine.Validate("Service Item Line No.", ServiceItemLine."Line No.");
+        ServiceLine.Validate("Country/Reg. of Orig. Code CZ", ManualCountryCode);
+        ServiceLine.Modify(true);
+
+        // [GIVEN] The order is archived with country of origin "B"
+        ServiceDocumentArchiveMgmt.ArchServiceDocumentNoConfirm(ServiceHeader);
+        ServiceLineArchive.SetRange("Document Type", ServiceHeader."Document Type");
+        ServiceLineArchive.SetRange("Document No.", ServiceHeader."No.");
+        ServiceLineArchive.FindFirst();
+        VerifyCountryOfOrigin(ManualCountryCode, ServiceLineArchive."Country/Reg. of Orig. Code CZ", ServiceLineArchive.TableCaption());
+        ServiceLineArchive.TestField("Service Item No.", ServiceItem."No.");
+
+        // [GIVEN] The current service line has country of origin "A"
+        ServiceLine.Validate("Country/Reg. of Orig. Code CZ", ItemCountryCode);
+        ServiceLine.Modify(true);
+
+        // [WHEN] Restore the order from the archive
+        ServiceHeaderArchive.SetRange("Document Type", ServiceHeader."Document Type");
+        ServiceHeaderArchive.SetRange("No.", ServiceHeader."No.");
+        ServiceHeaderArchive.FindLast();
+        ServiceDocumentArchiveMgmt.RestoreServiceDocument(ServiceHeaderArchive);
+
+        // [THEN] The restored service line has archived country of origin "B", not item-card country "A"
+        ServiceLine.Get(ServiceLine."Document Type", ServiceLine."Document No.", ServiceLine."Line No.");
+        VerifyCountryOfOrigin(ManualCountryCode, ServiceLine."Country/Reg. of Orig. Code CZ", ServiceLine.TableCaption());
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    internal procedure CountryOfOriginTwoPurchasesFromDifferentCountries()
+    var
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        CountryCode1: Code[10];
+        CountryCode2: Code[10];
+    begin
+        // [FEATURE] [Purchase]
+        // [SCENARIO] Two purchases of the same Item with different "Country/Reg. of Orig. Code CZ" result in two Item Ledger Entries with different codes
+        Initialize();
+
+        // [GIVEN] Item with Country/Region of Origin Code = "A"
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        CountryCode1 := CreateCountryRegionCode();
+        CountryCode2 := CreateCountryRegionCode();
+
+        // [WHEN] Receive the Item twice, the first time with "Country/Reg. of Orig. Code CZ" = "B", the second time with "C"
+        PostPurchaseReceiptWithOrigin(ItemNo, CountryCode1);
+        PostPurchaseReceiptWithOrigin(ItemNo, CountryCode2);
+
+        // [THEN] There is one Item Ledger Entry with "B" and one with "C"
+        Assert.AreEqual(1, CountItemLedgerEntriesWithCountryOfOrigin(ItemNo, CountryCode1), CountryOfOriginErr);
+        Assert.AreEqual(1, CountItemLedgerEntriesWithCountryOfOrigin(ItemNo, CountryCode2), CountryOfOriginErr);
+        Assert.AreEqual(0, CountItemLedgerEntriesWithCountryOfOrigin(ItemNo, ItemCountryCode), CountryOfOriginErr);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    [HandlerFunctions('IntrastatReportGetLinesPageHandler')]
+    internal procedure CountryOfOriginGetLinesItemCard()
+    var
+        IntrastatReportLine: Record "Intrastat Report Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        PostedCountryCode: Code[10];
+    begin
+        // [FEATURE] [Get Lines]
+        // [SCENARIO] Get Lines with "Item Card" takes Country/Region of Origin Code from Item even if Item Ledger Entry has a different one
+        Initialize();
+
+        // [GIVEN] "Get Country/Region of Origin" = "Item Card"
+        SetGetCountryOfOrigin(Enum::"Get Country/Reg. of Origin CZ"::"Item Card");
+
+        // [GIVEN] Item with Country/Region of Origin Code = "A" received with "Country/Reg. of Orig. Code CZ" = "B"
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        PostedCountryCode := CreateCountryRegionCode();
+        PostPurchaseReceiptWithOrigin(ItemNo, PostedCountryCode);
+
+        // [WHEN] Get Intrastat Report Lines
+        SuggestIntrastatLinesForItem(ItemNo, IntrastatReportLine);
+
+        // [THEN] Intrastat Report Line has "Country/Region of Origin Code" = "A"
+        IntrastatReportLine.FindFirst();
+        VerifyCountryOfOrigin(ItemCountryCode, IntrastatReportLine."Country/Region of Origin Code", IntrastatReportLine.TableCaption());
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    [HandlerFunctions('IntrastatReportGetLinesPageHandler')]
+    internal procedure CountryOfOriginGetLinesPostedEntries()
+    var
+        IntrastatReportLine: Record "Intrastat Report Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        CountryCode1: Code[10];
+        CountryCode2: Code[10];
+    begin
+        // [FEATURE] [Get Lines]
+        // [SCENARIO] Get Lines with "Posted Entries" takes Country/Region of Origin Code from Item Ledger Entries
+        Initialize();
+
+        // [GIVEN] "Get Country/Region of Origin" = "Posted Entries"
+        SetGetCountryOfOrigin(Enum::"Get Country/Reg. of Origin CZ"::"Posted Entries");
+
+        // [GIVEN] Item with Country/Region of Origin Code = "A" received twice, with "Country/Reg. of Orig. Code CZ" = "B" and "C"
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        CountryCode1 := CreateCountryRegionCode();
+        CountryCode2 := CreateCountryRegionCode();
+        PostPurchaseReceiptWithOrigin(ItemNo, CountryCode1);
+        PostPurchaseReceiptWithOrigin(ItemNo, CountryCode2);
+
+        // [WHEN] Get Intrastat Report Lines
+        SuggestIntrastatLinesForItem(ItemNo, IntrastatReportLine);
+
+        // [THEN] There are two Intrastat Report Lines, one with "Country/Region of Origin Code" = "B" and one with "C"
+        Assert.AreEqual(2, IntrastatReportLine.Count(), LineCountErr);
+        IntrastatReportLine.SetRange("Country/Region of Origin Code", CountryCode1);
+        Assert.AreEqual(1, IntrastatReportLine.Count(), LineCountErr);
+        IntrastatReportLine.SetRange("Country/Region of Origin Code", CountryCode2);
+        Assert.AreEqual(1, IntrastatReportLine.Count(), LineCountErr);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    [HandlerFunctions('IntrastatReportGetLinesPageHandler')]
+    internal procedure CountryOfOriginGetLinesPostedEntriesBlankFallback()
+    var
+        IntrastatReportLine: Record "Intrastat Report Line";
+        ItemNo: Code[20];
+        ItemCountryCode: Code[10];
+    begin
+        // [FEATURE] [Get Lines]
+        // [SCENARIO] Get Lines with "Posted Entries" takes Country/Region of Origin Code from Item if Item Ledger Entry has a blank one
+        Initialize();
+
+        // [GIVEN] "Get Country/Region of Origin" = "Posted Entries"
+        SetGetCountryOfOrigin(Enum::"Get Country/Reg. of Origin CZ"::"Posted Entries");
+
+        // [GIVEN] Item with Country/Region of Origin Code = "A" received with blank "Country/Reg. of Orig. Code CZ"
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        PostPurchaseReceiptWithOrigin(ItemNo, '');
+        Assert.AreEqual(1, CountItemLedgerEntriesWithCountryOfOrigin(ItemNo, ''), CountryOfOriginErr);
+
+        // [WHEN] Get Intrastat Report Lines
+        SuggestIntrastatLinesForItem(ItemNo, IntrastatReportLine);
+
+        // [THEN] Intrastat Report Line has "Country/Region of Origin Code" = "A"
+        IntrastatReportLine.FindFirst();
+        VerifyCountryOfOrigin(ItemCountryCode, IntrastatReportLine."Country/Region of Origin Code", IntrastatReportLine.TableCaption());
+    end;
+
+    [Test]
+    internal procedure CountryOfOriginPostedEntriesExtensibleSource()
+    var
+        IntrastatReportLine: Record "Intrastat Report Line";
+        ActualCountryOfOriginCode: Code[10];
+        TestCZTok: Label 'TESTCZ', locked = true;
+    begin
+        // [FEATURE] [Country/Region of Origin] [Extensibility]
+        // [SCENARIO] A new source type provides its posted Country/Region of Origin Code through an enum extension implementing the interface
+        Initialize();
+
+        // [GIVEN] "Get Country/Region of Origin" = "Posted Entries"
+        SetGetCountryOfOrigin(Enum::"Get Country/Reg. of Origin CZ"::"Posted Entries");
+
+        // [GIVEN] Intrastat Report Line with the extended source type
+        IntrastatReportLine."Source Type" := IntrastatReportLine."Source Type"::"Test Source CZ";
+
+        // [WHEN] Get Country/Region of Origin Code
+        ActualCountryOfOriginCode := IntrastatReportLine.GetCountryOfOriginCode();
+
+        // [THEN] Country/Region of Origin Code is provided by the implementation of the extended source type
+        VerifyCountryOfOrigin(TestCZTok, ActualCountryOfOriginCode, IntrastatReportLine.TableCaption());
+    end;
+
+    [Test]
+    internal procedure CountryOfOriginExtensibleMode()
+    var
+        IntrastatReportLine: Record "Intrastat Report Line";
+        ActualCountryOfOriginCode: Code[10];
+        TestModeCZTok: Label 'TESTMODE', locked = true;
+    begin
+        // [FEATURE] [Country/Region of Origin] [Extensibility]
+        // [SCENARIO] A new "Get Country/Region of Origin" mode provides the Country/Region of Origin Code through an enum extension implementing the interface
+        Initialize();
+
+        // [GIVEN] "Get Country/Region of Origin" = extended mode
+        SetGetCountryOfOrigin(Enum::"Get Country/Reg. of Origin CZ"::"Test Mode CZ");
+
+        // [WHEN] Get Country/Region of Origin Code
+        ActualCountryOfOriginCode := IntrastatReportLine.GetCountryOfOriginCode();
+
+        // [THEN] Country/Region of Origin Code is provided by the implementation of the extended mode
+        VerifyCountryOfOrigin(TestModeCZTok, ActualCountryOfOriginCode, IntrastatReportLine.TableCaption());
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Scope('OnPrem')]
+    [HandlerFunctions('IntrastatReportGetLinesPageHandler')]
+    internal procedure CountryOfOriginPostedEntriesNotChangedByItemNoValidation()
+    var
+        IntrastatReportLine: Record "Intrastat Report Line";
+        ItemNo: Code[20];
+        OtherItemNo: Code[20];
+        ItemCountryCode: Code[10];
+        OtherItemCountryCode: Code[10];
+        PostedCountryCode: Code[10];
+    begin
+        // [FEATURE] [Get Lines]
+        // [SCENARIO] Validating "Item No." in Intrastat Report Line with "Posted Entries" keeps the Country/Region of Origin Code of the source Item Ledger Entry
+        Initialize();
+
+        // [GIVEN] "Get Country/Region of Origin" = "Posted Entries"
+        SetGetCountryOfOrigin(Enum::"Get Country/Reg. of Origin CZ"::"Posted Entries");
+
+        // [GIVEN] Item with Country/Region of Origin Code = "A" received with "Country/Reg. of Orig. Code CZ" = "B"
+        ItemNo := CreateItemWithCountryOfOrigin(ItemCountryCode);
+        PostedCountryCode := CreateCountryRegionCode();
+        PostPurchaseReceiptWithOrigin(ItemNo, PostedCountryCode);
+
+        // [GIVEN] Intrastat Report Line suggested with "Country/Region of Origin Code" = "B"
+        SuggestIntrastatLinesForItem(ItemNo, IntrastatReportLine);
+        IntrastatReportLine.FindFirst();
+        VerifyCountryOfOrigin(PostedCountryCode, IntrastatReportLine."Country/Region of Origin Code", IntrastatReportLine.TableCaption());
+
+        // [WHEN] Validate "Item No." with another Item having Country/Region of Origin Code = "D"
+        OtherItemNo := CreateItemWithCountryOfOrigin(OtherItemCountryCode);
+        IntrastatReportLine.Validate("Item No.", OtherItemNo);
+
+        // [THEN] "Country/Region of Origin Code" is still "B" and the Item Ledger Entry is not changed
+        VerifyCountryOfOrigin(PostedCountryCode, IntrastatReportLine."Country/Region of Origin Code", IntrastatReportLine.TableCaption());
+        Assert.AreEqual(1, CountItemLedgerEntriesWithCountryOfOrigin(ItemNo, PostedCountryCode), CountryOfOriginErr);
+    end;
+
+    local procedure SetGetCountryOfOrigin(GetCountryOfOrigin: Enum "Get Country/Reg. of Origin CZ")
+    var
+        IntrastatReportSetup: Record "Intrastat Report Setup";
+    begin
+        IntrastatReportSetup.Get();
+        IntrastatReportSetup."Get Ctry/Reg. of Origin CZ" := GetCountryOfOrigin;
+        IntrastatReportSetup.Modify();
+    end;
+
+    local procedure CreateCountryRegionCode(): Code[10]
+    begin
+        exit(LibraryCZIntrastat.CreateCountryRegionWithIntrastatCode(false));
+    end;
+
+    local procedure CreateItemWithCountryOfOrigin(var CountryOfOriginCode: Code[10]): Code[20]
+    var
+        Item: Record Item;
+    begin
+        CountryOfOriginCode := CreateCountryRegionCode();
+        Item.Get(LibraryCZIntrastat.CreateItem());
+        Item.Validate("Country/Region of Origin Code", CountryOfOriginCode);
+        Item.Modify(true);
+        exit(Item."No.");
+    end;
+
+    local procedure CreatePurchaseLineWithOrigin(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; DocumentType: Enum "Purchase Document Type"; ItemNo: Code[20]; CountryOfOriginCode: Code[10])
+    begin
+        LibraryCZIntrastat.CreatePurchaseHeader(
+            PurchaseHeader, DocumentType, WorkDate(), LibraryCZIntrastat.CreateVendor(LibraryCZIntrastat.GetCountryRegionCode()));
+        LibraryCZIntrastat.CreatePurchaseLine(PurchaseHeader, PurchaseLine, PurchaseLine.Type::Item, ItemNo);
+        PurchaseLine.Validate("Country/Reg. of Orig. Code CZ", CountryOfOriginCode);
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure CreateSalesLineWithOrigin(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; DocumentType: Enum "Sales Document Type"; ItemNo: Code[20]; CountryOfOriginCode: Code[10])
+    begin
+        LibraryCZIntrastat.CreateSalesDocument(
+            SalesHeader, SalesLine, LibraryCZIntrastat.CreateCustomer(), WorkDate(), DocumentType, SalesLine.Type::Item, ItemNo, 1);
+        SalesLine.Validate("Country/Reg. of Orig. Code CZ", CountryOfOriginCode);
+        SalesLine.Modify(true);
+    end;
+
+    local procedure CreateServiceLineWithOrigin(var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; DocumentType: Enum "Service Document Type"; ItemNo: Code[20]; CountryOfOriginCode: Code[10])
+    begin
+        LibraryCZIntrastat.CreateServiceDocument(
+            ServiceHeader, ServiceLine, LibraryCZIntrastat.CreateCustomer(), WorkDate(), DocumentType, ServiceLine.Type::Item, ItemNo, 1);
+        ServiceLine.Validate("Country/Reg. of Orig. Code CZ", CountryOfOriginCode);
+        ServiceLine.Modify(true);
+    end;
+
+    local procedure PostPurchaseReceiptWithOrigin(ItemNo: Code[20]; CountryOfOriginCode: Code[10])
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        CreatePurchaseLineWithOrigin(PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order, ItemNo, CountryOfOriginCode);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+    end;
+
+    local procedure SuggestIntrastatLinesForItem(ItemNo: Code[20]; var IntrastatReportLine: Record "Intrastat Report Line")
+    var
+        IntrastatReportNo: Code[20];
+    begin
+        CreateIntrastatReportAndSuggestLines(WorkDate(), IntrastatReportNo);
+        IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
+        IntrastatReportLine.SetRange("Item No.", ItemNo);
+    end;
+
+    local procedure CountItemLedgerEntriesWithCountryOfOrigin(ItemNo: Code[20]; CountryOfOriginCode: Code[10]): Integer
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Country/Reg. of Orig. Code CZ", CountryOfOriginCode);
+        exit(ItemLedgerEntry.Count());
+    end;
+
+    local procedure VerifyItemLedgerEntryCountryOfOrigin(ItemNo: Code[20]; EntryType: Enum "Item Ledger Entry Type"; ExpectedCountryOfOriginCode: Code[10])
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", EntryType);
+        ItemLedgerEntry.FindSet();
+        repeat
+            VerifyCountryOfOrigin(ExpectedCountryOfOriginCode, ItemLedgerEntry."Country/Reg. of Orig. Code CZ", ItemLedgerEntry.TableCaption());
+        until ItemLedgerEntry.Next() = 0;
+    end;
+
+    local procedure VerifyCountryOfOrigin(ExpectedCountryOfOriginCode: Code[10]; ActualCountryOfOriginCode: Code[10]; TableCaption: Text)
+    begin
+        Assert.AreEqual(ExpectedCountryOfOriginCode, ActualCountryOfOriginCode, StrSubstNo(CountryOfOriginErr, TableCaption));
+    end;
+
     local procedure Initialize()
     var
+        IntrastatReportSetup: Record "Intrastat Report Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         GLSetupVATCalculation: Enum "G/L Setup VAT Calculation";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Intrastat CZ Test");
-
+        if IntrastatReportSetup.Get() then begin
+            IntrastatReportSetup."Transaction Type Mandatory" := false;
+            IntrastatReportSetup."Transaction Spec. Mandatory" := false;
+            IntrastatReportSetup."Shipment Method Mandatory" := false;
+            IntrastatReportSetup."Transport Method Mandatory" := false;
+            IntrastatReportSetup."Get Ctry/Reg. of Origin CZ" := IntrastatReportSetup."Get Ctry/Reg. of Origin CZ"::"Item Card";
+            IntrastatReportSetup.Modify();
+        end;
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Intrastat CZ Test");
@@ -4444,7 +5614,7 @@ codeunit 148125 "Intrastat CZ Test"
         // Verify: Verify Intrastat Report Line with No entires.
         IntrastatReportLine.SetFilter("Intrastat No.", IntrastatReportNo);
         IntrastatReportLine.SetFilter("Document No.", DocumentNo);
-        Assert.AreEqual(MustExist, IntrastatReportLine.FindFirst(), LineNotExistErr);
+        Assert.AreEqual(MustExist, not IntrastatReportLine.IsEmpty(), LineNotExistErr);
     end;
 
     local procedure DeleteAndVerifyNoIntrastatLine(DocumentNo: Code[20])
@@ -4479,12 +5649,10 @@ codeunit 148125 "Intrastat CZ Test"
     var
         IntrastatReportSetup: Record "Intrastat Report Setup";
     begin
-        with IntrastatReportSetup do begin
-            Get();
-            Validate("Intrastat Contact Type", ContactType);
-            Validate("Intrastat Contact No.", ContactNo);
-            Modify(true);
-        end;
+        IntrastatReportSetup.Get();
+        IntrastatReportSetup.Validate("Intrastat Contact Type", ContactType);
+        IntrastatReportSetup.Validate("Intrastat Contact No.", ContactNo);
+        IntrastatReportSetup.Modify(true);
     end;
 
     local procedure VerifyIntrastatReportLine(DocumentNo: Code[20]; IntrastatReportNo: Code[20]; Type: Enum "Intrastat Report Line Type"; CountryRegionCode: Code[10];
@@ -4572,31 +5740,27 @@ codeunit 148125 "Intrastat CZ Test"
     begin
         IntrastatReportLine.SetRange("Document No.", DocumentNo);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatNo);
-        Assert.IsFalse(IntrastatReportLine.FindFirst(), LineNotExistErr);
+        Assert.IsTrue(IntrastatReportLine.IsEmpty(), LineNotExistErr);
     end;
 
     local procedure VerifyNoOfIntrastatLinesForDocumentNo(IntrastatReportNo: Code[20]; DocumentNo: Code[20]; LineCount: Integer)
     var
         IntrastatReportLine: Record "Intrastat Report Line";
     begin
-        with IntrastatReportLine do begin
-            SetRange("Intrastat No.", IntrastatReportNo);
-            SetRange("Document No.", DocumentNo);
-            Assert.AreEqual(
-              LineCount, Count,
-              StrSubstNo(LineCountErr, TableCaption));
-        end;
+        IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
+        IntrastatReportLine.SetRange("Document No.", DocumentNo);
+        Assert.AreEqual(
+          LineCount, IntrastatReportLine.Count(),
+          StrSubstNo(LineCountErr, IntrastatReportLine.TableCaption()));
     end;
 
     local procedure VerifyIntrastatContact(ContactType: Enum "Intrastat Report Contact Type"; ContactNo: Code[20])
     var
         IntrastatReportSetup: Record "Intrastat Report Setup";
     begin
-        with IntrastatReportSetup do begin
-            Get();
-            TestField("Intrastat Contact Type", ContactType);
-            TestField("Intrastat Contact No.", ContactNo);
-        end;
+        IntrastatReportSetup.Get();
+        IntrastatReportSetup.TestField("Intrastat Contact Type", ContactType);
+        IntrastatReportSetup.TestField("Intrastat Contact No.", ContactNo);
     end;
 
     local procedure VerifyPartnerID(IntrastatReportHeader: Record "Intrastat Report Header"; ItemNo: Code[20]; PartnerID: Text[50])
@@ -4604,7 +5768,9 @@ codeunit 148125 "Intrastat CZ Test"
         IntrastatReportLine: Record "Intrastat Report Line";
     begin
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportHeader."No.");
+#pragma warning disable AA0210
         IntrastatReportLine.SetRange("Item No.", ItemNo);
+#pragma warning restore AA0210
         IntrastatReportLine.FindFirst();
         IntrastatReportLine.TestField("Partner VAT ID", PartnerID);
     end;
@@ -4704,7 +5870,6 @@ codeunit 148125 "Intrastat CZ Test"
     begin
         DataExch.FindLast();
         IntrastatReportPage.IntrastatLines.First();
-
         if DataExch."File Content".HasValue then begin
             DataExch.CalcFields("File Content");
             TempBlob.FromRecord(DataExch, DataExch.FieldNo("File Content"));
@@ -4727,7 +5892,6 @@ codeunit 148125 "Intrastat CZ Test"
                 IntrastatReportPage.IntrastatLines."Statistical Value".AssertEquals(Format(DecVar));
                 IntrastatReportPage.IntrastatLines."Partner VAT ID".AssertEquals(LibraryTextFileValidation.ReadField(Line, 8, TabChar).Trim());
                 IntrastatReportPage.IntrastatLines."Country/Region of Origin Code".AssertEquals(LibraryTextFileValidation.ReadField(Line, 9, TabChar).Trim());
-
                 if IntrastatReportPage.IntrastatLines.Next() then;
                 I += 1;
             end;
@@ -4745,10 +5909,9 @@ codeunit 148125 "Intrastat CZ Test"
         DecVar: Decimal;
         I: Integer;
     begin
-        DataExch.FindLast();
-        DataExch.Next(-2);
+        DataExch.FindSet();
+        DataExch.Next(DataExch.Count() - 3);
         IntrastatReportPage.IntrastatLines.First();
-
         repeat
             if DataExch."File Content".HasValue then begin
                 DataExch.CalcFields("File Content");
@@ -4772,7 +5935,6 @@ codeunit 148125 "Intrastat CZ Test"
                     IntrastatReportPage.IntrastatLines."Statistical Value".AssertEquals(Format(DecVar));
                     IntrastatReportPage.IntrastatLines."Partner VAT ID".AssertEquals(LibraryTextFileValidation.ReadField(Line, 8, TabChar).Trim());
                     IntrastatReportPage.IntrastatLines."Country/Region of Origin Code".AssertEquals(LibraryTextFileValidation.ReadField(Line, 9, TabChar).Trim());
-
                     if IntrastatReportPage.IntrastatLines.Next() then;
                     i += 1;
                 end;
@@ -4793,7 +5955,7 @@ codeunit 148125 "Intrastat CZ Test"
     begin
         Assert.IsTrue(
           StrPos(Msg, 'The journal lines were successfully posted.') = 1,
-          StrSubstNo('Unexpected Message: %1', Msg))
+          StrSubstNo(UnexpectedMessageErr, Msg))
     end;
 
     [MessageHandler]
@@ -4817,170 +5979,102 @@ codeunit 148125 "Intrastat CZ Test"
         IntrastatReport.GetEntries.Invoke();
     end;
 
+    local procedure CreateTransactionType(): Code[10]
+    begin
+        exit(LibraryUtility.CreateCodeRecord(Database::"Transaction Type"));
+    end;
+
+    local procedure CreateTransactionSpecification(): Code[10]
+    begin
+        exit(LibraryUtility.CreateCodeRecord(Database::"Transaction Specification"));
+    end;
+
+    local procedure CreateShipmentMethod(): Code[10]
+    begin
+        exit(LibraryUtility.CreateCodeRecord(Database::"Shipment Method"));
+    end;
+
+    local procedure CreateTransportMethod(): Code[10]
+    begin
+        exit(LibraryUtility.CreateCodeRecord(Database::"Transport Method"));
+    end;
+
     local procedure InsertIntrastatInfoInSalesHeader(var SalesHeader: Record "Sales Header")
-    var
-        TransactionType: Record "Transaction Type";
-        TransactionSpecification: Record "Transaction Specification";
-        ShipmentMethod: Record "Shipment Method";
-        TransportMethod: Record "Transport Method";
     begin
         if SalesHeader."Transaction Type" = '' then begin
-            TransactionType.Init();
-            TransactionType.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionType.Code)), 1, MaxStrLen(TransactionType.Code));
-            TransactionType.Insert();
-
-            SalesHeader."Transaction Type" := TransactionType.Code;
+            SalesHeader."Transaction Type" := CreateTransactionType();
             SalesHeader.Modify();
         end;
         if SalesHeader."Transaction Specification" = '' then begin
-            TransactionSpecification.Init();
-            TransactionSpecification.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionSpecification.Code)), 1, MaxStrLen(TransactionSpecification.Code));
-            TransactionSpecification.Insert();
-
-            SalesHeader."Transaction Specification" := TransactionSpecification.Code;
+            SalesHeader."Transaction Specification" := CreateTransactionSpecification();
             SalesHeader.Modify();
         end;
         if SalesHeader."Shipment Method Code" = '' then begin
-            ShipmentMethod.Init();
-            ShipmentMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(ShipmentMethod.Code)), 1, MaxStrLen(ShipmentMethod.Code));
-            ShipmentMethod.Insert();
-
-            SalesHeader."Shipment Method Code" := ShipmentMethod.Code;
+            SalesHeader."Shipment Method Code" := CreateShipmentMethod();
             SalesHeader.Modify();
         end;
-
         if SalesHeader."Transport Method" = '' then begin
-            TransportMethod.Init();
-            TransportMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransportMethod.Code)), 1, MaxStrLen(TransportMethod.Code));
-            TransportMethod.Insert();
-
-            SalesHeader."Transport Method" := TransportMethod.Code;
+            SalesHeader."Transport Method" := CreateTransportMethod();
             SalesHeader.Modify();
         end;
     end;
 
     local procedure InsertIntrastatInfoInServiceHeader(var ServiceHeader: Record "Service Header")
-    var
-        TransactionType: Record "Transaction Type";
-        TransactionSpecification: Record "Transaction Specification";
-        ShipmentMethod: Record "Shipment Method";
-        TransportMethod: Record "Transport Method";
     begin
         if ServiceHeader."Transaction Type" = '' then begin
-            TransactionType.Init();
-            TransactionType.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionType.Code)), 1, MaxStrLen(TransactionType.Code));
-            TransactionType.Insert();
-
-            ServiceHeader."Transaction Type" := TransactionType.Code;
+            ServiceHeader."Transaction Type" := CreateTransactionType();
             ServiceHeader.Modify();
         end;
         if ServiceHeader."Transaction Specification" = '' then begin
-            TransactionSpecification.Init();
-            TransactionSpecification.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionSpecification.Code)), 1, MaxStrLen(TransactionSpecification.Code));
-            TransactionSpecification.Insert();
-
-            ServiceHeader."Transaction Specification" := TransactionSpecification.Code;
+            ServiceHeader."Transaction Specification" := CreateTransactionSpecification();
             ServiceHeader.Modify();
         end;
         if ServiceHeader."Shipment Method Code" = '' then begin
-            ShipmentMethod.Init();
-            ShipmentMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(ShipmentMethod.Code)), 1, MaxStrLen(ShipmentMethod.Code));
-            ShipmentMethod.Insert();
-
-            ServiceHeader."Shipment Method Code" := ShipmentMethod.Code;
+            ServiceHeader."Shipment Method Code" := CreateShipmentMethod();
             ServiceHeader.Modify();
         end;
-
         if ServiceHeader."Transport Method" = '' then begin
-            TransportMethod.Init();
-            TransportMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransportMethod.Code)), 1, MaxStrLen(TransportMethod.Code));
-            TransportMethod.Insert();
-
-            ServiceHeader."Transport Method" := TransportMethod.Code;
+            ServiceHeader."Transport Method" := CreateTransportMethod();
             ServiceHeader.Modify();
         end;
     end;
 
     local procedure InsertIntrastatInfoInTransferHeader(var TransferHeader: Record "Transfer Header")
-    var
-        TransactionType: Record "Transaction Type";
-        TransactionSpecification: Record "Transaction Specification";
-        ShipmentMethod: Record "Shipment Method";
-        TransportMethod: Record "Transport Method";
     begin
         if TransferHeader."Transaction Type" = '' then begin
-            TransactionType.Init();
-            TransactionType.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionType.Code)), 1, MaxStrLen(TransactionType.Code));
-            TransactionType.Insert();
-
-            TransferHeader."Transaction Type" := TransactionType.Code;
+            TransferHeader."Transaction Type" := CreateTransactionType();
             TransferHeader.Modify();
         end;
         if TransferHeader."Transaction Specification" = '' then begin
-            TransactionSpecification.Init();
-            TransactionSpecification.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionSpecification.Code)), 1, MaxStrLen(TransactionSpecification.Code));
-            TransactionSpecification.Insert();
-
-            TransferHeader."Transaction Specification" := TransactionSpecification.Code;
+            TransferHeader."Transaction Specification" := CreateTransactionSpecification();
             TransferHeader.Modify();
         end;
         if TransferHeader."Shipment Method Code" = '' then begin
-            ShipmentMethod.Init();
-            ShipmentMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(ShipmentMethod.Code)), 1, MaxStrLen(ShipmentMethod.Code));
-            ShipmentMethod.Insert();
-
-            TransferHeader."Shipment Method Code" := ShipmentMethod.Code;
+            TransferHeader."Shipment Method Code" := CreateShipmentMethod();
             TransferHeader.Modify();
         end;
-
         if TransferHeader."Transport Method" = '' then begin
-            TransportMethod.Init();
-            TransportMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransportMethod.Code)), 1, MaxStrLen(TransportMethod.Code));
-            TransportMethod.Insert();
-
-            TransferHeader."Transport Method" := TransportMethod.Code;
+            TransferHeader."Transport Method" := CreateTransportMethod();
             TransferHeader.Modify();
         end;
     end;
 
     local procedure InsertIntrastatInfoInPurchaseHeader(var PurchaseHeader: Record "Purchase Header")
-    var
-        TransactionType: Record "Transaction Type";
-        TransactionSpecification: Record "Transaction Specification";
-        ShipmentMethod: Record "Shipment Method";
-        TransportMethod: Record "Transport Method";
     begin
         if PurchaseHeader."Transaction Type" = '' then begin
-            TransactionType.Init();
-            TransactionType.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionType.Code)), 1, MaxStrLen(TransactionType.Code));
-            TransactionType.Insert();
-
-            PurchaseHeader."Transaction Type" := TransactionType.Code;
+            PurchaseHeader."Transaction Type" := CreateTransactionType();
             PurchaseHeader.Modify();
         end;
         if PurchaseHeader."Transaction Specification" = '' then begin
-            TransactionSpecification.Init();
-            TransactionSpecification.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransactionSpecification.Code)), 1, MaxStrLen(TransactionSpecification.Code));
-            TransactionSpecification.Insert();
-
-            PurchaseHeader."Transaction Specification" := TransactionSpecification.Code;
+            PurchaseHeader."Transaction Specification" := CreateTransactionSpecification();
             PurchaseHeader.Modify();
         end;
         if PurchaseHeader."Shipment Method Code" = '' then begin
-            ShipmentMethod.Init();
-            ShipmentMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(ShipmentMethod.Code)), 1, MaxStrLen(ShipmentMethod.Code));
-            ShipmentMethod.Insert();
-
-            PurchaseHeader."Shipment Method Code" := ShipmentMethod.Code;
+            PurchaseHeader."Shipment Method Code" := CreateShipmentMethod();
             PurchaseHeader.Modify();
         end;
-
         if PurchaseHeader."Transport Method" = '' then begin
-            TransportMethod.Init();
-            TransportMethod.Code := CopyStr(LibraryRandom.RandText(MaxStrLen(TransportMethod.Code)), 1, MaxStrLen(TransportMethod.Code));
-            TransportMethod.Insert();
-
-            PurchaseHeader."Transport Method" := TransportMethod.Code;
+            PurchaseHeader."Transport Method" := CreateTransportMethod();
             PurchaseHeader.Modify();
         end;
     end;

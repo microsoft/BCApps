@@ -95,8 +95,13 @@ codeunit 1230 "SEPA DD-Export File"
         if IsHandled then
             exit;
 
-        DirectDebitCollectionEntry.TestField("Direct Debit Collection No.");
-        DirectDebitCollection.Get(DirectDebitCollectionEntry."Direct Debit Collection No.");
+        if DirectDebitCollectionEntry.GetFilter("Direct Debit Collection No.") <> '' then
+            DirectDebitCollection.Get(DirectDebitCollectionEntry.GetRangeMin("Direct Debit Collection No."))
+        else begin
+            DirectDebitCollectionEntry.TestField("Direct Debit Collection No.");
+            DirectDebitCollection.Get(DirectDebitCollectionEntry."Direct Debit Collection No.");
+            DirectDebitCollectionEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
+        end;
     end;
 
     /// <summary>

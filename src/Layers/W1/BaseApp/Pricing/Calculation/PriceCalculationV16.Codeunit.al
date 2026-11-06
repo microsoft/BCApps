@@ -243,6 +243,8 @@ codeunit 7002 "Price Calculation - V16" implements "Price Calculation"
 
     local procedure PickBestLine(AmountType: Enum "Price Amount Type"; PriceListLine: Record "Price List Line"; var BestPriceListLine: Record "Price List Line"; var FoundBestLine: Boolean)
     var
+        ComparisonPriceListLine: Record "Price List Line";
+        DiscountIsDeclared: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -250,11 +252,18 @@ codeunit 7002 "Price Calculation - V16" implements "Price Calculation"
         if IsHandled then
             exit;
 
+        DiscountIsDeclared :=
+            (PriceListLine."Amount Type" = PriceListLine."Amount Type"::Discount) or (PriceListLine."Line Discount %" > 0);
         if IsImprovedLine(PriceListLine, BestPriceListLine) or not IsDegradedLine(PriceListLine, BestPriceListLine) then begin
+            ComparisonPriceListLine := BestPriceListLine;
             if IsImprovedLine(PriceListLine, BestPriceListLine) and not IsDegradedLine(PriceListLine, BestPriceListLine) then
-                if (AmountType <> AmountType::Discount) or (PriceListLine."Line Discount %" > 0) then
-                    Clear(BestPriceListLine);
-            if IsBetterLine(PriceListLine, AmountType, BestPriceListLine) then begin
+                if (AmountType <> AmountType::Discount) or DiscountIsDeclared then begin
+                    Clear(ComparisonPriceListLine);
+                    // Preserve the accepted discount until the candidate passes the event; leave price selection unchanged.
+                    if AmountType <> AmountType::Discount then
+                        Clear(BestPriceListLine);
+                end;
+            if IsBetterLine(PriceListLine, AmountType, ComparisonPriceListLine) then begin
                 BestPriceListLine := PriceListLine;
                 FoundBestLine := true;
             end;
@@ -293,7 +302,10 @@ codeunit 7002 "Price Calculation - V16" implements "Price Calculation"
     procedure IsBetterLine(var PriceListLine: Record "Price List Line"; AmountType: Enum "Price Amount Type"; BestPriceListLine: Record "Price List Line") Result: Boolean;
     begin
         if AmountType = AmountType::Discount then
-            Result := PriceListLine."Line Discount %" > BestPriceListLine."Line Discount %"
+            Result :=
+                (PriceListLine."Line Discount %" > BestPriceListLine."Line Discount %") or
+                (((PriceListLine."Amount Type" = PriceListLine."Amount Type"::Discount) or (PriceListLine."Line Discount %" > 0)) and
+                 not BestPriceListLine.IsRealLine())
         else
             case PriceListLine."Price Type" of
                 PriceListLine."Price Type"::Sale:

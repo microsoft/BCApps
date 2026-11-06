@@ -22,9 +22,6 @@ using Microsoft.Service.History;
 codeunit 10789 "Service Posting Subscr. ES"
 {
     var
-#if not CLEAN27
-        ServPostingJournalsMgt: Codeunit "Serv-Posting Journals Mgt.";
-#endif
         CannotCreateCarteraDocErr: Label 'You do not have permissions to create Documents in Cartera.\Please, change the Payment Method.';
         Text1100000: Label 'The Credit Memo doesn''t have a Corrected Invoice No. Do you want to continue?';
         Text1100001: Label 'The posting process has been cancelled by the user.';
@@ -122,9 +119,6 @@ codeunit 10789 "Service Posting Subscr. ES"
             then
                 Error(CannotCreateCarteraDocErr);
         OnCreateBillsOnBeforeSplitServiceInv(ServiceHeader, CustLedgEntry, TotalServiceLine);
-#if not CLEAN27
-        ServPostingJournalsMgt.RunOnCreateBillsOnBeforeSplitServiceInv(ServiceHeader, CustLedgEntry, TotalServiceLine);
-#endif
         SourceCodeSetup.Get();
         if (ServiceHeader."Bal. Account No." = '') and (ServiceHeader."Document Type" <> ServiceHeader."Document Type"::"Credit Memo") and CarteraSetup.ReadPermission then
             ServInvoiceSplitPayment.SplitServiceInvoice(

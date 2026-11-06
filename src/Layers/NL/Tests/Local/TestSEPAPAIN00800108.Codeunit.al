@@ -1027,10 +1027,7 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         FindPaymentHistory(BankAccountNo, PaymentHistory);
         PaymentHistoryLine.SetRange("Our Bank", PaymentHistory."Our Bank");
         PaymentHistoryLine.SetRange("Run No.", PaymentHistory."Run No.");
-        PaymentHistoryLine.ModifyAll("Account Holder Address", '', false);
-        PaymentHistoryLine.ModifyAll("Account Holder Post Code", '', false);
-        PaymentHistoryLine.ModifyAll("Account Holder City", '', false);
-        PaymentHistoryLine.ModifyAll("Acc. Hold. Country/Region Code", '', false);
+        PaymentHistoryLine.ModifyAll("Account Holder Address", '', "Account Holder Post Code", '', "Account Holder City", '', "Acc. Hold. Country/Region Code", '', false);
     end;
 
     local procedure CancelPayment(BankAccountNo: Code[20])

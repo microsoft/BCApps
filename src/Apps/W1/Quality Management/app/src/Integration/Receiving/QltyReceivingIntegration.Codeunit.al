@@ -489,7 +489,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
 
         CurrentVariant := TransTransferLine;
-        QltyWarehouseIntegration.CollectSourceItemTracking(CurrentVariant, TempTrackingSpecification);
+        QltyWarehouseIntegration.CollectSourceItemTracking(CurrentVariant, TempTrackingSpecification, true);
         TempTrackingSpecification.Reset();
         if TempTrackingSpecification.FindSet() then
             repeat
