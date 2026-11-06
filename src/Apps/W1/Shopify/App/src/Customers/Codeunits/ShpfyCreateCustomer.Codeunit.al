@@ -113,22 +113,22 @@ codeunit 30110 "Shpfy Create Customer"
 
     local procedure FindCompanyCustomerTemplate(ShopifyShop: Record "Shpfy Shop"; CountryCode: Code[20]; ShopifyCountryCode: Code[20]) Result: Code[20]
     var
+        TemplateCandidates: List of [Code[20]];
+        CandidateTemplateCode: Code[20];
         AutomaticTemplateCode: Code[20];
         IsHandled: Boolean;
     begin
         CustomerEvents.OnBeforeFindCustomerTemplate(ShopifyShop, CountryCode, Result, IsHandled);
         if not IsHandled then begin
             CheckCountryTemplateExists(ShopifyShop.Code, CountryCode);
-            AutomaticTemplateCode := GetCountryTemplateCode(ShopifyShop.Code, ShopifyCountryCode, true);
-            if (AutomaticTemplateCode = '') and (ShopifyCountryCode <> CountryCode) then
-                AutomaticTemplateCode := GetCountryTemplateCode(ShopifyShop.Code, CountryCode, true);
-            if AutomaticTemplateCode = '' then
-                AutomaticTemplateCode := ShopifyShop."Company Templ. Code";
-            if AutomaticTemplateCode = '' then begin
-                AutomaticTemplateCode := GetCountryTemplateCode(ShopifyShop.Code, ShopifyCountryCode, false);
-                if (AutomaticTemplateCode = '') and (ShopifyCountryCode <> CountryCode) then
-                    AutomaticTemplateCode := GetCountryTemplateCode(ShopifyShop.Code, CountryCode, false);
-            end;
+            AddCountryTemplateCandidates(TemplateCandidates, ShopifyShop.Code, ShopifyCountryCode, CountryCode, true);
+            TemplateCandidates.Add(ShopifyShop."Company Templ. Code");
+            AddCountryTemplateCandidates(TemplateCandidates, ShopifyShop.Code, ShopifyCountryCode, CountryCode, false);
+            TemplateCandidates.Add(ShopifyShop."Customer Templ. Code");
+            Clear(AutomaticTemplateCode);
+            foreach CandidateTemplateCode in TemplateCandidates do
+                if (AutomaticTemplateCode = '') and (CandidateTemplateCode <> '') then
+                    AutomaticTemplateCode := CandidateTemplateCode;
             if AutomaticTemplateCode <> '' then
                 Result := AutomaticTemplateCode;
             if Result = '' then begin
@@ -138,6 +138,13 @@ codeunit 30110 "Shpfy Create Customer"
         end;
         CustomerEvents.OnAfterFindCustomerTemplate(ShopifyShop, CountryCode, Result);
         exit(Result);
+    end;
+
+    local procedure AddCountryTemplateCandidates(var TemplateCandidates: List of [Code[20]]; ShopCode: Code[20]; ShopifyCountryCode: Code[20]; CountryCode: Code[20]; IsCompanyTemplate: Boolean)
+    begin
+        TemplateCandidates.Add(GetCountryTemplateCode(ShopCode, ShopifyCountryCode, IsCompanyTemplate));
+        if ShopifyCountryCode <> CountryCode then
+            TemplateCandidates.Add(GetCountryTemplateCode(ShopCode, CountryCode, IsCompanyTemplate));
     end;
 
     local procedure CheckCountryTemplateExists(ShopCode: Code[20]; CountryCode: Code[20])
