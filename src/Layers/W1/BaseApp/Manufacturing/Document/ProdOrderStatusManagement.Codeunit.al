@@ -328,7 +328,23 @@ codeunit 5407 "Prod. Order Status Management"
                 OnTransferReopenProdOrderRtngLineOnAfterInsert(FromProdOrderRtngLine, ToProdOrderRtngLine, FromProdOrder);
             until FromProdOrderRtngLine.Next() = 0;
             FromProdOrderRtngLine.DeleteAll();
+            UpdateQtyReadyToStartOnReopenedRtngLines(FromProdOrder."No.");
         end;
+    end;
+
+    local procedure UpdateQtyReadyToStartOnReopenedRtngLines(ProdOrderNo: Code[20])
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
+    begin
+        // Runs after all routing lines are reopened, so that every predecessor operation exists in the released order.
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
+        ProdOrderRoutingLine.SetLoadFields("Previous Operation No.", "Input Quantity", "Quantity Ready to Start");
+        if ProdOrderRoutingLine.FindSet(true) then
+            repeat
+                QtyReadyToStartMgt.UpdateQtyReadyToStart(ProdOrderRoutingLine);
+            until ProdOrderRoutingLine.Next() = 0;
     end;
 
     local procedure TransReopenProdOrderRtngPersnl(FromProdOrder: Record "Production Order")
