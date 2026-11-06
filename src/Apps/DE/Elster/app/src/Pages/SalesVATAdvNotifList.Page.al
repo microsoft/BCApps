@@ -22,22 +22,22 @@ page 11017 "Sales VAT Adv. Notif. List"
         {
             repeater(General)
             {
-                field("No."; "No.")
+                field("No."; Rec."No.")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the sales VAT advance notification number.';
                 }
-                field(Description; Description)
+                field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a description of the sales VAT advance notification.';
                 }
-                field("Starting Date"; "Starting Date")
+                field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the starting date of the period for which you want to create and transmit the sales VAT advance notification.';
                 }
-                field(Period; Period)
+                field(Period; Rec.Period)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the length of the period for created and transmitted sales VAT advance notifications.';
@@ -67,7 +67,7 @@ page 11017 "Sales VAT Adv. Notif. List"
                     var
                         SalesVATAdvNotif: Record "Sales VAT Advance Notif.";
                     begin
-                        SalesVATAdvNotif.SetRange("No.", "No.");
+                        SalesVATAdvNotif.SetRange("No.", Rec."No.");
                         Report.RunModal(Report::"Create XML-File VAT Adv.Notif.", true, false, SalesVATAdvNotif);
                     end;
                 }
@@ -81,7 +81,7 @@ page 11017 "Sales VAT Adv. Notif. List"
 
                     trigger OnAction()
                     begin
-                        DeleteXMLSubDoc();
+                        Rec.DeleteXMLSubDoc();
                     end;
                 }
                 separator("1")
@@ -124,7 +124,7 @@ page 11017 "Sales VAT Adv. Notif. List"
 
                     trigger OnAction()
                     begin
-                        VATStmtName.Get("Statement Template Name", "Statement Name");
+                        VATStmtName.Get(Rec."Statement Template Name", Rec."Statement Name");
                         ReportPrint.PrintVATStmtName(VATStmtName);
                     end;
                 }
@@ -147,7 +147,7 @@ page 11017 "Sales VAT Adv. Notif. List"
 
                     trigger OnAction()
                     begin
-                        VATStmtName.SetFilter(Name, "Statement Name");
+                        VATStmtName.SetFilter(Name, Rec."Statement Name");
                         VATStmtName.FindFirst();
                         VATStmtName.SetRecFilter();
                         Report.Run(Report::"G/L - VAT Reconciliation", true, false, VATStmtName);
@@ -165,7 +165,7 @@ page 11017 "Sales VAT Adv. Notif. List"
 
                 trigger OnAction()
                 begin
-                    Export();
+                    Rec.Export();
                 end;
             }
         }

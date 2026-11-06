@@ -20,7 +20,7 @@ page 11016 "Sales VAT Adv. Notif. Card"
             group(General)
             {
                 Caption = 'General';
-                field("No."; "No.")
+                field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the sales VAT advance notification number.';
@@ -28,78 +28,78 @@ page 11016 "Sales VAT Adv. Notif. Card"
 
                     trigger OnAssistEdit()
                     begin
-                        if AssistEdit(xRec) then
+                        if Rec.AssistEdit(xRec) then
                             CurrPage.Update();
                     end;
                 }
-                field(Description; Description)
+                field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a description of the sales VAT advance notification.';
                 }
-                field("Starting Date"; "Starting Date")
+                field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                     ToolTip = 'Specifies the starting date of the period for which you want to create and transmit the sales VAT advance notification.';
                 }
-                field(Period; Period)
+                field(Period; Rec.Period)
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                     ToolTip = 'Specifies the length of the period for created and transmitted sales VAT advance notifications.';
                 }
-                field(Testversion; Testversion)
+                field(Testversion; Rec.Testversion)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if the submission of the sales VAT advance notification will be in test mode.';
                 }
-                field("Additional Information"; "Additional Information")
+                field("Additional Information"; Rec."Additional Information")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies additional text explanations to submit to the tax authority.';
                 }
-                field("Documents Submitted Separately"; "Documents Submitted Separately")
+                field("Documents Submitted Separately"; Rec."Documents Submitted Separately")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if you intend to submit documents besides the VAT Statement to the tax authorities.';
                 }
-                field("Incl. VAT Entries (Closing)"; "Incl. VAT Entries (Closing)")
+                field("Incl. VAT Entries (Closing)"; Rec."Incl. VAT Entries (Closing)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether the calculation of the tax and base amounts should include only closed, open, or closed and open VAT entries.';
                 }
-                field("Incl. VAT Entries (Period)"; "Incl. VAT Entries (Period)")
+                field("Incl. VAT Entries (Period)"; Rec."Incl. VAT Entries (Period)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether the tax and base amounts calculation should include VAT entries with posting dates within the period, or earlier than the period starting date.';
                 }
-                field("Corrected Notification"; "Corrected Notification")
+                field("Corrected Notification"; Rec."Corrected Notification")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if it is a corrected notification.';
                 }
-                field("Offset Amount of Refund"; "Offset Amount of Refund")
+                field("Offset Amount of Refund"; Rec."Offset Amount of Refund")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether to include a potential amount of refund with the payment charge on this sales VAT advance notification.';
                 }
-                field("Cancel Order for Direct Debit"; "Cancel Order for Direct Debit")
+                field("Cancel Order for Direct Debit"; Rec."Cancel Order for Direct Debit")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether to cancel the standing order for direct debit of the responsible tax office for the current sales VAT advance notification.';
                 }
-                field("XML-File Creation Date"; "XML-File Creation Date")
+                field("XML-File Creation Date"; Rec."XML-File Creation Date")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the creation date of the XML document to be submitted to the tax authorities.';
                 }
-                field("Statement Name"; "Statement Name")
+                field("Statement Name"; Rec."Statement Name")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the VAT statement template name used to calculate the amounts and assign them to the key figures required by the tax authorities.';
                 }
-                field("Use Authentication"; "Use Authentication")
+                field("Use Authentication"; Rec."Use Authentication")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether to submit signed data to the tax authorities.';
@@ -108,17 +108,17 @@ page 11016 "Sales VAT Adv. Notif. Card"
             group(Communication)
             {
                 Caption = 'Communication';
-                field("Contact for Tax Office"; "Contact for Tax Office")
+                field("Contact for Tax Office"; Rec."Contact for Tax Office")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the name of a contact person in your company for callbacks from the tax office.';
                 }
-                field("Contact Phone No."; "Contact Phone No.")
+                field("Contact Phone No."; Rec."Contact Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the phone number of the person who creates the VAT statement.';
                 }
-                field("Contact E-Mail"; "Contact E-Mail")
+                field("Contact E-Mail"; Rec."Contact E-Mail")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the email address of the person who creates the VAT statement.';
@@ -149,8 +149,8 @@ page 11016 "Sales VAT Adv. Notif. Card"
                     var
                         SalesVATAdvNotif: Record "Sales VAT Advance Notif.";
                     begin
-                        TestField("No.");
-                        SalesVATAdvNotif.SetRange("No.", "No.");
+                        Rec.TestField("No.");
+                        SalesVATAdvNotif.SetRange("No.", Rec."No.");
                         Report.RunModal(Report::"Create XML-File VAT Adv.Notif.", true, false, SalesVATAdvNotif);
                     end;
                 }
@@ -164,7 +164,7 @@ page 11016 "Sales VAT Adv. Notif. Card"
 
                     trigger OnAction()
                     begin
-                        DeleteXMLSubDoc();
+                        Rec.DeleteXMLSubDoc();
                     end;
                 }
                 separator("1")
@@ -184,14 +184,14 @@ page 11016 "Sales VAT Adv. Notif. Card"
                         VATStatementName: Record "VAT Statement Name";
                         VATStatementPreviewPage: Page "VAT Statement Preview";
                     begin
-                        if "Statement Template Name" = '' then begin
+                        if Rec."Statement Template Name" = '' then begin
                             VATStatementName.SetRange("Sales VAT Adv. Notif.", true);
                             VATStatementName.FindFirst();
                         end else
-                            VATStatementName.Get("Statement Template Name", "Statement Name");
+                            VATStatementName.Get(Rec."Statement Template Name", Rec."Statement Name");
                         VATStatementPreviewPage.SetRecord(VATStatementName);
                         VATStatementPreviewPage.SetParameters(
-                            "Incl. VAT Entries (Closing)", "Incl. VAT Entries (Period)", GetDateFilter());
+                            Rec."Incl. VAT Entries (Closing)", Rec."Incl. VAT Entries (Period)", Rec.GetDateFilter());
                         VATStatementPreviewPage.Run();
                     end;
                 }
@@ -226,7 +226,7 @@ page 11016 "Sales VAT Adv. Notif. Card"
 
                     trigger OnAction()
                     begin
-                        VATStatementName.GET("Statement Template Name", "Statement Name");
+                        VATStatementName.GET(Rec."Statement Template Name", Rec."Statement Name");
                         ReportPrint.PrintVATStmtName(VATStatementName);
                     end;
                 }
@@ -249,7 +249,7 @@ page 11016 "Sales VAT Adv. Notif. Card"
 
                     trigger OnAction()
                     begin
-                        VATStatementName.SetFilter(Name, "Statement Name");
+                        VATStatementName.SetFilter(Name, Rec."Statement Name");
                         VATStatementName.FindFirst();
                         VATStatementName.SetRecFilter();
                         Report.Run(Report::"G/L - VAT Reconciliation", true, false, VATStatementName);
@@ -267,7 +267,7 @@ page 11016 "Sales VAT Adv. Notif. Card"
 
                 trigger OnAction()
                 begin
-                    Export();
+                    Rec.Export();
                 end;
             }
         }
