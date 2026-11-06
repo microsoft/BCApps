@@ -534,6 +534,7 @@ codeunit 148311 "Expense No Rule Test"
         Expense.Validate(Description, 'Taxi without a receipt');
         Expense.Modify();
         ExpensesAPI.SetRecord(Expense);
+        Commit();
 
         asserterror ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, '   ', true);
         Assert.ExpectedError('Enter the reason the original receipt is unavailable.');
@@ -560,6 +561,7 @@ codeunit 148311 "Expense No Rule Test"
         Expense.Modify();
         ExpensesAPI.SetRecord(Expense);
 
+        Clear(ActionContext);
         ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, ' Receipt was lost ', true);
         Expense.Get(Expense."No.");
         Assert.IsTrue(NoReceiptDeclarationMgt.HasCurrentDeclaration(Expense), 'The action must generate a current PDF attachment.');
@@ -570,6 +572,7 @@ codeunit 148311 "Expense No Rule Test"
         Expense.Modify();
         Assert.IsFalse(NoReceiptDeclarationMgt.HasCurrentDeclaration(Expense), 'Editing must make the existing PDF stale.');
         ExpensesAPI.SetRecord(Expense);
+        Clear(ActionContext);
         ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, 'Receipt still unavailable', true);
         Expense.Get(Expense."No.");
         Assert.IsTrue(NoReceiptDeclarationMgt.HasCurrentDeclaration(Expense), 'Regeneration must create current proof.');
@@ -577,6 +580,7 @@ codeunit 148311 "Expense No Rule Test"
 
         FirstDeclarationId := Expense."No Receipt Declaration ID";
         ExpensesAPI.SetRecord(Expense);
+        Clear(ActionContext);
         ExpensesAPI.CancelNoReceiptDeclaration(ActionContext);
         Expense.Get(Expense."No.");
         Assert.IsTrue(IsNullGuid(Expense."No Receipt Declaration ID"), 'Cancellation must clear the attachment reference.');
@@ -606,6 +610,7 @@ codeunit 148311 "Expense No Rule Test"
         DocumentAttachment.InitFieldsFromRecRef(ExpenseRecordRef);
         DocumentAttachment.SaveAttachmentFromStream(ReceiptInStream, ExpenseRecordRef, 'receipt.txt');
 
+        Commit();
         asserterror NoReceiptDeclarationMgt.CreateDeclaration(Expense, 'Receipt was lost', true);
         Assert.ExpectedError('already has an original receipt');
         Assert.IsTrue(NoReceiptDeclarationMgt.HasOriginalReceipt(Expense), 'Rejected declarations must preserve the original receipt.');
@@ -624,6 +629,7 @@ codeunit 148311 "Expense No Rule Test"
         Expense.Status := Expense.Status::Released;
         Expense.Modify();
         ExpensesAPI.SetRecord(Expense);
+        Commit();
 
         asserterror ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, 'Receipt was lost', true);
         Assert.ExpectedError(Expense.FieldCaption(Status));
@@ -724,6 +730,7 @@ codeunit 148311 "Expense No Rule Test"
         Expense.Validate(Description, 'Taxi without a receipt');
         Expense.Modify();
         ExpensesAPI.SetRecord(Expense);
+        Commit();
         asserterror ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, 'Receipt was lost', true);
         Assert.ExpectedError('No receipt declarations are not allowed');
 
@@ -731,6 +738,7 @@ codeunit 148311 "Expense No Rule Test"
         Expense."Expense Report No." := 'REPORT';
         Expense.Modify();
         ExpensesAPI.SetRecord(Expense);
+        Commit();
         asserterror ExpensesAPI.CreateNoReceiptDeclaration(ActionContext, 'Receipt was lost', true);
         Assert.ExpectedError(Expense.FieldCaption("Expense Report No."));
         asserterror ExpensesAPI.CancelNoReceiptDeclaration(ActionContext);
@@ -840,7 +848,7 @@ codeunit 148311 "Expense No Rule Test"
         ExpenseCategory: Record "Expense Category";
     begin
         ExpenseCategory.Get(CategoryCode);
-        ExpenseCategory.Validate("Attachment Enforcement", AttachmentEnforcement);
+        ExpenseCategory."Attachment Enforcement" := AttachmentEnforcement;
         ExpenseCategory.Modify(true);
     end;
 

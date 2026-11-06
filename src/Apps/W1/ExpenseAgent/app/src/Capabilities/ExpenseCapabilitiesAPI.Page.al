@@ -16,7 +16,6 @@ page 7082 "Expense Capabilities API"
     PageType = API;
     SourceTable = "Expense Capabilities Buffer";
     SourceTableTemporary = true;
-    DataAccessIntent = ReadOnly;
     Editable = false;
     InsertAllowed = false;
     ModifyAllowed = false;

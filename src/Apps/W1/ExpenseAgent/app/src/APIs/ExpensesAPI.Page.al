@@ -256,6 +256,11 @@ page 6927 "Expenses API"
                     Caption = 'No Receipt Declaration Id';
                     Editable = false;
                 }
+                field(noReceiptDeclarationCurrent; NoReceiptDeclarationCurrent)
+                {
+                    Caption = 'No Receipt Declaration Current';
+                    Editable = false;
+                }
                 field(complianceStatus; Rec."Compliance Status")
                 {
                     Caption = 'Compliance Status';
@@ -368,6 +373,7 @@ page 6927 "Expenses API"
         CurrencyLCYDisplay: Code[10];
         ExpenseUserSystemId: Guid;
         TotalMileage: Decimal;
+        NoReceiptDeclarationCurrent: Boolean;
         JobDescription: Text[100];
         JobTaskDescription: Text[100];
         ExpenseCreatedLbl: Label 'Expense created via API.', Locked = true;
@@ -389,11 +395,13 @@ page 6927 "Expenses API"
         ExpenseUser: Record "Expense User";
         Job: Record Job;
         JobTask: Record "Job Task";
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
     begin
         CurrencyCodeDisplay := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Currency Code");
         XCurrencyCodeDisplay := CurrencyCodeDisplay;
         ExpenseUserSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Expense User No.");
         TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Rec.Mileage, Rec."Round Trip");
+        NoReceiptDeclarationCurrent := NoReceiptDeclarationMgt.HasCurrentDeclaration(Rec);
 
         JobDescription := '';
         JobTaskDescription := '';
