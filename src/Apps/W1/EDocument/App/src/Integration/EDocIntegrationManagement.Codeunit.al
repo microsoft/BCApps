@@ -17,7 +17,7 @@ codeunit 6134 "E-Doc. Integration Management"
 
     #region Send
 
-    internal procedure Send(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; SendContext: Codeunit SendContext; var IsAsync: Boolean) Success: Boolean
+    procedure Send(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; SendContext: Codeunit SendContext; var IsAsync: Boolean) Success: Boolean
     var
         TempBlob: Codeunit "Temp Blob";
         ErrorCount: Integer;
