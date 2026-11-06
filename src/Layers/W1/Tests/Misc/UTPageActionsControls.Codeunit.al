@@ -35,21 +35,26 @@ codeunit 134341 "UT Page Actions & Controls"
         IsInitialized: Boolean;
 
     [Test]
-    [HandlerFunctions('ItemTrackingMPH,PostedSalesInvoiceLinesMPH')]
+    [HandlerFunctions('ItemTrackingMPH,PostedSalesInvoiceMPH')]
     [Scope('OnPrem')]
-    procedure PostedSalesShipmentOpenPostedSalesInvoiceLines()
+    procedure PostedSalesShipmentOpenPostedSalesInvoice()
     var
         SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
         PostedSalesShipment: TestPage "Posted Sales Shipment";
     begin
         Initialize();
         // [FEATURE] [Sales]
-        // [SCENARIO 376891] Open tracking Invoice Lines from Posted Sales Shipment
+        // [SCENARIO 376891] Open the related Posted Sales Invoice from Posted Sales Shipment when exactly one invoice matches
         PostSalesDocumentWithLotTracking(SalesHeader, SalesHeader."Document Type"::Order);
 
         OpenPostedSalesShipment(PostedSalesShipment, SalesHeader);
+        SalesInvoiceHeader.SetRange("Sell-to Customer No.", SalesHeader."Sell-to Customer No.");
+        SalesInvoiceHeader.FindFirst();
+        LibraryVariableStorage.Enqueue(SalesInvoiceHeader."No.");
 
         PostedSalesShipment.SalesShipmLines.ItemInvoiceLines.Invoke();
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -5232,9 +5237,9 @@ codeunit 134341 "UT Page Actions & Controls"
 
     [ModalPageHandler]
     [Scope('OnPrem')]
-    procedure PostedSalesInvoiceLinesMPH(var PostedSalesInvoiceLines: TestPage "Posted Sales Invoice Lines")
+    procedure PostedSalesInvoiceMPH(var PostedSalesInvoice: TestPage "Posted Sales Invoice")
     begin
-        PostedSalesInvoiceLines.OK().Invoke();
+        PostedSalesInvoice."No.".AssertEquals(LibraryVariableStorage.DequeueText());
     end;
 
     [ModalPageHandler]
