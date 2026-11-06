@@ -417,6 +417,7 @@ codeunit 6902 "Expense Rule Validation"
         if TravelRequestNo = '' then
             exit(not DuplicateExpenseReportLine.IsEmpty());
 
+        DuplicateExpenseReportLine.SetLoadFields("Expense User No.", "Expense Detail Required", "Spend Request No.", "Document No.");
         if not DuplicateExpenseReportLine.FindSet() then
             exit(false);
         GetTravelRequestReportNos(TravelRequestNo, TravelRequestReportNos);
@@ -516,6 +517,7 @@ codeunit 6902 "Expense Rule Validation"
         if TravelRequestNo = '' then
             exit(not PostedExpenseReportLine.IsEmpty());
 
+        PostedExpenseReportLine.SetLoadFields("Expense User No.", "Expense Detail Required", "Spend Request No.", "Document No.");
         if not PostedExpenseReportLine.FindSet() then
             exit(false);
         GetPostedTravelRequestReportNos(TravelRequestNo, TravelRequestReportNos);
