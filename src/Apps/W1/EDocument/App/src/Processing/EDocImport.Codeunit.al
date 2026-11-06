@@ -165,7 +165,15 @@ codeunit 6140 "E-Doc. Import"
         exit(true);
     end;
 
-    internal procedure CreateFromType(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; EDocFileFormat: Enum "E-Doc. File Format"; Filename: Text; InStr: InStream)
+    /// <summary>
+    /// Creates an incoming E-Document and initializes its imported data, log, and service status.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record created by the procedure.</param>
+    /// <param name="EDocumentService">The service associated with the E-Document.</param>
+    /// <param name="EDocFileFormat">The format of the imported document.</param>
+    /// <param name="Filename">The imported document file name.</param>
+    /// <param name="InStr">The stream containing the imported document.</param>
+    procedure CreateFromType(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; EDocFileFormat: Enum "E-Doc. File Format"; Filename: Text; InStr: InStream)
     var
         EDocLog: Record "E-Document Log";
     begin
