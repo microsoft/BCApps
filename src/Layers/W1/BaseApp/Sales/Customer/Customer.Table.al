@@ -1176,6 +1176,7 @@ table 18 Customer
         field(91; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            OptimizeForTextSearch = true;
             TableRelation =
             if ("Country/Region Code" = const('')) "Post Code"
             else
