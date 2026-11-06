@@ -11,7 +11,6 @@ pageextension 8087 "General Ledger Entries" extends "General Ledger Entries"
             field("Contract No."; Rec."Subscription Contract No.")
             {
                 ApplicationArea = All;
-                ToolTip = 'Specifies the contract number for which the contract deferral was released.';
             }
         }
     }

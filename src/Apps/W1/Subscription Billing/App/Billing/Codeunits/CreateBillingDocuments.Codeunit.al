@@ -286,6 +286,8 @@ codeunit 8060 "Create Billing Documents"
         SalesLine."Recurring Billing from" := TempBillingLine."Billing from";
         SalesLine."Recurring Billing to" := TempBillingLine."Billing to";
         SalesLine."Discount" := TempBillingLine.Discount;
+        SalesLine."Subscription Contract No." := TempBillingLine."Subscription Contract No.";
+        SalesLine."Subscription Contract Line No." := TempBillingLine."Subscription Contract Line No.";
         SalesLine.GetCombinedDimensionSetID(SalesLine."Dimension Set ID", ServiceCommitment."Dimension Set ID");
         TranslationHelper.SetGlobalLanguageByCode(SalesHeader."Language Code");
         SalesLine.Description :=
@@ -431,6 +433,8 @@ codeunit 8060 "Create Billing Documents"
         PurchaseLine."Recurring Billing from" := TempBillingLine."Billing from";
         PurchaseLine."Recurring Billing to" := TempBillingLine."Billing to";
         PurchaseLine."Discount" := TempBillingLine.Discount;
+        PurchaseLine."Subscription Contract No." := TempBillingLine."Subscription Contract No.";
+        PurchaseLine."Subscription Contract Line No." := TempBillingLine."Subscription Contract Line No.";
         PurchaseLine.GetCombinedDimensionSetID(PurchaseLine."Dimension Set ID", ServiceCommitment."Dimension Set ID");
         PurchaseLine.Description := ServiceCommitment.Description;
         PurchaseLine."Description 2" := CopyStr(ServiceObject.Description, 1, MaxStrLen(PurchaseLine."Description 2"));

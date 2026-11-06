@@ -8,6 +8,22 @@ tableextension 8065 "Purchase Line" extends "Purchase Line"
 {
     fields
     {
+        field(8051; "Subscription Contract No."; Code[20])
+        {
+            Caption = 'Subscription Contract No.';
+            ToolTip = 'Specifies the Subscription Contract that the line is billed for.';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = "Vendor Subscription Contract";
+        }
+        field(8052; "Subscription Contract Line No."; Integer)
+        {
+            Caption = 'Subscription Contract Line No.';
+            ToolTip = 'Specifies the Subscription Contract line that the line is billed for.';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = "Vend. Sub. Contract Line"."Line No." where("Subscription Contract No." = field("Subscription Contract No."));
+        }
         field(8053; "Recurring Billing from"; Date)
         {
             Caption = 'Recurring Billing from';
@@ -61,6 +77,52 @@ tableextension 8065 "Purchase Line" extends "Purchase Line"
         if Rec."Document Type" = "Purchase Document Type"::"Credit Memo" then
             exit(-1);
         exit(1);
+    end;
+
+    /// <summary>
+    /// Returns the Subscription Contract that this purchase line bills, if any.
+    /// </summary>
+    /// <remarks>
+    /// The contract is stored on the line itself when the billing document is created. Documents that already existed
+    /// before the line carried the contract fall back to their Billing Line, so posting keeps working for them.
+    /// <para>
+    /// This procedure is public on purpose: customizations need to resolve the Subscription Contract of a document line
+    /// without repeating the Billing Line lookup and its fallback. Do not narrow it to internal - the signature is a
+    /// supported extension point and can only be changed through an obsoletion cycle.
+    /// </para>
+    /// </remarks>
+    /// <param name="ContractNo">The Subscription Contract the line bills.</param>
+    /// <param name="ContractLineNo">The line of that Subscription Contract.</param>
+    /// <returns>True if the line bills a Subscription Contract.</returns>
+    procedure GetSubscriptionContractFromLineOrBillingLine(var ContractNo: Code[20]; var ContractLineNo: Integer): Boolean
+    var
+        BillingLine: Record "Billing Line";
+        BillingDocumentType: Enum "Rec. Billing Document Type";
+    begin
+        ContractNo := Rec."Subscription Contract No.";
+        ContractLineNo := Rec."Subscription Contract Line No.";
+        if ContractNo <> '' then
+            exit(true);
+
+        // This runs for every purchase document posted in the tenant, so lines that cannot bill a Subscription Contract stop
+        // here instead of querying the Billing Line once per line: a contract line always carries the billing period
+        // (Codeunit "Create Billing Documents", Codeunit "Billing Proposal" when an existing purchase line is assigned to a
+        // contract line, and Codeunit "Billing Correction" set it), and only some document types can carry a Billing Line at all.
+        if Rec."Recurring Billing from" = 0D then
+            exit(false);
+
+        BillingDocumentType := BillingLine.GetBillingDocumentTypeFromPurchaseDocumentType(Rec."Document Type");
+        if BillingDocumentType = BillingDocumentType::None then
+            exit(false);
+
+        BillingLine.SetLoadFields("Subscription Contract No.", "Subscription Contract Line No.");
+        BillingLine.FilterBillingLineOnDocumentLine(BillingDocumentType, Rec."Document No.", Rec."Line No.");
+        if not BillingLine.FindFirst() then
+            exit(false);
+
+        ContractNo := BillingLine."Subscription Contract No.";
+        ContractLineNo := BillingLine."Subscription Contract Line No.";
+        exit(true);
     end;
 
     /// <summary>

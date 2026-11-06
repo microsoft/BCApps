@@ -1,12 +1,18 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Posting;
 
 codeunit 8059 "Sub. Contracts General Mgt."
 {
@@ -524,4 +530,55 @@ codeunit 8059 "Sub. Contracts General Mgt."
         if not VendorContract.IsEmpty() then
             Error(VendorContractExistErr, Rec.TableCaption, Rec."No.");
     end;
+
+    #region Subscription Contract No. on G/L Entry
+
+    // The Subscription Contract No. travels from the sales/purchase line to the G/L entry along the posting pipeline:
+    // Sales/Purchase Line -> Invoice Posting Buffer -> Gen. Journal Line -> G/L Entry.
+    // The value is part of the Invoice Posting Buffer grouping key, so lines of two different Subscription Contracts
+    // are never summarized into one G/L entry and every entry carries the contract it actually stems from.
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", OnAfterPrepareInvoicePostingBuffer, '', false, false)]
+    local procedure SetContractNoOnInvoicePostingBufferFromSalesLine(SalesLine: Record "Sales Line"; var InvoicePostingBuffer: Record "Invoice Posting Buffer")
+    var
+        ContractNo: Code[20];
+        ContractLineNo: Integer;
+    begin
+        if not SalesLine.GetSubscriptionContractFromLineOrBillingLine(ContractNo, ContractLineNo) then
+            exit;
+        InvoicePostingBuffer."Subscription Contract No." := ContractNo;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Post Invoice Events", OnAfterPrepareInvoicePostingBuffer, '', false, false)]
+    local procedure SetContractNoOnInvoicePostingBufferFromPurchaseLine(PurchaseLine: Record "Purchase Line"; var InvoicePostingBuffer: Record "Invoice Posting Buffer")
+    var
+        ContractNo: Code[20];
+        ContractLineNo: Integer;
+    begin
+        if not PurchaseLine.GetSubscriptionContractFromLineOrBillingLine(ContractNo, ContractLineNo) then
+            exit;
+        InvoicePostingBuffer."Subscription Contract No." := ContractNo;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Invoice Posting Buffer", OnBuildPrimaryKeyAfterDeferralCode, '', false, false)]
+    local procedure AddContractNoToInvoicePostingBufferKey(var GroupID: Text; InvoicePostingBuffer: Record "Invoice Posting Buffer")
+    begin
+        GroupID := GroupID + InvoicePostingBuffer.PadField(InvoicePostingBuffer."Subscription Contract No.", MaxStrLen(InvoicePostingBuffer."Subscription Contract No."));
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Invoice Posting Buffer", OnAfterCopyToGenJnlLine, '', false, false)]
+    local procedure CopyContractNoToGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; InvoicePostingBuffer: Record "Invoice Posting Buffer")
+    begin
+        GenJnlLine."Subscription Contract No." := InvoicePostingBuffer."Subscription Contract No.";
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeInsertGlobalGLEntry, '', false, false)]
+    local procedure TransferContractNoToGLEntry(var GlobalGLEntry: Record "G/L Entry"; GenJournalLine: Record "Gen. Journal Line")
+    begin
+        if GenJournalLine."Subscription Contract No." = '' then
+            exit;
+        GlobalGLEntry."Subscription Contract No." := GenJournalLine."Subscription Contract No.";
+    end;
+
+    #endregion Subscription Contract No. on G/L Entry
 }
