@@ -43,7 +43,7 @@ page 14100 "CD Location Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies that a purchase document cannot be released if the customs declaration is missing.';
                 }
-                field("Allow Temporary CD Number"; "Allow Temporary CD Number")
+                field("Allow Temporary CD Number"; Rec."Allow Temporary CD Number")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies that a purchase document can use temporary custom declaration number.';
