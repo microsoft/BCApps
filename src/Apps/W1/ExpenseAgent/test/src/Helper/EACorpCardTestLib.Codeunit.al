@@ -76,6 +76,7 @@ codeunit 148357 EACorpCardTestLib
     internal procedure PostManualExpense(var Expense: Record Expense; var PostedExpenseReportLine: Record "Posted Expense Report Line"; CorpCard: Record "EA Corp Card")
     var
         Employee: Record Employee;
+        EmployeePostingGroup: Record "Employee Posting Group";
         ExpenseCategory: Record "Expense Category";
         ExpensePaymentMethod: Record "Expense Payment Method";
         ExpensePostingGroup: Record "Expense Posting Group";
@@ -101,6 +102,9 @@ codeunit 148357 EACorpCardTestLib
         ExpenseUser.Get(CorpCard."Expense User No.");
         Employee.Get(ExpenseUser."Employee No.");
         LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        EmployeePostingGroup.Get(Employee."Employee Posting Group");
+        EmployeePostingGroup.Validate("Expense Payable Card Paid Acc.", LibraryERM.CreateGLAccountNo());
+        EmployeePostingGroup.Modify(true);
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
         LibraryExpense.CreateExpenseCategory(
             ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Credit Card", ExpenseCategory."Expense Detail Required"::" ", ExpensePaymentMethod.Code);
