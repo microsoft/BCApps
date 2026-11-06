@@ -6,6 +6,7 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Foundation.Company;
+using System.IO;
 using System.Telemetry;
 using System.Utilities;
 
@@ -28,7 +29,7 @@ codeunit 13690 "MS - ECSL Report Export File"
         VATTok: Label 'DK VAT-VIES Reporting', Locked = true;
     begin
         FeatureTelemetry.LogUptake('0000H8R', VATTok, Enum::"Feature Uptake Status"::"Used");
-        ErrorMessage.SetContext(RECORDID());
+        ErrorMessage.SetContext(Rec.RecordId());
         ErrorMessage.ClearLog();
 
         if not ValidateReport(Rec) then
@@ -104,15 +105,15 @@ codeunit 13690 "MS - ECSL Report Export File"
 
     local procedure DownloadAsFile(FileName: Text);
     var
-        FileObj: File;
+        TempBlob: Codeunit "Temp Blob";
+        FileManagement: Codeunit "File Management";
         OutStrm: OutStream;
         InStrm: InStream;
     begin
-        FileObj.CreateTempFile();
-        FileObj.CREATEOUTSTREAM(OutStrm);
+        TempBlob.CreateOutStream(OutStrm, TextEncoding::MSDos);
         OutStrm.WRITETEXT(ReportTxt);
-        FileObj.CreateInStream(InStrm);
-        file.DownloadFromStream(InStrm, '', '', '', FileName);
+        TempBlob.CreateInStream(InStrm, TextEncoding::MSDos);
+        FileManagement.DownloadFromStreamHandler(InStrm, '', '', '', FileName);
     end;
 
     local procedure PopulateAmountFromLine(ECSLVATReportLine: Record "ECSL VAT Report Line"; var SalesAmount: Decimal; var ServiceAmount: Decimal; var TriangulatedAmount: Decimal);
@@ -206,4 +207,3 @@ codeunit 13690 "MS - ECSL Report Export File"
         NoDownload := true;
     end;
 }
-
