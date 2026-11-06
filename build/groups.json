@@ -301,6 +301,20 @@
     ]
   },
   {
+    "name": "Tests-Concurrent Posting",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
     "name": "Tests-ERM",
     "groups": [
       {

@@ -189,6 +189,7 @@ report 303 "Vendor Register"
                 trigger OnPreDataItem()
                 begin
                     SetRange("Entry No.", "G/L Register"."From Entry No.", "G/L Register"."To Entry No.");
+                    SetFilter("G/L Register No.", '0|%1', "G/L Register"."No.");
                     ClearAmounts();
                 end;
             }

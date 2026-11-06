@@ -264,8 +264,8 @@ report 3 "G/L Register"
 
                 trigger OnPreDataItem()
                 begin
-                    SetCurrentKey("Transaction No.");
-                    SetRange("Transaction No.", "G/L Register"."No.");
+                    SetRange("Entry No.", "G/L Register"."From Entry No.", "G/L Register"."To Entry No.");
+                    SetFilter("G/L Register No.", '0|%1', "G/L Register"."No.");
                 end;
             }
 
