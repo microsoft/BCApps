@@ -159,12 +159,25 @@ report 718 "Inventory - Sales Back Orders"
             Type = Excel;
             Summary = 'Built in layout for the Inventory - Sales Back Orders report.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Inventory - Sales Back Orders Word';
             LayoutFile = '.\Inventory\Reports\InventorySalesBackOrders.docx';
             Type = Word;
             Summary = 'Built in layout for the Inventory - Sales Back Orders word report.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+#endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = '.\Inventory\Reports\InventorySalesBackOrdersBody.docx';
+            Caption = 'Body-only: Inventory - Sales Back Orders Word';
+            Summary = 'Portrait orientated. Lists the back orders for each item with sales order number, customer name and phone number, shipment date, quantity, outstanding quantity, and other back orders. Includes outstanding subtotals.';
         }
     }
 
