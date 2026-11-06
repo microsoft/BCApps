@@ -565,9 +565,13 @@ page 4400 "SOA Setup"
             exit(true);
         end;
 
-        if EnabledAgentFirstConfig() then
+        if EnabledAgentFirstConfig() then begin
             if Confirm(ReadyToActivateLbl) then
-                Rec.State := Rec.State::Enabled;
+                ActivateAgent();
+        end else
+            if ShouldOfferActivation(CreateTrialTask) then
+                if Confirm(ActivateInactiveAgentQst) then
+                    ActivateAgent();
 
         UpdateAgentSetupBuffer();
         if (TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Enabled) and (MailboxChanged or StateChanged()) then begin
@@ -619,6 +623,29 @@ page 4400 "SOA Setup"
     local procedure StateChanged(): Boolean
     begin
         exit((TempAgentSetupBuffer.State <> InitialState) or IsFirstConfig());
+    end;
+
+    local procedure ShouldOfferActivation(CreateTrialTask: Boolean): Boolean
+    begin
+        if CreateTrialTask then
+            exit(false);
+
+        UpdateAgentSetupBuffer();
+        IsConfigUpdated := IsConfigUpdated or AgentSetup.GetChangesMade(TempAgentSetupBuffer);
+
+        exit(IsConfigUpdated and
+             (not TempAgentSetupBuffer."State Updated") and
+             (InitialState = TempAgentSetupBuffer.State::Disabled) and
+             (TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled));
+    end;
+
+    local procedure ActivateAgent()
+    begin
+        UpdateAgentSetupBuffer();
+        TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
+        TempAgentSetupBuffer.Modify();
+        CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
+        CurrPage.AgentSetupPart.Page.Update()
     end;
 
     local procedure ShouldScheduleTask(): Boolean
@@ -882,6 +909,7 @@ page 4400 "SOA Setup"
         ConfiguredBy: Text[80];
         SOACreateTaskLbl: Label 'Create task for the agent';
         EnableAgentForTaskQst: Label 'Trying out the agent will activate it with the current settings.\\Do you want to continue?';
+        ActivateInactiveAgentQst: Label 'The agent is configured but not active, so it won''t process emails or tasks.\\Do you want to activate it now?';
         IsConfigUpdated: Boolean;
         InboxFolderNameTok: Label 'Inbox', Locked = true;
         InboxFolderIdTok: Label 'inbox', Locked = true;

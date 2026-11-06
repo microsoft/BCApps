@@ -181,7 +181,7 @@ codeunit 30471 "Shpfy TMA Matcher"
     begin
         SystemPromptTxt := GetSystemPrompt(SecurityPrompt);
 
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT56CeresLatest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Shopify Tax Matching Agent");
 
         AOAIChatCompletionParams.SetMaxTokens(4096);

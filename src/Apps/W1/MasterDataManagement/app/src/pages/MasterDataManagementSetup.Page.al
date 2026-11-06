@@ -1,6 +1,7 @@
 namespace Microsoft.Integration.MDM;
 
 using Microsoft.Integration.SyncEngine;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Telemetry;
 using System.Threading;
@@ -29,7 +30,7 @@ page 7230 "Master Data Management Setup"
                 {
                     ApplicationArea = Suite;
                     Editable = IsEditable;
-                    Visible = not (CrossEnvConfigured and Rec."Is Enabled"); // same-env source company: blank under cross-env, so hide it once cross-env is set up and enabled (view cross-env details via the wizard)
+                    Visible = not CrossEnvConfigured; // same-env source company: blank under cross-env, so show the cross-env source fields instead once a source environment is configured
                     ToolTip = 'Specifies the name of the source company that you synchronize data from.';
                 }
                 field("Source Environment Name"; Rec."Source Environment Name")
@@ -71,14 +72,16 @@ page 7230 "Master Data Management Setup"
                 ApplicationArea = Suite;
                 Caption = 'Cross-environment setup';
                 Image = LinkAccount;
+                Visible = IsSaaS; // cross-environment synchronization reads from the source over a cloud service; it is not available on-premises
                 ToolTip = 'Set up the connection to a company in a different Business Central environment for cross-environment synchronization.';
 
                 trigger OnAction()
                 begin
                     Page.RunModal(Page::"MDM Connection Details");
                     if Rec.Get() then; // the wizard may have configured or cleared the cross-environment connection
-                    RefreshData();
-                    CurrPage.Update(false);
+                    // The wizard may have switched between same- and cross-environment setup, which changes which source
+                    // fields should be shown. Field visibility is only applied when the page opens, so reopen the page.
+                    ReopenPage();
                 end;
             }
             action(ClearCrossEnvSetup)
@@ -98,8 +101,9 @@ page 7230 "Master Data Management Setup"
                     Rec.ClearCrossEnvConnection();
                     Rec.Modify(true);
                     if Rec.Get() then;
-                    RefreshData();
-                    CurrPage.Update(false);
+                    // Returning to same-environment setup changes which source fields should be shown. Field visibility is
+                    // only applied when the page opens, so reopen the page.
+                    ReopenPage();
                 end;
             }
             action(ResetConfiguration)
@@ -267,18 +271,25 @@ page 7230 "Master Data Management Setup"
 
     trigger OnOpenPage()
     var
+        EnvironmentInformation: Codeunit "Environment Information";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         MasterDataManagement: Codeunit "Master Data Management";
     begin
         FeatureTelemetry.LogUptake('0000JIV', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
+        IsSaaS := EnvironmentInformation.IsSaaSInfrastructure();
         if not Rec.Get() then begin
             Rec.Init();
             Rec.Insert();
         end;
+        // Visibility of the same-environment vs. cross-environment source fields is driven by these flags. The Visible
+        // property is only applied when the page opens, so the flags must be set here (not just in OnAfterGetRecord).
+        UpdateEnableFlags();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
+        if ReopeningPage then
+            exit(true); // the page is closing only to reopen itself and reapply field visibility; skip the enable prompt
         if not Rec."Is Enabled" then
             if not Confirm(EnableServiceQst, true, CurrPage.Caption()) then
                 exit(false);
@@ -317,12 +328,24 @@ page 7230 "Master Data Management Setup"
         ClearCrossEnvConfirmQst: Label 'This removes the cross-environment connection and its stored credentials, and returns to same-environment synchronization. Do you want to continue?';
         IsEditable: Boolean;
         CrossEnvConfigured: Boolean;
+        IsSaaS: Boolean;
+        ReopeningPage: Boolean;
         SynchronizationImportedMsg: label 'The synchronization setup is imported. \\To view or edit the synchronization table setup, choose action Synchronization Tables.\\To view or edit the synchronization field setup, select a synchronization table and choose action Synchronization Fields.';
         NoCoupledRecordsMsg: label 'No records are currently coupled to records from the source company. \\Choose the action Start Initial Synchronization.';
 
     local procedure RefreshData()
     begin
         UpdateEnableFlags();
+    end;
+
+    // Field visibility (same-environment vs. cross-environment source fields) is only applied when the page opens, so
+    // after the configuration changes in-session the page must reopen for the correct fields to show. CurrPage.Update
+    // does not reapply field visibility.
+    local procedure ReopenPage()
+    begin
+        ReopeningPage := true;
+        Page.Run(Page::"Master Data Management Setup");
+        CurrPage.Close();
     end;
 
     local procedure UpdateEnableFlags()

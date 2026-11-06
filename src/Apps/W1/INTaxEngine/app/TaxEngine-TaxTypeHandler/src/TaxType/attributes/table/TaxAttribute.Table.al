@@ -62,10 +62,8 @@ table 20241 "Tax Attribute"
 
                     EntityAttributeMapping.SetRange("Attribute ID", ID);
                     EntityAttributeMapping.SetFilter("Mapping Field Name", '<>%1', '');
-                    if EntityAttributeMapping.FindSet() then begin
-                        EntityAttributeMapping.ModifyAll("Mapping Field ID", 0);
-                        EntityAttributeMapping.ModifyAll("Mapping Field Name", '');
-                    end;
+                    if EntityAttributeMapping.FindSet() then
+                        EntityAttributeMapping.ModifyAll("Mapping Field ID", 0, "Mapping Field Name", '');
                 end;
             end;
         }

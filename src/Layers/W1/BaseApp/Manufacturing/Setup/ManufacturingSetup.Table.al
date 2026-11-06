@@ -14,6 +14,7 @@ using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Forecast;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Wizard;
 using Microsoft.Manufacturing.WorkCenter;
 using System.Telemetry;
@@ -127,6 +128,7 @@ table 99000765 "Manufacturing Setup"
             ToolTip = 'Specifies the number series code to use when assigning numbers to routings.';
             TableRelation = "No. Series";
         }
+#if not CLEANSCHEMA30
         field(35; "Current Production Forecast"; Code[10])
         {
             Caption = 'Current Demand Forecast';
@@ -162,12 +164,14 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
         field(39; "Components at Location"; Code[10])
         {
             Caption = 'Components at Location';
             ToolTip = 'Specifies the inventory location from where the production order components are to be taken.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
+#if not CLEANSCHEMA30
         field(40; "Default Dampener Period"; DateFormula)
         {
             Caption = 'Default Dampener Period';
@@ -205,6 +209,7 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
         field(50; "Show Capacity In"; Code[10])
         {
             Caption = 'Show Capacity In';
@@ -358,6 +363,22 @@ table 99000765 "Manufacturing Setup"
             Caption = 'Default Prod. Wiz. Flushing Method';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the default flushing method applied to Production Order Components when creating a new production BOM from scratch through the production order creation wizard. This is only used for temporary BOM creation; existing BOMs retain their original flushing method.';
+        }
+        field(312; "Production BOM Version Nos."; Code[20])
+        {
+            AccessByPermission = TableData "Production BOM Header" = R;
+            Caption = 'Production BOM Version Nos.';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number series used to assign codes to new production BOM versions when the production BOM does not specify its own version number series.';
+            TableRelation = "No. Series";
+        }
+        field(313; "Routing Version Nos."; Code[20])
+        {
+            AccessByPermission = TableData "Routing Header" = R;
+            Caption = 'Routing Version Nos.';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the number series used to assign codes to new routing versions when the routing does not specify its own version number series.';
+            TableRelation = "No. Series";
         }
         field(5500; "Preset Output Quantity"; Option)
         {

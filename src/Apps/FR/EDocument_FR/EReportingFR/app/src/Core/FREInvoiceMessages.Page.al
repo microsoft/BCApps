@@ -106,4 +106,37 @@ page 10973 "FR E-Invoice Messages"
             }
         }
     }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(ViewVATBreakdown)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'VAT Breakdown';
+                Enabled = VATBreakdownEnabled;
+                Image = VATEntries;
+                RunObject = page "FR E-Invoice Message VAT";
+                RunPageLink = "Message Entry No." = field("Entry No.");
+                Scope = Repeater;
+                ToolTip = 'View how the lifecycle amount is allocated among VAT rates and categories.';
+            }
+        }
+
+        area(Promoted)
+        {
+            actionref(ViewVATBreakdownPromoted; ViewVATBreakdown)
+            {
+            }
+        }
+    }
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        VATBreakdownEnabled := Rec.Type in [Rec.Type::Collected, Rec.Type::"Negative Collected"];
+    end;
+
+    var
+        VATBreakdownEnabled: Boolean;
 }

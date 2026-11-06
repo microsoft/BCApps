@@ -10,6 +10,7 @@ tableextension 10554 "Item Templ." extends "Item Templ."
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve the existing field ID for compatibility.
         field(10507; "Reverse Charge Applies GB"; Boolean)
         {
             Caption = 'Reverse Charge Applies';
@@ -20,5 +21,6 @@ tableextension 10554 "Item Templ." extends "Item Templ."
                 ValidateItemField(FieldNo("Reverse Charge Applies GB"));
             end;
         }
+#pragma warning restore AS0099
     }
 }

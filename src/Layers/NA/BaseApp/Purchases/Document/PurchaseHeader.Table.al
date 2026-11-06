@@ -6613,7 +6613,7 @@ table 38 "Purchase Header"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeHasMixedDropShipment(Rec, Result, IsHandled);
+        OnBeforeHasMixedDropShipment(Rec, Result, IsHandled, PurchaseLine);
         if IsHandled then
             exit(Result);
 
@@ -9518,7 +9518,7 @@ table 38 "Purchase Header"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeHasMixedDropShipment(var PurchaseHeader: Record "Purchase Header"; var Result: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeHasMixedDropShipment(var PurchaseHeader: Record "Purchase Header"; var Result: Boolean; var IsHandled: Boolean; var PurchaseLine: Record "Purchase Line")
     begin
     end;
 

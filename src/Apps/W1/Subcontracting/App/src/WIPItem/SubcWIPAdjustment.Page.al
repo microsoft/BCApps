@@ -113,7 +113,7 @@ page 20561 "Subc. WIP Adjustment"
 
                     trigger OnValidate()
                     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -211,7 +211,7 @@ page 20561 "Subc. WIP Adjustment"
                     trigger OnValidate()
                     begin
                         ;
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -242,7 +242,7 @@ page 20561 "Subc. WIP Adjustment"
 
     trigger OnAfterGetRecord()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -254,7 +254,7 @@ page 20561 "Subc. WIP Adjustment"
 
     trigger OnOpenPage()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -269,7 +269,7 @@ page 20561 "Subc. WIP Adjustment"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -282,7 +282,7 @@ page 20561 "Subc. WIP Adjustment"
 
     var
         Item: Record Item;
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -309,7 +309,7 @@ page 20561 "Subc. WIP Adjustment"
     var
         EntrySeq: Integer;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -364,7 +364,7 @@ page 20561 "Subc. WIP Adjustment"
 
     procedure SetDocumentNo(DocNo: Code[20])
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

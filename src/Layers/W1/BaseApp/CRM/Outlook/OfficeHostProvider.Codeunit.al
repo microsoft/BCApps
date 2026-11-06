@@ -169,8 +169,7 @@ codeunit 1633 "Office Host Provider"
 
         if not TempExchangeObjectInternal.IsEmpty() then begin
             Clear(TempExchangeObject);
-            TempExchangeObjectInternal.ModifyAll(InitiatedAction, Action);
-            TempExchangeObjectInternal.ModifyAll(RecId, RecRef.RecordId());
+            TempExchangeObjectInternal.ModifyAll(InitiatedAction, Action, RecId, RecRef.RecordId());
             TempExchangeObject.Copy(TempExchangeObjectInternal, true);
         end else
             if not (OfficeHost.CallbackToken in ['', ' ']) then begin

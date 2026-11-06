@@ -368,11 +368,7 @@ report 11564 "SR G/L Acc Sheet Foreign Curr"
 
                     CalcFields("Net Change");
                     GlBalance := "Net Change";
-                    if ("Source Currency Code" <> '') and GLAccountSourceCurrency.Get("No.", "Source Currency Code") then begin
-                        GLAccountSourceCurrency.SetRange("Date Filter", 0D, ClosingDate(StartDate - 1));
-                        GLAccountSourceCurrency.CalcFields("Source Curr. Balance at Date");
-                        FcyAcyBalance := GLAccountSourceCurrency."Source Curr. Balance at Date";
-                    end;
+                    FcyAcyBalance := CalcSourceCurrencyOpeningBalance();
                     SetFilter("Date Filter", GlJourDateFilter);
                 end;
 
@@ -629,6 +625,28 @@ report 11564 "SR G/L Acc Sheet Foreign Curr"
         GLAccountSourceCurrency.SetRange("G/L Account No.", "G/L Account"."No.");
         GLAccountSourceCurrency.SetRange("Currency Code", CurrencyCode);
         exit(not GLAccountSourceCurrency.IsEmpty());
+    end;
+
+    local procedure CalcSourceCurrencyOpeningBalance(): Decimal
+    var
+        GLAccountSourceCurrency: Record "G/L Account Source Currency";
+        SourceCurrencyOpeningBalance: Decimal;
+    begin
+        GLAccountSourceCurrency.SetRange("G/L Account No.", "G/L Account"."No.");
+        if "G/L Account"."Source Currency Code" <> '' then
+            GLAccountSourceCurrency.SetRange("Currency Code", "G/L Account"."Source Currency Code")
+        else
+            GLAccountSourceCurrency.SetFilter("Currency Code", '<>%1', '');
+        GLAccountSourceCurrency.SetRange("Date Filter", 0D, ClosingDate(StartDate - 1));
+        "G/L Account".CopyFilter("Global Dimension 1 Filter", GLAccountSourceCurrency."Global Dimension 1 Filter");
+        "G/L Account".CopyFilter("Global Dimension 2 Filter", GLAccountSourceCurrency."Global Dimension 2 Filter");
+        if GLAccountSourceCurrency.FindSet() then
+            repeat
+                GLAccountSourceCurrency.CalcFields("Source Curr. Balance at Date");
+                SourceCurrencyOpeningBalance += GLAccountSourceCurrency."Source Curr. Balance at Date";
+            until GLAccountSourceCurrency.Next() = 0;
+
+        exit(SourceCurrencyOpeningBalance);
     end;
 
     [IntegrationEvent(false, false)]
