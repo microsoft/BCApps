@@ -64,7 +64,6 @@ codeunit 18631 "Calc Normal Depreciation"
             (FiscalYearStartDate = FADateCalcSubscriber.GetFiscalYearStartDateInc(FAPostingDate)) and
             (FADepBook."FA Book Type" = FADepBook."FA Book Type"::"Income Tax") and
             (FiscalYearStartDate = FADateCalcSubscriber.GetFiscalYearStartDateInc(TillDate)));
-        ;
     end;
 
     local procedure CheckDisposal(FANo: Code[20]; DeprBookCode: Code[20]): Boolean
