@@ -7,7 +7,7 @@
     Selects whether CI runs the Payables Agent architecture checks and their Pester tests.
 .DESCRIPTION
     Compares the checked-out HEAD with the PR base, merge-group base, or push's before SHA.
-    Manual/scheduled builds can supply the AL-Go baseline SHA; otherwise validation runs.
+    Manual or local runs can supply an explicit baseline; otherwise validation runs.
     Missing/invalid event data, mismatched checkouts or Git failures mean RUN, not SKIP.
     Writes required=true/false to GITHUB_OUTPUT. Local architecture runs remain unfiltered.
 .EXAMPLE

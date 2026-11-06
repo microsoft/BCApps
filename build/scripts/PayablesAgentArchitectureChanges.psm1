@@ -46,7 +46,7 @@ function Invoke-PayablesAgentArchitectureGit {
 .PARAMETER ExpectedHead
     Workflow commit SHA. A different checkout requires validation instead of skipping.
 .PARAMETER BaselineRef
-    AL-Go baseline SHA for manual/scheduled builds, or a local ref for explicit checks.
+    Explicit comparison base for manual or local checks.
 .PARAMETER FetchMissingBase
     Allows a shallow fetch of a missing comparison SHA. Does not fetch arbitrary refs.
 .OUTPUTS
@@ -129,8 +129,8 @@ function Get-PayablesAgentArchitectureChange {
             'build/scripts/Test-ALAppArchitecture.ps1',
             'build/scripts/*Architecture*.psm1',
             'build/scripts/tests/ALArchitecture*.Test.ps1',
-            '.github/workflows/PullRequestHandler.yaml',
-            '.github/workflows/_BuildALGoProject.yaml'
+            '.github/actions/TestALAppArchitecture/',
+            '.github/workflows/PullRequestHandler.yaml'
         )
         # Git pathspecs perform filtering. -z avoids quoting/newline ambiguities;
         # --no-renames includes both old and new paths for moves across the boundary.

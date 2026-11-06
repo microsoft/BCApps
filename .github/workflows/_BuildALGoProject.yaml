@@ -103,14 +103,6 @@ jobs:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
 
-      # Relevant checks must not be bypassed by cached or skipped compilation.
-      - name: Validate AL app architecture
-        shell: pwsh
-        env:
-          AL_APP_ARCHITECTURE_PROJECT: ${{ inputs.project }}
-          AL_APP_ARCHITECTURE_BASELINE_SHA: ${{ inputs.baselineWorkflowSHA }}
-        run: ./build/scripts/Test-ALAppArchitecture.ps1 -Project $env:AL_APP_ARCHITECTURE_PROJECT -BaselineRef $env:AL_APP_ARCHITECTURE_BASELINE_SHA -FetchMissingBase
-
       - name: Read settings
         uses: microsoft/AL-Go/Actions/ReadSettings@fb27afbcab20378ab0ac0978e7efe4131bdc0962
         with:

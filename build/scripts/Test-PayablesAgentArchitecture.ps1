@@ -19,9 +19,9 @@
     Only * and ? globs are supported, case-insensitively; * spans directories.
     Exceptions need reasons and fail when stale.
 
-    CI invokes this for relevant PA/checker/workflow changes (or an uncertain diff) in PR
-    validation and Apps W1 builds, before AL-Go cache/skip decisions. The shared change
-    selector also guards the PR Pester tests; direct local invocations here always scan.
+    CI invokes this through the TestALAppArchitecture action in PR validation (including
+    merge queues) for relevant PA/checker/workflow changes, or an uncertain diff. The shared
+    change selector also guards the PR Pester tests; direct local invocations here always scan.
     Requires PowerShell 7 (JSON Schema validation); local compiler builds invoke it separately.
 .EXAMPLE
     ./build/scripts/Test-PayablesAgentArchitecture.ps1
@@ -33,6 +33,8 @@
 param(
     [string] $AppRoot = (Join-Path $PSScriptRoot '../../src/Apps/W1/PayablesAgent/app'),
     [string] $RulesPath,
+    # Diagnostics and annotations are reported relative to this repository root.
+    [string] $RepoRoot = (Join-Path $PSScriptRoot '../..'),
     [switch] $PassThru
 )
 
@@ -41,7 +43,7 @@ Set-StrictMode -Version 2.0
 Import-Module (Join-Path $PSScriptRoot 'ALArchitectureRules.psm1') -Force
 if ([string]::IsNullOrWhiteSpace($RulesPath)) { $RulesPath = Join-Path $AppRoot 'architecture-rules.json' }
 $result = Invoke-ALArchitectureRules -AppRoot $AppRoot -RulesPath $RulesPath
-$repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')).TrimEnd('/', '\') + [IO.Path]::DirectorySeparatorChar
+$repositoryRoot = [IO.Path]::GetFullPath($RepoRoot).TrimEnd('/', '\') + [IO.Path]::DirectorySeparatorChar
 foreach ($diagnostic in $result.Diagnostics) {
     $path = $diagnostic.Path
     if ($path.StartsWith($repositoryRoot, [StringComparison]::OrdinalIgnoreCase)) { $path = $path.Substring($repositoryRoot.Length) }

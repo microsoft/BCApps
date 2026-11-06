@@ -221,7 +221,7 @@ $architectureTests = Get-ChildItem ./build/scripts/tests/ALArchitecture*.Test.ps
 Invoke-Pester -Script $architectureTests.FullName
 ```
 
-Paths above are repository-relative. CI runs the same entry point in PR validation (including merge queues) and Apps W1 builds, before AL-Go cache/skip decisions. Local editor/compiler builds do not run it automatically.
+Paths above are repository-relative. CI runs the same checks in PR validation (including merge queues) through the `TestALAppArchitecture` GitHub action, like the other PR gate actions; AL-Go project builds do not run them. Local editor/compiler builds do not run it automatically.
 
 #### Small checks, not another AL parser
 

@@ -83,13 +83,14 @@ Describe 'Payables Agent architecture change selection' {
         Assert-ChangeValue ($diff -contains '-z') $true
     }
 
-    It 'watches PA sources, all checker entry points/tests and both invoking workflows' {
+    It 'watches PA sources, all checker entry points/tests, the action and the invoking workflow' {
         $null = Get-TestChange
         $diff = @($script:calls | Where-Object { $_.Arguments[0] -eq 'diff' })[0].Arguments
         Assert-ChangeValue ($diff -contains '--') $true
-        foreach ($path in @('src/Apps/W1/PayablesAgent/', 'build/scripts/Test-PayablesAgentArchitecture*.ps1', 'build/scripts/Test-ALAppArchitecture.ps1', 'build/scripts/*Architecture*.psm1', 'build/scripts/tests/ALArchitecture*.Test.ps1', '.github/workflows/PullRequestHandler.yaml', '.github/workflows/_BuildALGoProject.yaml')) {
+        foreach ($path in @('src/Apps/W1/PayablesAgent/', 'build/scripts/Test-PayablesAgentArchitecture*.ps1', 'build/scripts/Test-ALAppArchitecture.ps1', 'build/scripts/*Architecture*.psm1', 'build/scripts/tests/ALArchitecture*.Test.ps1', '.github/actions/TestALAppArchitecture/', '.github/workflows/PullRequestHandler.yaml')) {
             Assert-ChangeValue ($diff -contains $path) $true
         }
+        Assert-ChangeValue ($diff -contains '.github/workflows/_BuildALGoProject.yaml') $false
     }
 
     It 'uses the whole merge group rather than one PR or the last commit' {
@@ -206,21 +207,19 @@ Describe 'Payables Agent architecture change selection' {
         } finally { $env:GITHUB_OUTPUT = $previousOutput }
     }
 
-    It 'routes PR checks and project scans through one generic conservative runner step per host' {
-        foreach ($workflow in @('PullRequestHandler.yaml', '_BuildALGoProject.yaml')) {
-            $text = [IO.File]::ReadAllText((Join-Path $script:repo ".github/workflows/$workflow"))
-            $steps = @([regex]::Matches($text, '(?ms)^      - name: .*?(?=^      - |\z)'))
-            $checks = @($steps | Where-Object { $_.Value -match '- name: Validate AL app architecture\r?\n' })
-            Assert-ChangeValue $checks.Count 1
-            $check = $checks[0].Value
-            if (-not $check.Contains('run: ./build/scripts/Test-ALAppArchitecture.ps1') -or -not $check.Contains('-FetchMissingBase')) { throw "Missing shared checked-out runner in $workflow" }
-            if ($check -match '(?m)^        if:' -or $text.Contains('payablesAgentChanges') -or $text.Contains('Payables Agent architecture')) { throw "App-specific gate plumbing remains in $workflow" }
-            if ($workflow -eq 'PullRequestHandler.yaml' -and $text.IndexOf('Validate AL app architecture') -lt $text.IndexOf('  CustomJob-VerifyAppChanges:')) { throw 'Preserve the existing PR validation host.' }
-            if ($workflow -eq '_BuildALGoProject.yaml') {
-                foreach ($argument in @('AL_APP_ARCHITECTURE_PROJECT: ${{ inputs.project }}', 'AL_APP_ARCHITECTURE_BASELINE_SHA: ${{ inputs.baselineWorkflowSHA }}', '-Project $env:AL_APP_ARCHITECTURE_PROJECT', '-BaselineRef $env:AL_APP_ARCHITECTURE_BASELINE_SHA')) {
-                    if (-not $check.Contains($argument)) { throw "Missing generic project/baseline argument: $argument" }
-                }
-            }
+    It 'routes PR checks through the TestALAppArchitecture action in the existing PR validation job only' {
+        # Uses the checked-out action until it exists on main; then microsoft/BCApps/.github/actions/TestALAppArchitecture@main.
+        $expectedUse = 'uses: ./.github/actions/TestALAppArchitecture'
+        $text = [IO.File]::ReadAllText((Join-Path $script:repo '.github/workflows/PullRequestHandler.yaml'))
+        $job = [regex]::Match($text, '(?ms)^  CustomJob-VerifyAppChanges:.*?(?=^  \S|\z)').Value
+        Assert-ChangeValue ([regex]::Matches($text, '(?m)^\s*- uses: \S*TestALAppArchitecture').Count) 1
+        Assert-ChangeValue ([regex]::Matches($job, '(?m)^      - ' + [regex]::Escape($expectedUse) + '\s*$').Count) 1
+        if ($text.Contains('Test-ALAppArchitecture.ps1') -or $text.Contains('payablesAgentChanges') -or $text.Contains('Payables Agent architecture')) { throw 'App-specific gate plumbing remains in PullRequestHandler.yaml' }
+        $build = [IO.File]::ReadAllText((Join-Path $script:repo '.github/workflows/_BuildALGoProject.yaml'))
+        if ($build.Contains('ALAppArchitecture') -or $build.Contains('AL_APP_ARCHITECTURE')) { throw 'The AL-Go project build must not host the architecture gate.' }
+        $actionScript = [IO.File]::ReadAllText((Join-Path $script:repo '.github/actions/TestALAppArchitecture/action.ps1'))
+        foreach ($argument in @('build\scripts\Test-ALAppArchitecture.ps1', '-RepoRoot (Get-Location).Path', '-FetchMissingBase')) {
+            if (-not $actionScript.Contains($argument)) { throw "Missing action argument: $argument" }
         }
     }
 }

@@ -395,20 +395,43 @@ table 50106 Legacy
         } finally { $env:GITHUB_ACTIONS = $previous }
     }
 
-    It 'keeps both CI hooks on the checked-out runner under PowerShell 7 before build cache decisions' {
+    It 'keeps the CI action on the shared runner under PowerShell 7, separating the checker from the validated checkout' {
         $repo = Join-Path $PSScriptRoot '../../..'
         $gate = [IO.File]::ReadAllText((Join-Path $repo 'build/scripts/Test-ALAppArchitecture.ps1'))
         if (-not $gate.Contains('Get-PayablesAgentArchitectureChange -RepoRoot $repoRoot')) { throw 'Runner must own conservative change selection.' }
-        if (-not $gate.Contains("'Test-PayablesAgentArchitecture.ps1') -AppRoot")) { throw 'Runner must invoke the checked-out policy scanner.' }
+        if (-not $gate.Contains("'Test-PayablesAgentArchitecture.ps1') -AppRoot") -or -not $gate.Contains('-RepoRoot $repoRoot')) { throw 'Runner must invoke the policy scanner on the validated repository.' }
         if (-not $gate.Contains("if (`$EventName -in @('pull_request', 'merge_group'))")) { throw 'Relevant PR and merge-group validation must include checker self-tests.' }
+        if (-not $gate.Contains("Join-Path `$repoRoot 'build/scripts/tests/ALArchitecture*.Test.ps1'")) { throw 'Self-tests must come from the validated checkout.' }
         if (-not $gate.Contains('Invoke-Pester -Script $testFiles.FullName -PassThru')) { throw 'Runner must test the checker itself using the shared runner pattern.' }
         if (-not $gate.Contains('$testFiles.Count -eq 0') -or -not $gate.Contains('$result.TotalCount -eq 0 -or $result.FailedCount -gt 0')) { throw 'Runner must fail on failed or undiscovered tests.' }
-        foreach ($workflow in @('PullRequestHandler.yaml', '_BuildALGoProject.yaml')) {
-            $text = [IO.File]::ReadAllText((Join-Path $repo ".github/workflows/$workflow"))
-            if ($text -notmatch '(?m)- name: Validate AL app architecture\r?\n\s+shell: pwsh') { throw "Missing pwsh gate in $workflow" }
-            if (-not $text.Contains('run: ./build/scripts/Test-ALAppArchitecture.ps1')) { throw "Missing checked-out runner in $workflow" }
-            if ($workflow -eq '_BuildALGoProject.yaml' -and $text.IndexOf('Validate AL app architecture') -gt $text.IndexOf('- name: Read settings')) { throw 'Architecture gate must precede settings/cache decisions.' }
+        $action = [IO.File]::ReadAllText((Join-Path $repo '.github/actions/TestALAppArchitecture/action.yaml'))
+        if ($action -notmatch '(?m)^\s+shell: pwsh\s*$' -or -not $action.Contains('${{ github.action_path }}/action.ps1')) { throw 'The action must run its script under PowerShell 7 like the other gate actions.' }
+    }
+
+    It 'validates the given checkout when the checker runs from a separate copy, as a downloaded action does' {
+        $checker = Join-Path $TestDrive 'action-copy/build/scripts'
+        New-Item -ItemType Directory -Path $checker -Force | Out-Null
+        foreach ($name in @('Test-ALAppArchitecture.ps1', 'Test-PayablesAgentArchitecture.ps1', 'ALArchitectureRules.psm1', 'PayablesAgentArchitectureChanges.psm1')) {
+            Copy-Item -LiteralPath (Join-Path $PSScriptRoot "../$name") -Destination $checker
         }
+        $checkout = Join-Path $TestDrive 'checkout'
+        $app = Join-Path $checkout 'src/Apps/W1/PayablesAgent/app'
+        New-Item -ItemType Directory -Path (Join-Path $app 'Consumers'), (Join-Path $app 'Entities') -Force | Out-Null
+        Copy-Item -LiteralPath $script:schema -Destination $app
+        Copy-Item -LiteralPath $layout.Rules -Destination (Join-Path $app 'architecture-rules.json')
+        Set-Content -LiteralPath (Join-Path $app 'Entities/Store.Table.al') -Value "namespace Demo;`ntable 50100 Store`n{`n    Access = Internal;`n}" -Encoding UTF8
+        Set-Content -LiteralPath (Join-Path $app 'Consumers/Caller.al') -Value "namespace Demo;`ncodeunit 50104 Caller`n{`nvar R: Record Store;`n}" -Encoding UTF8
+        $previous = $env:GITHUB_ACTIONS
+        try {
+            # No event or baseline: the selector runs conservatively, without self-tests.
+            $env:GITHUB_ACTIONS = 'true'
+            $output = (& { Assert-Failure { & (Join-Path $checker 'Test-ALAppArchitecture.ps1') -RepoRoot $checkout -EventName '' -EventPath '' -ExpectedHead '' } 'architecture checks failed' } 6>&1 | Out-String)
+        } finally { $env:GITHUB_ACTIONS = $previous }
+        if ($output -notmatch '::error file=src/Apps/W1/PayablesAgent/app/Consumers/Caller\.al,line=4::TEST:') { throw "Missing checkout-relative annotation: $output" }
+        # A checkout that registers no policy, such as an older release branch, is skipped.
+        Remove-Item -LiteralPath (Join-Path $app 'architecture-rules.json')
+        $output = (& (Join-Path $checker 'Test-ALAppArchitecture.ps1') -RepoRoot $checkout -EventName '' -EventPath '' -ExpectedHead '' 6>&1 | Out-String)
+        if ($output -notmatch 'SKIP; this checkout registers no policy') { throw "Expected a skip without policy: $output" }
     }
 
     It 'blocks concrete policy violations in a source-only copy of the app' {

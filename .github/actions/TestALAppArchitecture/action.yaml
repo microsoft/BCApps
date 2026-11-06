@@ -1,0 +1,13 @@
+name: Test AL App Architecture
+author: Microsoft Corporation
+description: Verifies the architecture policies of AL apps that register one, such as the Payables Agent
+runs:
+  using: composite
+  steps:
+    - name: Test AL App Architecture
+      shell: pwsh
+      run: |
+        ${{ github.action_path }}/action.ps1
+branding:
+  icon: terminal
+  color: blue
