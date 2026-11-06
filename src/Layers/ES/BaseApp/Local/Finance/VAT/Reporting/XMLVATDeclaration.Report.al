@@ -7,10 +7,12 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
+#if not CLEAN30
 using System;
+#endif
 using System.IO;
 using System.Telemetry;
-using System.Xml;
+using System.Utilities;
 
 report 10718 "XML VAT Declaration"
 {
@@ -69,8 +71,7 @@ report 10718 "XML VAT Declaration"
                 if "Template Type" <> "Template Type"::"One Column Report" then
                     Error(Text1100000, "Template Type"::"One Column Report");
 
-                XMLDoc := XMLDoc.XmlDocument();
-                XMLProcessingInstruction := XMLDoc.CreateProcessingInstruction('xml', 'version="1.0" encoding="ISO-8859-9"');
+                XMLDoc := XmlDocument.Create();
             end;
 
             trigger OnPreDataItem()
@@ -174,10 +175,8 @@ report 10718 "XML VAT Declaration"
         VATEntry: Record "VAT Entry";
         VATPostingSetup: Record "VAT Posting Setup";
         VATStatementName: Record "VAT Statement Name";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        XMLDoc: DotNet XmlDocument;
-        XMLProcessingInstruction: DotNet XmlProcessingInstruction;
+        XMLDoc: XmlDocument;
         RowNo: array[6] of Code[10];
         Amount: Decimal;
         Base: Decimal;
@@ -196,6 +195,8 @@ report 10718 "XML VAT Declaration"
         PrintAmtInAddCurr: Boolean;
         IntegerPrinted: Boolean;
         Text1100004: Label 'Xml Files (.xml)|*.xml|All Files|*.*''';
+        XmlnsTok: Label 'xmlns', Locked = true;
+        XmlnsPrefixTok: Label 'xmlns:', Locked = true;
         SilentMode: Boolean;
         SilentModeFileName: Text;
 
@@ -437,14 +438,24 @@ report 10718 "XML VAT Declaration"
     [Scope('OnPrem')]
     procedure GenerateFile()
     var
-        XMLNode: DotNet XmlNode;
+        TempBlob: Codeunit "Temp Blob";
+        FileManagement: Codeunit "File Management";
+        XMLNode: XmlNode;
+        RootXmlElement: XmlElement;
+        OutStream: OutStream;
+        XmlText: Text;
     begin
         AEATTransFormatXML.FindFirst();
         AEATTransFormatXML.TestField("Line Type", AEATTransFormatXML."Line Type"::Element);
-        XMLNode := XMLDoc.CreateElement(AEATTransFormatXML.Description);
+        XMLNode := XmlElement.Create(GetLocalName(AEATTransFormatXML.Description)).AsXmlNode();
         AppendVATStatementLine(XMLNode, AEATTransFormatXML, true);
 
-        XMLDoc.Save(FileName);
+        // The document has no XML declaration, so only the root element is written
+        if XMLDoc.GetRoot(RootXmlElement) then
+            RootXmlElement.WriteTo(XmlText);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(XmlText);
+        FileManagement.BLOBExportToServerFile(TempBlob, FileName);
     end;
 
     [Scope('OnPrem')]
@@ -454,9 +465,126 @@ report 10718 "XML VAT Declaration"
     end;
 
     [Scope('OnPrem')]
+    procedure AppendVATStatementLine(var ParentXMLNode: XmlNode; TransFormatXML: Record "AEAT Transference Format XML"; RootNode: Boolean)
+    var
+        NewXMLNode: XmlNode;
+    begin
+        TempAEATTransFormatXML.Get(TransFormatXML."VAT Statement Name", TransFormatXML."No.");
+        if not
+           TempAEATTransFormatXML."Exists Amount" or
+           (TempAEATTransFormatXML."Exists Amount" and ((TempAEATTransFormatXML.Value <> '') or (TempAEATTransFormatXML.Box <> '')))
+        then
+            case TransFormatXML."Line Type" of
+                TransFormatXML."Line Type"::Element:
+                    begin
+                        if RootNode then begin
+                            XMLDoc.Add(ParentXMLNode);
+                            NewXMLNode := ParentXMLNode;
+                        end else
+                            AddElement(ParentXMLNode, TempAEATTransFormatXML.Description, TempAEATTransFormatXML.Value, NewXMLNode);
+                        TransFormatXML.Reset();
+                        TransFormatXML.SetCurrentKey("VAT Statement Name", "Parent Line No.");
+                        TransFormatXML.SetRange("VAT Statement Name", TransFormatXML."VAT Statement Name");
+                        TransFormatXML.SetRange("Parent Line No.", TransFormatXML."No.");
+                        if TransFormatXML.FindSet() then
+                            repeat
+                                AppendVATStatementLine(NewXMLNode, TransFormatXML, false);
+                            until TransFormatXML.Next() = 0;
+                    end;
+                TransFormatXML."Line Type"::Attribute:
+                    AddAttribute(ParentXMLNode, TransFormatXML.Description, TransFormatXML.Value);
+            end;
+    end;
+
+    local procedure AddElement(var ParentXMLNode: XmlNode; NodeName: Text; NodeText: Text; var CreatedXMLNode: XmlNode)
+    var
+        NewXmlElement: XmlElement;
+        Namespace: Text;
+    begin
+        // Child elements inherit the default namespace of their parent, as unprefixed DotNet elements did when written
+        Namespace := ParentXMLNode.AsXmlElement().NamespaceUri();
+        if NodeText <> '' then
+            NewXmlElement := XmlElement.Create(GetLocalName(NodeName), Namespace, NodeText)
+        else
+            NewXmlElement := XmlElement.Create(GetLocalName(NodeName), Namespace);
+        ParentXMLNode.AsXmlElement().Add(NewXmlElement);
+        CreatedXMLNode := NewXmlElement.AsXmlNode();
+    end;
+
+    local procedure AddAttribute(var ParentXMLNode: XmlNode; AttributeName: Text; AttributeValue: Text)
+    begin
+        // The file must stay as DotNet XmlDocument.CreateAttribute wrote it: "xmlns:p" declares a namespace,
+        // "xmlns" sets the default namespace, and any other prefix is dropped from the attribute name.
+        if AttributeName.StartsWith(XmlnsPrefixTok) then begin
+            ParentXMLNode.AsXmlElement().Add(
+              XmlAttribute.CreateNamespaceDeclaration(CopyStr(AttributeName, StrLen(XmlnsPrefixTok) + 1), AttributeValue));
+            exit;
+        end;
+        if AttributeName = XmlnsTok then begin
+            if ParentXMLNode.AsXmlElement().NamespaceUri() <> AttributeValue then
+                MoveToNamespace(ParentXMLNode, AttributeValue);
+            ParentXMLNode.AsXmlElement().SetAttribute(XmlnsTok, AttributeValue);
+            exit;
+        end;
+        ParentXMLNode.AsXmlElement().SetAttribute(GetLocalName(AttributeName), AttributeValue);
+    end;
+
+    local procedure MoveToNamespace(var TargetXMLNode: XmlNode; Namespace: Text)
+    var
+        NewXmlElement: XmlElement;
+    begin
+        CopyToNamespace(TargetXMLNode.AsXmlElement(), Namespace, NewXmlElement);
+        TargetXMLNode.ReplaceWith(NewXmlElement.AsXmlNode());
+        TargetXMLNode := NewXmlElement.AsXmlNode();
+    end;
+
+    local procedure CopyToNamespace(SourceXmlElement: XmlElement; Namespace: Text; var NewXmlElement: XmlElement)
+    var
+        SourceXmlAttribute: XmlAttribute;
+        DefaultNamespaceXmlAttribute: XmlAttribute;
+        ChildXmlNode: XmlNode;
+        NewChildXmlElement: XmlElement;
+        XmlAttributeCollection: XmlAttributeCollection;
+        ChildNamespace: Text;
+        AttributeIndex: Integer;
+    begin
+        NewXmlElement := XmlElement.Create(SourceXmlElement.LocalName(), Namespace);
+        XmlAttributeCollection := SourceXmlElement.Attributes();
+        for AttributeIndex := 1 to XmlAttributeCollection.Count() do begin
+            XmlAttributeCollection.Get(AttributeIndex, SourceXmlAttribute);
+            if SourceXmlAttribute.IsNamespaceDeclaration() and (SourceXmlAttribute.Name() <> XmlnsTok) then
+                NewXmlElement.Add(XmlAttribute.CreateNamespaceDeclaration(SourceXmlAttribute.LocalName(), SourceXmlAttribute.Value()))
+            else
+                NewXmlElement.SetAttribute(SourceXmlAttribute.Name(), SourceXmlAttribute.Value());
+        end;
+        foreach ChildXmlNode in SourceXmlElement.GetChildNodes() do
+            if ChildXmlNode.IsXmlElement() then begin
+                ChildNamespace := Namespace;
+                if ChildXmlNode.AsXmlElement().Attributes().Get(XmlnsTok, DefaultNamespaceXmlAttribute) then
+                    ChildNamespace := DefaultNamespaceXmlAttribute.Value();
+                CopyToNamespace(ChildXmlNode.AsXmlElement(), ChildNamespace, NewChildXmlElement);
+                NewXmlElement.Add(NewChildXmlElement);
+            end else
+                NewXmlElement.Add(ChildXmlNode);
+    end;
+
+    local procedure GetLocalName(QualifiedName: Text): Text
+    var
+        ColonPosition: Integer;
+    begin
+        ColonPosition := StrPos(QualifiedName, ':');
+        if ColonPosition = 0 then
+            exit(QualifiedName);
+        exit(CopyStr(QualifiedName, ColonPosition + 1));
+    end;
+
+#if not CLEAN30
+    [Scope('OnPrem')]
+    [Obsolete('Use the AppendVATStatementLine overload with the native XmlNode parameter instead.', '30.0')]
     procedure AppendVATStatementLine(var ParentXMLNode: DotNet XmlNode; AEATTransFormatXML: Record "AEAT Transference Format XML"; RootNode: Boolean)
     var
         NewXMLNode: DotNet XmlNode;
+        NewXMLAttribute: DotNet XmlAttribute;
     begin
         TempAEATTransFormatXML.Get(AEATTransFormatXML."VAT Statement Name", AEATTransFormatXML."No.");
         if not
@@ -467,10 +595,14 @@ report 10718 "XML VAT Declaration"
                 AEATTransFormatXML."Line Type"::Element:
                     begin
                         if RootNode then begin
-                            XMLDoc.AppendChild(ParentXMLNode);
+                            ParentXMLNode.OwnerDocument.AppendChild(ParentXMLNode);
                             NewXMLNode := ParentXMLNode;
-                        end else
-                            XMLDOMMgt.AddElement(ParentXMLNode, TempAEATTransFormatXML.Description, TempAEATTransFormatXML.Value, '', NewXMLNode);
+                        end else begin
+                            NewXMLNode := ParentXMLNode.OwnerDocument.CreateElement(TempAEATTransFormatXML.Description);
+                            if TempAEATTransFormatXML.Value <> '' then
+                                NewXMLNode.InnerText := TempAEATTransFormatXML.Value;
+                            ParentXMLNode.AppendChild(NewXMLNode);
+                        end;
                         AEATTransFormatXML.Reset();
                         AEATTransFormatXML.SetCurrentKey("VAT Statement Name", "Parent Line No.");
                         AEATTransFormatXML.SetRange("VAT Statement Name", AEATTransFormatXML."VAT Statement Name");
@@ -481,9 +613,14 @@ report 10718 "XML VAT Declaration"
                             until AEATTransFormatXML.Next() = 0;
                     end;
                 AEATTransFormatXML."Line Type"::Attribute:
-                    XMLDOMMgt.AddAttribute(ParentXMLNode, AEATTransFormatXML.Description, AEATTransFormatXML.Value);
+                    begin
+                        NewXMLAttribute := ParentXMLNode.OwnerDocument.CreateAttribute(AEATTransFormatXML.Description);
+                        NewXMLAttribute.Value := AEATTransFormatXML.Value;
+                        ParentXMLNode.Attributes.SetNamedItem(NewXMLAttribute);
+                    end;
             end;
     end;
+#endif
 
     [Scope('OnPrem')]
     procedure SetSilentMode(ServerFileName: Text)

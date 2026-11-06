@@ -242,7 +242,7 @@ codeunit 147554 "SII Collection In Cash"
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         PostingDate: Date;
         TotalAmountInCash: Decimal;
     begin
@@ -282,7 +282,7 @@ codeunit 147554 "SII Collection In Cash"
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         PostingDate: Date;
         TotalAmountInCash: Decimal;
     begin
