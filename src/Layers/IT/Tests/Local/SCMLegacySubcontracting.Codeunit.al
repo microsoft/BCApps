@@ -41,7 +41,6 @@ codeunit 137500 "SCM Legacy Subcontracting"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibraryITLocalization: Codeunit "Library - IT Localization";
 
         Initialized: Boolean;
         SubcontractingAppNotInstalled: Boolean;
@@ -340,7 +339,17 @@ codeunit 137500 "SCM Legacy Subcontracting"
         // [GIVEN] A Subcontractor Prices record exists
         LibraryPurchase.CreateVendor(Vendor);
         LibraryInventory.CreateItem(Item);
-        LibraryITLocalization.CreateSubContractingPrice(SubcontractorPrices, '', Vendor."No.", Item."No.", '', '', Today(), Item."Base Unit of Measure", 1, CreateCurrency().Code);
+        SubcontractorPrices.Init();
+        SubcontractorPrices.Validate("Work Center No.", '');
+        SubcontractorPrices.Validate("Vendor No.", Vendor."No.");
+        SubcontractorPrices.Validate("Item No.", Item."No.");
+        SubcontractorPrices.Validate("Standard Task Code", '');
+        SubcontractorPrices.Validate("Variant Code", '');
+        SubcontractorPrices.Validate("Start Date", Today());
+        SubcontractorPrices.Validate("Unit of Measure Code", Item."Base Unit of Measure");
+        SubcontractorPrices.Validate("Minimum Quantity", 1);
+        SubcontractorPrices.Validate("Currency Code", CreateCurrency().Code);
+        SubcontractorPrices.Insert(true);
 
         // [WHEN] Check if data exists
         // [THEN] DatabaseHasLegacySubcontractingData returns true

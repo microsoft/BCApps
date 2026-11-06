@@ -7864,19 +7864,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                            DtldCVLedgEntryBuf."Entry Type"::"Payment Discount Tolerance (VAT Excl.)"]);
     end;
 
-#if not CLEAN27
-    local procedure RealizeDelayedUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line")
-    begin
-        if FeatureKeyManagement.IsPaymentManagementEnabled() then
-            exit;
-
-#pragma warning disable AL0432
-        if GenJnlLine."Delayed Unrealized VAT" and GenJnlLine."Realize VAT" then
-            if (GenJnlLine."Applies-to Doc. No." <> '') or (GenJnlLine."Applies-to ID" <> '') then
-                PostDelayedUnrealizedVAT(GenJnlLine);
-#pragma warning restore AL0432
-    end;
-#endif
 
 #if not CLEAN30
     local procedure IsLegacyDelayedUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line"): Boolean

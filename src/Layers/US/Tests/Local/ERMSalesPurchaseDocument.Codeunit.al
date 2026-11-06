@@ -951,48 +951,6 @@ codeunit 142053 "ERM Sales/Purchase Document"
         CreateICOutboxJnlLineWithTax(TaxDetail."Tax Type"::"Sales and Use Tax", true);
     end;
 
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('PurchaseInvoiceStatsModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure VerifyTotalInclTaxOnPurchInvStatistics()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PostedDocumentNo: Code[20];
-    begin
-        // [FEATURE] [Purchase] [Invoice] [Statistics]
-        // Setup: Create Tax detail with Jurisdiction and Post Purchase Invoice.
-        Initialize();
-        CreatePurchaseDocumentWithTaxAreaCode(PurchaseHeader, PurchaseHeader."Document Type"::Invoice);
-        PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-
-        // Exercise: Post Purchase Invoice
-        OpenPostedInvoiceStatistics(PostedDocumentNo);
-
-        // Verification has been done in handler PurchaseInvoiceStatsModalPageHandler
-    end;
-
-    [Test]
-    [HandlerFunctions('PurchaseCreditMemoStatsModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure VerifyTotalIncTaxOnCreditMemoStatistics()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PostedDocumentNo: Code[20];
-    begin
-        // [FEATURE] [Purchase] [Credit Memo] [Statistics]
-        // Setup: Create Tax detail with Jurisdiction and Post Purchase Credit Memo.
-        Initialize();
-        CreatePurchaseDocumentWithTaxAreaCode(PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo");
-        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
-        PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-
-        // Exercise: Post Purchase Credit Memo
-        OpenPostedPurchCreditMemoStatistics(PostedDocumentNo);
-
-        // Verification has been done in handler PurchaseCreditMemoStatsModalPageHandler
-    end;
-#endif
     [Test]
     [HandlerFunctions('PurchaseInvoiceStatsModalPageHandlerNM')]
     [Scope('OnPrem')]
@@ -2315,28 +2273,6 @@ codeunit 142053 "ERM Sales/Purchase Document"
         PurchInvHeader.TestField("Buy-from Vendor No.", VendorNo);
     end;
 
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('PurchaseInvoiceStatsPurchaseAmountLCYModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure VerifyAmountLCYOnPurchInvStatistics()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PostedDocumentNo: Code[20];
-    begin
-        // [SCENARIO 451479] Verify the Purchase (LCY) value in on Posted Purchase Invoice Statistics
-        Initialize();
-
-        // [GIVEN] Create Purchase Invoice and Post
-        CreatePurchaseDocumentWithoutTaxAreaCode(PurchaseHeader, PurchaseHeader."Document Type"::Invoice);
-        PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-
-        // [THEN] Opening the Posted Purchase Invoice Statistics
-        OpenPostedInvoiceStatistics(PostedDocumentNo);
-
-        // [VERIFY] Verification has been done in handler PurchaseInvoiceStatsModalPageHandler
-    end;
-#endif
     [Test]
     [HandlerFunctions('PurchaseInvoiceStatsPurchaseAmountLCYPageHandler')]
     [Scope('OnPrem')]
@@ -3086,33 +3022,6 @@ codeunit 142053 "ERM Sales/Purchase Document"
         PostedSalesShipments."&Print".Invoke();
     end;
 
-#if not CLEAN27
-    local procedure OpenPostedInvoiceStatistics(PostesInvoiceNo: Code[20])
-    var
-        PurchInvHeader: Record "Purch. Inv. Header";
-        PostedPurchaseInvoice: TestPage "Posted Purchase Invoice";
-    begin
-        PurchInvHeader.Get(PostesInvoiceNo);
-        PurchInvHeader.CalcFields("Amount Including VAT");
-        LibraryVariableStorage.Enqueue(PurchInvHeader."Amount Including VAT");
-        PostedPurchaseInvoice.OpenEdit();
-        PostedPurchaseInvoice.FILTER.SetFilter("No.", PostesInvoiceNo);
-        PostedPurchaseInvoice.Statistics.Invoke();
-    end;
-
-    local procedure OpenPostedPurchCreditMemoStatistics(PostesInvoiceNo: Code[20])
-    var
-        PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
-        PostedPurchaswCreditMemo: TestPage "Posted Purchase Credit Memo";
-    begin
-        PurchCrMemoHdr.Get(PostesInvoiceNo);
-        PurchCrMemoHdr.CalcFields("Amount Including VAT");
-        LibraryVariableStorage.Enqueue(PurchCrMemoHdr."Amount Including VAT");
-        PostedPurchaswCreditMemo.OpenEdit();
-        PostedPurchaswCreditMemo.FILTER.SetFilter("No.", PostesInvoiceNo);
-        PostedPurchaswCreditMemo.Statistics.Invoke();
-    end;
-#endif
     local procedure OpenPostedInvoiceStatsNM(PostesInvoiceNo: Code[20])
     var
         PurchInvHeader: Record "Purch. Inv. Header";
@@ -3475,27 +3384,6 @@ codeunit 142053 "ERM Sales/Purchase Document"
         SalesShipment.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseInvoiceStatsModalPageHandler(var PurchaseInvoiceStats: TestPage "Purchase Invoice Stats.")
-    var
-        AmountInclVAT: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(AmountInclVAT);
-        PurchaseInvoiceStats.AmountInclVAT.AssertEquals(AmountInclVAT);
-    end;
-
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseCreditMemoStatsModalPageHandler(var PurchCreditMemoStats: TestPage "Purch. Credit Memo Stats.")
-    var
-        AmountInclVAT: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(AmountInclVAT);
-        PurchCreditMemoStats.AmountInclVAT.AssertEquals(AmountInclVAT);
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure PurchaseInvoiceStatsModalPageHandlerNM(var PurchaseInvoiceStats: TestPage "Purchase Invoice Stats.")
@@ -3515,19 +3403,6 @@ codeunit 142053 "ERM Sales/Purchase Document"
         LibraryVariableStorage.Dequeue(AmountInclVAT);
         PurchCreditMemoStats.AmountInclVAT.AssertEquals(AmountInclVAT);
     end;
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseInvoiceStatsPurchaseAmountLCYModalPageHandler(var PurchaseInvoiceStatistics: TestPage "Purchase Invoice Statistics")
-    var
-        PurchaseAmountLCY: Variant;
-        AmountLCY: Decimal;
-    begin
-        LibraryVariableStorage.Dequeue(PurchaseAmountLCY);
-        Evaluate(AmountLCY, PurchaseInvoiceStatistics.AmountLCY.Value);
-        PurchaseInvoiceStatistics.AmountLCY.AssertEquals(Abs(AmountLCY));
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure PurchaseInvoiceStatsPurchaseAmountLCYPageHandler(var PurchaseInvoiceStatistics: TestPage "Purchase Invoice Statistics")

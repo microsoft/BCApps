@@ -144,38 +144,6 @@ page 99000768 "Manufacturing Setup"
                     ApplicationArea = Manufacturing;
                 }
             }
-#if not CLEAN27
-            group(Subcontracting)
-            {
-                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-                Caption = 'Subcontracting';
-                field("Subcontr. Ship. Reason Code"; Rec."Subcontr. Ship. Reason Code")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    ToolTip = 'Specifies the reason code for the subcontracting shipment.';
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                field("Subcontr. Return Reason Code"; Rec."Subcontr. Return Reason Code")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    ToolTip = 'Specifies the reason code for the subcontracting return.';
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                field("Legacy Subcontracting"; Rec."Legacy Subcontracting")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '28.0';
-                }
-            }
-#endif
             group(ProductionDefinitionWizard)
             {
                 Caption = 'Production Definition Wizard';
