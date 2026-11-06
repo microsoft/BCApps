@@ -21,14 +21,16 @@ pageextension 8406 "IC Finance Manager RC" extends "Finance Manager Role Center"
 {
     actions
     {
-#if INTERCOMPANY_APAC and not CLEAN30
+#if INTERCOMPANY_APAC
+#if not CLEAN30
         addafter("Group3")
         {
             group("Group4")
-#elif INTERCOMPANY_APAC
+#else
         addafter("WHT")
         {
             group("Group3")
+#endif
 #else
         addafter("Group2")
         {
@@ -90,15 +92,19 @@ pageextension 8406 "IC Finance Manager RC" extends "Finance Manager Role Center"
                 Tooltip = 'Open the Intercompany General Journal page.';
             }
         }
-#if INTERCOMPANY_APAC and not CLEAN30
+#if INTERCOMPANY_APAC
+#if not CLEAN30
         addafter("Group58")
         {
             group("Group60")
-#elif INTERCOMPANY_APAC
+#else
         addafter("Group56")
         {
             group("Group58")
-#elif INTERCOMPANY_NA and not CLEAN30
+#endif
+#else
+#if INTERCOMPANY_NA
+#if not CLEAN30
         addafter("Group58")
         {
             group("Group59")
@@ -106,6 +112,12 @@ pageextension 8406 "IC Finance Manager RC" extends "Finance Manager Role Center"
         addafter("Group57")
         {
             group("Group58")
+#endif
+#else
+        addafter("Group57")
+        {
+            group("Group58")
+#endif
 #endif
             {
                 Caption = 'Intercompany';
