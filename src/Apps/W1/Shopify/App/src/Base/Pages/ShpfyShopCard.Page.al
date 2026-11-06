@@ -944,6 +944,27 @@ page 30101 "Shpfy Shop Card"
             }
             group(Sync)
             {
+                action(SetupRecurringSynchronization)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Set up recurring synchronization';
+                    Image = Calendar;
+                    Promoted = true;
+                    PromotedCategory = Category5;
+                    PromotedOnly = true;
+                    ToolTip = 'Create or review recurring synchronization schedules for this Shopify shop. The setup guide suggests relevant synchronizations and creates the required job queue entries.';
+
+                    trigger OnAction()
+                    var
+                        RecurringSyncGuide: Page "Shpfy Recurring Sync Guide";
+                    begin
+                        if not Rec.TestConnection() then
+                            exit;
+
+                        RecurringSyncGuide.SetShop(Rec);
+                        RecurringSyncGuide.RunModal();
+                    end;
+                }
                 action(SyncProducts)
                 {
                     ApplicationArea = All;

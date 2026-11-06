@@ -14,7 +14,8 @@ permissionset 30103 "Shpfy - Admin"
     Assignable = true;
     Caption = 'Shopify - Admin', MaxLength = 30;
 
-    IncludedPermissionSets = "Shpfy - Edit";
+    IncludedPermissionSets = "Shpfy - Edit",
+        "Shpfy - Rec. Sync";
 
     Permissions =
         tabledata "Shpfy Registered Store New" = IMD;
