@@ -136,7 +136,7 @@ codeunit 6445 "SignUp Processing"
     procedure ReceiveDocuments(var EDocumentService: Record "E-Document Service"; DocumentsMetadataTempBlobList: Codeunit "Temp Blob List"; ReceiveContext: Codeunit ReceiveContext)
     var
         TempBlob: Codeunit "Temp Blob";
-        JSONManagement: Codeunit "JSON Management";
+        ResponseJson: JsonObject;
         ContentData: Text;
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
@@ -153,11 +153,12 @@ codeunit 6445 "SignUp Processing"
         if not HttpResponseMessage.Content.ReadAs(ContentData) then
             exit;
 
-        if not JsonManagement.InitializeFromString(ContentData) then
+        if not ResponseJson.ReadFrom(ContentData) then
             exit;
 
-        JsonManagement.GetArrayPropertyValueAsStringByName(this.InboxTxt, ContentData);
-        JsonArray.ReadFrom(ContentData);
+        if not ResponseJson.Get(this.InboxTxt, JsonToken) or not JsonToken.IsArray() then
+            exit;
+        JsonArray := JsonToken.AsArray();
 
         foreach JsonToken in JsonArray do begin
             Clear(TempBlob);
@@ -230,7 +231,7 @@ codeunit 6445 "SignUp Processing"
 
     local procedure ParseDocumentResponse(HttpContentResponse: HttpContent; var Status: Text; var StatusDescription: Text): Boolean
     var
-        JsonManagement: Codeunit "JSON Management";
+        ResponseJson: JsonObject;
         Result: Text;
     begin
         Status := '';
@@ -240,10 +241,10 @@ codeunit 6445 "SignUp Processing"
         if Result = '' then
             exit;
 
-        if not JsonManagement.InitializeFromString(Result) then
+        if not ResponseJson.ReadFrom(Result) then
             exit;
 
-        if not this.GetStatus(JsonManagement, Status) then
+        if not this.GetStatus(ResponseJson, Status) then
             exit;
 
         case Status of
@@ -297,34 +298,32 @@ codeunit 6445 "SignUp Processing"
 
     local procedure GetNumberOfReceivedDocuments(InputTxt: Text): Integer
     var
-        JsonManagement: Codeunit "JSON Management";
-        Value: Text;
+        ResponseJson: JsonObject;
+        InboxToken: JsonToken;
     begin
         InputTxt := this.LeaveJustNewLine(InputTxt);
 
-        if not JsonManagement.InitializeFromString(InputTxt) then
+        if not ResponseJson.ReadFrom(InputTxt) then
             exit(0);
 
-        JsonManagement.GetArrayPropertyValueAsStringByName(this.InboxTxt, Value);
-        JsonManagement.InitializeCollection(Value);
-
-        exit(JsonManagement.GetCollectionCount());
+        if not ResponseJson.Get(this.InboxTxt, InboxToken) or not InboxToken.IsArray() then
+            exit(0);
+        exit(InboxToken.AsArray().Count());
     end;
 
     local procedure ParseSendFileResponse(HttpContentResponse: HttpContent): Text
     var
-        JsonManagement: Codeunit "JSON Management";
-        Result, Value : Text;
+        ResponseJson: JsonObject;
+        Result: Text;
     begin
         Result := this.SignUpHelpersImpl.ParseJsonString(HttpContentResponse);
         if Result = '' then
             exit;
 
-        if not JsonManagement.InitializeFromString(Result) then
+        if not ResponseJson.ReadFrom(Result) then
             exit;
 
-        JsonManagement.GetStringPropertyValueByName(this.TransactionIdTxt, Value);
-        exit(Value);
+        exit(ResponseJson.GetText(this.TransactionIdTxt, true));
     end;
 
     local procedure SetEDocumentFileID(EDocEntryNo: Integer; FileId: Text)
@@ -341,12 +340,16 @@ codeunit 6445 "SignUp Processing"
         EDocument.Modify();
     end;
 
-    local procedure GetStatus(var JsonManagement: Codeunit "Json Management"; var Status: Text): Boolean
+    local procedure GetStatus(ResponseJson: JsonObject; var Status: Text): Boolean
+    var
+        StatusToken: JsonToken;
     begin
-        if not JsonManagement.GetArrayPropertyValueAsStringByName(this.StatusTxt, Status) then
+        if not ResponseJson.Get(this.StatusTxt, StatusToken) or not StatusToken.IsValue() then
             exit;
 
-        Status := Status.ToLower();
+        if StatusToken.AsValue().IsNull() or StatusToken.AsValue().IsUndefined() then
+            exit(false);
+        Status := StatusToken.AsValue().AsText().ToLower();
         exit(true);
     end;
 
@@ -386,15 +389,20 @@ codeunit 6445 "SignUp Processing"
 
     local procedure ParseContentData(var InputText: Text): Boolean
     var
-        JsonManagement: Codeunit "JSON Management";
         Base64Convert: Codeunit "Base64 Convert";
-        Value: Text;
+        ResponseJson: JsonObject;
+        DocumentToken: JsonToken;
     begin
-        if not JsonManagement.InitializeFromString(InputText) then
+        if not ResponseJson.ReadFrom(InputText) then
             exit;
 
-        JsonManagement.GetArrayPropertyValueAsStringByName(this.DocumentTxt, Value);
-        InputText := Base64Convert.FromBase64(Value);
+        if not ResponseJson.Get(this.DocumentTxt, DocumentToken) or not DocumentToken.IsValue() then
+            exit;
+        if DocumentToken.AsValue().IsNull() or DocumentToken.AsValue().IsUndefined() then begin
+            InputText := '';
+            exit(true);
+        end;
+        InputText := Base64Convert.FromBase64(DocumentToken.AsValue().AsText());
         exit(true);
     end;
 
