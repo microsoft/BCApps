@@ -299,7 +299,7 @@ page 8025 "Contract Price Update"
         InitTempTable();
     end;
 
-    local procedure InitTempTable()
+    procedure InitTempTable()
     begin
         PriceUpdateManagement.InitTempTable(Rec, GroupBy);
         if Rec.FindFirst() then; //to enable CollapseAll
