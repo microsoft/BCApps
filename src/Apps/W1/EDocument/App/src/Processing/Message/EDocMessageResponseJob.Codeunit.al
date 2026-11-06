@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Message;
 
-using System.Telemetry;
+using Microsoft.eServices.EDocument;
 using System.Threading;
 
 codeunit 6539 "E-Doc. Message Response Job"
@@ -17,7 +17,8 @@ codeunit 6539 "E-Doc. Message Response Job"
     trigger OnRun()
     var
         EDocumentMessage: Record "E-Document Message";
-        Telemetry: Codeunit Telemetry;
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        EDocumentLog: Codeunit "E-Document Log";
         TelemetryDimensions: Dictionary of [Text, Text];
         LastErrorInfo: ErrorInfo;
         LastErrorText: Text;
@@ -27,7 +28,7 @@ codeunit 6539 "E-Doc. Message Response Job"
             exit;
 
         LastErrorText := GetLastErrorText();
-        LastErrorInfo := ErrorInfo.Create(LastErrorText);
+        LastErrorInfo := EDocMessageMgt.CreateMessageErrorInfo(EDocumentMessage, LastErrorText);
         EDocumentMessage.Get(EDocumentMessage."Entry No.");
         EDocumentMessage.Status := EDocumentMessage.Status::"Response Error";
         EDocumentMessage."Last Attempt At" := CurrentDateTime();
@@ -39,7 +40,7 @@ codeunit 6539 "E-Doc. Message Response Job"
         TelemetryDimensions.Add('Service', EDocumentMessage.Service);
         TelemetryDimensions.Add('Retry Count', Format(EDocumentMessage."Retry Count"));
         TelemetryDimensions.Add('Job Queue Entry ID', Format(Rec.ID));
-        Telemetry.LogMessage('0000LC8', MessageResponseFailureTelemetryLbl, Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, TelemetryDimensions);
+        EDocumentLog.LogTelemetry('0000LC8', MessageResponseFailureTelemetryLbl, Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, TelemetryDimensions);
         Commit();
         Error(LastErrorInfo);
     end;

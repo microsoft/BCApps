@@ -47,6 +47,7 @@ codeunit 139658 "E-Doc. Integration Mock V2" implements IDocumentSender, IDocume
             MessageContext.Status().SetStatus("E-Document Service Status"::Sent)
         else
             MessageContext.Status().SetStatus("E-Document Service Status"::"Pending Response");
+        OnAfterGetMessageResponse(MessageContext);
         exit(ResponseReceived);
     end;
 
@@ -61,6 +62,17 @@ codeunit 139658 "E-Doc. Integration Mock V2" implements IDocumentSender, IDocume
             MessageContext.Status().SetStatus("E-Document Service Status"::"Pending Response")
         else
             MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
+        OnAfterSendMessage(MessageContext);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetMessageResponse(MessageContext: Codeunit "E-Doc. Message Context")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSendMessage(MessageContext: Codeunit "E-Doc. Message Context")
+    begin
     end;
 
     procedure ReceiveDocuments(var EDocumentService: Record "E-Document Service"; DocumentsMetadata: Codeunit "Temp Blob List"; ReceiveContext: Codeunit ReceiveContext)
