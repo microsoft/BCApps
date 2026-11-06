@@ -211,6 +211,7 @@ codeunit 48522 "Fabric Install"
         TableIds.Add(5203);     // Employee Qualification
         TableIds.Add(5207);     // Employee Absence
         TableIds.Add(5222);     // Employee Ledger Entry
+        TableIds.Add(5223);     // Detailed Employee Ledger Entry
         TableIds.Add(5404);     // Item Unit of Measure
         TableIds.Add(5405);     // Production Order
         TableIds.Add(5406);     // Prod. Order Line
