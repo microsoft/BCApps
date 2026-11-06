@@ -4904,7 +4904,9 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         CountryRegion: Record "Country/Region";
     begin
         CountryRegion.SetFilter(Code, '<>%1', CountryRegionCode);
+#pragma warning disable AA0210
         CountryRegion.SetFilter("ISO Code", '<>%1', '');
+#pragma warning restore AA0210
         CountryRegion.FindFirst();
         exit(CountryRegion.Code);
     end;

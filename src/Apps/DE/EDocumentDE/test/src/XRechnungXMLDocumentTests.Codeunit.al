@@ -6200,7 +6200,9 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesInvoiceHeader.Modify(false);
         SalesInvoiceHeaderRecRef.GetTable(SalesInvoiceHeader);
         if ShipToFieldNo = SalesInvoiceHeader.FieldNo("Ship-to Country/Region Code") then begin
+#pragma warning disable AA0210
             CountryRegion.SetFilter("ISO Code", '<>%1', '');
+#pragma warning restore AA0210
             CountryRegion.FindFirst();
             SalesInvoiceHeaderRecRef.Field(ShipToFieldNo).Value := CountryRegion.Code;
         end else
