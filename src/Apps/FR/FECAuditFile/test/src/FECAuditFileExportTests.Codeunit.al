@@ -24,6 +24,7 @@ codeunit 148017 "FEC Audit File Export Tests"
         UnknownFieldErr: Label 'Unknown field No! Fld #%1.', Comment = '%1 - Field No.';
         WrongFieldErr: Label 'Wrong %1. Fld #%2.', Comment = '%1 - Field Name, %2 - Field No.';
         FilterErr: Label 'Filter function does not work.';
+        SourceCodeNotFoundErr: Label 'No exported line was found for source code %1.', Comment = '%1 - Source Code';
         TwoDocumentNosTxt: Label '%1;%2', Comment = '%1, %2 - Document No.';
 
     [Test]
@@ -2619,6 +2620,116 @@ codeunit 148017 "FEC Audit File Export Tests"
         VerifyFilePartyNoAndName(iStream, '', '');
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure UnappliedCustomerReceivablesLineHasCustomerInfo()
+    var
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        SourceCodeSetup: Record "Source Code Setup";
+        AuditFile: Record "Audit File";
+        StartingDate: Date;
+        InvoiceDocNo: Code[20];
+        InvoiceAmount: Decimal;
+        DiscountAmount: Decimal;
+    begin
+        // [SCENARIO 639574] CompAuxNum and CompAuxLib are informed for a customer receivables line created by unapplication
+        Initialize();
+        StartingDate := GetStartingDate();
+        SourceCodeSetup.Get();
+
+        // [GIVEN] A posted sales invoice with a possible payment discount
+        LibrarySales.CreateCustomer(Customer);
+        CustomerPostingGroup.Get(Customer."Customer Posting Group");
+        InvoiceAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Invoice, "Gen. Journal Account Type"::Customer, Customer."No.", InvoiceAmount);
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Pmt. Discount Date", CalcDate('<1M>', StartingDate));
+        GenJournalLine.Validate("Payment Discount %", LibraryRandom.RandIntInRange(2, 5));
+        GenJournalLine.Modify(true);
+        InvoiceDocNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Invoice, InvoiceDocNo);
+        DiscountAmount := CustLedgerEntry."Original Pmt. Disc. Possible";
+
+        // [GIVEN] A payment applied within the discount date and then unapplied
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Payment, "Gen. Journal Account Type"::Customer, Customer."No.", -(InvoiceAmount - DiscountAmount));
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Applies-to Doc. Type", "Gen. Journal Document Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceDocNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Payment, GenJournalLine."Document No.");
+        LibraryERM.UnapplyCustomerLedgerEntry(CustLedgerEntry);
+
+        // [WHEN] Export Audit File in FEC format for the receivables account
+        RunFECExport(AuditFile, CustomerPostingGroup."Receivables Account", StartingDate, StartingDate, false);
+
+        // [THEN] The unapplication line has CompAuxNum = Customer No. and CompAuxLib = Customer Name
+        VerifyFilePartyNoAndNameForSourceCode(
+            AuditFile, SourceCodeSetup."Unapplied Sales Entry Appln.", Customer."No.", Customer.Name);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure UnappliedVendorPayablesLineHasVendorInfo()
+    var
+        Vendor: Record Vendor;
+        VendorPostingGroup: Record "Vendor Posting Group";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        SourceCodeSetup: Record "Source Code Setup";
+        AuditFile: Record "Audit File";
+        StartingDate: Date;
+        InvoiceDocNo: Code[20];
+        InvoiceAmount: Decimal;
+        DiscountAmount: Decimal;
+    begin
+        // [SCENARIO 639574] CompAuxNum and CompAuxLib are informed for a vendor payables line created by unapplication
+        Initialize();
+        StartingDate := GetStartingDate();
+        SourceCodeSetup.Get();
+
+        // [GIVEN] A posted purchase invoice with a possible payment discount
+        LibraryPurchase.CreateVendor(Vendor);
+        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+        InvoiceAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Invoice, "Gen. Journal Account Type"::Vendor, Vendor."No.", -InvoiceAmount);
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Pmt. Discount Date", CalcDate('<1M>', StartingDate));
+        GenJournalLine.Validate("Payment Discount %", LibraryRandom.RandIntInRange(2, 5));
+        GenJournalLine.Modify(true);
+        InvoiceDocNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, "Gen. Journal Document Type"::Invoice, InvoiceDocNo);
+        DiscountAmount := VendorLedgerEntry."Original Pmt. Disc. Possible";
+
+        // [GIVEN] A payment applied within the discount date and then unapplied
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, "Gen. Journal Document Type"::Payment, "Gen. Journal Account Type"::Vendor, Vendor."No.", InvoiceAmount + DiscountAmount);
+        GenJournalLine.Validate("Posting Date", StartingDate);
+        GenJournalLine.Validate("Applies-to Doc. Type", "Gen. Journal Document Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceDocNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, "Gen. Journal Document Type"::Payment, GenJournalLine."Document No.");
+        LibraryERM.UnapplyVendorLedgerEntry(VendorLedgerEntry);
+
+        // [WHEN] Export Audit File in FEC format for the payables account
+        RunFECExport(AuditFile, VendorPostingGroup."Payables Account", StartingDate, StartingDate, false);
+
+        // [THEN] The unapplication line has CompAuxNum = Vendor No. and CompAuxLib = Vendor Name
+        VerifyFilePartyNoAndNameForSourceCode(
+            AuditFile, SourceCodeSetup."Unapplied Purch. Entry Appln.", Vendor."No.", Vendor.Name);
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -3817,6 +3928,25 @@ codeunit 148017 "FEC Audit File Export Tests"
         PopulateFieldsArray(InStream, FieldsValueArray);
         Assert.AreEqual(ExpectedNo, FieldsValueArray[7], '');
         Assert.AreEqual(ExpectedName, FieldsValueArray[8], '');
+    end;
+
+    local procedure VerifyFilePartyNoAndNameForSourceCode(AuditFile: Record "Audit File"; SourceCode: Code[10]; ExpectedNo: Text; ExpectedName: Text)
+    var
+        iStream: InStream;
+        FieldsValueArray: array[18] of Text[50];
+        LineToRead: Text;
+        SourceCodeFound: Boolean;
+    begin
+        CreateReadStream(iStream, AuditFile);
+        iStream.ReadText(LineToRead); // header
+        while (not iStream.EOS) and (not SourceCodeFound) do begin
+            PopulateFieldsArray(iStream, FieldsValueArray);
+            SourceCodeFound := FieldsValueArray[1] = SourceCode;
+        end;
+
+        Assert.IsTrue(SourceCodeFound, StrSubstNo(SourceCodeNotFoundErr, SourceCode));
+        Assert.AreEqual(ExpectedNo, FieldsValueArray[7], GetErrorTextForAssertStmnt(7));
+        Assert.AreEqual(ExpectedName, FieldsValueArray[8], GetErrorTextForAssertStmnt(8));
     end;
 
     local procedure VerifyOpeningBalanceEntry(var iStream: InStream; GLAccountNo: Code[20]; PartyNo: Code[20]; DebitAmount: Decimal; CreditAmount: Decimal)
