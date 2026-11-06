@@ -38,6 +38,7 @@
 			</cac:PartyTaxScheme>
 			<cac:PartyLegalEntity>
 				<cbc:RegistrationName>Fournisseur SARL</cbc:RegistrationName>
+				<cbc:CompanyID schemeID="0002">123456789</cbc:CompanyID>
 			</cac:PartyLegalEntity>
 		</cac:Party>
 	</cac:AccountingSupplierParty>

@@ -40,7 +40,10 @@ codeunit 10982 "Import Factur-X"
         CurrencyCode: Text;
         SellerVATId: Text[20];
         SellerGLN: Code[13];
+        SellerSIRET: Text[14];
+        SellerSIREN: Text[9];
         VendorNo: Code[20];
+        LegalIdentifierMatched: Boolean;
         PdfInStr: InStream;
     begin
         FeatureTelemetry.LogUsage('0000FXA', FeatureNameTok, StartEventNameTok);
@@ -102,7 +105,13 @@ codeunit 10982 "Import Factur-X"
             FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'),
             1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
 
-        // Try to match vendor by GLN, VAT Registration No., or name+address
+        // Try to match vendor by SIRET, SIREN, GLN, VAT Registration No., or name+address
+        SellerSIRET := CopyStr(
+            FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:ID'),
+            1, MaxStrLen(SellerSIRET));
+        SellerSIREN := CopyStr(
+            FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID[@schemeID=''0002'']'),
+            1, MaxStrLen(SellerSIREN));
         SellerVATId := CopyStr(
             FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'),
             1, MaxStrLen(SellerVATId));
@@ -110,11 +119,14 @@ codeunit 10982 "Import Factur-X"
             FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:GlobalID'),
             1, MaxStrLen(SellerGLN));
 
-        VendorNo := EDocumentImportHelper.FindVendor('', SellerGLN, SellerVATId);
-        if VendorNo = '' then
-            VendorNo := EDocumentImportHelper.FindVendorByNameAndAddress(
-                EDocument."Bill-to/Pay-to Name",
-                FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:PostalTradeAddress/ram:LineOne'));
+        LegalIdentifierMatched := FREDocHelpers.FindVendorByLegalIdentifiers(SellerSIRET, SellerSIREN, VendorNo);
+        if not LegalIdentifierMatched then begin
+            VendorNo := EDocumentImportHelper.FindVendor('', SellerGLN, SellerVATId);
+            if VendorNo = '' then
+                VendorNo := EDocumentImportHelper.FindVendorByNameAndAddress(
+                    EDocument."Bill-to/Pay-to Name",
+                    FREDocHelpers.GetNodeValue(XmlDoc, NamespaceMgr, '//ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:PostalTradeAddress/ram:LineOne'));
+        end;
 
         if VendorNo <> '' then
             EDocument."Bill-to/Pay-to No." := VendorNo;
