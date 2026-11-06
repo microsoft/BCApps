@@ -217,6 +217,9 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
   
+      # Relevant checks include self-tests and run before dependent AL-Go builds.
+      - uses: microsoft/BCApps/.github/actions/TestAdHocALAppValidations@main
+  
       - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
   
       - uses: microsoft/BCApps/.github/actions/TestObsoleteTagPreprocessors@main

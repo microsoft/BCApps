@@ -183,9 +183,13 @@ Describe 'Payables Agent architecture change selection' {
         } finally { $env:GITHUB_OUTPUT = $previousOutput }
     }
 
-    It 'packages the gate as the TestAdHocALAppValidations action, outside AL-Go project builds' {
-        # PR validation starts using microsoft/BCApps/.github/actions/TestAdHocALAppValidations@main once the action is on main.
+    It 'runs the TestAdHocALAppValidations action from main in the existing PR validation job only' {
+        # Like the other gate actions, the reviewed checker comes from main; it validates the checkout.
+        $expectedUse = 'uses: microsoft/BCApps/.github/actions/TestAdHocALAppValidations@main'
         $text = [IO.File]::ReadAllText((Join-Path $script:repo '.github/workflows/PullRequestHandler.yaml'))
+        $job = [regex]::Match($text, '(?ms)^  CustomJob-VerifyAppChanges:.*?(?=^  \S|\z)').Value
+        Assert-ChangeValue ([regex]::Matches($text, '(?m)^\s*- uses: \S*TestAdHocALAppValidations').Count) 1
+        Assert-ChangeValue ([regex]::Matches($job, '(?m)^      - ' + [regex]::Escape($expectedUse) + '\s*$').Count) 1
         if ($text.Contains('Test-AdHocALAppValidations.ps1') -or $text.Contains('payablesAgentChanges') -or $text.Contains('Payables Agent architecture')) { throw 'App-specific gate plumbing remains in PullRequestHandler.yaml' }
         $build = [IO.File]::ReadAllText((Join-Path $script:repo '.github/workflows/_BuildALGoProject.yaml'))
         if ($build -match 'AdHocALAppValidations|ALAppArchitecture|AL_APP_ARCHITECTURE') { throw 'The AL-Go project build must not host the gate.' }
