@@ -18,6 +18,8 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         Assert: Codeunit Assert;
         Initialized: Boolean;
         AmountMisMatchErr: Label 'Amount must be equal.';
+        AmountShouldBeLbl: Label 'Amount should be %1 but was %2 for account %3', Comment = '%1 = expected amount, %2 = actual amount, %3 = G/L account number.';
+        VATAmountShouldBeLbl: Label 'VAT amount should be %1 for account %2', Comment = '%1 = expected VAT amount, %2 = G/L account number.';
 
     [Test]
     procedure TestInheritFromParentRoundingDistributesCorrectly()
@@ -1328,6 +1330,62 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
     end;
 
     [Test]
+    procedure TestInheritFromParentWithPricesIncludingVAT()
+    var
+        AllocationAccount: Record "Allocation Account";
+        GeneralPostingSetup: Record "General Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        GenPostingType: Enum "General Posting Type";
+        GLAccountNo: Code[20];
+    begin
+        // [SCENARIO 655909] Generating allocation lines preserves VAT totals when prices include VAT.
+        Initialize();
+
+        // [GIVEN] A purchase invoice with 25% VAT and prices including VAT.
+        CreateVATPostingSetup(VATPostingSetup, 25, GLAccountNo, GenPostingType);
+        CreateGeneralPostingSetup(GeneralPostingSetup, GLAccountNo, GenPostingType, VATPostingSetup);
+        CreateVendorWithPostingGroup(Vendor, GeneralPostingSetup, VATPostingSetup);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        PurchaseHeader.Validate("Prices Including VAT", true);
+        PurchaseHeader.Modify(true);
+
+        // [GIVEN] A G/L account line for 1,000 including VAT, split 33/33/34 using Inherit from Parent.
+        CreateFixedAllocationAccountWithThreeInheritFromParentDistributions(AllocationAccount);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+        PurchaseLine.Validate("Direct Unit Cost", 1000);
+        PurchaseLine.Validate("Selected Alloc. Account No.", AllocationAccount."No.");
+        PurchaseLine.Modify(true);
+        Assert.AreEqual(800, PurchaseLine.Amount, 'The source amount must exclude VAT.');
+        Assert.AreEqual(1000, PurchaseLine."Amount Including VAT", 'The source amount including VAT must be 1,000.');
+
+        // [WHEN] The source line is replaced with allocation lines.
+        CreateLinesFromAllocationAccountLine(PurchaseLine);
+        PurchaseLine.Delete();
+
+        // [THEN] Each generated line stores consistent VAT-exclusive, VAT-base and VAT-inclusive amounts.
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.RecordCount(PurchaseLine, 3);
+        PurchaseLine.FindSet();
+        repeat
+            Assert.AreEqual(
+                Round(PurchaseLine."Line Amount" / 1.25, 0.01), PurchaseLine.Amount,
+                'The generated amount must exclude VAT.');
+            Assert.AreEqual(PurchaseLine.Amount, PurchaseLine."VAT Base Amount", 'The VAT base must equal the amount excluding VAT.');
+            Assert.AreEqual(PurchaseLine."Line Amount", PurchaseLine."Amount Including VAT", 'The line amount must include VAT.');
+        until PurchaseLine.Next() = 0;
+
+        // [THEN] The document totals remain 800 excluding VAT, 200 VAT and 1,000 including VAT.
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        Assert.AreEqual(800, PurchaseHeader.Amount, 'The total amount excluding VAT must be preserved.');
+        Assert.AreEqual(200, PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount, 'The total VAT must be preserved.');
+        Assert.AreEqual(1000, PurchaseHeader."Amount Including VAT", 'The total amount including VAT must be preserved.');
+    end;
+
+    [Test]
     procedure AllocationAccountNoCannotBeModifiedWhenStatusIsPendingApproval()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -1987,6 +2045,11 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         PurchaseLine.FindFirst();
 
         ExpectedAmountIncludingVAT := ExpectedAmount + ExpectedVATAmount;
+
+        Assert.AreNearlyEqual(ExpectedAmount, PurchaseLine.Amount, 0.01,
+            StrSubstNo(AmountShouldBeLbl, ExpectedAmount, PurchaseLine.Amount, AccountNo));
+        Assert.AreNearlyEqual(ExpectedVATAmount, PurchaseLine."Amount Including VAT" - PurchaseLine.Amount, 0.01,
+            StrSubstNo(VATAmountShouldBeLbl, ExpectedVATAmount, AccountNo));
 
         // Verify VAT-exclusive amount (Line Amount)
         Assert.AreNearlyEqual(ExpectedAmountIncludingVAT, PurchaseLine."Line Amount", 0.01,
