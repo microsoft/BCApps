@@ -901,7 +901,6 @@ codeunit 149516 "Filename Card Tests"
         ReportFilenameDefaults: Codeunit "Report Filename Defaults";
         ReportDistributionManagement: Codeunit "Report Distribution Management";
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
-        Assert: Codeunit "Library Assert";
         ExpectedName: Text;
     begin
         PrepareWithNoPatterns();
