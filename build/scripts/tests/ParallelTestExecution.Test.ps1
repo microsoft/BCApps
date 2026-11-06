@@ -307,11 +307,12 @@ Describe "ParallelTestExecution app-level phases" {
             }
             Mock Get-AppRerunBudget { 2 }
             Mock Start-Sleep {}
+            Mock Write-Host {}
             Mock Merge-TenantTestResults {}
             Mock Get-TestsFromBcContainer { throw 'Discovery must not run' }
             Mock Invoke-ScriptInBcContainer { throw 'Database resets must not run' }
             Mock Start-TestJob {
-                $phase = if ($parameters['requiredTestIsolation'] -eq 'Disabled') { 'Disabled' } else { 'Regular' }
+                $phase = if ($parameters['requiredTestIsolation'] -eq 'Disabled') { 'Disabled' } else { 'Codeunit' }
                 foreach ($id in $script:active) {
                     $script:dispatches[$id - 1].Phase | Should -Be $phase
                 }
@@ -353,18 +354,18 @@ Describe "ParallelTestExecution app-level phases" {
         }
     }
 
-    It "drains regular work and late retries before the Disabled phase for <Lane>" -ForEach @(
+    It "drains Codeunit work and late retries before the Disabled phase for <Lane>" -ForEach @(
         @{ Lane = 'UnitTest' }
         @{ Lane = 'IntegrationTest' }
         @{ Lane = 'Uncategorized' }
     ) {
         InModuleScope ParallelTestExecution -Parameters @{ Lane = $Lane } {
-            $script:outcomes = @{ 'Regular:C' = @('Failed', 'Transient', 'Passed') }
+            $script:outcomes = @{ 'Codeunit:C' = @('Failed', 'Transient', 'Passed') }
             Invoke-ParallelTestExecution -parameters $script:testParameters -scriptPath 'unused.ps1' `
                 -testType $Lane -appNamesToTest @('A', 'B', 'C') | Should -BeTrue
 
             ($script:dispatches | ForEach-Object { "$($_.Phase):$($_.App)" }) |
-                Should -Be @('Regular:A', 'Regular:B', 'Regular:C', 'Regular:C', 'Regular:C',
+                Should -Be @('Codeunit:A', 'Codeunit:B', 'Codeunit:C', 'Codeunit:C', 'Codeunit:C',
                     'Disabled:A', 'Disabled:B', 'Disabled:C')
             $script:dispatches[3].Tenant | Should -Not -Be $script:dispatches[2].Tenant
             $script:dispatches[4].Tenant | Should -Be $script:dispatches[3].Tenant
@@ -378,12 +379,19 @@ Describe "ParallelTestExecution app-level phases" {
                     $dispatch.Parameters.testRunnerCodeunitId | Should -Be '130451'
                 } else {
                     $dispatch.Parameters.ContainsKey('requiredTestIsolation') | Should -BeFalse
+                    $dispatch.Parameters.ContainsKey('testRunnerCodeunitId') | Should -BeFalse
                 }
+            }
+            Should -Invoke Write-Host -Times 1 -Exactly -ParameterFilter {
+                $Object -eq "Starting Codeunit app-level test phase ($Lane)."
+            }
+            Should -Invoke Write-Host -Times 1 -Exactly -ParameterFilter {
+                $Object -eq "Completed Codeunit app-level test phase ($Lane), including retries."
             }
             $script:active.Count | Should -Be 0
             Get-CachedTestRunResult -ContainerName $script:testParameters.containerName | Should -BeTrue
             Should -Invoke Merge-TenantTestResults -Times 1 -Exactly -ParameterFilter {
-                ($tenants -join ',') -eq 'default,tenant2,rerun1,disabled-default,disabled-tenant2'
+                ($resultSuffixes -join ',') -eq 'default,tenant2,rerun1,disabled-default,disabled-tenant2'
             }
             Invoke-ParallelTestExecution -parameters $script:testParameters -scriptPath 'unused.ps1' `
                 -testType $Lane -appNamesToTest @('A', 'B', 'C') | Should -BeTrue
@@ -394,19 +402,19 @@ Describe "ParallelTestExecution app-level phases" {
     It "keeps retries phase-specific while sharing the job-wide budget" {
         InModuleScope ParallelTestExecution {
             $script:outcomes = @{
-                'Regular:A' = @('Failed', 'Passed')
+                'Codeunit:A' = @('Failed', 'Passed')
                 'Disabled:A' = @('Failed', 'Transient', 'Passed')
             }
             Mock Remove-RerunResultFile {}
             Invoke-ParallelTestExecution -parameters $script:testParameters -scriptPath 'unused.ps1' `
                 -testType 'UnitTest' -appNamesToTest @('A') | Should -BeTrue
             ($script:dispatches | ForEach-Object { "$($_.Phase):$($_.App)" }) |
-                Should -Be @('Regular:A', 'Regular:A', 'Disabled:A', 'Disabled:A', 'Disabled:A')
+                Should -Be @('Codeunit:A', 'Codeunit:A', 'Disabled:A', 'Disabled:A', 'Disabled:A')
             Should -Invoke Remove-RerunResultFile -Times 1 -Exactly -ParameterFilter {
                 $parameters.requiredTestIsolation -eq 'Disabled' -and $suffix -eq 'rerun1'
             }
             Should -Invoke Merge-TenantTestResults -Times 1 -Exactly -ParameterFilter {
-                ($tenants -join ',') -eq 'default,tenant2,rerun1,disabled-default,disabled-tenant2,disabled-rerun1'
+                ($resultSuffixes -join ',') -eq 'default,tenant2,rerun1,disabled-default,disabled-tenant2,disabled-rerun1'
             }
         }
     }
@@ -414,7 +422,7 @@ Describe "ParallelTestExecution app-level phases" {
     It "does not replenish the rerun budget at the phase barrier" {
         InModuleScope ParallelTestExecution {
             Mock Get-AppRerunBudget { 1 }
-            $script:outcomes = @{ 'Regular:A' = @('Failed', 'Passed'); 'Disabled:A' = @('Failed') }
+            $script:outcomes = @{ 'Codeunit:A' = @('Failed', 'Passed'); 'Disabled:A' = @('Failed') }
             Invoke-ParallelTestExecution -parameters $script:testParameters -scriptPath 'unused.ps1' `
                 -testType 'UnitTest' -appNamesToTest @('A') | Should -BeFalse
             $script:dispatches.Count | Should -Be 3
@@ -422,13 +430,13 @@ Describe "ParallelTestExecution app-level phases" {
         }
     }
 
-    It "retains a regular failure even when the Disabled phase passes" {
+    It "retains a Codeunit failure even when the Disabled phase passes" {
         InModuleScope ParallelTestExecution {
             Mock Get-AppRerunBudget { 0 }
-            $script:outcomes = @{ 'Regular:A' = @('Failed') }
+            $script:outcomes = @{ 'Codeunit:A' = @('Failed') }
             Invoke-ParallelTestExecution -parameters $script:testParameters -scriptPath 'unused.ps1' `
                 -testType 'IntegrationTest' -appNamesToTest @('A') | Should -BeFalse
-            $script:dispatches.Phase | Should -Be @('Regular', 'Disabled')
+            $script:dispatches.Phase | Should -Be @('Codeunit', 'Disabled')
         }
     }
 
@@ -437,7 +445,7 @@ Describe "ParallelTestExecution app-level phases" {
             Mock Get-AvailableBcTenantInfo { [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' } }
             Invoke-ParallelTestExecution -parameters $script:testParameters -scriptPath 'unused.ps1' `
                 -testType 'Uncategorized' -appNamesToTest @('A', 'B') | Should -BeTrue
-            $script:dispatches.Phase | Should -Be @('Regular', 'Regular', 'Disabled', 'Disabled')
+            $script:dispatches.Phase | Should -Be @('Codeunit', 'Codeunit', 'Disabled', 'Disabled')
         }
     }
 
@@ -445,7 +453,7 @@ Describe "ParallelTestExecution app-level phases" {
         InModuleScope ParallelTestExecution {
             Invoke-ParallelTestExecution -parameters $script:testParameters -scriptPath 'unused.ps1' `
                 -testType 'Legacy' -appNamesToTest @('A', 'B') | Should -BeTrue
-            $script:dispatches.Phase | Should -Be @('Regular', 'Regular')
+            $script:dispatches.Phase | Should -Be @('Codeunit', 'Codeunit')
         }
     }
 
@@ -581,7 +589,7 @@ Describe "RunTestsInBcContainer Disabled routing" {
         @{ Lane = 'IntegrationTest' }
         @{ Lane = 'Uncategorized' }
     ) {
-        foreach ($phase in @('Regular', 'Disabled')) {
+        foreach ($phase in @('Codeunit', 'Disabled')) {
             $params = @{ appName = 'Tests'; extensionId = 'tests-id'; tenant = 'default' }
             if ($phase -eq 'Disabled') {
                 $params.requiredTestIsolation = 'Disabled'
@@ -1097,7 +1105,7 @@ Describe "ParallelTestExecution result merging" {
         }
     }
 
-    It "separates regular, Disabled and rerun files while retaining append flags" {
+    It "separates Codeunit, Disabled and rerun files while retaining append flags" {
         InModuleScope ParallelTestExecution {
             Mock Start-Job {
                 $script:jobArguments = $ArgumentList
@@ -1108,7 +1116,7 @@ Describe "ParallelTestExecution result merging" {
                 XUnitResultFileName = (Join-Path $TestDrive 'xunit.xml')
                 AppendToJUnitResultFile = $true; AppendToXUnitResultFile = $true
             }
-            foreach ($phase in @('Regular', 'Disabled')) {
+            foreach ($phase in @('Codeunit', 'Disabled')) {
                 if ($phase -eq 'Disabled') { $params.requiredTestIsolation = 'Disabled' }
                 foreach ($suffix in @('', 'rerun1')) {
                     $null = Start-TestJob -parameters $params -tenant 'tenant2' -scriptPath 'unused.ps1' `
@@ -1132,33 +1140,33 @@ Describe "ParallelTestExecution result merging" {
         InModuleScope ParallelTestExecution -Parameters @{ Root = $Root; Child = $Child; Key = $Key } {
             $params = @{ $Key = (Join-Path $TestDrive 'results.xml') }
             foreach ($entry in @(
-                @{ Suffix = 'default'; Name = 'Regular'; Failures = 0 }
+                @{ Suffix = 'default'; Name = 'Codeunit'; Failures = 0 }
                 @{ Suffix = 'disabled-default'; Name = 'Disabled'; Failures = 1 }
                 @{ Suffix = 'disabled-rerun1'; Name = 'Disabled'; Failures = 0 }
             )) {
                 "<$Root><$Child name='$($entry.Name)' failures='$($entry.Failures)' /></$Root>" |
                     Set-Content (Join-Path $TestDrive "results-$($entry.Suffix).xml")
             }
-            Merge-TenantTestResults -parameters $params -tenants @('default', 'disabled-default', 'disabled-rerun1')
+            Merge-TenantTestResults -parameters $params -resultSuffixes @('default', 'disabled-default', 'disabled-rerun1')
             $xml = [xml](Get-Content $params[$Key] -Raw)
             $nodes = @($xml.SelectNodes("//$Root/$Child"))
             $nodes.Count | Should -Be 2
-            $nodes.name | Should -Be @('Regular', 'Disabled')
+            $nodes.name | Should -Be @('Codeunit', 'Disabled')
             $nodes.failures | Should -Be @('0', '0')
             @(Get-ChildItem $TestDrive -Filter 'results-*.xml').Count | Should -Be 0
         }
     }
 
-    It "removes only the Disabled stale rerun, leaving regular results intact" {
+    It "removes only the Disabled stale rerun, leaving Codeunit results intact" {
         InModuleScope ParallelTestExecution {
-            $regular = Join-Path $TestDrive 'results-rerun1.xml'
+            $codeunit = Join-Path $TestDrive 'results-rerun1.xml'
             $disabled = Join-Path $TestDrive 'results-disabled-rerun1.xml'
-            Set-Content $regular '<testsuites />'
+            Set-Content $codeunit '<testsuites />'
             Set-Content $disabled '<testsuites />'
             Remove-RerunResultFile -parameters @{
                 JUnitResultFileName = (Join-Path $TestDrive 'results.xml'); requiredTestIsolation = 'Disabled'
             } -suffix 'rerun1'
-            Test-Path $regular | Should -BeTrue
+            Test-Path $codeunit | Should -BeTrue
             Test-Path $disabled | Should -BeFalse
         }
     }

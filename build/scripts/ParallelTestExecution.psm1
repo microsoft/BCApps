@@ -736,20 +736,15 @@ function Wait-ForAllTestJobs {
     Merges per-job test result files into the single file expected by Run-AlPipeline.
 .PARAMETER parameters
     The original test parameters hashtable (contains the expected result file paths).
-.PARAMETER tenants
-    Array of tenant IDs whose result files should be merged.
-.PARAMETER rerunSuffixes
-    Suffixes of any rerun result files. Merged after the tenant files so a rerun's results replace
-    those of the failed run it re-ran.
+.PARAMETER resultSuffixes
+    Ordered result-file suffixes for both phases, with each phase's reruns after its tenant files
+    so a rerun's results replace those of the failed run it re-ran.
 #>
 function Merge-TenantTestResults {
     param(
         [Hashtable]$parameters,
-        [string[]]$tenants,
-        [string[]]$rerunSuffixes = @()
+        [string[]]$resultSuffixes
     )
-
-    $suffixes = @($tenants) + @($rerunSuffixes)
 
     foreach ($resultKey in @("XUnitResultFileName", "JUnitResultFileName")) {
         if ($parameters.ContainsKey($resultKey) -and $parameters[$resultKey]) {
@@ -758,7 +753,7 @@ function Merge-TenantTestResults {
             $name = [System.IO.Path]::GetFileNameWithoutExtension($origFile)
             $ext = [System.IO.Path]::GetExtension($origFile)
 
-            $tenantFiles = @($suffixes | ForEach-Object { Join-Path $dir "$name-$_$ext" })
+            $tenantFiles = @($resultSuffixes | ForEach-Object { Join-Path $dir "$name-$_$ext" })
             Merge-TestResultFiles -targetFile $origFile -sourceFiles $tenantFiles
 
             # Clean up per-job files
@@ -868,8 +863,8 @@ function Remove-RerunResultFile {
 .SYNOPSIS
     Dispatches test apps in parallel across all available tenants in a BC container.
 .DESCRIPTION
-    Runs regular tests first, draining all jobs and retries before dispatching Disabled-isolation
-    tests through the same app queue. Legacy retains its single unfiltered pass.
+    Runs the Codeunit phase (None|Codeunit selection) first, draining all jobs and retries before
+    dispatching Disabled-isolation tests through the same app queue. Legacy retains its single unfiltered pass.
     Waits for all jobs to complete, merges phase-specific result files, and returns whether all
     passed. The result is cached to a state file so subsequent calls (from the per-project
     override on the same job) can short-circuit.
@@ -917,8 +912,7 @@ function Invoke-ParallelTestExecution {
         }
     }
 
-    $tenantInfo = @(Get-AvailableBcTenantInfo -containerName $parameters.containerName)
-    $tenants = @($tenantInfo | ForEach-Object { $_.Id })
+    $tenants = @(Get-AvailableBcTenants -containerName $parameters.containerName)
     Write-Host "Available tenants: $($tenants -join ', ')"
 
     # Build a name -> appId map so we can set extensionId per dispatch. Run-TestsInBcContainer
@@ -940,7 +934,7 @@ function Invoke-ParallelTestExecution {
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
 
     # Legacy has no test-type selector, so required isolation cannot filter its codeunits.
-    $phases = if ($testType -eq 'Legacy') { @('Regular') } else { @('Regular', 'Disabled') }
+    $phases = if ($testType -eq 'Legacy') { @('Codeunit') } else { @('Codeunit', 'Disabled') }
     $resultSuffixes = @()
     foreach ($phase in $phases) {
         Write-Host "Starting $phase app-level test phase ($testType)."
@@ -961,7 +955,7 @@ function Invoke-ParallelTestExecution {
 
         # Run the first app alone and await it to warm the container before parallelizing the rest.
         # No-op for single-app/single-tenant.
-        if ($phase -eq 'Regular') {
+        if ($phase -eq 'Codeunit') {
             $pending = @(Invoke-WarmupDispatch -Parameters $phaseParameters -Pending $pending -AppIdByName $appIdByName `
                 -Tenants $tenants -ScriptPath $scriptPath -TestType $testType -State $state)
         }
@@ -1045,7 +1039,7 @@ function Invoke-ParallelTestExecution {
     }
 
     $allPassed = -not $state.hasFailures
-    Merge-TenantTestResults -parameters $parameters -tenants $resultSuffixes
+    Merge-TenantTestResults -parameters $parameters -resultSuffixes $resultSuffixes
 
     # Cache only after both phases and their result merge finish.
     $state.finalResult = $allPassed
