@@ -77,8 +77,10 @@ codeunit 4395 "Global Item Search"
         Keyword: Text;
     begin
         ALSearchQuery := ALSearchQuery.SearchQuery(SearchQueryText);
+
         foreach Keyword in SearchPrimaryKeyWords do
             ALSearchQuery.AddRequiredTerm(Keyword.ToLower());
+
         foreach Keyword in SearchOptionalKeyWords do
             ALSearchQuery.AddOptionalTerm(Keyword.ToLower());
 
@@ -107,6 +109,7 @@ codeunit 4395 "Global Item Search"
 
         // Process results
         QueryResults := ALSearchResult.GetResultsForQuery(SearchPrimaryKeyWord);
+
         foreach ALSearchQueryResult in QueryResults do begin
             IncludeResult := (MinContextAwareRankingScore = 0) or (ALSearchQueryResult.ContextAwareRankingScore >= MinContextAwareRankingScore);
             if IncludeResult then
@@ -127,7 +130,6 @@ codeunit 4395 "Global Item Search"
         ColumnValuesJson: JsonObject;
         ColumnValuesText: Text;
         IncludeResult: Boolean;
-        ResultCount: Integer;
     begin
         // Search
         ALSearchResult := ALSearch.FindItems(ALSearchOptions, ALCopilotCapability);
@@ -135,12 +137,7 @@ codeunit 4395 "Global Item Search"
         // Process results
         QueryResults := ALSearchResult.GetResultsForQuery(SearchPrimaryKeyWord);
 
-        ResultCount := 0;
         foreach ALSearchQueryResult in QueryResults do begin
-            if ResultCount >= 5 then
-                break;
-            ResultCount += 1;
-
             IncludeResult := (MinContextAwareRankingScore = 0) or (ALSearchQueryResult.ContextAwareRankingScore >= MinContextAwareRankingScore);
             if IncludeResult then begin
                 Clear(CandidateObject);
@@ -164,12 +161,15 @@ codeunit 4395 "Global Item Search"
         WaitingTime := GetWaitingTimeForItemSearch();
         SleepTime := GetSleepTimeForItemSearch();
         TimeOutPeriod := GetTimeOutPeriodForItemSearch();
+
         while (not IsItemSearchReady()) and (WaitingTime <= TimeOutPeriod) do begin
             WaitingTime += SleepTime;
             Sleep(SleepTime);
         end;
+
         if IsItemSearchReady() then
             exit(true);
+
         if ErrorOnFalse then
             Error(ItemSearchNotReadyErr);
     end;
