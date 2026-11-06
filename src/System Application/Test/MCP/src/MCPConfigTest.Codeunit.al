@@ -2001,7 +2001,7 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Agent Tools row is missing');
         Assert.AreEqual('Agent Tools (Preview/Billable)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected fourth feature');
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Chat Tools row is missing');
-        Assert.AreEqual('Chat Tools', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected fifth feature');
+        Assert.AreEqual('Chat Tools (Preview)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected fifth feature');
         Assert.IsFalse(MCPConfigCard.ServerFeatureList.Next(), 'Unexpected extra feature rows');
     end;
 
@@ -2099,7 +2099,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfigCard.OpenEdit();
         MCPConfigCard.GoToRecord(MCPConfiguration);
         Assert.IsTrue(MCPConfigCard.ServerFeatureList.Last(), 'Chat Tools row is missing');
-        Assert.AreEqual('Chat Tools', MCPConfigCard.ServerFeatureList.Feature.Value, 'Not positioned on the Chat Tools row');
+        Assert.AreEqual('Chat Tools (Preview)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Not positioned on the Chat Tools row');
         Assert.AreEqual('Inactive', MCPConfigCard.ServerFeatureList.Status.Value, 'Chat Tools should initially be inactive');
         Assert.IsFalse(MCPConfigCard.SystemToolList.First(), 'No system tools should be active');
 

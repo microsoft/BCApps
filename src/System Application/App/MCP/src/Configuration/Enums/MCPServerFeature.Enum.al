@@ -32,7 +32,7 @@ enum 8351 "MCP Server Feature" implements "MCP Server Features"
     }
     value(4; "Chat Tools")
     {
-        Caption = 'Chat Tools';
+        Caption = 'Chat Tools (Preview)';
         Implementation = "MCP Server Features" = "MCP Chat Tools Feature";
     }
 }
