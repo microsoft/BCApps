@@ -255,7 +255,7 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
         InsertPurchaseLineHistory(PurchInvHeader, PurchLine, PurchInvLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnAfterPostPurchaseDoc, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnAfterPostPurchaseDoc2, '', false, false)]
     local procedure OnAfterPostPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PurchInvHdrNo: Code[20])
     var
         PurchInvHeader: Record "Purch. Inv. Header";

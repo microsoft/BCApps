@@ -217,7 +217,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
             until UsageDataBilling.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnAfterPostPurchaseDoc, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnAfterPostPurchaseDoc2, '', false, false)]
     local procedure UpdateDocumentNoOnAfterPostPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PurchInvHdrNo: Code[20]; PurchCrMemoHdrNo: Code[20])
     var
         UsageDataBilling: Record "Usage Data Billing";
