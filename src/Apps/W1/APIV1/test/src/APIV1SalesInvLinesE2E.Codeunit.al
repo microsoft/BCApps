@@ -3,6 +3,8 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -33,6 +35,7 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 
@@ -1070,6 +1073,8 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
         Assert.AreNotEqual('', InvoiceLineID, 'ID should not be empty');
         LineNo := SalesLine."Line No.";
         LibraryInventory.CreateItem(Item);
+        LibraryGraphDocumentTools.EnsureVATPostingSetupExists(
+            SalesLine."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
 
         InvoiceLineJSON := STRSUBSTNO('{"itemId":"%1"}', LibraryGraphMgt.StripBrackets(Format(Item.SystemId)));
         COMMIT();

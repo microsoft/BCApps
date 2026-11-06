@@ -21,7 +21,7 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
         {
             trigger OnAfterValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -35,7 +35,7 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
         {
             trigger OnAfterValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -140,7 +140,7 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
         key(SubcPurchLineKey; "Subc. Purchase Line Type") { }
         key(SubcProdOrderComponentKey; "Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Prod. Ord. Comp Line No.") { }
     }
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -151,7 +151,7 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
     var
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -166,7 +166,7 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
     var
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -191,7 +191,7 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
         UOMMgt: Codeunit "Unit of Measure Management";
         QtyPerUoM: Decimal;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -214,7 +214,7 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         IsValidLine: Boolean;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -240,7 +240,7 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         IsValidLine: Boolean;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

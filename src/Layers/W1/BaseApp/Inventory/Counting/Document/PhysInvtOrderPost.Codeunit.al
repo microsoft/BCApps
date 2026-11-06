@@ -22,6 +22,7 @@ using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Journal;
+using System.Utilities;
 
 codeunit 5884 "Phys. Invt. Order-Post"
 {
@@ -356,6 +357,7 @@ codeunit 5884 "Phys. Invt. Order-Post"
 
     local procedure InsertPostedHeader(PhysInvtOrderHeader: Record "Phys. Invt. Order Header")
     var
+        RecordLinkManagement: Codeunit "Record Link Management";
         IsHandled: Boolean;
     begin
         OnBeforeInsertPostedHeader(PhysInvtOrderHeader);
@@ -377,8 +379,10 @@ codeunit 5884 "Phys. Invt. Order-Post"
         PstdPhysInvtOrderHdr."User ID" := CopyStr(UserId(), 1, MaxStrLen(PstdPhysInvtOrderHdr."User ID"));
         IsHandled := false;
         OnInsertPostedHeaderOnBeforeInsert(PhysInvtOrderHeader, PstdPhysInvtOrderHdr, IsHandled);
-        if not IsHandled then
+        if not IsHandled then begin
             PstdPhysInvtOrderHdr.Insert();
+            RecordLinkManagement.CopyLinks(PhysInvtOrderHeader, PstdPhysInvtOrderHdr);
+        end;
     end;
 
     local procedure InsertPostedLine(PstdPhysInvtOrderHdr: Record "Pstd. Phys. Invt. Order Hdr"; PhysInvtOrderLine: Record "Phys. Invt. Order Line")
@@ -408,6 +412,7 @@ codeunit 5884 "Phys. Invt. Order-Post"
     var
         PstdPhysInvtRecordHdr: Record "Pstd. Phys. Invt. Record Hdr";
         PstdPhysInvtRecordLine: Record "Pstd. Phys. Invt. Record Line";
+        RecordLinkManagement: Codeunit "Record Link Management";
         IsHandled: Boolean;
     begin
         PhysInvtRecordHeader.Reset();
@@ -420,8 +425,10 @@ codeunit 5884 "Phys. Invt. Order-Post"
 
                 IsHandled := false;
                 OnInsertPostedRecordingsOnBeforeInsertHdr(PhysInvtRecordHeader, PstdPhysInvtRecordHdr, IsHandled);
-                if not IsHandled then
+                if not IsHandled then begin
                     PstdPhysInvtRecordHdr.Insert();
+                    RecordLinkManagement.CopyLinks(PhysInvtRecordHeader, PstdPhysInvtRecordHdr);
+                end;
 
                 PhysInvtRecordLine.Reset();
                 PhysInvtRecordLine.SetRange("Order No.", PhysInvtRecordHeader."Order No.");

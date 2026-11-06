@@ -536,7 +536,7 @@ page 5330 "CRM Connection Setup"
                 Caption = 'Field Service Integration App';
                 Image = Setup;
                 Visible = SoftwareAsAService;
-                ToolTip = 'Go to Microsoft AppSource to get the Field Service Integration app. The app will let you integrate Dynamics 365 Field Service with Business Central.';
+                ToolTip = 'Go to Microsoft Marketplace to get the Field Service Integration app. The app will let you integrate Dynamics 365 Field Service with Business Central.';
 
                 trigger OnAction()
                 var

@@ -12368,8 +12368,7 @@ codeunit 80 "Sales-Post"
         if IsHandled then
             exit;
 
-        ReservEntry.ModifyAll("Qty. to Handle (Base)", 0);
-        ReservEntry.ModifyAll("Qty. to Invoice (Base)", 0);
+        ReservEntry.ModifyAll("Qty. to Handle (Base)", 0, "Qty. to Invoice (Base)", 0);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforePostValueEntryToGL', '', false, false)]

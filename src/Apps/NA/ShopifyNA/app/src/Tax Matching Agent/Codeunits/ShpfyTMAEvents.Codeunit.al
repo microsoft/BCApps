@@ -22,7 +22,7 @@ codeunit 30473 "Shpfy TMA Events"
 
     var
         ReviewRequiredErr: Label 'The Sales Document for Shopify order %1 cannot be created until the tax match has been approved. Open the order, choose Review Tax Match, and approve the match on the review page — or change the shop''s Tax Match Review Mode.', Comment = '%1 = Shopify Order No.';
-        RateConflictBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because a matched tax rate differs from Business Central. Open the order, choose Review Tax Match, and either approve the match to accept Business Central''s rates or correct the Tax Detail rate or Tax Jurisdiction, on the review page.', Comment = '%1 = Shopify Order No.';
+        RateConflictBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because a matched Shopify rate differs from the Tax Detail Rate. Open the order, choose Review Tax Match, and either approve the match to accept the Tax Detail Rate or update the Tax Detail or Tax Jurisdiction on the review page.', Comment = '%1 = Shopify Order No.';
         IncompleteBlockErr: Label 'The Sales Document for Shopify order %1 cannot be created because Shopify Tax Matching could not resolve one or more tax lines to a Tax Jurisdiction. Open the order, choose Review Tax Match, assign a Tax Jurisdiction to every tax line, and approve the match on the review page.', Comment = '%1 = Shopify Order No.';
         SecurityPromptUnavailableMsg: Label 'Security prompt unavailable from Key Vault; tax matching skipped for this order.', Locked = true;
         MarkerSetMsg: Label 'Tax match marker set on order', Locked = true;
@@ -78,8 +78,8 @@ codeunit 30473 "Shpfy TMA Events"
             exit;
 
         // A matched jurisdiction may carry a rate that conflicts with BC (HasRateConflict), or one
-        // or more tax lines may be unresolved (HasUnresolvedLine — the model returned UNKNOWN and
-        // the line was left unmatched). The matched jurisdictions are still correct, so the Tax Area
+        // or more tax lines may be unresolved (HasUnresolvedLine — any line still without a
+        // jurisdiction). The matched jurisdictions are still correct, so the Tax Area
         // is built as usual from them; either flag is recorded on the order so the review gate always
         // holds it — the reviewer accepts BC's rate, corrects the Tax Detail, or assigns the missing
         // Tax Jurisdiction before a Sales Document is created.
@@ -108,7 +108,7 @@ codeunit 30473 "Shpfy TMA Events"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnBeforeCreateSalesHeader, '', false, false)]
-    local procedure OnBeforeCreateSalesHeaderSubscriber(ShopifyOrderHeader: Record "Shpfy Order Header"; var SalesHeader: Record "Sales Header"; var LastCreatedDocumentId: Guid; var Handled: Boolean)
+    local procedure OnBeforeCreateSalesHeaderSubscriber(ShopifyOrderHeader: Record "Shpfy Order Header"; var SalesHeader: Record "Sales Header"; var LastCreatedDocumentId: Guid; var Handled: Boolean; var ProcessingError: Boolean; var ErrorMessage: Text)
     var
         Shop: Record "Shpfy Shop";
         TMARegister: Codeunit "Shpfy TMA Register";
@@ -126,25 +126,28 @@ codeunit 30473 "Shpfy TMA Events"
         Session.LogMessage('0000UMI', CreationBlockedMsg,
             Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), ShopifyOrderIdDimTok, Format(ShopifyOrderHeader."Shopify Order Id"));
 
+        ProcessingError := true;
         if ShopifyOrderHeader."Tax Rate Conflict" then
-            Error(RateConflictBlockErr, ShopifyOrderHeader."Shopify Order No.")
+            ErrorMessage := StrSubstNo(RateConflictBlockErr, ShopifyOrderHeader."Shopify Order No.")
         else
             if ShopifyOrderHeader."Tax Match Incomplete" then
-                Error(IncompleteBlockErr, ShopifyOrderHeader."Shopify Order No.")
+                ErrorMessage := StrSubstNo(IncompleteBlockErr, ShopifyOrderHeader."Shopify Order No.")
             else
-                Error(ReviewRequiredErr, ShopifyOrderHeader."Shopify Order No.");
+                ErrorMessage := StrSubstNo(ReviewRequiredErr, ShopifyOrderHeader."Shopify Order No.");
     end;
 
     /// <summary>
     /// Business guards deciding whether Shopify Tax Matching should run for an order: the shop
-    /// must have the feature enabled, the order must not already have a Tax Area (idempotency —
-    /// e.g. address-based MapTaxArea already resolved one, or this is a re-import), and the order
-    /// must not be tax exempt. Capability-registration/active checks are evaluated separately in
+    /// must have the feature enabled, ship to the US or Canada, not already have a Tax Area
+    /// (idempotency — e.g. address-based MapTaxArea already resolved one, or this is a re-import),
+    /// and not be tax exempt. Capability-registration/active checks are evaluated separately in
     /// the subscriber. Exposed as internal so the guards can be tested without the connector flow.
     /// </summary>
     internal procedure ShouldAttemptMatch(ShopifyOrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"): Boolean
     begin
         if not Shop."Tax Matching Agent Enabled" then
+            exit(false);
+        if not (ShopifyOrderHeader."Ship-to Country/Region Code" in ['US', 'CA']) then
             exit(false);
         if ShopifyOrderHeader."Tax Area Code" <> '' then
             exit(false);

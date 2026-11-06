@@ -48,6 +48,11 @@ page 7134 "Travel Requests API"
                 {
                     Caption = 'Requested By';
                     ToolTip = 'Specifies the employee who created the request. This value can be set only when creating the request.';
+
+                    trigger OnValidate()
+                    begin
+                        RequestedByProvided := true;
+                    end;
                 }
                 field(status; Rec.Status)
                 {
@@ -98,7 +103,8 @@ page 7134 "Travel Requests API"
 
                     trigger OnValidate()
                     begin
-                        ExpectedStartDateProvided := true;
+                        // Assigned without validation so the pair is checked once on insert/modify, regardless of field order.
+                        Rec."Expected Start Date" := ExpectedStartDate;
                     end;
                 }
                 field(expectedEndDate; ExpectedEndDate)
@@ -108,7 +114,8 @@ page 7134 "Travel Requests API"
 
                     trigger OnValidate()
                     begin
-                        ExpectedEndDateProvided := true;
+                        // Assigned without validation so the pair is checked once on insert/modify, regardless of field order.
+                        Rec."Expected End Date" := ExpectedEndDate;
                     end;
                 }
                 field(closedAt; Rec."Closed At")
@@ -141,18 +148,29 @@ page 7134 "Travel Requests API"
                 {
                     Caption = 'Travel Policy Acknowledgment';
                 }
+#if not CLEAN30
                 field(internationalTravel; Rec."International Travel")
                 {
                     Caption = 'International Travel';
+                    ObsoleteReason = 'Use expenseLocation instead.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
                 field(originCountry; Rec."Origin Country/Region Code")
                 {
                     Caption = 'Origin Country';
+                    ObsoleteReason = 'Use expenseLocation instead.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
                 field(destinationCountry; Rec."Dest. Country/Region Code")
                 {
                     Caption = 'Destination Country';
+                    ObsoleteReason = 'Use expenseLocation instead.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 field(restrictions; Rec.Restrictions)
                 {
                     Caption = 'Restrictions';
@@ -160,6 +178,10 @@ page 7134 "Travel Requests API"
                 field(perDiemIncluded; Rec."Per Diem Included")
                 {
                     Caption = 'Per Diem Included';
+                }
+                field(expenseLocation; Rec."Expense Location")
+                {
+                    Caption = 'Expense Location';
                 }
                 field(actualStartDateAndTime; Rec."Actual Start Date and Time")
                 {
@@ -172,25 +194,43 @@ page 7134 "Travel Requests API"
                 field(submittedByExpenseUserNo; Rec."Submitted By Expense User No.")
                 {
                     Caption = 'Submitted By Expense User No.';
-                    ToolTip = 'Specifies the expense user who submitted the travel request.';
                     Editable = false;
                 }
                 field(submittedAt; Rec."Submitted At")
                 {
                     Caption = 'Submitted At';
-                    ToolTip = 'Specifies the date and time when the travel request was submitted.';
+                    Editable = false;
+                }
+                field(submitterComment; Rec."Submitter Comment")
+                {
+                    Caption = 'Submitter Comment';
                     Editable = false;
                 }
                 field(approvalExpenseUserNo; Rec."Approval Expense User No.")
                 {
                     Caption = 'Approval Expense User No.';
+                    Editable = false;
+                }
+                field(approvedRejectedDateTime; Rec."Approved/Rejected At")
+                {
+                    Caption = 'Approved/Rejected Date and Time';
+                    ToolTip = 'Specifies the date and time when the travel request was approved or rejected.';
+                    Editable = false;
+                }
+                field(approvedRejectedByDisplayName; Rec."Approval Expense User Name")
+                {
+                    Caption = 'Approved/Rejected By Expense User Display Name';
+                    Editable = false;
+                }
+                field(approvedRejectedByExpUserNo; Rec."Approval Expense User No.")
+                {
+                    Caption = 'Approved/Rejected By Expense User Number';
                     ToolTip = 'Specifies the expense user who approved or rejected the travel request.';
                     Editable = false;
                 }
                 field(rejectionReason; Rec."Rejection Reason")
                 {
                     Caption = 'Rejection Reason';
-                    ToolTip = 'Specifies the reason the travel request was rejected.';
                     Editable = false;
                 }
                 part(travelRequestDetails; "Travel Request Details API")
@@ -214,6 +254,14 @@ page 7134 "Travel Requests API"
                     EntitySetName = 'employees';
                     SubPageLink = "Travel Request SystemId Filter" = field(SystemId);
                 }
+                part(activityLogEntries; "Expense Activity Log API")
+                {
+                    Caption = 'Activity Log Entries';
+                    EntityName = 'expenseActivityLogEntry';
+                    EntitySetName = 'expenseActivityLogEntries';
+                    SubPageLink = "Source Table ID" = const(Database::"Spend Request"),
+                                  "Source Record System ID" = field(SystemId);
+                }
             }
         }
     }
@@ -235,22 +283,16 @@ page 7134 "Travel Requests API"
         CurrencyCodeDisplay := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Currency Code");
         ExpectedStartDate := Rec."Expected Start Date";
         ExpectedEndDate := Rec."Expected End Date";
-        ExpectedStartDateProvided := false;
-        ExpectedEndDateProvided := false;
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
-    var
-        OwnerEmployeeNo: Code[20];
     begin
-        OwnerEmployeeNo := ProcessOwnerFilter();
-        if OwnerEmployeeNo <> '' then
-            Rec."Requested By" := OwnerEmployeeNo;
+        ProcessOwnerFilter();
+        Clear(Rec."Requested By");
+        RequestedByProvided := false;
         Clear(CurrencyCodeDisplay);
         Clear(ExpectedStartDate);
         Clear(ExpectedEndDate);
-        ExpectedStartDateProvided := false;
-        ExpectedEndDateProvided := false;
     end;
 
     [ServiceEnabled]
@@ -259,6 +301,15 @@ page 7134 "Travel Requests API"
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
         TravelRequestApproval.Submit(Rec, SubmitterExpenseUserNo);
+        SetActionResponse(ActionContext);
+    end;
+
+    [ServiceEnabled]
+    procedure SubmitTravelRequestWithComment(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
+    var
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        TravelRequestApproval.Submit(Rec, SubmitterExpenseUserNo, SubmissionComment);
         SetActionResponse(ActionContext);
     end;
 
@@ -288,7 +339,7 @@ page 7134 "Travel Requests API"
         CheckOwnerScopeRequired();
         Rec.TestField("Document Type", Rec."Document Type"::"Travel Request");
         if Rec.Status <> Rec.Status::Approved then
-            Error(TravelRequestMustBeApprovedErr, Rec."No.");
+            Error(GetTravelRequestMustBeApprovedError(Rec));
         Rec.TestField("Requested For");
 
         if not ExpenseReportHeader.CreateFromApprovedTravelRequestIfMissing(Rec) then begin
@@ -304,6 +355,20 @@ page 7134 "Travel Requests API"
         ActionContext.SetObjectId(Page::"Expense Reports API");
         ActionContext.AddEntityKey(ExpenseReportHeader.FieldNo(SystemId), ExpenseReportHeader.SystemId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Created);
+    end;
+
+    local procedure GetTravelRequestMustBeApprovedError(TravelRequest: Record "Spend Request"): ErrorInfo
+    var
+        TravelRequestMustBeApprovedError: ErrorInfo;
+    begin
+        TravelRequestMustBeApprovedError.Message := StrSubstNo(TravelRequestMustBeApprovedErr, TravelRequest."No.");
+        TravelRequestMustBeApprovedError.DataClassification := DataClassification::CustomerContent;
+        TravelRequestMustBeApprovedError.ErrorType := ErrorType::Client;
+        TravelRequestMustBeApprovedError.RecordId := TravelRequest.RecordId;
+        TravelRequestMustBeApprovedError.FieldNo := TravelRequest.FieldNo(Status);
+        TravelRequestMustBeApprovedError.PageNo := Page::"Travel Request Card";
+        TravelRequestMustBeApprovedError.AddNavigationAction(ShowItLbl);
+        exit(TravelRequestMustBeApprovedError);
     end;
 
     local procedure GetExpenseReportAlreadyLinkedError(ExpenseReportHeader: Record "Expense Report Header"; TravelRequest: Record "Spend Request"): ErrorInfo
@@ -338,25 +403,61 @@ page 7134 "Travel Requests API"
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    var
+        StartDate: Date;
+        EndDate: Date;
     begin
         Rec."Document Type" := Rec."Document Type"::"Travel Request";
+        // Default the owner only at insertion so an owner-only POST remains a record change.
+        if not RequestedByProvided then
+            Rec."Requested By" := ProcessOwnerFilter();
         Rec.TestField("Requested By");
         CheckOwnerScope();
-        Rec.SetExpectedDatesForAPIInsert(ExpectedStartDate, ExpectedEndDate, ExpectedStartDateProvided, ExpectedEndDateProvided);
-        exit(true);
+        CheckTravelDetails();
+
+        // The table's OnInsert defaults both dates to WorkDate, so supplied dates are applied after the insert.
+        StartDate := Rec."Expected Start Date";
+        EndDate := Rec."Expected End Date";
+        // Keep a client-supplied id so batch operations can address the new request by it.
+        Rec.Insert(true, true);
+        if (StartDate <> 0D) or (EndDate <> 0D) then begin
+            if StartDate <> 0D then
+                Rec."Expected Start Date" := StartDate;
+            if EndDate <> 0D then
+                Rec."Expected End Date" := EndDate;
+            Rec.Validate("Expected Start Date");
+            Rec.Validate("Expected End Date");
+            Rec.Modify(true);
+        end;
+        ExpectedStartDate := Rec."Expected Start Date";
+        ExpectedEndDate := Rec."Expected End Date";
+        exit(false);
     end;
 
     trigger OnModifyRecord(): Boolean
     begin
         if Rec.Status <> xRec.Status then
             Rec.FieldError(Status, StatusCannotBeChangedErr);
-        // Allow the owner on POST and unchanged in PATCH payloads, but reject reassignment.
+        // Allow the owner and traveler on POST and unchanged in PATCH payloads, but reject reassignment.
         if Rec."Requested By" <> xRec."Requested By" then
             Rec.FieldError("Requested By", RequestedByCannotBeChangedErr);
+        if Rec."Requested For" <> xRec."Requested For" then
+            Rec.FieldError("Requested For", RequestedByCannotBeChangedErr);
 
         CheckOwnerScope();
-        Rec.ApplyExpectedDatesFromAPI(ExpectedStartDate, ExpectedEndDate, ExpectedStartDateProvided, ExpectedEndDateProvided);
+        if Rec."Expected Start Date" <> xRec."Expected Start Date" then
+            Rec.Validate("Expected Start Date");
+        if Rec."Expected End Date" <> xRec."Expected End Date" then
+            Rec.Validate("Expected End Date");
+        CheckTravelDetails();
         exit(true);
+    end;
+
+    local procedure CheckTravelDetails()
+    begin
+        // Checked on save rather than per field, so that the order of the fields in the request does not matter.
+        Rec.CheckExpenseLocation();
+        Rec.CheckActualDateTimes();
     end;
 
     local procedure ProcessOwnerFilter() OwnerEmployeeNo: Code[20]
@@ -424,9 +525,8 @@ page 7134 "Travel Requests API"
         CurrencyCodeDisplay: Code[10];
         ExpectedStartDate: Date;
         ExpectedEndDate: Date;
-        ExpectedStartDateProvided: Boolean;
-        ExpectedEndDateProvided: Boolean;
-        StatusCannotBeChangedErr: Label 'can be changed only by submitting, approving, or rejecting the travel request';
+        RequestedByProvided: Boolean;
+        StatusCannotBeChangedErr: Label 'can be changed only by submitting, approving, rejecting, or reopening the travel request';
         RequestedByCannotBeChangedErr: Label 'cannot be changed';
         TravelRequestMustBeApprovedErr: Label 'Travel request %1 must be approved before an expense report can be created.', Comment = '%1 = Travel Request No.';
         ExpenseReportAlreadyLinkedErr: Label 'Expense user %1 already has expense report %2 linked to travel request %3.', Comment = '%1 = Expense User No., %2 = Expense Report No., %3 = Travel Request No.';

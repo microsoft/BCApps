@@ -327,37 +327,37 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
     begin
         // [SCENARIO] Validate identifying a table ID using a partial fuzzy name search
 
-        // [GIVEN] A table object is retrieved and its name is modified (substring from position 2)
-        TableAllObjWithCaption.Get(TableAllObjWithCaption."Object Type"::Table, 6);
-        TableReference := TableAllObjWithCaption."Object Name";
-        TableReference := CopyStr(TableReference, 2, (MaxStrLen(TableReference) - 1));
+        // [GIVEN] A static test table with a unique case-insensitive substring in its object name
+        TableAllObjWithCaption.Get(TableAllObjWithCaption."Object Type"::Table, Database::"Qlty. Flt A 636554D9E7F2A4C8B1");
+        TableReference := LowerCase(CopyStr(TableAllObjWithCaption."Object Name", 2));
+        AssertTableReferenceMatches(TableReference, 1, 0);
 
         // [WHEN] IdentifyTableIDFromText is called with the partial name
         CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] The correct table ID is identified through fuzzy matching
-        LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should be the same.');
+        LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should match the unique fuzzy name.');
+        LibraryAssert.AreEqual(TableAllObjWithCaption."Object Name", TableReference, 'The table reference should be the canonical object name.');
     end;
 
     [Test]
-    procedure IdentifyTableIDFromText_TooShortFuzzyName_NoMatch()
+    procedure IdentifyTableIDFromText_AmbiguousFuzzy_NoMatch()
     var
-        TableAllObjWithCaption: Record AllObjWithCaption;
         TableReference: Text;
         CurrentTable: Integer;
     begin
-        // [SCENARIO] Validate that too short fuzzy search returns no match
+        // [SCENARIO] Validate that ambiguous fuzzy names and captions return no match
 
-        // [GIVEN] A table object is retrieved and its name is shortened to first 5 characters
-        TableAllObjWithCaption.Get(TableAllObjWithCaption."Object Type"::Table, 6);
-        TableReference := TableAllObjWithCaption."Object Name";
-        TableReference := CopyStr(TableReference, 1, 5);
+        // [GIVEN] Two static test table names and captions contain the same substring
+        TableReference := '636554d9e7f2a4c8b1';
+        AssertTableReferenceMatches(TableReference, 2, 2);
 
-        // [WHEN] IdentifyTableIDFromText is called with the too-short name
+        // [WHEN] IdentifyTableIDFromText is called with the ambiguous substring
         CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] No table is returned due to too many matches
         LibraryAssert.AreEqual(0, CurrentTable, 'There should be no table returned due to too many matches.');
+        LibraryAssert.AreEqual('636554d9e7f2a4c8b1', TableReference, 'An ambiguous table reference should remain unchanged.');
     end;
 
     [Test]
@@ -369,37 +369,56 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
     begin
         // [SCENARIO] Validate identifying a table ID using a partial fuzzy caption search
 
-        // [GIVEN] A table object is retrieved and its caption is modified (substring from position 2)
-        TableAllObjWithCaption.Get(TableAllObjWithCaption."Object Type"::Table, 6);
-        TableReference := TableAllObjWithCaption."Object Caption";
-        TableReference := CopyStr(TableReference, 2, (MaxStrLen(TableReference) - 1));
+        // [GIVEN] A substring matches one static test table caption and no object names
+        TableAllObjWithCaption.Get(TableAllObjWithCaption."Object Type"::Table, Database::"Qlty. Flt A 636554D9E7F2A4C8B1");
+        TableReference := LowerCase(CopyStr(TableAllObjWithCaption."Object Caption", 2));
+        AssertTableReferenceMatches(TableReference, 0, 1);
 
         // [WHEN] IdentifyTableIDFromText is called with the partial caption
         CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] The correct table ID is identified through fuzzy caption matching
-        LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should be the same.');
+        LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should match the unique fuzzy caption.');
+        LibraryAssert.AreEqual(TableAllObjWithCaption."Object Name", TableReference, 'The table reference should be the object name, not the caption.');
     end;
 
     [Test]
-    procedure IdentifyTableIDFromText_TooShortFuzzyCaption_NoMatch()
+    procedure IdentifyTableIDFromText_NoMatch()
     var
-        TableAllObjWithCaption: Record AllObjWithCaption;
         TableReference: Text;
         CurrentTable: Integer;
     begin
-        // [SCENARIO] Validate that too short fuzzy caption search returns no match
+        // [SCENARIO] Validate that a reference matching no table name or caption returns no match
 
-        // [GIVEN] A table object is retrieved and its caption is shortened to first 5 characters
-        TableAllObjWithCaption.Get(TableAllObjWithCaption."Object Type"::Table, 6);
-        TableReference := TableAllObjWithCaption."Object Caption";
-        TableReference := CopyStr(TableReference, 1, 5);
+        // [GIVEN] A fixed reference with no matching table names or captions
+        TableReference := 'Qlty. None 636554D9E7F2A4C8B1';
+        AssertTableReferenceMatches(TableReference, 0, 0);
 
-        // [WHEN] IdentifyTableIDFromText is called with the too-short caption
+        // [WHEN] IdentifyTableIDFromText is called with the unknown reference
         CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
-        // [THEN] No table is returned due to too many matches
-        LibraryAssert.AreEqual(0, CurrentTable, 'There should be no table returned due to too many matches.');
+        // [THEN] No table is returned
+        LibraryAssert.AreEqual(0, CurrentTable, 'There should be no table returned when no name or caption matches.');
+        LibraryAssert.AreEqual('Qlty. None 636554D9E7F2A4C8B1', TableReference, 'An unknown table reference should remain unchanged.');
+    end;
+
+    local procedure AssertTableReferenceMatches(TableReference: Text; ExpectedNameCount: Integer; ExpectedCaptionCount: Integer)
+    var
+        MatchingAllObjWithCaption: Record AllObjWithCaption;
+    begin
+        MatchingAllObjWithCaption.SetRange("Object Type", MatchingAllObjWithCaption."Object Type"::Table);
+        MatchingAllObjWithCaption.SetFilter("Object Name", StrSubstNo('@%1', TableReference));
+        LibraryAssert.IsTrue(MatchingAllObjWithCaption.IsEmpty(), 'The test reference must not match a complete table name.');
+        MatchingAllObjWithCaption.SetRange("Object Name");
+        MatchingAllObjWithCaption.SetFilter("Object Caption", StrSubstNo('@%1', TableReference));
+        LibraryAssert.IsTrue(MatchingAllObjWithCaption.IsEmpty(), 'The test reference must not match a complete table caption.');
+
+        MatchingAllObjWithCaption.SetRange("Object Caption");
+        MatchingAllObjWithCaption.SetFilter("Object Name", StrSubstNo('@*%1*', TableReference));
+        LibraryAssert.AreEqual(ExpectedNameCount, MatchingAllObjWithCaption.Count(), 'Unexpected number of fuzzy name matches for the static test fixture.');
+        MatchingAllObjWithCaption.SetRange("Object Name");
+        MatchingAllObjWithCaption.SetFilter("Object Caption", StrSubstNo('@*%1*', TableReference));
+        LibraryAssert.AreEqual(ExpectedCaptionCount, MatchingAllObjWithCaption.Count(), 'Unexpected number of fuzzy caption matches for the static test fixture.');
     end;
 
     [Test]

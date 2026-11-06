@@ -32,13 +32,17 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
     /// <param name="TempBuffer">The remittance advice buffer: header row ("Line No." = 0) and applied-document line rows.</param>
     /// <param name="TempBlob">Return value: Temp Blob codeunit containing the XML document.</param>
     procedure GenerateXml(var TempBuffer: Record "Remit. Advice Buffer" temporary; var TempBlob: Codeunit "Temp Blob")
+    var
+        LineCount: Integer;
     begin
+        LineCount := this.CountLines(TempBuffer);
+
         TempBuffer.Reset();
         TempBuffer.SetRange("Line No.", 0);
         TempBuffer.FindFirst();
 
         this.InitializeXmlDocument();
-        this.AddHeaderElements(TempBuffer);
+        this.AddHeaderElements(TempBuffer, LineCount);
         this.AddDocumentIdentification();
         this.AddAccountingCustomerParty();
         this.AddAccountingSupplierParty(TempBuffer);
@@ -85,7 +89,7 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
         this.XMLDOMManagement.AddNamespaceDeclaration(this.RootNode, 'cbc', this.CbcNamespaceTok);
     end;
 
-    local procedure AddHeaderElements(HeaderBuffer: Record "Remit. Advice Buffer" temporary)
+    local procedure AddHeaderElements(HeaderBuffer: Record "Remit. Advice Buffer" temporary; LineCount: Integer)
     var
         ChildNode: XmlNode;
         DocumentCurrencyCode: Code[10];
@@ -98,7 +102,7 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
         this.AddCbcElement(this.RootNode, 'DocumentCurrencyCode', DocumentCurrencyCode, ChildNode);
         this.AddMoneyElement(this.RootNode, 'TotalPaymentAmount', HeaderBuffer."Total Paid Amount", DocumentCurrencyCode, ChildNode);
         this.AddCbcElement(this.RootNode, 'PaymentOrderReference', HeaderBuffer."Payment Document No.", ChildNode);
-        this.AddCbcElement(this.RootNode, 'LineCountNumeric', Format(this.CountLines(HeaderBuffer)), ChildNode);
+        this.AddCbcElement(this.RootNode, 'LineCountNumeric', Format(LineCount), ChildNode);
     end;
 
     local procedure AddDocumentIdentification()
@@ -114,7 +118,7 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
         this.AddNonEmptyCbcElement(this.RootNode, 'ProfileID', ProfileID, ChildNode);
     end;
 
-    local procedure CountLines(HeaderBuffer: Record "Remit. Advice Buffer" temporary) LineCount: Integer
+    local procedure CountLines(var HeaderBuffer: Record "Remit. Advice Buffer" temporary) LineCount: Integer
     var
         TempLineBuffer: Record "Remit. Advice Buffer" temporary;
     begin
@@ -295,16 +299,15 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
             this.AddCacElement(this.RootNode, 'RemittanceAdviceLine', LineNode);
             this.AddCbcElement(LineNode, 'ID', Format(SeqNo), ChildNode);
 
+            if LineBuffer."Pmt. Discount Amount" <> 0 then
+                this.AddCbcElement(LineNode, 'Note', StrSubstNo(this.PmtDiscountNoteMsg, this.FormatAmount(LineBuffer."Pmt. Discount Amount")), ChildNode);
+
             if LineBuffer."Applied Doc. Type" in [LineBuffer."Applied Doc. Type"::"Credit Memo", LineBuffer."Applied Doc. Type"::Refund] then
                 this.AddMoneyElement(LineNode, 'CreditLineAmount', LineBuffer."Paid Amount", LineCurrencyCode, ChildNode)
             else
                 this.AddMoneyElement(LineNode, 'DebitLineAmount', LineBuffer."Paid Amount", LineCurrencyCode, ChildNode);
 
             this.AddMoneyElement(LineNode, 'BalanceAmount', LineBuffer."Remaining Amount", LineCurrencyCode, ChildNode);
-            this.AddNonEmptyCbcElement(LineNode, 'InvoicingPartyReference', LineBuffer."External Document No.", ChildNode);
-
-            if LineBuffer."Pmt. Discount Amount" <> 0 then
-                this.AddCbcElement(LineNode, 'Note', StrSubstNo(this.PmtDiscountNoteMsg, this.FormatAmount(LineBuffer."Pmt. Discount Amount")), ChildNode);
 
             this.AddCacElement(LineNode, 'BillingReference', BillingRefNode);
             if LineBuffer."Applied Doc. Type" in [LineBuffer."Applied Doc. Type"::"Credit Memo", LineBuffer."Applied Doc. Type"::Refund] then
@@ -312,9 +315,16 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
             else
                 this.AddCacElement(BillingRefNode, 'InvoiceDocumentReference', DocRefNode);
 
-            this.AddCbcElement(DocRefNode, 'ID', LineBuffer."Our Document No.", ChildNode);
+            this.AddCbcElement(DocRefNode, 'ID', this.GetReferencedDocumentID(LineBuffer), ChildNode);
             this.AddCbcElement(DocRefNode, 'IssueDate', Format(LineBuffer."Document Date", 0, 9), ChildNode);
         until LineBuffer.Next() = 0;
+    end;
+
+    local procedure GetReferencedDocumentID(LineBuffer: Record "Remit. Advice Buffer" temporary): Text
+    begin
+        if LineBuffer."External Document No." <> '' then
+            exit(LineBuffer."External Document No.");
+        exit(LineBuffer."Our Document No.");
     end;
 
     local procedure GetDocumentCurrencyCode(CurrencyCode: Code[10]): Code[10]

@@ -1538,6 +1538,70 @@
         until GLEntry.Next() = 0;
     end;
 
+    [Test]
+    [HandlerFunctions('CurrenciesPageHandler,BankAccountSelectionPageHandler,ConfirmHandlerYes')]
+    [Scope('OnPrem')]
+    procedure PostBillGroupInForeignCurrencyPopulatesSourceCurrencyOnGLEntries()
+    var
+        BankAccount: Record "Bank Account";
+        BillGroup: Record "Bill Group";
+        CarteraDoc: Record "Cartera Doc.";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GLEntry: Record "G/L Entry";
+        PostedBillGroup: Record "Posted Bill Group";
+        SalesHeader: Record "Sales Header";
+        BillGroupNo: Code[20];
+        CurrencyCode: Code[10];
+        DocumentNo: Code[20];
+        ExpectedSourceCurrencyAmount: Decimal;
+    begin
+        // [SCENARIO 650508] Payment orders posted in foreign currency should populate Source Currency Code and Amount on G/L entries.
+
+        Initialize();
+
+        // [GIVEN] Currency Setup and Posted sales invoice in foreign currency
+        CurrencyCode := LibraryCarteraCommon.CreateCarteraCurrency(true, false, false);
+        DocumentNo := PostCarteraSalesInvoice(SalesHeader, CurrencyCode);
+        
+        // [GIVEN] Create Bill Group in foreign currency and add the posted invoice to it
+        LibraryCarteraReceivables.CreateBankAccount(BankAccount, CurrencyCode);
+        LibraryCarteraReceivables.UpdateBankAccountWithFormatN19(BankAccount);
+        BillGroupNo := CreateBillGroup(CurrencyCode, BankAccount."No.", BillGroup."Dealing Type"::Collection);
+        LibraryCarteraReceivables.AddCarteraDocumentToBillGroup(
+          CarteraDoc, DocumentNo, SalesHeader."Sell-to Customer No.", BillGroupNo);
+        CarteraDoc.SetRange("Document No.", DocumentNo);
+        CarteraDoc.SetRange("Account No.", SalesHeader."Sell-to Customer No.");
+        CarteraDoc.FindFirst();
+        ExpectedSourceCurrencyAmount := CarteraDoc."Remaining Amount";
+
+        // [GIVEN] Post the bill group
+        LibraryVariableStorage.Enqueue(StrSubstNo(BillGroupNotPrintedMsg, BillGroup.TableCaption()));
+        PostBillGroup(BillGroupNo);
+
+        // [WHEN] Find the Cust. Ledger Entry for the posted bill
+        LibraryCarteraReceivables.FindOpenCarteraDocCustomerLedgerEntries(
+          CustLedgerEntry, SalesHeader."Sell-to Customer No.", DocumentNo, CustLedgerEntry."Document Situation"::"Posted BG/PO",
+          CustLedgerEntry."Document Type"::Bill);
+
+        // [THEN] Verify the posted bill group
+        PostedBillGroup.SetRange("Bank Account No.", BankAccount."No.");
+        PostedBillGroup.FindLast();
+        Assert.AreEqual(CurrencyCode, PostedBillGroup."Currency Code", '');
+        Assert.AreEqual(CustLedgerEntry.Amount, PostedBillGroup.Amount, '');
+
+        Customer.Get(SalesHeader."Sell-to Customer No.");
+        CustomerPostingGroup.Get(Customer."Customer Posting Group");
+        FindGLEntryByDocNoGLAccNo(GLEntry, BillGroupNo, CustomerPostingGroup."Bills on Collection Acc.");
+        Assert.AreEqual(CurrencyCode, GLEntry."Source Currency Code", 'Source Currency Code must be populated on posted bill-group G/L entries.');
+        Assert.AreEqual(ExpectedSourceCurrencyAmount, GLEntry."Source Currency Amount", 'Source Currency Amount must equal the bill amount.');
+
+        FindGLEntryByDocNoGLAccNo(GLEntry, BillGroupNo, CustomerPostingGroup."Bills Account");
+        Assert.AreEqual(CurrencyCode, GLEntry."Source Currency Code", 'Source Currency Code must be populated on posted bill-group G/L entries.');
+        Assert.AreEqual(-ExpectedSourceCurrencyAmount, GLEntry."Source Currency Amount", 'Source Currency Amount must have the opposite sign on the balancing entry.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
@@ -2235,4 +2299,3 @@
         PaymentRegistrationSetup.OK().Invoke();
     end;
 }
-

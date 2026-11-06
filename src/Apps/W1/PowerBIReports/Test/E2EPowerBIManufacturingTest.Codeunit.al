@@ -33,6 +33,7 @@ using System.Utilities;
 codeunit 139878 "E2E PowerBI Manufacturing Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     Access = Internal;
     TestPermissions = Disabled;

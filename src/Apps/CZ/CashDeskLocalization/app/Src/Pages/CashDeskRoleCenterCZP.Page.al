@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.CashDesk;
 
+using Microsoft.Finance;
+
 page 31155 "Cash Desk Role Center CZP"
 {
     Caption = 'Cash Desk';
@@ -17,6 +19,10 @@ page 31155 "Cash Desk Role Center CZP"
             {
                 ShowCaption = false;
                 part(CashDeskActivities; "Cash Desk Activities CZP")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                part("EET Activities"; "EET Activities CZL")
                 {
                     ApplicationArea = Basic, Suite;
                 }

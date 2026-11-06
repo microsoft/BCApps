@@ -1,6 +1,8 @@
 namespace System.Integration.PowerBI;
 
+using Microsoft.Foundation.Company;
 using System;
+using System.Environment;
 
 codeunit 6319 "Power BI Workspace Mgt."
 {
@@ -9,6 +11,7 @@ codeunit 6319 "Power BI Workspace Mgt."
         PowerBIUrlMgt: Codeunit "Power BI Url Mgt";
         MyWorkspaceTxt: Label 'My Workspace', Comment = 'Workspace here is meant as "Power BI workspace". The wording "My Workspace" is used by Power BI.', MaxLength = 200;
         CouldNotAccessWorkspaceErr: Label 'There was a problem retrieving the reports in My Workspace. Make sure you can access Power BI from the browser and try again.', Comment = 'Workspace here is meant as "Power BI workspace". The wording "My Workspace" is used by Power BI.';
+        PersonalWorkspaceNotAllowedErr: Label 'Reports can only be deployed to %1 in evaluation companies, because it is the personal workspace of the user who runs the deployment. Choose a shared Power BI workspace on the Company Information page and try again.', Comment = '%1 = the name Power BI gives to the personal workspace, for example "My Workspace"';
 
         //Telemetry
         FailedToInsertWorkspaceTelemetryMsg: Label 'Failed to insert workspace in buffer.', Locked = true;
@@ -21,6 +24,38 @@ codeunit 6319 "Power BI Workspace Mgt."
     procedure GetMyWorkspaceLabel(): Text[200]
     begin
         exit(MyWorkspaceTxt);
+    end;
+
+    /// <summary>
+    /// Returns the name of the Power BI workspace that reports are deployed to for the current company.
+    /// </summary>
+    procedure GetTargetWorkspaceDisplayName(): Text[200]
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        if not CompanyInformation.Get() then
+            exit(MyWorkspaceTxt);
+
+        if CompanyInformation."Power BI Workspace Name" <> '' then
+            exit(CompanyInformation."Power BI Workspace Name");
+
+        exit(MyWorkspaceTxt);
+    end;
+
+    procedure CheckTargetWorkspaceAllowsDeployment()
+    var
+        Company: Record Company;
+        CompanyInformation: Record "Company Information";
+    begin
+        if Company.Get(CompanyName()) then
+            if Company."Evaluation Company" then
+                exit;
+
+        if CompanyInformation.Get() then
+            if not IsNullGuid(CompanyInformation."Power BI Workspace Id") then
+                exit;
+
+        Error(PersonalWorkspaceNotAllowedErr, MyWorkspaceTxt);
     end;
 
     /// <summary>
@@ -71,13 +106,17 @@ codeunit 6319 "Power BI Workspace Mgt."
     procedure LookupTargetWorkspace(var WorkspaceId: Guid; var WorkspaceName: Text[200]): Boolean
     var
         TempPowerBISelectionElement: Record "Power BI Selection Element" temporary;
-        PowerBIWorkspacesLookup: Page "Power BI Workspaces Lookup";
     begin
-        PowerBIWorkspacesLookup.LookupMode(true);
-        if PowerBIWorkspacesLookup.RunModal() <> Action::LookupOK then
-            exit(false);
+        GetWritableWorkspaces(TempPowerBISelectionElement);
 
-        PowerBIWorkspacesLookup.GetRecord(TempPowerBISelectionElement);
+        if not IsNullGuid(WorkspaceId) then begin
+            TempPowerBISelectionElement.SetRange(ID, WorkspaceId);
+            if TempPowerBISelectionElement.FindFirst() then;
+            TempPowerBISelectionElement.SetRange(ID);
+        end;
+
+        if Page.RunModal(Page::"Power BI Workspaces Lookup", TempPowerBISelectionElement) <> Action::LookupOK then
+            exit(false);
 
         WorkspaceId := TempPowerBISelectionElement.ID;
         if IsNullGuid(WorkspaceId) then

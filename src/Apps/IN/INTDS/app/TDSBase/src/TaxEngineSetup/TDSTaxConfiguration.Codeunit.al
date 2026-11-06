@@ -87,7 +87,7 @@ codeunit 18694 "TDS Tax Configuration"
         UseCases.Add('{08737F79-35F1-4670-BD1D-E41764E3A9DE}', 1);
         UseCases.Add('{f8bf58d9-7681-458d-9dfc-71ea23a9f853}', 4);
         UseCases.Add('{1abe2c56-9700-4a30-a14a-5e8ecc2f32dd}', 2);
-        UseCases.Add('{b8a33720-278b-45b4-8465-2d9fa273d813}', 5);
+        UseCases.Add('{b8a33720-278b-45b4-8465-2d9fa273d813}', 6);
         UseCases.Add('{3EFD6FE9-72B2-427F-A254-C36E7CA61D6D}', 1);
         UseCases.Add('{5F2E69B7-0288-468A-83C8-D6A2AF993782}', 2);
         UseCases.Add('{430D7BC2-7F79-4B77-A16C-63C758DA1FD0}', 1);

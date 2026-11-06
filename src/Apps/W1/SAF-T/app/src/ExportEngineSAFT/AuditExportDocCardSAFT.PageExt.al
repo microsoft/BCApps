@@ -19,10 +19,13 @@ pageextension 5283 "Audit Export Doc. Card SAF-T" extends "Audit File Export Doc
             }
         }
 
-        modify(Contact)
+        modify(AuditFileExportFormat)
         {
-            Enabled = not SAFTFormat;
-            Visible = not SAFTFormat;
+            trigger OnAfterValidate()
+            begin
+                SAFTFormat := IsSAFTFormat();
+                CurrPage.Update();
+            end;
         }
     }
 

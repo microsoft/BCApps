@@ -208,9 +208,7 @@ codeunit 99000808 PlanningRoutingManagement
         PlanningRtngLine.SetRange("Worksheet Batch Name", ReqLine."Journal Batch Name");
         PlanningRtngLine.SetRange("Worksheet Line No.", ReqLine."Line No.");
 
-        PlanningRtngLine.ModifyAll("Sequence No.(Backward)", 0);
-        PlanningRtngLine.ModifyAll("Fixed Scrap Qty. (Accum.)", 0);
-        PlanningRtngLine.ModifyAll("Scrap Factor % (Accumulated)", 0);
+        PlanningRtngLine.ModifyAll("Sequence No.(Backward)", 0, "Fixed Scrap Qty. (Accum.)", 0, "Scrap Factor % (Accumulated)", 0);
 
         MaxSeq := PlanningRtngLine.Count();
 
@@ -474,9 +472,6 @@ codeunit 99000808 PlanningRoutingManagement
     procedure CalculateRouting(var ReqLine: Record "Requisition Line"; Direction: Option Forward,Backward)
     var
         PlanningRtngLine: Record "Planning Routing Line";
-#if not CLEAN27
-        PlanningLineManagement: Codeunit "Planning Line Management";
-#endif
     begin
         if NeedsCalculation(
              ReqLine."Worksheet Template Name",
@@ -508,9 +503,6 @@ codeunit 99000808 PlanningRoutingManagement
                 ReqLine.CalcStartingDate('');
             ReqLine.UpdateDatetime();
             OnCalculateRoutingOnAfterUpdateReqLine(ReqLine, Direction);
-#if not CLEAN27
-            PlanningLineManagement.RunOnCalculateRoutingOnAfterUpdateReqLine(ReqLine, Direction);
-#endif
             exit;
         end;
 

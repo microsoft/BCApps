@@ -432,6 +432,9 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
         PEPPOLPartyInfo := GetFormat();
         PEPPOLPartyInfo.GetAccountingSupplierPartyTaxScheme(CompanyID, CompanyIDSchemeID, TaxSchemeID);
 
+        if CompanyID = '' then
+            exit;
+
         this.XMLDOMManagement.AddElement(PartyNode, 'PartyTaxScheme', '', CacNamespaceTok, PartyTaxSchemeNode);
         this.XMLDOMManagement.AddElement(PartyTaxSchemeNode, 'CompanyID', CompanyID, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddElement(PartyTaxSchemeNode, 'TaxScheme', '', CacNamespaceTok, TaxSchemeNode);

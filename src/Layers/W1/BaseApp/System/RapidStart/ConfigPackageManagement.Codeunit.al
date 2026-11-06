@@ -1,6 +1,7 @@
 ﻿namespace System.IO;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.Company;
 using System.Environment;
 using System.Environment.Configuration;
@@ -652,7 +653,7 @@ codeunit 8611 "Config. Package Management"
     begin
         if Format(ConfigPackageData.Value) <> '' then begin
             DataInPackageData := false;
-            if GetRelationInfo(ConfigPackageField, RelationTableNo, RelationFieldNo) then
+            if GetRelationInfo(ConfigPackageField, RecRef, RelationTableNo, RelationFieldNo) then
                 DataInPackageData :=
                   ValidateFieldRelationAgainstPackageData(
                     ConfigPackageData, ValidatedConfigPackageTable, RelationTableNo, RelationFieldNo);
@@ -870,8 +871,49 @@ codeunit 8611 "Config. Package Management"
         exit((TableId = Database::"Dimension Value") and (DimensionValue.FieldNo("Dimension Value ID") = FieldId));
     end;
 
-    local procedure GetRelationInfo(ConfigPackageField: Record "Config. Package Field"; var RelationTableNo: Integer; var RelationFieldNo: Integer): Boolean
+    local procedure GetRelationInfo(ConfigPackageField: Record "Config. Package Field"; RecRef: RecordRef; var RelationTableNo: Integer; var RelationFieldNo: Integer): Boolean
+    var
+        CommentLine: Record "Comment Line";
+        TableRelationsMetadata: Record "Table Relations Metadata";
+        RelatedRecRef: RecordRef;
+        FieldRef: FieldRef;
+        RelatedFieldRef: FieldRef;
+        RelatedKeyRef: KeyRef;
     begin
+        if (ConfigPackageField."Table ID" = Database::"Comment Line") and
+           (ConfigPackageField."Field ID" = CommentLine.FieldNo("No."))
+        then begin
+            // Resolve the parent from this record's Table Name, not the static field metadata.
+            FieldRef := RecRef.Field(ConfigPackageField."Field ID");
+            RelationTableNo := FieldRef.Relation();
+            if RelationTableNo = 0 then
+                exit(false);
+
+            TableRelationsMetadata.SetRange("Table ID", ConfigPackageField."Table ID");
+            TableRelationsMetadata.SetRange("Field No.", ConfigPackageField."Field ID");
+            TableRelationsMetadata.SetRange("Related Table ID", RelationTableNo);
+            if not TableRelationsMetadata.FindFirst() then
+                exit(false);
+            RelationFieldNo := TableRelationsMetadata."Related Field No.";
+            TableRelationsMetadata.SetFilter("Related Field No.", '<>%1', RelationFieldNo);
+            if not TableRelationsMetadata.IsEmpty() then
+                exit(false);
+
+            RelatedRecRef.Open(RelationTableNo);
+            if RelationFieldNo <> 0 then
+                RelatedFieldRef := RelatedRecRef.Field(RelationFieldNo)
+            else begin
+                RelatedKeyRef := RelatedRecRef.KeyIndex(1);
+                if RelatedKeyRef.FieldCount <> 1 then
+                    exit(false);
+                RelatedFieldRef := RelatedKeyRef.FieldIndex(1);
+            end;
+            if (RelatedFieldRef.Type <> FieldRef.Type) or (RelatedFieldRef.Length <> FieldRef.Length) then
+                exit(false);
+            RelationFieldNo := RelatedFieldRef.Number;
+            exit(true);
+        end;
+
         exit(
           ConfigValidateMgt.GetRelationInfoByIDs(
             ConfigPackageField."Table ID", ConfigPackageField."Field ID", RelationTableNo, RelationFieldNo));
@@ -1488,12 +1530,40 @@ codeunit 8611 "Config. Package Management"
                 end;
         end;
 
+        if TableId = Database::"Comment Line" then
+            ProcessingOrder :=
+                MaxInt(ProcessingOrder, SetupCommentLineProcessingOrder(PackageCode, CheckedConfigPackageTable, StackLevel));
+
         if ConfigPackageTable.Get(PackageCode, TableId) then begin
             ConfigPackageTable."Processing Order" := ProcessingOrder;
             AdjustProcessingOrder(ConfigPackageTable);
             ConfigPackageTable.Modify();
         end;
 
+        exit(ProcessingOrder);
+    end;
+
+    local procedure SetupCommentLineProcessingOrder(PackageCode: Code[20]; var CheckedConfigPackageTable: Record "Config. Package Table"; StackLevel: Integer): Integer
+    var
+        CommentLine: Record "Comment Line";
+        RelatedConfigPackageTable: Record "Config. Package Table";
+        TableRelationsMetadata: Record "Table Relations Metadata";
+        ProcessingOrder: Integer;
+    begin
+        ProcessingOrder := 1;
+        TableRelationsMetadata.SetRange("Table ID", Database::"Comment Line");
+        TableRelationsMetadata.SetRange("Field No.", CommentLine.FieldNo("No."));
+        TableRelationsMetadata.SetFilter("Related Table ID", '<>%1&<>%2', 0, Database::"Comment Line");
+        if TableRelationsMetadata.FindSet() then
+            repeat
+                if RelatedConfigPackageTable.Get(PackageCode, TableRelationsMetadata."Related Table ID") then begin
+                    SetupTableProcessingOrder(PackageCode, RelatedConfigPackageTable."Table ID", CheckedConfigPackageTable, StackLevel + 1);
+                    RelatedConfigPackageTable.Get(PackageCode, TableRelationsMetadata."Related Table ID");
+                    // Use the final order, including adjustments such as the project-table delay.
+                    ProcessingOrder := MaxInt(ProcessingOrder, RelatedConfigPackageTable."Processing Order" + 1);
+                    ClearFieldBranchCheckingHistory(PackageCode, CheckedConfigPackageTable, StackLevel);
+                end;
+            until TableRelationsMetadata.Next() = 0;
         exit(ProcessingOrder);
     end;
 
