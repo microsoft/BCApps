@@ -2257,17 +2257,7 @@
   {
     "codeunitId": 134195,
     "codeunitName": "ERM Multiple Posting Groups",
-    "method": "CheckPurchInvoiceApplyUnapplyMultiplePostingGroups"
-  },
-  {
-    "codeunitId": 134195,
-    "codeunitName": "ERM Multiple Posting Groups",
     "method": "CheckPurchInvoicewithMultipleVendorPostingGroup"
-  },
-  {
-    "codeunitId": 134195,
-    "codeunitName": "ERM Multiple Posting Groups",
-    "method": "CheckSalesInvoiceApplyUnapplyMultiplePostingGroups"
   },
   {
     "codeunitId": 134195,
