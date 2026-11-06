@@ -77,7 +77,8 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         VendContractHeader: Record "Vendor Subscription Contract";
         VendContractLine: Record "Vend. Sub. Contract Line";
         VendorContractDeferral: Record "Vend. Sub. Contract Deferral";
-        BillingLine: Record "Billing Line";
+        ContractNo: Code[20];
+        ContractLineNo: Integer;
         Sign: Integer;
     begin
         if DocumentNo = '' then
@@ -93,9 +94,9 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         if not PurchaseLine.CreateContractDeferrals() then
             exit;
 
-        BillingLine.FilterBillingLineOnDocumentLine(BillingLine.GetBillingDocumentTypeFromPurchaseDocumentType(PurchaseLine."Document Type"), PurchaseLine."Document No.", PurchaseLine."Line No.");
-        BillingLine.FindFirst();
-        VendContractHeader.Get(BillingLine."Subscription Contract No.");
+        if not PurchaseLine.GetSubscriptionContractFromLineOrBillingLine(ContractNo, ContractLineNo) then
+            exit;
+        VendContractHeader.Get(ContractNo);
         GLSetup.Get();
 
         VendorContractDeferral.Init();
@@ -104,7 +105,7 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         VendorContractDeferral."Subscription Contract Type" := VendContractHeader."Contract Type";
         VendorContractDeferral."User ID" := CopyStr(UserId(), 1, MaxStrLen(VendorContractDeferral."User ID"));
         VendorContractDeferral."Document Posting Date" := PurchaseHeader."Posting Date";
-        VendContractLine.Get(VendContractHeader."No.", BillingLine."Subscription Contract Line No.");
+        VendContractLine.Get(VendContractHeader."No.", ContractLineNo);
         VendorContractDeferral."Subscription Line Description" := VendContractLine."Subscription Line Description";
         VendorContractDeferral."Subscription Description" := VendContractLine."Subscription Description";
         VendorContractDeferral."Subscription Contract No." := VendContractLine."Subscription Contract No.";

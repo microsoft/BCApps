@@ -9,6 +9,7 @@ tableextension 8070 "Gen. Journal Line" extends "Gen. Journal Line"
         field(8051; "Subscription Contract No."; Code[20])
         {
             Caption = 'Subscription Contract No.';
+            ToolTip = 'Specifies the Subscription Contract that the journal line stems from.';
             DataClassification = CustomerContent;
         }
     }

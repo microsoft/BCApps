@@ -761,25 +761,35 @@ codeunit 8063 "Sales Documents"
     [EventSubscriber(ObjectType::Table, Database::"Sales Invoice Line", OnAfterInitFromSalesLine, '', false, false)]
     local procedure SalesInvLineCopyContractNoOnAfterInitFromSalesLine(var SalesInvLine: Record "Sales Invoice Line"; SalesInvHeader: Record "Sales Invoice Header"; SalesLine: Record "Sales Line")
     var
-        BillingLine: Record "Billing Line";
+        ContractNo: Code[20];
+        ContractLineNo: Integer;
     begin
-        BillingLine.FilterBillingLineOnDocumentLine(BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"), SalesLine."Document No.", SalesLine."Line No.");
-        if not BillingLine.FindFirst() then
+        // InitFromSalesLine transfers the fields by number and the sales line carries them on the same numbers, so the value
+        // is already here. Only documents created before the contract was stored on the line need the Billing Line.
+        if SalesLine."Subscription Contract No." <> '' then
             exit;
-        SalesInvLine."Subscription Contract No." := BillingLine."Subscription Contract No.";
-        SalesInvLine."Subscription Contract Line No." := BillingLine."Subscription Contract Line No.";
+
+        if not SalesLine.GetSubscriptionContractFromLineOrBillingLine(ContractNo, ContractLineNo) then
+            exit;
+        SalesInvLine."Subscription Contract No." := ContractNo;
+        SalesInvLine."Subscription Contract Line No." := ContractLineNo;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Cr.Memo Line", OnAfterInitFromSalesLine, '', false, false)]
     local procedure SalesCrMemoLineCopyContractNoOnAfterInitFromSalesLine(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesLine: Record "Sales Line")
     var
-        BillingLine: Record "Billing Line";
+        ContractNo: Code[20];
+        ContractLineNo: Integer;
     begin
-        BillingLine.FilterBillingLineOnDocumentLine(BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"), SalesLine."Document No.", SalesLine."Line No.");
-        if not BillingLine.FindFirst() then
+        // InitFromSalesLine transfers the fields by number and the sales line carries them on the same numbers, so the value
+        // is already here. Only documents created before the contract was stored on the line need the Billing Line.
+        if SalesLine."Subscription Contract No." <> '' then
             exit;
-        SalesCrMemoLine."Subscription Contract No." := BillingLine."Subscription Contract No.";
-        SalesCrMemoLine."Subscription Contract Line No." := BillingLine."Subscription Contract Line No.";
+
+        if not SalesLine.GetSubscriptionContractFromLineOrBillingLine(ContractNo, ContractLineNo) then
+            exit;
+        SalesCrMemoLine."Subscription Contract No." := ContractNo;
+        SalesCrMemoLine."Subscription Contract Line No." := ContractLineNo;
     end;
 
     internal procedure SetCalledFromContractRenewal(NewCalledFromContractRenewal: Boolean)
