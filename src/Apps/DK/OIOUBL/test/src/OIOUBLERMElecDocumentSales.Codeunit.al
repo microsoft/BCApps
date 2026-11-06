@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.Foundation.Reporting.FileNaming;
+
 codeunit 148053 "OIOUBL-ERM Elec Document Sales"
 {
     Subtype = Test;
@@ -1122,12 +1124,18 @@ codeunit 148053 "OIOUBL-ERM Elec Document Sales"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         DocumentSendingProfile: Record "Document Sending Profile";
         ElectronicDocumentFormat: Record "Electronic Document Format";
+        ReportFilenameSetup: Record "Report Filename Setup";
         SalesInvoice: TestPage "Sales Invoice";
         FileNameLst: List of [Text];
     begin
         // [FEATURE] [Zip]
         // [SCENARIO 336642] Post And Send Sales Document in case Print, E-Mail - PDF & OIOUBL, Disk - PDF & OIOUBL are set in Document Sending Profile.
         Initialize();
+        // This scenario asserts built-in names, independently of company-specific filename patterns.
+        if ReportFilenameSetup.Get() then begin
+            ReportFilenameSetup.Enabled := false;
+            ReportFilenameSetup.Modify();
+        end;
         MailSetupInitialize();
         CreateElectronicDocumentFormat(
             OIOUBLFormatNameTxt, ElectronicDocumentFormat.Usage::"Sales Invoice", Codeunit::"OIOUBL-Export Sales Invoice");
@@ -2654,4 +2662,3 @@ codeunit 148053 "OIOUBL-ERM Elec Document Sales"
         StandardSalesCreditMemo.Cancel().Invoke();
     end;
 }
-

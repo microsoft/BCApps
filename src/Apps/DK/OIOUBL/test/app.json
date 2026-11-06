@@ -19,6 +19,12 @@
       "version": "30.0.0.0"
     },
     {
+      "id": "b41f7c62-9d3a-4e58-8a17-2c5e9f0d6b84",
+      "name": "Report Filename Manager",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "e1966889-b5fb-4fda-a84c-ea71b590e1a9",
       "name": "PEPPOL",
       "publisher": "Microsoft",
