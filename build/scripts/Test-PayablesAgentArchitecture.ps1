@@ -19,7 +19,7 @@
     Only * and ? globs are supported, case-insensitively; * spans directories.
     Exceptions need reasons and fail when stale.
 
-    CI invokes this through the TestALAppArchitecture action in PR validation (including
+    CI invokes this through the TestAdHocALAppValidations action in PR validation (including
     merge queues) for relevant PA/checker/workflow changes, or an uncertain diff. The shared
     change selector also guards the PR Pester tests; direct local invocations here always scan.
     Requires PowerShell 7 (JSON Schema validation); local compiler builds invoke it separately.

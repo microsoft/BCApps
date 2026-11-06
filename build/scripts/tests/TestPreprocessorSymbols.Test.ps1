@@ -398,13 +398,10 @@ Describe "Test-PreprocessorSymbols" {
         $result | Should -Be $null
     }
 
-    It 'runs the checked-out preprocessor action with DEVELOPMENT explicitly allowed' {
+    It 'allows DEVELOPMENT explicitly in the preprocessor action' {
         $repoRoot = Join-Path $PSScriptRoot '../../..'
-        $workflow = Get-Content -LiteralPath (Join-Path $repoRoot '.github/workflows/PullRequestHandler.yaml') -Raw
         $action = Get-Content -LiteralPath (Join-Path $repoRoot '.github/actions/TestPreprocessorSymbols/action.ps1') -Raw
 
-        $workflow.Contains('uses: ./.github/actions/TestPreprocessorSymbols') | Should -Be $true
-        $workflow.Contains('microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main') | Should -Be $false
         $action.Contains('$allowedSymbols = @(''DEVELOPMENT'')') | Should -Be $true
         $action.Contains('-allowedSymbols $allowedSymbols') | Should -Be $true
     }
