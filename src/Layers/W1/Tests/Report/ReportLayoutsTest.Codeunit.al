@@ -493,12 +493,17 @@ codeunit 139595 "Report Layouts Test"
     var
         TenantReportLayout: Record "Tenant Report Layout";
         TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
     begin
         TenantReportLayout.SetRange("Report ID", 139595);
         TenantReportLayout.DeleteAll();
 
         TenantReportLayoutOverride.SetRange("Report ID", 139595);
         TenantReportLayoutOverride.DeleteAll();
+
+        // Part references left behind by a failed test would turn a valid layout into one with warnings.
+        TenantReportLayoutCfg.SetRange("Report ID", 139595);
+        TenantReportLayoutCfg.DeleteAll();
 
         // A test failing between Enqueue and Dequeue would otherwise leak into the next one.
         LibraryVariableStorage.Clear();
@@ -1393,6 +1398,344 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutEditDialog.OK().Invoke();
     end;
 
+    [Test]
+    [HandlerFunctions('NewRDLCLayoutModalHandler')]
+    procedure TestReportLayoutsFacadeValidateRDLCLayoutIsValid()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayouts: Codeunit "Report Layouts";
+        ValidationMessage: Text;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] ValidateReportLayout returns Valid and no message for a valid RDLC layout, without showing a message
+        // [GIVEN] An RDLC layout and a report configuration row without part references
+        CreateNewLayoutForTestReport(ReportLayoutList);
+        InsertCompositePartReferences('', '');
+
+        // [WHEN] The layout is validated through the facade
+        // [THEN] The layout is valid and there is no message
+        Assert.AreEqual(Enum::"Layout Validation Result"::Valid, ReportLayouts.ValidateReportLayout(ReportLayoutList, ValidationMessage), 'The RDLC layout should be valid.');
+        Assert.AreEqual('', ValidationMessage, 'A valid layout should not return a message.');
+
+        EnsureNewLayoutsAreCleaned();
+    end;
+
+    [Test]
+    [HandlerFunctions('NewRDLCLayoutModalHandler')]
+    procedure TestReportLayoutsFacadeValidateLayoutWithObsoletePartIsValidWithWarnings()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayouts: Codeunit "Report Layouts";
+        ValidationMessage: Text;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] ValidateReportLayout returns Valid with Warnings and the part warnings when the report references an obsolete header/footer part
+        // [GIVEN] An RDLC layout and a report configuration row that references a header/footer part
+        CreateNewLayoutForTestReport(ReportLayoutList);
+        InsertCompositePartReferences(CreateHeaderFooterPart(), '');
+
+        // [GIVEN] The header/footer part is marked as obsolete after it was assigned
+        SetHeaderFooterPartObsolete();
+
+        // [WHEN] The layout is validated through the facade
+        // [THEN] The layout is valid with warnings and the message names the obsolete part
+        Assert.AreEqual(Enum::"Layout Validation Result"::"Valid with Warnings", ReportLayouts.ValidateReportLayout(ReportLayoutList, ValidationMessage), 'The layout should be valid with warnings.');
+        Assert.IsTrue(ValidationMessage.Contains(HeaderFooterPartNameTxt), 'The message should name the obsolete header/footer part.');
+
+        // The configuration row must be gone before the part it references can be deleted.
+        EnsureNewLayoutsAreCleaned();
+        DeleteHeaderFooterPart();
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacadeValidateExternalLayoutIsNotSupported()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayouts: Codeunit "Report Layouts";
+        ValidationMessage: Text;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] ValidateReportLayout returns Not Supported for an external layout that no subscriber validates
+        // [GIVEN] An external layout
+        CreateNewLayoutForTestReport(ReportLayoutList);
+
+        // [WHEN] The layout is validated through the facade
+        // [THEN] Validation is not supported for the layout format
+        Assert.AreEqual(Enum::"Layout Validation Result"::"Not Supported", ReportLayouts.ValidateReportLayout(ReportLayoutList, ValidationMessage), 'Validation should not be supported for an external layout.');
+        Assert.AreEqual('Layout validation is not supported for this layout format.', ValidationMessage, 'The message should state that the layout format is not supported.');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacadeValidateExternalLayoutUsesSubscriberResult()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayouts: Codeunit "Report Layouts";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ValidationMessage: Text;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] A subscriber to OnValidateReportLayoutOnCaseElse validates an external layout
+        // [GIVEN] An external layout and a subscriber that reports it as invalid
+        CreateNewLayoutForTestReport(ReportLayoutList);
+        ReportLayoutsTest.SetCustomLayoutValidation(Enum::"Layout Validation Result"::Invalid, CustomLayoutInvalidTxt);
+        BindSubscription(ReportLayoutsTest);
+
+        // [WHEN] The layout is validated through the facade
+        // [THEN] The result and the message of the subscriber are returned
+        Assert.AreEqual(Enum::"Layout Validation Result"::Invalid, ReportLayouts.ValidateReportLayout(ReportLayoutList, ValidationMessage), 'The result of the subscriber should be returned.');
+        Assert.AreEqual(CustomLayoutInvalidTxt, ValidationMessage, 'The message of the subscriber should be returned.');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacadeSetDefaultLayoutSelection()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        ReportLayoutSelection: Record "Report Layout Selection";
+        ReportLayouts: Codeunit "Report Layouts";
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] SetDefaultReportLayoutSelection selects the layout as the default in the current company, without showing a message
+        // [GIVEN] An external layout
+        CreateNewLayoutForTestReport(ReportLayoutList);
+
+        // [WHEN] The layout is set as default through the facade
+        ReportLayouts.SetDefaultReportLayoutSelection(ReportLayoutList);
+
+        // [THEN] Tenant Report Layout Selection and Report Layout Selection point to the layout
+        Assert.IsTrue(TenantReportLayoutSelection.Get(139595, CompanyName(), EmptyGuid), 'A Tenant Report Layout Selection should exist for the current company.');
+        Assert.AreEqual(NewLayoutNameTxt, TenantReportLayoutSelection."Layout Name", 'The Tenant Report Layout Selection should point to the layout.');
+        Assert.IsTrue(ReportLayoutSelection.Get(139595, CompanyName()), 'A Report Layout Selection should exist for the current company.');
+        Assert.AreEqual(ReportLayoutSelection.Type::"External Layout", ReportLayoutSelection.Type, 'The Report Layout Selection should have the type of the layout.');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacadeAddLayoutSelection()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        ReportLayouts: Codeunit "Report Layouts";
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] AddLayoutSelection selects the layout in the current company
+        // [GIVEN] An external layout
+        CreateNewLayoutForTestReport(ReportLayoutList);
+
+        // [WHEN] The layout is selected through the facade
+        ReportLayouts.AddLayoutSelection(ReportLayoutList);
+
+        // [THEN] Tenant Report Layout Selection points to the layout
+        Assert.IsTrue(TenantReportLayoutSelection.Get(139595, CompanyName(), EmptyGuid), 'A Tenant Report Layout Selection should exist for the current company.');
+        Assert.AreEqual(NewLayoutNameTxt, TenantReportLayoutSelection."Layout Name", 'The Tenant Report Layout Selection should point to the layout.');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacadeAddLayoutSelectionForUser()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        ReportLayouts: Codeunit "Report Layouts";
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] AddLayoutSelection with a user selects the layout for that user in the current company
+        // [GIVEN] An external layout
+        CreateNewLayoutForTestReport(ReportLayoutList);
+
+        // [WHEN] The layout is selected for the current user through the facade
+        ReportLayouts.AddLayoutSelection(ReportLayoutList, UserSecurityId());
+
+        // [THEN] A user specific Tenant Report Layout Selection points to the layout
+        Assert.IsTrue(TenantReportLayoutSelection.Get(139595, CompanyName(), UserSecurityId()), 'A Tenant Report Layout Selection should exist for the user.');
+        Assert.AreEqual(NewLayoutNameTxt, TenantReportLayoutSelection."Layout Name", 'The Tenant Report Layout Selection should point to the layout.');
+
+        // The selection would point the user to a deleted layout once the layouts are cleaned.
+        TenantReportLayoutSelection.Delete();
+    end;
+
+    [Test]
+    procedure TestReportLayoutsFacadeSetDefaultRejectsHeaderFooterPart()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayouts: Codeunit "Report Layouts";
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] A header/footer part cannot be set as the default layout of a report
+        // [GIVEN] A header/footer part
+        ReportLayoutList."Report ID" := 139595;
+        ReportLayoutList.Name := HeaderFooterPartNameTxt;
+        ReportLayoutList."Layout Subtype" := ReportLayoutList."Layout Subtype"::HeaderFooter;
+
+        // [WHEN] The part is set as default through the facade
+        asserterror ReportLayouts.SetDefaultReportLayoutSelection(ReportLayoutList);
+
+        // [THEN] An error states that parts cannot be selected as a report layout
+        Assert.ExpectedError(CompositePartCannotBeSelectedTxt);
+    end;
+
+    [Test]
+    procedure TestReportLayoutsFacadeAddLayoutSelectionRejectsThemePart()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayouts: Codeunit "Report Layouts";
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] A theme part cannot be selected as a report layout, neither for the company nor for a user
+        // [GIVEN] A theme part
+        ReportLayoutList."Report ID" := 139595;
+        ReportLayoutList.Name := HeaderFooterPartNameTxt;
+        ReportLayoutList."Layout Subtype" := ReportLayoutList."Layout Subtype"::Theme;
+
+        // [WHEN] The part is selected through the facade
+        // [THEN] An error states that parts cannot be selected as a report layout
+        asserterror ReportLayouts.AddLayoutSelection(ReportLayoutList);
+        Assert.ExpectedError(CompositePartCannotBeSelectedTxt);
+
+        asserterror ReportLayouts.AddLayoutSelection(ReportLayoutList, UserSecurityId());
+        Assert.ExpectedError(CompositePartCannotBeSelectedTxt);
+    end;
+
+    [Test]
+    procedure TestReportLayoutsFacadeLayoutSelectionTypeMapping()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutSelection: Record "Report Layout Selection";
+        ReportLayouts: Codeunit "Report Layouts";
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] Each layout format maps to the matching Report Layout Selection type
+        ReportLayoutSelection.Type := ReportLayouts.GetReportLayoutSelectionTypeFromReportLayoutListLayoutFormat(ReportLayoutList."Layout Format"::RDLC);
+        Assert.AreEqual(ReportLayoutSelection.Type::"RDLC (built-in)", ReportLayoutSelection.Type, 'RDLC should map to RDLC (built-in).');
+
+        ReportLayoutSelection.Type := ReportLayouts.GetReportLayoutSelectionTypeFromReportLayoutListLayoutFormat(ReportLayoutList."Layout Format"::Word);
+        Assert.AreEqual(ReportLayoutSelection.Type::"Word (built-in)", ReportLayoutSelection.Type, 'Word should map to Word (built-in).');
+
+        ReportLayoutSelection.Type := ReportLayouts.GetReportLayoutSelectionTypeFromReportLayoutListLayoutFormat(ReportLayoutList."Layout Format"::Excel);
+        Assert.AreEqual(ReportLayoutSelection.Type::"Excel Layout", ReportLayoutSelection.Type, 'Excel should map to Excel Layout.');
+
+        ReportLayoutSelection.Type := ReportLayouts.GetReportLayoutSelectionTypeFromReportLayoutListLayoutFormat(ReportLayoutList."Layout Format"::Custom);
+        Assert.AreEqual(ReportLayoutSelection.Type::"External Layout", ReportLayoutSelection.Type, 'Custom should map to External Layout.');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacadeExportReportLayout()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayouts: Codeunit "Report Layouts";
+        LayoutTempBlob: Codeunit "Temp Blob";
+        LayoutInStream: InStream;
+        ExportedLayout: Text;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] ExportReportLayout returns the layout content in a Temp Blob, without downloading a file
+        // [GIVEN] An external layout
+        CreateNewLayoutForTestReport(ReportLayoutList);
+
+        // [WHEN] The layout is exported through the facade without updating it
+        Assert.IsTrue(ReportLayouts.ExportReportLayout(ReportLayoutList, false, LayoutTempBlob), 'The layout should be exported as requested.');
+
+        // [THEN] The Temp Blob contains the layout content
+        LayoutTempBlob.CreateInStream(LayoutInStream, TextEncoding::UTF8);
+        LayoutInStream.ReadText(ExportedLayout);
+        Assert.AreEqual(SampleTextTxt, ExportedLayout, 'The exported layout should contain the layout content.');
+    end;
+
+    local procedure CreateNewLayoutForTestReport(var ReportLayoutList: Record "Report Layout List")
+    var
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        EmptyGuid: Guid;
+    begin
+        EnsureNewLayoutsAreCleaned();
+        BindSubscription(ReportLayoutsTest);
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
+        ReportLayoutsPage.NewLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        UnbindSubscription(ReportLayoutsTest);
+        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+    end;
+
+    local procedure CreateHeaderFooterPart(): Text
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        ExcelSheetConfiguration: Enum "Excel Sheet Configuration";
+        EmptyGuid: Guid;
+        ReturnReportID: Integer;
+        ReturnLayoutName: Text;
+    begin
+        DeleteHeaderFooterPart();
+
+        // Tenant Report Layout Cfg only accepts references to existing parts. An empty Word layout under the Tenant Report
+        // Defaults report is such a part.
+        ReportLayoutsImpl.InsertNewLayout(
+            LookupHelper.GetTenantReportDefaultsReportID(), HeaderFooterPartNameTxt, HeaderFooterPartNameTxt, ReportLayoutList."Layout Format"::Word,
+            true, true, ExcelSheetConfiguration::Default, Enum::"Report Layout Subtype"::HeaderFooter, ReturnReportID, ReturnLayoutName);
+
+        exit(LookupHelper.EncodeCompositeName(EmptyGuid, HeaderFooterPartNameTxt));
+    end;
+
+    local procedure SetHeaderFooterPartObsolete()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        EmptyGuid: Guid;
+    begin
+        TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), HeaderFooterPartNameTxt, EmptyGuid);
+        TenantReportLayout.IsObsolete := true;
+        TenantReportLayout.Modify(true);
+    end;
+
+    local procedure DeleteHeaderFooterPart()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        EmptyGuid: Guid;
+    begin
+        if TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), HeaderFooterPartNameTxt, EmptyGuid) then
+            TenantReportLayout.Delete(true);
+    end;
+
+    local procedure InsertCompositePartReferences(HeaderPartName: Text; ThemePartName: Text)
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+    begin
+        // A row for the test report keeps the validation from falling back to the report 0 rows that other tests may leave behind.
+        TenantReportLayoutCfg.Init();
+        TenantReportLayoutCfg."Report ID" := 139595;
+        TenantReportLayoutCfg."Header Part Name" := CopyStr(HeaderPartName, 1, MaxStrLen(TenantReportLayoutCfg."Header Part Name"));
+        TenantReportLayoutCfg."Theme Part Name" := CopyStr(ThemePartName, 1, MaxStrLen(TenantReportLayoutCfg."Theme Part Name"));
+        TenantReportLayoutCfg.Insert(true);
+    end;
+
+    procedure SetCustomLayoutValidation(NewValidationResult: Enum "Layout Validation Result"; NewValidationMessage: Text)
+    begin
+        HandleCustomLayoutValidation := true;
+        CustomLayoutValidationResult := NewValidationResult;
+        CustomLayoutValidationMessage := NewValidationMessage;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Layouts", 'OnValidateReportLayoutOnCaseElse', '', false, false)]
+    local procedure ValidateCustomLayout(ReportLayoutList: Record "Report Layout List"; var ValidationResult: Enum "Layout Validation Result"; var ValidationMessage: Text; var IsHandled: Boolean)
+    begin
+        if not HandleCustomLayoutValidation then
+            exit;
+
+        ValidationResult := CustomLayoutValidationResult;
+        ValidationMessage := CustomLayoutValidationMessage;
+        IsHandled := true;
+    end;
 
     var
         Assert: Codeunit Assert;
@@ -1406,5 +1749,11 @@ codeunit 139595 "Report Layouts Test"
         GlobalOverrideApprovedErr: Label 'The global override for %1 should carry the Approved status.', Comment = '%1 = layout name';
         GlobalOverrideRetiredErr: Label 'The global override for %1 should carry the Retired status.', Comment = '%1 = layout name';
         CompanyOverrideUnexpectedErr: Label 'No company-specific override should exist for layout %1.', Comment = '%1 = layout name';
+        HeaderFooterPartNameTxt: Label 'ReportLayoutsTestHeaderFooter', Locked = true;
+        CustomLayoutInvalidTxt: Label 'The custom layout is not valid.', Locked = true;
+        CompositePartCannotBeSelectedTxt: Label 'cannot be selected as a report layout', Locked = true;
         InsertedLayoutContextTxt: Text;
+        CustomLayoutValidationMessage: Text;
+        CustomLayoutValidationResult: Enum "Layout Validation Result";
+        HandleCustomLayoutValidation: Boolean;
 }
