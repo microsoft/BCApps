@@ -2,6 +2,7 @@ codeunit 135519 "IRS 1099 Code Entity E2E Test"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
