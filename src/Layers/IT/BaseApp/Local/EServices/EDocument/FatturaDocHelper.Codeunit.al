@@ -216,14 +216,10 @@ codeunit 12184 "Fattura Doc. Helper"
             exit;
 
         FindCustLedgEntry(CustLedgerEntry, TempFatturaHeader);
-        Clear(TempFatturaLine);
-        TempFatturaLine."Line Type" := TempFatturaLine."Line Type"::Payment;
         repeat
-            TempFatturaLine."Line No." += 1;
-            TempFatturaLine."Due Date" := CustLedgerEntry."Due Date";
             CustLedgerEntry.CalcFields("Amount (LCY)");
-            TempFatturaLine.Amount := CustLedgerEntry."Amount (LCY)";
-            TempFatturaLine.Insert();
+            InsertPaymentFatturaLine(
+                TempFatturaLine, CustLedgerEntry."Due Date", CustLedgerEntry."Amount (LCY)");
         until CustLedgerEntry.Next() = 0;
     end;
 
@@ -357,9 +353,27 @@ codeunit 12184 "Fattura Doc. Helper"
         exit(ErrorMessage.HasErrors(false));
     end;
 
-    local procedure InitFatturaHeaderWithCheck(var TempFatturaHeader: Record "Fattura Header" temporary; var LineRecRef: RecordRef; HeaderRecRef: RecordRef): Boolean
+    /// <summary>
+    /// Maps FatturaPA payment method and terms in both posted export and preview.
+    /// Keep the posted rule: the fiscal codes are set only if both setup
+    /// records exist. Return PaymentMethod for posted-header validation.
+    /// </summary>
+    internal procedure PopulateFatturaPaymentCodes(
+        var TempFatturaHeader: Record "Fattura Header" temporary;
+        var PaymentMethod: Record "Payment Method")
     var
         PaymentTerms: Record "Payment Terms";
+    begin
+        if PaymentMethod.Get(TempFatturaHeader."Payment Method Code") and
+           PaymentTerms.Get(TempFatturaHeader."Payment Terms Code")
+        then begin
+            TempFatturaHeader."Fattura PA Payment Method" := PaymentMethod."Fattura PA Payment Method";
+            TempFatturaHeader."Fattura Payment Terms Code" := PaymentTerms."Fattura Payment Terms Code";
+        end;
+    end;
+
+    local procedure InitFatturaHeaderWithCheck(var TempFatturaHeader: Record "Fattura Header" temporary; var LineRecRef: RecordRef; HeaderRecRef: RecordRef): Boolean
+    var
         PaymentMethod: Record "Payment Method";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -367,12 +381,7 @@ codeunit 12184 "Fattura Doc. Helper"
         FieldRef: FieldRef;
     begin
         CheckMandatoryFields(HeaderRecRef, ErrorMessage);
-        if PaymentMethod.Get(TempFatturaHeader."Payment Method Code") and
-           PaymentTerms.Get(TempFatturaHeader."Payment Terms Code")
-        then begin
-            TempFatturaHeader."Fattura PA Payment Method" := PaymentMethod."Fattura PA Payment Method";
-            TempFatturaHeader."Fattura Payment Terms Code" := PaymentTerms."Fattura Payment Terms Code";
-        end;
+        PopulateFatturaPaymentCodes(TempFatturaHeader, PaymentMethod);
         case HeaderRecRef.Number of
             DATABASE::"Sales Invoice Header":
                 begin
@@ -550,12 +559,25 @@ codeunit 12184 "Fattura Doc. Helper"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         AppliedCustLedgerEntry: Record "Cust. Ledger Entry";
-        DocRecRef: RecordRef;
     begin
         FindCustLedgEntry(CustLedgerEntry, TempFatturaHeader);
         if not FindAppliedEntry(AppliedCustLedgerEntry, CustLedgerEntry) then
             exit;
 
+        PopulateAppliedDocumentInformation(TempFatturaHeader, AppliedCustLedgerEntry);
+    end;
+
+    /// <summary>
+    /// Maps a resolved application to FatturaPA fiscal metadata in both posted
+    /// export and preview. The caller determines which ledger entry is applied.
+    /// </summary>
+    internal procedure PopulateAppliedDocumentInformation(
+        var TempFatturaHeader: Record "Fattura Header" temporary;
+        AppliedCustLedgerEntry: Record "Cust. Ledger Entry")
+    var
+        DocRecRef: RecordRef;
+    begin
+        Initialize();
         TempFatturaHeader."Applied Doc. No." := AppliedCustLedgerEntry."Document No.";
         TempFatturaHeader."Applied Posting Date" := AppliedCustLedgerEntry."Posting Date";
 
@@ -574,11 +596,26 @@ codeunit 12184 "Fattura Doc. Helper"
         VATEntry.SetRange("Document No.", TempFatturaHeader."Document No.");
         VATEntry.SetRange("Posting Date", TempFatturaHeader."Posting Date");
         if VATEntry.FindFirst() then
-            if VATEntry."Tax Representative Type" <> 0 then begin
-                TempFatturaHeader."Tax Representative Type" := VATEntry."Tax Representative Type";
-                TempFatturaHeader."Tax Representative No." := VATEntry."Tax Representative No.";
-            end;
+            ApplyTaxRepresentativeFromVATEntry(TempFatturaHeader, VATEntry)
+        else
+            ApplyCompanyTaxRepresentativeFallback(TempFatturaHeader);
+    end;
 
+    local procedure ApplyTaxRepresentativeFromVATEntry(
+        var TempFatturaHeader: Record "Fattura Header" temporary;
+        VATEntry: Record "VAT Entry")
+    begin
+        if VATEntry."Tax Representative Type" <> 0 then begin
+            TempFatturaHeader."Tax Representative Type" := VATEntry."Tax Representative Type";
+            TempFatturaHeader."Tax Representative No." := VATEntry."Tax Representative No.";
+        end;
+        ApplyCompanyTaxRepresentativeFallback(TempFatturaHeader);
+    end;
+
+    local procedure ApplyCompanyTaxRepresentativeFallback(var TempFatturaHeader: Record "Fattura Header" temporary)
+    var
+        VATEntry: Record "VAT Entry";
+    begin
         if (TempFatturaHeader."Tax Representative Type" = 0) and (CompanyInformation."Tax Representative No." <> '') then begin
             TempFatturaHeader."Tax Representative Type" := VATEntry."Tax Representative Type"::Vendor;
             TempFatturaHeader."Tax Representative No." := CompanyInformation."Tax Representative No.";
@@ -664,20 +701,99 @@ codeunit 12184 "Fattura Doc. Helper"
 
     local procedure GetTipoDocumento(TempFatturaHeader: Record "Fattura Header" temporary; Customer: Record Customer; FatturaDocType: Variant): Text
     begin
+        // Retain the posted-export setup initialization behavior.
+        exit(ResolveFatturaDocumentType(TempFatturaHeader, Customer, FatturaDocType, true));
+    end;
+
+    /// <summary>
+    /// Sets fiscal identity for a preview without initializing document-type setup
+    /// or obtaining a real transmission progressive number.
+    /// </summary>
+    internal procedure PopulatePreviewHeaderFiscalIdentity(
+        var TempFatturaHeader: Record "Fattura Header" temporary;
+        Customer: Record Customer;
+        FatturaDocType: Variant)
+    begin
+        CompanyInformation.Get();
+        TempFatturaHeader."Fattura Document Type" :=
+            CopyStr(
+                ResolveFatturaDocumentType(TempFatturaHeader, Customer, FatturaDocType, false),
+                1, MaxStrLen(TempFatturaHeader."Fattura Document Type"));
+        TempFatturaHeader."Transmission Type" := GetTransmissionType(Customer);
+    end;
+
+    local procedure ResolveFatturaDocumentType(
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        Customer: Record Customer;
+        FatturaDocType: Variant;
+        InitializeMissingSetup: Boolean): Text
+    var
+        FatturaDocumentType: Record "Fattura Document Type";
+        EmptyCatalogDefault: Code[20];
+    begin
         if Format(FatturaDocType) <> '' then
             exit(Format(FatturaDocType));
 
-        if Customer."VAT Registration No." = CompanyInformation."VAT Registration No." then
-            exit(GetSelfBillingCode());
+        CompanyInformation.Get();
+        if InitializeMissingSetup then
+            InsertFatturaDocumentTypeList();
 
-        case TempFatturaHeader."Document Type" of
-            TempFatturaHeader."Document Type"::Invoice:
-                exit(GetInvoiceCode());
-            TempFatturaHeader."Document Type"::"Credit Memo":
-                exit(GetCrMemoCode());
-            else
-                exit(GetPrepaymentCode());
+        if Customer."VAT Registration No." = CompanyInformation."VAT Registration No." then begin
+            FatturaDocumentType.SetRange("Self-Billing", true);
+            EmptyCatalogDefault := 'TD20';
+        end else
+            case TempFatturaHeader."Document Type" of
+                TempFatturaHeader."Document Type"::Invoice:
+                    begin
+                        FatturaDocumentType.SetRange(Invoice, true);
+                        EmptyCatalogDefault := 'TD01';
+                    end;
+                TempFatturaHeader."Document Type"::"Credit Memo":
+                    begin
+                        FatturaDocumentType.SetRange("Credit Memo", true);
+                        EmptyCatalogDefault := 'TD04';
+                    end;
+                else begin
+                    FatturaDocumentType.SetRange(Prepayment, true);
+                    EmptyCatalogDefault := 'TD02';
+                end;
+            end;
+
+        if FatturaDocumentType.FindFirst() then
+            exit(FatturaDocumentType."No.");
+
+        // The standard initializer seeds precisely these defaults when the whole
+        // catalog is empty. Preview must obtain the same result without inserts.
+        // An existing but incomplete catalog must not silently be overridden.
+        if not InitializeMissingSetup then begin
+            FatturaDocumentType.Reset();
+            if FatturaDocumentType.IsEmpty() then
+                exit(EmptyCatalogDefault);
         end;
+    end;
+
+    /// <summary>
+    /// Calculates the gross total of an unposted sales invoice or credit memo
+    /// using the same source-line calculation as standard posted FatturaPA export.
+    /// This excludes synthetic split-payment lines, which reduce the receivable
+    /// but must not reduce ImportoTotaleDocumento.
+    /// </summary>
+    internal procedure GetPreviewSalesDocumentTotal(
+        SalesHeader: Record "Sales Header";
+        TempFatturaHeader: Record "Fattura Header" temporary): Decimal
+    var
+        SalesLine: Record "Sales Line";
+        LineRecRef: RecordRef;
+    begin
+        Initialize();
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        if not SalesLine.FindSet() then
+            exit(0);
+
+        LineRecRef.GetTable(SalesLine);
+        LineRecRef.FindFirst();
+        exit(ExchangeToLCYAmount(TempFatturaHeader, GetTotalDocAmount(LineRecRef)));
     end;
 
     local procedure GetTotalDocAmount(var LineRecRef: RecordRef) TotalAmount: Decimal
@@ -860,7 +976,6 @@ codeunit 12184 "Fattura Doc. Helper"
     local procedure CollectShipmentInfo(var TempShptFatturaLine: Record "Fattura Line" temporary; var LineRecRef: RecordRef; TempFatturaHeader: Record "Fattura Header" temporary)
     var
         SalesShipmentHeader: Record "Sales Shipment Header";
-        SalesShipmentLine: Record "Sales Shipment Line";
         TempLineNumberBuffer: Record "Line Number Buffer" temporary;
         SalesLine: Record "Sales Line";
         ShptNo: Code[20];
@@ -869,6 +984,8 @@ codeunit 12184 "Fattura Doc. Helper"
         Type: Text[20];
         CustomerPurchOrderNo: Text[35];
         ShipmentDate: Date;
+        PostedLineNo: Integer;
+        DocumentLineNo: Integer;
         i: Integer;
     begin
         if TempFatturaHeader."Document Type" <> TempFatturaHeader."Document Type"::Invoice then
@@ -877,34 +994,46 @@ codeunit 12184 "Fattura Doc. Helper"
         if LineRecRef.FindSet() then
             repeat
                 i += 1;
+                if (Format(LineRecRef.Field(LineTypeFieldNo).Value) <> ' ') and
+                   not IsSplitPaymentLine(LineRecRef)
+                then
+                    DocumentLineNo += 1;
                 FatturaProjectCode := '';
                 FatturaTenderCode := '';
                 CustomerPurchOrderNo := '';
                 Type := CopyStr(Format(LineRecRef.Field(LineTypeFieldNo).Value), 1, MaxStrLen(Type));
                 ShptNo := Format(LineRecRef.Field(ShipmentNoFieldNo).Value);
-                if (Type = GetOptionCaptionValue(SalesLine.Type::Item.AsInteger())) and
-                   (ShptNo <> '')
-                then begin
-                    case TempFatturaHeader."Entry Type" of
-                        TempFatturaHeader."Entry Type"::Sales:
-                            begin
-                                SalesShipmentHeader.Get(ShptNo);
-                                ShipmentDate := SalesShipmentHeader."Shipment Date";
-                                FatturaProjectCode := SalesShipmentHeader."Fattura Project Code";
-                                FatturaTenderCode := SalesShipmentHeader."Fattura Tender Code";
-                                CustomerPurchOrderNo := SalesShipmentHeader."Customer Purchase Order No.";
+                if Type = GetOptionCaptionValue(SalesLine.Type::Item.AsInteger()) then begin
+                    // Posted sales-order invoices must use only shipments actually
+                    // invoiced by this document. Reading the entire order includes
+                    // shipments already invoiced on earlier FatturaPA documents.
+                    Evaluate(PostedLineNo, Format(LineRecRef.Field(LineNoFieldNo).Value));
+                    if (TempFatturaHeader."Entry Type" = TempFatturaHeader."Entry Type"::Sales) and
+                       (TempFatturaHeader."Order No." <> '')
+                    then
+                        CollectPostedSalesInvoiceShipments(
+                            TempShptFatturaLine, TempFatturaHeader."Document No.", PostedLineNo, DocumentLineNo)
+                    else
+                        if ShptNo <> '' then begin
+                            case TempFatturaHeader."Entry Type" of
+                                TempFatturaHeader."Entry Type"::Sales:
+                                    begin
+                                        InsertSalesShipmentReference(
+                                            TempShptFatturaLine, ShptNo, DocumentLineNo, IsSplitPaymentLine(LineRecRef));
+                                    end;
+                                else
+                                    OnCollectShipmentInfo(
+                                        TempFatturaHeader, ShptNo, ShipmentDate, FatturaProjectCode, FatturaTenderCode, CustomerPurchOrderNo);
                             end;
-                        else
-                            OnCollectShipmentInfo(
-                                TempFatturaHeader, ShptNo, ShipmentDate, FatturaProjectCode, FatturaTenderCode, CustomerPurchOrderNo);
-                    end;
-                    InsertShipmentBuffer(
-                      TempShptFatturaLine, Type, i, ShptNo, ShipmentDate, FatturaProjectCode, FatturaTenderCode,
-                      CustomerPurchOrderNo, IsSplitPaymentLine(LineRecRef));
+                            if TempFatturaHeader."Entry Type" <> TempFatturaHeader."Entry Type"::Sales then
+                                InsertShipmentBuffer(
+                                    TempShptFatturaLine, Type, i, ShptNo, ShipmentDate, FatturaProjectCode, FatturaTenderCode,
+                                    CustomerPurchOrderNo, IsSplitPaymentLine(LineRecRef));
+                        end;
                 end;
                 if Type = GetOptionCaptionValue(SalesLine.Type::"G/L Account".AsInteger()) then
                     InsertShipmentBuffer(
-                      TempShptFatturaLine, Type, i, '', TempFatturaHeader."Posting Date", '', '', '', IsSplitPaymentLine(LineRecRef));
+                        TempShptFatturaLine, Type, DocumentLineNo, '', TempFatturaHeader."Posting Date", '', '', '', IsSplitPaymentLine(LineRecRef));
                 if TempFatturaHeader."Order No." <> '' then begin
                     TempLineNumberBuffer.Init();
                     Evaluate(TempLineNumberBuffer."Old Line Number", Format(LineRecRef.Field(LineNoFieldNo).Value));
@@ -912,29 +1041,120 @@ codeunit 12184 "Fattura Doc. Helper"
                     TempLineNumberBuffer.Insert();
                 end;
             until LineRecRef.Next() = 0;
-        if TempFatturaHeader."Order No." <> '' then
-            case TempFatturaHeader."Entry Type" of
-                TempFatturaHeader."Entry Type"::Sales:
-                    begin
-                        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
-                        SalesShipmentLine.SetRange("Order No.", TempFatturaHeader."Order No.");
-                        if SalesShipmentLine.FindSet() then
-                            repeat
-                                i += 1;
-                                TempLineNumberBuffer.Get(SalesShipmentLine."Order Line No.");
-                                InsertShipmentBuffer(
-                                    TempShptFatturaLine, Type, TempLineNumberBuffer."New Line Number", SalesShipmentLine."Document No.",
-                                    SalesShipmentLine."Shipment Date", FatturaProjectCode, FatturaTenderCode, CustomerPurchOrderNo, false);
-                            until SalesShipmentLine.Next() = 0;
-                    end;
-                else
-                    OnCollectShipmentInfoFromLines(TempFatturaHeader, TempShptFatturaLine, TempLineNumberBuffer, FatturaProjectCode, FatturaTenderCode, CustomerPurchOrderNo, Type);
-            end;
+        // Other localizations retain their existing event extension point.
+        // Sales invoice shipment references were collected per invoice line above.
+        if (TempFatturaHeader."Order No." <> '') and
+           (TempFatturaHeader."Entry Type" <> TempFatturaHeader."Entry Type"::Sales)
+        then
+            OnCollectShipmentInfoFromLines(
+                TempFatturaHeader, TempShptFatturaLine, TempLineNumberBuffer,
+                FatturaProjectCode, FatturaTenderCode, CustomerPurchOrderNo, Type);
     end;
 
-    local procedure CollectVATOnLines(var TempVATEntry: Record "VAT Entry" temporary; var TempVATPostingSetup: Record "VAT Posting Setup" temporary; TempFatturaHeader: Record "Fattura Header" temporary)
+    local procedure CollectPostedSalesInvoiceShipments(
+        var TempShptFatturaLine: Record "Fattura Line" temporary;
+        SalesInvoiceNo: Code[20];
+        SalesInvoiceLineNo: Integer;
+        FatturaLineNo: Integer)
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        TempSalesShipmentBuffer: Record "Sales Shipment Buffer" temporary;
+    begin
+        if not SalesInvoiceHeader.Get(SalesInvoiceNo) then
+            exit;
+        if not SalesInvoiceLine.Get(SalesInvoiceNo, SalesInvoiceLineNo) then
+            exit;
+
+        // The posted value entries preserve the actual shipment linked to the
+        // invoiced quantity. Historical FIFO reconstruction can associate the
+        // wrong DDT after Get Shipment Lines or backdated later shipments.
+        TempSalesShipmentBuffer.GetLinesForSalesInvoiceLine(SalesInvoiceLine, SalesInvoiceHeader);
+        // W1's AddBufferEntry leaves its lookup filters set to the last DDT.
+        // Reset them before enumerating the complete actual value-entry mapping.
+        TempSalesShipmentBuffer.Reset();
+        if TempSalesShipmentBuffer.FindSet() then
+            repeat
+                InsertSalesShipmentReference(
+                    TempShptFatturaLine, TempSalesShipmentBuffer."Document No.", FatturaLineNo, false);
+            until TempSalesShipmentBuffer.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Selects shipment references for a sales-order invoice using one consistent
+    /// shipment ordering and quantity allocation for preview and posted export.
+    /// The callers provide quantities before/current posting respectively.
+    /// </summary>
+    /// <summary>
+    /// Adds an existing sales shipment reference using its authoritative header
+    /// metadata. Used by both posted export and unposted invoice preview.
+    /// </summary>
+    internal procedure InsertSalesShipmentReference(
+        var TempShptFatturaLine: Record "Fattura Line" temporary;
+        ShipmentNo: Code[20];
+        FatturaLineNo: Integer;
+        SplitLine: Boolean): Boolean
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesLine: Record "Sales Line";
+    begin
+        if (ShipmentNo = '') or not SalesShipmentHeader.Get(ShipmentNo) then
+            exit(false);
+
+        InsertShipmentBuffer(
+            TempShptFatturaLine, GetOptionCaptionValue(SalesLine.Type::Item.AsInteger()),
+            FatturaLineNo, SalesShipmentHeader."No.", SalesShipmentHeader."Shipment Date",
+            SalesShipmentHeader."Fattura Project Code", SalesShipmentHeader."Fattura Tender Code",
+            SalesShipmentHeader."Customer Purchase Order No.", SplitLine);
+        exit(true);
+    end;
+
+    internal procedure CollectOrderShipmentReferences(
+        var TempShptFatturaLine: Record "Fattura Line" temporary;
+        OrderNo: Code[20];
+        OrderLineNo: Integer;
+        FatturaLineNo: Integer;
+        QuantityToInvoice: Decimal;
+        var HasShipmentReference: Boolean)
+    var
+        SalesShipmentLine: Record "Sales Shipment Line";
+        AvailableQty: Decimal;
+    begin
+        if QuantityToInvoice <= 0 then
+            exit;
+
+        // Use W1's shipment-specific remaining invoiceable quantity.
+        // Undo Shipment marks both the original and reversing line as Correction.
+        // This is an acquisition adapter; the shared fiscal buffer logic follows.
+        SalesShipmentLine.SetCurrentKey("Order No.", "Order Line No.", "Posting Date");
+        SalesShipmentLine.SetRange("Order No.", OrderNo);
+        SalesShipmentLine.SetRange("Order Line No.", OrderLineNo);
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        SalesShipmentLine.SetRange(Correction, false);
+        SalesShipmentLine.SetFilter(Quantity, '>0');
+        if SalesShipmentLine.FindSet() then
+            repeat
+                AvailableQty := SalesShipmentLine."Qty. Shipped Not Invoiced";
+                if AvailableQty > 0 then
+                    if InsertSalesShipmentReference(
+                        TempShptFatturaLine, SalesShipmentLine."Document No.", FatturaLineNo, false)
+                    then begin
+                        HasShipmentReference := true;
+                        if QuantityToInvoice <= AvailableQty then
+                            QuantityToInvoice := 0
+                        else
+                            QuantityToInvoice -= AvailableQty;
+                    end;
+            until (SalesShipmentLine.Next() = 0) or (QuantityToInvoice <= 0);
+    end;
+
+    local procedure CollectVATOnLines(
+        var TempVATEntry: Record "VAT Entry" temporary;
+        var TempVATPostingSetup: Record "VAT Posting Setup" temporary;
+        TempFatturaHeader: Record "Fattura Header" temporary)
     var
         VATEntry: Record "VAT Entry";
+        SourceVATEntries: Record "VAT Entry" temporary;
     begin
         VATEntry.SetRange("Document Type", TempFatturaHeader."Document Type");
         VATEntry.SetRange("Document No.", TempFatturaHeader."Document No.");
@@ -942,22 +1162,45 @@ codeunit 12184 "Fattura Doc. Helper"
         if VATEntry.FindSet() then
             repeat
                 CollectVATPostingSetup(TempVATPostingSetup, VATEntry);
+                SourceVATEntries := VATEntry;
+                SourceVATEntries.Insert();
+            until VATEntry.Next() = 0;
+        AggregateFatturaVATEntries(SourceVATEntries, TempVATEntry);
+    end;
+
+    /// <summary>
+    /// Groups source VAT entries using the same aggregation applied to posted VAT entries.
+    /// The caller supplies either posted entries or entries captured by posting preview.
+    /// </summary>
+    internal procedure AggregateFatturaVATEntries(
+        var SourceVATEntries: Record "VAT Entry" temporary;
+        var AggregatedVATEntries: Record "VAT Entry" temporary)
+    var
+        TempVATPostingSetup: Record "VAT Posting Setup" temporary;
+    begin
+        AggregatedVATEntries.Reset();
+        AggregatedVATEntries.DeleteAll();
+        if SourceVATEntries.FindSet() then
+            repeat
+                CollectVATPostingSetup(TempVATPostingSetup, SourceVATEntries);
                 if not IsSplitVATSetup(TempVATPostingSetup) then begin
-                    TempVATEntry.SetRange("VAT %", VATEntry."VAT %");
-                    TempVATEntry.SetRange("VAT Transaction Nature", TempVATPostingSetup."VAT Transaction Nature");
-                    if TempVATEntry.FindFirst() then begin
-                        TempVATEntry.Base += VATEntry.Base + VATEntry."Unrealized Base";
-                        TempVATEntry.Amount += VATEntry.Amount + VATEntry."Unrealized Amount";
-                        TempVATEntry.Modify();
+                    AggregatedVATEntries.Reset();
+                    AggregatedVATEntries.SetRange("VAT %", SourceVATEntries."VAT %");
+                    AggregatedVATEntries.SetRange("VAT Transaction Nature", TempVATPostingSetup."VAT Transaction Nature");
+                    if AggregatedVATEntries.FindFirst() then begin
+                        AggregatedVATEntries.Base += SourceVATEntries.Base + SourceVATEntries."Unrealized Base";
+                        AggregatedVATEntries.Amount += SourceVATEntries.Amount + SourceVATEntries."Unrealized Amount";
+                        AggregatedVATEntries.Modify();
                     end else begin
-                        TempVATEntry.Init();
-                        TempVATEntry := VATEntry;
-                        TempVATEntry.Base += TempVATEntry."Unrealized Base";
-                        TempVATEntry.Amount += TempVATEntry."Unrealized Amount";
-                        TempVATEntry.Insert();
+                        AggregatedVATEntries.Init();
+                        AggregatedVATEntries := SourceVATEntries;
+                        AggregatedVATEntries.Base += AggregatedVATEntries."Unrealized Base";
+                        AggregatedVATEntries.Amount += AggregatedVATEntries."Unrealized Amount";
+                        AggregatedVATEntries.Insert();
                     end;
                 end;
-            until VATEntry.Next() = 0;
+            until SourceVATEntries.Next() = 0;
+        AggregatedVATEntries.Reset();
     end;
 
     local procedure CollectVATPostingSetup(var TempVATPostingSetup: Record "VAT Posting Setup" temporary; VATEntry: Record "VAT Entry")
@@ -970,6 +1213,35 @@ codeunit 12184 "Fattura Doc. Helper"
         VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
         TempVATPostingSetup := VATPostingSetup;
         TempVATPostingSetup.Insert();
+    end;
+
+    /// <summary>
+    /// Reuses the standard order and shipment buffer writers for information
+    /// already available on the unposted source document.
+    /// </summary>
+    internal procedure BuildPreviewOrderShipmentBuffers(
+        var TempFatturaLine: Record "Fattura Line" temporary;
+        var TempShipmentBuffer: Record "Fattura Line" temporary;
+        TempFatturaHeader: Record "Fattura Header" temporary)
+    begin
+        BuildOrderDataBuffer(TempFatturaLine, TempShipmentBuffer, TempFatturaHeader);
+        BuildShipmentDataBuffer(TempFatturaLine, TempShipmentBuffer);
+    end;
+
+    /// <summary>
+    /// Applies the same VAT-entry override and company setup fallback used
+    /// by posted export, without querying persisted VAT entries.
+    /// </summary>
+    internal procedure PopulatePreviewTaxRepresentative(
+        var TempFatturaHeader: Record "Fattura Header" temporary;
+        var TempVATEntry: Record "VAT Entry" temporary)
+    begin
+        CompanyInformation.Get();
+        TempVATEntry.Reset();
+        if TempVATEntry.FindFirst() then
+            ApplyTaxRepresentativeFromVATEntry(TempFatturaHeader, TempVATEntry)
+        else
+            ApplyCompanyTaxRepresentativeFallback(TempFatturaHeader);
     end;
 
     local procedure BuildOrderDataBuffer(var TempFatturaLine: Record "Fattura Line" temporary; var TempShptFatturaLine: Record "Fattura Line" temporary; TempFatturaHeader: Record "Fattura Header" temporary)
@@ -1131,17 +1403,112 @@ codeunit 12184 "Fattura Doc. Helper"
 
     local procedure InsertFatturaLine(var TempFatturaLine: Record "Fattura Line" temporary; var DocLineNo: Integer; TempFatturaHeader: Record "Fattura Header" temporary; LineRecRef: RecordRef; PricesIncludingVAT: Boolean)
     var
-        VATPostingSetup: Record "VAT Posting Setup";
-        Currency: Record Currency;
         Quantity: Decimal;
-        UnitPrice: Decimal;
+        LineAmount: Decimal;
         InvDiscAmountByQty: Decimal;
-        LineDiscountPct: Decimal;
-        Amount: Decimal;
     begin
         if Format(LineRecRef.Field(LineTypeFieldNo).Value) = ' ' then
             exit;
 
+        Quantity := LineRecRef.Field(QuantityFieldNo).Value();
+        LineAmount := LineRecRef.Field(LineAmountFieldNo).Value();
+        InvDiscAmountByQty := CalcInvDiscAmountDividedByQty(LineRecRef, QuantityFieldNo, LineInvDiscAmountFieldNo);
+
+        InsertSourceFatturaLine(
+            TempFatturaLine, DocLineNo, TempFatturaHeader, LineRecRef,
+            Quantity, LineAmount, InvDiscAmountByQty, PricesIncludingVAT);
+    end;
+
+    /// <summary>
+    /// Builds a preview commercial line with the same fiscal and extended-text
+    /// processing used by posted sales invoice and credit memo lines.
+    /// Orders can supply the quantity and line amount actually being invoiced.
+    /// </summary>
+    /// <summary>
+    /// Common eligibility for an unposted sales line to become a fiscal
+    /// commercial line. Reused when building DDT line references.
+    /// </summary>
+    /// <summary>
+    /// Prorates an existing source invoice discount to the quantity being
+    /// invoiced. Posted documents already contain the invoiced line discount.
+    /// </summary>
+    internal procedure ProrateFatturaInvoiceDiscount(
+        SourceInvoiceDiscount: Decimal;
+        SourceQuantity: Decimal;
+        InvoicedQuantity: Decimal;
+        AmountRoundingPrecision: Decimal): Decimal
+    begin
+        if SourceQuantity = 0 then
+            exit(0);
+        exit(Round(SourceInvoiceDiscount * InvoicedQuantity / SourceQuantity, AmountRoundingPrecision));
+    end;
+
+    internal procedure ShouldIncludePreviewSalesLine(
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        EffectiveQuantity: Decimal): Boolean
+    var
+        LineRecRef: RecordRef;
+    begin
+        if SalesLine.Type = SalesLine.Type::" " then
+            exit(false);
+        if (SalesHeader."Document Type" = SalesHeader."Document Type"::Order) and
+           (EffectiveQuantity = 0)
+        then
+            exit(false);
+
+        exit(ShouldIncludePreviewSalesLineForSource(SalesLine));
+    end;
+
+    local procedure ShouldIncludePreviewSalesLineForSource(SalesLine: Record "Sales Line"): Boolean
+    var
+        LineRecRef: RecordRef;
+    begin
+        if SalesLine.Type = SalesLine.Type::" " then
+            exit(false);
+        Initialize();
+        LineRecRef.GetTable(SalesLine);
+        exit(not IsSplitPaymentLine(LineRecRef));
+    end;
+
+    internal procedure InsertPreviewSalesLine(
+        var TempFatturaLine: Record "Fattura Line" temporary;
+        var DocLineNo: Integer;
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        SalesLine: Record "Sales Line";
+        EffectiveQuantity: Decimal;
+        EffectiveLineAmount: Decimal;
+        PricesIncludingVAT: Boolean)
+    var
+        LineRecRef: RecordRef;
+        InvDiscAmountByQty: Decimal;
+    begin
+        Initialize();
+        if not ShouldIncludePreviewSalesLineForSource(SalesLine) then
+            exit;
+
+        LineRecRef.GetTable(SalesLine);
+
+        if SalesLine.Quantity <> 0 then
+            InvDiscAmountByQty := SalesLine."Inv. Discount Amount" / SalesLine.Quantity;
+
+        InsertSourceFatturaLine(
+            TempFatturaLine, DocLineNo, TempFatturaHeader, LineRecRef,
+            EffectiveQuantity, EffectiveLineAmount, InvDiscAmountByQty, PricesIncludingVAT);
+    end;
+
+    local procedure InsertSourceFatturaLine(
+        var TempFatturaLine: Record "Fattura Line" temporary;
+        var DocLineNo: Integer;
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        LineRecRef: RecordRef;
+        Quantity: Decimal;
+        LineAmount: Decimal;
+        InvDiscAmountByQty: Decimal;
+        PricesIncludingVAT: Boolean)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
         DocLineNo += 1;
         Clear(TempFatturaLine);
         TempFatturaLine."Line Type" := TempFatturaLine."Line Type"::Document;
@@ -1149,45 +1516,13 @@ codeunit 12184 "Fattura Doc. Helper"
         TempFatturaLine.Type := Format(LineRecRef.Field(LineTypeFieldNo).Value);
         TempFatturaLine."No." := LineRecRef.Field(NoFieldNo).Value();
         TempFatturaLine.Description := LineRecRef.Field(DescriptionFieldNo).Value();
-
         TempFatturaLine."VAT %" := LineRecRef.Field(VatPercFieldNo).Value();
-        Quantity := LineRecRef.Field(QuantityFieldNo).Value();
-        UnitPrice := LineRecRef.Field(UnitPriceFieldNo).Value();
-        Amount := Quantity * UnitPrice;
 
-        Currency.Initialize(TempFatturaHeader."Currency Code");
-        UnitPrice :=
-            ExchangeToLCYAmount(TempFatturaHeader,
-                CalcForPricesIncludingVAT(
-                UnitPrice, PricesIncludingVAT, TempFatturaLine."VAT %", Currency."Unit-Amount Rounding Precision"));
-        Amount := ExchangeToLCYAmount(TempFatturaHeader, Amount);
-        if Quantity < 0 then
-            TempFatturaLine."Unit Price" := -UnitPrice
-        else begin
-            TempFatturaLine.Quantity := Quantity;
-            TempFatturaLine."Unit of Measure" := LineRecRef.Field(UnitOfMeasureFieldNo).Value();
-            TempFatturaLine."Unit Price" := UnitPrice;
-        end;
-
-        InvDiscAmountByQty :=
-          ExchangeToLCYAmount(
-            TempFatturaHeader, CalcInvDiscAmountDividedByQty(LineRecRef, QuantityFieldNo, LineInvDiscAmountFieldNo));
-        LineDiscountPct := LineRecRef.Field(LineDiscountPercFieldNo).Value();
-        if (InvDiscAmountByQty <> 0) or (LineDiscountPct <> 0) then begin
-            TempFatturaLine."Discount Percent" := LineDiscountPct;
-            TempFatturaLine."Discount Amount" := InvDiscAmountByQty;
-        end;
-
-        TempFatturaLine.Amount := LineRecRef.Field(LineAmountFieldNo).Value();
-        if (TempFatturaLine.Amount <> 0) and (InvDiscAmountByQty = 0) and (LineDiscountPct = 0) and (TempFatturaLine."Discount Amount" = 0) then
-            TempFatturaLine.Amount := Round(Amount) - TempFatturaLine."Discount Amount"
-        else
-            TempFatturaLine.Amount :=
-              ExchangeToLCYAmount(
-                TempFatturaHeader, CalcForPricesIncludingVAT(
-                TempFatturaLine.Amount, PricesIncludingVAT, TempFatturaLine."VAT %", Currency."Amount Rounding Precision")) -
-              TempFatturaLine."Discount Amount";
-
+        PopulateFatturaLineAmounts(
+            TempFatturaLine, TempFatturaHeader,
+            Quantity, LineRecRef.Field(UnitPriceFieldNo).Value(), LineAmount,
+            InvDiscAmountByQty, LineRecRef.Field(LineDiscountPercFieldNo).Value(),
+            LineRecRef.Field(UnitOfMeasureFieldNo).Value(), PricesIncludingVAT);
         if TempFatturaLine."VAT %" = 0 then begin
             GetVATPostingSetup(VATPostingSetup, LineRecRef);
             TempFatturaLine."VAT Transaction Nature" := VATPostingSetup."VAT Transaction Nature";
@@ -1197,6 +1532,56 @@ codeunit 12184 "Fattura Doc. Helper"
         if TempFatturaLine.Type <> '' then
             BuildAttachedToLinesExtTextBuffer(TempFatturaLine, LineRecRef);
         BuildVATExemptionExtTextBuffer(TempFatturaLine, TempFatturaHeader);
+    end;
+
+    /// <summary>
+    /// Shared commercial-line calculation for posted exports and preview.
+    /// Caller supplies its source-specific quantity, monetary values and line metadata.
+    /// </summary>
+    internal procedure PopulateFatturaLineAmounts(
+        var TempFatturaLine: Record "Fattura Line" temporary;
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        Quantity: Decimal;
+        UnitPrice: Decimal;
+        LineAmount: Decimal;
+        InvDiscAmountByQty: Decimal;
+        LineDiscountPct: Decimal;
+        UnitOfMeasure: Text[50];
+        PricesIncludingVAT: Boolean)
+    var
+        Currency: Record Currency;
+        Amount: Decimal;
+    begin
+        Amount := Quantity * UnitPrice;
+        Currency.Initialize(TempFatturaHeader."Currency Code");
+        UnitPrice := ExchangeToLCYAmount(
+            TempFatturaHeader,
+            CalcForPricesIncludingVAT(UnitPrice, PricesIncludingVAT, TempFatturaLine."VAT %", Currency."Unit-Amount Rounding Precision"));
+        Amount := ExchangeToLCYAmount(TempFatturaHeader, Amount);
+        if Quantity < 0 then
+            TempFatturaLine."Unit Price" := -UnitPrice
+        else begin
+            TempFatturaLine.Quantity := Quantity;
+            TempFatturaLine."Unit of Measure" := UnitOfMeasure;
+            TempFatturaLine."Unit Price" := UnitPrice;
+        end;
+
+        InvDiscAmountByQty := ExchangeToLCYAmount(TempFatturaHeader, InvDiscAmountByQty);
+        if (InvDiscAmountByQty <> 0) or (LineDiscountPct <> 0) then begin
+            TempFatturaLine."Discount Percent" := LineDiscountPct;
+            TempFatturaLine."Discount Amount" := InvDiscAmountByQty;
+        end;
+
+        if (LineAmount <> 0) and (InvDiscAmountByQty = 0) and (LineDiscountPct = 0) and (TempFatturaLine."Discount Amount" = 0) then
+            TempFatturaLine.Amount := Round(Amount)
+        else
+            TempFatturaLine.Amount :=
+                ExchangeToLCYAmount(
+                    TempFatturaHeader,
+                    CalcForPricesIncludingVAT(LineAmount, PricesIncludingVAT, TempFatturaLine."VAT %", Currency."Amount Rounding Precision")) -
+                TempFatturaLine."Discount Amount";
+
+
     end;
 
     local procedure InsertExtTextFatturaLine(var TempFatturaLine: Record "Fattura Line" temporary; LineRecRef: RecordRef; NoValue: Text)
@@ -1210,6 +1595,57 @@ codeunit 12184 "Fattura Doc. Helper"
             TempFatturaLine.Description := CopyStr(ExtendedTextValue, 1, MaxStrLen(TempFatturaLine.Description));
             TempFatturaLine.Insert();
         end;
+    end;
+
+    /// <summary>
+    /// Applies the standard Italian VAT summary rules to a posting-preview VAT entry.
+    /// </summary>
+    internal procedure InsertPreviewVATFatturaLine(
+        var TempFatturaLine: Record "Fattura Line" temporary;
+        TempVATEntry: Record "VAT Entry" temporary;
+        CustomerNo: Code[20];
+        IsInvoice: Boolean;
+        IsSplitPayment: Boolean;
+        VATEntryCount: Integer)
+    var
+        LastVATLineNo: Integer;
+    begin
+        TempFatturaLine.Reset();
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::VAT);
+        if TempFatturaLine.FindLast() then
+            LastVATLineNo := TempFatturaLine."Line No.";
+        TempFatturaLine.Reset();
+        Clear(TempFatturaLine);
+        TempFatturaLine."Line Type" := TempFatturaLine."Line Type"::VAT;
+        TempFatturaLine."Line No." := LastVATLineNo;
+        InsertVATFatturaLine(TempFatturaLine, IsInvoice, TempVATEntry, CustomerNo, IsSplitPayment, VATEntryCount);
+        TempFatturaLine.Reset();
+    end;
+
+    internal procedure InsertPaymentFatturaLine(
+        var TempFatturaLine: Record "Fattura Line" temporary;
+        DueDate: Date;
+        Amount: Decimal)
+    var
+        LastLineNo: Integer;
+    begin
+        TempFatturaLine.Reset();
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Payment);
+        if TempFatturaLine.FindLast() then
+            LastLineNo := TempFatturaLine."Line No.";
+        TempFatturaLine.Reset();
+        Clear(TempFatturaLine);
+        TempFatturaLine."Line Type" := TempFatturaLine."Line Type"::Payment;
+        TempFatturaLine."Line No." := LastLineNo + 1;
+        TempFatturaLine."Due Date" := DueDate;
+        TempFatturaLine.Amount := Amount;
+        TempFatturaLine.Insert();
+        TempFatturaLine.Reset();
+    end;
+
+    internal procedure ExchangePreviewAmountToLCY(TempFatturaHeader: Record "Fattura Header" temporary; Amount: Decimal): Decimal
+    begin
+        exit(ExchangeToLCYAmount(TempFatturaHeader, Amount));
     end;
 
     local procedure InsertVATFatturaLine(var TempFatturaLine: Record "Fattura Line" temporary; IsInvoice: Boolean; VATEntry: Record "VAT Entry"; CustNo: Code[20]; IsSplitPayment: Boolean; VATEntryCount: Integer)
@@ -1279,13 +1715,9 @@ codeunit 12184 "Fattura Doc. Helper"
     local procedure IsSplitPaymentLine(LineRecRef: RecordRef): Boolean
     var
         VATPostingSetup: Record "VAT Posting Setup";
-        ReversedVATPostingSetup: Record "VAT Posting Setup";
     begin
         if GetVATPostingSetup(VATPostingSetup, LineRecRef) then
-            exit((VATPostingSetup."VAT Calculation Type" = VATPostingSetup."VAT Calculation Type"::"Full VAT") and
-              ReversedVATPostingSetup.Get(
-                VATPostingSetup."Reversed VAT Bus. Post. Group",
-                VATPostingSetup."Reversed VAT Prod. Post. Group"));
+            exit(IsSplitVATSetup(VATPostingSetup));
         exit(false);
     end;
 
@@ -1298,7 +1730,7 @@ codeunit 12184 "Fattura Doc. Helper"
         exit(false);
     end;
 
-    local procedure IsSplitVATSetup(VATPostingSetup: Record "VAT Posting Setup"): Boolean
+    internal procedure IsSplitVATSetup(VATPostingSetup: Record "VAT Posting Setup"): Boolean
     var
         ReversedVATPostingSetup: Record "VAT Posting Setup";
     begin
@@ -1432,7 +1864,6 @@ codeunit 12184 "Fattura Doc. Helper"
             exit(FatturaDocumentType."No.");
     end;
 
-    [Scope('OnPrem')]
     procedure GetOptionCaptionValue(IntValue: Integer): Text
     var
         SalesLine: Record "Sales Line";

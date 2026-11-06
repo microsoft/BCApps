@@ -83,7 +83,6 @@ codeunit 12179 "Export FatturaPA Document"
         HeaderErrMsg: Label 'Cannot create XML header: %1', Locked = true;
         BodyErrMsg: Label 'Cannot create XML body: %1', Locked = true;
 
-    [Scope('OnPrem')]
     procedure GenerateXMLFile(var TempBlob: Codeunit "Temp Blob"; var TempFatturaLine: Record "Fattura Line" temporary; TempFatturaHeader: Record "Fattura Header" temporary; ClientFileName: Text[250])
     var
         ExportFatturaPADocument: Codeunit "Export FatturaPA Document";
@@ -585,7 +584,7 @@ codeunit 12179 "Export FatturaPA Document"
             TempXMLBuffer.AddNonEmptyElement('NumeroDDT', TempFatturaLine."Document No.");
             TempXMLBuffer.AddNonEmptyElement('DataDDT', FormatDate(TempFatturaLine."Posting Date"));
             if TempFatturaLine."Related Line No." <> 0 then
-                TempXMLBuffer.AddNonEmptyElement('RiferimentoNumeroLinea', Format(TempFatturaLine."Line No."));
+                TempXMLBuffer.AddNonEmptyElement('RiferimentoNumeroLinea', Format(TempFatturaLine."Related Line No."));
             TempXMLBuffer.GetParent();
         until TempFatturaLine.Next() = 0;
     end;
