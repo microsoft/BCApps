@@ -30,7 +30,8 @@ codeunit 10672 "SAF-T Mapping Helper"
         Mapping13NotDoneErr: Label 'One or more G/L accounts do not have a mapping setup. Open the SAF-T Mapping Setup page for the selected mapping range and map each G/L account either to the category code and mapping number.';
         MappingDoneErr: Label 'One or more G/L accounts already have a mapping setup. Create a new mapping range with another mapping type.';
         DimensionWithoutAnalysisCodeErr: Label 'One or more dimensions do not have a SAF-T analysis code. Open the Dimensions page and specify a SAF-T analysis code for each dimension.';
-        VATPostingSetupWithoutTaxCodeErr: Label 'One or more VAT posting setup do not have a %1. Open the VAT Posting Setup page and specify %1 for each VAT posting setup combination.';
+        VATPostingSetupWithoutTaxCodeErr: Label 'One or more VAT posting setup do not have a %1. Open the VAT Posting Setup page and specify %1 for each VAT posting setup combination.', Comment = '%1 = caption of the Sales SAF-T Tax Code or Purchase SAF-T Tax Code field';
+        SAFTSourceCodeTooLongErr: Label 'The SAF-T source code %1 must not exceed %2 characters.', Comment = '%1 = SAF-T source code, %2 = maximum code length';
         SourceCodeWithoutSAFTCodeErr: Label 'One or more source codes do not have a SAF-T source code. Open the Source Codes page and specify a SAF-T source code for each source code.';
         ChartOfAccountsAlreadyExistsErr: Label 'A chart of accounts must be empty to be created based on SAF-T standard accounts.';
         AssortedJournalsSourceCodeDescriptionLbl: Label 'Assorted Journals';
@@ -46,12 +47,11 @@ codeunit 10672 "SAF-T Mapping Helper"
 
     procedure GetDefaultSAFTMappingRange(var SAFTMappingRange: Record "SAF-T Mapping Range")
     begin
-        with SAFTMappingRange do
-            if not FindLast() then begin
-                Init();
-                Code := DefaultLbl;
-                Insert(true);
-            end;
+        if not SAFTMappingRange.FindLast() then begin
+            SAFTMappingRange.Init();
+            SAFTMappingRange.Code := DefaultLbl;
+            SAFTMappingRange.Insert(true);
+        end;
     end;
 
     procedure ValidateMappingRange(var SAFTMappingRange: Record "SAF-T Mapping Range")
@@ -243,7 +243,9 @@ codeunit 10672 "SAF-T Mapping Helper"
         if VATPostingSetup.FindSet() then
             repeat
                 VATPostingSetup.AssignSAFTTaxCodes();
+#pragma warning disable AA0214 // AssignSAFTTaxCodes changes the tax code fields.
                 VATPostingSetup.Modify(true);
+#pragma warning restore AA0214
             until VATPostingSetup.Next() = 0;
     end;
 
@@ -327,8 +329,10 @@ codeunit 10672 "SAF-T Mapping Helper"
         repeat
             FieldRef := RecRef.Field(TempNameValueBuffer.ID);
             if Format(FieldRef.Value()) <> '' then
-                if SourceCode.Get(FieldRef.Value()) then begin
-                    SourceCode.Validate("SAF-T Source Code", TempNameValueBuffer.Name);
+                if SourceCode.Get(Format(FieldRef.Value())) then begin
+                    if StrLen(TempNameValueBuffer.Name) > MaxStrLen(SourceCode."SAF-T Source Code") then
+                        Error(SAFTSourceCodeTooLongErr, TempNameValueBuffer.Name, MaxStrLen(SourceCode."SAF-T Source Code"));
+                    SourceCode.Validate("SAF-T Source Code", CopyStr(TempNameValueBuffer.Name, 1, MaxStrLen(SourceCode."SAF-T Source Code")));
                     SourceCode.Modify(true);
                 end;
         until TempNameValueBuffer.Next() = 0;
@@ -520,7 +524,6 @@ codeunit 10672 "SAF-T Mapping Helper"
             SAFTSetup.Init();
             SAFTSetup.Insert();
         end;
-        SAFTSetup.Modify();
     end;
 
     procedure InsertSAFTSourceCodes()
