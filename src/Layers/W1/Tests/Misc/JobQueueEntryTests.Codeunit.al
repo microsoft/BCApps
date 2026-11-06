@@ -16,6 +16,7 @@ codeunit 139018 "Job Queue Entry Tests"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         NoErrorMessageMsg: Label 'There is no error message.';
         OnlyActiveCanBeMarkedErr: Label 'Only entries with the status In Progress can be marked as errors.';
+        SubscriberDescriptionSuffixTxt: Label ' - updated by subscriber', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -750,6 +751,38 @@ codeunit 139018 "Job Queue Entry Tests"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure FinalizeLogEntryStaleRecordKeepsSubscriberChanges()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+        JobQueueLogEntry2: Record "Job Queue Log Entry";
+    begin
+        // [SCENARIO 657618] Changes made by OnBeforeModifyLogEntry subscribers are stored when a stale log entry is finalized.
+        CreateJobQueueEntry(JobQueueEntry, JobQueueEntry.Status::"In Process");
+        JobQueueEntry."User Session Started" := CurrentDateTime();
+        JobQueueEntry.InsertLogEntry(JobQueueLogEntry);
+        Commit();
+
+        // [GIVEN] Another record instance changes the log entry after insertion
+        JobQueueLogEntry2.Get(JobQueueLogEntry."Entry No.");
+        JobQueueLogEntry2.Description := 'Modified externally';
+        JobQueueLogEntry2.Modify(true);
+        Commit();
+
+        // [WHEN] The run succeeds and finalizes using the stale record while a subscriber appends to the description
+        BindSubscription(this);
+        JobQueueEntry.FinalizeLogEntry(JobQueueLogEntry);
+        UnbindSubscription(this);
+
+        // [THEN] The subscriber received the latest record and its change is stored with the final status
+        JobQueueLogEntry.Get(JobQueueLogEntry."Entry No.");
+        JobQueueLogEntry.TestField(Status, JobQueueLogEntry.Status::Success);
+        JobQueueLogEntry.TestField(Description, JobQueueLogEntry2.Description + SubscriberDescriptionSuffixTxt);
+        Assert.AreNotEqual(0DT, JobQueueLogEntry."End Date/Time", 'End Date/Time should be set after finalization');
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
     procedure RetentionContinuationPreservesWaitingJob()
@@ -1036,5 +1069,11 @@ codeunit 139018 "Job Queue Entry Tests"
     begin
         TaskGUID := CreateGuid();
         IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Job Queue Entry", 'OnBeforeModifyLogEntry', '', false, false)]
+    local procedure AppendDescriptionOnBeforeModifyLogEntry(var JobQueueLogEntry: Record "Job Queue Log Entry"; var JobQueueEntry: Record "Job Queue Entry")
+    begin
+        JobQueueLogEntry.Description := CopyStr(JobQueueLogEntry.Description + SubscriberDescriptionSuffixTxt, 1, MaxStrLen(JobQueueLogEntry.Description));
     end;
 }
