@@ -2135,6 +2135,8 @@ table 167 Job
         ReservationEntry: Record "Reservation Entry";
         ConfirmManagement: Codeunit "Confirm Management";
         ReservationToDeleteExists: Boolean;
+        ConfirmationResponse: Boolean;
+        IsHandled: Boolean;
     begin
         ReservationToDeleteExists := false;
 
@@ -2142,9 +2144,15 @@ table 167 Job
             ReservationEntry.SetRange("Source Type", Database::"Job Planning Line");
             ReservationEntry.SetRange("Source ID", "No.");
             ReservationToDeleteExists := not ReservationEntry.IsEmpty();
-            if ReservationToDeleteExists then
-                if not ConfirmManagement.GetResponseOrDefault(ReservEntriesItemTrackLinesDeleteQst, false) then
+            if ReservationToDeleteExists then begin
+                IsHandled := false;
+                ConfirmationResponse := false;
+                OnCheckReservationEntriesOnBeforeConfirm(Rec, xRec, ConfirmationResponse, IsHandled);
+                if not IsHandled then
+                    ConfirmationResponse := ConfirmManagement.GetResponseOrDefault(ReservEntriesItemTrackLinesDeleteQst, false);
+                if not ConfirmationResponse then
                     Error(ReservEntriesItemTrackLinesExistErr, Status);
+            end;
         end;
 
         exit(ReservationToDeleteExists);
@@ -3474,6 +3482,11 @@ table 167 Job
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAddToMyJobs(var Job: Record Job; var MyJob: Record "My Job"; ProjectManager: Code[50]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckReservationEntriesOnBeforeConfirm(var Job: Record Job; xJob: Record Job; var ConfirmationResponse: Boolean; var IsHandled: Boolean)
     begin
     end;
 }
