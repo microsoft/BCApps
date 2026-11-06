@@ -218,8 +218,7 @@ jobs:
           fetch-depth: 0
 
       # Relevant checks include self-tests and run before dependent AL-Go builds.
-      # Use the checked-out action until it exists on main. TO BE UNDONE (switch to microsoft/BCApps/.github/actions/TestALAppArchitecture@main)
-      - uses: ./.github/actions/TestALAppArchitecture
+      - uses: microsoft/BCApps/.github/actions/TestALAppArchitecture@main
   
       # Use the checked-out validator so PR changes to the symbol policy take effect. TO BE UNDONE (change merged separately)
       - uses: ./.github/actions/TestPreprocessorSymbols

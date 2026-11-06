@@ -208,8 +208,8 @@ Describe 'Payables Agent architecture change selection' {
     }
 
     It 'routes PR checks through the TestALAppArchitecture action in the existing PR validation job only' {
-        # Uses the checked-out action until it exists on main; then microsoft/BCApps/.github/actions/TestALAppArchitecture@main.
-        $expectedUse = 'uses: ./.github/actions/TestALAppArchitecture'
+        # Like the other gate actions, the reviewed checker comes from main; it validates the checkout.
+        $expectedUse = 'uses: microsoft/BCApps/.github/actions/TestALAppArchitecture@main'
         $text = [IO.File]::ReadAllText((Join-Path $script:repo '.github/workflows/PullRequestHandler.yaml'))
         $job = [regex]::Match($text, '(?ms)^  CustomJob-VerifyAppChanges:.*?(?=^  \S|\z)').Value
         Assert-ChangeValue ([regex]::Matches($text, '(?m)^\s*- uses: \S*TestALAppArchitecture').Count) 1
