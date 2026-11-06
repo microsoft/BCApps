@@ -791,7 +791,6 @@ table 26550 "Statutory Report"
     var
         XMLElementLine: Record "XML Element Line";
         FormatVersion: Record "Format Version";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         XmlDoc: DotNet XmlDocument;
         NodeList: DotNet XmlNodeList;
         ChildNode: DotNet XmlNode;
@@ -811,7 +810,8 @@ table 26550 "Statutory Report"
         FileMgt.BLOBExportToServerFile(TempBlob, FileName);
 
         TempBlob.CreateInStream(InStr);
-        XMLDOMManagement.LoadXMLDocumentFromInStream(InStr, XmlDoc);
+        XmlDoc := XmlDoc.XmlDocument();
+        XmlDoc.Load(InStr);
 
         RootNode := XmlDoc.DocumentElement;
         if ExtractPrefix(RootNode.Name) <> 'schema' then
