@@ -22,8 +22,6 @@
 .PARAMETER BaselineRef
     Explicit comparison base for local or manual checks. Event comparisons still use the
     PR base or the whole merge group.
-.PARAMETER FetchMissingBase
-    Allows the selector to fetch a missing comparison SHA in shallow CI checkouts.
 .EXAMPLE
     ./build/scripts/Test-ALAppArchitecture.ps1
 .EXAMPLE
@@ -35,8 +33,7 @@ param(
     [string] $BaselineRef,
     [string] $EventName = $env:GITHUB_EVENT_NAME,
     [string] $EventPath = $env:GITHUB_EVENT_PATH,
-    [string] $ExpectedHead = $env:GITHUB_SHA,
-    [switch] $FetchMissingBase
+    [string] $ExpectedHead = $env:GITHUB_SHA
 )
 
 $ErrorActionPreference = 'Stop'
@@ -54,7 +51,7 @@ if (-not (Test-Path -LiteralPath $rulesPath -PathType Leaf)) {
 
 Import-Module (Join-Path $PSScriptRoot 'PayablesAgentArchitectureChanges.psm1') -Force
 $change = Get-PayablesAgentArchitectureChange -RepoRoot $repoRoot -EventName $EventName -EventPath $EventPath `
-    -ExpectedHead $ExpectedHead -BaselineRef $BaselineRef -FetchMissingBase:$FetchMissingBase
+    -ExpectedHead $ExpectedHead -BaselineRef $BaselineRef
 if (-not $change.Required) {
     Write-Host "AL app architecture: SKIP; $($change.Reason)"
     return

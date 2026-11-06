@@ -11,7 +11,7 @@
     Missing/invalid event data, mismatched checkouts or Git failures mean RUN, not SKIP.
     Writes required=true/false to GITHUB_OUTPUT. Local architecture runs remain unfiltered.
 .EXAMPLE
-    ./build/scripts/Test-PayablesAgentArchitectureChanges.ps1 -FetchMissingBase
+    ./build/scripts/Test-PayablesAgentArchitectureChanges.ps1
 .EXAMPLE
     ./build/scripts/Test-PayablesAgentArchitectureChanges.ps1 -EventName workflow_dispatch -BaselineRef HEAD~1 -PassThru
 #>
@@ -22,7 +22,6 @@ param(
     [string] $EventPath = $env:GITHUB_EVENT_PATH,
     [string] $ExpectedHead = $env:GITHUB_SHA,
     [string] $BaselineRef,
-    [switch] $FetchMissingBase,
     [switch] $PassThru
 )
 
@@ -31,7 +30,7 @@ Set-StrictMode -Version 2.0
 Import-Module (Join-Path $PSScriptRoot 'PayablesAgentArchitectureChanges.psm1') -Force
 
 $result = Get-PayablesAgentArchitectureChange -RepoRoot $RepoRoot -EventName $EventName -EventPath $EventPath `
-    -ExpectedHead $ExpectedHead -BaselineRef $BaselineRef -FetchMissingBase:$FetchMissingBase
+    -ExpectedHead $ExpectedHead -BaselineRef $BaselineRef
 $required = $result.Required.ToString().ToLowerInvariant()
 Write-Host "Payables Agent architecture: required=$required. $($result.Reason)"
 if ($env:GITHUB_OUTPUT) {
