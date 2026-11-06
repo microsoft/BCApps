@@ -216,12 +216,11 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
-
-      # Relevant checks include self-tests and run before dependent AL-Go builds.
-      - uses: microsoft/BCApps/.github/actions/TestALAppArchitecture@main
   
-      # Use the checked-out validator so PR changes to the symbol policy take effect. TO BE UNDONE (change merged separately)
-      - uses: ./.github/actions/TestPreprocessorSymbols
+      # Relevant checks include self-tests and run before dependent AL-Go builds.
+      - uses: microsoft/BCApps/.github/actions/TestAdHocALAppValidations@main
+  
+      - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
   
       - uses: microsoft/BCApps/.github/actions/TestObsoleteTagPreprocessors@main
   

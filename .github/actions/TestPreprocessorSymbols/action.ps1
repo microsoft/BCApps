@@ -1,4 +1,4 @@
-# Validate preprocessor symbols using the scripts from this checkout.
+# Current path is .github/actions/VerifyAppChanges
 
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\GuardingV2ExtensionsHelper.psm1" -DisableNameChecking

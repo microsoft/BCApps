@@ -2,31 +2,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 
 #Requires -Version 7.0
-<#
-.SYNOPSIS
-    Validates checked-out AL app architecture policies.
-.DESCRIPTION
-    Owns change relevance, checker self-tests for relevant PR/merge-group checks, and
-    policy execution. Unknown or unavailable comparison evidence means RUN; a local run
-    without a baseline also means RUN. Direct app-specific scanner invocations remain
-    unconditional.
 
-    The checker (this script and its modules) is loaded from this script's location, while
-    the validated sources, their policy, the checker self-tests and the Git history come
-    from RepoRoot. This keeps the results correct when the checker runs from a GitHub
-    action downloaded separately from the checked-out repository: the gate uses the
-    reviewed checker, and the checkout's own changes to the checker are still tested.
-    A checkout without the app's policy file (e.g. an older release branch) is skipped.
-.PARAMETER RepoRoot
-    Root of the repository to validate. Defaults to the repository containing this script.
-.PARAMETER BaselineRef
-    Explicit comparison base for local or manual checks. Event comparisons still use the
-    PR base or the whole merge group.
-.EXAMPLE
-    ./build/scripts/Test-ALAppArchitecture.ps1
-.EXAMPLE
-    ./build/scripts/Test-ALAppArchitecture.ps1 -BaselineRef origin/main
-#>
 [CmdletBinding()]
 param(
     [string] $RepoRoot = (Join-Path $PSScriptRoot '../..'),

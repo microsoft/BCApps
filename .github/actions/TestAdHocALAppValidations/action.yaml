@@ -1,10 +1,10 @@
-name: Test AL App Architecture
+name: Test Ad hoc AL App Validations
 author: Microsoft Corporation
-description: Verifies the architecture policies of AL apps that register one
+description: Verifies additional validations for AL apps that declare them
 runs:
   using: composite
   steps:
-    - name: Test AL App Architecture
+    - name: Test Ad hoc AL App Validations
       shell: pwsh
       run: |
         ${{ github.action_path }}/action.ps1

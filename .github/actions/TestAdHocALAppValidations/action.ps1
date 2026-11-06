@@ -1,0 +1,2 @@
+Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+& "$PSScriptRoot\..\..\..\build\scripts\Test-AdHocALAppValidations.ps1" -RepoRoot (Get-BaseFolder)
