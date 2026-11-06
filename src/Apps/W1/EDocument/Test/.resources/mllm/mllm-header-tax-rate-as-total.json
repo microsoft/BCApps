@@ -1,0 +1,12 @@
+{
+    "id": "MLLM-INV-TAX-RATE",
+    "issue_date": "2024-03-15",
+    "tax_total": {
+        "tax_amount": 62.5
+    },
+    "legal_monetary_total": {
+        "tax_exclusive_amount": 250.0,
+        "tax_inclusive_amount": 312.5,
+        "payable_amount": 25.0
+    }
+}
