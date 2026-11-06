@@ -12,6 +12,8 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
@@ -349,6 +351,55 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         VATPostingSetup2.Delete();
         VATProductPostingGroup.SetRecFilter();
         VATProductPostingGroup.Delete();
+    end;
+
+    [Test]
+    procedure FinalizingDraftWithZeroExtractedVATSetsDocAmountVATFromLines()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        StandardItem: Record Item;
+        EDocImport: Codeunit "E-Doc. Import";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        ExpectedDocAmountVAT: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 638510] When the extracted E-Document header "Total VAT" is zero but the created purchase lines carry tax, FinalizeCreatedDocument must derive "Doc. Amount VAT" from line totals instead of leaving it at zero
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] An inbound E-Document whose extracted header "Total VAT" is zero (GST/QST line-level tax scenario)
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDoc.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader."Total VAT" := 0;
+        EDocumentPurchaseHeader.Total := 0;
+        EDocumentPurchaseHeader."Sub Total" := 0;
+        EDocumentPurchaseHeader.Modify();
+
+        // [GIVEN] An existing purchase invoice for the same vendor, with a line that carries line-level tax
+        LibraryEDoc.GetGenericItem(StandardItem);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, StandardItem."No.", 1);
+        PurchaseLine.Validate("Direct Unit Cost", 1000);
+        PurchaseLine.Modify();
+
+        // [WHEN] Finishing the draft linked to the existing purchase invoice
+        TempEDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Finish draft";
+        TempEDocImportParameters."Existing Doc. RecordId" := PurchaseHeader.RecordId();
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+
+        // [THEN] "Doc. Amount VAT" on the purchase invoice equals the line-computed tax, not the zero extracted value
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        ExpectedDocAmountVAT := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
+        Assert.AreNotEqual(0, ExpectedDocAmountVAT, 'Test setup must produce a purchase line with non-zero VAT.');
+        Assert.AreEqual(ExpectedDocAmountVAT, PurchaseHeader."Doc. Amount VAT",
+            'Doc. Amount VAT must reflect the line-level tax when the extracted header Total VAT is zero.');
+        Assert.AreEqual(PurchaseHeader."Amount Including VAT", PurchaseHeader."Doc. Amount Incl. VAT",
+            'Doc. Amount Incl. VAT must fall back to the purchase document total when the extracted header Total is zero.');
     end;
 
     local procedure Initialize(Integration: Enum "Service Integration")
