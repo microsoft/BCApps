@@ -9,9 +9,30 @@ using System.Apps;
 
 codeunit 135109 "Extension Mgt. Test Library"
 {
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Extension Installation Impl", OnCanManageExtensions, '', false, false)]
+    local procedure AuthorizeTestSession(var Result: Boolean)
+    begin
+        Result := true;
+    end;
+
     var
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
+
+    procedure CanManageExtensions(): Boolean
+    begin
+        exit(ExtensionInstallationImpl.CanManageExtensions());
+    end;
+
+    procedure CanManageExtensions(UserSecurityId: Guid): Boolean
+    begin
+        exit(ExtensionInstallationImpl.CanManageExtensions(UserSecurityId));
+    end;
+
+    procedure CheckPermissions(UserSecurityId: Guid)
+    begin
+        ExtensionInstallationImpl.CheckPermissions(UserSecurityId);
+    end;
 
     procedure RunExtensionSetup(AppId: Guid)
     begin
