@@ -13,6 +13,7 @@ using Microsoft.FixedAssets.Setup;
 report 5688 "Cancel FA Ledger Entries"
 {
     Caption = 'Cancel FA Ledger Entries';
+    ToolTip = 'Remove one or more fixed asset ledger entries from the FA Ledger Entries window. If you posted erroneous transactions to one or more fixed assets, you can use this function to cancel the fixed asset ledger entries. In the FA Ledger Entries window, select the entry or entries that you want to cancel.';
     ProcessingOnly = true;
 
     dataset
