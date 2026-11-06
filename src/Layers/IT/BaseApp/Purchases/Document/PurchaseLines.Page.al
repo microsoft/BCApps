@@ -10,6 +10,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 #if not CLEAN28
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
 #endif
 using Microsoft.Utilities;
 

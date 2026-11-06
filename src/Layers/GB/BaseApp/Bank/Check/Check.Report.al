@@ -517,8 +517,10 @@ report 1401 Check
                                           CopyStr(Format(0.01), 2, 1) +
                                           PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - 2, '0')
                                     else
+#pragma warning disable AA0139
                                         CheckAmountText := Format(CheckLedgEntryAmount, 0, 0) +
                                           PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - StrLen(Format(Decimals)), '0')
+#pragma warning restore AA0139
                                 else
                                     CheckAmountText := Format(CheckLedgEntryAmount, 0, 0);
                                 FormatNoText(DescriptionLine, CheckLedgEntry.Amount, BankAcc2."Currency Code");
@@ -1378,7 +1380,9 @@ report 1401 Check
 
     local procedure GetAmtDecimalPosition(): Decimal
     var
+#pragma warning disable AA0198
         Currency: Record Currency;
+#pragma warning restore AA0198
     begin
         if GenJnlLine."Currency Code" = '' then
             Currency.InitRoundingPrecision()
