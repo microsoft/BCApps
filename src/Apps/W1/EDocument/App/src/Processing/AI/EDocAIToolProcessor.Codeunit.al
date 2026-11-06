@@ -5,7 +5,6 @@
 namespace Microsoft.eServices.EDocument.Processing.AI;
 
 using System.AI;
-using System.Azure.KeyVault;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
