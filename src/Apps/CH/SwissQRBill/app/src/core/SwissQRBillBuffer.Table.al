@@ -673,7 +673,7 @@ table 11510 "Swiss QR-Bill Buffer"
                 "Unstructured Message" := '';
     end;
 
-    internal procedure InitSourceRecord(RecRef: RecordRef)
+    procedure InitSourceRecord(RecRef: RecordRef)
     begin
         SourceDocRecRef := RecRef;
     end;
