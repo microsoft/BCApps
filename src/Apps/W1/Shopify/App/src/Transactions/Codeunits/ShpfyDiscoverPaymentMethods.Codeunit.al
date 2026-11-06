@@ -17,16 +17,16 @@ codeunit 30432 "Shpfy Discover Payment Methods"
 
     internal procedure Discover(ShopCode: Code[20]; var HasOrders: Boolean; var CreatedMappingCount: Integer)
     var
-        JResponse: JsonToken;
         JOrders: JsonArray;
-        JOrder: JsonToken;
         JTransactions: JsonArray;
+        JOrder: JsonToken;
+        JResponse: JsonToken;
         JTransaction: JsonToken;
-        GatewayKeys: List of [Text];
-        CreditCardCompanyKeys: List of [Text];
         ManualPaymentGatewayValues: List of [Boolean];
-        CreditCardCompanyLookupNames: List of [Text];
         TransactionCount: Integer;
+        CreditCardCompanyKeys: List of [Text];
+        CreditCardCompanyLookupNames: List of [Text];
+        GatewayKeys: List of [Text];
         ResponseShapeErr: Label 'The response from Shopify is missing payment method discovery data.';
     begin
         CommunicationMgt.SetShop(ShopCode);
@@ -54,11 +54,11 @@ codeunit 30432 "Shpfy Discover Payment Methods"
 
     local procedure StageTransaction(JTransaction: JsonToken; var GatewayKeys: List of [Text]; var CreditCardCompanyKeys: List of [Text]; var ManualPaymentGatewayValues: List of [Boolean]; var CreditCardCompanyLookupNames: List of [Text])
     var
-        Gateway: Text[30];
+        Index: Integer;
         CreditCardCompany: Text;
         CreditCardCompanyKey: Text[30];
         CreditCardCompanyLookupName: Text[50];
-        Index: Integer;
+        Gateway: Text[30];
     begin
         Gateway := CopyStr(JsonHelper.GetValueAsText(JTransaction, 'gateway'), 1, MaxStrLen(Gateway));
         if Gateway = '' then
@@ -92,10 +92,10 @@ codeunit 30432 "Shpfy Discover Payment Methods"
 
     local procedure CreateMissingLookups(GatewayKeys: List of [Text]; CreditCardCompanyLookupNames: List of [Text])
     var
-        TransactionGateway: Record "Shpfy Transaction Gateway";
         CreditCardCompany: Record "Shpfy Credit Card Company";
-        Gateway: Text;
+        TransactionGateway: Record "Shpfy Transaction Gateway";
         CreditCardCompanyName: Text;
+        Gateway: Text;
     begin
         foreach Gateway in GatewayKeys do
             if not TransactionGateway.Get(Gateway) then begin

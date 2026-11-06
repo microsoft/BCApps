@@ -14,8 +14,8 @@ codeunit 30431 "Shpfy Pay. Method Mapp. Mgt."
 
     internal procedure FindMapping(ShopCode: Code[20]; Gateway: Text; CreditCardCompany: Text; var PaymentMethodMapping: Record "Shpfy Payment Method Mapping"): Boolean
     var
-        GatewayKey: Text[30];
         CreditCardCompanyKey: Text[30];
+        GatewayKey: Text[30];
     begin
         GatewayKey := CopyStr(Gateway, 1, MaxStrLen(GatewayKey));
         CreditCardCompanyKey := CopyStr(CreditCardCompany, 1, MaxStrLen(CreditCardCompanyKey));
