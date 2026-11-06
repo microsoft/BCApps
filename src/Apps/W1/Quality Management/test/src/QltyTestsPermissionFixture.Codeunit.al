@@ -5,8 +5,6 @@
 namespace Microsoft.Test.QualityManagement;
 
 using System.Security.AccessControl;
-using System.Security.User;
-using System.Testability;
 using System.TestLibraries.Utilities;
 
 codeunit 139978 "Qlty. Tests - Perm. Fixture"

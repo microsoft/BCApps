@@ -76,6 +76,19 @@ Describe "W1 verification project discovery and workflow" {
     }
 }
 
+Describe "Quality permission fixture CI compiler contracts" {
+    It "omits compiler-rejected unused import <Namespace> from <File>" -ForEach @(
+        @{ File = "QltyTestsPermissionFixture.Codeunit.al"; Namespace = "System.Security.User" }
+        @{ File = "QltyTestsPermissionFixture.Codeunit.al"; Namespace = "System.Testability" }
+        @{ File = "QltyTestsPermissionMgmt.Codeunit.al"; Namespace = "System.Testability" }
+    ) {
+        $root = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
+        $source = Get-Content (Join-Path $root "src\Apps\W1\Quality Management\test\src\$File") -Raw
+        # CI run 42217433860 reports AL0792 for these imports under the base ruleset.
+        $source | Should -Not -Match "(?m)^using $([regex]::Escape($Namespace));\r?$"
+    }
+}
+
 Describe "Native ALTool verification adapter" {
     BeforeAll {
         Import-Module (Join-Path $PSScriptRoot "..\ParallelTestExecution.psm1") -Force

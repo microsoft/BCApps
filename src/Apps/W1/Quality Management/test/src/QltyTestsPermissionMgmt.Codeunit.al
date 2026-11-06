@@ -8,7 +8,6 @@ using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Warehouse.Structure;
 using System.Security.AccessControl;
 using System.Security.User;
-using System.Testability;
 using System.TestLibraries.Utilities;
 
 codeunit 139957 "Qlty. Tests - Permission Mgmt."
