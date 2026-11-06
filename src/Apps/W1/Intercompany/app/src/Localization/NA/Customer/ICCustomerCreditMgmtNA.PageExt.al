@@ -11,13 +11,14 @@ pageextension 8560 "IC Customer Credit Mgmt. NA" extends "Customer List - Credit
     {
         addafter("Fax No.")
         {
+#pragma warning disable AS0062
             field("IC Partner Code"; Rec."IC Partner Code")
             {
-                ApplicationArea = Intercompany;
                 Editable = false;
                 ToolTip = 'Specifies the code for the company''s intercompany (IC) partner.';
                 Visible = false;
             }
+#pragma warning restore AS0062
         }
     }
 }

@@ -5,6 +5,9 @@
 namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Finance.Dimension;
+#if INTERCOMPANY_APAC
+using Microsoft.Finance.GeneralLedger.Account;
+#endif
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.NoSeries;
@@ -14,6 +17,9 @@ using Microsoft.Intercompany.Dimension;
 using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
+#if INTERCOMPANY_APAC
+using Microsoft.Purchases.Vendor;
+#endif
 using System.Telemetry;
 
 /// <summary>
@@ -41,6 +47,17 @@ report 511 "Complete IC Inbox Action"
                     InboxJnlLine2: Record "IC Inbox Jnl. Line";
                     HandledInboxJnlLine: Record "Handled IC Inbox Jnl. Line";
                 begin
+#if INTERCOMPANY_APAC
+                    if ("IC Inbox Transaction"."Line Action" = "IC Inbox Transaction"."Line Action"::Accept) and (AccNo <> '') then begin
+                        if "Account Type" = "Account Type"::"G/L Account" then
+                            if AccType = AccType::"G/L Account" then
+                                "Account Type" := "Account Type"::"G/L Account";
+                        if AccType = AccType::Vendor then
+                            "Account Type" := "Account Type"::Vendor;
+                        Validate("Account No.", AccNo);
+                        Modify();
+                    end;
+#endif
                     InboxJnlLine2 := "IC Inbox Jnl. Line";
                     case "IC Inbox Transaction"."Line Action" of
                         "IC Inbox Transaction"."Line Action"::Accept:
@@ -377,6 +394,38 @@ report 511 "Complete IC Inbox Action"
                             ToolTip = 'Specifies Posting Date.';
                         }
                     }
+#if INTERCOMPANY_APAC
+                    group("BAS GST Settlement")
+                    {
+                        Caption = 'BAS GST Settlement';
+                        field(AccType; AccType)
+                        {
+                            ApplicationArea = Intercompany;
+                            Caption = 'Settlement Account Type';
+                            ToolTip = 'Specifies if the account is a general ledger account or a vendor account.';
+                        }
+                        field(AccNo; AccNo)
+                        {
+                            ApplicationArea = Intercompany;
+                            Caption = 'Settlement Account No.';
+                            ToolTip = 'Specifies the general ledger account number or vendor number, based on the type selected in the Settlement Account Type field.';
+
+                            trigger OnLookup(var Text: Text): Boolean
+                            begin
+#pragma warning disable AA0139 // Preserve the existing APAC settlement account length.
+                                case AccType of
+                                    AccType::"G/L Account":
+                                        if Page.RunModal(0, GLAcc, GLAcc."No.") = Action::LookupOK then
+                                            AccNo := GLAcc."No.";
+                                    AccType::Vendor:
+                                        if Page.RunModal(0, Vendor, Vendor."No.") = Action::LookupOK then
+                                            AccNo := Vendor."No.";
+                                end;
+#pragma warning restore AA0139
+                            end;
+                        }
+                    }
+#endif
                 }
             }
         }
@@ -416,6 +465,10 @@ report 511 "Complete IC Inbox Action"
         GenJnlTemplate: Record "Gen. Journal Template";
         GenJnlBatch: Record "Gen. Journal Batch";
         GLSetup: Record "General Ledger Setup";
+#if INTERCOMPANY_APAC
+        GLAcc: Record "G/L Account";
+        Vendor: Record Vendor;
+#endif
         ICIOMgt: Codeunit ICInboxOutboxMgt;
         ICDimMgt: Codeunit "IC Dimension Management";
         GLSetupFound: Boolean;
@@ -425,6 +478,10 @@ report 511 "Complete IC Inbox Action"
         Text001: Label '%1 %2 from IC Partner %3 already exists in the %4 window. You have to delete %1 %2 in the %4 window before you complete the line action.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
+#if INTERCOMPANY_APAC
+        AccType: Option "G/L Account",Vendor;
+        AccNo: Code[10];
+#endif
         DocPostingDateEditable: Boolean;
         PostingDateEditable: Boolean;
 

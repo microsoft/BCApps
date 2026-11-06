@@ -2612,7 +2612,11 @@ page 8901 "Finance Manager Role Center"
                     Caption = 'GIFI Codes';
                     RunObject = page "GIFI Codes";
                 }
+#if not CLEAN30
+                group("Group56")
+#else
                 group("SalesTax")
+#endif
                 {
                     Caption = 'Sales Tax';
                     action("Groups")
@@ -2651,7 +2655,11 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Tax Setup";
                     }
                 }
+#if not CLEAN30
+                group("Group57")
+#else
                 group("Group56")
+#endif
                 {
                     Caption = 'VAT';
                     action("Posting Setup")
@@ -2682,7 +2690,11 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "VAT Statement Templates";
                     }
                 }
+#if not CLEAN30
+                group("Group58")
+#else
                 group("Group57")
+#endif
                 {
                     Caption = 'Intrastat';
                     action("Areas1")
@@ -2691,7 +2703,11 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Tax Area List";
                     }
                 }
+#if not CLEAN30
+                group("Group60")
+#else
                 group("Group59")
+#endif
                 {
                     Caption = 'Dimensions';
                     action("Dimensions1")
@@ -2723,7 +2739,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Default Dimension Priorities page.';
                     }
                 }
+#if not CLEAN30
+                group("Group61")
+#else
                 group("Group60")
+#endif
                 {
                     Caption = 'Trail Codes';
                     action("Source Codes")
@@ -2748,7 +2768,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Source Code Setup page.';
                     }
                 }
+#if not CLEAN30
+                group("Group62")
+#else
                 group("Group61")
+#endif
                 {
                     Caption = 'Posting Groups';
                     action("General Business")
@@ -2815,15 +2839,6 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the VAT Product Posting Groups page.';
                     }
                 }
-#if not CLEAN30
-                group("Group62")
-                {
-                    ObsoleteReason = 'This group not used anymore.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
-
-                }
-#endif
             }
         }
     }

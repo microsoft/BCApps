@@ -229,7 +229,11 @@ page 8901 "Finance Manager Role Center"
                         }
                     }
                 }
+#if not CLEAN30
+                group("Group3")
+#else
                 group("WHT")
+#endif
                 {
                     Caption = 'WHT';
                     action("WHT E-Filing")
@@ -245,7 +249,11 @@ page 8901 "Finance Manager Role Center"
                         RunObject = Report "Calc. and Post WHT Settlement";
                     }
                 }
+#if not CLEAN30
+                group("Group5")
+#else
                 group("Group4")
+#endif
                 {
                     Caption = 'Consolidation';
                     action("Business Units")
@@ -276,7 +284,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the G/L Consolidation Eliminations report.';
                     }
                 }
+#if not CLEAN30
+                group("Group6")
+#else
                 group("BAS")
+#endif
                 {
                     Caption = 'Business Activity Statement';
                     action("BAS Setup Names")
@@ -298,7 +310,11 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "BAS ATO Receipt";
                     }
                 }
+#if not CLEAN30
+                group("Group7")
+#else
                 group("Group5")
+#endif
                 {
                     Caption = 'Journals';
                     action("General Journals1")
@@ -316,7 +332,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Recurring General Journals page.';
                     }
                 }
+#if not CLEAN30
+                group("Group8")
+#else
                 group("Group6")
+#endif
                 {
                     Caption = 'Register/Entries';
                     action("G/L Registers")
@@ -389,10 +409,18 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "GST Sales Entries";
                     }
                 }
+#if not CLEAN30
+                group("Group9")
+#else
                 group("Group7")
+#endif
                 {
                     Caption = 'Reports';
+#if not CLEAN30
+                    group("Group10")
+#else
                     group("Group8")
+#endif
                     {
                         Caption = 'Entries';
                         action("G/L Register")
@@ -455,7 +483,11 @@ page 8901 "Finance Manager Role Center"
                             RunObject = Report "Withholding Summary";
                         }
                     }
+#if not CLEAN30
+                    group("Group11")
+#else
                     group("Group9")
+#endif
                     {
                         Caption = 'Financial Statement';
                         action("Account Schedule")
@@ -647,7 +679,11 @@ page 8901 "Finance Manager Role Center"
                             RunObject = Report "WHT Certificate TH - Copy";
                         }
                     }
+#if not CLEAN30
+                    group("Group12")
+#else
                     group("Group10")
+#endif
                     {
                         Caption = 'Miscellaneous';
                         action("Foreign Currency Balance")
@@ -672,7 +708,11 @@ page 8901 "Finance Manager Role Center"
                             Tooltip = 'Run the G/L Deferral Summary report.';
                         }
                     }
+#if not CLEAN30
+                    group("Group13")
+#else
                     group("Group11")
+#endif
                     {
                         Caption = 'Setup List';
                         action("Chart of Accounts1")
@@ -691,7 +731,11 @@ page 8901 "Finance Manager Role Center"
                         }
                     }
                 }
+#if not CLEAN30
+                group("Group14")
+#else
                 group("Group12")
+#endif
                 {
                     Caption = 'Setup';
                     action("General Ledger Setup")
@@ -732,7 +776,11 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
+#if not CLEAN30
+            group("Group15")
+#else
             group("Group13")
+#endif
             {
                 Caption = 'Cash Management';
                 action("Bank Accounts")
@@ -780,7 +828,11 @@ page 8901 "Finance Manager Role Center"
                     Caption = 'Posted Bank Deposits';
                     RunObject = codeunit "Open P. Bank Deposits L. Page";
                 }
+#if not CLEAN30
+                group("Group16")
+#else
                 group("Group14")
+#endif
                 {
                     Caption = 'Cash Flow';
                     action("Cash Flow Forecasts")
@@ -819,7 +871,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Cash Flow Worksheet page.';
                     }
                 }
+#if not CLEAN30
+                group("Group17")
+#else
                 group("Group15")
+#endif
                 {
                     Caption = 'Reconciliation';
                     action("Bank Account Reconciliations")
@@ -844,7 +900,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Payment Reconciliation Journals page.';
                     }
                 }
+#if not CLEAN30
+                group("Group18")
+#else
                 group("Group16")
+#endif
                 {
                     Caption = 'Journals';
                     action("Cash Receipt Journal")
@@ -869,7 +929,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Payment Reconciliation Journals page.';
                     }
                 }
+#if not CLEAN30
+                group("Group19")
+#else
                 group("Group17")
+#endif
                 {
                     Caption = 'Ledger Entries';
                     action("Bank Account Ledger Entries")
@@ -894,7 +958,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Cash Flow Ledger Entries page.';
                     }
                 }
+#if not CLEAN30
+                group("Group20")
+#else
                 group("Group18")
+#endif
                 {
                     Caption = 'Reports';
                     action("Register")
@@ -972,7 +1040,11 @@ page 8901 "Finance Manager Role Center"
                         RunObject = Report "Deposit Slip";
                     }
                 }
+#if not CLEAN30
+                group("Group21")
+#else
                 group("Group19")
+#endif
                 {
                     Caption = 'Setup';
                     action("Payment Application Rules")
@@ -1026,7 +1098,11 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
+#if not CLEAN30
+            group("Group22")
+#else
             group("Group20")
+#endif
             {
                 Caption = 'Cost Accounting';
                 action("Chart of Cost Centers")
@@ -1071,7 +1147,11 @@ page 8901 "Finance Manager Role Center"
                     RunObject = page "Cost Journal";
                     Tooltip = 'Open the Cost Journals page.';
                 }
+#if not CLEAN30
+                group("Group23")
+#else
                 group("Group21")
+#endif
                 {
                     Caption = 'Registers';
                     action("Registers")
@@ -1089,10 +1169,18 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Cost Budget Registers page.';
                     }
                 }
+#if not CLEAN30
+                group("Group24")
+#else
                 group("Group22")
+#endif
                 {
                     Caption = 'Reports';
+#if not CLEAN30
+                    group("Group25")
+#else
                     group("Group23")
+#endif
                     {
                         Caption = 'Setup Information';
                         action("Allocations1")
@@ -1102,7 +1190,11 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Cost Allocations";
                         }
                     }
+#if not CLEAN30
+                    group("Group26")
+#else
                     group("Group24")
+#endif
                     {
                         Caption = 'Entries';
                         action("Cost Journal1")
@@ -1118,7 +1210,11 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Cost Types Details";
                         }
                     }
+#if not CLEAN30
+                    group("Group27")
+#else
                     group("Group25")
+#endif
                     {
                         Caption = 'Cost & Revenue';
                         action("P/L Statement")
@@ -1140,7 +1236,11 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Cost Acctg. Analysis";
                         }
                     }
+#if not CLEAN30
+                    group("Group28")
+#else
                     group("Group26")
+#endif
                     {
                         Caption = 'Cost Budget';
                         action("P/L Statement with Budget")
@@ -1157,7 +1257,11 @@ page 8901 "Finance Manager Role Center"
                         }
                     }
                 }
+#if not CLEAN30
+                group("Group29")
+#else
                 group("Group27")
+#endif
                 {
                     Caption = 'Setup';
                     action("Cost Accounting Setup")
@@ -1176,7 +1280,11 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
+#if not CLEAN30
+            group("Group30")
+#else
             group("Group28")
+#endif
             {
                 Caption = 'Receivables';
                 action("Customers")
@@ -1219,7 +1327,11 @@ page 8901 "Finance Manager Role Center"
                     Caption = 'Post Dated Checks (Sales)';
                     RunObject = page "Post Dated Checks List";
                 }
+#if not CLEAN30
+                group("Group31")
+#else
                 group("Group29")
+#endif
                 {
                     Caption = 'Combine';
                     action("Combined Shipments")
@@ -1235,7 +1347,11 @@ page 8901 "Finance Manager Role Center"
                         RunObject = report "Combine Return Receipts";
                     }
                 }
+#if not CLEAN30
+                group("Group32")
+#else
                 group("Group30")
+#endif
                 {
                     Caption = 'Reminder/Fin. Charge Memos';
                     action("Reminders")
@@ -1267,7 +1383,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Issued Finance Charge Memos page.';
                     }
                 }
+#if not CLEAN30
+                group("Group33")
+#else
                 group("Group31")
+#endif
                 {
                     Caption = 'Journals';
                     action("Journals")
@@ -1285,7 +1405,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Cash Receipt Journals page.';
                     }
                 }
+#if not CLEAN30
+                group("Group34")
+#else
                 group("Group32")
+#endif
                 {
                     Caption = 'Posted Documents';
                     action("Posted Invoices")
@@ -1335,7 +1459,11 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "GST Sales Entries";
                     }
                 }
+#if not CLEAN30
+                group("Group35")
+#else
                 group("Group33")
+#endif
                 {
                     Caption = 'Registers/Entries';
                     action("G/L Registers1")
@@ -1367,7 +1495,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Detailed Customer Ledger Entries page.';
                     }
                 }
+#if not CLEAN30
+                group("Group36")
+#else
                 group("Group34")
+#endif
                 {
                     Caption = 'Reports';
                     action("Customer Detailed Aging")
@@ -1546,7 +1678,11 @@ page 8901 "Finance Manager Role Center"
                         RunObject = Report "Pending Sales Tax Invoice";
                     }
                 }
+#if not CLEAN30
+                group("Group37")
+#else
                 group("Group35")
+#endif
                 {
                     Caption = 'Setup';
                     action("Sales & Receivables Setup")
@@ -1585,7 +1721,11 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
+#if not CLEAN30
+            group("Group38")
+#else
             group("Group36")
+#endif
             {
                 Caption = 'Payables';
                 action("Vendors")
@@ -1622,7 +1762,11 @@ page 8901 "Finance Manager Role Center"
                     Caption = 'Post Dated Checks (Purchase)';
                     RunObject = page "Post Dated Checks-Purchases";
                 }
+#if not CLEAN30
+                group("Group39")
+#else
                 group("Group37")
+#endif
                 {
                     Caption = 'Journals';
                     action("Purchase Journals")
@@ -1640,7 +1784,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Payment Journals page.';
                     }
                 }
+#if not CLEAN30
+                group("Group42")
+#else
                 group("Group38")
+#endif
                 {
                     Caption = 'Posted Documents';
                     action("Posted Credit Memos1")
@@ -1684,7 +1832,11 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Posted Purch. Tax  Credit Memo";
                     }
                 }
+#if not CLEAN30
+                group("Group41")
+#else
                 group("Group39")
+#endif
                 {
                     Caption = 'Registers/Entries';
                     action("G/L Registers2")
@@ -1881,7 +2033,11 @@ page 8901 "Finance Manager Role Center"
                         RunObject = Report "WHT Certificate - Other Copy";
                     }
                 }
+#if not CLEAN30
+                group("Group43")
+#else
                 group("Group41")
+#endif
                 {
                     Caption = 'Setup';
                     action("Purchases & Payables Setup")
@@ -1893,7 +2049,11 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
+#if not CLEAN30
+            group("Group44")
+#else
             group("Group42")
+#endif
             {
                 Caption = 'Fixed Assets';
                 action("Fixed Assets")
@@ -1931,7 +2091,11 @@ page 8901 "Finance Manager Role Center"
                     RunObject = report "Index Insurance";
                     Tooltip = 'Run the Index Insurance report.';
                 }
+#if not CLEAN30
+                group("Group45")
+#else
                 group("Group43")
+#endif
                 {
                     Caption = 'Journals';
                     action("G/L Journals")
@@ -1977,10 +2141,18 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Recurring Fixed Asset Journals page.';
                     }
                 }
+#if not CLEAN30
+                group("Group46")
+#else
                 group("Group44")
+#endif
                 {
                     Caption = 'Reports';
+#if not CLEAN30
+                    group("Group47")
+#else
                     group("Group45")
+#endif
                     {
                         Caption = 'Fixed Assets';
                         action("FixedAssetsAnalysis")
@@ -2077,7 +2249,11 @@ page 8901 "Finance Manager Role Center"
                         }
 #endif
                     }
+#if not CLEAN30
+                    group("Group48")
+#else
                     group("Group46")
+#endif
                     {
                         Caption = 'Insurance';
                         action("Uninsured FAs")
@@ -2123,7 +2299,11 @@ page 8901 "Finance Manager Role Center"
                             Tooltip = 'Run the FA Total Value Insured report.';
                         }
                     }
+#if not CLEAN30
+                    group("Group49")
+#else
                     group("Group47")
+#endif
                     {
                         Caption = 'Maintenance';
                         action("Register3")
@@ -2156,7 +2336,11 @@ page 8901 "Finance Manager Role Center"
                         }
                     }
                 }
+#if not CLEAN30
+                group("Group50")
+#else
                 group("Group48")
+#endif
                 {
                     Caption = 'Registers/Entries';
                     action("FA Registers")
@@ -2195,7 +2379,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Insurance Coverage Ledger Entries page.';
                     }
                 }
+#if not CLEAN30
+                group("Group51")
+#else
                 group("Group49")
+#endif
                 {
                     Caption = 'Setup';
                     action("FA Setup")
@@ -2277,7 +2465,11 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
+#if not CLEAN30
+            group("Group52")
+#else
             group("Group50")
+#endif
             {
                 Caption = 'Inventory';
                 action("Inventory Periods")
@@ -2301,7 +2493,11 @@ page 8901 "Finance Manager Role Center"
                     RunObject = page "Application Worksheet";
                     Tooltip = 'Open the Application Worksheet page.';
                 }
+#if not CLEAN30
+                group("Group53")
+#else
                 group("Group51")
+#endif
                 {
                     Caption = 'Costing';
                     action("Adjust Item Costs/Prices")
@@ -2326,7 +2522,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Post Inventory Cost to G/L report.';
                     }
                 }
+#if not CLEAN30
+                group("Group54")
+#else
                 group("Group52")
+#endif
                 {
                     Caption = 'Journals';
                     action("Item Journal")
@@ -2358,7 +2558,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Revaluation Journals page.';
                     }
                 }
+#if not CLEAN30
+                group("Group55")
+#else
                 group("Group53")
+#endif
                 {
                     Caption = 'Reports';
                     action("Inventory by Location")
@@ -2462,7 +2666,11 @@ page 8901 "Finance Manager Role Center"
                         RunObject = Report "Stock Card";
                     }
                 }
+#if not CLEAN30
+                group("Group56")
+#else
                 group("Group54")
+#endif
                 {
                     Caption = 'Setup';
                     action("Inventory Posting Setup")
@@ -2538,7 +2746,11 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
+#if not CLEAN30
+            group("Group57")
+#else
             group("Group55")
+#endif
             {
                 Caption = 'Setup';
                 action("General Posting Setup")
@@ -2576,7 +2788,11 @@ page 8901 "Finance Manager Role Center"
                     RunObject = page "No. Series";
                     Tooltip = 'Open the No. Series page.';
                 }
+#if not CLEAN30
+                group("Group58")
+#else
                 group("Group56")
+#endif
                 {
                     Caption = 'VAT';
                     action("Posting Setup")
@@ -2614,10 +2830,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the VAT Reports Configuration page.';
                     }
                 }
-                group("Group57")
-                {
-                }
+#if not CLEAN30
+                group("Group61")
+#else
                 group("Group59")
+#endif
                 {
                     Caption = 'Dimensions';
                     action("Dimensions1")
@@ -2649,7 +2866,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Default Dimension Priorities page.';
                     }
                 }
+#if not CLEAN30
+                group("Group62")
+#else
                 group("Group60")
+#endif
                 {
                     Caption = 'Trail Codes';
                     action("Source Codes")
@@ -2674,7 +2895,11 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Open the Source Code Setup page.';
                     }
                 }
+#if not CLEAN30
+                group("Group64")
+#else
                 group("Group61")
+#endif
                 {
                     Caption = 'Posting Groups';
                     action("General Business")
@@ -2765,14 +2990,6 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "WHT Posting Setup";
                     }
                 }
-#if not CLEAN30
-                group("Group62")
-                {
-                    ObsoleteReason = 'Not used anymore';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
-                }
-#endif
                 group("Group63")
                 {
                     Caption = 'Business Activity Statement';
@@ -2795,14 +3012,6 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "BAS XML Field Setup Names";
                     }
                 }
-#if not CLEAN30
-                group("Group64")
-                {
-                    ObsoleteReason = 'Not used anymore';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
-                }
-#endif
             }
         }
     }

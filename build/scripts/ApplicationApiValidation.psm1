@@ -360,6 +360,137 @@ function Update-ApplicationApiActionReferenceTarget {
     return $true
 }
 
+function Get-ApplicationApiCleanGroupRenames {
+    param([string] $BuildMode, [string] $CountryCode)
+
+    if ($BuildMode -cne 'Clean') { return @{} }
+    if ($CountryCode -cin @('CA', 'US', 'MX')) {
+        return @{
+            Group56 = 'SalesTax'; Group57 = 'Group56'; Group58 = 'Group57'
+            Group59 = 'Group58'; Group60 = 'Group59'; Group61 = 'Group60'; Group62 = 'Group61'
+        }
+    }
+    if ($CountryCode -cin @('AU', 'NZ')) {
+        return @{
+            Group3 = 'WHT'; Group4 = 'Group3'; Group5 = 'Group4'; Group6 = 'BAS'
+            Group7 = 'Group5'; Group8 = 'Group6'; Group9 = 'Group7'; Group10 = 'Group8'
+            Group11 = 'Group9'; Group12 = 'Group10'; Group13 = 'Group11'; Group14 = 'Group12'
+            Group15 = 'Group13'; Group16 = 'Group14'; Group17 = 'Group15'; Group18 = 'Group16'
+            Group19 = 'Group17'; Group20 = 'Group18'; Group21 = 'Group19'; Group22 = 'Group20'
+            Group23 = 'Group21'; Group24 = 'Group22'; Group25 = 'Group23'; Group26 = 'Group24'
+            Group27 = 'Group25'; Group28 = 'Group26'; Group29 = 'Group27'; Group30 = 'Group28'
+            Group31 = 'Group29'; Group32 = 'Group30'; Group33 = 'Group31'; Group34 = 'Group32'
+            Group35 = 'Group33'; Group36 = 'Group34'; Group37 = 'Group35'; Group38 = 'Group36'
+            Group39 = 'Group37'; Group41 = 'Group39'; Group42 = 'Group38'; Group43 = 'Group41'
+            Group44 = 'Group42'; Group45 = 'Group43'; Group46 = 'Group44'; Group47 = 'Group45'
+            Group48 = 'Group46'; Group49 = 'Group47'; Group50 = 'Group48'; Group51 = 'Group49'
+            Group52 = 'Group50'; Group53 = 'Group51'; Group54 = 'Group52'; Group55 = 'Group53'
+            Group56 = 'Group54'; Group57 = 'Group55'; Group58 = 'Group56'
+            Group60 = 'Group58'; Group61 = 'Group59'; Group62 = 'Group60'; Group64 = 'Group61'
+        }
+    }
+    return @{}
+}
+
+function Update-ApplicationApiCleanGroupNames {
+    param([hashtable] $Action, [hashtable] $Renames)
+
+    if ($Action['Kind'] -cin @('Group', 1) -and $Action['Name'] -cin @($Renames.Keys)) {
+        $Action['Name'] = $Renames[$Action['Name']]
+    }
+    foreach ($child in $Action['Actions']) {
+        Update-ApplicationApiCleanGroupNames -Action $child -Renames $Renames
+    }
+}
+
+function Get-ApplicationApiActionPaths {
+    param([object[]] $Actions, [string] $Name, [string[]] $Parent = @())
+
+    foreach ($action in $Actions) {
+        if ($action['Name'] -ceq $Name) {
+            [PSCustomObject]@{ Parent = $Parent; Action = $action }
+        }
+        if ($action['Actions'] -is [array]) {
+            Get-ApplicationApiActionPaths -Actions $action['Actions'] -Name $Name -Parent @($Parent + $action['Name'])
+        }
+    }
+}
+
+function Get-ApplicationApiCleanGroupRenameFailure {
+    param(
+        [hashtable] $Baseline, [hashtable] $Current, [object] $OldHost, [object] $NewHost,
+        [object] $Diagnostic, [hashtable] $Renames, [string] $CountryCode,
+        [System.Collections.Generic.List[string]] $CompatibleChanges, [ref] $ContractComparison
+    )
+
+    if ($OldHost.OwnerId -ne $NewHost.OwnerId -or $OldHost.Name -cne $NewHost.Name -or $OldHost.Namespace -cne $NewHost.Namespace) {
+        return 'The original host object identity or ownership changed.'
+    }
+    $oldMembers = @($Baseline.PageActions | Where-Object { $_.OwnerKey -ceq $OldHost.Key -and $_.Name -ceq $Diagnostic.ActionName })
+    if ($oldMembers.Count -ne 1 -or $oldMembers[0].MemberKind -cne 'ActionGroup') {
+        return 'The clean rename does not identify a unique baseline action group.'
+    }
+    $newName = $Renames[$Diagnostic.ActionName]
+    $newMembers = [System.Collections.Generic.List[object]]::new()
+    foreach ($member in $Current.PageActions | Where-Object Name -CEQ $newName) {
+        if ($member.OwnerKey -ceq $NewHost.Key -and $member.OwnerId -eq $NewHost.OwnerId) {
+            $newMembers.Add($member)
+        }
+        elseif ($member.OwnerKey -clike 'PageExtensions:*' -and $member.OwnerId -ne $OldHost.OwnerId) {
+            $hosts = @(Get-ApplicationApiHostCandidates -Objects $Current.Symbols -Kind Pages -Reference $member.PageReference)
+            if (@($hosts | Where-Object Key -CEQ $OldHost.Key).Count -eq 0) { continue }
+            if ($hosts.Count -ne 1) { return 'The clean rename target has an ambiguous host-object reference.' }
+            $newMembers.Add($member)
+        }
+    }
+    if ($newMembers.Count -ne 1 -or $newMembers[0].MemberKind -cne 'ActionGroup') {
+        return "The clean rename target '$newName' is missing, ambiguous, or not an action group ($($newMembers.Count) candidates)."
+    }
+    $old = $oldMembers[0]
+    $new = $newMembers[0]
+    $oldPage = $Baseline.Contracts[$OldHost.Key] | ConvertFrom-Json -AsHashtable
+    $newPage = $Current.Contracts[$NewHost.Key] | ConvertFrom-Json -AsHashtable
+    $oldPaths = @(Get-ApplicationApiActionPaths -Actions $oldPage['Actions'] -Name $old.Name)
+    $newParents = [System.Collections.Generic.List[object]]::new()
+    if ($new.OwnerKey -ceq $NewHost.Key) {
+        foreach ($path in @(Get-ApplicationApiActionPaths -Actions $newPage['Actions'] -Name $new.Name)) { $newParents.Add($path) }
+    }
+    else {
+        $extension = $Current.PageExtensionContracts[$new.OwnerKey].Contract | ConvertFrom-Json -AsHashtable
+        foreach ($change in $extension['ActionChanges']) {
+            $paths = @(Get-ApplicationApiActionPaths -Actions $change['Actions'] -Name $new.Name)
+            if ($paths.Count -eq 0) { continue }
+            if ($change['ChangeKind'] -cnotin @('AddBefore', 3, 'AddAfter', 4)) {
+                return 'The clean rename requires a verified sibling insertion anchor.'
+            }
+            $anchors = @(Get-ApplicationApiActionPaths -Actions $newPage['Actions'] -Name $change['Anchor'])
+            if ($anchors.Count -ne 1) { return 'The clean rename insertion anchor is missing or ambiguous.' }
+            foreach ($path in $paths) {
+                $newParents.Add([PSCustomObject]@{ Parent = @($anchors[0].Parent + $path.Parent) })
+            }
+        }
+    }
+    if ($oldPaths.Count -ne 1 -or $newParents.Count -ne 1) {
+        return 'The clean rename action hierarchy is missing or ambiguous.'
+    }
+    $oldParent = @($oldPaths[0].Parent | ForEach-Object { if ($_ -cin @($Renames.Keys)) { $Renames[$_] } else { $_ } })
+    if (($oldParent -join "`0") -cne ($newParents[0].Parent -join "`0")) {
+        return 'The clean rename changed the action group hierarchy.'
+    }
+    $oldContract = $old.Contract | ConvertFrom-Json -AsHashtable
+    $newContract = $new.Contract | ConvertFrom-Json -AsHashtable
+    Update-ApplicationApiCleanGroupNames -Action $oldContract -Renames $Renames
+    $null = Update-ApplicationApiPageMemberIds -Baseline $oldContract -Current $newContract -ChildrenProperty Actions
+    $comparison = Get-ApplicationApiContractDifferences -Baseline ($oldContract | ConvertTo-Json -Depth 100 -Compress) `
+        -Current ($newContract | ConvertTo-Json -Depth 100 -Compress)
+    if ($comparison.Differences.Count -gt 0) {
+        $ContractComparison.Value = $comparison
+        return 'The clean rename changed the action group contract.'
+    }
+    $CompatibleChanges.Add("CLEAN30 action group rename '$($old.Name)' -> '$newName' on '$($OldHost.Name)' ($CountryCode).")
+    return ''
+}
+
 function Get-ApplicationApiMemberMoveFailure {
     param(
         [hashtable] $Baseline,
@@ -731,12 +862,15 @@ function Test-ApplicationApiMoves {
     param(
         [Parameter(Mandatory)] [hashtable] $Baseline,
         [Parameter(Mandatory)] [hashtable] $Current,
-        [Parameter(Mandatory)] [AllowEmptyCollection()] [object[]] $Diagnostics
+        [Parameter(Mandatory)] [AllowEmptyCollection()] [object[]] $Diagnostics,
+        [string] $BuildMode,
+        [string] $CountryCode
     )
 
     if ($Baseline.Application.Id -ne $Current.Application.Id -or $Baseline.Application.Publisher -cne $Current.Application.Publisher) {
         throw 'Application identity changed.'
     }
+    $cleanRenames = Get-ApplicationApiCleanGroupRenames -BuildMode $BuildMode -CountryCode $CountryCode
     foreach ($diagnostic in $Diagnostics) {
         $origin = $diagnostic.Origin
         $baselineObjects = if ($diagnostic.MethodName) { $Baseline.MethodObjects } else { $Baseline.Symbols }
@@ -760,6 +894,13 @@ function Test-ApplicationApiMoves {
         elseif ($Baseline.Packages[$origin.Id].Version -ne [version]$origin.BaselineVersion -or
             $Baseline.Packages[$origin.Id].Name -cne $origin.BaselineName -or
             $Baseline.Packages[$origin.Id].Publisher -cne $origin.BaselinePublisher) { $reason = 'AppSourceCop and aggregate baselines disagree.' }
+        elseif ($diagnostic.RuleId -ceq 'AS0031' -and $diagnostic.ActionKind -ceq 'ActionGroup' -and
+            $key -ceq 'Pages:8901' -and $old.Name -ceq 'Finance Manager Role Center' -and
+            $old.Namespace -ceq 'Microsoft.Finance.RoleCenters' -and $old.OwnerId -eq '437dbf0e-84ff-417a-965d-ed2bb9650972' -and
+            $diagnostic.ActionName -cin @($cleanRenames.Keys)) {
+            $reason = Get-ApplicationApiCleanGroupRenameFailure -Baseline $Baseline -Current $Current -OldHost $old -NewHost $new `
+                -Diagnostic $diagnostic -Renames $cleanRenames -CountryCode $CountryCode -CompatibleChanges $compatibleChanges -ContractComparison ([ref]$memberComparison)
+        }
         elseif ($diagnostic.PartName -or $diagnostic.ActionName -or $diagnostic.FieldName -or $diagnostic.MethodName -or $diagnostic.CueGroupName -or $diagnostic.ControlName) {
             $reason = Get-ApplicationApiMemberMoveFailure -Baseline $Baseline -Current $Current -OldHost $old -NewHost $new -Diagnostic $diagnostic -CompatibleChanges $compatibleChanges -ContractComparison ([ref]$memberComparison)
         }
@@ -860,13 +1001,20 @@ function Complete-ApplicationApiValidation {
             $keys = @($records.Diagnostics.Key | Sort-Object -Unique)
             $partNames = @($records.Diagnostics.PartName | Where-Object { $_ } | Sort-Object -Unique)
             $actionNames = @($records.Diagnostics.ActionName | Where-Object { $_ } | Sort-Object -Unique)
+            $cleanRenames = Get-ApplicationApiCleanGroupRenames -BuildMode $state.BuildMode -CountryCode $state.CountryCode
+            if (@($records.Diagnostics | Where-Object {
+                $_.Kind -ceq 'Pages' -and $_.Name -ceq 'Finance Manager Role Center' -and $_.ActionKind -ceq 'ActionGroup'
+            }).Count -gt 0) {
+                $actionNames = @(@($actionNames) + @($cleanRenames.Values) | Sort-Object -Unique)
+            }
             $fieldNames = @($records.Diagnostics.FieldName | Where-Object { $_ } | Sort-Object -Unique)
             $methodNames = @($records.Diagnostics.MethodName | Where-Object { $_ } | Sort-Object -Unique)
             $cueGroupNames = @($records.Diagnostics.CueGroupName | Where-Object { $_ } | Sort-Object -Unique)
             $controlNames = @($records.Diagnostics.ControlName | Where-Object { $_ } | Sort-Object -Unique)
             $baseline = Get-ApplicationApiGateSnapshot -Paths $baselinePaths -Keys $keys -PartNames $partNames -ActionNames $actionNames -FieldNames $fieldNames -MethodNames $methodNames -CueGroupNames $cueGroupNames -ControlNames $controlNames
             $current = Get-ApplicationApiGateSnapshot -Paths $currentPaths -Keys $keys -PartNames $partNames -ActionNames $actionNames -FieldNames $fieldNames -MethodNames $methodNames -CueGroupNames $cueGroupNames -ControlNames $controlNames
-            $state.AcceptedMoves = @(Test-ApplicationApiMoves -Baseline $baseline -Current $current -Diagnostics $records.Diagnostics)
+            $state.AcceptedMoves = @(Test-ApplicationApiMoves -Baseline $baseline -Current $current -Diagnostics $records.Diagnostics `
+                -BuildMode $state.BuildMode -CountryCode $state.CountryCode)
             foreach ($move in @($state.AcceptedMoves | Where-Object { $_.CompatibleChanges.Count -gt 0 } | Group-Object Key)) {
                 $changes = @($move.Group.CompatibleChanges | Sort-Object -Unique -CaseSensitive)
                 Write-Host "Verified compatible additions for $($move.Group[0].Name): $($changes -join ' ')"

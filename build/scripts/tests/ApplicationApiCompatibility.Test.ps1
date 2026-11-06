@@ -103,7 +103,8 @@ Describe 'Application API compatibility prototype' {
                 [string] $Kind = 'Page',
                 [int] $Id = 621,
                 [string] $Name = 'IC API Log Entries',
-                [string[]] $CacheDependencies = @()
+                [string[]] $CacheDependencies = @(),
+                [string] $CountryCode = 'W1'
             )
 
             $project = Join-Path $TestDrive ([guid]::NewGuid().ToString())
@@ -129,7 +130,7 @@ Describe 'Application API compatibility prototype' {
             $ruleset = Join-Path $project 'original.ruleset.json'
             '{"name":"Original checks","generalAction":"Error","rules":[{"id":"AS0002","action":"Error"}]}' | Set-Content -LiteralPath $ruleset
             $parameters = @{ WorkspaceFile = $workspace; OutFolder = $output; PackageCachePath = $cache; Ruleset = $ruleset; ErrorLogDirectory = (Join-Path $project 'alerts') }
-            Initialize-ApplicationApiValidation -CompilationParameters $parameters -CountryCode 'W1' -BuildMode Clean
+            Initialize-ApplicationApiValidation -CompilationParameters $parameters -CountryCode $CountryCode -BuildMode Clean
             $compiled = @(
                 foreach ($package in @($script:currentBase, $destination, $script:currentApplication)) {
                     Copy-Item -LiteralPath $package.Path -Destination $output
@@ -1576,6 +1577,170 @@ Describe 'Application API compatibility prototype' {
                 $partMove[0].Reason | Should -Not -BeNullOrEmpty
                 Get-Content -LiteralPath $gate.SourceLog -Raw | Should -Match 'warning AS0032'
                 { Assert-ApplicationApiValidationComplete -ProjectFolder $gate.Project } | Should -Throw '*Failed*'
+            }
+        }
+
+        Context 'CLEAN30 Finance Manager group alignment' {
+            BeforeAll {
+                function Write-CleanGroupApiPackages {
+                    $namespace = 'Microsoft.Finance.RoleCenters'
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Version '1.0.0.0' -Path $oldBase.Path -Collections @{
+                        Namespaces = @(
+                            @{ Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page) },
+                            @{ Name = $namespace; Pages = @($oldRoleCenter) }
+                        )
+                    }
+                    $null = New-ApiTestPackage -Name 'Base Application' -Id $baseId -Path $script:currentBase.Path -Collections @{
+                        Namespaces = @(@{ Name = $namespace; Pages = @($script:newRoleCenter) })
+                    }
+                    $null = New-ApiTestPackage -Name 'Intercompany' -Id $destinationId -Path $destination.Path -Collections @{
+                        Namespaces = @(
+                            @{ Name = 'Microsoft.Intercompany.DataExchange'; Pages = @($page) },
+                            @{ Name = $namespace; PageExtensions = @($script:cleanGroupExtension) }
+                        )
+                    }
+                }
+
+                function Test-CleanGroupApiMove {
+                    param([string] $BuildMode = 'Clean', [string] $CountryCode = 'AU')
+
+                    Write-CleanGroupApiPackages
+                    $key = "Pages:$($oldRoleCenter.Id)"
+                    $names = @($oldCleanGroup.Name, $newCleanGroup.Name)
+                    $oldSnapshot = Get-ApplicationApiSnapshot -ApplicationPackagePath $oldApplication.Path -DependencyPackagePaths @($oldBase.Path) `
+                        -SymbolKeys @($key) -ActionNames $names -IncludeContracts
+                    $newSnapshot = Get-ApplicationApiSnapshot -ApplicationPackagePath $script:currentApplication.Path `
+                        -DependencyPackagePaths @($script:currentBase.Path, $destination.Path) -SymbolKeys @($key) -ActionNames $names -IncludeContracts
+                    $diagnostic = [PSCustomObject]@{
+                        RuleId = 'AS0031'; Key = $key; Kind = 'Pages'; Name = $oldRoleCenter.Name; Named = $false
+                        Origin = @{ Id = $baseId; BaselineVersion = '1.0.0.0'; BaselineName = 'Base Application'; BaselinePublisher = 'Microsoft' }
+                        ActionName = $oldCleanGroup.Name; ActionKind = 'ActionGroup'
+                        PartName = ''; FieldName = ''; MethodName = ''; CueGroupName = ''; ControlName = ''; ControlKind = ''
+                        Message = 'Action group removed from the original page.'
+                    }
+                    Test-ApplicationApiMoves -Baseline $oldSnapshot -Current $newSnapshot -Diagnostics @($diagnostic) `
+                        -BuildMode $BuildMode -CountryCode $CountryCode
+                }
+            }
+
+            BeforeEach {
+                $oldCleanGroup = @{
+                    Id = 100; Name = 'Group60'; Kind = 1
+                    Properties = @(@{ Name = 'Caption'; Value = 'Intercompany' })
+                    Actions = @(
+                        @{ Id = 101; Name = 'Intercompany Setup'; Kind = 2; Properties = @(@{ Name = 'RunObject'; Value = 'Intercompany Setup' }) },
+                        @{ Id = 102; Name = 'Group61'; Kind = 1; Actions = @(@{ Id = 103; Name = 'Dimensions'; Kind = 2 }) }
+                    )
+                }
+                $newCleanGroup = $oldCleanGroup | ConvertTo-Json -Depth 20 | ConvertFrom-Json -AsHashtable
+                $newCleanGroup.Name = 'Group58'
+                $newCleanGroup.Id = 200
+                $newCleanGroup.Actions[0].Id = 201
+                $newCleanGroup.Actions[1].Name = 'Group59'
+                $oldRoleCenter = @{
+                    Id = 8901; Name = 'Finance Manager Role Center'
+                    Actions = @(@{
+                        Name = 'Sections'; Kind = 0; Actions = @(@{
+                            Name = 'Group57'; Kind = 1; Actions = @(
+                                @{ Name = 'Group58'; Kind = 1; Properties = @(@{ Name = 'Caption'; Value = 'VAT' }) },
+                                $oldCleanGroup
+                            )
+                        })
+                    })
+                }
+                $script:newRoleCenter = @{
+                    Id = 8901; Name = 'Finance Manager Role Center'
+                    Actions = @(@{
+                        Name = 'Sections'; Kind = 0; Actions = @(@{
+                            Name = 'Group55'; Kind = 1; Actions = @(@{ Name = 'Group56'; Kind = 1; Properties = @(@{ Name = 'Caption'; Value = 'VAT' }) })
+                        })
+                    })
+                }
+                $script:cleanGroupExtension = @{
+                    Id = 8406; Name = 'IC Finance Manager RC'; TargetObject = $oldRoleCenter.Name
+                    ActionChanges = @(@{ Anchor = 'Group56'; ChangeKind = 4; Actions = @($newCleanGroup) })
+                }
+            }
+
+            It 'accepts the declared alignment for <CountryCode> on the <Location>' -TestCases @(
+                @{ CountryCode = 'AU'; Location = 'extension' },
+                @{ CountryCode = 'NZ'; Location = 'page' },
+                @{ CountryCode = 'CA'; Location = 'extension' },
+                @{ CountryCode = 'US'; Location = 'page' },
+                @{ CountryCode = 'MX'; Location = 'extension' }
+            ) {
+                param($CountryCode, $Location)
+                if ($CountryCode -in @('CA', 'US', 'MX')) {
+                    $oldCleanGroup.Name = 'Group59'
+                    $oldCleanGroup.Actions[1].Name = 'Group60'
+                    $oldRoleCenter.Actions[0].Actions[0].Name = 'Group55'
+                    $script:newRoleCenter.Actions[0].Actions[0].Actions[0].Name = 'Group57'
+                    $script:cleanGroupExtension.ActionChanges[0].Anchor = 'Group57'
+                }
+                if ($Location -eq 'page') {
+                    $script:newRoleCenter.Actions[0].Actions[0].Actions += $newCleanGroup
+                    $script:cleanGroupExtension.ActionChanges = @()
+                }
+                $move = Test-CleanGroupApiMove -CountryCode $CountryCode
+                $move.Accepted | Should -BeTrue
+                $move.CompatibleChanges | Should -Contain "CLEAN30 action group rename '$($oldCleanGroup.Name)' -> 'Group58' on 'Finance Manager Role Center' ($CountryCode)."
+            }
+
+            It 'keeps the exception disabled for <BuildMode> in <CountryCode>' -TestCases @(
+                @{ BuildMode = 'Default'; CountryCode = 'AU' },
+                @{ BuildMode = ''; CountryCode = 'AU' },
+                @{ BuildMode = 'Clean'; CountryCode = 'W1' }
+            ) {
+                param($BuildMode, $CountryCode)
+                (Test-CleanGroupApiMove -BuildMode $BuildMode -CountryCode $CountryCode).Accepted | Should -BeFalse
+            }
+
+            It 'does not use a Clean rename to hide <Failure>' -TestCases @(
+                @{ Failure = 'a missing action' },
+                @{ Failure = 'changed behavior' },
+                @{ Failure = 'changed group properties' },
+                @{ Failure = 'changed nesting' },
+                @{ Failure = 'a changed insertion parent' },
+                @{ Failure = 'an ambiguous target' },
+                @{ Failure = 'an invalid insertion kind' },
+                @{ Failure = 'a missing anchor' },
+                @{ Failure = 'an undeclared name' },
+                @{ Failure = 'a different page' }
+            ) {
+                param($Failure)
+                switch ($Failure) {
+                    'a missing action' { $newCleanGroup.Actions = @($newCleanGroup.Actions[1]) }
+                    'changed behavior' { $newCleanGroup.Actions[0].Properties[0].Value = 'Other Setup' }
+                    'changed group properties' { $newCleanGroup.Properties[0].Value = 'Other caption' }
+                    'changed nesting' { $newCleanGroup.Actions = @($newCleanGroup.Actions[0], $newCleanGroup.Actions[1].Actions[0]) }
+                    'a changed insertion parent' { $script:newRoleCenter.Actions[0].Actions[0].Name = 'Other parent' }
+                    'an ambiguous target' { $script:newRoleCenter.Actions[0].Actions[0].Actions += $newCleanGroup }
+                    'an invalid insertion kind' { $script:cleanGroupExtension.ActionChanges[0].ChangeKind = 'AddLast' }
+                    'a missing anchor' { $script:cleanGroupExtension.ActionChanges[0].Anchor = 'Missing anchor' }
+                    'an undeclared name' { $oldCleanGroup.Name = 'Other group' }
+                    'a different page' { $oldRoleCenter.Id = $script:newRoleCenter.Id = 9001 }
+                }
+                $move = Test-CleanGroupApiMove
+                $move.Accepted | Should -BeFalse
+                $move.CompatibleChanges | Should -BeNullOrEmpty
+                $move.Reason | Should -Not -BeNullOrEmpty
+            }
+
+            It 'preserves strict Default verification for unchanged legacy groups' {
+                $newCleanGroup.Name = $oldCleanGroup.Name
+                $newCleanGroup.Actions[1].Name = $oldCleanGroup.Actions[1].Name
+                (Test-CleanGroupApiMove -BuildMode Default).Accepted | Should -BeTrue
+            }
+
+            It 'records a verified Clean rename in pipeline state' {
+                Write-CleanGroupApiPackages
+                $gate = New-ApiGateLayout -CountryCode AU
+                Add-ApiMemberDiagnostic -Gate $gate -RuleId AS0031 -Message "The action group with name 'Group60' defined in Page 'Finance Manager Role Center' was found in the previous version, but is missing in the current extension."
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $state.Status | Should -Be 'Passed'
+                ($state.AcceptedMoves | Where-Object ActionName -EQ 'Group60').CompatibleChanges |
+                    Should -Contain "CLEAN30 action group rename 'Group60' -> 'Group58' on 'Finance Manager Role Center' (AU)."
             }
         }
 

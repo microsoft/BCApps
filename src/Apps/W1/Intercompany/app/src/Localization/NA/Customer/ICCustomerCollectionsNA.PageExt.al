@@ -11,13 +11,14 @@ pageextension 8559 "IC Customer Collections NA" extends "Customer List - Collect
     {
         addafter("Fax No.")
         {
+#pragma warning disable AS0062
             field("IC Partner Code"; Rec."IC Partner Code")
             {
-                ApplicationArea = Intercompany;
                 Editable = false;
                 ToolTip = 'Specifies the code for the company''s intercompany (IC) partner.';
                 Visible = false;
             }
+#pragma warning restore AS0062
         }
     }
 }
