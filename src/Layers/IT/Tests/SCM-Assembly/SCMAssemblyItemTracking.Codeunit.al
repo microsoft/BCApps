@@ -321,6 +321,7 @@ codeunit 137926 "SCM Assembly Item Tracking"
         ItemLedgerEntry: Record "Item Ledger Entry";
         ReservationManagement: Codeunit "Reservation Management";
     begin
+        ComponentItem.Get(ComponentItem."No.");
         ComponentItem."Order Tracking Policy" := ComponentItem."Order Tracking Policy"::"Tracking Only";
         ComponentItem.Modify(true);
         ItemLedgerEntry.SetRange("Item No.", ComponentItem."No.");
