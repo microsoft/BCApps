@@ -57,6 +57,7 @@ codeunit 30166 "Shpfy Process Order"
         end;
         CreateLinesFromShopifyOrder(SalesHeader, OrderHeader);
         ApplyGlobalDiscounts(OrderHeader, SalesHeader);
+
         if ShopifyShop."Auto Release Sales Orders" then
             ReleaseSalesDocument.Run(SalesHeader);
 
@@ -427,6 +428,7 @@ codeunit 30166 "Shpfy Process Order"
                     SalesLine.Validate("Document No.", SalesHeader."No.");
                     SalesLine.Validate("Line No.", GetNextLineNo(SalesHeader));
                     SalesLine.Insert(true);
+
                     if ShopifyOrderLine.Tip then begin
                         SalesLine.Validate(Type, SalesLine.Type::"G/L Account");
                         SalesLine.Validate("No.", ShopifyShop."Tip Account");
@@ -474,11 +476,13 @@ codeunit 30166 "Shpfy Process Order"
                 IsHandled := false;
                 OrderEvents.OnBeforeCreateShippingCostSalesLine(ShopifyOrderHeader, OrderShippingCharges, SalesHeader, SalesLine, IsHandled);
                 if not IsHandled then begin
+
                     if ShipmentMethodMapping.Get(ShopifyShop.Code, OrderShippingCharges.Title) then
                         if ShipmentMethodMapping."Shipping Charges Type" <> ShipmentMethodMapping."Shipping Charges Type"::" " then begin
                             ShipmentMethodMapping.TestField("Shipping Charges No.");
                             ShipmentChargeType := true;
                         end;
+
                     if not ShipmentChargeType then
                         ShopifyShop.TestField("Shipping Charges Account");
 
@@ -488,6 +492,7 @@ codeunit 30166 "Shpfy Process Order"
                     SalesLine.Validate("Document No.", SalesHeader."No.");
                     SalesLine.Validate("Line No.", GetNextLineNo(SalesHeader));
                     SalesLine.Insert(true);
+                    
                     if ShipmentChargeType then begin
                         SalesLine.Validate(Type, ShipmentMethodMapping."Shipping Charges Type");
                         SalesLine.Validate("No.", ShipmentMethodMapping."Shipping Charges No.");
@@ -514,11 +519,13 @@ codeunit 30166 "Shpfy Process Order"
                     end;
                     SalesLine."Shpfy Order No." := ShopifyOrderHeader."Shopify Order No.";
                     SalesLine.Modify(true);
+
                     if SalesLine.Type = SalesLine.Type::"Charge (Item)" then
                         AssignItemCharges(SalesHeader, SalesLine);
                 end;
                 OrderEvents.OnAfterCreateShippingCostSalesLine(ShopifyOrderHeader, OrderShippingCharges, SalesHeader, SalesLine);
             until OrderShippingCharges.Next() = 0;
+
         case ShopifyShop."Currency Handling" of
             "Shpfy Currency Handling"::"Shop Currency":
                 CreateRoundingLine(SalesHeader, ShopifyOrderHeader, ShopifyOrderHeader."Payment Rounding Amount");
@@ -621,6 +628,7 @@ codeunit 30166 "Shpfy Process Order"
     begin
         if ISOCode = '' then
             exit(ISOCode);
+
         if CountryRegion.Get(ISOCode) then
             exit(ISOCode)
         else begin
