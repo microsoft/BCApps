@@ -41,6 +41,7 @@ codeunit 144013 "ERM Cartera Journal Posting"
         LibraryCarteraPayables: Codeunit "Library - Cartera Payables";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         ReserveInterveningGLEntryNo: Boolean;
+        PostingBillAccount: Boolean;
         SavedReservedGLEntryNo: Integer;
         InterveningGLEntryNo: Integer;
         ValueMustBeEqualMsg: Label 'Value Must Be Equal.';
@@ -158,12 +159,19 @@ codeunit 144013 "ERM Cartera Journal Posting"
     var
         GLEntry: Record "G/L Entry";
     begin
-        if not ReserveInterveningGLEntryNo then
+        if not ReserveInterveningGLEntryNo or not PostingBillAccount then
             exit;
 
         SavedReservedGLEntryNo := NextEntryNo;
         InterveningGLEntryNo := GLEntry.GetNextEntryNo();
         ReserveInterveningGLEntryNo := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnBeforePostGenJnlLine', '', false, false)]
+    local procedure TrackBillAccountPosting(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean)
+    begin
+        PostingBillAccount :=
+            GenJournalLine."Account Type" in [GenJournalLine."Account Type"::Customer, GenJournalLine."Account Type"::Vendor];
     end;
 
     [Test]
