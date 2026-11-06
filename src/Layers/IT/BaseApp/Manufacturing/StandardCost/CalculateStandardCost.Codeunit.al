@@ -14,6 +14,9 @@ using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Capacity;
+#if not CLEAN28
+using Microsoft.Manufacturing.Document;
+#endif
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
@@ -945,10 +948,19 @@ codeunit 5812 "Calculate Standard Cost"
         end;
     end;
 
+#if not CLEAN28
+    local procedure CalcRoutingCostPerUnit(Type: Enum "Capacity Type Routing"; No: Code[20]; var DirUnitCost: Decimal; var IndirCostPct: Decimal; var OvhdRate: Decimal; var UnitCost: Decimal; var UnitCostCalculation: Enum "Unit Cost Calculation Type"; Item: Record Item; StandardTaskCode: Code[10])
+#else
     local procedure CalcRoutingCostPerUnit(Type: Enum "Capacity Type Routing"; No: Code[20]; var DirUnitCost: Decimal; var IndirCostPct: Decimal; var OvhdRate: Decimal; var UnitCost: Decimal; var UnitCostCalculation: Enum "Unit Cost Calculation Type")
+#endif
     var
         WorkCenter: Record "Work Center";
         MachineCenter: Record "Machine Center";
+#if not CLEAN28
+        SubContPrices: Record "Subcontractor Prices";
+        SubContPriceMgt: Codeunit SubcontractingPricesMgt;
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
         IsHandled: Boolean;
     begin
         case Type of
@@ -963,6 +975,23 @@ codeunit 5812 "Calculate Standard Cost"
         if IsHandled then
             exit;
 
+#if not CLEAN28
+        if (Type = Type::"Work Center") and
+           (WorkCenter."Subcontractor No." <> '') and
+           LegacySubcFeatureHandler.IsLegacySubcontractingEnabled()
+        then begin
+            SubContPrices."Vendor No." := WorkCenter."Subcontractor No.";
+            SubContPrices."Item No." := Item."No.";
+            SubContPrices."Standard Task Code" := StandardTaskCode;
+            SubContPrices."Work Center No." := WorkCenter."No.";
+            SubContPrices."Variant Code" := '';
+            SubContPrices."Unit of Measure Code" := Item."Base Unit of Measure";
+            SubContPrices."Start Date" := CalculationDate;
+            SubContPrices."Currency Code" := '';
+            SubContPriceMgt.GetRoutingPricelistCost(
+                SubContPrices, WorkCenter, DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, 1, 1, 1);
+        end else
+#endif
             MfgCostCalcMgt.CalcRoutingCostPerUnit(
                 Type, DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, WorkCenter, MachineCenter);
     end;
@@ -1280,8 +1309,14 @@ codeunit 5812 "Calculate Standard Cost"
         IsHandled := false;
         OnCalcRtngLineCostOnBeforeCalcRoutingCostPerUnit(RoutingLine, MfgItemQtyBase, WorkCenter, DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, ParentItem, IsHandled);
         if not IsHandled then
+#if not CLEAN28
+            CalcRoutingCostPerUnit(
+                RoutingLine.Type, RoutingLine."No.", DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation,
+                ParentItem, RoutingLine."Standard Task Code");
+#else
             CalcRoutingCostPerUnit(
                 RoutingLine.Type, RoutingLine."No.", DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation);
+#endif
         OnCalcRtngLineCostOnAfterCalcRoutingCostPerUnit(RoutingLine, WorkCenter, MfgItemQtyBase, UnitCostCalculation);
         CostTime :=
           MfgCostCalcMgt.CalculateCostTime(
@@ -1317,7 +1352,11 @@ codeunit 5812 "Calculate Standard Cost"
             WorkCenter.Get(RoutingLine."No.");
 
         UnitCost := RoutingLine."Unit Cost per";
+#if not CLEAN28
+        CalcRoutingCostPerUnit(RoutingLine.Type, RoutingLine."No.", DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, MainItem, RoutingLine."Standard Task Code");
+#else
         CalcRoutingCostPerUnit(RoutingLine.Type, RoutingLine."No.", DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation);
+#endif
         OnCalcRtngLineCostOnAfterCalcRoutingCostPerUnit(RoutingLine, WorkCenter, MfgItemQtyBase, UnitCostCalculation);
         CostTime :=
           MfgCostCalcMgt.CalculateCostTime(

@@ -291,6 +291,9 @@ codeunit 110000 "Interface Basis Data"
         RunCodeunit(CODEUNIT::"Create Contr. Brackets Lines");
         RunCodeunit(CODEUNIT::"Create Standard Task-99000778");
         RunCodeunit(CODEUNIT::"Create FatturaPA Codes");
+#if not CLEAN28
+        RunCodeunit(CODEUNIT::"Create Subcontracting Prices");
+#endif
         RunCodeunit(CODEUNIT::"Create Cue Setup");
 
         if Currency.Get(DemoDataSetup."Currency Code") then

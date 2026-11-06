@@ -15,6 +15,9 @@ using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.SyncEngine;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Tracking;
+#if not CLEAN28
+using Microsoft.Manufacturing.Document;
+#endif
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
@@ -552,6 +555,27 @@ page 27 "Vendor List"
                     RunPageLink = "Vendor No." = field("No.");
                     ToolTip = 'View or edit recurring purchase lines for the vendor.';
                 }
+#if not CLEAN28
+                action("Subcontracting Prices")
+                {
+                    ApplicationArea = LegacySubcontracting;
+                    Caption = 'Subcontracting Prices';
+                    Image = Price;
+                    RunObject = Page "Subcontracting Prices";
+                    RunPageLink = "Vendor No." = field("No.");
+                    RunPageView = sorting("Vendor No.", "Item No.", "Standard Task Code", "Work Center No.", "Variant Code", "Start Date", "Unit of Measure Code", "Minimum Quantity", "Currency Code");
+                    ToolTip = 'View the list of subcontracting prices.';
+                    ObsoleteReason = 'Preparation for replacement by Suncontracting app ';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '27.0';
+                }
+                separator(Action1130000)
+                {
+                    ObsoleteReason = 'Preparation for replacement by Suncontracting app ';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '27.0';
+                }
+#endif
                 action("Mapping Text to Account")
                 {
                     ApplicationArea = Basic, Suite;

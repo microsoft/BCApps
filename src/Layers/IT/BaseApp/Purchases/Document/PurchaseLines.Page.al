@@ -8,6 +8,9 @@ using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.AllocationAccount.Purchase;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
+#if not CLEAN28
+using Microsoft.Manufacturing.Document;
+#endif
 using Microsoft.Utilities;
 
 page 518 "Purchase Lines"
@@ -261,8 +264,19 @@ page 518 "Purchase Lines"
                     trigger OnAction()
                     var
                         PageManagement: Codeunit "Page Management";
+#if not CLEAN28
+                        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+#endif
                     begin
                         PurchHeader.Get(Rec."Document Type", Rec."Document No.");
+#if not CLEAN28
+                        if Rec."Document Type" = Rec."Document Type"::Order then begin
+                            if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() and (Rec."Prod. Order No." <> '') then
+                                PAGE.Run(PAGE::"Subcontracting Order", PurchHeader)
+                            else
+                                PAGE.Run(PAGE::"Purchase Order", PurchHeader);
+                        end else
+#endif
                         PageManagement.PageRun(PurchHeader);
 
                         OnShowDocumentOnAfterOnAction(PurchHeader);

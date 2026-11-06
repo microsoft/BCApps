@@ -26,6 +26,9 @@ using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Setup;
+#if not CLEAN28
+using Microsoft.Manufacturing.Document;
+#endif
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Archive;
 using System.Privacy;
@@ -84,6 +87,9 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"GL Book Entry");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"VAT Register");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Reprint Info Fiscal Reports");
+#if not CLEAN28
+        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Subcontractor Prices");
+#endif
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Goods Appearance");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Transport Reason Code");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Company Officials");

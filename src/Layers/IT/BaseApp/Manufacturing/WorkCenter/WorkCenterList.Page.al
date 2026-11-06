@@ -7,6 +7,9 @@ namespace Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Finance.Dimension;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Comment;
+#if not CLEAN28
+using Microsoft.Manufacturing.Document;
+#endif
 using Microsoft.Manufacturing.Reports;
 using System.Text;
 
@@ -283,6 +286,30 @@ page 99000755 "Work Center List"
         }
         area(processing)
         {
+#if not CLEAN28
+            action("Subcontr. &Prices")
+            {
+                ApplicationArea = LegacySubcontracting;
+                Caption = 'Subcontr. &Prices';
+                Image = Price;
+                ToolTip = 'View the subcontracting prices.';
+                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+                ObsoleteState = Pending;
+                ObsoleteTag = '27.0';
+
+                trigger OnAction()
+                var
+                    SubcontractorPrices: Record "Subcontractor Prices";
+                    SubcPriceForm: Page "Subcontracting Prices";
+                begin
+                    if Rec."Subcontractor No." <> '' then begin
+                        SubcontractorPrices.SetRange("Work Center No.", Rec."No.");
+                        SubcPriceForm.SetTableView(SubcontractorPrices);
+                        SubcPriceForm.RunModal();
+                    end;
+                end;
+            }
+#endif
             action("Calculate Work Center Calendar")
             {
                 ApplicationArea = Manufacturing;
@@ -307,6 +334,14 @@ page 99000755 "Work Center List"
             {
                 Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
+#if not CLEAN28
+                actionref("Subcontr. &Prices_Promoted"; "Subcontr. &Prices")
+                {
+                    ObsoleteReason = 'Preparation for replacement by Suncontracting app ';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '27.0';
+                }
+#endif
                 actionref("Calculate Work Center Calendar_Promoted"; "Calculate Work Center Calendar")
                 {
                 }
