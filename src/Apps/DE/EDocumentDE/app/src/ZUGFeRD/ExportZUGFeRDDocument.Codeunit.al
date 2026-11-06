@@ -860,6 +860,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         SettlementElement.Add(XmlElement.Create('InvoiceCurrencyCode', XmlNamespaceRAM, CurrencyCode));
         InsertPaymentMethod(SettlementElement, SalesInvHeader."Payment Method Code", SalesInvHeader."Company Bank Account Code", SalesInvHeader."Direct Debit Mandate ID", SalesInvHeader);
         InsertTradeTax(SettlementElement, SalesInvLine, LineAmount, LineVATAmount);
+        InsertHeaderBillingPeriod(SettlementElement, SalesInvHeader);
         InsertInvDiscountAllowanceCharge(SettlementElement, SalesInvLine, LineDiscAmount, LineAmounts);
         InsertItemChargeAllowanceCharges(SettlementElement, SalesInvLine);
 
@@ -891,6 +892,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         SettlementElement.Add(XmlElement.Create('InvoiceCurrencyCode', XmlNamespaceRAM, CurrencyCode));
         InsertPaymentMethod(SettlementElement, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code", '', SalesCrMemoHeader);
         InsertTradeTax(SettlementElement, SalesCrMemoLine, LineAmount, LineVATAmount);
+        InsertHeaderBillingPeriod(SettlementElement, SalesCrMemoHeader);
         InsertInvDiscountAllowanceCharge(SettlementElement, SalesCrMemoLine, LineDiscAmount, LineAmounts);
         InsertItemChargeAllowanceCharges(SettlementElement, SalesCrMemoLine);
 
@@ -1028,14 +1030,75 @@ codeunit 13917 "Export ZUGFeRD Document"
         StartDateElement: XmlElement;
         EndDateElement: XmlElement;
     begin
+        if (StartDate = 0D) and (EndDate = 0D) then
+            exit;
+
         BillingSpecifiedPeriodElement := XmlElement.Create('BillingSpecifiedPeriod', XmlNamespaceRAM);
-        StartDateElement := XmlElement.Create('StartDateTime', XmlNamespaceRAM);
-        StartDateElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(StartDate)));
-        BillingSpecifiedPeriodElement.Add(StartDateElement);
-        EndDateElement := XmlElement.Create('EndDateTime', XmlNamespaceRAM);
-        EndDateElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(EndDate)));
-        BillingSpecifiedPeriodElement.Add(EndDateElement);
+        if StartDate <> 0D then begin
+            StartDateElement := XmlElement.Create('StartDateTime', XmlNamespaceRAM);
+            StartDateElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(StartDate)));
+            BillingSpecifiedPeriodElement.Add(StartDateElement);
+        end;
+        if EndDate <> 0D then begin
+            EndDateElement := XmlElement.Create('EndDateTime', XmlNamespaceRAM);
+            EndDateElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(EndDate)));
+            BillingSpecifiedPeriodElement.Add(EndDateElement);
+        end;
         RootElement.Add(BillingSpecifiedPeriodElement);
+    end;
+
+    local procedure InsertSalesInvLineBillingPeriod(var RootElement: XmlElement; SalesInvoiceLine: Record "Sales Invoice Line")
+    var
+        StartDate: Date;
+        EndDate: Date;
+    begin
+        StartDate := SalesInvoiceLine."Shipment Date";
+        EndDate := SalesInvoiceLine."Shipment Date";
+        OnBeforeInsertSalesInvLineBillingPeriod(SalesInvoiceLine, StartDate, EndDate);
+        if not IsValidPeriod(StartDate, EndDate) then begin
+            StartDate := SalesInvoiceLine."Shipment Date";
+            EndDate := SalesInvoiceLine."Shipment Date";
+        end;
+        InsertBillingSpecifiedPeriod(RootElement, StartDate, EndDate);
+    end;
+
+    local procedure InsertSalesCrMemoLineBillingPeriod(var RootElement: XmlElement; SalesCrMemoLine: Record "Sales Cr.Memo Line")
+    var
+        StartDate: Date;
+        EndDate: Date;
+    begin
+        StartDate := SalesCrMemoLine."Shipment Date";
+        EndDate := SalesCrMemoLine."Shipment Date";
+        OnBeforeInsertSalesCrMemoLineBillingPeriod(SalesCrMemoLine, StartDate, EndDate);
+        if not IsValidPeriod(StartDate, EndDate) then begin
+            StartDate := SalesCrMemoLine."Shipment Date";
+            EndDate := SalesCrMemoLine."Shipment Date";
+        end;
+        InsertBillingSpecifiedPeriod(RootElement, StartDate, EndDate);
+    end;
+
+    local procedure InsertHeaderBillingPeriod(var RootElement: XmlElement; Header: Variant)
+    var
+        HeaderRecordRef: RecordRef;
+        DataTypeManagement: Codeunit "Data Type Management";
+        StartDate: Date;
+        EndDate: Date;
+    begin
+        if SourceDocumentRecordRef.Number() <> 0 then
+            OnBeforeInsertHeaderBillingPeriod(SourceDocumentRecordRef, StartDate, EndDate)
+        else
+            if DataTypeManagement.GetRecordRef(Header, HeaderRecordRef) then
+                OnBeforeInsertHeaderBillingPeriod(HeaderRecordRef, StartDate, EndDate);
+        if not IsValidPeriod(StartDate, EndDate) then
+            exit;
+        InsertBillingSpecifiedPeriod(RootElement, StartDate, EndDate);
+    end;
+
+    local procedure IsValidPeriod(StartDate: Date; EndDate: Date): Boolean
+    begin
+        if (StartDate = 0D) or (EndDate = 0D) then
+            exit(true);
+        exit(StartDate <= EndDate);
     end;
 
     local procedure InsertGlobalID(var SpecifiedTradeProductElement: XmlElement; ItemNo: Code[20])
@@ -1118,8 +1181,7 @@ codeunit 13917 "Export ZUGFeRD Document"
             ApplicableTradeTaxElement.Add(XmlElement.Create('RateApplicablePercent', XmlNamespaceRAM, FormatFiveDecimal(SalesInvoiceLine."VAT %")));
             SpecifiedLineTradeSettlementElement.Add(ApplicableTradeTaxElement);
 
-            if SalesInvoiceLine."Shipment Date" <> 0D then
-                InsertBillingSpecifiedPeriod(SpecifiedLineTradeSettlementElement, SalesInvoiceLine."Shipment Date", SalesInvoiceLine."Shipment Date");
+            InsertSalesInvLineBillingPeriod(SpecifiedLineTradeSettlementElement, SalesInvoiceLine);
 
             if SalesInvoiceLine."Line Discount Amount" <> 0 then
                 InsertAllowanceCharge(SpecifiedLineTradeSettlementElement, 'Line Discount', GetTaxCategoryID(SalesInvoiceLine."Tax Category", SalesInvoiceLine."VAT Bus. Posting Group",
@@ -1209,8 +1271,7 @@ codeunit 13917 "Export ZUGFeRD Document"
             ApplicableTradeTaxElement.Add(XmlElement.Create('RateApplicablePercent', XmlNamespaceRAM, FormatFiveDecimal(SalesCrMemoLine."VAT %")));
             SpecifiedLineTradeSettlementElement.Add(ApplicableTradeTaxElement);
 
-            if SalesCrMemoLine."Shipment Date" <> 0D then
-                InsertBillingSpecifiedPeriod(SpecifiedLineTradeSettlementElement, SalesCrMemoLine."Shipment Date", SalesCrMemoLine."Shipment Date");
+            InsertSalesCrMemoLineBillingPeriod(SpecifiedLineTradeSettlementElement, SalesCrMemoLine);
 
             if SalesCrMemoLine."Line Discount Amount" <> 0 then
                 InsertAllowanceCharge(SpecifiedLineTradeSettlementElement, 'Line Discount', GetTaxCategoryID(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group",
@@ -2244,6 +2305,21 @@ codeunit 13917 "Export ZUGFeRD Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAddCrMemoLineElement(var CrMemoLineElement: XmlElement; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; Currency: Record Currency; CurrencyCode: Code[10]; PricesIncVAT: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertSalesInvLineBillingPeriod(SalesInvoiceLine: Record "Sales Invoice Line"; var StartDate: Date; var EndDate: Date)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertSalesCrMemoLineBillingPeriod(SalesCrMemoLine: Record "Sales Cr.Memo Line"; var StartDate: Date; var EndDate: Date)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertHeaderBillingPeriod(HeaderRecordRef: RecordRef; var StartDate: Date; var EndDate: Date)
     begin
     end;
 
