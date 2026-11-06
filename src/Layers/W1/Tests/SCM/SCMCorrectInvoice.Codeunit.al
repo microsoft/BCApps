@@ -34,6 +34,39 @@ codeunit 137019 "SCM Correct Invoice"
         CommentCountErr: Label 'Wrong Sales Line Count';
         ConfirmDialogErr: Label 'Expected confirm dialog was not shown';
         SalesOrderLineReducedErr: Label 'Sales Order Line "%1" should be reduced by credit memo quantity.';
+        TrackingCodeChangedCancelCorrectErr: Label 'You cannot cancel or correct posted sales invoice %2 because the item tracking code for item %1 has changed since the item was posted.', Comment = '%1 = Item No., %2 = Posted Sales Invoice No.';
+
+    [Test]
+    procedure CancelPostedSalesInvoiceIsBlockedAfterTrackingCodeChange()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] A posted sales invoice cannot be cancelled automatically after a later tracking-code change.
+        Initialize();
+
+        // [GIVEN] Posted sales invoice "SI" for untracked item "I".
+        CreateAndPostSalesInvForNewItemAndCust(Item, Customer, 1, 1, SalesInvoiceHeader);
+
+        // [GIVEN] Item "I" is later changed to lot tracking.
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        Item.Get(Item."No.");
+        Item."Item Tracking Code" := ItemTrackingCode.Code;
+        Item.Modify();
+        CreateItemTrackingCodeChangeLog(Item."No.", CurrentDateTime() + 1000, '', ItemTrackingCode.Code);
+
+        // [WHEN] Posted sales invoice "SI" is cancelled.
+        asserterror CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader);
+
+        // [THEN] Automatic cancellation is blocked and directs the user to a manual corrective credit memo.
+        Assert.ExpectedError(
+            StrSubstNo(TrackingCodeChangedCancelCorrectErr, Item."No.", SalesInvoiceHeader."No."));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
 
     [Test]
     [Scope('OnPrem')]
@@ -1491,6 +1524,18 @@ codeunit 137019 "SCM Correct Invoice"
         SellItem(Cust, Item, Qty, SalesInvoiceHeader);
     end;
 
+    local procedure CreateItemTrackingCodeChangeLog(ItemNo: Code[20]; ChangeDateTime: DateTime; PreviousItemTrackingCode: Code[10]; NewItemTrackingCode: Code[10])
+    var
+        ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
+    begin
+        ItemTrackingCodeChangeLog.Init();
+        ItemTrackingCodeChangeLog."Item No." := ItemNo;
+        ItemTrackingCodeChangeLog."Change DateTime" := ChangeDateTime;
+        ItemTrackingCodeChangeLog."Previous Item Tracking Code" := PreviousItemTrackingCode;
+        ItemTrackingCodeChangeLog."New Item Tracking Code" := NewItemTrackingCode;
+        ItemTrackingCodeChangeLog.Insert(true);
+    end;
+
     local procedure CreateSalesInvForNewItemAndCust(var Item: Record Item; var Cust: Record Customer; UnitPrice: Decimal; Qty: Decimal; var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     begin
         CreateItemWithPrice(Item, UnitPrice);
@@ -1798,4 +1843,3 @@ codeunit 137019 "SCM Correct Invoice"
         Reply := true;
     end;
 }
-

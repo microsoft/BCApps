@@ -129,6 +129,8 @@ codeunit 900 "Assembly-Post"
         Text010: Label 'Undoing %1';
 #pragma warning restore AA0470
         Text011: Label 'Posted assembly order %1 cannot be restored because the number of lines in assembly order %2 has changed.', Comment = '%1=Posted Assembly Order No. field value,%2=Assembly Header Document No field value';
+        ItemTrackingCodeChangedForUndoErr: Label 'You cannot undo posted assembly order %1 because the Item Tracking Code for item %2 has changed from ''%3'' to ''%4''. The required tracking information cannot be determined automatically.', Comment = '%1 = Posted Assembly Order No., %2 = Item No., %3 = Previous Item Tracking Code, %4 = Current Item Tracking Code';
+        ItemTrackingRequirementsChangedForUndoErr: Label 'You cannot undo posted assembly order %1 because the current Item Tracking Code ''%2'' for item %3 does not match the tracking information on item ledger entry %4. The required tracking information cannot be determined automatically.', Comment = '%1 = Posted Assembly Order No., %2 = Current Item Tracking Code, %3 = Item No., %4 = Item Ledger Entry No.';
         ItemTrackingQtyToHandleErr: Label 'Qty. to Handle (Base) in the item tracking for item %1 in assembly document %2, line %3 is currently %4. It must be %5.', Comment = '%1=Item No.,%2=Document No.,%3=Line No.,%4=Sum of Qty. to Handle,%5=Line Quantity';
 #pragma warning restore AA0074
         SuppressCommit: Boolean;
@@ -1420,18 +1422,21 @@ codeunit 900 "Assembly-Post"
         UndoPostingMgt.TestAsmHeader(PostedAsmHeader);
         UndoPostingMgt.CollectItemLedgEntries(
             TempItemLedgEntry, DATABASE::"Posted Assembly Header", PostedAsmHeader."No.", 0, PostedAsmHeader."Quantity (Base)", PostedAsmHeader."Item Rcpt. Entry No.");
+        TestItemTrackingCodeNotChangedForUndo(TempItemLedgEntry, PostedAsmHeader."No.");
         UndoPostingMgt.CheckItemLedgEntries(TempItemLedgEntry, 0);
 
         PostedAsmLine.SetRange("Document No.", PostedAsmHeader."No.");
-        repeat
-            if (PostedAsmLine.Type = PostedAsmLine.Type::Item) and (PostedAsmLine."Item Shpt. Entry No." <> 0) then begin
-                UndoPostingMgt.TestAsmLine(PostedAsmLine);
-                UndoPostingMgt.CollectItemLedgEntries(
-                    TempItemLedgEntry, DATABASE::"Posted Assembly Line", PostedAsmLine."Document No.", PostedAsmLine."Line No.",
-                    PostedAsmLine."Quantity (Base)", PostedAsmLine."Item Shpt. Entry No.");
-                UndoPostingMgt.CheckItemLedgEntries(TempItemLedgEntry, PostedAsmLine."Line No.");
-            end;
-        until PostedAsmLine.Next() = 0;
+        if PostedAsmLine.FindSet() then
+            repeat
+                if (PostedAsmLine.Type = PostedAsmLine.Type::Item) and (PostedAsmLine."Item Shpt. Entry No." <> 0) then begin
+                    UndoPostingMgt.TestAsmLine(PostedAsmLine);
+                    UndoPostingMgt.CollectItemLedgEntries(
+                        TempItemLedgEntry, DATABASE::"Posted Assembly Line", PostedAsmLine."Document No.", PostedAsmLine."Line No.",
+                        PostedAsmLine."Quantity (Base)", PostedAsmLine."Item Shpt. Entry No.");
+                    TestItemTrackingCodeNotChangedForUndo(TempItemLedgEntry, PostedAsmHeader."No.");
+                    UndoPostingMgt.CheckItemLedgEntries(TempItemLedgEntry, PostedAsmLine."Line No.");
+                end;
+            until PostedAsmLine.Next() = 0;
 
         if not AsmHeader.Get(AsmHeader."Document Type"::Order, PostedAsmHeader."Order No.") then
             exit(true);
@@ -1454,6 +1459,33 @@ codeunit 900 "Assembly-Post"
             AsmLine.TestField("Location Code", PostedAsmLine."Location Code");
             AsmLine.TestField("Bin Code", PostedAsmLine."Bin Code");
         until (PostedAsmLine.Next() = 0) and (AsmLine.Next() = 0);
+    end;
+
+    local procedure TestItemTrackingCodeNotChangedForUndo(var TempItemLedgEntryToCheck: Record "Item Ledger Entry" temporary; PostedAssemblyOrderNo: Code[20])
+    var
+        Item: Record Item;
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+        HistoricalItemTrackingCode: Code[10];
+    begin
+        TempItemLedgEntryToCheck.FindSet();
+        repeat
+            Clear(HistoricalItemTrackingCode);
+            if ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
+                 TempItemLedgEntryToCheck."Item No.", TempItemLedgEntryToCheck."Entry No.", HistoricalItemTrackingCode)
+            then begin
+                Item.Get(TempItemLedgEntryToCheck."Item No.");
+                Error(
+                    ItemTrackingCodeChangedForUndoErr, PostedAssemblyOrderNo, Item."No.",
+                    HistoricalItemTrackingCode, Item."Item Tracking Code");
+            end;
+
+            if not ItemTrackingCodeChangeMgt.IsCurrentTrackingCodeCompatibleWithEntry(TempItemLedgEntryToCheck) then begin
+                Item.Get(TempItemLedgEntryToCheck."Item No.");
+                Error(
+                    ItemTrackingRequirementsChangedForUndoErr, PostedAssemblyOrderNo, Item."Item Tracking Code",
+                    Item."No.", TempItemLedgEntryToCheck."Entry No.");
+            end;
+        until TempItemLedgEntryToCheck.Next() = 0;
     end;
 
     local procedure RestoreItemTracking(var ItemLedgEntry: Record "Item Ledger Entry"; OrderNo: Code[20]; OrderLineNo: Integer; SourceType: Integer; DocType: Option; RcptDate: Date; ShptDate: Date)
@@ -1946,4 +1978,3 @@ codeunit 900 "Assembly-Post"
     begin
     end;
 }
-

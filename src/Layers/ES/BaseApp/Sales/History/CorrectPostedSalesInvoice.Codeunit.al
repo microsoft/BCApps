@@ -18,6 +18,7 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Sales.Customer;
@@ -129,6 +130,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         WMSLocationCancelCorrectErr: Label 'You cannot cancel or correct this posted sales invoice because Warehouse Receive is required for Line No. = %1.', Comment = '%1 - line number';
         DropShipmentDocumentExistsErr: Label 'You cannot use the cancel or correct functionality because the invoice line is associated with purchase order %1 due to Drop Shipment.', Comment = '%1 - Purchase Order No.';
         CreateCreditMemoQst: Label 'The invoice was posted from an order. A Sales Credit memo will be created which you complete and post manually. The quantities will be corrected in the existing Sales Order.\ \Do you want to continue?';
+        TrackingCodeChangedCancelCorrectErr: Label 'You cannot cancel or correct posted sales invoice %2 because the item tracking code for item %1 has changed since the item was posted. Create a corrective credit memo and assign the required item tracking before posting it.', Comment = '%1 = Item No., %2 = Posted Sales Invoice No.';
 
     /// <summary>
     /// Cancels the posted sales invoice by creating and posting a corrective credit memo.
@@ -360,6 +362,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         TestCustomerDimension(SalesInvoiceHeader, SalesInvoiceHeader."Bill-to Customer No.");
         TestDimensionOnHeader(SalesInvoiceHeader);
         TestSalesLines(SalesInvoiceHeader);
+        TestNoApplicationAcrossTrackingPeriods(SalesInvoiceHeader);
         TestIfAnyFreeNumberSeries(SalesInvoiceHeader);
         TestExternalDocument(SalesInvoiceHeader);
         TestInventoryPostingClosed(SalesInvoiceHeader);
@@ -367,6 +370,32 @@ codeunit 1303 "Correct Posted Sales Invoice"
         TestIfDropShipmentDocument(SalesInvoiceHeader);
 
         OnAfterTestCorrectInvoiceIsAllowed(SalesInvoiceHeader, Cancelling);
+    end;
+
+    local procedure TestNoApplicationAcrossTrackingPeriods(SalesInvoiceHeader: Record "Sales Invoice Header")
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+    begin
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
+        if SalesInvoiceLine.FindSet() then
+            repeat
+                TempItemLedgerEntry.Reset();
+                TempItemLedgerEntry.DeleteAll();
+                SalesInvoiceLine.GetItemLedgEntries(TempItemLedgerEntry, false);
+                if TempItemLedgerEntry.FindSet() then
+                    repeat
+                        if ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+                            SalesInvoiceLine."No.", TempItemLedgerEntry."Entry No.")
+                        then
+                            Error(
+                                TrackingCodeChangedCancelCorrectErr,
+                                SalesInvoiceLine."No.",
+                                SalesInvoiceHeader."No.");
+                    until TempItemLedgerEntry.Next() = 0;
+            until SalesInvoiceLine.Next() = 0;
     end;
 
     local procedure ShowInvoiceAppliedNotification(SalesInvoiceHeader: Record "Sales Invoice Header")

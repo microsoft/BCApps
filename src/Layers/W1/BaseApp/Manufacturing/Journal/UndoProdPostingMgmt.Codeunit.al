@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Journal;
 using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Posting;
@@ -30,6 +31,8 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         QuantityMustBeLessThanZeroErr: Label 'Quantity must be less than 0 on %1 No. %2 to reverse the entry. ', Comment = '%1 = Table Caption , %2 = Entry No.';
         MissingReleasedProductionErr: Label 'Production Order %1 is already Finished, you cannot reverse this entry.', Comment = '%1 = Production Order No.';
         CannotReverseLastOperationErr: Label '%1 %2 is the last operation of Production Order %3. Reversal of this operation can only be performed from the %4.', Comment = '%1 - Field Caption, %2 - Entry No., %3 - Production Order No., %4 - Item Ledger Entry table caption';
+        ItemTrackingCodeChangedForReversalErr: Label 'You cannot reverse production entry %1 for production order %2 because the Item Tracking Code for item %3 has changed from ''%4'' to ''%5''. The required tracking information cannot be determined automatically.', Comment = '%1 = Item Ledger Entry No., %2 = Production Order No., %3 = Item No., %4 = Previous Item Tracking Code, %5 = Current Item Tracking Code';
+        ItemTrackingRequirementsChangedForReversalErr: Label 'You cannot reverse production entry %1 for production order %2 because the current Item Tracking Code ''%3'' for item %4 does not match the tracking information on the original item ledger entry. The required tracking information cannot be determined automatically.', Comment = '%1 = Item Ledger Entry No., %2 = Production Order No., %3 = Current Item Tracking Code, %4 = Item No.';
 
     procedure ReverseProdItemLedgerEntry(var ItemLedgerEntry: Record "Item Ledger Entry")
     var
@@ -47,7 +50,6 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
             until ItemLedgerEntry.Next() = 0;
 
         OnReverseProdItemLedgerEntryOnAfterProcessItemLedgerEntries(ItemLedgerEntry);
-
         if Processed and not HideDialog then
             Message(PostedSuccessfullyMsg);
     end;
@@ -66,7 +68,6 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
                 OnReverseCapacityLedgerEntryOnAfterReverseOutputCapacityLedgerEntry(CapacityLedgEntry);
                 Processed := true;
             until CapacityLedgEntry.Next() = 0;
-
         if Processed and not HideDialog then
             Message(PostedSuccessfullyMsg);
     end;
@@ -74,7 +75,6 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
     local procedure ProcessItemLedgEntry(ItemLedgerEntry: Record "Item Ledger Entry")
     begin
         SourceCodeSetup.Get();
-
         case ItemLedgerEntry."Entry Type" of
             Enum::"Item Ledger Entry Type"::Output:
                 ReverseOutputItemLedgerEntry(ItemLedgerEntry);
@@ -139,7 +139,6 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
                     ItemLedgerEntry.Quantity, ItemLedgerEntry."Qty. per Unit of Measure")));
 
         ItemJnlLine.Validate(Description, ItemLedgerEntry.Description);
-
         if ItemLedgerEntry.TrackingExists() then
             CreateOutputReservationEntry(ItemJnlLine, ItemLedgerEntry)
         else
@@ -316,7 +315,6 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
             ItemJnlLine."Quantity (Base)" := ItemLedgerEntry.Quantity;
             ItemJnlLine."Invoiced Qty. (Base)" := ItemLedgerEntry.Quantity;
         end;
-
         if ItemLedgerEntry.TrackingExists() then
             CreateConsumptionReservationEntry(ItemJnlLine, ItemLedgerEntry)
         else
@@ -336,7 +334,6 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
     begin
         if HideDialog then
             exit(true);
-
         if not GuiAllowed() then
             exit(true);
 
@@ -351,16 +348,16 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         if not (ItemLedgEntry."Entry Type" in [ItemLedgEntry."Entry Type"::Output, ItemLedgEntry."Entry Type"::Consumption]) then
             Error(InvalidEntryTypeErr);
 
+        TestItemTrackingCodeNotChangedForReversal(ItemLedgEntry);
+
         ProdOrderLine.SetBaseLoadFields();
         ProdOrderLine.Get(ProdOrderLine.Status::Released, ItemLedgEntry."Order No.", ItemLedgEntry."Order Line No.");
-
         if ItemLedgEntry."Entry Type" = ItemLedgEntry."Entry Type"::Output then
             ItemLedgEntry.TestField("Remaining Quantity", ItemLedgEntry.Quantity);
 
         ItemLedgEntry.CalcFields("Reserved Quantity");
         ItemLedgEntry.TestField("Reserved Quantity", 0);
         ItemLedgEntry.TestField(Correction, false);
-
         case ItemLedgEntry."Entry Type" of
             Enum::"Item Ledger Entry Type"::Consumption:
                 if ItemLedgEntry.Quantity > 0 then
@@ -369,11 +366,34 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
                 if ItemLedgEntry.Quantity < 0 then
                     Error(QuantityMustBeGreaterThanZeroErr, ItemLedgEntry.TableCaption, ItemLedgEntry."Entry No.");
         end;
-
         if ItemLedgEntry."Entry Type" = ItemLedgEntry."Entry Type"::Output then
             ValidateSubcontracting(ProdOrderLine);
 
         OnAfterValidateProdOrder(ItemLedgEntry, ProdOrderLine);
+    end;
+
+    local procedure TestItemTrackingCodeNotChangedForReversal(ItemLedgEntry: Record "Item Ledger Entry")
+    var
+        Item: Record Item;
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+        HistoricalItemTrackingCode: Code[10];
+    begin
+        if not ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
+             ItemLedgEntry."Item No.", ItemLedgEntry."Entry No.", HistoricalItemTrackingCode)
+        then begin
+            if ItemTrackingCodeChangeMgt.IsCurrentTrackingCodeCompatibleWithEntry(ItemLedgEntry) then
+                exit;
+
+            Item.Get(ItemLedgEntry."Item No.");
+            Error(
+                ItemTrackingRequirementsChangedForReversalErr, ItemLedgEntry."Entry No.", ItemLedgEntry."Order No.",
+                Item."Item Tracking Code", Item."No.");
+        end;
+
+        Item.Get(ItemLedgEntry."Item No.");
+        Error(
+            ItemTrackingCodeChangedForReversalErr, ItemLedgEntry."Entry No.", ItemLedgEntry."Order No.",
+            Item."No.", HistoricalItemTrackingCode, Item."Item Tracking Code");
     end;
 
     local procedure ValidateSubcontracting(ProdOrderLine: Record "Prod. Order Line")
@@ -415,13 +435,10 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
 
         ProductionOrder.SetLoadFields(Status, "No.");
         ProductionOrder.Get(ProductionOrder.Status::Released, CapacityLedgerEntry."Order No.");
-
         if CapacityLedgerEntry.Reversed then
             ReversalEntry.AlreadyReversedEntry(CapacityLedgerEntry.TableCaption(), CapacityLedgerEntry."Entry No.");
-
         if CapacityLedgerEntry.Subcontracting then
             Error(SubContractingErr);
-
         if IsLastOperation(CapacityLedgerEntry) and (CapacityLedgerEntry."Output Quantity" <> 0) then begin
             OnValidateProdOrderOnIsLastOperation(CapacityLedgerEntry);
             Error(CannotReverseLastOperationErr, CapacityLedgerEntry.FieldCaption("Entry No."), CapacityLedgerEntry."Entry No.", CapacityLedgerEntry."Order No.", ItemLedgEntry.TableCaption());

@@ -522,6 +522,8 @@ codeunit 137014 "SCM Fulfillment"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        LibraryERM: Codeunit "Library - ERM";
     begin
         // [FEATURE] [Create Warehouse Shipment] [Reservation] [Purchase] [Return Order]
         // [SCENARIO 471183] Respect "Reserved From Stock" = Full in Create Warehouse Shipment report.
@@ -530,9 +532,14 @@ codeunit 137014 "SCM Fulfillment"
         // [GIVEN] Item in inventory
         CreateWMSLocation(Location, false, false, false, false, true);
 
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
         LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
 
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Return Order", '');
+        LibraryPurchase.CreatePurchHeader(
+          PurchaseHeader, PurchaseHeader."Document Type"::"Return Order",
+          LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
         PurchaseHeader.Validate("Location Code", Location.Code);
         PurchaseHeader.Modify(true);
 
