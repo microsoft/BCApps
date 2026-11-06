@@ -19,6 +19,8 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
 #endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnAfterInsertPurchOrderLine, '', false, false)]
     local procedure OnAfterInsertPurchOrderLine(var PurchOrderLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
+    var
+        SubcFeatureTelemetry: Codeunit "Subc. Feature Telemetry";
     begin
 #if not CLEAN28
 #pragma warning disable AL0432
@@ -27,6 +29,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
             exit;
 #endif
         HandleSubcontractingAfterPurchOrderLineInsert(PurchOrderLine, NextLineNo, RequisitionLine);
+        SubcFeatureTelemetry.LogPurchaseOrderLineCreated(PurchOrderLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnAfterInitPurchOrderLine, '', false, false)]
