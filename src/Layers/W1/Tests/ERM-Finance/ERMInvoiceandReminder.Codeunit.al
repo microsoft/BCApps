@@ -1457,13 +1457,9 @@ codeunit 134907 "ERM Invoice and Reminder"
     end;
 
     local procedure MockCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustomerNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; LastIssuedReminderLevel: Integer; DueDate: Date)
-    var
-        LastEntryNo: Integer;
     begin
-        if CustLedgerEntry.FindLast() then
-            LastEntryNo := CustLedgerEntry."Entry No.";
         CustLedgerEntry.Init();
-        CustLedgerEntry."Entry No." := LastEntryNo + 1;
+        CustLedgerEntry."Entry No." := GetFreeMockCustLedgerEntryNo();
         CustLedgerEntry."Customer No." := CustomerNo;
         CustLedgerEntry."Posting Date" := WorkDate();
         CustLedgerEntry."Document Type" := DocumentType;
@@ -1473,6 +1469,18 @@ codeunit 134907 "ERM Invoice and Reminder"
         CustLedgerEntry.Open := true;
         CustLedgerEntry.Positive := true;
         CustLedgerEntry.Insert();
+    end;
+
+    local procedure GetFreeMockCustLedgerEntryNo() EntryNo: Integer
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GLEntry: Record "G/L Entry";
+    begin
+        // Posted customer ledger entries take the next G/L entry number, so a mock above the last G/L entry
+        // would collide with customer ledger entries posted by later tests in this codeunit.
+        EntryNo := GLEntry.GetLastEntryNo();
+        while CustLedgerEntry.Get(EntryNo) do
+            EntryNo -= 1;
     end;
 
     procedure FindBankAccountDefaultForCurrency(var BankAccount: Record "Bank Account")
