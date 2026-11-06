@@ -412,19 +412,14 @@ codeunit 6902 "Expense Rule Validation"
         DuplicateExpenseReportLine.SetRange("Merchant Name", ExpenseReportLine."Merchant Name");
         DuplicateExpenseReportLine.SetRange(Amount, ExpenseReportLine.Amount);
         DuplicateExpenseReportLine.SetFilter(SystemId, '<>%1', ExpenseReportLine.SystemId); // Exclude current record to not consider it as duplicate of itself.
-        if DuplicateExpenseReportLine.IsEmpty() then
-            exit(false);
-
         TravelRequestNo := GetPerDiemTravelRequestNo(ExpenseReportLine);
         if TravelRequestNo = '' then
-            exit(true);
+            exit(not DuplicateExpenseReportLine.IsEmpty());
 
-        DuplicateExpenseReportLine.FindSet();
+        if not DuplicateExpenseReportLine.FindSet() then
+            exit(false);
         repeat
-            if not IsOtherTravelerPerDiemLine(
-                DuplicateExpenseReportLine."Expense Detail Required", DuplicateExpenseReportLine."Expense User No.", GetPerDiemTravelRequestNo(DuplicateExpenseReportLine),
-                ExpenseReportLine."Expense User No.", TravelRequestNo)
-            then
+            if not IsOtherTravelerPerDiemLine(DuplicateExpenseReportLine, ExpenseReportLine."Expense User No.", TravelRequestNo) then
                 exit(true);
         until DuplicateExpenseReportLine.Next() = 0;
         exit(false);
@@ -461,13 +456,20 @@ codeunit 6902 "Expense Rule Validation"
     /// <summary>
     /// Per diem lines created for each traveler of a travel request share the same date and amount and have no receipt or merchant,
     /// so a per diem line of another traveler on the same travel request must not be treated as a duplicate.
+    /// The traveler is checked first, so the travel request is only resolved for lines of other travelers.
     /// </summary>
-    local procedure IsOtherTravelerPerDiemLine(MatchExpenseDetailRequired: Enum "Expense Detail Needed"; MatchExpenseUserNo: Code[20]; MatchTravelRequestNo: Code[20]; ExpenseUserNo: Code[20]; TravelRequestNo: Code[20]): Boolean
+    local procedure IsOtherTravelerPerDiemLine(MatchExpenseReportLine: Record "Expense Report Line"; ExpenseUserNo: Code[20]; TravelRequestNo: Code[20]): Boolean
     begin
-        exit(
-            (MatchExpenseDetailRequired = MatchExpenseDetailRequired::"Per Diem") and
-            (MatchExpenseUserNo <> ExpenseUserNo) and
-            (MatchTravelRequestNo = TravelRequestNo));
+        if MatchExpenseReportLine."Expense User No." = ExpenseUserNo then
+            exit(false);
+        exit(GetPerDiemTravelRequestNo(MatchExpenseReportLine) = TravelRequestNo);
+    end;
+
+    local procedure IsOtherTravelerPerDiemLine(MatchPostedExpenseReportLine: Record "Posted Expense Report Line"; ExpenseUserNo: Code[20]; TravelRequestNo: Code[20]): Boolean
+    begin
+        if MatchPostedExpenseReportLine."Expense User No." = ExpenseUserNo then
+            exit(false);
+        exit(GetPerDiemTravelRequestNo(MatchPostedExpenseReportLine) = TravelRequestNo);
     end;
 
     local procedure ExistDuplicateInPostedExpenseReportLine(ExpenseReportLine: Record "Expense Report Line"): Boolean
@@ -484,19 +486,14 @@ codeunit 6902 "Expense Rule Validation"
 
         PostedExpenseReportLine.SetRange("Merchant Name", ExpenseReportLine."Merchant Name");
         PostedExpenseReportLine.SetRange(Amount, ExpenseReportLine.Amount);
-        if PostedExpenseReportLine.IsEmpty() then
-            exit(false);
-
         TravelRequestNo := GetPerDiemTravelRequestNo(ExpenseReportLine);
         if TravelRequestNo = '' then
-            exit(true);
+            exit(not PostedExpenseReportLine.IsEmpty());
 
-        PostedExpenseReportLine.FindSet();
+        if not PostedExpenseReportLine.FindSet() then
+            exit(false);
         repeat
-            if not IsOtherTravelerPerDiemLine(
-                PostedExpenseReportLine."Expense Detail Required", PostedExpenseReportLine."Expense User No.", GetPerDiemTravelRequestNo(PostedExpenseReportLine),
-                ExpenseReportLine."Expense User No.", TravelRequestNo)
-            then
+            if not IsOtherTravelerPerDiemLine(PostedExpenseReportLine, ExpenseReportLine."Expense User No.", TravelRequestNo) then
                 exit(true);
         until PostedExpenseReportLine.Next() = 0;
         exit(false);
