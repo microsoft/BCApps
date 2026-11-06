@@ -58,9 +58,11 @@ codeunit 1233 "SEPA DD-Check Line"
         CHMgt: Codeunit CHMgt;
         SwissExport: Boolean;
         IsHandled: Boolean;
+        SkipSwiftCodeCheck: Boolean;
     begin
         IsHandled := false;
-        OnBeforeCheckCollectionEntry(DirectDebitCollectionEntry, IsHandled);
+        SkipSwiftCodeCheck := false;
+        OnBeforeCheckCollectionEntry(DirectDebitCollectionEntry, IsHandled, SkipSwiftCodeCheck);
         if IsHandled then
             exit;
 
@@ -113,7 +115,7 @@ codeunit 1233 "SEPA DD-Check Line"
             else begin
                 CustomerBankAccount.Get(Customer."No.", SEPADirectDebitMandate."Customer Bank Account Code");
                 if not GLSetup."SEPA Export w/o Bank Acc. Data" then begin
-                    if CustomerBankAccount."SWIFT Code" = '' then
+                    if (CustomerBankAccount."SWIFT Code" = '') and not SkipSwiftCodeCheck then
                         AddFieldEmptyError(
                           DirectDebitCollectionEntry, CustomerBankAccount.TableCaption(), CustomerBankAccount.FieldCaption("SWIFT Code"),
                           CustomerBankAccount.Code);
@@ -146,8 +148,9 @@ codeunit 1233 "SEPA DD-Check Line"
     /// </summary>
     /// <param name="DirectDebitCollectionEntry">The collection entry being validated</param>
     /// <param name="IsHandled">Whether the event has been handled by subscribers</param>
+    /// <param name="SkipSwiftCodeCheck">Whether to skip the SWIFT code check</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckCollectionEntry(var DirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; var IsHandled: Boolean)
+    local procedure OnBeforeCheckCollectionEntry(var DirectDebitCollectionEntry: Record "Direct Debit Collection Entry"; var IsHandled: Boolean; var SkipSwiftCodeCheck: Boolean)
     begin
     end;
 
