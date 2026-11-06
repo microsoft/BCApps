@@ -64,8 +64,9 @@ Describe 'Temporary dev AlTool workflow preparation' {
             ConvertFrom-Json
         $script:cicdSettings = Get-Content -LiteralPath $script:cicdSettingsPath -Raw |
             ConvertFrom-Json
-        $script:expectedHash = '43DF5D186AF128BCA667A9B173E055CA8E8754148EBC570BE5BB177501ADD5B0'
-        $script:expectedSize = 19753465
+        $script:expectedHash = '32409AB54FBD963224435BE486D2EBF6C43C76C6B7D7C01B75230587AA325E74'
+        $script:previousHash = '43DF5D186AF128BCA667A9B173E055CA8E8754148EBC570BE5BB177501ADD5B0'
+        $script:expectedSize = 19753847
         $script:expectedVersion = '30.0.0.0+14ef6c5c8aeb5bfd12b3ebf7b413750cb7ac8369'
         $script:requiredAnalyzerFiles = @(
             'Microsoft.Dynamics.Nav.Analyzers.Common.dll'
@@ -156,8 +157,9 @@ Describe 'Temporary dev AlTool workflow preparation' {
     }
 
     It 'pins the checked-in bundle hash and exact executable version in both preparation steps' {
-        (Get-FileHash -LiteralPath $script:devAlToolBundlePath -Algorithm SHA256).Hash |
-            Should -Be $script:expectedHash
+        $actualHash = (Get-FileHash -LiteralPath $script:devAlToolBundlePath -Algorithm SHA256).Hash
+        $actualHash | Should -Be $script:expectedHash
+        $actualHash | Should -Not -Be $script:previousHash
         (Get-Item -LiteralPath $script:devAlToolBundlePath).Length |
             Should -Be $script:expectedSize
 
@@ -167,6 +169,7 @@ Describe 'Temporary dev AlTool workflow preparation' {
             ))
             $prepareStep | Should -Match 'Get-FileHash.+SHA256'
             $prepareStep | Should -Match $script:expectedHash
+            $prepareStep | Should -Not -Match $script:previousHash
             $prepareStep | Should -Match ([regex]::Escape($script:expectedVersion))
             $prepareStep | Should -Match ([regex]::Escape('& $alToolPath --version'))
             $prepareStep | Should -Match '\$versionExitCode\s+-ne\s+0'
