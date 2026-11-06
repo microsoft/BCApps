@@ -10,6 +10,7 @@ using Microsoft.Finance.VAT.Setup;
 codeunit 148348 "Expense VAT Spec. API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -88,9 +89,6 @@ codeunit 148348 "Expense VAT Spec. API Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense VAT Spec. API Test");
         if IsInitialized then
             exit;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense VAT Spec. API Test");
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();

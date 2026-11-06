@@ -220,6 +220,57 @@ codeunit 148338 "Expense Permissions Test"
     end;
 
     [Test]
+    procedure ExpenseAgentCanSubmitTravelRequestIndirectly()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        Approver: Record "Expense User";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO] The agent role releases a submitted request through indirect request modification.
+        Initialize();
+        CreateTravelRequestApprovalScenario(SpendRequest, ExpenseUser, Approver);
+        PrepareTravelRequestForSubmission(SpendRequest);
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.SetExactPermissionSet(ExpenseAgentPermissionSetTok);
+        Assert.IsFalse(SpendRequest.WritePermission(), 'The agent must not have direct write permission on Spend Request.');
+        TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.");
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'The authorized agent must release the submitted travel request.');
+    end;
+
+    [Test]
+    procedure ExpenseAgentCanRejectTravelRequestIndirectly()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        Approver: Record "Expense User";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+        RejectReason: Text;
+    begin
+        // [SCENARIO] The agent role reopens a rejected request through indirect request modification.
+        Initialize();
+        CreateTravelRequestApprovalScenario(SpendRequest, ExpenseUser, Approver);
+        RejectReason := 'Missing travel details.';
+
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.SetExactPermissionSet(ExpenseAgentPermissionSetTok);
+        Assert.IsFalse(SpendRequest.WritePermission(), 'The agent must not have direct write permission on Spend Request.');
+        TravelRequestApproval.Reject(SpendRequest, Approver."No.", RejectReason);
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Open, SpendRequest.Status, 'The authorized agent must reopen the rejected travel request.');
+        Assert.AreEqual(RejectReason, SpendRequest."Rejection Reason", 'The rejection reason must be kept on the reopened travel request.');
+    end;
+
+    [Test]
     procedure TravelRequestApprovalFailsWithoutExpensePermissions()
     var
         SpendRequest: Record "Spend Request";
@@ -758,6 +809,15 @@ codeunit 148338 "Expense Permissions Test"
         SpendRequest.Validate("Requested For", ExpenseUser."No.");
         SpendRequest.Modify(true);
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+    end;
+
+    local procedure PrepareTravelRequestForSubmission(var SpendRequest: Record "Spend Request")
+    begin
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Open);
+        SpendRequest.Validate("Expected Start Date", WorkDate());
+        SpendRequest.Validate("Expected End Date", WorkDate() + 7);
+        SpendRequest.Validate("Travel Policy Acknowledgment", true);
+        SpendRequest.Modify(true);
     end;
 
     local procedure CreateExpenseForDeletionGuard(var Expense: Record Expense; ExpenseUserNo: Code[20])

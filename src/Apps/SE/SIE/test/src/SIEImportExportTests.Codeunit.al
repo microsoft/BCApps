@@ -26,6 +26,37 @@ codeunit 148015 "SIE Import Export Tests"
         TransactionLineTxt: label '  #TRANS  %1  {}  %2  %3', Comment = '%1 - G/L Account No.; %2 - Amount; %3 - transaction date';
 
     [Test]
+    procedure SIEVisibilityIsSelectedThroughInterface()
+    var
+        AuditFileExportPageVisibility: Interface "Audit File Export Page Visibility";
+        FieldVisibility: Dictionary of [Text, Boolean];
+        ActionVisibility: Dictionary of [Text, Boolean];
+        FieldName: Text;
+    begin
+        FieldVisibility.Set('Contact', true);
+        AuditFileExportPageVisibility := "Audit File Export Format"::SIE;
+
+        AuditFileExportPageVisibility.GetUIVisibility(FieldVisibility, ActionVisibility);
+
+        Assert.IsFalse(FieldVisibility.Get('SplitByMonth'), 'SIE must hide monthly splitting.');
+        Assert.IsFalse(FieldVisibility.Get('SplitByDate'), 'SIE must hide daily splitting.');
+        Assert.IsFalse(FieldVisibility.Get('CreateMultipleZipFiles'), 'SIE must hide multiple ZIP files.');
+        Assert.IsFalse(FieldVisibility.Get('LatestDataCheckDateTime'), 'SIE must hide the last data-check time.');
+        Assert.IsFalse(FieldVisibility.Get('DataCheckStatus'), 'SIE must hide data-check status.');
+        Assert.IsFalse(ActionVisibility.Get('DataCheck'), 'SIE must hide data check.');
+        Assert.IsTrue(FieldVisibility.Get('Contact'), 'SIE must preserve unrelated field visibility.');
+
+        foreach FieldName in FieldVisibility.Keys() do
+            FieldVisibility.Set(FieldName, true);
+        ActionVisibility.Set('DataCheck', true);
+        AuditFileExportPageVisibility := "Audit File Export Format"::None;
+        AuditFileExportPageVisibility.GetUIVisibility(FieldVisibility, ActionVisibility);
+        foreach FieldName in FieldVisibility.Keys() do
+            Assert.IsTrue(FieldVisibility.Get(FieldName), 'SIE must not hide fields for another format.');
+        Assert.IsTrue(ActionVisibility.Get('DataCheck'), 'SIE must not hide data check for another format.');
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandlerYes')]
     procedure SIE_Export_TRANS_Format()
     var
@@ -813,4 +844,3 @@ codeunit 148015 "SIE Import Export Tests"
         Reply := true;
     end;
 }
-

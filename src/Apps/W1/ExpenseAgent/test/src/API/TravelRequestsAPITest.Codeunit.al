@@ -13,6 +13,7 @@ using Microsoft.HumanResources.Employee;
 codeunit 148347 "Travel Requests API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -1283,9 +1284,6 @@ codeunit 148347 "Travel Requests API Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Travel Requests API Test");
         if IsInitialized then
             exit;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Travel Requests API Test");
         if not ExpenseAgentSetup.Get() then begin

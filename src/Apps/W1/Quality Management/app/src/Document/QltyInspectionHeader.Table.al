@@ -120,7 +120,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Pass Quantity';
             AutoFormatType = 0;
-            ToolTip = 'Specifies the quantity that passed quality inspection. When the inspection is finished with acceptable results, this value is automatically derived from sample size or source quantity. It is reset to zero when the inspection is reopened. Only users with the Quality Admin & Supervisor role are allowed to manually change this value.';
+            ToolTip = 'Specifies the quantity that passed the inspection. When the inspection is finished, the system uses Sample Size if it is greater than 0; otherwise, it uses Quantity (Base). Reopening the inspection resets this value to 0. Only users with the Quality Admin & Supervisor role can change it manually.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -139,7 +139,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Fail Quantity';
             AutoFormatType = 0;
-            ToolTip = 'Specifies the quantity that failed quality inspection. When the inspection is finished with non-acceptable results, this value is automatically derived from sample size or source quantity. It is reset to zero when the inspection is reopened. Only users with the Quality Admin & Supervisor role are allowed to manually change this value.';
+            ToolTip = 'Specifies the quantity that failed the inspection. When the inspection is finished, the system uses Sample Size if it is greater than 0; otherwise, it uses Quantity (Base). Reopening the inspection resets this value to 0. Only users with the Quality Admin & Supervisor role can change it manually.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -639,6 +639,7 @@ table 20405 "Qlty. Inspection Header"
         ReopenInspectionQst: Label 'Are you sure you want to Reopen the inspection %1 on %2?', Comment = '%1=the inspection details, %2=the source details.';
         MoreRecentReinspectionErr: Label 'This inspection cannot be Reopened because there is a more recent Re-inspection. Please work with the most recent Re-inspection instead.';
         CreateReinspectionQst: Label 'Are you sure you want to create a Re-inspection?';
+        FinishAndCreateReinspectionQst: Label 'The inspection %1 is open. It will be finished before the Re-inspection is created. Do you want to continue?', Comment = '%1=the inspection';
         PictureNameTok: Label '%1_%2_%3', Locked = true;
         FileExtensionTok: Label 'jpeg', Locked = true;
         CameraNotAvailableErr: Label 'The camera is not available. Make sure to use this with a device that has a camera supported by Business Central.';
@@ -1022,23 +1023,26 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Finishes the current inspection when required and creates a confirmed reinspection.
+    /// Asks for confirmation, then finishes the current inspection when required and creates a reinspection.
     /// </summary>
     /// <param name="ReinspectionQltyInspectionHeader">The created reinspection header.</param>
     procedure CreateReinspection(var ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        Proceed: Boolean;
+        ConfirmManagement: Codeunit "Confirm Management";
+        ConfirmQuestion: Text;
     begin
+        if Rec.Status = Rec.Status::Open then
+            ConfirmQuestion := StrSubstNo(FinishAndCreateReinspectionQst, Rec.GetFriendlyIdentifier())
+        else
+            ConfirmQuestion := CreateReinspectionQst;
+        if not ConfirmManagement.GetResponseOrDefault(ConfirmQuestion) then
+            exit;
+
         if Rec.Status = Rec.Status::Open then
             FinishInspectionAndPrompt(false);
 
-        if GuiAllowed() then
-            Proceed := Confirm(CreateReinspectionQst)
-        else
-            Proceed := true;
-        if Proceed then
-            QltyInspectionCreate.CreateReinspection(Rec, ReinspectionQltyInspectionHeader);
+        QltyInspectionCreate.CreateReinspection(Rec, ReinspectionQltyInspectionHeader);
     end;
 
     /// <summary>
