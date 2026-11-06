@@ -213,7 +213,9 @@ codeunit 9864 "Permission Impl."
             ObjectCaption := TenantPermission."Object Name";
             ObjectName := '';
             if AllObj.Get(TenantPermission."Object Type", TenantPermission."Object ID") then
+                #pragma warning disable AL0432
                 ObjectName := AllObj."Object Name";
+                #pragma warning restore AL0432
         end else begin
             ObjectName := CopyStr(StrSubstNo(AllObjTxt, TenantPermission."Object Type"), 1, MaxStrLen(TenantPermission."Object Name"));
             ObjectCaption := ObjectName;
@@ -229,7 +231,9 @@ codeunit 9864 "Permission Impl."
             ObjectCaption := MetadataPermission."Object Name";
             ObjectName := '';
             if AllObj.Get(MetadataPermission."Object Type", MetadataPermission."Object ID") then
+                #pragma warning disable AL0432
                 ObjectName := AllObj."Object Name";
+                #pragma warning restore AL0432
         end else begin
             ObjectName := CopyStr(StrSubstNo(AllObjTxt, MetadataPermission."Object Type"), 1, MaxStrLen(MetadataPermission."Object Name"));
             ObjectCaption := ObjectName;
@@ -245,7 +249,9 @@ codeunit 9864 "Permission Impl."
             ObjectCaption := ExpandedPermission."Object Name";
             ObjectName := '';
             if AllObj.Get(ExpandedPermission."Object Type", ExpandedPermission."Object ID") then
+                #pragma warning disable AL0432
                 ObjectName := AllObj."Object Name";
+                #pragma warning restore AL0432
         end else begin
             ObjectName := CopyStr(StrSubstNo(AllObjExceptTxt, ExpandedPermission."Object Type"), 1, MaxStrLen(ExpandedPermission."Object Name"));
             ObjectCaption := ObjectName;
