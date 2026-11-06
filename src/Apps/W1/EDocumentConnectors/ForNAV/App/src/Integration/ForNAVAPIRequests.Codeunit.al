@@ -75,7 +75,12 @@ codeunit 6414 "ForNAV API Requests"
         HttpClient: HttpClient;
         HttpHeaders: HttpHeaders;
         HttpContent: HttpContent;
+        NotPublishedErr: Label 'Cannot send document: company is not published on the Peppol network.';
     begin
+        if PeppolSetup.FindFirst() then
+            if PeppolSetup.Status <> PeppolSetup.Status::Published then
+                Error(NotPublishedErr);
+
         Payload := TempBlobToTxt(SendContext.GetTempBlob());
         if Payload = '' then
             exit(false);

@@ -19,6 +19,9 @@ codeunit 148220 "ForNAV Peppol Test"
         PeppolSetup: Codeunit "ForNAV Peppol Setup";
         InitCalled: Boolean;
         StatusCode: Integer;
+        SetupRequestStatusCode: Integer;
+        RotatedClientSecret: Text;
+        RotatedSecretValidTo: DateTime;
         VendorNo: Code[20];
         MockGuid: Guid;
 
@@ -71,6 +74,13 @@ codeunit 148220 "ForNAV Peppol Test"
         Error('Not implemented');
     end;
 
+    local procedure MockTest(Http: Codeunit "Http Message State")
+    var
+        TestResponseLbl: Label '{"message":"OK","simulatorMode":false}', Locked = true;
+    begin
+        Http.GetHttpResponseMessage().Content.WriteFrom(TestResponseLbl);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"ForNAV Peppol Setup", OnBeforeSend, '', false, false)]
     local procedure OnBeforeSend(var HttpClient: HttpClient; Http: Codeunit "Http Message State"; var Handled: Boolean)
     var
@@ -90,10 +100,63 @@ codeunit 148220 "ForNAV Peppol Test"
                 MockOutgoing(Http);
             'Inbox':
                 MockInbox(Http);
+            'Test':
+                MockTest(Http);
             else
                 Error('Unknown http method %1', Method);
         end;
         if StatusCode = 500 then;
+    end;
+
+    // Mocks the raw (non-Setup.Send) requests issued directly by "ForNAV Peppol Oauth":
+    // endpoint setup (RequestConfig) and secret rotation (RotateSecret).
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"ForNAV Peppol Oauth", OnBeforeSendRaw, '', false, false)]
+    local procedure OnBeforeSendRaw(HttpRequestMessage: HttpRequestMessage; var Handled: Boolean; var ResponseStatusCode: Integer; var ResponseBody: Text)
+    var
+        PeppolOauth: Codeunit "ForNAV Peppol Oauth";
+        Uri: Codeunit Uri;
+        Segments: List of [Text];
+        Method: Text;
+        RotateSecretResponseLbl: Label '{"clientId":"%1","clientSecret":"%2","expires":"%3"}', Locked = true;
+    begin
+        Handled := true;
+        Uri.Init(HttpRequestMessage.GetRequestUri());
+        Uri.GetSegments(Segments);
+        Method := Segments.Get(Segments.Count);
+        case Method of
+            'RequestConfig', 'RequestConfigFile':
+                ResponseStatusCode := SetupRequestStatusCode;
+            'RotateSecret':
+                begin
+                    ResponseStatusCode := 200;
+                    ResponseBody := StrSubstNo(RotateSecretResponseLbl, PeppolOauth.GetClientID(), RotatedClientSecret, Format(RotatedSecretValidTo, 0, 9));
+                end;
+            else
+                Error('Unknown raw http method %1', Method);
+        end;
+    end;
+
+    // Mocks the raw token request issued directly by "ForNAV Peppol Oauth Token" against the
+    // Azure AD token endpoint, so oauth token acquisition never needs a real network call.
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"ForNAV Peppol Oauth Token", OnBeforeSendTokenRequest, '', false, false)]
+    local procedure OnBeforeSendTokenRequest(HttpRequestMessage: HttpRequestMessage; var Handled: Boolean; var ResponseStatusCode: Integer; var ResponseBody: Text)
+    var
+        AccessTokenResponseLbl: Label '{"access_token":"mocktoken"}', Locked = true;
+    begin
+        Handled := true;
+        ResponseStatusCode := 200;
+        ResponseBody := AccessTokenResponseLbl;
+    end;
+
+    procedure SetSetupRequestStatusCode(NewStatusCode: Integer)
+    begin
+        SetupRequestStatusCode := NewStatusCode;
+    end;
+
+    procedure SetRotatedSecret(NewSecret: Text; NewValidTo: DateTime)
+    begin
+        RotatedClientSecret := NewSecret;
+        RotatedSecretValidTo := NewValidTo;
     end;
 
     internal procedure Init()
@@ -110,6 +173,7 @@ codeunit 148220 "ForNAV Peppol Test"
         Setup."Identification Code" := '0000';
         Setup."Identification Value" := 'TEST';
         Setup.Modify();
+        SetupRequestStatusCode := 204;
         UnbindSubscription(PeppolSetup);
         if not BindSubscription(PeppolSetup) then
             Error('Failed to bind subscription');
