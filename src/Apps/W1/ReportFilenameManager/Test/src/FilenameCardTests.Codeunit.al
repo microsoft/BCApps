@@ -891,6 +891,33 @@ codeunit 149516 "Filename Card Tests"
         AssertApiPdfName(SalesQuotePDFDocHandler, Quote.SystemId, Enum::"Attachment Entity Buffer Document Type"::"Sales Quote", QuotePrefixTok + Quote."No." + PdfTok);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ALegacyApiPdfKeepsItsServerFileAndUsesTheDefaultName()
+    var
+        Invoice: Record "Sales Invoice Header";
+        TempAttachmentEntityBuffer: Record "Attachment Entity Buffer" temporary;
+        PdfDocumentManagement: Codeunit "PDF Document Management";
+        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
+        ReportDistributionManagement: Codeunit "Report Distribution Management";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
+        ExpectedName: Text;
+    begin
+        PrepareWithNoPatterns();
+        TestData.PostNewInvoice(Invoice);
+        ReportFilenameDefaults.InitializeSetup(true);
+        ExpectedName := ReportFilenameMgt.Sanitise(
+            ReportDistributionManagement.GetFullDocumentTypeText(Invoice) + '-' + Invoice."No.") + PdfTok;
+
+        Assert.IsTrue(
+            PdfDocumentManagement.GeneratePdf(Invoice.SystemId, TempAttachmentEntityBuffer),
+            'The legacy API must be able to read its rendered server PDF.');
+
+        TempAttachmentEntityBuffer.CalcFields(Content);
+        Assert.IsTrue(TempAttachmentEntityBuffer.Content.HasValue(), 'The legacy API must return the PDF content.');
+        Assert.AreEqual(ExpectedName, TempAttachmentEntityBuffer."File Name", 'The delivery name must still follow the default pattern.');
+    end;
+
     local procedure AssertApiPdfName(PdfDocumentHandler: Interface IPdfDocumentHandler; DocumentId: Guid; DocumentType: Enum "Attachment Entity Buffer Document Type"; Expected: Text)
     var
         TempAttachmentEntityBuffer: Record "Attachment Entity Buffer" temporary;

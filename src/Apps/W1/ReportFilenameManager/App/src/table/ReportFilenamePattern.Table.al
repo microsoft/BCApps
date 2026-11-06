@@ -9,7 +9,8 @@ using System.Reflection;
 
 table 8125 "Report Filename Pattern"
 {
-    // Empty on install; with no rows every report keeps Business Central's own file name.
+    // Initialization supplies common posted-document defaults without replacing existing patterns.
+    // With no matching enabled pattern, reports keep Business Central's own file name.
 
     Caption = 'Report Filename Pattern';
     DataClassification = CustomerContent;

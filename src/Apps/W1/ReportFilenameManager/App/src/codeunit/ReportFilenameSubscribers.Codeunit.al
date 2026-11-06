@@ -48,6 +48,7 @@ codeunit 8126 "Report Filename Subscribers"
     internal procedure NameFromPlatformEvent(ReportID: Integer; ObjectPayload: JsonObject; FileExtension: Text[30]; ReportRecordRef: RecordRef; var Filename: Text; var Success: Boolean)
     var
         ReportFilenameMgt: Codeunit "Report Filename Mgt.";
+        FileManagement: Codeunit "File Management";
         Channel: Enum "Report Filename Output Route";
         Resolved: Text;
         FilterViews: Text;
@@ -55,6 +56,10 @@ codeunit 8126 "Report Filename Subscribers"
         if Success then
             exit;
         if not ReportFilenameMgt.IsActive() then
+            exit;
+        // SaveAsPdf callers reopen this exact server path. Only name client output,
+        // not an intermediate file whose location belongs to the caller.
+        if FileManagement.GetDirectoryName(Filename) <> '' then
             exit;
 
         FilterViews := GetFilterViews(ObjectPayload);
