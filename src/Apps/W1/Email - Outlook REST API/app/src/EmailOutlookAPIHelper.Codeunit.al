@@ -442,6 +442,9 @@ codeunit 4509 "Email - Outlook API Helper"
             Body := KeepLastMessageOnly(Body);
         EmailMessage.Create('', Subject, Body, HTMLBody, not Filters.GetBypassBodySanitization());
 
+        SetMessageRecipients(EmailJsonObject, 'toRecipients', Enum::"Email Recipient Type"::"To", EmailMessage);
+        SetMessageRecipients(EmailJsonObject, 'ccRecipients', Enum::"Email Recipient Type"::Cc, EmailMessage);
+
         if HasAttachments then
             AddAttachmentsToMessage(EmailJsonObject, EmailMessage, false);
 
@@ -660,6 +663,50 @@ codeunit 4509 "Email - Outlook API Helper"
                 GetTextFromJsonObject(HeaderObject, 'value'));
         end;
         EmailMessage.FlushHeaders();
+    end;
+
+    local procedure SetMessageRecipients(EmailJsonObject: JsonObject; RecipientsKeyName: Text; RecipientType: Enum "Email Recipient Type"; var EmailMessage: Codeunit "Email Message")
+    var
+        RecipientsToken: JsonToken;
+        RecipientToken: JsonToken;
+        Recipients: List of [Text];
+        Address: Text;
+    begin
+        if not EmailJsonObject.Get(RecipientsKeyName, RecipientsToken) then
+            exit;
+        if not RecipientsToken.IsArray() then
+            exit;
+
+        foreach RecipientToken in RecipientsToken.AsArray() do begin
+            Address := GetRecipientAddress(RecipientToken);
+            if Address <> '' then
+                Recipients.Add(Address);
+        end;
+
+        if Recipients.Count() = 0 then
+            exit;
+
+        EmailMessage.SetRecipients(RecipientType, Recipients);
+    end;
+
+    local procedure GetRecipientAddress(RecipientToken: JsonToken): Text
+    var
+        EmailAddressToken: JsonToken;
+        AddressToken: JsonToken;
+    begin
+        if not RecipientToken.IsObject() then
+            exit('');
+        if not RecipientToken.AsObject().Get('emailAddress', EmailAddressToken) then
+            exit('');
+        if not EmailAddressToken.IsObject() then
+            exit('');
+        if not EmailAddressToken.AsObject().Get('address', AddressToken) then
+            exit('');
+        if not AddressToken.IsValue() then
+            exit('');
+        if AddressToken.AsValue().IsNull() then
+            exit('');
+        exit(AddressToken.AsValue().AsText());
     end;
 
     local procedure GetIntegerFromJsonObject(JsonObject: JsonObject; KeyName: Text): Integer
