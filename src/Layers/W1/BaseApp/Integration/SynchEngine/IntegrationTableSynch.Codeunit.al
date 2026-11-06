@@ -21,7 +21,7 @@ codeunit 5335 "Integration Table Synch."
         SynchActionType: Option "None",Insert,Modify,ForceModify,IgnoreUnchanged,Fail,Skip,Delete,Uncouple,Couple;
         SynchJobType: Option Synchronization,Ucoupling,Coupling;
         JobState: Option Ready,Created,"In Progress";
-        JobQueueLogEntryNo: Integer;
+        JobQueueLogEntryNo: BigInteger;
 
         IntegrationTableMappingHasNoMappedFieldsErr: Label 'There are no field mapping rows for the %2 %3 in the %1 table.', Comment = '%1="Integration Field Mapping" table caption, %2="Integration Field Mapping.Integration Table Mapping Name" field caption, %3 Integration Table Mapping value';
         UnableToDetectSynchDirectionErr: Label 'The synchronization direction cannot be determined.';
@@ -74,7 +74,7 @@ codeunit 5335 "Integration Table Synch."
         end;
     end;
 
-    procedure BeginIntegrationSynchJobLoging(ConnectionType: TableConnectionType; CodeunitID: Integer; JobLogEntryNo: Integer; TableID: Integer) JobID: Guid
+    procedure BeginIntegrationSynchJobLoging(ConnectionType: TableConnectionType; CodeunitID: Integer; JobLogEntryNo: BigInteger; TableID: Integer) JobID: Guid
     begin
         EnsureState(JobState::Ready);
 

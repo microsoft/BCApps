@@ -72,7 +72,7 @@ table 363 "Analysis View"
         /// <summary>
         /// Last G/L entry number processed during analysis view update.
         /// </summary>
-        field(4; "Last Entry No."; Integer)
+        field(4; "Last Entry No."; BigInteger)
         {
             Caption = 'Last Entry No.';
             ToolTip = 'Specifies the number of the last general ledger entry you posted, prior to updating the analysis view.';
@@ -80,7 +80,7 @@ table 363 "Analysis View"
         /// <summary>
         /// Last budget entry number processed during analysis view update.
         /// </summary>
-        field(5; "Last Budget Entry No."; Integer)
+        field(5; "Last Budget Entry No."; BigInteger)
         {
             Caption = 'Last Budget Entry No.';
             ToolTip = 'Specifies the number of the last item budget entry you entered prior to updating the analysis view.';

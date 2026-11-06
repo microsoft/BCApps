@@ -280,7 +280,7 @@ codeunit 5705 "TransferOrder-Post Receipt"
         WhsePostRcpt: Codeunit "Whse.-Post Receipt";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line";
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         SourceCode: Code[10];
         WhsePosting: Boolean;

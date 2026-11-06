@@ -255,7 +255,7 @@ codeunit 5704 "TransferOrder-Post Shipment"
         WhsePostShpt: Codeunit "Whse.-Post Shipment";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line";
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         SourceCode: Code[10];
         WhseShip: Boolean;
@@ -945,7 +945,7 @@ codeunit 5704 "TransferOrder-Post Shipment"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertShptEntryRelation(var TransLine: Record "Transfer Line"; WhseShip: Boolean; EntryNo: Integer; CommitIsSuppressed: Boolean; PreviewMode: Boolean)
+    local procedure OnAfterInsertShptEntryRelation(var TransLine: Record "Transfer Line"; WhseShip: Boolean; EntryNo: BigInteger; CommitIsSuppressed: Boolean; PreviewMode: Boolean)
     begin
     end;
 

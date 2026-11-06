@@ -318,7 +318,7 @@ codeunit 1395 "Cancel Issued Fin. Charge Memo"
         IssuedFinChargeMemoHeader.Modify();
     end;
 
-    local procedure ShowAppliedCustomerLedgerEntryNotification(EntryNo: Integer; IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header")
+    local procedure ShowAppliedCustomerLedgerEntryNotification(EntryNo: BigInteger; IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header")
     var
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         AppliedCustomerLedgerNotification: Notification;
@@ -343,14 +343,14 @@ codeunit 1395 "Cancel Issued Fin. Charge Memo"
     procedure ShowCustomerLedgerEntry(Notification: Notification)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         Evaluate(EntryNo, Notification.GetData('EntryNo'));
         CustLedgerEntry.SetRange("Entry No.", EntryNo);
         PAGE.Run(PAGE::"Customer Ledger Entries", CustLedgerEntry);
     end;
 
-    local procedure UpdateCustLedgEntryCalculateInterest(EntryNo: Integer)
+    local procedure UpdateCustLedgEntryCalculateInterest(EntryNo: BigInteger)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin

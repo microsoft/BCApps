@@ -323,7 +323,7 @@ page 790 "G/L Account Categories"
         exit(SelectionFilterManagement.GetSelectionFilterForGLAccountCategory(GLAccountCategory));
     end;
 
-    local procedure SetRow(EntryNo: Integer)
+    local procedure SetRow(EntryNo: BigInteger)
     begin
         if EntryNo = 0 then
             exit;

@@ -58,7 +58,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
         ExpiredItemMessageText: Text[100];
         PostingDate: Date;
         NextLineNo: Integer;
-        LastTempHandlingSpecNo: Integer;
+        LastTempHandlingSpecNo: BigInteger;
         ATOInvtMovementsCreated: Integer;
         TotalATOInvtMovementsToBeCreated: Integer;
         HideDialog: Boolean;
@@ -1832,7 +1832,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
     local procedure PrepareItemTrackingFromWhse(SourceType: Integer; SourceSubtype: Integer; SourceNo: Code[20]; SourceBatchName: Code[20]; SourceProdOrderLine: Integer; SourceLineNo: Integer; SignFactor: Integer; FromWhseWorksheet: Boolean)
     var
         WhseItemTrackingLine: Record "Whse. Item Tracking Line";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if TempReservationEntry.FindLast() then
             EntryNo := TempReservationEntry."Entry No.";
@@ -2447,7 +2447,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareItemTrackingFromWhseIT(var ReservationEntry: Record "Reservation Entry"; EntryNo: Integer)
+    local procedure OnAfterPrepareItemTrackingFromWhseIT(var ReservationEntry: Record "Reservation Entry"; EntryNo: BigInteger)
     begin
     end;
 

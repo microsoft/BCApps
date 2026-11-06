@@ -76,7 +76,7 @@ table 263 "Intrastat Jnl. Line"
         }
 #pragma warning restore AS0105
 #endif
-        field(12; "Source Entry No."; Integer)
+        field(12; "Source Entry No."; BigInteger)
         {
             Caption = 'Source Entry No.';
         }

@@ -55,7 +55,7 @@ codeunit 5944 SignServContractDoc
         Text015: Label 'Do you want to create an invoice for the period %1 .. %2?';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
-        AppliedEntry: Integer;
+        AppliedEntry: BigInteger;
         InvoiceFrom: Date;
         InvoiceTo: Date;
         FirstPrepaidPostingDate: Date;
@@ -1291,7 +1291,7 @@ codeunit 5944 SignServContractDoc
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateServiceLinesForRemainingAmt(var ServHeader: Record "Service Header"; var FromServContractHeader: Record "Service Contract Header"; var FirstPrepaidPostingDate: Date; var LastPrepaidPostingDate: Date; var AppliedEntry: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCreateServiceLinesForRemainingAmt(var ServHeader: Record "Service Header"; var FromServContractHeader: Record "Service Contract Header"; var FirstPrepaidPostingDate: Date; var LastPrepaidPostingDate: Date; var AppliedEntry: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

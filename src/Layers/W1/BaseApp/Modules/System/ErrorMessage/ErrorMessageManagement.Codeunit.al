@@ -473,6 +473,7 @@ codeunit 28 "Error Message Management"
     var
         HasValue: Boolean;
         Int: Integer;
+        BigInt: BigInteger;
         Dec: Decimal;
         D: Date;
         T: Time;
@@ -485,6 +486,11 @@ codeunit 28 "Error Message Management"
                 begin
                     Int := FldRef.Value();
                     HasValue := Int <> 0;
+                end;
+            FieldType::BigInteger:
+                begin
+                    BigInt := FldRef.Value();
+                    HasValue := BigInt <> 0;
                 end;
             FieldType::Decimal:
                 begin

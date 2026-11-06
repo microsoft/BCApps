@@ -230,15 +230,15 @@ report 1135 "Copy G/L Budget to Cost Acctg."
         DateFormula: DateFormula;
         Window: Dialog;
         DateFormulaChange: Code[10];
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         NoInserted: Integer;
         NoSkipped: Integer;
-        FirstGLBudgetEntryNo: Integer;
-        LastGLBudgetEntryNo: Integer;
-        FirstCostBudgetEntryNo: Integer;
-        LastCostBudgetEntryNo: Integer;
+        FirstGLBudgetEntryNo: BigInteger;
+        LastGLBudgetEntryNo: BigInteger;
+        FirstCostBudgetEntryNo: BigInteger;
+        LastCostBudgetEntryNo: BigInteger;
         TotalAmount: Decimal;
-        LastRegisterNo: Integer;
+        LastRegisterNo: BigInteger;
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470

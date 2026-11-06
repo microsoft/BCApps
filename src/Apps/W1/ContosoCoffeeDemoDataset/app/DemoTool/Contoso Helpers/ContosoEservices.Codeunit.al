@@ -77,7 +77,7 @@ codeunit 5462 "Contoso eServices"
             OnlineMapParameterSetup.Insert(true);
     end;
 
-    procedure InsertIncomingDocument(EntryNo: Integer; Description: Text[100]; DocumentNo: Code[20]; PostingDate: Date): Record "Incoming Document"
+    procedure InsertIncomingDocument(EntryNo: BigInteger; Description: Text[100]; DocumentNo: Code[20]; PostingDate: Date): Record "Incoming Document"
     var
         IncomingDocument: Record "Incoming Document";
         Exists: Boolean;
@@ -102,7 +102,7 @@ codeunit 5462 "Contoso eServices"
         exit(IncomingDocument);
     end;
 
-    procedure InsertEServicesIncomingDocumentAttachment(IncomingDocumentEntryNo: Integer; LineNo: Integer; Name: Text[100]; FileExtension: Text[30]; Content: Text; DocumentNo: Code[20]; PostingDate: Date; UseforOCR: Boolean; ExternalDocumentReference: Text[50])
+    procedure InsertEServicesIncomingDocumentAttachment(IncomingDocumentEntryNo: BigInteger; LineNo: Integer; Name: Text[100]; FileExtension: Text[30]; Content: Text; DocumentNo: Code[20]; PostingDate: Date; UseforOCR: Boolean; ExternalDocumentReference: Text[50])
     var
         IncomingDocumentAttachment: Record "Incoming Document Attachment";
         Exists: Boolean;

@@ -49,7 +49,7 @@ table 11006 "Data Export Table Relation"
             Caption = 'From Field No.';
             NotBlank = true;
             TableRelation = Field."No." where(TableNo = field("From Table No."),
-                                               Type = filter(Option | Text | Code | Integer | Decimal | Date | Boolean),
+                                               Type = filter(Option | Text | Code | Integer | BigInteger | Decimal | Date | Boolean),
                                                Class = const(Normal),
                                                ObsoleteState = filter(<> Removed));
 
@@ -108,7 +108,7 @@ table 11006 "Data Export Table Relation"
             Caption = 'To Field No.';
             NotBlank = true;
             TableRelation = Field."No." where(TableNo = field("To Table No."),
-                                               Type = filter(Option | Text | Code | Integer | Decimal | Date | Boolean),
+                                               Type = filter(Option | Text | Code | Integer | BigInteger | Decimal | Date | Boolean),
                                                ObsoleteState = filter(<> Removed));
 
             trigger OnLookup()

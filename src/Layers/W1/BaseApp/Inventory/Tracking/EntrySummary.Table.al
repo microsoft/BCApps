@@ -15,7 +15,7 @@ table 338 "Entry Summary"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -216,7 +216,7 @@ table 338 "Entry Summary"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

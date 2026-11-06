@@ -1125,7 +1125,7 @@ codeunit 99000832 "Sales Line-Reserve"
         exit(Enum::"Reservation Summary Type"::"Sales Quote".AsInteger());
     end;
 
-    local procedure MatchThisEntry(EntryNo: Integer): Boolean
+    local procedure MatchThisEntry(EntryNo: BigInteger): Boolean
     begin
         exit(EntryNo in [Enum::"Reservation Summary Type"::"Sales Quote".AsInteger() ..
                          Enum::"Reservation Summary Type"::"Sales Return Order".AsInteger()]);
@@ -1346,7 +1346,7 @@ codeunit 99000832 "Sales Line-Reserve"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnAfterAutoReserveOneLine', '', false, false)]
-    local procedure OnAfterAutoReserveOneLine(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry"; CalcReservEntry2: Record "Reservation Entry"; Positive: Boolean; var sender: Codeunit "Reservation Management")
+    local procedure OnAfterAutoReserveOneLine(ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry"; CalcReservEntry2: Record "Reservation Entry"; Positive: Boolean; var sender: Codeunit "Reservation Management")
     begin
         if MatchThisEntry(ReservSummEntryNo) then
             AutoReserveSalesLine(
@@ -1354,7 +1354,7 @@ codeunit 99000832 "Sales Line-Reserve"
                 Description, AvailabilityDate, Search, NextStep, Positive);
     end;
 
-    local procedure AutoReserveSalesLine(var CalcReservEntry: Record "Reservation Entry"; var sender: Codeunit "Reservation Management"; ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; Positive: Boolean)
+    local procedure AutoReserveSalesLine(var CalcReservEntry: Record "Reservation Entry"; var sender: Codeunit "Reservation Management"; ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; Positive: Boolean)
     var
         CallTrackingSpecification: Record "Tracking Specification";
         SalesLine: Record "Sales Line";
@@ -1821,7 +1821,7 @@ codeunit 99000832 "Sales Line-Reserve"
     /// <param name="NextStep">The next step value for iterating through entries.</param>
     /// <param name="CalcReservEntry">The reservation entry used for calculation.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAutoReserveSalesLine(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; var IsReserved: Boolean; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry")
+    local procedure OnBeforeAutoReserveSalesLine(ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; var IsReserved: Boolean; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry")
     begin
     end;
 

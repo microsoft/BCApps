@@ -265,7 +265,7 @@ codeunit 5851 "Invt. Doc.-Post Shipment"
         DimMgt: Codeunit DimensionManagement;
         ReserveInvtDocLine: Codeunit "Invt. Doc. Line-Reserve";
         DocSignMgt: Codeunit "Doc. Signature Management";
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         SourceCode: Code[10];
         HideValidationDialog: Boolean;

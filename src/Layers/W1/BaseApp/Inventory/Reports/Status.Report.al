@@ -287,7 +287,7 @@ report 706 Status
         end;
     end;
 
-    local procedure SumQty(var RemainingQty: Decimal; EntryNo: Integer; AppliedQty: Decimal)
+    local procedure SumQty(var RemainingQty: Decimal; EntryNo: BigInteger; AppliedQty: Decimal)
     var
         ItemLedgEntry: Record "Item Ledger Entry";
     begin

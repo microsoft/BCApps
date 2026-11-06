@@ -44,7 +44,7 @@ table 1328 "Top Customers By Sales Buffer"
         /// <summary>
         /// Stores the entry number of the last customer ledger entry processed for incremental updates.
         /// </summary>
-        field(4; LastCustLedgerEntryNo; Integer)
+        field(4; LastCustLedgerEntryNo; BigInteger)
         {
             Caption = 'LastCustLedgerEntryNo';
             DataClassification = SystemMetadata;

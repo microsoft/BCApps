@@ -223,7 +223,7 @@ table 1235 "XML Buffer"
         exit("Entry No.");
     end;
 
-    procedure AddGroupElementAt(ElementNameWithNamespace: Text[250]; EntryNo: Integer): Integer
+    procedure AddGroupElementAt(ElementNameWithNamespace: Text[250]; EntryNo: BigInteger): Integer
     var
         XMLBufferWriter: Codeunit "XML Buffer Writer";
         CurrentView: Text;
@@ -246,7 +246,7 @@ table 1235 "XML Buffer"
         exit("Entry No.");
     end;
 
-    procedure AddElement(ElementNameWithNamespace: Text[250]; ElementValue: Text) ElementEntryNo: Integer
+    procedure AddElement(ElementNameWithNamespace: Text[250]; ElementValue: Text) ElementEntryNo: BigInteger
     begin
         ElementEntryNo := AddGroupElement(ElementNameWithNamespace);
         SetValueWithoutModifying(ElementValue);
@@ -254,20 +254,20 @@ table 1235 "XML Buffer"
         GetParent();
     end;
 
-    procedure AddLastElement(ElementNameWithNamespace: Text[250]; ElementValue: Text) ElementEntryNo: Integer
+    procedure AddLastElement(ElementNameWithNamespace: Text[250]; ElementValue: Text) ElementEntryNo: BigInteger
     begin
         ElementEntryNo := AddElement(ElementNameWithNamespace, ElementValue);
         GetParent();
     end;
 
-    procedure AddNonEmptyElement(ElementNameWithNamespace: Text[250]; ElementValue: Text) ElementEntryNo: Integer
+    procedure AddNonEmptyElement(ElementNameWithNamespace: Text[250]; ElementValue: Text) ElementEntryNo: BigInteger
     begin
         if ElementValue = '' then
             exit;
         ElementEntryNo := AddElement(ElementNameWithNamespace, ElementValue);
     end;
 
-    procedure AddNonEmptyLastElement(ElementNameWithNamespace: Text[250]; ElementValue: Text) ElementEntryNo: Integer
+    procedure AddNonEmptyLastElement(ElementNameWithNamespace: Text[250]; ElementValue: Text) ElementEntryNo: BigInteger
     begin
         ElementEntryNo := AddNonEmptyElement(ElementNameWithNamespace, ElementValue);
         GetParent();

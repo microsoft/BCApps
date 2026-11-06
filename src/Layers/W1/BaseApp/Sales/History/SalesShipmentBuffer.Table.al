@@ -109,7 +109,7 @@ table 7190 "Sales Shipment Buffer"
 
     var
         UOMMgt: Codeunit "Unit of Measure Management";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
 
     /// <summary>
     /// Populates the buffer with shipment information for a sales invoice line.

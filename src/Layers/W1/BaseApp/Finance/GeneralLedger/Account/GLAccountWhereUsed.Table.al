@@ -21,7 +21,7 @@ table 180 "G/L Account Where-Used"
         /// <summary>
         /// Unique identifier for each where-used entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -129,7 +129,7 @@ table 180 "G/L Account Where-Used"
     /// Gets the last entry number used in the table to generate the next sequential entry number.
     /// </summary>
     /// <returns>The highest entry number currently in use.</returns>
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

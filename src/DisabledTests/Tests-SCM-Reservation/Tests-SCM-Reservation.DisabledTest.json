@@ -825,6 +825,11 @@
     "method": "TraceOppositeFromLineForPstdPurchDocumentSlNo"
   },
   {
+    "codeunitId": 137262,
+    "codeunitName": "SCM Invt Item Tracking III",
+    "method": "RemainingQtyOnProdOrderCompAfterTwoPartialConsumptionsWithPlanningAndLotTracking"
+  },
+  {
     "codeunitId": 137269,
     "codeunitName": "SCM Transfer Reservation",
     "method": "DeleteItemTrackingOnPurchLineDeletesTrackingInTransferViaOrderToOrderBinding"
@@ -1258,6 +1263,16 @@
     "codeunitId": 137405,
     "codeunitName": "SCM Item Tracking",
     "method": "UndoPurchaseReceiptWithExpirationDate"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "QtyToHandleDistributionOnMultipleReservEntriesQtyFullCover"
+  },
+  {
+    "codeunitId": 137405,
+    "codeunitName": "SCM Item Tracking",
+    "method": "QtyToHandleDistributionOnMultipleReservEntriesQtyPartialCover"
   },
   {
     "codeunitId": 137049,

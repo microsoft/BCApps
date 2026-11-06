@@ -100,7 +100,7 @@ report 7139 "Date Comp. Item Budget Entries"
                     InsertRegisters(DateComprReg);
 
                 if AnalysisView.FindFirst() then
-                    if LowestEntryNo < 2147483647 then
+                    if LowestEntryNo < 99999999999999999L then
                         UpdateAnalysisView.SetLastBudgetEntryNo(LowestEntryNo - 1);
 
                 if UseDataArchive then
@@ -143,7 +143,7 @@ report 7139 "Date Comp. Item Budget Entries"
 
                 ItemBudgetEntry2.LockTable();
                 LastEntryNo := ItemBudgetEntry2.GetLastEntryNo();
-                LowestEntryNo := 2147483647;
+                LowestEntryNo := 99999999999999999L;
 
                 Window.Open(
                   Text003 +
@@ -307,12 +307,12 @@ report 7139 "Date Comp. Item Budget Entries"
         Retain: array[10] of Boolean;
         FieldNumber: array[10] of Integer;
         FieldNameArray: array[10] of Text[100];
-        LastEntryNo: Integer;
-        LowestEntryNo: Integer;
+        LastEntryNo: BigInteger;
+        LowestEntryNo: BigInteger;
         NoOfDeleted: Integer;
         i: Integer;
-        ComprDimEntryNo: Integer;
-        DimEntryNo: Integer;
+        ComprDimEntryNo: BigInteger;
+        DimEntryNo: BigInteger;
         RetainDimText: Text[250];
         AnalysisAreaSelection: Enum "Analysis Area Type";
         ItemBudgetEntryFilter: Text;
@@ -362,7 +362,7 @@ report 7139 "Date Comp. Item Budget Entries"
 
     local procedure InsertRegisters(var DateComprReg: Record "Date Compr. Register")
     var
-        CurrLastEntryNo: Integer;
+        CurrLastEntryNo: BigInteger;
     begin
         DateComprReg.Insert();
 
@@ -413,9 +413,9 @@ report 7139 "Date Comp. Item Budget Entries"
     local procedure ComprCollectedEntries()
     var
         ItemBudgetEntry: Record "Item Budget Entry";
-        OldDimEntryNo: Integer;
+        OldDimEntryNo: BigInteger;
         Found: Boolean;
-        ItemBudgetEntryNo: Integer;
+        ItemBudgetEntryNo: BigInteger;
     begin
         OldDimEntryNo := 0;
         if DimBufMgt.FindFirstDimEntryNo(DimEntryNo, ItemBudgetEntryNo) then begin
@@ -467,7 +467,7 @@ report 7139 "Date Comp. Item Budget Entries"
         Window.Update(4, DateComprReg."No. of New Records");
     end;
 
-    local procedure InsertNewEntry(var NewItemBudgetEntry: Record "Item Budget Entry"; DimEntryNo: Integer)
+    local procedure InsertNewEntry(var NewItemBudgetEntry: Record "Item Budget Entry"; DimEntryNo: BigInteger)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
         TempDimSetEntry: Record "Dimension Set Entry" temporary;

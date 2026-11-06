@@ -133,7 +133,7 @@ report 789 "Delete Phys. Inventory Ledger"
         PhysInvtLedgEntry2: Record "Phys. Inventory Ledger Entry";
         DateComprMgt: Codeunit DateComprMgt;
         Window: Dialog;
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         NoOfDeleted: Integer;
         LastNoOfDeleted: Integer;
 
