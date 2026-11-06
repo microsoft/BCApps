@@ -16,6 +16,7 @@ codeunit 139692 "Contract Renewal Test"
     TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
+    EventSubscriberInstance = Manual;
 
     var
         TempContractRenewalLine: Record "Sub. Contract Renewal Line" temporary;
@@ -28,10 +29,13 @@ codeunit 139692 "Contract Renewal Test"
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        RenewalTermOnSubscription: DateFormula;
         AddVendorServices: Boolean;
         ConfirmOption: Boolean;
         BaseCalculationPercentage: Decimal;
         CalculationBaseAmount: Decimal;
+        TermUntilSetBySubscriber: Date;
+        SubscriptionLineEntryNo: Integer;
 
     #region Tests
 
@@ -185,6 +189,7 @@ codeunit 139692 "Contract Renewal Test"
         SalesHeader: Record "Sales Header";
         LibraryERM: Codeunit "Library - ERM";
         SalesQuoteTestPage: TestPage "Sales Quote";
+        HeaderCannotBeChangedErr: Label 'You cannot make this change because the document is linked to a contract. If you still want to change the field, first delete this document and then make the change to the contract.', Locked = true;
     begin
         Initialize();
         // Test: Changes in Header & Sales Line should be disallowed
@@ -196,10 +201,14 @@ codeunit 139692 "Contract Renewal Test"
         SalesQuoteTestPage.OpenEdit();
         SalesQuoteTestPage.GoToRecord(SalesHeader);
         asserterror SalesQuoteTestPage."Currency Code".SetValue(LibraryERM.CreateCurrencyWithRandomExchRates());
+        Assert.ExpectedError(HeaderCannotBeChangedErr);
 
-        // Check with direct validation
-        SalesHeader.Get(SalesHeader."Document Type"::Quote, SalesHeader."No.");
-        asserterror SalesHeader.Validate("Sell-to Customer No.", Customer."No.");
+        // Check the customer as well (the check only runs for changes made on the page)
+        SalesQuoteTestPage.Close();
+        SalesQuoteTestPage.OpenEdit();
+        SalesQuoteTestPage.GoToRecord(SalesHeader);
+        asserterror SalesQuoteTestPage."Sell-to Customer No.".SetValue(Customer."No.");
+        Assert.ExpectedError(HeaderCannotBeChangedErr);
     end;
 
     [Test]
@@ -605,10 +614,12 @@ codeunit 139692 "Contract Renewal Test"
         SalesLine2.TestField(Description, ServiceObject.GetSerialNoDescription());
     end;
 
+    [HandlerFunctions('ConfirmHandler')]
     [Test]
     procedure DisallowSalesQuoteToInvoiceForContractRenewal()
     var
         SalesHeader: Record "Sales Header";
+        ActionNotPermittedForContractRenewalQuoteErr: Label 'This action is not allowed for contract Renewal Quotes.', Locked = true;
     begin
         Initialize();
         // Test: Regular conversion to Sales Invoice should be blocked
@@ -617,7 +628,8 @@ codeunit 139692 "Contract Renewal Test"
         SalesHeader.SetRecFilter();
 
         ConfirmOption := true;
-        asserterror Codeunit.Run(Codeunit::"Sales-Quote to Invoice Yes/No", SalesHeader);
+        asserterror Codeunit.Run(Codeunit::"Sales-Quote to Invoice Yes/No", SalesHeader); // ConfirmHandler
+        Assert.ExpectedError(ActionNotPermittedForContractRenewalQuoteErr);
     end;
 
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
@@ -933,6 +945,118 @@ codeunit 139692 "Contract Renewal Test"
         ContractRenewalSelection.Close();
     end;
 
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ServiceObjectCardModalPageHandler')]
+    [Test]
+    procedure RenewalTermEnteredOnPageIsRetainedAfterSubscriptionIsOpened()
+    var
+        ServiceCommitment: Record "Subscription Line";
+        CurrentRenewalTerm: DateFormula;
+        EmptyDateFormula: DateFormula;
+        NewRenewalTerm: DateFormula;
+        ContractRenewalSelection: TestPage "Contract Renewal Selection";
+        CalculationBasePercentNotUpdatedErr: Label 'Calculation Base % changed on the Subscription should be shown on the page.';
+        RenewalTermDateFormulaLbl: Label '<%1D>', Locked = true;
+        RenewalTermNotRetainedErr: Label 'Renewal Term entered on the page should be retained after the Subscription was opened.';
+    begin
+        // [SCENARIO] A Renewal Term entered on the Create Contract Renewal Quote page is kept when the Subscription is opened from the page, while the changes made on the Subscription are shown.
+        Initialize();
+        Evaluate(NewRenewalTerm, StrSubstNo(RenewalTermDateFormulaLbl, LibraryRandom.RandInt(365)));
+
+        // [GIVEN] A Customer Subscription Contract whose Subscription Lines have no Renewal Term
+        CreateBaseData();
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.ModifyAll("Renewal Term", EmptyDateFormula, false);
+
+        // [GIVEN] A Renewal Term is entered on the first contract line of the Create Contract Renewal Quote page
+        ContractRenewalSelection.OpenEdit();
+        GoToFirstCustomerContractLine(ContractRenewalSelection);
+        ContractRenewalSelection.RenewalTermCtrl.SetValue(NewRenewalTerm);
+
+        // [WHEN] The Subscription is opened from the line and the Calculation Base % of the Subscription Line is changed there
+        BaseCalculationPercentage := LibraryRandom.RandDecInDecimalRange(80, 100, 2);
+        ContractRenewalSelection."Service Object Description".AssistEdit(); // ServiceObjectCardModalPageHandler
+
+        // [THEN] The line shows the new Calculation Base % and still the Renewal Term entered on the page
+        Assert.AreEqual(BaseCalculationPercentage, ContractRenewalSelection."Calculation Base %".AsDecimal(), CalculationBasePercentNotUpdatedErr);
+        Evaluate(CurrentRenewalTerm, ContractRenewalSelection.RenewalTermCtrl.Value());
+        Assert.AreEqual(NewRenewalTerm, CurrentRenewalTerm, RenewalTermNotRetainedErr);
+
+        ContractRenewalSelection.Close();
+    end;
+
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ServiceObjectCardRenewalTermModalPageHandler')]
+    [Test]
+    procedure RenewalTermChangedOnSubscriptionIsShownOnPage()
+    var
+        ServiceCommitment: Record "Subscription Line";
+        CurrentRenewalTerm: DateFormula;
+        EmptyDateFormula: DateFormula;
+        ContractRenewalSelection: TestPage "Contract Renewal Selection";
+        RenewalTermDateFormulaLbl: Label '<%1D>', Locked = true;
+        RenewalTermNotUpdatedErr: Label 'Renewal Term changed on the Subscription should be shown on the page.';
+    begin
+        // [SCENARIO] A Renewal Term changed on the Subscription opened from the Create Contract Renewal Quote page is shown on the page.
+        Initialize();
+        Evaluate(RenewalTermOnSubscription, StrSubstNo(RenewalTermDateFormulaLbl, LibraryRandom.RandInt(365)));
+
+        // [GIVEN] A Customer Subscription Contract whose Subscription Lines have no Renewal Term
+        CreateBaseData();
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.ModifyAll("Renewal Term", EmptyDateFormula, false);
+
+        // [GIVEN] The Create Contract Renewal Quote page is open on the first contract line
+        ContractRenewalSelection.OpenEdit();
+        GoToFirstCustomerContractLine(ContractRenewalSelection);
+
+        // [WHEN] The Subscription is opened from the line and the Renewal Term of the Subscription Line is changed there
+        ContractRenewalSelection."Service Object Description".AssistEdit(); // ServiceObjectCardRenewalTermModalPageHandler
+
+        // [THEN] The line shows the Renewal Term of the Subscription Line
+        Evaluate(CurrentRenewalTerm, ContractRenewalSelection.RenewalTermCtrl.Value());
+        Assert.AreEqual(RenewalTermOnSubscription, CurrentRenewalTerm, RenewalTermNotUpdatedErr);
+
+        ContractRenewalSelection.Close();
+    end;
+
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ServiceObjectCardModalPageHandler')]
+    [Test]
+    procedure ValueSetBySubscriberIsRetainedAfterSubscriptionIsOpened()
+    var
+        ContractRenewalTestSubscriber: Codeunit "Contract Renewal Test";
+        ContractRenewalSelection: TestPage "Contract Renewal Selection";
+        CalculationBasePercentNotUpdatedErr: Label 'Calculation Base % changed on the Subscription should be shown on the page.';
+        TermUntilNotRetainedErr: Label 'Term Until set by a subscriber on the page should be retained after the Subscription was opened.';
+        TermUntilNotSetErr: Label 'Term Until should be set by the subscriber.';
+        NewTermUntil: Date;
+    begin
+        // [SCENARIO] A value that an extension set on the Create Contract Renewal Quote page through OnAfterInitTempSubscriptionLine is kept when the Subscription is opened from the page, while the changes made on the Subscription are shown.
+        Initialize();
+
+        // [GIVEN] A Customer Subscription Contract
+        CreateBaseData();
+
+        // [GIVEN] A subscriber sets Term Until of the page lines to a date that is not stored on the Subscription Lines
+        NewTermUntil := CalcDate('<+5Y>', WorkDate());
+        ContractRenewalTestSubscriber.SetTermUntilSetBySubscriber(NewTermUntil);
+        BindSubscription(ContractRenewalTestSubscriber);
+
+        // [GIVEN] The Create Contract Renewal Quote page is open on the first contract line
+        ContractRenewalSelection.OpenEdit();
+        GoToFirstCustomerContractLine(ContractRenewalSelection);
+        Assert.AreEqual(NewTermUntil, ContractRenewalSelection."Term Until".AsDate(), TermUntilNotSetErr);
+
+        // [WHEN] The Subscription is opened from the line and the Calculation Base % of the Subscription Line is changed there
+        BaseCalculationPercentage := LibraryRandom.RandDecInDecimalRange(80, 100, 2);
+        ContractRenewalSelection."Service Object Description".AssistEdit(); // ServiceObjectCardModalPageHandler
+
+        // [THEN] The line shows the new Calculation Base % and still the Term Until set by the subscriber
+        Assert.AreEqual(BaseCalculationPercentage, ContractRenewalSelection."Calculation Base %".AsDecimal(), CalculationBasePercentNotUpdatedErr);
+        Assert.AreEqual(NewTermUntil, ContractRenewalSelection."Term Until".AsDate(), TermUntilNotRetainedErr);
+
+        ContractRenewalSelection.Close();
+        UnbindSubscription(ContractRenewalTestSubscriber);
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -1165,10 +1289,19 @@ codeunit 139692 "Contract Renewal Test"
     local procedure CreateFakeContractRenewalQuote(var SalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";
+        SalesServiceCommitment: Record "Sales Subscription Line";
         LibrarySales: Codeunit "Library - Sales";
     begin
         LibrarySales.CreateSalesQuoteForCustomerNo(SalesHeader, '');
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"Service Object", '', 1);
+
+        // A Sales Subscription Line with Process "Contract Renewal" is what makes the quote a Contract Renewal Quote
+        SalesServiceCommitment.Init();
+        SalesServiceCommitment."Document Type" := SalesLine."Document Type";
+        SalesServiceCommitment."Document No." := SalesLine."Document No.";
+        SalesServiceCommitment."Document Line No." := SalesLine."Line No.";
+        SalesServiceCommitment.Process := Enum::Process::"Contract Renewal";
+        SalesServiceCommitment.Insert(false);
     end;
 
     local procedure DeleteAllContracts()
@@ -1233,6 +1366,16 @@ codeunit 139692 "Contract Renewal Test"
         SalesOrderHeader.SetRange("Document Type", SalesOrderHeader."Document Type"::Order);
         SalesOrderHeader.SetRange("Quote No.", QuoteNo);
         SalesOrderHeader.FindFirst();
+    end;
+
+    local procedure GoToFirstCustomerContractLine(var ContractRenewalSelection: TestPage "Contract Renewal Selection")
+    var
+        CustomerContractLine: Record "Cust. Sub. Contract Line";
+    begin
+        CustomerContractLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        CustomerContractLine.FindFirst();
+        SubscriptionLineEntryNo := CustomerContractLine."Subscription Line Entry No.";
+        ContractRenewalSelection.GoToRecord(CustomerContractLine);
     end;
 
     local procedure ReSortContractLines()
@@ -1403,6 +1546,29 @@ codeunit 139692 "Contract Renewal Test"
     end;
 
     [ModalPageHandler]
+    procedure ServiceObjectCardModalPageHandler(var ServiceObjectTestPage: TestPage "Service Object")
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        SubscriptionLine.Get(SubscriptionLineEntryNo);
+        if not ServiceObjectTestPage.Editable then
+            ServiceObjectTestPage.Edit().Invoke();
+        ServiceObjectTestPage.Services.GoToRecord(SubscriptionLine);
+        ServiceObjectTestPage.Services."Calculation Base %".SetValue(BaseCalculationPercentage);
+    end;
+
+    [ModalPageHandler]
+    procedure ServiceObjectCardRenewalTermModalPageHandler(var ServiceObjectTestPage: TestPage "Service Object")
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // Renewal Term is not visible on the Subscription Lines part, so it is changed on the record while the Subscription is open
+        SubscriptionLine.Get(SubscriptionLineEntryNo);
+        SubscriptionLine.Validate("Renewal Term", RenewalTermOnSubscription);
+        SubscriptionLine.Modify(true);
+    end;
+
+    [ModalPageHandler]
     procedure ServiceObjectModalPageHandler(var ServiceObjectTestPage: TestPage "Service Object")
     begin
         if not ServiceObjectTestPage.Editable then
@@ -1421,5 +1587,20 @@ codeunit 139692 "Contract Renewal Test"
     end;
 
     #endregion Handlers
+
+    #region Subscribers
+
+    procedure SetTermUntilSetBySubscriber(NewTermUntil: Date)
+    begin
+        TermUntilSetBySubscriber := NewTermUntil;
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Contract Renewal Selection", OnAfterInitTempSubscriptionLine, '', false, false)]
+    local procedure SetTermUntilOnAfterInitTempSubscriptionLine(var TempSubscriptionLine: Record "Subscription Line" temporary)
+    begin
+        TempSubscriptionLine.ModifyAll("Term Until", TermUntilSetBySubscriber, false);
+    end;
+
+    #endregion Subscribers
 }
 #pragma warning restore AA0210
