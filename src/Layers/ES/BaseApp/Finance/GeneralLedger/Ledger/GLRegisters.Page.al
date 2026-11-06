@@ -9,7 +9,6 @@ using Microsoft.Bank.Reconciliation;
 using Microsoft.Finance.Dimension.Correction;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.GeneralLedger.Reversal;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
@@ -274,45 +273,6 @@ page 116 "G/L Registers"
                         Page.Run(PAGE::"Dimension Correction Draft", DimensionCorrection);
                     end;
                 }
-                separator(Action1100006)
-                {
-                }
-                action("&Cartera Docs")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = '&Cartera Docs';
-                    Image = "Order";
-                    ToolTip = 'View bills and invoices for customers and vendors. Bills are used by customers to pay invoices. They are sent to customers, who pay them under particular conditions on a specified date. Typically, the total amount of an invoice is divided into parts as bills are generated.';
-
-                    trigger OnAction()
-                    begin
-                        GLRegDocs.Docs(Rec);
-                    end;
-                }
-                action("&Posted Cartera  Docs.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = '&Posted Cartera  Docs.';
-                    Image = PostedOrder;
-                    ToolTip = 'View posted bills and invoices for customers and vendors. Bills are used by customers to pay invoices. They are sent to customers, who pay them under particular conditions on a specified date. Typically, the total amount of an invoice is divided into parts as bills are generated.';
-
-                    trigger OnAction()
-                    begin
-                        GLRegDocs.DocsinPostedBGPO(Rec);
-                    end;
-                }
-                action("Cl&osed Cartera Docs.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Cl&osed Cartera Docs.';
-                    Image = Invoice;
-                    ToolTip = 'View completed bills and invoices for customers and vendors. Bills are used by customers to pay invoices. They are sent to customers, who pay them under particular conditions on a specified date. Typically, the total amount of an invoice is divided into parts as bills are generated.';
-
-                    trigger OnAction()
-                    begin
-                        GLRegDocs.ClosedDocs(Rec);
-                    end;
-                }
             }
         }
         area(processing)
@@ -480,9 +440,6 @@ page 116 "G/L Registers"
     begin
         if Rec.FindSet() then;
     end;
-
-    var
-        GLRegDocs: Codeunit "G/L Reg.-Docs.";
 
     trigger OnAfterGetRecord()
     begin

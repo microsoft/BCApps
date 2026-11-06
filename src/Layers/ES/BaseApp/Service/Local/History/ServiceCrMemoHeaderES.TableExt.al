@@ -160,7 +160,6 @@ tableextension 10794 "Service Cr.Memo Header ES" extends "Service Cr.Memo Header
         {
             Caption = 'Pay-at Code';
             DataClassification = CustomerContent;
-            TableRelation = Microsoft.Sales.Receivables."Customer Pmt. Address".Code where("Customer No." = field("Bill-to Customer No."));
             ObsoleteReason = 'Address is taken from the fields Bill-to Address, Bill-to City, etc.';
             ObsoleteState = Removed;
             ObsoleteTag = '25.0';

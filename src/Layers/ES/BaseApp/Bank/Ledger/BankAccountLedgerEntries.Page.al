@@ -57,12 +57,6 @@ page 372 "Bank Account Ledger Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
-                field("Bill No."; Rec."Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the number of the bill related to this bank ledger entry.';
-                }
                 field("Bank Account No."; Rec."Bank Account No.")
                 {
                     ApplicationArea = Basic, Suite;
