@@ -23,6 +23,8 @@ codeunit 140011 "Test FAB Config Package"
         PackageLine: Record "Fabric Config Package Line";
         FabricTableClaim: Record "Fabric Table Claim";
     begin
+        // Required selections persist across cleanup.
+        TenantFabricTables.SetFilter("Table ID", '<>%1&<>%2', Database::"Tenant Fabric Export Details", Database::"Tenant Fabric Export Summary");
         TenantFabricTables.DeleteAll(false);
         PackageLine.DeleteAll(false);
         Pkg.DeleteAll(false);
@@ -160,6 +162,7 @@ codeunit 140011 "Test FAB Config Package"
 
         //[THEN] Table 27 is added and the total count is two
         Assert.IsTrue(TenantFabricTables.Get(27), 'Expected table 27 to be added.');
+        TenantFabricTables.SetFilter("Table ID", '<>%1&<>%2', Database::"Tenant Fabric Export Details", Database::"Tenant Fabric Export Summary");
         Assert.AreEqual(2, TenantFabricTables.Count(), 'Expected exactly two selected tables.');
     end;
 
@@ -423,7 +426,7 @@ codeunit 140011 "Test FAB Config Package"
         Pkg.Get('MS-STD');
         FabricConfigPkgMgt.Activate(Pkg);
         //[GIVEN] The platform table is filled to the maximum capacity
-        for i := 1 to FabricPlatformMgt.MaxTableCount() - 1 do begin
+        for i := 1 to FabricPlatformMgt.MaxTableCount() - FabricPlatformMgt.SelectedTableCount() do begin
             TenantFabricTables.Init();
             TenantFabricTables."Table ID" := 100000 + i; // Arbitrary IDs distinct from tables 18 and 27
             TenantFabricTables.Insert(false);
@@ -536,7 +539,7 @@ codeunit 140011 "Test FAB Config Package"
         Initialize();
         //[GIVEN] The platform table is already at its maximum capacity
         // IDs beyond any real table are not validated, so existing virtual or external tables cannot reject the insert.
-        for i := 1 to FabricPlatformMgt.MaxTableCount() do begin
+        for i := 1 to FabricPlatformMgt.MaxTableCount() - FabricPlatformMgt.SelectedTableCount() do begin
             TenantFabricTables.Init();
             TenantFabricTables."Table ID" := 900000000 + i;
             TenantFabricTables.Insert(false);
