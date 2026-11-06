@@ -4338,6 +4338,88 @@ codeunit 137408 "SCM Warehouse VI"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
+    [Test]
+    [HandlerFunctions('WhseSourceCreateDocumentHandler,MessageHandler,ConfirmHandlerTrue')]
+    [Scope('OnPrem')]
+    procedure RegisterMovementWithBreakbulkFilterShouldRegisterAllLines()
+    var
+        Location: Record Location;
+        BinFrom: Record Bin;
+        BinTo: Record Bin;
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        WarehouseJournalTemplate: Record "Warehouse Journal Template";
+        WarehouseJournalBatch: Record "Warehouse Journal Batch";
+        WarehouseJournalLine: Record "Warehouse Journal Line";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEntry: Record "Warehouse Entry";
+        WarehouseMovement: TestPage "Warehouse Movement";
+        ExpectedLinesCount: Integer;
+    begin
+        // [FEATURE] [Movement] [Breakbulk]
+        // [SCENARIO 657833] Registering a movement with the breakbulk filter enabled registers all movement lines.
+        Initialize();
+
+        // [GIVEN] A directed put-away and pick location with two bins.
+        CreateFullWarehouseSetup(Location);
+        FindBin(BinFrom, Location.Code);
+        UpdateBinRankingOnBin(BinFrom, LibraryRandom.RandInt(100));
+        FindAnotherBinInZone(BinTo, BinFrom);
+        UpdateBinRankingOnBin(BinTo, BinFrom."Bin Ranking" + 1);
+
+        // [GIVEN] An item with an additional unit of measure containing multiple base units.
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(
+            ItemUnitOfMeasure, Item."No.", LibraryRandom.RandIntInRange(5, 100));
+
+        // [GIVEN] Inventory in the source bin in the additional unit of measure.
+        LibraryWarehouse.CreateWarehouseJournalBatch(
+            WarehouseJournalBatch, WarehouseJournalTemplate.Type::Item, Location.Code);
+        LibraryWarehouse.CreateWhseJournalLine(
+            WarehouseJournalLine, WarehouseJournalBatch."Journal Template Name", WarehouseJournalBatch.Name,
+            Location.Code, BinFrom."Zone Code", BinFrom.Code, WarehouseJournalLine."Entry Type"::"Positive Adjmt.",
+            Item."No.", 1);
+        WarehouseJournalLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        WarehouseJournalLine.Modify(true);
+        LibraryWarehouse.RegisterWhseJournalLine(
+            WarehouseJournalBatch."Journal Template Name", WarehouseJournalBatch.Name, Location.Code, true);
+        CalculateAndPostWarehouseAdjustment(Item);
+
+        // [GIVEN] A movement in the base unit of measure that includes intermediate breakbulk lines.
+        CreateMovementWorksheetLine(
+            WhseWorksheetLine, Location.Code, Item."No.", Item."Base Unit of Measure", BinTo.Code,
+            ItemUnitOfMeasure."Qty. per Unit of Measure");
+        Commit();
+        WhseWorksheetLine.MovementCreate(WhseWorksheetLine);
+
+        WarehouseActivityHeader.SetRange("Location Code", Location.Code);
+        WarehouseActivityHeader.SetRange(Type, WarehouseActivityHeader.Type::Movement);
+        WarehouseActivityHeader.FindFirst();
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        ExpectedLinesCount := WarehouseActivityLine.Count();
+        Assert.AreEqual(4, ExpectedLinesCount, UnknownFailure);
+
+        // [GIVEN] The breakbulk filter is enabled on the warehouse movement.
+        WarehouseMovement.OpenEdit();
+        WarehouseMovement.GotoRecord(WarehouseActivityHeader);
+        WarehouseMovement."Breakbulk Filter".SetValue(true);
+
+        // [WHEN] The movement is registered.
+        WarehouseMovement."&Register Movement".Invoke();
+
+        // [THEN] All movement lines are registered and the movement is deleted.
+        Assert.RecordIsEmpty(WarehouseActivityLine);
+        Assert.RecordIsEmpty(WarehouseActivityHeader);
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
+        WarehouseEntry.SetRange("Reference Document", WarehouseEntry."Reference Document"::Movement);
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        Assert.RecordCount(WarehouseEntry, ExpectedLinesCount);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
