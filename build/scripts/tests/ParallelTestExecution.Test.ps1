@@ -283,6 +283,30 @@ Describe "ParallelTestExecution transient retry scheduling" {
     }
 }
 
+Describe "ParallelTestExecution disabled-test exclusions" {
+    It "loads all app exclusions without consulting country settings" {
+        InModuleScope ParallelTestExecution {
+            $script:disabledTestRoot = Join-Path $TestDrive 'exclusions'
+            Mock Get-BaseFolder { $script:disabledTestRoot }
+            Mock Get-ALGoSetting { throw 'Exclusions must not depend on country settings' }
+            $appFolder = Join-Path $script:disabledTestRoot 'DisabledTests\Example_Tests'
+            $null = New-Item -Path $appFolder -ItemType Directory -Force
+            '[{"codeunitId":500,"method":"First"}]' |
+                Set-Content (Join-Path $appFolder 'first.json')
+            '[{"codeunitId":501,"method":"*"}]' |
+                Set-Content (Join-Path $appFolder 'second.json')
+
+            $result = @(Get-DisabledTestsForApp -AppName 'Example Tests')
+
+            $result.Count | Should -Be 2
+            ($result | Where-Object codeunitId -eq 500).method | Should -Be 'First'
+            ($result | Where-Object codeunitId -eq 501).method | Should -Be '*'
+            @(Get-DisabledTestsForApp -AppName 'Other Tests').Count | Should -Be 0
+            Should -Invoke Get-ALGoSetting -Times 0
+        }
+    }
+}
+
 Describe "ParallelTestExecution app-level phases" {
     BeforeEach {
         InModuleScope ParallelTestExecution {
@@ -351,6 +375,36 @@ Describe "ParallelTestExecution app-level phases" {
             if (Test-Path $stateFile) { Remove-Item $stateFile }
             Should -Invoke Get-TestsFromBcContainer -Times 0
             Should -Invoke Invoke-ScriptInBcContainer -Times 0
+        }
+    }
+
+    It "writes and reads cached state without temp environment variables" {
+        InModuleScope ParallelTestExecution {
+            $previousRunnerTemp = $env:RUNNER_TEMP
+            $previousTemp = $env:TEMP
+            $stateFile = $null
+            try {
+                $env:RUNNER_TEMP = $null
+                $env:TEMP = $null
+                $stateFile = Join-Path ([System.IO.Path]::GetTempPath()) `
+                    "parallelTests_$($script:testParameters.containerName).json"
+
+                Invoke-ParallelTestExecution -parameters $script:testParameters -scriptPath 'unused.ps1' `
+                    -testType 'IntegrationTest' -appNamesToTest @('A') | Should -BeTrue
+
+                $script:dispatches.Phase | Should -Be @('Codeunit', 'Disabled')
+                Test-Path $stateFile | Should -BeTrue
+                $state = Get-Content $stateFile -Raw | ConvertFrom-Json
+                $state.completed | Should -BeTrue
+                $state.finalResult | Should -BeTrue
+                Get-CachedTestRunResult -ContainerName $script:testParameters.containerName | Should -BeTrue
+            } finally {
+                $env:RUNNER_TEMP = $previousRunnerTemp
+                $env:TEMP = $previousTemp
+                if ($stateFile -and (Test-Path $stateFile)) {
+                    Remove-Item $stateFile -Force
+                }
+            }
         }
     }
 
