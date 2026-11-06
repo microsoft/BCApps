@@ -305,7 +305,7 @@ page 9886 "Effective Permissions Overview"
         AzureADUserManagement: Codeunit "Azure AD User Management";
         IsSaaS: Boolean;
     begin
-        IsSaaS := EnvironmentInfo.IsSaaS();
+        IsSaaS := EnvironmentInfo.IsSaaSInfrastructure();
         TempUser.Reset();
         TempUser.DeleteAll();
         UserProperty.SetLoadFields("Authentication Object ID");
