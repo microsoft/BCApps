@@ -36,7 +36,7 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
         PurchaseLine.ReadIsolation := IsolationLevel::ReadCommitted;
         PurchaseLine.SetAutoCalcFields("Alloc. Acc. Modified by User");
         PurchaseLine.GetBySystemId(ParentSystemId);
-        AmountToAllocate := PurchaseLine."Line Amount";
+        AmountToAllocate := PurchaseLine.Amount;
 
         PostingDate := PurchaseLine.GetPurchHeader()."Posting Date";
 
@@ -44,7 +44,7 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
             LoadManualAllocationLines(PurchaseLine, AllocationLine)
         else begin
             GetAllocationAccount(PurchaseLine, AllocationAccount);
-            AllocationAccountMgt.GenerateAllocationLines(AllocationAccount, AllocationLine, PurchaseLine."Line Amount", PostingDate, PurchaseLine."Dimension Set ID", PurchaseLine."Currency Code");
+            AllocationAccountMgt.GenerateAllocationLines(AllocationAccount, AllocationLine, AmountToAllocate, PostingDate, PurchaseLine."Dimension Set ID", PurchaseLine."Currency Code");
             AllocationAccountMgt.SplitQuantitiesIfNeeded(PurchaseLine.Quantity, AllocationLine, AllocationAccount);
             ReplaceInheritFromParent(AllocationLine, PurchaseLine);
         end;
@@ -555,7 +555,8 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
             if IsInheritFromParent then begin
                 PurchaseLine.Validate("Direct Unit Cost", GetUnitPrice(PurchaseLine, AllocationLine.Amount));
                 PurchaseLine."Line Amount" := GetAmount(PurchaseLine, AllocationLine.Amount);
-                PurchaseLine.Amount := PurchaseLine."Line Amount";
+                PurchaseLine.UpdateVATAmounts();
+                PurchaseLine.InitOutstandingAmount();
             end else begin
                 AmountRoundingPrecision := AllocationAccountMgt.GetCurrencyRoundingPrecision(PurchaseLine."Currency Code");
                 PurchaseLine.Validate("Direct Unit Cost", Round(AllocationLine.Amount / PurchaseLine.Quantity, AmountRoundingPrecision));
