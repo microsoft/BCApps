@@ -130,6 +130,7 @@ codeunit 4395 "Global Item Search"
         ColumnValuesJson: JsonObject;
         ColumnValuesText: Text;
         IncludeResult: Boolean;
+        ResultCount: Integer;
     begin
         // Search
         ALSearchResult := ALSearch.FindItems(ALSearchOptions, ALCopilotCapability);
@@ -137,7 +138,12 @@ codeunit 4395 "Global Item Search"
         // Process results
         QueryResults := ALSearchResult.GetResultsForQuery(SearchPrimaryKeyWord);
 
+        ResultCount := 0;
         foreach ALSearchQueryResult in QueryResults do begin
+            if ResultCount >= 5 then
+                break;
+            ResultCount += 1;
+
             IncludeResult := (MinContextAwareRankingScore = 0) or (ALSearchQueryResult.ContextAwareRankingScore >= MinContextAwareRankingScore);
             if IncludeResult then begin
                 Clear(CandidateObject);
