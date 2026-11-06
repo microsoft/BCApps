@@ -1188,6 +1188,24 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         }
     }
 
+    It "rejects merged native infrastructure errors without treating ordinary assertions as infrastructure" {
+        InModuleScope ParallelTestExecution {
+            $source = Join-Path $TestDrive 'native-source.xml'
+            $other = Join-Path $TestDrive 'other-source.xml'
+            $merged = Join-Path $TestDrive 'native-merged.xml'
+            '<testsuites><testsuite name="Native batch"><testcase name="Native request"><error type="NativeTestInfrastructure">connection lost</error></testcase></testsuite></testsuites>' |
+                Set-Content -LiteralPath $source -Encoding utf8
+            '<testsuites><testsuite name="AL tests"><testcase name="Assertion"><failure>actual assertion</failure></testcase></testsuite></testsuites>' |
+                Set-Content -LiteralPath $other -Encoding utf8
+            Test-BcAppsExpectedTestResults -Parameters @{ JUnitResultFileName = $other } | Should -BeTrue
+            Merge-TestResultFiles -targetFile $merged -sourceFiles @($source, $other)
+            Test-BcAppsExpectedTestResults -Parameters @{ JUnitResultFileName = $merged } | Should -BeFalse
+            $xml = [xml](Get-Content -LiteralPath $merged -Raw)
+            @($xml.SelectNodes('//failure')).Count | Should -Be 1
+            @($xml.SelectNodes('//error')).Count | Should -Be 1
+        }
+    }
+
     It "blocks tolerance when the scheduler finishes without its configured aggregate result" {
         InModuleScope ParallelTestExecution {
             $previousRunnerTemp = $env:RUNNER_TEMP

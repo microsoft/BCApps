@@ -383,9 +383,24 @@ jobs:
           if-no-files-found: ignore
           retention-days: ${{ inputs.artifactsRetentionDays }}
 
+      - name: Report native test infrastructure errors
+        id: nativeTestSummary
+        if: (success() || failure()) && env.doNotRunTests == 'False'
+        shell: pwsh
+        env:
+          BCAPPS_TEST_PROJECT: '${{ inputs.project }}'
+        run: |
+          Import-Module "$env:GITHUB_WORKSPACE\build\scripts\AlToolTestAdapter.psm1"
+          $resultPath = Join-Path (Join-Path $env:GITHUB_WORKSPACE $env:BCAPPS_TEST_PROJECT) '.buildartifacts\TestResults.xml'
+          $hasErrors = Write-BcAppsNativeTestSummary -ResultPath $resultPath -SummaryPath $env:GITHUB_STEP_SUMMARY
+          "hasInfrastructureErrors=$($hasErrors.ToString().ToLowerInvariant())" | Add-Content -LiteralPath $env:GITHUB_OUTPUT
+          if ($hasErrors) {
+            throw 'Native test infrastructure errors are present. See TestResults.xml and the incomplete-run summary.'
+          }
+
       - name: Analyze Test Results
         id: analyzeTestResults
-        if: (success() || failure()) && env.doNotRunTests == 'False'
+        if: (success() || failure()) && env.doNotRunTests == 'False' && steps.nativeTestSummary.outputs.hasInfrastructureErrors != 'true'
         uses: spetersenms/AL-Go/Actions/AnalyzeTests@5fdf6dd31beb4edab0b6fdecb7c8866e9e81a318
         with:
           shell: ${{ inputs.shell }}

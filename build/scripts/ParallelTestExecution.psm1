@@ -1256,6 +1256,10 @@ function Test-BcAppsExpectedTestResults {
                 $resultXml.DocumentElement.LocalName -notin $validRootNames) {
                 throw "unsupported root element '$($resultXml.DocumentElement.LocalName)'"
             }
+            if ($resultXml.SelectSingleNode("//error[@type='NativeTestInfrastructure' or @type='NativeTestResultUnreported']")) {
+                Write-Host "::error::Native test infrastructure errors in '$resultFile' cannot be tolerated."
+                $allValid = $false
+            }
         }
         catch {
             Write-Host "::error::Test result file '$resultFile' is invalid. $($_.Exception.Message)"

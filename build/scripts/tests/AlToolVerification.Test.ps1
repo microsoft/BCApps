@@ -46,11 +46,20 @@ Describe "W1 verification project discovery and workflow" {
         @([regex]::Matches($script:workflow, [regex]::Escape($guard))).Count | Should -Be 3
     }
 
+    It "does not let the pinned analyzer report infrastructure error cases as passes" {
+        $script:workflow | Should -Match 'Write-BcAppsNativeTestSummary'
+        $script:workflow | Should -Match "steps.nativeTestSummary.outputs.hasInfrastructureErrors != 'true'"
+        $script:workflow.IndexOf("- name: Report native test infrastructure errors") |
+            Should -BeLessThan $script:workflow.IndexOf("- name: Analyze Test Results")
+        $script:workflow.IndexOf("- name: Publish artifacts - test results") |
+            Should -BeLessThan $script:workflow.IndexOf("- name: Report native test infrastructure errors")
+    }
+
     It "pins the tracked archive to the exact verified staged-source build" {
         $provenance = Get-Content (Join-Path $script:root "build\scripts\VerificationAlTool.json") -Raw | ConvertFrom-Json
         $zip = Join-Path $script:root "build\tools\altool-dev-net10.zip"
         (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash | Should -Be $provenance.archiveSha256
-        $provenance.stagedSourcePatchSha256 | Should -Be "808666207E36B43180796AA770F087C61EF3A347164CAD8E98483CB8D47A2283"
+        $provenance.stagedSourcePatchSha256 | Should -Be "E9EA98940D4CD6D687502CF3109C461F6348F3D8311BB54C7DF734D6D6FBC527"
     }
 
     It "uses the existing clean-container and Global publication overrides before native initialization" {
@@ -96,6 +105,7 @@ Describe "Native ALTool verification adapter" {
     Describe "Pinned AL-Go native contracts" -Skip:([string]::IsNullOrWhiteSpace($env:BCAPPS_ALGO_COVERAGE_ROOT)) {
         BeforeAll {
             $script:root = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
+            $script:settings = Get-Content (Join-Path $script:root ".github\AL-Go-Settings.json") -Raw | ConvertFrom-Json
             $script:actionModulePath = Join-Path $env:BCAPPS_ALGO_COVERAGE_ROOT "Actions\RunTests\AlToolTestRunner.psm1"
             $script:actionModule = Import-Module $script:actionModulePath -PassThru
             Import-Module (Join-Path $PSScriptRoot "..\AlToolTestAdapter.psm1") -Force
@@ -162,7 +172,7 @@ Describe "Native ALTool verification adapter" {
             $readSettings | Should -Match '\$settings.appBuild = \$settings.runNumberOffset \+ \[Int32\]\(\$ENV:GITHUB_RUN_NUMBER\)'
         }
 
-        It "serializes explicit methods, parses real ToolResponse JSON and reconciles missing results" {
+        It "serializes explicit methods and persists unreported methods as infrastructure errors" {
             Mock -ModuleName AlToolTestRunner Get-TestsFromBcContainer {
                 [pscustomobject]@{ Id = 50000; Name = "Selected"; Tests = @("First", "Disabled", "Last") }
             }
@@ -183,7 +193,7 @@ Describe "Native ALTool verification adapter" {
                 }
             }
             $resultPath = Join-Path $TestDrive "actual-results.xml"
-            Invoke-BcAppsNativeTestRun -Parameters @{
+            $parameters = @{
                 _bcAppsAlToolPath = "verified-altool.exe"
                 _bcAppsAlToolModulePath = $script:actionModulePath
                 containerName = "mocked"
@@ -195,10 +205,211 @@ Describe "Native ALTool verification adapter" {
                 testType = "IntegrationTest"
                 disabledTests = @([pscustomobject]@{ codeunitName = "Selected"; method = "Disabled" })
                 JUnitResultFileName = $resultPath
-            } | Should -BeFalse
+            }
+            { Invoke-BcAppsNativeTestRun -Parameters $parameters } | Should -Throw "*unreported*"
             $xml = [xml](Get-Content -LiteralPath $resultPath -Raw)
-            @($xml.SelectNodes("//testcase")).Count | Should -Be 2
-            @($xml.SelectNodes("//testcase/failure")).Count | Should -Be 1
+            @($xml.SelectNodes("//testcase[@classname='50000 Selected']")).Count | Should -Be 2
+            @($xml.SelectNodes("//testcase/failure")).Count | Should -Be 0
+            @($xml.SelectNodes("//testcase[@name='Last']/error[@type='NativeTestResultUnreported']")).Count | Should -Be 1
+        }
+
+        Describe "Durable native result accounting with the real pinned parser and JUnit writer" {
+            BeforeEach {
+                $script:parameters = @{
+                    _bcAppsAlToolPath = "verified-altool.exe"
+                    _bcAppsAlToolModulePath = $script:actionModulePath
+                    containerName = "mocked"
+                    credential = [pscredential]::new("test-user", [securestring]::new())
+                    extensionId = "test-app-id"
+                    appName = "Tests"
+                    companyName = "My Company"
+                    tenant = "default"
+                    disabledTests = @()
+                    JUnitResultFileName = Join-Path $TestDrive ("durable-" + [guid]::NewGuid().ToString("N") + ".xml")
+                }
+                $script:nativeResponse = @{
+                    ExitCode = 1
+                    StandardError = @("original native cause")
+                    StandardOutput = @('{"succeeded":false,"message":"A task was canceled.","errorDetails":{"code":"CommandExecutionFailed"},"data":{"success":true,"passed":0,"failed":0,"skipped":0,"total":0,"results":[]}}')
+                }
+                Mock -ModuleName AlToolTestRunner Get-TestsFromBcContainer {
+                    [pscustomobject]@{ Id = 50000; Name = "Selected"; Tests = @("First", "Last") }
+                }
+                Mock -ModuleName AlToolTestRunner Get-BcContainerServerConfiguration {
+                    @{ ServerInstance = "BC"; DeveloperServicesPort = 7049 }
+                }
+                Mock -ModuleName AlToolTestRunner Invoke-AlNativeCommand { $script:nativeResponse }
+            }
+
+            It "persists zero-result cancellation without inventing AL test failures or skips" {
+                { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } | Should -Throw "*A task was canceled*"
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase[@classname='50000 Selected']/error[@type='NativeTestResultUnreported']")).Count | Should -Be 2
+                @($xml.SelectNodes("//failure|//skipped")).Count | Should -Be 0
+                $xml.OuterXml | Should -Match "original native cause"
+                $script:parameters._bcAppsTestInfrastructureBlocksTolerance | Should -BeTrue
+            }
+
+            It "retains completed outcomes and the original cause when the remaining methods are canceled" {
+                $script:nativeResponse.StandardOutput = @('{"succeeded":false,"message":"A task was canceled.","errorDetails":{"code":"CommandExecutionFailed"},"data":{"success":true,"passed":1,"failed":0,"skipped":0,"total":1,"results":[{"codeunitId":50000,"methodName":"First","status":"passed","durationMs":1}]}}')
+                { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } | Should -Throw "*A task was canceled*"
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase[@name='First' and not(error) and not(failure)]")).Count | Should -Be 1
+                @($xml.SelectNodes("//testcase[@name='Last']/error[@type='NativeTestResultUnreported']")).Count | Should -Be 1
+                @($xml.SelectNodes("//failure|//skipped")).Count | Should -Be 0
+            }
+
+            It "persists actual native CLI <Fixture> outcomes while failing the request" -ForEach @(
+                @{ Fixture = "NativePartialResults.json"; CodeunitId = 52980; FirstMethod = "LeaveSingletonState"; Completed = 1; Lifecycle = 0 }
+                @{ Fixture = "NativeZeroResults.json"; CodeunitId = 52980; FirstMethod = "LeaveSingletonState"; Completed = 0; Lifecycle = 0 }
+                @{ Fixture = "NativeOnRunMissingResults.json"; CodeunitId = 132604; FirstMethod = "TestReadNote"; Completed = 0; Lifecycle = 1 }
+                @{ Fixture = "NativeOnRunPartialResults.json"; CodeunitId = 132508; FirstMethod = "TestReadNote"; Completed = 1; Lifecycle = 2 }
+            ) {
+                # Captured from live --renewsession execution. data.success summarizes only completed assertions.
+                $script:producerMethods = @("MethodThatDoesNotExist")
+                if ($Completed -gt 0) {
+                    $script:producerMethods = @($FirstMethod) + $script:producerMethods
+                }
+                $script:producerCodeunitId = $CodeunitId
+                Mock -ModuleName AlToolTestRunner Get-TestsFromBcContainer {
+                    [pscustomobject]@{ Id = $script:producerCodeunitId; Name = "Native fixture"; Tests = $script:producerMethods }
+                }
+                $script:nativeResponse.ExitCode = 1
+                $script:nativeResponse.StandardError = @()
+                $script:nativeResponse.StandardOutput = @(Get-Content -LiteralPath (Join-Path $PSScriptRoot "fixtures\$Fixture"))
+                { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } | Should -Throw "*MethodThatDoesNotExist*"
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase[@name='$FirstMethod' and not(error) and not(failure)]")).Count |
+                    Should -Be $Completed
+                @($xml.SelectNodes("//testcase[@name='MethodThatDoesNotExist']/error[@type='NativeTestResultUnreported']")).Count |
+                    Should -Be 1
+                @($xml.SelectNodes("//testcase/error[@type='NativeTestInfrastructure']")).Count | Should -Be 1
+                @($xml.SelectNodes("//failure|//skipped")).Count | Should -Be 0
+                @($xml.SelectNodes("//system-out") | ForEach-Object {
+                    $_.InnerText -split "\r?\n" | Where-Object { $_ -like "Native lifecycle OnRun:*" }
+                }).Count | Should -Be $Lifecycle
+                $xml.OuterXml | Should -Match "CommandExecutionFailed"
+                $script:parameters._bcAppsTestInfrastructureBlocksTolerance | Should -BeTrue
+            }
+
+            It "publishes infrastructure accounting before propagating a malformed response" {
+                $script:nativeResponse.StandardOutput = @("{not-json")
+                { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } | Should -Throw "*parsed as JSON*"
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase/error[@type='NativeTestResultUnreported']")).Count | Should -Be 2
+                @($xml.SelectNodes("//testcase/error[@type='NativeTestInfrastructure']")).Count | Should -Be 1
+            }
+
+            It "parses partial output even when native exits with an unexpected nonzero code" {
+                $script:nativeResponse.ExitCode = 2
+                $script:nativeResponse.StandardOutput = @('{"succeeded":false,"message":"connection lost","data":{"results":[{"codeunitId":50000,"methodName":"First","status":"failed","output":"actual assertion","durationMs":2}]}}')
+                { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } | Should -Throw "*exited 2*"
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase[@name='First']/failure")).Count | Should -Be 1
+                $xml.SelectSingleNode("//testcase[@name='First']/failure").InnerText | Should -Be "actual assertion"
+                @($xml.SelectNodes("//testcase[@name='Last']/error")).Count | Should -Be 1
+                $xml.OuterXml | Should -Match "connection lost"
+            }
+
+            It "keeps ordinary complete test failures distinct from infrastructure errors" {
+                $script:nativeResponse.StandardError = @()
+                $script:nativeResponse.StandardOutput = @('{"succeeded":false,"message":"One or more tests failed.","errorDetails":{"code":"TestRunFailed"},"data":{"results":[{"codeunitId":50000,"methodName":"First","status":"passed","durationMs":1},{"codeunitId":50000,"methodName":"Last","status":"failed","output":"expected assertion","durationMs":1}]}}')
+                Invoke-BcAppsNativeTestRun -Parameters $script:parameters | Should -BeFalse
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase")).Count | Should -Be 2
+                @($xml.SelectNodes("//failure")).Count | Should -Be 1
+                @($xml.SelectNodes("//error")).Count | Should -Be 0
+            }
+
+            It "does not hide infrastructure failure when every method already has an outcome" {
+                $script:nativeResponse.StandardOutput = @('{"succeeded":false,"message":"cleanup failed","errorDetails":{"code":"CommandExecutionFailed"},"data":{"results":[{"codeunitId":50000,"methodName":"First","status":"passed","durationMs":1},{"codeunitId":50000,"methodName":"Last","status":"passed","durationMs":1}]}}')
+                { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } | Should -Throw "*cleanup failed*"
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase[@classname='50000 Selected' and not(error)]")).Count | Should -Be 2
+                @($xml.SelectNodes("//testcase/error[@type='NativeTestInfrastructure']")).Count | Should -Be 1
+            }
+
+            It "retains duplicate conflicting outcomes as evidence but fails the batch explicitly" {
+                $script:nativeResponse.StandardOutput = @('{"succeeded":false,"message":"One or more tests failed.","errorDetails":{"code":"TestRunFailed"},"data":{"results":[{"codeunitId":50000,"methodName":"First","status":"passed","durationMs":1},{"codeunitId":50000,"methodName":"First","status":"failed","output":"conflict","durationMs":1},{"codeunitId":50000,"methodName":"Last","status":"passed","durationMs":1}]}}')
+                { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } | Should -Throw "*duplicate*"
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase[@name='First']")).Count | Should -Be 2
+                @($xml.SelectNodes("//testcase[@name='First']/failure")).Count | Should -Be 1
+                @($xml.SelectNodes("//testcase/error[@type='NativeTestInfrastructure']")).Count | Should -Be 1
+            }
+
+            It "preserves earlier app results and publishes errors when the native process cannot start" {
+                '<testsuites><testsuite name="Earlier" tests="1"><testcase classname="Earlier" name="Done"/></testsuite></testsuites>' |
+                    Set-Content -LiteralPath $script:parameters.JUnitResultFileName
+                Mock -ModuleName AlToolTestRunner Invoke-AlNativeCommand { throw "process start failed" }
+                { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } | Should -Throw "*process start failed*"
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase[@name='Done']")).Count | Should -Be 1
+                @($xml.SelectNodes("//testcase/error[@type='NativeTestResultUnreported']")).Count | Should -Be 2
+            }
+
+            It "preserves the original cause and existing artifact if result publication fails" {
+                $previous = '<testsuites><testsuite name="Earlier"><testcase name="Done"/></testsuite></testsuites>'
+                $previous | Set-Content -LiteralPath $script:parameters.JUnitResultFileName
+                Mock -ModuleName AlToolTestRunner Move-Item { throw "blocked destination" }
+                { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } |
+                    Should -Throw "*Could not publish*blocked destination*A task was canceled*"
+                (Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw).Trim() | Should -Be $previous
+                @(Get-ChildItem -LiteralPath $TestDrive -Filter "*.tmp").Count | Should -Be 0
+            }
+
+            It "accepts successful parameterized outcomes without treating their base method as unreported" {
+                $script:nativeResponse.ExitCode = 0
+                $script:nativeResponse.StandardError = @()
+                $script:nativeResponse.StandardOutput = @('{"succeeded":true,"data":{"results":[{"codeunitId":50000,"methodName":"First[row1]","status":"passed","durationMs":1},{"codeunitId":50000,"methodName":"First[row2]","status":"passed","durationMs":1},{"codeunitId":50000,"methodName":"Last","status":"passed","durationMs":1}]}}')
+                Invoke-BcAppsNativeTestRun -Parameters $script:parameters | Should -BeTrue
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase")).Count | Should -Be 3
+                @($xml.SelectNodes("//error|//failure")).Count | Should -Be 0
+            }
+
+            It "retains repeated OnRun lifecycle callbacks without inflating selected-test counts" {
+                $script:nativeResponse.ExitCode = 0
+                $script:nativeResponse.StandardOutput = @('{"succeeded":true,"data":{"results":[{"codeunitId":50000,"methodName":"OnRun","status":"passed","durationMs":1},{"codeunitId":50000,"methodName":"First","status":"passed","durationMs":1},{"codeunitId":50000,"methodName":"OnRun","status":"passed","durationMs":2},{"codeunitId":50000,"methodName":"Last","status":"passed","durationMs":1}]}}')
+                Invoke-BcAppsNativeTestRun -Parameters $script:parameters | Should -BeTrue
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase")).Count | Should -Be 2
+                @($xml.SelectNodes("//error|//failure")).Count | Should -Be 0
+                @($xml.SelectNodes("//system-out")).Count | Should -Be 1
+                @($xml.SelectSingleNode("//system-out").InnerText -split "\r?\n").Count | Should -Be 2
+                $xml.SelectSingleNode("//system-out").InnerText | Should -Match "OnRun: Pass \(2 ms\)"
+            }
+
+            It "preserves and fails a lifecycle failure even when selected test methods passed" {
+                $script:nativeResponse.StandardOutput = @('{"succeeded":false,"errorDetails":{"code":"TestRunFailed"},"data":{"results":[{"codeunitId":50000,"methodName":"OnRun","status":"passed","durationMs":1},{"codeunitId":50000,"methodName":"First","status":"passed","durationMs":1},{"codeunitId":50000,"methodName":"OnRun","status":"failed","output":"setup failure","durationMs":2},{"codeunitId":50000,"methodName":"Last","status":"passed","durationMs":1}]}}')
+                { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } | Should -Throw "*OnRun failed*setup failure*"
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase[@classname='50000 Selected' and not(error) and not(failure)]")).Count | Should -Be 2
+                @($xml.SelectNodes("//testcase/error[@type='NativeTestInfrastructure']")).Count | Should -Be 1
+                @($xml.SelectNodes("//failure|//skipped")).Count | Should -Be 0
+                $xml.SelectSingleNode("//system-out").InnerText | Should -Match "setup failure"
+            }
+
+            It "rejects native success with only OnRun callbacks and no selected-method outcomes" {
+                $script:nativeResponse.ExitCode = 0
+                $script:nativeResponse.StandardOutput = @('{"succeeded":true,"data":{"success":true,"passed":1,"failed":0,"skipped":0,"total":1,"results":[{"codeunitId":50000,"methodName":"OnRun","status":"passed","durationMs":1}]}}')
+                { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } | Should -Throw "*2 selected native test methods are unreported*"
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase[@classname='50000 Selected']/error[@type='NativeTestResultUnreported']")).Count | Should -Be 2
+                @($xml.SelectNodes("//testcase/error[@type='NativeTestInfrastructure']")).Count | Should -Be 1
+                @($xml.SelectNodes("//testcase[not(error)]|//failure|//skipped")).Count | Should -Be 0
+                $xml.SelectSingleNode("//system-out").InnerText | Should -Match "OnRun: Pass"
+            }
+
+            It "fails explicitly on unrequested results while retaining requested completed outcomes" {
+                $script:nativeResponse.ExitCode = 0
+                $script:nativeResponse.StandardOutput = @('{"succeeded":true,"data":{"results":[{"codeunitId":50000,"methodName":"First","status":"passed","durationMs":1},{"codeunitId":50000,"methodName":"Last","status":"passed","durationMs":1},{"codeunitId":50000,"methodName":"Unexpected","status":"passed","durationMs":1}]}}')
+                { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } | Should -Throw "*unrequested method*Unexpected*"
+                $xml = [xml](Get-Content -LiteralPath $script:parameters.JUnitResultFileName -Raw)
+                @($xml.SelectNodes("//testcase[@classname='50000 Selected' and not(error)]")).Count | Should -Be 2
+                @($xml.SelectNodes("//testcase/error[@type='NativeTestInfrastructure']")).Count | Should -Be 1
+                $xml.OuterXml | Should -Match "Unexpected"
+            }
         }
     }
 
@@ -270,12 +481,20 @@ Describe "Native ALTool verification adapter" {
             $groupsIndex = [array]::IndexOf($ArgumentList, "--testgroups")
             $groups = @(Get-Content -LiteralPath $ArgumentList[$groupsIndex + 1] -Raw | ConvertFrom-Json)
             @($groups[0].testMethods) | Should -Be @("First", "Last")
-            @{ ExitCode = 0; StandardOutput = @("structured-result"); StandardError = @() }
+            @{ ExitCode = 0; StandardOutput = @('{"succeeded":true,"data":{"results":[]}}'); StandardError = @() }
         }
         Mock -ModuleName BcAppsActionRunnerFixture ConvertFrom-AlTestGroupsOutput {
-            @{ Succeeded = $true; Results = @{ "50000" = @() }; Message = "" }
+            @{ Succeeded = $true; Results = @{ "50000" = @(
+                @{ MethodName = "First"; Outcome = "Pass" }
+                @{ MethodName = "Last"; Outcome = "Pass" }
+            ) }; Message = "" }
         }
-        Mock -ModuleName BcAppsActionRunnerFixture Add-JUnitTestSuite { 0 }
+        Mock -ModuleName BcAppsActionRunnerFixture Add-JUnitTestSuite {
+            $suite = $Doc.CreateElement("testsuite")
+            $suite.SetAttribute("name", "$($Codeunit.Id) $($Codeunit.Name)")
+            $null = $TestSuitesNode.AppendChild($suite)
+            0
+        }
     }
 
     It "runs every selected method in one native app batch, excludes disabled tests and cleans up" {
@@ -305,7 +524,10 @@ Describe "Native ALTool verification adapter" {
     }
 
     It "fails on missing requested method results rather than returning native success alone" {
-        Mock -ModuleName BcAppsActionRunnerFixture Add-JUnitTestSuite { 1 }
+        Mock -ModuleName BcAppsActionRunnerFixture Add-JUnitTestSuite {
+            $null = $TestSuitesNode.AppendChild($Doc.CreateElement("testsuite"))
+            1
+        }
         Invoke-BcAppsNativeTestRun -Parameters $script:parameters | Should -BeFalse
     }
 
@@ -329,6 +551,37 @@ Describe "Native ALTool verification adapter" {
         $script:parameters.Remove("codeCoverageOutputPath")
         $script:parameters.Remove("_bcAppsAlToolPath")
         { Invoke-BcAppsNativeTestRun -Parameters $script:parameters } | Should -Throw "*_bcAppsAlToolPath*"
+    }
+}
+
+Describe "Native infrastructure summaries" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot "..\AlToolTestAdapter.psm1") -Force
+    }
+
+    It "reports real outcomes and unreported methods without turning error nodes into passes" {
+        $results = Join-Path $TestDrive "incomplete.xml"
+        $summary = Join-Path $TestDrive "summary.txt"
+        @'
+<testsuites><testsuite><properties><property name="appName" value="Tests"/></properties>
+<testcase name="Done"/><testcase name="Failed"><failure>actual assertion</failure></testcase>
+<testcase name="Skipped"><skipped/></testcase>
+<testcase name="Missing"><error type="NativeTestResultUnreported"/></testcase>
+<testcase name="Request"><error type="NativeTestInfrastructure">original cause</error></testcase>
+</testsuite></testsuites>
+'@ | Set-Content -LiteralPath $results
+        Write-BcAppsNativeTestSummary -ResultPath $results -SummaryPath $summary | Should -BeTrue
+        Get-Content -LiteralPath $summary -Raw | Should -Match '\| Tests \| 1 \| 1 \| 1 \| 1 \| 1 \|'
+        Get-Content -LiteralPath $results -Raw | Should -Match "original cause"
+    }
+
+    It "leaves complete test-only failures to the normal AL-Go analyzer" {
+        $results = Join-Path $TestDrive "complete.xml"
+        $summary = Join-Path $TestDrive "unused-summary.txt"
+        '<testsuites><testsuite><testcase name="Failed"><failure>assertion</failure></testcase></testsuite></testsuites>' |
+            Set-Content -LiteralPath $results
+        Write-BcAppsNativeTestSummary -ResultPath $results -SummaryPath $summary | Should -BeFalse
+        Test-Path -LiteralPath $summary | Should -BeFalse
     }
 }
 

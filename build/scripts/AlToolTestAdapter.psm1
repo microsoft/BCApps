@@ -157,6 +157,13 @@ function Install-BcAppsVerificationFramework {
 <#
 .SYNOPSIS
     Executes the selected app's enabled methods natively with session renewal and no coverage.
+.DESCRIPTION
+    Uses the pinned action's ToolResponse parser and JUnit writer for actual method outcomes.
+    Persists missing outcomes as NativeTestResultUnreported errors, not AL assertion failures
+    or skips. Native process/protocol failures also produce a NativeTestInfrastructure case.
+    Completed outcomes and the original infrastructure cause are saved before failure propagates;
+    merged infrastructure errors must never be accepted by test tolerance.
+    Unselected OnRun lifecycle callbacks remain in JUnit system-out, not selected-test counts.
 .PARAMETER Parameters
     Canonical scheduler parameters, including the validated executable and action module paths.
 #>
@@ -230,12 +237,18 @@ function Invoke-BcAppsNativeTestRun {
             $null = $doc.AppendChild($doc.CreateElement("testsuites"))
         }
         $passed = $true
+        $detail = ""
         if ($codeunits.Count -gt 0) {
-            $connection = Get-AlToolConnection -ContainerName $parameters.containerName
-            $groupsPath = New-AlTestGroupsFile -Codeunits $codeunits
+            $parsed = $null
+            $native = $null
+            $nativeErrorDetails = ""
+            $groupsPath = $null
+            $infrastructureErrors = [System.Collections.Generic.List[string]]::new()
             $previousUsername = $env:BC_SERVER_USERNAME
             $previousPassword = $env:BC_SERVER_PASSWORD
             try {
+                $connection = Get-AlToolConnection -ContainerName $parameters.containerName
+                $groupsPath = New-AlTestGroupsFile -Codeunits $codeunits
                 $env:BC_SERVER_USERNAME = $parameters.credential.UserName
                 $env:BC_SERVER_PASSWORD = $parameters.credential.GetNetworkCredential().Password
                 $arguments = @(
@@ -248,36 +261,220 @@ function Invoke-BcAppsNativeTestRun {
                 Write-Host "Native ALTool --renewsession: '$($parameters.appName)', tenant '$($parameters.tenant)', $($codeunits.Count) codeunits, $(($codeunits.Tests | Measure-Object).Count) explicit methods."
                 $native = Invoke-AlNativeCommand -FilePath $parameters["_bcAppsAlToolPath"] -ArgumentList $arguments
                 if ($native.ExitCode -notin @(0, 1)) {
-                    throw "Native ALTool exited $($native.ExitCode): $($native.StandardError -join [Environment]::NewLine)"
+                    $infrastructureErrors.Add("Native ALTool exited $($native.ExitCode).")
                 }
                 $parsed = ConvertFrom-AlTestGroupsOutput -OutputLines @($native.StandardOutput)
-                if (-not $parsed.Succeeded -and $parsed.Results.Count -eq 0) {
-                    throw "Native ALTool returned no test results: $($parsed.Message) $($native.StandardError -join [Environment]::NewLine)"
+                $response = ($native.StandardOutput -join [Environment]::NewLine) | ConvertFrom-Json
+                $errorCode = ""
+                if ($response.PSObject.Properties["errorDetails"] -and $response.errorDetails) {
+                    $nativeErrorDetails = $response.errorDetails | ConvertTo-Json -Depth 20
+                    if ($response.errorDetails.PSObject.Properties["code"]) {
+                        $errorCode = "$($response.errorDetails.code)"
+                    }
+                }
+                if (-not $parsed.Succeeded -and $errorCode -ne "TestRunFailed") {
+                    $infrastructureErrors.Add("Native ALTool failed ($errorCode): $($parsed.Message)")
+                }
+                elseif ($parsed.Message -and $infrastructureErrors.Count -gt 0) {
+                    $infrastructureErrors.Add($parsed.Message)
+                }
+                if ($parsed.Succeeded -and $native.ExitCode -ne 0) {
+                    $infrastructureErrors.Add("Native ALTool reported success but exited $($native.ExitCode).")
+                }
+                $selectedCodeunits = @{}
+                foreach ($codeunit in $codeunits) { $selectedCodeunits["$($codeunit.Id)"] = $codeunit }
+                foreach ($key in $parsed.Results.Keys) {
+                    if (-not $selectedCodeunits.ContainsKey("$key")) {
+                        $infrastructureErrors.Add("Native ALTool returned results for unrequested codeunit '$key'.")
+                        continue
+                    }
+                    $seen = @{}
+                    foreach ($result in $parsed.Results[$key]) {
+                        $method = "$($result.MethodName)"
+                        # The platform can report OnRun before each selected test method.
+                        if ($method -eq "OnRun" -and $method -notin $selectedCodeunits[$key].Tests) {
+                            if ($result.Outcome -eq "Fail") {
+                                $infrastructureErrors.Add("Native lifecycle OnRun failed in codeunit '$key': $($result.Stacktrace)")
+                            }
+                            continue
+                        }
+                        if ($seen.ContainsKey($method)) {
+                            $infrastructureErrors.Add("Native ALTool returned duplicate outcomes for '$key/$method'.")
+                        }
+                        $seen[$method] = $true
+                        $requestedMethod = $method -replace '\[.+\]$', ''
+                        if ($method -notin $selectedCodeunits[$key].Tests -and
+                            $requestedMethod -notin $selectedCodeunits[$key].Tests) {
+                            $infrastructureErrors.Add("Native ALTool returned an unrequested method '$key/$method' ($($result.Outcome)).")
+                        }
+                    }
                 }
                 $passed = $parsed.Succeeded -and $native.ExitCode -eq 0
-                foreach ($codeunit in $codeunits) {
-                    $results = $parsed.Results["$($codeunit.Id)"]
-                    if ($null -eq $results) { $results = @() }
-                    $failures = Add-JUnitTestSuite -Doc $doc -TestSuitesNode $doc.DocumentElement `
-                        -Codeunit $codeunit -RequestedMethods @($codeunit.Tests) -MethodResults $results `
-                        -ExtensionId $parameters.extensionId -AppName $parameters.appName `
-                        -Hostname ([System.Net.Dns]::GetHostName())
-                    if ($failures -gt 0) { $passed = $false }
-                }
+            }
+            catch {
+                $infrastructureErrors.Add($_.Exception.Message)
             }
             finally {
                 $env:BC_SERVER_USERNAME = $previousUsername
                 $env:BC_SERVER_PASSWORD = $previousPassword
-                Remove-Item -LiteralPath $groupsPath -Force
+                if ($groupsPath) {
+                    try { Remove-Item -LiteralPath $groupsPath -Force -ErrorAction Stop }
+                    catch { $infrastructureErrors.Add("Native request cleanup failed: $($_.Exception.Message)") }
+                }
+            }
+            $unreported = 0
+            foreach ($codeunit in $codeunits) {
+                $results = @()
+                if ($parsed -and $parsed.Results.ContainsKey("$($codeunit.Id)")) {
+                    $results = @($parsed.Results["$($codeunit.Id)"])
+                }
+                $failures = Add-JUnitTestSuite -Doc $doc -TestSuitesNode $doc.DocumentElement `
+                    -Codeunit $codeunit -RequestedMethods @($codeunit.Tests) -MethodResults $results `
+                    -ExtensionId $parameters.extensionId -AppName $parameters.appName `
+                    -Hostname ([System.Net.Dns]::GetHostName())
+                if ($failures -gt 0) { $passed = $false }
+                $suite = $doc.DocumentElement.LastChild
+                # The pinned writer labels absent outcomes as assertion failures. They are infrastructure
+                # errors here: no AL outcome was received, even if the server executed the method.
+                $missing = @($suite.SelectNodes("testcase/failure[@message='No result produced by al runtests']"))
+                foreach ($failure in $missing) {
+                    $errorNode = $doc.CreateElement("error")
+                    $errorNode.SetAttribute("type", "NativeTestResultUnreported")
+                    $errorNode.SetAttribute("message", "Selected method is unreported; no native outcome was received.")
+                    $errorNode.InnerText = $infrastructureErrors -join [Environment]::NewLine
+                    $null = $failure.ParentNode.ReplaceChild($errorNode, $failure)
+                }
+                $unreported += $missing.Count
+                $suite.SetAttribute("errors", "$($missing.Count)")
+                $suite.SetAttribute("failures", "$(@($suite.SelectNodes('testcase/failure')).Count)")
+                $lifecycle = @($results | Where-Object {
+                    $_.MethodName -eq "OnRun" -and $_.MethodName -notin $codeunit.Tests
+                })
+                if ($lifecycle.Count -gt 0) {
+                    $output = $doc.CreateElement("system-out")
+                    $output.InnerText = @(
+                        foreach ($result in $lifecycle) {
+                            "Native lifecycle OnRun: $($result.Outcome) ($($result.Ms) ms)"
+                            if ($result.Stacktrace) { $result.Stacktrace }
+                        }
+                    ) -join [Environment]::NewLine
+                    $null = $suite.AppendChild($output)
+                }
+            }
+            if ($unreported -gt 0) {
+                $infrastructureErrors.Add("$unreported selected native test methods are unreported.")
+            }
+            if ($infrastructureErrors.Count -gt 0) {
+                $parameters["_bcAppsTestInfrastructureBlocksTolerance"] = $true
+                $passed = $false
+                $detail = $infrastructureErrors -join [Environment]::NewLine
+                if ($nativeErrorDetails) {
+                    $detail += [Environment]::NewLine + $nativeErrorDetails
+                }
+                if ($null -ne $native) {
+                    $detail += [Environment]::NewLine + ($native.StandardError -join [Environment]::NewLine)
+                }
+                $suite = $doc.CreateElement("testsuite")
+                $suite.SetAttribute("name", "Native ALTool infrastructure: $($parameters.appName) / $($parameters.tenant) / $($codeunits.Id -join ',')")
+                foreach ($attribute in @{ tests = "1"; errors = "1"; failures = "0"; skipped = "0"; time = "0" }.GetEnumerator()) {
+                    $suite.SetAttribute($attribute.Key, $attribute.Value)
+                }
+                $properties = $doc.CreateElement("properties")
+                foreach ($property in @{ extensionid = $parameters.extensionId; appName = $parameters.appName }.GetEnumerator()) {
+                    $node = $doc.CreateElement("property")
+                    $node.SetAttribute("name", $property.Key)
+                    $node.SetAttribute("value", $property.Value)
+                    $null = $properties.AppendChild($node)
+                }
+                $null = $suite.AppendChild($properties)
+                $case = $doc.CreateElement("testcase")
+                $case.SetAttribute("classname", "Native ALTool infrastructure")
+                $case.SetAttribute("name", "$($parameters.appName) on $($parameters.tenant)")
+                $case.SetAttribute("time", "0")
+                $errorNode = $doc.CreateElement("error")
+                $errorNode.SetAttribute("type", "NativeTestInfrastructure")
+                $errorNode.SetAttribute("message", "Native ALTool infrastructure failure")
+                $errorNode.InnerText = $detail
+                $null = $case.AppendChild($errorNode)
+                $null = $suite.AppendChild($case)
+                $null = $doc.DocumentElement.AppendChild($suite)
             }
         }
-        $directory = Split-Path -Parent $resultPath
-        if ($directory -and -not (Test-Path -LiteralPath $directory)) {
-            $null = New-Item -ItemType Directory -Path $directory -Force
+        $temporaryResult = "$resultPath.$([guid]::NewGuid().ToString('N')).tmp"
+        try {
+            $directory = Split-Path -Parent $resultPath
+            if ($directory -and -not (Test-Path -LiteralPath $directory)) {
+                $null = New-Item -ItemType Directory -Path $directory -Force -ErrorAction Stop
+            }
+            $doc.Save($temporaryResult)
+            Move-Item -LiteralPath $temporaryResult -Destination $resultPath -Force -ErrorAction Stop
         }
-        $doc.Save($resultPath)
+        catch {
+            throw "Could not publish native JUnit results '$resultPath': $($_.Exception.Message)$([Environment]::NewLine)$detail"
+        }
+        finally {
+            if (Test-Path -LiteralPath $temporaryResult) {
+                Remove-Item -LiteralPath $temporaryResult -Force
+            }
+        }
+        if ($codeunits.Count -gt 0 -and $infrastructureErrors.Count -gt 0) {
+            throw $detail
+        }
         return [bool]$passed
     } $Parameters)
 }
 
-Export-ModuleMember -Function Invoke-BcAppsNativeTestRun, Install-BcAppsVerificationFramework
+<#
+.SYNOPSIS
+    Reports incomplete native outcomes without counting JUnit errors as passed tests.
+.PARAMETER ResultPath
+    Canonical merged JUnit result file.
+.PARAMETER SummaryPath
+    GitHub step summary file to append the incomplete-run accounting to.
+.OUTPUTS
+    Boolean indicating whether native infrastructure or unreported-method errors were found.
+#>
+function Write-BcAppsNativeTestSummary {
+    param(
+        [Parameter(Mandatory = $true)][string]$ResultPath,
+        [Parameter(Mandatory = $true)][string]$SummaryPath
+    )
+
+    if (-not (Test-Path -LiteralPath $ResultPath -PathType Leaf)) { return $false }
+    $doc = [xml](Get-Content -LiteralPath $ResultPath -Raw)
+    if (-not $doc.SelectSingleNode("//error[@type='NativeTestInfrastructure' or @type='NativeTestResultUnreported']")) {
+        return $false
+    }
+
+    # The pinned AL-Go analyzer ignores JUnit error nodes and would count them as passes.
+    # Keep the canonical JUnit artifact; replace only that misleading incomplete-run summary.
+    $apps = @{}
+    foreach ($suite in $doc.SelectNodes("//testsuite")) {
+        $property = $suite.SelectSingleNode("properties/property[@name='appName']")
+        $appName = if ($property) { $property.GetAttribute("value") } else { $suite.GetAttribute("name") }
+        if (-not $apps.ContainsKey($appName)) { $apps[$appName] = @() }
+        $apps[$appName] += @($suite.SelectNodes("testcase"))
+    }
+    $summary = @(
+        "## Native ALTool test results (incomplete)"
+        ""
+        "Infrastructure errors are not AL assertion failures, passes or skips. Download TestResults.xml for the original cause and completed outcomes."
+        ""
+        "| Test app | Passed | AL failures | Skipped | Unreported | Infrastructure errors |"
+        "|---|---:|---:|---:|---:|---:|"
+        foreach ($appName in ($apps.Keys | Sort-Object)) {
+            $cases = $apps[$appName]
+            $passed = @($cases | Where-Object { -not $_.SelectSingleNode("failure|error|skipped") }).Count
+            $failed = @($cases | Where-Object { $_.SelectSingleNode("failure") }).Count
+            $skipped = @($cases | Where-Object { $_.SelectSingleNode("skipped") }).Count
+            $unreported = @($cases | Where-Object { $_.SelectSingleNode("error[@type='NativeTestResultUnreported']") }).Count
+            $infrastructure = @($cases | Where-Object { $_.SelectSingleNode("error[@type='NativeTestInfrastructure']") }).Count
+            "| $($appName.Replace('|', '\|')) | $passed | $failed | $skipped | $unreported | $infrastructure |"
+        }
+    )
+    $summary | Add-Content -LiteralPath $SummaryPath -Encoding utf8
+    Write-Host "::error::Native ALTool results are incomplete or contain infrastructure errors. These errors must not be reported as passed tests."
+    return $true
+}
+
+Export-ModuleMember -Function Invoke-BcAppsNativeTestRun, Install-BcAppsVerificationFramework, Write-BcAppsNativeTestSummary
