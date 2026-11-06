@@ -464,6 +464,7 @@ codeunit 12179 "Export FatturaPA Document"
             TempXMLBuffer.AddNonEmptyElement('CodiceTipo', 'GTIN');
             TempXMLBuffer.AddNonEmptyLastElement('CodiceValore', Item.GTIN);
         end;
+        OnPopulateLineDataOnBeforeDescription(TempFatturaLine, TempXMLBuffer);
         TempXMLBuffer.AddNonEmptyElement('Descrizione', TempFatturaLine.Description);
         TempXMLBuffer.AddNonEmptyElement('Quantita', FormatQuantity(TempFatturaLine.Quantity));
         TempXMLBuffer.AddNonEmptyElement('UnitaMisura', CopyStr(TempFatturaLine."Unit of Measure", 1, UoMMaxLength));
@@ -482,6 +483,7 @@ codeunit 12179 "Export FatturaPA Document"
         TempXMLBuffer.AddNonEmptyElement('Natura', TempFatturaLine."VAT Transaction Nature");
         if TempFatturaLine.Type <> '' then
             PopulateAttachedToLinesExtText(TempFatturaLine);
+        OnPopulateLineDataOnBeforeCloseLine(TempFatturaLine, TempXMLBuffer);
         TempXMLBuffer.GetParent();
     end;
 
@@ -792,5 +794,16 @@ codeunit 12179 "Export FatturaPA Document"
     local procedure OnAfterGenerateXmlFile(var RecordExportBuffer: Record "Record Export Buffer")
     begin
     end;
+    [IntegrationEvent(false, false)]
+    local procedure OnPopulateLineDataOnBeforeDescription(var TempFatturaLine: Record "Fattura Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPopulateLineDataOnBeforeCloseLine(var TempFatturaLine: Record "Fattura Line" temporary; var TempXMLBuffer: Record "XML Buffer" temporary)
+    begin
+    end;
+
+
 }
 
