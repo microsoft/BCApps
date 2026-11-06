@@ -1082,8 +1082,8 @@ table 270 "Bank Account"
 #endif
             Caption = 'RIB Checked';
             Editable = false;
-#endif
         }
+#endif
         field(10854; "National Issuer No."; Code[6])
         {
             Caption = 'National Issuer No.';

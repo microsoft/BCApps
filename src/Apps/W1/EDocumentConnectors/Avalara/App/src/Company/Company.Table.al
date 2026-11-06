@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA26
 #if not CLEAN26
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -49,4 +50,5 @@ table 6375 "Company"
 #pragma warning restore PTE0025
 #pragma warning restore AS0072
 #pragma warning restore AS0115
+#endif
 #endif
