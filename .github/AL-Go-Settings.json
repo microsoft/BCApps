@@ -10,6 +10,7 @@
   "gitHubRunner": "windows-latest",
   "githubRunnerShell": "pwsh",
   "artifact": "bcinsider/Sandbox/30.0.57533.0//latest",
+  "genericImageName": "mcr.microsoft.com/businesscentral@sha256:59293cb7139621ab85b37acec3acd94689ec13cbfc4cc75da6f32f136bfca839",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "30.0",
