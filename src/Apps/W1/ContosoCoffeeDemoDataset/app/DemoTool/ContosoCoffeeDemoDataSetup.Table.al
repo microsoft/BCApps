@@ -26,33 +26,39 @@ table 4768 "Contoso Coffee Demo Data Setup"
         }
         field(2; "Starting Year"; Integer)
         {
+            DataClassification = CustomerContent;
             Caption = 'Starting Year';
         }
         field(3; "Company Type"; Option)
         {
+            DataClassification = CustomerContent;
             OptionMembers = VAT,"Sales Tax";
             Caption = 'Company Type';
         }
         field(4; "Country/Region Code"; Code[10])
         {
+            DataClassification = CustomerContent;
             TableRelation = "Country/Region";
             Caption = 'Country/Region Code';
             InitValue = 'GB';
         }
         field(5; "Price Factor"; Decimal)
         {
+            DataClassification = CustomerContent;
             AutoFormatType = 0;
             InitValue = 1;
             Caption = 'Price Factor';
         }
         field(6; "Rounding Precision"; Decimal)
         {
+            DataClassification = CustomerContent;
             AutoFormatType = 0;
             Caption = 'Rounding Precision';
             InitValue = 0.01;
         }
         field(7; "Language ID"; Integer)
         {
+            DataClassification = CustomerContent;
             Caption = 'Language ID';
             Editable = false;
             InitValue = 0;
@@ -60,6 +66,7 @@ table 4768 "Contoso Coffee Demo Data Setup"
         }
         field(8; "Starting Date"; Date)
         {
+            DataClassification = CustomerContent;
             Caption = 'Starting Date';
         }
     }

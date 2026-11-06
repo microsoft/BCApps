@@ -26,26 +26,31 @@ table 4772 "Finance Module Setup"
         }
         field(2; "VAT Prod. Post Grp. Standard"; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Standard VAT Product Posting Group';
             TableRelation = "VAT Product Posting Group";
         }
         field(3; "VAT Prod. Post Grp. Reduced"; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Reduced VAT Product Posting Group';
             TableRelation = "VAT Product Posting Group";
         }
         field(4; "VAT Prod. Post Grp. NO VAT"; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'No VAT Product Posting Group';
             TableRelation = "VAT Product Posting Group";
         }
         field(5; "Yearly License All. GLAcc No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Yearly License Allocation G/L Account No.';
             TableRelation = "G/L Account";
         }
         field(6; "Deferral Account No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Deferral Account No.';
         }
     }
