@@ -29,6 +29,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
     var
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         FileName: Text;
         OutStreamLbl: Label 'test';
@@ -38,6 +39,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         FileNameTxt: Label 'filename';
         AttachFileLbl: Label 'Attach a file';
         CreateReinspectionQst: Label 'Are you sure you want to create a Re-inspection?';
+        FinishAndCreateReinspectionQst: Label 'The inspection %1 is open. It will be finished before the Re-inspection is created. Do you want to continue?', Comment = '%1=the inspection';
         IsInitialized: Boolean;
 
     [Test]
@@ -979,6 +981,76 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         LibraryAssert.AreEqual(0, ReQltyInspectionHeader."Pass Quantity", 'Pass Quantity should be cleared on the new re-inspection.');
     end;
 
+    [Test]
+    [HandlerFunctions('FinishAndCreateReinspectionDeclineConfirmHandler')]
+    procedure CreateReinspectionOnOpenInspection_Declined_InspectionStaysOpen()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ReQltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        // [SCENARIO 655843] Declining Create Re-inspection on an open inspection leaves it open and unfinished.
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] An open inspection "I" with an Acceptable result, Quantity (Base) = 10
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreateInspectionResultWithCategory(QltyInspectionResult, QltyInspectionResult."Result Category"::Acceptable);
+        QltyInspectionHeader."Source Quantity (Base)" := 10;
+        QltyInspectionHeader."Result Code" := QltyInspectionResult.Code;
+        QltyInspectionHeader.Modify(false);
+        LibraryVariableStorage.Enqueue(StrSubstNo(FinishAndCreateReinspectionQst, QltyInspectionHeader.GetFriendlyIdentifier()));
+
+        // [WHEN] Create Re-inspection is invoked and the confirmation is answered with No
+        QltyInspectionHeader.CreateReinspection();
+
+        // [THEN] "I" is still open, with no Pass Quantity and no finishing information
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(QltyInspectionHeader.Status::Open, QltyInspectionHeader.Status, 'The inspection should remain open.');
+        LibraryAssert.AreEqual(0, QltyInspectionHeader."Pass Quantity", 'Pass Quantity should not be calculated.');
+        LibraryAssert.AreEqual(0DT, QltyInspectionHeader."Finished Date", 'Finished Date should not be set.');
+        LibraryAssert.AreEqual('', QltyInspectionHeader."Finished By User ID", 'Finished By User ID should not be set.');
+
+        // [THEN] No re-inspection is created
+        LibraryAssert.IsFalse(ReQltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No." + 1), 'No re-inspection should be created.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('FinishAndCreateReinspectionAcceptConfirmHandler')]
+    procedure CreateReinspectionOnOpenInspection_Accepted_FinishesAndCreatesReinspection()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ReQltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        // [SCENARIO 655843] Accepting Create Re-inspection on an open inspection finishes it and creates the re-inspection.
+        Initialize();
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] An open inspection "I" with an Acceptable result, Quantity (Base) = 10
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        CreateInspectionResultWithCategory(QltyInspectionResult, QltyInspectionResult."Result Category"::Acceptable);
+        QltyInspectionHeader."Source Quantity (Base)" := 10;
+        QltyInspectionHeader."Result Code" := QltyInspectionResult.Code;
+        QltyInspectionHeader.Modify(false);
+        LibraryVariableStorage.Enqueue(StrSubstNo(FinishAndCreateReinspectionQst, QltyInspectionHeader.GetFriendlyIdentifier()));
+
+        // [WHEN] Create Re-inspection is invoked and the single confirmation is answered with Yes
+        QltyInspectionHeader.CreateReinspection();
+
+        // [THEN] "I" is finished with Pass Quantity = 10
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(QltyInspectionHeader.Status::Finished, QltyInspectionHeader.Status, 'The inspection should be finished.');
+        LibraryAssert.AreEqual(10, QltyInspectionHeader."Pass Quantity", 'Pass Quantity should be calculated on finish.');
+
+        // [THEN] A re-inspection is created
+        LibraryAssert.IsTrue(ReQltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No." + 1), 'A re-inspection should be created.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
@@ -1008,6 +1080,20 @@ codeunit 139970 "Qlty. Tests - Insepctions"
     procedure ReinspectionConfirmHandler(Question: Text; var Reply: Boolean)
     begin
         LibraryAssert.AreEqual(CreateReinspectionQst, Question, 'The re-inspection confirmation dialog should be raised.');
+        Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure FinishAndCreateReinspectionDeclineConfirmHandler(Question: Text; var Reply: Boolean)
+    begin
+        LibraryAssert.AreEqual(LibraryVariableStorage.DequeueText(), Question, 'The combined finish and re-inspection confirmation should be raised.');
+        Reply := false;
+    end;
+
+    [ConfirmHandler]
+    procedure FinishAndCreateReinspectionAcceptConfirmHandler(Question: Text; var Reply: Boolean)
+    begin
+        LibraryAssert.AreEqual(LibraryVariableStorage.DequeueText(), Question, 'The combined finish and re-inspection confirmation should be raised.');
         Reply := true;
     end;
 
