@@ -34,6 +34,9 @@ codeunit 3355 "Interfactura Processing"
         InvalidStatusForCancellationErr: Label 'The document cannot be cancelled because it has status %1.', Comment = '%1 = current service status';
         MissingCancelRequestErr: Label 'The cancellation request could not be generated.';
         CFDIServiceNameTxt: Label 'CFDI', Locked = true;
+        MXEDocumentTelemetry: Codeunit "MX E-Document Telemetry";
+        EDocumentKindTok: Label 'E-Document', Locked = true;
+        CancelOnTimeExpirationTok: Label 'Cancel on Time Expiration', Locked = true;
         StampRequestedMsg: Label 'Sending stamp request for E-Document %1.', Locked = true;
         StampSuccessMsg: Label 'Stamp request successful for E-Document %1.', Locked = true;
         StampFailedMsg: Label 'Stamp request failed for E-Document %1: %2', Locked = true;
@@ -59,11 +62,11 @@ codeunit 3355 "Interfactura Processing"
             exit;
         end;
         RequestType := RequestType::"Request Stamp";
-        Session.LogMessage('0000QXF', StrSubstNo(StampRequestedMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogMessage('0000WKZ', StrSubstNo(StampRequestedMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         if not InvokeSoapRequest(EDocument, RequestTxt, RequestType, ErrorText, SendContext) then
             Error(ErrorText);
 
-        Session.LogMessage('0000QXG', StrSubstNo(StampSuccessMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogMessage('0000WL0', StrSubstNo(StampSuccessMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         TryProcessAdvanceReverseAfterSettle(EDocument);
         EDocCFDIEmailMX.ScheduleStampEmail(EDocument);
     end;
@@ -94,19 +97,20 @@ codeunit 3355 "Interfactura Processing"
         if RequestTxt = '' then
             Error(EmptyRequestLbl);
         RequestType := RequestType::"Request Stamp";
-        Session.LogMessage('0000QX6', PaymentStampRequestedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogMessage('0000WL1', PaymentStampRequestedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText, false) then begin
-            Session.LogMessage('0000QX7', StrSubstNo(PaymentStampFailedMsg, ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WL2', StrSubstNo(PaymentStampFailedMsg, ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             Error(ErrorText);
         end;
         MessageContext.Http().SetHttpRequestMessage(HttpRequest);
         MessageContext.Http().SetHttpResponseMessage(HttpResponse);
         if GetResultCodeFromResponse(ResponseTxt) <> '1' then begin
             ErrorText := GetResponseErrorText(ResponseTxt);
-            Session.LogMessage('0000QX7', StrSubstNo(PaymentStampFailedMsg, ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WL3', StrSubstNo(PaymentStampFailedMsg, ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            MXEDocumentTelemetry.LogComplementStampRejected(ErrorText);
             Error(ErrorText);
         end;
-        Session.LogMessage('0000QX8', PaymentStampSuccessMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogMessage('0000WL4', PaymentStampSuccessMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         MXPaymentResponseMgt.CacheResponse(MessageContext.GetMessageEntryNo(), ResponseTxt);
         MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
     end;
@@ -361,7 +365,7 @@ codeunit 3355 "Interfactura Processing"
         MXPACWebServiceDetail.TestField("Method Name");
 
         WebServiceUrl := MXPACWebServiceDetail.Address;
-        Session.LogMessage('0000QXE', StrSubstNo(BatchSoapRequestMsg, Format(RequestType)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogMessage('0000WL5', StrSubstNo(BatchSoapRequestMsg, Format(RequestType)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         if CommitBeforeRequest then
             Commit();
 
@@ -394,12 +398,12 @@ codeunit 3355 "Interfactura Processing"
         HttpRequest.Content.WriteFrom(RequestText);
         HttpResponse.Content.WriteFrom(ResponseTxt);
         if ResponseTxt = '' then begin
-            Session.LogMessage('0000QWY', NoResponseTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WL6', NoResponseTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             ErrorText := NoResponseErr;
             exit(false);
         end;
 
-        Session.LogMessage('0000QX0', StrSubstNo(BatchSoapRequestSuccMsg, Format(RequestType)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogMessage('0000WL7', StrSubstNo(BatchSoapRequestSuccMsg, Format(RequestType)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         exit(true);
     end;
 
@@ -411,7 +415,7 @@ codeunit 3355 "Interfactura Processing"
         ClearanceDateTime: DateTime;
     begin
         if ResponseText = '' then begin
-            Session.LogMessage('0000QX1', EmptyRequestLbl, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WL8', EmptyRequestLbl, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             exit(false);
         end;
         if not TryReadXml(ResponseText, XmlDoc) then begin
@@ -442,7 +446,7 @@ codeunit 3355 "Interfactura Processing"
             SaveStampedCFDI(EDocument, StampedXml);
         end;
         if ErrorText <> '' then begin
-            Session.LogMessage('0000QX3', StrSubstNo(StampFailedMsg, EDocument."Entry No", ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WL9', StrSubstNo(StampFailedMsg, EDocument."Entry No", ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             Session.LogSecurityAudit(CFDIServiceNameTxt, SecurityOperationResult::Failure, StrSubstNo(SecurityAuditPACRejectedTxt, EDocument."Entry No", ErrorText), AuditCategory::CustomerFacing);
         end;
 
@@ -608,6 +612,7 @@ codeunit 3355 "Interfactura Processing"
             exit(false);
         end;
         if CancelsOnTimeExpiration(EDocument."Clearance Date") then begin
+            MXEDocumentTelemetry.LogCanceledWithoutPAC(EDocumentKindTok, EDocument."Entry No", CancelOnTimeExpirationTok);
             Status := Enum::"E-Document Service Status"::Canceled;
             exit(true);
         end;
@@ -622,7 +627,7 @@ codeunit 3355 "Interfactura Processing"
         end;
 
         RequestType := RequestType::Cancel;
-        Session.LogMessage('0000QX9', StrSubstNo(CancelRequestedMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogMessage('0000WLA', StrSubstNo(CancelRequestedMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         Session.LogSecurityAudit(CFDIServiceNameTxt, SecurityOperationResult::Success, StrSubstNo(SecurityAuditCancelRequestedTxt, EDocument."Entry No"), AuditCategory::CustomerFacing);
         if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText, true) then begin
             if ErrorText <> '' then
@@ -633,7 +638,7 @@ codeunit 3355 "Interfactura Processing"
 
         CFDICancellationMX.ProcessCancellationResponse(ResponseTxt, EDocument, Status);
         if Status = Enum::"E-Document Service Status"::Canceled then
-            Session.LogMessage('0000QXA', StrSubstNo(CancelSuccessMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WLB', StrSubstNo(CancelSuccessMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         exit(true);
     end;
 
@@ -657,7 +662,7 @@ codeunit 3355 "Interfactura Processing"
         end;
 
         RequestType := RequestType::CancelRequest;
-        Session.LogMessage('0000QXH', StrSubstNo(CheckCancellationStatusMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogMessage('0000WLC', StrSubstNo(CheckCancellationStatusMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText, true) then begin
             if ErrorText <> '' then
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, ErrorText);

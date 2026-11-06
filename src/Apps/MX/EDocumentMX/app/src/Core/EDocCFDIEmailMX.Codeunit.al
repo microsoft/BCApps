@@ -30,7 +30,7 @@ codeunit 3370 "EDoc CFDI Email MX"
     procedure ScheduleStampEmail(EDocument: Record "E-Document")
     begin
         if not TaskScheduler.CanCreateTask() then begin
-            Session.LogMessage('0000QXI', StrSubstNo(ScheduleEmailFailedMsg, EDocument."Entry No"), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WKT', StrSubstNo(ScheduleEmailFailedMsg, EDocument."Entry No"), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             exit;
         end;
         TaskScheduler.CreateTask(Codeunit::"EDoc CFDI Email MX", 0, true, CompanyName(), CurrentDateTime(), EDocument.RecordId());
@@ -65,7 +65,7 @@ codeunit 3370 "EDoc CFDI Email MX"
 
         CustomerEmail := Customer."E-Mail";
         if CustomerEmail = '' then begin
-            Session.LogMessage('0000QXB', StrSubstNo(NoCustomerEmailMsg, EDocument."Bill-to/Pay-to No."), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WKU', StrSubstNo(NoCustomerEmailMsg, EDocument."Bill-to/Pay-to No."), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             exit;
         end;
 
@@ -90,12 +90,12 @@ codeunit 3370 "EDoc CFDI Email MX"
         end;
 
         if not EmailScenario.GetEmailAccount(Enum::"Email Scenario"::Default, EmailAccount) then begin
-            Session.LogMessage('0000QXC', NoEmailAccountMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WKV', NoEmailAccountMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             exit;
         end;
 
         if not Email.Send(Message, EmailAccount."Account Id", EmailAccount.Connector) then
-            Session.LogMessage('0000QXD', StrSubstNo(SendEmailFailedMsg, GetLastErrorText()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WKW', StrSubstNo(SendEmailFailedMsg, GetLastErrorText()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
     end;
 
     local procedure TryGeneratePDF(EDocument: Record "E-Document"; var TempBlobPDF: Codeunit "Temp Blob"): Boolean

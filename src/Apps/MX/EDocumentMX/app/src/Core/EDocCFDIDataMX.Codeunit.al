@@ -280,7 +280,11 @@ codeunit 3373 "EDoc CFDI Data MX"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Export", 'OnAfterCreateEDocument', '', false, false)]
     local procedure OnAfterCreateEDocument(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef)
+    var
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
+        if not MXEDocumentFeature.IsEnabled() then
+            exit;
         if not IsSupportedSource(EDocument) then
             exit;
         CopyFromSourceDocument(EDocument, SourceDocumentHeader);

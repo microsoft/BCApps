@@ -16,6 +16,7 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
             {
                 ApplicationArea = All;
                 Caption = 'Fiscal Invoice Number PAC';
+                Visible = MXFeatureEnabled;
                 Editable = false;
                 ToolTip = 'Specifies the UUID assigned by SAT when the CFDI document was stamped (cleared).';
             }
@@ -233,6 +234,7 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
                     EDocumentService: Record "E-Document Service";
                     EDocumentServiceStatus: Record "E-Document Service Status";
                     EDocumentProcessing: Codeunit "E-Document Processing";
+                    MXEDocumentTelemetry: Codeunit "MX E-Document Telemetry";
                     EDocumentServices: Page "E-Document Services";
                 begin
                     if not Confirm(MarkAsCanceledConfirmQst, false) then
@@ -263,11 +265,19 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
 
                     EDocumentProcessing.ModifyServiceStatus(Rec, EDocumentService, Enum::"E-Document Service Status"::Canceled);
                     EDocumentProcessing.ModifyEDocumentStatus(Rec);
+                    MXEDocumentTelemetry.LogCanceledWithoutPAC(EDocumentKindTok, Rec."Entry No", MarkAsCanceledTok);
                     CurrPage.Update(false);
                 end;
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
+    begin
+        MXFeatureEnabled := MXEDocumentFeature.IsEnabled();
+    end;
 
     trigger OnAfterGetRecord()
     var
@@ -279,7 +289,7 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
         else
             FiscalInvoiceNumberPAC := CopyStr(Rec."Source Details", 1, MaxStrLen(FiscalInvoiceNumberPAC));
 
-        IsCFDIDocument := (Rec.Direction = Rec.Direction::Outgoing) and (GetLinkedCFDIServiceFilter() <> '''''');
+        IsCFDIDocument := (Rec.Direction = Rec.Direction::Outgoing) and (GetLinkedCFDIServiceFilter() <> '''''') and MXFeatureEnabled;
         CFDIDataVisible := IsCFDIDocument and EDocCFDIDataMX.IsSupportedSource(Rec);
         CFDIDataEditable := CFDIDataVisible and (FiscalInvoiceNumberPAC = '');
         CartaPorteVisible := CFDIDataVisible and EDocCFDIDataMX.IsCartaPorte(Rec);
@@ -311,9 +321,12 @@ pageextension 3364 "EDoc CFDI E-Document Ext" extends "E-Document"
         FiscalInvoiceNumberPAC: Text[50];
         TransportOperatorCount: Integer;
         IsCFDIDocument: Boolean;
+        MXFeatureEnabled: Boolean;
         CFDIDataVisible: Boolean;
         CFDIDataEditable: Boolean;
         CartaPorteVisible: Boolean;
+        EDocumentKindTok: Label 'E-Document', Locked = true;
+        MarkAsCanceledTok: Label 'Mark as Canceled', Locked = true;
         MarkAsCanceledConfirmQst: Label 'This will mark the document as Canceled in Business Central without contacting the PAC. Only use this if you have confirmed the document is already canceled in SAT. Do you want to continue?';
         NoLinkedServiceErr: Label 'No E-Document service is linked to this document.';
         InvalidStatusForMarkAsCanceledErr: Label 'The document cannot be marked as canceled because it has status %1. Only documents with status Sent, Pending Response, or Cancel Error can be manually marked as canceled.', Comment = '%1 = current service status';

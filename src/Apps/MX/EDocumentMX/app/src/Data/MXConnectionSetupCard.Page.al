@@ -83,7 +83,10 @@ page 3352 "Interfactura Connection Setup"
     }
 
     trigger OnOpenPage()
+    var
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
+        MXEDocumentFeature.CheckEnabled();
         Rec.Reset();
         if not Rec.Get() then begin
             Rec.Init();

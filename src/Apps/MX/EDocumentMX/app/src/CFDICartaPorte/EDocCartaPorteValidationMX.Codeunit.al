@@ -500,8 +500,11 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
         EDocumentService: Record "E-Document Service";
         EDocCartaPorteValidationMX: Codeunit "EDoc Carta Porte Validation MX";
         EDocCFDIValidationMX: Codeunit "EDoc CFDI Validation MX";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
         SourceDocumentHeader: RecordRef;
     begin
+        if not MXEDocumentFeature.IsEnabled() then
+            exit;
 
         EDocumentService.SetRange("Document Format", EDocumentService."Document Format"::CFDI);
         if not EDocumentService.FindFirst() then

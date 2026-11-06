@@ -17,12 +17,14 @@ pageextension 3353 "EDoc Messages MX" extends "E-Document Messages FactBox"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'UUID';
+                Visible = MXFeatureEnabled;
                 ToolTip = 'Specifies the UUID assigned by SAT when the payment complement was stamped.';
             }
             field(CancellationStatusMX; CancellationStatus)
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Cancellation Status';
+                Visible = MXFeatureEnabled;
                 ToolTip = 'Specifies the SAT cancellation status of the payment complement.';
             }
         }
@@ -94,6 +96,13 @@ pageextension 3353 "EDoc Messages MX" extends "E-Document Messages FactBox"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
+    begin
+        MXFeatureEnabled := MXEDocumentFeature.IsEnabled();
+    end;
+
     trigger OnAfterGetRecord()
     var
         Complement: Record "MX Payment Complement";
@@ -112,7 +121,7 @@ pageextension 3353 "EDoc Messages MX" extends "E-Document Messages FactBox"
 
     trigger OnAfterGetCurrRecord()
     begin
-        IsPaymentComplement := Rec."Message Type" = Enum::"E-Document Message Type"::"MX CFDI Payment Complement";
+        IsPaymentComplement := (Rec."Message Type" = Enum::"E-Document Message Type"::"MX CFDI Payment Complement") and MXFeatureEnabled;
     end;
 
     local procedure GetComplement(var Complement: Record "MX Payment Complement")
@@ -136,6 +145,7 @@ pageextension 3353 "EDoc Messages MX" extends "E-Document Messages FactBox"
         CancellationStatus: Enum "MX Compl. Cancel Status";
         StampedUUID: Text[50];
         IsPaymentComplement: Boolean;
+        MXFeatureEnabled: Boolean;
         ResponseNotAvailableErr: Label 'No saved PAC response is available for this message.';
         CancellationResponseNotAvailableErr: Label 'No cancellation response is available for this payment complement.';
         ComplementNotFoundErr: Label 'No payment complement is linked to this message.';

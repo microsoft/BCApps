@@ -23,8 +23,12 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
     var
         EDocCartaPorteValidationMX: Codeunit "EDoc Carta Porte Validation MX";
         EDocCFDIValidationMX: Codeunit "EDoc CFDI Validation MX";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
         SalesHeader: Record "Sales Header";
     begin
+        if not MXEDocumentFeature.IsEnabled() then
+            exit;
+
         case SourceDocumentHeader.Number of
             Database::"Sales Header":
                 begin
@@ -86,7 +90,9 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
     procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
         ExportInterfactura: Codeunit "Export Interfactura MX";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
+        MXEDocumentFeature.CheckEnabled();
         OnBeforeExport(SourceDocumentHeader, SourceDocumentLines, TempBlob);
         ExportInterfactura.Export(SourceDocumentHeader, SourceDocumentLines, EDocument, TempBlob, false);
         OnAfterExport(SourceDocumentHeader, SourceDocumentLines, TempBlob);
@@ -103,7 +109,9 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
     procedure CreateBatch(EDocumentService: Record "E-Document Service"; var EDocuments: Record "E-Document"; var SourceDocumentHeaders: RecordRef; var SourceDocumentsLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
         ExportInterfactura: Codeunit "Export Interfactura MX";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
+        MXEDocumentFeature.CheckEnabled();
         ExportInterfactura.Export(SourceDocumentHeaders, SourceDocumentsLines, EDocuments, TempBlob, true);
     end;
 
@@ -129,11 +137,17 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
 
     [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)
+    var
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
+        MXEDocumentTelemetry: Codeunit "MX E-Document Telemetry";
     begin
+        MXEDocumentFeature.CheckEnabled();
+
         if Rec."Document Format" <> Rec."Document Format"::CFDI then
             exit;
 
         EnsureSupportedTypes(Rec.Code);
+        MXEDocumentTelemetry.LogServiceSetUp();
     end;
 
     local procedure EnsureSupportedTypes(EDocumentServiceCode: Code[20])
@@ -175,7 +189,10 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentService: Record "E-Document Service";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
+        if not MXEDocumentFeature.IsEnabled() then
+            exit;
         if IsNullGuid(Rec."E-Document Link") then
             exit;
         if Rec."Fiscal Invoice Number PAC" <> '' then
@@ -195,7 +212,10 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
     local procedure OnBeforeEDocumentInsert(var Rec: Record "E-Document"; RunTrigger: Boolean)
     var
         EDocumentService: Record "E-Document Service";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
+        if not MXEDocumentFeature.IsEnabled() then
+            exit;
         if Rec.Direction <> Rec.Direction::Incoming then
             exit;
         if not EDocumentService.Get(Rec.Service) then

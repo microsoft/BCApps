@@ -31,4 +31,11 @@ page 3356 "SAT Transport Types MX"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
+    begin
+        MXEDocumentFeature.CheckEnabled();
+    end;
 }

@@ -16,7 +16,10 @@ codeunit 3372 "Carta Porte Fields Copy MX"
     local procedure CopyCartaPorteFieldsToSalesShipment(var Rec: Record "Sales Shipment Header"; RunTrigger: Boolean)
     var
         SalesHeader: Record "Sales Header";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
+        if not MXEDocumentFeature.IsEnabled() then
+            exit;
         if Rec.IsTemporary() then
             exit;
         if not SalesHeader.Get(SalesHeader."Document Type"::Order, Rec."Order No.") then
@@ -31,7 +34,10 @@ codeunit 3372 "Carta Porte Fields Copy MX"
     local procedure CopyCartaPorteFieldsToTransferShipment(var Rec: Record "Transfer Shipment Header"; RunTrigger: Boolean)
     var
         TransferHeader: Record "Transfer Header";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
+        if not MXEDocumentFeature.IsEnabled() then
+            exit;
         if Rec.IsTemporary() then
             exit;
         if not TransferHeader.Get(Rec."Transfer Order No.") then

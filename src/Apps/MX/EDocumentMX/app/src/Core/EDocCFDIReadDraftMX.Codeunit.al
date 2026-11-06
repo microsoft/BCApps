@@ -21,7 +21,9 @@ codeunit 3369 "EDoc CFDI Read Draft MX" implements IStructuredFormatReader
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         CFDIImport: Codeunit "EDoc CFDI Import MX";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
+        MXEDocumentFeature.CheckEnabled();
         CFDIImport.ParseBasicInfo(EDocument, TempBlob);
 
         EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -61,7 +63,10 @@ codeunit 3369 "EDoc CFDI Read Draft MX" implements IStructuredFormatReader
     local procedure FillFromDraftOnBeforeEDocumentModify(var Rec: Record "E-Document"; var xRec: Record "E-Document"; RunTrigger: Boolean)
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
+        if not MXEDocumentFeature.IsEnabled() then
+            exit;
         if Rec.IsTemporary() then
             exit;
         if Rec.Direction <> Rec.Direction::Incoming then

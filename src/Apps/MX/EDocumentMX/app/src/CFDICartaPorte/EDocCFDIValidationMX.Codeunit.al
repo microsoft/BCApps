@@ -872,11 +872,11 @@ codeunit 3363 "EDoc CFDI Validation MX"
     begin
         if (RetentionAttachedToLineNo = 0) and (Quantity < 0) then
             Session.LogMessage(
-              '0000QX4', StrSubstNo(NegativeQuantityWithoutRetentionTelemetryMsg, LineTableCaption, DocumentNo, LineNo),
+              '0000WKR', StrSubstNo(NegativeQuantityWithoutRetentionTelemetryMsg, LineTableCaption, DocumentNo, LineNo),
               Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CFDIValidationTelemetryCategoryTxt);
         if (RetentionAttachedToLineNo <> 0) and (RetentionVATPercent = 0) then
             Session.LogMessage(
-              '0000QX5', StrSubstNo(MissingRetentionVATTelemetryMsg, LineTableCaption, DocumentNo, LineNo),
+              '0000WKS', StrSubstNo(MissingRetentionVATTelemetryMsg, LineTableCaption, DocumentNo, LineNo),
               Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CFDIValidationTelemetryCategoryTxt);
     end;
 

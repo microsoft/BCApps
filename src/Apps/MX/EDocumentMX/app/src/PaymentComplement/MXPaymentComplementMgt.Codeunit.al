@@ -22,7 +22,10 @@ codeunit 3357 "MX Payment Complement Mgt."
     var
         Detail: Record "Detailed Cust. Ledg. Entry";
         Payment: Record "Cust. Ledger Entry";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
+        if not MXEDocumentFeature.IsEnabled() then
+            exit;
         if not Detail.Get(EDocPaymentOccurrence."Detailed Ledger Entry No.") then
             exit;
         if not FindPayment(Detail, Payment) then

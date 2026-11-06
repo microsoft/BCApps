@@ -19,10 +19,8 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Service.History;
 using Microsoft.eServices.EDocument;
-using System;
 using System.Reflection;
 using System.Security.Encryption;
-using System.Telemetry;
 using System.Utilities;
 
 codeunit 3354 "Export Interfactura MX"
@@ -30,7 +28,6 @@ codeunit 3354 "Export Interfactura MX"
     var
         CompanyInformation: Record "Company Information";
         MXConnectionSetup: Record "MX Connection Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
         DigitalSignMX: Codeunit "Digital Sign MX";
         CFDIXMLHelperMX: Codeunit "CFDI XML Helper MX";
         XSINamespaceTxt: Label 'http://www.w3.org/2001/XMLSchema-instance', Locked = true;
@@ -44,7 +41,6 @@ codeunit 3354 "Export Interfactura MX"
         StartEventNameTok: Label 'Export initiated. IsBatch is: %1', Locked = true;
         EndEventNameTok: Label 'Export completed', Locked = true;
         NumeroPedimentoFormatTxt: Label '%1 %2 %3 %4', Locked = true;
-        // SAT catalog values for advance payment CFDI (catalogo c_ClaveProdServ and c_ClaveUnidad)
         AdvanceProdServCodeTok: Label '84111506', Locked = true;
         AdvanceUnitCodeTok: Label 'ACT', Locked = true;
         AdvanceDescriptionTok: Label 'Anticipo bien o servicio', Locked = true;
@@ -73,7 +69,7 @@ codeunit 3354 "Export Interfactura MX"
         EDocCFDIDataMX: Codeunit "EDoc CFDI Data MX";
     begin
         OnBeforeExport(SourceDocumentHeader, SourceDocumentLines, TempBlob, IsBatch);
-        FeatureTelemetry.LogUsage('0000OCR', FeatureNameTok, StrSubstNo(StartEventNameTok, Format(IsBatch)));
+        Session.LogMessage('0000WKX', StrSubstNo(StartEventNameTok, Format(IsBatch)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTok);
         CompanyInformation.Get();
         if not MXConnectionSetup.Get() then
             MXConnectionSetup.Init();
@@ -151,7 +147,7 @@ codeunit 3354 "Export Interfactura MX"
                     ExportTransferShipment(EDocument, TransferShipmentHeader, TransferShipmentLine, TempBlob, IsBatch);
                 end;
         end;
-        FeatureTelemetry.LogUsage('0000OCT', FeatureNameTok, EndEventNameTok);
+        Session.LogMessage('0000WKY', EndEventNameTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTok);
         OnAfterExport(SourceDocumentHeader, SourceDocumentLines, TempBlob, IsBatch);
     end;
 

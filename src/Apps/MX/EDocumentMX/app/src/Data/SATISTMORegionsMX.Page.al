@@ -31,4 +31,11 @@ page 3355 "SAT ISTMO Regions MX"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
+    begin
+        MXEDocumentFeature.CheckEnabled();
+    end;
 }

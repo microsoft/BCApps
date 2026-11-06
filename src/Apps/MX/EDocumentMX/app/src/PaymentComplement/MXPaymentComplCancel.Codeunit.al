@@ -53,6 +53,7 @@ codeunit 3374 "MX Payment Compl. Cancel"
 
         if InterfacturaProcessing.CancelsOnTimeExpiration(Complement."Stamped At") then begin
             SetCanceled(Complement, false);
+            MXEDocumentTelemetry.LogCanceledWithoutPAC(PaymentComplementKindTok, Complement."Entry No.", CancelOnTimeExpirationTok);
             Message(CanceledMsg);
             exit;
         end;
@@ -86,6 +87,7 @@ codeunit 3374 "MX Payment Compl. Cancel"
             exit;
 
         SetCanceled(Complement, true);
+        MXEDocumentTelemetry.LogCanceledWithoutPAC(PaymentComplementKindTok, Complement."Entry No.", MarkAsCanceledTok);
     end;
 
     local procedure SetCanceled(var Complement: Record "MX Payment Complement"; MarkedAsCanceled: Boolean)
@@ -107,6 +109,7 @@ codeunit 3374 "MX Payment Compl. Cancel"
         Complement."Cancellation Status" := Complement."Cancellation Status"::"Cancel Error";
         Complement."Date/Time Canceled" := '';
         Complement.Modify();
+        MXEDocumentTelemetry.LogCancellationReset(Complement."Entry No.");
     end;
 
     procedure ApplyCancellationResponse(var Complement: Record "MX Payment Complement"; ResponseText: Text)
@@ -148,11 +151,15 @@ codeunit 3374 "MX Payment Compl. Cancel"
         if RequestText = '' then
             Error(MissingCancelRequestErr);
         Complement.Modify();
-        if not InterfacturaProcessing.InvokeCancellationRequest(RequestText, IsStatusRequest, ResponseText, ErrorText) then
+        if not InterfacturaProcessing.InvokeCancellationRequest(RequestText, IsStatusRequest, ResponseText, ErrorText) then begin
+            MXEDocumentTelemetry.LogComplementCancelFailed(Complement."Entry No.", ErrorText);
             Error(ErrorText);
+        end;
+        MXEDocumentTelemetry.LogComplementCancelRequested(Complement."Entry No.", IsStatusRequest);
 
         Complement.Get(Complement."Entry No.");
         ApplyCancellationResponse(Complement, ResponseText);
+        MXEDocumentTelemetry.LogComplementCancelResult(Complement."Entry No.", Complement."Cancellation Status");
         case Complement."Cancellation Status" of
             Complement."Cancellation Status"::Canceled:
                 Message(CanceledMsg);
@@ -195,7 +202,10 @@ codeunit 3374 "MX Payment Compl. Cancel"
     var
         Payment: Record "Cust. Ledger Entry";
         Complement: Record "MX Payment Complement";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
+        if not MXEDocumentFeature.IsEnabled() then
+            exit;
         if not GuiAllowed() then
             exit;
         if not DtldCustLedgEntry.Find() then
@@ -233,6 +243,10 @@ codeunit 3374 "MX Payment Compl. Cancel"
     end;
 
     var
+        MXEDocumentTelemetry: Codeunit "MX E-Document Telemetry";
+        PaymentComplementKindTok: Label 'Payment complement', Locked = true;
+        MarkAsCanceledTok: Label 'Mark as Canceled', Locked = true;
+        CancelOnTimeExpirationTok: Label 'Cancel on Time Expiration', Locked = true;
         CancelOptionsTxt: Label 'Cancel Request,Get Response,Mark as Canceled,Reset Cancellation Request';
         NotStampedErr: Label 'The payment complement has not been stamped, so there is nothing to cancel.';
         InvalidStatusForMarkErr: Label 'Only a payment complement with a cancellation in progress or a cancellation error can be marked as canceled.';

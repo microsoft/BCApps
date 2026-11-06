@@ -20,6 +20,8 @@ permissionset 3352 "E-Documents MX User"
         table "MX Payment Complement" = X,
         tabledata "MX Payment Complement" = Rim,
         codeunit "EDoc CFDI MX" = X,
+        codeunit "MX E-Document Feature" = X,
+        codeunit "MX E-Document Telemetry" = X,
         codeunit "MX Interfactura Impl." = X,
         codeunit "Export Interfactura MX" = X,
         codeunit "Interfactura Processing" = X,

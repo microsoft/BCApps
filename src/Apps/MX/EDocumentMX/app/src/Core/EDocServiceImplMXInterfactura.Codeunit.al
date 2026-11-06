@@ -21,6 +21,7 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
         MXConnectionSetup: Record "MX Connection Setup";
         TempBlob: Codeunit "Temp Blob";
     begin
+        MXEDocumentFeature.CheckEnabled();
         if not MXConnectionSetup.Get() then
             Error(MissingSetupErr);
 
@@ -48,6 +49,7 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
         HttpResponse: HttpResponseMessage;
         Success: Boolean;
     begin
+        MXEDocumentFeature.CheckEnabled();
         Success := InterfacturaProcessing.GetDocumentResponse(EDocument, EDocumentService, HttpRequest, HttpResponse);
         SendContext.Http().SetHttpRequestMessage(HttpRequest);
         SendContext.Http().SetHttpResponseMessage(HttpResponse);
@@ -60,6 +62,7 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
         HttpRequest: HttpRequestMessage;
         HttpResponse: HttpResponseMessage;
     begin
+        MXEDocumentFeature.CheckEnabled();
         Success := InterfacturaProcessing.GetDocumentApproval(EDocument, EDocumentService, HttpRequest, HttpResponse, Status);
         ActionContext.Status().SetStatus(Status);
         ActionContext.Http().SetHttpRequestMessage(HttpRequest);
@@ -72,6 +75,7 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
         HttpRequest: HttpRequestMessage;
         HttpResponse: HttpResponseMessage;
     begin
+        MXEDocumentFeature.CheckEnabled();
         if EDocument."CFDI Cancellation ID" <> '' then
             Success := InterfacturaProcessing.CheckCancellationStatus(EDocument, EDocumentService, HttpRequest, HttpResponse, Status)
         else
@@ -90,6 +94,7 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
     var
         TempBlob: Codeunit "Temp Blob";
     begin
+        MXEDocumentFeature.CheckEnabled();
         if MessageContext.GetMessageType() <> "E-Document Message Type"::"MX CFDI Payment Complement" then
             Error(UnsupportedMessageErr, Format(MessageContext.GetMessageType()));
         TempBlob := MessageContext.GetTempBlob();
@@ -98,7 +103,7 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
 
     procedure GetResponse(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; MessageContext: Codeunit "E-Doc. Message Context"): Boolean
     begin
-        // Interfactura returns the stamped CFDI synchronously for payment complements.
+        MXEDocumentFeature.CheckEnabled();
         MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
         exit(true);
     end;
@@ -108,6 +113,8 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
     var
         MXConnectionSetupCard: Page "Interfactura Connection Setup";
     begin
+        MXEDocumentFeature.CheckEnabled();
+
         if EDocumentService."Service Integration V2" <> EDocumentService."Service Integration V2"::"Interfactura Service" then
             exit;
 
@@ -115,9 +122,16 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
         IsServiceIntegrationSetupRun := true;
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Service Integration V2', false, false)]
+    local procedure OnAfterValidateServiceIntegration(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)
+    begin
+        if Rec."Service Integration V2" = Rec."Service Integration V2"::"Interfactura Service" then
+            MXEDocumentFeature.CheckEnabled();
+    end;
 
     var
         InterfacturaProcessing: Codeunit "Interfactura Processing";
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
         MissingSetupErr: Label 'Interfactura Connection Setup must be configured before sending.';
         DisabledSetupErr: Label 'Interfactura Connection Setup must be enabled before sending.';
         UnsupportedMessageErr: Label 'Interfactura does not support E-Document message type %1.', Comment = '%1 = message type';

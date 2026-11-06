@@ -168,8 +168,22 @@ page 3358 "E-Doc. CFDI Data MX"
         TransportOperatorCount := EDocCFDIDataMX.CountTransportOperators(Rec);
     end;
 
+    trigger OnModifyRecord(): Boolean
+    begin
+        DataEdited := true;
+    end;
+
+    trigger OnClosePage()
+    var
+        MXEDocumentTelemetry: Codeunit "MX E-Document Telemetry";
+    begin
+        if DataEdited then
+            MXEDocumentTelemetry.LogCFDIDataEdited(Rec."Entry No");
+    end;
+
     var
         EDocCFDIDataMX: Codeunit "EDoc CFDI Data MX";
+        DataEdited: Boolean;
         TransportOperatorCount: Integer;
         PageEditable: Boolean;
         CartaPorteVisible: Boolean;
