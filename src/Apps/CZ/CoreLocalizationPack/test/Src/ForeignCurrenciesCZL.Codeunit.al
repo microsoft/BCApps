@@ -3,6 +3,12 @@ codeunit 148088 "Foreign Currencies CZL"
     Subtype = Test;
     TestPermissions = NonRestrictive;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Core] [Foreign Currencies]
+        isInitialized := false;
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
