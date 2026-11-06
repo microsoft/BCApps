@@ -68,12 +68,12 @@ page 10857 "View/Edit Payment Line FR"
     var
         FeaturePaymentManagement: Codeunit "Payment Management Feature FR";
     begin
-        if not FeaturePaymentManagement.IsEnabled() then
-            Error(EnablePaymentManagementFRPageErr);
+        if not FeaturePaymentManagement.IsEnabled() then begin
+#pragma warning disable AL0432
+            Page.Run(Page::"View/Edit Payment Line");
+#pragma warning restore AL0432
+            Error('');
+        end;
     end;
-
-    var
-        EnablePaymentManagementFRPageErr: Label 'Enable Payment Management FR feature to use this functionality';
 #endif
 }
-

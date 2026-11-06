@@ -69,10 +69,20 @@ page 10846 "Payment Slip List FR"
 
     trigger OnOpenPage()
     var
+#if not CLEAN28
+        FeaturePaymentManagement: Codeunit "Payment Management Feature FR";
+#endif
         FeatureTelemetry: Codeunit "Feature Telemetry";
         FRPaymentSlipTok: Label 'FR Create Payment Slips', Locked = true;
     begin
+#if not CLEAN28
+        if not FeaturePaymentManagement.IsEnabled() then begin
+#pragma warning disable AL0432
+            Page.Run(Page::"Payment Slip List");
+#pragma warning restore AL0432
+            Error('');
+        end;
+#endif
         FeatureTelemetry.LogUptake('1000HP0', FRPaymentSlipTok, Enum::"Feature Uptake Status"::Discovered);
     end;
 }
-
