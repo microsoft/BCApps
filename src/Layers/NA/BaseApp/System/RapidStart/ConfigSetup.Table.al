@@ -9,7 +9,6 @@ using System.Environment.Configuration;
 using System.Globalization;
 using System.Reflection;
 using System.Utilities;
-using System.Xml;
 
 table 8627 "Config. Setup"
 {
@@ -361,11 +360,11 @@ table 8627 "Config. Setup"
     [Scope('OnPrem')]
     procedure ReadPackageHeader(DecompressedFileName: Text)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
+        ConfigXMLExchange: Codeunit "Config. XML Exchange";
         PackageXML: XmlDocument;
     begin
         if "Package File Name" <> '' then begin
-            XMLDOMManagement.LoadXMLDocumentFromFile(DecompressedFileName, PackageXML);
+            ConfigXMLExchange.LoadXMLDocumentFromFile(DecompressedFileName, PackageXML);
             ReadPackageHeaderCommon(PackageXML);
         end else begin
             "Package Code" := '';
