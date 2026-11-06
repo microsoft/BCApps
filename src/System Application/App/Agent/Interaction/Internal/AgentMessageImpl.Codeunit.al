@@ -30,12 +30,10 @@ codeunit 4308 "Agent Message Impl."
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         ContentInStream: InStream;
-        ContentText: Text;
     begin
         AgentTaskMessage.CalcFields(Content);
         AgentTaskMessage.Content.CreateInStream(ContentInStream, AgentTaskImpl.GetDefaultEncoding());
-        ContentInStream.Read(ContentText);
-        exit(ContentText);
+        exit(AgentTaskImpl.ReadStreamToEnd(ContentInStream));
     end;
 
     procedure UpdateText(TaskID: BigInteger; MessageID: Guid; NewMessageText: Text)
