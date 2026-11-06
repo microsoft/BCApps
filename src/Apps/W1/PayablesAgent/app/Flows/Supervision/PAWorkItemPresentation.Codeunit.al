@@ -247,12 +247,12 @@ codeunit 3330 "PA Work Item Presentation"
         exit('');
     end;
 
-    local procedure DescribeOutcome(Facts: Record "PA Purchase Outcome Facts" temporary): Text
+    local procedure DescribeOutcome(TempFacts: Record "PA Purchase Outcome Facts" temporary): Text
     begin
-        if not Facts.Posted then
-            exit(StrSubstNo(PurchaseDocumentTxt, Facts."Document Type", Facts."Document No."));
-        if Facts."Document Type" = Facts."Document Type"::"Credit Memo" then
-            exit(StrSubstNo(PostedCreditMemoTxt, Facts."Document No."));
-        exit(StrSubstNo(PostedInvoiceTxt, Facts."Document No."));
+        if not TempFacts.Posted then
+            exit(StrSubstNo(PurchaseDocumentTxt, TempFacts."Document Type", TempFacts."Document No."));
+        if TempFacts."Document Type" = TempFacts."Document Type"::"Credit Memo" then
+            exit(StrSubstNo(PostedCreditMemoTxt, TempFacts."Document No."));
+        exit(StrSubstNo(PostedInvoiceTxt, TempFacts."Document No."));
     end;
 }

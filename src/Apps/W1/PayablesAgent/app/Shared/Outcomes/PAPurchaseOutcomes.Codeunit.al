@@ -15,9 +15,9 @@ codeunit 3340 "PA Purchase Outcomes"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    internal procedure TryGetFacts(OutcomeId: RecordId; var Facts: Record "PA Purchase Outcome Facts" temporary): Boolean
+    internal procedure TryGetFacts(OutcomeId: RecordId; var TempFacts: Record "PA Purchase Outcome Facts" temporary): Boolean
     begin
-        exit(TryReadFacts(OutcomeId, false, Facts));
+        exit(TryReadFacts(OutcomeId, false, TempFacts));
     end;
 
     internal procedure ValidateForRegistration(OutcomeId: RecordId)
@@ -32,47 +32,47 @@ codeunit 3340 "PA Purchase Outcomes"
         Error(InvalidOutcomeErr);
     end;
 
-    local procedure TryReadFacts(OutcomeId: RecordId; ForRegistration: Boolean; var Facts: Record "PA Purchase Outcome Facts" temporary): Boolean
+    local procedure TryReadFacts(OutcomeId: RecordId; ForRegistration: Boolean; var TempFacts: Record "PA Purchase Outcome Facts" temporary): Boolean
     var
         PurchaseHeader: Record "Purchase Header";
         PostedInvoice: Record "Purch. Inv. Header";
         PostedCreditMemo: Record "Purch. Cr. Memo Hdr.";
     begin
-        Clear(Facts);
+        Clear(TempFacts);
         if ForRegistration then
             PurchaseHeader.ReadIsolation := IsolationLevel::UpdLock;
         case OutcomeId.TableNo of
             Database::"Purchase Header":
                 if PurchaseHeader.Get(OutcomeId) then begin
-                    Facts."Document Type" := PurchaseHeader."Document Type";
-                    Facts."Document No." := PurchaseHeader."No.";
+                    TempFacts."Document Type" := PurchaseHeader."Document Type";
+                    TempFacts."Document No." := PurchaseHeader."No.";
                     if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::"Credit Memo" then
-                        Facts."Vendor Document No." := PurchaseHeader."Vendor Cr. Memo No."
+                        TempFacts."Vendor Document No." := PurchaseHeader."Vendor Cr. Memo No."
                     else
                         if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Invoice then
-                            Facts."Vendor Document No." := PurchaseHeader."Vendor Invoice No.";
-                    Facts."Vendor No." := PurchaseHeader."Buy-from Vendor No.";
-                    Facts."Vendor Name" := PurchaseHeader."Buy-from Vendor Name";
+                            TempFacts."Vendor Document No." := PurchaseHeader."Vendor Invoice No.";
+                    TempFacts."Vendor No." := PurchaseHeader."Buy-from Vendor No.";
+                    TempFacts."Vendor Name" := PurchaseHeader."Buy-from Vendor Name";
                     exit(true);
                 end;
             Database::"Purch. Inv. Header":
                 if PostedInvoice.Get(OutcomeId) then begin
-                    Facts."Document Type" := Facts."Document Type"::Invoice;
-                    Facts.Posted := true;
-                    Facts."Document No." := PostedInvoice."No.";
-                    Facts."Vendor Document No." := PostedInvoice."Vendor Invoice No.";
-                    Facts."Vendor No." := PostedInvoice."Buy-from Vendor No.";
-                    Facts."Vendor Name" := PostedInvoice."Buy-from Vendor Name";
+                    TempFacts."Document Type" := TempFacts."Document Type"::Invoice;
+                    TempFacts.Posted := true;
+                    TempFacts."Document No." := PostedInvoice."No.";
+                    TempFacts."Vendor Document No." := PostedInvoice."Vendor Invoice No.";
+                    TempFacts."Vendor No." := PostedInvoice."Buy-from Vendor No.";
+                    TempFacts."Vendor Name" := PostedInvoice."Buy-from Vendor Name";
                     exit(true);
                 end;
             Database::"Purch. Cr. Memo Hdr.":
                 if PostedCreditMemo.Get(OutcomeId) then begin
-                    Facts."Document Type" := Facts."Document Type"::"Credit Memo";
-                    Facts.Posted := true;
-                    Facts."Document No." := PostedCreditMemo."No.";
-                    Facts."Vendor Document No." := PostedCreditMemo."Vendor Cr. Memo No.";
-                    Facts."Vendor No." := PostedCreditMemo."Buy-from Vendor No.";
-                    Facts."Vendor Name" := PostedCreditMemo."Buy-from Vendor Name";
+                    TempFacts."Document Type" := TempFacts."Document Type"::"Credit Memo";
+                    TempFacts.Posted := true;
+                    TempFacts."Document No." := PostedCreditMemo."No.";
+                    TempFacts."Vendor Document No." := PostedCreditMemo."Vendor Cr. Memo No.";
+                    TempFacts."Vendor No." := PostedCreditMemo."Buy-from Vendor No.";
+                    TempFacts."Vendor Name" := PostedCreditMemo."Buy-from Vendor Name";
                     exit(true);
                 end;
         end;
