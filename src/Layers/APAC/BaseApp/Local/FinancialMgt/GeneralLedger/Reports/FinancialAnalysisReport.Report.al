@@ -106,6 +106,7 @@ report 28026 "Financial Analysis Report"
                     SetRange(Number, 1, "G/L Account"."No. of Blank Lines");
                 end;
             }
+
             dataitem("Integer"; "Integer")
             {
                 DataItemTableView = sorting(Number) where(Number = const(1));
@@ -490,7 +491,13 @@ report 28026 "Financial Analysis Report"
     local procedure CalculateAmount(var GLAccount: Record "G/L Account")
     var
         i: Integer;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCalculateAmount(GLAccount, ColumnAmount, IsHandled);
+        if IsHandled then
+            exit;
+
         for i := 1 to 6 do
             ColumnAmount[i] := 0;
         case ReportType of
@@ -580,6 +587,11 @@ report 28026 "Financial Analysis Report"
         end;
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCalculateAmount(var GLAccount: Record "G/L Account"; var ColumnAmount: array[6] of Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
     local procedure ShowTotalLine(var GLAccount: Record "G/L Account"): Boolean
     begin
         if ((GLAccount."Account Type" = GLAccount."Account Type"::"End-Total") or
@@ -590,4 +602,3 @@ report 28026 "Financial Analysis Report"
         exit(false);
     end;
 }
-
