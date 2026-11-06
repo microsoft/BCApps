@@ -21,6 +21,7 @@ using Microsoft.Bank.Statement;
 report 1407 "Bank Account Statement"
 {
     Caption = 'Bank Account Statement';
+    ToolTip = 'View statements for selected bank accounts. For each bank transaction, the report shows a description, an applied amount, a statement amount, and other information.';
     WordMergeDataItem = "Bank Account Statement";
     DefaultRenderingLayout = RDLCLayout;
 

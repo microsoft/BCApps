@@ -21,6 +21,7 @@ report 1404 "Bank Acc. - Detail Trial Bal."
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Accounts - Detail Trial Balance';
+    ToolTip = 'View, print, or send a report that shows a detailed trial balance for selected bank accounts. You can use the report at the close of an accounting period or fiscal year.';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Bank Account";
     DefaultRenderingLayout = RDLCLayout;

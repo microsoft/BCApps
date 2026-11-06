@@ -21,6 +21,7 @@ using System.Utilities;
 report 1495 "Delete Check Ledger Entries"
 {
     Caption = 'Delete Check Ledger Entries';
+    ToolTip = 'Find and delete check ledger entries.';
     Permissions = TableData "Check Ledger Entry" = rimd,
                   TableData "G/L Register" = rimd,
                   TableData "Date Compr. Register" = rimd;
