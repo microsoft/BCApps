@@ -1,6 +1,6 @@
 name: Test AL App Architecture
 author: Microsoft Corporation
-description: Verifies the architecture policies of AL apps that register one, such as the Payables Agent
+description: Verifies the architecture policies of AL apps that register one
 runs:
   using: composite
   steps:
