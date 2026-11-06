@@ -1,9 +1,24 @@
+#if not CLEAN30
+namespace Microsoft.FixedAssets.Test;
+
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Posting;
+using Microsoft.Foundation.AuditCodes;
+
 codeunit 144027 "UT COD FA Derogatory Depr."
 {
     // Test for feature FADD - Fixed Asset Derogatory Depreciation.
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+    ObsoleteReason = 'Moved to W1 Base Application';
 
     trigger OnRun()
     begin
@@ -17,7 +32,6 @@ codeunit 144027 "UT COD FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnRunGenJnlPostBatchFAPostingTypeError()
     begin
         // Purpose of the test is to validate OnRun trigger of Codeunit ID - 13 Gen. Jnl.-Post Batch.
@@ -28,7 +42,6 @@ codeunit 144027 "UT COD FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnRunGenJnlPostBatchDocumentNoError()
     begin
         // Purpose of the test is to validate OnRun trigger of Codeunit ID - 13 Gen. Jnl.-Post Batch.
@@ -37,25 +50,8 @@ codeunit 144027 "UT COD FA Derogatory Depr."
         OnRunGenJnlPostBatch('', 'TestField');
     end;
 
-    local procedure OnRunGenJnlPostBatch(DocumentNo: Code[20]; ErrorCode: Text[1024])
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        FADepreciationBook: Record "FA Depreciation Book";
-    begin
-        // Setup: Create Fixed Asset Depreciation Book and General Journal Line.
-        CreateFADepreciationBook(FADepreciationBook);
-        CreateGenJournalLine(GenJournalLine, FADepreciationBook."Depreciation Book Code", FADepreciationBook."FA No.", DocumentNo);
-
-        // Exercise.
-        asserterror CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post Batch", GenJournalLine);
-
-        // Verify: Verify expected error code.
-        Assert.ExpectedErrorCode(ErrorCode);
-    end;
-
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure SetReverseTypeCalculateDisposal()
     var
         FALedgerEntry: Record "FA Ledger Entry";
@@ -68,7 +64,6 @@ codeunit 144027 "UT COD FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure SetFAPostingCategoryCalculateDisposal()
     var
         FALedgerEntry: Record "FA Ledger Entry";
@@ -81,7 +76,6 @@ codeunit 144027 "UT COD FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure SetFAPostingTypeCalculateDisposal()
     var
         FALedgerEntry: Record "FA Ledger Entry";
@@ -94,7 +88,6 @@ codeunit 144027 "UT COD FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure CalcReverseAmountsCalculateDisposal()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -105,7 +98,7 @@ codeunit 144027 "UT COD FA Derogatory Depr."
         CreateMultipleFAPostingTypeSetup(FADepreciationBook);
 
         // Exercise.
-        CalculateDisposal.CalcReverseAmounts(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", EntryAmounts);  // EntryAmounts, calclulated on the basis of CalcReverseAmounts function of Calculate Disposal.
+        CalculateDisposal.CalcReverseAmounts(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", EntryAmounts, true);
 
         // Verify.
         FADepreciationBook.CalcFields(Derogatory);
@@ -114,7 +107,6 @@ codeunit 144027 "UT COD FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure CalcGainLossCalculateDisposal()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -125,20 +117,20 @@ codeunit 144027 "UT COD FA Derogatory Depr."
         CreateMultipleFAPostingTypeSetup(FADepreciationBook);
 
         // Exercise.
-        CalculateDisposal.CalcGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", EntryAmounts);
+        CalculateDisposal.CalcGainLoss(FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code", EntryAmounts, true);
 
         // Verify.
         FADepreciationBook.CalcFields(Derogatory);
         Assert.AreEqual(-FADepreciationBook.Derogatory, EntryAmounts[15], ValueMustEqualMsg);
     end;
 
-    local procedure CreateFixedAsset(): Code[20]
+    local procedure CreateDepreciationBook(): Code[10]
     var
-        FixedAsset: Record "Fixed Asset";
+        DepreciationBook: Record "Depreciation Book";
     begin
-        FixedAsset."No." := LibraryUTUtility.GetNewCode();
-        FixedAsset.Insert();
-        exit(FixedAsset."No.");
+        DepreciationBook.Code := LibraryUTUtility.GetNewCode10();
+        DepreciationBook.Insert();
+        exit(DepreciationBook.Code);
     end;
 
     local procedure CreateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book")
@@ -149,13 +141,40 @@ codeunit 144027 "UT COD FA Derogatory Depr."
         FADepreciationBook.Insert();
     end;
 
-    local procedure CreateSourceCode(): Code[10]
+    local procedure CreateFALedgerEntry(FANo: Code[20]; DepreciationBookCode: Code[10])
     var
-        SourceCode: Record "Source Code";
+        FALedgerEntry: Record "FA Ledger Entry";
+        FALedgerEntry2: Record "FA Ledger Entry";
     begin
-        SourceCode.Code := LibraryUTUtility.GetNewCode10();
-        SourceCode.Insert();
-        exit(SourceCode.Code);
+        FALedgerEntry."Entry No." := 1;
+        FALedgerEntry2.SetLoadFields("Entry No.");
+        if FALedgerEntry2.FindLast() then
+            FALedgerEntry."Entry No." := FALedgerEntry2."Entry No." + 1;
+        FALedgerEntry."FA No." := FANo;
+        FALedgerEntry."Depreciation Book Code" := DepreciationBookCode;
+        FALedgerEntry."FA Posting Type" := FALedgerEntry."FA Posting Type"::Derogatory;
+        FALedgerEntry.Amount := LibraryRandom.RandDec(10, 2);
+        FALedgerEntry.Insert();
+    end;
+
+    local procedure CreateFAPostingTypeSetup(DepreciationBookCode: Code[10]; FAPostingType: Enum "FA Posting Type Setup Type")
+    var
+        FAPostingTypeSetup: Record "FA Posting Type Setup";
+    begin
+        FAPostingTypeSetup."Depreciation Book Code" := DepreciationBookCode;
+        FAPostingTypeSetup."FA Posting Type" := FAPostingType;
+        FAPostingTypeSetup."Part of Book Value" := true;
+        FAPostingTypeSetup."Reverse before Disposal" := true;
+        FAPostingTypeSetup.Insert();
+    end;
+
+    local procedure CreateFixedAsset(): Code[20]
+    var
+        FixedAsset: Record "Fixed Asset";
+    begin
+        FixedAsset."No." := LibraryUTUtility.GetNewCode();
+        FixedAsset.Insert();
+        exit(FixedAsset."No.");
     end;
 
     local procedure CreateGenJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch")
@@ -188,41 +207,6 @@ codeunit 144027 "UT COD FA Derogatory Depr."
         GenJournalLine.Insert();
     end;
 
-    local procedure CreateDepreciationBook(): Code[10]
-    var
-        DepreciationBook: Record "Depreciation Book";
-    begin
-        DepreciationBook.Code := LibraryUTUtility.GetNewCode10();
-        DepreciationBook.Insert();
-        exit(DepreciationBook.Code);
-    end;
-
-    local procedure CreateFALedgerEntry(FANo: Code[20]; DepreciationBookCode: Code[10])
-    var
-        FALedgerEntry: Record "FA Ledger Entry";
-        FALedgerEntry2: Record "FA Ledger Entry";
-    begin
-        FALedgerEntry."Entry No." := 1;
-        if FALedgerEntry2.FindLast() then
-            FALedgerEntry."Entry No." := FALedgerEntry2."Entry No." + 1;
-        FALedgerEntry."FA No." := FANo;
-        FALedgerEntry."Depreciation Book Code" := DepreciationBookCode;
-        FALedgerEntry."FA Posting Type" := FALedgerEntry."FA Posting Type"::Derogatory;
-        FALedgerEntry.Amount := LibraryRandom.RandDec(10, 2);
-        FALedgerEntry.Insert();
-    end;
-
-    local procedure CreateFAPostingTypeSetup(DepreciationBookCode: Code[10]; FAPostingType: Enum "FA Posting Type Setup Type")
-    var
-        FAPostingTypeSetup: Record "FA Posting Type Setup";
-    begin
-        FAPostingTypeSetup."Depreciation Book Code" := DepreciationBookCode;
-        FAPostingTypeSetup."FA Posting Type" := FAPostingType;
-        FAPostingTypeSetup."Part of Book Value" := true;
-        FAPostingTypeSetup."Reverse before Disposal" := true;
-        FAPostingTypeSetup.Insert();
-    end;
-
     local procedure CreateMultipleFAPostingTypeSetup(var FADepreciationBook: Record "FA Depreciation Book")
     var
         FAPostingTypeSetup: Record "FA Posting Type Setup";
@@ -234,5 +218,30 @@ codeunit 144027 "UT COD FA Derogatory Depr."
         CreateFAPostingTypeSetup(FADepreciationBook."Depreciation Book Code", FAPostingTypeSetup."FA Posting Type"::"Custom 1");
         CreateFAPostingTypeSetup(FADepreciationBook."Depreciation Book Code", FAPostingTypeSetup."FA Posting Type"::"Custom 2");
     end;
-}
 
+    local procedure CreateSourceCode(): Code[10]
+    var
+        SourceCode: Record "Source Code";
+    begin
+        SourceCode.Code := LibraryUTUtility.GetNewCode10();
+        SourceCode.Insert();
+        exit(SourceCode.Code);
+    end;
+
+    local procedure OnRunGenJnlPostBatch(DocumentNo: Code[20]; ErrorCode: Text[1024])
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        FADepreciationBook: Record "FA Depreciation Book";
+    begin
+        // Setup: Create Fixed Asset Depreciation Book and General Journal Line.
+        CreateFADepreciationBook(FADepreciationBook);
+        CreateGenJournalLine(GenJournalLine, FADepreciationBook."Depreciation Book Code", FADepreciationBook."FA No.", DocumentNo);
+
+        // Exercise.
+        asserterror CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post Batch", GenJournalLine);
+
+        // Verify: Verify expected error code.
+        Assert.ExpectedErrorCode(ErrorCode);
+    end;
+}
+#endif

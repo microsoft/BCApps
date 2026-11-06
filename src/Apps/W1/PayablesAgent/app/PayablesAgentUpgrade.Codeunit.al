@@ -27,6 +27,7 @@ codeunit 3305 "Payables Agent Upgrade"
         AlwaysUpdateAgentInformationOnUpgrade();
         UpdatePayablesAgentSetupToUseUserSecurityId();
         ReviewIncomingInvoiceToEmailReviewPolicy();
+        AllowCreditMemosOnAgentEDocumentService();
     end;
 
     trigger OnUpgradePerDatabase()
@@ -127,6 +128,23 @@ codeunit 3305 "Payables Agent Upgrade"
         UpgradeTag.SetUpgradeTag(GetMapEmailReviewPolicyTag());
     end;
 
+    local procedure AllowCreditMemosOnAgentEDocumentService()
+    var
+        PayablesAgentSetup: Codeunit "Payables Agent Setup";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetAllowCreditMemosOnAgentEDocumentServiceTag()) then
+            exit;
+
+        PayablesAgentSetup.AllowCreditMemosOnAgentEDocumentService();
+
+        UpgradeTag.SetUpgradeTag(GetAllowCreditMemosOnAgentEDocumentServiceTag());
+    end;
+
+    local procedure GetAllowCreditMemosOnAgentEDocumentServiceTag(): Code[250]
+    begin
+        exit('MS-650500-AllowCreditMemosOnAgentEDocumentService-20261013');
+    end;
+
     local procedure GetRegisterPayablesAgentCapabilityTag(): Code[250]
     begin
         exit('MS-575373-PayablesAgentCapability-20251021');
@@ -164,6 +182,7 @@ codeunit 3305 "Payables Agent Upgrade"
     begin
         PerCompanyUpgradeTags.Add(GetUpdatePayablesAgentSetupToUseUserSecurityIdTag());
         PerCompanyUpgradeTags.Add(GetMapEmailReviewPolicyTag());
+        PerCompanyUpgradeTags.Add(GetAllowCreditMemosOnAgentEDocumentServiceTag());
     end;
 
 }

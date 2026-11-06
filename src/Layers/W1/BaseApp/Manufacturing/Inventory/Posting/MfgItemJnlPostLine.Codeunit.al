@@ -812,7 +812,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         sender.SetCalledFromInvtPutawayPick(false);
 
         GetProdOrderRoutingLine(ProdOrderRoutingLine, ItemJnlLineSaved);
-        OnFlushOperationOnBeforeCheckRoutingLinkCode(ProdOrder, ProdOrderLine, ProdOrderRoutingLine, ItemJnlLine, LastOperation);
+        OnFlushOperationOnBeforeCheckRoutingLinkCode(ProdOrder, ProdOrderLine, ProdOrderRoutingLine, ItemJnlLine, LastOperation, sender);
         if ProdOrderRoutingLine."Routing Link Code" <> '' then begin
             ProdOrderComp.SetCurrentKey(Status, "Prod. Order No.", "Routing Link Code", "Flushing Method");
             ProdOrderComp.SetRange("Flushing Method", ProdOrderComp."Flushing Method"::Forward, ProdOrderComp."Flushing Method"::"Pick + Backward");
@@ -1195,7 +1195,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnFlushOperationOnBeforeCheckRoutingLinkCode(var ProductionOrder: Record "Production Order"; var ProdOrderLine: Record "Prod. Order Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemJournalLine: Record "Item Journal Line"; LastOperation: Boolean)
+    local procedure OnFlushOperationOnBeforeCheckRoutingLinkCode(var ProductionOrder: Record "Production Order"; var ProdOrderLine: Record "Prod. Order Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemJournalLine: Record "Item Journal Line"; LastOperation: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
     end;
 
@@ -1313,7 +1313,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetupSplitJnlLineOnSetDisableItemTracking', '', true, false)]
     local procedure OnSetupSplitJnlLineOnSetDisableItemTracking(var ItemJournalLine: Record "Item Journal Line"; var DisableItemTracking: Boolean)
     begin
-        DisableItemTracking := not ItemJournalLine.ItemPosting();
+        DisableItemTracking := not ItemJournalLine.ItemPosting() or IsCapacityReversalWithoutOutput(ItemJournalLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetupSplitJnlLineOnCheckOperationNo', '', true, false)]
@@ -1400,5 +1400,13 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         ReversedCapacityLedgerEntry.Reversed := true;
         ReversedCapacityLedgerEntry."Reversed by Entry No." := CapLedgEntry."Entry No.";
         ReversedCapacityLedgerEntry.Modify();
+    end;
+
+    local procedure IsCapacityReversalWithoutOutput(ItemJournalLine: Record "Item Journal Line"): Boolean
+    begin
+        exit(
+            (ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output) and
+            (ItemJournalLine."Rev. Capacity Ledger Entry No." <> 0) and
+            (ItemJournalLine."Output Quantity" = 0));
     end;
 }
