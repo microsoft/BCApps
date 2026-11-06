@@ -92,11 +92,12 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         Base64Data := Base64Convert.ToBase64(InStream);
 
         // Build AOAI call
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT56CeresPreview());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis");
 
         AOAIChatCompletionParams.SetTemperature(0);
         AOAIChatCompletionParams.SetJsonMode(true);
+        AOAIChatCompletionParams.SetMaxTokens(GetMaxOutputTokens());
 
         AOAIChatMessages.SetPrimarySystemMessage(NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8));
 
@@ -323,6 +324,12 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine, IsCreditNote);
         EDocReadablePurchaseDoc.SetBuffer(TempEDocPurchaseHeader, TempEDocPurchaseLine);
         EDocReadablePurchaseDoc.Run();
+    end;
+
+    // Invoices with many lines produce long JSON, and reasoning models count their reasoning toward this limit. Same value as the Sales Order Agent's PDF extraction.
+    local procedure GetMaxOutputTokens(): Integer
+    begin
+        exit(50000);
     end;
 
     local procedure GetCustomDimensions(): Dictionary of [Text, Text]
