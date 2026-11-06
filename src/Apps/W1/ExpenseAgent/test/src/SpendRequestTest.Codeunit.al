@@ -1564,6 +1564,103 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    procedure NonRefundablePerDiemLinesOfTravelersOnSameTravelRequestAreNotDuplicates()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Non-refundable per diem lines have no travel request of their own, but per diem lines of travelers on the same travel request are still not duplicates.
+        Initialize();
+        SetFullRatePerDiemCalculation();
+
+        // [GIVEN] An approved travel request with a non-refundable per diem for two travelers, which created an identical per diem line for each traveler.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.CreateExpenseUser(OtherExpenseUser);
+        LibraryExpense.CreateTraveler(SpendRequest."No.", OtherExpenseUser."No.");
+        SetNonRefundablePerDiemDetailsWithRule(SpendRequest);
+        ReleaseAndApproveTravelRequest(SpendRequest);
+
+        ExpenseReportLine.SetRange("Document No.", GetTravelerExpenseReport(SpendRequest, ExpenseUser)."No.");
+        ExpenseReportLine.FindFirst();
+        Assert.IsFalse(ExpenseReportLine.Refundable, 'The per diem line must be non-refundable.');
+        Assert.AreEqual('', ExpenseReportLine."Spend Request No.", 'A non-refundable per diem line must not be linked to the travel request.');
+
+        // [WHEN] The per diem lines are validated against the rules.
+        // [THEN] No duplicate rule violation is raised for either traveler.
+        VerifyPerDiemLineDuplicateViolation(GetTravelerExpenseReport(SpendRequest, ExpenseUser), false);
+        VerifyPerDiemLineDuplicateViolation(GetTravelerExpenseReport(SpendRequest, OtherExpenseUser), false);
+    end;
+
+    [Test]
+    procedure NonRefundablePerDiemLineDuplicatedForSameTravelerIsFlagged()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] A copy of a traveler's non-refundable per diem line from a travel request is still a duplicate.
+        Initialize();
+        SetFullRatePerDiemCalculation();
+
+        // [GIVEN] An approved travel request with a non-refundable per diem, which created a per diem line for the traveler.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        SetNonRefundablePerDiemDetailsWithRule(SpendRequest);
+        ReleaseAndApproveTravelRequest(SpendRequest);
+        ExpenseReportHeader := GetTravelerExpenseReport(SpendRequest, ExpenseUser);
+
+        // [GIVEN] The traveler adds a copy of the per diem line to the expense report.
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        ExpenseReportLine."Line No." += 10000;
+        ExpenseReportLine.Insert();
+
+        // [WHEN] The per diem line is validated against the rules.
+        // [THEN] A duplicate rule violation is raised.
+        VerifyPerDiemLineDuplicateViolation(ExpenseReportHeader, true);
+    end;
+
+    [Test]
+    procedure PostedNonRefundablePerDiemLineOfOtherTravelerIsNotDuplicate()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
+        OtherExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+    begin
+        // [SCENARIO] A posted non-refundable per diem line of another traveler on the same travel request is not a duplicate.
+        Initialize();
+        SetFullRatePerDiemCalculation();
+
+        // [GIVEN] An approved travel request with a non-refundable per diem for two travelers, which created an identical per diem line for each traveler.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.CreateExpenseUser(OtherExpenseUser);
+        LibraryExpense.CreateTraveler(SpendRequest."No.", OtherExpenseUser."No.");
+        SetNonRefundablePerDiemDetailsWithRule(SpendRequest);
+        ReleaseAndApproveTravelRequest(SpendRequest);
+
+        // [GIVEN] The per diem line of the second traveler is moved to a posted report, the same way posting copies the header and line.
+        OtherExpenseReportHeader := GetTravelerExpenseReport(SpendRequest, OtherExpenseUser);
+        PostedExpenseReportHeader.TransferFields(OtherExpenseReportHeader);
+        PostedExpenseReportHeader.Insert();
+        ExpenseReportLine.SetRange("Document No.", OtherExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        PostedExpenseReportLine.TransferFields(ExpenseReportLine);
+        PostedExpenseReportLine."Document No." := PostedExpenseReportHeader."No.";
+        PostedExpenseReportLine.Insert();
+        ExpenseReportLine.Delete();
+
+        // [WHEN] The per diem line of the first traveler is validated against the rules.
+        // [THEN] No duplicate rule violation is raised.
+        VerifyPerDiemLineDuplicateViolation(GetTravelerExpenseReport(SpendRequest, ExpenseUser), false);
+    end;
+
+    [Test]
     procedure ApproveTravelRequestWithPerDiemUsesFirstMatchingCategory()
     var
         SpendRequest: Record "Spend Request";
@@ -3622,6 +3719,19 @@ codeunit 148339 "Spend Request Test"
     begin
         CreatePerDiemLocation(ExpenseLocation);
         CreatePerDiemCategory(ExpenseCategory);
+        CreatePerDiemRule(ExpenseCategory.Code, ExpenseLocation."No.", 0D, LibraryRandom.RandIntInRange(10, 100));
+        SetPerDiemDetails(SpendRequest, ExpenseLocation."No.");
+    end;
+
+    local procedure SetNonRefundablePerDiemDetailsWithRule(var SpendRequest: Record "Spend Request")
+    var
+        ExpenseLocation: Record "Expense Location";
+        ExpenseCategory: Record "Expense Category";
+    begin
+        CreatePerDiemLocation(ExpenseLocation);
+        CreatePerDiemCategory(ExpenseCategory);
+        ExpenseCategory.Refundable := false;
+        ExpenseCategory.Modify(true);
         CreatePerDiemRule(ExpenseCategory.Code, ExpenseLocation."No.", 0D, LibraryRandom.RandIntInRange(10, 100));
         SetPerDiemDetails(SpendRequest, ExpenseLocation."No.");
     end;
