@@ -154,8 +154,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isTest": true,
       "repositoryUrl": "https://github.com/microsoft/BCApps",
@@ -172,8 +172,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isTest": true,
       "repositoryUrl": "https://github.com/microsoft/BCApps"
@@ -189,8 +189,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isTest": true,
       "repositoryUrl": "https://github.com/microsoft/BCApps",
@@ -220,8 +220,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "unsupportedCountries": [
         "NA"
@@ -243,8 +243,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isTest": true,
       "repositoryUrl": "https://github.com/microsoft/BCApps",
@@ -603,8 +603,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "supportedCountries": [
         "W1"
@@ -625,8 +625,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -648,8 +648,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -670,8 +670,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "isTest": true,
@@ -690,8 +690,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -713,8 +713,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -736,8 +736,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -759,8 +759,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -782,8 +782,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -805,8 +805,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -828,8 +828,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -851,8 +851,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -874,8 +874,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -897,8 +897,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -920,8 +920,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -943,8 +943,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -966,8 +966,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -989,8 +989,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1012,8 +1012,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1035,8 +1035,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1058,8 +1058,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1081,8 +1081,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1125,8 +1125,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1148,8 +1148,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1171,8 +1171,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1194,8 +1194,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1217,8 +1217,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1240,8 +1240,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1263,8 +1263,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1286,8 +1286,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1309,8 +1309,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1332,8 +1332,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1355,8 +1355,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1378,8 +1378,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1401,8 +1401,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1424,8 +1424,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1447,8 +1447,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1470,8 +1470,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1493,8 +1493,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1516,8 +1516,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1539,8 +1539,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1562,8 +1562,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1585,8 +1585,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1608,8 +1608,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1641,8 +1641,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1664,8 +1664,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "isTest": true,
@@ -1683,8 +1683,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1727,8 +1727,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1750,8 +1750,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1772,8 +1772,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1794,8 +1794,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -1817,8 +1817,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "isGDLProject": true,
       "unsupportedCountries": [
@@ -2289,8 +2289,8 @@
         "$Env:PkgSystem_Management\\lib\\netstandard2.0",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
         "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockService",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools\\MockTest"
       ],
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
