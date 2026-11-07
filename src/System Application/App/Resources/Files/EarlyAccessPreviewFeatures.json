@@ -37,5 +37,21 @@
         "HelpURL": "",
         "VideoURL": "",
         "ADOSliceIds": [575742]
+    },
+    {
+        "FeatureName": "Mirror Business Central data to Microsoft Fabric",
+        "Description": "Set up Microsoft Fabric mirroring, select the companies and tables to export, and monitor synchronization from Business Central. The Microsoft Fabric Mirroring extension and a configured Fabric workspace and capacity are required.",
+        "Category": "Analytics",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [649960]
+    },
+    {
+        "FeatureName": "Deploy Power BI reports for production companies",
+        "Description": "Deploy the included Power BI reports from a production company to a shared Power BI workspace. Select the workspace, follow deployment status, install updates and retry failed deployments from Business Central.",
+        "Category": "Analytics",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [624513]
     }
 ]
