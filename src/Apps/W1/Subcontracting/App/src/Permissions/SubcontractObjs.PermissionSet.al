@@ -69,6 +69,7 @@ permissionset 20501 "Subcontract. - Objs"
         codeunit "Subc. Posting Preview Binding" = X,
         codeunit "Subc. Posting Preview Subscr." = X,
         codeunit "Subc. Pst. Prev. Event Handler" = X,
+        codeunit "Subc. Prod. Def. Subscriber" = X,
         codeunit "Subc. Purchase Order Creator" = X,
         codeunit "Subc. Transfer WIP Posting" = X,
         codeunit "Subc. WhsePostShipment Ext" = X,

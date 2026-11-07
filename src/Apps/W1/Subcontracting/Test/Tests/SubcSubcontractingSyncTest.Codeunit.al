@@ -19,6 +19,7 @@ using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.Wizard;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -255,6 +256,111 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         Assert.IsFalse(TransferHeader.Get(InitialTransferOrderNo), 'Transfer Order must be deleted when no Item Ledger Entry exists for Production Order');
     end;
 
+    [Test]
+    procedure TestQuantitySynchronizationAfterCreateProductionOrderFromPurchaseOrder()
+    var
+        ItemUOM: Record "Item Unit of Measure";
+        Location, Location2 : Record Location;
+        ProdOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchLine, PurchLine2 : Record "Purchase Line";
+        RoutingLink: Record "Routing Link";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SynchMgmt: Codeunit "Subc. Synchronize Management";
+        ItemNoOriginPurchLine: Code[20];
+        PurchOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO] Create Production Order from Purchase Order from scratch and test Quantity synchronization
+        Initialize();
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM
+        CreateAndCalculateNeededWorkCenter(WorkCenter, false);
+        UpdateDefaultCommonWorkCenter(WorkCenter."No.");
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
+        UpdateSubMgmtRoutingLink(RoutingLink.Code);
+
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryWarehouse.CreateLocation(Location2);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor."Subc. Location Code" := Location2.Code;
+        Vendor.Modify();
+        LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
+        LibraryPurchase.CreatePurchaseLine(PurchLine, PurchaseHeader, "Purchase Line Type"::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(100));
+        PurchLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(1, 100, 2));
+        ItemNoOriginPurchLine := PurchLine."No.";
+        PurchLine.Modify(true);
+
+        // [WHEN] Create Prod Order from scratch
+        Commit();
+        PurchOrder.OpenEdit();
+        PurchOrder.GoToRecord(PurchaseHeader);
+        PurchOrder.PurchLines."Subc. CreateProdOrder".Invoke();
+
+        // [THEN]
+        PurchLine.Reset();
+        PurchLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchLine.SetRange("No.", ItemNoOriginPurchLine);
+        Assert.RecordCount(PurchLine, 1);
+        PurchLine.FindFirst();
+        PurchLine.TestField("Prod. Order No.");
+
+        PurchLine2.Get(PurchLine."Document Type", PurchLine."Document No.", PurchLine."Line No.");
+
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUOM, PurchLine."No.", 3);
+        PurchLine2.Validate("Unit of Measure Code", ItemUOM.Code);
+        PurchLine2.Modify();
+        SynchMgmt.SynchronizeQuantity(PurchLine2, PurchLine);
+
+        ProdOrder.Get("Production Order Status"::Released, PurchLine."Prod. Order No.");
+        Assert.AreEqual(PurchLine.Quantity * 3, ProdOrder.Quantity, 'Quantity of Prod. Order must be equal to Quantity of Purchase Line');
+
+        // [TEARDOWN]
+        PurchLine.SetRange("No.", ItemNoOriginPurchLine);
+        PurchLine.FindFirst();
+        ProdOrder.Get("Production Order Status"::Released, PurchLine."Prod. Order No.");
+        PurchLine."Prod. Order No." := '';
+        PurchLine.Modify();
+        ProdOrder.Delete(true);
+        UpdateDefaultCommonWorkCenter('');
+        UpdateSubMgmtRoutingLink('');
+    end;
+
+    local procedure CreateAndCalculateNeededWorkCenter(var WorkCenter: Record "Work Center"; IsSubcontracting: Boolean)
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        ShopCalendarCode: Code[10];
+        WorkCenterNo: Code[20];
+    begin
+        LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
+        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarWorkingDays();
+
+        // [GIVEN] Create and Calculate needed Work and Machine Center
+        CreateWorkCenter(WorkCenterNo, ShopCalendarCode, "Flushing Method"::"Pick + Manual", IsSubcontracting, UnitCostCalculation, '');
+        WorkCenter.Get(WorkCenterNo);
+        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter, CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+    end;
+
+    local procedure UpdateDefaultCommonWorkCenter(WorkCenterNo: Code[20])
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Def. Wiz. Work Center No." := WorkCenterNo;
+        ManufacturingSetup.Modify();
+    end;
+
+    local procedure UpdateSubMgmtRoutingLink(RtngLink: Code[10])
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Subc. Rtng. Link Purch Prov" := RtngLink;
+        ManufacturingSetup.Modify();
+    end;
+
     local procedure MakeSubconPurchOrder(ProductionOrderNo: Code[20]; WorkCenterNo: Code[20])
     var
         RequisitionLine: Record "Requisition Line";
@@ -294,7 +400,6 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         LibraryMfgManagement.CreateMachineCenter(MachineCenterNo2, WorkCenterNo, "Flushing Method"::"Pick + Manual".AsInteger());
         MachineCenter[2].Get(MachineCenterNo2);
         LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[2], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
-
         if Subcontracting then
             CreateWorkCenter(WorkCenterNo2, ShopCalendarCode, "Flushing Method"::"Pick + Manual", Subcontracting, UnitCostCalculation, '')
         else
@@ -417,7 +522,6 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         WorkCenter.Validate("Indirect Cost %", LibraryRandom.RandDec(5, 1));
         WorkCenter.Validate("Overhead Rate", LibraryRandom.RandDec(5, 1));
         WorkCenter.Validate("Unit Cost Calculation", UnitCostCalc);
-
         if Subcontract then begin
             LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
             GenProductPostingGroup.FindFirst();
@@ -500,12 +604,12 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         SubcManagementLibrary.Initialize();
         UpdateSubMgmtSetupComponentAtLocation("Components at Location"::Purchase);
         LibraryMfgManagement.Initialize();
-
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Subcontracting Sync Test");
 
         SubSetupLibrary.InitSetupFields();
+        SubSetupLibrary.ConfigureSubManagementForNothingPresentScenario("Prod. Definition Display"::Hide, "Prod. Definition Display"::Hide);
         LibraryERMCountryData.CreateVATData();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
 
@@ -613,7 +717,9 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcManagementLibrary: Codeunit "Subc. Management Library";
+        LibraryPurchase: Codeunit "Library - Purchase";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
+        LibraryInventory: Codeunit "Library - Inventory";
         IsInitialized: Boolean;
         Subcontracting: Boolean;
         UnitCostCalculation: Option Time,Units;
