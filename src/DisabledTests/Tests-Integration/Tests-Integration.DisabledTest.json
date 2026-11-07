@@ -170,56 +170,6 @@
     "method": "ValidSetup_Successful"
   },
   {
-    "codeunitId": 135547,
-    "codeunitName": "Webhook Logs E2E",
-    "method": "TestDeleteWebhookLogsNotAllowed"
-  },
-  {
-    "codeunitId": 135547,
-    "codeunitName": "Webhook Logs E2E",
-    "method": "TestGetWebhookLogsMany"
-  },
-  {
-    "codeunitId": 135547,
-    "codeunitName": "Webhook Logs E2E",
-    "method": "TestGetWebhookLogsSingle"
-  },
-  {
-    "codeunitId": 135547,
-    "codeunitName": "Webhook Logs E2E",
-    "method": "TestPatchWebhookLogsNotAllowed"
-  },
-  {
-    "codeunitId": 135547,
-    "codeunitName": "Webhook Logs E2E",
-    "method": "TestPostWebhookLogsNotAllowed"
-  },
-  {
-    "codeunitId": 135548,
-    "codeunitName": "API Routes E2E",
-    "method": "TestDeleteApiRoutesNotAllowed"
-  },
-  {
-    "codeunitId": 135548,
-    "codeunitName": "API Routes E2E",
-    "method": "TestGetApiRoutesMany"
-  },
-  {
-    "codeunitId": 135548,
-    "codeunitName": "API Routes E2E",
-    "method": "TestGetApiRoutesSingle"
-  },
-  {
-    "codeunitId": 135548,
-    "codeunitName": "API Routes E2E",
-    "method": "TestPatchApiRoutesNotAllowed"
-  },
-  {
-    "codeunitId": 135548,
-    "codeunitName": "API Routes E2E",
-    "method": "TestPostApiRoutesNotAllowed"
-  },
-  {
     "codeunitId": 136580,
     "codeunitName": "Email Address Selection",
     "method": "VerifyEmailFromOnSalesHeaderFromCustomer"
