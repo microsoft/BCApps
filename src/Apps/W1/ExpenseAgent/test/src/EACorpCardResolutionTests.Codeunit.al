@@ -310,7 +310,7 @@ codeunit 148362 EACorpCardResolutionTests
         Initialize();
         CreateMatchingExpense(Expense);
         CorpCard.Get('CORPCARD-0001');
-        CorpCard."Card Id" := 'ANOTHER-INTERNAL-CARD';
+        CorpCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCard."Card Id"));
         CorpCard."Masked Card No." := '****7777';
         CorpCard.Insert(true);
         SetCsvPayload('', true);
@@ -480,6 +480,7 @@ codeunit 148362 EACorpCardResolutionTests
         LibraryExpense.CreateExpense(Expense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, 'USD', 19.63);
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
         Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+        Expense.Validate("Corporate Card Id", '');
         Expense.Modify(true);
     end;
 

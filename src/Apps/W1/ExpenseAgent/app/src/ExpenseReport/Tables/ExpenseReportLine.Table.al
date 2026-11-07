@@ -857,6 +857,28 @@ table 6907 "Expense Report Line"
                 TestStatusOpen();
             end;
         }
+        field(107; "Corporate Card Id"; Code[50])
+        {
+            Caption = 'Corporate Card';
+            DataClassification = AccountData;
+            TableRelation = "EA Corp Card"."Card Id";
+            ToolTip = 'Specifies the corporate card used to pay for the expense.';
+
+            trigger OnValidate()
+            var
+                CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+            begin
+                TestStatusOpen();
+                CorpCardSelectionMgt.ValidateReportLine(Rec, false);
+            end;
+
+            trigger OnLookup()
+            var
+                CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+            begin
+                CorpCardSelectionMgt.LookupReportLineCard(Rec);
+            end;
+        }
         field(52; "Applied Rule Id"; Guid)
         {
             Caption = 'Applied Rule Id';
@@ -1121,25 +1143,43 @@ table 6907 "Expense Report Line"
         key(CreditCardFeedNo; "Credit Card Feed No.")
         {
         }
+        key(CorporateCard; "Corporate Card Id")
+        {
+        }
         key(SpendRequestNo; "Spend Request No.")
         {
         }
     }
 
     trigger OnInsert()
+    var
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
         GetExpenseReportHeader();
         InitHeaderDefaults(ExpenseReportHeader);
         ValidateDate();
         SetExpenseUserOnCreate();
         ApplyRule();
+        if ("Corporate Card Id" <> '') or ("Credit Card Feed No." <> 0) then
+            CorpCardSelectionMgt.ValidateReportLine(Rec, false);
     end;
 
     trigger OnModify()
     var
         StoredExpenseReportLine: Record "Expense Report Line";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         RelevantFieldChanged: Boolean;
     begin
+        StoredExpenseReportLine := xRec;
+        if not Rec.IsTemporary() then
+            StoredExpenseReportLine.Get("Document No.", "Line No.");
+        if ("Corporate Card Id" <> StoredExpenseReportLine."Corporate Card Id") or
+           ("Expense User No." <> StoredExpenseReportLine."Expense User No.") or
+           ("Expense Date" <> StoredExpenseReportLine."Expense Date") or
+           ("Reimbursement Type" <> StoredExpenseReportLine."Reimbursement Type") or
+           ("Credit Card Feed No." <> StoredExpenseReportLine."Credit Card Feed No.")
+        then
+            CorpCardSelectionMgt.ValidateReportLine(Rec, false);
         UpdateExpenseUserOnModify();
         RelevantFieldChanged := PolicyRelevantFieldChanged(StoredExpenseReportLine);
         if not IsNullGuid(StoredExpenseReportLine.SystemId) then begin

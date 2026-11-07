@@ -2,11 +2,12 @@
 
 ## Overview
 
-The Corporate Card module for Expense Agent provides automated import, normalization, draft creation, and reporting of corporate card transactions in Business Central.
+The Corporate Card module for Expense Agent supports manual employee-card expense entry, provider transaction import, matching, draft creation, reporting, and liability reconciliation in Business Central.
 
 **Namespace:** `Microsoft.ExpenseAgent`  
-**Access Level:** `Internal` (all objects)  
-**Integration:** Extends standard Expense Agent workflow (no breaking changes)
+**Access Level:** Internal workflow helpers; agent APIs require agent access
+
+**Integration:** Extends the standard Expense Agent workflow
 
 ---
 
@@ -21,6 +22,8 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 5. **Standard Workflows** - Leverages platform Expense Report approval and G/L posting
 6. **Observability** - Feature Telemetry for imports, matching, drafts, scheduling, and accounting transitions
 7. **Accounting Boundary** - A dedicated corporate-card bank account represents the provider liability; the payment bank account represents real cash
+8. **Independent Card Identity** - Corporate Card Id identifies the selected employee card; Credit Card Feed No. identifies an imported transaction and is not required for manual entry
+9. **Late-Feed Safety** - Matching an existing expense changes provenance only; transferring an already-posted manual liability is a separate accountant action
 
 ### Workflow Stages
 
@@ -46,14 +49,15 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ - Strategy 1: Exact amount/date match (score 50-100)                │
 │ - Strategy 2: Fuzzy merchant name match via Levenshtein (70-100)     │
 │ - No employee-only fallback: unmatched stays for manual review      │
-│ - Runs in ManualLink mode; AutoDraft does not match                  │
+│ - Both modes first match the explicitly selected employee card      │
+│ - Legacy exact/fuzzy strategies run only in ManualLink mode         │
 │ - Match type & score stored; transaction status updated             │
 │ - Codeunit: EACorpCardEnhancedMatchMgt (7426)                       │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STAGE 4: DRAFT CREATION / MANUAL MATCHING                           │
-│ - AutoDraft creates a draft unless a no-suffix expense match exists │
+│ - AutoDraft creates a draft only when no existing match is found    │
 │ - ManualLink mode: tries matching first, then optional draft create │
 │ - Level 3 detail import is not implemented                           │
 │ - Codeunit: EACorpCardExpWriter (7422)                              │
@@ -80,8 +84,9 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ STAGE 7: POSTED EXPENSE TRACEABILITY                                │
 │ - Credit-card expense posting links the posted report               │
 │ - Source corporate-card transaction status becomes Posted           │
-│ - Credits the provider's Corporate Card Bank Account                │
-│ - Creates a Bank Account Ledger Entry on that account                │
+│ - Feed-linked lines credit the provider's Corporate Card Bank       │
+│ - Manual no-feed lines credit the card-payable G/L account           │
+│ - Late feeds link history; accountant transfers liability separately│
 │ - Creates no activity on the real Payment Bank Account              │
 │ - Codeunit: EA Corp Card Post Mgt (7440)                            │
 └─────────────────────────────────────────────────────────────────────┘
@@ -125,7 +130,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 
 ### Corporate Card Codeunits (selected)
 
-The `CorporateCard/Codeunits` folder contains 24 codeunits. The primary workflow codeunits include:
+The primary workflow codeunits in the `CorporateCard/Codeunits` folder include:
 
 | ID | Name | Purpose | Key Procedures |
 |----|------|---------|-----------------|
@@ -143,6 +148,9 @@ The `CorporateCard/Codeunits` folder contains 24 codeunits. The primary workflow
 | 7440 | EA Corp Card Post Mgt | Links posted expense reports and propagates posted-expense cancellation to corporate-card reconciliation | LinkPostedExpense, HandleCanceledPostedExpense |
 | 7441 | EA Corp Card Statement Mgt | Validates imports, closes reconciled statement periods, and invalidates closure after corrections | ValidateStatement, ReopenStatement, GetReconciliationSummary, CloseStatement, InvalidateReconciliation |
 | 7443 | EA Corp Card Settlement Mgt | Prepares, posts, validates, and reverses provider settlements | SetReadyToPost, Reopen, PostSettlement, ReverseSettlement |
+| 7447 | EA Corp Card Selection Mgt | Validates employee-card ownership, eligibility, and selection; formats compact card labels | ValidateExpenseCard, ValidateReportLine, LookupCard, LookupReportLineCard, GetCardDisplay |
+| 7448 | EA Corp Card Expense Match | Matches selected-card expenses across lifecycle states and links feed provenance without reposting | MatchExistingExpense, LinkExpense |
+| 7449 | EA Corp Card Liability Mgt | Transfers and reverses an already-posted manual expense liability | TransferLiability, ReverseLiability |
 
 ### Corporate Card Pages and Page Extensions
 
@@ -166,6 +174,9 @@ The `CorporateCard/Codeunits` folder contains 24 codeunits. The primary workflow
 | 7430 | EA Corp Card Settlements | List | Provider settlement list and status overview |
 | 7447 | EA Corp Card Settlement | Document | Settlement header, statement selection, and readiness validation |
 | 7448 | EA Corp Card Settlement Lines | ListPart | Validated provider statements included in a settlement |
+| 7450 | EA Corp Card Lookup | List | Read-only employee-card selection with provider short name and last four digits |
+| 7451 | Expense Corporate Cards API | API | Read-only, single-expense-user card catalog |
+| 7452 | EA Card Liability Transfer | StandardDialog | Posting-date selection for a manual liability transfer |
 | 7440 | EA Payment Rec. Journal | Page extension | Shows corporate card transaction and posted expense report references |
 | 7441 | EA Bank Account Stmt. Lines | Page extension | Shows durable corporate card and posted expense report references |
 | 7442 | EA Bank Acc. Ledger Entries | Page extension | Shows the originating corporate card transaction |
@@ -177,11 +188,13 @@ The module retains its existing Expense Agent records and models provider statem
 - **EA Corp Card Statement** - Imported statement header, source metadata, period, currency, total, counters, and validation status
 - **EA Corp Card Settlement** - Provider settlement identity, amount, account snapshots, posting references, reversal references, and lifecycle status
 - **EA Corp Card Settlement Line** - Links complete validated statements to one settlement, snapshots statement values, and retains inactive reversed relationships for audit
-- **EACorpCardTrans** - Child statement transaction, enrichment, expense matching, workflow, and audit record
+- **EACorpCardTrans** - Child statement transaction, enrichment, expense matching, workflow, audit record, and liability transfer/reversal references
 - **EA Corp Card Trans Detail** - Level 3 detail schema; current CSV/XML imports do not populate it
-- **EACorpCard** - Card configuration and employee assignment
-- **Expense** - Individual expense records (platform)
-- **Expense Report Header / Line** - Report aggregation (platform)
+- **EACorpCard** - Card configuration, expense-user assignment, validity dates, and provider short-name FlowField
+- **EA Corp Card Provider** - Provider configuration, including a Short Name of up to four characters
+- **Expense** - Individual expense records with Corporate Card Id separate from Credit Card Feed No.
+- **Expense Report Header / Line** - Report aggregation; lines preserve Corporate Card Id
+- **Posted Expense Report Line** - Preserves card identity and original manual card-payable account, signed amounts, currency, and currency factor for later liability transfer
 - **Data Exch.** / **Data Exch. Field** - File import mapping (platform)
 - **Job Queue Entry** - Scheduled job storage (platform)
 - **Bank Acc. Reconciliation Line** (table extension 7440) - Working link to the transaction and posted expense report
@@ -213,9 +226,13 @@ Provider.ParseToStaging()
 EACorpCardPostImportOrch.ProcessStatementPostImport()
     → For each transaction:
         1. EACorpCardMerchantNorm.NormalizeTransaction()
-        2. If Create Mode = AutoDraft: EACorpCardExpWriter.CreateDraftFromTrans()
-        3. If Create Mode = ManualLink: try EACorpCardEnhancedMatchMgt.EnhancedMatchTransaction()
-        4. If still unmatched and Auto-Create is enabled: create a draft
+        2. Revalidate and link any expense-based card-resolution candidate
+        3. Otherwise try EA Corp Card Expense Match.MatchExistingExpense()
+        4. If still unmatched and Create Mode = AutoDraft: create a draft
+        5. Otherwise try legacy enhanced matching in ManualLink mode
+        6. If still unmatched in ManualLink and Auto-Create is enabled: create a draft
+    → Process each transaction independently after the import commits
+    → Record processing failures as transaction exceptions; other rows continue
     → Log results via AuditSubscribers
             ↓
 Provider.Ack()
@@ -230,21 +247,31 @@ File content is never stored on the provider master record. A failed file import
 
 ### Matching Algorithm
 
-**Strategy Priority (ManualLink mode only; AutoDraft skips matching):**
+**Selected-card matching (both AutoDraft and ManualLink):**
+
+Before creating a draft, processing checks for an existing credit-card expense with the same Corporate Card Id, expense user, exact amount, and currency, within the configured date window. The expense must not already have a feed link. This check is not restricted to Open expenses: released expenses, expenses already on reports, and posted expenses can also match.
+
+- Multiple exact candidates require review; the module does not choose one arbitrarily.
+- If no exact candidate exists but a same-card candidate has a different amount within the configured tolerance, processing records an exception rather than creating a duplicate draft.
+- Linking updates the expense and its associated report or active posted report line. It does not reopen documents, recalculate amounts, or post expense or VAT again.
+- A posted match sets the transaction to Posted and preserves the posted report reference. This status does not mean that a provider-bank liability entry has been created; a manual liability transfer may still be required.
+- A no-suffix candidate resolved during import is revalidated before linking.
+
+**Legacy strategy priority (ManualLink only, after selected-card matching):**
 
 1. **Exact Amount-Date Match** (Score: 50-100)
-   - Query: Same user, Status=Open, not linked to a card transaction, Currency match
+   - Query: Same user, Status=Open, credit-card reimbursement, not linked to a card transaction, Currency match; selected card is blank or matches the transaction
    - Criteria: Amount within tolerance, Date within window
    - Score: `100 - (DateDiffDays × 5) - ((AmountDiff / Tolerance) × 10)`
    - Returns: Match Type=Full
 
 2. **Fuzzy Merchant Name Match** (Score: 70-100)
-   - Query: Same user, Status=Open, not linked to a card transaction; does not compare amount, currency, date, or sign
+   - Query: Same user, Status=Open, credit-card reimbursement, not linked to a card transaction; selected card is blank or matches the transaction; does not compare amount, currency, date, or sign
    - Algorithm: Levenshtein distance (max 100 char)
    - Similarity: `1 - (EditDistance / MaxLen)`, threshold ≥ 0.70
    - Returns: Match Type=Expense
 
-Transactions with no exact or fuzzy match remain Imported for manual review or become drafts when Auto-Create is enabled. There is no employee-only fallback.
+In ManualLink mode, transactions with no selected-card, exact, or fuzzy match remain Imported for manual review or become drafts when Auto-Create is enabled. AutoDraft creates a draft when the shared existing-expense checks find no match. There is no employee-only fallback.
 
 **Levenshtein Algorithm:**
 - Dynamic programming 2D matrix (max 100×100)
@@ -260,6 +287,8 @@ Employee adds draft expenses to an Expense Report in the standard UI
     → Approved report is released and posted by ExpenseReportPost (6987)
     → For expenses linked to a card transaction, posting credits the
       provider's Corporate Card Bank Account and creates its bank ledger entry
+    → For manually entered credit-card expenses without a feed, posting credits
+      the employee posting group's card-paid G/L account and saves liability snapshots
     → EA Corp Card Post Mgt links the posted report to the transaction
     → Transaction status becomes Posted
     → Does not create a Payment Bank Account settlement entry
@@ -296,6 +325,28 @@ Reversal marks the original settlement-to-statement lines as inactive instead of
 
 Canceling a posted expense report follows the same correction boundary: the related statement closure is invalidated, the corporate-card transaction returns from `Posted` to `Matched`, and its posted report reference is cleared after the standard accounting reversal.
 
+### Late Feeds and Manual Liability Transfers
+
+Selecting a card does not require an imported transaction. The accounting path depends on whether the feed is linked when the report posts:
+
+| Feed timing | Expense posting | Subsequent processing |
+|-------------|-----------------|-----------------------|
+| Feed linked before posting | Credits the provider's Corporate Card Bank Account | Normal statement settlement and reconciliation |
+| No feed at posting | Credits the employee posting group's card-paid G/L account | Saves the original liability account, signed amounts, currency/factor, and line dimensions |
+| Feed arrives after posting | No new expense or VAT posting | Links the existing posted expense; an accountant transfers its original liability to the provider bank |
+
+For an already-posted manual expense:
+
+1. Import the provider statement. Selected-card matching links the existing expense and posted report line without creating another expense.
+2. Open **Corporate Card Transactions**, select the linked transaction, and choose **Transfer Card Liability**.
+3. Enter a posting date on or after the original expense report posting date.
+4. The transfer clears the original card-payable G/L liability and posts the corresponding provider Corporate Card Bank Account entry. It uses the original posting snapshots and dimensions, not the current employee posting-group account or a new exchange rate. It does not post expense or VAT again or move cash from the Payment Bank Account.
+5. Continue with statement settlement and reconciliation. Closure requires exactly one active, nonreversed provider-bank entry for the transaction with the correct account, currency, and signed amount.
+
+The transfer requires corporate-card administrator execution permission, a unique active posted report line, an unreversed original posting, complete liability snapshots, compatible currencies, and matching original/feed amounts. It rejects duplicate transfers and an existing active transaction-linked bank entry. An LCY provider bank can clear a foreign-currency original liability only when the feed's LCY amount equals the original liability LCY amount; a foreign-currency bank must match the original liability currency and amount.
+
+Use **Reverse Card Liability Transfer** on the transaction to reverse only the transfer through standard accounting reversal. The reversal preserves its references and invalidates statement reconciliation. Canceling the posted expense report also reverses an active liability transfer. A reversed transfer cannot be transferred again on the same transaction; audit history is retained. Historical posted lines without complete liability snapshots cannot use this automated transfer.
+
 ---
 
 ## Configuration & Setup
@@ -310,6 +361,7 @@ Canceling a posted expense report follows the same correction boundary: the rela
 2. **Configure Providers**
    - Navigate: Corp Card Providers
    - For each provider: Set Code, Name, Enable flag
+    - Set **Short Name** (up to four characters), used with the card's last four digits in lookups and document displays
     - Select the feed type and configure its Data Exchange definition and mapping
     - XML column paths must include the full line path, for example `/CorporateCardTransactions/Transaction/MCC`; the standard importer derives each column's relative path from the line's Data Line Tag
     - Use **Import statement** to select and immediately import a CSV or flat XML file
@@ -321,6 +373,11 @@ Canceling a posted expense report follows the same correction boundary: the rela
     - Corp Card Amount Tolerance (default: 5; applying defaults resets 0 to 5)
     - Corp Card Auto Create Draft (first-time default: true)
     - Corp Card Default Provider
+
+4. **Assign Employee Cards**
+   - Open **Corporate Cards** and set the provider, internal Card Id, masked card number, and Expense User No.
+   - Configure validity dates as needed and leave eligible cards unblocked
+   - The selected card must belong to the expense user and be valid on the expense date
 
 5. **Enable Approval Workflow (Optional)**
    - Navigate: Expense Agent Setup
@@ -335,6 +392,7 @@ Canceling a posted expense report follows the same correction boundary: the rela
     - Creates the LCY bank account `CORPCARD` for future provider-settlement scenarios, but does not assign it to individual cards.
     - Reuses `CHECKING`, `PREC`, and `SEPA CAMT` configuration when those standard records are available; this does not add CAMT corporate-card import support.
     - MCC/category seeding is idempotent (existing records are not duplicated).
+    - Creates/defaults `CORPCARDCSV` with Short Name **VISA** and `CORPCARDXML` with Short Name **AMEX**. Setup and upgrade replace blank or generated code-prefix short names while preserving other custom short names.
 
     Seeded MCC mappings from sample feeds:
     - 4112 (Rail Passenger Transport) → GROUNDTRAN
@@ -356,6 +414,9 @@ Canceling a posted expense report follows the same correction boundary: the rela
 2. **Contoso Demo Data**
     - Adds the dedicated LCY bank account `CORPCARD` for corporate card settlement
     - Configures the standard Payment Reconciliation number series and bank statement import format
+    - Uses the shared provider defaults: **VISA** for CSV and **AMEX** for XML
+    - Registers employee cards during master-data setup; sample credit-card expenses reuse an existing, unblocked card assigned to the expense user and valid on the expense date
+    - Demo cards have no validity-start restriction so they can be used for historical sample expenses; creating an expense never creates a provider or card
 
 ### Level 3 Details
 
@@ -458,6 +519,37 @@ Corporate-card events use `Feature Telemetry` under the existing Expense Agent f
 | **MCC Merchant Category Codes** | Category mapping | 4-digit codes map to Expense Category for G/L account determination |
 | **Expense Management Role Center** | Navigation hub | "Corporate Card" group with 6 actions for dashboard/cards/setup/config |
 | **Expense User Page** | Employee integration | CorporateCards action shows employee's corporate card cards |
+
+### Agent API Card Selection
+
+The read-only `corporateCards` entity set is published by `microsoft/expense/beta`. It requires agent access and an equality filter for exactly one nonblank `expenseUserNumber`, for example:
+
+```http
+GET .../api/microsoft/expense/beta/companies({companyId})/corporateCards?$filter=expenseUserNumber eq 'EU0001'
+```
+
+The catalog returns unblocked cards for that expense user, including `corporateCardId`, `lastFourDigits`, `providerCode`, `providerShortName`, currency, and validity dates. It does not filter by an expense date; callers must consider the dates, and expense validation enforces eligibility.
+
+Use the returned internal `corporateCardId` when creating or updating an eligible manual expense or standalone report line. Expense, report-line, and posted-report-line APIs expose card identity. `creditCardFeedNo` remains read-only and is assigned by import/matching, not by the caller.
+
+### Expense Source and Receipt Collection
+
+The `expenses` API exposes a read-only `source` field. `Manual` is the default, including for existing expenses. Drafts created from imported corporate card transactions have source `CorporateCard`. Matching a transaction to an existing expense does not change its source.
+
+Once a `CorporateCard`-source expense is stored, its amount, expense date, and currency cannot be changed, including through receipt extraction/API updates. The Expense Card shows these fields as read-only. Updates that retain the financial values and updates to other receipt details remain allowed. `Manual`-source expenses are not subject to this restriction, even after matching to a transaction.
+
+To find corporate-card-created drafts awaiting receipts:
+
+```http
+GET .../api/microsoft/expense/beta/companies({companyId})/expenses?$filter=source eq 'CorporateCard' and status eq 'Open' and receiptAttached eq false and expenseReportNo eq ''
+```
+
+### Upgrade Behavior
+
+Upgrade fills blank Corporate Card Id values on expenses, report lines, and posted report lines from their existing feed transaction links. It also initializes provider short names through the same defaults used by setup. Existing manually selected card identities and custom provider short names are retained.
+
+The identity backfill does not create liability accounting snapshots for old posted reports. Automated late-feed liability transfer requires the snapshots recorded when a manual no-feed expense posts.
+
 ### With External Systems
 
 | System | Method | Details |
@@ -509,12 +601,25 @@ The **EACorpCardDashboard** (Card page 7438) provides navigation:
 
 ### Employee Integration
 
-**ExpenseUser.Page** (Individual employee card) includes:
+The **Expense User Card** includes:
 
-- **CorporateCards** action in Navigation area
-- Filters: Shows only corporate cards for that employee
+- A promoted **Corporate Cards** action under its existing related information
+- Filters: Shows only corporate cards for that Expense User No.
 - Navigates to: **EACorpCardCards** page
-- Purpose: Employee views their assigned corporate cards
+- Available to users with card-table read permission and a nonblank Expense User No.
+
+This action is on the Expense User Card, not the standard Employee Card. **Corporate Cards** is also available through Tell Me and the Expense Management Role Center.
+
+### Manual Expense Entry
+
+1. Create an expense and select its **Expense User**.
+2. Set **Payment Method** to **CARD**, or another payment method configured for Credit Card reimbursement. Payment Method is visible without expanding Show more.
+3. Use the **Corporate Card** lookup to choose one of that expense user's unblocked cards valid on the expense date. Entries show the provider Short Name followed by the last four digits, for example `VISA 0001` or `AMEX 0002`.
+4. Complete and save the draft. A selected card is required when releasing a credit-card expense or report line, not merely when saving an unfinished draft.
+
+The Corporate Card field remains visible. It is editable only for an Open credit-card expense with an Expense User and no feed link. Use the lookup rather than typing a display label. **Credit Card Feed No.** is read-only provenance populated by import/matching; leave it empty for manual entry. Once a feed is linked, its card identity must agree with the selected card.
+
+Report and posted report lines preserve the selected card and show the compact label. Referenced cards cannot be deleted while expenses or report history still use them.
 
 ### List Relationships
 
@@ -523,7 +628,7 @@ Pages are interlinked with drill-down actions:
 | Page | Drill-Down Actions |
 |------|-------------------|
 | EA Corp Card Statements (7443) | → Open statement, validate statement |
-| EACorpCardTransList (7433) | → Open Provider Statement, Open Matched Expense, Level 3 Details (empty for current imports) |
+| EACorpCardTransList (7433) | → Open Provider Statement, Open Matched Expense, Transfer Card Liability, Reverse Card Liability Transfer, Level 3 Details (empty for current imports) |
 | EACorpCardExceptions (7432) | → Mark Resolved, View Statement, View Transaction |
 
 ---
@@ -532,16 +637,17 @@ Pages are interlinked with drill-down actions:
 
 ### Intelligent Matching
 
-- **ManualLink:** Tries exact amount/date match, then fuzzy merchant-name match; no employee-only fallback
+- **Both Modes:** Match the explicitly selected employee card to existing expenses, including released, reported, and posted expenses
+- **ManualLink:** If shared matching finds nothing, tries legacy exact amount/date match, then fuzzy merchant-name match; no employee-only fallback
 - **Fuzzy Algorithm:** Levenshtein distance with a 70% threshold, considering merchant names only
 - **Scoring:** Exact matching scores 50–100; fuzzy matching scores 70–100
-- **Configurable:** Exact-match window and tolerance via setup; AutoDraft skips matching
+- **Configurable:** Selected-card matching uses the date window and exact amounts; tolerance flags near-amount candidates for review rather than silently linking them
 
 ### Draft-Per-Transaction Mode
 
-✅ **AutoDraft 1:1:** One imported transaction creates one draft expense  
-✅ **Amount Integrity:** Draft amount equals transaction amount  
-✅ **Deterministic Output:** No reuse of existing open expenses in AutoDraft mode  
+- **AutoDraft:** One unmatched imported transaction creates one draft expense
+- **Amount Integrity:** Draft amount equals transaction amount
+- **Duplicate Prevention:** Existing selected-card expenses and validated no-suffix candidates are linked before creating a draft
 
 ### Merchant Normalization
 
@@ -567,7 +673,8 @@ Pages are interlinked with drill-down actions:
 ### Expense Posting Boundary
 
 - ✅ **No Employee Reimbursement:** Credit-card expenses do not create employee reimbursement entries
-- ✅ **Liability Posting:** Card-linked credit-card lines credit the provider's Corporate Card Bank Account and create a Bank Account Ledger Entry; unlinked credit-card lines use the employee posting group's card-paid G/L account
+- ✅ **Liability Posting:** Feed-linked credit-card lines credit the provider's Corporate Card Bank Account and create a Bank Account Ledger Entry; manual no-feed lines use the employee posting group's card-paid G/L account even when a card is selected
+- ✅ **Late-Feed Accounting:** Linking a posted expense creates no accounting entries; a separate administrator action transfers its original liability without repeating expense or VAT posting
 - ✅ **No Premature Settlement:** Expense posting does not create a Payment Bank Account settlement entry
 - ✅ **Traceability:** The corporate-card transaction retains its linked expense and posted expense report
 
@@ -604,9 +711,13 @@ Pages are interlinked with drill-down actions:
 
 | Scenario | Action | Result |
 |----------|--------|--------|
-| No eligible open expense in ManualLink mode | Exact and fuzzy matches fail | Draft created if Auto-Create is enabled; otherwise transaction stays Imported |
+| Multiple exact selected-card candidates | Requires review | Transaction processing exception; no arbitrary link or duplicate draft |
+| Same-card candidate differs within amount tolerance | Requires amount review | Transaction processing exception; no duplicate draft |
+| No shared selected-card match or eligible open expense in ManualLink mode | Exact and fuzzy matches fail | Draft created if Auto-Create is enabled; otherwise transaction stays Imported |
 | Amount tolerance = 0 | Exact matching permits only an equal amount | Applying setup defaults resets 0 to 5; fuzzy matching does not check amount |
-| Card has no Expense User | Draft creation raises an error | Whole import fails |
+| Card has no Expense User during draft creation | Draft creation raises an error | Post-import transaction processing exception; other rows continue |
+
+Post-import failures roll back that transaction's processing, retain the rejection reason, and create a `PostImportProcessing` exception. Reprocessing an eligible exception retries the row and resolves its processing exceptions after success.
 
 ### Level 3 Details
 
@@ -632,7 +743,7 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 
 - Non-strict Data Exchange fallback reuses raw values cached by column during the existing field scan. The cache is reset for each line, avoiding repeated field queries without retaining the whole statement.
 - Expense-based card resolution loads the provider's card assignments and credit-card payment methods once per call. Candidate expenses use temporary-record lookups rather than per-expense database queries; the selected card is reread before checking whether it is blocked.
-- Processing visits each imported transaction to normalize the merchant and either create a draft (AutoDraft) or attempt matching (ManualLink).
+- Processing visits each imported transaction to normalize the merchant and attempt shared existing-expense matching before mode-specific draft creation or legacy matching.
 - Automated-feed Job Queue entries are created On Hold; enable the entry and configure the feed before relying on background import. File-based feeds use interactive Import statement instead. No statement-size or throughput benchmark is guaranteed.
 
 ### Memory
@@ -653,6 +764,19 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 
 ## Testing Checklist
 
+- [ ] Open Expense User Card → Corporate Cards and verify the owner filter, including a user with no cards
+- [ ] Verify CSV/XML provider defaults show VISA/AMEX and preserve custom provider short names when reapplied
+- [ ] Create a new expense, select its Expense User and CARD, and verify Corporate Card becomes editable immediately
+- [ ] Select a card through the compact-label lookup and save without a feed transaction
+- [ ] Verify blocked, wrong-owner, or out-of-date cards cannot be selected and release requires a card
+- [ ] Verify Corporate Card remains visible but disabled for ineligible expense states
+- [ ] Verify a manual no-feed expense posts to the card-payable G/L account and preserves original liability snapshots
+- [ ] Import a late feed against Open, released, reported, and posted selected-card expenses in both creation modes; verify no duplicate draft or repeat expense/VAT posting
+- [ ] Verify multiple exact matches and near-amount selected-card matches require review rather than creating drafts
+- [ ] Transfer a posted manual liability and verify only the original payable G/L and provider bank change, using original amounts and dimensions
+- [ ] Verify duplicate transfers, missing snapshots, incompatible currencies, and amount mismatches are rejected
+- [ ] Reverse the liability transfer and verify reconciliation invalidation and retained audit references
+- [ ] Cancel a posted expense with an active liability transfer and verify both accounting effects are reversed
 - [ ] Import a provider CSV file with 10+ transactions
 - [ ] In ManualLink mode, verify exact and fuzzy matching against eligible open expenses
 - [ ] With Auto-Create enabled, verify unmatched transactions become drafts
@@ -661,8 +785,8 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 - [ ] Manager approves/rejects (if approval workflow enabled)
 - [ ] Post report and verify GL journal entries created
 - [ ] Verify the corporate-card transaction is linked to the posted expense report and has status Posted
-- [ ] Verify expense-report posting creates a provider Corporate Card Bank Account Ledger Entry, but no Payment Bank Account settlement entry
-- [ ] Verify card-linked credit-card expense posting credits the provider Corporate Card Bank Account
+- [ ] Verify feed-linked expense-report posting creates a provider Corporate Card Bank Account Ledger Entry, but no Payment Bank Account settlement entry
+- [ ] Verify feed-linked credit-card expense posting credits the provider Corporate Card Bank Account
 - [ ] Import a provider statement with its transactions
 - [ ] Verify missing, duplicate, and expense-unmatched transactions block statement validation
 - [ ] Verify statement period, currency, and total validation
@@ -697,6 +821,8 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 7. **Runtime Test Infrastructure:** Posting and reversal integration tests require a Business Central AL test runtime; compiler validation alone does not execute them
 8. **Level 3 Import:** No current CSV/XML import creates detail rows or VAT specifications from Level 3 data
 9. **Scheduled Imports:** Schedule action creates an On Hold daily entry and does not use the provider Import Frequency setting
+10. **Historical Manual Liabilities:** Automated transfer requires complete original posting snapshots; backfilling card identity does not reconstruct historical accounting snapshots
+11. **Transfer Corrections:** A reversed manual liability transfer cannot be transferred again on the same transaction
 
 ---
 
@@ -713,6 +839,25 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 
 ## Support & Troubleshooting
 
+### Corporate Card Cannot Be Selected
+
+**Symptom:** The Corporate Card field is disabled or its lookup has no eligible cards.
+**Check:**
+1. Select an Expense User and a payment method configured for Credit Card reimbursement, such as CARD.
+2. The expense must be Open and must not already have a Credit Card Feed No.
+3. Configure cards for that exact Expense User No.; check Blocked and validity dates against the Expense Date.
+4. Open Expense User Card → Corporate Cards to review assignments. Check the provider Short Name and masked card number if the compact label is incomplete.
+5. If the field is missing entirely after updating the source, publish the updated app and reopen the page; the current Expense Card keeps this field visible.
+
+### Late Feed Linked but Liability Is Not Reconciled
+
+**Symptom:** A transaction is Posted and linked to a manual expense, but statement closure reports a missing provider-bank entry.
+**Check:**
+1. A late feed changes provenance only; it does not move the original G/L liability automatically.
+2. An authorized accountant must use Corporate Card Transactions → Transfer Card Liability.
+3. Check original posting snapshots, unreversed expense posting, provider-bank configuration, compatible currencies, and matching signed amounts.
+4. Do not retry by creating another expense. Resolve any transfer error explicitly; historical lines without snapshots cannot use the automated action.
+
 ### Import Not Running
 
 **Symptom:** No new transactions in staging  
@@ -726,7 +871,7 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 
 **Symptom:** Many transactions unmatched  
 **Check:**
-1. Create mode ManualLink? → AutoDraft creates drafts without matching
+1. Selected the correct card? → Both modes match explicit-card expenses first; only ManualLink runs legacy exact/fuzzy strategies
 2. Exact-match date window or amount tolerance too narrow? → Review Expense Agent Setup settings
 3. Merchant names different? → Add substring normalization rules in EACorpCardMerchantRule
 4. No open unlinked expenses for the user? → Fuzzy matching only checks merchant name and user, not amount/date/currency
@@ -736,7 +881,7 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 **Symptom:** Unmatched transactions but no drafts  
 **Check:**
 1. Auto-Create enabled? → Set Expense Agent Setup."Corp Card Auto Create Draft" = true
-2. Create mode? → For strict 1:1 creation set Expense Agent Setup."Corp Card Create Mode" = AutoDraft
+2. Existing selected-card expense? → Both modes reuse eligible matches instead of creating duplicates; check for review exceptions
 3. Expense User No. valid? → Verify transaction has expense user linked
 4. Transaction status? → Should be Status=Imported before post-import processing
 
@@ -764,14 +909,14 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 
 ## Object ID Allocation
 
-**Corporate-card allocation in app.json:** 7420–7449 (30 IDs per object type). The app also declares 6900–6999 and 7073–7137; `EA Corp Card Stats Calculator` uses codeunit 6913.
+**Corporate-card allocation in app.json:** 7420–7459 (40 IDs per object type). The app also declares 6900–6999 and 7073–7147; `EA Corp Card Stats Calculator` uses codeunit 6913.
 
-**Objects in the CorporateCard folder:** 10 tables, 4 table extensions, 18 pages, 3 page extensions, 24 codeunits, 7 enums, 2 interfaces, and 3 permission sets. Corporate-card objects outside that folder include codeunit 7442 and table/page 7449.
+Corporate-card objects also live outside the CorporateCard folder, including the agent card API (page 7451), setup/upgrade code, and expense/report integration.
 
 ---
 
-**Document Version:** 1.8
+**Document Version:** 1.9
 
-**Last Updated:** 2026-10-16
+**Last Updated:** 2026-11-03
 
-**Module Status:** Active (CSV/flat XML import, AutoDraft 1:1, manual matching, and provider-bank expense-posting traceability; Level 3 import is not implemented)
+**Module Status:** Active (manual employee-card selection, CSV/flat XML import, duplicate-safe draft creation, late-feed matching, manual liability transfer/reversal, and provider-bank reconciliation; Level 3 import is not implemented)

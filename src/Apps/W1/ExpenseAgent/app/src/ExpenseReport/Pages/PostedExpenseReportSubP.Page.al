@@ -150,6 +150,13 @@ page 6993 "Posted Expense Report SubP."
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the payment method used for refunds or reimbursements.';
                 }
+                field(CorporateCard; CorporateCardDisplay)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Corporate Card';
+                    ToolTip = 'Specifies the provider short name and last four card digits selected for this expense.';
+                    Editable = false;
+                }
                 field(Mileage; Rec.Mileage)
                 {
                     ApplicationArea = Basic, Suite;
@@ -447,6 +454,8 @@ page 6993 "Posted Expense Report SubP."
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
         ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CorporateCardDisplay: Text[150];
         TotalAmountLCY: Decimal;
         TotalVATAmountLCY: Decimal;
         TotalAmountWithoutVATLCY: Decimal;
@@ -462,6 +471,7 @@ page 6993 "Posted Expense Report SubP."
 
     local procedure UpdateControls()
     begin
+        CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id");
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
         IsItemizationCategory := Rec.IsItemizationRequired();

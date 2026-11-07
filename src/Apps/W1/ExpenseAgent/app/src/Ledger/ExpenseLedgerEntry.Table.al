@@ -298,6 +298,9 @@ table 6912 "Expense Ledger Entry"
         {
             Clustered = true;
         }
+        key(Key2; "Document No.", "Document Line No.", "Posting Date", Reversed)
+        {
+        }
     }
 
     fieldgroups

@@ -7620,6 +7620,8 @@ codeunit 148302 "Expense Report Posting Test"
         CreateExpense(Expense, Refundable, CurrencyCode, Amount);
         Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
         Expense.Validate("Non-Refundable Amount", AmountReduction);
+        if Expense."Reimbursement Type" = Expense."Reimbursement Type"::"Credit Card" then
+            Expense.Validate("Corporate Card Id", LibraryExpense.GetCorporateCardForExpenseUser(Expense."Expense User No.", Expense."Expense Date"));
         Expense.Modify();
 
         UpdateExpenseAccountInEmployeePostingGroup(ExpenseUser, Expense);
@@ -7674,6 +7676,8 @@ codeunit 148302 "Expense Report Posting Test"
         Expense.Validate("Non-Refundable Amount", AmountReduction);
         Expense.Validate("Job No.", JobTask."Job No.");
         Expense.Validate("Job Task No.", JobTask."Job Task No.");
+        if Expense."Reimbursement Type" = Expense."Reimbursement Type"::"Credit Card" then
+            Expense.Validate("Corporate Card Id", LibraryExpense.GetCorporateCardForExpenseUser(Expense."Expense User No.", Expense."Expense Date"));
         Expense.Modify();
 
         UpdateExpenseAccountInEmployeePostingGroup(ExpenseUser, Expense);

@@ -44,6 +44,8 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Expense Users API" = X,
                   page "Expense VAT Spec. API" = X,
                   page "Expenses API" = X,
+                  page "Expense Corporate Cards API" = X,
+                  codeunit "EA Corp Card Selection Mgt" = X,
                   page "Employees API" = X,
                   page "Expense Picture" = X,
                   page "Exp. Rep. Line Attachments API" = X,
