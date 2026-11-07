@@ -7771,8 +7771,8 @@ codeunit 80 "Sales-Post"
         if SalesLine.Type <> SalesLine.Type::" " then
             if SalesLine."Prepayment Line" then begin
                 TempPrepmtVATAmtBuf.Get(0, '', SalesLine."Line No.");
-                TempPrepmtVATAmtBuf.Amount := SalesLine."Amount Including VAT" - SalesLine.Amount;
-                TempPrepmtVATAmtBuf."VAT Base Amount" := SalesLine."VAT Base Amount";
+                TempPrepmtVATAmtBuf.Amount := -SalesLine."Amount Including VAT" + SalesLine.Amount;
+                TempPrepmtVATAmtBuf."VAT Base Amount" := -SalesLine."VAT Base Amount";
                 TempPrepmtVATAmtBuf.Modify();
             end else
                 if not SalesLine."System-Created Entry" then
@@ -7786,6 +7786,44 @@ codeunit 80 "Sales-Post"
                               TempPrepmtVATAmtBuf."Prepmt Amt to Deduct" + SalesLine."Prepmt Amt to Deduct";
                             TempPrepmtVATAmtBuf.Modify();
                         end;
+    end;
+
+    local procedure DividePrepmtVATDeducted(var SalesLine: Record "Sales Line")
+    var
+        PrepmtVATReminder: Decimal;
+        PrepmtVATBaseReminder: Decimal;
+        Ratio: Decimal;
+    begin
+        if TempPrepmtVATAmtBuf.FindSet() then
+            repeat
+                TempPrepmtLineNoBuf.SetRange("New Line Number", TempPrepmtVATAmtBuf."Line No.");
+                if TempPrepmtLineNoBuf.FindSet() then
+                    repeat
+                        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", TempPrepmtLineNoBuf."Old Line Number");
+                        Ratio := SalesLine."Prepmt Amt to Deduct" / TempPrepmtVATAmtBuf."Prepmt Amt to Deduct";
+                        DistributeAmount(
+                          TempPrepmtVATAmtBuf.Amount, Ratio,
+                          SalesLine."Prepmt. VAT Amount Deducted", PrepmtVATReminder);
+                        DistributeAmount(
+                          TempPrepmtVATAmtBuf."VAT Base Amount", Ratio,
+                          SalesLine."Prepmt. VAT Base Deducted", PrepmtVATBaseReminder);
+                        SalesLine.Modify();
+                    until TempPrepmtLineNoBuf.Next() = 0;
+            until TempPrepmtVATAmtBuf.Next() = 0;
+        TempPrepmtVATAmtBuf.DeleteAll();
+        TempPrepmtLineNoBuf.Reset();
+        TempPrepmtLineNoBuf.DeleteAll();
+    end;
+
+    local procedure DistributeAmount(AmountToDistibute: Decimal; Ratio: Decimal; var Amount: Decimal; var Reminder: Decimal)
+    var
+        DistibutedAmount: Decimal;
+        DistibutedAmountRnded: Decimal;
+    begin
+        DistibutedAmount := Reminder + AmountToDistibute * Ratio;
+        DistibutedAmountRnded := Round(DistibutedAmount, Currency."Amount Rounding Precision");
+        Reminder := DistibutedAmount - DistibutedAmountRnded;
+        Amount := Amount + DistibutedAmountRnded;
     end;
 
     local procedure UpdateTaxForPostedDoc(var SalesHeader: Record "Sales Header")
@@ -8608,6 +8646,7 @@ codeunit 80 "Sales-Post"
         OnBeforePostUpdateOrderLine(SalesHeader, TempSalesLineGlobal, SuppressCommit, SalesSetup);
 
         ResetTempLines(TempSalesLine);
+        DividePrepmtVATDeducted(TempSalesLine);
         TempSalesLine.SetRange("Prepayment Line", false);
         TempSalesLine.SetFilter(Quantity, '<>0');
         OnPostUpdateOrderLineOnAfterSetFilters(TempSalesLine);
