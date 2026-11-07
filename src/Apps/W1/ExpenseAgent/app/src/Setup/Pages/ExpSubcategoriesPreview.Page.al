@@ -35,6 +35,9 @@ page 6967 "Exp. Subcategories Preview"
                 {
                     ToolTip = 'Specifies the description used when posting.';
                 }
+                field("Posting Group"; Rec."Posting Group")
+                {
+                }
                 field(Refundable; Rec.Refundable)
                 {
                     ToolTip = 'Specifies whether the subcategory is refundable.';

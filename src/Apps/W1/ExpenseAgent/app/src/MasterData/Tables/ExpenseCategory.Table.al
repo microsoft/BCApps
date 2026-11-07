@@ -150,6 +150,19 @@ table 6921 "Expense Category"
         CannotDeleteOrRenameExpenseCategoryErr: Label 'You cannot delete or rename %1 %2 because it is used on at least one %3 or %4.', Comment = '%1 = Expense Category table caption, %2 = Expense Category Code, %3 = Expense table caption, %4 = Expense Report Line table caption';
         CannotRenameExpenseCategoryWhenExpenseRuleExistErr: Label 'You cannot rename %1 %2 because it is used on %3.', Comment = '%1 = Expense Category table caption, %2 = Expense Category Code, %3 = Expense Rule Header table caption';
 
+    internal procedure GetPostingGroupCode(ExpenseSubcategoryCode: Code[20]): Code[20]
+    var
+        ExpenseSubcategory: Record "Expense Subcategory";
+    begin
+        if ExpenseSubcategoryCode <> '' then begin
+            ExpenseSubcategory.Get(Rec.Code, ExpenseSubcategoryCode);
+            if ExpenseSubcategory."Posting Group" <> '' then
+                exit(ExpenseSubcategory."Posting Group");
+        end;
+
+        exit(Rec."Posting Group");
+    end;
+
     internal procedure IsItemizationRequired(): Boolean
     var
         ExpensePolicy: Record "Expense Policy";

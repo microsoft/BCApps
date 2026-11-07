@@ -50,6 +50,10 @@ page 6925 "Expense Subcategories API"
                 {
                     Caption = 'Posting Description';
                 }
+                field(postingGroup; Rec."Posting Group")
+                {
+                    Caption = 'Posting Group';
+                }
                 field(inactive; Rec.Inactive)
                 {
                     Caption = 'Inactive';
