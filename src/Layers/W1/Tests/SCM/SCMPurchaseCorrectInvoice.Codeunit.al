@@ -1289,6 +1289,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
     procedure CancelInvoiceWithUnequalRebatesAssignedToSalesReturnReceipts()
     var
         Vendor: Record Vendor;
+        PaymentMethod: Record "Payment Method";
         PurchaseInvoice: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         GLPurchaseLine: Record "Purchase Line";
@@ -1300,7 +1301,9 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         // [SCENARIO 653898] Cancellation preserves unequal rebate shares on the original sales return receipts.
         Initialize();
         LibraryPurchase.CreateVendor(Vendor);
-        Vendor.Validate("Payment Method Code", '');
+        // A payment method without a balancing account keeps the invoice unpaid and supports localized posting requirements.
+        LibraryERM.CreatePaymentMethod(PaymentMethod);
+        Vendor.Validate("Payment Method Code", PaymentMethod.Code);
         Vendor.Validate("Prepayment %", 0);
         Vendor.Modify(true);
 
