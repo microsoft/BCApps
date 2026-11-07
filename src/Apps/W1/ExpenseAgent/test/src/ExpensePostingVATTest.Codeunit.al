@@ -1623,12 +1623,11 @@ codeunit 148330 "Expense Posting VAT Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Posting VAT Test");
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
+        LibraryExpense.UpdateVATBusinessPostingGroupInAgentSetup();
         if IsInitialized then
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Posting VAT Test");
-
-        LibraryExpense.UpdateVATBusinessPostingGroupInAgentSetup();
 
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
         LibraryERMCountryData.UpdateLocalData();
