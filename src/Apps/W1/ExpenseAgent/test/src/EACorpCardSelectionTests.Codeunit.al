@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.ExpenseAgent;
 
+using Microsoft.Bank.BankAccount;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
@@ -29,6 +30,7 @@ codeunit 148364 EACorpCardSelectionTests
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
     begin
         Initialize();
+        InitializeDefaultBankAccount();
         CsvProvider.Get('CORPCARDCSV');
         CsvProvider."Short Name" := 'CORP';
         CsvProvider.Modify();
@@ -58,6 +60,7 @@ codeunit 148364 EACorpCardSelectionTests
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
     begin
         Initialize();
+        InitializeDefaultBankAccount();
         CreateCorpCardSetup.CreateDefaults();
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InitializeExpense(Expense, CorpCard);
@@ -710,6 +713,21 @@ codeunit 148364 EACorpCardSelectionTests
         asserterror CorpCard.Delete(true);
 
         Assert.ExpectedError('referenced by an expense');
+    end;
+
+    local procedure InitializeDefaultBankAccount()
+    var
+        BankAccount: Record "Bank Account";
+    begin
+        if not BankAccount.Get('CORPCARD') then begin
+            BankAccount.Init();
+            BankAccount."No." := 'CORPCARD';
+            BankAccount.Validate(IBAN, 'GB82WEST12345698765432');
+            BankAccount.Insert(true);
+        end else begin
+            BankAccount.Validate(IBAN, 'GB82WEST12345698765432');
+            BankAccount.Modify(true);
+        end;
     end;
 
     local procedure Initialize()

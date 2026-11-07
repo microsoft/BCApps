@@ -34,6 +34,7 @@ codeunit 148363 EACorpCardLiabilityTests
         EmployeePostingGroupCode: Code[20];
         ExpenseAccountNo: Code[20];
         IsInitialized: Boolean;
+        InvoiceReversalRestrictedErr: Label 'because it''s an %1 Document.', Comment = '%1 = Document Type';
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
@@ -306,6 +307,25 @@ codeunit 148363 EACorpCardLiabilityTests
         PostedExpenseReportHeader.Get(PostedExpenseReportLine."Document No.");
 
         // [WHEN] The posted expense report is canceled.
+        if IsInvoiceReversalRestricted(OriginalExpenseTransactionNo) then begin
+            Commit();
+            asserterror CancelPostedExpenseReport.Run(PostedExpenseReportHeader);
+            Assert.ExpectedError(StrSubstNo(InvoiceReversalRestrictedErr, Format("Gen. Journal Document Type"::Invoice)));
+
+            // [THEN] The Italian invoice restriction prevents cancellation without reversing either posting.
+            PostedExpenseReportHeader.Get(PostedExpenseReportHeader."No.");
+            Assert.IsFalse(PostedExpenseReportHeader.Canceled, 'A rejected invoice reversal must not cancel the report.');
+            CorpCardTrans.Get(CorpCardTrans."Entry No.");
+            CorpCardTrans.TestField("Posted Expense Report No.", PostedExpenseReportHeader."No.");
+            CorpCardTrans.TestField("Liability Reversal Trans. No.", 0);
+            BankAccountLedgerEntry.Get(CorpCardTrans."Liability Bank Entry No.");
+            Assert.IsFalse(BankAccountLedgerEntry.Reversed, 'Rejected cancellation must preserve the transferred bank liability.');
+            GLEntry.SetRange("Transaction No.", OriginalExpenseTransactionNo);
+            GLEntry.SetRange(Reversed, true);
+            Assert.IsTrue(GLEntry.IsEmpty(), 'Rejected cancellation must not reverse the original expense transaction.');
+            exit;
+        end;
+
         CancelPostedExpenseReport.Run(PostedExpenseReportHeader);
 
         // [THEN] The report is canceled, both postings are reversed, and no active bank liability or original payable remains.
@@ -393,6 +413,7 @@ codeunit 148363 EACorpCardLiabilityTests
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
         CorpCardTrans: Record "EA Corp Card Trans";
         ExpenseLedgerEntry: Record "Expense Ledger Entry";
+        GLEntry: Record "G/L Entry";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         ReversalEntry: Record "Reversal Entry";
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
@@ -410,6 +431,20 @@ codeunit 148363 EACorpCardLiabilityTests
         ExpenseLedgerEntry.FindFirst();
         ReversalEntry.SetHideDialog(true);
         ReversalEntry.SetHideWarningDialogs();
+        if IsInvoiceReversalRestricted(ExpenseLedgerEntry."Transaction No.") then begin
+            BankEntryCount := BankAccountLedgerEntry.Count();
+            Commit();
+            asserterror ReversalEntry.ReverseTransaction(ExpenseLedgerEntry."Transaction No.");
+            Assert.ExpectedError(StrSubstNo(InvoiceReversalRestrictedErr, Format("Gen. Journal Document Type"::Invoice)));
+            ExpenseLedgerEntry.Get(ExpenseLedgerEntry."Entry No.");
+            ExpenseLedgerEntry.TestField(Reversed, false);
+            GLEntry.SetRange("Transaction No.", ExpenseLedgerEntry."Transaction No.");
+            GLEntry.SetRange(Reversed, true);
+            Assert.IsTrue(GLEntry.IsEmpty(), 'A rejected invoice reversal must not reverse the original G/L transaction.');
+            Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'A rejected invoice reversal must not create bank entries.');
+            exit;
+        end;
+
         ReversalEntry.ReverseTransaction(ExpenseLedgerEntry."Transaction No.");
         BankEntryCount := BankAccountLedgerEntry.Count();
 
@@ -520,6 +555,26 @@ codeunit 148363 EACorpCardLiabilityTests
         // [THEN] The amount mismatch is reported without new bank entries.
         Assert.ExpectedError('original liability amounts do not match');
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'Do not post a bank amount that cannot both clear original LCY and satisfy statement reconciliation.');
+    end;
+
+    local procedure IsInvoiceReversalRestricted(TransactionNo: Integer): Boolean
+    begin
+        // Probe eligibility without posting; unexpected validation errors must still fail the test.
+        ClearLastError();
+        if CheckTransactionReversal(TransactionNo) then
+            exit(false);
+
+        Assert.ExpectedError(StrSubstNo(InvoiceReversalRestrictedErr, Format("Gen. Journal Document Type"::Invoice)));
+        exit(true);
+    end;
+
+    [TryFunction]
+    local procedure CheckTransactionReversal(TransactionNo: Integer)
+    var
+        ReversalEntry: Record "Reversal Entry";
+    begin
+        ReversalEntry.SetReverseFilter(TransactionNo, ReversalEntry."Reversal Type"::Transaction);
+        ReversalEntry.CheckEntries();
     end;
 
     local procedure Initialize()
