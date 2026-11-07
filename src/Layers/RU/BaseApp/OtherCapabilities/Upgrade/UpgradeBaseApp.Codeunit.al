@@ -221,6 +221,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpdateProductionSourceCode();
         UpgradeBankExportImportSetup();
         UpgradePurchasesPayablesAndSalesReceivablesSetups();
+        UpgradeRestoreOrderQtyOnReturnInSalesAndPurchasesSetup();
         UpgradeLocationBinPolicySetups();
         UpgradeInventorySetupAllowInvtAdjmt();
 #if not CLEAN30
@@ -3351,6 +3352,28 @@ codeunit 104000 "Upgrade - BaseApp"
         end;
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPurchasesPayablesAndSalesReceivablesSetupsUpgradeTag());
+    end;
+
+    local procedure UpgradeRestoreOrderQtyOnReturnInSalesAndPurchasesSetup()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag()) then
+            exit;
+
+        if PurchasesPayablesSetup.Get() then begin
+            PurchasesPayablesSetup.Validate("Restore Order Qty. on Return", true);
+            PurchasesPayablesSetup.Modify();
+        end;
+        if SalesReceivablesSetup.Get() then begin
+            SalesReceivablesSetup.Validate("Restore Order Qty. on Return", true);
+            SalesReceivablesSetup.Modify();
+        end;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag());
     end;
 
     local procedure UpgradeLocationBinPolicySetups()
