@@ -197,7 +197,6 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
     local procedure SetPurchaseLineFiltersForProdOrderComponent(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         FilteredPurchaseLine: Record "Purchase Line";
-        LegacyPurchaseLine: Record "Purchase Line";
         SubcReqWkshMakeOrd: Codeunit "Subc. Req. Wksh. Make Ord.";
     begin
         PurchaseLine.Reset();
@@ -206,17 +205,8 @@ codeunit 20562 "Subc. Comp. Factbox Mgmt."
         SubcReqWkshMakeOrd.SetExactComponentPurchaseLineFilters(FilteredPurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, '');
         MarkPurchaseLines(PurchaseLine, FilteredPurchaseLine);
 
-        FilteredPurchaseLine.SetFilter("Subc. Prod. Order Line No.", '%1|%2', ProdOrderComponent."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        FilteredPurchaseLine.SetRange("Subc. Prod. Comp. Line No.", 0);
-        if FilteredPurchaseLine.FindSet() then
-            repeat
-                if SubcReqWkshMakeOrd.FindUniqueLegacyComponentPurchaseLine(
-                    LegacyPurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, FilteredPurchaseLine."Document No.", true)
-                then begin
-                    PurchaseLine := LegacyPurchaseLine;
-                    PurchaseLine.Mark(true);
-                end;
-            until FilteredPurchaseLine.Next() = 0;
+        SubcReqWkshMakeOrd.SetLegacyComponentPurchaseLineFilters(FilteredPurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, '');
+        MarkPurchaseLines(PurchaseLine, FilteredPurchaseLine);
 
         PurchaseLine.MarkedOnly(true);
     end;

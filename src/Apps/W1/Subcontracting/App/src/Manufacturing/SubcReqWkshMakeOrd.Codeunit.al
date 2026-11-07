@@ -195,7 +195,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                 ShouldModifyPurchaseLine := false;
                 if not FoundPurchaseLineComp then begin
                     FoundPurchaseLineComp := FindUniqueLegacyComponentPurchaseLine(
-                        PurchaseLineComp, ProdOrderComponent, ProdOrderRoutingLine, PurchaseLine."Document No.", false);
+                        PurchaseLineComp, ProdOrderComponent, ProdOrderRoutingLine, PurchaseLine."Document No.");
                     if FoundPurchaseLineComp then begin
                         PurchaseLineComp."Subc. Prod. Order Line No." := RequisitionLine."Prod. Order Line No.";
                         PurchaseLineComp."Subc. Prod. Comp. Line No." := ProdOrderComponent."Line No.";
@@ -208,14 +208,8 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                         PurchaseLineComp.Validate(Quantity, ProdOrderComponent."Remaining Quantity");
                         ShouldModifyPurchaseLine := true;
                     end;
-                    // Old purchase lines have no source-date baseline. Preserve their dates on the first synchronization.
-                    if not PurchaseLineComp."Subc. Comp. Date Initialized" then begin
-                        PurchaseLineComp."Subc. Last Comp. Due Date" := ProdOrderComponent."Due Date";
-                        PurchaseLineComp."Subc. Comp. Date Initialized" := true;
+                    if SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(PurchaseLineComp, ProdOrderComponent) then
                         ShouldModifyPurchaseLine := true;
-                    end else
-                        if SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(PurchaseLineComp, ProdOrderComponent) then
-                            ShouldModifyPurchaseLine := true;
                     if ShouldModifyPurchaseLine then
                         PurchaseLineComp.Modify(true);
                 end else
@@ -248,33 +242,44 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
     end;
 
-    internal procedure FindUniqueLegacyComponentPurchaseLine(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PurchaseDocumentNo: Code[20]; AllowExactOwner: Boolean): Boolean
+    internal procedure FindUniqueLegacyComponentPurchaseLine(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PurchaseDocumentNo: Code[20]): Boolean
+    var
+        ExactPurchaseLine: Record "Purchase Line";
     begin
-        if not IsComponentOwnershipUnambiguous(ProdOrderComponent, ProdOrderRoutingLine, PurchaseDocumentNo, AllowExactOwner) then
+        SetExactComponentPurchaseLineFilters(ExactPurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, PurchaseDocumentNo);
+        if not ExactPurchaseLine.IsEmpty() then
             exit(false);
 
-        SetExactComponentPurchaseLineFilters(PurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, PurchaseDocumentNo);
-        PurchaseLine.SetRange("Subc. Prod. Comp. Line No.", 0);
-        PurchaseLine.SetFilter("Subc. Prod. Order Line No.", '%1|%2', ProdOrderComponent."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        SetLegacyComponentPurchaseLineFilters(PurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, PurchaseDocumentNo);
         if PurchaseLine.Count() <> 1 then
             exit(false);
         exit(PurchaseLine.FindFirst());
     end;
 
-    local procedure IsComponentOwnershipUnambiguous(ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PurchaseDocumentNo: Code[20]; AllowExactOwner: Boolean): Boolean
+    /// <summary>
+    /// Selects all unambiguously owned legacy lines for read-only totals and drilldowns, independently of migration eligibility.
+    /// </summary>
+    internal procedure SetLegacyComponentPurchaseLineFilters(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PurchaseDocumentNo: Code[20])
+    begin
+        SetExactComponentPurchaseLineFilters(PurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, PurchaseDocumentNo);
+        PurchaseLine.ClearMarks();
+        PurchaseLine.SetRange("Subc. Prod. Comp. Line No.", 0);
+        PurchaseLine.SetFilter("Subc. Prod. Order Line No.", '%1|%2', ProdOrderComponent."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        if PurchaseLine.FindSet() then
+            repeat
+                if IsComponentOwnershipUnambiguous(PurchaseLine, ProdOrderComponent, ProdOrderRoutingLine) then
+                    PurchaseLine.Mark(true);
+            until PurchaseLine.Next() = 0;
+        PurchaseLine.MarkedOnly(true);
+    end;
+
+    local procedure IsComponentOwnershipUnambiguous(LegacyPurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Boolean
     var
         MatchingProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
-        ExactPurchaseLine: Record "Purchase Line";
         MatchingComponentCount: Integer;
-        HasExactOwner: Boolean;
     begin
-        SetExactComponentPurchaseLineFilters(ExactPurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, PurchaseDocumentNo);
-        HasExactOwner := not ExactPurchaseLine.IsEmpty();
-        if HasExactOwner and not AllowExactOwner then
-            exit(false);
-
-        // Read-only totals may include a legacy line for an exact-owned component only when no other component could own it.
+        // Exact purchase lines do not rule out additional legacy lines belonging to the same component.
         MatchingProdOrderComponent.SetRange(Status, ProdOrderComponent.Status);
         MatchingProdOrderComponent.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
         MatchingProdOrderComponent.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
@@ -285,14 +290,14 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ProdOrderLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
         ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         ProdOrderLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        if LegacyPurchaseLine."Subc. Prod. Order Line No." <> ProdOrderRoutingLine."Routing Reference No." then
+            ProdOrderLine.SetRange("Line No.", LegacyPurchaseLine."Subc. Prod. Order Line No.");
         if ProdOrderLine.FindSet() then
             repeat
                 MatchingProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
                 if MatchingProdOrderComponent.FindSet() then
                     repeat
-                        SetExactComponentPurchaseLineFilters(ExactPurchaseLine, MatchingProdOrderComponent, ProdOrderRoutingLine, PurchaseDocumentNo);
-                        if HasExactOwner or ExactPurchaseLine.IsEmpty() then
-                            MatchingComponentCount += 1;
+                        MatchingComponentCount += 1;
                         if MatchingComponentCount > 1 then
                             exit(false);
                     until MatchingProdOrderComponent.Next() = 0;

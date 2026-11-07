@@ -282,7 +282,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
     end;
 
     /// <summary>
-    /// Recalculates purchase dates only when the synchronized component due date changes, preserving manual purchase dates otherwise.
+    /// Aligns purchase dates on the first synchronization, then recalculates only when the component due date changes.
     /// </summary>
     internal procedure SetVendorSuppliedComponentPurchaseDates(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"): Boolean
     begin

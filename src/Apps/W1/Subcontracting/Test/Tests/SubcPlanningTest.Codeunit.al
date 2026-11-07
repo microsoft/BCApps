@@ -568,7 +568,8 @@ codeunit 139996 "Subc. Planning Test"
     end;
 
     [Test]
-    procedure MixedExactAndLegacySameItemComponentsAreSynchronized()
+    [HandlerFunctions('ComponentSynchronizationNotificationHandler')]
+    procedure MixedExactAndLegacySameItemComponentsRemainAmbiguous()
     begin
         VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', false, 1);
     end;
@@ -594,7 +595,7 @@ codeunit 139996 "Subc. Planning Test"
     end;
 
     [Test]
-    procedure ExistingComponentDatesArePreservedUntilSourceDateChanges()
+    procedure LegacyComponentDatesAreSynchronizedOnFirstReschedule()
     begin
         VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', false, 5);
     end;
@@ -659,7 +660,7 @@ codeunit 139996 "Subc. Planning Test"
         RescheduledComponentPurchaseLineQuantityErr: Label 'Each vendor-supplied component purchase line quantity should match its production component after rescheduling.';
         RescheduledComponentPurchaseLineDateErr: Label 'Each vendor-supplied component purchase line date should match its production component after rescheduling.';
         ExpectedRescheduledComponentCountErr: Label 'Rescheduling must update both matching vendor-supplied component lines.';
-        UnmatchedLegacyComponentQuantityErr: Label 'The FactBox must include the uniquely unmatched legacy component, excluding exact-owned components.';
+        UnmatchedLegacyComponentQuantityErr: Label 'Exact ownership of another component must not make a legacy purchase line unambiguous.';
         ExactOwnedComponentQuantityErr: Label 'The exact-owned component must not include the legacy line belonging to the other component.';
         DuplicateLegacyComponentQuantityErr: Label 'The FactBox must not attribute duplicate legacy purchase candidates to a component.';
         CombinedSynchronizationNotificationErr: Label 'Missing and orphaned lines must be reported together.';
@@ -783,9 +784,10 @@ codeunit 139996 "Subc. Planning Test"
                     PurchaseLineComp.Modify();
                     ProdOrderComponent.FindFirst();
                     Assert.AreEqual(
-                        PurchaseLineComp."Outstanding Qty. (Base)",
+                        0,
                         SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
                         UnmatchedLegacyComponentQuantityErr);
+                    ExpectedMissingComponentCount := 1;
                     ProdOrderComponent.FindLast();
                     Assert.AreEqual(
                         OriginalPurchaseLine[2]."Outstanding Qty. (Base)",
@@ -892,6 +894,19 @@ codeunit 139996 "Subc. Planning Test"
 
         SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
 
+        if Scenario = Scenario::MixedLegacy then begin
+            Assert.AreEqual(1, ComponentSynchronizationNotificationCount, CombinedSynchronizationNotificationErr);
+            PurchaseLineComp.Get(OriginalPurchaseLine[1]."Document Type", OriginalPurchaseLine[1]."Document No.", OriginalPurchaseLine[1]."Line No.");
+            Assert.AreEqual(0, PurchaseLineComp."Subc. Prod. Comp. Line No.", UnmatchedLegacyComponentQuantityErr);
+            Assert.AreEqual(OriginalPurchaseLine[1].Quantity, PurchaseLineComp.Quantity, 'An ambiguous legacy quantity must remain unchanged.');
+            Assert.AreEqual(OriginalPurchaseLine[1]."Expected Receipt Date", PurchaseLineComp."Expected Receipt Date", 'An ambiguous legacy date must remain unchanged.');
+            ProdOrderComponent.FindLast();
+            PurchaseLineComp.Get(OriginalPurchaseLine[2]."Document Type", OriginalPurchaseLine[2]."Document No.", OriginalPurchaseLine[2]."Line No.");
+            Assert.AreEqual(ProdOrderComponent."Remaining Quantity", PurchaseLineComp.Quantity, RescheduledComponentPurchaseLineQuantityErr);
+            AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent, PurchaseLineComp, Location, Vendor, BaseCalendar, ExpectedLeadTime);
+            exit;
+        end;
+
         if ReverseLegacyLines or (Scenario = Scenario::DuplicateLegacy) then begin
             Assert.AreEqual(1, ComponentSynchronizationNotificationCount, 'Skipped synchronization must produce one aggregate notification.');
             for ComponentIndex := 1 to 2 do begin
@@ -940,7 +955,7 @@ codeunit 139996 "Subc. Planning Test"
                 PurchaseLineComp.Quantity,
                 RescheduledComponentPurchaseLineQuantityErr);
             ExpectedComponentCount += 1;
-            if Scenario in [Scenario::ManualDates, Scenario::LegacyDates] then begin
+            if Scenario = Scenario::ManualDates then begin
                 Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Order Date", PurchaseLineComp."Order Date", 'Manual order dates must be preserved.');
                 Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Expected Receipt Date", PurchaseLineComp."Expected Receipt Date", 'Manual expected receipt dates must be preserved.');
                 Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Planned Receipt Date", PurchaseLineComp."Planned Receipt Date", 'Manual planned receipt dates must be preserved.');
@@ -952,6 +967,11 @@ codeunit 139996 "Subc. Planning Test"
                     ProdOrderComponent."Due Date",
                     PurchaseLineComp."Expected Receipt Date",
                     RescheduledComponentPurchaseLineDateErr);
+                if Scenario = Scenario::LegacyDates then begin
+                    Assert.IsTrue(PurchaseLineComp."Subc. Comp. Date Initialized", 'The first synchronization must initialize the legacy date baseline.');
+                    Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLineComp."Subc. Last Comp. Due Date", ChangedSourceDateBaselineErr);
+                    Assert.AreEqual(0D, PurchaseLineComp."Promised Receipt Date", ChangedSourceDatePromiseErr);
+                end;
                 AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent, PurchaseLineComp, Location, Vendor, BaseCalendar, ExpectedLeadTime);
             end;
         until ProdOrderComponent.Next() = 0;
@@ -983,6 +1003,7 @@ codeunit 139996 "Subc. Planning Test"
     end;
 
     [Test]
+    [HandlerFunctions('ComponentPurchaseLinesPageHandler')]
     procedure VendorSuppliedCompQtyUpdatedOnFamilyPurchOrderReschedule()
     var
         Family: Record Family;
@@ -1018,7 +1039,8 @@ codeunit 139996 "Subc. Planning Test"
         LegacyFamilyComponentOutstandingQuantityErr: Label 'An unambiguous legacy Family component purchase line should remain visible in the outstanding quantity.';
         MixedFamilyComponentOutstandingQuantityErr: Label 'An unambiguous legacy Family component purchase line should be included together with exact-identity lines.';
         ExactOwnedComponentLegacyMigrationErr: Label 'Read-only legacy visibility must not permit migration to an exact-owned component.';
-        DuplicateLegacyExactQuantityErr: Label 'Duplicate legacy candidates must be excluded while exact quantities remain visible.';
+        DuplicateLegacyExactQuantityErr: Label 'All legacy lines with one possible source component must remain visible alongside exact quantities.';
+        LegacyReceivedQuantityErr: Label 'Received quantities must include all unambiguously owned legacy and exact lines.';
     begin
         // [SCENARIO] A vendor-supplied component is rescheduled for a Family output whose production line number differs from the shared routing reference.
         Initialize();
@@ -1095,19 +1117,51 @@ codeunit 139996 "Subc. Planning Test"
             MixedFamilyComponentOutstandingQuantityErr);
         Assert.IsFalse(
             SubcReqWkshMakeOrd.FindUniqueLegacyComponentPurchaseLine(
-                MatchedPurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, PurchaseLineComp."Document No.", false),
+                MatchedPurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, PurchaseLineComp."Document No."),
             ExactOwnedComponentLegacyMigrationErr);
 
-        // Multiple legacy candidates are still unsafe, even when there is only one source component.
+        // Multiple legacy lines have known ownership when there is only one source component.
         ExtraLegacyPurchaseLine := PurchaseLineComp;
         ExtraLegacyPurchaseLine."Line No." := ExactPurchaseLineComp."Line No." + 10000;
         ExtraLegacyPurchaseLine.Insert();
         Assert.AreEqual(
-            ExactPurchaseLineComp."Outstanding Qty. (Base)",
+            PurchaseLineComp."Outstanding Qty. (Base)" + ExactPurchaseLineComp."Outstanding Qty. (Base)" + ExtraLegacyPurchaseLine."Outstanding Qty. (Base)",
             SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
             DuplicateLegacyExactQuantityErr);
-        ExtraLegacyPurchaseLine.Delete();
+        PurchaseLineComp."Qty. Received (Base)" := 1;
+        PurchaseLineComp.Modify();
+        ExactPurchaseLineComp."Qty. Received (Base)" := 2;
+        ExactPurchaseLineComp.Modify();
+        ExtraLegacyPurchaseLine."Qty. Received (Base)" := 3;
+        ExtraLegacyPurchaseLine.Modify();
+        Assert.AreEqual(
+            6, SubcCompFactboxMgmt.GetPurchOrderQtyReceivedBaseFromProdOrderComp(ProdOrderComponent), LegacyReceivedQuantityErr);
+        ExpectedPurchaseLines[1] := PurchaseLineComp;
+        ExpectedPurchaseLines[2] := ExactPurchaseLineComp;
+        ExpectedPurchaseLines[3] := ExtraLegacyPurchaseLine;
+        ExpectedPurchaseLineCount := 3;
+        SubcCompFactboxMgmt.ShowPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent);
+        SubcCompFactboxMgmt.ShowPurchOrderQtyReceivedBaseFromProdOrderComp(ProdOrderComponent);
+        Assert.AreEqual(2, PurchaseLineDrilldownCount, 'Both drilldowns must show the selected purchase lines.');
         ExactPurchaseLineComp.Delete();
+        Assert.AreEqual(
+            PurchaseLineComp."Outstanding Qty. (Base)" + ExtraLegacyPurchaseLine."Outstanding Qty. (Base)",
+            SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
+            DuplicateLegacyExactQuantityErr);
+        Assert.AreEqual(
+            4, SubcCompFactboxMgmt.GetPurchOrderQtyReceivedBaseFromProdOrderComp(ProdOrderComponent), LegacyReceivedQuantityErr);
+        Assert.IsFalse(
+            SubcReqWkshMakeOrd.FindUniqueLegacyComponentPurchaseLine(
+                MatchedPurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, PurchaseLineComp."Document No."),
+            'Read-only visibility of multiple legacy lines must not permit migration.');
+        ExpectedPurchaseLines[2] := ExtraLegacyPurchaseLine;
+        ExpectedPurchaseLineCount := 2;
+        SubcCompFactboxMgmt.ShowPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent);
+        SubcCompFactboxMgmt.ShowPurchOrderQtyReceivedBaseFromProdOrderComp(ProdOrderComponent);
+        Assert.AreEqual(4, PurchaseLineDrilldownCount, 'Both drilldowns must include multiple legacy lines without an exact line.');
+        ExtraLegacyPurchaseLine.Delete();
+        PurchaseLineComp."Qty. Received (Base)" := 0;
+        PurchaseLineComp.Modify();
 
         ProdOrderLine.Validate(Quantity, InitialQuantity + 1);
         ProdOrderLine.Modify(true);
@@ -1139,6 +1193,18 @@ codeunit 139996 "Subc. Planning Test"
     [Test]
     [HandlerFunctions('ComponentSynchronizationNotificationHandler')]
     procedure AmbiguousLegacyFamilyComponentLineIsNotMigratedToAnotherOutput()
+    begin
+        VerifyAmbiguousLegacyFamilyComponentOwnership(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ComponentSynchronizationNotificationHandler')]
+    procedure ExactOwnedFamilyOutputDoesNotDisambiguateLegacyComponent()
+    begin
+        VerifyAmbiguousLegacyFamilyComponentOwnership(true);
+    end;
+
+    local procedure VerifyAmbiguousLegacyFamilyComponentOwnership(KeepExactOwner: Boolean)
     var
         Family: Record Family;
         FamilyLine: array[2] of Record "Family Line";
@@ -1151,6 +1217,7 @@ codeunit 139996 "Subc. Planning Test"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ProductionOrder: Record "Production Order";
         PurchaseLineComp: array[2] of Record "Purchase Line";
+        ExistingPurchaseLine: Record "Purchase Line";
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
@@ -1254,12 +1321,34 @@ codeunit 139996 "Subc. Planning Test"
             PurchaseLineComp[2]."Document No.",
             AmbiguousFamilyPurchaseOrderErr);
 
-        // Simulate legacy purchase lines that only stored the shared routing reference.
-        for OutputIndex := 1 to 2 do begin
-            PurchaseLineComp[OutputIndex]."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
-            PurchaseLineComp[OutputIndex]."Subc. Prod. Comp. Line No." := 0;
-            PurchaseLineComp[OutputIndex].Modify();
+        if KeepExactOwner then begin
+            PurchaseLineComp[2].Delete();
+            ExistingPurchaseLine.SetRange("Document Type", PurchaseLineComp[1]."Document Type");
+            ExistingPurchaseLine.SetRange("Document No.", PurchaseLineComp[1]."Document No.");
+            ExistingPurchaseLine.FindLast();
+            PurchaseLineComp[2].Reset();
+            PurchaseLineComp[2] := PurchaseLineComp[1];
+            PurchaseLineComp[2]."Line No." := ExistingPurchaseLine."Line No." + 10000;
+            PurchaseLineComp[2].Insert();
+            OriginalPurchaseQuantity[2] := PurchaseLineComp[2].Quantity;
+            OriginalPurchaseDueDate[2] := PurchaseLineComp[2]."Expected Receipt Date";
         end;
+
+        // An exact line on the first output does not prove that an additional legacy line belongs to the second output.
+        for OutputIndex := 1 to 2 do
+            if not KeepExactOwner or (OutputIndex = 2) then begin
+                PurchaseLineComp[OutputIndex]."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
+                PurchaseLineComp[OutputIndex]."Subc. Prod. Comp. Line No." := 0;
+                PurchaseLineComp[OutputIndex].Modify();
+            end;
+        Assert.AreEqual(
+            0, SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent[2]),
+            AmbiguousLegacyPurchaseLineIdentityErr);
+        if KeepExactOwner then
+            Assert.AreEqual(
+                PurchaseLineComp[1]."Outstanding Qty. (Base)",
+                SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent[1]),
+                FamilyComponentOutstandingQuantityErr);
 
         // Reschedule the second output first, where a routing-reference match cannot identify its purchase line.
         ExpectedMissingComponentCount := 1;
@@ -1295,11 +1384,16 @@ codeunit 139996 "Subc. Planning Test"
                 OriginalPurchaseDueDate[OutputIndex],
                 PurchaseLineComp[OutputIndex]."Expected Receipt Date",
                 AmbiguousLegacyPurchaseLineDateErr);
-            Assert.AreEqual(
-                ProdOrderRoutingLine."Routing Reference No.",
-                PurchaseLineComp[OutputIndex]."Subc. Prod. Order Line No.",
-                AmbiguousLegacyPurchaseLineIdentityErr);
-            Assert.AreEqual(0, PurchaseLineComp[OutputIndex]."Subc. Prod. Comp. Line No.", AmbiguousLegacyPurchaseLineIdentityErr);
+            if KeepExactOwner and (OutputIndex = 1) then begin
+                Assert.AreEqual(ProdOrderLine[1]."Line No.", PurchaseLineComp[1]."Subc. Prod. Order Line No.", FamilyComponentOutstandingQuantityErr);
+                Assert.AreEqual(ProdOrderComponent[1]."Line No.", PurchaseLineComp[1]."Subc. Prod. Comp. Line No.", FamilyComponentOutstandingQuantityErr);
+            end else begin
+                Assert.AreEqual(
+                    ProdOrderRoutingLine."Routing Reference No.",
+                    PurchaseLineComp[OutputIndex]."Subc. Prod. Order Line No.",
+                    AmbiguousLegacyPurchaseLineIdentityErr);
+                Assert.AreEqual(0, PurchaseLineComp[OutputIndex]."Subc. Prod. Comp. Line No.", AmbiguousLegacyPurchaseLineIdentityErr);
+            end;
         end;
     end;
 
@@ -1347,6 +1441,9 @@ codeunit 139996 "Subc. Planning Test"
         ExpectedMissingComponentCount := 0;
         ExpectedOrphanedLineCount := 0;
         ComponentSynchronizationNotificationCount := 0;
+        Clear(ExpectedPurchaseLines);
+        ExpectedPurchaseLineCount := 0;
+        PurchaseLineDrilldownCount := 0;
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Planning Test");
         LibrarySetupStorage.Restore();
 
@@ -1523,7 +1620,26 @@ codeunit 139996 "Subc. Planning Test"
         exit(true);
     end;
 
+    [PageHandler]
+    procedure ComponentPurchaseLinesPageHandler(var PurchaseLines: TestPage "Purchase Lines")
     var
+        PurchaseLineIndex: Integer;
+        ActualPurchaseLineCount: Integer;
+    begin
+        for PurchaseLineIndex := 1 to ExpectedPurchaseLineCount do
+            Assert.IsTrue(
+                PurchaseLines.GoToRecord(ExpectedPurchaseLines[PurchaseLineIndex]),
+                'Every unambiguously owned purchase line must be visible.');
+        Assert.IsTrue(PurchaseLines.First(), 'The drilldown must include the component purchase lines.');
+        repeat
+            ActualPurchaseLineCount += 1;
+        until not PurchaseLines.Next();
+        Assert.AreEqual(ExpectedPurchaseLineCount, ActualPurchaseLineCount, 'The drilldown must not include unrelated purchase lines.');
+        PurchaseLineDrilldownCount += 1;
+    end;
+
+    var
+        ExpectedPurchaseLines: array[3] of Record "Purchase Line";
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -1545,4 +1661,6 @@ codeunit 139996 "Subc. Planning Test"
         ExpectedMissingComponentCount: Integer;
         ExpectedOrphanedLineCount: Integer;
         ComponentSynchronizationNotificationCount: Integer;
+        ExpectedPurchaseLineCount: Integer;
+        PurchaseLineDrilldownCount: Integer;
 }
