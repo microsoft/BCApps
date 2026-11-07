@@ -51,6 +51,7 @@ report 30104 "Shpfy Sync Orders from Shopify"
                     OrderHeader: Record "Shpfy Order Header";
                     ImportOrder: Codeunit "Shpfy Import Order";
                     OrderMapping: Codeunit "Shpfy Order Mapping";
+                    MissingIssues: List of [Text];
                 begin
                     ClearLastError();
                     Commit();
@@ -68,9 +69,15 @@ report 30104 "Shpfy Sync Orders from Shopify"
                         if OrderHeader.Get(OrdersToImport.Id) then begin
                             OrdersToImport.Delete();
                             Commit();
-                            if OrderMapping.DoMapping(OrderHeader) and (OrdersToImport."Import Action" = OrdersToImport."Import Action"::New) then
-                                if Shop."Auto Create Orders" then
+                            if OrderMapping.DoMappingWithIssues(OrderHeader, MissingIssues, "Shpfy Mapping Execution Mode"::Automatic) then begin
+                                OrderMapping.ClearMappingError(OrderHeader);
+                                if (OrdersToImport."Import Action" = OrdersToImport."Import Action"::New) and Shop."Auto Create Orders" then
                                     CreateSalesDocumentForOrders(OrderHeader);
+                            end else
+                                if OrderHeader.Processed then
+                                    OrderMapping.PersistMappingErrorUnlessUnrelated(OrderHeader, MissingIssues)
+                                else
+                                    OrderMapping.PersistMappingError(OrderHeader, MissingIssues);
                         end;
 
                     if GuiAllowed then begin
@@ -121,15 +128,23 @@ report 30104 "Shpfy Sync Orders from Shopify"
     local procedure CreateSalesDocumentForOrders(ShopifyOrderHeader: Record "Shpfy Order Header")
     var
         ProcessOrder: Codeunit "Shpfy Process Order";
+        OrderMapping: Codeunit "Shpfy Order Mapping";
+        ErrorMessage: Text;
     begin
         if not ShopifyOrderHeader.Processed then begin
             Commit();
             ClearLastError();
+            ProcessOrder.SetMappingExecutionMode("Shpfy Mapping Execution Mode"::Automatic);
             if not ProcessOrder.Run(ShopifyOrderHeader) then begin
                 SelectLatestVersion();
                 ShopifyOrderHeader.Get(ShopifyOrderHeader."Shopify Order Id");
-                ShopifyOrderHeader."Has Error" := true;
-                ShopifyOrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + GetLastErrorText(), 1, MaxStrLen(ShopifyOrderHeader."Error Message"));
+                ErrorMessage := GetLastErrorText();
+                if OrderMapping.IsMappingError(ErrorMessage) then
+                    OrderMapping.PersistMappingErrorMessage(ShopifyOrderHeader, ErrorMessage)
+                else begin
+                    ShopifyOrderHeader."Has Error" := true;
+                    ShopifyOrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ErrorMessage, 1, MaxStrLen(ShopifyOrderHeader."Error Message"));
+                end;
                 ShopifyOrderHeader."Sales Order No." := '';
                 ShopifyOrderHeader."Sales Invoice No." := '';
                 ProcessOrder.CleanUpLastCreatedDocument();

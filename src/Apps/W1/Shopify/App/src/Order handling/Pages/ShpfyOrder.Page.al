@@ -297,6 +297,8 @@ page 30113 "Shpfy Order"
                 {
                     ApplicationArea = All;
                     Editable = false;
+                    MultiLine = true;
+                    StyleExpr = ErrorMessageStyleTxt;
                     ToolTip = 'Specifies the error message if an error has occurred.';
                 }
                 field(WorkDescription; WorkDescription)
@@ -698,9 +700,13 @@ page 30113 "Shpfy Order"
                     trigger OnAction()
                     var
                         Mapping: Codeunit "Shpfy Order Mapping";
+                        MissingIssues: List of [Text];
                     begin
                         CurrPage.Update(true);
-                        Mapping.DoMapping(Rec);
+                        if Mapping.DoMappingWithIssues(Rec, MissingIssues, "Shpfy Mapping Execution Mode"::FindMappings) then
+                            Mapping.ClearMappingError(Rec)
+                        else
+                            Mapping.PersistMappingErrorUnlessUnrelated(Rec, MissingIssues);
                         CurrPage.Update(false);
                     end;
                 }
@@ -1137,6 +1143,7 @@ page 30113 "Shpfy Order"
         OrderCancelledMsg: Label 'Order has been cancelled successfully.';
         OrderCancelFailedErr: Label 'Specifies the order could not be cancelled. You can see the error message from Shopify Log Entries.';
         LogEntriesLbl: Label 'Log Entries';
+        ErrorMessageStyleTxt: Text;
         WorkDescription: Text;
         PresentmentVisible: Boolean;
 
@@ -1144,6 +1151,10 @@ page 30113 "Shpfy Order"
     begin
         SetPresentmentCurrencyVisibility();
         WorkDescription := Rec.GetWorkDescription();
+        if Rec."Has Error" then
+            ErrorMessageStyleTxt := 'Unfavorable'
+        else
+            Clear(ErrorMessageStyleTxt);
     end;
 
     local procedure SetPresentmentCurrencyVisibility()

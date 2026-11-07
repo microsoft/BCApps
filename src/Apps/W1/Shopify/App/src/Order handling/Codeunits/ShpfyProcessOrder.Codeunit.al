@@ -28,6 +28,7 @@ codeunit 30166 "Shpfy Process Order"
         ShopifyShop: Record "Shpfy Shop";
         OrderEvents: Codeunit "Shpfy Order Events";
         LastCreatedDocumentId: Guid;
+        MappingExecutionMode: Enum "Shpfy Mapping Execution Mode";
 
     trigger OnRun()
     var
@@ -35,14 +36,14 @@ codeunit 30166 "Shpfy Process Order"
         OrderHeader: Record "Shpfy Order Header";
         ReleaseSalesDocument: Codeunit "Release Sales Document";
         OrderMapping: Codeunit "Shpfy Order Mapping";
-        MappingErr: Label 'Not everything can be mapped.';
+        MissingIssues: List of [Text];
         ErrorMessage: Text;
     begin
         OrderHeader.Get(Rec."Shopify Order Id");
         ClearProcessingError(OrderHeader);
         OrderEvents.OnBeforeProcessSalesDocument(OrderHeader);
-        if not OrderMapping.DoMapping(OrderHeader) then
-            Error(MappingErr);
+        if not OrderMapping.DoMappingWithIssues(OrderHeader, MissingIssues, MappingExecutionMode) then
+            Error(OrderMapping.GetMappingErrorMessage(MissingIssues));
 
         ShopifyShop.Get(OrderHeader."Shop Code");
         if not TryCreateHeaderFromShopifyOrder(SalesHeader, OrderHeader, ErrorMessage) then begin
@@ -62,6 +63,11 @@ codeunit 30166 "Shpfy Process Order"
         OrderEvents.OnAfterProcessSalesDocument(SalesHeader, OrderHeader);
 
         Rec.Get(OrderHeader."Shopify Order Id");
+    end;
+
+    internal procedure SetMappingExecutionMode(ExecutionMode: Enum "Shpfy Mapping Execution Mode")
+    begin
+        MappingExecutionMode := ExecutionMode;
     end;
 
     local procedure TryCreateHeaderFromShopifyOrder(var SalesHeader: Record "Sales Header"; ShopifyOrderHeader: Record "Shpfy Order Header"; var ErrorMessage: Text): Boolean
@@ -566,5 +572,3 @@ codeunit 30166 "Shpfy Process Order"
         SalesLine."Shpfy Refund Line Id" := TempSalesLine."Shpfy Refund Line Id";
     end;
 }
-
-
