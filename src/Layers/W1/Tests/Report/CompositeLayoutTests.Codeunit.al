@@ -293,6 +293,71 @@ codeunit 134619 "Composite Layout Tests"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure ExportHeaderFooterArtifactUsesDocxExtension()
+    begin
+        ExportArtifactTestCore('ExportHeaderFooter', Enum::"Report Layout Subtype"::HeaderFooter, 'ExportHeaderFooter.docx');
+        ExportArtifactTestCore('ExportHeaderFooter.docx', Enum::"Report Layout Subtype"::HeaderFooter, 'ExportHeaderFooter.docx');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportThemeArtifactUsesDotxExtension()
+    begin
+        ExportArtifactTestCore('ExportTheme', Enum::"Report Layout Subtype"::Theme, 'ExportTheme.dotx');
+        ExportArtifactTestCore('ExportTheme.dotx', Enum::"Report Layout Subtype"::Theme, 'ExportTheme.dotx');
+    end;
+
+    local procedure ExportArtifactTestCore(PartName: Text; Subtype: Enum "Report Layout Subtype"; ExpectedFileName: Text)
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        OriginalBlob: Codeunit "Temp Blob";
+        ExportedBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        ReportThemePage: TestPage "Report Theme and Header/Footer";
+        ExportedFileName: Text;
+        WithEncoding: Boolean;
+        OriginalMediaID: Guid;
+        EmptyGuid: Guid;
+    begin
+        // [SCENARIO] Export uses the Word part subtype, including when the name already has the correct extension.
+        Initialize();
+        EnableDocumentReportExperience();
+        CreatePart(PartName, Subtype);
+        TenantReportLayout.Get(PartsReportID, PartName, EmptyGuid);
+        // Native Word parts derive their extension from the subtype, not from a custom layout MIME override.
+        TenantReportLayout."MIME Type" := '';
+        TenantReportLayout.Modify(true);
+        OriginalMediaID := TenantReportLayout.Layout.MediaId();
+        TenantReportLayout.Layout.ExportStream(OriginalBlob.CreateOutStream());
+        FindLayout(PartsReportID, PartName, ReportLayoutList);
+        BindSubscription(ReportLayoutsTest);
+        ReportLayoutsTest.EnableExportCapture();
+
+        ReportThemePage.OpenView();
+        ReportThemePage.GoToRecord(ReportLayoutList);
+        ReportThemePage.ExportArtifact.Invoke();
+        ReportThemePage.Close();
+
+        ReportLayoutsTest.GetExportedLayout(ExportedBlob, ExportedFileName, WithEncoding);
+        UnbindSubscription(ReportLayoutsTest);
+        RestoreDocumentReportExperience();
+
+        Assert.AreEqual(ExpectedFileName, ExportedFileName, 'The exported Word part must use the extension for its subtype without duplicating it.');
+        Assert.IsFalse(WithEncoding, 'ExportArtifact must export the original layout without updating it.');
+        Assert.AreEqual(OriginalBlob.Length(), ExportedBlob.Length(), 'The exported part length must match the original.');
+        Assert.AreEqual(
+            Base64Convert.ToBase64(OriginalBlob.CreateInStream()),
+            Base64Convert.ToBase64(ExportedBlob.CreateInStream()),
+            'ExportArtifact must preserve the complete part contents.');
+        TenantReportLayout.Get(PartsReportID, PartName, EmptyGuid);
+        Assert.AreEqual(OriginalMediaID, TenantReportLayout.Layout.MediaId(), 'ExportArtifact must not replace the stored layout.');
+        TenantReportLayout.Delete(true);
+    end;
+
+    [Test]
     [HandlerFunctions('PartInfoMessageHandler')]
     [Scope('OnPrem')]
     procedure ShowInfoReportsPartDetailsAndUsage()
