@@ -8,6 +8,8 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -355,11 +357,57 @@ codeunit 1001 "Job Post-Line"
             JobTask.TestField("Job Task Type", JobTask."Job Task Type"::Posting);
         end;
         JobTransferLine.FromGenJnlLineToJnlLine(GenJnlLine, JobJnlLine);
+        if GenJnlLine."Source Currency Amount" <> 0 then
+            JobJnlLine."Source Currency Total Cost" := GetSourceCurrencyTotalCost(GenJnlLine, GLEntry);
         OnPostGenJnlLineOnAfterTransferToJnlLine(JobJnlLine, GenJnlLine, JobJnlPostLine);
 
         JobJnlPostLine.SetGLEntryNo(GLEntry."Entry No.");
         JobJnlPostLine.RunWithCheck(JobJnlLine);
         JobJnlPostLine.SetGLEntryNo(0);
+    end;
+
+    local procedure GetSourceCurrencyTotalCost(GenJnlLine: Record "Gen. Journal Line"; GLEntry: Record "G/L Entry") SourceCurrencyTotalCost: Decimal
+    var
+        NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+    begin
+        // The G/L entry amount excludes VAT; non-deductible VAT is posted separately and belongs to the project cost.
+        SourceCurrencyTotalCost := GLEntry."Additional-Currency Amount";
+        if NonDeductibleVAT.UseNonDeductibleVATAmountForJobCost() then
+            SourceCurrencyTotalCost += GetSourceCurrencyNonDeductibleVATAmount(GenJnlLine, GLEntry);
+    end;
+
+    local procedure GetSourceCurrencyNonDeductibleVATAmount(GenJnlLine: Record "Gen. Journal Line"; GLEntry: Record "G/L Entry"): Decimal
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        SourceCurrency: Record Currency;
+        NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+        SourceCurrencyVATAmount: Decimal;
+    begin
+        // VAT posting splits the non-deductible part of the source currency VAT only after the project entry is posted, so repeat that split with the same rounding.
+        if not NonDeductibleVAT.IsNonDeductibleVATEnabled() or (GenJnlLine."Non-Deductible VAT %" = 0) then
+            exit(0);
+        if GenJnlLine."VAT Posting" = GenJnlLine."VAT Posting"::"Manual VAT Entry" then
+            SourceCurrencyVATAmount := GenJnlLine."Source Curr. VAT Amount"
+        else
+            case GenJnlLine."VAT Calculation Type" of
+                GenJnlLine."VAT Calculation Type"::"Normal VAT",
+                GenJnlLine."VAT Calculation Type"::"Full VAT":
+                    SourceCurrencyVATAmount := GenJnlLine."Source Currency Amount" - GLEntry."Additional-Currency Amount";
+                GenJnlLine."VAT Calculation Type"::"Reverse Charge VAT":
+                    if GenJnlLine."VAT Difference" <> 0 then
+                        SourceCurrencyVATAmount := GenJnlLine."Source Curr. VAT Amount"
+                    else begin
+                        SourceCurrency.Initialize(GenJnlLine."Source Currency Code");
+                        SourceCurrencyVATAmount :=
+                            Round(
+                                GLEntry."Additional-Currency Amount" * GenJnlLine."VAT %" / 100,
+                                SourceCurrency."Amount Rounding Precision", SourceCurrency.VATRoundingDirection());
+                    end;
+                else
+                    exit(0);
+            end;
+        GeneralLedgerSetup.Get();
+        exit(Round(SourceCurrencyVATAmount * GenJnlLine."Non-Deductible VAT %" / 100, GeneralLedgerSetup."Amount Rounding Precision"));
     end;
 
     procedure PostJobOnPurchaseLine(var PurchHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; PurchLine: Record "Purchase Line"; SourceCode: Code[10])
