@@ -186,7 +186,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
             exit;
         if ReservationEntry.Positive then
             exit;
-        if not ProdComponentItemOnMultipleLines(ReservationEntry, false) then
+        if not ProdComponentItemOnMultipleLines(ReservationEntry, true) then
             exit;
 
         if SupplyReservationEntry.Get(ReservationEntry."Entry No.", true) then begin
