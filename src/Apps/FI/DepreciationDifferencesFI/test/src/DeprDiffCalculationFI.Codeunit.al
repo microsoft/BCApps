@@ -1145,9 +1145,16 @@ codeunit 148163 "Depr. Diff. Calculation FI"
 
     local procedure CreateUninitializedFAPostingGroup(var FAPostingGroup: Record "FA Posting Group")
     begin
-        FAPostingGroup.Init();
-        FAPostingGroup.Validate(Code, CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(FAPostingGroup.Code)));
-        FAPostingGroup.Insert(true);
+        LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
+        FAPostingGroup.Validate("Deprec. Difference Account", '');
+        FAPostingGroup.Validate("Deprec. Difference Bal Acct", '');
+#if not CLEAN30
+#pragma warning disable AL0432
+        FAPostingGroup.Validate("Depr. Difference Acc.", '');
+        FAPostingGroup.Validate("Depr. Difference Bal. Acc.", '');
+#pragma warning restore AL0432
+#endif
+        FAPostingGroup.Modify(true);
     end;
 
     local procedure CreateDepreciationDifferenceAccounts(var DepreciationDifferenceAccount: Code[20]; var DepreciationDifferenceBalAccount: Code[20])
