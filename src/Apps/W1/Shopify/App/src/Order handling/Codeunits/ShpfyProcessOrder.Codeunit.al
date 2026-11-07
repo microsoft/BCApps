@@ -6,8 +6,11 @@
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Item;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
@@ -20,7 +23,9 @@ codeunit 30166 "Shpfy Process Order"
     Access = Internal;
     Permissions =
         tabledata Item = rim,
-        tabledata "Item Variant" = rim;
+        tabledata "Item Variant" = rim,
+        tabledata "Customer Templ." = r,
+        tabledata "Alt. Cust. VAT Reg." = ri;
 
     TableNo = "Shpfy Order Header";
 
@@ -67,6 +72,7 @@ codeunit 30166 "Shpfy Process Order"
     local procedure TryCreateHeaderFromShopifyOrder(var SalesHeader: Record "Sales Header"; ShopifyOrderHeader: Record "Shpfy Order Header"; var ErrorMessage: Text): Boolean
     var
         DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
+        PreviousSalesHeader: Record "Sales Header";
         ShopifyTaxArea: Record "Shpfy Tax Area";
         OrdersAPI: Codeunit "Shpfy Orders API";
         BCDocumentTypeConvert: Codeunit "Shpfy BC Document Type Convert";
@@ -116,7 +122,7 @@ codeunit 30166 "Shpfy Process Order"
             SalesHeader."Bill-to Post Code" := CopyStr(ShopifyOrderHeader."Bill-to Post Code", 1, MaxStrLen(SalesHeader."Bill-to Post Code"));
             SalesHeader."Bill-to County" := CopyStr(ShopifyOrderHeader."Bill-to County", 1, MaxStrLen(SalesHeader."Bill-to County"));
             SalesHeader.Validate("Bill-to Contact No.", ShopifyOrderHeader."Bill-to Contact No.");
-            SalesHeader.Validate("Ship-to Code", '');
+            PreviousSalesHeader := PrepareImportedShipTo(SalesHeader);
             SalesHeader."Ship-to Name" := CopyStr(ShopifyOrderHeader."Ship-to Name", 1, MaxStrLen(SalesHeader."Ship-to Name"));
             SalesHeader."Ship-to Name 2" := CopyStr(ShopifyOrderHeader."Ship-to Name 2", 1, MaxStrLen(SalesHeader."Ship-to Name 2"));
             SalesHeader."Ship-to Address" := copyStr(ShopifyOrderHeader."Ship-to Address", 1, MaxStrLen(SalesHeader."Ship-to Address"));
@@ -161,8 +167,9 @@ codeunit 30166 "Shpfy Process Order"
             if ShopifyOrderHeader."Salesperson Code" <> '' then
                 SalesHeader.Validate("Salesperson Code", ShopifyOrderHeader."Salesperson Code");
 
-            SalesHeader.Modify(true);
+            ApplyImportedShipToVATSetup(SalesHeader, PreviousSalesHeader, ShopifyShop, ShopifyOrderHeader.B2B);
 
+            SalesHeader.Modify(true);
             if SalesHeader."Document Type" = SalesHeader."Document Type"::Order then
                 ShopifyOrderHeader."Sales Order No." := SalesHeader."No."
             else
@@ -184,6 +191,149 @@ codeunit 30166 "Shpfy Process Order"
         DocLinkToBCDoc.Insert();
         OrderEvents.OnAfterCreateSalesHeader(ShopifyOrderHeader, SalesHeader);
         exit(true);
+    end;
+
+    internal procedure ApplyImportedShipToVATSetup(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; ShopRecord: Record "Shpfy Shop"; IsB2B: Boolean)
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        VATCustomer: Record Customer;
+        AltCustVATRegFacade: Codeunit "Alt. Cust. VAT. Reg. Facade";
+    begin
+        if not GetVATCustomer(SalesHeader, VATCustomer) then
+            exit;
+
+        RestoreVATCustomerSetup(SalesHeader, xSalesHeader, VATCustomer);
+        if not AltCustVATRegFacade.GetAlternativeCustVATReg(AltCustVATReg, VATCustomer."No.", SalesHeader."Ship-to Country/Region Code") then begin
+            if not CreateAlternativeVATRegistration(ShopRecord, VATCustomer, SalesHeader."Ship-to Country/Region Code", IsB2B) then
+                exit;
+            if not AltCustVATRegFacade.GetAlternativeCustVATReg(AltCustVATReg, VATCustomer."No.", SalesHeader."Ship-to Country/Region Code") then
+                exit;
+        end;
+
+        AltCustVATRegFacade.UpdateSetupOnShipToCountryChangeInSalesHeader(SalesHeader, xSalesHeader);
+        ApplyAlternativeVATSetup(SalesHeader, VATCustomer, AltCustVATReg);
+    end;
+
+    local procedure ApplyAlternativeVATSetup(var SalesHeader: Record "Sales Header"; VATCustomer: Record Customer; AltCustVATReg: Record "Alt. Cust. VAT Reg.")
+    begin
+        SalesHeader.Validate("Alt. VAT Registration No.", false);
+        SalesHeader.Validate("VAT Registration No.", VATCustomer."VAT Registration No.");
+        if AltCustVATReg."VAT Registration No." <> '' then begin
+            SalesHeader.Validate("VAT Registration No.", AltCustVATReg."VAT Registration No.");
+            SalesHeader.Validate("Alt. VAT Registration No.", true);
+        end;
+
+        SalesHeader.Validate("Alt. Gen. Bus Posting Group", false);
+        SalesHeader.Validate("Gen. Bus. Posting Group", VATCustomer."Gen. Bus. Posting Group");
+        if AltCustVATReg."Gen. Bus. Posting Group" <> '' then begin
+            SalesHeader.Validate("Gen. Bus. Posting Group", AltCustVATReg."Gen. Bus. Posting Group");
+            SalesHeader.Validate("Alt. Gen. Bus Posting Group", true);
+        end;
+
+        SalesHeader.Validate("Alt. VAT Bus Posting Group", false);
+        SalesHeader.Validate("VAT Bus. Posting Group", VATCustomer."VAT Bus. Posting Group");
+        if AltCustVATReg."VAT Bus. Posting Group" <> '' then begin
+            SalesHeader.Validate("VAT Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group");
+            SalesHeader.Validate("Alt. VAT Bus Posting Group", true);
+        end;
+    end;
+
+    local procedure CreateAlternativeVATRegistration(ShopRecord: Record "Shpfy Shop"; VATCustomer: Record Customer; CountryRegionCode: Code[10]; IsB2B: Boolean): Boolean
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        CustomerTemplate: Record "Customer Templ.";
+        ShpfyCustomerTemplate: Record "Shpfy Customer Template";
+        AltCustVATRegFacade: Codeunit "Alt. Cust. VAT. Reg. Facade";
+        AlternativeVATRegistrationInsertErr: Label 'The alternative VAT registration could not be inserted for customer %1 and VAT country/region %2.', Comment = '%1 = Customer number, %2 = VAT country/region code';
+        AutoCreateAlternativeVAT: Boolean;
+    begin
+        if IsB2B then
+            AutoCreateAlternativeVAT := ShopRecord."Auto Create Alt. VAT Reg. Co."
+        else
+            AutoCreateAlternativeVAT := ShopRecord."Auto Create Alt. VAT Reg. Cust";
+        if not AutoCreateAlternativeVAT or (CountryRegionCode = '') or
+           (CountryRegionCode = VATCustomer."Country/Region Code")
+        then
+            exit(false);
+        if AltCustVATRegFacade.GetAlternativeCustVATReg(AltCustVATReg, VATCustomer."No.", CountryRegionCode) then
+            exit(true);
+
+        ShpfyCustomerTemplate.SetLoadFields("Customer Templ. Code");
+        if not ShpfyCustomerTemplate.Get(ShopRecord.Code, CountryRegionCode) then
+            exit(false);
+        CustomerTemplate.SetLoadFields("Gen. Bus. Posting Group", "VAT Bus. Posting Group");
+        if (ShpfyCustomerTemplate."Customer Templ. Code" = '') or
+           not CustomerTemplate.Get(ShpfyCustomerTemplate."Customer Templ. Code")
+        then
+            exit(false);
+        if (CustomerTemplate."Gen. Bus. Posting Group" = '') and (CustomerTemplate."VAT Bus. Posting Group" = '') then
+            exit(false);
+
+        AltCustVATReg.Init();
+        AltCustVATReg.Validate("Customer No.", VATCustomer."No.");
+        AltCustVATReg.Validate("VAT Country/Region Code", CountryRegionCode);
+        if CustomerTemplate."Gen. Bus. Posting Group" <> '' then
+            AltCustVATReg.Validate("Gen. Bus. Posting Group", CustomerTemplate."Gen. Bus. Posting Group");
+        if CustomerTemplate."VAT Bus. Posting Group" <> '' then
+            AltCustVATReg.Validate("VAT Bus. Posting Group", CustomerTemplate."VAT Bus. Posting Group")
+        else
+            AltCustVATReg.Validate("VAT Bus. Posting Group", '');
+        if not AltCustVATReg.Insert(true) then begin
+            if AltCustVATRegFacade.GetAlternativeCustVATReg(AltCustVATReg, VATCustomer."No.", CountryRegionCode) then
+                exit(true);
+            Error(AlternativeVATRegistrationInsertErr, VATCustomer."No.", CountryRegionCode);
+        end;
+        exit(true);
+    end;
+
+    local procedure GetVATCustomer(SalesHeader: Record "Sales Header"; var VATCustomer: Record Customer): Boolean
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.SetLoadFields("Bill-to/Sell-to VAT Calc.");
+        GeneralLedgerSetup.Get();
+        VATCustomer.SetLoadFields("Country/Region Code", "VAT Registration No.", "Gen. Bus. Posting Group", "VAT Bus. Posting Group");
+        if GeneralLedgerSetup."Bill-to/Sell-to VAT Calc." = GeneralLedgerSetup."Bill-to/Sell-to VAT Calc."::"Bill-to/Pay-to No." then
+            if VATCustomer.Get(SalesHeader."Bill-to Customer No.") then
+                exit(true);
+        exit(VATCustomer.Get(SalesHeader."Sell-to Customer No."));
+    end;
+
+    internal procedure PrepareImportedShipTo(var SalesHeader: Record "Sales Header"): Record "Sales Header"
+    begin
+        ResetInterimVATSetup(SalesHeader);
+        SalesHeader.Validate("Ship-to Code", '');
+        exit(SalesHeader);
+    end;
+
+    internal procedure ResetInterimVATSetup(var SalesHeader: Record "Sales Header")
+    var
+        VATCustomer: Record Customer;
+    begin
+        if not (SalesHeader."Alt. VAT Registration No." or SalesHeader."Alt. Gen. Bus Posting Group" or SalesHeader."Alt. VAT Bus Posting Group") then
+            exit;
+        if not GetVATCustomer(SalesHeader, VATCustomer) then
+            exit;
+        RestoreVATCustomerSetup(SalesHeader, SalesHeader, VATCustomer);
+    end;
+
+    local procedure RestoreVATCustomerSetup(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; VATCustomer: Record Customer)
+    begin
+        if (SalesHeader."VAT Country/Region Code" <> VATCustomer."Country/Region Code") and
+            (xSalesHeader."VAT Country/Region Code" = SalesHeader."VAT Country/Region Code") then
+            SalesHeader."VAT Country/Region Code" := VATCustomer."Country/Region Code";
+        if SalesHeader."Alt. VAT Registration No." then begin
+            SalesHeader.Validate("Alt. VAT Registration No.", false);
+            SalesHeader.Validate("VAT Registration No.", VATCustomer."VAT Registration No.");
+        end;
+        if SalesHeader."Alt. Gen. Bus Posting Group" then begin
+            SalesHeader.Validate("Alt. Gen. Bus Posting Group", false);
+            SalesHeader.Validate("Gen. Bus. Posting Group", VATCustomer."Gen. Bus. Posting Group");
+        end;
+        if SalesHeader."Alt. VAT Bus Posting Group" then begin
+            SalesHeader.Validate("Alt. VAT Bus Posting Group", false);
+            SalesHeader.Validate("VAT Bus. Posting Group", VATCustomer."VAT Bus. Posting Group");
+        end;
     end;
 
     local procedure ClearProcessingError(var ShopifyOrderHeader: Record "Shpfy Order Header")
@@ -342,7 +492,7 @@ codeunit 30166 "Shpfy Process Order"
                     SalesLine.Validate("Document No.", SalesHeader."No.");
                     SalesLine.Validate("Line No.", GetNextLineNo(SalesHeader));
                     SalesLine.Insert(true);
-
+                    
                     if ShipmentChargeType then begin
                         SalesLine.Validate(Type, ShipmentMethodMapping."Shipping Charges Type");
                         SalesLine.Validate("No.", ShipmentMethodMapping."Shipping Charges No.");
