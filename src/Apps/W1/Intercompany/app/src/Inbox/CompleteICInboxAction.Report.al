@@ -398,12 +398,14 @@ report 511 "Complete IC Inbox Action"
                     group("BAS GST Settlement")
                     {
                         Caption = 'BAS GST Settlement';
+#pragma warning disable AA0221 // Preserve the migrated APAC option field contract.
                         field(AccType; AccType)
                         {
                             ApplicationArea = Intercompany;
                             Caption = 'Settlement Account Type';
                             ToolTip = 'Specifies if the account is a general ledger account or a vendor account.';
                         }
+#pragma warning restore AA0221
                         field(AccNo; AccNo)
                         {
                             ApplicationArea = Intercompany;
@@ -479,8 +481,10 @@ report 511 "Complete IC Inbox Action"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 #if INTERCOMPANY_APAC
+#pragma warning disable AA0204 // Preserve the migrated APAC settlement bindings.
         AccType: Option "G/L Account",Vendor;
         AccNo: Code[10];
+#pragma warning restore AA0204
 #endif
         DocPostingDateEditable: Boolean;
         PostingDateEditable: Boolean;

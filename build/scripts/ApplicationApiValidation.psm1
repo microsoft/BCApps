@@ -785,6 +785,10 @@ function Update-ApplicationApiRelocatedFields {
             if ($anchors.Count -ne 1) { return $false }
             Add-ApplicationApiFieldsBeforeAnchor -Node $Current -Anchor $change['Anchor'] -Fields $change['Controls']
             foreach ($field in $change['Controls']) {
+                $oldField = $oldFields | Where-Object { $_['Name'] -ceq $field['Name'] }
+                if (Update-ApplicationApiPageMemberIds -Baseline $oldField -Current $field -ChildrenProperty Controls) {
+                    $Changes.Add("Regenerated compiler IDs for relocated page member '$($field['Name'])'.")
+                }
                 $Changes.Add("Relocated field '$($field['Name'])' into page extension '$($provider.Extension.Name)'.")
             }
         }
