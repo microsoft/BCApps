@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+#if not CLEAN30
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -6,6 +7,9 @@ namespace Microsoft.Finance.FinancialReports;
 
 codeunit 10802 "FR AccSchedManagement"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
     TableNo = "FR Acc. Schedule Line";
 
     trigger OnRun()
@@ -16,7 +20,6 @@ codeunit 10802 "FR AccSchedManagement"
         Text1120000: Label 'DEFAULT';
         Text1120001: Label 'Default Schedule';
 
-    [Scope('OnPrem')]
     procedure OpenSchedule(var CurrentSchedName: Code[10]; var AccSchedLine: Record "FR Acc. Schedule Line")
     begin
         CheckTemplateName(CurrentSchedName);
@@ -25,7 +28,6 @@ codeunit 10802 "FR AccSchedManagement"
         AccSchedLine.FilterGroup(0);
     end;
 
-    [Scope('OnPrem')]
     procedure CheckTemplateName(var CurrentSchedName: Code[10])
     var
         AccSchedName: Record "FR Acc. Schedule Name";
@@ -42,7 +44,6 @@ codeunit 10802 "FR AccSchedManagement"
         end;
     end;
 
-    [Scope('OnPrem')]
     procedure CheckName(CurrentSchedName: Code[10])
     var
         AccSchedName: Record "FR Acc. Schedule Name";
@@ -50,7 +51,6 @@ codeunit 10802 "FR AccSchedManagement"
         AccSchedName.Get(CurrentSchedName);
     end;
 
-    [Scope('OnPrem')]
     procedure SetName(CurrentSchedName: Code[10]; var AccSchedLine: Record "FR Acc. Schedule Line")
     begin
         AccSchedLine.FilterGroup(2);
@@ -59,7 +59,6 @@ codeunit 10802 "FR AccSchedManagement"
         if AccSchedLine.Find('-') then;
     end;
 
-    [Scope('OnPrem')]
     procedure LookupName(CurrentSchedName: Code[10]; var EntrdSchedName: Text[10]): Boolean
     var
         AccSchedName: Record "FR Acc. Schedule Name";
@@ -71,5 +70,15 @@ codeunit 10802 "FR AccSchedManagement"
         EntrdSchedName := AccSchedName.Name;
         exit(true);
     end;
-}
 
+    procedure IsReportsFREnabled() Enabled: Boolean
+    begin
+        OnIsReportsFREnabled(Enabled);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnIsReportsFREnabled(var Enabled: Boolean)
+    begin
+    end;
+}
+#endif

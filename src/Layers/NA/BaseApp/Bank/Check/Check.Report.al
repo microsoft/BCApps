@@ -617,8 +617,7 @@ report 1401 Check
                                 DescriptionLine[2] := DescriptionLine[1];
                                 VoidText := Text022;
                             end;
-                        end
-                        else begin
+                        end else begin
                             CheckLedgEntry.Init();
                             CheckLedgEntry."Bank Account No." := BankAcc2."No.";
                             CheckLedgEntry."Posting Date" := GenJnlLine."Posting Date";
@@ -628,7 +627,7 @@ report 1401 Check
                             CheckLedgEntry."Entry Status" := CheckLedgEntry."Entry Status"::"Test Print";
                             CheckLedgEntry."Check Date" := GenJnlLine."Posting Date";
                             CheckLedgEntry."Check No." := UseCheckNo;
-                            CheckManagement.InsertCheck(CheckLedgEntry, RecordId);
+                            CheckManagement.InsertCheck(CheckLedgEntry, GenJnlLine.RecordId);
 
                             CheckAmountText := Text024;
                             DescriptionLine[1] := Text025;
@@ -1663,4 +1662,3 @@ report 1401 Check
     begin
     end;
 }
-
