@@ -2,7 +2,9 @@ namespace System.Security.AccessControl;
 
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
+#if not CLEAN30
 using Microsoft.FixedAssets.Depreciation;
+#endif
 
 permissionset 1001 "LOCAL"
 {
@@ -12,7 +14,12 @@ permissionset 1001 "LOCAL"
 
     IncludedPermissionSets = "LOCAL READ";
 
-    Permissions = tabledata "Depr. Diff. Posting Buffer" = IMD,
+    Permissions =
+#if not CLEAN30
+#pragma warning disable AL0432
+                  tabledata "Depr. Diff. Posting Buffer" = IMD,
+#pragma warning restore AL0432
+#endif
                   tabledata "Foreign Payment Types" = IMD,
                   tabledata "Ref. Payment - Exported" = IMD,
                   tabledata "Ref. Payment - Exported Buffer" = IMD,
