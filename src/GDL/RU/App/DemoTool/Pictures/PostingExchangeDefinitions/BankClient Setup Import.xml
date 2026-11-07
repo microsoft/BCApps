@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root>
+  <DataExchDef Code="IMPORT" Name="IMPORT" Type="0" ReadingWritingXMLport="1220" ExternalDataHandlingCodeunit="1240" ColumnSeparator="5" FileType="1" ColumnsAsRows="true" DocumentStartTag="СекцияДокумент">
+    <DataExchLineDef Code="DEFAULT" Name="DEFAULT" ColumnCount="0">
+      <DataExchColumnDef ColumnNo="10" Name="1CClientBankExchange" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="20" Name="ВерсияФормата=1.01" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="30" Name="Кодировка=Windows" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="60" Name="ДатаНачала" Show="false" DataType="1" DataFormat="dd.mm.yyyy" DataFormattingCulture="ru-RU" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="70" Name="ДатаКонца" Show="false" DataType="1" DataFormat="dd.mm.yyyy" DataFormattingCulture="ru-RU" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="80" Name="РасчСчет" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="90" Name="СекцияДокумент" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="100" Name="Номер" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="110" Name="Дата" Show="false" DataType="1" DataFormat="dd.mm.yyyy" DataFormattingCulture="ru-RU" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="120" Name="Сумма" Show="false" DataType="2" DataFormattingCulture="ru-RU" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="121" Name="ПлательщикСчет" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="122" Name="ПолучательСчет" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="140" Name="ПлательщикИНН" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="150" Name="Плательщик" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="151" Name="ПлательщикБИК" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="170" Name="ПлательщикБанк1" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="210" Name="ПолучательИНН" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="220" Name="Получатель" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="221" Name="ПолучательБИК" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="240" Name="ПолучательБанк" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="250" Name="НазначениеПлатежа" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="260" Name="ПлательщикКПП" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="270" Name="ПолучательКПП" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="290" Name="ВидОплаты" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="320" Name="КонецДокумента" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="330" Name="КонецФайла" Show="false" DataType="0" ColumnType="0" />
+      <DataExchMapping TableId="274" Name="IMPORT to Bank Acc. Reconciliation Line" MappingCodeunit="1248" DataExchNoFieldID="17" DataExchLineFieldID="18">
+        <DataExchFieldMapping ColumnNo="100" FieldID="4" />
+        <DataExchFieldMapping ColumnNo="110" FieldID="5" />
+        <DataExchFieldMapping ColumnNo="120" FieldID="7" />
+        <DataExchFieldMapping ColumnNo="121" FieldID="12401" />
+        <DataExchFieldMapping ColumnNo="122" FieldID="12409" />
+        <DataExchFieldMapping ColumnNo="140" FieldID="12402" />
+        <DataExchFieldMapping ColumnNo="150" FieldID="12403" />
+        <DataExchFieldMapping ColumnNo="151" FieldID="12404" />
+        <DataExchFieldMapping ColumnNo="170" FieldID="12405" Optional="true" Multiplier="0.00" />
+        <DataExchFieldMapping ColumnNo="210" FieldID="12410" />
+        <DataExchFieldMapping ColumnNo="220" FieldID="12411" />
+        <DataExchFieldMapping ColumnNo="221" FieldID="12412" />
+        <DataExchFieldMapping ColumnNo="240" FieldID="12413" Optional="true" Multiplier="0.00" />
+        <DataExchFieldMapping ColumnNo="250" FieldID="6" />
+        <DataExchFieldMapping ColumnNo="260" FieldID="12408" />
+        <DataExchFieldMapping ColumnNo="270" FieldID="12416" />
+      </DataExchMapping>
+    </DataExchLineDef>
+  </DataExchDef>
+</root>

@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<PayrollCalcFunctions>
+	<PayrollCalcFunction>
+		<Code>ADVANCE RATE DAYS</Code>
+		<Description>Advance amount by rate and working days</Description>
+		<FunctionNo>2242</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>ADVANCE RATE HOURS</Code>
+		<Description>Advance amount by rate and working hours</Description>
+		<FunctionNo>2232</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>AMOUNT YTD</Code>
+		<Description>Payroll Amount YTD</Description>
+		<FunctionNo>2005</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>BALANCE TO DATE</Code>
+		<Description>Balance to Date for current element</Description>
+		<FunctionNo>261</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>CAL DAYS ACTION</Code>
+		<Description>Calendar Action Days within Period</Description>
+		<FunctionNo>2107</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>CAL DAYS PERIOD</Code>
+		<Description>Calendar Days (Period)</Description>
+		<FunctionNo>2102</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>CAL DAYS WAGE PERIOD</Code>
+		<Description>Calendar Days (Wage Period)</Description>
+		<FunctionNo>2114</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>CAL HOURS PERIOD BY RATE</Code>
+		<Description>Amount by rate and calendar hours</Description>
+		<FunctionNo>2239</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>CAL WORK DAYS ACTION</Code>
+		<Description>Calendar Working Action Days within Period</Description>
+		<FunctionNo>2108</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>CAL WORK DAYS PERIOD</Code>
+		<Description>Calendar Working Days (Period)</Description>
+		<FunctionNo>2104</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>CAL WORK DAYS YEAR</Code>
+		<Description>Calendar Working Days per Year</Description>
+		<FunctionNo>2103</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>CAL WORK HOURS PERIOD</Code>
+		<Description>Calendar Working Hours (Period)</Description>
+		<FunctionNo>2105</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>CAL WORK HOURS YEAR</Code>
+		<Description>Calendar Working Hours per Year</Description>
+		<FunctionNo>2106</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>CALC BASE AMOUNT</Code>
+		<Description>Calculate Base Amount for Document</Description>
+		<FunctionNo>220</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>CALC BASE BALANCE</Code>
+		<Description>Calculate Base Balance for Ledger Entries</Description>
+		<FunctionNo>247</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>DEDUCTION AMOUNT BY QTY</Code>
+		<Description>Calculate deduction as rate multiplied by quantity</Description>
+		<FunctionNo>2030</FunctionNo>
+		<RangeType>Tax Deduction</RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>EARNINGS YTD</Code>
+		<Description>Total Earnings YTD</Description>
+		<FunctionNo>262</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>EMPLOYEE BASE SALARY</Code>
+		<Description>Employee Base Salary (Period)</Description>
+		<FunctionNo>2220</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>EMPLOYEE EXTRA SALARY</Code>
+		<Description>Employee Extra Salary (Period)</Description>
+		<FunctionNo>2221</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>EXTRAPAY BY HOURS</Code>
+		<Description>Extrapay by hours and time activity group</Description>
+		<FunctionNo>2241</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>GET AE DATA</Code>
+		<Description>Get average earnings data</Description>
+		<FunctionNo>2110</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>GET COEFFICIENT</Code>
+		<Description>Get range coefficient</Description>
+		<FunctionNo>255</FunctionNo>
+		<RangeType>Quantity</RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>GET DEDUCTION</Code>
+		<Description>Get deduction amount</Description>
+		<FunctionNo>249</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>GET MAX AMOUNT</Code>
+		<Description>Get range max amount</Description>
+		<FunctionNo>253</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>GET MIN AMOUNT</Code>
+		<Description>Get range min amount</Description>
+		<FunctionNo>252</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>GET SERVICE YEARS</Code>
+		<Description>Get number of service years</Description>
+		<FunctionNo>2300</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>GET START BALANCE</Code>
+		<Description>Get starting balance</Description>
+		<FunctionNo>2070</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>GET TAX RATE AMT</Code>
+		<Description>Get tax rate</Description>
+		<FunctionNo>2002</FunctionNo>
+		<RangeType>Deduction</RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>INCOME DISCOUNT</Code>
+		<Description>Income including eariler calculated amounts</Description>
+		<FunctionNo>2024</FunctionNo>
+		<RangeType>Tax Abatement</RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>INCOME TAX AMOUNT YTD</Code>
+		<Description>Total Income Tax Amount YTD</Description>
+		<FunctionNo>263</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>LABOR CONTRACT TYPE</Code>
+		<Description>Labor Contract = 0, Civil Contract = 1</Description>
+		<FunctionNo>2301</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>MAX DAILY AE PAY</Code>
+		<Description>Get maximal daily AE pay</Description>
+		<FunctionNo>2111</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>MAX MONTHLY AE PAY</Code>
+		<Description>Get maximum monthly AE pay</Description>
+		<FunctionNo>2112</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>MONTHLY RATE DAYS</Code>
+		<Description>Amount by rate and working days</Description>
+		<FunctionNo>2240</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>MONTHLY RATE HOURS</Code>
+		<Description>Amount by rate and working hours</Description>
+		<FunctionNo>2230</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>NDFL AMOUNT YTD</Code>
+		<Description>NDFL Amount YTD</Description>
+		<FunctionNo>2036</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>NDFL TAXABLE YTD</Code>
+		<Description>NDFL Taxable Amount YTD</Description>
+		<FunctionNo>2035</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>PAID FROM CASHDESK</Code>
+		<Description>Paid from cash desk</Description>
+		<FunctionNo>2033</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>PREV DEDUCTION AMOUNT</Code>
+		<Description>Received deduction YTD before employment (by 2-NDFL)</Description>
+		<FunctionNo>2043</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>PREV INCOME AMOUNT</Code>
+		<Description>Income amount YTD before employment (by 2-NDFL)</Description>
+		<FunctionNo>2040</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>PREV INCOME TAX ACCRUED</Code>
+		<Description>Income tax accrued YTD before employment (by 2-NDFL)</Description>
+		<FunctionNo>2041</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>PREV INCOME TAX PAID</Code>
+		<Description>Income tax paid YTD before employment (by 2-NDFL)</Description>
+		<FunctionNo>2042</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>PREV PERIOD RATE</Code>
+		<Description>Salary rate for previous period</Description>
+		<FunctionNo>2113</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>PROPERTY DEDUCTION</Code>
+		<Description>Calculate Property Deduction</Description>
+		<FunctionNo>2025</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>TIMESHEET DAYS</Code>
+		<Description>Timesheet Days (Period, Time Activity Group)</Description>
+		<FunctionNo>2101</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+	<PayrollCalcFunction>
+		<Code>TIMESHEET HOURS</Code>
+		<Description>Timesheet Hours (Period, Time Activity Group)</Description>
+		<FunctionNo>2100</FunctionNo>
+		<RangeType> </RangeType>
+	</PayrollCalcFunction>
+</PayrollCalcFunctions>

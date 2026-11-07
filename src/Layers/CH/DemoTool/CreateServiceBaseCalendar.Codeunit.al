@@ -1,0 +1,143 @@
+codeunit 117507 "Create Service Base Calendar"
+{
+
+    trigger OnRun()
+    begin
+        BaseCalChange.DeleteAll();
+        BaseCalendar.DeleteAll();
+
+        DemoDataSetup.Get();
+
+        InsertRec(XSERVICE, XServiceCalendar);
+        InsertRec(XCH, XCHBaseNationalCalendar);
+
+        InsertBaseCalChange(
+          XSERVICE, BaseCalChange."Recurring System"::"Weekly Recurring", BaseCalChange.Day::Saturday, true,
+          DateToDMY(0D), '');
+        InsertBaseCalChange(
+          XSERVICE, BaseCalChange."Recurring System"::"Weekly Recurring", BaseCalChange.Day::Sunday, true,
+          DateToDMY(0D), '');
+
+        InsertBaseCalChange(
+          XCH, BaseCalChange."Recurring System"::"Weekly Recurring", BaseCalChange.Day::Saturday, true,
+          DateToDMY(0D), XWeekend);
+        InsertBaseCalChange(
+          XCH, BaseCalChange."Recurring System"::"Weekly Recurring", BaseCalChange.Day::Sunday, true,
+          DateToDMY(0D), XWeekend);
+
+        InsertBaseCalChange(
+          XCH, BaseCalChange."Recurring System"::"Annual Recurring", BaseCalChange.Day::" ", true,
+          DateToDMY(19030101D), XNewYearsEve);
+        CheckHolidayDate(DateToDMY(19030101D), XNewYearsEve);
+
+        InsertBaseCalChange(
+          XCH, BaseCalChange."Recurring System"::"Annual Recurring", BaseCalChange.Day::" ", true,
+          DateToDMY(19030801D), XNatHol);
+        CheckHolidayDate(DateToDMY(19030801D), XNatHol);
+
+        InsertBaseCalChange(
+          XCH, BaseCalChange."Recurring System"::"Annual Recurring", BaseCalChange.Day::" ", true,
+          DateToDMY(19040501D), XDayofWork);
+        CheckHolidayDate(DateToDMY(19040501D), XDayofWork);
+
+        InsertBaseCalChange(
+          XCH, BaseCalChange."Recurring System"::"Annual Recurring", BaseCalChange.Day::" ", true,
+          DateToDMY(19031101D), XAHoly);
+        CheckHolidayDate(DateToDMY(19031101D), XAHoly);
+
+        InsertBaseCalChange(
+          XCH, BaseCalChange."Recurring System"::"Annual Recurring", BaseCalChange.Day::" ", true,
+          DateToDMY(19031225D), XChristmasDay);
+        CheckHolidayDate(DateToDMY(19031225D), XChristmasDay);
+
+        InsertBaseCalChange(
+          XCH, BaseCalChange."Recurring System"::"Annual Recurring", BaseCalChange.Day::" ", true,
+          DateToDMY(19031226D), XBoxingDay);
+        CheckHolidayDate(DateToDMY(19031226D), XBoxingDay);
+
+        // CreateSpecialHolidays();
+    end;
+
+    var
+        DemoDataSetup: Record "Demo Data Setup";
+        BaseCalChange: Record "Base Calendar Change";
+        BaseCalendar: Record "Base Calendar";
+        Date: Record Date;
+        StartDate: Date;
+        XSERVICE: Label 'SERVICE';
+        XServiceCalendar: Label 'Service Calendar';
+        XWeekend: Label 'Weekend';
+        XNewYearsEve: Label 'New Years Eve';
+        XChristmasDay: Label 'Christmas Day';
+        XBoxingDay: Label 'Boxing Day';
+        XCH: Label 'CH';
+        XCHBaseNationalCalendar: Label 'CH Base National Calendar';
+        XNatHol: Label 'National Holiday';
+        XDayofWork: Label 'Labor Day';
+        XAHoly: Label 'All Saints Day';
+
+    procedure InsertRec("Code": Code[10]; Name: Text[30])
+    begin
+        BaseCalendar.Init();
+        BaseCalendar.Code := Code;
+        BaseCalendar.Name := Name;
+        BaseCalendar.Insert();
+    end;
+
+    procedure InsertBaseCalChange("Code": Code[10]; "Recurring System": Option; Day: Option; Nonworking: Boolean; Date: Date; Description: Text[30])
+    begin
+        BaseCalChange.Init();
+        BaseCalChange."Base Calendar Code" := Code;
+        BaseCalChange."Recurring System" := "Recurring System";
+        BaseCalChange.Day := Day;
+        BaseCalChange.Nonworking := Nonworking;
+        BaseCalChange.Date := Date;
+        BaseCalChange.Description := Description;
+        if BaseCalChange.Insert() then;
+    end;
+
+    procedure CreateSpecialHolidays()
+    begin
+        // Call is outcommented
+        Error('CreateSpecialHolidays not in use');
+
+        //----------------------------------------------------------------
+        //My Bank Holiday, First and Last Monday of each May is a holiday
+        //----------------------------------------------------------------
+    end;
+
+    procedure GetPeriodNoOneDate(SkipDirection: Text[1]): Date
+    begin
+#pragma warning disable AA0205 // Accepted: this public legacy helper is retained for downstream compatibility, and its externally observable state-dependent behavior must remain unchanged. Tracked by AB#640773.
+        Date.Get(Date."Period Type"::Date, StartDate);
+#pragma warning restore AA0205
+        if Date."Period No." <> 1 then
+            repeat
+                Date.Find(SkipDirection);
+            until Date."Period No." = 1;
+        exit(Date."Period Start");
+    end;
+
+    procedure CheckHolidayDate(OriginalDate: Date; OriginalDescription: Text[30])
+    begin
+        Date.Get(Date."Period Type"::Date, OriginalDate);
+        if (Date."Period No." = 6) or (Date."Period No." = 7) then begin
+            OriginalDate := OriginalDate + 7 - Date."Period No." + 1;
+            InsertBaseCalChange(
+              XCH, BaseCalChange."Recurring System"::" ", BaseCalChange.Day::Monday, true, OriginalDate, OriginalDescription);
+        end;
+    end;
+
+    procedure DateToDMY(HolidayDate: Date): Date
+    var
+        MonthDay: Integer;
+        Month: Integer;
+    begin
+        if HolidayDate = 0D then
+            exit(0D);
+
+        MonthDay := Date2DMY(HolidayDate, 1);
+        Month := Date2DMY(HolidayDate, 2);
+        exit(DMY2Date(MonthDay, Month, (Date2DMY(HolidayDate, 3) + DemoDataSetup."Starting Year" - 2)));
+    end;
+}

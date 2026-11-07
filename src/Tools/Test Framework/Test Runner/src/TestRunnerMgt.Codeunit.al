@@ -32,8 +32,7 @@ codeunit 130454 "Test Runner - Mgt"
         ALTestRunnerResetEnvironment.Initialize();
         TestMethodLine.Copy(NewTestMethodLine);
         TestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
-        TestMethodLine.ModifyAll(Result, TestMethodLine.Result::" ");
-        TestMethodLine.ModifyAll("Error Message Preview", '');
+        TestMethodLine.ModifyAll(Result, TestMethodLine.Result::" ", "Error Message Preview", '');
 
         Commit();
 

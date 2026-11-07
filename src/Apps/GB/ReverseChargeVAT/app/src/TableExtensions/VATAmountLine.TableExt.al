@@ -1,0 +1,36 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Finance.VAT.Setup;
+
+using Microsoft.Finance.VAT.Calculation;
+
+tableextension 10552 "VAT Amount Line" extends "VAT Amount Line"
+{
+    fields
+    {
+#pragma warning disable AS0099 // Preserve the existing field ID for compatibility.
+        field(10507; "Reverse Charge GB"; Decimal)
+        {
+#pragma warning disable AA0474 // the amount is FCY but currency code is not known and not relevant in VAT Ammount Line
+            AutoFormatType = 1;
+#pragma warning restore AA0474
+            Caption = 'Reverse Charge';
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            begin
+                TestField("VAT %");
+                TestField("VAT Base");
+                if "VAT Amount" / "VAT Base" < 0 then
+                    Error(Text002Err, FieldCaption("VAT Amount"));
+                "VAT Difference" := "VAT Amount" - "Calculated VAT Amount";
+            end;
+        }
+#pragma warning restore AS0099
+    }
+
+    var
+        Text002Err: Label '%1 must not be negative.', Comment = '%1 = number';
+}

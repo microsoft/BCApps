@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Document;
 
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Utilities;
 using System.Environment.Configuration;
@@ -59,7 +58,7 @@ page 20407 "Qlty. Inspection Subform"
                     trigger OnAssistEdit()
                     begin
                         Rec.CalcFields("Test Value Type");
-                        if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Label" then
+                        if Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Label", Rec."Test Value Type"::"Value Type Text Expression"] then
                             exit;
                         UpdateRowData();
 
@@ -249,21 +248,15 @@ page 20407 "Qlty. Inspection Subform"
                 {
                     Caption = 'Note';
                     AccessByPermission = tabledata "Record Link" = R;
-                    Editable = CanEditLineNotes;
                     ToolTip = 'Specifies a free text note associated with the measurement.';
 
                     trigger OnAssistEdit()
                     begin
-                        if not CanEditLineNotes then
-                            Rec.RunModalReadOnlyComment()
-                        else
-                            Rec.RunModalEditMeasurementNote();
+                        Rec.RunModalEditMeasurementNote();
                     end;
 
                     trigger OnValidate()
                     begin
-                        if not CanEditLineNotes then
-                            exit;
                         Rec.SetMeasurementNote(MeasurementNote);
                     end;
                 }
@@ -273,14 +266,12 @@ page 20407 "Qlty. Inspection Subform"
 
     var
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         MatrixArrayConditionCellData: array[10] of Text;
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
         MatrixArrayCaptionSet: array[10] of Text;
         CanEditTestValue: Boolean;
         Visible1, Visible2, Visible3, Visible4, Visible5, Visible6, Visible7, Visible8, Visible9, Visible10 : Boolean;
-        CanEditLineNotes: Boolean;
         ShowUnitOfMeasure: Boolean;
         ResultStyleExpr: Text;
         MeasurementNote: Text;
@@ -294,8 +285,6 @@ page 20407 "Qlty. Inspection Subform"
     var
         MatrixVisibleState: array[10] of Boolean;
     begin
-        CanEditLineNotes := QltyPermissionMgmt.CanEditLineComments() and CurrPage.Editable();
-
         QltyResultConditionMgmt.GetDefaultPromotedResults(true, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
@@ -341,6 +330,9 @@ page 20407 "Qlty. Inspection Subform"
         QltySessionHelper.SetSessionValue(CurrentSelectedInspectionLineTok, Format(Rec.RecordId()));
     end;
 
+    /// <summary>
+    /// Updates the measurement note, editability, and promoted result data for the current line.
+    /// </summary>
     local procedure UpdateRowData()
     var
         DummyMatrixArrayCaptionSet: array[10] of Text;
@@ -365,24 +357,28 @@ page 20407 "Qlty. Inspection Subform"
         QltyResultConditionMgmt.GetPromotedResultsForInspectionLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
     end;
 
+    /// <summary>
+    /// Determines whether the test value on the current inspection line can be edited.
+    /// </summary>
+    /// <returns>True if the test value can be edited; otherwise, false.</returns>
     local procedure GetCanEditTestValue() Result: Boolean
     var
         IsHandled: Boolean;
     begin
         OnBeforeCanEditTestValue(Rec, Result, IsHandled);
         if IsHandled then
-            exit;
+            exit(Result);
 
         Rec.CalcFields("Test Value Type");
-        exit(not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Label"]));
+        exit(not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Label", Rec."Test Value Type"::"Value Type Text Expression"]));
     end;
 
     /// <summary>
-    /// Use this event to manipulate the decision if this inspection line can have it's test value edited or not.
+    /// Allows subscribers to override whether an inspection line's test value can be edited.
     /// </summary>
-    /// <param name="QltyInspectionLine"></param>
-    /// <param name="CanEditTestValue"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="QltyInspectionLine">The inspection line being evaluated.</param>
+    /// <param name="CanEditTestValue">The editable state to return.</param>
+    /// <param name="IsHandled">Set to true to use the supplied editable state.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCanEditTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var CanEditTestValue: Boolean; var IsHandled: Boolean)
     begin

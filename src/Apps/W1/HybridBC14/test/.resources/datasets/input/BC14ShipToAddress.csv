@@ -1,0 +1,9 @@
+Customer No.,Code,Name,Address,City,Post Code,Country/Region Code
+C00001,SHIP1,Contoso Warehouse,100 Dock St,Seattle,98101,US
+C00001,SHIP2,Contoso Backup,200 Lake Ave,Bellevue,98004,US
+C00002,SHIP1,Fabrikam Depot,200 Pier Ave,Redmond,98052,US
+C00004,SHIP1,Northwind London DC,15 Wharf St,London,E14 5AB,GB
+C00005,SHIP1,WWI Berlin DC,80 Industrie Str,Berlin,12109,DE
+C00005,SHIP2,WWI Hamburg DC,12 Hafen Weg,Hamburg,20457,DE
+C00007,SHIP1,Lucerne Print Plant,5 Imprimerie Rd,Lausanne,1004,CH
+C00008,SHIP1,Blue Yonder Hangar 7,7 Tarmac Way,Dallas,75201,US

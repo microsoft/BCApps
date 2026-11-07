@@ -8,6 +8,7 @@ namespace Microsoft.Integration.Shopify;
 using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -394,7 +395,7 @@ table 30118 "Shpfy Order Header"
         }
         field(82; "Closed At"; DateTime)
         {
-            Caption = 'Closed At';
+            Caption = 'Closed At (Shopify)';
             DataClassification = SystemMetadata;
             Editable = false;
         }
@@ -410,7 +411,7 @@ table 30118 "Shpfy Order Header"
         }
         field(87; "Processed At"; DateTime)
         {
-            Caption = 'Processed At';
+            Caption = 'Processed At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(89; "Shopify Order No."; Text[50])
@@ -426,7 +427,7 @@ table 30118 "Shpfy Order Header"
         }
         field(91; "Created At"; DateTime)
         {
-            Caption = 'Created At';
+            Caption = 'Created At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(92; "Source Name"; Code[20])
@@ -437,7 +438,7 @@ table 30118 "Shpfy Order Header"
         }
         field(93; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(94; "Shipping Charges Amount"; Decimal)
@@ -928,6 +929,23 @@ table 30118 "Shpfy Order Header"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        field(1070; "Tax Area Code"; Code[20])
+        {
+            Caption = 'Tax Area Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Tax Area";
+        }
+        field(1080; "Tax Liable"; Boolean)
+        {
+            Caption = 'Tax Liable';
+            DataClassification = CustomerContent;
+        }
+        field(1090; "Tax Exempt"; Boolean)
+        {
+            Caption = 'Tax Exempt';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
     }
     keys
     {
@@ -939,6 +957,9 @@ table 30118 "Shpfy Order Header"
         {
         }
         key(Key3; "Created At")
+        {
+        }
+        key(Key4; "Has Order State Error")
         {
         }
     }

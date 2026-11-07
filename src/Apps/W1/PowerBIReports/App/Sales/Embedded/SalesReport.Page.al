@@ -11,8 +11,8 @@ page 37060 "Sales Report"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Report';
-    AboutTitle = 'About Sales Report';
+    Caption = 'Sales Report (Power BI)';
+    AboutTitle = 'About Sales Report (Power BI)';
     AboutText = 'The Sales Report offers a consolidated view of all sales report pages, conveniently embedded into a single page for easy access.';
 
     layout

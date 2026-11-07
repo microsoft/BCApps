@@ -10,6 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Template;
 #endif
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Telemetry;
 
 report 20405 "Qlty. General Purpose Inspect."
 {
@@ -43,7 +44,7 @@ report 20405 "Qlty. General Purpose Inspect."
             column(QltyInspection_ReinspectionNo; CurrentInspection."Re-inspection No.") { }
             column(QltyInspection_Finished_By_User_ID; "Finished By User ID") { }
             column(QltyInspection_Finished_By_UserName; FinishedByUserName) { }
-            column(QltyInspection_Finished_By_Title; FinishedByUserName) { }
+            column(QltyInspection_Finished_By_Title; FinishedByTitle) { }
             column(QltyInspection_Finished_By_Email; FinishedByEmail) { }
             column(QltyInspection_Finished_By_Phone; FinishedByPhone) { }
             column(QltyInspection_Approver_Title; ApproverTitle) { }
@@ -314,6 +315,13 @@ report 20405 "Qlty. General Purpose Inspect."
         DateLabel = 'Date';
         LastModifiedByLabel = 'Last modified by';
     }
+
+    trigger OnPreReport()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Report, Report::"Qlty. General Purpose Inspect.", 'Print report General Purpose Inspection');
+    end;
 
     var
         Item: Record Item;

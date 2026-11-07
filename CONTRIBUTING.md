@@ -1,10 +1,12 @@
 # Contributing
 
+BCApps is the single home for Business Central application development. Whether you want to improve the **System Application**, the **Business Foundation**, the **Base Application**, one of Microsoft's **first-party apps**, or the **developer tools**, this is the place to do it — side-by-side with the Microsoft product team and the rest of the community.
+
 ## What to contribute
 
 This project primarily welcomes contributions of two types:
 
-- Pull Requests for pre-approved features, which are based on BC Ideas (http://aka.ms/bcideas) that have been picked as candidates for code contribution projects.
+- Pull Requests for pre-approved features. Linking a related [BC Idea](https://aka.ms/bcideas) is optional and can help demonstrate demand.
 - Pull Requests with fixes and improvements addressing pre-approved issues, which are non-customer reported.
 
 In either case, **an approved GitHub issue in state "approved", must exist, before a Pull Request can be created**. Once a Pull Request is created it **must** be linked to a GitHub issue.
@@ -44,7 +46,7 @@ Let's take a look at what it takes to contribute with **A)**:
 
 4. **Get a succesful build and code review approval**
 
-    Before your Pull Request can be merged, it must have successful required status checks, all conversations resolved and an approval from a code owner. This code review can be done by both Microsoft and members of the community. This ensures that quality of the code is on par with Microsoft's and the community's standards.
+    Before your Pull Request can be merged, it must have successful required status checks, all conversations resolved and an approval from a code owner. BCApps builds and tests run automatically through [AL-Go for GitHub](https://github.com/microsoft/AL-Go), and an automated **Copilot code review agent** inspects each PR and posts review comments against shared best practices (see [`tools/Code Review`](tools/Code%20Review/README.md) and [BCQuality](https://github.com/microsoft/BCQuality)). The human code review can be done by both Microsoft and members of the community. This ensures that quality of the code is on par with Microsoft's and the community's standards.
 
 5. **Final validation**
 
@@ -54,21 +56,25 @@ Let's take a look at what it takes to contribute with **A)**:
 
     You've reached the end! When the Pull Request is completed and merged, the change will ship with an upcoming release of the product.
 
-If you would like to add new capabilities to the product as described in **B)**, the process is similar to **A)**, except you need to link your issue to a idea on [BCIdeas](http://aka.ms/bcideas). Therefore, the process is as follows:
+If you would like to add new capabilities to the product as described in **B)**, follow the same approval process as **A)**:
 
-1. **Find or register your idea on [BCIdeas](http://aka.ms/bcideas)**
+1. **Create a feature contribution issue**
 
-- Start by searching for existing approved issues here on GitHub related to your idea. If you cannot find an approved issue, look for existing ideas on BCIdeas, which cover the scenario your were thinking about implementing; ideally ideas with some votes. If you find an idea you'd like to use as open source contribution issue, inform Microsoft that you intend to do a contribution and a product manager will tag the idea. In the less likely event that you don't find any idea which points in the direction of the feature you intended to work on, you can go ahead and log a new idea, describing the new capability you would like to add to the product. Don't forget mention that the idea is suitable for open source contribution.
-- Wait for approval: If you created a new idea, a Microsoft product manager will revise the idea. If the idea is aligned with the strategy of the application platform and is considered feasible to implement, the idea will get approved and marked as "open for contribution". Once the idea has "open for contribution" mentioned as part of idea title, an issue will be created and approved immediately in this repository.
-- Find allies: If you reused an existing idea, check [Application Functionality group on Business Central Yammer portal](https://www.yammer.com/dynamicsnavdev/#/threads/inGroup?type=in_group&feedId=8846299) for any input from other partners (just search for idea title). There you can also find partners in crime (= other developers with same issue) that can help with the development or review of your future PR.
+    Search existing GitHub issues first to avoid duplicates. If there is no issue covering your proposal, use the **Feature contribution** issue template to describe the problem, who it affects, and your proposed solution. Confirm that you intend to provide the implementation.
 
-2. **Get the issue into "approved" state**
+    A link to an existing [BC Idea](https://aka.ms/bcideas) is optional. An idea with many votes can strengthen the proposal by demonstrating demand, but neither an existing idea nor registering a new one is required.
 
-    Once the issue is created on GitHub, it still needs to be approved. Once approved, the rest of the process is identical to the process described in **A)**.
+    If you are suggesting a feature without intending to implement it yourself, use [BC Ideas](https://aka.ms/bcideas) instead.
 
-## Get to Know the System App
+2. **Wait for approval**
 
-Before updating the System Application, familiarize yourself with the following sites on Microsoft Learn:
+    Microsoft will review the GitHub issue for alignment with the product strategy and feasibility. Wait for the issue to receive the "approved" label before starting implementation. Once approved, continue from step 3 in **A)**.
+
+## Get to know the codebase
+
+BCApps spans the whole Business Central application platform, so the right starting point depends on what you're changing.
+
+**Working on the System Application?** Familiarize yourself with the following sites on Microsoft Learn:
 
 - [Module architecture](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
 - [Get started with modules](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
@@ -76,6 +82,8 @@ Before updating the System Application, familiarize yourself with the following 
 - [Create a new module](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-new-module)
 - [Create a .NET wrapper module](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-create-a-wrapper-module)
 - [Change a module](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-change-a-module)
+
+**Working on the Base Application, a first-party app, or a developer tool?** Many apps under `src/Apps` and `src/Tools` ship their own `README.md` describing their architecture and test setup — start there. The whole repository is built and tested with [AL-Go for GitHub](https://github.com/microsoft/AL-Go); the AL-Go projects are defined under `build/projects`.
 
 ## More Resources
 * This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).

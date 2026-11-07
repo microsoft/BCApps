@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ChartDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:schemas-microsoft-com:dynamics:NAV:MetaObjects" Type="Column">
+	<Title>
+		<Text ID="ENU">Purchases per Currency and Location Code</Text>
+	</Title>
+	<Table ID="38">
+		<Filters>
+			<Filter>
+				<Field Name="Document Type" />
+				<Value>1</Value>
+			</Filter>
+		</Filters>
+	</Table>
+	<XAxis ShowTitle="false">
+		<Title>
+			<Text ID="ENU">X axis title</Text>
+		</Title>
+		<Field Name="Currency Code" />
+		<Caption>
+			<Text ID="ENU">Dimension Caption</Text>
+		</Caption>
+	</XAxis>
+	<ZAxis ShowTitle="true">
+		<Title>
+			<Text ID="ENU">Location</Text>
+		</Title>
+		<Field Name="Location Code" />
+		<Caption>
+			<Text ID="ENU">Dimension Caption</Text>
+		</Caption>
+	</ZAxis>
+	<YAxis ShowTitle="false">
+		<Title>
+			<Text ID="ENU">Amount</Text>
+		</Title>
+		<Measures>
+			<Measure Operator="Sum">
+				<Field Name="Amount" />
+				<Caption>
+					<Text ID="ENU">Amount without VAT</Text>
+				</Caption>
+			</Measure>
+		</Measures>
+	</YAxis>
+</ChartDefinition>

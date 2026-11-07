@@ -8,8 +8,11 @@ namespace System.Test.Integration.Excel;
 using System;
 using System.Integration;
 using System.Integration.Excel;
+using System.Reflection;
+using System.Security.User;
 using System.TestLibraries.Integration.Excel;
 using System.TestLibraries.Utilities;
+
 codeunit 132525 "Edit in Excel Test"
 {
     Subtype = Test;
@@ -21,6 +24,9 @@ codeunit 132525 "Edit in Excel Test"
         EditInExcel: Codeunit "Edit in Excel";
         IsInitialized: Boolean;
         EventServiceName: Text[240];
+        EventBeforePageControlFieldFindSetPageId: Integer;
+        EventBeforePageControlFieldFindSetFireCount: Integer;
+        UserTableNotSupportedErr: Label 'Edit in Excel is not supported for pages that are based on the User table. To change users, use the Users or User Card page in Business Central.';
 
     [Test]
     procedure TestEditInExcelCreatesWebService()
@@ -107,6 +113,9 @@ codeunit 132525 "Edit in Excel Test"
         ForwardSlashesFieldName: Text;
         ManyForwardSlashesFieldName: Text;
         ForwardSlashesEmDashesAndUnderscoresFieldName: Text;
+        ArabicFieldName: Text;
+        JapaneseFieldName: Text;
+        AccentedLatinFieldName: Text;
     begin
         Init();
         FieldNameStartingWDigit := EditinExcelTestLibrary.ExternalizeODataObjectName('3field');
@@ -138,6 +147,11 @@ codeunit 132525 "Edit in Excel Test"
         // when converting from a special symbol to underscore(unless that special character is translated to a byte value).
         ForwardSlashesEmDashesAndUnderscoresFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('lager/_/-reklassfication field');
 
+        // Arabic, Japanese, and accented Latin BMP characters do not match any of the conversion rules so they pass through unchanged.
+        ArabicFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('مرحبا');
+        JapaneseFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('こんにちは');
+        AccentedLatinFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('café');
+
         LibraryAssert.AreEqual('field', RegularFieldName, 'Conversion alters name that does not begin with a string');
         LibraryAssert.AreEqual('_x0033_field', FieldNameStartingWDigit, 'Did not convert the name with number correctly');
         LibraryAssert.AreEqual('new_vendor_x0027_s_name', ApostropheFieldName, 'Did not convert the name with an apostrophe correctly');
@@ -149,6 +163,9 @@ codeunit 132525 "Edit in Excel Test"
         LibraryAssert.AreEqual('lager_reklassfication_field', ForwardSlashesFieldName, 'Did not convert the name with 2 forward slashes correctly');
         LibraryAssert.AreEqual('lager_reklassfication_field', ManyForwardSlashesFieldName, 'Did not convert the name with many forward slashes correctly');
         LibraryAssert.AreEqual('lager__reklassfication_field', ForwardSlashesEmDashesAndUnderscoresFieldName, 'Did not convert the name with forward slashes, em dash and underscores correctly');
+        LibraryAssert.AreEqual('مرحبا', ArabicFieldName, 'Arabic BMP characters should pass through unchanged');
+        LibraryAssert.AreEqual('こんにちは', JapaneseFieldName, 'Japanese hiragana BMP characters should pass through unchanged');
+        LibraryAssert.AreEqual('café', AccentedLatinFieldName, 'Accented Latin BMP characters should pass through unchanged');
     end;
 
     [Test]
@@ -225,6 +242,44 @@ codeunit 132525 "Edit in Excel Test"
         // [Then] Creating Workbook finishes successfully and downloads .xslx file
         EditinExcelTestLibrary.ReadFromJsonFilters(EditinExcelFilters, FilterJsonObject, PayloadJsonObject, Page::"Edit in Excel List");
         EditInExcel.EditPageInExcel('Edit in Excel', Page::"Edit in Excel List", EditinExcelFilters);
+    end;
+
+    [Test]
+    procedure TestEditInExcelIsBlockedForUserTablePage()
+    var
+        TenantWebService: Record "Tenant Web Service";
+        EditinExcelFilters: Codeunit "Edit in Excel Filters";
+    begin
+        // [SCENARIO] Edit in Excel cannot be used on pages that are based on the User table
+        TenantWebService.SetRange("Object Type", TenantWebService."Object Type"::Page);
+        TenantWebService.SetRange("Object ID", Page::"User Lookup");
+        TenantWebService.DeleteAll();
+
+        // [WHEN] Edit in Excel is invoked for a page with the User table as source table
+        asserterror EditInExcel.EditPageInExcel('User Lookup', Page::"User Lookup", EditinExcelFilters);
+
+        // [THEN] An error is raised and no web service is created
+        LibraryAssert.ExpectedError(UserTableNotSupportedErr);
+        LibraryAssert.RecordIsEmpty(TenantWebService);
+    end;
+
+    [Test]
+    procedure TestEditInExcelIsBlockedForUserTablePageWithExistingWebService()
+    var
+        TenantWebService: Record "Tenant Web Service";
+        EditinExcelFilters: Codeunit "Edit in Excel Filters";
+    begin
+        // [SCENARIO] Edit in Excel cannot be used on pages that are based on the User table, even if a web service already exists
+        TenantWebService.SetRange("Object Type", TenantWebService."Object Type"::Page);
+        TenantWebService.SetRange("Object ID", Page::"User Lookup");
+        TenantWebService.DeleteAll();
+        InsertTenantWebService(Page::"User Lookup", 'User Lookup_Excel', true, true, true);
+
+        // [WHEN] Edit in Excel is invoked for the page
+        asserterror EditInExcel.EditPageInExcel('User Lookup', Page::"User Lookup", EditinExcelFilters);
+
+        // [THEN] An error is raised
+        LibraryAssert.ExpectedError(UserTableNotSupportedErr);
     end;
 
     procedure GetServiceName(): Text[240]
@@ -398,5 +453,79 @@ codeunit 132525 "Edit in Excel Test"
 
         LibraryAssert.AreEqual(ExpectedNumberFilter, NumberFieldFilter.ToString(), 'The actual and expected filters are not equal');
         LibraryAssert.AreEqual(ExpectedCountryRegionCodeFilter, CountryRegionCodeFieldFilter.ToString(), 'The actual and expected filters are not equal');
+    end;
+
+    [Test]
+    procedure TestExternalizeODataObjectNamePublicWrapper()
+    var
+        EditinExcelTestLibrary: Codeunit "Edit in Excel Test Library";
+    begin
+        // [SCENARIO] The public ExternalizeODataObjectName procedure on codeunit "Edit in Excel" delegates to the same internal implementation that the Edit in Excel test library wraps. This test guards against refactor drift between the two wrappers, so that if either of them is ever changed (extra parameter, fast-path optimization, pre-processing step, inlined copy of the impl), the divergence shows up here.
+        Init();
+
+        // [THEN] The public wrapper and the test library wrapper agree on a clean ASCII name
+        LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('CustomerNumber'), EditInExcel.ExternalizeODataObjectName('CustomerNumber'), 'Public wrapper should match the test library wrapper for a clean ASCII name');
+
+        // [THEN] They agree on an ASCII name with a single space
+        LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('Posting Date'), EditInExcel.ExternalizeODataObjectName('Posting Date'), 'Public wrapper should match the test library wrapper for an ASCII name with a space');
+
+        // [THEN] They agree on Arabic BMP characters
+        LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('مرحبا'), EditInExcel.ExternalizeODataObjectName('مرحبا'), 'Public wrapper should match the test library wrapper for Arabic BMP characters');
+
+        // [THEN] They agree on Japanese hiragana BMP characters
+        LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('こんにちは'), EditInExcel.ExternalizeODataObjectName('こんにちは'), 'Public wrapper should match the test library wrapper for Japanese hiragana BMP characters');
+
+        // [THEN] They agree on accented Latin BMP characters
+        LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('café'), EditInExcel.ExternalizeODataObjectName('café'), 'Public wrapper should match the test library wrapper for accented Latin BMP characters');
+
+        // [THEN] They agree on a name that exercises the digit prefix, en-dash, and space rules together
+        LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('3 lager – reklassfication field'), EditInExcel.ExternalizeODataObjectName('3 lager – reklassfication field'), 'Public wrapper should match the test library wrapper for a name with digit prefix, en-dash, and spaces');
+    end;
+
+    [Test]
+    procedure TestOnBeforePageControlFieldFindSetEventFires()
+    var
+        TenantWebService: Record "Tenant Web Service";
+        EditinExcelFilters: Codeunit "Edit in Excel Filters";
+        EditInExcelList: Page "Edit in Excel List";
+    begin
+        // [SCENARIO] When EditPageInExcel runs, the new OnBeforePageControlFieldFindSet event is raised once with the page ID being exported, so subscribers can apply additional filters to the Page Control Field record.
+        Init();
+
+        // [GIVEN] No tenant web service for the page and no captured event state
+        TenantWebService.SetRange("Object Type", TenantWebService."Object Type"::Page);
+        TenantWebService.SetRange("Object ID", Page::"Edit in Excel List");
+        TenantWebService.DeleteAll();
+        EditInExcelTest.ResetCapturedBeforePageControlFieldFindSet();
+
+        // [WHEN] EditPageInExcel runs the export flow that iterates the Page Control Field record set
+        EditInExcel.EditPageInExcel(CopyStr(EditInExcelList.Caption, 1, 240), Page::"Edit in Excel List", EditinExcelFilters);
+
+        // [THEN] The subscriber was invoked exactly once with the page that is being exported
+        LibraryAssert.AreEqual(1, EditInExcelTest.GetCapturedBeforePageControlFieldFindSetFireCount(), 'OnBeforePageControlFieldFindSet event should fire exactly once per EditPageInExcel call');
+        LibraryAssert.AreEqual(Page::"Edit in Excel List", EditInExcelTest.GetCapturedBeforePageControlFieldFindSetPageId(), 'OnBeforePageControlFieldFindSet event should pass the exported page ID');
+    end;
+
+    procedure GetCapturedBeforePageControlFieldFindSetFireCount(): Integer
+    begin
+        exit(EventBeforePageControlFieldFindSetFireCount);
+    end;
+
+    procedure GetCapturedBeforePageControlFieldFindSetPageId(): Integer
+    begin
+        exit(EventBeforePageControlFieldFindSetPageId);
+    end;
+
+    procedure ResetCapturedBeforePageControlFieldFindSet()
+    begin
+        EventBeforePageControlFieldFindSetPageId := 0;
+        EventBeforePageControlFieldFindSetFireCount := 0;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Edit in Excel", 'OnBeforePageControlFieldFindSet', '', false, false)]
+    local procedure CaptureBeforePageControlFieldFindSet(var PageControlField: Record "Page Control Field"; PageId: Integer)
+    begin
+        EventBeforePageControlFieldFindSetPageId := PageId;
+        EventBeforePageControlFieldFindSetFireCount += 1;
     end;
 }

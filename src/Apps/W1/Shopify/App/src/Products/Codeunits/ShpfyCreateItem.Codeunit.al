@@ -7,6 +7,7 @@ namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Vendor;
@@ -25,6 +26,7 @@ codeunit 30171 "Shpfy Create Item"
         tabledata "Item Unit of Measure" = rim,
         tabledata "Item Variant" = rim,
         tabledata "Item Vendor" = rim,
+        tabledata "Tariff Number" = r,
         tabledata "Unit of Measure" = rim,
         tabledata Vendor = rim;
     TableNo = "Shpfy Variant";
@@ -233,6 +235,7 @@ codeunit 30171 "Shpfy Create Item"
         ItemVariant: Record "Item Variant";
         Vendor: Record Vendor;
         CurrencyExchangeRate: Record "Currency Exchange Rate";
+        ProcessOrder: Codeunit "Shpfy Process Order";
         CurrentTemplateCode: Code[20];
         ItemNo: Code[20];
         Code: Text;
@@ -271,6 +274,11 @@ codeunit 30171 "Shpfy Create Item"
                 Item.Validate("Unit Price", ShopifyVariant.Price)
             else
                 Item.Validate("Unit Price", Round(CurrencyExchangeRate.ExchangeAmtFCYToLCY(WorkDate(), Shop."Currency Code", ShopifyVariant.Price, CurrencyExchangeRate.ExchangeRate(WorkDate(), Shop."Currency Code"))));
+
+        if Shop."Sync HS Code and Country" then begin
+            Item.Validate("Tariff No.", GetTariffNo(ShopifyVariant."Tariff No."));
+            Item.Validate("Country/Region of Origin Code", ProcessOrder.GetCountryCode(ShopifyVariant."Country/Region of Origin Code"));
+        end;
 
         if ShopifyProduct."Product Type" <> '' then begin
             ItemCategory.SetFilter(Description, FilterMgt.CleanFilterValue(ShopifyProduct."Product Type", MaxStrLen(ItemCategory.Description)));
@@ -472,6 +480,37 @@ codeunit 30171 "Shpfy Create Item"
                     exit(UnitofMeasure.Code);
                 end;
             end;
+    end;
+
+    /// <summary>
+    /// Get Tariff No.
+    /// Returns the tariff number only when it already exists in Business Central, so importing a
+    /// product from Shopify does not create new Tariff Number records. Shopify returns the harmonized
+    /// system code without separators (e.g. "610443" instead of "6104.43"), so when there is no exact
+    /// match the lookup falls back to comparing the digits of the existing BC Tariff Numbers.
+    /// </summary>
+    /// <param name="TariffNo">Parameter of type Code[20]: the harmonized system code received from Shopify.</param>
+    /// <returns>Return value of type Code[20]: the matching Tariff Number, or empty if it does not exist.</returns>
+    internal procedure GetTariffNo(TariffNo: Code[20]): Code[20]
+    var
+        TariffNumber: Record "Tariff Number";
+        Digits: Text;
+    begin
+        if TariffNo = '' then
+            exit('');
+        if TariffNumber.Get(TariffNo) then
+            exit(TariffNo);
+
+        Digits := FilterMgt.KeepDigits(TariffNo);
+        if Digits = '' then
+            exit('');
+        TariffNumber.SetLoadFields("No.");
+        if TariffNumber.FindSet() then
+            repeat
+                if FilterMgt.KeepDigits(TariffNumber."No.") = Digits then
+                    exit(TariffNumber."No.");
+            until TariffNumber.Next() = 0;
+        exit('');
     end;
 
     /// <summary>

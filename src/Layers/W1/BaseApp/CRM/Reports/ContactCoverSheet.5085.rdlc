@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <AutoRefresh>0</AutoRefresh>
+  <DataSources>
+    <DataSource Name="DataSource">
+      <ConnectionProperties>
+        <DataProvider>SQL</DataProvider>
+        <ConnectString />
+      </ConnectionProperties>
+      <rd:SecurityType>None</rd:SecurityType>
+      <rd:DataSourceID>8bc91635-10bd-4f6f-a353-3c02ff67e77b</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <Height>2in</Height>
+        <Style />
+      </Body>
+      <Width>6.5in</Width>
+      <Page>
+        <Style />
+      </Page>
+    </ReportSection>
+  </ReportSections>
+  <Code>Public Function BlankZero(ByVal Value As Decimal)
+    if Value = 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankPos(ByVal Value As Decimal)
+    if Value &gt; 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankZeroAndPos(ByVal Value As Decimal)
+    if Value &gt;= 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankNeg(ByVal Value As Decimal)
+    if Value &lt; 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankNegAndZero(ByVal Value As Decimal)
+    if Value &lt;= 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+</Code>
+  <Language>=User!Language</Language>
+  <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
+  <rd:ReportUnitType>Inch</rd:ReportUnitType>
+  <rd:ReportID>0eeb6585-38ae-40f1-885b-8d50088d51b4</rd:ReportID>
+  <DataSets>
+    <DataSet Name="DataSet_Result">
+      <Fields>
+        <Field Name="CompanyInformationPhoneNo">
+          <DataField>CompanyInformationPhoneNo</DataField>
+        </Field>
+        <Field Name="CompanyInformationFaxNo">
+          <DataField>CompanyInformationFaxNo</DataField>
+        </Field>
+        <Field Name="CompanyInformationGiroNo">
+          <DataField>CompanyInformationGiroNo</DataField>
+        </Field>
+        <Field Name="CompanyInformationVATRegNo">
+          <DataField>CompanyInformationVATRegNo</DataField>
+        </Field>
+        <Field Name="CompanyInformationBankName">
+          <DataField>CompanyInformationBankName</DataField>
+        </Field>
+        <Field Name="CompanyInformationBankAccountNo">
+          <DataField>CompanyInformationBankAccountNo</DataField>
+        </Field>
+        <Field Name="Document_Date">
+          <DataField>Document_Date</DataField>
+        </Field>
+        <Field Name="ContactAddress1">
+          <DataField>ContactAddress1</DataField>
+        </Field>
+        <Field Name="ContactAddress2">
+          <DataField>ContactAddress2</DataField>
+        </Field>
+        <Field Name="ContactAddress3">
+          <DataField>ContactAddress3</DataField>
+        </Field>
+        <Field Name="ContactAddress4">
+          <DataField>ContactAddress4</DataField>
+        </Field>
+        <Field Name="ContactAddress5">
+          <DataField>ContactAddress5</DataField>
+        </Field>
+        <Field Name="ContactAddress6">
+          <DataField>ContactAddress6</DataField>
+        </Field>
+        <Field Name="ContactAddress7">
+          <DataField>ContactAddress7</DataField>
+        </Field>
+        <Field Name="ContactAddress8">
+          <DataField>ContactAddress8</DataField>
+        </Field>
+        <Field Name="CompanyAddress1">
+          <DataField>CompanyAddress1</DataField>
+        </Field>
+        <Field Name="CompanyAddress2">
+          <DataField>CompanyAddress2</DataField>
+        </Field>
+        <Field Name="CompanyAddress3">
+          <DataField>CompanyAddress3</DataField>
+        </Field>
+        <Field Name="CompanyAddress4">
+          <DataField>CompanyAddress4</DataField>
+        </Field>
+        <Field Name="CompanyAddress5">
+          <DataField>CompanyAddress5</DataField>
+        </Field>
+        <Field Name="CompanyAddress6">
+          <DataField>CompanyAddress6</DataField>
+        </Field>
+        <Field Name="CompanyAddress7">
+          <DataField>CompanyAddress7</DataField>
+        </Field>
+        <Field Name="CompanyAddress8">
+          <DataField>CompanyAddress8</DataField>
+        </Field>
+        <Field Name="CoverSheetTxt">
+          <DataField>CoverSheetTxt</DataField>
+        </Field>
+        <Field Name="PhoneNoTxt">
+          <DataField>PhoneNoTxt</DataField>
+        </Field>
+        <Field Name="FaxNoTxt">
+          <DataField>FaxNoTxt</DataField>
+        </Field>
+        <Field Name="VATRegNoTxt">
+          <DataField>VATRegNoTxt</DataField>
+        </Field>
+        <Field Name="GiroNoTxt">
+          <DataField>GiroNoTxt</DataField>
+        </Field>
+        <Field Name="BankTxt">
+          <DataField>BankTxt</DataField>
+        </Field>
+        <Field Name="BankAccountTxt">
+          <DataField>BankAccountTxt</DataField>
+        </Field>
+        <Field Name="BestRegardsTxt">
+          <DataField>BestRegardsTxt</DataField>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>DataSource</DataSourceName>
+        <CommandText />
+      </Query>
+    </DataSet>
+  </DataSets>
+</Report>

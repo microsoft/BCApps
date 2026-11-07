@@ -12,6 +12,8 @@ namespace System.Integration;
 codeunit 2718 "Page Summary Provider"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     #region OData API functions
     /// <summary>

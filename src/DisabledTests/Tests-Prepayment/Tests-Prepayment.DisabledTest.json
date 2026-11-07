@@ -1,0 +1,582 @@
+[
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "CalculateInvoiceDisAutomaticWith100PctPrepayment"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "CheckDocNoInGetShptLines"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "GainLossOfSalesInvoiceForPartialShipmentWith100PctPrepaymentInFCY"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "PurchasePrepmtLineAmountErrorOnPartialPostedInvoice"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesInvoiceGetShipmentLine"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesInvoiceGetShipmentLines"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesLinesInGetShpmtLinesNoPrepmt"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesLinesInGetShpmtLinesWithPrepmtAndFullShip"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesPrepmtInvoiceError"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesPrepmtInvoiceWithPartial"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesPrepmtLineAmountErrorOnPartialPostedInvoice"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesPrepmtLinesInGetShpmtLines"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesPrepmtPartialShipment"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesPrepmtWithCurrency"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesPrepmtWithEmptyTaxGroupCodeThrowsError"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesPrepmtWithModifyCurrency"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "ApplyAfterUnapplyPrepmtCreditMemo"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "ApplyPaymentAndPostPurchaseOrderWithCurrency"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "ApplyPaymentAndPostSalesOrderWithCurrency"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "CancelPostedPrePmtInvoiceThrowsError"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "CorrectPostedPrePmtInvoiceThrowsError"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "CreateCorrectiveCreditMemoOnPostedPrePmtInvoiceThrowsError"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "GLEntryAfterSalesPrepaymentInvoice"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "GLEntyAfterPurchasePrepaymentInvoice"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "PostedPrePmtInvoice"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "PostedPurchasePrepaymentInvoiceNoSeries"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "PostingDateOnPurchasePrepaymentCreditMemo"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "PostingDateOnPurchasePrepaymentInvoice"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "PostingDateOnSalesPrepaymentCreditMemo"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "PostingDateOnSalesPrepaymentInvoice"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "PrepmtAmountInvLCYAfterPostingPurchasePrepmt"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "PrepmtAmountInvLCYAfterPostingSalesPrepmt"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "PurchasePrepmtInvoiceWithCurrencyAndVAT"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "SalesOrderPrepmtPctStatistics"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "SalesOrderPrepmtPctStatisticsNM"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "SalesPrepmtInvoiceWithCurrencyAndVAT"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "SalesPrepmtVATMoreThanDocVAT_Error_OneLine"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "SalesPrepmtVATMoreThanDocVAT_Error_TwoLines"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "SalesPrepmtVATMoreThanDocVAT_TotalEquals_OneLine"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "SalesPrepmtVATMoreThanDocVAT_TotalEquals_TwoLines"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "SalesPrepmtVATMoreThanDocVATZero_Error_TwoLines"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "VATEntryAfterPostPrepmtCreditMemo"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "VATEntryAfterPostPrepmtInvoice"
+  },
+  {
+    "codeunitId": 134102,
+    "codeunitName": "ERM Prepayment III",
+    "method": "VATEntryAfterUnapplyPayment"
+  },
+  {
+    "codeunitId": 134103,
+    "codeunitName": "ERM Prepayment IV",
+    "method": "PurchasePrepamentInvoiceUsingCopyDocument"
+  },
+  {
+    "codeunitId": 134103,
+    "codeunitName": "ERM Prepayment IV",
+    "method": "SalesPrepaymentInvoiceUsingCopyDocument"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "PrepmtVATAmountOnInvoicedSalesOrderTFS258679"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "PrepmtVATAmountOnInvoicedShipmentTFS258679"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "PrepmtVATAmountSalesOrderPriceIncVATTFS356880"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "SalesOrder100PctPrepmtDimsTwoPartialShipAndOneFinalInvoice"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "SalesOrder100PctPrepmtWithInvDiscPartShip"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "SalesOrderWithPrepmtAndPartShipTFS346807"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "SalesPrepmtAndInvDiscEqualsTo100Pct_ExclVAT"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "SalesPrepmtAndInvDiscEqualsTo100Pct_InclVAT"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "SalesPrepmtAndInvDiscMoreThan100Pct_ExclVAT"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "SalesPrepmtAndInvDiscMoreThan100Pct_InclVAT"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "SalesPrepmtWithLineDiscountAndAmountRountingPrecision"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "SalesPrepmtWithNinePercentVATAndInvDiscount"
+  },
+  {
+    "codeunitId": 134104,
+    "codeunitName": "ERM Prepayment - VAT Rounding",
+    "method": "VerifyCLERemainingAmtLCYAfterPostPrepmtInvAndExchRateChanging"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "ErrorGLAccountMustHaveAValueIsShownForPurchasePrepaymentInvoiceWithMissingGenBusPostingGroupInGLAccount"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "ErrorGLAccountMustHaveAValueIsShownForSalesPrepaymentInvoiceWithMissingGenBusPostingGroupInGLAccount"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "PurchTwoLinesCustomInvWithIntegerPrecisionAndChangedTotalPrepmt"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "DeleteLinesFromSeparateInvoiceAfterFullPrepaymentAndShipment"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "ErrorDecreasingInvLineDiscountWith100PctPrepmtAfterGetShipment"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "ErrorDecreasingInvLineQuantityWith100PctPrepmtAfterGetShipment"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "ErrorDecreasingInvLineUnitPriceWith100PctPrepmtAfterGetShipment"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "ErrorIncreasingInvLineDiscountWith100PctPrepmtAfterGetShipment"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "ErrorIncreasingInvLineUnitPriceWith100PctPrepmtAfterGetShipment"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "FinalInvAfterRemoteInvNegExclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "FinalInvAfterRemoteInvNegInclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "FinalInvAfterRemoteInvPosExclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "FinalInvAfterRemoteInvPosInclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PartInvFinalInvNegExclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PartInvFinalInvNegInclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PartInvFinalInvPosExclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PartInvFinalInvPosInclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PartInvWithLineDiscExclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PartInvWithLineDiscInclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PostPartialInvoiceNegExclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PostPartialInvoiceNegInclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PostPartialInvoicePosExclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PostPartialInvoicePosInclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PostPartInvFinRemInvNegExclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PostPartInvFinRemInvNegInclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PostPartInvFinRemInvPosExclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PostPartInvFinRemInvPosInclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PostPartInvLineDiscFinRemInv"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "PrepmtLCYRoundingCalcEqualFinalInvoiceLCYRounding"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "ShipAllPartiallyGetShptsToInv"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "ShipTwiceGetShptsToInvNegExclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "ShipTwiceGetShptsToInvNegInclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "ShipTwiceGetShptsToInvPosExclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "ShipTwiceGetShptsToInvPosInclVAT"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "TwoDocLinesWithDiffVATGroupsPrepmt100PctCompressFCY"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "TwoDocLinesWithDiffVATGroupsPrepmt100PctCompressLCY"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "TwoDocLinesWithDiffVATGroupsPrepmt100PctNotCompressFCY"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "TwoDocLinesWithDiffVATGroupsPrepmt100PctNotCompressLCY"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "TwoDocLinesWithSameVATGroupsPrepmt100PctCompressFCY"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "TwoDocLinesWithSameVATGroupsPrepmt100PctCompressLCY"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "TwoDocLinesWithSameVATGroupsPrepmt100PctNotCompressFCY"
+  },
+  {
+    "codeunitId": 134108,
+    "codeunitName": "ERM Sales Full Prepmt Rounding",
+    "method": "TwoDocLinesWithSameVATGroupsPrepmt100PctNotCompressLCY"
+  },
+  {
+    "codeunitId": 134110,
+    "codeunitName": "ERM Prepayment ACY Posting",
+    "method": "PostPrepmtSalesCrMemoWhenAdjmtAndDifferentProdPostingGroups"
+  },
+  {
+    "codeunitId": 134110,
+    "codeunitName": "ERM Prepayment ACY Posting",
+    "method": "TFS353014_ACYAmountOnFinalInvoicePurch"
+  },
+  {
+    "codeunitId": 134110,
+    "codeunitName": "ERM Prepayment ACY Posting",
+    "method": "TFS353014_ACYAmountOnFinalInvoiceSales"
+  },
+  {
+    "codeunitId": 134110,
+    "codeunitName": "ERM Prepayment ACY Posting",
+    "method": "TFS353478_VATRoundingOnSalesPrpmtACY"
+  },
+  {
+    "codeunitId": 134110,
+    "codeunitName": "ERM Prepayment ACY Posting",
+    "method": "TFS356654_ACYAmountInSaleCreditMemo"
+  },
+  {
+    "codeunitId": 134333,
+    "codeunitName": "ERM Purchase Prepayments",
+    "method": "PostFCYPurchasePrepayment"
+  },
+  {
+    "codeunitId": 134333,
+    "codeunitName": "ERM Purchase Prepayments",
+    "method": "PostFCYPurchPrepCreditMemo"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "PurchaseOrderConsequentCompressedPrepaymentPostingWithCommentLines"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "PurchaseOrderConsequentCompressedPrepaymentPostingWithCommentLines_SetupDisabled"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "PurchaseOrderConsequentPrepaymentPostingWithCommentLines"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "PurchaseOrderConsequentPrepaymentPostingWithCommentLines_SetupDisabled"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "SalesOrderConsequentCompressedPrepaymentPostingWithCommentLines"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "SalesOrderConsequentCompressedPrepaymentPostingWithCommentLines_SetupDisabled"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "SalesOrderConsequentPrepaymentPostingWithCommentLines"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "SalesOrderConsequentPrepaymentPostingWithCommentLines_SetupDisabled"
+  }
+]

@@ -38,6 +38,11 @@ page 37202 "PEPPOL 3.0 Setup"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the PEPPOL 3.0 format to be used for electronic documents of type service.';
                 }
+                field("PEPPOL 3.0 Purchase Format"; Rec."PEPPOL 3.0 Purchase Format")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the PEPPOL 3.0 format to be used for electronic documents of type purchase.';
+                }
             }
         }
     }

@@ -11,8 +11,8 @@ page 37009 "Purchases Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchases Overview';
-    AboutTitle = 'About Purchases Overview';
+    Caption = 'Purchases Overview (Power BI)';
+    AboutTitle = 'About Purchases Overview (Power BI)';
     AboutText = 'The Purchase Overview provides high level insights into procurement performance, highlighting metrics such as Outstanding Quantities, Quantity Received not Invoiced and Invoice Quantity. ';
 
     layout

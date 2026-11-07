@@ -11,7 +11,7 @@ Each API operation lives in a `.graphql` resource file under
 `.resources/graphql/{Area}/{QueryName}.graphql`. Line 1 is a
 `# cost: N` comment declaring the expected cost points for rate limiting;
 lines 2+ contain the JSON-encoded GraphQL request body. The enum
-`Shpfy GraphQL Type` (`Enums/ShpfyGraphQLType.Enum.al`) maps 143 values
+`Shpfy GraphQL Type` (`Enums/ShpfyGraphQLType.Enum.al`) maps 149 values
 to their resource files -- it is a plain enum (`Extensible = false`)
 with no `implements` clause.
 
@@ -24,12 +24,16 @@ literal string replacement -- no escaping, no StrSubstNo. Callers
 format values correctly within the query template itself.
 
 Rate limiting is handled by `Shpfy GraphQL Rate Limit`, a SingleInstance
-codeunit that tracks Shopify's `restoreRate` and `currentlyAvailable`
-from throttle status and sleeps before requests that would exceed budget.
+codeunit that tracks Shopify's `restoreRate`, `currentlyAvailable`, and
+the time of the last throttle response. Before sleeping it credits the
+points restored since that response, then waits only for the remaining
+deficit.
+
+*Updated: 2026-07-29 -- rate limiter now credits elapsed restore time before sleeping*
 
 ## Things to know
 
-- 143 `.graphql` resource files replace the former query-builder
+- 149 `.graphql` resource files replace the former query-builder
   codeunits. Only `ShpfyGraphQLQueries` (dispatcher) and
   `ShpfyGraphQLRateLimit` remain as codeunits in this folder.
 - The enum is `Extensible = false`. The dispatcher fires no events --
@@ -37,6 +41,10 @@ from throttle status and sleeps before requests that would exceed budget.
 - Enum values follow `{Area}_{QueryName}` naming (e.g.,
   `Customers_GetCustomerIds`). Resource files live at
   `.resources/graphql/{Area}/{QueryName}.graphql`.
+- New query pairs for market-driven shipping and exchange lines keep the
+  same convention, including `Shipping_GetMarketShippingMethods`,
+  `Orders_GetOrderExchangeLineItems`, and `Refunds_GetRefundExchangeLines`
+  with matching `GetNext...` values for pagination.
 - 14 obsolete stub codeunits exist for previously-public GQL codeunits
   (ObsoleteState = Pending). They delegate to the new dispatcher and
   will be removed after the CLEAN29 transition.
@@ -45,4 +53,6 @@ from throttle status and sleeps before requests that would exceed budget.
 - Many operations come in pairs for cursor-based pagination (e.g.,
   `Customers_GetCustomerIds` / `Customers_GetNextCustomerIds`).
 - Cost values are hand-tuned integers, not computed. The API version is
-  pinned in `ShpfyCommunicationMgt` (currently `2026-01`), not here.
+  pinned in `ShpfyCommunicationMgt` (currently `2026-07`), not here.
+
+*Updated: 2026-07-29 -- query count and new paged query pairs refreshed*

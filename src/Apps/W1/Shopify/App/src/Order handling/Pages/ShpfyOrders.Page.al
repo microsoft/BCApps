@@ -113,7 +113,7 @@ page 30115 "Shpfy Orders"
                 field(CreatedAt; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the order was created.';
+                    ToolTip = 'Specifies the date and time when the order was created in Shopify.';
                 }
                 field(Confirmed; Rec.Confirmed)
                 {
@@ -292,6 +292,7 @@ page 30115 "Shpfy Orders"
             {
                 ApplicationArea = All;
                 Caption = 'Create Sales Documents';
+                Enabled = HasOrdersInCurrentView;
                 Image = MakeOrder;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -314,6 +315,7 @@ page 30115 "Shpfy Orders"
             {
                 ApplicationArea = All;
                 Caption = 'Sync Shipments To Shopify';
+                Enabled = HasShopifyOrders;
                 Image = Export;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -465,6 +467,23 @@ page 30115 "Shpfy Orders"
         }
     }
 
+    trigger OnFindRecord(Which: Text): Boolean
+    begin
+        HasOrdersInCurrentView := Rec.Find(Which);
+        exit(HasOrdersInCurrentView);
+    end;
+
+    trigger OnOpenPage()
+    var
+        ShopifyOrderHeader: Record "Shpfy Order Header";
+    begin
+        if Rec.GetFilter("Shop Code") <> '' then
+            ShopifyOrderHeader.SetFilter("Shop Code", Rec.GetFilter("Shop Code"));
+        HasShopifyOrders := not ShopifyOrderHeader.IsEmpty();
+    end;
+
     var
         ConfirmLbl: Label 'Create sales document(s) from the selected Shopify order(s)?';
+        HasOrdersInCurrentView: Boolean;
+        HasShopifyOrders: Boolean;
 }

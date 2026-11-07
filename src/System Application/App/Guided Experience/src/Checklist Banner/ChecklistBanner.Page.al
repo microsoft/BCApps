@@ -149,7 +149,7 @@ page 1990 "Checklist Banner"
             action(ShowEarlyAccessPreviewFeatures)
             {
                 ApplicationArea = All;
-                Caption = 'Show new Features and provide Feedback';
+                Caption = 'Show new features and provide feedback';
                 ToolTip = 'Show a list of new features in the early access preview and provide feedback.';
                 Visible = IsEarlyAccessPreview;
                 Image = AssessFinanceCharges;

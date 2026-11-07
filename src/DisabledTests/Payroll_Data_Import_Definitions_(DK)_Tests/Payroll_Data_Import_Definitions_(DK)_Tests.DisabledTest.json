@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 148045,
+    "codeunitName": "Test Payroll Imp. Gen. Jnl. Ln",
+    "method": "TestDatalonSampleImport"
+  },
+  {
+    "codeunitId": 148045,
+    "codeunitName": "Test Payroll Imp. Gen. Jnl. Ln",
+    "method": "TestMultilonSampleImport"
+  }
+]

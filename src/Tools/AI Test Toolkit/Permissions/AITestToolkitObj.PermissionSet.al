@@ -27,6 +27,7 @@ permissionset 149031 "AI Test Toolkit - Obj"
         codeunit "AIT Test Run Iteration" = X,
         codeunit "AIT Test Context" = X,
         codeunit "AIT Test Context Impl." = X,
+        codeunit "AIT Run Data Export" = X,
         codeunit "AIT Run History" = X,
         xmlport "AIT Test Suite Import/Export" = X,
         page "AIT Eval Monthly Copilot Cred." = X,
@@ -43,5 +44,7 @@ permissionset 149031 "AI Test Toolkit - Obj"
         page "AIT Test Suite" = X,
         page "AIT Test Suite List" = X,
         page "AIT Test Suite Language Lookup" = X,
+        page "AIT Log Entry Outcome Part" = X,
+        page "AIT Agent Log Entry Part" = X,
         page "AIT Run History" = X;
 }

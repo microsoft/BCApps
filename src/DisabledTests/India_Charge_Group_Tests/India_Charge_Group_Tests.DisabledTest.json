@@ -1,0 +1,207 @@
+[
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchCrMemoRegVendWithAvailmentChargeGroupInterState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchCrMemoRegVendWithAvailmentChargeGroupIntraState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchCrMemoRegVendWithNonAvailmentChargeGroupInterState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchCrMemoRegVendWithNonAvailmentChargeGroupIntraState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchInvCompositeVendWithAvailmentChargeGroupIntraState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchInvCompositeVendWithAvailmentFixValByAmtChargeGroupInterState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchInvCompositeVendWithNonAvailmentChargeGroupIntraState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchInvCompositeVendWithNonAvailmentFixValByAmtChargeGroupInterState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchInvImportVendWithAvailmentChargeGroupInterState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchInvImportVendWithNonAvailmentChargeGroupInterState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchInvRegVendWithAvailmentChargeGroupInterState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchInvRegVendWithAvailmentChargeGroupIntraState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchInvRegVendWithNonAvailmentChargeGroupInterState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchInvRegVendWithNonAvailmentChargeGroupIntraState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchInvSezVendWithAvailmentChargeGroupIntraState"
+  },
+  {
+    "codeunitId": 18990,
+    "codeunitName": "Purchase Charge Group",
+    "method": "PostFromPurchInvSezVendWithNonAvailmentChargeGroupIntraState"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "CorrectCancelFromPostedSalesInvRegCustIntraStateWithChargeGroup"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoExemptedCustInterStateWithChargeGroupAndGLCopyDoc"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoExemptedCustIntraStateWithChargeGroupAndGLCopyDoc"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoExemptedCustIntraStateWithChargeGroupGetPostedDoctoReverse"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoExportCustInterStateWithChargeGroupGetPostedDoctoReversePostGSTtoCustomer"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoRegCustInterStateWithChargeGroupAndGlCopyDoc"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoRegCustInterStateWithChargeGroupGetPostedDoctoReverse"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoRegCustIntraStateChargeGroupAndGlWithCopyDoc"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoRegCustIntraStateWithChargeGroupCopyDoc"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoRegCustIntraStateWithChargeGroupGetPostedDoctoReverse"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoRegCustIntraStateWithChargeGroupPerGetPostedDoctoReverse"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoSEZDevCustInterStateWithChargeGroupAndGLCopyDoc"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoSEZDevCustInterStateWithChargeGroupAndGLCopyDocPostGSTtoCustomer"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesCrMemoSEZDevCustInterStateWithChargeGroupAndGLCopyDocWithoutPayofDuty"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesInvDeemedExportCustInterStateWithChargeGroup"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesInvDeemedExportCustInterStateWithChargeGroupPostGSTtoCustomer"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesInvDeemedExportCustInterStateWithChargeGroupWithOutPaymentodDuty"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesInvExemptedCustInterStateWithChargeGroup"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesInvExemptedCustIntraStateWithChargeGroup"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesInvRegCustInterStateChargeItemAndGlWithChargeGroup"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesInvRegCustIntraStateWithChargeGroup"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesInvRegCustIntraStateWithChargeGroupandGL"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesInvSezDevCustInterStateWithChargeGroup"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesInvSezDevCustInterStateWithChargeGroupPostGSTtoCustomer"
+  },
+  {
+    "codeunitId": 18991,
+    "codeunitName": "Sales Charge Group",
+    "method": "PostFromSalesInvSezDevCustInterStateWithChargeGroupWithOutPaymentodDuty"
+  }
+]

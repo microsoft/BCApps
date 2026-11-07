@@ -73,7 +73,7 @@ codeunit 139551 "Shpfy Staff Test"
         // [When] The user tries to enable Auto Create Catalog
         // [Then] A field error is raised mentioning the field
         asserterror Shop.Validate("Auto Create Catalog", true);
-        LibraryAssert.ExpectedError('Auto Create Catalog');
+        LibraryAssert.ExpectedError(Shop.FieldCaption("Auto Create Catalog"));
 
         // [Given] The shop is upgraded to a plan that supports B2B catalogs
         Shop."Advanced Shopify Plan" := true;

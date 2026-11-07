@@ -1,0 +1,107 @@
+[
+  {
+    "codeunitId": 148095,
+    "codeunitName": "Swiss QR-Bill Test IncomingDoc",
+    "method": "CreateIncomingDocWhenXmlHasNonQRReference"
+  },
+  {
+    "codeunitId": 148095,
+    "codeunitName": "Swiss QR-Bill Test IncomingDoc",
+    "method": "CreateIncomingDocWhenXmlHasQRReference"
+  },
+  {
+    "codeunitId": 148095,
+    "codeunitName": "Swiss QR-Bill Test IncomingDoc",
+    "method": "CreatePurchInvFromIncomingDocWhenXmlHasQRReference"
+  },
+  {
+    "codeunitId": 148095,
+    "codeunitName": "Swiss QR-Bill Test IncomingDoc",
+    "method": "ScanFromPageList_IBANMatch_CreateInvoice"
+  },
+  {
+    "codeunitId": 148095,
+    "codeunitName": "Swiss QR-Bill Test IncomingDoc",
+    "method": "ScanFromPageList_IBANMatch_CreateJournal"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "BankCodeFillOnPurchaseInvoice"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "DocumentDateInGenJnlLineWhenBillInfoWithDocDate"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "DocumentDateInGenJnlLineWhenBillInfoWithoutDocDate"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "DocumentDateInPurchInvoiceWhenBillInfoWithDocDate"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "DocumentDateInPurchInvoiceWhenBillInfoWithoutDocDate"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "Invoice_Scan_PmtRefExists_Journal_Accept"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "Invoice_Scan_PmtRefExists_Journal_Deny"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "InvoiceScanQRBillWithOptionalInfo"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "InvoiceScanQRBillWithoutOptionalInfo"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "InvoiceScanQRBillZeroAmount"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "Journal_Scan_Success_Next"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "Journal_Scan_Success_Stop"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "Journal_Scan_VendotNotFound"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "Journal_UI_NoQRBill"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "Journal_UI_QRBill"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Swiss QR-Bill Test Purchases",
+    "method": "OrderScanQRBillZeroAmount"
+  }
+]

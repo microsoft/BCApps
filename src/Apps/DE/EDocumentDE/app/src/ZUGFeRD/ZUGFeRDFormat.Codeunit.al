@@ -1,0 +1,236 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Formats;
+
+using Microsoft.Bank.BankAccount;
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.IO.Peppol;
+using Microsoft.Foundation.Company;
+using Microsoft.Peppol.DE;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Service.Document;
+using Microsoft.Service.History;
+using System.IO;
+using System.Utilities;
+
+codeunit 13920 "ZUGFeRD Format" implements "E-Document"
+{
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
+    var
+        EDocPEPPOLBIS30: Codeunit "EDoc PEPPOL BIS 3.0";
+        EDocImportZUGFeRD: Codeunit "Import ZUGFeRD Document";
+        EDocumentDEHelper: Codeunit "E-Document DE Helper";
+        DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
+
+    procedure Check(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase")
+    var
+        CompanyInformation: Record "Company Information";
+        DEContext: Codeunit "PEPPOL30 DE Context";
+    begin
+        OnBeforeCheck(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
+        CheckCompanyInfoMandatory(CompanyInformation);
+        EDocumentDEHelper.CheckSellerContactMandatory(SourceDocumentHeader);
+        CheckBankAccountIBANMandatory(SourceDocumentHeader, CompanyInformation);
+        EDocumentDEHelper.CheckBuyerReferenceMandatory(EDocumentService, SourceDocumentHeader);
+        DEPaymentMeansHelper.CheckPaymentDataAvailable(SourceDocumentHeader);
+        DEContext.Start();
+        DEContext.SetSkipCustomerVATRegNoCheck(EDocumentDEHelper.HasRoutingNo(SourceDocumentHeader));
+        EDocPEPPOLBIS30.Check(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
+        DEContext.Stop();
+        OnAfterCheck(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
+    end;
+
+    procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
+    begin
+        CreateSourceDocumentBlob(SourceDocumentHeader, TempBlob, EDocumentService);
+    end;
+
+    procedure CreateBatch(EDocumentService: Record "E-Document Service"; var EDocuments: Record "E-Document"; var SourceDocumentHeaders: RecordRef; var SourceDocumentsLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
+    begin
+    end;
+
+    procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
+    begin
+        EDocImportZUGFeRD.ParseBasicInfo(EDocument, TempBlob);
+    end;
+
+    procedure GetCompleteInfoFromReceivedDocument(var EDocument: Record "E-Document"; var CreatedDocumentHeader: RecordRef; var CreatedDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
+    var
+        TempPurchaseHeader: Record "Purchase Header" temporary;
+        TempPurchaseLine: Record "Purchase Line" temporary;
+    begin
+        EDocImportZUGFeRD.ParseCompleteInfo(EDocument, TempPurchaseHeader, TempPurchaseLine, TempBlob);
+
+        CreatedDocumentHeader.GetTable(TempPurchaseHeader);
+        CreatedDocumentLines.GetTable(TempPurchaseLine);
+    end;
+
+    local procedure CreateSourceDocumentBlob(DocumentRecordRef: RecordRef; var TempBlob: Codeunit "Temp Blob"; EDocumentService: Record "E-Document Service")
+    var
+        TempRecordExportBuffer: Record "Record Export Buffer" temporary;
+        ExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
+        ZUGFeRDExportContext: Codeunit "ZUGFeRD Export Context";
+    begin
+        TempRecordExportBuffer.RecordID := DocumentRecordRef.RecordId;
+        TempRecordExportBuffer."Electronic Document Format" := Format(EDocumentService."Document Format");
+        TempRecordExportBuffer.Insert();
+
+        // The XML is built during report rendering, in a separate "Export ZUGFeRD Document" instance
+        // spawned by the report extension - a pre-Run setter cannot reach it. Carry the triggering
+        // service through the context so the report extension can push it onto that instance.
+        // Run is deliberately called as a statement: the error-catching form of Codeunit.Run is not
+        // permitted once the surrounding transaction has pending writes (which it has by the time the
+        // E-Document framework calls Create), so an export error propagates to the caller as before.
+        // Cleanup on that path is guaranteed by AL unbinding this local context instance when it goes
+        // out of scope, not by the explicit Stop() below.
+        ZUGFeRDExportContext.Start();
+        ZUGFeRDExportContext.SetEDocumentService(EDocumentService);
+        ExportZUGFeRDDocument.Run(TempRecordExportBuffer);
+        ZUGFeRDExportContext.Stop();
+
+        if not TempRecordExportBuffer."File Content".HasValue() then
+            exit;
+        TempBlob.FromRecord(TempRecordExportBuffer, TempRecordExportBuffer.FieldNo("File Content"));
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
+    local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)
+    var
+        EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
+    begin
+        if Rec."Document Format" <> Rec."Document Format"::ZUGFeRD then
+            exit;
+
+        if Rec."Read into Draft Impl." = Rec."Read into Draft Impl."::Unspecified then
+            Rec."Read into Draft Impl." := Rec."Read into Draft Impl."::ZUGFeRD;
+
+        EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
+        if not EDocServiceSupportedType.IsEmpty() then
+            exit;
+
+        EDocServiceSupportedType.Init();
+        EDocServiceSupportedType."E-Document Service Code" := Rec.Code;
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Sales Invoice";
+        EDocServiceSupportedType.Insert();
+
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Sales Credit Memo";
+        EDocServiceSupportedType.Insert();
+
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Invoice";
+        EDocServiceSupportedType.Insert();
+
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Credit Memo";
+        EDocServiceSupportedType.Insert();
+
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Service Invoice";
+        EDocServiceSupportedType.Insert();
+
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Service Credit Memo";
+        EDocServiceSupportedType.Insert();
+
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Service Order";
+        EDocServiceSupportedType.Insert();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"E-Document Log", OnBeforeExportDataStorage, '', false, false)]
+    local procedure HandleOnBeforeExportDataStorage(EDocumentLog: Record "E-Document Log"; var FileName: Text)
+    var
+        EDocumentService: Record "E-Document Service";
+        EDOCLogFileTxt: Label 'E-Document_Log_%1', Locked = true;
+    begin
+        if not EDocumentService.Get(EDocumentLog."Service Code") then
+            exit;
+
+        if EDocumentService."Document Format" <> EDocumentService."Document Format"::ZUGFeRD then
+            exit;
+
+        FileName := StrSubstNo(EDOCLogFileTxt, EDocumentLog."E-Doc. Entry No");
+        FileName += EDocumentService.GetDefaultFileExtension();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"E-Document Service", OnAfterGetDefaultFileExtension, '', false, false)]
+    local procedure HandleOnAfterGetDefaultFileExtension(EDocumentService: Record "E-Document Service"; var FileExtension: Text)
+    var
+        PDFFileTypeTok: Label '.pdf', Locked = true;
+    begin
+        if EDocumentService."Document Format" <> EDocumentService."Document Format"::ZUGFeRD then
+            exit;
+
+        FileExtension := PDFFileTypeTok;
+    end;
+
+    /// <summary>
+    /// Checks the Company Information data that the electronic document requires.
+    /// The E-Mail supplies the seller electronic address (BT-34), which ZUGFeRD requires
+    /// (PEPPOL-EN16931-R020). BT-34 is a party level routing address and is always taken from Company
+    /// Information, never from the salesperson, so it is independent of the seller contact (BG-6).
+    /// </summary>
+    local procedure CheckCompanyInfoMandatory(var CompanyInformation: Record "Company Information")
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.TestField("E-Mail");
+    end;
+
+    local procedure CheckBankAccountIBANMandatory(SourceDocumentHeader: RecordRef; var CompanyInformation: Record "Company Information")
+    var
+        BankAccount: Record "Bank Account";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        BankAccountCodeFieldRef: FieldRef;
+        CheckBankAccount: Boolean;
+        BankAccountCode: Code[20];
+        BankAccFieldNo: Integer;
+    begin
+        if not (SourceDocumentHeader.Number() in
+            [Database::"Sales Header",
+             Database::"Sales Invoice Header",
+             Database::"Sales Cr.Memo Header",
+             Database::"Service Header",
+             Database::"Service Invoice Header",
+             Database::"Service Cr.Memo Header"])
+        then
+            exit;
+
+        BankAccFieldNo := SalesInvoiceHeader.FieldNo("Company Bank Account Code");
+        if SourceDocumentHeader.Number() in [Database::"Service Header", Database::"Service Invoice Header", Database::"Service Cr.Memo Header"] then
+            BankAccFieldNo := ServiceInvoiceHeader.FieldNo("Company Bank Account Code");
+
+        BankAccountCodeFieldRef := SourceDocumentHeader.Field(BankAccFieldNo);
+        BankAccountCode := BankAccountCodeFieldRef.Value();
+
+        if BankAccountCode <> '' then
+            CheckBankAccount := BankAccount.Get(BankAccountCode);
+
+        if CheckBankAccount then
+            BankAccount.TestField(IBAN)
+        else
+            CompanyInformation.TestField(IBAN);
+    end;
+
+#if not CLEAN29
+#pragma warning disable AA0228
+    [Obsolete('Buyer Reference is resolved automatically via priority chain: Document field > Customer E-Invoice Routing No. > Your Reference.', '29.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnBuyerReferenceOnElseCase(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service")
+    begin
+    end;
+#pragma warning restore AA0228
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheck(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum Microsoft.eServices.EDocument."E-Document Processing Phase")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheck(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase")
+    begin
+    end;
+
+}

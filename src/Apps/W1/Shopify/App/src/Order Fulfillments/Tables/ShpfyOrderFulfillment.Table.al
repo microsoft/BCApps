@@ -28,12 +28,12 @@ table 30111 "Shpfy Order Fulfillment"
         }
         field(3; "Created At"; DateTime)
         {
-            Caption = 'Created At';
+            Caption = 'Created At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(4; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(5; "Tracking Number"; Text[30])
@@ -117,6 +117,11 @@ table 30111 "Shpfy Order Fulfillment"
             Caption = 'Contains Gift Cards';
             FieldClass = FlowField;
             CalcFormula = exist("Shpfy Fulfillment Line" where("Order Id" = field("Shopify Order Id"), "Is Gift Card" = const(true)));
+        }
+        field(19; "Delivered At"; DateTime)
+        {
+            Caption = 'Delivered At (Shopify)';
+            DataClassification = SystemMetadata;
         }
     }
 

@@ -97,5 +97,8 @@ table 8886 "Email Inbox"
         key(MessageId; "Message Id")
         {
         }
+        key(ExternalMessageId; "Account Id", "External Message Id")
+        {
+        }
     }
 }

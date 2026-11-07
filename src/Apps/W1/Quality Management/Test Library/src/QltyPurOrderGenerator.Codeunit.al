@@ -15,6 +15,10 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 
+/// <summary>
+/// Test helper that creates Purchase Orders, applies item tracking, receives them (including WMS scenarios), and
+/// generates Quality Inspections from purchase lines. Used by Quality Management automated tests.
+/// </summary>
 codeunit 139941 "Qlty. Pur. Order Generator"
 {
     var
@@ -25,13 +29,14 @@ codeunit 139941 "Qlty. Pur. Order Generator"
     /// <summary>
     /// Creates a Purchase Order and one purchase line for the provided item. Adds item tracking for the purchase line if necessary.
     /// </summary>
-    /// <param name="Qty">quantity of item on purchase line</param>
-    /// <param name="Location">location for purchase</param>
-    /// <param name="Item">item to be purchased</param>
-    /// <param name="Vendor">vendor for purchase</param>
-    /// <param name="OutOrderPurchaseHeader">the created purchase order</param>
-    /// <param name="OutPurchaseLine">the created purchase line</param>
-    /// <param name="OutOptionalReservationEntry">the last reservation entry created for the line if the item is tracked</param>
+    /// <param name="Qty">Quantity of the item on the purchase line.</param>
+    /// <param name="Location">Location for the purchase.</param>
+    /// <param name="Item">Item to be purchased.</param>
+    /// <param name="Vendor">Vendor for the purchase.</param>
+    /// <param name="OptionalVariant">Optional item variant code applied to the purchase line; pass empty to skip.</param>
+    /// <param name="OutOrderPurchaseHeader">The created purchase order.</param>
+    /// <param name="OutPurchaseLine">The created purchase line.</param>
+    /// <param name="OutOptionalReservationEntry">The last reservation entry created for the line if the item is tracked.</param>
     internal procedure CreatePurchaseOrder(Qty: Decimal; Location: Record Location; Item: Record Item; Vendor: Record Vendor; OptionalVariant: Code[10]; var OutOrderPurchaseHeader: Record "Purchase Header"; var OutPurchaseLine: Record "Purchase Line"; var OutOptionalReservationEntry: Record "Reservation Entry")
     begin
         LibraryPurchase.CreatePurchaseOrderWithLocation(OutOrderPurchaseHeader, Vendor."No.", Location.Code);
@@ -45,13 +50,14 @@ codeunit 139941 "Qlty. Pur. Order Generator"
             AddTrackingForPurchaseLine(OutPurchaseLine, Item, OutOptionalReservationEntry);
     end;
     /// <summary>
-    /// Creates a Purchase Order and one purchase line for the provided item. Adds item tracking for the purchase line if necessary.
+    /// Creates a Purchase Order with a newly created vendor and one purchase line for the provided item.
+    /// Adds item tracking for the purchase line if necessary.
     /// </summary>
-    /// <param name="Qty">quantity of item on purchase line</param>
-    /// <param name="Location">location for purchase</param>
-    /// <param name="Item">item to be purchased</param>
-    /// <param name="OutOrderPurchaseHeader">the created purchase order</param>
-    /// <param name="OutPurchaseLine">the created purchase line</param>
+    /// <param name="Qty">Quantity of the item on the purchase line.</param>
+    /// <param name="Location">Location for the purchase.</param>
+    /// <param name="Item">Item to be purchased.</param>
+    /// <param name="OutOrderPurchaseHeader">The created purchase order.</param>
+    /// <param name="OutPurchaseLine">The created purchase line.</param>
     internal procedure CreatePurchaseOrder(Qty: Decimal; Location: Record Location; Item: Record Item; var OutOrderPurchaseHeader: Record "Purchase Header"; var OutPurchaseLine: Record "Purchase Line")
     var
         Vendor: Record Vendor;
@@ -62,14 +68,15 @@ codeunit 139941 "Qlty. Pur. Order Generator"
     end;
 
     /// <summary>
-    /// Creates a Purchase Order and one purchase line for the provided item. Adds item tracking for the purchase line if necessary.
+    /// Creates a Purchase Order with a newly created vendor and one purchase line for the provided item.
+    /// Adds item tracking for the purchase line if necessary and returns the reservation entry.
     /// </summary>
-    /// <param name="Qty">quantity of item on purchase line</param>
-    /// <param name="Location">location for purchase</param>
-    /// <param name="Item">item to be purchased</param>
-    /// <param name="OutOrderPurchaseHeader">the created purchase order</param>
-    /// <param name="OutPurchaseLine">the created purchase line</param>
-    /// <param name="OutReservationEntry">the last reservation entry created for the line if the item is tracked</param>
+    /// <param name="Qty">Quantity of the item on the purchase line.</param>
+    /// <param name="Location">Location for the purchase.</param>
+    /// <param name="Item">Item to be purchased.</param>
+    /// <param name="OutOrderPurchaseHeader">The created purchase order.</param>
+    /// <param name="OutPurchaseLine">The created purchase line.</param>
+    /// <param name="OutReservationEntry">The last reservation entry created for the line if the item is tracked.</param>
     internal procedure CreatePurchaseOrder(Qty: Decimal; Location: Record Location; Item: Record Item; var OutOrderPurchaseHeader: Record "Purchase Header"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry")
     var
         Vendor: Record Vendor;
@@ -79,11 +86,12 @@ codeunit 139941 "Qlty. Pur. Order Generator"
     end;
 
     /// <summary>
-    /// Creates reservation entries for a tracked item on the purchase line.
+    /// Creates reservation entries for a tracked item on the purchase line. Generates lot, serial and package
+    /// numbers as required by the item's tracking code; for serial-tracked items one reservation entry is created per unit.
     /// </summary>
-    /// <param name="PurchaseLine">purchase line</param>
-    /// <param name="Item">tracked item</param>
-    /// <param name="OutReservationEntry">last created reservation entry</param>
+    /// <param name="PurchaseLine">The purchase line to attach tracking to.</param>
+    /// <param name="Item">The tracked item.</param>
+    /// <param name="OutReservationEntry">The last reservation entry created for the line.</param>
     internal procedure AddTrackingForPurchaseLine(PurchaseLine: Record "Purchase Line"; Item: Record Item; var OutReservationEntry: Record "Reservation Entry")
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -113,16 +121,22 @@ codeunit 139941 "Qlty. Pur. Order Generator"
     end;
 
     /// <summary>
-    /// Receives the created purchase order with a single purchase line.
+    /// Receives the entire outstanding quantity of the supplied purchase line, honoring the location's receipt/put-away requirements.
     /// </summary>
-    /// <param name="Location">location of purchase order</param>
-    /// <param name="OrderPurchaseHeader">purchase order to be received</param>
-    /// <param name="PurchaseLine">purchase line to be received</param>
+    /// <param name="Location">Location of the purchase order (unused; kept for backward compatibility).</param>
+    /// <param name="OrderPurchaseHeader">The purchase order to be received (unused; kept for backward compatibility).</param>
+    /// <param name="PurchaseLine">Purchase line to be received.</param>
     internal procedure ReceivePurchaseOrder(Location: Record Location; var OrderPurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
     begin
         ReceivePurchaseLine(PurchaseLine, PurchaseLine."Outstanding Quantity");
     end;
 
+    /// <summary>
+    /// Receives the requested quantity from a purchase line, handling both simple posting and full WMS (warehouse receipt +
+    /// put-away, or inventory put-away) flows based on the line's location configuration.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line to receive.</param>
+    /// <param name="QtyToReceive">Quantity to receive; pass 0 with a receive-required location to auto-fill from outstanding quantity.</param>
     internal procedure ReceivePurchaseLine(var PurchaseLine: Record "Purchase Line"; QtyToReceive: Decimal)
     var
         WhseWarehouseReceiptHeader: Record "Warehouse Receipt Header";
@@ -180,13 +194,14 @@ codeunit 139941 "Qlty. Pur. Order Generator"
     end;
 
     /// <summary>
-    /// Creates an item without tracking, creates a purchase order for that item, then creates an inspection
+    /// Creates an item without tracking, creates a purchase order for that item, then creates a Quality Inspection
+    /// for the purchase line using the currently configured generation rules.
     /// </summary>
-    /// <param name="Location"></param>
-    ///<param name="PurchaseQuantity"></param>
-    /// <param name="PurchaseHeader"></param>
-    /// <param name="PurchaseLine"></param>
-    /// <param name="OutQltyInspectionHeader"></param>
+    /// <param name="Location">Location used for the purchase order.</param>
+    /// <param name="PurchaseQuantity">Quantity to place on the purchase line.</param>
+    /// <param name="PurchaseHeader">The created purchase order header.</param>
+    /// <param name="PurchaseLine">The created purchase line.</param>
+    /// <param name="OutQltyInspectionHeader">The Quality Inspection created from the purchase line, when one is generated.</param>
     internal procedure CreateInspectionFromPurchaseWithUntrackedItem(var Location: Record Location; PurchaseQuantity: Decimal; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         Item: Record Item;
@@ -208,14 +223,15 @@ codeunit 139941 "Qlty. Pur. Order Generator"
     end;
 
     /// <summary>
-    /// Creates an item with lot tracking, creates a purchase order for that item, then creates an inspection
+    /// Creates an item with lot tracking, creates a purchase order for that item, then creates a Quality Inspection
+    /// for the purchase line using the currently configured generation rules and the assigned tracking.
     /// </summary>
-    /// <param name="Location"></param>
-    /// <param name="PurchaseQuantity"></param>
-    /// <param name="PurchaseHeader"></param>
-    /// <param name="PurchaseLine"></param>
-    /// <param name="OutQltyInspectionHeader"></param>
-    /// <param name="OutReservationEntry"></param>
+    /// <param name="Location">Location used for the purchase order.</param>
+    /// <param name="PurchaseQuantity">Quantity to place on the purchase line.</param>
+    /// <param name="PurchaseHeader">The created purchase order header.</param>
+    /// <param name="PurchaseLine">The created purchase line.</param>
+    /// <param name="OutQltyInspectionHeader">The Quality Inspection created from the purchase line, when one is generated.</param>
+    /// <param name="OutReservationEntry">The reservation entry created for the tracked purchase line.</param>
     internal procedure CreateInspectionFromPurchaseWithLotTrackedItem(var Location: Record Location; PurchaseQuantity: Decimal; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutReservationEntry: Record "Reservation Entry")
     var
         Item: Record Item;

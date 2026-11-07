@@ -41,5 +41,7 @@ codeunit 149036 "AIT Run History"
 
         if (LineNo <> 0) then
             TempAITRunHistory.SetRange("Line No. Filter", LineNo)
+        else
+            TempAITRunHistory.SetRange("Line No. Filter");
     end;
 }

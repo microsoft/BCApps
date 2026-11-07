@@ -1,0 +1,36 @@
+{
+  "conditionalSettings": [
+    {
+      "triggers": [
+        "push"
+      ],
+      "settings": {
+        "projects": [
+          "build/projects/Apps W1",
+          "build/projects/Apps AT",
+          "build/projects/Apps AU",
+          "build/projects/Apps BE",
+          "build/projects/Apps CA",
+          "build/projects/Apps CH",
+          "build/projects/Apps CZ",
+          "build/projects/Apps DE",
+          "build/projects/Apps DK",
+          "build/projects/Apps ES",
+          "build/projects/Apps FI",
+          "build/projects/Apps FR",
+          "build/projects/Apps GB",
+          "build/projects/Apps IN",
+          "build/projects/Apps IS",
+          "build/projects/Apps IT",
+          "build/projects/Apps MX",
+          "build/projects/Apps NL",
+          "build/projects/Apps NO",
+          "build/projects/Apps NZ",
+          "build/projects/Apps RU",
+          "build/projects/Apps SE",
+          "build/projects/Apps US"
+        ]
+      }
+    }
+  ]
+}

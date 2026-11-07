@@ -308,8 +308,8 @@ codeunit 148157 "Service Object Test"
         SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
         SubscriptionLine.FindFirst();
 
-        // [GIVEN] The Subscription Line End Date, Term Until, and Cancellation Possible Until are populated
-        Assert.AreNotEqual(0D, SubscriptionLine."Subscription Line End Date", '"Service End Date" not set.');
+        // [GIVEN] End Date is not auto-set because Subsequent Term (Extension Term) is defined; Term Until and Cancellation are still populated
+        Assert.AreEqual(0D, SubscriptionLine."Subscription Line End Date", '"Service End Date" should not be set when Subsequent Term is defined.');
         Assert.AreNotEqual(0D, SubscriptionLine."Term Until", '"Term Until" not set.');
         Assert.AreNotEqual(0D, SubscriptionLine."Cancellation Possible Until", '"Cancellation Possible Until" is not set.');
 
@@ -687,6 +687,34 @@ codeunit 148157 "Service Object Test"
         // [THEN] Subscription Line End Date remains empty (0D)
         SubscriptionLine.TestField("Subscription Line End Date", 0D);
     end;
+
+    [Test]
+    procedure CheckSubscriptionLineEndDateNotSetWhenSubsequentTermIsUsed()
+    var
+        Item: Record Item;
+        SubscriptionLine: Record "Subscription Line";
+        SubscriptionHeader: Record "Subscription Header";
+        DateFormulaVariable: DateFormula;
+    begin
+        // [SCENARIO] CalculateServiceEndDate does not set End Date when Subsequent Term (Extension Term) is defined
+        Initialize();
+
+        SetupServiceObjectWithServiceCommitment(Item, SubscriptionHeader, false, false);
+        FindServiceCommitment(SubscriptionLine, SubscriptionHeader."No.");
+
+        // [GIVEN] A Subscription Line with Start Date, Initial Term of 1 month, and Subsequent Term of 1 month
+        SubscriptionLine.Validate("Subscription Line Start Date", WorkDate());
+        Evaluate(DateFormulaVariable, '<1M>');
+        SubscriptionLine.Validate("Initial Term", DateFormulaVariable);
+        SubscriptionLine.Validate("Extension Term", DateFormulaVariable);
+
+        // [WHEN] CalculateServiceEndDate is called
+        SubscriptionLine.CalculateServiceEndDate();
+
+        // [THEN] Subscription Line End Date remains empty because Subsequent Term is defined
+        SubscriptionLine.TestField("Subscription Line End Date", 0D);
+    end;
+
 
     [Test]
     procedure CheckServiceCommitmentServiceInitialTerminationDatesCalculation()
@@ -1653,6 +1681,7 @@ codeunit 148157 "Service Object Test"
         Item: Record Item;
         SubscriptionHeader: Record "Subscription Header";
         SubscriptionLine: Record "Subscription Line";
+        DateFormulaManagement: Codeunit "Date Formula Management";
         DateTimeManagement: Codeunit "Date Time Management";
         ExpectedCancellationPossibleUntil: Date;
         ExpectedTermUntil: Date;
@@ -1687,10 +1716,10 @@ codeunit 148157 "Service Object Test"
 
         // [THEN] "Cancellation possible until" and "Term until" are recalculated
         ExpectedTermUntil := CalcDate(SubscriptionLine."Extension Term", SubscriptionLine."Subscription Line Start Date" - 1);
-        if DateTimeManagement.IsLastDayOfMonth(SubscriptionLine."Subscription Line Start Date" - 1) then
+        if DateTimeManagement.IsLastDayOfMonth(SubscriptionLine."Subscription Line Start Date" - 1) and DateFormulaManagement.IsMonthBasedDateFormula(SubscriptionLine."Extension Term") then
             DateTimeManagement.MoveDateToLastDayOfMonth(ExpectedTermUntil);
         ExpectedCancellationPossibleUntil := CalcDate('-' + Format(SubscriptionLine."Notice Period"), SubscriptionLine."Term until");
-        if DateTimeManagement.IsLastDayOfMonth(ExpectedTermUntil) then
+        if DateTimeManagement.IsLastDayOfMonth(ExpectedTermUntil) and DateFormulaManagement.IsMonthBasedDateFormula(SubscriptionLine."Notice Period") then
             DateTimeManagement.MoveDateToLastDayOfMonth(ExpectedCancellationPossibleUntil);
         Assert.AreEqual(ExpectedTermUntil, SubscriptionLine."Term until", 'Term until should be recalculated.');
         Assert.AreEqual(ExpectedCancellationPossibleUntil, SubscriptionLine."Cancellation possible until", 'Cancellation possible until should be recalculated.');
@@ -1820,6 +1849,7 @@ codeunit 148157 "Service Object Test"
     local procedure GetUpdatedCancellationPossibleUntilDate(CalculationStartDate: Date; SourceServiceCommitment: Record "Subscription Line") CancellationPossibleUntil: Date
     var
         CalendarManagement: Codeunit "Calendar Management";
+        DateFormulaManagement: Codeunit "Date Formula Management";
         DateTimeManagement: Codeunit "Date Time Management";
         NegativeDateFormula: DateFormula;
     begin
@@ -1827,7 +1857,7 @@ codeunit 148157 "Service Object Test"
             exit(0D);
         CalendarManagement.ReverseDateFormula(NegativeDateFormula, SourceServiceCommitment."Notice Period");
         CancellationPossibleUntil := CalcDate(NegativeDateFormula, CalculationStartDate);
-        if DateTimeManagement.IsLastDayOfMonth(SourceServiceCommitment."Term Until") then
+        if DateTimeManagement.IsLastDayOfMonth(SourceServiceCommitment."Term Until") and DateFormulaManagement.IsMonthBasedDateFormula(SourceServiceCommitment."Notice Period") then
             DateTimeManagement.MoveDateToLastDayOfMonth(CancellationPossibleUntil);
     end;
 
@@ -1887,10 +1917,14 @@ codeunit 148157 "Service Object Test"
 
     local procedure TestSubscriptionLineUpdatedTerminationDates(OldSubscriptionLine: Record "Subscription Line"; UpdatedSubscriptionLine: Record "Subscription Line")
     var
+        DateFormulaManagement: Codeunit "Date Formula Management";
+        DateTimeManagement: Codeunit "Date Time Management";
         ExpectedTermUntilDate: Date;
         ExpectedCancellationPossibleUntilDate: Date;
     begin
         ExpectedTermUntilDate := CalcDate(OldSubscriptionLine."Extension Term", OldSubscriptionLine."Term Until");
+        if DateTimeManagement.IsLastDayOfMonth(OldSubscriptionLine."Term Until") and DateFormulaManagement.IsMonthBasedDateFormula(OldSubscriptionLine."Extension Term") then
+            DateTimeManagement.MoveDateToLastDayOfMonth(ExpectedTermUntilDate);
         Assert.AreEqual(ExpectedTermUntilDate, UpdatedSubscriptionLine."Term Until", '"Term Until" Date is not calculated correctly.');
         ExpectedCancellationPossibleUntilDate := GetUpdatedCancellationPossibleUntilDate(UpdatedSubscriptionLine."Term Until", UpdatedSubscriptionLine);
         Assert.AreEqual(ExpectedCancellationPossibleUntilDate, UpdatedSubscriptionLine."Cancellation Possible Until", '"Cancellation Possible Until" Date is not calculated correctly.');
@@ -1921,15 +1955,21 @@ codeunit 148157 "Service Object Test"
 
     local procedure VerifySubscriptionLineDates(var SubscriptionLine: Record "Subscription Line"; StartDate: Date; InitialTerm: Text; NoticePeriod: Text)
     var
+        DateFormulaManagement: Codeunit "Date Formula Management";
         DateTimeManagement: Codeunit "Date Time Management";
+        NoticePeriodDateFormula: DateFormula;
         ExpectedEndDate: Date;
         ExpectedTermUntil: Date;
         ExpectedCancellationPossibleUntil: Date;
     begin
-        ExpectedEndDate := CalcDate(InitialTerm + '-1D', StartDate);
-        ExpectedTermUntil := ExpectedEndDate;
+        ExpectedTermUntil := CalcDate(InitialTerm + '-1D', StartDate);
+        if Format(SubscriptionLine."Extension Term") = '' then
+            ExpectedEndDate := ExpectedTermUntil
+        else
+            ExpectedEndDate := 0D;
         ExpectedCancellationPossibleUntil := CalcDate('-' + NoticePeriod, ExpectedTermUntil);
-        if DateTimeManagement.IsLastDayOfMonth(ExpectedTermUntil) then
+        Evaluate(NoticePeriodDateFormula, NoticePeriod);
+        if DateTimeManagement.IsLastDayOfMonth(ExpectedTermUntil) and DateFormulaManagement.IsMonthBasedDateFormula(NoticePeriodDateFormula) then
             DateTimeManagement.MoveDateToLastDayOfMonth(ExpectedCancellationPossibleUntil);
 
         SubscriptionLine.TestField("Subscription Line Start Date", StartDate);

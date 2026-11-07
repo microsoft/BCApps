@@ -1,0 +1,61 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.DemoData.FixedAsset;
+
+using Microsoft.DemoData.Finance;
+using Microsoft.FixedAssets.FixedAsset;
+
+codeunit 10807 "Create ES FA Posting Group"
+{
+    SingleInstance = true;
+    EventSubscriberInstance = Manual;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
+    var
+        DerogatoryBalAccUpdated: Boolean;
+
+    [EventSubscriber(ObjectType::Table, Database::"FA Posting Group", 'OnBeforeInsertEvent', '', false, false)]
+    local procedure OnBeforeInsertFAPostingGroups(var Rec: Record "FA Posting Group")
+    var
+        CreateFAPostingGrp: Codeunit "Create FA Posting Group";
+        CreateESGLAccounts: Codeunit "Create ES GL Accounts";
+        CreateGLAccount: Codeunit "Create G/L Account";
+    begin
+        if not DerogatoryBalAccUpdated then begin
+            // Runs in the FixedAsset module, after all Finance G/L accounts (incl. the renumbered derogatory
+            // accounts and ProfitOrLoss) exist, so the balancing account can now be set on them reliably.
+            CreateESGLAccounts.UpdateDerogatoryIncomeStmtBalAcc();
+            DerogatoryBalAccUpdated := true;
+        end;
+
+        case Rec.Code of
+            CreateFAPostingGrp.Equipment(),
+            CreateFAPostingGrp.Goodwill(),
+            CreateFAPostingGrp.Plant(),
+            CreateFAPostingGrp.Property(),
+            CreateFAPostingGrp.Vehicles():
+                ValidateRecordFields(Rec, CreateESGLAccounts.IndustrialMachinery(), CreateESGLAccounts.DepIndustrialMachinery(), CreateESGLAccounts.IndustrialMachinery(), CreateESGLAccounts.DepIndustrialMachinery(), '', CreateESGLAccounts.LossOnTangAssetsTransf(), CreateESGLAccounts.Repairs(), CreateESGLAccounts.DeprOfTangAssets(), CreateESGLAccounts.IndustrialMachinery(), CreateGLAccount.DerogatoryAccount(), CreateGLAccount.DerogatoryAccount(), CreateGLAccount.DerogExpenseAccForCredit(), CreateGLAccount.DerogExpenseAccForDebit());
+        end;
+    end;
+
+    local procedure ValidateRecordFields(var FAPostingGroup: Record "FA Posting Group"; AcquisitionCostAccount: Code[20]; AccumDepreciationAccount: Code[20]; AcqCostAccOnDisposal: Code[20]; AccumDeprAccOnDisposal: Code[20]; GainsAccOnDisposal: Code[20]; LossesAccOnDisposal: Code[20]; MaintenanceExpenseAccount: Code[20]; DepreciationExpenseAcc: Code[20]; AcquisitionCostBalAcc: Code[20]; DerogatoryAccount: Code[20]; DerogatoryAccountDecrease: Code[20]; DerogatoryBalDecreaseAcc: Code[20]; DerogatoryExpenseAcc: Code[20])
+    begin
+        FAPostingGroup.Validate("Acquisition Cost Account", AcquisitionCostAccount);
+        FAPostingGroup.Validate("Accum. Depreciation Account", AccumDepreciationAccount);
+        FAPostingGroup.Validate("Acq. Cost Acc. on Disposal", AcqCostAccOnDisposal);
+        FAPostingGroup.Validate("Accum. Depr. Acc. on Disposal", AccumDeprAccOnDisposal);
+        FAPostingGroup.Validate("Gains Acc. on Disposal", GainsAccOnDisposal);
+        FAPostingGroup.Validate("Losses Acc. on Disposal", LossesAccOnDisposal);
+        FAPostingGroup.Validate("Maintenance Expense Account", MaintenanceExpenseAccount);
+        FAPostingGroup.Validate("Depreciation Expense Acc.", DepreciationExpenseAcc);
+        FAPostingGroup.Validate("Acquisition Cost Bal. Acc.", AcquisitionCostBalAcc);
+        FAPostingGroup.Validate("Derogatory Acc.", DerogatoryAccount);
+        FAPostingGroup.Validate("Derogatory Account (Decrease)", DerogatoryAccountDecrease);
+        FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", DerogatoryBalDecreaseAcc);
+        FAPostingGroup.Validate("Derogatory Expense Acc.", DerogatoryExpenseAcc);
+    end;
+}

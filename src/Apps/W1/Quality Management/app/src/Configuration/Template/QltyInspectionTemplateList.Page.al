@@ -7,6 +7,7 @@ namespace Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.Foundation.Attachment;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Telemetry;
 
 /// <summary>
 /// A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.
@@ -19,6 +20,7 @@ page 20404 "Qlty. Inspection Template List"
     Editable = false;
     PageType = List;
     SourceTable = "Qlty. Inspection Template Hdr.";
+    AccessByPermission = tabledata "Qlty. Inspection Template Hdr." = R;
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
     AdditionalSearchTerms = 'Standard operating procedures';
@@ -140,4 +142,11 @@ page 20404 "Qlty. Inspection Template List"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Inspection Template List");
+    end;
 }

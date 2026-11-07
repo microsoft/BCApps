@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
+using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
@@ -24,10 +25,9 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
 
     var
         ConfirmManagement: Codeunit "Confirm Management";
+        PEPPOLManagementImpl: Codeunit "PEPPOL30 Impl.";
         OutsideScopeVATBreakdowns: Dictionary of [Text, Text];
         EmptyUnitOfMeasureErr: Label 'You must specify a valid International Standard Code for the Unit of Measure for %1.', Comment = '%1 - Unit of Measure Code';
-        MissingCompInfGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. in %1.', Comment = '%1=Company Information';
-        MissingCustGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. for Customer %1.', Comment = '%1 = Customer No.';
         MissingDescriptionErr: Label 'Description field is empty. \Field must be filled if you want to send the posted document as an electronic document.', Comment = 'Parameter 1 - document type (), 2 - document number';
         NegativeUnitPriceErr: Label 'The unit price is negative in %1. It cannot be negative if you want to send the posted document as an electronic document. \\Do you want to continue?', Comment = '%1 - record ID';
         OnlyOneOCategoryVatPostingSetupErr: Label 'There can be only one tax subtotal present on invoice used with "Not subject to VAT" (O) tax category.';
@@ -65,8 +65,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         CompanyInfo.TestField("Country/Region Code");
         CheckCountryRegionCode(CompanyInfo."Country/Region Code");
 
-        if CompanyInfo.GLN + CompanyInfo."VAT Registration No." = '' then
-            Error(MissingCompInfGLNOrVATRegNoErr, CompanyInfo.TableCaption());
+        CheckCompanyPartyIdentification();
 
         SalesHeader.TestField("Bill-to Name");
         SalesHeader.TestField("Bill-to Address");
@@ -78,8 +77,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         if (SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::Order, SalesHeader."Document Type"::"Credit Memo"]) and
            Customer.Get(SalesHeader."Bill-to Customer No.")
         then
-            if (Customer.GLN + Customer."VAT Registration No.") = '' then
-                Error(MissingCustGLNOrVATRegNoErr, Customer."No.");
+            CheckCustomerPartyIdentification(SalesHeader);
 
         if SalesHeader."Document Type" = SalesHeader."Document Type"::"Credit Memo" then
             if SalesHeader."Applies-to Doc. Type" = SalesHeader."Applies-to Doc. Type"::Invoice then
@@ -97,6 +95,42 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
             CompanyInfo.TestField("Bank Account No.");
         CompanyInfo.TestField("Bank Branch No.");
         CompanyInfo.TestField("SWIFT Code");
+    end;
+
+    local procedure CheckCompanyPartyIdentification()
+    var
+        PEPPOLPartyInfo: Interface "PEPPOL Party Info Provider";
+        SupplierEndpointID: Text;
+        SupplierSchemeID: Text;
+        SupplierName: Text;
+    begin
+        PEPPOLPartyInfo := GetSalesFormat();
+        PEPPOLPartyInfo.GetAccountingSupplierPartyInfoBIS(SupplierEndpointID, SupplierSchemeID, SupplierName);
+        PEPPOLManagementImpl.CheckCompanyPartyIdentification(SupplierEndpointID);
+    end;
+
+    local procedure CheckCustomerPartyIdentification(SalesHeader: Record "Sales Header")
+    var
+        PEPPOLPartyInfo: Interface "PEPPOL Party Info Provider";
+        CustomerEndpointID: Text;
+        CustomerSchemeID: Text;
+        CustomerPartyIdentificationID: Text;
+        CustomerPartyIDSchemeID: Text;
+        CustomerName: Text;
+    begin
+        PEPPOLPartyInfo := GetSalesFormat();
+        PEPPOLPartyInfo.GetAccountingCustomerPartyInfoBIS(
+          SalesHeader, CustomerEndpointID, CustomerSchemeID,
+          CustomerPartyIdentificationID, CustomerPartyIDSchemeID, CustomerName);
+        PEPPOLManagementImpl.CheckCustomerPartyIdentification(CustomerEndpointID, SalesHeader."Bill-to Customer No.");
+    end;
+
+    local procedure GetSalesFormat(): Enum "PEPPOL 3.0 Format"
+    var
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+    begin
+        PeppolSetup.GetSetup();
+        exit(PeppolSetup."PEPPOL 3.0 Sales Format");
     end;
 
     procedure CheckSalesDocumentLines(SalesHeader: Record "Sales Header")
@@ -118,6 +152,14 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         unitCode: Text;
         unitCodeListID: Text;
     begin
+        // Allocation account lines are placeholder lines that are expanded into their underlying G/L
+        // distribution lines during posting and are never themselves exported in the electronic
+        // document. Validate the G/L accounts they will be expanded into instead.
+        if SalesLine.Type = SalesLine.Type::"Allocation Account" then begin
+            this.CheckAllocationAccountExpandedLines(SalesLine);
+            exit;
+        end;
+
         PEPPOL30Management.GetLineUnitCodeInfo(SalesLine, unitCode, unitCodeListID);
         if (SalesLine.Type <> SalesLine.Type::" ") and (SalesLine."No." <> '') and (unitCode = '') then
             Error(EmptyUnitOfMeasureErr, SalesLine."Unit of Measure Code");
@@ -135,6 +177,31 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
                 if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(NegativeUnitPriceErr, SalesLine.RecordId), false) then
                     Error('');
         end;
+    end;
+
+    local procedure CheckAllocationAccountExpandedLines(SalesLine: Record "Sales Line")
+    var
+        AllocationAccount: Record "Allocation Account";
+        TempAllocationLine: Record "Allocation Line";
+        ExpandedSalesLine: Record "Sales Line";
+        AllocationAccountMgt: Codeunit "Allocation Account Mgt.";
+    begin
+        if not AllocationAccount.Get(SalesLine."No.") then
+            exit;
+
+        AllocationAccountMgt.GenerateAllocationLines(
+            AllocationAccount, TempAllocationLine, SalesLine.Amount,
+            SalesLine.GetSalesHeader()."Posting Date", SalesLine."Dimension Set ID", SalesLine."Currency Code");
+
+        if TempAllocationLine.FindSet() then
+            repeat
+                if TempAllocationLine."Destination Account Type" = TempAllocationLine."Destination Account Type"::"G/L Account" then begin
+                    ExpandedSalesLine := SalesLine;
+                    ExpandedSalesLine.Type := ExpandedSalesLine.Type::"G/L Account";
+                    ExpandedSalesLine."No." := TempAllocationLine."Destination Account Number";
+                    this.CheckSalesDocumentLine(ExpandedSalesLine);
+                end;
+            until TempAllocationLine.Next() = 0;
     end;
 
     procedure CheckPostedDocument(PostedDocumentVariant: Variant)

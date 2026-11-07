@@ -1,0 +1,289 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Finance.VAT.Reporting;
+
+using Microsoft.Utilities;
+
+page 10036 "IRS 1099 Form Documents"
+{
+    PageType = List;
+    SourceTable = "IRS 1099 Form Doc. Header";
+    CardPageId = "IRS 1099 Form Document";
+    ApplicationArea = BasicCA, BasicUS;
+    UsageCategory = Administration;
+    RefreshOnActivate = true;
+    Editable = false;
+
+    layout
+    {
+        area(content)
+        {
+            repeater(Group)
+            {
+                field(ID; Rec.ID)
+                {
+                    Tooltip = 'Specifies the unique identifier of the document.';
+                    Visible = false;
+                }
+                field("Period No."; Rec."Period No.")
+                {
+                    Tooltip = 'Specifies the period of the document.';
+                    Visible = PeriodIsVisible;
+                }
+                field("Vendor No."; Rec."Vendor No.")
+                {
+                    Tooltip = 'Specifies the vendor number.';
+                }
+                field("Form No."; Rec."Form No.")
+                {
+                    Tooltip = 'Specifies the form of the document.';
+                }
+                field(Status; Rec.Status)
+                {
+                    Tooltip = 'Specifies the status of the document';
+                }
+                field("Receiving 1099 E-Form Consent"; Rec."Receiving 1099 E-Form Consent")
+                {
+#pragma warning disable AA0219
+                    Tooltip = 'By selecting this field, you acknowledge that your vendor has provided signed consent to receive their 1099 form electronically.';
+#pragma warning restore AA0219
+                    Visible = false;
+                }
+                field("Vendor E-Mail"; Rec."Vendor E-Mail")
+                {
+                    Tooltip = 'Specifies the vendor email address.';
+                    Visible = false;
+                }
+                field("Copy B Sent"; Rec."Copy B Sent")
+                {
+                    Tooltip = 'Specifies whether the Copy B of the form has been sent to the vendor.';
+                }
+                field("Copy 2 Sent"; Rec."Copy 2 Sent")
+                {
+                    Tooltip = 'Specifies whether the Copy 2 of the form has been sent to the vendor.';
+                }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(CreateForms)
+            {
+                Caption = 'Create Forms';
+                Image = Form;
+                Scope = Repeater;
+                ToolTip = 'Create IRS 1099 form documents for reporting.';
+
+                trigger OnAction()
+                var
+                    IRSReportingPeriod: Record "IRS Reporting Period";
+                    IRS1099FormDocument: Codeunit "IRS 1099 Form Document";
+                begin
+                    if Rec.GetFilter("Period No.") <> '' then
+                        if IRSReportingPeriod.Get(Rec.GetFilter("Period No.")) then;
+                    IRS1099FormDocument.CreateForms(IRSReportingPeriod."No.");
+                end;
+            }
+            action(RecreateForm)
+            {
+                Caption = 'Recreate Form';
+                Image = Form;
+                Scope = Repeater;
+                ToolTip = 'Recreate a single IRS 1099 form document for reporting.';
+
+                trigger OnAction()
+                var
+                    IRS1099FormDocument: Codeunit "IRS 1099 Form Document";
+                begin
+                    IRS1099FormDocument.RecreateForm(Rec);
+                end;
+            }
+            action(DeleteSelected)
+            {
+                Caption = 'Delete Selected';
+                Image = Delete;
+                Scope = Repeater;
+                ToolTip = 'Delete all selected IRS 1099 form documents.';
+
+                trigger OnAction()
+                var
+                    IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+                begin
+                    IRS1099FormDocHeader := Rec;
+                    CurrPage.SetSelectionFilter(IRS1099FormDocHeader);
+                    if not IRS1099FormDocHeader.IsEmpty() then
+                        if Confirm(DeleteSelectedQst, false) then
+                            IRS1099FormDocHeader.DeleteAll(true);
+                end;
+            }
+            action(ReleaseAll)
+            {
+                Caption = 'Release All';
+                Image = ReleaseDoc;
+                ToolTip = 'Release all selected opened forms.';
+
+                trigger OnAction()
+                var
+                    IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+                    IRS1099FormDocument: Codeunit "IRS 1099 Form Document";
+                begin
+                    IRS1099FormDocHeader := Rec;
+                    CurrPage.SetSelectionFilter(IRS1099FormDocHeader);
+                    IRS1099FormDocHeader.SetRange(Status, IRS1099FormDocHeader.Status::Open);
+
+                    if IRS1099FormDocHeader.FindSet() then
+                        repeat
+                            IRS1099FormDocument.Release(IRS1099FormDocHeader);
+                        until IRS1099FormDocHeader.Next() = 0;
+                end;
+            }
+            action(ReopenAll)
+            {
+                Caption = 'Reopen All';
+                Image = ReOpen;
+                ToolTip = 'Reopen all selected released forms.';
+
+                trigger OnAction()
+                var
+                    IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+                    IRS1099FormDocument: Codeunit "IRS 1099 Form Document";
+                begin
+                    IRS1099FormDocHeader := Rec;
+                    CurrPage.SetSelectionFilter(IRS1099FormDocHeader);
+                    IRS1099FormDocHeader.SetFilter(Status, '%1|%2|%3', IRS1099FormDocHeader.Status::Released, IRS1099FormDocHeader.Status::Submitted, IRS1099FormDocHeader.Status::"In Progress");
+
+                    if IRS1099FormDocHeader.FindSet() then
+                        repeat
+                            IRS1099FormDocument.Reopen(IRS1099FormDocHeader);
+                        until IRS1099FormDocHeader.Next() = 0;
+                end;
+            }
+            action(AllowCorrection)
+            {
+                Caption = 'Allow Correction';
+                Image = ResetStatus;
+                ToolTip = 'Allow correction for the selected submitted forms.';
+
+                trigger OnAction()
+                var
+                    IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+                    IRS1099FormDocument: Codeunit "IRS 1099 Form Document";
+                begin
+                    IRS1099FormDocHeader := Rec;
+                    CurrPage.SetSelectionFilter(IRS1099FormDocHeader);
+                    IRS1099FormDocHeader.SetFilter(Status, '%1|%2', IRS1099FormDocHeader.Status::Submitted, IRS1099FormDocHeader.Status::"In Progress");
+
+                    if IRS1099FormDocHeader.FindSet() then
+                        repeat
+                            IRS1099FormDocument.AllowCorrection(IRS1099FormDocHeader);
+                        until IRS1099FormDocHeader.Next() = 0;
+                end;
+            }
+            group(IRIS)
+            {
+                action(IRISTransmissions)
+                {
+                    Caption = 'IRIS Transmissions';
+                    Image = SendElectronicDocument;
+                    ToolTip = 'Show the IRIS transmissions.';
+                    RunObject = Page "Transmissions IRIS";
+                }
+                action(TransmissionLog)
+                {
+                    Caption = 'Transmission History';
+                    Image = ElectronicDoc;
+                    ToolTip = 'Show IRIS transmissions history.';
+                    RunObject = Page "Transmission Logs IRIS";
+                }
+            }
+            action(Print)
+            {
+                Caption = 'Print';
+                Image = Print;
+                ToolTip = 'Print selected forms. You can adjust the filter on the report request page.';
+
+                trigger OnAction()
+                var
+                    IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+                    IRS1099PrintingImpl: Codeunit "IRS 1099 Printing Impl.";
+                begin
+                    IRS1099FormDocHeader := Rec;
+                    CurrPage.SetSelectionFilter(IRS1099FormDocHeader);
+
+                    IRS1099PrintingImpl.PrintMultipleDocumentContent(IRS1099FormDocHeader);
+                end;
+            }
+            action(SendEmail)
+            {
+                Caption = 'Send Email';
+                Image = Email;
+                ToolTip = 'Send the selected forms to the vendors by email.';
+
+                trigger OnAction()
+                var
+                    IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+                    IRS1099SendEmailReport: Report "IRS 1099 Send Email";
+                    IRS1099SendEmail: Codeunit "IRS 1099 Send Email";
+                begin
+                    IRS1099SendEmail.CheckEmailSetup();
+
+                    IRS1099FormDocHeader := Rec;
+                    CurrPage.SetSelectionFilter(IRS1099FormDocHeader);
+                    IRS1099SendEmail.CheckCanSendMultipleEmails(IRS1099FormDocHeader);
+
+                    IRS1099SendEmailReport.SetTableView(IRS1099FormDocHeader);
+                    IRS1099SendEmailReport.RunModal();
+                end;
+            }
+            action(ActivityLog)
+            {
+                Caption = 'Activity Log';
+                Image = Log;
+                ToolTip = 'Show activity log for the 1099 forms.';
+
+                trigger OnAction()
+                var
+                    ActivityLog: Record "Activity Log";
+                    IRS1099FormDocument: Codeunit "IRS 1099 Form Document";
+                begin
+                    ActivityLog.SetRange(Context, IRS1099FormDocument.GetActivityLogContext());
+                    Page.RunModal(Page::"Activity Log", ActivityLog);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+                actionref(CreateForms_Promoted; CreateForms)
+                {
+                }
+                actionref(Print_Promoted; Print)
+                {
+                }
+                actionref(SendEmails_Promoted; SendEmail)
+                {
+                }
+                actionref(CreateIRISTransmission_Promoted; IRISTransmissions)
+                {
+                }
+            }
+        }
+    }
+
+    var
+        PeriodIsVisible: Boolean;
+        DeleteSelectedQst: Label 'Do you want to delete the selected IRS 1099 form documents?';
+
+    trigger OnOpenPage()
+    begin
+        PeriodIsVisible := Rec.GetFilter("Period No.") = '';
+    end;
+
+}

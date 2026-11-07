@@ -65,6 +65,12 @@ page 20403 "Qlty. Inspection Template Subf"
                 {
                     StyleExpr = RowStyleText;
                 }
+                field("Expression Formula"; Rec."Expression Formula")
+                {
+                    StyleExpr = RowStyleText;
+                    Editable = IsExpressionFormulaEditable;
+                    Visible = false;
+                }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     StyleExpr = RowStyleText;
@@ -472,6 +478,27 @@ page 20403 "Qlty. Inspection Template Subf"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(AddMultipleTests)
+            {
+                AccessByPermission = tabledata "Qlty. Inspection Template Line" = I;
+                Caption = 'Select tests';
+                ToolTip = 'Add two or more tests to this template, by selecting from the full list of quality tests. Tests that already exist in the template are skipped.';
+                Ellipsis = true;
+                Image = SelectMore;
+                Enabled = Rec."Template Code" <> '';
+
+                trigger OnAction()
+                begin
+                    Rec.SelectMultipleTests(Rec."Template Code");
+                end;
+            }
+        }
+    }
+
     var
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
@@ -482,6 +509,7 @@ page 20403 "Qlty. Inspection Template Subf"
         MatrixArrayCaptionSet: array[10] of Text;
         Visible1, Visible2, Visible3, Visible4, Visible5, Visible6, Visible7, Visible8, Visible9, Visible10 : Boolean;
         Editable1, Editable2, Editable3, Editable4, Editable5, Editable6, Editable7, Editable8, Editable9, Editable10 : Boolean;
+        IsExpressionFormulaEditable: Boolean;
         DescriptionLbl: Label '%1 Description', Comment = '%1 = Matrix field caption';
         ConditionLbl: Label '%1 Condition', Comment = '%1 = Matrix field caption';
 
@@ -524,6 +552,9 @@ page 20403 "Qlty. Inspection Template Subf"
         RowStyleText := Format(RowStyle);
     end;
 
+    /// <summary>
+    /// Loads promoted result data and updates cell editability for the current template line.
+    /// </summary>
     local procedure UpdateRowData()
     var
         DummyMatrixArrayCaptionSet: array[10] of Text;
@@ -552,8 +583,14 @@ page 20403 "Qlty. Inspection Template Subf"
         Editable8 := Visible8 and not RowIsLabel;
         Editable9 := Visible9 and not RowIsLabel;
         Editable10 := Visible10 and not RowIsLabel;
+
+        IsExpressionFormulaEditable := Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Text Expression";
     end;
 
+    /// <summary>
+    /// Persists a matrix condition and keeps an identical condition description synchronized.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to update.</param>
     local procedure UpdateMatrixDataCondition(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -576,6 +613,10 @@ page 20403 "Qlty. Inspection Template Subf"
         CurrPage.Update(true);
     end;
 
+    /// <summary>
+    /// Persists a matrix condition description.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to update.</param>
     local procedure UpdateMatrixDataConditionDescription(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -594,7 +635,7 @@ page 20403 "Qlty. Inspection Template Subf"
     /// <summary>
     /// Starts the assist-edit dialog for the result condition description.
     /// </summary>
-    /// <param name="Matrix"></param>
+    /// <param name="Matrix">The one-based promoted result matrix index to edit.</param>
     procedure AssistEditCondition(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -612,7 +653,7 @@ page 20403 "Qlty. Inspection Template Subf"
     /// <summary>
     /// Starts the assist edit dialog for the result condition description
     /// </summary>
-    /// <param name="Matrix"></param>
+    /// <param name="Matrix">The one-based promoted result matrix index to edit.</param>
     procedure AssistEditConditionDescription(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";

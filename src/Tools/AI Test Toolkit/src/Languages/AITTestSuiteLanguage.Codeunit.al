@@ -124,8 +124,13 @@ codeunit 149046 "AIT Test Suite Language"
             else
                 exit(InputDatasetCode);
 
-        if not GetLanguageDatasetCode(TestInputGroup."Group Name", LanguageID, LanguageDatasetCode) then
+        if not GetLanguageDatasetCode(TestInputGroup."Group Name", LanguageID, LanguageDatasetCode) then begin
+            TestInputGroup.CalcFields("No. of Languages");
+            if TestInputGroup."No. of Languages" = 0 then
+                exit(InputDatasetCode);
+
             Error(LanguageVersionNotFoundErr, InputDatasetCode, GetLanguageDisplayName(LanguageID));
+        end;
 
         exit(LanguageDatasetCode);
     end;

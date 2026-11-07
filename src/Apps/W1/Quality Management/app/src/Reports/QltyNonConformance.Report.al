@@ -10,6 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Template;
 #endif
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Telemetry;
 
 report 20403 "Qlty. Non-Conformance"
 {
@@ -43,7 +44,7 @@ report 20403 "Qlty. Non-Conformance"
             column(QltyInspection_ReinspectionNo; CurrentInspection."Re-inspection No.") { }
             column(QltyInspection_Finished_By_User_ID; "Finished By User ID") { }
             column(QltyInspection_Finished_By_UserName; FinishedByUserName) { }
-            column(QltyInspection_Finished_By_Title; FinishedByUserName) { }
+            column(QltyInspection_Finished_By_Title; FinishedByTitle) { }
             column(QltyInspection_Finished_By_Email; FinishedByEmail) { }
             column(QltyInspection_Finished_By_Phone; FinishedByPhone) { }
             column(QltyInspection_Director_Title; ApproverTitle) { }
@@ -291,6 +292,13 @@ report 20403 "Qlty. Non-Conformance"
         DateLabel = 'Date';
         LastModifiedByLabel = 'Last modified by';
     }
+
+    trigger OnPreReport()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Report, Report::"Qlty. Non-Conformance", 'Print report Non-Conformance');
+    end;
 
     var
         Item: Record Item;

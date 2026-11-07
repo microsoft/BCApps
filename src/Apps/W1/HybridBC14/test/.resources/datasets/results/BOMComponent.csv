@@ -1,0 +1,7 @@
+Parent Item No.,Line No.,Type,No.,Description,Unit of Measure Code,Quantity per
+I00001,10000,1,I00002,Component Item,,2
+I00001,20000,1,I00002,Another Component,,1
+I00001,30000,1,I00006,Coffee,,1
+I00003,10000,1,I00008,Saddle for Bike,,1
+I00003,20000,1,I00002,Spoke Kit,,32
+I00008,10000,1,I00002,Internal Frame,,1

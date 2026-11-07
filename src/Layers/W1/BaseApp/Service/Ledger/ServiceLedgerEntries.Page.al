@@ -1,0 +1,403 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Service.Ledger;
+
+using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.Navigate;
+using System.Security.User;
+
+page 5912 "Service Ledger Entries"
+{
+    ApplicationArea = Service;
+    Caption = 'Service Ledger Entries';
+    DataCaptionFields = "Service Contract No.", "Service Item No. (Serviced)", "Service Order No.";
+    Editable = false;
+    PageType = List;
+    SourceTable = "Service Ledger Entry";
+    SourceTableView = sorting("Entry No.")
+                      order(descending);
+    UsageCategory = History;
+
+    layout
+    {
+        area(content)
+        {
+            repeater(Control1)
+            {
+                ShowCaption = false;
+                field("Posting Date"; Rec."Posting Date")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Entry Type"; Rec."Entry Type")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Service Order Type"; Rec."Service Order Type")
+                {
+                    ApplicationArea = Service;
+                    Visible = false;
+                }
+                field("Service Contract No."; Rec."Service Contract No.")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Service Order No."; Rec."Service Order No.")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Job No."; Rec."Job No.")
+                {
+                    ApplicationArea = Jobs;
+                    Visible = false;
+                }
+                field("Job Task No."; Rec."Job Task No.")
+                {
+                    ApplicationArea = Jobs;
+                    Visible = false;
+                }
+                field("Job Line Type"; Rec."Job Line Type")
+                {
+                    ApplicationArea = Jobs;
+                    Visible = false;
+                }
+                field("Document Type"; Rec."Document Type")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Document No."; Rec."Document No.")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Bill-to Customer No."; Rec."Bill-to Customer No.")
+                {
+                    ApplicationArea = Service;
+                    Visible = false;
+                }
+                field("Customer No."; Rec."Customer No.")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Ship-to Code"; Rec."Ship-to Code")
+                {
+                    ApplicationArea = Service;
+                    Visible = false;
+                }
+                field("Service Item No. (Serviced)"; Rec."Service Item No. (Serviced)")
+                {
+                    ApplicationArea = Service;
+                    ToolTip = 'Specifies the number of the serviced item associated with this entry.';
+                }
+                field("Item No. (Serviced)"; Rec."Item No. (Serviced)")
+                {
+                    ApplicationArea = Service;
+                    ToolTip = 'Specifies the number of the serviced item associated with this entry.';
+                }
+                field("Serial No. (Serviced)"; Rec."Serial No. (Serviced)")
+                {
+                    ApplicationArea = ItemTracking;
+                    ToolTip = 'Specifies the serial number of the serviced item associated with this entry.';
+                }
+                field("Contract Invoice Period"; Rec."Contract Invoice Period")
+                {
+                    ApplicationArea = Service;
+                    Visible = false;
+                }
+                field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Visible = Dim1Visible;
+                }
+                field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Visible = Dim2Visible;
+                }
+                field("Contract Group Code"; Rec."Contract Group Code")
+                {
+                    ApplicationArea = Service;
+                    Visible = false;
+                }
+                field(Type; Rec.Type)
+                {
+                    ApplicationArea = Service;
+                }
+                field("No."; Rec."No.")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Cost Amount"; Rec."Cost Amount")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Discount Amount"; Rec."Discount Amount")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Unit Cost"; Rec."Unit Cost")
+                {
+                    ApplicationArea = Service;
+                }
+                field(Quantity; Rec.Quantity)
+                {
+                    ApplicationArea = Service;
+                }
+                field("Charged Qty."; Rec."Charged Qty.")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Unit Price"; Rec."Unit Price")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Discount %"; Rec."Discount %")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Contract Disc. Amount"; Rec."Contract Disc. Amount")
+                {
+                    ApplicationArea = Service;
+                    Visible = false;
+                }
+                field("Amount (LCY)"; Rec."Amount (LCY)")
+                {
+                    ApplicationArea = Service;
+                    ToolTip = 'Specifies the amount of the entry in LCY.';
+                }
+                field("Moved from Prepaid Acc."; Rec."Moved from Prepaid Acc.")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Serv. Contract Acc. Gr. Code"; Rec."Serv. Contract Acc. Gr. Code")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Fault Reason Code"; Rec."Fault Reason Code")
+                {
+                    ApplicationArea = Service;
+                }
+                field(Description; Rec.Description)
+                {
+                    ApplicationArea = Service;
+                }
+                field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Location Code"; Rec."Location Code")
+                {
+                    ApplicationArea = Location;
+                    Visible = false;
+                }
+                field("Bin Code"; Rec."Bin Code")
+                {
+                    ApplicationArea = Service;
+                    Visible = false;
+                }
+                field(Prepaid; Rec.Prepaid)
+                {
+                    ApplicationArea = Service;
+                    Visible = false;
+                }
+                field(Open; Rec.Open)
+                {
+                    ApplicationArea = Service;
+                }
+                field("User ID"; Rec."User ID")
+                {
+                    ApplicationArea = Service;
+
+                    trigger OnDrillDown()
+                    var
+                        UserMgt: Codeunit "User Management";
+                    begin
+                        UserMgt.DisplayUserInformation(Rec."User ID");
+                    end;
+                }
+                field("Entry No."; Rec."Entry No.")
+                {
+                    ApplicationArea = Service;
+                }
+                field("Applies-to Entry No."; Rec."Applies-to Entry No.")
+                {
+                    ApplicationArea = Service;
+                }
+                field(Amount; Rec.Amount)
+                {
+                    ApplicationArea = Service;
+                }
+                field("Dimension Set ID"; Rec."Dimension Set ID")
+                {
+                    ApplicationArea = Dimensions;
+                    Visible = false;
+                }
+                field("External Document No."; Rec."External Document No.")
+                {
+                    ApplicationArea = Service;
+                    Editable = false;
+                    Visible = false;
+                }
+                field("Shortcut Dimension 3 Code"; Rec."Shortcut Dimension 3 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Editable = false;
+                    Visible = Dim3Visible;
+                }
+                field("Shortcut Dimension 4 Code"; Rec."Shortcut Dimension 4 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Editable = false;
+                    Visible = Dim4Visible;
+                }
+                field("Shortcut Dimension 5 Code"; Rec."Shortcut Dimension 5 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Editable = false;
+                    Visible = Dim5Visible;
+                }
+                field("Shortcut Dimension 6 Code"; Rec."Shortcut Dimension 6 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Editable = false;
+                    Visible = Dim6Visible;
+                }
+                field("Shortcut Dimension 7 Code"; Rec."Shortcut Dimension 7 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Editable = false;
+                    Visible = Dim7Visible;
+                }
+                field("Shortcut Dimension 8 Code"; Rec."Shortcut Dimension 8 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Editable = false;
+                    Visible = Dim8Visible;
+                }
+            }
+        }
+        area(factboxes)
+        {
+            systempart(Control1900383207; Links)
+            {
+                ApplicationArea = RecordLinks;
+                Visible = false;
+            }
+            systempart(Control1905767507; Notes)
+            {
+                ApplicationArea = Notes;
+                Visible = false;
+            }
+        }
+    }
+
+    actions
+    {
+        area(navigation)
+        {
+            group("&Entry")
+            {
+                Caption = '&Entry';
+                Image = Entry;
+                action(Dimensions)
+                {
+                    AccessByPermission = TableData Dimension = R;
+                    ApplicationArea = Dimensions;
+                    Caption = 'Dimensions';
+                    Image = Dimensions;
+                    ShortCutKey = 'Alt+D';
+                    ToolTip = 'View or edit dimensions, such as area, project, or department, that you can assign to sales and purchase documents to distribute costs and analyze transaction history.';
+
+                    trigger OnAction()
+                    begin
+                        Rec.ShowDimensions();
+                    end;
+                }
+                action(SetDimensionFilter)
+                {
+                    ApplicationArea = Dimensions;
+                    Caption = 'Set Dimension Filter';
+                    Ellipsis = true;
+                    Image = "Filter";
+                    ToolTip = 'Limit the entries according to the dimension filters that you specify. NOTE: If you use a high number of dimension combinations, this function may not work and can result in a message that the SQL server only supports a maximum of 2100 parameters.';
+
+                    trigger OnAction()
+                    begin
+                        Rec.SetFilter("Dimension Set ID", DimensionSetIDFilter.LookupFilter());
+                    end;
+                }
+            }
+        }
+        area(processing)
+        {
+            action("&Navigate")
+            {
+                ApplicationArea = Service;
+                Caption = 'Find entries...';
+                Image = Navigate;
+                ShortCutKey = 'Ctrl+Alt+Q';
+                ToolTip = 'Find entries and documents that exist for the document number and posting date on the selected document. (Formerly this action was named Navigate.)';
+
+                trigger OnAction()
+                begin
+                    Navigate.SetDoc(Rec."Posting Date", Rec."Document No.");
+                    Navigate.Run();
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref("&Navigate_Promoted"; "&Navigate")
+                {
+                }
+                group(Category_Entry)
+                {
+                    Caption = 'Entry';
+
+                    actionref(Dimensions_Promoted; Dimensions)
+                    {
+                    }
+                    actionref(SetDimensionFilter_Promoted; SetDimensionFilter)
+                    {
+                    }
+                }
+            }
+        }
+    }
+
+    trigger OnOpenPage()
+    begin
+        SetDimVisibility();
+    end;
+
+    var
+        Navigate: Page Navigate;
+        DimensionSetIDFilter: Page "Dimension Set ID Filter";
+
+    protected var
+        Dim1Visible: Boolean;
+        Dim2Visible: Boolean;
+        Dim3Visible: Boolean;
+        Dim4Visible: Boolean;
+        Dim5Visible: Boolean;
+        Dim6Visible: Boolean;
+        Dim7Visible: Boolean;
+        Dim8Visible: Boolean;
+
+    local procedure SetDimVisibility()
+    var
+        DimensionManagement: Codeunit DimensionManagement;
+    begin
+        DimensionManagement.UseShortcutDims(Dim1Visible, Dim2Visible, Dim3Visible, Dim4Visible, Dim5Visible, Dim6Visible, Dim7Visible, Dim8Visible);
+    end;
+}
+

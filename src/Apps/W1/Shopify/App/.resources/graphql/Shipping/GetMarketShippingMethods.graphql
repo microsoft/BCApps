@@ -1,0 +1,2 @@
+# cost: 74
+{"query":"{ markets(first: 25) { pageInfo { hasNextPage } edges { cursor node { delivery { shipping { isEnabled optionDefinitions(first: 50, active: true) { edges { node { isActive ... on DeliveryFlatRateOptionDefinition { name } ... on DeliveryValueBasedOptionDefinition { name } ... on DeliveryWeightBasedOptionDefinition { name } } } } } } } } } }"}

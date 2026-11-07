@@ -1,0 +1,797 @@
+[
+  {
+    "codeunitId": 137025,
+    "codeunitName": "SCM Purchase Correct Invoice",
+    "method": "CancelPurchaseInvoiceCreatedViaGetReceiptLinesWithItemTracking"
+  },
+  {
+    "codeunitId": 137025,
+    "codeunitName": "SCM Purchase Correct Invoice",
+    "method": "CancelPurchaseInvoiceFromOrderWithItemTracking"
+  },
+  {
+    "codeunitId": 137025,
+    "codeunitName": "SCM Purchase Correct Invoice",
+    "method": "NegativeLineWithTrackingCopiedToCorrCrMemo"
+  },
+  {
+    "codeunitId": 137025,
+    "codeunitName": "SCM Purchase Correct Invoice",
+    "method": "NegativeLineWithTrackingCopiedWithExactCostRevMandatory"
+  },
+  {
+    "codeunitId": 137035,
+    "codeunitName": "SCM PS Bugs-I",
+    "method": "NoDateConflictWarningTrackedNotReservedPurchaseOrder"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "InvPutAwayIsPostedFromTransferOrderHavingLotAndSerialTracking"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "TransferOrderSubpageUpdatedAfterReceiptDateUpdatedOnHeader"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "TransferOrderSubpageUpdatedAfterShipmentDateUpdatedOnHeader"
+  },
+  {
+    "codeunitId": 137045,
+    "codeunitName": "SCM Bugfixes",
+    "method": "VendorNoValidationDoesNotChangeLocationInSystemCreatedReqLine"
+  },
+  {
+    "codeunitId": 137068,
+    "codeunitName": "SCM Inventory Orders-II",
+    "method": "CopyDocumentDoesNotCopyItemTrackingFromPostedPurchaseInvoiceToBlanketOrder"
+  },
+  {
+    "codeunitId": 137068,
+    "codeunitName": "SCM Inventory Orders-II",
+    "method": "CopyDocumentDoesNotCopyItemTrackingFromPostedPurchaseInvoiceToQuote"
+  },
+  {
+    "codeunitId": 137068,
+    "codeunitName": "SCM Inventory Orders-II",
+    "method": "ItemEntryCostWithItemChargesRevertedByCrMemoCopiedFromPurchInvoice"
+  },
+  {
+    "codeunitId": 137068,
+    "codeunitName": "SCM Inventory Orders-II",
+    "method": "ItemEntryCostWithItemChargesRevertedByCrMemoCopiedFromSalesInvoice"
+  },
+  {
+    "codeunitId": 137068,
+    "codeunitName": "SCM Inventory Orders-II",
+    "method": "OnePartiallyInvoicedPurchLineWithTrackingAndChargeAssignment"
+  },
+  {
+    "codeunitId": 137068,
+    "codeunitName": "SCM Inventory Orders-II",
+    "method": "TransferOrderWithDifferentExpirationDateAndLotNo"
+  },
+  {
+    "codeunitId": 137068,
+    "codeunitName": "SCM Inventory Orders-II",
+    "method": "TransferOrderWithDifferentUOM"
+  },
+  {
+    "codeunitId": 137068,
+    "codeunitName": "SCM Inventory Orders-II",
+    "method": "TransferOrderWithSameExpirationDateAndLotNo"
+  },
+  {
+    "codeunitId": 137068,
+    "codeunitName": "SCM Inventory Orders-II",
+    "method": "TwoPartiallyInvoicedPurchLinesWithTrackingAndChargeAssignment"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "ApplyToEntryOnPurchRetOrderWithReverseDocument"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "ConfirmOnDeletePurchaseOrderWithTrackedLine"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "InvoicingPartiallyReceivedPurchaseWithQtyToInvoiceMismatch"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "ItemTrackingLinesInGetPostedShptLinesDoesNotResetFilters"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "ItemTrackingLinesInGetPostedShptLinesShowsCorrectTrackingLines"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "LineShouldNotBeDeletedWhenModifyLotNoInItemTracking"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "LotOnPurchaseReturnOrderWithReverseDocument"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "PartialPurchaseInvoiceFailsQtyToInvoiceInPurchLineLessThanItemTrackingLine"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "PartialPurchaseInvoiceSucceedsQtyToInvoiceInPurchLineEqualsItemTrackingLine"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "PostInventoryCostAfterPostingPurchaseReturnOrder"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "PostPurchaseOrderWithStandardCostItemUsingLot"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "PostPurchaseReturnOrderWithReverseDocument"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "PurchOrderWithLotTrackingAndPartialQtyReceiveAndInvoiceCheckItemTrackingLines"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "PurchOrderWithLotTrackingAndPartialQtyReceiveAndInvoiceQtyToInvoiceEqFullQty"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "PurchOrderWithLotTrackingAndPartialQtyReceiveAndInvoiceQtyToInvoiceEqQtyReceived"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "PurchOrderWithLotTrackingAndPartialQtyReceiveAndInvoiceQtyToInvoiceLessQtyReceived"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "PurchOrderWithLotTrackingAndPartialQtyReceiveAndInvoiceQtyToInvoiceLittleLessFullQty"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "PurchOrderWithLotTrackingAndPartialQtyReceiveAndInvoiceQtyToInvoiceMuchLessFullQty"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "QtyToInvoiceMismatchNotAllowedInCaseOfLotNoUncertainty"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "QtyToInvoicePermittedMismatchBetweenPurchaseLineAndTrackingForMultipleLots"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "QtyToInvoicePermittedMismatchBetweenPurchaseLineAndTrackingForSingleLot"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "ReceivingAndInvoicingNewPurchaseWithQtyToInvoiceMismatch"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "ReceivingAndInvoicingPartiallyReceivedPurchaseWithQtyToInvoiceMismatch"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "ReceivingAndInvoicingPartiallyShippedSalesWithQtyToInvoiceMismatch"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "SalesOrderWithLotTrackingAndPartialQtyShipAndInvoiceCheckItemTrackingLines"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "SalesOrderWithLotTrackingAndPartialQtyShipAndInvoiceQtyToInvoiceEqFullQty"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "SalesOrderWithLotTrackingAndPartialQtyShipAndInvoiceQtyToInvoiceEqQtyShipped"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "SalesOrderWithLotTrackingAndPartialQtyShipAndInvoiceQtyToInvoiceLessQtyShipped"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "SalesOrderWithLotTrackingAndPartialQtyShipAndInvoiceQtyToInvoiceLittleLessFullQty"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "SalesOrderWithLotTrackingAndPartialQtyShipAndInvoiceQtyToInvoiceMuchLessFullQty"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "UndoPurchaseReceiptWithAndWithoutLotItemTracking"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "UndoPurchaseReceiptWithDimensionAndJobNo"
+  },
+  {
+    "codeunitId": 137163,
+    "codeunitName": "SCM Orders VI",
+    "method": "PostPurchaseOrderWithDifferentQuantityToInvoiceError"
+  },
+  {
+    "codeunitId": 137163,
+    "codeunitName": "SCM Orders VI",
+    "method": "PurchaseLineDiscountStartingDateAfterEndingDateError"
+  },
+  {
+    "codeunitId": 137163,
+    "codeunitName": "SCM Orders VI",
+    "method": "PurchaseLineExpectedReceiptDateUpdatedIfDateSetEarlierOnHeader"
+  },
+  {
+    "codeunitId": 137163,
+    "codeunitName": "SCM Orders VI",
+    "method": "PurchasePriceStartingDateAfterEndingDateError"
+  },
+  {
+    "codeunitId": 137212,
+    "codeunitName": "SCM Copy Document Mgt.",
+    "method": "CopyPurchOrderWithTrackingAndNoRemainingQuantity"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "AvailabilityErrorOnLotlNoInformationCard"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "CopyInfoOnLotlNoInformationCard"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "CopyInfoOnLotlNoInformationCardError"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "CopyInfoOnSerialNoInformationCard"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "InventoryOnLotNoInformation"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "ItemReclassJournalPostingError"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "ItemReclassJournalWithExistingItemTrackingError"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "ItemReclassJournalWithExistingLotNoError"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "ItemTrackingLineErrorWithUpdatedQuantity"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "ItemTrackingLinesNegativeQuantityBaseError"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "ItemTrackingLinesQuantityHandleBaseError"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "ItemTrackingOnItemReclassJournal"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "ItemTrackingUsingLotOnItemReclassJournal"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "LotNoInformationErrorWithBlockedTrue"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "LotNoInformationUsingCopyInfo"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "NewExpirationDateError"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "PostItemReclassJournalAssignItemTracking"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "PostItemReclassJournalWithItemTracking"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "PostItemReclassJournalWithLotNo"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "ReclassJournalWithItemTrackingError"
+  },
+  {
+    "codeunitId": 137275,
+    "codeunitName": "SCM Inventory Journals",
+    "method": "SerialAndLotNoOnItemTrackingComment"
+  },
+  {
+    "codeunitId": 137280,
+    "codeunitName": "SCM Inventory Basic",
+    "method": "PurchaseCreditMemoWithLotNo"
+  },
+  {
+    "codeunitId": 137280,
+    "codeunitName": "SCM Inventory Basic",
+    "method": "PurchaseCreditMemoWithSerialNo"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "CreatePickFromPickWorksheetWithIT"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "CreateWhseRcptAndCalcPhysInvWithIT"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "ErrorOnWhseRegisterForExceededQuantitytWithIT"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "InvPickAfterPurchaseReceipt"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "PickCreationMessageFromWhseShipment"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "RegisterAndPostWhseShipmentWithIT"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "RegisterWhseMovemenErrortWithoutIT"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "RegisterWhseMovementWithIT"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "ShowWarehouseShipementFromPickWorksheet"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "SuggestItemForAdjustmentBin"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "WarehousePickWithIT"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "WhseShipmentAfterPickCreatedFromPickWkshtWithIT"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "CancelReservationFromBoundPurchaseOrder"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "CancelReservationFromBoundPurchaseOrderWithNegativeQuantity"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "CancelReservationFromBoundReturnPurchaseOrder"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "CreatePurchReturnOrderByCopyDocumentWithSerialNo"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "CreatePurchReturnOrderByGetPostedDocToReverseWithLotNo"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "CreatePurchReturnOrderByManuallyWithLotNo"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "CreateSalesReturnOrderApplFromPostedInvoiceByCopyDocWithSerialNo"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "CreateSalesReturnOrderApplFromPostedInvoiceByGetPostedDocToRevWithLotNo"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "CreateSalesReturnOrderApplFromPostedShptByGetPostedDocToRevWithSerialNo"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "CreateSalesReturnOrderByCopyDocumentWithSerialNo"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "CreateSalesReturnOrderByManuallyWithLotNo"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "ItemExpirationAfterPostingPurchaseOrder"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "PhysicalInventoryListReportForTrackingAndQuantity"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "PhysicalInventoryListReportWithLocationAndBin"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "PhysicalInventoryListReportWithMultipleBatches"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "PhysicalInventoryListReportWithShowTrackingAndShowQuantityAsFalse"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "PhysicalInventoryListReportWithWhseLocation"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "WhsePhysInventoryListReportShowTrackingAsFalse"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "WhsePhysInventoryListReportShowTrackingAsTrue"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "WhsePhysInventoryListReportWithNonWarehouseTracking"
+  },
+  {
+    "codeunitId": 137351,
+    "codeunitName": "SCM Inventory Reports - IV",
+    "method": "PhysicalInventoryJournalWithSerialNo"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemExpirationQuantityReportWithMultipleLocation"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemExpirationQuantityReportWithSameLocation"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemTrackingAppendixReportPstdSalesShpt"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemTrackingAppendixReportPurchCrMemo"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemTrackingAppendixReportPurchInv"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemTrackingAppendixReportPurchOrder"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemTrackingAppendixReportPurchQuote"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemTrackingAppendixReportPurchRetOrder"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemTrackingAppendixReportSalesCrMemo"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemTrackingAppendixReportSalesInv"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemTrackingAppendixReportSalesOrder"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemTrackingAppendixReportSalesQuote"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "ItemTrackingAppendixReportSalesRetOrder"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "PhysInvListRptWithDiffLocShowQtyAsFalse"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "PhysInvListRptWithDiffLocShowTrackingAndQtyAsTrue"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "PhysInvListRptWithItemNotOnInv"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "PhysInvListRptWithLocAndBin"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "PhysInvListRptWithLocAndBinShowTrackingAsTrue"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "PhysInvListRptWithNoWarehouseTracking"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "PhysInvListRptWithShowQtyAsTrue"
+  },
+  {
+    "codeunitId": 137352,
+    "codeunitName": "SCM Inventory Reports - V",
+    "method": "PhysInvListRptWithShowTrackingAsTrue"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "FiveThousandSerialNos"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "FiveThousandSerialNosWLot"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "RegisteringPutAwayWithMultipleSerialNos"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "TenThousandSerialNos"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "TenThousandSerialNosWLot"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "ThousandSerialNos"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "ThousandSerialNosWLot"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "InventoryValueOnInventoryValuationAfterAdjustCostItemEntries"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "ValueOfWIPAfterRunningInventoryValuationWIPReport"
+  },
+  {
+    "codeunitId": 137351,
+    "codeunitName": "SCM Inventory Reports - IV",
+    "method": "ItemAgeCompositionReportAfterPostingSalesOrder"
+  },
+  {
+    "codeunitId": 137351,
+    "codeunitName": "SCM Inventory Reports - IV",
+    "method": "ItemBudgetReportWithWholeAmountOptionTrue"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_LotTracking"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_LotTracking_AdditionalUoM"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_LotTracking_PartialPosting"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_SNTracking"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShptLineFindsCorrectTrackingInfo"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShptLineWhenLocationMandatory"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "TestTransferOrderNotifications"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransferShipmentLineWithUOM"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_LotTracking"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_LotTracking_AdditionalUoM"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_LotTracking_PartialPosting"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShpt_SNTracking"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShptLineFindsCorrectTrackingInfo"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransShptLineWhenLocationMandatory"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "TestTransferOrderNotifications"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "UndoTransferShipmentLineWithUOM"
+  }
+]

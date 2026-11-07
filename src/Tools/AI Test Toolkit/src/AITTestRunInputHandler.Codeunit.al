@@ -33,10 +33,17 @@ codeunit 149045 "AIT Test Run Input Handler"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"AIT Test Run Iteration", 'OnBeforeRunTestMethodLine', '', false, false)]
     local procedure OnBeforeRunTestMethodLine(var TestMethodLine: Record "Test Method Line")
+    var
+        TestInput: Codeunit "Test Input";
     begin
         TestMethodLine.SetRange("Data Input Group Code", TestInputGroupCode);
         TestMethodLine.SetRange("Data Input", TestInputCode);
         TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Function);
+
+        // Load the test input now, while still running under full permissions. The data-driven test framework
+        // otherwise reads it from inside the test method's TestPermissions scope, which fails for any test that
+        // declares a TestPermissions value other than Disabled (bug 636024).
+        TestInput.PreloadTestInput(TestInputGroupCode, TestInputCode);
     end;
 
 }

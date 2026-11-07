@@ -120,7 +120,9 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
 
                     trigger OnValidate()
                     begin
-                        UpdateFullTextRuleStringsFromFilters();
+                        ClearLastError();
+                        if not UpdateFullTextRuleStringsFromFilters() then
+                            Error(JustPutAwaysFilterErr, GetLastErrorText());
                     end;
                 }
                 field(ChooseAdvanced; 'Click here to choose advanced fields...')
@@ -371,6 +373,7 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
         ItemCategoryFilterErr: Label 'This Item Category filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         InventoryPostingGroupFilterErr: Label 'This Inventory Posting Group filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         VendorFilterErr: Label 'This Vendor No. filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
+        JustPutAwaysFilterErr: Label 'This Put-away filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         YourUserDoesNotAppearToBeConfiguredAsAWarehouseEmployeeMsg: Label 'Your user id of %1 does not appear to be configured as a warehouse employee. Navigate to Warehouse Employees and create appropriate warehouse employee configuration before using this screen.', Comment = '%1=the user id.';
         YouMustChooseATemplateFirstMsg: Label 'Please choose a template before proceeding.';
         AlreadyThereQst: Label 'You already have at least one rule with these same conditions. Are you sure you want to proceed?';
@@ -398,7 +401,7 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
     end;
 
     /// <summary>
-    /// Intended to help intialize default values.
+    /// Initializes the default values used by the warehouse generation rule setup guide.
     /// </summary>
     local procedure InitializeDefaultValues()
     begin
@@ -409,6 +412,9 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
         InitializeDefaultBin();
     end;
 
+    /// <summary>
+    /// Selects the most recently modified inspection template when no template is selected.
+    /// </summary>
     local procedure InitializeDefaultTemplate()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -422,6 +428,9 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
             TemplateCode := QltyInspectionTemplateHdr.Code;
     end;
 
+    /// <summary>
+    /// Selects a warehouse employee location for the current user when no location is selected.
+    /// </summary>
     local procedure InitializeDefaultLocation()
     begin
         if LocationCodeFilter <> '' then
@@ -441,6 +450,9 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Selects a quality-related zone for the current location when no zone is selected.
+    /// </summary>
     local procedure InitializeDefaultZone()
     begin
         if ToZoneCodeFilter <> '' then
@@ -463,6 +475,9 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Selects the sole matching bin or derives a common bin-code prefix when no bin is selected.
+    /// </summary>
     local procedure InitializeDefaultBin()
     var
         SearchBin: Record Bin;
@@ -496,6 +511,10 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
             end;
     end;
 
+    /// <summary>
+    /// Moves the setup guide to a bounded step and updates the navigation state.
+    /// </summary>
+    /// <param name="Step">The requested step number.</param>
     local procedure ChangeToStep(Step: Integer);
     begin
         if Step < 1 then
@@ -542,6 +561,11 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
         CurrPage.Update(true);
     end;
 
+    /// <summary>
+    /// Validates the template when moving forward and redirects to the template step when necessary.
+    /// </summary>
+    /// <param name="LeavingThisStep">The step being left.</param>
+    /// <param name="MovingToThisStep">The destination step, which may be changed by validation.</param>
     local procedure LeavingStepMovingForward(LeavingThisStep: Integer; var MovingToThisStep: Integer);
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -554,6 +578,9 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
                 end;
     end;
 
+    /// <summary>
+    /// Opens the location filter editor and refreshes dependent zone and bin defaults.
+    /// </summary>
     local procedure AssistEditLocation()
     begin
         if QltyFilterHelpers.AssistEditLocation(LocationCodeFilter) then begin
@@ -569,6 +596,9 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Opens the zone filter editor and refreshes the dependent bin default.
+    /// </summary>
     local procedure AssistEditZone()
     begin
         if QltyFilterHelpers.AssistEditZone(LocationCodeFilter, ToZoneCodeFilter) then begin
@@ -583,6 +613,9 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Opens the warehouse journal filter editor and synchronizes the selected filters with the guide fields.
+    /// </summary>
     local procedure AssistEditFullWhseFilter()
 
     begin
@@ -598,6 +631,9 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Opens the item filter editor and synchronizes the selected filters with the guide fields.
+    /// </summary>
     local procedure AssistEditFullItemFilter()
     begin
         TempQltyInspectionGenRule."Item Filter" := ItemRule;
@@ -610,6 +646,9 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Builds the warehouse journal and item filter views from the guide fields and validates their lengths.
+    /// </summary>
     [TryFunction]
     local procedure UpdateFullTextRuleStringsFromFilters()
     begin
@@ -640,24 +679,36 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
     end;
 
+    /// <summary>
+    /// Removes redundant WHERE clauses from the warehouse and item filter views.
+    /// </summary>
     local procedure CleanUpWhereClause()
     begin
         WhseRule := QltyFilterHelpers.CleanUpWhereClause2048(WhseRule);
         ItemRule := QltyFilterHelpers.CleanUpWhereClause2048(ItemRule);
     end;
 
+    /// <summary>
+    /// Moves the setup guide to the previous step.
+    /// </summary>
     local procedure BackAction();
     begin
         CurrPage.Update(true);
         ChangeToStep(CurrentStepCounter - 1);
     end;
 
+    /// <summary>
+    /// Moves the setup guide to the next step.
+    /// </summary>
     local procedure NextAction();
     begin
         CurrPage.Update(true);
         ChangeToStep(CurrentStepCounter + 1);
     end;
 
+    /// <summary>
+    /// Creates or updates the warehouse movement generation rule and closes the setup guide.
+    /// </summary>
     local procedure FinishAction();
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -667,7 +718,6 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
             QltyInspectionGenRule.Init();
             QltyInspectionGenRule.SetEntryNo();
             QltyInspectionGenRule.UpdateSortOrder();
-            QltyInspectionGenRule."Source Table No." := 0;
             QltyInspectionGenRule.Insert();
         end;
         QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
@@ -694,12 +744,13 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
     end;
 
     /// <summary>
+    /// Runs the setup guide using the supplied generation rule as its initial state.
     /// Start the setup guide using this generation rule as a pre-requisite.
     /// Use this to edit an existing rule.
     /// You can also use it to start a new rule with a default template by supplying a template filter.
     /// </summary>
-    /// <param name="QltyInspectionGenRule"></param>
-    /// <returns></returns>
+    /// <param name="QltyInspectionGenRule">The generation rule to create or edit.</param>
+    /// <returns>The action used to close the setup guide.</returns>
     internal procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
     begin
         TempQltyInspectionGenRule := QltyInspectionGenRule;
@@ -715,6 +766,9 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
         exit(CurrPage.RunModal());
     end;
 
+    /// <summary>
+    /// Copies the warehouse journal and item record filters into the guide fields.
+    /// </summary>
     local procedure UpdateTableVariablesFromRecordFilters()
     begin
         LocationCodeFilter := CopyStr(TempWarehouseJournalLine.GetFilter("Location Code"), 1, MaxStrLen(LocationCodeFilter));

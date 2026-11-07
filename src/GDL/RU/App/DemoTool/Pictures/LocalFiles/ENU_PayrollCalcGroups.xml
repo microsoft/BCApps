@@ -1,0 +1,2919 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<PayrollCalcGroups>
+	<PayrollCalcGroup>
+		<Code>ADVANCE</Code>
+		<Name>Payroll Advance</Name>
+		<DisabledPersons>No</DisabledPersons>
+		<Type>Between</Type>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>ADVANCE</PayrollCalcGroup>
+			<LineNo>3</LineNo>
+			<PayrollCalcTypeCode>PLANNED ADVANCE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>ADVANCE</PayrollCalcGroup>
+			<LineNo>7350</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX 13%</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+	</PayrollCalcGroup>
+	<PayrollCalcGroup>
+		<Code>DISABLED20</Code>
+		<Name>Disabled on account 20</Name>
+		<DisabledPersons>Yes</DisabledPersons>
+		<Type> </Type>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>4</LineNo>
+			<PayrollCalcTypeCode>SALARY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>5</LineNo>
+			<PayrollCalcTypeCode>SALARY DIFFERENCE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>15</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY AMOUNT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>16</LineNo>
+			<PayrollCalcTypeCode>DIVIDENDS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>20</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY OTHER</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>47</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY OVERTIME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>48</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY NO WORK</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>50</LineNo>
+			<PayrollCalcTypeCode>BONUS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>60</LineNo>
+			<PayrollCalcTypeCode>BUSINESS TRAVEL</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>100</LineNo>
+			<PayrollCalcTypeCode>GIFTS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>2520</LineNo>
+			<PayrollCalcTypeCode>BENEFIT ORDER</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>2550</LineNo>
+			<PayrollCalcTypeCode>BENEFITS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6700</LineNo>
+			<PayrollCalcTypeCode>DISMISSAL PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6905</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY HOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6910</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY PREG</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6920</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6930</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY CHILD</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6935</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY INJURY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6940</LineNo>
+			<PayrollCalcTypeCode>VACATION COMPENSAT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6950</LineNo>
+			<PayrollCalcTypeCode>VACATION REGULAR</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6955</LineNo>
+			<PayrollCalcTypeCode>AVG EARNING PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6956</LineNo>
+			<PayrollCalcTypeCode>VACATION CHERNOBYL</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6960</LineNo>
+			<PayrollCalcTypeCode>VACATION CHILD CARE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6970</LineNo>
+			<PayrollCalcTypeCode>VACATION EDUCATION</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6980</LineNo>
+			<PayrollCalcTypeCode>AUTHOR INCOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>6985</LineNo>
+			<PayrollCalcTypeCode>PERSONAL AUTO</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>7200</LineNo>
+			<PayrollCalcTypeCode>OTHER INCOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>7295</LineNo>
+			<PayrollCalcTypeCode>DEDUCT STANDARD</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>7296</LineNo>
+			<PayrollCalcTypeCode>DEDUCT CHILDS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>7297</LineNo>
+			<PayrollCalcTypeCode>DEDUCT 501-503</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>7300</LineNo>
+			<PayrollCalcTypeCode>DEDUCT PROPERTY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>7350</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX 13%</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>7900</LineNo>
+			<PayrollCalcTypeCode>LOAN</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>7910</LineNo>
+			<PayrollCalcTypeCode>LOAN PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>7920</LineNo>
+			<PayrollCalcTypeCode>ADVANTAGE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>8000</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX 35%</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>8001</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX DIVID</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>8004</LineNo>
+			<PayrollCalcTypeCode>PROF UNION PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>8005</LineNo>
+			<PayrollCalcTypeCode>AMOUNT DUE PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>9005</LineNo>
+			<PayrollCalcTypeCode>DEDUCT MEALS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>9050</LineNo>
+			<PayrollCalcTypeCode>EXECUTIVE ACT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>9100</LineNo>
+			<PayrollCalcTypeCode>PENALTY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>90100</LineNo>
+			<PayrollCalcTypeCode>INJURY TAX DISABL-20</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>90700</LineNo>
+			<PayrollCalcTypeCode>NON BUDGET TAX-20 D</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>DISABLED20</PayrollCalcGroup>
+			<LineNo>90990</LineNo>
+			<PayrollCalcTypeCode>NON BUDGET REPORT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+	</PayrollCalcGroup>
+	<PayrollCalcGroup>
+		<Code>INTERBONUS</Code>
+		<Name>Interim Bonus</Name>
+		<DisabledPersons>No</DisabledPersons>
+		<Type>Between</Type>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERBONUS</PayrollCalcGroup>
+			<LineNo>50</LineNo>
+			<PayrollCalcTypeCode>BONUS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERBONUS</PayrollCalcGroup>
+			<LineNo>7350</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX 13%</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+	</PayrollCalcGroup>
+	<PayrollCalcGroup>
+		<Code>INTERPAYM</Code>
+		<Name>Interim Payment</Name>
+		<DisabledPersons>No</DisabledPersons>
+		<Type>Between</Type>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>4</LineNo>
+			<PayrollCalcTypeCode>SALARY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>5</LineNo>
+			<PayrollCalcTypeCode>SALARY DIFFERENCE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>15</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY AMOUNT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>16</LineNo>
+			<PayrollCalcTypeCode>DIVIDENDS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>20</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY OTHER</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>47</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY OVERTIME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>48</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY NO WORK</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>50</LineNo>
+			<PayrollCalcTypeCode>BONUS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>60</LineNo>
+			<PayrollCalcTypeCode>BUSINESS TRAVEL</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>100</LineNo>
+			<PayrollCalcTypeCode>GIFTS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>2520</LineNo>
+			<PayrollCalcTypeCode>BENEFIT ORDER</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>2550</LineNo>
+			<PayrollCalcTypeCode>BENEFITS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6700</LineNo>
+			<PayrollCalcTypeCode>DISMISSAL PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6905</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY HOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6910</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY PREG</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6920</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6930</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY CHILD</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6935</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY INJURY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6940</LineNo>
+			<PayrollCalcTypeCode>VACATION COMPENSAT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6950</LineNo>
+			<PayrollCalcTypeCode>VACATION REGULAR</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6955</LineNo>
+			<PayrollCalcTypeCode>AVG EARNING PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6960</LineNo>
+			<PayrollCalcTypeCode>VACATION CHILD CARE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6970</LineNo>
+			<PayrollCalcTypeCode>VACATION EDUCATION</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6980</LineNo>
+			<PayrollCalcTypeCode>AUTHOR INCOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>6985</LineNo>
+			<PayrollCalcTypeCode>PERSONAL AUTO</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>7200</LineNo>
+			<PayrollCalcTypeCode>OTHER INCOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>7295</LineNo>
+			<PayrollCalcTypeCode>DEDUCT STANDARD</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>7296</LineNo>
+			<PayrollCalcTypeCode>DEDUCT CHILDS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>7297</LineNo>
+			<PayrollCalcTypeCode>DEDUCT 501-503</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>7300</LineNo>
+			<PayrollCalcTypeCode>DEDUCT PROPERTY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>7350</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX 13%</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>7900</LineNo>
+			<PayrollCalcTypeCode>LOAN</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>7910</LineNo>
+			<PayrollCalcTypeCode>LOAN PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>7920</LineNo>
+			<PayrollCalcTypeCode>ADVANTAGE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>8000</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX 35%</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>8001</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX DIVID</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>8004</LineNo>
+			<PayrollCalcTypeCode>PROF UNION PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>8005</LineNo>
+			<PayrollCalcTypeCode>AMOUNT DUE PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>9005</LineNo>
+			<PayrollCalcTypeCode>DEDUCT MEALS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>9050</LineNo>
+			<PayrollCalcTypeCode>EXECUTIVE ACT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>INTERPAYM</PayrollCalcGroup>
+			<LineNo>9100</LineNo>
+			<PayrollCalcTypeCode>PENALTY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+	</PayrollCalcGroup>
+	<PayrollCalcGroup>
+		<Code>PAYR-20</Code>
+		<Name>Salary and Taxes on 20 account</Name>
+		<DisabledPersons>No</DisabledPersons>
+		<Type> </Type>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>4</LineNo>
+			<PayrollCalcTypeCode>SALARY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>5</LineNo>
+			<PayrollCalcTypeCode>SALARY DIFFERENCE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>15</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY AMOUNT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>16</LineNo>
+			<PayrollCalcTypeCode>DIVIDENDS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>20</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY OTHER</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>47</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY OVERTIME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>48</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY NO WORK</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>50</LineNo>
+			<PayrollCalcTypeCode>BONUS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>60</LineNo>
+			<PayrollCalcTypeCode>BUSINESS TRAVEL</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>100</LineNo>
+			<PayrollCalcTypeCode>GIFTS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>2520</LineNo>
+			<PayrollCalcTypeCode>BENEFIT ORDER</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>2550</LineNo>
+			<PayrollCalcTypeCode>BENEFITS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6700</LineNo>
+			<PayrollCalcTypeCode>DISMISSAL PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6905</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY HOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6910</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY PREG</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6920</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6930</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY CHILD</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6935</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY INJURY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6940</LineNo>
+			<PayrollCalcTypeCode>VACATION COMPENSAT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6950</LineNo>
+			<PayrollCalcTypeCode>VACATION REGULAR</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6955</LineNo>
+			<PayrollCalcTypeCode>AVG EARNING PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6960</LineNo>
+			<PayrollCalcTypeCode>VACATION CHILD CARE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6970</LineNo>
+			<PayrollCalcTypeCode>VACATION EDUCATION</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6980</LineNo>
+			<PayrollCalcTypeCode>AUTHOR INCOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>6985</LineNo>
+			<PayrollCalcTypeCode>PERSONAL AUTO</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>7200</LineNo>
+			<PayrollCalcTypeCode>OTHER INCOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>7295</LineNo>
+			<PayrollCalcTypeCode>DEDUCT STANDARD</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>7296</LineNo>
+			<PayrollCalcTypeCode>DEDUCT CHILDS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>7297</LineNo>
+			<PayrollCalcTypeCode>DEDUCT 501-503</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>7300</LineNo>
+			<PayrollCalcTypeCode>DEDUCT PROPERTY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>7350</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX 13%</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>7900</LineNo>
+			<PayrollCalcTypeCode>LOAN</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>7910</LineNo>
+			<PayrollCalcTypeCode>LOAN PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>7920</LineNo>
+			<PayrollCalcTypeCode>ADVANTAGE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>8000</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX 35%</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>8001</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX DIVID</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>8004</LineNo>
+			<PayrollCalcTypeCode>PROF UNION PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>8005</LineNo>
+			<PayrollCalcTypeCode>AMOUNT DUE PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>9005</LineNo>
+			<PayrollCalcTypeCode>DEDUCT MEALS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>9050</LineNo>
+			<PayrollCalcTypeCode>EXECUTIVE ACT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>9100</LineNo>
+			<PayrollCalcTypeCode>PENALTY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>90200</LineNo>
+			<PayrollCalcTypeCode>INJURY TAX-20</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>90700</LineNo>
+			<PayrollCalcTypeCode>NON BUDGET TAX-20</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-20</PayrollCalcGroup>
+			<LineNo>90990</LineNo>
+			<PayrollCalcTypeCode>NON BUDGET REPORT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+	</PayrollCalcGroup>
+	<PayrollCalcGroup>
+		<Code>PAYR-26</Code>
+		<Name>Salary and Taxes on 26 account</Name>
+		<DisabledPersons>No</DisabledPersons>
+		<Type> </Type>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>4</LineNo>
+			<PayrollCalcTypeCode>SALARY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>5</LineNo>
+			<PayrollCalcTypeCode>SALARY DIFFERENCE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>15</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY AMOUNT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>16</LineNo>
+			<PayrollCalcTypeCode>DIVIDENDS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>20</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY OTHER</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>47</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY OVERTIME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>48</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY NO WORK</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>50</LineNo>
+			<PayrollCalcTypeCode>BONUS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>60</LineNo>
+			<PayrollCalcTypeCode>BUSINESS TRAVEL</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>100</LineNo>
+			<PayrollCalcTypeCode>GIFTS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>2520</LineNo>
+			<PayrollCalcTypeCode>BENEFIT ORDER</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>2550</LineNo>
+			<PayrollCalcTypeCode>BENEFITS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6700</LineNo>
+			<PayrollCalcTypeCode>DISMISSAL PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6905</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY HOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6910</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY PREG</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6920</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6930</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY CHILD</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6935</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY INJURY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6940</LineNo>
+			<PayrollCalcTypeCode>VACATION COMPENSAT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6950</LineNo>
+			<PayrollCalcTypeCode>VACATION REGULAR</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6955</LineNo>
+			<PayrollCalcTypeCode>AVG EARNING PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6960</LineNo>
+			<PayrollCalcTypeCode>VACATION CHILD CARE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6970</LineNo>
+			<PayrollCalcTypeCode>VACATION EDUCATION</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6980</LineNo>
+			<PayrollCalcTypeCode>AUTHOR INCOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>6985</LineNo>
+			<PayrollCalcTypeCode>PERSONAL AUTO</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>7200</LineNo>
+			<PayrollCalcTypeCode>OTHER INCOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>7295</LineNo>
+			<PayrollCalcTypeCode>DEDUCT STANDARD</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>7296</LineNo>
+			<PayrollCalcTypeCode>DEDUCT CHILDS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>7297</LineNo>
+			<PayrollCalcTypeCode>DEDUCT 501-503</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>7300</LineNo>
+			<PayrollCalcTypeCode>DEDUCT PROPERTY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>7350</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX 13%</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>7900</LineNo>
+			<PayrollCalcTypeCode>LOAN</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>7910</LineNo>
+			<PayrollCalcTypeCode>LOAN PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>7920</LineNo>
+			<PayrollCalcTypeCode>ADVANTAGE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>8000</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX 35%</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>8001</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX DIVID</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>8004</LineNo>
+			<PayrollCalcTypeCode>PROF UNION PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>8005</LineNo>
+			<PayrollCalcTypeCode>AMOUNT DUE PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>9005</LineNo>
+			<PayrollCalcTypeCode>DEDUCT MEALS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>9050</LineNo>
+			<PayrollCalcTypeCode>EXECUTIVE ACT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>9100</LineNo>
+			<PayrollCalcTypeCode>PENALTY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>90400</LineNo>
+			<PayrollCalcTypeCode>INJURY TAX-26</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>90800</LineNo>
+			<PayrollCalcTypeCode>NON BUDGET TAX-26</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-26</PayrollCalcGroup>
+			<LineNo>90990</LineNo>
+			<PayrollCalcTypeCode>NON BUDGET REPORT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+	</PayrollCalcGroup>
+	<PayrollCalcGroup>
+		<Code>PAYR-44</Code>
+		<Name>Salary and Taxes on 44 account</Name>
+		<DisabledPersons>No</DisabledPersons>
+		<Type> </Type>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>4</LineNo>
+			<PayrollCalcTypeCode>SALARY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>5</LineNo>
+			<PayrollCalcTypeCode>SALARY DIFFERENCE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>15</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY AMOUNT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>16</LineNo>
+			<PayrollCalcTypeCode>DIVIDENDS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>20</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY OTHER</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>47</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY OVERTIME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>48</LineNo>
+			<PayrollCalcTypeCode>EXTRA PAY NO WORK</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>50</LineNo>
+			<PayrollCalcTypeCode>BONUS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>60</LineNo>
+			<PayrollCalcTypeCode>BUSINESS TRAVEL</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>100</LineNo>
+			<PayrollCalcTypeCode>GIFTS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>2520</LineNo>
+			<PayrollCalcTypeCode>BENEFIT ORDER</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>2550</LineNo>
+			<PayrollCalcTypeCode>BENEFITS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6700</LineNo>
+			<PayrollCalcTypeCode>DISMISSAL PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6905</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY HOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6910</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY PREG</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6920</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6930</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY CHILD</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6935</LineNo>
+			<PayrollCalcTypeCode>SICK LIST PAY INJURY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6940</LineNo>
+			<PayrollCalcTypeCode>VACATION COMPENSAT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6950</LineNo>
+			<PayrollCalcTypeCode>VACATION REGULAR</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6955</LineNo>
+			<PayrollCalcTypeCode>AVG EARNING PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6960</LineNo>
+			<PayrollCalcTypeCode>VACATION CHILD CARE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6970</LineNo>
+			<PayrollCalcTypeCode>VACATION EDUCATION</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6980</LineNo>
+			<PayrollCalcTypeCode>AUTHOR INCOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>6985</LineNo>
+			<PayrollCalcTypeCode>PERSONAL AUTO</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>7200</LineNo>
+			<PayrollCalcTypeCode>OTHER INCOME</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>7295</LineNo>
+			<PayrollCalcTypeCode>DEDUCT STANDARD</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>7296</LineNo>
+			<PayrollCalcTypeCode>DEDUCT CHILDS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>7297</LineNo>
+			<PayrollCalcTypeCode>DEDUCT 501-503</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>7300</LineNo>
+			<PayrollCalcTypeCode>DEDUCT PROPERTY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>7350</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX 13%</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>7900</LineNo>
+			<PayrollCalcTypeCode>LOAN</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>7910</LineNo>
+			<PayrollCalcTypeCode>LOAN PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>7920</LineNo>
+			<PayrollCalcTypeCode>ADVANTAGE</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>8000</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX 35%</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>8001</LineNo>
+			<PayrollCalcTypeCode>INCOME TAX DIVID</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>8004</LineNo>
+			<PayrollCalcTypeCode>PROF UNION PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>8005</LineNo>
+			<PayrollCalcTypeCode>AMOUNT DUE PAY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>9005</LineNo>
+			<PayrollCalcTypeCode>DEDUCT MEALS</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>9050</LineNo>
+			<PayrollCalcTypeCode>EXECUTIVE ACT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>9100</LineNo>
+			<PayrollCalcTypeCode>PENALTY</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>90500</LineNo>
+			<PayrollCalcTypeCode>INJURY TAX-44</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>90900</LineNo>
+			<PayrollCalcTypeCode>NON BUDGET TAX-44</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+		<PayrollCalcGroupLine>
+			<PayrollCalcGroup>PAYR-44</PayrollCalcGroup>
+			<LineNo>90990</LineNo>
+			<PayrollCalcTypeCode>NON BUDGET REPORT</PayrollCalcTypeCode>
+		</PayrollCalcGroupLine>
+	</PayrollCalcGroup>
+	<PayrollCalcType>
+		<Code>ADVANTAGE</Code>
+		<Description>Advantages</Description>
+		<Priority>7920</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>ADVANTAGE</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>LOAN BENEFIT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>LOAN BENEFIT</ElementName>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>AMOUNT DUE PAY</Code>
+		<Description>Amount due pay</Description>
+		<Priority>8005</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>AMOUNT DUE PAY</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>AMOUNT DUE PAY</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>END BALANCE</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Liability</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>AUTHOR INCOME</Code>
+		<Description>Author income</Description>
+		<Priority>6980</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>AUTHOR INCOME</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>AUTHOR PAY</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>AVG EARNING PAY</Code>
+		<Description>Pay by average earnings</Description>
+		<Priority>6955</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>AVG EARNING PAY</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>PAY GOVERN DUTIES</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>AVG EARNING PAY</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>PAY AVG EARNINGS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>BENEFIT ORDER</Code>
+		<Description>Benefit orders</Description>
+		<Priority>2520</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BENEFIT ORDER</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>BENEFIT ORDER</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>ADVANTAGE</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>BENEFITS</Code>
+		<Description>Benefits</Description>
+		<Priority>2550</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BENEFITS</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>BENEFIT EARLY PREG</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BENEFITS</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>BENEFIT CHILD BIRTH</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BENEFITS</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>BENEFIT FUNERAL</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>BONUS</Code>
+		<Description>Bonus</Description>
+		<Priority>50</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BONUS</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>BONUS AMOUNT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>PROFIT PAY</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Bonus</ElementType>
+			<ElementName>BONUS</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BONUS</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>BONUS MONTHLY AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Bonus</ElementType>
+			<ElementName>BONUS</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BONUS</CalcTypeCode>
+			<LineNo>40000</LineNo>
+			<ElementCode>BONUS ANNUAL AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Bonus</ElementType>
+			<ElementName>BONUS</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BONUS</CalcTypeCode>
+			<LineNo>50000</LineNo>
+			<ElementCode>BONUS ANNUAL %</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Bonus</ElementType>
+			<ElementName>BONUS</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BONUS</CalcTypeCode>
+			<LineNo>60000</LineNo>
+			<ElementCode>BONUS QUARTERLY %</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Bonus</ElementType>
+			<ElementName>BONUS</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BONUS</CalcTypeCode>
+			<LineNo>70000</LineNo>
+			<ElementCode>BONUS QUARTERLY AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Bonus</ElementType>
+			<ElementName>BONUS</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BONUS</CalcTypeCode>
+			<LineNo>80000</LineNo>
+			<ElementCode>BONUS MONTHLY %</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Bonus</ElementType>
+			<ElementName>BONUS</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BONUS</CalcTypeCode>
+			<LineNo>90000</LineNo>
+			<ElementCode>BONUS MONTHLY % LM</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Bonus</ElementType>
+			<ElementName>BONUS</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>BUSINESS TRAVEL</Code>
+		<Description>Business travel</Description>
+		<Priority>60</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>BUSINESS TRAVEL</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>BUSINESS TRAVEL</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>DEDUCT CHILDS</Code>
+		<Description>Child tax deductions</Description>
+		<Priority>7296</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT CHILDS</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>DEDUCT108</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Tax Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT CHILDS</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>DEDUCT109</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Tax Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT CHILDS</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>DEDUCT110</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Tax Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT CHILDS</CalcTypeCode>
+			<LineNo>40000</LineNo>
+			<ElementCode>DEDUCT111</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Tax Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT CHILDS</CalcTypeCode>
+			<LineNo>50000</LineNo>
+			<ElementCode>DEDUCT112</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Tax Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT CHILDS</CalcTypeCode>
+			<LineNo>60000</LineNo>
+			<ElementCode>DEDUCT113</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Tax Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>DEDUCT MEALS</Code>
+		<Description>Meal deductions</Description>
+		<Priority>9005</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT MEALS</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>DEDUCT MEALS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>MEALS</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Liability</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>DEDUCT PROPERTY</Code>
+		<Description>Property tax deductions</Description>
+		<Priority>7300</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT PROPERTY</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>DEDUCT PROPERTY 313</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Tax Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>DEDUCT STANDARD</Code>
+		<Description>Standard tax deductions</Description>
+		<Priority>7295</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT STANDARD</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>DEDUCT103</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Tax Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT STANDARD</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>DEDUCT104</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Tax Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT STANDARD</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>DEDUCT105</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Tax Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>DEDUCT 501-503</Code>
+		<Description>501-503 tax deductions</Description>
+		<Priority>7297</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT 501-503</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>DEDUCT503</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Tax Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DEDUCT 501-503</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>DEDUCT501</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Tax Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>DISMISSAL PAY</Code>
+		<Description>Dismissal pay</Description>
+		<Priority>6700</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DISMISSAL PAY</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>DISMISSAL PAY DAYS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DISMISSAL PAY</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>DISMISSAL COMP. 3 M</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DISMISSAL PAY</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>DISMISSAL PAY AMOUNT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>DIVIDENDS</Code>
+		<Description>Dividends</Description>
+		<Priority>16</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>DIVIDENDS</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>DIVIDENDS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>PROFIT PAY</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>DIVIDENDS</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>EXECUTIVE ACT</Code>
+		<Description>Executive act deductions</Description>
+		<Priority>9050</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXECUTIVE ACT</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>EXEC ACT AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>ALIMONY</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Liability</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXECUTIVE ACT</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>EXEC ACT %</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>ALIMONY</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Liability</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXECUTIVE ACT</CalcTypeCode>
+			<LineNo>40000</LineNo>
+			<ElementCode>EXEC ACT TRANSF %</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>ALIMONY</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Liability</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXECUTIVE ACT</CalcTypeCode>
+			<LineNo>60000</LineNo>
+			<ElementCode>EXEC ACT TRANSF AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>ALIMONY</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Liability</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>EXTRA PAY AMOUNT</Code>
+		<Description>Extra pay amounts</Description>
+		<Priority>15</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY AMOUNT</CalcTypeCode>
+			<LineNo>50000</LineNo>
+			<ElementCode>PAY MEALS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY AMOUNT</CalcTypeCode>
+			<LineNo>100000</LineNo>
+			<ElementCode>EXTRAPAY NIGHT AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY NIGHT</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY AMOUNT</CalcTypeCode>
+			<LineNo>110000</LineNo>
+			<ElementCode>EXTRAPAY HOLIDAY AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY HOLIDAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY AMOUNT</CalcTypeCode>
+			<LineNo>120000</LineNo>
+			<ElementCode>EXTRAPAY NO WORK AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY NO WORK</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY AMOUNT</CalcTypeCode>
+			<LineNo>130000</LineNo>
+			<ElementCode>EXTRAPAY OVERT AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY OVERT</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY AMOUNT</CalcTypeCode>
+			<LineNo>230000</LineNo>
+			<ElementCode>PAY MEALS NAT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>EXTRA PAY NO WORK</Code>
+		<Description>No work extra pays</Description>
+		<Priority>48</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY NO WORK</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>EXTRAPAY NO WORK DS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY NO WORK</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY NO WORK</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>EXTRAPAY NO WORK HS</ElementCode>
+			<Activity>No</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY NO WORK</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>EXTRA PAY OTHER</Code>
+		<Description>Other extra pays</Description>
+		<Priority>20</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY OTHER</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>EXTRAPAY HOURS</ElementCode>
+			<Activity>No</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY COWORK</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY OTHER</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>EXTRAPAY HOURS %</ElementCode>
+			<Activity>No</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY COWORK</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY OTHER</CalcTypeCode>
+			<LineNo>50000</LineNo>
+			<ElementCode>EXTRAPAY DAY</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY COWORK</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY OTHER</CalcTypeCode>
+			<LineNo>60000</LineNo>
+			<ElementCode>EXTRAPAY DAY %</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY COWORK</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY OTHER</CalcTypeCode>
+			<LineNo>90000</LineNo>
+			<ElementCode>EXTRAPAY AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>EXTRA PAY OVERTIME</Code>
+		<Description>Overttime extra pays</Description>
+		<Priority>47</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY OVERTIME</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>EXTRAPAY NIGHT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY NIGHT</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY OVERTIME</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>EXTRAPAY HOLIDAYS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY HOLIDAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY OVERTIME</CalcTypeCode>
+			<LineNo>40000</LineNo>
+			<ElementCode>EXTRAPAY OVERT 1.5</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY OVERT 1.5</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>EXTRA PAY OVERTIME</CalcTypeCode>
+			<LineNo>50000</LineNo>
+			<ElementCode>EXTRAPAY OVERT 2</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>EXTRA PAY OVERT</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>GIFTS</Code>
+		<Description>Gifts</Description>
+		<Priority>100</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>GIFTS</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>GIFTS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Bonus</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>INCOME TAX DIVID</Code>
+		<Description>Income tax for dividends</Description>
+		<Priority>8001</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>INCOME TAX DIVID</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>INCOME TAX DIVID</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>INCOME TAX</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Income Tax</ElementType>
+			<ElementName>INCOME TAX</ElementName>
+			<GenPostType>Liability</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>INCOME TAX 13%</Code>
+		<Description>Income tax 13%</Description>
+		<Priority>7350</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>INCOME TAX 13%</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>INCOME TAX 13%</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>INCOME TAX</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Income Tax</ElementType>
+			<ElementName>INCOME TAX</ElementName>
+			<GenPostType>Liability</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>INCOME TAX 35%</Code>
+		<Description>Income tax 35%</Description>
+		<Priority>8000</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>INCOME TAX 35%</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>INCOME TAX 35%</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>INCOME TAX</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Income Tax</ElementType>
+			<ElementName>INCOME TAX</ElementName>
+			<GenPostType>Liability</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>INJURY TAX DISABL-20</Code>
+		<Description>Injury tax for disabled on account 20</Description>
+		<Priority>90100</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>INJURY TAX DISABL-20</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>TAX FSI INJ DIS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>FSI INJ-20</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>INJURY TAX-20</Code>
+		<Description>Injury tax on account 20</Description>
+		<Priority>90200</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>INJURY TAX-20</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>TAX FSI INJ</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>FSI INJ-20</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>INJURY TAX-26</Code>
+		<Description>Injury tax on account 26</Description>
+		<Priority>90400</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>INJURY TAX-26</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>TAX FSI INJ</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>FSI INJ-26</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>INJURY TAX-44</Code>
+		<Description>Injury tax on account 44</Description>
+		<Priority>90500</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>INJURY TAX-44</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>TAX FSI INJ</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>FSI INJ-44</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>LOAN</Code>
+		<Description>Loan</Description>
+		<Priority>7900</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>LOAN</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>LOAN</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Other</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>LOAN PAY</Code>
+		<Description>Loan pay</Description>
+		<Priority>7910</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>LOAN PAY</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>LOAN PAY</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>LOAN PAY</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Liability</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>NON BUDGET REPORT</Code>
+		<Description>Non-budget tax reporting</Description>
+		<Priority>90990</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET REPORT</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>TAX REP PF MI BASE</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Reporting</ElementType>
+			<ElementName>REPORTING</ElementName>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET REPORT</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>TAX REP FSI BASE</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Reporting</ElementType>
+			<ElementName>REPORTING</ElementName>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET REPORT</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>TAX REP FSI NO TAX</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Reporting</ElementType>
+			<ElementName>REPORTING</ElementName>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET REPORT</CalcTypeCode>
+			<LineNo>40000</LineNo>
+			<ElementCode>TAX REP FSI OVER</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Reporting</ElementType>
+			<ElementName>REPORTING</ElementName>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET REPORT</CalcTypeCode>
+			<LineNo>50000</LineNo>
+			<ElementCode>TAX REP PF MI NO TAX</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Reporting</ElementType>
+			<ElementName>REPORTING</ElementName>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET REPORT</CalcTypeCode>
+			<LineNo>60000</LineNo>
+			<ElementCode>TAX REP PF MI OVER</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Reporting</ElementType>
+			<ElementName>REPORTING</ElementName>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET REPORT</CalcTypeCode>
+			<LineNo>70000</LineNo>
+			<ElementCode>TAX REP PF INS LIMIT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Reporting</ElementType>
+			<ElementName>REPORTING</ElementName>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>NON BUDGET TAX-20</Code>
+		<Description>Non-budget tax on account 20</Description>
+		<Priority>90700</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-20</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>TAX PF SAV</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>PF SAV-20</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-20</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>TAX PF INS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>PF INS-20</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-20</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>TAX TER FMI</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>TER FMI-20</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-20</CalcTypeCode>
+			<LineNo>40000</LineNo>
+			<ElementCode>TAX FED FMI</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>FED FMI-20</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-20</CalcTypeCode>
+			<LineNo>50000</LineNo>
+			<ElementCode>TAX FSI</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>FSI-20</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>NON BUDGET TAX-20 D</Code>
+		<Description>Non-budget tax on account 20 disable</Description>
+		<Priority>90700</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-20 D</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>TAX PF SAV</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>PF SAV-20</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-20 D</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>TAX PF INS DIS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>PF INS-20</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-20 D</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>TAX TER FMI</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>TER FMI-20</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-20 D</CalcTypeCode>
+			<LineNo>40000</LineNo>
+			<ElementCode>TAX FED FMI DIS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>FED FMI-20</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-20 D</CalcTypeCode>
+			<LineNo>50000</LineNo>
+			<ElementCode>TAX FSI DIS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>FSI-20</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+  </PayrollCalcType>
+  <PayrollCalcType>
+		<Code>NON BUDGET TAX-26</Code>
+		<Description>Non-budget tax on account 26</Description>
+		<Priority>90800</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-26</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>TAX PF SAV</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>PF SAV-26</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-26</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>TAX PF INS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>PF INS-26</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-26</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>TAX TER FMI</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>TER FMI-26</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-26</CalcTypeCode>
+			<LineNo>40000</LineNo>
+			<ElementCode>TAX FED FMI</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>FED FMI-26</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-26</CalcTypeCode>
+			<LineNo>50000</LineNo>
+			<ElementCode>TAX FSI</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>FSI-26</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>NON BUDGET TAX-44</Code>
+		<Description>Non-budget tax on account 44</Description>
+		<Priority>90900</Priority>
+		<UseInCalc>Always</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-44</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>TAX PF SAV</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>PF SAV-44</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-44</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>TAX PF INS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>PF INS-44</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-44</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>TAX TER FMI</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>TER FMI-44</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-44</CalcTypeCode>
+			<LineNo>40000</LineNo>
+			<ElementCode>TAX FED FMI</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>FED FMI-44</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>NON BUDGET TAX-44</CalcTypeCode>
+			<LineNo>50000</LineNo>
+			<ElementCode>TAX FSI</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>FSI-44</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Funds</ElementType>
+			<ElementName>FUNDS</ElementName>
+			<GenPostType>Liability Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>OTHER INCOME</Code>
+		<Description>Other income</Description>
+		<Priority>7200</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>OTHER INCOME</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>OTHER INCOME TAXABLE</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>PENALTY</Code>
+		<Description>Penalty deductions</Description>
+		<Priority>9100</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>PENALTY</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>PENALTY</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>PENALTY</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Liability</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>PERSONAL AUTO</Code>
+		<Description>Compensation for personal auto usage</Description>
+		<Priority>6985</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>PERSONAL AUTO</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>PERSONAL AUTO</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>PLANNED ADVANCE</Code>
+		<Description>Planned advance</Description>
+		<Priority>3</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>PLANNED ADVANCE</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>PLANNED ADVANCE</ElementCode>
+			<Activity>No</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>ADVANCE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>PLANNED ADVANCE</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>ADVANCE WORKED DAYS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>ADVANCE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>PLANNED ADVANCE</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>ADVANCE WORKED HOURS</ElementCode>
+			<Activity>No</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>ADVANCE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>PROF UNION PAY</Code>
+		<Description>Professional union payment</Description>
+		<Priority>8004</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>PROF UNION PAY</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>PROF UNION PAY</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Deduction</ElementType>
+			<ElementName/>
+			<GenPostType>Liability</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>SALARY</Code>
+		<Description>Salary</Description>
+		<Priority>4</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SALARY</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>SALARY HOUR</ElementCode>
+			<Activity>No</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SALARY PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SALARY</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>SALARY DAY</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SALARY PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SALARY</CalcTypeCode>
+			<LineNo>40000</LineNo>
+			<ElementCode>SALARY BASE</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Other</ElementType>
+			<ElementName>BASE SALARY</ElementName>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SALARY</CalcTypeCode>
+			<LineNo>70000</LineNo>
+			<ElementCode>SALARY AMOUNT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SALARY PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SALARY</CalcTypeCode>
+			<LineNo>80000</LineNo>
+			<ElementCode>SALARY DIFF AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SALARY</CalcTypeCode>
+			<LineNo>90000</LineNo>
+			<ElementCode>CONTRACT SERV</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SALARY</CalcTypeCode>
+			<LineNo>110000</LineNo>
+			<ElementCode>CONTRACT WORK</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SALARY</CalcTypeCode>
+			<LineNo>140000</LineNo>
+			<ElementCode>PAY CONTR VM</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>SALARY DIFFERENCE</Code>
+		<Description>Salary difference</Description>
+		<Priority>5</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SALARY DIFFERENCE</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>SALARY DIFF HOUR</ElementCode>
+			<Activity>No</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SALARY DIFFERENCE</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>SALARY DIFF DAY</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>SICK LIST PAY</Code>
+		<Description>Sick list pay</Description>
+		<Priority>6920</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SICK LIST PAY</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>PAY SL DAYS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 ALL</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SICK LEAVE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SICK LIST PAY</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>PAY SL AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 NOA</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SICK LEAVE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SICK LIST PAY</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>PAY SL AMT OWN</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SICK LEAVE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>SICK LIST PAY CHILD</Code>
+		<Description>Sick list pay for child care</Description>
+		<Priority>6930</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SICK LIST PAY CHILD</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>PAY SL CHILD DAYS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 NOA</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SICK LEAVE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SICK LIST PAY CHILD</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>PAY SL CHILD AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 NOA</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SICK LEAVE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>SICK LIST PAY HOME</Code>
+		<Description>Sick list pay for home sickness</Description>
+		<Priority>6905</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SICK LIST PAY HOME</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>PAY SL HOME DAYS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 ALL</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SICK LEAVE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SICK LIST PAY HOME</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>PAY SL HOME AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 NOA</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SICK LEAVE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>SICK LIST PAY INJURY</Code>
+		<Description>Sick list pay for injury</Description>
+		<Priority>6935</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SICK LIST PAY INJURY</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>PAY SL INJURY DAYS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 INJ</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SICK LEAVE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SICK LIST PAY INJURY</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>PAY SL INJURY AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 INJ</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SICK LEAVE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>SICK LIST PAY PREG</Code>
+		<Description>Sick list pay for pregnancy</Description>
+		<Priority>6910</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SICK LIST PAY PREG</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>PAY SL PREG DAYS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 NOA</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SICK LEAVE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>SICK LIST PAY PREG</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>PAY SL PREG AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 NOA</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName>SICK LEAVE PAY</ElementName>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>VACATION CHERNOBYL</Code>
+		<Description>Chernobyl vacation pay</Description>
+		<Priority>6956</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>VACATION CHERNOBYL</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>VAC CHERNOBYL</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Not Post</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>VACATION CHILD CARE</Code>
+		<Description>Child care vacation pay</Description>
+		<Priority>6960</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>VACATION CHILD CARE</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>VAC CHILD1 1.5 DAYS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 NOA</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>VACATION CHILD CARE</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>VAC CHILD 3 DAYS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>VACATION CHILD CARE</CalcTypeCode>
+			<LineNo>30000</LineNo>
+			<ElementCode>VAC CHILD2 1.5 DAYS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 NOA</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>VACATION CHILD CARE</CalcTypeCode>
+			<LineNo>40000</LineNo>
+			<ElementCode>VAC CHILD3 1.5 DAYS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup>BENEFIT 69 NOA</PayrollPostingGroup>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>VACATION COMPENSAT</Code>
+		<Description>Vacation compensation</Description>
+		<Priority>6940</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>VACATION COMPENSAT</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>VAC COMPENS</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>VACATION COMPENSAT</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>VAC COMPENS AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>VACATION EDUCATION</Code>
+		<Description>Education vacation pay</Description>
+		<Priority>6970</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>VACATION EDUCATION</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>VAC EDUCATION</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>VACATION EDUCATION</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>VAC EDUCATION AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+	<PayrollCalcType>
+		<Code>VACATION REGULAR</Code>
+		<Description>Regular vacation pay</Description>
+		<Priority>6950</Priority>
+		<UseInCalc>If Entry Exist</UseInCalc>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>VACATION REGULAR</CalcTypeCode>
+			<LineNo>10000</LineNo>
+			<ElementCode>VAC REGULAR</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+		<PayrollCalcTypeLine>
+			<CalcTypeCode>VACATION REGULAR</CalcTypeCode>
+			<LineNo>20000</LineNo>
+			<ElementCode>VAC REGULAR AMT</ElementCode>
+			<Activity>Yes</Activity>
+			<PayrollPostingGroup/>
+			<Calculate>Yes</Calculate>
+			<ElementType>Wage</ElementType>
+			<ElementName/>
+			<GenPostType>Charge</GenPostType>
+		</PayrollCalcTypeLine>
+	</PayrollCalcType>
+</PayrollCalcGroups>

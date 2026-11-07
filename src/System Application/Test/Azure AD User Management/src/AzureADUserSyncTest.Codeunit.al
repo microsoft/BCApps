@@ -856,6 +856,41 @@ codeunit 132928 "Azure AD User Sync Test"
         TearDown();
     end;
 
+    [Test]
+    procedure TestFailedUpdateRecordsErrorMessageOnBuffer()
+    var
+        TempAzureADUserUpdateBuffer: Record "Azure AD User Update Buffer" temporary;
+        AzureADUserSyncImpl: Codeunit "Azure AD User Sync Impl.";
+        BogusUserSecurityId: Guid;
+        SuccessCount: Integer;
+    begin
+        // Can't have TransactionModel::AutoRollback + CommitBehavior::Ignore, because isolated events only work
+        // if at the moment of raising we are not in the write transaction (which is achieved by calling Commit())
+        Initialize();
+        BogusUserSecurityId := CreateGuid();
+
+        // [GIVEN] A pending Change update referencing a user that does not exist in BC, so the subscriber errors on User.Get
+        TempAzureADUserUpdateBuffer."Authentication Object ID" := 'ghost-auth-id';
+        TempAzureADUserUpdateBuffer."Update Entity" := TempAzureADUserUpdateBuffer."Update Entity"::"Full Name";
+        TempAzureADUserUpdateBuffer."Update Type" := TempAzureADUserUpdateBuffer."Update Type"::Change;
+        TempAzureADUserUpdateBuffer."User Security ID" := BogusUserSecurityId;
+        TempAzureADUserUpdateBuffer."Display Name" := 'Ghost User';
+        TempAzureADUserUpdateBuffer."New Value" := 'New Name';
+        TempAzureADUserUpdateBuffer.Insert();
+
+        // [WHEN] The updates are applied
+        SuccessCount := AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
+
+        // [THEN] The success count reflects the failure
+        LibraryAssert.AreEqual(0, SuccessCount, 'Expected no successful updates.');
+
+        // [THEN] The buffer record is updated with the error text so the wizard can surface it
+        LibraryAssert.IsTrue(TempAzureADUserUpdateBuffer.FindFirst(), 'Buffer record should still be present after a failed apply.');
+        LibraryAssert.AreNotEqual('', TempAzureADUserUpdateBuffer."Error Message", 'Error Message should be populated on the failed update.');
+
+        TearDown();
+    end;
+
     local procedure CreateUsers(AzureAdOnly: Boolean)
     begin
         CreateUsers(AzureAdOnly, '');

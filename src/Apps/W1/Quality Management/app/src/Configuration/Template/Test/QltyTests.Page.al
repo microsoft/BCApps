@@ -7,6 +7,8 @@ namespace Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Telemetry;
+using System.Text;
 
 /// <summary>
 /// This page lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates
@@ -24,6 +26,7 @@ page 20401 "Qlty. Tests"
     PageType = List;
     SourceTable = "Qlty. Test";
     SourceTableView = sorting(Code);
+    AccessByPermission = tabledata "Qlty. Test" = R;
     UsageCategory = Administration;
     ApplicationArea = QualityManagement;
 
@@ -269,8 +272,11 @@ page 20401 "Qlty. Tests"
 
     trigger OnOpenPage()
     var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
         MatrixVisibleState: array[10] of Boolean;
     begin
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Tests");
+
         QltyResultConditionMgmt.GetDefaultPromotedResults(true, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
@@ -289,6 +295,9 @@ page 20401 "Qlty. Tests"
         UpdateRowData();
     end;
 
+    /// <summary>
+    /// Loads promoted result conditions for the current test row.
+    /// </summary>
     local procedure UpdateRowData()
     var
         DummyMatrixArrayCaptionSet: array[10] of Text;
@@ -297,6 +306,10 @@ page 20401 "Qlty. Tests"
         QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
     end;
 
+    /// <summary>
+    /// Persists a promoted result condition from the list matrix.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to update.</param>
     local procedure UpdateMatrixDataCondition(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -307,6 +320,10 @@ page 20401 "Qlty. Tests"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Persists a promoted result condition description from the list matrix.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to update.</param>
     local procedure UpdateMatrixDataConditionDescription(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -317,6 +334,10 @@ page 20401 "Qlty. Tests"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Opens the expression editor for a promoted result condition.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to edit.</param>
     procedure AssistEditCondition(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -330,6 +351,10 @@ page 20401 "Qlty. Tests"
         end;
     end;
 
+    /// <summary>
+    /// Opens the expression editor for a promoted result condition description.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to edit.</param>
     procedure AssistEditConditionDescription(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -342,4 +367,32 @@ page 20401 "Qlty. Tests"
             UpdateMatrixDataConditionDescription(Matrix);
         end;
     end;
+
+    #region Add multiple tests to template
+    /// <summary>
+    /// Gets a code filter for the currently selected tests.
+    /// </summary>
+    /// <returns>The selected test code filter.</returns>
+    internal procedure GetSelectionFilter(): Text
+    var
+        QltyTest: Record "Qlty. Test";
+    begin
+        CurrPage.SetSelectionFilter(QltyTest);
+        exit(GetSelectionFilterForTest(QltyTest));
+    end;
+
+    /// <summary>
+    /// Converts a filtered test record into a selection filter on its code field.
+    /// </summary>
+    /// <param name="QltyTest">The filtered test record representing the selection.</param>
+    /// <returns>The selected test code filter.</returns>
+    local procedure GetSelectionFilterForTest(var QltyTest: Record "Qlty. Test"): Text
+    var
+        SelectionFilterManagement: Codeunit SelectionFilterManagement;
+        RecRef: RecordRef;
+    begin
+        RecRef.GetTable(QltyTest);
+        exit(SelectionFilterManagement.GetSelectionFilter(RecRef, QltyTest.FieldNo(Code)));
+    end;
+    #endregion Add multiple tests to template
 }

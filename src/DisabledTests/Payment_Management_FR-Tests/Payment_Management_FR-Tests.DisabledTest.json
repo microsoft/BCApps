@@ -1,0 +1,462 @@
+[
+  {
+    "codeunitId": 144007,
+    "codeunitName": "ERM Bank Account FR",
+    "method": "LastNoUsedUpdatesOnPaymentSlipLinesEnteredManually"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "ERM Bank Account FR",
+    "method": "PaymentSlipPostForCustomer"
+  },
+  {
+    "codeunitId": 144007,
+    "codeunitName": "ERM Bank Account FR",
+    "method": "PaymentSlipPostForVendor"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "ERM Payment Management",
+    "method": "NoSeriesShouldNotCauseIssueWithPaymentSlipWhenPosting"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "ERM Payment Management",
+    "method": "VendLedgEntriesClosedAfterDelayedVATRealize"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "ERM Payment Management",
+    "method": "VendLedgEntriesClosedAfterDelayedVATRealizeAndNonDelayedVAT"
+  },
+  {
+    "codeunitId": 144017,
+    "codeunitName": "ERM Payment Management II",
+    "method": "RealizeVATEnabledOnPaymentStepCard"
+  },
+  {
+    "codeunitId": 144019,
+    "codeunitName": "ERM Payment Tolerance FR",
+    "method": "PmtToleranceWarningPaymentLineCustomer"
+  },
+  {
+    "codeunitId": 144019,
+    "codeunitName": "ERM Payment Tolerance FR",
+    "method": "PmtToleranceWarningPaymentLineVendor"
+  },
+  {
+    "codeunitId": 144019,
+    "codeunitName": "ERM Payment Tolerance FR",
+    "method": "PmtTolWarningOnPmntLineAfterAppliesToIdCustomer"
+  },
+  {
+    "codeunitId": 144019,
+    "codeunitName": "ERM Payment Tolerance FR",
+    "method": "PmtTolWarningOnPmntLineAfterAppliesToIdVendor"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "CheckPmtLineDeleteExportErrors"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "CheckPmtLineExportErrors"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "CheckPmtLinePartnerTypeError"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "ExportPmtLineDiffThanCustomerNotAllowed"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "ExportPmtLineDiffThanInvoiceNotAllowed"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "ExportPmtLineOneToManyNotAllowed"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "ExportPmtLineWithAppliesToDocNo"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "ExportPmtLineWithAppliesToID"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "ExportPmtLineWithoutApplication"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "ExportSecondPmtHeaderWithoutError"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "ReplaceClosedMandate"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "SuggestCustPayments"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "SuggestCustPaymentsDiffPartnerType"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "ValidateBankAccCodeOnPmtLine"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "ValidateMandateIdOnPmtLineWithBankAcc"
+  },
+  {
+    "codeunitId": 144022,
+    "codeunitName": "SEPA.02 DD Functional Test",
+    "method": "ValidateMandateIdOnPmtLineWithoutBankAcc"
+  },
+  {
+    "codeunitId": 144023,
+    "codeunitName": "SEPA.03 CT Functional Test",
+    "method": "ExportSEPACTSvcLvlCd"
+  },
+  {
+    "codeunitId": 144023,
+    "codeunitName": "SEPA.03 CT Functional Test",
+    "method": "LocalDataExported"
+  },
+  {
+    "codeunitId": 144023,
+    "codeunitName": "SEPA.03 CT Functional Test",
+    "method": "XmlFileCreditor"
+  },
+  {
+    "codeunitId": 144023,
+    "codeunitName": "SEPA.03 CT Functional Test",
+    "method": "XmlFileCreditorPreserveNonLatinChars"
+  },
+  {
+    "codeunitId": 144023,
+    "codeunitName": "SEPA.03 CT Functional Test",
+    "method": "XmlFileDebitor"
+  },
+  {
+    "codeunitId": 144023,
+    "codeunitName": "SEPA.03 CT Functional Test",
+    "method": "XmlFileDeclarationAndVersion"
+  },
+  {
+    "codeunitId": 144023,
+    "codeunitName": "SEPA.03 CT Functional Test",
+    "method": "XmlFileGroupHeader"
+  },
+  {
+    "codeunitId": 144023,
+    "codeunitName": "SEPA.03 CT Functional Test",
+    "method": "XmlFileInitiatingParty"
+  },
+  {
+    "codeunitId": 144023,
+    "codeunitName": "SEPA.03 CT Functional Test",
+    "method": "XmlFilePaymentInformationHeader"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "SEPA.03 CT Unit Test",
+    "method": "CustVendLinesInBuffer"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "SEPA.03 CT Unit Test",
+    "method": "ExportErrorOnPaymentSlipPage"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "SEPA.03 CT Unit Test",
+    "method": "NonEURPmtLineInBuffer"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "SEPA.03 CT Unit Test",
+    "method": "OnePmtLineInBuffer"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "SEPA.03 CT Unit Test",
+    "method": "PaymentStepsNewActionAvailable"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "SEPA.03 CT Unit Test",
+    "method": "RecipientIsPassedToBuffer"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "SEPA.03 CT Unit Test",
+    "method": "SenderIsPassedToBuffer"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "SEPA.03 CT Unit Test",
+    "method": "ThreePmtLinesInBuffer"
+  },
+  {
+    "codeunitId": 144024,
+    "codeunitName": "SEPA.03 CT Unit Test",
+    "method": "TransferDateWhenNoAppliesTo"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "CheckPmtLineDeleteExportErrors"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "CheckPmtLineExportErrors"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "CheckPmtLinePartnerTypeError"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportPmtLineDiffThanCustomerNotAllowed"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportPmtLineDiffThanInvoiceNotAllowed"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportPmtLineOneToManyNotAllowed"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportPmtLineWithAppliesToDocNo"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportPmtLineWithAppliesToID"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportPmtLineWithoutApplication"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ExportSecondPmtHeaderWithoutError"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ReplaceClosedMandate"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "SuggestCustPayments"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "SuggestCustPaymentsDiffPartnerType"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ValidateBankAccCodeOnPmtLine"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ValidateMandateIdOnPmtLineWithBankAcc"
+  },
+  {
+    "codeunitId": 144029,
+    "codeunitName": "SEPA.08 DD Functional Test",
+    "method": "ValidateMandateIdOnPmtLineWithoutBankAcc"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "ExportSEPACTSvcLvlCd"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "LocalDataExported"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFileCreditor"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFileCreditorPreserveNonLatinChars"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFileDebitor"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFileDeclarationAndVersion"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFileGroupHeader"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFileInitiatingParty"
+  },
+  {
+    "codeunitId": 144030,
+    "codeunitName": "SEPA.09 CT Functional Test",
+    "method": "XmlFilePaymentInformationHeader"
+  },
+  {
+    "codeunitId": 144034,
+    "codeunitName": "UT REP Payment Management",
+    "method": "OnAfterGetRecordPaymentLineBlankCurrencyDraftError"
+  },
+  {
+    "codeunitId": 144034,
+    "codeunitName": "UT REP Payment Management",
+    "method": "OnAfterGetRecordPaymentLineWithCurrencyDraft"
+  },
+  {
+    "codeunitId": 144035,
+    "codeunitName": "UT REP Payment Management II",
+    "method": "OnAfterGetRecordPmtClassDuplParameterError"
+  },
+  {
+    "codeunitId": 144038,
+    "codeunitName": "UT SEPA",
+    "method": "MessagetoRecipientGenJournalLineFromCustLedgerEntries"
+  },
+  {
+    "codeunitId": 144038,
+    "codeunitName": "UT SEPA",
+    "method": "MessagetoRecipientGenJournalLineFromVendLedgerEntries"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "UT TAB Payment Management",
+    "method": "OnLookupShortcutDimension12Code"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "UT TAB Payment Management",
+    "method": "OnValidateAccountNoPmtLineBlockedCustTypeAllError"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "UT TAB Payment Management",
+    "method": "OnValidateAccountNoPmtLineBlockedCustTypeInvoice"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "UT TAB Payment Management",
+    "method": "OnValidateAccountNoPmtLineBlockedCustTypeShip"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "UT TAB Payment Management",
+    "method": "OnValidateAccountNoPmtLineBlockedVendTypeAllError"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "UT TAB Payment Management",
+    "method": "OnValidateAccountNoPmtLineBlockedVendTypePmtError"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "UT TAB Payment Management",
+    "method": "OnValidateShortcutDimension12Code"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "UT TAB Payment Management",
+    "method": "PaymentHeaderLineMergeDimension"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "UT TAB Payment Management",
+    "method": "PaymentHeaderOverwriteLineDimensionValue"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "UT TAB Payment Management",
+    "method": "PaymentLineAccountDimension"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrGLAccNoProvBal"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrGLAccProvBalAccBlank"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrGLAccProvBalWithCorrection"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrLCYBalance"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144035,
+    "codeunitName": "Test G/L Acc Sheet Reports",
+    "method": "GLSheetForeignCurrPrintDebitCreditCorrectlyForTemporaryPostings"
+  },
+  {
+    "codeunitId": 144019,
+    "codeunitName": "UT TAB Post Code",
+    "method": "*"
+  }
+]

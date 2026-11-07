@@ -1,0 +1,14 @@
+ANALYSIS   40000                                                                                    1495                                                                            
+ANALYSIS   50000                                                                                    1590                                                                            
+ANALYSIS   60000                                                                                    1890                                                                            
+ANALYSIS   70000                                                                                    1970                                                                            
+ANALYSIS   120000                                                                                   2498                                                                            
+ANALYSIS   130000                                                                                   2798                                                                            
+ANALYSIS   140000                                                                                   2699                                                                            
+ANALYSIS   150000                                                                                   2299                                                                            
+REVENUE    70000                                                                                    3420                                                                            
+REVENUE    80000                                                                                    3199                                                                            
+REVENUE    100000                                                                                   3000..3999                                                                      
+REVENUE    110000                                                                                   3000..3999                                                                      
+REVENUE    120000                                                                                   3000..3999                                                                      
+REVENUE    130000                                                                                   3000..3999                                                                      

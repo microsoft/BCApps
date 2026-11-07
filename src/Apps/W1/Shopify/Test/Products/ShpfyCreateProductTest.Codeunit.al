@@ -23,9 +23,38 @@ codeunit 139601 "Shpfy Create Product Test"
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
         OutboundHttpRequests: Codeunit "Library - Variable Storage";
+        DialogValues: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
         ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
         ExportIsInitialized: Boolean;
+        PriceUpdateHttpCallCount: Integer;
+        AddToStoreActiveConfirmLbl: Label 'The item %1 will be added to the %2 store as a new product, and it will be immediately active.', Comment = '%1 - Item description, %2 - Shopify store name';
+        AddToStoreDraftConfirmLbl: Label 'The item %1 will be added to the %2 store as a new product, and it will remain in draft until you activate it.', Comment = '%1 - Item description, %2 - Shopify store name';
+        AddToStoreUnlistedConfirmLbl: Label 'The item %1 will be added to the %2 store as a new product, and it will be unlisted.', Comment = '%1 - Item description, %2 - Shopify store name';
+
+    [Test]
+    [HandlerFunctions('AddItemConfirmHandler')]
+    procedure UnitTestAddItemConfirmationShowsActiveStatus()
+    begin
+        // [SCENARIO] The confirmation reflects the Active product status configured on the shop.
+        VerifyAddItemConfirmation("Shpfy Cr. Prod. Status Value"::Active, AddToStoreActiveConfirmLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('AddItemConfirmHandler')]
+    procedure UnitTestAddItemConfirmationShowsDraftStatus()
+    begin
+        // [SCENARIO] The confirmation reflects the Draft product status configured on the shop.
+        VerifyAddItemConfirmation("Shpfy Cr. Prod. Status Value"::Draft, AddToStoreDraftConfirmLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('AddItemConfirmHandler')]
+    procedure UnitTestAddItemConfirmationShowsUnlistedStatus()
+    begin
+        // [SCENARIO] The confirmation reflects the Unlisted product status configured on the shop.
+        VerifyAddItemConfirmation("Shpfy Cr. Prod. Status Value"::Unlisted, AddToStoreUnlistedConfirmLbl);
+    end;
 
     [Test]
     procedure UnitTestCreateTempProductFromItem()
@@ -3145,6 +3174,107 @@ codeunit 139601 "Shpfy Create Product Test"
                 Error(UnexpectedAPICallsErr);
         end;
         exit(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ProductPriceSyncHttpHandler')]
+    procedure UnitTestPriceUpdateBelowThresholdUsesIndividualSyncNotBulk()
+    var
+        Item: Record Item;
+        ShopifyProduct: Record "Shpfy Product";
+        ShopifyVariant: Record "Shpfy Variant";
+        BulkOperation: Record "Shpfy Bulk Operation";
+        ProductExport: Codeunit "Shpfy Product Export";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        NullGuid: Guid;
+        Index: Integer;
+        ChangedVariantCount: Integer;
+    begin
+        // [SCENARIO 640288] When the number of changed prices is below the bulk-operation threshold,
+        // [SCENARIO] the connector updates prices with individual synchronous mutations instead of a bulk operation.
+        InitializeProductExport();
+        ExportShop."UoM as Variant" := false;
+        ExportShop.Modify();
+        PriceUpdateHttpCallCount := 0;
+
+        // [GIVEN] No pre-existing Shopify products/variants for the shop, so only the ones created below are exported.
+        ShopifyVariant.SetRange("Shop Code", ExportShop.Code);
+        ShopifyVariant.DeleteAll(false);
+        ShopifyProduct.SetRange("Shop Code", ExportShop.Code);
+        ShopifyProduct.DeleteAll(false);
+
+        // [GIVEN] A few Shopify products mapped to BC items whose prices differ from Shopify (all will change).
+        ChangedVariantCount := 3;
+        for Index := 1 to ChangedVariantCount do begin
+            Item := ProductInitTest.CreateItem(ExportShop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 500, 2), false);
+            ShopifyProduct := CreateShopifyProductForExport(Item.SystemId);
+            CreateMappedShopifyVariantForExport(ShopifyProduct.Id, Item.SystemId, NullGuid);
+        end;
+
+        // [WHEN] The price-only product export runs for the shop.
+        ProductExport.SetShop(ExportShop);
+        ProductExport.SetOnlyUpdatePriceOn();
+        ExportShop.SetRange(Code, ExportShop.Code);
+        ProductExport.Run(ExportShop);
+        ExportShop.SetRange(Code);
+
+        // [THEN] Each changed variant was updated with its own synchronous mutation.
+        LibraryAssert.AreEqual(ChangedVariantCount, PriceUpdateHttpCallCount, 'Each changed variant should be updated with an individual synchronous mutation.');
+
+        // [THEN] No bulk operation was created, because the number of changed prices is below the threshold.
+        BulkOperation.SetRange("Shop Code", ExportShop.Code);
+        LibraryAssert.IsTrue(BulkOperation.IsEmpty(), 'No bulk operation should be created when the number of changed prices is below the threshold.');
+    end;
+
+    [HttpClientHandler]
+    internal procedure ProductPriceSyncHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        ProductVariantsBulkUpdateResponseTok: Label 'Products/ProductVariantsBulkUpdateResponse.txt', Locked = true;
+    begin
+        if not ShpfyInitializeTest.VerifyRequestUrl(Request.Path, ExportShop."Shopify URL") then
+            exit(true);
+        PriceUpdateHttpCallCount += 1;
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(ProductVariantsBulkUpdateResponseTok, TextEncoding::UTF8));
+        exit(false);
+    end;
+
+    [ModalPageHandler]
+    procedure AddItemConfirmHandler(var AddItemConfirm: TestPage "Shpfy Add Item Confirm")
+    var
+        ActualConfirmation: Text;
+        VisibleConfirmationCount: Integer;
+    begin
+        if AddItemConfirm.ActiveConfirm.Visible() then begin
+            ActualConfirmation := AddItemConfirm.ActiveConfirm.Caption();
+            VisibleConfirmationCount += 1;
+        end;
+        if AddItemConfirm.DraftConfirm.Visible() then begin
+            ActualConfirmation := AddItemConfirm.DraftConfirm.Caption();
+            VisibleConfirmationCount += 1;
+        end;
+
+        LibraryAssert.AreEqual(1, VisibleConfirmationCount, 'Only one product status confirmation should be visible.');
+        LibraryAssert.AreEqual(DialogValues.DequeueText(), ActualConfirmation, 'The product status confirmation is incorrect.');
+        AddItemConfirm.OK().Invoke();
+    end;
+
+    local procedure VerifyAddItemConfirmation(ProductStatus: Enum "Shpfy Cr. Prod. Status Value"; ExpectedConfirmation: Text)
+    var
+        Item: Record Item;
+        Shop: Record "Shpfy Shop";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        SyncProducts: Codeunit "Shpfy Sync Products";
+    begin
+        DialogValues.Clear();
+        Shop := ShpfyInitializeTest.CreateShop();
+        Shop."Status for Created Products" := ProductStatus;
+        Shop.Modify();
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        DialogValues.Enqueue(StrSubstNo(ExpectedConfirmation, Item.Description, Shop.Code));
+        Shop.SetRecFilter();
+
+        LibraryAssert.IsTrue(SyncProducts.ConfirmAddItemToShopify(Item, Shop), 'Adding the item to Shopify should be confirmed.');
+        DialogValues.AssertEmpty();
     end;
 
     local procedure InitializeProductExport()

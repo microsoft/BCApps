@@ -1,0 +1,47 @@
+[
+  {
+    "codeunitId": 148015,
+    "codeunitName": "SIE Import Export Tests",
+    "method": "SIE_Export_TRANS_Format"
+  },
+  {
+    "codeunitId": 148015,
+    "codeunitName": "SIE Import Export Tests",
+    "method": "SIEDimensionLookupShowsCurrentSelectionsWithoutModifyingMainTable"
+  },
+  {
+    "codeunitId": 148015,
+    "codeunitName": "SIE Import Export Tests",
+    "method": "SIEExportAccPeriodLessThanYear"
+  },
+  {
+    "codeunitId": 148015,
+    "codeunitName": "SIE Import Export Tests",
+    "method": "SIEExportPrevAccPeriodLessThanYear"
+  },
+  {
+    "codeunitId": 148015,
+    "codeunitName": "SIE Import Export Tests",
+    "method": "SIEExportStartingDateAfterAccountingPeriod"
+  },
+  {
+    "codeunitId": 148015,
+    "codeunitName": "SIE Import Export Tests",
+    "method": "SIEExportStartingDateBeforeAccountingPeriod"
+  },
+  {
+    "codeunitId": 148015,
+    "codeunitName": "SIE Import Export Tests",
+    "method": "SIEImportEmptyGLAccountNo"
+  },
+  {
+    "codeunitId": 148015,
+    "codeunitName": "SIE Import Export Tests",
+    "method": "SIEImportGLAccountFieldsValidateInGJLine"
+  },
+  {
+    "codeunitId": 148015,
+    "codeunitName": "SIE Import Export Tests",
+    "method": "VATDateWhenRunSIEImport"
+  }
+]

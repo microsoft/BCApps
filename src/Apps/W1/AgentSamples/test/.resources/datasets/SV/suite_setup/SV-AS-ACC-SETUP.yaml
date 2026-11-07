@@ -1,0 +1,12 @@
+name: SV-AS-ACC-SETUP
+suite_setup:
+  setup_actions:
+    - action_type: create_location
+      action_data:
+        - Name: SVLocation
+    - action_type: create_customers
+      action_data:
+        - "No.": SVCUST01
+          Name: Validation Customer 01
+        - "No.": SVCUST02
+          Name: Validation Customer 02

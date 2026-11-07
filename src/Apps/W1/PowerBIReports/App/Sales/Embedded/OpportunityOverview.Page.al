@@ -11,8 +11,8 @@ page 37103 "Opportunity Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Opportunity Overview';
-    AboutTitle = 'About Opportunity Overview';
+    Caption = 'Opportunity Overview (Power BI)';
+    AboutTitle = 'About Opportunity Overview (Power BI)';
     AboutText = 'The Opportunity Overview report provides a comprehensive view of sales opportunities, including the number of opportunities, estimated values, sales cycle, and a breakdown of potential value by location.';
 
     layout

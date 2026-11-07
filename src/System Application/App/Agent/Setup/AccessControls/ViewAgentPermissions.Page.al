@@ -80,6 +80,7 @@ page 4334 "View Agent Permissions"
                 Caption = 'Edit agent permissions';
                 Image = Edit;
                 ToolTip = 'Edit the permission sets assigned to this agent.';
+                Enabled = not AgentIsArchived;
 
                 trigger OnAction()
                 var
@@ -131,11 +132,16 @@ page 4334 "View Agent Permissions"
 
     trigger OnAfterGetRecord()
     var
+        AgentRecord: Record Agent;
         AggregatePermissionSet: Record "Aggregate Permission Set";
         AgentImpl: Codeunit "Agent Impl.";
         GlobalSingleCompanyName: Text[30];
     begin
         PermissionScope := Format(Rec.Scope);
+
+        AgentIsArchived := false;
+        if AgentRecord.Get(Rec."User Security ID") then
+            AgentIsArchived := AgentRecord.Substate = AgentRecord.Substate::Archived;
 
         PermissionSetNotFound := false;
         if not (Rec."Role ID" in ['SUPER', 'SECURITY']) then
@@ -169,6 +175,7 @@ page 4334 "View Agent Permissions"
     end;
 
     var
+        AgentIsArchived: Boolean;
         ShowCompanyField: Boolean;
         ShowCompanyFieldOverride: Boolean;
         PermissionScope: Text;

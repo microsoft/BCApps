@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 144081,
+    "codeunitName": "Intrastat FR Test",
+    "method": "IntrastatReportFileCreationRcpt"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "Intrastat FR Test",
+    "method": "IntrastatReportFileCreationShpt"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "Intrastat FR Test",
+    "method": "SimpleTransactionIntrastatReport"
+  },
+  {
+    "codeunitId": 144081,
+    "codeunitName": "Intrastat FR Test",
+    "method": "TransactionOutOfFilterNotExported"
+  }
+]
