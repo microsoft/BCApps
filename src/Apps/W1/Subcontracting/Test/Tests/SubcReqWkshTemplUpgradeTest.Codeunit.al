@@ -434,6 +434,318 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
     end;
 
+    [Test]
+    procedure InitializeCreatesAlternativeTemplateOnNameCollision()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647022] Initialization creates an alternative template without changing a conflicting Planning worksheet.
+        Initialize();
+
+        // [GIVEN] Blank setup and a Planning template named SUBCONTR with a custom batch.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateConflictingWorksheet(ReqWkshTemplate, RequisitionWkshName);
+
+        // [WHEN] Company defaults are initialized twice.
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [THEN] Defaults use the alternative template and the conflicting worksheet is unchanged.
+        VerifyDefaultSetup('SUBCONTR1', 'SUBCONTR');
+        VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
+        VerifyAlternativeWorksheet('SUBCONTR1');
+    end;
+
+    [Test]
+    procedure CreateReqWkshTemplateCreatesAlternativeOnNameCollision()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ExpectedReqWkshTemplate: Record "Req. Wksh. Template";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+        TemplateCreated: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647022] Direct template creation returns a new alternative without changing the conflicting worksheet or setup.
+        Initialize();
+
+        // [GIVEN] Blank setup and a Planning template named SUBCONTR with a custom batch.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateConflictingWorksheet(ExpectedReqWkshTemplate, RequisitionWkshName);
+
+        // [WHEN] The default template is created using an unfiltered record.
+        TemplateCreated := SubcontractingCompInit.CreateReqWkshTemplate(ReqWkshTemplate, false);
+
+        // [THEN] An alternative template is created while the conflicting worksheet and setup remain unchanged.
+        Assert.IsTrue(TemplateCreated, 'An available alternative name must allow template creation.');
+        Assert.AreEqual('SUBCONTR1', ReqWkshTemplate.Name, 'The first available alternative name must be used.');
+        ReqWkshTemplate.Get(ReqWkshTemplate.Name);
+        Assert.AreEqual(ReqWkshTemplate.Type::Subcontracting, ReqWkshTemplate.Type, 'The alternative must have the Subcontracting type.');
+        Assert.AreEqual(Page::"Subc. Subcontracting Worksheet", ReqWkshTemplate."Page ID", 'The alternative must use the Subcontracting worksheet page.');
+        VerifyWorksheetUnchanged(ExpectedReqWkshTemplate, RequisitionWkshName, 1, 1);
+        VerifyConfiguredSetup(ManufacturingSetup, '', '');
+    end;
+
+    [Test]
+    procedure SetupHelperSelectsAlternativeOnTemplateNameCollision()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+        SetupAvailable: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647022] The setup helper replaces incompatible selections with an alternative Subcontracting worksheet.
+        Initialize();
+
+        // [GIVEN] Setup selects Planning template "P" named SUBCONTR and its custom batch.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateConflictingWorksheet(ReqWkshTemplate, RequisitionWkshName);
+        ManufacturingSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
+        ManufacturingSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;
+        ManufacturingSetup.Modify();
+
+        // [WHEN] The setup helper is called directly.
+        SetupAvailable := SubcontractingCompInit.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup(ManufacturingSetup);
+
+        // [THEN] The caller receives valid selections while persisted setup and the Planning worksheet remain unchanged.
+        VerifySetupHelperResult(SetupAvailable, ManufacturingSetup, 'SUBCONTR1', 'SUBCONTR');
+        VerifyConfiguredSetup(ManufacturingSetup, ReqWkshTemplate.Name, RequisitionWkshName.Name);
+        VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
+        VerifyAlternativeWorksheet('SUBCONTR1');
+    end;
+
+    [Test]
+    procedure InitializeReusesValidTemplateWithConflictingDefaultName()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ConflictingReqWkshTemplate: Record "Req. Wksh. Template";
+        ConflictingRequisitionWkshName: Record "Requisition Wksh. Name";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647022] A valid Subcontracting template is reused even when the default name belongs to a Planning template.
+        Initialize();
+
+        // [GIVEN] Planning template "P" occupies SUBCONTR and Subcontracting template "S" has a custom batch.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateConflictingWorksheet(ConflictingReqWkshTemplate, ConflictingRequisitionWkshName);
+        CreateSubcontractingTemplate(ReqWkshTemplate, 'CUSTOM');
+        CreateSubcontractingBatch(RequisitionWkshName, ReqWkshTemplate.Name, 'CUSTOMBAT');
+
+        // [WHEN] Company defaults are initialized.
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [THEN] Setup uses the valid template while both worksheets remain unchanged.
+        VerifyDefaultSetup(ReqWkshTemplate.Name, RequisitionWkshName.Name);
+        VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
+        VerifyWorksheetUnchanged(ConflictingReqWkshTemplate, ConflictingRequisitionWkshName, 1, 1);
+    end;
+
+    [Test]
+    procedure CreateReqWkshTemplateReturnsExistingTemplateWithoutCreation()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ExpectedReqWkshTemplate: Record "Req. Wksh. Template";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+        TemplateCreated: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647022] A false creation result still returns an existing valid template for callers to reuse.
+        Initialize();
+
+        // [GIVEN] Subcontracting template "S" and its custom batch already exist.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateSubcontractingTemplate(ExpectedReqWkshTemplate, 'CUSTOM');
+        CreateSubcontractingBatch(RequisitionWkshName, ExpectedReqWkshTemplate.Name, 'CUSTOMBAT');
+
+        // [WHEN] Default template creation is requested.
+        TemplateCreated := SubcontractingCompInit.CreateReqWkshTemplate(ReqWkshTemplate, false);
+
+        // [THEN] No template is created and the existing valid template is returned unchanged.
+        Assert.IsFalse(TemplateCreated, 'Reusing a template must not report successful creation.');
+        Assert.AreEqual(ExpectedReqWkshTemplate.Name, ReqWkshTemplate.Name, 'The existing valid template must be returned.');
+        VerifyWorksheetUnchanged(ExpectedReqWkshTemplate, RequisitionWkshName, 1, 1);
+        Assert.AreEqualDateTime(ExpectedReqWkshTemplate.SystemModifiedAt, ReqWkshTemplate.SystemModifiedAt, 'A template with the correct page must not be modified.');
+    end;
+
+    [Test]
+    procedure InitializeSkipsOccupiedAlternativeTemplateNames()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        OccupiedReqWkshTemplate: Record "Req. Wksh. Template";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+        Suffix: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647022] Alternative naming skips occupied names and stays within the template name length.
+        Initialize();
+
+        // [GIVEN] Planning templates occupy the default name and alternatives through suffix 99.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateConflictingWorksheet(ReqWkshTemplate, RequisitionWkshName);
+        for Suffix := 1 to 99 do begin
+            OccupiedReqWkshTemplate.Init();
+            OccupiedReqWkshTemplate.Name := CopyStr('SUBCONTR' + Format(Suffix, 0, 9), 1, MaxStrLen(OccupiedReqWkshTemplate.Name));
+            OccupiedReqWkshTemplate.Type := OccupiedReqWkshTemplate.Type::Planning;
+            OccupiedReqWkshTemplate.Insert(true);
+        end;
+
+        // [WHEN] Company defaults are initialized twice.
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [THEN] The first available length-safe name is used and occupied templates are not changed.
+        VerifyDefaultSetup('SUBCONT100', 'SUBCONTR');
+        VerifyAlternativeWorksheet('SUBCONT100');
+        VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
+        OccupiedReqWkshTemplate.Get('SUBCONTR99');
+        Assert.AreEqual(OccupiedReqWkshTemplate.Type::Planning, OccupiedReqWkshTemplate.Type, 'Occupied alternative names must retain their type.');
+    end;
+
+    [Test]
+    procedure CreateReqWkshTemplateRepairsExistingTemplatePageOnly()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ExpectedReqWkshTemplate: Record "Req. Wksh. Template";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+        TemplateCreated: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647022] Reusing a Subcontracting template migrates only its legacy Subcontracting worksheet page.
+        Initialize();
+
+        // [GIVEN] Subcontracting template "S" has the legacy Subcontracting page and custom metadata and batch.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateSubcontractingTemplate(ExpectedReqWkshTemplate, 'CUSTOM');
+        ExpectedReqWkshTemplate."Page ID" := 99000886;
+        ExpectedReqWkshTemplate.Recurring := true;
+        ExpectedReqWkshTemplate."Increment Batch Name" := true;
+        ExpectedReqWkshTemplate.Modify();
+        CreateSubcontractingBatch(RequisitionWkshName, ExpectedReqWkshTemplate.Name, 'CUSTOMBAT');
+
+        // [WHEN] Default template creation is requested.
+        TemplateCreated := SubcontractingCompInit.CreateReqWkshTemplate(ReqWkshTemplate, false);
+
+        // [THEN] The existing template is returned with only its page corrected.
+        Assert.IsFalse(TemplateCreated, 'Correcting a page must not report template creation.');
+        Assert.AreEqual(ExpectedReqWkshTemplate.Name, ReqWkshTemplate.Name, 'The existing template must be reused.');
+        ExpectedReqWkshTemplate."Page ID" := Page::"Subc. Subcontracting Worksheet";
+        VerifyWorksheetUnchanged(ExpectedReqWkshTemplate, RequisitionWkshName, 1, 1);
+        VerifyConfiguredSetup(ManufacturingSetup, '', '');
+    end;
+
+    [Test]
+    procedure InitializeRepairsSelectedTemplatePageOnly()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        FirstReqWkshTemplate: Record "Req. Wksh. Template";
+        SelectedReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647022] Initialization migrates the selected legacy Subcontracting page without switching templates or resetting settings.
+        Initialize();
+
+        // [GIVEN] Non-first Subcontracting template "S" is selected with the legacy Subcontracting page.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateSubcontractingTemplate(FirstReqWkshTemplate, 'AFIRST');
+        CreateSubcontractingTemplate(SelectedReqWkshTemplate, 'ZSELECTED');
+        SelectedReqWkshTemplate."Page ID" := 99000886;
+        SelectedReqWkshTemplate.Recurring := true;
+        SelectedReqWkshTemplate."Increment Batch Name" := true;
+        SelectedReqWkshTemplate.Modify();
+        CreateSubcontractingBatch(RequisitionWkshName, SelectedReqWkshTemplate.Name, 'CUSTOMBAT');
+        ManufacturingSetup.Validate("Subcontracting Template Name", SelectedReqWkshTemplate.Name);
+        ManufacturingSetup.Validate("Subcontracting Batch Name", RequisitionWkshName.Name);
+        ManufacturingSetup.Modify();
+
+        // [WHEN] Company defaults are initialized twice.
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [THEN] Only the selected template page changes.
+        SelectedReqWkshTemplate."Page ID" := Page::"Subc. Subcontracting Worksheet";
+        VerifyWorksheetUnchanged(SelectedReqWkshTemplate, RequisitionWkshName, 2, 1);
+        VerifyConfiguredSetup(ManufacturingSetup, SelectedReqWkshTemplate.Name, RequisitionWkshName.Name);
+    end;
+
+    [Test]
+    procedure CreateReqWkshTemplatePreservesUnrelatedPage()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ExpectedReqWkshTemplate: Record "Req. Wksh. Template";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+        TemplateCreated: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647022] Reusing a Subcontracting template preserves a page other than the legacy Subcontracting worksheet.
+        Initialize();
+
+        // [GIVEN] Subcontracting template "S" has a Planning page selected by the customer.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateSubcontractingTemplate(ExpectedReqWkshTemplate, 'CUSTOM');
+        ExpectedReqWkshTemplate."Page ID" := Page::"Planning Worksheet";
+        ExpectedReqWkshTemplate.Modify();
+        CreateSubcontractingBatch(RequisitionWkshName, ExpectedReqWkshTemplate.Name, 'CUSTOMBAT');
+
+        // [WHEN] Default template creation is requested.
+        TemplateCreated := SubcontractingCompInit.CreateReqWkshTemplate(ReqWkshTemplate, false);
+
+        // [THEN] The existing template and its unrelated page are unchanged.
+        Assert.IsFalse(TemplateCreated, 'Reusing a template must not report creation.');
+        VerifyWorksheetUnchanged(ExpectedReqWkshTemplate, RequisitionWkshName, 1, 1);
+        Assert.AreEqualDateTime(ExpectedReqWkshTemplate.SystemModifiedAt, ReqWkshTemplate.SystemModifiedAt, 'An unrelated page must not cause template modification.');
+    end;
+
+    [Test]
+    procedure InitializePreservesSelectedTemplateUnrelatedPage()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 647022] Initialization preserves an unrelated page on the selected Subcontracting template.
+        Initialize();
+
+        // [GIVEN] Subcontracting template "S" is selected with a Planning page.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateSubcontractingTemplate(ReqWkshTemplate, 'CUSTOM');
+        ReqWkshTemplate."Page ID" := Page::"Planning Worksheet";
+        ReqWkshTemplate.Modify();
+        CreateSubcontractingBatch(RequisitionWkshName, ReqWkshTemplate.Name, 'CUSTOMBAT');
+        ManufacturingSetup.Validate("Subcontracting Template Name", ReqWkshTemplate.Name);
+        ManufacturingSetup.Validate("Subcontracting Batch Name", RequisitionWkshName.Name);
+        ManufacturingSetup.Modify();
+
+        // [WHEN] Company defaults are initialized twice.
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [THEN] The selected worksheet and all configured settings remain unchanged.
+        VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
+        VerifyConfiguredSetup(ManufacturingSetup, ReqWkshTemplate.Name, RequisitionWkshName.Name);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. ReqWkshTemplUpgrade Test");
@@ -466,6 +778,27 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
                 RequisitionWkshName.DeleteAll();
             until ReqWkshTemplate.Next() = 0;
         ReqWkshTemplate.DeleteAll();
+    end;
+
+    local procedure CreateConflictingWorksheet(var ReqWkshTemplate: Record "Req. Wksh. Template"; var RequisitionWkshName: Record "Requisition Wksh. Name")
+    begin
+        RequisitionWkshName.SetRange("Worksheet Template Name", 'SUBCONTR');
+        RequisitionWkshName.DeleteAll();
+        RequisitionWkshName.Reset();
+        ReqWkshTemplate.SetRange(Name, 'SUBCONTR');
+        ReqWkshTemplate.DeleteAll();
+        ReqWkshTemplate.Reset();
+
+        ReqWkshTemplate.Init();
+        ReqWkshTemplate.Validate(Name, 'SUBCONTR');
+        ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Planning);
+        ReqWkshTemplate.Description := 'Customer planning template';
+        ReqWkshTemplate.Insert(true);
+        ReqWkshTemplate.Recurring := true;
+        ReqWkshTemplate."Increment Batch Name" := true;
+        ReqWkshTemplate.Modify();
+        Assert.AreEqual(Page::"Planning Worksheet", ReqWkshTemplate."Page ID", 'The conflicting template must retain its Planning page.');
+        CreateSubcontractingBatch(RequisitionWkshName, ReqWkshTemplate.Name, 'CUSTOMBAT');
     end;
 
     local procedure CreateSubcontractingTemplate(var ReqWkshTemplate: Record "Req. Wksh. Template"; TemplateName: Code[10])
@@ -531,6 +864,17 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         Assert.AreEqual(Page::"Subc. Subcontracting Worksheet", ReqWkshTemplate."Page ID", 'The created template must use the Subcontracting worksheet page.');
         Assert.IsFalse(ReqWkshTemplate.Recurring, 'The default template must not be recurring.');
         Assert.AreEqual(ReqWkshTemplate.Name, RequisitionWkshName."Worksheet Template Name", 'The created batch must belong to the created template.');
+    end;
+
+    local procedure VerifyAlternativeWorksheet(TemplateName: Code[10])
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+    begin
+        ReqWkshTemplate.Get(TemplateName);
+        RequisitionWkshName.Get(TemplateName, 'SUBCONTR');
+        VerifyCreatedWorksheet(ReqWkshTemplate, RequisitionWkshName);
+        VerifyWorksheetCounts(TemplateName, 1, 1);
     end;
 
     local procedure VerifyWorksheetUnchanged(ExpectedReqWkshTemplate: Record "Req. Wksh. Template"; ExpectedRequisitionWkshName: Record "Requisition Wksh. Name"; TemplateCount: Integer; BatchCount: Integer)
