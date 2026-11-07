@@ -281,35 +281,26 @@ codeunit 20557 "Subc. Purchase Order Creator"
         end;
     end;
 
+    /// <summary>
+    /// Recalculates purchase dates only when the synchronized component due date changes, preserving manual purchase dates otherwise.
+    /// </summary>
     internal procedure SetVendorSuppliedComponentPurchaseDates(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"): Boolean
-    var
-        IsModified: Boolean;
-        PreviousOrderDate: Date;
-        PreviousExpectedReceiptDate: Date;
-        PreviousPlannedReceiptDate: Date;
-        PreviousPromisedReceiptDate: Date;
-        PreviousRequestedReceiptDate: Date;
     begin
-        if ProdOrderComponent."Due Date" = 0D then
+        if PurchaseLine."Subc. Comp. Date Initialized" and
+           (PurchaseLine."Subc. Last Comp. Due Date" = ProdOrderComponent."Due Date")
+        then
             exit(false);
 
-        PreviousOrderDate := PurchaseLine."Order Date";
-        PreviousExpectedReceiptDate := PurchaseLine."Expected Receipt Date";
-        PreviousPlannedReceiptDate := PurchaseLine."Planned Receipt Date";
-        PreviousPromisedReceiptDate := PurchaseLine."Promised Receipt Date";
-        PreviousRequestedReceiptDate := PurchaseLine."Requested Receipt Date";
-
-        PurchaseLine.Validate("Expected Receipt Date", ProdOrderComponent."Due Date");
-        if PurchaseLine."Requested Receipt Date" <> PurchaseLine."Planned Receipt Date" then
-            PurchaseLine."Requested Receipt Date" := PurchaseLine."Planned Receipt Date";
-
-        IsModified :=
-            (PreviousOrderDate <> PurchaseLine."Order Date") or
-            (PreviousExpectedReceiptDate <> PurchaseLine."Expected Receipt Date") or
-            (PreviousPlannedReceiptDate <> PurchaseLine."Planned Receipt Date") or
-            (PreviousPromisedReceiptDate <> PurchaseLine."Promised Receipt Date") or
-            (PreviousRequestedReceiptDate <> PurchaseLine."Requested Receipt Date");
-        exit(IsModified);
+        if ProdOrderComponent."Due Date" <> 0D then begin
+            // A stale promise suppresses standard backward calculation of the order date.
+            PurchaseLine."Promised Receipt Date" := 0D;
+            PurchaseLine.Validate("Expected Receipt Date", ProdOrderComponent."Due Date");
+            if PurchaseLine."Requested Receipt Date" <> PurchaseLine."Planned Receipt Date" then
+                PurchaseLine."Requested Receipt Date" := PurchaseLine."Planned Receipt Date";
+        end;
+        PurchaseLine."Subc. Last Comp. Due Date" := ProdOrderComponent."Due Date";
+        PurchaseLine."Subc. Comp. Date Initialized" := true;
+        exit(true);
     end;
 
     /// <summary>

@@ -165,8 +165,10 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLineComp: Record "Purchase Line";
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
         FoundPurchaseLineComp: Boolean;
         ShouldModifyPurchaseLine: Boolean;
+        MissingComponentCount: Integer;
     begin
         if RequisitionLine."Prod. Order No." = '' then
             exit;
@@ -188,24 +190,12 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ProdOrderComponent.SetLoadFields("Item No.", "Variant Code", "Routing Link Code", "Component Supply Method", "Remaining Quantity", "Due Date");
         if ProdOrderComponent.FindSet() then
             repeat
-                PurchaseLineComp.SetRange("Document Type", PurchaseLine."Document Type");
-                PurchaseLineComp.SetRange("Document No.", PurchaseLine."Document No.");
-                PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
-                PurchaseLineComp.SetRange("No.", ProdOrderComponent."Item No.");
-                PurchaseLineComp.SetRange("Variant Code", ProdOrderComponent."Variant Code");
-                PurchaseLineComp.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
-                PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
-                PurchaseLineComp.SetRange("Subc. Operation No.", RequisitionLine."Operation No.");
-                PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", ProdOrderComponent."Line No.");
+                SetExactComponentPurchaseLineFilters(PurchaseLineComp, ProdOrderComponent, ProdOrderRoutingLine, PurchaseLine."Document No.");
                 FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
                 ShouldModifyPurchaseLine := false;
-                if not FoundPurchaseLineComp and IsLegacyComponentPurchaseLineUnambiguous(ProdOrderComponent, ProdOrderRoutingLine) then begin
-                    PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", 0);
-                    FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
-                    if not FoundPurchaseLineComp then begin
-                        PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Routing Reference No.");
-                        FoundPurchaseLineComp := PurchaseLineComp.FindFirst();
-                    end;
+                if not FoundPurchaseLineComp then begin
+                    FoundPurchaseLineComp := FindUniqueLegacyComponentPurchaseLine(
+                        PurchaseLineComp, ProdOrderComponent, ProdOrderRoutingLine, PurchaseLine."Document No.", false);
                     if FoundPurchaseLineComp then begin
                         PurchaseLineComp."Subc. Prod. Order Line No." := RequisitionLine."Prod. Order Line No.";
                         PurchaseLineComp."Subc. Prod. Comp. Line No." := ProdOrderComponent."Line No.";
@@ -218,20 +208,73 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                         PurchaseLineComp.Validate(Quantity, ProdOrderComponent."Remaining Quantity");
                         ShouldModifyPurchaseLine := true;
                     end;
-                    if SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(PurchaseLineComp, ProdOrderComponent) then
+                    // Old purchase lines have no source-date baseline. Preserve their dates on the first synchronization.
+                    if not PurchaseLineComp."Subc. Comp. Date Initialized" then begin
+                        PurchaseLineComp."Subc. Last Comp. Due Date" := ProdOrderComponent."Due Date";
+                        PurchaseLineComp."Subc. Comp. Date Initialized" := true;
                         ShouldModifyPurchaseLine := true;
+                    end else
+                        if SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(PurchaseLineComp, ProdOrderComponent) then
+                            ShouldModifyPurchaseLine := true;
                     if ShouldModifyPurchaseLine then
                         PurchaseLineComp.Modify(true);
-                end;
+                end else
+                    MissingComponentCount += 1;
             until ProdOrderComponent.Next() = 0;
+        SubcNotificationMgmt.ShowComponentSynchronizationNotification(
+            PurchaseLine."Document No.", MissingComponentCount,
+            CountOrphanedComponentPurchaseLines(PurchaseLine."Document No.", ProdOrderRoutingLine));
     end;
 
-    local procedure IsLegacyComponentPurchaseLineUnambiguous(ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Boolean
+    internal procedure SetExactComponentPurchaseLineFilters(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PurchaseDocumentNo: Code[20])
+    begin
+        SetComponentPurchaseLineFilters(PurchaseLine, ProdOrderRoutingLine, PurchaseDocumentNo);
+        PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
+        PurchaseLine.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        PurchaseLine.SetRange("Subc. Prod. Comp. Line No.", ProdOrderComponent."Line No.");
+    end;
+
+    local procedure SetComponentPurchaseLineFilters(var PurchaseLine: Record "Purchase Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PurchaseDocumentNo: Code[20])
+    begin
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", "Purchase Document Type"::Order);
+        if PurchaseDocumentNo <> '' then
+            PurchaseLine.SetRange("Document No.", PurchaseDocumentNo);
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
+    end;
+
+    internal procedure FindUniqueLegacyComponentPurchaseLine(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PurchaseDocumentNo: Code[20]; AllowExactOwner: Boolean): Boolean
+    begin
+        if not IsComponentOwnershipUnambiguous(ProdOrderComponent, ProdOrderRoutingLine, PurchaseDocumentNo, AllowExactOwner) then
+            exit(false);
+
+        SetExactComponentPurchaseLineFilters(PurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, PurchaseDocumentNo);
+        PurchaseLine.SetRange("Subc. Prod. Comp. Line No.", 0);
+        PurchaseLine.SetFilter("Subc. Prod. Order Line No.", '%1|%2', ProdOrderComponent."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        if PurchaseLine.Count() <> 1 then
+            exit(false);
+        exit(PurchaseLine.FindFirst());
+    end;
+
+    local procedure IsComponentOwnershipUnambiguous(ProdOrderComponent: Record "Prod. Order Component"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PurchaseDocumentNo: Code[20]; AllowExactOwner: Boolean): Boolean
     var
         MatchingProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
+        ExactPurchaseLine: Record "Purchase Line";
         MatchingComponentCount: Integer;
+        HasExactOwner: Boolean;
     begin
+        SetExactComponentPurchaseLineFilters(ExactPurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, PurchaseDocumentNo);
+        HasExactOwner := not ExactPurchaseLine.IsEmpty();
+        if HasExactOwner and not AllowExactOwner then
+            exit(false);
+
+        // Read-only totals may include a legacy line for an exact-owned component only when no other component could own it.
         MatchingProdOrderComponent.SetRange(Status, ProdOrderComponent.Status);
         MatchingProdOrderComponent.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
         MatchingProdOrderComponent.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
@@ -245,10 +288,56 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         if ProdOrderLine.FindSet() then
             repeat
                 MatchingProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
-                MatchingComponentCount += MatchingProdOrderComponent.Count();
-                if MatchingComponentCount > 1 then
-                    exit(false);
+                if MatchingProdOrderComponent.FindSet() then
+                    repeat
+                        SetExactComponentPurchaseLineFilters(ExactPurchaseLine, MatchingProdOrderComponent, ProdOrderRoutingLine, PurchaseDocumentNo);
+                        if HasExactOwner or ExactPurchaseLine.IsEmpty() then
+                            MatchingComponentCount += 1;
+                        if MatchingComponentCount > 1 then
+                            exit(false);
+                    until MatchingProdOrderComponent.Next() = 0;
             until ProdOrderLine.Next() = 0;
         exit(MatchingComponentCount = 1);
+    end;
+
+    local procedure CountOrphanedComponentPurchaseLines(PurchaseDocumentNo: Code[20]; ProdOrderRoutingLine: Record "Prod. Order Routing Line") OrphanedCount: Integer
+    var
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        HasComponent: Boolean;
+    begin
+        SetComponentPurchaseLineFilters(PurchaseLine, ProdOrderRoutingLine, PurchaseDocumentNo);
+        if PurchaseLine.FindSet() then
+            repeat
+                ProdOrderComponent.Reset();
+                ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
+                ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+                ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+                ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+                ProdOrderComponent.SetRange("Item No.", PurchaseLine."No.");
+                ProdOrderComponent.SetRange("Variant Code", PurchaseLine."Variant Code");
+                if PurchaseLine."Subc. Prod. Comp. Line No." <> 0 then begin
+                    ProdOrderComponent.SetRange("Prod. Order Line No.", PurchaseLine."Subc. Prod. Order Line No.");
+                    ProdOrderComponent.SetRange("Line No.", PurchaseLine."Subc. Prod. Comp. Line No.");
+                    HasComponent := not ProdOrderComponent.IsEmpty();
+                end else begin
+                    HasComponent := false;
+                    ProdOrderLine.Reset();
+                    ProdOrderLine.SetRange(Status, ProdOrderRoutingLine.Status);
+                    ProdOrderLine.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+                    ProdOrderLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+                    ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+                    if ProdOrderLine.FindSet() then
+                        repeat
+                            if PurchaseLine."Subc. Prod. Order Line No." in [ProdOrderLine."Line No.", ProdOrderRoutingLine."Routing Reference No."] then begin
+                                ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+                                HasComponent := not ProdOrderComponent.IsEmpty();
+                            end;
+                        until (ProdOrderLine.Next() = 0) or HasComponent;
+                end;
+                if not HasComponent then
+                    OrphanedCount += 1;
+            until PurchaseLine.Next() = 0;
     end;
 }

@@ -118,6 +118,18 @@ tableextension 20512 "Subc. Purchase Line" extends "Purchase Line"
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(20552; "Subc. Last Comp. Due Date"; Date)
+        {
+            Caption = 'Last Synchronized Component Due Date';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(20553; "Subc. Comp. Date Initialized"; Boolean)
+        {
+            Caption = 'Component Due Date Initialized';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
         field(20560; "Transfer WIP Item"; Boolean)
         {
             Caption = 'Transfer WIP Item';

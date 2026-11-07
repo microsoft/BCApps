@@ -539,34 +539,87 @@ codeunit 139996 "Subc. Planning Test"
     [Test]
     procedure VendorSuppliedCompQtyUpdatedOnPurchOrderReschedule()
     begin
-        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', false);
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', false, 0);
     end;
 
     [Test]
     procedure VendorSuppliedCompItemVendorLeadTimeOnReschedule()
     begin
-        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '<7D>', '<5D>', '<5D>', false);
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '<7D>', '<5D>', '<5D>', false, 0);
     end;
 
     [Test]
     procedure VendorSuppliedCompSKULeadTimeOnReschedule()
     begin
-        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '<7D>', '', '<7D>', false);
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '<7D>', '', '<7D>', false, 0);
     end;
 
     [Test]
     procedure VendorSuppliedCompVendorLeadTimeOnReschedule()
     begin
-        VerifyVendorSuppliedComponentCreationAndRescheduling('', '', '', '<20D>', false);
+        VerifyVendorSuppliedComponentCreationAndRescheduling('', '', '', '<20D>', false, 0);
     end;
 
     [Test]
+    [HandlerFunctions('ComponentSynchronizationNotificationHandler')]
     procedure AmbiguousLegacyDuplicateComponentsInReverseOrderAreNotMigrated()
     begin
-        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', true);
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', true, 0);
     end;
 
-    local procedure VerifyVendorSuppliedComponentCreationAndRescheduling(ItemLeadTime: Text[30]; SKULeadTime: Text[30]; ItemVendorLeadTime: Text[30]; ExpectedLeadTime: Text[30]; ReverseLegacyLines: Boolean)
+    [Test]
+    procedure MixedExactAndLegacySameItemComponentsAreSynchronized()
+    begin
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', false, 1);
+    end;
+
+    [Test]
+    procedure ComponentQuantityChangePreservesManualPurchaseDates()
+    begin
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', false, 2);
+    end;
+
+    [Test]
+    [HandlerFunctions('ComponentSynchronizationNotificationHandler')]
+    procedure DuplicateLegacyPurchaseCandidatesAreNotMigrated()
+    begin
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', false, 3);
+    end;
+
+    [Test]
+    [HandlerFunctions('ComponentSynchronizationNotificationHandler')]
+    procedure MissingAndOrphanedComponentsAreReported()
+    begin
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', false, 4);
+    end;
+
+    [Test]
+    procedure ExistingComponentDatesArePreservedUntilSourceDateChanges()
+    begin
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', false, 5);
+    end;
+
+    [Test]
+    procedure BlankComponentDateBaselineIsInitializedOnce()
+    var
+        PurchaseLine: Record "Purchase Line" temporary;
+        ProdOrderComponent: Record "Prod. Order Component" temporary;
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+        BlankSourceDateInitializationErr: Label 'The first synchronization must initialize a blank source date.';
+        SourceDateBaselineInitializedErr: Label 'The source date baseline must be initialized.';
+        UnchangedBlankSourceDateErr: Label 'An unchanged blank source date must not modify the purchase line again.';
+    begin
+        // [SCENARIO 650504] A synchronized blank source date is distinguishable from an unknown legacy baseline.
+        Assert.IsTrue(
+            SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(PurchaseLine, ProdOrderComponent),
+            BlankSourceDateInitializationErr);
+        Assert.IsTrue(PurchaseLine."Subc. Comp. Date Initialized", SourceDateBaselineInitializedErr);
+        Assert.IsFalse(
+            SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(PurchaseLine, ProdOrderComponent),
+            UnchangedBlankSourceDateErr);
+    end;
+
+    local procedure VerifyVendorSuppliedComponentCreationAndRescheduling(ItemLeadTime: Text[30]; SKULeadTime: Text[30]; ItemVendorLeadTime: Text[30]; ExpectedLeadTime: Text[30]; ReverseLegacyLines: Boolean; Scenario: Option Standard,MixedLegacy,ManualDates,DuplicateLegacy,MissingAndOrphaned,LegacyDates)
     var
         Item: Record Item;
         ComponentItem: Record Item;
@@ -585,10 +638,13 @@ codeunit 139996 "Subc. Planning Test"
         PurchaseLineComp: Record "Purchase Line";
         OriginalPurchaseLine: array[2] of Record "Purchase Line";
         LegacyPurchaseLine: array[2] of Record "Purchase Line";
+        ExtraPurchaseLine: Record "Purchase Line";
+        ExistingPurchaseLine: Record "Purchase Line";
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         Vendor: Record Vendor;
+        SubcCompFactboxMgmt: Codeunit "Subc. Comp. Factbox Mgmt.";
         WorkCenter: array[2] of Record "Work Center";
         ComponentDueDate: Date;
         InitialQty: Decimal;
@@ -603,6 +659,14 @@ codeunit 139996 "Subc. Planning Test"
         RescheduledComponentPurchaseLineQuantityErr: Label 'Each vendor-supplied component purchase line quantity should match its production component after rescheduling.';
         RescheduledComponentPurchaseLineDateErr: Label 'Each vendor-supplied component purchase line date should match its production component after rescheduling.';
         ExpectedRescheduledComponentCountErr: Label 'Rescheduling must update both matching vendor-supplied component lines.';
+        UnmatchedLegacyComponentQuantityErr: Label 'The FactBox must include the uniquely unmatched legacy component, excluding exact-owned components.';
+        ExactOwnedComponentQuantityErr: Label 'The exact-owned component must not include the legacy line belonging to the other component.';
+        DuplicateLegacyComponentQuantityErr: Label 'The FactBox must not attribute duplicate legacy purchase candidates to a component.';
+        CombinedSynchronizationNotificationErr: Label 'Missing and orphaned lines must be reported together.';
+        OrphanedPurchaseLineQuantityErr: Label 'An orphaned purchase line must not be updated.';
+        ChangedSourceDateBaselineErr: Label 'A changed source date must update the baseline.';
+        ChangedSourceDatePromiseErr: Label 'A changed source date must clear the stale promise so the order date is recalculated.';
+        ChangedSourceExpectedReceiptDateErr: Label 'The recalculated expected receipt date must match the changed component due date.';
     begin
         // [SCENARIO 637496] Worksheet creation and rescheduling keep duplicate vendor-supplied components
         // mapped to separate purchase lines with exact dates and standard purchase lead-time precedence.
@@ -710,7 +774,73 @@ codeunit 139996 "Subc. Planning Test"
         until ProdOrderComponent.Next() = 0;
         Assert.AreEqual(2, ExpectedComponentCount, ExpectedVendorSuppliedComponentCountErr);
 
+        case Scenario of
+            Scenario::MixedLegacy:
+                begin
+                    // The first component is legacy, while the same-item second component retains exact ownership.
+                    PurchaseLineComp := OriginalPurchaseLine[1];
+                    PurchaseLineComp."Subc. Prod. Comp. Line No." := 0;
+                    PurchaseLineComp.Modify();
+                    ProdOrderComponent.FindFirst();
+                    Assert.AreEqual(
+                        PurchaseLineComp."Outstanding Qty. (Base)",
+                        SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
+                        UnmatchedLegacyComponentQuantityErr);
+                    ProdOrderComponent.FindLast();
+                    Assert.AreEqual(
+                        OriginalPurchaseLine[2]."Outstanding Qty. (Base)",
+                        SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
+                        ExactOwnedComponentQuantityErr);
+                end;
+            Scenario::ManualDates, Scenario::LegacyDates:
+                for ComponentIndex := 1 to 2 do begin
+                    PurchaseLineComp := OriginalPurchaseLine[ComponentIndex];
+                    PurchaseLineComp.Validate("Expected Receipt Date", CalcDate('<60D>', WorkDate()));
+                    PurchaseLineComp."Requested Receipt Date" := CalcDate('<61D>', WorkDate());
+                    PurchaseLineComp."Promised Receipt Date" := CalcDate('<62D>', WorkDate());
+                    if Scenario = Scenario::LegacyDates then begin
+                        PurchaseLineComp."Subc. Last Comp. Due Date" := 0D;
+                        PurchaseLineComp."Subc. Comp. Date Initialized" := false;
+                    end;
+                    PurchaseLineComp.Modify();
+                    OriginalPurchaseLine[ComponentIndex] := PurchaseLineComp;
+                end;
+            Scenario::DuplicateLegacy:
+                begin
+                    PurchaseLineComp := OriginalPurchaseLine[2];
+                    PurchaseLineComp."Subc. Prod. Comp. Line No." := 0;
+                    PurchaseLineComp.Modify();
+                    LegacyPurchaseLine[1] := PurchaseLineComp;
+                    ExtraPurchaseLine := PurchaseLineComp;
+                    ExistingPurchaseLine.SetRange("Document Type", PurchaseLineComp."Document Type");
+                    ExistingPurchaseLine.SetRange("Document No.", PurchaseLineComp."Document No.");
+                    ExistingPurchaseLine.FindLast();
+                    ExtraPurchaseLine."Line No." := ExistingPurchaseLine."Line No." + 10000;
+                    ExtraPurchaseLine.Insert();
+                    LegacyPurchaseLine[2] := ExtraPurchaseLine;
+                    ProdOrderComponent.FindLast();
+                    Assert.AreEqual(
+                        0, SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
+                        DuplicateLegacyComponentQuantityErr);
+                    ExpectedMissingComponentCount := 1;
+                end;
+            Scenario::MissingAndOrphaned:
+                begin
+                    OriginalPurchaseLine[1].Delete();
+                    ExtraPurchaseLine := OriginalPurchaseLine[2];
+                    ExistingPurchaseLine.SetRange("Document Type", ExtraPurchaseLine."Document Type");
+                    ExistingPurchaseLine.SetRange("Document No.", ExtraPurchaseLine."Document No.");
+                    ExistingPurchaseLine.FindLast();
+                    ExtraPurchaseLine."Line No." := ExistingPurchaseLine."Line No." + 10000;
+                    ExtraPurchaseLine."Subc. Prod. Comp. Line No." += 10000;
+                    ExtraPurchaseLine.Insert();
+                    ExpectedMissingComponentCount := 1;
+                    ExpectedOrphanedLineCount := 1;
+                end;
+        end;
+
         if ReverseLegacyLines then begin
+            ExpectedMissingComponentCount := 2;
             Assert.AreEqual(
                 RequisitionLine."Prod. Order Line No.", RequisitionLine."Routing Reference No.",
                 'This regression requires a non-Family routing reference equal to the output line number.');
@@ -744,7 +874,10 @@ codeunit 139996 "Subc. Planning Test"
         repeat
             ExpectedComponentCount += 1;
             ProdOrderComponent."Remaining Quantity" := ProdOrderComponent."Remaining Quantity" + ExpectedComponentCount;
-            ProdOrderComponent."Due Date" := CalcDate('<' + Format(30 + ExpectedComponentCount) + 'D>', WorkDate());
+            if Scenario <> Scenario::ManualDates then
+                ProdOrderComponent."Due Date" := CalcDate('<' + Format(30 + ExpectedComponentCount) + 'D>', WorkDate())
+            else
+                ProdOrderComponent."Due Date" := OriginalPurchaseLine[ExpectedComponentCount]."Subc. Last Comp. Due Date";
             ProdOrderComponent.Modify();
         until ProdOrderComponent.Next() = 0;
 
@@ -759,7 +892,8 @@ codeunit 139996 "Subc. Planning Test"
 
         SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
 
-        if ReverseLegacyLines then begin
+        if ReverseLegacyLines or (Scenario = Scenario::DuplicateLegacy) then begin
+            Assert.AreEqual(1, ComponentSynchronizationNotificationCount, 'Skipped synchronization must produce one aggregate notification.');
             for ComponentIndex := 1 to 2 do begin
                 PurchaseLineComp.Get(
                     LegacyPurchaseLine[ComponentIndex]."Document Type",
@@ -775,6 +909,14 @@ codeunit 139996 "Subc. Planning Test"
                 Assert.AreEqual(LegacyPurchaseLine[ComponentIndex]."Planned Receipt Date", PurchaseLineComp."Planned Receipt Date", 'Ambiguous legacy planned date must remain unchanged.');
                 Assert.AreEqual(LegacyPurchaseLine[ComponentIndex]."Requested Receipt Date", PurchaseLineComp."Requested Receipt Date", 'Ambiguous legacy requested date must remain unchanged.');
             end;
+            exit;
+        end;
+
+        if Scenario = Scenario::MissingAndOrphaned then begin
+            Assert.AreEqual(1, ComponentSynchronizationNotificationCount, CombinedSynchronizationNotificationErr);
+            ExtraPurchaseLine.Find();
+            Assert.AreEqual(
+                OriginalPurchaseLine[2].Quantity, ExtraPurchaseLine.Quantity, OrphanedPurchaseLineQuantityErr);
             exit;
         end;
 
@@ -797,14 +939,47 @@ codeunit 139996 "Subc. Planning Test"
                 ProdOrderComponent."Remaining Quantity",
                 PurchaseLineComp.Quantity,
                 RescheduledComponentPurchaseLineQuantityErr);
-            Assert.AreEqual(
-                ProdOrderComponent."Due Date",
-                PurchaseLineComp."Expected Receipt Date",
-                RescheduledComponentPurchaseLineDateErr);
-            AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent, PurchaseLineComp, Location, Vendor, BaseCalendar, ExpectedLeadTime);
             ExpectedComponentCount += 1;
+            if Scenario in [Scenario::ManualDates, Scenario::LegacyDates] then begin
+                Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Order Date", PurchaseLineComp."Order Date", 'Manual order dates must be preserved.');
+                Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Expected Receipt Date", PurchaseLineComp."Expected Receipt Date", 'Manual expected receipt dates must be preserved.');
+                Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Planned Receipt Date", PurchaseLineComp."Planned Receipt Date", 'Manual planned receipt dates must be preserved.');
+                Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Requested Receipt Date", PurchaseLineComp."Requested Receipt Date", 'Manual requested receipt dates must be preserved.');
+                Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Promised Receipt Date", PurchaseLineComp."Promised Receipt Date", 'Manual promised receipt dates must be preserved.');
+                Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLineComp."Subc. Last Comp. Due Date", 'The source-date baseline must be recorded.');
+            end else begin
+                Assert.AreEqual(
+                    ProdOrderComponent."Due Date",
+                    PurchaseLineComp."Expected Receipt Date",
+                    RescheduledComponentPurchaseLineDateErr);
+                AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent, PurchaseLineComp, Location, Vendor, BaseCalendar, ExpectedLeadTime);
+            end;
         until ProdOrderComponent.Next() = 0;
         Assert.AreEqual(2, ExpectedComponentCount, ExpectedRescheduledComponentCountErr);
+
+        if Scenario in [Scenario::ManualDates, Scenario::LegacyDates] then begin
+            // A subsequent source-date change must recalculate the manually adjusted dates.
+            ProdOrderLine.Validate(Quantity, NewQty + 1);
+            ProdOrderLine.Modify(true);
+            ProdOrderComponent.FindSet();
+            repeat
+                ProdOrderComponent."Due Date" := CalcDate('<90D>', WorkDate());
+                ProdOrderComponent.Modify();
+            until ProdOrderComponent.Next() = 0;
+            SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+            SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+            ProdOrderComponent.FindSet();
+            repeat
+                PurchaseLineComp.Reset();
+                SubcontractingMgmtLibrary.FindComponentPurchLine(PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
+                PurchaseLineComp.SetRange("Subc. Prod. Comp. Line No.", ProdOrderComponent."Line No.");
+                PurchaseLineComp.FindFirst();
+                Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLineComp."Subc. Last Comp. Due Date", ChangedSourceDateBaselineErr);
+                Assert.AreEqual(0D, PurchaseLineComp."Promised Receipt Date", ChangedSourceDatePromiseErr);
+                Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLineComp."Expected Receipt Date", ChangedSourceExpectedReceiptDateErr);
+                AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent, PurchaseLineComp, Location, Vendor, BaseCalendar, ExpectedLeadTime);
+            until ProdOrderComponent.Next() = 0;
+        end;
     end;
 
     [Test]
@@ -821,12 +996,15 @@ codeunit 139996 "Subc. Planning Test"
         PurchaseLine: Record "Purchase Line";
         PurchaseLineComp: Record "Purchase Line";
         ExactPurchaseLineComp: Record "Purchase Line";
+        ExtraLegacyPurchaseLine: Record "Purchase Line";
+        MatchedPurchaseLine: Record "Purchase Line";
         ExistingPurchaseLine: Record "Purchase Line";
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         WorkCenter: array[2] of Record "Work Center";
         SubcCompFactboxMgmt: Codeunit "Subc. Comp. Factbox Mgmt.";
+        SubcReqWkshMakeOrd: Codeunit "Subc. Req. Wksh. Make Ord.";
         InitialQuantity: Decimal;
         NewComponentQuantity: Decimal;
         NewComponentDueDate: Date;
@@ -839,6 +1017,8 @@ codeunit 139996 "Subc. Planning Test"
         FamilyComponentDateErr: Label 'The Family component purchase date should be updated.';
         LegacyFamilyComponentOutstandingQuantityErr: Label 'An unambiguous legacy Family component purchase line should remain visible in the outstanding quantity.';
         MixedFamilyComponentOutstandingQuantityErr: Label 'An unambiguous legacy Family component purchase line should be included together with exact-identity lines.';
+        ExactOwnedComponentLegacyMigrationErr: Label 'Read-only legacy visibility must not permit migration to an exact-owned component.';
+        DuplicateLegacyExactQuantityErr: Label 'Duplicate legacy candidates must be excluded while exact quantities remain visible.';
     begin
         // [SCENARIO] A vendor-supplied component is rescheduled for a Family output whose production line number differs from the shared routing reference.
         Initialize();
@@ -900,7 +1080,7 @@ codeunit 139996 "Subc. Planning Test"
             SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
             LegacyFamilyComponentOutstandingQuantityErr);
 
-        // Mixed identities: an exact-identity line must not hide the unambiguous legacy line.
+        // Read-only totals retain an unambiguous legacy line alongside exact ownership of the same component.
         ExactPurchaseLineComp := PurchaseLineComp;
         ExistingPurchaseLine.SetRange("Document Type", PurchaseLineComp."Document Type");
         ExistingPurchaseLine.SetRange("Document No.", PurchaseLineComp."Document No.");
@@ -913,6 +1093,20 @@ codeunit 139996 "Subc. Planning Test"
             PurchaseLineComp."Outstanding Qty. (Base)" + ExactPurchaseLineComp."Outstanding Qty. (Base)",
             SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
             MixedFamilyComponentOutstandingQuantityErr);
+        Assert.IsFalse(
+            SubcReqWkshMakeOrd.FindUniqueLegacyComponentPurchaseLine(
+                MatchedPurchaseLine, ProdOrderComponent, ProdOrderRoutingLine, PurchaseLineComp."Document No.", false),
+            ExactOwnedComponentLegacyMigrationErr);
+
+        // Multiple legacy candidates are still unsafe, even when there is only one source component.
+        ExtraLegacyPurchaseLine := PurchaseLineComp;
+        ExtraLegacyPurchaseLine."Line No." := ExactPurchaseLineComp."Line No." + 10000;
+        ExtraLegacyPurchaseLine.Insert();
+        Assert.AreEqual(
+            ExactPurchaseLineComp."Outstanding Qty. (Base)",
+            SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
+            DuplicateLegacyExactQuantityErr);
+        ExtraLegacyPurchaseLine.Delete();
         ExactPurchaseLineComp.Delete();
 
         ProdOrderLine.Validate(Quantity, InitialQuantity + 1);
@@ -943,6 +1137,7 @@ codeunit 139996 "Subc. Planning Test"
     end;
 
     [Test]
+    [HandlerFunctions('ComponentSynchronizationNotificationHandler')]
     procedure AmbiguousLegacyFamilyComponentLineIsNotMigratedToAnotherOutput()
     var
         Family: Record Family;
@@ -1067,6 +1262,7 @@ codeunit 139996 "Subc. Planning Test"
         end;
 
         // Reschedule the second output first, where a routing-reference match cannot identify its purchase line.
+        ExpectedMissingComponentCount := 1;
         ProdOrderLine[2].Validate(Quantity, InitialQuantity + 1);
         ProdOrderLine[2].Modify(true);
         ProdOrderComponent[2].FindFirst();
@@ -1148,6 +1344,9 @@ codeunit 139996 "Subc. Planning Test"
 
     local procedure Initialize()
     begin
+        ExpectedMissingComponentCount := 0;
+        ExpectedOrphanedLineCount := 0;
+        ComponentSynchronizationNotificationCount := 0;
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Planning Test");
         LibrarySetupStorage.Restore();
 
@@ -1303,6 +1502,27 @@ codeunit 139996 "Subc. Planning Test"
         Response := ACTION::LookupOK;
     end;
 
+    [SendNotificationHandler]
+    procedure ComponentSynchronizationNotificationHandler(var ComponentSynchronizationNotification: Notification): Boolean
+    var
+        UnexpectedSynchronizationNotificationErr: Label 'Unexpected synchronization notification.';
+        SkippedComponentNotificationCountErr: Label 'The notification must report the skipped component count.';
+        OrphanedLineNotificationCountErr: Label 'The notification must report the orphaned purchase line count.';
+    begin
+        Assert.AreEqual(
+            '{D7794971-B762-44F0-9915-8C30C9760125}', Format(ComponentSynchronizationNotification.Id),
+            UnexpectedSynchronizationNotificationErr);
+        Assert.AreEqual(
+            Format(ExpectedMissingComponentCount, 0, 9), ComponentSynchronizationNotification.GetData('MissingComponentCount'),
+            SkippedComponentNotificationCountErr);
+        Assert.AreEqual(
+            Format(ExpectedOrphanedLineCount, 0, 9), ComponentSynchronizationNotification.GetData('OrphanedLineCount'),
+            OrphanedLineNotificationCountErr);
+        Assert.AreNotEqual('', ComponentSynchronizationNotification.GetData('PurchaseDocumentNo'), 'The purchase order must be identified.');
+        ComponentSynchronizationNotificationCount += 1;
+        exit(true);
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1322,4 +1542,7 @@ codeunit 139996 "Subc. Planning Test"
         IsInitialized: Boolean;
         Subcontracting: Boolean;
         UnitCostCalculation: Option Time,Units;
+        ExpectedMissingComponentCount: Integer;
+        ExpectedOrphanedLineCount: Integer;
+        ComponentSynchronizationNotificationCount: Integer;
 }
