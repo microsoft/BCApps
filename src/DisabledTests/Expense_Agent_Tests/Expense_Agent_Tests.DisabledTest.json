@@ -250,11 +250,6 @@
     "method": "AssignedProjectsBlockedWhenProjectFieldsDisabledViaAPI"
   },
   {
-    "codeunitId": 148305,
-    "codeunitName": "Expense Test",
-    "method": "DescriptionMustBeFlowFromExpenseToExpenseItemization"
-  },
-  {
     "codeunitId": 148337,
     "codeunitName": "Expense Vendor Matching Test",
     "method": "FindOrCreateExpenseVendor_VATMatchesBCVendor_CreatesMatchedExpenseVendor"
