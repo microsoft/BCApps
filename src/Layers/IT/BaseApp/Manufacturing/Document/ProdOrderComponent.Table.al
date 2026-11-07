@@ -1286,6 +1286,45 @@ table 5407 "Prod. Order Component"
         "Completely Picked" := ("Qty. Picked" >= "Expected Quantity") and ("Expected Quantity" >= 0);
     end;
 
+    procedure IsEligibleForWarehousePick(): Boolean
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        SuppliedComponent: Record "Prod. Order Component";
+        OutputLocation: Record Location;
+        PickedQtyBase: Decimal;
+    begin
+        if "Planning Level Code" = 0 then
+            exit(true);
+
+        if ("Planning Level Code" < 0) or ("Supplied-by Line No." = 0) then
+            exit(false);
+        if not ProdOrderLine.Get(Status, "Prod. Order No.", "Supplied-by Line No.") then
+            exit(false);
+        if (ProdOrderLine."Item No." <> "Item No.") or
+           (ProdOrderLine."Variant Code" <> "Variant Code") or
+           (ProdOrderLine."Location Code" <> "Location Code") or
+           (ProdOrderLine."Qty. Put Away (Base)" <= 0)
+        then
+            exit(false);
+        if not OutputLocation.Get(ProdOrderLine."Location Code") then
+            exit(false);
+        if OutputLocation."Prod. Output Whse. Handling" <> OutputLocation."Prod. Output Whse. Handling"::"Warehouse Put-away" then
+            exit(false);
+
+        // One supplied line can serve multiple components; do not reuse output already assigned to their picks.
+        SuppliedComponent.SetCurrentKey("Supplied-by Line No.");
+        SuppliedComponent.SetRange(Status, Status);
+        SuppliedComponent.SetRange("Prod. Order No.", "Prod. Order No.");
+        SuppliedComponent.SetRange("Supplied-by Line No.", "Supplied-by Line No.");
+        SuppliedComponent.SetAutoCalcFields("Pick Qty. (Base)");
+        if SuppliedComponent.FindSet() then
+            repeat
+                PickedQtyBase += SuppliedComponent."Qty. Picked (Base)" + SuppliedComponent."Pick Qty. (Base)";
+            until SuppliedComponent.Next() = 0;
+
+        exit(ProdOrderLine."Qty. Put Away (Base)" > PickedQtyBase);
+    end;
+
     procedure ProdOrderNeeds(): Decimal
     var
         ProdOrderLine: Record "Prod. Order Line";
