@@ -2,6 +2,8 @@ codeunit 101600 "Create Employee"
 {
 
     trigger OnRun()
+    var
+        EmployeePostingGroup: Record "Employee Posting Group";
     begin
         InsertGeneral(
           XEH, XEster, '', XHenderson, XEHENDERSON, X5RusselStreet, CreatePostCode.Convert('GB-PE17 4RN'),
@@ -44,11 +46,21 @@ codeunit 101600 "Create Employee"
           XProductionAssistant, Employee.Gender::Male);
         InsertContact(XTD, '4653', '', '1234-6545-8799', '0678-8712-5466', '', 'Terry Dodds');
         InsertAdministration(XTD, XPROD, '', XPROD, X14DAYS, 19960301D, '', XTerry, XUPROD, '234654-631');
+
+        InsertGeneral(
+          XKHLbl, XKatherineLbl, '', XHullLbl, XKHULLLbl, X12SelsdonRoadLbl, CreatePostCode.Convert('GB-N16 34Z'),
+          XServiceManagerLbl, Employee.Gender::Female);
+        InsertContact(XKHLbl, '1095', '', '7223-4321-8744', '020-2584-1095', '', 'Katherine Hull');
+        InsertAdministration(XKHLbl, XADM, '', XADM, XMONTH, CalcDate('<-4Y>', MakeAdjustments.AdjustDate(19021001D)), XKHLbl, XKatherineLbl, XUADMI, '4921826-897');
+        InsertPersonal(XKHLbl, CalcDate('<-35Y>', MakeAdjustments.AdjustDate(19020519D)), '1294370062', XUADMI, '4921826-897');
+        if EmployeePostingGroup.Get(XEmplExpTxt) then
+            InsertPostingGroup(XKHLbl, EmployeePostingGroup.Code);
     end;
 
     var
         Employee: Record Employee;
         CreatePostCode: Codeunit "Create Post Code";
+        MakeAdjustments: Codeunit "Make Adjustments";
         XEH: Label 'EH';
         XEster: Label 'Ester';
         XHenderson: Label 'Henderson';
@@ -103,6 +115,12 @@ codeunit 101600 "Create Employee"
         XPERSONAL: Label 'PERSONAL';
         XPERSEXP: Label 'PERSEXP';
         XEmplExpTxt: Label 'EMPLEXP';
+        XKHLbl: Label 'KH';
+        XKatherineLbl: Label 'Katherine';
+        XHullLbl: Label 'Hull';
+        XKHULLLbl: Label 'KHULL';
+        XServiceManagerLbl: Label 'Service Manager';
+        X12SelsdonRoadLbl: Label '12 Selsdon Road';
 
     procedure InsertGeneral("No.": Code[20]; "First Name": Text[30]; "Middle Name": Text[30]; "Last Name": Text[30]; Initials: Text[30]; Address: Text[30]; "Post Code": Code[20]; Title: Text[30]; Sex: Enum "Employee Gender")
     begin
@@ -156,6 +174,23 @@ codeunit 101600 "Create Employee"
         Employee.Modify();
     end;
 
+    procedure InsertPersonal("No.": Code[20]; "Birth Date": Date; "Social Security No.": Text[30]; "Union Code": Code[10]; "Union Membership No.": Text[30])
+    begin
+        Employee.Get("No.");
+        Employee."Birth Date" := "Birth Date";
+        Employee."Social Security No." := "Social Security No.";
+        Employee."Union Code" := "Union Code";
+        Employee."Union Membership No." := "Union Membership No.";
+        Employee.Modify();
+    end;
+
+    procedure InsertPostingGroup("No.": Code[20]; PostingGroupCode: Code[20])
+    begin
+        Employee.Get("No.");
+        Employee.Validate("Employee Posting Group", PostingGroupCode);
+        Employee.Modify();
+    end;
+
     procedure InsertVendor("No.": Code[20])
     var
         Vend: Record Vendor;
@@ -174,4 +209,3 @@ codeunit 101600 "Create Employee"
         exit(XEmplExpTxt);
     end;
 }
-
