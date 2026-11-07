@@ -982,7 +982,7 @@ codeunit 134381 "ERM Dimension Priority"
         SalesLine: Record "Sales Line";
         RequisitionLine: Record "Requisition Line";
         PlanningComponent: Record "Planning Component";
-        ManufacturingUserTemplate: Record "Manufacturing User Template" temporary;
+        TempManufacturingUserTemplate: Record "Manufacturing User Template" temporary;
         ProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderComponent: Record "Prod. Order Component";
@@ -1072,9 +1072,9 @@ codeunit 134381 "ERM Dimension Priority"
         PlanningComponent.TestField("Shortcut Dimension 2 Code", SalesDimensionValue.Code);
 
         // [WHEN] Make Orders creates a firm planned production order for the active line.
-        ManufacturingUserTemplate."Make Orders" := ManufacturingUserTemplate."Make Orders"::"The Active Line";
-        ManufacturingUserTemplate."Create Production Order" := ManufacturingUserTemplate."Create Production Order"::"Firm Planned";
-        MakeSupplyOrdersYesNo.SetManufUserTemplate(ManufacturingUserTemplate);
+        TempManufacturingUserTemplate."Make Orders" := TempManufacturingUserTemplate."Make Orders"::"The Active Line";
+        TempManufacturingUserTemplate."Create Production Order" := TempManufacturingUserTemplate."Create Production Order"::"Firm Planned";
+        MakeSupplyOrdersYesNo.SetManufUserTemplate(TempManufacturingUserTemplate);
         MakeSupplyOrdersYesNo.SetBlockForm();
         Commit();
         MakeSupplyOrdersYesNo.Run(RequisitionLine);
