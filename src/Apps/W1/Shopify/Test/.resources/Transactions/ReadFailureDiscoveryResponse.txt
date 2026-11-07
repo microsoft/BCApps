@@ -1,0 +1,1 @@
+{"data":{"orders":{"nodes":[{"transactions":[{"gateway":"%1","manualPaymentGateway":true,"paymentDetails":null}]}]}} ,"errors":[{"message":"discovery read failed"}]}

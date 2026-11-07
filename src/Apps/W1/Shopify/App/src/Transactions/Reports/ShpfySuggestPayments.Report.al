@@ -35,8 +35,8 @@ report 30118 "Shpfy Suggest Payments"
 
             trigger OnPreDataItem()
             begin
-                SetAutoCalcFields("Payment Method", Used);
-                SetLoadFields(Amount, "Rounding Amount", Type, "Shopify Order Id", "Shopify Transaction Id", Gateway, "Gift Card Id", "Payment Method");
+                SetAutoCalcFields(Used);
+                SetLoadFields(Amount, "Rounding Amount", Type, "Shopify Order Id", "Shopify Transaction Id", Gateway, "Credit Card Company", Shop, "Gift Card Id");
                 if PostingDate = 0D then
                     Error(NoPostingDateErr);
                 if this.Gateway <> '' then
@@ -168,6 +168,7 @@ report 30118 "Shpfy Suggest Payments"
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         TempSuggestPayment: Record "Shpfy Suggest Payment" temporary;
+        PaymentMethodMappingMgt: Codeunit "Shpfy Pay. Method Mapp. Mgt.";
         EntryNo: Integer;
         PostingDate: Date;
         NextDocNo: Code[20];
@@ -354,7 +355,7 @@ report 30118 "Shpfy Suggest Payments"
         TempSuggestPayment."Cust. Ledger Entry Dim. Set Id" := CustLedgerEntry."Dimension Set ID";
         TempSuggestPayment."Shpfy Order Id" := OrderTransaction."Shopify Order Id";
         TempSuggestPayment."Shpfy Gift Card Id" := OrderTransaction."Gift Card Id";
-        TempSuggestPayment."Payment Method Code" := OrderTransaction."Payment Method";
+        TempSuggestPayment."Payment Method Code" := PaymentMethodMappingMgt.GetPaymentMethodCode(OrderTransaction.Shop, OrderTransaction.Gateway, OrderTransaction."Credit Card Company");
         TempSuggestPayment.Insert();
     end;
 
@@ -371,7 +372,7 @@ report 30118 "Shpfy Suggest Payments"
         TempSuggestPayment.Gateway := OrderTransaction.Gateway;
         TempSuggestPayment."Shpfy Order Id" := OrderTransaction."Shopify Order Id";
         TempSuggestPayment."Shpfy Gift Card Id" := OrderTransaction."Gift Card Id";
-        TempSuggestPayment."Payment Method Code" := OrderTransaction."Payment Method";
+        TempSuggestPayment."Payment Method Code" := PaymentMethodMappingMgt.GetPaymentMethodCode(OrderTransaction.Shop, OrderTransaction.Gateway, OrderTransaction."Credit Card Company");
         TempSuggestPayment.Insert();
     end;
 

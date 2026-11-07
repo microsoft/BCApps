@@ -549,16 +549,18 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
     local procedure MapPaymentMethodCode(var SalesHeader: Record "Sales Header")
     var
         OrderTransaction: Record "Shpfy Order Transaction";
+        PaymentMethodMappingMgt: Codeunit "Shpfy Pay. Method Mapp. Mgt.";
         PaymentMethods: List of [Code[10]];
+        PaymentMethodCode: Code[10];
     begin
-        OrderTransaction.SetAutoCalcFields("Payment Method");
         OrderTransaction.SetRange("Refund Id", RefundId);
         OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
         OrderTransaction.SetRange(Type, "Shpfy Transaction Type"::Refund);
         if OrderTransaction.FindSet() then begin
             repeat
-                if not PaymentMethods.Contains(OrderTransaction."Payment Method") then
-                    PaymentMethods.Add(OrderTransaction."Payment Method");
+                PaymentMethodCode := PaymentMethodMappingMgt.GetPaymentMethodCode(OrderTransaction.Shop, OrderTransaction.Gateway, OrderTransaction."Credit Card Company");
+                if not PaymentMethods.Contains(PaymentMethodCode) then
+                    PaymentMethods.Add(PaymentMethodCode);
 
                 if PaymentMethods.Count > 1 then
                     exit;
