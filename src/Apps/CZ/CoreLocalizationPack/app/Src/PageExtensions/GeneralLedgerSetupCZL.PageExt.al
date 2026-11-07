@@ -121,6 +121,13 @@ pageextension 11717 "General Ledger Setup CZL" extends "General Ledger Setup"
                 ToolTip = 'Specifies to share the financial report in general ledger setup.';
             }
         }
+        addlast(Currency)
+        {
+            field("Disable Incr. Exch. Post. CZL"; Rec."Disable Incr. Exch. Post. CZL")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+        }
         movefirst(VatCZL; "VAT Reporting Date Usage", "Default VAT Reporting Date")
     }
     actions
