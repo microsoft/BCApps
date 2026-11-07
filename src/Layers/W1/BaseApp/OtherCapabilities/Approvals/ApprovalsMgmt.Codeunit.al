@@ -7,6 +7,7 @@ namespace System.Automation;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.FixedAssets.Journal;
 using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -194,6 +195,16 @@ codeunit 1535 "Approvals Mgmt."
     end;
 
     [IntegrationEvent(false, false)]
+    procedure OnSendFAJournalBatchForApproval(var FAJournalBatch: Record "FA Journal Batch")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    procedure OnCancelFAJournalBatchApprovalRequest(var FAJournalBatch: Record "FA Journal Batch")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnApproveApprovalRequest(var ApprovalEntry: Record "Approval Entry")
     begin
     end;
@@ -292,6 +303,16 @@ codeunit 1535 "Approvals Mgmt."
             ApproveRecordApprovalRequest(RequisitionWkshName.RecordId());
     end;
 
+    procedure ApproveFAJournalRequest(FAJournalLine: Record "FA Journal Line")
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+        ApprovalEntry: Record "Approval Entry";
+    begin
+        FAJournalBatch.Get(FAJournalLine."Journal Template Name", FAJournalLine."Journal Batch Name");
+        if FindOpenApprovalEntryForCurrUser(ApprovalEntry, FAJournalBatch.RecordId()) then
+            ApproveRecordApprovalRequest(FAJournalBatch.RecordId());
+    end;
+
     procedure RejectRecordApprovalRequest(RecordID: RecordID)
     var
         ApprovalEntry: Record "Approval Entry";
@@ -336,6 +357,16 @@ codeunit 1535 "Approvals Mgmt."
             RejectRecordApprovalRequest(RequisitionWkshName.RecordId());
     end;
 
+    procedure RejectFAJournalRequest(FAJournalLine: Record "FA Journal Line")
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+        ApprovalEntry: Record "Approval Entry";
+    begin
+        FAJournalBatch.Get(FAJournalLine."Journal Template Name", FAJournalLine."Journal Batch Name");
+        if FindOpenApprovalEntryForCurrUser(ApprovalEntry, FAJournalBatch.RecordId()) then
+            RejectRecordApprovalRequest(FAJournalBatch.RecordId());
+    end;
+
     procedure DelegateRecordApprovalRequest(RecordID: RecordID)
     var
         ApprovalEntry: Record "Approval Entry";
@@ -378,6 +409,16 @@ codeunit 1535 "Approvals Mgmt."
         RequisitionWkshName.Get(RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name");
         if FindOpenApprovalEntryForCurrUser(ApprovalEntry, RequisitionWkshName.RecordId()) then
             DelegateRecordApprovalRequest(RequisitionWkshName.RecordId());
+    end;
+
+    procedure DelegateFAJournalRequest(FAJournalLine: Record "FA Journal Line")
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+        ApprovalEntry: Record "Approval Entry";
+    begin
+        FAJournalBatch.Get(FAJournalLine."Journal Template Name", FAJournalLine."Journal Batch Name");
+        if FindOpenApprovalEntryForCurrUser(ApprovalEntry, FAJournalBatch.RecordId()) then
+            DelegateRecordApprovalRequest(FAJournalBatch.RecordId());
     end;
 
     procedure ApproveApprovalRequests(var ApprovalEntry: Record "Approval Entry")
@@ -1196,6 +1237,7 @@ codeunit 1535 "Approvals Mgmt."
         Vendor: Record Vendor;
         RequisitionWkshName: Record "Requisition Wksh. Name";
         ItemJournalBatch: Record "Item Journal Batch";
+        FAJournalBatch: Record "FA Journal Batch";
         EnumAssignmentMgt: Codeunit "Enum Assignment Management";
         ApprovalAmount: Decimal;
         ApprovalAmountLCY: Decimal;
@@ -1279,6 +1321,8 @@ codeunit 1535 "Approvals Mgmt."
                     RecRef.SetTable(RequisitionWkshName);
                 Database::"Item Journal Batch":
                     RecRef.SetTable(ItemJournalBatch);
+                Database::"FA Journal Batch":
+                    RecRef.SetTable(FAJournalBatch);
                 else
                     OnPopulateApprovalEntryArgument(RecRef, ApprovalEntryArgument, WorkflowStepInstance);
             end;
@@ -1468,7 +1512,7 @@ codeunit 1535 "Approvals Mgmt."
         IsHandled := false;
         OnAfterIsSufficientApprover(UserSetup, ApprovalEntryArgument, IsSufficient, IsHandled);
         if not IsHandled then
-            if ApprovalEntryArgument."Table ID" in [Database::"Gen. Journal Batch", Database::"Item Journal Batch", Database::"Requisition Wksh. Name"] then
+            if ApprovalEntryArgument."Table ID" in [Database::"Gen. Journal Batch", Database::"Item Journal Batch", Database::"Requisition Wksh. Name", Database::"FA Journal Batch"] then
                 Message(ApporvalChainIsUnsupportedMsg, Format(ApprovalEntryArgument."Record ID to Approve"));
 
         exit(IsSufficient);
@@ -1623,6 +1667,18 @@ codeunit 1535 "Approvals Mgmt."
         exit(WorkflowManagement.CanExecuteWorkflow(RequisitionWkshName, WorkflowEventHandling.RunWorkflowOnSendRequisitionWkshBatchForApprovalCode()));
     end;
 
+    procedure IsFAJournalBatchApprovalsWorkflowEnabled(var FAJournalBatch: Record "FA Journal Batch") Result: Boolean
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeIsFAJournalBatchApprovalsWorkflowEnabled(FAJournalBatch, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
+        exit(WorkflowManagement.CanExecuteWorkflow(FAJournalBatch, WorkflowEventHandling.RunWorkflowOnSendFAJournalBatchForApprovalCode()));
+    end;
+
     procedure CheckPurchaseApprovalPossible(var PurchaseHeader: Record "Purchase Header") Result: Boolean
     var
         IsHandled: Boolean;
@@ -1755,6 +1811,14 @@ codeunit 1535 "Approvals Mgmt."
         exit(true);
     end;
 
+    procedure CheckFAJournalBatchApprovalsWorkflowEnabled(var FAJournalBatch: Record "FA Journal Batch"): Boolean
+    begin
+        if not WorkflowManagement.CanExecuteWorkflow(FAJournalBatch, WorkflowEventHandling.RunWorkflowOnSendFAJournalBatchForApprovalCode()) then
+            Error(NoWorkflowEnabledErr);
+
+        exit(true);
+    end;
+
     procedure CheckJobQueueEntryApprovalEnabled(): Boolean
     begin
         exit(WorkflowManagement.EnabledWorkflowExist(Database::"Job Queue Entry", WorkflowEventHandling.RunWorkflowOnSendJobQueueEntryForApprovalCode()));
@@ -1850,6 +1914,19 @@ codeunit 1535 "Approvals Mgmt."
 
         if ReqWkshTemplate.Get(Rec."Worksheet Template Name") then
             if not ReqWkshTemplate."Increment Batch Name" then
+                DeleteApprovalEntries(Rec.RecordId());
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"FA Journal Batch", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure DeleteApprovalEntriesAfterDeleteFAJournalBatch(var Rec: Record "FA Journal Batch"; RunTrigger: Boolean)
+    var
+        FAJnlTemplate: Record "FA Journal Template";
+    begin
+        if Rec.IsTemporary then
+            exit;
+
+        if FAJnlTemplate.Get(Rec."Journal Template Name") then
+            if not FAJnlTemplate."Increment Batch Name" then
                 DeleteApprovalEntries(Rec.RecordId());
     end;
 
@@ -2431,6 +2508,54 @@ codeunit 1535 "Approvals Mgmt."
             RequisitionWkshName.Get(RequisitionLine.GetFilter("Worksheet Template Name"), RequisitionLine.GetFilter("Journal Batch Name"));
     end;
 
+    procedure TrySendJournalBatchApprovalRequest(var FAJournalLine: Record "FA Journal Line")
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+    begin
+        GetFAJournalBatch(FAJournalBatch, FAJournalLine);
+        CheckFAJournalBatchApprovalsWorkflowEnabled(FAJournalBatch);
+
+        if HasOpenApprovalEntries(FAJournalBatch.RecordId()) or
+           HasAnyOpenJournalLineApprovalEntries(FAJournalBatch."Journal Template Name", FAJournalBatch.Name)
+        then
+            Error(PendingJournalBatchApprovalExistsErr);
+
+        if HasApprovedApprovalEntries(FAJournalBatch.RecordId()) then
+            if not Confirm(ApprovedJournalBatchApprovalExistsMsg) then
+                exit;
+
+        OnSendFAJournalBatchForApproval(FAJournalBatch);
+    end;
+
+    procedure TryCancelJournalBatchApprovalRequest(var FAJournalLine: Record "FA Journal Line")
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+        WorkflowWebhookManagement: Codeunit "Workflow Webhook Management";
+    begin
+        GetFAJournalBatch(FAJournalBatch, FAJournalLine);
+        OnCancelFAJournalBatchApprovalRequest(FAJournalBatch);
+        WorkflowWebhookManagement.FindAndCancel(FAJournalBatch.RecordId());
+    end;
+
+    procedure ShowJournalApprovalEntries(var FAJournalLine: Record "FA Journal Line")
+    var
+        ApprovalEntry: Record "Approval Entry";
+        FAJournalBatch: Record "FA Journal Batch";
+    begin
+        GetFAJournalBatch(FAJournalBatch, FAJournalLine);
+
+        ApprovalEntry.SetRange("Table ID", Database::"FA Journal Batch");
+        ApprovalEntry.SetRange("Record ID to Approve", FAJournalBatch.RecordId());
+        ApprovalEntry.SetRange("Related to Change", false);
+        Page.Run(Page::"Approval Entries", ApprovalEntry);
+    end;
+
+    local procedure GetFAJournalBatch(var FAJournalBatch: Record "FA Journal Batch"; var FAJournalLine: Record "FA Journal Line")
+    begin
+        if not FAJournalBatch.Get(FAJournalLine."Journal Template Name", FAJournalLine."Journal Batch Name") then
+            FAJournalBatch.Get(FAJournalLine.GetFilter("Journal Template Name"), FAJournalLine.GetFilter("Journal Batch Name"));
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnRenameRecordInApprovalRequest', '', false, false)]
     procedure RenameApprovalEntries(OldRecordId: RecordID; NewRecordId: RecordID)
     var
@@ -2708,13 +2833,14 @@ codeunit 1535 "Approvals Mgmt."
         GenJournalBatch: Record "Gen. Journal Batch";
         ItemJournalBatch: Record "Item Journal Batch";
         RequisitionWkshName: Record "Requisition Wksh. Name";
+        FAJournalBatch: Record "FA Journal Batch";
         ConfirmManagement: Codeunit "Confirm Management";
         WorkflowWebhookMgt: Codeunit "Workflow Webhook Management";
         RecRef: RecordRef;
     begin
         RecRef.GetTable(Variant);
         if HasOpenOrPendingApprovalEntriesForCurrentUser(RecRef.RecordId) then
-            if (CanCancelApprovalForRecord(RecRef.RecordId)) or (RecRef.Number in [Database::"Item Journal Batch", Database::"Requisition Wksh. Name"]) then
+            if (CanCancelApprovalForRecord(RecRef.RecordId)) or (RecRef.Number in [Database::"Item Journal Batch", Database::"Requisition Wksh. Name", Database::"FA Journal Batch"]) then
                 Error(PreventDeleteRecordWithOpenApprovalEntryForCurrUserMsg);
 
         if (HasOpenApprovalEntries(RecRef.RecordId) and CanCancelApprovalForRecord(RecRef.RecordId))
@@ -2740,6 +2866,12 @@ codeunit 1535 "Approvals Mgmt."
                         OnCancelRequisitionWkshBatchApprovalRequest(RequisitionWkshName);
                     end else
                         Error('');
+                Database::"FA Journal Batch":
+                    if ConfirmManagement.GetResponseOrDefault(PreventDeleteRecordWithOpenApprovalEntryMsg, true) then begin
+                        RecRef.SetTable(FAJournalBatch);
+                        OnCancelFAJournalBatchApprovalRequest(FAJournalBatch);
+                    end else
+                        Error('');
                 else
                     OnPreventDeletingRecordWithOpenApprovalEntryElseCase(RecRef, Variant);
             end;
@@ -2750,6 +2882,7 @@ codeunit 1535 "Approvals Mgmt."
         GenJournalBatch: Record "Gen. Journal Batch";
         ItemJournalBatch: Record "Item Journal Batch";
         RequisitionWkshName: Record "Requisition Wksh. Name";
+        FAJournalBatch: Record "FA Journal Batch";
         WorkflowWebhookMgt: Codeunit "Workflow Webhook Management";
         ConfirmManagement: Codeunit "Confirm Management";
         RecRef: RecordRef;
@@ -2799,6 +2932,18 @@ codeunit 1535 "Approvals Mgmt."
                         end else
                             Error('');
                 end;
+            Database::"FA Journal Batch":
+                begin
+                    if HasOpenOrPendingApprovalEntriesForCurrentUser(RecRef.RecordId()) then
+                        Error(PreventInsertRecordWithOpenApprovalEntryForCurrUserMsg);
+
+                    if (HasOpenApprovalEntries(RecRef.RecordId()) and CanCancelApprovalForRecord(RecRef.RecordId())) or WorkflowWebhookMgt.HasPendingWorkflowWebhookEntryByRecordId(RecRef.RecordId()) then
+                        if ConfirmManagement.GetResponseOrDefault(PreventInsertRecordWithOpenApprovalEntryMsg, true) then begin
+                            RecRef.SetTable(FAJournalBatch);
+                            OnCancelFAJournalBatchApprovalRequest(FAJournalBatch);
+                        end else
+                            Error('');
+                end;
             else
                 OnPreventInsertRecIfOpenApprovalEntryExistElseCase(RecRef, Variant);
         end;
@@ -2808,6 +2953,7 @@ codeunit 1535 "Approvals Mgmt."
     var
         ItemJournalBatch: Record "Item Journal Batch";
         RequisitionWkshName: Record "Requisition Wksh. Name";
+        FAJournalBatch: Record "FA Journal Batch";
         WorkflowWebhookMgt: Codeunit "Workflow Webhook Management";
         ConfirmManagement: Codeunit "Confirm Management";
         RecRef: RecordRef;
@@ -2833,6 +2979,17 @@ codeunit 1535 "Approvals Mgmt."
                         if ConfirmManagement.GetResponseOrDefault(PreventModifyRecordWithOpenApprovalEntryNewMsg, true) then begin
                             RecRef.SetTable(RequisitionWkshName);
                             OnCancelRequisitionWkshBatchApprovalRequest(RequisitionWkshName);
+                        end else
+                            Error('');
+                end;
+            Database::"FA Journal Batch":
+                begin
+                    PreventModifyRecIfOpenApprovalEntryExistForCurrentUser(Variant);
+
+                    if (HasOpenApprovalEntries(RecRef.RecordId()) and CanCancelApprovalForRecord(RecRef.RecordId())) or WorkflowWebhookMgt.HasPendingWorkflowWebhookEntryByRecordId(RecRef.RecordId()) then
+                        if ConfirmManagement.GetResponseOrDefault(PreventModifyRecordWithOpenApprovalEntryNewMsg, true) then begin
+                            RecRef.SetTable(FAJournalBatch);
+                            OnCancelFAJournalBatchApprovalRequest(FAJournalBatch);
                         end else
                             Error('');
                 end;
@@ -2974,6 +3131,25 @@ codeunit 1535 "Approvals Mgmt."
                 ReqWkshBatchApprovalStatus := GetApprovalStatusFromApprovalEntry(ApprovalEntry, RequisitionWkshName);
     end;
 
+    procedure GetFAJnlBatchApprovalStatus(FAJournalLine: Record "FA Journal Line"; var FAJnlBatchApprovalStatus: Text[20]; EnabledFAJnlBatchWorkflowsExist: Boolean)
+    var
+        ApprovalEntry: Record "Approval Entry";
+        FAJournalBatch: Record "FA Journal Batch";
+    begin
+        Clear(FAJnlBatchApprovalStatus);
+        if not EnabledFAJnlBatchWorkflowsExist then
+            exit;
+
+        if not FAJournalBatch.Get(FAJournalLine."Journal Template Name", FAJournalLine."Journal Batch Name") then
+            exit;
+
+        if FindLastApprovalEntryForCurrUser(ApprovalEntry, FAJournalBatch.RecordId()) then
+            FAJnlBatchApprovalStatus := GetApprovalStatusFromApprovalEntry(ApprovalEntry, FAJournalBatch)
+        else
+            if FindApprovalEntryByRecordId(ApprovalEntry, FAJournalBatch.RecordId()) then
+                FAJnlBatchApprovalStatus := GetApprovalStatusFromApprovalEntry(ApprovalEntry, FAJournalBatch);
+    end;
+
     internal procedure SendForApproval(var JobQueueEntry: Record "Job Queue Entry")
     var
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
@@ -3086,6 +3262,30 @@ codeunit 1535 "Approvals Mgmt."
         exit(CopyStr(GetApprovalEntryStatusValueCaption(FieldRef, ApprovalEntry), 1, 20));
     end;
 
+    local procedure GetApprovalStatusFromApprovalEntry(var ApprovalEntry: Record "Approval Entry"; FAJournalBatch: Record "FA Journal Batch"): Text[20]
+    var
+        RestrictedRecord: Record "Restricted Record";
+        FieldRef: FieldRef;
+        ApprovalStatusName: Text;
+    begin
+        GetApprovalEntryStatusFieldRef(FieldRef, ApprovalEntry);
+        ApprovalStatusName := GetApprovalEntryStatusValueName(FieldRef, ApprovalEntry);
+        if ApprovalStatusName = 'Open' then
+            exit(CopyStr(PendingApprovalLbl, 1, 20));
+
+        if ApprovalStatusName = 'Approved' then begin
+            RestrictedRecord.SetRange(Details, RestrictBatchUsageDetailsLbl);
+            if not RestrictedRecord.IsEmpty() then begin
+                RestrictedRecord.Reset();
+                RestrictedRecord.SetRange("Record ID", FAJournalBatch.RecordId);
+                if not RestrictedRecord.IsEmpty() then
+                    exit(CopyStr(ImposedRestrictionLbl, 1, 20));
+            end;
+        end;
+
+        exit(CopyStr(GetApprovalEntryStatusValueCaption(FieldRef, ApprovalEntry), 1, 20));
+    end;
+
     local procedure GetApprovalEntryStatusFieldRef(var FieldRef: FieldRef; var ApprovalEntry: Record "Approval Entry")
     var
         RecordRef: RecordRef;
@@ -3151,6 +3351,20 @@ codeunit 1535 "Approvals Mgmt."
                 else
                     if FindApprovalEntryByRecordId(ApprovalEntry, RequisitionWkshName.RecordId) and (ApprovalEntry.Status = ApprovalEntry.Status::Approved) then
                         ReqWkshBatchApprovalStatus := CopyStr(ImposedRestrictionLbl, 1, 20);
+    end;
+
+    internal procedure CleanFAJournalApprovalStatus(FAJournalLine: Record "FA Journal Line"; var FAJnlBatchApprovalStatus: Text[20])
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+        ApprovalEntry: Record "Approval Entry";
+    begin
+        if FAJournalBatch.Get(FAJournalLine."Journal Template Name", FAJournalLine."Journal Batch Name") then
+            if IsFAJournalBatchApprovalsWorkflowEnabled(FAJournalBatch) then
+                if FindLastApprovalEntryForCurrUser(ApprovalEntry, FAJournalBatch.RecordId()) and (ApprovalEntry.Status = ApprovalEntry.Status::Approved) then
+                    FAJnlBatchApprovalStatus := CopyStr(ImposedRestrictionLbl, 1, 20)
+                else
+                    if FindApprovalEntryByRecordId(ApprovalEntry, FAJournalBatch.RecordId) and (ApprovalEntry.Status = ApprovalEntry.Status::Approved) then
+                        FAJnlBatchApprovalStatus := CopyStr(ImposedRestrictionLbl, 1, 20);
     end;
 
     local procedure FindOpenApprovalEntryForSequenceNo(RecRef: RecordRef; WorkflowStepInstance: Record "Workflow Step Instance"; SequenceNo: Integer): Boolean
@@ -3375,6 +3589,11 @@ codeunit 1535 "Approvals Mgmt."
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsRequisitionWkshBatchApprovalsWorkflowEnabled(var RequisitionWkshName: Record "Requisition Wksh. Name"; var Result: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeIsFAJournalBatchApprovalsWorkflowEnabled(var FAJournalBatch: Record "FA Journal Batch"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
