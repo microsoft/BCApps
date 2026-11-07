@@ -19,7 +19,9 @@ using System.Automation;
 using System.Security.AccessControl;
 using System.Security.User;
 using System.TestLibraries.Environment;
+using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
+using System.Upgrade;
 using System.Utilities;
 
 codeunit 148305 "Expense Test"
@@ -221,6 +223,72 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
+    procedure ExpenseVendorNoSeriesPreviewIncludesMissingDefaults()
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        TempNoSeries: Record "No. Series" temporary;
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+        CreateExpenseNoSeries: Codeunit "Create Expense No. Series";
+    begin
+        Initialize();
+
+        NoSeriesLine.SetRange("Series Code", CreateExpenseNoSeries.ExpenseVendorNoSeries());
+        NoSeriesLine.DeleteAll();
+        if NoSeries.Get(CreateExpenseNoSeries.ExpenseVendorNoSeries()) then
+            NoSeries.Delete();
+
+        CreateExpenseNoSeries.LoadNoSeriesPreview(TempNoSeries, TempNoSeriesLine);
+
+        TempNoSeries.Get(CreateExpenseNoSeries.ExpenseVendorNoSeries());
+        Assert.IsFalse(NoSeries.Get(TempNoSeries.Code), 'Preview must not create the vendor number series.');
+        Assert.RecordIsEmpty(NoSeriesLine);
+
+        CreateExpenseNoSeries.InsertExpenseVendorNoSeries();
+        NoSeries.Get(TempNoSeries.Code);
+        NoSeriesLine.FindFirst();
+        TempNoSeries.TestField(Description, NoSeries.Description);
+        TempNoSeriesLine.Get(NoSeriesLine."Series Code", NoSeriesLine."Line No.");
+        TempNoSeriesLine.TestField("Starting No.", NoSeriesLine."Starting No.");
+        TempNoSeriesLine.TestField("Ending No.", NoSeriesLine."Ending No.");
+        TempNoSeriesLine.TestField(Implementation, NoSeriesLine.Implementation);
+    end;
+
+    [Test]
+    procedure ExpenseVendorNoSeriesPreviewPreservesExistingSeries()
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        TempNoSeries: Record "No. Series" temporary;
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+        CreateExpenseNoSeries: Codeunit "Create Expense No. Series";
+    begin
+        Initialize();
+
+        CreateExpenseNoSeries.InsertExpenseVendorNoSeries();
+        NoSeries.Get(CreateExpenseNoSeries.ExpenseVendorNoSeries());
+        NoSeries.Description := 'Custom vendor numbering';
+        NoSeries.Modify();
+        NoSeriesLine.SetRange("Series Code", NoSeries.Code);
+        NoSeriesLine.FindFirst();
+        NoSeriesLine."Starting No." := 'CUSTOM001';
+        NoSeriesLine."Ending No." := 'CUSTOM999';
+        NoSeriesLine."Last No. Used" := 'CUSTOM010';
+        NoSeriesLine.Implementation := Enum::"No. Series Implementation"::Normal;
+        NoSeriesLine.Modify();
+
+        CreateExpenseNoSeries.LoadNoSeriesPreview(TempNoSeries, TempNoSeriesLine);
+
+        TempNoSeries.Get(NoSeries.Code);
+        TempNoSeries.TestField(Description, NoSeries.Description);
+        TempNoSeriesLine.Get(NoSeriesLine."Series Code", NoSeriesLine."Line No.");
+        TempNoSeriesLine.TestField("Starting No.", NoSeriesLine."Starting No.");
+        TempNoSeriesLine.TestField("Ending No.", NoSeriesLine."Ending No.");
+        TempNoSeriesLine.TestField("Last No. Used", NoSeriesLine."Last No. Used");
+        TempNoSeriesLine.TestField(Implementation, NoSeriesLine.Implementation);
+    end;
+
+    [Test]
     procedure ExpenseVendorNosIsNotOverwrittenByCreateNoSeriesDefaults()
     var
         NoSeries: Record "No. Series";
@@ -248,6 +316,88 @@ codeunit 148305 "Expense Test"
             ExistingExpenseVendorNos,
             ExpenseAgentSetup."Expense Vendor Nos.",
             StrSubstNo(ValueMustBeEqualErr, ExpenseAgentSetup.FieldCaption("Expense Vendor Nos."), ExistingExpenseVendorNos, ExpenseAgentSetup.TableCaption()));
+    end;
+
+    [Test]
+    procedure DefaultSettingsRepairMissingExpenseVendorNosAfterDefaultsApplied()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseVendor: Record "Expense Vendor";
+        ExistingExpenseNos: Code[20];
+    begin
+        // [FEATURE] [Expense Agent] [Setup]
+        // [SCENARIO 658051] Previously applied defaults do not prevent repairing missing expense vendor numbering.
+        Initialize();
+
+        // [GIVEN] All defaults were applied before expense vendor numbering was introduced.
+        ExpenseAgentSetup.Get();
+        ExistingExpenseNos := ExpenseAgentSetup."Expense Nos.";
+        ExpenseAgentSetup.Validate("Expense Vendor Nos.", '');
+        ExpenseAgentSetup.Validate("Expense User Nos.", '');
+        ExpenseAgentSetup."No. Series Applied" := true;
+        ExpenseAgentSetup."Payment Methods Applied" := true;
+        ExpenseAgentSetup."Posting Groups Applied" := true;
+        ExpenseAgentSetup."Exp. Categories Applied" := true;
+        ExpenseAgentSetup."Exp. Locations Applied" := true;
+        ExpenseAgentSetup."Management Rules Applied" := true;
+        ExpenseAgentSetup."VAT Rates Applied" := true;
+        ExpenseAgentSetup.Modify(true);
+
+        // [WHEN] Default settings are applied again.
+        ExpenseAgentSetup.CreateDefaultSettings();
+
+        // [THEN] Expense vendors can be numbered without changing the existing expense numbering.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.TestField("Expense Nos.", ExistingExpenseNos);
+        ExpenseAgentSetup.TestField("Expense User Nos.", '');
+        ExpenseAgentSetup.TestField("No. Series Applied", true);
+        ExpenseVendor.Insert(true);
+        ExpenseVendor.TestField("No.");
+        ExpenseVendor.TestField("No. Series", ExpenseAgentSetup."Expense Vendor Nos.");
+    end;
+
+    [Test]
+    procedure ExpenseVendorNosUpgradePreservesCustomNumbering()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesManagement: Codeunit "No. Series";
+        UpgradeExpenseAgentSetup: Codeunit "Upgrade Expense Agent Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+        ExpectedNextNo: Code[20];
+        ExistingExpenseNos: Code[20];
+    begin
+        // [FEATURE] [Expense Agent] [Upgrade]
+        // [SCENARIO 658051] Upgrading preserves custom vendor numbering, its next number, and unrelated setup.
+        Initialize();
+
+        // [GIVEN] A configured custom expense vendor series has already allocated a number.
+        LibraryUtility.CreateNoSeries(NoSeries, true, false, false);
+        LibraryUtility.CreateNoSeriesLine(NoSeriesLine, NoSeries.Code, '', '');
+        NoSeriesManagement.GetNextNo(NoSeries.Code, WorkDate());
+        ExpectedNextNo := NoSeriesManagement.PeekNextNo(NoSeries.Code, WorkDate());
+        ExpenseAgentSetup.Get();
+        ExistingExpenseNos := ExpenseAgentSetup."Expense Nos.";
+        ExpenseAgentSetup.Validate("Expense Vendor Nos.", NoSeries.Code);
+        ExpenseAgentSetup."No. Series Applied" := false;
+        ExpenseAgentSetup.Modify(true);
+        if UpgradeTag.HasUpgradeTag(UpgradeExpenseAgentSetup.GetExpenseVendorNoSeriesUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(
+                UpgradeExpenseAgentSetup.GetExpenseVendorNoSeriesUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+
+        // [WHEN] The expense vendor numbering upgrade runs.
+        UpgradeExpenseAgentSetup.UpgradeExpenseVendorNoSeries();
+
+        // [THEN] Existing numbering and the previous defaults selection are preserved.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.TestField("Expense Vendor Nos.", NoSeries.Code);
+        ExpenseAgentSetup.TestField("Expense Nos.", ExistingExpenseNos);
+        ExpenseAgentSetup.TestField("No. Series Applied", false);
+        Assert.AreEqual(
+            ExpectedNextNo, NoSeriesManagement.PeekNextNo(NoSeries.Code, WorkDate()),
+            'The upgrade must not reset or consume the custom vendor number series.');
     end;
 
     [Test]
