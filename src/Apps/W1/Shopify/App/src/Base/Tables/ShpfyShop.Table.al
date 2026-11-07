@@ -531,8 +531,8 @@ table 30102 "Shpfy Shop"
         }
         field(62; "Customer Templ. Code"; Code[20])
         {
-            Caption = 'Customer/Company Template Code';
-            ToolTip = 'Specifies which customer template to use when creating unknown customers.';
+            Caption = 'Customer Template Code';
+            ToolTip = 'Specifies the default customer template used when Shopify creates a Business Central customer for a Shopify customer. This template is also used for a Shopify company when no company template is configured.';
             DataClassification = SystemMetadata;
             TableRelation = "Customer Templ.".Code;
             ValidateTableRelation = true;
@@ -543,6 +543,14 @@ table 30102 "Shpfy Shop"
             ToolTip = 'Specifies which item template to use when creating unknown items.';
             DataClassification = SystemMetadata;
             TableRelation = "Item Templ.".Code;
+            ValidateTableRelation = true;
+        }
+        field(64; "Company Templ. Code"; Code[20])
+        {
+            Caption = 'Company Template Code';
+            ToolTip = 'Specifies the default customer template used when Shopify creates a Business Central customer for a Shopify company and no country-specific company template is configured. Leave blank to use the customer template settings.';
+            DataClassification = SystemMetadata;
+            TableRelation = "Customer Templ.".Code;
             ValidateTableRelation = true;
         }
         field(70; "Return and Refund Process"; Enum "Shpfy ReturnRefund ProcessType")

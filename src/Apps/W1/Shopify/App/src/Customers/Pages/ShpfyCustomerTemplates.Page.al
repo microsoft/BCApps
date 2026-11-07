@@ -29,8 +29,13 @@ page 30108 "Shpfy Customer Templates"
                 field(CustomerTemplCode; Rec."Customer Templ. Code")
                 {
                     ApplicationArea = All;
-                    Caption = 'Customer/Company Template Code';
-                    ToolTip = 'Specifies which customer template to use when creating unknown customers for this country. This template will only be used if the  field "Fix CustomerNo." is blank';
+                    Caption = 'Customer Template Code';
+                    ToolTip = 'Specifies the customer template used for Shopify customers from this country or region. This template is also used for Shopify companies from this country or region when no company template is configured.';
+                }
+                field(CompanyTemplCode; Rec."Company Templ. Code")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the customer template used for Shopify companies from this country or region. Leave blank to use the company template from the Shopify Shop Card or, if that field is also blank, the customer template settings.';
                 }
                 field(FixCustomerNo; Rec."Default Customer No.")
                 {

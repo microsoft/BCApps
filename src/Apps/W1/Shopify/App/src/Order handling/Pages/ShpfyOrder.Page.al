@@ -52,10 +52,10 @@ page 30113 "Shpfy Order"
                 field(TemplCodeField; Rec."Customer Templ. Code")
                 {
                     ApplicationArea = All;
-                    Caption = 'Customer Template Code';
+                    Caption = 'Customer/Company Template Code';
                     Lookup = true;
                     TableRelation = "Customer Templ.".Code;
-                    ToolTip = 'Specifies the code for the template to create a new customer.';
+                    ToolTip = 'Specifies the customer template used to create a Business Central customer for this Shopify customer or company.';
                 }
                 field(SellToCustomerNo; Rec."Sell-to Customer No.")
                 {

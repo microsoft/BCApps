@@ -111,6 +111,73 @@ codeunit 30110 "Shpfy Create Customer"
         exit(Result);
     end;
 
+    local procedure FindCompanyCustomerTemplate(ShopifyShop: Record "Shpfy Shop"; CountryCode: Code[20]; ShopifyCountryCode: Code[20]) Result: Code[20]
+    var
+        TemplateCandidates: List of [Code[20]];
+        CandidateTemplateCode: Code[20];
+        AutomaticTemplateCode: Code[20];
+        IsHandled: Boolean;
+    begin
+        CustomerEvents.OnBeforeFindCustomerTemplate(ShopifyShop, CountryCode, Result, IsHandled);
+        if not IsHandled then begin
+            CheckCountryTemplateExists(ShopifyShop.Code, CountryCode);
+            AddCountryTemplateCandidates(TemplateCandidates, ShopifyShop.Code, ShopifyCountryCode, CountryCode, true);
+            TemplateCandidates.Add(ShopifyShop."Company Templ. Code");
+            AddCountryTemplateCandidates(TemplateCandidates, ShopifyShop.Code, ShopifyCountryCode, CountryCode, false);
+            TemplateCandidates.Add(ShopifyShop."Customer Templ. Code");
+            Clear(AutomaticTemplateCode);
+            foreach CandidateTemplateCode in TemplateCandidates do
+                if (AutomaticTemplateCode = '') and (CandidateTemplateCode <> '') then
+                    AutomaticTemplateCode := CandidateTemplateCode;
+            if AutomaticTemplateCode <> '' then
+                Result := AutomaticTemplateCode;
+            if Result = '' then begin
+                ShopifyShop.TestField("Customer Templ. Code");
+                Result := ShopifyShop."Customer Templ. Code";
+            end;
+        end;
+        CustomerEvents.OnAfterFindCustomerTemplate(ShopifyShop, CountryCode, Result);
+        exit(Result);
+    end;
+
+    local procedure AddCountryTemplateCandidates(var TemplateCandidates: List of [Code[20]]; ShopCode: Code[20]; ShopifyCountryCode: Code[20]; CountryCode: Code[20]; IsCompanyTemplate: Boolean)
+    begin
+        TemplateCandidates.Add(GetCountryTemplateCode(ShopCode, ShopifyCountryCode, IsCompanyTemplate));
+        if ShopifyCountryCode <> CountryCode then
+            TemplateCandidates.Add(GetCountryTemplateCode(ShopCode, CountryCode, IsCompanyTemplate));
+    end;
+
+    local procedure CheckCountryTemplateExists(ShopCode: Code[20]; CountryCode: Code[20])
+    var
+        CustomerTemplate: Record "Shpfy Customer Template";
+    begin
+        if CountryCode = '' then
+            exit;
+
+        if CustomerTemplate.Get(ShopCode, CountryCode) then
+            exit;
+
+        CustomerTemplate.Init();
+        CustomerTemplate."Shop Code" := ShopCode;
+        CustomerTemplate."Country/Region Code" := CountryCode;
+        CustomerTemplate.Insert(false);
+    end;
+
+    local procedure GetCountryTemplateCode(ShopCode: Code[20]; CountryCode: Code[20]; IsCompanyTemplate: Boolean) Result: Code[20]
+    var
+        CustomerTemplate: Record "Shpfy Customer Template";
+    begin
+        if CountryCode = '' then
+            exit('');
+        if CustomerTemplate.Get(ShopCode, CountryCode) then
+            if IsCompanyTemplate then
+                Result := CustomerTemplate."Company Templ. Code"
+            else
+                Result := CustomerTemplate."Customer Templ. Code";
+
+        exit(Result);
+    end;
+
     internal procedure CreateCustomerFromCompany(var ShopifyCompany: Record "Shpfy Company"; TempShopifyCustomer: Record "Shpfy Customer" temporary)
     var
         Customer: Record Customer;
@@ -124,6 +191,7 @@ codeunit 30110 "Shpfy Create Customer"
         ICounty: Interface "Shpfy ICounty";
         ITaxRegistrationIdMapping: Interface "Shpfy Tax Registration Id Mapping";
         CountryCode: Code[20];
+        ShopifyCountryCode: Code[20];
         CurrentTemplateCode: Code[20];
         IsHandled: Boolean;
     begin
@@ -133,14 +201,15 @@ codeunit 30110 "Shpfy Create Customer"
             Error(NoLocationErr, ShopifyCompany.Id);
         end;
 
-        CountryRegion.SetRange("ISO Code", CompanyLocation."Country/Region Code");
-        if CountryRegion.FindFirst() then
-            CountryCode := CountryRegion.Code
-        else
-            CountryCode := CompanyLocation."Country/Region Code";
-
+        ShopifyCountryCode := CompanyLocation."Country/Region Code";
+        CountryCode := ShopifyCountryCode;
+        if ShopifyCountryCode <> '' then begin
+            CountryRegion.SetRange("ISO Code", ShopifyCountryCode);
+            if CountryRegion.FindFirst() then
+                CountryCode := CountryRegion.Code;
+        end;
         if TemplateCode = '' then
-            CurrentTemplateCode := FindCustomerTemplate(Shop, CountryCode)
+            CurrentTemplateCode := FindCompanyCustomerTemplate(Shop, CountryCode, ShopifyCountryCode)
         else
             CurrentTemplateCode := TemplateCode;
 

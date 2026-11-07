@@ -376,6 +376,10 @@ page 30101 "Shpfy Shop Card"
                 {
                     ApplicationArea = All;
                 }
+                field(CompanyTemplCode; Rec."Company Templ. Code")
+                {
+                    ApplicationArea = All;
+                }
                 field("Default Company No."; Rec."Default Company No.")
                 {
                     ApplicationArea = All;
