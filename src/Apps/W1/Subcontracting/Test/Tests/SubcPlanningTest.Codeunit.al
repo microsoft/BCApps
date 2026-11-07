@@ -602,8 +602,8 @@ codeunit 139996 "Subc. Planning Test"
     [Test]
     procedure BlankComponentDateBaselineIsInitializedOnce()
     var
-        PurchaseLine: Record "Purchase Line" temporary;
-        ProdOrderComponent: Record "Prod. Order Component" temporary;
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        TempProdOrderComponent: Record "Prod. Order Component" temporary;
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
         BlankSourceDateInitializationErr: Label 'The first synchronization must initialize a blank source date.';
         SourceDateBaselineInitializedErr: Label 'The source date baseline must be initialized.';
@@ -611,11 +611,11 @@ codeunit 139996 "Subc. Planning Test"
     begin
         // [SCENARIO 650504] A synchronized blank source date is distinguishable from an unknown legacy baseline.
         Assert.IsTrue(
-            SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(PurchaseLine, ProdOrderComponent),
+            SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(TempPurchaseLine, TempProdOrderComponent),
             BlankSourceDateInitializationErr);
-        Assert.IsTrue(PurchaseLine."Subc. Comp. Date Initialized", SourceDateBaselineInitializedErr);
+        Assert.IsTrue(TempPurchaseLine."Subc. Comp. Date Initialized", SourceDateBaselineInitializedErr);
         Assert.IsFalse(
-            SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(PurchaseLine, ProdOrderComponent),
+            SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(TempPurchaseLine, TempProdOrderComponent),
             UnchangedBlankSourceDateErr);
     end;
 
@@ -644,8 +644,8 @@ codeunit 139996 "Subc. Planning Test"
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         Vendor: Record Vendor;
-        SubcCompFactboxMgmt: Codeunit "Subc. Comp. Factbox Mgmt.";
         WorkCenter: array[2] of Record "Work Center";
+        SubcCompFactboxMgmt: Codeunit "Subc. Comp. Factbox Mgmt.";
         ComponentDueDate: Date;
         InitialQty: Decimal;
         NewQty: Decimal;
@@ -914,7 +914,7 @@ codeunit 139996 "Subc. Planning Test"
 
         if Scenario = Scenario::MissingAndOrphaned then begin
             Assert.AreEqual(1, ComponentSynchronizationNotificationCount, CombinedSynchronizationNotificationErr);
-            ExtraPurchaseLine.Find();
+            ExtraPurchaseLine.Get(ExtraPurchaseLine."Document Type", ExtraPurchaseLine."Document No.", ExtraPurchaseLine."Line No.");
             Assert.AreEqual(
                 OriginalPurchaseLine[2].Quantity, ExtraPurchaseLine.Quantity, OrphanedPurchaseLineQuantityErr);
             exit;
