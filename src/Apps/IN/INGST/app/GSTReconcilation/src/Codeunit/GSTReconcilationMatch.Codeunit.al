@@ -71,9 +71,7 @@ codeunit 18280 "GST Reconcilation Match"
         GSTReconcilationLines2.CopyFilters(GSTReconcilationLines);
         GSTReconcilationLines2.SetRange(Reconciled, true);
         if GSTReconcilationLines2.Count() >= 1 then begin
-            GSTReconcilationLines2.ModifyAll("Error Type", '');
-            GSTReconcilationLines2.ModifyAll("Reconciliation Date", PostingDate);
-            GSTReconcilationLines2.ModifyAll("User Id", UserId());
+            GSTReconcilationLines2.ModifyAll("Error Type", '', "Reconciliation Date", PostingDate, "User Id", UserId());
             Message(ReconciledMsg);
         end else
             Message(NotReconcileMsg);

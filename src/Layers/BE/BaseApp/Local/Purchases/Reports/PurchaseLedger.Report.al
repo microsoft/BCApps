@@ -213,6 +213,7 @@ report 11301 "Purchase Ledger"
                         end else
                             PrnDocno := '';
 
+                        GLAccount.SetLoadFields(Name);
                         if not GLAccount.Get("G/L Account No.") then
                             GLAccount.Init();
                         GLPostingDescription := Description;
@@ -220,13 +221,15 @@ report 11301 "Purchase Ledger"
                         CurrencyCode := '';
                         CurrencyAmount := 0;
 
+                        VendorLedgerEntry.SetLoadFields("Vendor No.", "Currency Code");
+                        VendorLedgerEntry.SetAutoCalcFields(Amount);
                         if VendorLedgerEntry.Get("Entry No.") then begin
                             GLPostingDescription := VendorLedgerEntry."Vendor No.";
                             CurrencyCode := VendorLedgerEntry."Currency Code";
-                            VendorLedgerEntry.CalcFields(Amount);
                             CurrencyAmount := VendorLedgerEntry.Amount;
                             if CurrencyCode = '' then
                                 CurrencyAmount := 0;
+                            Vendor.SetLoadFields(Name);
                             if Vendor.Get(VendorLedgerEntry."Vendor No.") then
                                 GLPostingDescription := GLPostingDescription + ' ' + Vendor.Name;
                         end;
@@ -234,7 +237,16 @@ report 11301 "Purchase Ledger"
                         Clear(VATDetailBaseAmount);
                         Clear(VATDetailVATAmount);
                         if not UseAmtsInAddCurr then
-                            CalculateVATDetailAmounts("Entry No.");
+                            if TempPurchLedgerVATBuffer.Get("Entry No.") then begin
+                                if TempPurchLedgerVATBuffer."VAT Entry Missing" then
+                                    CalculateVATDetailAmounts("Entry No.")
+                                else begin
+                                    VATDetailBaseAmount := TempPurchLedgerVATBuffer."VAT Base Amount";
+                                    VATDetailVATAmount := TempPurchLedgerVATBuffer."VAT Amount";
+                                end;
+                            end else
+                                // The entry may have been posted after the buffer was built.
+                                CalculateVATDetailAmounts("Entry No.");
                     end;
 
                     trigger OnPreDataItem()
@@ -244,6 +256,8 @@ report 11301 "Purchase Ledger"
                             "G/L Entry".SetRange("Posting Date", PeriodStartDate, PeriodEndDate)
                         else
                             "G/L Entry".SetRange("VAT Reporting Date", PeriodStartDate, PeriodEndDate);
+
+                        BuildVATDetailBuffer();
                     end;
                 }
                 dataitem(Loop1; "Integer")
@@ -350,6 +364,7 @@ report 11301 "Purchase Ledger"
 
                         trigger OnAfterGetRecord()
                         begin
+                            GLAccount.SetLoadFields(Name);
                             if not GLAccount.Get("G/L Account No.") then
                                 GLAccount.Init();
 
@@ -499,8 +514,11 @@ report 11301 "Purchase Ledger"
                         begin
                             VATSumBuffer.GetLine(Number);
                             if not UseAmtsInAddCurr then begin
+                                VATBusPostGroup.SetLoadFields(Description);
                                 if VATBusPostGroup.Get(VATSumBuffer."VAT Bus. Posting Group") then;
+                                VATProdPostGroup.SetLoadFields(Description);
                                 if VATProdPostGroup.Get(VATSumBuffer."VAT Prod. Posting Group") then;
+                                VATPostSetup.SetLoadFields("VAT %");
                                 if VATPostSetup.Get(VATSumBuffer."VAT Bus. Posting Group", VATSumBuffer."VAT Prod. Posting Group") then
                                     VATPostingDescription :=
                                       VATBusPostGroup.Description + ' - ' +
@@ -759,6 +777,7 @@ report 11301 "Purchase Ledger"
         Startpage: Integer;
         VATDetailBaseAmount: Decimal;
         VATDetailVATAmount: Decimal;
+        TempPurchLedgerVATBuffer: Record "Purch. Ledger VAT Buffer" temporary;
         GLPostingDescription: Text;
         DateCaption: Text;
         ExcludeDeferrals: Boolean;
@@ -794,12 +813,49 @@ report 11301 "Purchase Ledger"
         PeriodStartDate: Date;
         PeriodEndDate: Date;
 
+    local procedure BuildVATDetailBuffer()
+    var
+        VATDetailQuery: Query "Purch. Ledger VAT Detail";
+    begin
+        TempPurchLedgerVATBuffer.Reset();
+        TempPurchLedgerVATBuffer.DeleteAll();
+        if UseAmtsInAddCurr then
+            exit;
+
+        VATDetailQuery.SetRange(JournalTemplName, "Gen. Journal Template".Name);
+        if GLSetup."VAT Reporting Date" = GLSetup."VAT Reporting Date"::"Document Date" then
+            VATDetailQuery.SetRange(PostingDate, PeriodStartDate, PeriodEndDate)
+        else
+            VATDetailQuery.SetRange(VATReportingDate, PeriodStartDate, PeriodEndDate);
+
+        VATDetailQuery.Open();
+        while VATDetailQuery.Read() do begin
+            if not TempPurchLedgerVATBuffer.Get(VATDetailQuery.GLEntryNo) then begin
+                TempPurchLedgerVATBuffer.Init();
+                TempPurchLedgerVATBuffer."G/L Entry No." := VATDetailQuery.GLEntryNo;
+                TempPurchLedgerVATBuffer.Insert();
+            end;
+            // SystemId distinguishes an unmatched outer join from a valid zero-valued entry.
+            if not IsNullGuid(VATDetailQuery.LinkSystemId) then
+                if IsNullGuid(VATDetailQuery.VATEntrySystemId) then
+                    TempPurchLedgerVATBuffer."VAT Entry Missing" := true
+                else begin
+                    TempPurchLedgerVATBuffer."VAT Base Amount" += VATDetailQuery.VATBaseAmount;
+                    TempPurchLedgerVATBuffer."VAT Amount" += VATDetailQuery.VATAmount;
+                end;
+            TempPurchLedgerVATBuffer.Modify();
+        end;
+        VATDetailQuery.Close();
+    end;
+
     local procedure CalculateVATDetailAmounts(GLEntryNo: Integer)
     var
         GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
         VATEntry: Record "VAT Entry";
     begin
+        GLEntryVATEntryLink.SetLoadFields("VAT Entry No.");
         GLEntryVATEntryLink.SetRange("G/L Entry No.", GLEntryNo);
+        VATEntry.SetLoadFields(Base, Amount);
         if GLEntryVATEntryLink.FindSet() then
             repeat
                 VATEntry.Get(GLEntryVATEntryLink."VAT Entry No.");

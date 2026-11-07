@@ -1812,6 +1812,80 @@ codeunit 134982 "ERM Financial Reports"
         LibraryReportDataset.AssertCurrentRowValueEquals('GLBalance', FirstAmount + LastAmount);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure CloseIncomeStatementWithARCReversesOriginalACYAmountWhenClosingDateRateDiffers()
+    var
+        IncomeGLAccount: Record "G/L Account";
+        BalanceGLAccount: Record "G/L Account";
+        RetainedEarningsGLAccount: Record "G/L Account";
+        GenJournalLine: Record "Gen. Journal Line";
+        PostedGLEntry: Record "G/L Entry";
+        CloseIncomeGLEntry: Record "G/L Entry";
+        CloseIncomeStatement: Report "Close Income Statement";
+        AdditionalReportingCurrency: Code[10];
+        FiscalYearStartDate: Date;
+        FiscalYearEndDate: Date;
+        AmountLCY: Decimal;
+        PostingDateExchRate: Decimal;
+        ClosingDateExchRate: Decimal;
+    begin
+        // [FEATURE] [Close Income Statement] [Additional Reporting Currency]
+        // [SCENARIO 654030] Close Income Statement reverses the originally posted Additional-Currency Amount when the ARC exchange rate on the closing date differs from the posting date rate.
+        Initialize();
+
+        // [GIVEN] Closed fiscal year from "SD" to "ED"
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+        LibraryFiscalYear.CloseFiscalYear();
+        GetLastClosedFiscalYear(FiscalYearStartDate, FiscalYearEndDate);
+
+        // [GIVEN] Additional Reporting Currency "ARC" with exchange rate 3.6725 on "SD"
+        PostingDateExchRate := 3.6725;
+        AdditionalReportingCurrency :=
+          LibraryERM.CreateCurrencyWithExchangeRate(FiscalYearStartDate, PostingDateExchRate, PostingDateExchRate);
+        UpdateCurOnGeneralLedgerSetup(AdditionalReportingCurrency);
+
+        // [GIVEN] Income statement G/L Account "I" and balance sheet G/L Accounts "B" and "RE" (retained earnings)
+        LibraryCostAccounting.CreateIncomeStmtGLAccount(IncomeGLAccount);
+        LibraryCostAccounting.CreateBalanceSheetGLAccount(BalanceGLAccount);
+        LibraryCostAccounting.CreateBalanceSheetGLAccount(RetainedEarningsGLAccount);
+
+        // [GIVEN] LCY entry of 10000 posted to "I" on "SD", so Additional-Currency Amount = 10000 * 3.6725 = 36725
+        AmountLCY := 10000;
+        CreateAndPostGenJnlLineOnPostingDate(IncomeGLAccount."No.", BalanceGLAccount."No.", FiscalYearStartDate, -AmountLCY);
+        PostedGLEntry.SetRange("G/L Account No.", IncomeGLAccount."No.");
+        PostedGLEntry.FindFirst();
+        PostedGLEntry.TestField(Amount, -AmountLCY);
+        PostedGLEntry.TestField("Additional-Currency Amount", -AmountLCY * PostingDateExchRate);
+
+        // [GIVEN] ARC exchange rate changes to 4.1 on the fiscal year end date
+        ClosingDateExchRate := 4.1;
+        LibraryERM.CreateExchangeRate(AdditionalReportingCurrency, FiscalYearEndDate, ClosingDateExchRate, ClosingDateExchRate);
+
+        // [WHEN] Run "Close Income Statement" for the fiscal year with retained earnings account "RE"
+        CreateGeneralJournalLine(
+          GenJournalLine, GenJournalLine."Account Type"::"G/L Account", IncomeGLAccount."No.", LibraryRandom.RandDec(100, 2));
+        CloseIncomeStatement.InitializeRequestTest(FiscalYearEndDate, GenJournalLine, RetainedEarningsGLAccount, false);
+        CloseIncomeStatement.UseRequestPage(false);
+        CloseIncomeStatement.Run();
+
+        // [THEN] Closing G/L Entry for "I" has Amount = 10000 and Additional-Currency Amount = 36725 (not 10000 * 4.1 = 41000)
+        CloseIncomeGLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        CloseIncomeGLEntry.SetRange("G/L Account No.", IncomeGLAccount."No.");
+        CloseIncomeGLEntry.SetRange("Posting Date", ClosingDate(FiscalYearEndDate));
+        Assert.RecordCount(CloseIncomeGLEntry, 1);
+        CloseIncomeGLEntry.FindFirst();
+        CloseIncomeGLEntry.TestField(Amount, -PostedGLEntry.Amount);
+        CloseIncomeGLEntry.TestField("Additional-Currency Amount", -PostedGLEntry."Additional-Currency Amount");
+
+        // [THEN] Both LCY and ACY balances of "I" for the closed fiscal year are zero
+        IncomeGLAccount.SetRange("Date Filter", FiscalYearStartDate, ClosingDate(FiscalYearEndDate));
+        IncomeGLAccount.CalcFields("Net Change", "Additional-Currency Net Change");
+        IncomeGLAccount.TestField("Net Change", 0);
+        IncomeGLAccount.TestField("Additional-Currency Net Change", 0);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1824,7 +1898,6 @@ codeunit 134982 "ERM Financial Reports"
         LibraryVariableStorage.Clear();
 
         LibraryReportValidation.DeleteObjectOptions(CurrentSaveValuesId);
-
         if IsInitialized then
             exit;
 
@@ -2723,6 +2796,19 @@ codeunit 134982 "ERM Financial Reports"
           StrSubstNo(CloseIncomeAmountMismatchErr,
             PostedGLEntry.FieldCaption("Source Currency Amount"), SourceCurrencyCode,
             -PostedGLEntry."Source Currency Amount", CloseIncomeGLEntry."Source Currency Amount"));
+    end;
+
+    local procedure GetLastClosedFiscalYear(var FiscalYearStartDate: Date; var FiscalYearEndDate: Date)
+    var
+        AccountingPeriod: Record "Accounting Period";
+    begin
+        AccountingPeriod.SetRange("New Fiscal Year", true);
+        AccountingPeriod.SetRange("Date Locked", true);
+        AccountingPeriod.FindLast();
+        FiscalYearEndDate := AccountingPeriod."Starting Date" - 1;
+        AccountingPeriod.SetRange("Date Locked");
+        AccountingPeriod.Next(-1);
+        FiscalYearStartDate := AccountingPeriod."Starting Date";
     end;
 
     local procedure CreateAndPostGenJnlLineOnPostingDate(GLAccountNo: Code[20]; BalGLAccountNo: Code[20]; PostingDate: Date; Amount: Decimal)

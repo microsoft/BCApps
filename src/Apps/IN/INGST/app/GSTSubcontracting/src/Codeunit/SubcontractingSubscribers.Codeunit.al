@@ -374,8 +374,7 @@ codeunit 18469 "Subcontracting Subscribers"
             exit;
 
         ProdOrderLine.SetRange("Subcontracting Order No.", PurchHeader."No.");
-        ProdOrderLine.ModifyAll("Subcontractor Code", '');
-        ProdOrderLine.ModifyAll("Subcontracting Order No.", '');
+        ProdOrderLine.ModifyAll("Subcontractor Code", '', "Subcontracting Order No.", '');
     end;
 
     local procedure UpdateSubcontractingPostingDate(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header")
@@ -390,6 +389,18 @@ codeunit 18469 "Subcontracting Subscribers"
     local procedure OnAfterSupplyToInvProfiles(var InventoryProfile: Record "Inventory Profile"; var Item: Record Item; var ReservEntry: Record "Reservation Entry"; var ToDate: Date; var NextLineNo: Integer)
     begin
         TransSubcontractingLineToProfile(InventoryProfile, Item, ReservEntry, ToDate, NextLineNo);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeValidateQuantityReceiveIsBalanced, '', false, false)]
+    local procedure SkipQtyReceiveBalanceCheckForSubcon(var PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+        if not PurchaseLine.Subcontracting then
+            exit;
+        if (PurchaseLine."Prod. Order No." = '') or (PurchaseLine."Prod. Order Line No." = 0) then
+            exit;
+        if (PurchaseLine."Quantity (Base)" <> 0) or (PurchaseLine."Qty. to Receive" <> 0) then
+            exit;
+        IsHandled := true;
     end;
 
     local procedure TransSubcontractingLineToProfile(var InventoryProfile: Record "Inventory Profile"; var Item: Record Item; var TempItemTrkgEntry: Record "Reservation Entry"; var ToDate: Date; var NextLineNo: Integer)

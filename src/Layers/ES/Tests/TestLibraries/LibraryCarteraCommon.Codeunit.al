@@ -38,9 +38,7 @@ codeunit 143030 "Library - Cartera Common"
         LibraryERM.CreateGLAccount(PurchaseUnrVAT_GLAccount);
         LibraryERM.CreateGLAccount(SalesUnrVAT_GLAccount);
 
-        VATPostingSetup.ModifyAll("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::Percentage, true);
-        VATPostingSetup.ModifyAll("Sales VAT Unreal. Account", SalesUnrVAT_GLAccount."No.", true);
-        VATPostingSetup.ModifyAll("Purch. VAT Unreal. Account", PurchaseUnrVAT_GLAccount."No.", true);
+        VATPostingSetup.ModifyAll("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::Percentage, "Sales VAT Unreal. Account", SalesUnrVAT_GLAccount."No.", "Purch. VAT Unreal. Account", PurchaseUnrVAT_GLAccount."No.", true);
         SalesVATAccount := SalesUnrVAT_GLAccount."No.";
         PurchVATAccount := PurchaseUnrVAT_GLAccount."No.";
     end;
@@ -49,9 +47,7 @@ codeunit 143030 "Library - Cartera Common"
     var
         VATPostingSetup: Record "VAT Posting Setup";
     begin
-        VATPostingSetup.ModifyAll("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::" ", true);
-        VATPostingSetup.ModifyAll("Sales VAT Unreal. Account", '', true);
-        VATPostingSetup.ModifyAll("Purch. VAT Unreal. Account", '', true);
+        VATPostingSetup.ModifyAll("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::" ", "Sales VAT Unreal. Account", '', "Purch. VAT Unreal. Account", '', true);
     end;
 
     procedure CreatePaymentMethod(var PaymentMethod: Record "Payment Method"; CreateBills: Boolean; InvoicesToCartera: Boolean)

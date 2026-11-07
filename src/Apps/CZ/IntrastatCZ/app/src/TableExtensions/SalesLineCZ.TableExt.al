@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Intrastat;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Sales.Document;
 
 tableextension 31314 "Sales Line CZ" extends "Sales Line"
@@ -28,6 +29,12 @@ tableextension 31314 "Sales Line CZ" extends "Sales Line"
                         FieldError("Document Type");
                 end;
             end;
+        }
+        field(31310; "Country/Reg. of Orig. Code CZ"; Code[10])
+        {
+            Caption = 'Country/Region of Origin Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Country/Region";
         }
         modify("Tariff No. CZL")
         {

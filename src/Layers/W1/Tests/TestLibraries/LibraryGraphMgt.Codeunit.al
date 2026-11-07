@@ -18,8 +18,24 @@ codeunit 130618 "Library - Graph Mgt"
         RemoteServerErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 - response code number, %2 - reason phrase';
         JsonContentTypeTok: Label 'application/json;odata.metadata=minimal', Locked = true;
 
+    /// <summary>Adds a field to the ignored-field buffer when the field exists in the source table.</summary>
+    /// <param name="TempIgnoredFields">Temporary ignored-field buffer.</param>
+    /// <param name="SourceTableNo">Source table number.</param>
+    /// <param name="SourceFieldName">Source field name.</param>
+    procedure AddFieldToIgnoreIfExists(var TempIgnoredFields: Record 2000000041 temporary; SourceTableNo: Integer; SourceFieldName: Text)
+    var
+        RecordField: Record Field;
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        RecordField.SetRange(TableNo, SourceTableNo);
+        RecordField.SetRange(FieldName, SourceFieldName);
+        if RecordField.FindFirst() then
+            LibraryUtility.AddTempField(TempIgnoredFields, RecordField."No.", SourceTableNo);
+    end;
+
     /// <summary>
     /// Sets the authentication provider used by this library instance.
+    /// Without an explicit selection, the enum's default implementation is used.
     /// Selecting the same provider preserves its cached state.
     /// </summary>
     /// <param name="NewAuthentication">The authentication provider to use for subsequent API test requests.</param>
@@ -31,6 +47,12 @@ codeunit 130618 "Library - Graph Mgt"
         Authentication := NewAuthentication;
         AuthenticationProvider := Authentication;
         AuthenticationProviderResolved := true;
+    end;
+
+    /// <summary>Sets the work date to November 15 in the current year to stay within test-license date limits.</summary>
+    procedure SetLicenseSafeWorkDate()
+    begin
+        WorkDate := DMY2Date(15, 11, Date2DMY(Today, 3));
     end;
 
     procedure EnsureWebServiceExist(ServiceNameTxt: Text[240]; PageNumber: Integer)

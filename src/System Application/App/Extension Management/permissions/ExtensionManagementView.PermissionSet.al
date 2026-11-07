@@ -14,5 +14,5 @@ permissionset 2501 "Extension Management - View"
 
     IncludedPermissionSets = "Extension Management - Read";
 
-    Permissions = tabledata "NAV App Setting" = m;
+    Permissions = tabledata "NAV App Setting" = im;
 }

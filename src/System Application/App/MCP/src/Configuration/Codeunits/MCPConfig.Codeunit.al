@@ -154,7 +154,7 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
-    /// Finds warnings for the specified MCP configuration, such as missing objects or missing parent objects.
+    /// Finds warnings for the specified MCP configuration, such as missing objects, missing parent objects, or empty configurations.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration to find warnings for.</param>
     /// <param name="MCPConfigWarning">A temporary record variable to hold the found warnings.</param>

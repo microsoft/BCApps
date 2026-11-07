@@ -484,7 +484,7 @@ codeunit 4400 "SOA Setup"
 
     internal procedure GetDefaultEmailSignatureAsTxt(): Text
     begin
-        exit(StrSubstNo(EmailSignatureLbl, SignatureClosingLbl, CompanyName(), SignatureNoteLbl));
+        exit(StrSubstNo(EmailSignatureLbl, SignatureClosingLbl, CompanyProperty.DisplayName(), SignatureNoteLbl));
     end;
 
     internal procedure UpdateInstructions(var TempSOASetup: Record "SOA Setup" temporary)
@@ -1184,6 +1184,14 @@ codeunit 4400 "SOA Setup"
     internal procedure GetMaxNoOfAttachmentsPerEmail(): Integer
     begin
         exit(10)
+    end;
+
+    internal procedure GetMaxAttachmentSizeInBytes(): Integer
+    var
+        MaxAttachmentSizeInMB: Integer;
+    begin
+        MaxAttachmentSizeInMB := 25;
+        exit(MaxAttachmentSizeInMB * 1024 * 1024);
     end;
 
     internal procedure GetFeatureName(): Text
