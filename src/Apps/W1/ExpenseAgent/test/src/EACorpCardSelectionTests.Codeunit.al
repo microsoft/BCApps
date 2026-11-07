@@ -11,6 +11,7 @@ using Microsoft.Finance.VAT.Ledger;
 using System.TestLibraries.Upgrade;
 using System.Upgrade;
 
+// [FEATURE] [Expense Agent] [Corporate Card]
 codeunit 148364 EACorpCardSelectionTests
 {
     Subtype = Test;
@@ -29,7 +30,10 @@ codeunit 148364 EACorpCardSelectionTests
         XmlProvider: Record "EA Corp Card Provider";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
     begin
+        // [SCENARIO] Repeating default setup initializes provider abbreviations but preserves user customization.
         Initialize();
+
+        // [GIVEN] Default providers have a generated CSV abbreviation and no XML abbreviation.
         InitializeDefaultBankAccount();
         CsvProvider.Get('CORPCARDCSV');
         CsvProvider."Short Name" := 'CORP';
@@ -38,16 +42,23 @@ codeunit 148364 EACorpCardSelectionTests
         XmlProvider."Short Name" := '';
         XmlProvider.Modify();
 
+        // [WHEN] Corporate card defaults are created.
         CreateCorpCardSetup.CreateDefaults();
 
+        // [THEN] The generated and missing abbreviations are replaced with provider names.
         CsvProvider.Get(CsvProvider.Code);
         XmlProvider.Get(XmlProvider.Code);
         Assert.AreEqual('VISA', CsvProvider."Short Name", 'Setup must replace the generated CSV provider abbreviation.');
         Assert.AreEqual('AMEX', XmlProvider."Short Name", 'Setup must initialize the XML provider abbreviation.');
 
+        // [GIVEN] The CSV provider abbreviation is customized.
         CsvProvider."Short Name" := 'BANK';
         CsvProvider.Modify();
+
+        // [WHEN] Corporate card defaults are created again.
         CreateCorpCardSetup.CreateDefaults();
+
+        // [THEN] The custom abbreviation is retained.
         CsvProvider.Get(CsvProvider.Code);
         Assert.AreEqual('BANK', CsvProvider."Short Name", 'Repeating setup must preserve a custom provider short name.');
     end;
@@ -59,15 +70,20 @@ codeunit 148364 EACorpCardSelectionTests
         Expense: Record Expense;
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
     begin
+        // [SCENARIO] Default card registration supports expenses incurred before the current year.
         Initialize();
+
+        // [GIVEN] A default card belongs to the user of an expense dated one year ago.
         InitializeDefaultBankAccount();
         CreateCorpCardSetup.CreateDefaults();
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InitializeExpense(Expense, CorpCard);
         Expense."Expense Date" := CalcDate('<-1Y>', WorkDate());
 
+        // [WHEN] The default card is selected for the historical expense.
         Expense.Validate("Corporate Card Id", CorpCard."Card Id");
 
+        // [THEN] The card selection is accepted.
         Assert.AreEqual(CorpCard."Card Id", Expense."Corporate Card Id", 'Registered demo cards must also support historical sample expenses.');
     end;
 
@@ -78,12 +94,17 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
+        // [SCENARIO] A provider without an abbreviation still has a compact card display.
         Initialize();
+
+        // [GIVEN] The selected card's provider has no short name.
         CorpCard.Get('CORPCARD-0001');
         CorpCardProvider.Get(CorpCard."Provider Code");
         CorpCardProvider."Short Name" := '';
         CorpCardProvider.Modify();
 
+        // [WHEN] The card display is generated.
+        // [THEN] The fallback provider prefix is limited to four characters and followed by the card suffix.
         Assert.AreEqual(
             CopyStr(CorpCard."Provider Code", 1, 4) + ' 0001',
             CorpCardSelectionMgt.GetCardDisplay(CorpCard."Card Id"),
@@ -96,13 +117,18 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
     begin
+        // [SCENARIO] Card ownership prevents one expense user from selecting another user's card.
         Initialize();
+
+        // [GIVEN] The expense belongs to a user other than the card owner.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InitializeExpense(Expense, CorpCard);
         Expense."Expense User No." := 'OTHER-USER';
 
+        // [WHEN] The other user's card is selected.
         asserterror Expense.Validate("Corporate Card Id", CorpCard."Card Id");
 
+        // [THEN] The ownership mismatch is reported.
         Assert.ExpectedError(Expense."Expense User No.");
     end;
 
@@ -112,12 +138,19 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
     begin
+        // [SCENARIO] Blocking a card prevents new expense selections.
         Initialize();
+
+        // [GIVEN] An expense user's card is blocked.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InitializeExpense(Expense, CorpCard);
         CorpCard.Blocked := true;
         CorpCard.Modify();
+
+        // [WHEN] The blocked card is selected.
         asserterror Expense.Validate("Corporate Card Id", CorpCard."Card Id");
+
+        // [THEN] Card selection fails with the blocked-card error.
         Assert.ExpectedError(CorpCard.FieldCaption(Blocked));
     end;
 
@@ -127,12 +160,19 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
     begin
+        // [SCENARIO] Card validity must cover the expense date.
         Initialize();
+
+        // [GIVEN] The card expired before the expense date.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InitializeExpense(Expense, CorpCard);
         CorpCard."Valid To" := WorkDate() - 1;
         CorpCard.Modify();
+
+        // [WHEN] The expired card is selected.
         asserterror Expense.Validate("Corporate Card Id", CorpCard."Card Id");
+
+        // [THEN] The invalid card date is reported.
         Assert.ExpectedError('is not valid');
     end;
 
@@ -142,14 +182,19 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
     begin
+        // [SCENARIO] The card's last valid day is included without creating feed provenance.
         Initialize();
+
+        // [GIVEN] The expense date equals the card's last valid day.
         CorpCard.Get('CORPCARD-0001');
         CorpCard."Valid To" := WorkDate();
         CorpCard.Modify();
         CorpCardTestLib.InitializeExpense(Expense, CorpCard);
 
+        // [WHEN] The card is selected.
         Expense.Validate("Corporate Card Id", CorpCard."Card Id");
 
+        // [THEN] Selection succeeds without linking a feed transaction.
         Assert.AreEqual(CorpCard."Card Id", Expense."Corporate Card Id", 'Card validity includes the last valid day.');
         Assert.AreEqual(0, Expense."Credit Card Feed No.", 'Selecting a card must not create a transaction link.');
     end;
@@ -164,7 +209,10 @@ codeunit 148364 EACorpCardSelectionTests
         LibraryExpense: Codeunit "Library - Expense";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
+        // [SCENARIO] A manual card expense can be drafted without a card, but release requires an owned card.
         Initialize();
+
+        // [GIVEN] A saved corporate card expense draft has no selected card.
         CorpCard.Get('CORPCARD-0001');
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.CreateExpense(Expense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, '', 20);
@@ -175,13 +223,19 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardSelectionMgt.ValidateExpenseCard(Expense, false);
         Commit();
 
+        // [WHEN] The draft is released without selecting a card.
         asserterror Expense.PerformManualRelease();
 
+        // [THEN] The missing card is reported.
         Assert.ExpectedError(Expense.FieldCaption("Corporate Card Id"));
+
+        // [WHEN] An owned card is selected and the draft is released again.
         Expense.Get(Expense."No.");
         Expense.Validate("Corporate Card Id", CorpCard."Card Id");
         Expense.Modify(true);
         Expense.PerformManualRelease();
+
+        // [THEN] Release succeeds.
         Assert.AreEqual(Expense.Status::Released, Expense.Status, 'Selecting an owned card must allow release.');
     end;
 
@@ -193,7 +247,10 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans: Record "EA Corp Card Trans";
         Expense: Record Expense;
     begin
+        // [SCENARIO] An expense linked to a feed must retain the feed's card identity.
         Initialize();
+
+        // [GIVEN] An expense references a transaction from one of two owned cards.
         CorpCard.Get('CORPCARD-0001');
         CreateSecondCard(OtherCard, CorpCard);
         CorpCardTestLib.InitializeExpense(Expense, CorpCard);
@@ -201,8 +258,10 @@ codeunit 148364 EACorpCardSelectionTests
         Expense."Credit Card Feed No." := CorpCardTrans."Entry No.";
         Expense."Corporate Card Id" := CorpCard."Card Id";
 
+        // [WHEN] The other card is selected for the linked expense.
         asserterror Expense.Validate("Corporate Card Id", OtherCard."Card Id");
 
+        // [THEN] Changing the linked card identity is rejected.
         Assert.ExpectedError(Expense.FieldCaption("Corporate Card Id"));
     end;
 
@@ -213,16 +272,22 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans: Record "EA Corp Card Trans";
         Expense: Record Expense;
     begin
+        // [SCENARIO] Direct record modification cannot remove the card identity from a feed-linked expense.
         Initialize();
+
+        // [GIVEN] A persisted expense has a selected card and a feed link.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         Expense."Credit Card Feed No." := CorpCardTrans."Entry No.";
         Expense.Modify(true);
+
+        // [WHEN] The card is cleared and the expense is modified with table triggers.
         Expense."Corporate Card Id" := '';
 
         asserterror Expense.Modify(true);
 
+        // [THEN] Removing the linked card identity is rejected.
         Assert.ExpectedError(Expense.FieldCaption("Corporate Card Id"));
     end;
 
@@ -233,7 +298,10 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans: Record "EA Corp Card Trans";
         ExpenseReportLine: Record "Expense Report Line";
     begin
+        // [SCENARIO] Report lines retain their feed-linked card identity even when validation is bypassed.
         Initialize();
+
+        // [GIVEN] A persisted report line references a card and its feed transaction.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         ExpenseReportLine."Document No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseReportLine."Document No."));
@@ -244,10 +312,13 @@ codeunit 148364 EACorpCardSelectionTests
         ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
         ExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
         ExpenseReportLine.Insert();
+
+        // [WHEN] The card is cleared and the report line is modified with table triggers.
         ExpenseReportLine."Corporate Card Id" := '';
 
         asserterror ExpenseReportLine.Modify(true);
 
+        // [THEN] Removing the linked card identity is rejected.
         Assert.ExpectedError(ExpenseReportLine.FieldCaption("Corporate Card Id"));
     end;
 
@@ -257,15 +328,21 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
     begin
+        // [SCENARIO] Blocking a previously selected card does not prevent receipt-description corrections.
         Initialize();
+
+        // [GIVEN] An expense already references a card that is subsequently blocked.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
         CorpCard.Blocked := true;
         CorpCard.Modify();
+
+        // [WHEN] The expense description is updated.
         Expense.Description := 'Updated receipt details';
 
         Expense.Modify(true);
 
+        // [THEN] The description change is saved.
         Expense.Get(Expense."No.");
         Expense.TestField(Description, 'Updated receipt details');
     end;
@@ -281,15 +358,20 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
         ExpenseNo: Code[20];
     begin
+        // [SCENARIO] Identical card suffixes do not make expenses paid with different cards interchangeable.
         Initialize();
+
+        // [GIVEN] Two expenses use distinct cards with identical suffixes, and a feed arrives for the first card.
         CorpCard.Get('CORPCARD-0001');
         CreateSecondCard(OtherCard, CorpCard);
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
         CorpCardTestLib.InsertExpense(OtherExpense, OtherCard);
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
+        // [WHEN] The feed is matched to an existing expense.
         Assert.IsTrue(CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo), 'The selected card should identify the expense.');
 
+        // [THEN] The expense using the exact card identity is selected.
         Assert.AreEqual(Expense."No.", ExpenseNo, 'An expense paid with another card must not match, even when both suffixes are identical.');
     end;
 
@@ -303,14 +385,19 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
         ExpenseNo: Code[20];
     begin
+        // [SCENARIO] Multiple matching expenses require review rather than an arbitrary link.
         Initialize();
+
+        // [GIVEN] Two expenses use the same card and match the incoming transaction.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
         CorpCardTestLib.InsertExpense(OtherExpense, CorpCard);
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
+        // [WHEN] The feed is matched to an existing expense.
         asserterror CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo);
 
+        // [THEN] The ambiguous match is reported.
         Assert.ExpectedError('More than one expense');
     end;
 
@@ -323,15 +410,20 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
         ExpenseNo: Code[20];
     begin
+        // [SCENARIO] A near amount match requires review before linking the feed.
         Initialize();
+
+        // [GIVEN] An expense uses the incoming transaction's card but has a slightly different amount.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
         Expense.Amount := 19;
         Expense.Modify();
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
+        // [WHEN] The feed is matched to an existing expense.
         asserterror CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo);
 
+        // [THEN] The amount difference requires review instead of being treated as no match.
         Assert.ExpectedError('Review the amount before linking');
     end;
 
@@ -346,7 +438,6 @@ codeunit 148364 EACorpCardSelectionTests
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
     begin
-        // [FEATURE] [Expense Agent] [Corporate Card] [Upgrade]
         // [SCENARIO] Legacy feed-created expenses receive corporate card protections while manual expenses remain unchanged.
         Initialize();
 
@@ -400,7 +491,6 @@ codeunit 148364 EACorpCardSelectionTests
         FeedEntryNos: array[4] of Integer;
         ScenarioNo: Integer;
     begin
-        // [FEATURE] [Expense Agent] [Corporate Card] [Upgrade]
         // [SCENARIO] Bulk identity migration updates matching legacy rows without overwriting assigned cards or unmatched rows.
         Initialize();
 
@@ -466,15 +556,19 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans: Record "EA Corp Card Trans";
         Expense: Record Expense;
     begin
+        // [SCENARIO] Non-financial edits and unchanged financial values preserve a feed-created draft's provenance.
+        // [GIVEN] A corporate card draft references its originating transaction.
         CreateCorporateCardDraft(Expense);
         CorpCardTrans.Get(Expense."Credit Card Feed No.");
 
+        // [WHEN] Existing financial values are revalidated and receipt details are edited.
         Expense.Validate(Amount, Expense.Amount);
         Expense.Validate("Expense Date", Expense."Expense Date");
         Expense.Validate("Currency Code", Expense."Currency Code");
         Expense.Description := 'Receipt details';
         Expense.Modify(true);
 
+        // [THEN] The draft retains its corporate card source, feed link, and description change.
         Expense.Get(Expense."No.");
         Expense.TestField(Source, Expense.Source::CorporateCard);
         Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
@@ -486,10 +580,14 @@ codeunit 148364 EACorpCardSelectionTests
     var
         Expense: Record Expense;
     begin
+        // [SCENARIO] A feed-created expense must retain the transaction's captured amount.
+        // [GIVEN] A corporate card draft has been created from a transaction.
         CreateCorporateCardDraft(Expense);
 
+        // [WHEN] The captured amount is changed through validation.
         asserterror Expense.Validate(Amount, Expense.Amount + 1);
 
+        // [THEN] The amount change is rejected.
         Assert.ExpectedError(Expense.FieldCaption(Amount) + ' cannot be changed');
     end;
 
@@ -498,10 +596,14 @@ codeunit 148364 EACorpCardSelectionTests
     var
         Expense: Record Expense;
     begin
+        // [SCENARIO] A feed-created expense must retain the transaction's captured date.
+        // [GIVEN] A corporate card draft has been created from a transaction.
         CreateCorporateCardDraft(Expense);
 
+        // [WHEN] The captured date is changed through validation.
         asserterror Expense.Validate("Expense Date", CalcDate('<1D>', Expense."Expense Date"));
 
+        // [THEN] The date change is rejected.
         Assert.ExpectedError(Expense.FieldCaption("Expense Date") + ' cannot be changed');
     end;
 
@@ -510,10 +612,14 @@ codeunit 148364 EACorpCardSelectionTests
     var
         Expense: Record Expense;
     begin
+        // [SCENARIO] A feed-created expense must retain the transaction's captured currency.
+        // [GIVEN] A corporate card draft has been created from a transaction.
         CreateCorporateCardDraft(Expense);
 
+        // [WHEN] A different currency is validated.
         asserterror Expense.Validate("Currency Code", 'EUR');
 
+        // [THEN] The currency change is rejected.
         Assert.ExpectedError(Expense.FieldCaption("Currency Code") + ' cannot be changed');
     end;
 
@@ -522,11 +628,16 @@ codeunit 148364 EACorpCardSelectionTests
     var
         Expense: Record Expense;
     begin
+        // [SCENARIO] Direct assignment cannot bypass a feed-created draft's currency protection.
+        // [GIVEN] A corporate card draft has been created from a transaction.
         CreateCorporateCardDraft(Expense);
+
+        // [WHEN] A different currency is assigned and the expense is modified with table triggers.
         Expense."Currency Code" := 'EUR';
 
         asserterror Expense.Modify(true);
 
+        // [THEN] The currency change is rejected.
         Assert.ExpectedError(Expense.FieldCaption("Currency Code") + ' cannot be changed');
     end;
 
@@ -538,18 +649,23 @@ codeunit 148364 EACorpCardSelectionTests
         Expense: Record Expense;
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
     begin
+        // [SCENARIO] Adding feed provenance does not restrict financial editing of a manually created expense.
         Initialize();
+
+        // [GIVEN] A manual expense is linked to its matching card transaction.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
         Expense.Get(Expense."No.");
 
+        // [WHEN] The expense amount, date, and currency are updated.
         Expense.Validate(Amount, 21);
         Expense.Validate("Expense Date", CalcDate('<1D>', WorkDate()));
         Expense.Validate("Currency Code", 'EUR');
         Expense.Modify(true);
 
+        // [THEN] The financial changes are saved without changing the manual source or feed link.
         Expense.Get(Expense."No.");
         Expense.TestField(Source, Expense.Source::Manual);
         Expense.TestField(Amount, 21);
@@ -570,7 +686,10 @@ codeunit 148364 EACorpCardSelectionTests
         ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
         ExpenseCount: Integer;
     begin
+        // [SCENARIO] Automatic draft processing links an existing manual expense and remains idempotent on retry.
         Initialize();
+
+        // [GIVEN] An imported statement transaction matches an existing manual card expense.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
         CorpCardTestLib.CreateStatement(CorpCardStatement, CorpCard."Provider Code", 'MANUAL-MATCH', 20, CorpCardStatement.Status::Imported);
@@ -581,9 +700,11 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans.Modify();
         ExpenseCount := Expense.Count();
 
+        // [WHEN] Post-import processing runs twice for the statement.
         PostImportOrch.ProcessStatementPostImport(CorpCardStatement."Statement Entry No.", ExpenseWriter);
         PostImportOrch.ProcessStatementPostImport(CorpCardStatement."Statement Entry No.", ExpenseWriter);
 
+        // [THEN] The transaction links the manual expense without creating a duplicate or changing its source.
         CorpCardTrans.Get(CorpCardTrans."Entry No.");
         Assert.AreEqual(CorpCardTrans.Status::Matched, CorpCardTrans.Status, 'AutoDraft must match the existing selected-card expense first.');
         Assert.AreEqual(Expense."No.", CorpCardTrans."Expense No.", 'The transaction must link the manually created expense.');
@@ -601,7 +722,10 @@ codeunit 148364 EACorpCardSelectionTests
         ExpenseReportLine: Record "Expense Report Line";
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
     begin
+        // [SCENARIO] A late feed adds provenance to a submitted expense without changing report amounts.
         Initialize();
+
+        // [GIVEN] A manual card expense is already submitted on an existing report line.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
         Expense.Status := Expense.Status::Submitted;
@@ -615,8 +739,10 @@ codeunit 148364 EACorpCardSelectionTests
         ExpenseReportLine.Insert();
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
+        // [WHEN] The late feed is linked to the submitted expense.
         CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
 
+        // [THEN] The existing report line retains its amount and receives the link without another draft.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual(CorpCardTrans."Entry No.", ExpenseReportLine."Credit Card Feed No.", 'The existing report line must retain the late feed link.');
         Assert.AreEqual(20, ExpenseReportLine.Amount, 'Linking provenance must not change the report amount.');
@@ -639,7 +765,6 @@ codeunit 148364 EACorpCardSelectionTests
         VATEntryCount: Integer;
         ExpenseCount: Integer;
     begin
-        // [FEATURE] [Expense Agent] [Corporate Card] [Matching]
         // [SCENARIO] A late feed links a genuinely posted manual expense without posting it again.
         Initialize();
 
@@ -685,16 +810,21 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
         ExpenseNo: Code[20];
     begin
+        // [SCENARIO] Late feed matching preserves an expense's released status.
         Initialize();
+
+        // [GIVEN] A manually created card expense is released before its feed arrives.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
         Expense.Status := Expense.Status::Released;
         Expense.Modify();
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
+        // [WHEN] The feed is matched and linked to the released expense.
         Assert.IsTrue(CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo), 'Matching must include released expenses.');
         CorpCardExpenseMatch.LinkExpense(CorpCardTrans, ExpenseNo);
 
+        // [THEN] The expense remains released and receives the transaction link.
         Expense.Get(ExpenseNo);
         Assert.AreEqual(Expense.Status::Released, Expense.Status, 'Linking provenance must not change document status.');
         Assert.AreEqual(CorpCardTrans."Entry No.", Expense."Credit Card Feed No.", 'The released expense must reference the transaction.');
@@ -706,12 +836,17 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
     begin
+        // [SCENARIO] A selected card remains protected from deletion even before a feed references it.
         Initialize();
+
+        // [GIVEN] A manual expense references a card without an incoming feed.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
 
+        // [WHEN] The referenced card is deleted with table triggers.
         asserterror CorpCard.Delete(true);
 
+        // [THEN] The existing expense reference prevents deletion.
         Assert.ExpectedError('referenced by an expense');
     end;
 
