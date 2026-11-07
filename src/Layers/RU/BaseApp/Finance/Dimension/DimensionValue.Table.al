@@ -16,7 +16,6 @@ using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Intercompany.Dimension;
 using Microsoft.Inventory.Analysis;
 
 /// <summary>
@@ -43,10 +42,6 @@ table 349 "Dimension Value"
             NotBlank = true;
             TableRelation = Dimension;
 
-            trigger OnValidate()
-            begin
-                UpdateMapToICDimensionCode();
-            end;
         }
         /// <summary>
         /// The unique code that identifies this dimension value within its dimension.
@@ -153,31 +148,6 @@ table 349 "Dimension Value"
             Caption = 'Global Dimension No.';
         }
         /// <summary>
-        /// Maps this dimension value to an intercompany dimension for transactions between related companies.
-        /// Must correspond to a valid IC dimension in the intercompany setup.
-        /// </summary>
-        field(10; "Map-to IC Dimension Code"; Code[20])
-        {
-            Caption = 'Map-to IC Dimension Code';
-            ToolTip = 'Specifies the intercompany''s dimension code associated with the dimension of the current company.';
-
-            trigger OnValidate()
-            begin
-                if "Map-to IC Dimension Code" <> xRec."Map-to IC Dimension Code" then
-                    Validate("Map-to IC Dimension Value Code", '');
-            end;
-        }
-        /// <summary>
-        /// Maps this dimension value to a specific intercompany dimension value code.
-        /// Used for automatic translation during intercompany transactions.
-        /// </summary>
-        field(11; "Map-to IC Dimension Value Code"; Code[20])
-        {
-            Caption = 'Map-to IC Dimension Value Code';
-            ToolTip = 'Specifies which intercompany dimension value corresponds to the dimension value on the line.';
-            TableRelation = "IC Dimension Value".Code where("Dimension Code" = field("Map-to IC Dimension Code"));
-        }
-        /// <summary>
         /// Unique system-generated identifier for the dimension value.
         /// Used internally for performance optimization in dimension set operations.
         /// </summary>
@@ -278,8 +248,6 @@ table 349 "Dimension Value"
         DimValuePerAccount.SetRange("Dimension Value Code", Code);
         DimValuePerAccount.DeleteAll(true);
 
-        RemoveICDimensionValueMappings();
-
         DimMgt.UpdateDefaultDimensionAllowedDimensionValues(Rec);
     end;
 
@@ -339,24 +307,12 @@ table 349 "Dimension Value"
 #pragma warning disable AA0470
         Text000: Label '%1\You cannot delete it.';
 #pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
         Text002: Label '(CONFLICT)';
-#pragma warning restore AA0074
-#pragma warning disable AA0074
 #pragma warning disable AA0470
         Text003: Label '%1 can not be (CONFLICT). This name is used internally by the system.';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text004: Label '%1\You cannot change the type.';
 #pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
         Text005: Label 'This dimension value has been used in posted or budget entries and is included in a dimension set.';
-#pragma warning restore AA0074
-#pragma warning disable AA0074
 #pragma warning disable AA0470
         Text006: Label 'You cannot change the value of %1.';
 #pragma warning restore AA0470
@@ -773,24 +729,6 @@ table 349 "Dimension Value"
     local procedure SetLastModifiedDateTime()
     begin
         "Last Modified Date Time" := CurrentDateTime;
-    end;
-
-    local procedure UpdateMapToICDimensionCode()
-    var
-        Dimension: Record Dimension;
-    begin
-        Dimension.Get("Dimension Code");
-        Validate("Map-to IC Dimension Code", Dimension."Map-to IC Dimension Code");
-        "Dimension Id" := Dimension.SystemId;
-    end;
-
-    local procedure RemoveICDimensionValueMappings()
-    var
-        ICDimensionValue: Record "IC Dimension Value";
-    begin
-        ICDimensionValue.SetRange("Map-to Dimension Value Code", Rec."Code");
-        if not ICDimensionValue.IsEmpty() then
-            ICDimensionValue.ModifyAll("Map-to Dimension Value Code", '');
     end;
 
     /// <summary>

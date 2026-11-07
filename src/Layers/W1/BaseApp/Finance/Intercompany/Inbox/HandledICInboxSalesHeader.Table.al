@@ -2,12 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Sales.Customer;
 
@@ -19,6 +18,10 @@ table 438 "Handled IC Inbox Sales Header"
 {
     Caption = 'Handled IC Inbox Sales Header';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -183,7 +186,6 @@ table 438 "Handled IC Inbox Sales Header"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Unique transaction number identifying the handled intercompany transaction.
@@ -240,18 +242,5 @@ table 438 "Handled IC Inbox Sales Header"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        ICHndlInboxSalesLine: Record "Handled IC Inbox Sales Line";
-        DimMgt: Codeunit DimensionManagement;
-    begin
-        ICHndlInboxSalesLine.SetRange("IC Partner Code", "IC Partner Code");
-        ICHndlInboxSalesLine.SetRange("IC Transaction No.", "IC Transaction No.");
-        ICHndlInboxSalesLine.SetRange("Transaction Source", "Transaction Source");
-        if ICHndlInboxSalesLine.FindFirst() then
-            ICHndlInboxSalesLine.DeleteAll(true);
-        DimMgt.DeleteICDocDim(
-          DATABASE::"Handled IC Inbox Sales Header", "IC Transaction No.", "IC Partner Code", "Transaction Source", 0);
-    end;
 }
+#endif

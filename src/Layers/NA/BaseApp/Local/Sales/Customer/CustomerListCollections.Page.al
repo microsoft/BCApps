@@ -129,12 +129,6 @@ page 36629 "Customer List - Collections"
                     ToolTip = 'Specifies the fax number for the customer.';
                     Visible = false;
                 }
-                field("IC Partner Code"; Rec."IC Partner Code")
-                {
-                    Editable = false;
-                    ToolTip = 'Specifies the code for the company''s intercompany (IC) partner.';
-                    Visible = false;
-                }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     Editable = false;

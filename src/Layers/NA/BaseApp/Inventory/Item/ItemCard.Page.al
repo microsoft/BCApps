@@ -160,6 +160,7 @@ page 30 "Item Card"
                 {
                     ApplicationArea = Intercompany;
                     Importance = Additional;
+                    Visible = false;
                 }
                 field("Purchasing Code"; Rec."Purchasing Code")
                 {

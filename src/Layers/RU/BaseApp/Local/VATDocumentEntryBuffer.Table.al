@@ -418,12 +418,21 @@ table 14927 "VAT Document Entry Buffer"
             Caption = 'Amount to Apply';
             DataClassification = SystemMetadata;
         }
+#if not CLEANSCHEMA30
         field(85; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
             DataClassification = SystemMetadata;
-            TableRelation = "IC Partner";
+            ObsoleteReason = 'Intercompany functionality has been moved to the Intercompany app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
         field(86; "Applying Entry"; Boolean)
         {
             Caption = 'Applying Entry';

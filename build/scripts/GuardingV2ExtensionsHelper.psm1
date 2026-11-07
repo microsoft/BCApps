@@ -154,7 +154,7 @@ function Restore-BaselinesFromArtifacts {
         New-Item -ItemType Directory -Path $TargetFolder | Out-Null
     }
 
-    $baselineFolder = Join-Path (Get-BaseFolder) "out/baselineartifacts/$BaselineVersion"
+    $baselineFolder = Join-Path (Get-BaseFolder) "out\baselineartifacts\$BaselineVersion\$CountryCode"
 
     if (-not (Test-Path $baselineFolder)) {
         $baselineURL = Get-BCArtifactUrl -type Sandbox -country $CountryCode -version $BaselineVersion
@@ -170,12 +170,17 @@ function Restore-BaselinesFromArtifacts {
         }
         Write-Host "Downloading from $baselineURL to $baselineFolder"
         Download-Artifacts -artifactUrl $baselineURL -basePath $baselineFolder | Out-Null
+    }
 
-        # Copy all the files from the sandbox folder to the baseline folder
-        Get-ChildItem -Path "$baselineFolder/sandbox/$BaselineVersion/$CountryCode/Extensions" -Filter "*_$($BaselineVersion).app" -Recurse | ForEach-Object {
-            Write-Host "Copying $($_.FullName) to $TargetFolder"
-            Copy-Item -Path $_.FullName -Destination $TargetFolder -Force | Out-Null
+    $ready = Join-Path $TargetFolder ".baseline-$CountryCode-$BaselineVersion.ready"
+    if (-not (Test-Path -LiteralPath $ready)) {
+        # Each consumer has a separate cache, even when the artifact was already downloaded.
+        $packages = @(Get-ChildItem -Path "$baselineFolder\sandbox\$BaselineVersion\$CountryCode\Extensions" -Filter '*.app' -Recurse -ErrorAction Stop)
+        if ($packages.Count -eq 0) { throw "No baseline packages found for $CountryCode $BaselineVersion." }
+        foreach ($package in $packages) {
+            Copy-Item -LiteralPath $package.FullName -Destination $TargetFolder -Force | Out-Null
         }
+        New-Item -Path $ready -ItemType File -Force | Out-Null
     }
 
     $baselineApp = Get-ChildItem -Path $TargetFolder -Filter "*_$($AppName)_$($BaselineVersion).app" -ErrorAction SilentlyContinue

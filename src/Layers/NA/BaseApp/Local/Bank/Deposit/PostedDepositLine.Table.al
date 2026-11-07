@@ -11,7 +11,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -48,9 +47,7 @@ table 10144 "Posted Deposit Line"
             else
             if ("Account Type" = const(Vendor)) Vendor
             else
-            if ("Account Type" = const("Bank Account")) "Bank Account"
-            else
-            if ("Account Type" = const("IC Partner")) "IC Partner";
+            if ("Account Type" = const("Bank Account")) "Bank Account";
         }
         field(5; "Document Date"; Date)
         {
@@ -238,4 +235,3 @@ table 10144 "Posted Deposit Line"
         end;
     end;
 }
-

@@ -15,7 +15,6 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Intercompany;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.History;
@@ -1343,24 +1342,6 @@ page 51 "Purchase Invoice"
                         CurrPage.PurchLines.PAGE.ClearTotalPurchaseHeader();
                     end;
                 }
-                action("Reject IC Purchase Invoice")
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'Reject IC Purchase Invoice';
-                    Enabled = RejectICPurchaseInvoiceEnabled;
-                    Image = Cancel;
-                    ToolTip = 'Deletes the invoice and sends the rejection to the company that created it.';
-
-                    trigger OnAction()
-                    var
-                        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
-                    begin
-                        if not ICInboxOutboxMgt.IsPurchaseHeaderFromIncomingIC(Rec) then
-                            exit;
-                        if Confirm(SureToRejectMsg) then
-                            ICInboxOutboxMgt.RejectAcceptedPurchaseHeader(Rec);
-                    end;
-                }
             }
             group("F&unctions")
             {
@@ -1799,10 +1780,7 @@ page 51 "Purchase Invoice"
     end;
 
     trigger OnAfterGetRecord()
-    var
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
     begin
-        RejectICPurchaseInvoiceEnabled := ICInboxOutboxMgt.IsPurchaseHeaderFromIncomingIC(Rec);
         CalculateCurrentShippingAndPayToOption();
         Rec.GetContactDetails(BuyFromContact, PayToContact);
         CurrPage.IncomingDocAttachFactBox.Page.SetCurrentRecordID(Rec.RecordId);
@@ -1845,9 +1823,7 @@ page 51 "Purchase Invoice"
 
     trigger OnOpenPage()
     var
-        PurchaseHeader: Record "Purchase Header";
         EnvironmentInfo: Codeunit "Environment Information";
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
         DocAmountEnable := PurchSetup.ShouldDocumentTotalAmountsBeChecked(Rec);
@@ -1869,23 +1845,6 @@ page 51 "Purchase Invoice"
 
         CheckShowBackgrValidationNotification();
         FillRemitToFields();
-        RejectICPurchaseInvoiceEnabled := ICInboxOutboxMgt.IsPurchaseHeaderFromIncomingIC(Rec);
-        if RejectICPurchaseInvoiceEnabled then begin
-            if StrLen(Rec."Vendor Order No.") <= MaxStrLen(PurchaseHeader."IC Reference Document No.") then begin
-                PurchaseHeader.SetRange("IC Direction", PurchaseHeader."IC Direction"::Incoming);
-                PurchaseHeader.SetRange("IC Reference Document No.", Rec."Vendor Order No.");
-                PurchaseHeader.SetRange("Buy-from IC Partner Code", Rec."Buy-from IC Partner Code");
-                PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
-                if PurchaseHeader.FindFirst() then
-                    ICInboxOutboxMgt.ShowDuplicateICDocumentWarning(PurchaseHeader);
-                PurchaseHeader.Reset();
-            end;
-            if PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, CopyStr(Rec."Your Reference", 1, MaxStrLen(Rec."No."))) then
-                if (PurchaseHeader."IC Direction" = PurchaseHeader."IC Direction"::Outgoing) and
-                   (PurchaseHeader."Buy-from IC Partner Code" = Rec."Buy-from IC Partner Code") and
-                   (PurchaseHeader."IC Status" = PurchaseHeader."IC Status"::Sent) then
-                    ICInboxOutboxMgt.ShowDuplicateICDocumentWarning(PurchaseHeader, ICIncomingInvoiceFromOriginalOrderMsg);
-        end;
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
         IsVendorInvoiceEditable := not Rec."Self-Billing Invoice";
     end;
@@ -1925,8 +1884,6 @@ page 51 "Purchase Invoice"
         IsPowerAutomatePrivacyNoticeApproved: Boolean;
         ShowWorkflowStatus: Boolean;
         JobQueuesUsed: Boolean;
-        ICIncomingInvoiceFromOriginalOrderMsg: Label 'This invoice was received through intercompany and it''s related to the purchase %1 with no. %2. You can delete that order and post this invoice.', Comment = '%1 - either "order", "invoice", or "posted invoice", %2 - a code';
-        SureToRejectMsg: Label 'Rejecting this invoice will remove it from your company and send it back to the partner company.\\ Do you want to continue?';
         OpenPostedPurchaseInvQst: Label 'The invoice is posted as number %1 and moved to the Posted Purchase Invoices window.\\Do you want to open the posted invoice?', Comment = '%1 = posted document number';
         IsOfficeAddin: Boolean;
         CanCancelApprovalForRecord: Boolean;
@@ -1947,7 +1904,6 @@ page 51 "Purchase Invoice"
         IsJournalTemplNameVisible: Boolean;
         IsPaymentMethodCodeVisible: Boolean;
         IsPurchaseLinesEditable: Boolean;
-        RejectICPurchaseInvoiceEnabled: Boolean;
         VATDateEnabled: Boolean;
         DocAmountEnable, DocAmountsEditable : Boolean;
         IsVendorInvoiceEditable: Boolean;

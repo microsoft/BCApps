@@ -21,7 +21,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
@@ -614,7 +613,6 @@ table 1381 "Customer Templ."
         field(119; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
-            TableRelation = "IC Partner";
             ToolTip = 'Specifies the customer''s intercompany partner code.';
         }
         /// <summary>

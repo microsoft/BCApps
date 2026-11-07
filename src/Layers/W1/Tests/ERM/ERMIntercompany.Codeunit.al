@@ -49,6 +49,233 @@ codeunit 134151 "ERM Intercompany"
         WrongFieldValueErr: Label 'Field %1 must be %2. Current value is %3', Locked = true;
         UnexpectedEntryErr: Label 'Entry with field %1 and value %2 must not exist in %3', Locked = true;
         MissingICGLAccountEntry: Label 'IC G/L Account with No. %1 is missing', Locked = true;
+#if not CLEAN30
+        VerifyLegacyICEvents: Boolean;
+        LegacyICPostingEventCalls: Integer;
+        LegacyICIndentEventErr: Label 'Legacy intercompany indentation event invoked.', Locked = true;
+#endif
+#if not CLEAN30 and not CLEANSCHEMA30
+        RejectLegacyICDimensionValue: Boolean;
+        UpdateLegacyHandledICInboxTrans: Boolean;
+#endif
+
+#if not CLEAN30 and not CLEANSCHEMA30
+#pragma warning disable AL0432
+    [Test]
+    [Scope('OnPrem')]
+    procedure LegacyICDimensionCopiesTemporaryRecords()
+    var
+        TempFromICDocDim: Record "IC Document Dimension" temporary;
+        TempToICDocDim: Record "IC Document Dimension" temporary;
+        TempFromICJnlDim: Record "IC Inbox/Outbox Jnl. Line Dim." temporary;
+        TempToICJnlDim: Record "IC Inbox/Outbox Jnl. Line Dim." temporary;
+        DimensionManagement: Codeunit DimensionManagement;
+    begin
+        TempFromICDocDim."Table ID" := Database::"IC Inbox Sales Header";
+        TempFromICDocDim."Transaction No." := 1;
+        TempFromICDocDim."Dimension Code" := 'A';
+        TempFromICDocDim.Insert();
+        TempFromICDocDim."Dimension Code" := 'B';
+        TempFromICDocDim.Insert();
+        DimensionManagement.SetICDocDimFilters(
+            TempFromICDocDim, TempFromICDocDim."Table ID", 1, '', TempFromICDocDim."Transaction Source", 0);
+
+        DimensionManagement.CopyICDocDimtoICDocDim(
+            TempFromICDocDim, TempToICDocDim, Database::"IC Outbox Sales Header", 1);
+        TempToICDocDim.TestField("Table ID", Database::"IC Outbox Sales Header");
+        TempToICDocDim.TestField("Transaction Source", 1);
+        Assert.AreEqual(2, TempToICDocDim.Count(), 'Both document dimensions must be copied into the temporary destination.');
+        TempToICDocDim.DeleteAll();
+
+        DimensionManagement.MoveICDocDimtoICDocDim(
+            TempFromICDocDim, TempToICDocDim, Database::"IC Outbox Sales Header", 1);
+        Assert.IsTrue(TempFromICDocDim.IsEmpty(), 'Moving dimensions must delete the original temporary records.');
+        Assert.AreEqual(2, TempToICDocDim.Count(), 'Moving dimensions must retain the temporary destination table.');
+
+        TempFromICJnlDim."Dimension Code" := 'A';
+        TempFromICJnlDim.Insert();
+        TempFromICJnlDim."Dimension Code" := 'B';
+        TempFromICJnlDim.Insert();
+        TempFromICJnlDim.SetRange("Dimension Code", 'A');
+
+        DimensionManagement.CopyICJnlDimToICJnlDim(TempFromICJnlDim, TempToICJnlDim);
+        TempFromICJnlDim.TestField("Dimension Code", 'A');
+        TempToICJnlDim.TestField("Dimension Code", 'A');
+        Assert.AreEqual(1, TempToICJnlDim.Count(), 'Only filtered journal dimensions must be copied.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure LegacyICDimensionValidationPreservesErrorState()
+    var
+        ICDimension: Record "IC Dimension";
+        ICDimensionValue: Record "IC Dimension Value";
+        LibraryDimension: Codeunit "Library - Dimension";
+        DimensionManagement: Codeunit DimensionManagement;
+    begin
+        Initialize();
+        LibraryDimension.CreateICDimension(ICDimension);
+        ICDimension.Blocked := true;
+        ICDimension.Modify();
+        LibraryDimension.CreateICDimensionValue(ICDimensionValue, ICDimension.Code);
+        ICDimensionValue.Blocked := true;
+        ICDimensionValue.Modify();
+
+        Assert.IsFalse(DimensionManagement.CheckICDim(ICDimension.Code), 'A blocked intercompany dimension must be rejected.');
+        Assert.AreEqual(
+            StrSubstNo(BlockedDimensionErr, ICDimension.TableCaption(), ICDimension.Code),
+            DimensionManagement.GetDimErr(), 'The original DimensionManagement instance must retain the error.');
+        Assert.IsFalse(
+            DimensionManagement.CheckICDimValue(ICDimension.Code, ICDimensionValue.Code),
+            'A blocked intercompany dimension value must be rejected.');
+        Assert.AreEqual(
+            StrSubstNo(BlockedDimValueErr, ICDimensionValue.TableCaption(), ICDimension.Code, ICDimensionValue.Code),
+            DimensionManagement.GetDimErr(), 'The original DimensionManagement instance must retain the value error.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure LegacyICDimensionValueEventAffectsValidation()
+    var
+        ICDimension: Record "IC Dimension";
+        ICDimensionValue: Record "IC Dimension Value";
+        LibraryDimension: Codeunit "Library - Dimension";
+        DimensionManagement: Codeunit DimensionManagement;
+        ERMIntercompany: Codeunit "ERM Intercompany";
+    begin
+        Initialize();
+        LibraryDimension.CreateICDimension(ICDimension);
+        LibraryDimension.CreateICDimensionValue(ICDimensionValue, ICDimension.Code);
+        Assert.IsTrue(
+            DimensionManagement.CheckICDimValue(ICDimension.Code, ICDimensionValue.Code),
+            'A standard dimension value must be accepted before binding the legacy subscriber.');
+        ERMIntercompany.EnableLegacyICDimensionEvent();
+        BindSubscription(ERMIntercompany);
+
+        Assert.IsFalse(
+            DimensionManagement.CheckICDimValue(ICDimension.Code, ICDimensionValue.Code),
+            'The original OnCheckICDimValueAllowed subscriber must still be able to reject a dimension value.');
+        UnbindSubscription(ERMIntercompany);
+    end;
+
+    procedure EnableLegacyICDimensionEvent()
+    begin
+        RejectLegacyICDimensionValue := true;
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure LegacyHandledICInboxEventUpdatesRecord()
+    var
+        TempHandledICInboxTrans: Record "Handled IC Inbox Trans." temporary;
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJnlPostBatch: Codeunit "Gen. Jnl.-Post Batch";
+        ERMIntercompany: Codeunit "ERM Intercompany";
+    begin
+        ERMIntercompany.EnableLegacyHandledICInboxEvent();
+        BindSubscription(ERMIntercompany);
+
+        GenJnlPostBatch.RunOnProcessICLinesOnBeforeHandledICInboxTransModify(TempHandledICInboxTrans, GenJournalLine);
+
+        TempHandledICInboxTrans.TestField(Status, TempHandledICInboxTrans.Status::Posted);
+        UnbindSubscription(ERMIntercompany);
+    end;
+
+    procedure EnableLegacyHandledICInboxEvent()
+    begin
+        UpdateLegacyHandledICInboxTrans := true;
+    end;
+#pragma warning restore AL0432
+#endif
+
+#if not CLEAN30
+    [Test]
+    [HandlerFunctions('YesConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure LegacyICAccountIndentInvokesOriginalEvent()
+    var
+        GLAccountIndent: Codeunit "G/L Account-Indent";
+        ERMIntercompany: Codeunit "ERM Intercompany";
+    begin
+        ERMIntercompany.EnableLegacyICEvents();
+        BindSubscription(ERMIntercompany);
+
+#pragma warning disable AL0432
+        asserterror GLAccountIndent.RunICAccountIndent();
+#pragma warning restore AL0432
+        Assert.ExpectedError(LegacyICIndentEventErr);
+        UnbindSubscription(ERMIntercompany);
+    end;
+
+    procedure EnableLegacyICEvents()
+    begin
+        VerifyLegacyICEvents := true;
+        LegacyICPostingEventCalls := 0;
+    end;
+
+    procedure VerifyLegacyICPostingEvents()
+    begin
+        Assert.AreEqual(2, LegacyICPostingEventCalls, 'The legacy posting event must run once for each journal line.');
+    end;
+#endif
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure WorkflowCustomerEntityICPartnerCode()
+    var
+        Customer: Record Customer;
+        CustomerWithoutPartner: Record Customer;
+        ICPartner: Record "IC Partner";
+        WorkflowCustomerEntity: TestPage "Workflow - Customer Entity";
+        NewICPartnerCode: Code[20];
+    begin
+        Initialize();
+        Customer.Get(CreateCustomer(Customer.Blocked::" ", CreateICPartner()));
+        LibrarySales.CreateCustomer(CustomerWithoutPartner);
+        NewICPartnerCode := CreateICPartner();
+
+        WorkflowCustomerEntity.OpenEdit();
+        WorkflowCustomerEntity.GoToRecord(Customer);
+        WorkflowCustomerEntity.icPartnerCode.AssertEquals(Customer."IC Partner Code");
+        WorkflowCustomerEntity.icPartnerCode.SetValue(NewICPartnerCode);
+        WorkflowCustomerEntity.GoToRecord(CustomerWithoutPartner);
+        WorkflowCustomerEntity.icPartnerCode.AssertEquals('');
+        WorkflowCustomerEntity.Close();
+
+        Customer.Get(Customer."No.");
+        Customer.TestField("IC Partner Code", NewICPartnerCode);
+        ICPartner.Get(NewICPartnerCode);
+        ICPartner.TestField("Customer No.", Customer."No.");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure WorkflowVendorEntityICPartnerCode()
+    var
+        Vendor: Record Vendor;
+        VendorWithoutPartner: Record Vendor;
+        ICPartner: Record "IC Partner";
+        WorkflowVendorEntity: TestPage "Workflow - Vendor Entity";
+        NewICPartnerCode: Code[20];
+    begin
+        Initialize();
+        Vendor.Get(CreateVendor(Vendor.Blocked::" ", CreateICPartner()));
+        LibraryPurchase.CreateVendor(VendorWithoutPartner);
+        NewICPartnerCode := CreateICPartner();
+
+        WorkflowVendorEntity.OpenEdit();
+        WorkflowVendorEntity.GoToRecord(Vendor);
+        WorkflowVendorEntity.icPartnerCode.AssertEquals(Vendor."IC Partner Code");
+        WorkflowVendorEntity.icPartnerCode.SetValue(NewICPartnerCode);
+        WorkflowVendorEntity.GoToRecord(VendorWithoutPartner);
+        WorkflowVendorEntity.icPartnerCode.AssertEquals('');
+        WorkflowVendorEntity.Close();
+
+        Vendor.Get(Vendor."No.");
+        Vendor.TestField("IC Partner Code", NewICPartnerCode);
+        ICPartner.Get(NewICPartnerCode);
+        ICPartner.TestField("Vendor No.", Vendor."No.");
+    end;
 
     [Test]
     [Scope('OnPrem')]
@@ -212,6 +439,9 @@ codeunit 134151 "ERM Intercompany"
         DocumentNo: Code[20];
         ICPartnerCode: Code[20];
         Amount: Decimal;
+#if not CLEAN30
+        ERMIntercompany: Codeunit "ERM Intercompany";
+#endif
     begin
         // Check values on the IC Outbox Transaction after posting of two General Journal Lines with Balance Account No. blank.
 
@@ -238,7 +468,15 @@ codeunit 134151 "ERM Intercompany"
         // Exercise: Post the General Journal Line.
         LibraryLowerPermissions.SetJournalsPost();
         LibraryLowerPermissions.AddIntercompanyPostingsEdit();
+#if not CLEAN30
+        ERMIntercompany.EnableLegacyICEvents();
+        BindSubscription(ERMIntercompany);
+#endif
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
+#if not CLEAN30
+        UnbindSubscription(ERMIntercompany);
+        ERMIntercompany.VerifyLegacyICPostingEvents();
+#endif
 
         // Verify: Verify Account and IC Partner GL Account Entries in IC Outbox Journal Line.
         VerifyICOutboxJournalLine(
@@ -2056,8 +2294,8 @@ codeunit 134151 "ERM Intercompany"
         ICGLAccountBegin: Record "IC G/L Account";
         ICGLAccountPosting: Record "IC G/L Account";
         ICGLAccountEnd: Record "IC G/L Account";
-        ICChartOfAccounts: TestPage "IC Chart of Accounts";
         ERMIntercompany: Codeunit "ERM Intercompany";
+        ICChartOfAccounts: TestPage "IC Chart of Accounts";
     begin
         // [SCENARIO] Synchronize IC G/L Accounts from IC Partner.
         Initialize();
@@ -2146,14 +2384,18 @@ codeunit 134151 "ERM Intercompany"
 
         // [THEN] The two G/L Account entries are not mapped.
         GLAccount.Reset();
+#pragma warning disable AA0210
         GLAccount.SetRange("Default IC Partner G/L Acc. No", ICGLAccountNo);
+#pragma warning restore AA0210
         Assert.IsTrue(GLAccount.IsEmpty(), StrSubstNo(UnexpectedEntryErr, GLAccount.FieldCaption("Default IC Partner G/L Acc. No"), ICGLAccountNo, GLAccount.TableCaption));
 
         // [GIVEN] Bind to the integration event to avoid checks on GLEntries
         BindSubscription(ERMIntercompany);
 
         // [WHEN] The G/L Account is deleted
+#pragma warning disable AA0210
         GLAccount.SetRange("Default IC Partner G/L Acc. No");
+#pragma warning restore AA0210
         GLAccount.SetRange("Account Type", "G/L Account Type"::Heading);
         GLAccount.FindFirst();
         GLAccount.Delete(true);
@@ -2174,8 +2416,8 @@ codeunit 134151 "ERM Intercompany"
         DimensionValue: Record "Dimension Value";
         ICDimension: Record "IC Dimension";
         ICDimensionValue: Record "IC Dimension Value";
-        ICDimensionsSelector: TestPage "IC Dimensions Selector";
         ERMIntercompany: Codeunit "ERM Intercompany";
+        ICDimensionsSelector: TestPage "IC Dimensions Selector";
         ICDimensionCode: Code[20];
         InitialICDimensionsNumber: Integer;
         FinalICDimensionsNumber: Integer;
@@ -2273,14 +2515,18 @@ codeunit 134151 "ERM Intercompany"
 
         // [THEN] The two Dimension entries are not mapped.
         Dimension.Reset();
+#pragma warning disable AA0210
         Dimension.SetRange("Map-to IC Dimension Code", ICDimensionCode);
+#pragma warning restore AA0210
         Assert.IsTrue(Dimension.IsEmpty(), StrSubstNo(UnexpectedEntryErr, Dimension.FieldCaption("Map-to IC Dimension Code"), ICDimensionCode, Dimension.TableCaption));
 
         // [GIVEN] Bind to the integration event to avoid unnnecesary checks.
         BindSubscription(ERMIntercompany);
 
         // [WHEN] The Dimension is deleted
+#pragma warning disable AA0210
         Dimension.SetRange("Map-to IC Dimension Code");
+#pragma warning restore AA0210
         Dimension.SetRange("Code", DimensionCode);
         Dimension.FindFirst();
         Dimension.Delete(true);
@@ -2372,8 +2618,8 @@ codeunit 134151 "ERM Intercompany"
 
     local procedure Initialize()
     var
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         ICSetup: Record "IC Setup";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Intercompany");
         if not ICSetup.Get() then begin
@@ -2980,6 +3226,48 @@ codeunit 134151 "ERM Intercompany"
     begin
 
     end;
+
+#if not CLEAN30 and not CLEANSCHEMA30
+#pragma warning disable AL0432
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnCheckICDimValueAllowed', '', false, false)]
+    local procedure OnCheckICDimValueAllowed(ICDimVal: Record "IC Dimension Value"; var DimValueAllowed: Boolean)
+    begin
+        if RejectLegacyICDimensionValue then
+            DimValueAllowed := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Batch", 'OnProcessICLinesOnBeforeHandledICInboxTransModify', '', false, false)]
+    local procedure OnProcessICLinesOnBeforeHandledICInboxTransModify(var HandledICInboxTrans: Record "Handled IC Inbox Trans."; GenJournalLine: Record "Gen. Journal Line")
+    begin
+        if UpdateLegacyHandledICInboxTrans then
+            HandledICInboxTrans.Status := HandledICInboxTrans.Status::Posted;
+    end;
+#pragma warning restore AL0432
+#endif
+
+#if not CLEAN30
+#pragma warning disable AL0432
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"G/L Account-Indent", 'OnBeforeIndentICAccount', '', false, false)]
+    local procedure OnBeforeIndentICAccount(var GLAcc: Record "G/L Account"; var IsHandled: Boolean)
+    begin
+        if VerifyLegacyICEvents then
+            Error(LegacyICIndentEventErr);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Batch", 'OnProcessLinesOnAfterPostGenJournalLine', '', false, false)]
+    local procedure OnProcessLinesOnAfterPostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer; var LastTaxLineNo: Integer)
+    var
+        ICGenJnlPostBatch: Codeunit "IC Gen. Jnl.-Post Batch";
+    begin
+        if not VerifyLegacyICEvents then
+            exit;
+        Assert.AreEqual(ICGenJnlPostBatch.GetICPartnerCode(), CurrentICPartner, 'The legacy event must receive the current IC partner.');
+        Assert.AreEqual(ICGenJnlPostBatch.GetICTransactionNo(), ICTransactionNo, 'The legacy event must receive the current IC transaction.');
+        Assert.IsTrue(ICTransactionNo > 0, 'The legacy posting event must receive a populated IC transaction.');
+        LegacyICPostingEventCalls += 1;
+    end;
+#pragma warning restore AL0432
+#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"IC Mapping", 'OnAllowChangeCompanyForTempICAccounts', '', false, false)]
     local procedure OnAllowChangeCompanyForICAccounts(var IsChangeCompanyAllowed: Boolean; var TempPartnersICAccounts: Record "IC G/L Account" temporary)

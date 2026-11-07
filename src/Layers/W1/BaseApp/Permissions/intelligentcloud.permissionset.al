@@ -107,14 +107,6 @@ using Microsoft.Integration.Entity;
 using Microsoft.Integration.Graph;
 using Microsoft.Integration.PowerBI;
 using Microsoft.Integration.SyncEngine;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.Comment;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Inbox;
-using Microsoft.Intercompany.Outbox;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
@@ -826,44 +818,11 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "Generic Chart Y-Axis" = R,
                   tabledata Geolocation = R,
                   tabledata "Grounds for Termination" = R,
-                  tabledata "Handled IC Inbox Jnl. Line" = R,
-                  tabledata "Handled IC Inbox Purch. Header" = R,
-                  tabledata "Handled IC Inbox Purch. Line" = R,
-                  tabledata "Handled IC Inbox Sales Header" = R,
-                  tabledata "Handled IC Inbox Sales Line" = R,
-                  tabledata "Handled IC Inbox Trans." = R,
-                  tabledata "Handled IC Outbox Jnl. Line" = R,
-                  tabledata "Handled IC Outbox Purch. Hdr" = R,
-                  tabledata "Handled IC Outbox Purch. Line" = R,
-                  tabledata "Handled IC Outbox Sales Header" = R,
-                  tabledata "Handled IC Outbox Sales Line" = R,
-                  tabledata "Handled IC Outbox Trans." = R,
                   tabledata "HR Confidential Comment Line" = R,
                   tabledata "Human Resource Comment Line" = R,
                   tabledata "Human Resource Unit of Measure" = R,
                   tabledata "Human Resources Setup" = R,
                   tabledata "Hybrid Deployment Setup" = R,
-                  tabledata "IC Bank Account" = R,
-                  tabledata "IC Comment Line" = R,
-                  tabledata "IC Dimension" = R,
-                  tabledata "IC Dimension Value" = R,
-                  tabledata "IC Document Dimension" = R,
-                  tabledata "IC G/L Account" = R,
-                  tabledata "IC Inbox Jnl. Line" = R,
-                  tabledata "IC Inbox Purchase Header" = R,
-                  tabledata "IC Inbox Purchase Line" = R,
-                  tabledata "IC Inbox Sales Header" = R,
-                  tabledata "IC Inbox Sales Line" = R,
-                  tabledata "IC Inbox Transaction" = R,
-                  tabledata "IC Inbox/Outbox Jnl. Line Dim." = R,
-                  tabledata "IC Outbox Jnl. Line" = R,
-                  tabledata "IC Outbox Purchase Header" = R,
-                  tabledata "IC Outbox Purchase Line" = R,
-                  tabledata "IC Outbox Sales Header" = R,
-                  tabledata "IC Outbox Sales Line" = R,
-                  tabledata "IC Outbox Transaction" = R,
-                  tabledata "IC Partner" = R,
-                  tabledata "IC Setup" = R,
                   tabledata "Image Analysis Setup" = R,
                   tabledata "Image Analysis Scenario" = R,
                   tabledata "Import G/L Transaction" = R,
