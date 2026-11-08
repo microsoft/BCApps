@@ -431,10 +431,10 @@ codeunit 12184 "Fattura Doc. Helper"
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(Address), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
         if (Customer."Country/Region Code" = CompanyInformation."Country/Region Code") and
-           (Customer."Post Code" <> '') and
-           not IsValidFatturaPACAP(Customer."Post Code")
+           (Customer."Post Code" <> '')
         then
-            ErrorMessage.LogMessage(Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error, InvalidCAPErr);
+            if not IsValidFatturaPACAP(Customer."Post Code") then
+                ErrorMessage.LogMessage(Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error, InvalidCAPErr);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(City), ErrorMessage."Message Type"::Error);
         if Customer."Individual Person" then begin
             ErrorMessage.LogIfEmpty(
@@ -483,8 +483,9 @@ codeunit 12184 "Fattura Doc. Helper"
           CompanyInformation, CompanyInformation.FieldNo("Company Type"), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo(Address), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
-        if (CompanyInformation."Post Code" <> '') and not IsValidFatturaPACAP(CompanyInformation."Post Code") then
-            ErrorMessage.LogMessage(CompanyInformation, CompanyInformation.FieldNo("Post Code"), ErrorMessage."Message Type"::Error, InvalidCAPErr);
+        if CompanyInformation."Post Code" <> '' then
+            if not IsValidFatturaPACAP(CompanyInformation."Post Code") then
+                ErrorMessage.LogMessage(CompanyInformation, CompanyInformation.FieldNo("Post Code"), ErrorMessage."Message Type"::Error, InvalidCAPErr);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo(City), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo("REA No."), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(
@@ -493,7 +494,10 @@ codeunit 12184 "Fattura Doc. Helper"
 
     local procedure IsValidFatturaPACAP(PostCode: Code[20]): Boolean
     begin
-        exit((StrLen(PostCode) = 5) and (DelChr(PostCode, '=', '0123456789') = ''));
+        if StrLen(PostCode) <> 5 then
+            exit(false);
+
+        exit(DelChr(PostCode, '=', '0123456789') = '');
     end;
 
     local procedure CheckFatturaPANos(var ErrorMessage: Record "Error Message")

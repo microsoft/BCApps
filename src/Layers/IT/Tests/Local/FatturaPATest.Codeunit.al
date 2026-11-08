@@ -1314,6 +1314,8 @@ codeunit 144200 "FatturaPA Test"
         // [WHEN] The document is exported to FatturaPA
         asserterror ElectronicDocumentFormat.SendElectronically(
           TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] Export reports the invalid CAP and aborts through the error-message dialog
         // Error Message.ShowErrorMessages(true) deliberately rolls back with Error('').
         // The page handler separately verifies the exact invalid-CAP diagnostic.
         Assert.ExpectedError('');
@@ -1350,9 +1352,10 @@ codeunit 144200 "FatturaPA Test"
         CompanyInformation.Modify();
 
         // [WHEN] The document is exported to FatturaPA
-        // [THEN] The existing error-message handler verifies the CAP validation error
         asserterror ElectronicDocumentFormat.SendElectronically(
           TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] Export reports the invalid CAP and aborts through the error-message dialog
         // Error Message.ShowErrorMessages(true) deliberately rolls back with Error('').
         // The page handler separately verifies the exact invalid-CAP diagnostic.
         Assert.ExpectedError('');
