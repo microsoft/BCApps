@@ -169,6 +169,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "Get Response Runner" = X,
         codeunit "Http Message State" = X,
         codeunit "Import E-Document Process" = X,
+        codeunit "E-Doc. Purchase Draft Writer" = X,
         codeunit "Integration Action Status" = X,
         codeunit "Mark Fetched" = X,
         codeunit "Prepare Purchase E-Doc. Draft" = X,
