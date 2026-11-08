@@ -1372,6 +1372,8 @@ codeunit 144200 "FatturaPA Test"
     begin
         // [SCENARIO] A missing domestic customer CAP should not also log a format error.
         Initialize();
+
+        // [GIVEN] A domestic customer with a blank Post Code on a sales invoice
         CompanyInformation.Get();
         Customer.Get(CreateCustomer());
         Customer."Country/Region Code" := CompanyInformation."Country/Region Code";
@@ -1382,8 +1384,10 @@ codeunit 144200 "FatturaPA Test"
         SalesInvoiceHeader."Bill-to Customer No." := Customer."No.";
         HeaderRecRef.GetTable(SalesInvoiceHeader);
 
+        // [WHEN] Mandatory FatturaPA fields are validated
         FatturaDocHelper.CheckMandatoryFields(HeaderRecRef, TempErrorMessage);
 
+        // [THEN] Only the required-field error is logged for the customer's Post Code
         TempErrorMessage.SetRange("Record ID", Customer.RecordId());
         TempErrorMessage.SetRange("Field Number", Customer.FieldNo("Post Code"));
         TempErrorMessage.SetRange("Message Type", TempErrorMessage."Message Type"::Error);
@@ -1408,6 +1412,8 @@ codeunit 144200 "FatturaPA Test"
     begin
         // [SCENARIO] A missing company CAP should not also log a format error.
         Initialize();
+
+        // [GIVEN] Company Information has a blank Post Code
         Customer.Get(CreateCustomer());
         CompanyInformation.Get();
         CompanyInformation."Post Code" := '';
@@ -1417,8 +1423,10 @@ codeunit 144200 "FatturaPA Test"
         SalesInvoiceHeader."Bill-to Customer No." := Customer."No.";
         HeaderRecRef.GetTable(SalesInvoiceHeader);
 
+        // [WHEN] Mandatory FatturaPA fields are validated
         FatturaDocHelper.CheckMandatoryFields(HeaderRecRef, TempErrorMessage);
 
+        // [THEN] Only the required-field error is logged for the company's Post Code
         TempErrorMessage.SetRange("Record ID", CompanyInformation.RecordId());
         TempErrorMessage.SetRange("Field Number", CompanyInformation.FieldNo("Post Code"));
         TempErrorMessage.SetRange("Message Type", TempErrorMessage."Message Type"::Error);
