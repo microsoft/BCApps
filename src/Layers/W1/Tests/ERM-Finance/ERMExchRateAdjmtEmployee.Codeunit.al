@@ -47,6 +47,7 @@ codeunit 134884 "ERM Exch. Rate Adjmt. Employee"
     local procedure AdjustExchRateForEmployee(ExchRateAmount: Decimal; EntryType: Enum "Detailed CV Ledger Entry Type")
     var
         GenJournalLine: Record "Gen. Journal Line";
+        Currency: Record Currency;
         CurrencyExchangeRate: Record "Currency Exchange Rate";
         Amount: Decimal;
     begin
@@ -64,6 +65,11 @@ codeunit 134884 "ERM Exch. Rate Adjmt. Employee"
         // Verify: Verify Detailed Ledger Entry for Unrealized Loss/Gain entry.
         VerifyDetailedEmployeeEntry(GenJournalLine."Document No.", GenJournalLine."Currency Code", -Amount, EntryType);
         VerifyExchRateAdjmtLedgEntry("Exch. Rate Adjmt. Account Type"::Employee, GenJournalLine."Account No.");
+        Currency.Get(GenJournalLine."Currency Code");
+        if EntryType = "Detailed CV Ledger Entry Type"::"Unrealized Gain" then
+            VerifyGLEntryForDocument(GenJournalLine."Document No.", Currency."Unrealized Gains Acc.", Round(Amount))
+        else
+            VerifyGLEntryForDocument(GenJournalLine."Document No.", Currency."Unrealized Losses Acc.", Round(Amount));
     end;
 
     [Test]
