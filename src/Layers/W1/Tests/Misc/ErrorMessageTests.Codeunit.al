@@ -1445,6 +1445,32 @@ codeunit 135000 "Error Message Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure LogTestFieldOptionLogsCaption()
+    var
+        DummySalesHeader: Record "Sales Header";
+        TempErrorMessage: Record "Error Message" temporary;
+        ErrorMessageMgt: Codeunit "Error Message Management";
+        ErrorMessageHandler: Codeunit "Error Message Handler";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 10082] LogTestField names the expected value of a plain Option field
+        Initialize();
+
+        // [GIVEN] Error collection is active and Sales Header "Invoice Discount Calculation" (an Option field) is None
+        ErrorMessageMgt.Activate(ErrorMessageHandler);
+        DummySalesHeader."Invoice Discount Calculation" := DummySalesHeader."Invoice Discount Calculation"::None;
+
+        // [WHEN] LogTestField expects Amount
+        ErrorMessageMgt.LogTestField(DummySalesHeader, DummySalesHeader.FieldNo("Invoice Discount Calculation"), DummySalesHeader."Invoice Discount Calculation"::Amount);
+
+        // [THEN] The logged message names Amount
+        ErrorMessageHandler.AppendTo(TempErrorMessage);
+        TempErrorMessage.FindFirst();
+        Assert.ExpectedMessage(Format(DummySalesHeader."Invoice Discount Calculation"::Amount), TempErrorMessage.Message);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure LogFieldErrorCheckContextFieldNo()
     var
         DummySalesHeader: Record "Sales Header";
