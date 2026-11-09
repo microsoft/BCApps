@@ -22,6 +22,7 @@ using Microsoft.Warehouse.InternalDocument;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
+using Microsoft.Warehouse.Worksheet;
 using System.TestLibraries.Utilities;
 
 codeunit 137298 "SCM Prod. Whse. Handling"
