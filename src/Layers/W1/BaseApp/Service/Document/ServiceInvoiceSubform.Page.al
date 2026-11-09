@@ -624,7 +624,7 @@ page 5934 "Service Invoice Subform"
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        Rec.Type := xRec.Type;
+        Rec.InitType();
         Clear(ShortcutDimCode);
     end;
 
