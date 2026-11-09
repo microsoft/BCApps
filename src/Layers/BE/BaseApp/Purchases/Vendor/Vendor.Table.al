@@ -37,6 +37,7 @@ using Microsoft.Inventory;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
@@ -2244,7 +2245,74 @@ table 23 Vendor
 
         exit(
           "Balance (LCY)" + "Outstanding Orders (LCY)" +
-          "Amt. Rcd. Not Invoiced (LCY)" + "Outstanding Invoices (LCY)" - GetInvoicedPrepmtAmountLCY());
+          "Amt. Rcd. Not Invoiced (LCY)" + "Outstanding Invoices (LCY)" - GetInvoicedPrepmtAmountLCY() - GetMatchedOrderAmountLCY());
+    end;
+
+    /// <summary>
+    /// Gets the order amount in LCY already represented by matched purchase invoices within the vendor's flowfilters.
+    /// </summary>
+    internal procedure GetMatchedOrderAmountLCY() MatchedOrderAmountLCY: Decimal
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        PurchaseLineOrder: Record "Purchase Line";
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        PurchaseLineInvoice: Record "Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
+        MatchedReceiptLine: Record "Matched Order Line";
+        EmptyGuid: Guid;
+        RemainingQuantityBase: Decimal;
+        MatchedQuantityBase: Decimal;
+        QuantityBase: Decimal;
+    begin
+        PurchaseLineOrder.SetCurrentKey("Document Type", "Pay-to Vendor No.");
+        PurchaseLineOrder.SetRange("Document Type", PurchaseLineOrder."Document Type"::Order);
+        PurchaseLineOrder.SetRange("Pay-to Vendor No.", "No.");
+        CopyFilter("Global Dimension 1 Filter", PurchaseLineOrder."Shortcut Dimension 1 Code");
+        CopyFilter("Global Dimension 2 Filter", PurchaseLineOrder."Shortcut Dimension 2 Code");
+        CopyFilter("Currency Filter", PurchaseLineOrder."Currency Code");
+        PurchaseLineInvoice.CopyFilters(PurchaseLineOrder);
+        PurchaseLineInvoice.SetRange("Document Type", PurchaseLineInvoice."Document Type"::Invoice);
+
+        MatchedOrderLine.SetCurrentKey("Matched Order Line SystemId");
+        MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", EmptyGuid);
+        if PurchaseLineOrder.FindSet() then begin
+            GeneralLedgerSetup.Get();
+            repeat
+                RemainingQuantityBase := PurchaseLineOrder."Outstanding Qty. (Base)" + PurchaseLineOrder."Qty. Rcd. Not Invoiced (Base)";
+                if RemainingQuantityBase <> 0 then begin
+                    MatchedQuantityBase := 0;
+                    MatchedOrderLine.SetRange("Matched Order Line SystemId", PurchaseLineOrder.SystemId);
+                    if MatchedOrderLine.FindSet() then
+                        repeat
+                            PurchaseLineInvoice.SetRange(SystemId, MatchedOrderLine."Document Line SystemId");
+                            if not PurchaseLineInvoice.IsEmpty() then begin
+                                QuantityBase := MatchedOrderLine."Qty. to Invoice (Base)";
+                                if not MatchedOrderLine."Receipt on Invoice" then begin
+                                    // Receipt matches carry the current allocation; the order-level match also exists.
+                                    MatchedReceiptLine.SetRange("Document Line SystemId", MatchedOrderLine."Document Line SystemId");
+                                    MatchedReceiptLine.SetRange("Matched Order Line SystemId", PurchaseLineOrder.SystemId);
+                                    MatchedReceiptLine.SetFilter("Matched Rcpt./Shpt. Line SysId", '<>%1', EmptyGuid);
+                                    if not MatchedReceiptLine.IsEmpty() then begin
+                                        MatchedReceiptLine.CalcSums("Qty. to Invoice (Base)");
+                                        QuantityBase := MatchedReceiptLine."Qty. to Invoice (Base)";
+                                    end;
+                                end;
+                                MatchedQuantityBase += QuantityBase;
+                            end;
+                        until MatchedOrderLine.Next() = 0;
+
+                    if (MatchedQuantityBase <> 0) and ((MatchedQuantityBase > 0) = (RemainingQuantityBase > 0)) then begin
+                        if Abs(MatchedQuantityBase) > Abs(RemainingQuantityBase) then
+                            MatchedQuantityBase := RemainingQuantityBase;
+                        MatchedOrderAmountLCY +=
+                            Round(
+                                (PurchaseLineOrder."Outstanding Amount (LCY)" + PurchaseLineOrder."Amt. Rcd. Not Invoiced (LCY)") *
+                                MatchedQuantityBase / RemainingQuantityBase, GeneralLedgerSetup."Amount Rounding Precision");
+                    end;
+                end;
+            until PurchaseLineOrder.Next() = 0;
+        end;
     end;
 
     procedure HasAddress() Result: Boolean
