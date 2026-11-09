@@ -479,7 +479,7 @@ codeunit 134282 "Non-Deductible UT"
         VATAmountACY: Decimal;
         VATBaseACY: Decimal;
     begin
-        // [SCENARIO 657371] Automatic journal VAT entries still calculate non-deductible VAT.
+        // [SCENARIO 658351] Automatic journal VAT entries still calculate non-deductible VAT.
         Initialize();
         GenJournalLine."Document Type" := GenJournalLine."Document Type"::Invoice;
         GenJournalLine."VAT Calculation Type" := GenJournalLine."VAT Calculation Type"::"Normal VAT";

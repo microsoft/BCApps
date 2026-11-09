@@ -720,7 +720,7 @@ codeunit 134287 "Non-Deductible VAT Statistics"
     var
         PurchaseDocumentType: Enum "Purchase Document Type";
     begin
-        // [SCENARIO 657371] Splitting invoice posting lines does not change the non-deductible VAT total.
+        // [SCENARIO 658351] Splitting invoice posting lines does not change the non-deductible VAT total.
         VerifySplitNonDeductibleVATPosting(PurchaseDocumentType::Invoice, false);
     end;
 
@@ -730,7 +730,7 @@ codeunit 134287 "Non-Deductible VAT Statistics"
     var
         PurchaseDocumentType: Enum "Purchase Document Type";
     begin
-        // [SCENARIO 657371] An invoice with prices including VAT retains its allocated non-deductible VAT.
+        // [SCENARIO 658351] An invoice with prices including VAT retains its allocated non-deductible VAT.
         VerifySplitNonDeductibleVATPosting(PurchaseDocumentType::Invoice, true);
     end;
 
@@ -740,7 +740,7 @@ codeunit 134287 "Non-Deductible VAT Statistics"
     var
         PurchaseDocumentType: Enum "Purchase Document Type";
     begin
-        // [SCENARIO 657371] Credit memo posting continues to retain the allocated non-deductible VAT.
+        // [SCENARIO 658351] Credit memo posting continues to retain the allocated non-deductible VAT.
         VerifySplitNonDeductibleVATPosting(PurchaseDocumentType::"Credit Memo", false);
     end;
 
