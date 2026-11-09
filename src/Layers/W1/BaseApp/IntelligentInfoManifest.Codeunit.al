@@ -29,6 +29,13 @@ codeunit 1642 "Intelligent Info Manifest"
         AddinDescriptionTxt: Label 'Provides customer and vendor information directly within Outlook messages.';
         AppIdTxt: Label 'cfca30bd-9846-4819-a6fc-56c89c5aae96', Locked = true;
         BrandingFolderTxt: Label 'ProjectMadeira/', Locked = true;
+        ManifestSubscriberStartedTelemetryTxt: Label 'Intelligent Info Manifest subscriber entered. HostType="%1"; HostTypeLength=%2; InputCodeunit=%3.', Locked = true;
+        ManifestSubscriberCompletedTelemetryTxt: Label 'Intelligent Info Manifest subscriber completed. HostType="%1"; OutputCodeunit=%2; EffectiveItemRead="%3"; EffectiveItemEdit="%4"; EffectiveTaskPane="%5"; EffectiveMobileApp="%6"; EffectivePopOut="%7".', Locked = true;
+        OutlookItemReadHostTypeTxt: Label 'Outlook-ItemRead', Locked = true;
+        OutlookItemEditHostTypeTxt: Label 'Outlook-ItemEdit', Locked = true;
+        OutlookTaskPaneHostTypeTxt: Label 'Outlook-TaskPane', Locked = true;
+        OutlookMobileAppHostTypeTxt: Label 'Outlook-MobileApp', Locked = true;
+        OutlookPopOutHostTypeTxt: Label 'Outlook-PopOut', Locked = true;
 
     local procedure GetManifestVersion(): Text
     begin
@@ -244,9 +251,25 @@ codeunit 1642 "Intelligent Info Manifest"
     local procedure OnGetCodeunitID(var CodeunitID: Integer; HostType: Text)
     var
         OfficeHostType: DotNet OfficeHostType;
+        ItemReadHostType: Text;
+        ItemEditHostType: Text;
+        TaskPaneHostType: Text;
+        MobileAppHostType: Text;
+        PopOutHostType: Text;
     begin
-        if HostType in [OfficeHostType.OutlookItemRead, OfficeHostType.OutlookItemEdit, OfficeHostType.OutlookTaskPane, OfficeHostType.OutlookMobileApp, OfficeHostType.OutlookPopOut] then
+        Session.LogMessage('OfficeManifestIntelligentStarted', StrSubstNo(ManifestSubscriberStartedTelemetryTxt, HostType, StrLen(HostType), CodeunitID),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
+        // Compare and log the same getter results rather than reading them again after resolution.
+        ItemReadHostType := AddinManifestManagement.GetOfficeHostTypeOrDefault(OfficeHostType.OutlookItemRead, OutlookItemReadHostTypeTxt);
+        ItemEditHostType := AddinManifestManagement.GetOfficeHostTypeOrDefault(OfficeHostType.OutlookItemEdit, OutlookItemEditHostTypeTxt);
+        TaskPaneHostType := AddinManifestManagement.GetOfficeHostTypeOrDefault(OfficeHostType.OutlookTaskPane, OutlookTaskPaneHostTypeTxt);
+        MobileAppHostType := AddinManifestManagement.GetOfficeHostTypeOrDefault(OfficeHostType.OutlookMobileApp, OutlookMobileAppHostTypeTxt);
+        PopOutHostType := AddinManifestManagement.GetOfficeHostTypeOrDefault(OfficeHostType.OutlookPopOut, OutlookPopOutHostTypeTxt);
+        if HostType in [ItemReadHostType, ItemEditHostType, TaskPaneHostType, MobileAppHostType, PopOutHostType] then
             CodeunitID := CODEUNIT::"Intelligent Info Manifest";
+        Session.LogMessage('OfficeManifestIntelligentCompleted',
+            StrSubstNo(ManifestSubscriberCompletedTelemetryTxt, HostType, CodeunitID, ItemReadHostType, ItemEditHostType, TaskPaneHostType, MobileAppHostType, PopOutHostType),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
     end;
 
     local procedure CanHandle(CodeunitID: Integer): Boolean
@@ -1628,4 +1651,3 @@ codeunit 1642 "Intelligent Info Manifest"
               '                    </Item>';
     end;
 }
-

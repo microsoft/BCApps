@@ -31,6 +31,9 @@ codeunit 1643 "Hyperlink Manifest"
         AddinDescriptionTxt: Label 'Provides a link directly to business documents in %1.', Comment = '%1 - Application Name';
         AppIdTxt: Label 'cf6f2e6a-5f76-4a17-b966-2ed9d0b3e88a', Locked = true;
         PurchaseOrderAcronymTxt: Label 'PO', Comment = 'US acronym for Purchase Order';
+        ManifestSubscriberStartedTelemetryTxt: Label 'Hyperlink Manifest subscriber entered. HostType="%1"; HostTypeLength=%2; InputCodeunit=%3.', Locked = true;
+        ManifestSubscriberCompletedTelemetryTxt: Label 'Hyperlink Manifest subscriber completed. HostType="%1"; OutputCodeunit=%2; EffectiveHyperlink="%3".', Locked = true;
+        OutlookHyperlinkHostTypeTxt: Label 'Outlook-Hyperlink', Locked = true;
 
     [Scope('OnPrem')]
     procedure SetHyperlinkAddinTriggers(var ManifestText: Text)
@@ -370,9 +373,15 @@ codeunit 1643 "Hyperlink Manifest"
     local procedure OnGetCodeunitID(var CodeunitID: Integer; HostType: Text)
     var
         OfficeHostType: DotNet OfficeHostType;
+        HyperlinkHostType: Text;
     begin
-        if HostType in [OfficeHostType.OutlookHyperlink] then
+        Session.LogMessage('OfficeManifestHyperlinkStarted', StrSubstNo(ManifestSubscriberStartedTelemetryTxt, HostType, StrLen(HostType), CodeunitID),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
+        HyperlinkHostType := AddInManifestManagement.GetOfficeHostTypeOrDefault(OfficeHostType.OutlookHyperlink, OutlookHyperlinkHostTypeTxt);
+        if HostType in [HyperlinkHostType] then
             CodeunitID := CODEUNIT::"Hyperlink Manifest";
+        Session.LogMessage('OfficeManifestHyperlinkCompleted', StrSubstNo(ManifestSubscriberCompletedTelemetryTxt, HostType, CodeunitID, HyperlinkHostType),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
     end;
 
     local procedure CanHandle(CodeunitID: Integer): Boolean
@@ -490,4 +499,3 @@ codeunit 1643 "Hyperlink Manifest"
           '</OfficeApp>';
     end;
 }
-
