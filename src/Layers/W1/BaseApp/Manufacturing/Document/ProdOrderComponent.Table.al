@@ -1153,9 +1153,7 @@ table 5407 "Prod. Order Component"
     procedure IsEligibleForWarehousePick(): Boolean
     var
         ProdOrderLine: Record "Prod. Order Line";
-        SuppliedComponent: Record "Prod. Order Component";
         OutputLocation: Record Location;
-        PickedQtyBase: Decimal;
     begin
         if "Planning Level Code" = 0 then
             exit(true);
@@ -1175,18 +1173,8 @@ table 5407 "Prod. Order Component"
         if OutputLocation."Prod. Output Whse. Handling" <> OutputLocation."Prod. Output Whse. Handling"::"Warehouse Put-away" then
             exit(false);
 
-        // One supplied line can serve multiple components; do not reuse output already assigned to their picks.
-        SuppliedComponent.SetCurrentKey("Supplied-by Line No.");
-        SuppliedComponent.SetRange(Status, Status);
-        SuppliedComponent.SetRange("Prod. Order No.", "Prod. Order No.");
-        SuppliedComponent.SetRange("Supplied-by Line No.", "Supplied-by Line No.");
-        SuppliedComponent.SetAutoCalcFields("Pick Qty. (Base)");
-        if SuppliedComponent.FindSet() then
-            repeat
-                PickedQtyBase += SuppliedComponent."Qty. Picked (Base)" + SuppliedComponent."Pick Qty. (Base)";
-            until SuppliedComponent.Next() = 0;
-
-        exit(ProdOrderLine."Qty. Put Away (Base)" > PickedQtyBase);
+        // The warehouse pick engine allocates quantities and excludes outstanding put-away takes.
+        exit(true);
     end;
 
     procedure ProdOrderNeeds(): Decimal
