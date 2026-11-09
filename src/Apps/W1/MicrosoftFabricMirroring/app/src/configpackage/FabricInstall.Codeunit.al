@@ -270,6 +270,11 @@ codeunit 48522 "Fabric Install"
         PackageCode: Code[20];
         RequiredTableCount: Integer;
     begin
+        if not LegacyPackage.Active then begin
+            LegacyPackage.Delete(true);
+            exit;
+        end;
+
         TenantFabricTables.LockTable();
         foreach PackageCode in PackageCodes do begin
             PackageLine.SetRange("Package Code", PackageCode);
