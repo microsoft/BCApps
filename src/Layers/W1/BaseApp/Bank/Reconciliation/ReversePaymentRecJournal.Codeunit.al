@@ -451,12 +451,14 @@ codeunit 386 "Reverse Payment Rec. Journal"
         StatementLineNo: Integer;
     begin
         BankAccountLedgerEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        BankAccountLedgerEntry.SetFilter("G/L Register No.", '0|%1', GLRegister."No.");
         if BankAccountLedgerEntry.FindSet() then
             repeat
                 InsertBankPaymentRecRelatedEntry(BankAccountLedgerEntry, PostedPaymentReconHdr."Statement No.", -1);
             until BankAccountLedgerEntry.Next() = 0;
 
         CustLedgerEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        CustLedgerEntry.SetFilter("G/L Register No.", '0|%1', GLRegister."No.");
         if CustLedgerEntry.FindSet() then
             repeat
                 StatementLineNo += 10000;
@@ -464,6 +466,7 @@ codeunit 386 "Reverse Payment Rec. Journal"
             until CustLedgerEntry.Next() = 0;
 
         VendorLedgerEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        VendorLedgerEntry.SetFilter("G/L Register No.", '0|%1', GLRegister."No.");
         if VendorLedgerEntry.FindSet() then
             repeat
                 StatementLineNo += 10000;
@@ -471,6 +474,7 @@ codeunit 386 "Reverse Payment Rec. Journal"
             until VendorLedgerEntry.Next() = 0;
 
         EmployeeLedgerEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        EmployeeLedgerEntry.SetFilter("G/L Register No.", '0|%1', GLRegister."No.");
         if EmployeeLedgerEntry.FindSet() then
             repeat
                 StatementLineNo += 10000;
