@@ -122,7 +122,7 @@ page 740 "VAT Report"
                 field("Total Number of Supplies"; Rec."Total Number of Supplies")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of G/L transactions that make up the Total Amount.';
+                    ToolTip = 'Specifies the number of lines included in this report, that make up the total base amount.';
                 }
             }
             group(Company)
