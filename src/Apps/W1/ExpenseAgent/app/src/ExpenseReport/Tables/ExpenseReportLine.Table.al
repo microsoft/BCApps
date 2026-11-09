@@ -1457,7 +1457,7 @@ table 6907 "Expense Report Line"
 
     internal procedure InvalidatePolicyEvaluationOnSave()
     begin
-        // Defer child invalidation until the caller saves this buffer to avoid a competing parent write.
+        // Defer the policy version bump to the parent line's OnInsert/OnModify to avoid a separate parent write while regenerating per-diem lines.
         PolicyInvalidationPending := true;
     end;
 
