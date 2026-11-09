@@ -992,7 +992,7 @@ Describe 'Application API compatibility prototype' {
                     }
                 )
                 $comment = @{ Name = 'Comment'; Kind = 8; TypeDefinition = @{ Name = 'Text[250]' } }
-                $anchor = @{ Name = 'Job Queue Status'; Kind = 8; TypeDefinition = @{ Name = 'Integer' } }
+                $anchor = @{ Id = 1030519064; Name = 'Job Queue Status'; Kind = 8; TypeDefinition = @{ Name = 'Integer' } }
                 $last = @{ Name = 'ICAccountType'; Kind = 8; TypeDefinition = @{ Name = 'Integer' } }
                 $page.Controls = @(@{ Name = 'Content'; Kind = 0; Controls = @(
                     @{ Name = 'General'; Kind = 3; Controls = @($comment) + $relocatedFields + @($anchor, $last) }
@@ -1031,6 +1031,19 @@ Describe 'Application API compatibility prototype' {
                 $state.AcceptedMoves[0].Baseline.ContractHash | Should -Not -Be $state.AcceptedMoves[0].Current.ContractHash
             }
 
+            It 'accepts regenerated compiler IDs for fields relocated from a moved page' {
+                $relocatedFields[0].Id = 246806039
+                $relocatedFields[1].Id = 784654131
+                Write-ApiDestination -ExtraCollections @{ PageExtensions = $script:relocationExtensions }
+                $gate = New-ApiGateLayout
+                Complete-ApplicationApiValidation -CompilationParameters $gate.Parameters -AppFiles $gate.Compiled
+                $state = Get-Content -LiteralPath (Join-Path $gate.Root 'state.json') -Raw | ConvertFrom-Json
+                $state.Status | Should -Be 'Passed'
+                foreach ($field in $relocatedFields) {
+                    $state.AcceptedMoves[0].CompatibleChanges | Should -Contain "Regenerated compiler IDs for relocated page member '$($field.Name)'."
+                }
+            }
+
             It 'does not use relocated fields to hide <Failure>' -TestCases @(
                 @{ Failure = 'changed field metadata' },
                 @{ Failure = 'a missing field' },
@@ -1045,9 +1058,13 @@ Describe 'Application API compatibility prototype' {
                 @{ Failure = 'an unsupported placement operation' },
                 @{ Failure = 'a changed existing method' },
                 @{ Failure = 'a changed remaining control' },
+                @{ Failure = 'a changed remaining control ID' },
+                @{ Failure = 'an invalid relocated compiler ID' },
                 @{ Failure = 'an ambiguous anchor' }
             ) {
                 param($Failure)
+                $relocatedFields[0].Id = 246806039
+                $relocatedFields[1].Id = 784654131
                 $hidden = $null
                 switch ($Failure) {
                     'changed field metadata' { $relocatedFields[0].TypeDefinition.Name = 'Integer' }
@@ -1083,6 +1100,8 @@ Describe 'Application API compatibility prototype' {
                     'an unsupported placement operation' { $relocationExtension.ControlChanges[0].ChangeKind = 4 }
                     'a changed existing method' { $page.Methods[0].Parameters[0].TypeDefinition.Name = 'Integer' }
                     'a changed remaining control' { $anchor.TypeDefinition.Name = 'Text' }
+                    'a changed remaining control ID' { $anchor.Id++ }
+                    'an invalid relocated compiler ID' { $relocatedFields[0].Id = -1 }
                     'an ambiguous anchor' { $page.Controls[0].Controls[0].Controls += $anchor }
                 }
                 Write-ApiDestination -ExtraCollections @{ PageExtensions = $script:relocationExtensions }
