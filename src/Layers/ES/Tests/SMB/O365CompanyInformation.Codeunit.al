@@ -1,5 +1,3 @@
-using System.Environment;
-
 codeunit 138041 "O365 Company Information"
 {
     Subtype = Test;
