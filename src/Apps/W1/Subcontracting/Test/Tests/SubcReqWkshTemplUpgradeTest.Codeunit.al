@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
+using System.TestLibraries.Utilities;
 
 codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
 {
@@ -21,6 +22,7 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryAssert: Codeunit "Library Assert";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
@@ -576,7 +578,7 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         Assert.IsFalse(TemplateCreated, 'Reusing a template must not report successful creation.');
         Assert.AreEqual(ExpectedReqWkshTemplate.Name, ReqWkshTemplate.Name, 'The existing valid template must be returned.');
         VerifyWorksheetUnchanged(ExpectedReqWkshTemplate, RequisitionWkshName, 1, 1);
-        Assert.AreEqualDateTime(ExpectedReqWkshTemplate.SystemModifiedAt, ReqWkshTemplate.SystemModifiedAt, 'A template with the correct page must not be modified.');
+        LibraryAssert.AreEqualDateTime(ExpectedReqWkshTemplate.SystemModifiedAt, ReqWkshTemplate.SystemModifiedAt, 'A template with the correct page must not be modified.');
     end;
 
     [Test]
@@ -712,7 +714,7 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         // [THEN] The existing template and its unrelated page are unchanged.
         Assert.IsFalse(TemplateCreated, 'Reusing a template must not report creation.');
         VerifyWorksheetUnchanged(ExpectedReqWkshTemplate, RequisitionWkshName, 1, 1);
-        Assert.AreEqualDateTime(ExpectedReqWkshTemplate.SystemModifiedAt, ReqWkshTemplate.SystemModifiedAt, 'An unrelated page must not cause template modification.');
+        LibraryAssert.AreEqualDateTime(ExpectedReqWkshTemplate.SystemModifiedAt, ReqWkshTemplate.SystemModifiedAt, 'An unrelated page must not cause template modification.');
     end;
 
     [Test]
