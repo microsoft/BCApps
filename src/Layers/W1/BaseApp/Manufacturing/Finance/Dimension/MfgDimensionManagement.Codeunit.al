@@ -29,7 +29,7 @@ codeunit 99000780 "Mfg. Dimension Management"
         if PlanningComponent."Worksheet Template Name" <> '' then
             exit;
 
-        RequisitionLine.Get(PlanningComponent."Worksheet Template Name", PlanningComponent."Worksheet Batch Name", PlanningComponent."Worksheet Line No.");
+        RequisitionLine := PlanningComponent.GetRequisitionLine();
         if RequisitionLine."Replenishment System" <> RequisitionLine."Replenishment System"::"Prod. Order" then
             exit;
 

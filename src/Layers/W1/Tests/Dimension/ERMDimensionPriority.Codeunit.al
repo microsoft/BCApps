@@ -949,24 +949,45 @@ codeunit 134381 "ERM Dimension Priority"
     procedure OrderPlanningComponentDimensionsWithoutPriorities()
     begin
         // [SCENARIO 657806] Without priorities, Order Planning components inherit the parent dimensions, just like Refresh.
-        VerifyOrderPlanningComponentDimensions(0, 0);
+        VerifyOrderPlanningComponentDimensions(0, 0, false);
     end;
 
     [Test]
     procedure OrderPlanningComponentDimensionsWithItemPriority()
     begin
         // [SCENARIO 657806] Component item dimensions win when the item has higher production-order dimension priority.
-        VerifyOrderPlanningComponentDimensions(1, 0);
+        VerifyOrderPlanningComponentDimensions(1, 0, false);
     end;
 
     [Test]
     procedure OrderPlanningComponentDimensionsWithUnrelatedPriority()
     begin
         // [SCENARIO 657806] An unrelated table priority does not override inherited parent dimensions.
-        VerifyOrderPlanningComponentDimensions(0, 1);
+        VerifyOrderPlanningComponentDimensions(0, 1, false);
     end;
 
-    local procedure VerifyOrderPlanningComponentDimensions(ItemPriority: Integer; CustomerPriority: Integer)
+    [Test]
+    procedure OrderPlanningChangedToProductionWithoutPriorities()
+    begin
+        // [SCENARIO 657806] Changing Purchase to Prod. Order uses the active parent dimensions without priorities.
+        VerifyOrderPlanningComponentDimensions(0, 0, true);
+    end;
+
+    [Test]
+    procedure OrderPlanningChangedToProductionWithItemPriority()
+    begin
+        // [SCENARIO 657806] Changing Purchase to Prod. Order respects the component item's dimension priority.
+        VerifyOrderPlanningComponentDimensions(1, 0, true);
+    end;
+
+    [Test]
+    procedure OrderPlanningChangedToProductionWithUnrelatedPriority()
+    begin
+        // [SCENARIO 657806] Changing Purchase to Prod. Order retains parent precedence with an unrelated priority.
+        VerifyOrderPlanningComponentDimensions(0, 1, true);
+    end;
+
+    local procedure VerifyOrderPlanningComponentDimensions(ItemPriority: Integer; CustomerPriority: Integer; ChangeReplenishmentSystem: Boolean)
     var
         Dimension: Record Dimension;
         CompDimensionValue: Record "Dimension Value";
@@ -981,6 +1002,7 @@ codeunit 134381 "ERM Dimension Priority"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         RequisitionLine: Record "Requisition Line";
+        StoredRequisitionLine: Record "Requisition Line";
         PlanningComponent: Record "Planning Component";
         TempManufacturingUserTemplate: Record "Manufacturing User Template" temporary;
         ProductionOrder: Record "Production Order";
@@ -1012,6 +1034,8 @@ codeunit 134381 "ERM Dimension Priority"
         LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1);
         ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
         ProdItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        if ChangeReplenishmentSystem then
+            ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::Purchase);
         ProdItem.Modify(true);
 
         // [GIVEN] A component-only default and a sales-line-only dimension must both be retained.
@@ -1037,6 +1061,17 @@ codeunit 134381 "ERM Dimension Priority"
         RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
         RequisitionLine.SetRange("No.", ProdItem."No.");
         RequisitionLine.FindFirst();
+        if ChangeReplenishmentSystem then begin
+            // [WHEN] Components are calculated while the saved parent still has Purchase replenishment.
+            RequisitionLine.TestField("Replenishment System", RequisitionLine."Replenishment System"::Purchase);
+            StoredRequisitionLine.Get(
+                RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", RequisitionLine."Line No.");
+            StoredRequisitionLine.TestField("Replenishment System", StoredRequisitionLine."Replenishment System"::Purchase);
+            RequisitionLine.SetCurrFieldNo(RequisitionLine.FieldNo("Replenishment System"));
+            RequisitionLine.Validate("Replenishment System", RequisitionLine."Replenishment System"::"Prod. Order");
+            RequisitionLine.SetCurrFieldNo(0);
+            RequisitionLine.Modify(true);
+        end;
         ExpectedParentDimSetID := RequisitionLine."Dimension Set ID";
         ExpectedDimensionSetEntry.SetRange("Dimension Set ID", SalesLine."Dimension Set ID");
         ExpectedDimensionSetEntry.FindSet();
@@ -1936,4 +1971,3 @@ codeunit 134381 "ERM Dimension Priority"
         Assert.Fail(StrSubstNo('Message at Step %1 not expected.', Step));
     end;
 }
-
