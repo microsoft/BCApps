@@ -17,9 +17,7 @@
     An array of objects where each entry has a stem, an upper, and a lower bound.
 
 .PARAMETER allowedSymbols
-    Explicitly allowed, non-versioned symbols. These must appear as standalone symbols
-    in #if directives (optionally with not); uppercase names and normal spacing
-    are still required. Versioned CLEAN/CLEANSCHEMA rules are not affected.
+    Additional, explicitly allowed, non-versioned symbols.
 
 .EXAMPLE
     $alfiles = Get-ChildItem -Recurse -Filter *.al -Path .\App\
@@ -72,8 +70,6 @@ function Test-PreprocessorSymbols {
         $symbolPattern += "^#elseif\s${upperStem}($rangePattern)"
     }
 
-    # Non-versioned symbols are opt-in. Match the entire symbol, not a prefix,
-    # while allowing trailing whitespace or a line comment.
     foreach ($symbol in $allowedSymbols) {
         $escapedSymbol = [regex]::Escape($symbol.ToUpperInvariant())
         $symbolPattern += "^#if\s(not\s)?${escapedSymbol}(\s*//.*)?\s*$"

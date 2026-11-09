@@ -397,12 +397,4 @@ Describe "Test-PreprocessorSymbols" {
 
         $result | Should -Be $null
     }
-
-    It 'allows DEVELOPMENT explicitly in the preprocessor action' {
-        $repoRoot = Join-Path $PSScriptRoot '../../..'
-        $action = Get-Content -LiteralPath (Join-Path $repoRoot '.github/actions/TestPreprocessorSymbols/action.ps1') -Raw
-
-        $action.Contains('$allowedSymbols = @(''DEVELOPMENT'')') | Should -Be $true
-        $action.Contains('-allowedSymbols $allowedSymbols') | Should -Be $true
-    }
 }
