@@ -20,6 +20,10 @@ pageextension 31249 "Fixed Asset Setup CZF" extends "Fixed Asset Setup"
         }
         addlast(General)
         {
+            field("Incl. Ending Book Value CZF"; Rec."Incl. Ending Book Value CZF")
+            {
+                ApplicationArea = FixedAssets;
+            }
             field("Fixed Asset History CZF"; Rec."Fixed Asset History CZF")
             {
                 ApplicationArea = FixedAssets;
