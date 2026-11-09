@@ -261,7 +261,7 @@
     },
     {
         "FeatureName": "Record EUDR certification details by lot",
-        "Description": "Mark relevant items for EUDR tracking and record certificate details, validity dates, production country and due-diligence references on lot information. Follow the details through supported purchase and sales documents and print them on the EUDR sales invoice.",
+        "Description": "Mark relevant items for EUDR tracking and record certificate details, validity dates, production country and due-diligence references on lot information. Follow the details through supported purchase and sales documents. Print the lot number, certificate number and certification scheme on the EUDR sales invoice.",
         "Category": "Sustainability",
         "HelpURL": "",
         "VideoURL": "",
