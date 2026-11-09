@@ -8,6 +8,7 @@ codeunit 144009 "ERM VAT Agent"
 
     TestPermissions = NonRestrictive;
     Subtype = Test;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -33,6 +34,12 @@ codeunit 144009 "ERM VAT Agent"
         VATEntryNoCompletelyRealizedErr: Label 'VAT entry is not completely realized.';
         RowDoesNotExistErr: Label 'The row does not exist on the TestPage';
         IncorrectAmountSignErr: Label 'Amount must be greater than zero.';
+        PaymentVendorNo: Code[20];
+        VATAgentVATAccountNo: Code[20];
+        InitialVendorGLEntryNo: Integer;
+        VATBalancingGLEntryNo: Integer;
+        ReservedVendorGLEntryNo: Integer;
+        ReservedVATGLEntryNo: Integer;
 
     [Test]
     [Scope('OnPrem')]
@@ -70,6 +77,20 @@ codeunit 144009 "ERM VAT Agent"
     begin
         SetupEnvironment(VendorNo, GLAccountNo);
         PostApplyVATAgentPmtToInvoice(VendorNo, GLAccountNo, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ConcurrentVATAgentInternalFundsSkipsReservations()
+    begin
+        PostVATAgentPaymentWithSequenceGaps(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ConcurrentVATAgentVendorFundsSkipsReservations()
+    begin
+        PostVATAgentPaymentWithSequenceGaps(true);
     end;
 
     [Test]
@@ -569,6 +590,112 @@ codeunit 144009 "ERM VAT Agent"
 
         // [THEN] Sales VAT ledger line is created with Amount in currency = "Payment Amount" + "VAT Amount" and positive LCY amounts
         VerifyPrepaymentVATLedgerLine(Vendor."No.", VATLedgerCode, PaymentAmount, 10);
+    end;
+
+    local procedure PostVATAgentPaymentWithSequenceGaps(VendorFunds: Boolean)
+    var
+        GLSetup: Record "General Ledger Setup";
+        Vendor: Record Vendor;
+        VATPostingSetupNoVAT: Record "VAT Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        ERMVATAgent: Codeunit "ERM VAT Agent";
+        GLAccountNo: Code[20];
+        InvoiceNo: Code[20];
+        PaymentAmount: Decimal;
+    begin
+        // [SCENARIO] VAT-agent payments preserve their G/L and vendor ledger reservations across sequence gaps.
+        Initialize();
+        GLSetup.Get();
+        GLSetup.Validate("Enable Russian Accounting", true);
+        GLSetup."Use Concurrent Posting" := true;
+        GLSetup.Modify();
+        LibraryERM.SetUnrealizedVAT(true);
+        CreateVATAgentVendorWithPostingSetup(Vendor, VATPostingSetupNoVAT, 18);
+        Vendor.Validate("Currency Code", '');
+        if VendorFunds then
+            Vendor.Validate("VAT Payment Source Type", Vendor."VAT Payment Source Type"::"Vendor Funds");
+        Vendor.Modify(true);
+        VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", Vendor."VAT Agent Prod. Posting Group");
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetupNoVAT, "General Posting Type"::" ");
+        InvoiceNo := CreatePostPurchInvoice(Vendor."No.", WorkDate(), GLAccountNo, 100);
+        PaymentAmount := 100;
+
+        // [WHEN] Other reservations intervene before the initial vendor and balancing VAT G/L entries advance the sequence.
+        ERMVATAgent.StartReservingVATAgentEntryNos(Vendor."No.", VATPostingSetup."Purchase VAT Account");
+        BindSubscription(ERMVATAgent);
+        CreatePostPayment(Vendor."No.", LibraryUtility.GenerateGUID(), InvoiceNo, PaymentAmount);
+        UnbindSubscription(ERMVATAgent);
+
+        // [THEN] Posting uses neither unrelated reservation and preserves the VAT-agent ledger relationships.
+        ERMVATAgent.VerifyVATAgentEntryReservations(VendorFunds);
+    end;
+
+    internal procedure StartReservingVATAgentEntryNos(VendorNo: Code[20]; VATAccountNo: Code[20])
+    begin
+        PaymentVendorNo := VendorNo;
+        VATAgentVATAccountNo := VATAccountNo;
+    end;
+
+    internal procedure VerifyVATAgentEntryReservations(VendorFunds: Boolean)
+    var
+        GLEntry: Record "G/L Entry";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        VATEntry: Record "VAT Entry";
+        GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
+    begin
+        Assert.IsTrue(ReservedVendorGLEntryNo > 0, 'An intervening reservation must precede the initial vendor G/L sequence advance.');
+        Assert.IsTrue(ReservedVATGLEntryNo > 0, 'An intervening reservation must precede the balancing VAT G/L sequence advance.');
+        Assert.IsFalse(GLEntry.Get(ReservedVendorGLEntryNo), 'VAT-agent posting must not use the unrelated vendor G/L reservation.');
+        Assert.IsFalse(GLEntry.Get(ReservedVATGLEntryNo), 'VAT-agent posting must not use the unrelated VAT G/L reservation.');
+        Assert.IsFalse(VendorLedgerEntry.Get(ReservedVendorGLEntryNo), 'Vendor posting must not use the unrelated vendor G/L reservation.');
+        Assert.IsFalse(VendorLedgerEntry.Get(ReservedVATGLEntryNo), 'Vendor funds must not use the unrelated VAT G/L reservation.');
+
+        VendorLedgerEntry.Get(InitialVendorGLEntryNo);
+        VendorLedgerEntry.TestField("Vendor No.", PaymentVendorNo);
+        VendorLedgerEntry.TestField("Document Type", VendorLedgerEntry."Document Type"::Payment);
+        GLEntry.Get(InitialVendorGLEntryNo);
+        GLEntry.TestField("Source Type", GLEntry."Source Type"::Vendor);
+        GLEntry.TestField("Source No.", PaymentVendorNo);
+
+        GLEntry.Get(VATBalancingGLEntryNo);
+        GLEntry.TestField("G/L Account No.", VATAgentVATAccountNo);
+        VATEntry.SetRange("Document No.", GLEntry."Document No.");
+        Assert.AreEqual(1, VATEntry.Count(), 'The VAT-agent invoice must have exactly one VAT entry.');
+        VATEntry.FindFirst();
+        VATEntry.TestField("VAT Agent", true);
+        VATEntry.TestField("CV Ledg. Entry No.", InitialVendorGLEntryNo);
+        GLEntryVATEntryLink.Get(InitialVendorGLEntryNo, VATEntry."Entry No.");
+
+        if VendorFunds then begin
+            VendorLedgerEntry.Get(VATBalancingGLEntryNo);
+            VendorLedgerEntry.TestField("Vendor No.", PaymentVendorNo);
+            VendorLedgerEntry.CalcFields("Amount (LCY)");
+            Assert.AreEqual(
+                -GLEntry.Amount, VendorLedgerEntry."Amount (LCY)",
+                'The vendor-funded VAT entry must retain the balancing VAT G/L entry number and amount.');
+        end else
+            Assert.IsFalse(VendorLedgerEntry.Get(VATBalancingGLEntryNo), 'Internal funds must not create another vendor ledger entry.');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnInsertGLEntryOnBeforeAssignTempGLEntryBuf, '', false, false)]
+    local procedure ReserveVATAgentGLEntryNos(var GLEntry: Record "G/L Entry"; GenJournalLine: Record "Gen. Journal Line")
+    var
+        ReservationGLEntry: Record "G/L Entry";
+    begin
+        if (PaymentVendorNo = '') or
+           (GenJournalLine."Account Type" <> GenJournalLine."Account Type"::Vendor) or
+           (GenJournalLine."Account No." <> PaymentVendorNo)
+        then
+            exit;
+
+        if InitialVendorGLEntryNo = 0 then begin
+            InitialVendorGLEntryNo := GLEntry."Entry No.";
+            ReservedVendorGLEntryNo := ReservationGLEntry.GetNextEntryNo();
+        end else
+            if (GLEntry."G/L Account No." = VATAgentVATAccountNo) and (VATBalancingGLEntryNo = 0) then begin
+                VATBalancingGLEntryNo := GLEntry."Entry No.";
+                ReservedVATGLEntryNo := ReservationGLEntry.GetNextEntryNo();
+            end;
     end;
 
     local procedure Initialize()
