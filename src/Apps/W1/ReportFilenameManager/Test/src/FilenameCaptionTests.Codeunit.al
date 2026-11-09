@@ -4,8 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 
+using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting.FileNaming;
 using System.Globalization;
+using System.Reflection;
 using System.TestLibraries.Utilities;
 
 codeunit 149549 "Filename Caption Tests"
@@ -16,7 +18,7 @@ codeunit 149549 "Filename Caption Tests"
     TestPermissions = Disabled;
 
     [Test]
-    procedure RequestedLanguageDoesNotDependOnCallerLanguage()
+    procedure EnglishCallerCanRequestGermanCaption()
     var
         Caption: Text;
     begin
@@ -26,7 +28,15 @@ codeunit 149549 "Filename Caption Tests"
         Assert.IsTrue(ResolveCaption(Report::"Filename Caption Control", 1033, 1031, Caption), NotResolvedErr);
         // [THEN] The German caption is returned and the caller language is restored.
         Assert.AreEqual(GermanCaptionTok, Caption, WrongCaptionErr);
+    end;
 
+    [Test]
+    procedure GermanCallerCanRequestEnglishCaption()
+    var
+        Caption: Text;
+    begin
+        // [SCENARIO] The requested caption language takes precedence over the caller language.
+        // [GIVEN] A report with English and German captions.
         // [WHEN] A German caller resolves the caption in English.
         Assert.IsTrue(ResolveCaption(Report::"Filename Caption Control", 1031, 1033, Caption), NotResolvedErr);
         // [THEN] The English caption is returned and the caller language is restored.
@@ -34,21 +44,33 @@ codeunit 149549 "Filename Caption Tests"
     end;
 
     [Test]
-    procedure BlankLanguageCodeUsesCallerLanguage()
+    procedure BlankLanguageCodeUsesDefaultForEnglishCaller()
     var
         Caption: Text;
+        ExpectedCaption: Text;
     begin
-        // [SCENARIO] A blank language code uses the caller language when no override is supplied.
-        // [GIVEN] A report with English and German captions.
+        // [SCENARIO] A blank language code honors the configured default for an English caller.
+        // [GIVEN] A report caption read directly in the company default language, or English if none is mapped.
+        ExpectedCaption := ReadDefaultCaption(1033);
         // [WHEN] An English caller resolves the caption without a language override.
         Assert.IsTrue(ResolveCaption(Report::"Filename Caption Control", 1033, 0, Caption), NotResolvedErr);
-        // [THEN] The English caption is returned and the caller language is preserved.
-        Assert.AreEqual(EnglishCaptionTok, Caption, WrongCaptionErr);
+        // [THEN] The default-language caption is returned and the caller language is restored.
+        Assert.AreEqual(ExpectedCaption, Caption, WrongCaptionErr);
+    end;
 
+    [Test]
+    procedure BlankLanguageCodeUsesDefaultForGermanCaller()
+    var
+        Caption: Text;
+        ExpectedCaption: Text;
+    begin
+        // [SCENARIO] A blank language code honors the configured default for a German caller.
+        // [GIVEN] A report caption read directly in the company default language, or German if none is mapped.
+        ExpectedCaption := ReadDefaultCaption(1031);
         // [WHEN] A German caller resolves the caption without a language override.
         Assert.IsTrue(ResolveCaption(Report::"Filename Caption Control", 1031, 0, Caption), NotResolvedErr);
-        // [THEN] The German caption is returned and the caller language is preserved.
-        Assert.AreEqual(GermanCaptionTok, Caption, WrongCaptionErr);
+        // [THEN] The default-language caption is returned and the caller language is restored.
+        Assert.AreEqual(ExpectedCaption, Caption, WrongCaptionErr);
     end;
 
     [Test]
@@ -122,6 +144,37 @@ codeunit 149549 "Filename Caption Tests"
         Assert.AreEqual('', Caption, StaleCaptionErr);
     end;
 
+    local procedure ReadDefaultCaption(CallerLanguageId: Integer) Caption: Text
+    var
+        CompanyInformation: Record "Company Information";
+        LanguageMgt: Codeunit Language;
+        DefaultLanguageId: Integer;
+        PreviousLanguageId: Integer;
+        ReadSucceeded: Boolean;
+        FailureText: Text;
+    begin
+        if CompanyInformation.Get() then
+            DefaultLanguageId := LanguageMgt.GetLanguageId(CompanyInformation."Default Language Code");
+        if DefaultLanguageId = 0 then
+            DefaultLanguageId := CallerLanguageId;
+        PreviousLanguageId := GlobalLanguage();
+        ReadSucceeded := TryReadControlCaption(DefaultLanguageId, Caption);
+        if not ReadSucceeded then
+            FailureText := GetLastErrorText();
+        GlobalLanguage(PreviousLanguageId);
+        Assert.IsTrue(ReadSucceeded, FailureText);
+    end;
+
+    [TryFunction]
+    local procedure TryReadControlCaption(LanguageId: Integer; var Caption: Text)
+    var
+        ReportMetadata: Record "Report Metadata";
+    begin
+        GlobalLanguage(LanguageId);
+        ReportMetadata.Get(Report::"Filename Caption Control");
+        Caption := ReportMetadata.Caption;
+    end;
+
     local procedure ResolveCaption(ReportId: Integer; CallerLanguageId: Integer; RequestedLanguageId: Integer; var Caption: Text) Resolved: Boolean
     var
         LanguageMgt: Codeunit Language;
@@ -132,7 +185,7 @@ codeunit 149549 "Filename Caption Tests"
     begin
         PreviousLanguageId := GlobalLanguage();
         GlobalLanguage(CallerLanguageId);
-        // The one-shot override avoids relying on company language rows or installed Base App translations.
+        // Nonzero overrides isolate explicit-language cases; zero exercises the normal company default.
         LanguageMgt.SetOverrideLanguageId(RequestedLanguageId);
         ReadSucceeded := TryResolveCaption(ReportId, Caption, Resolved);
         if not ReadSucceeded then
