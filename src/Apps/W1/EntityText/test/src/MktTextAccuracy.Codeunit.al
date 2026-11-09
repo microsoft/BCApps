@@ -43,16 +43,17 @@ codeunit 133551 MktTextAccuracy
         Response := EntityText.GenerateText(Facts, Tone, Format, Enum::"Entity Text Emphasis"::None);
         this.SetTestOutput(Facts, Response, Tone, Format);
 
-        this.EvaluateWithPrompt(Facts, Response, this.GroundednessPromptLbl);
-        this.EvaluateWithPrompt(Facts, Response, this.FluencyPromptLbl);
+        // Evaluation is disabled until backend taxonomy registration is available.
+        // this.EvaluateWithPrompt(Facts, Response, this.GroundednessPromptLbl);
+        // this.EvaluateWithPrompt(Facts, Response, this.FluencyPromptLbl);
     end;
 
-    local procedure EvaluateWithPrompt(Facts: Dictionary of [Text, Text]; Response: Text; EvaluationPrompt: Text)
-    var
-        MTPromptEvaluator: Codeunit "MT Prompt Evaluator";
-    begin
-        MTPromptEvaluator.Evaluate(EvaluationPrompt, this.BuildFactsText(Facts), Response);
-    end;
+    // local procedure EvaluateWithPrompt(Facts: Dictionary of [Text, Text]; Response: Text; EvaluationPrompt: Text)
+    // var
+    //     MTPromptEvaluator: Codeunit "MT Prompt Evaluator";
+    // begin
+    //     MTPromptEvaluator.Evaluate(EvaluationPrompt, this.BuildFactsText(Facts), Response);
+    // end;
 
     local procedure GetFactsFromTestInput(var Values: Dictionary of [Text, Text])
     var
@@ -126,8 +127,8 @@ codeunit 133551 MktTextAccuracy
         AITestContext.SetTestOutput(Context, Request, Response);
     end;
 
-    var
-        GroundednessPromptLbl: Label 'evaluation_prompts/groundedness_without_query.prompty', Locked = true;
-        FluencyPromptLbl: Label 'evaluation_prompts/fluency.prompty', Locked = true;
+    // var
+    //     GroundednessPromptLbl: Label 'evaluation_prompts/groundedness_without_query.prompty', Locked = true;
+    //     FluencyPromptLbl: Label 'evaluation_prompts/fluency.prompty', Locked = true;
 
 }

@@ -36,7 +36,7 @@ codeunit 133553 MktTextHarms
     local procedure RunTest(Format: Enum "Entity Text Format"; Tone: Enum "Entity Text Tone")
     var
         AITestContext: Codeunit "AIT Test Context";
-        MTPromptEvaluator: Codeunit "MT Prompt Evaluator";
+        // MTPromptEvaluator: Codeunit "MT Prompt Evaluator";
         Facts: Dictionary of [Text, Text];
         Response: Text;
         Harm: Text;
@@ -56,7 +56,8 @@ codeunit 133553 MktTextHarms
             Response := GenerationError;
         end;
         this.SetTestOutput(Facts, Response, Tone, Format);
-        MTPromptEvaluator.Evaluate(SafetyPromptLbl, this.BuildFactsText(Facts), Response);
+        // Evaluation is disabled until backend taxonomy registration is available.
+        // MTPromptEvaluator.Evaluate(SafetyPromptLbl, this.BuildFactsText(Facts), Response);
     end;
 
     [TryFunction]
@@ -144,5 +145,5 @@ codeunit 133553 MktTextHarms
 
     var
         MissingHarmErr: Label 'The test input must provide a non-empty harm value.';
-        SafetyPromptLbl: Label 'evaluation_prompts/safety.prompty', Locked = true;
+        // SafetyPromptLbl: Label 'evaluation_prompts/safety.prompty', Locked = true;
 }
