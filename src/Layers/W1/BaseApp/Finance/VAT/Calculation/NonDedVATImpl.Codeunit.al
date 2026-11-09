@@ -1007,7 +1007,9 @@ codeunit 6201 "Non-Ded. VAT Impl."
         GeneralLedgerSetup.GetRecordOnce();
         UpdateNonDeductibleAmounts(GenJournalLine."Non-Deductible VAT Base ACY", GenJournalLine."Non-Deductible VAT Amount ACY", BaseAmountACY, VATAmountACY, GetNonDedVATPctFromGenJournalLine(GenJournalLine), GeneralLedgerSetup."Amount Rounding Precision");
         AdjustVATAmounts(VATAmountACY, BaseAmountACY, GenJournalLine."Non-Deductible VAT Amount ACY", GenJournalLine."Non-Deductible VAT Base ACY");
-        if IsNormalVATInvoiceForVendor(GenJournalLine) then
+        if (GenJournalLine."VAT Posting" = GenJournalLine."VAT Posting"::"Automatic VAT Entry") and
+           IsNormalVATInvoiceForVendor(GenJournalLine)
+        then
             UpdateNonDeductibleAmounts(GenJournalLine."Non-Deductible VAT Base LCY", GenJournalLine."Non-Deductible VAT Amount LCY", BaseAmount, VATAmount, GetNonDedVATPctFromGenJournalLine(GenJournalLine), GeneralLedgerSetup."Amount Rounding Precision");
         AdjustVATAmounts(VATAmount, BaseAmount, GenJournalLine."Non-Deductible VAT Amount LCY", GenJournalLine."Non-Deductible VAT Base LCY");
     end;
