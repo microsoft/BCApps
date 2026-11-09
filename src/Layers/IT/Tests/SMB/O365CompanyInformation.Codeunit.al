@@ -148,5 +148,91 @@ codeunit 138041 "O365 Company Information"
         CompanyInformation.Get();
         CompanyInformation.TestField("Registration No.", RegistrationNo);
     end;
-}
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure DescriptionsSupportMultilineText()
+    var
+        CompanyInformation: Record "Company Information";
+        EnvironmentInformation: Codeunit "Environment Information";
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
+    begin
+        // [SCENARIO] Company and environment descriptions support multiline Unicode text.
+        CompanyDescription := CreateMultilineDescription('Company');
+        EnvironmentDescription := CreateMultilineDescription('Environment');
+
+        // [GIVEN] Multiline descriptions are saved.
+        CompanyInformation.Get();
+        CompanyInformation.SetCompanyDescription(CompanyDescription);
+        EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
+
+        // [THEN] The complete descriptions can be read.
+        CompanyInformation.Get();
+        Assert.AreEqual(CompanyDescription, CompanyInformation.GetCompanyDescription(), 'The company description is incorrect.');
+        Assert.AreEqual(EnvironmentDescription, EnvironmentInformation.GetEnvironmentDescription(), 'The environment description is incorrect.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DescriptionsAreEditableOnCompanyInformationPage()
+    var
+        CompanyInformation: Record "Company Information";
+        EnvironmentInformation: Codeunit "Environment Information";
+        CompanyInformationPage: TestPage "Company Information";
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
+    begin
+        // [SCENARIO] Company and environment descriptions can be edited on the Company Information page.
+        CompanyDescription := CreateMultilineDescription('Company page');
+        EnvironmentDescription := CreateMultilineDescription('Environment page');
+
+        // [WHEN] The descriptions are entered on the Company Information page.
+        CompanyInformationPage.OpenEdit();
+        CompanyInformationPage.CompanyDescription.SetValue(CompanyDescription);
+        CompanyInformationPage.EnvironmentDescription.SetValue(EnvironmentDescription);
+        CompanyInformationPage.Close();
+
+        // [THEN] Both descriptions are saved to their respective scopes.
+        CompanyInformation.Get();
+        Assert.AreEqual(CompanyDescription, CompanyInformation.GetCompanyDescription(), 'The company description was not saved.');
+        Assert.AreEqual(EnvironmentDescription, EnvironmentInformation.GetEnvironmentDescription(), 'The environment description was not saved.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ClosingCompanyInformationPageDoesNotOverwriteDescriptions()
+    var
+        CompanyInformation: Record "Company Information";
+        EnvironmentInformation: Codeunit "Environment Information";
+        CompanyInformationPage: TestPage "Company Information";
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
+    begin
+        // [SCENARIO] Closing the Company Information page does not overwrite descriptions changed after the page was opened.
+        CompanyDescription := CreateMultilineDescription('Updated company');
+        EnvironmentDescription := CreateMultilineDescription('Updated environment');
+
+        // [GIVEN] The Company Information page is open with the current descriptions.
+        CompanyInformationPage.OpenEdit();
+
+        // [WHEN] The descriptions are changed without editing their fields on the open page.
+        CompanyInformation.Get();
+        CompanyInformation.SetCompanyDescription(CompanyDescription);
+        EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
+        CompanyInformationPage.Close();
+
+        // [THEN] Closing the page preserves the updated descriptions.
+        CompanyInformation.Get();
+        Assert.AreEqual(CompanyDescription, CompanyInformation.GetCompanyDescription(), 'The company description was overwritten.');
+        Assert.AreEqual(EnvironmentDescription, EnvironmentInformation.GetEnvironmentDescription(), 'The environment description was overwritten.');
+    end;
+    local procedure CreateMultilineDescription(DescriptionType: Text): Text
+    var
+        DescriptionBuilder: TextBuilder;
+    begin
+        DescriptionBuilder.AppendLine(DescriptionType + ' description first line');
+        DescriptionBuilder.Append(DescriptionType + ' description second line with Unicode: ÆØÅ');
+        exit(DescriptionBuilder.ToText());
+    end;
+}

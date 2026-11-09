@@ -310,6 +310,7 @@ table 88 "Financial Report"
                     AccSchedManagement.CheckPerspectiveAnalysisView(Rec."Financial Report Row Group", Rec.DimPerspective);
             end;
         }
+#if not CLEAN30
         field(62; "Last Run by User"; DateTime)
         {
             Caption = 'Your Last Run';
@@ -319,7 +320,11 @@ table 88 "Financial Report"
                 "Report Name" = field(Name),
                 User = filter('%user')));
             Editable = false;
+            ObsoleteReason = 'This field could not be calculated because the user filter was not resolvable. Use "Last Run by Current User" together with the "User Security ID Filter" flow filter instead.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
         }
+#endif
         field(63; CategoryCode; Code[20])
         {
             Caption = 'Category';
@@ -342,6 +347,22 @@ table 88 "Financial Report"
             FieldClass = FlowField;
             ToolTip = 'Specifies the status code is a blocked status.';
         }
+        field(66; "Last Run by Current User"; DateTime)
+        {
+            Caption = 'Your Last Run';
+            ToolTip = 'Specifies the last date-time this report was run by you.';
+            FieldClass = FlowField;
+            CalcFormula = max("Financial Report Audit Log".SystemCreatedAt where(
+                "Report Name" = field(Name),
+                SystemCreatedBy = field("User Security ID Filter")));
+            Editable = false;
+        }
+        field(100; "User Security ID Filter"; Guid)
+        {
+            Caption = 'User Security ID Filter';
+            FieldClass = FlowFilter;
+            ToolTip = 'Specifies the user that the "Your Last Run" value is calculated for.';
+        }
     }
     keys
     {
@@ -352,7 +373,7 @@ table 88 "Financial Report"
     }
     fieldgroups
     {
-        fieldgroup(Brick; CategoryCode, Description, Status, Name, "Last Run by User", "Internal Description") { }
+        fieldgroup(Brick; CategoryCode, Description, Status, Name, "Internal Description") { }
     }
 
     var

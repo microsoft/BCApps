@@ -17,6 +17,7 @@ codeunit 139400 "Permissions Test"
         AzureADGraphTestLibrary: Codeunit "Azure AD Graph Test Library";
         SecurityGroupsTestLibrary: Codeunit "Security Groups Test Library";
         MockGraphQueryTestLibrary: Codeunit "MockGraphQuery Test Library";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         Assert: Codeunit Assert;
         BaseAppID: Codeunit "BaseApp ID";
         PermissionSetNonExistentTxt: Label 'Non-existent';
@@ -509,6 +510,122 @@ codeunit 139400 "Permissions Test"
         RecRef.Delete();
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure PopulatePermissionBufferPrefersSpecificObjectOverWildcard()
+    var
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: Record "Tenant Permission";
+        AccessControl: Record "Access Control";
+        TempPermissionBuffer: Record "Permission Buffer" temporary;
+        EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        SpecificPageId: Integer;
+    begin
+        // [SCENARIO 615963] A specific object permission is displayed instead of the wildcard permission
+        // [GIVEN] Running on-prem, so entitlement permissions are not resolved for the test user
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+
+        // [GIVEN] A permission set with an indirect wildcard permission
+        SpecificPageId := Page::"Customer Card";
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateGUID(), NullGuid);
+
+        TenantPermission.Init();
+        TenantPermission."App ID" := NullGuid;
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::Page;
+        TenantPermission."Object ID" := 0;
+        TenantPermission."Execute Permission" := TenantPermission."Execute Permission"::Indirect;
+        TenantPermission.Insert(true);
+
+        // [GIVEN] The same permission set grants direct access to a specific page
+        TenantPermission.Init();
+        TenantPermission."App ID" := NullGuid;
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::Page;
+        TenantPermission."Object ID" := SpecificPageId;
+        TenantPermission."Execute Permission" := TenantPermission."Execute Permission"::Yes;
+        TenantPermission.Insert(true);
+
+        // [GIVEN] The permission set is assigned to the current user
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId();
+        AccessControl."Role ID" := TenantPermissionSet."Role ID";
+        AccessControl.Scope := AccessControl.Scope::Tenant;
+        AccessControl."Company Name" := GetCurrentCompanyName();
+        AccessControl.Insert(true);
+
+        // [WHEN] The permission buffer is populated for the specific page
+        EffectivePermissionsMgt.PopulatePermissionBuffer(
+            TempPermissionBuffer, UserSecurityId(), GetCurrentCompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
+
+        // [THEN] The specific page permission is displayed
+        TempPermissionBuffer.SetRange("Permission Set", TenantPermissionSet."Role ID");
+        Assert.IsTrue(TempPermissionBuffer.FindFirst(), 'Permission buffer should contain the permission set.');
+        Assert.AreEqual(
+            TempPermissionBuffer."Execute Permission"::Yes, TempPermissionBuffer."Execute Permission",
+            'The specific page permission should override the wildcard permission.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure PopulatePermissionBufferPrefersSpecificEmptyOverWildcard()
+    var
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: Record "Tenant Permission";
+        AccessControl: Record "Access Control";
+        TempPermissionBuffer: Record "Permission Buffer" temporary;
+        EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        SpecificPageId: Integer;
+    begin
+        // [SCENARIO 615963] A specific exclusion is displayed instead of the wildcard permission
+        // [GIVEN] Running on-prem, so entitlement permissions are not resolved for the test user
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+
+        // [GIVEN] A permission set with a wildcard permission
+        SpecificPageId := Page::"Customer Card";
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateGUID(), NullGuid);
+
+        TenantPermission.Init();
+        TenantPermission."App ID" := NullGuid;
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::Page;
+        TenantPermission."Object ID" := 0;
+        TenantPermission."Execute Permission" := TenantPermission."Execute Permission"::Yes;
+        TenantPermission.Insert(true);
+
+        // [GIVEN] The same permission set excludes a specific page
+        TenantPermission.Init();
+        TenantPermission."App ID" := NullGuid;
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::Page;
+        TenantPermission."Object ID" := SpecificPageId;
+        TenantPermission."Execute Permission" := TenantPermission."Execute Permission"::" ";
+        TenantPermission.Insert(true);
+
+        // [GIVEN] The permission set is assigned to the current user
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId();
+        AccessControl."Role ID" := TenantPermissionSet."Role ID";
+        AccessControl.Scope := AccessControl.Scope::Tenant;
+        AccessControl."Company Name" := GetCurrentCompanyName();
+        AccessControl.Insert(true);
+
+        // [WHEN] The permission buffer is populated for the specific page
+        EffectivePermissionsMgt.PopulatePermissionBuffer(
+            TempPermissionBuffer, UserSecurityId(), GetCurrentCompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
+
+        // [THEN] The specific page exclusion is displayed
+        TempPermissionBuffer.SetRange("Permission Set", TenantPermissionSet."Role ID");
+        Assert.IsTrue(TempPermissionBuffer.FindFirst(), 'Permission buffer should contain the permission set.');
+        Assert.AreEqual(
+            TempPermissionBuffer."Execute Permission"::" ", TempPermissionBuffer."Execute Permission",
+            'The specific page exclusion should override the wildcard permission.');
+    end;
+
     //[Test] ignore 426467
     [HandlerFunctions('SendResolveNotificationHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -527,7 +644,7 @@ codeunit 139400 "Permissions Test"
         AccessControl."App ID" := AppID;
         AccessControl."Role ID" := PermissionSetNonExistentTxt;
         AccessControl."User Security ID" := UserSecurityId();
-        AccessControl."Company Name" := CompanyName();
+        AccessControl."Company Name" := GetCurrentCompanyName();
         AccessControl.Scope := AccessControl.Scope::Tenant;
         AccessControl.Insert();
 
@@ -535,7 +652,7 @@ codeunit 139400 "Permissions Test"
         PermissionPagesMgt.CreateAndSendResolvePermissionNotification();
 
         // [Then] Validate that the record no longer exists
-        Found := AccessControl.Get(UserSecurityId(), PermissionSetNonExistentTxt, CompanyName(), AccessControl.Scope::Tenant, AppID);
+        Found := AccessControl.Get(UserSecurityId(), PermissionSetNonExistentTxt, GetCurrentCompanyName(), AccessControl.Scope::Tenant, AppID);
         Assert.IsFalse(Found, 'Access control still exists.');
     end;
 
@@ -652,9 +769,13 @@ codeunit 139400 "Permissions Test"
         TenantPermissionSet: Record "Tenant Permission Set";
         ExpandedPermission: Record "Expanded Permission";
         PermSetAssignmentBuffer: Record "Perm. Set Assignment Buffer";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         PermissionsOverview: TestPage "Permissions Overview";
     begin
         // [SCENARIO] A local user with permission set is shown in the permissions overview factbox
+        // [GIVEN] Running in SaaS, so Entra security groups are resolved through the mock graph
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
         CreateUserData(GraphUser, LocalUser, SecurityGroupBuffer);
         CreatePermSetData(TenantPermissionSet, NullGuid);
 
@@ -676,6 +797,8 @@ codeunit 139400 "Permissions Test"
             Assert.AreEqual(LocalUser."User Name", PermissionsOverview.PermissionSetUsers.UserName.Value,
                 'Local user assigned permission set was not found in factbox');
         until (ExpandedPermission.Next() = 0);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
     [Test]
@@ -689,9 +812,13 @@ codeunit 139400 "Permissions Test"
         ExpandedPermission: Record "Expanded Permission";
         PermSetAssignmentBuffer: Record "Perm. Set Assignment Buffer";
         SecurityGroup: Codeunit "Security Group";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         PermissionsOverview: TestPage "Permissions Overview";
     begin
         // [SCENARIO] A security group with with user and permission set is shown in the permissions overview factbox
+        // [GIVEN] Running in SaaS, so Entra security groups are resolved through the mock graph
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
         CreateUserData(GraphUser, LocalUser, SecurityGroupBuffer);
         CreatePermSetData(TenantPermissionSet, NullGuid);
 
@@ -719,6 +846,141 @@ codeunit 139400 "Permissions Test"
             Assert.AreEqual(GraphUser."User Name", PermissionsOverview.PermissionSetUsers.UserName.Value,
                 'Graph user inheriting permission set from security group was not found in factbox');
         until (ExpandedPermission.Next() = 0);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('RemoveObsoletePermissionsMessageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure RemoveObsoletePermissionsOnSaaS()
+    begin
+        // [SCENARIO] SaaS cleanup removes obsolete tenant permissions for all app IDs without modifying system permissions.
+        VerifyRemoveObsoletePermissions(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('RemoveObsoletePermissionsMessageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure RemoveObsoletePermissionsOnPrem()
+    begin
+        // [SCENARIO] On-premises cleanup removes obsolete tenant permissions for all app IDs without modifying system permissions.
+        VerifyRemoveObsoletePermissions(false);
+    end;
+
+    local procedure VerifyRemoveObsoletePermissions(IsSaaS: Boolean)
+    var
+        SystemPermission: Record Permission;
+        TempObsoletePermission: Record "Tenant Permission" temporary;
+        TempRetainedPermission: Record "Tenant Permission" temporary;
+        TenantPermission: Record "Tenant Permission";
+        TenantPermissionSet: array[2] of Record "Tenant Permission Set";
+        TableMetadata: Record "Table Metadata";
+        AllObjWithCaption: Record AllObjWithCaption;
+        AppInfo: ModuleInfo;
+        Index: Integer;
+        MissingCodeunitID: Integer;
+        SystemPermissionsCount: Integer;
+        RemainingPermissionsCount: Integer;
+    begin
+        LibraryVariableStorage.Clear();
+        SystemPermissionsCount := SystemPermission.Count();
+
+        // [GIVEN] User-defined and extension-owned tenant permission sets with the same role ID.
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        Assert.IsFalse(IsNullGuid(AppInfo.Id), 'The test extension must have a non-empty App ID.');
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet[1], '', NullGuid);
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet[2], TenantPermissionSet[1]."Role ID", AppInfo.Id);
+
+        TableMetadata.SetRange(ObsoleteState, TableMetadata.ObsoleteState::Removed);
+        Assert.IsTrue(TableMetadata.FindFirst(), 'The test requires a table with ObsoleteState=Removed.');
+        MissingCodeunitID := 1;
+        while AllObjWithCaption.Get(TenantPermission."Object Type"::Codeunit, MissingCodeunitID) do
+            MissingCodeunitID += 1;
+        for Index := 1 to ArrayLen(TenantPermissionSet) do begin
+            // [GIVEN] Permissions for a removed table and a missing codeunit in both permission sets.
+            AddCleanupTenantPermission(TempObsoletePermission, TenantPermissionSet[Index], TenantPermission."Object Type"::"Table Data", TableMetadata.ID);
+            AddCleanupTenantPermission(TempObsoletePermission, TenantPermissionSet[Index], TenantPermission."Object Type"::Table, TableMetadata.ID);
+            AddCleanupTenantPermission(TempObsoletePermission, TenantPermissionSet[Index], TenantPermission."Object Type"::Codeunit, MissingCodeunitID);
+
+            // [GIVEN] Permissions for existing objects and wildcard permissions that must be retained in both sets.
+            AddCleanupTenantPermission(TempRetainedPermission, TenantPermissionSet[Index], TenantPermission."Object Type"::"Table Data", Database::Customer);
+            AddCleanupTenantPermission(TempRetainedPermission, TenantPermissionSet[Index], TenantPermission."Object Type"::Table, Database::Customer);
+            AddCleanupTenantPermission(TempRetainedPermission, TenantPermissionSet[Index], TenantPermission."Object Type"::Codeunit, Codeunit::"Permissions Test");
+            AddCleanupTenantPermission(TempRetainedPermission, TenantPermissionSet[Index], TenantPermission."Object Type"::Codeunit, 0);
+        end;
+
+        // [WHEN] Obsolete permissions are removed.
+        InvokeRemoveObsoletePermissions(IsSaaS);
+
+        // [THEN] Obsolete user-defined and extension-owned tenant permissions are removed, while system permissions are unchanged.
+        Assert.AreEqual(SystemPermissionsCount, SystemPermission.Count(), 'System permissions must not be removed in any environment.');
+        TempObsoletePermission.FindSet();
+        repeat
+            Assert.IsFalse(
+                TenantPermission.Get(TempObsoletePermission."App ID", TempObsoletePermission."Role ID", TempObsoletePermission."Object Type", TempObsoletePermission."Object ID"),
+                'Obsolete tenant permissions must be removed in every environment.');
+        until TempObsoletePermission.Next() = 0;
+
+        // [THEN] Existing-object and wildcard tenant permissions are unchanged.
+        TempRetainedPermission.FindSet();
+        repeat
+            Assert.IsTrue(
+                TenantPermission.Get(TempRetainedPermission."App ID", TempRetainedPermission."Role ID", TempRetainedPermission."Object Type", TempRetainedPermission."Object ID"),
+                'Tenant permissions for existing objects and wildcard permissions must be retained.');
+        until TempRetainedPermission.Next() = 0;
+
+        // [THEN] Repeating cleanup reports nothing to remove and leaves all remaining permissions unchanged.
+        RemainingPermissionsCount := TenantPermission.Count();
+        InvokeRemoveObsoletePermissions(IsSaaS);
+        Assert.AreEqual(RemainingPermissionsCount, TenantPermission.Count(), 'Repeated cleanup must not remove any more tenant permissions.');
+        Assert.AreEqual(SystemPermissionsCount, SystemPermission.Count(), 'Repeated cleanup must not remove any system permissions.');
+    end;
+
+    local procedure AddCleanupTenantPermission(var TempPermission: Record "Tenant Permission" temporary; TenantPermissionSet: Record "Tenant Permission Set"; ObjectType: Option; ObjectID: Integer)
+    begin
+        LibraryPermissions.AddTenantPermission(TenantPermissionSet."App ID", TenantPermissionSet."Role ID", ObjectType, ObjectID);
+        TempPermission.Init();
+        TempPermission."App ID" := TenantPermissionSet."App ID";
+        TempPermission."Role ID" := TenantPermissionSet."Role ID";
+        TempPermission."Object Type" := ObjectType;
+        TempPermission."Object ID" := ObjectID;
+        TempPermission.Insert();
+    end;
+
+    local procedure InvokeRemoveObsoletePermissions(IsSaaS: Boolean)
+    var
+        TenantPermission: Record "Tenant Permission";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        EnvironmentInformation: Codeunit "Environment Information";
+        PermissionSets: TestPage "Permission Sets";
+    begin
+        LibraryVariableStorage.Enqueue(TenantPermission.Count());
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(IsSaaS);
+        Assert.AreEqual(IsSaaS, EnvironmentInformation.IsSaaSInfrastructure(), 'The test must use the requested infrastructure mode.');
+        PermissionSets.OpenEdit();
+        PermissionSets.RemoveObsoletePermissions.Invoke();
+        PermissionSets.Close();
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [MessageHandler]
+    [Scope('OnPrem')]
+    procedure RemoveObsoletePermissionsMessageHandler(MessageText: Text[1024])
+    var
+        TenantPermission: Record "Tenant Permission";
+        RemovedPermissionsCount: Integer;
+        ObsoletePermissionsMsg: Label '%1 obsolete permissions were removed.', Comment = '%1 = number of deleted records.';
+        NothingToRemoveMsg: Label 'There is nothing to remove.';
+    begin
+        RemovedPermissionsCount := LibraryVariableStorage.DequeueInteger() - TenantPermission.Count();
+        if RemovedPermissionsCount > 0 then
+            Assert.AreEqual(StrSubstNo(ObsoletePermissionsMsg, RemovedPermissionsCount), MessageText, 'The message must count only deleted permissions.')
+        else
+            Assert.AreEqual(NothingToRemoveMsg, MessageText, 'The message must report when no tenant permissions are removed.');
     end;
 
     local procedure CreatePermSetData(var TenantPermissionSet: Record "Tenant Permission Set"; AppId: Guid)
@@ -803,6 +1065,13 @@ codeunit 139400 "Permissions Test"
         TenantPermissionSet."Role ID" := LibraryUtility.GenerateGUID();
         TenantPermissionSet.Name := LibraryUtility.GenerateGUID();
         TenantPermissionSet.Insert();
+    end;
+
+    local procedure GetCurrentCompanyName(): Text[30]
+    var
+        AccessControl: Record "Access Control";
+    begin
+        exit(CopyStr(CompanyName(), 1, MaxStrLen(AccessControl."Company Name")));
     end;
 
     local procedure TearDown()

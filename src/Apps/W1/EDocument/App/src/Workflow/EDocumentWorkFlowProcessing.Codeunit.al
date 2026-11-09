@@ -381,8 +381,10 @@ codeunit 6135 "E-Document WorkFlow Processing"
 
         EDocExport.ExportEDocumentBatch(EDocument, EDocumentService, TempEDocMappingLogs, TempBlob, BeforeExportEDocErrorCount);
 
+        if not EDocument.FindSet() then
+            exit;
+
         AnyErrors := false;
-        EDocument.FindSet();
         repeat
             BeforeExportEDocErrorCount.Get(EDocument."Entry No", ErrorCount);
             if (EDocumentErrorHelper.ErrorMessageCount(EDocument) > ErrorCount) then

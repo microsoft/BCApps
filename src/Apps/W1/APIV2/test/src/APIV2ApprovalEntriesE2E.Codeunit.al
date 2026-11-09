@@ -2,6 +2,7 @@ codeunit 139917 "APIV2 - Approval Entries E2E"
 {
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 

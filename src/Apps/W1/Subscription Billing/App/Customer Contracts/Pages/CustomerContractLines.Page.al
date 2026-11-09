@@ -226,7 +226,7 @@ page 8075 "Customer Contract Lines"
 
     local procedure SetNextBillingDateStyle()
     begin
-        if (ServiceCommitment."Next Billing Date" > ServiceCommitment."Subscription Line End Date") and (ServiceCommitment."Subscription Line End Date" <> 0D) then
+        if ServiceCommitment.IsBilledUntilEndOfTerm() then
             NextBillingDateStyleExpr := 'AttentionAccent';
         OnAfterSetNextBillingDateStyle(Rec, ServiceCommitment, NextBillingDateStyleExpr);
     end;

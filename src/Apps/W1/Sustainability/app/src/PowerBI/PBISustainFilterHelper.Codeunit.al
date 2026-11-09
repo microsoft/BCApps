@@ -12,9 +12,6 @@ codeunit 6281 "PBI Sustain. Filter Helper"
         RelativeFilterLbl: Label '%1..', Locked = true;
         FilterTxt: Text;
     begin
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
         if PBISetup.Get() then
             case PBISetup."Sustainability Load Date Type" of
                 PBISetup."Sustainability Load Date Type"::"Start/End Date":
@@ -33,9 +30,6 @@ codeunit 6281 "PBI Sustain. Filter Helper"
                     exit('');
             end;
         exit('');
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::Initialization, OnGettingSetupFieldsToAuditFromPowerBIReportsSetup, '', false, false)]
@@ -43,14 +37,8 @@ codeunit 6281 "PBI Sustain. Filter Helper"
     var
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
         if not FieldsMonitored.Contains(PowerBIReportsSetup.FieldNo("Sustainability Report Id")) then
             FieldsMonitored.Add(PowerBIReportsSetup.FieldNo("Sustainability Report Id"));
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
     end;
 
 }

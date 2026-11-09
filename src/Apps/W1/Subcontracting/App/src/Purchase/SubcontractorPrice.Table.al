@@ -29,7 +29,7 @@ table 20500 "Subcontractor Price"
             var
                 Vendor: Record Vendor;
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -47,7 +47,7 @@ table 20500 "Subcontractor Price"
 
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -80,7 +80,7 @@ table 20500 "Subcontractor Price"
             Caption = 'Starting Date';
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -126,7 +126,7 @@ table 20500 "Subcontractor Price"
             Caption = 'Ending Date';
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -166,7 +166,7 @@ table 20500 "Subcontractor Price"
     }
     trigger OnInsert()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -179,7 +179,7 @@ table 20500 "Subcontractor Price"
 
     trigger OnRename()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -191,7 +191,7 @@ table 20500 "Subcontractor Price"
 
     var
         SubcFeatureTelemetry: Codeunit "Subc. Feature Telemetry";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -202,7 +202,7 @@ table 20500 "Subcontractor Price"
     var
         NewSubcontractorPrice: Record "Subcontractor Price";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -219,7 +219,7 @@ table 20500 "Subcontractor Price"
 
     internal procedure DeletePricesForVendor(VendorNo: Code[20])
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -233,7 +233,7 @@ table 20500 "Subcontractor Price"
 
     internal procedure DeletePricesForWorkCenter(WorkCenterNo: Code[20])
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -247,7 +247,7 @@ table 20500 "Subcontractor Price"
 
     internal procedure DeletePricesForItem(ItemNo: Code[20])
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

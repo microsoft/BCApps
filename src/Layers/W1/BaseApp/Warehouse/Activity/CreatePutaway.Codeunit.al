@@ -1035,36 +1035,15 @@ codeunit 7313 "Create Put-away"
         exit(BinContentFound);
     end;
 
-#if not CLEAN27
-    [Obsolete('Use same procedure in codeunit MfgCreatePutaway instead.', '27.0')]
-    procedure SetCalledFromPutAwayWorksheet(NewCalledFromPutAwayWorksheet: Boolean)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignPlaceBinZone(var WarehouseActivityLine: Record "Warehouse Activity Line");
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterGetItemAndSKU(Location: Record Location; var Item: Record Item; var StockkeepingUnit: Record "Stockkeeping Unit")
-    begin
-        OnAfterGetItemAndSKU(Location, Item, StockkeepingUnit);
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetItemAndSKU(Location: Record Location; var Item: Record Item; var StockkeepingUnit: Record "Stockkeeping Unit")
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnAfterGetLocation(LocationCode: Code[10]; var Location: Record Location; var PostedWhseRcptLine: Record "Posted Whse. Receipt Line")
-    begin
-        OnAfterGetLocation(LocationCode, Location, PostedWhseRcptLine);
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetLocation(LocationCode: Code[10]; var Location: Record Location; var PostedWhseRcptLine: Record "Posted Whse. Receipt Line")
@@ -1075,13 +1054,6 @@ codeunit 7313 "Create Put-away"
     local procedure OnAfterGetMessageText(var MessageText: Text)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnAfterGetWhseActivHeaderNo(var FirstPutAwayNo: Code[20]; var LastPutAwayNo: Code[20])
-    begin
-        OnAfterGetWhseActivHeaderNo(FirstPutAwayNo, LastPutAwayNo);
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetWhseActivHeaderNo(var FirstPutAwayNo: Code[20]; var LastPutAwayNo: Code[20])
@@ -1097,13 +1069,6 @@ codeunit 7313 "Create Put-away"
     local procedure OnAfterRun(var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line")
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnAfterSetValues(var AssignedID: Code[50]; var SortActivity: Enum "Whse. Activity Sorting Method"; var DoNotFillQtytoHandle: Boolean; var BreakbulkFilter: Boolean)
-    begin
-        OnAfterSetValues(AssignedID, SortActivity, DoNotFillQtytoHandle, BreakbulkFilter);
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetValues(var AssignedID: Code[50]; var SortActivity: Enum "Whse. Activity Sorting Method"; var DoNotFillQtytoHandle: Boolean; var BreakbulkFilter: Boolean)
@@ -1130,13 +1095,6 @@ codeunit 7313 "Create Put-away"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeAssignQtyToPutAwayForBinMandatory(Item: Record Item; Location: Record Location; var QtyToPutAwayBase: Decimal; var RemQtyToPutAwayBase: Decimal)
-    begin
-        OnBeforeAssignQtyToPutAwayForBinMandatory(Item, Location, QtyToPutAwayBase, RemQtyToPutAwayBase);
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAssignQtyToPutAwayForBinMandatory(Item: Record Item; Location: Record Location; var QtyToPutAwayBase: Decimal; var RemQtyToPutAwayBase: Decimal)
     begin
@@ -1146,13 +1104,6 @@ codeunit 7313 "Create Put-away"
     local procedure OnBeforeCalcAvailabilityPerBinContent(BinContent: Record "Bin Content"; WarehouseClassCode: Code[10]; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeCalcAvailCubageAndWeight(var Bin: Record Bin; PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; PutAwayItemUOM: Record "Item Unit of Measure"; var QtyToPutAwayBase: Decimal; var IsHandled: Boolean; PutAwayTemplLine: Record "Put-away Template Line")
-    begin
-        OnBeforeCalcAvailCubageAndWeight(Bin, PostedWhseReceiptLine, PutAwayItemUOM, QtyToPutAwayBase, IsHandled, PutAwayTemplLine);
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcAvailCubageAndWeight(var Bin: Record Bin; PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; PutAwayItemUOM: Record "Item Unit of Measure"; var QtyToPutAwayBase: Decimal; var IsHandled: Boolean; PutAwayTemplLine: Record "Put-away Template Line")
@@ -1168,12 +1119,6 @@ codeunit 7313 "Create Put-away"
     local procedure OnBeforeCreateBreakPackageLines(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var TempWhseActivLine: Record "Warehouse Activity Line"; var LineNo: Integer; var BreakbulkNo: Integer; var RemQtyToPutAwayBase: Decimal; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeEverythingIsHandled(var EverythingHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEverythingIsHandled(var EverythingHandled: Boolean)
@@ -1195,36 +1140,15 @@ codeunit 7313 "Create Put-away"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeGetPutAwayTemplate(SKU: Record "Stockkeeping Unit"; Item: Record Item; Location: Record Location; var PutAwayTemplHeader: Record "Put-away Template Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeGetPutAwayTemplate(SKU, Item, Location, PutAwayTemplHeader, IsHandled);
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetPutAwayTemplate(SKU: Record "Stockkeeping Unit"; Item: Record Item; Location: Record Location; var PutAwayTemplHeader: Record "Put-away Template Header"; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeGetFirstPutAwayDocument(var TempWarehouseActivityHeader: Record "Warehouse Activity Header" temporary)
-    begin
-        OnBeforeGetFirstPutAwayDocument(TempWarehouseActivityHeader);
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetFirstPutAwayDocument(var TempWarehouseActivityHeader: Record "Warehouse Activity Header" temporary)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeGetNextPutAwayDocument(var TempWarehouseActivityHeader: Record "Warehouse Activity Header" temporary)
-    begin
-        OnBeforeGetNextPutAwayDocument(TempWarehouseActivityHeader);
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetNextPutAwayDocument(var TempWarehouseActivityHeader: Record "Warehouse Activity Header" temporary)
@@ -1291,62 +1215,25 @@ codeunit 7313 "Create Put-away"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnFindBin(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; PutAwayTemplateLine: Record "Put-away Template Line"; var Bin: Record Bin; var BinFound: Boolean; var IsHandled: Boolean)
-    begin
-        OnFindBin(PostedWhseReceiptLine, PutAwayTemplateLine, Bin, BinFound, IsHandled);
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnFindBin(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; PutAwayTemplateLine: Record "Put-away Template Line"; var Bin: Record Bin; var BinFound: Boolean; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnFindBinContent(PostedWhseReceiptLine2: Record "Posted Whse. Receipt Line"; PutAwayTemplateLine2: Record "Put-away Template Line"; var BinContent: Record "Bin Content"; var BinContentFound: Boolean; var IsHandled: Boolean)
-    begin
-        OnFindBinContent(PostedWhseReceiptLine2, PutAwayTemplateLine2, BinContent, BinContentFound, IsHandled);
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnFindBinContent(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; PutAwayTemplateLine: Record "Put-away Template Line"; var BinContent: Record "Bin Content"; var BinContentFound: Boolean; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnNextBin(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; PutAwayTemplateLine: Record "Put-away Template Line"; var Bin: Record Bin; var BinFound: Boolean; var IsHandled: Boolean)
-    begin
-        OnNextBin(PostedWhseReceiptLine, PutAwayTemplateLine, Bin, BinFound, IsHandled);
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnNextBin(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; PutAwayTemplateLine: Record "Put-away Template Line"; var Bin: Record Bin; var BinFound: Boolean; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnNextBinContent(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; PutAwayTemplateLine: Record "Put-away Template Line"; var BinContent: Record "Bin Content"; var BinContentFound: Boolean; var IsHandled: Boolean)
-    begin
-        OnNextBinContent(PostedWhseReceiptLine, PutAwayTemplateLine, BinContent, BinContentFound, IsHandled);
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnNextBinContent(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; PutAwayTemplateLine: Record "Put-away Template Line"; var BinContent: Record "Bin Content"; var BinContentFound: Boolean; var IsHandled: Boolean)
     begin
     end;
-
-
-
-#if not CLEAN27
-    internal procedure RunOnUpdateTempWhseItemTrkgLines(var TempWhseItemTrackingLine: Record "Whse. Item Tracking Line" temporary; PostedWhseReceiptLine: Record "Posted Whse. Receipt Line")
-    begin
-        OnUpdateTempWhseItemTrkgLines(TempWhseItemTrackingLine, PostedWhseReceiptLine);
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnUpdateTempWhseItemTrkgLines(var TempWhseItemTrackingLine: Record "Whse. Item Tracking Line" temporary; PostedWhseReceiptLine: Record "Posted Whse. Receipt Line")
@@ -1383,58 +1270,6 @@ codeunit 7313 "Create Put-away"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeCreateWhsePutAwayForProdOutput(var TempProductionOrderForWhsePutAwayForProdOutput: Record Microsoft.Manufacturing.Document."Production Order" temporary)
-    begin
-        OnBeforeCreateWhsePutAwayForProdOutput(TempProductionOrderForWhsePutAwayForProdOutput);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreatePutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateWhsePutAwayForProdOutput(var TempProductionOrderForWhsePutAwayForProdOutput: Record Microsoft.Manufacturing.Document."Production Order" temporary)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeFindBinFromBinContentForProdOrderLine(ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var TempProdOrdLineTrackingBuff: Record Microsoft.Inventory.Tracking."Prod. Ord. Line Tracking Buff." temporary; var BinContentQtyBase: Decimal)
-    begin
-        OnBeforeFindBinFromBinContentForProdOrderLine(ProdOrderLine, TempProdOrdLineTrackingBuff, BinContentQtyBase);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreatePutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindBinFromBinContentForProdOrderLine(ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var TempProdOrdLineTrackingBuff: Record Microsoft.Inventory.Tracking."Prod. Ord. Line Tracking Buff." temporary; var BinContentQtyBase: Decimal)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeFindBinForProdOrderLine(ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var TempProdOrdLineTrackingBuff: Record Microsoft.Inventory.Tracking."Prod. Ord. Line Tracking Buff." temporary; var BinContentQtyBase: Decimal)
-    begin
-        OnBeforeFindBinForProdOrderLine(ProdOrderLine, TempProdOrdLineTrackingBuff, BinContentQtyBase);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreatePutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindBinForProdOrderLine(ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var TempProdOrdLineTrackingBuff: Record Microsoft.Inventory.Tracking."Prod. Ord. Line Tracking Buff." temporary; var BinContentQtyBase: Decimal)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeCreateWhsePutAwayForProdOrder(var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order")
-    begin
-        OnBeforeCreateWhsePutAwayForProdOrder(ProductionOrder);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreatePutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateWhsePutAwayForProdOrder(var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order")
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnAssignPlaceBinZoneOnBeforeApplyBinCodeFilter(var BinCodeFilterText: Text[250]; var Location: Record Location; var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line")
     begin
@@ -1444,36 +1279,4 @@ codeunit 7313 "Create Put-away"
     local procedure OnAfterGetWarehouseClassCode(var WarehouseClassCode: Code[10]; Item: Record Item; StockkeepingUnit: Record "Stockkeeping Unit")
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnCreateNewWhseActivityForProdOrderLineOnBeforeValidateQuantity(var WarehouseActivityLine: Record "Warehouse Activity Line";
-                                                                                          ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line";
-                                                                                          var TempProdOrdLineTrackingBuff: Record Microsoft.Inventory.Tracking."Prod. Ord. Line Tracking Buff." temporary)
-    begin
-        OnCreateNewWhseActivityForProdOrderLineOnBeforeValidateQuantity(WarehouseActivityLine, ProdOrderLine, TempProdOrdLineTrackingBuff);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreatePutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCreateNewWhseActivityForProdOrderLineOnBeforeValidateQuantity(var WarehouseActivityLine: Record "Warehouse Activity Line";
-                                                                                    ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line";
-                                                                                    var TempProdOrdLineTrackingBuff: Record Microsoft.Inventory.Tracking."Prod. Ord. Line Tracking Buff." temporary)
-    begin
-    end;
-
-    internal procedure RunOnCreateNewWhseActivityForProdOrderLineOnAfterSetQtyToHandle(var WarehouseActivityLine: Record "Warehouse Activity Line";
-                                                                                       ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line";
-                                                                                       var TempProdOrdLineTrackingBuff: Record Microsoft.Inventory.Tracking."Prod. Ord. Line Tracking Buff." temporary; DoNotFillQtytoHandle: Boolean)
-    begin
-        OnCreateNewWhseActivityForProdOrderLineOnAfterSetQtyToHandle(WarehouseActivityLine, ProdOrderLine, TempProdOrdLineTrackingBuff, DoNotFillQtytoHandle);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreatePutaway', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCreateNewWhseActivityForProdOrderLineOnAfterSetQtyToHandle(var WarehouseActivityLine: Record "Warehouse Activity Line";
-                                                                                 ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line";
-                                                                                 var TempProdOrdLineTrackingBuff: Record Microsoft.Inventory.Tracking."Prod. Ord. Line Tracking Buff." temporary; DoNotFillQtytoHandle: Boolean)
-    begin
-    end;
-#endif
 }

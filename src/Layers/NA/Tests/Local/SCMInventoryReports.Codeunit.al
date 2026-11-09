@@ -598,8 +598,7 @@
         GeneralPostingSetup: Record "General Posting Setup";
     begin
         GeneralPostingSetup.SetRange("Gen. Prod. Posting Group", GenProdPostingGroupCode);
-        GeneralPostingSetup.ModifyAll("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo(), true);
-        GeneralPostingSetup.ModifyAll("COGS Account", LibraryERM.CreateGLAccountNo(), true);
+        GeneralPostingSetup.ModifyAll("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo(), "COGS Account", LibraryERM.CreateGLAccountNo(), true);
     end;
 
     [RequestPageHandler]

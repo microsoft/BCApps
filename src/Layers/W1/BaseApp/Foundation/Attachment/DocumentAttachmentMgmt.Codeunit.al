@@ -34,10 +34,12 @@ codeunit 1173 "Document Attachment Mgmt"
 
     var
         ConfirmManagement: Codeunit "Confirm Management";
+        PendingUnfilteredDeleteIds: List of [Guid];
         PrintedToAttachmentTxt: Label 'The document has been printed to attachments.';
         NoSaveToPDFReportTxt: Label 'There are no reports which could be saved to PDF for this document.';
         ShowAttachmentsTxt: Label 'Show Attachments';
         DeleteAttachmentsConfirmQst: Label 'Do you want to delete the attachments for this document?';
+        DeleteFromUnfilteredListQst: Label 'The list of attachments is not filtered to the current document. If you continue, the selected attachments will be deleted even if they belong to other documents in the company.\\Do you want to continue?';
         RelatedAttachmentsFilterTxt: Label '%1|%2', Comment = '%1 = Source Table ID, %2 = Related Table ID', Locked = true;
 
     procedure DeleteAttachedDocuments(RecRef: RecordRef)
@@ -95,6 +97,46 @@ codeunit 1173 "Document Attachment Mgmt"
         Rec.FilterGroup := CurrentFilterGroup;
     end;
 
+    internal procedure IsDocumentAttachmentListUnfiltered(var DocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        CurrentFilterGroup: Integer;
+        FilterGroupNo: Integer;
+        HasFilters: Boolean;
+    begin
+        CurrentFilterGroup := DocumentAttachment.FilterGroup;
+        FilterGroupNo := 0;
+        repeat
+            DocumentAttachment.FilterGroup := FilterGroupNo;
+            HasFilters := DocumentAttachment.GetFilters() <> '';
+            FilterGroupNo += 1;
+        until HasFilters or (FilterGroupNo > 255);
+        DocumentAttachment.FilterGroup := CurrentFilterGroup;
+        exit(not HasFilters);
+    end;
+
+    internal procedure ConfirmDeleteFromUnfilteredList(var DocumentAttachment: Record "Document Attachment"; SelectedDocumentAttachment: Record "Document Attachment")
+    begin
+        // A page runs OnDeleteRecord once per selected record. The user is asked for the first record only; the other
+        // selected records are remembered as confirmed, so they are deleted without asking again. Declining raises an
+        // error, which cancels the whole delete operation, so a declined delete leaves nothing behind for the next one.
+        if PendingUnfilteredDeleteIds.Remove(DocumentAttachment.SystemId) then
+            exit;
+        Clear(PendingUnfilteredDeleteIds);
+
+        if not IsDocumentAttachmentListUnfiltered(DocumentAttachment) then
+            exit;
+
+        if not ConfirmManagement.GetResponse(DeleteFromUnfilteredListQst, false) then
+            Error('');
+
+        SelectedDocumentAttachment.SetLoadFields(SystemId);
+        if SelectedDocumentAttachment.FindSet() then
+            repeat
+                if SelectedDocumentAttachment.SystemId <> DocumentAttachment.SystemId then
+                    PendingUnfilteredDeleteIds.Add(SelectedDocumentAttachment.SystemId);
+            until SelectedDocumentAttachment.Next() = 0;
+    end;
+
     procedure GetRefTable(var RecRef: RecordRef; DocumentAttachment: Record "Document Attachment"): Boolean
     var
         Customer: Record Customer;
@@ -108,6 +150,8 @@ codeunit 1173 "Document Attachment Mgmt"
         Job: Record Job;
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        ReturnReceiptHeader: Record "Return Receipt Header";
         PurchInvHeader: Record "Purch. Inv. Header";
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
         VATReportHeader: Record "VAT Report Header";
@@ -117,95 +161,56 @@ codeunit 1173 "Document Attachment Mgmt"
             0:
                 exit(false);
             Database::Customer:
-                begin
-                    RecRef.Open(Database::Customer);
-                    if Customer.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(Customer);
-                end;
+                if Customer.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(Customer);
             Database::Vendor:
-                begin
-                    RecRef.Open(Database::Vendor);
-                    if Vendor.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(Vendor);
-                end;
+                if Vendor.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(Vendor);
             Database::Item:
-                begin
-                    RecRef.Open(Database::Item);
-                    if Item.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(Item);
-                end;
+                if Item.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(Item);
             Database::Employee:
-                begin
-                    RecRef.Open(Database::Employee);
-                    if Employee.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(Employee);
-                end;
+                if Employee.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(Employee);
             Database::"Fixed Asset":
-                begin
-                    RecRef.Open(Database::"Fixed Asset");
-                    if FixedAsset.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(FixedAsset);
-                end;
+                if FixedAsset.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(FixedAsset);
             Database::Resource:
-                begin
-                    RecRef.Open(Database::Resource);
-                    if Resource.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(Resource);
-                end;
+                if Resource.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(Resource);
             Database::Job:
-                begin
-                    RecRef.Open(Database::Job);
-                    if Job.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(Job);
-                end;
+                if Job.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(Job);
             Database::"Sales Header":
-                begin
-                    RecRef.Open(Database::"Sales Header");
-                    if SalesHeader.Get(DocumentAttachment."Document Type", DocumentAttachment."No.") then
-                        RecRef.GetTable(SalesHeader);
-                end;
+                if SalesHeader.Get(DocumentAttachment."Document Type", DocumentAttachment."No.") then
+                    RecRef.GetTable(SalesHeader);
             Database::"Sales Invoice Header":
-                begin
-                    RecRef.Open(Database::"Sales Invoice Header");
-                    if SalesInvoiceHeader.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(SalesInvoiceHeader);
-                end;
+                if SalesInvoiceHeader.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(SalesInvoiceHeader);
             Database::"Sales Cr.Memo Header":
-                begin
-                    RecRef.Open(Database::"Sales Cr.Memo Header");
-                    if SalesCrMemoHeader.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(SalesCrMemoHeader);
-                end;
+                if SalesCrMemoHeader.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(SalesCrMemoHeader);
+            Database::"Sales Shipment Header":
+                if SalesShipmentHeader.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(SalesShipmentHeader);
+            Database::"Return Receipt Header":
+                if ReturnReceiptHeader.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(ReturnReceiptHeader);
             Database::"Purchase Header":
-                begin
-                    RecRef.Open(Database::"Purchase Header");
-                    if PurchaseHeader.Get(DocumentAttachment."Document Type", DocumentAttachment."No.") then
-                        RecRef.GetTable(PurchaseHeader);
-                end;
+                if PurchaseHeader.Get(DocumentAttachment."Document Type", DocumentAttachment."No.") then
+                    RecRef.GetTable(PurchaseHeader);
             Database::"Purch. Inv. Header":
-                begin
-                    RecRef.Open(Database::"Purch. Inv. Header");
-                    if PurchInvHeader.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(PurchInvHeader);
-                end;
+                if PurchInvHeader.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(PurchInvHeader);
             Database::"Purch. Cr. Memo Hdr.":
-                begin
-                    RecRef.Open(Database::"Purch. Cr. Memo Hdr.");
-                    if PurchCrMemoHdr.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(PurchCrMemoHdr);
-                end;
+                if PurchCrMemoHdr.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(PurchCrMemoHdr);
             Database::"VAT Report Header":
-                begin
-                    RecRef.Open(Database::"VAT Report Header");
-                    if VATReportHeader.Get(DocumentAttachment."VAT Report Config. Code", DocumentAttachment."No.") then
-                        RecRef.GetTable(VATReportHeader);
-                end;
+                if VATReportHeader.Get(DocumentAttachment."VAT Report Config. Code", DocumentAttachment."No.") then
+                    RecRef.GetTable(VATReportHeader);
             Database::Opportunity:
-                begin
-                    RecRef.Open(Database::Opportunity);
-                    if Opportunity.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(Opportunity);
-                end;
+                if Opportunity.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(Opportunity);
         end;
 
         OnAfterGetRefTable(RecRef, DocumentAttachment);

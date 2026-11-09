@@ -41,6 +41,10 @@ codeunit 148004 "Test Verifactu Export"
         QRCodeShouldBeGeneratedForDocumentLbl: Label 'QR code should be generated for document %1', Comment = '%1 = Document number';
         TestServiceInvoiceLbl: Label 'Test Service Invoice %1', Comment = '%1 = Invoice number';
         TestServiceCreditMemoLbl: Label 'Test Service Credit Memo %1', Comment = '%1 = Credit memo number';
+        NonTaxableBreakdownXPathLbl: Label '//*[local-name()="DetalleDesglose"][*[local-name()="CalificacionOperacion" and text()="%1"]]', Locked = true, Comment = '%1 = Operation qualification code';
+        RegisteredDocumentXPathLbl: Label '//*[local-name()="RegistroAlta"][*[local-name()="IDFactura"]/*[local-name()="NumSerieFactura" and text()="%1"]]', Locked = true, Comment = '%1 = Document number';
+        PostedBatchRecipientNameLbl: Label 'Posted bill-to recipient %1', Locked = true, Comment = '%1 = Invoice index';
+        PostedBatchRecipientVATLbl: Label 'B0000000%1', Locked = true, Comment = '%1 = Invoice index';
 
     #region SalesInvoice
     [Test]
@@ -1869,7 +1873,284 @@ codeunit 148004 "Test Verifactu Export"
         SalesInvoiceHeader.CalcFields("Amount Including VAT");
         Assert.IsTrue(XMLText.Contains(Format(SalesInvoiceHeader."Amount Including VAT", 0, '<Precision,2:2><Standard Format,9>')), 'ImporteTotal should have two decimal places');
     end;
+
+    [Test]
+    procedure VerifyNonTaxableArt714InvoiceBreakdown()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Amount: Decimal;
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 650982] Non-taxable article 7-14 sales invoice is exported with an N1 breakdown
+        Initialize();
+
+        // [GIVEN] Customer "C" and a VAT posting setup for non-taxable article 7-14 transactions
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        CreateNoTaxableVATPostingSetup(
+            VATPostingSetup, VATBusinessPostingGroup.Code,
+            VATPostingSetup."No Taxable Type"::"Non Taxable Art 7-14 and others");
+
+        // [GIVEN] Posted sales invoice "I" with a non-taxable line
+        Amount := LibraryRandom.RandIntInRange(100, 500);
+        CreatePostedSalesInvoiceWithVATPostingSetup(SalesInvoiceHeader, Customer, VATPostingSetup, Amount);
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] Its breakdown has qualification N1 and base amount, without tax rate or tax amount
+        VerifyNonTaxableBreakdown(XMLText, 'N1', Amount);
+    end;
+
+    [Test]
+    procedure VerifyNonTaxableLocalizationInvoiceBreakdown()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Amount: Decimal;
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 650982] Non-taxable localization sales invoice is exported with an N2 breakdown
+        Initialize();
+
+        // [GIVEN] Customer "C" and a VAT posting setup for non-taxable localization transactions
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        CreateNoTaxableVATPostingSetup(
+            VATPostingSetup, VATBusinessPostingGroup.Code,
+            VATPostingSetup."No Taxable Type"::"Non Taxable Due To Localization Rules");
+
+        // [GIVEN] Posted sales invoice "I" with a non-taxable line
+        Amount := LibraryRandom.RandIntInRange(100, 500);
+        CreatePostedSalesInvoiceWithVATPostingSetup(SalesInvoiceHeader, Customer, VATPostingSetup, Amount);
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] Its breakdown has qualification N2 and base amount, without tax rate or tax amount
+        VerifyNonTaxableBreakdown(XMLText, 'N2', Amount);
+    end;
+
+    [Test]
+    procedure VerifyNonTaxableInvoiceBreakdownsAreNotCombined()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        Art714VATPostingSetup: Record "VAT Posting Setup";
+        LocalizationVATPostingSetup: Record "VAT Posting Setup";
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 650982] Non-taxable classifications with the same VAT percentage are exported separately
+        Initialize();
+
+        // [GIVEN] Customer "C" and distinct 0% VAT posting setups for N1 and N2 transactions
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        CreateNoTaxableVATPostingSetup(
+            Art714VATPostingSetup, VATBusinessPostingGroup.Code,
+            Art714VATPostingSetup."No Taxable Type"::"Non Taxable Art 7-14 and others");
+        CreateNoTaxableVATPostingSetup(
+            LocalizationVATPostingSetup, VATBusinessPostingGroup.Code,
+            LocalizationVATPostingSetup."No Taxable Type"::"Non Taxable Due To Localization Rules");
+
+        // [GIVEN] Posted sales invoice "I" with one N1 line and one N2 line
+        CreatePostedSalesInvoiceWithVATPostingSetups(
+            SalesInvoiceHeader, Customer, Art714VATPostingSetup, LocalizationVATPostingSetup);
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] Two breakdowns are exported, one qualified as N1 and one as N2
+        VerifyNonTaxableBreakdownCount(XMLText, 2);
+        VerifyNonTaxableBreakdown(XMLText, 'N1', 100);
+        VerifyNonTaxableBreakdown(XMLText, 'N2', 200);
+    end;
     #endregion
+
+    [Test]
+    procedure ExportSalesInvoiceUsesPostedRecipient()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A sales invoice exports its posted bill-to identity, not the issuer or current customer.
+        Initialize();
+
+        // [GIVEN] Invoice "I" has a bill-to snapshot different from its sell-to and current customer "C".
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        CreatePostedSalesInvoice(SalesInvoiceHeader, Customer."No.", 1000, 21);
+        SalesInvoiceHeader."Bill-to Name" := 'Posted invoice bill-to';
+        SalesInvoiceHeader."VAT Registration No." := 'B12345674';
+        SalesInvoiceHeader.Modify();
+        ChangeCustomerIdentityAfterPosting(Customer);
+
+        // [WHEN] Invoice "I" is exported.
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] The recipient uses the snapshot and issuer nodes still identify the company.
+        VerifyExportedRecipient(
+            XMLText, SalesInvoiceHeader."No.", SalesInvoiceHeader."Bill-to Name", SalesInvoiceHeader."VAT Registration No.");
+    end;
+
+    [Test]
+    procedure ExportSalesCreditMemoUsesPostedRecipient()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        Customer: Record Customer;
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A sales credit memo exports its own posted bill-to identity after the customer changes.
+        Initialize();
+
+        // [GIVEN] Credit memo "M" has its own bill-to snapshot and customer "C" subsequently changes.
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        CreatePostedSalesInvoice(SalesInvoiceHeader, Customer."No.", 1000, 21);
+        CreatePostedSalesCreditMemo(SalesCrMemoHeader, SalesInvoiceHeader."No.", Customer."No.", 1000);
+        SalesCrMemoHeader."Bill-to Name" := 'Posted credit memo bill-to';
+        SalesCrMemoHeader."VAT Registration No." := 'B23456783';
+        SalesCrMemoHeader.Modify();
+        ChangeCustomerIdentityAfterPosting(Customer);
+
+        // [WHEN] Credit memo "M" is exported.
+        ExportCreditMemo(SalesCrMemoHeader, XMLText);
+
+        // [THEN] The recipient uses the credit memo snapshot and issuer nodes still identify the company.
+        VerifyExportedRecipient(
+            XMLText, SalesCrMemoHeader."No.", SalesCrMemoHeader."Bill-to Name", SalesCrMemoHeader."VAT Registration No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure ExportServiceInvoiceUsesPostedRecipient()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        Customer: Record Customer;
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A service invoice exports its posted bill-to identity after the customer changes.
+        Initialize();
+
+        // [GIVEN] Service invoice "I" has its own bill-to snapshot and customer "C" subsequently changes.
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        CreateServiceDocWithLine(
+            ServiceHeader, ServiceLine, ServiceHeader."Document Type"::Invoice,
+            ServiceLine.Type::"G/L Account", CreateGLAccountNo(), WorkDate(), Customer."No.");
+        ServiceHeader.Validate("Invoice Type", ServiceHeader."Invoice Type"::"F1 Invoice");
+        ServiceHeader.Validate("Special Scheme Code", ServiceHeader."Special Scheme Code"::"01 General");
+        ServiceHeader.Modify(true);
+        ServiceInvoiceHeader := PostServiceInvoice(ServiceHeader);
+        ServiceInvoiceHeader."Bill-to Name" := 'Posted service invoice bill-to';
+        ServiceInvoiceHeader."VAT Registration No." := 'B34567892';
+        ServiceInvoiceHeader.Modify();
+        ChangeCustomerIdentityAfterPosting(Customer);
+
+        // [WHEN] Service invoice "I" is exported.
+        ExportServiceInvoice(ServiceInvoiceHeader, XMLText);
+
+        // [THEN] The recipient uses the snapshot and issuer nodes still identify the company.
+        VerifyExportedRecipient(
+            XMLText, ServiceInvoiceHeader."No.", ServiceInvoiceHeader."Bill-to Name", ServiceInvoiceHeader."VAT Registration No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure ExportServiceCreditMemoUsesPostedRecipient()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        Customer: Record Customer;
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A service credit memo exports its own posted bill-to identity after the customer changes.
+        Initialize();
+
+        // [GIVEN] Service invoice "I" and its credit memo "M" are posted for customer "C".
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        CreateServiceDocWithLine(
+            ServiceHeader, ServiceLine, ServiceHeader."Document Type"::Invoice,
+            ServiceLine.Type::"G/L Account", CreateGLAccountNo(), WorkDate(), Customer."No.");
+        ServiceHeader.Validate("Invoice Type", ServiceHeader."Invoice Type"::"F1 Invoice");
+        ServiceHeader.Validate("Special Scheme Code", ServiceHeader."Special Scheme Code"::"01 General");
+        ServiceHeader.Modify(true);
+        ServiceInvoiceHeader := PostServiceInvoice(ServiceHeader);
+        CreateServiceDocWithLine(
+            ServiceHeader, ServiceLine, ServiceHeader."Document Type"::"Credit Memo",
+            ServiceLine.Type::"G/L Account", CreateGLAccountNo(), WorkDate(), Customer."No.");
+        ServiceHeader.Validate("Invoice Type", ServiceHeader."Invoice Type"::"R1 Corrected Invoice");
+        ServiceHeader.Validate("Special Scheme Code", ServiceHeader."Special Scheme Code"::"01 General");
+        ServiceHeader.Validate("Corrected Invoice No.", ServiceInvoiceHeader."No.");
+        ServiceHeader.Modify(true);
+        ServiceCrMemoHeader := PostServiceCreditMemo(ServiceHeader);
+
+        // [GIVEN] Credit memo "M" has its own bill-to snapshot and customer "C" subsequently changes.
+        ServiceCrMemoHeader."Bill-to Name" := 'Posted service credit memo bill-to';
+        ServiceCrMemoHeader."VAT Registration No." := 'B45678901';
+        ServiceCrMemoHeader.Modify();
+        ChangeCustomerIdentityAfterPosting(Customer);
+
+        // [WHEN] Service credit memo "M" is exported.
+        ExportServiceCreditMemo(ServiceCrMemoHeader, XMLText);
+
+        // [THEN] The recipient uses the credit memo snapshot and issuer nodes still identify the company.
+        VerifyExportedRecipient(
+            XMLText, ServiceCrMemoHeader."No.", ServiceCrMemoHeader."Bill-to Name", ServiceCrMemoHeader."VAT Registration No.");
+    end;
+
+    [Test]
+    procedure ExportSalesInvoiceBatchKeepsRecipientsSeparate()
+    var
+        SalesInvoiceHeader: array[3] of Record "Sales Invoice Header";
+        Customer: Record Customer;
+        ParsedXMLDocument: XmlDocument;
+        RegisteredDocuments: XmlNodeList;
+        XMLText: Text;
+        InvoiceIndex: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Each invoice in a mixed-customer batch retains its own posted recipient.
+        Initialize();
+
+        // [GIVEN] Three invoices have different customers and different posted bill-to identities.
+        for InvoiceIndex := 1 to ArrayLen(SalesInvoiceHeader) do begin
+            LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+            CreatePostedSalesInvoice(SalesInvoiceHeader[InvoiceIndex], Customer."No.", 1000, 21);
+            SalesInvoiceHeader[InvoiceIndex]."Bill-to Name" := StrSubstNo(PostedBatchRecipientNameLbl, InvoiceIndex);
+            SalesInvoiceHeader[InvoiceIndex]."VAT Registration No." := StrSubstNo(PostedBatchRecipientVATLbl, InvoiceIndex);
+            SalesInvoiceHeader[InvoiceIndex].Modify();
+            ChangeCustomerIdentityAfterPosting(Customer);
+        end;
+
+        // [WHEN] The invoices are exported in one batch.
+        ExportInvoiceBatch(SalesInvoiceHeader, XMLText);
+
+        // [THEN] Exactly three documents retain their own recipients and the common issuer.
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(ParsedXMLDocument.SelectNodes('//*[local-name()="RegistroAlta"]', RegisteredDocuments), 'Export should contain registered documents');
+        Assert.AreEqual(ArrayLen(SalesInvoiceHeader), RegisteredDocuments.Count(), 'Batch should contain exactly the selected invoices');
+        for InvoiceIndex := 1 to ArrayLen(SalesInvoiceHeader) do
+            VerifyExportedRecipient(
+                XMLText, SalesInvoiceHeader[InvoiceIndex]."No.",
+                SalesInvoiceHeader[InvoiceIndex]."Bill-to Name", SalesInvoiceHeader[InvoiceIndex]."VAT Registration No.");
+    end;
 
     local procedure Initialize()
     begin
@@ -1882,6 +2163,58 @@ codeunit 148004 "Test Verifactu Export"
         EDocumentService.Get(LibraryEdocument.CreateService("E-Document Format"::Verifactu, "Service Integration"::"Verifactu Service"));
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Test Verifactu Export");
+    end;
+
+    local procedure ChangeCustomerIdentityAfterPosting(var Customer: Record Customer)
+    begin
+        Customer.Name := 'Changed customer master';
+        Customer."VAT Registration No." := 'B98765432';
+        Customer.Modify();
+    end;
+
+    local procedure VerifyExportedRecipient(XMLText: Text; DocumentNo: Code[20]; ExpectedName: Text; ExpectedVATRegistrationNo: Text)
+    var
+        CompanyInformation: Record "Company Information";
+        ParsedXMLDocument: XmlDocument;
+        DocumentXMLNodes: XmlNodeList;
+        DocumentXMLNode: XmlNode;
+        IssuerXMLNode: XmlNode;
+        RecipientXMLNode: XmlNode;
+    begin
+        CompanyInformation.Get();
+        Assert.AreNotEqual(CompanyInformation.Name, ExpectedName, 'Recipient name must differ from issuer name');
+        Assert.AreNotEqual(CompanyInformation."VAT Registration No.", ExpectedVATRegistrationNo, 'Recipient NIF must differ from issuer NIF');
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(
+            ParsedXMLDocument.SelectSingleNode('//*[local-name()="Cabecera"]/*[local-name()="ObligadoEmision"]', IssuerXMLNode),
+            'Export should contain the header issuer');
+        VerifyIdentityXMLValue(IssuerXMLNode, '*[local-name()="NombreRazon"]', CompanyInformation.Name, 'Header issuer name should remain unchanged');
+        VerifyIdentityXMLValue(IssuerXMLNode, '*[local-name()="NIF"]', CompanyInformation."VAT Registration No.", 'Header issuer NIF should remain unchanged');
+        Assert.IsTrue(
+            ParsedXMLDocument.SelectNodes(StrSubstNo(RegisteredDocumentXPathLbl, DocumentNo), DocumentXMLNodes),
+            'Export should contain the requested registered document');
+        Assert.AreEqual(1, DocumentXMLNodes.Count(), 'Document number should identify exactly one registration');
+        DocumentXMLNodes.Get(1, DocumentXMLNode);
+        VerifyIdentityXMLValue(DocumentXMLNode, '*[local-name()="NombreRazonEmisor"]', CompanyInformation.Name, 'Document issuer name should remain unchanged');
+        VerifyIdentityXMLValue(
+            DocumentXMLNode, '*[local-name()="IDFactura"]/*[local-name()="IDEmisorFactura"]',
+            CompanyInformation."VAT Registration No.", 'Document issuer NIF should remain unchanged');
+        Assert.IsTrue(
+            DocumentXMLNode.SelectSingleNode('*[local-name()="Destinatarios"]/*[local-name()="IDDestinatario"]', RecipientXMLNode),
+            'Document should contain its recipient');
+        VerifyIdentityXMLValue(RecipientXMLNode, '*[local-name()="NombreRazon"]', ExpectedName, 'Recipient name should come from the posted bill-to snapshot');
+        VerifyIdentityXMLValue(RecipientXMLNode, '*[local-name()="NIF"]', ExpectedVATRegistrationNo, 'Recipient NIF should come from the posted header snapshot');
+    end;
+
+    local procedure VerifyIdentityXMLValue(ParentXMLNode: XmlNode; XPath: Text; ExpectedValue: Text; FailureMessage: Text)
+    var
+        ValueXMLNodes: XmlNodeList;
+        ValueXMLNode: XmlNode;
+    begin
+        Assert.IsTrue(ParentXMLNode.SelectNodes(XPath, ValueXMLNodes), FailureMessage);
+        Assert.AreEqual(1, ValueXMLNodes.Count(), 'Identity field should occur exactly once');
+        ValueXMLNodes.Get(1, ValueXMLNode);
+        Assert.AreEqual(ExpectedValue, ValueXMLNode.AsXmlElement().InnerText(), FailureMessage);
     end;
 
     local procedure ExportInvoice(SalesInvoiceHeader: Record "Sales Invoice Header"; var XMLText: Text)
@@ -2178,6 +2511,74 @@ codeunit 148004 "Test Verifactu Export"
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateNoTaxableVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATBusinessPostingGroupCode: Code[20]; NoTaxableType: Option)
+    var
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroupCode, VATProductPostingGroup.Code);
+        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"No Taxable VAT");
+        VATPostingSetup.Validate("No Taxable Type", NoTaxableType);
+        VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+    end;
+
+    local procedure CreatePostedSalesInvoiceWithVATPostingSetup(var SalesInvoiceHeader: Record "Sales Invoice Header"; var Customer: Record Customer; VATPostingSetup: Record "VAT Posting Setup"; Amount: Decimal)
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+    begin
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Invoice Type", SalesHeader."Invoice Type"::"F1 Invoice");
+        SalesHeader.Validate("Special Scheme Code", SalesHeader."Special Scheme Code"::"01 General");
+        SalesHeader.Validate("Operation Description", 'Test Invoice');
+        SalesHeader.Modify(true);
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", Amount);
+        SalesLine.Modify(true);
+
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreatePostedSalesInvoiceWithVATPostingSetups(var SalesInvoiceHeader: Record "Sales Invoice Header"; var Customer: Record Customer; Art714VATPostingSetup: Record "VAT Posting Setup"; LocalizationVATPostingSetup: Record "VAT Posting Setup")
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+    begin
+        Customer.Validate("VAT Bus. Posting Group", Art714VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Invoice Type", SalesHeader."Invoice Type"::"F1 Invoice");
+        SalesHeader.Validate("Special Scheme Code", SalesHeader."Special Scheme Code"::"01 General");
+        SalesHeader.Validate("Operation Description", 'Test Invoice');
+        SalesHeader.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", Art714VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", LocalizationVATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", 200);
+        SalesLine.Modify(true);
+
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreateAndPostSalesCreditMemo(PostedSalesInvoiceNo: Code[20]; CustomerNo: Code[20]; Amount: Decimal): Code[20]
     var
         SalesHeader: Record "Sales Header";
@@ -2333,6 +2734,34 @@ codeunit 148004 "Test Verifactu Export"
         Assert.IsTrue(XMLText.Contains(Format(VATRate)), 'XML should contain VAT breakdown');
     end;
 
+    local procedure VerifyNonTaxableBreakdown(XMLText: Text; OperationQualification: Text; ExpectedBaseAmount: Decimal)
+    var
+        ParsedXMLDocument: XmlDocument;
+        BreakdownXMLNode: XmlNode;
+        XMLNode: XmlNode;
+        BreakdownXPath: Text;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        BreakdownXPath := StrSubstNo(NonTaxableBreakdownXPathLbl, OperationQualification);
+        Assert.IsTrue(ParsedXMLDocument.SelectSingleNode(BreakdownXPath, BreakdownXMLNode), 'Expected non-taxable breakdown was not found');
+        Assert.IsTrue(BreakdownXMLNode.SelectSingleNode('*[local-name()="BaseImponibleOimporteNoSujeto"]', XMLNode), 'Non-taxable breakdown should contain the base amount');
+        Assert.AreEqual(Format(ExpectedBaseAmount, 0, 9), XMLNode.AsXmlElement().InnerText(), 'Non-taxable breakdown base amount is incorrect');
+        Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="TipoImpositivo"]', XMLNode), 'Non-taxable breakdown should not contain a tax rate');
+        Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="CuotaRepercutida"]', XMLNode), 'Non-taxable breakdown should not contain a tax amount');
+        Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="TipoRecargoEquivalencia"]', XMLNode), 'Non-taxable breakdown should not contain an equivalence surcharge rate');
+        Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="CuotaRecargoEquivalencia"]', XMLNode), 'Non-taxable breakdown should not contain an equivalence surcharge amount');
+    end;
+
+    local procedure VerifyNonTaxableBreakdownCount(XMLText: Text; ExpectedCount: Integer)
+    var
+        ParsedXMLDocument: XmlDocument;
+        BreakdownXMLNodes: XmlNodeList;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(ParsedXMLDocument.SelectNodes('//*[local-name()="DetalleDesglose"]', BreakdownXMLNodes), 'Export should contain breakdowns');
+        Assert.AreEqual(ExpectedCount, BreakdownXMLNodes.Count(), 'Number of breakdowns is incorrect');
+    end;
+
     local procedure VerifyCompanyInformation(CompanyInformation: Record "Company Information"; XMLText: Text)
     begin
         Assert.IsTrue(XMLText.Contains(CompanyInformation.Name), 'XML should contain company name');
@@ -2401,5 +2830,10 @@ codeunit 148004 "Test Verifactu Export"
         end;
         exit(Count);
     end;
-}
 
+    [ConfirmHandler]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
+    end;
+}

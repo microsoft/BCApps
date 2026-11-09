@@ -16,7 +16,6 @@ using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 using System.Agents;
-using System.Security.User;
 using System.Utilities;
 
 codeunit 148300 "Library - Expense"
@@ -32,6 +31,20 @@ codeunit 148300 "Library - Expense"
         NameTxt: Label 'Name';
         AttachmentRetrievalFailedErr: Label 'The attachment could not be retrieved.', Locked = true;
         AttachmentRetrievalFailureEnabled: Boolean;
+        CorpCardDraftFailureEnabled: Boolean;
+        CorpCardDraftFailedErr: Label 'Corporate card draft creation failed after inserting the expense.', Locked = true;
+
+    internal procedure SetCorpCardDraftFailureEnabled(Enabled: Boolean)
+    begin
+        CorpCardDraftFailureEnabled := Enabled;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::Expense, OnAfterInsertEvent, '', false, false)]
+    local procedure FailOnAfterCorpCardExpenseInsert(var Rec: Record Expense; RunTrigger: Boolean)
+    begin
+        if CorpCardDraftFailureEnabled and (Rec."Credit Card Feed No." <> 0) then
+            Error(CorpCardDraftFailedErr);
+    end;
 
     internal procedure SetAttachmentRetrievalFailureEnabled(Enabled: Boolean)
     begin
@@ -627,24 +640,6 @@ codeunit 148300 "Library - Expense"
         ExpenseTeam.Insert(true);
     end;
 
-    procedure SetExpenseAmountApprovalLimits(var UserSetup: Record "User Setup"; ExpenseApprovalLimit: Integer)
-    begin
-        UserSetup."Expense Amount Approval Limit" := ExpenseApprovalLimit;
-        UserSetup.Modify(true);
-    end;
-
-    procedure SetLimitedExpenseApprovalLimits(var UserSetup: Record "User Setup")
-    begin
-        UserSetup."Unlimited Expense Approval" := false;
-        UserSetup.Modify(true);
-    end;
-
-    procedure SetUnlimitedExpenseApprovalLimits(var UserSetup: Record "User Setup")
-    begin
-        UserSetup."Unlimited Expense Approval" := true;
-        UserSetup.Modify(true);
-    end;
-
     internal procedure CreateExpenseApprovalSetup(var ExpenseApprovalSetup: Record "Expense Approval Setup"; ExpenseUserNo: Code[20]; ApproverNo: Code[20])
     begin
         ExpenseApprovalSetup.Init();
@@ -814,6 +809,17 @@ codeunit 148300 "Library - Expense"
     begin
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup."Enable Agent" := EnableAgent;
+        ExpenseAgentSetup.Modify(true);
+    end;
+
+    internal procedure UpdateVATBusinessPostingGroupInAgentSetup()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+    begin
+        ExpenseAgentSetup.Get();
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
         ExpenseAgentSetup.Modify(true);
     end;
 }

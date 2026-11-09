@@ -58,7 +58,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         table "E-Document Message" = X,
         table "E-Doc. Payment Occurrence" = X,
         table "E-Doc. External Reference" = X,
-#if not CLEAN28
+#if not CLEAN27
 #pragma warning disable AL0432
         table "EDoc Historical Matching Setup" = X,
 #pragma warning restore AL0432

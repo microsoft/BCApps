@@ -144,6 +144,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetPurchaseCreditMemoUpgradeTag());
         PerCompanyUpgradeTags.Add(GetWorkflowDelegatedAdminSetupTemplateUpgradeTag());
         PerCompanyUpgradeTags.Add(GetPurchasesPayablesAndSalesReceivablesSetupsUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetLocationBinPolicySetupsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetAllowInventoryAdjmtUpgradeTag());
 #if not CLEAN29
@@ -174,6 +175,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetInventoryPlanningSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetICTransactionSourceTypeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetFinancialReportDefaultsUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetShowCurrencySymbolPositionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetInitializeABCAnalysisSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetPurchRcptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetSalesShptLineFieldsUpgradeTag());
@@ -1075,6 +1077,11 @@ codeunit 9998 "Upgrade Tag Definitions"
         exit('MS-325010-PurchasesPayablesAndSalesReceivablesSetupsUpgrade-20230414');
     end;
 
+    internal procedure GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag(): Code[250]
+    begin
+        exit('MS-649626-RestoreOrderQtyOnReturnInSalesAndPurchasesSetup-20260929');
+    end;
+
     procedure GetRegisterBankAccRecCopilotCapabilityUpgradeTag(): Code[250]
     begin
         exit('MS-491277-RegisterBankAccRecCopilotCapability-20231113');
@@ -1234,6 +1241,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetFinancialReportDefaultsUpgradeTag(): Code[250]
     begin
         exit('GIT-1494-FinancialReportDefaultsUpgradeTag-20250801');
+    end;
+
+    internal procedure GetShowCurrencySymbolPositionUpgradeTag(): Code[250]
+    begin
+        exit('MS-578641-SetShowCurrencySymbolUpgradeTag-20251014');
     end;
 
     internal procedure GetCreateExpenseAgentAADApplicationsTag(): Code[250]

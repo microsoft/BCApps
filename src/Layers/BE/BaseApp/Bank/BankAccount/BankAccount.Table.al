@@ -1835,36 +1835,45 @@ table 270 "Bank Account"
 
     local procedure IsContactUpdateNeeded(): Boolean
     var
+        BankAccountBeforeModify: Record "Bank Account";
         BankContUpdate: Codeunit "BankCont-Update";
         UpdateNeeded: Boolean;
     begin
+        BankAccountBeforeModify.Copy(xRec);
+
+        if not IsTemporary then begin
+            BankAccountBeforeModify.Get("No.");
+            if BankAccountBeforeModify.SystemRowVersion <> xRec.SystemRowVersion then
+                BankAccountBeforeModify := xRec;
+        end;
+
         UpdateNeeded :=
-          (Name <> xRec.Name) or
-          ("Search Name" <> xRec."Search Name") or
-          ("Name 2" <> xRec."Name 2") or
-          (Address <> xRec.Address) or
-          ("Address 2" <> xRec."Address 2") or
-          (City <> xRec.City) or
-          ("Phone No." <> xRec."Phone No.") or
-          ("Mobile Phone No." <> xRec."Mobile Phone No.") or
-          ("Telex No." <> xRec."Telex No.") or
-          ("Territory Code" <> xRec."Territory Code") or
-          ("Currency Code" <> xRec."Currency Code") or
-          ("Language Code" <> xRec."Language Code") or
-          ("Format Region" <> xRec."Format Region") or
-          ("Our Contact Code" <> xRec."Our Contact Code") or
-          ("Country/Region Code" <> xRec."Country/Region Code") or
-          ("Fax No." <> xRec."Fax No.") or
-          ("Telex Answer Back" <> xRec."Telex Answer Back") or
-          ("Post Code" <> xRec."Post Code") or
-          (County <> xRec.County) or
-          ("E-Mail" <> xRec."E-Mail") or
-          ("Home Page" <> xRec."Home Page");
+          (Name <> BankAccountBeforeModify.Name) or
+          ("Search Name" <> BankAccountBeforeModify."Search Name") or
+          ("Name 2" <> BankAccountBeforeModify."Name 2") or
+          (Address <> BankAccountBeforeModify.Address) or
+          ("Address 2" <> BankAccountBeforeModify."Address 2") or
+          (City <> BankAccountBeforeModify.City) or
+          ("Phone No." <> BankAccountBeforeModify."Phone No.") or
+          ("Mobile Phone No." <> BankAccountBeforeModify."Mobile Phone No.") or
+          ("Telex No." <> BankAccountBeforeModify."Telex No.") or
+          ("Territory Code" <> BankAccountBeforeModify."Territory Code") or
+          ("Currency Code" <> BankAccountBeforeModify."Currency Code") or
+          ("Language Code" <> BankAccountBeforeModify."Language Code") or
+          ("Format Region" <> BankAccountBeforeModify."Format Region") or
+          ("Our Contact Code" <> BankAccountBeforeModify."Our Contact Code") or
+          ("Country/Region Code" <> BankAccountBeforeModify."Country/Region Code") or
+          ("Fax No." <> BankAccountBeforeModify."Fax No.") or
+          ("Telex Answer Back" <> BankAccountBeforeModify."Telex Answer Back") or
+          ("Post Code" <> BankAccountBeforeModify."Post Code") or
+          (County <> BankAccountBeforeModify.County) or
+          ("E-Mail" <> BankAccountBeforeModify."E-Mail") or
+          ("Home Page" <> BankAccountBeforeModify."Home Page");
 
         if not UpdateNeeded and not IsTemporary then
             UpdateNeeded := BankContUpdate.ContactNameIsBlank("No.");
 
-        OnAfterIsUpdateNeeded(xRec, Rec, UpdateNeeded);
+        OnAfterIsUpdateNeeded(BankAccountBeforeModify, Rec, UpdateNeeded);
         exit(UpdateNeeded);
     end;
 
