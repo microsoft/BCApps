@@ -44,9 +44,9 @@ codeunit 139978 "Qlty. Tests - Perm. Fixture"
     [Test]
     procedure RetryAfterFinalPermissionAssignmentFails()
     var
+        AccessControl: Record "Access Control";
         FailedSuperSecurityId: Guid;
         SuperSecurityId: Guid;
-        AccessControl: Record "Access Control";
     begin
         QltyFixtureTestHandler.FailOnRole('SUPER');
         BindSubscription(QltyFixtureTestHandler);

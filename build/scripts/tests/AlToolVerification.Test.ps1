@@ -78,14 +78,22 @@ Describe "W1 verification project discovery and workflow" {
 
 Describe "Quality permission fixture CI compiler contracts" {
     It "omits compiler-rejected unused import <Namespace> from <File>" -ForEach @(
-        @{ File = "QltyTestsPermissionFixture.Codeunit.al"; Namespace = "System.Security.User" }
-        @{ File = "QltyTestsPermissionFixture.Codeunit.al"; Namespace = "System.Testability" }
+        @{ File = "QltyTestsPermFixture.Codeunit.al"; Namespace = "System.Security.User" }
+        @{ File = "QltyTestsPermFixture.Codeunit.al"; Namespace = "System.Testability" }
         @{ File = "QltyTestsPermissionMgmt.Codeunit.al"; Namespace = "System.Testability" }
     ) {
         $root = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
         $source = Get-Content (Join-Path $root "src\Apps\W1\Quality Management\test\src\$File") -Raw
         # CI run 42217433860 reports AL0792 for these imports under the base ruleset.
         $source | Should -Not -Match "(?m)^using $([regex]::Escape($Namespace));\r?$"
+    }
+
+    It "uses the CodeCop filename for the permission fixture without changing its object identity" {
+        $root = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
+        $folder = Join-Path $root "src\Apps\W1\Quality Management\test\src"
+        Test-Path (Join-Path $folder "QltyTestsPermissionFixture.Codeunit.al") | Should -BeFalse
+        $source = Get-Content (Join-Path $folder "QltyTestsPermFixture.Codeunit.al") -Raw
+        $source | Should -Match 'codeunit 139978 "Qlty\. Tests - Perm\. Fixture"'
     }
 }
 
