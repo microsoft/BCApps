@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Root>
+  <AITSuite Code="MT_ACCUR" Description="Marketing Text - Accuracy Tests " Dataset="MT_ACCURACY.YAML" TestRunnerId="130450">
+    <Line CodeunitID="133551" Description="Accuracy Tests" Dataset="MT_ACCURACY.YAML" />
+  </AITSuite>
+</Root>

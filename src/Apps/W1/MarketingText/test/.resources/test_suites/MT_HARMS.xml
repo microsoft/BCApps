@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Root>
+  <AITSuite Code="MT_HARMS" Description="Marketing Text - Harms Tests " Dataset="MT_HARMS.YAML" TestRunnerId="130450">
+    <Line CodeunitID="133553" Description="Harms Tests" Dataset="MT_HARMS.YAML" />
+  </AITSuite>
+</Root>

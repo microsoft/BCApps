@@ -9111,6 +9111,23 @@
     ]
   },
   {
+    "name": "Marketing Text Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Agent Test Library",
     "groups": [
       {
