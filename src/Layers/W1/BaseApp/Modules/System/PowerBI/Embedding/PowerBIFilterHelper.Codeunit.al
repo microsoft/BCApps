@@ -34,7 +34,6 @@ codeunit 6320 "Power BI Filter Helper"
         ValuesJArray: JsonArray;
     begin
         PowerBiFilter.DeleteAll();
-
         if (FilteringRecordRef.GetFilters() = '') or (not IsSupportedFilterValuesCount(FilteringRecordRef.Count())) then begin
             PowerBIFilter.Init();
             PowerBIFilter.FilterOperator := PowerBIFilter.FilterOperator::All;
@@ -60,7 +59,6 @@ codeunit 6320 "Power BI Filter Helper"
         FilterPath: Text;
     begin
         FilterPath := FindFirstFilter(ReportFiltersInfo);
-
         if (FilterPath = '') or (ReportFiltersInfo.Count() = 0) or PowerBIFilter.IsEmpty() then
             exit(ReportFiltersInfo);
 
@@ -124,7 +122,7 @@ codeunit 6320 "Power BI Filter Helper"
         DecimalVariable: Decimal;
         BooleanVariable: Boolean;
         IntegerVariable: Integer;
-        BigIntegerVariable: Integer;
+        BigIntegerVariable: BigInteger;
     begin
         case true of
             InputSelectionVariant.IsText,
