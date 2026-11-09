@@ -345,12 +345,11 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         SetLegacySubcontracting(false);
 
         // [WHEN] Receipt undo is attempted
-        if not TryUndoPurchaseReceiptLine(PurchRcptLine) then begin
+        if not TryUndoPurchaseReceiptLine(PurchRcptLine) then
             // [THEN] Any downstream rejection is not the legacy WIP guard error
             Assert.IsFalse(
                 GetLastErrorText().Contains(UndoLegacyWIPPurchaseReceiptErr),
                 'A missing source Purchase Line must not trigger the legacy WIP guard.');
-        end;
     end;
 
     [TryFunction]
