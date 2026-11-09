@@ -20,6 +20,7 @@ permissionsetextension 13485 "Dep Diff FI - Objects" extends "D365 BASIC"
         codeunit "Dep Diff FI Helper Procedures" = X,
 #else
 #if not CLEANSCHEMA33
+        codeunit "Install Depreciation Diff. FI" = X,
         codeunit "Upgrade Depreciation Diff. FI" = X,
 #endif
 #endif
