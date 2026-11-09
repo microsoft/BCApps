@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using System.Telemetry;
 
-codeunit 20509 "Subc. Feature Telemetry"
+codeunit 20579 "Subc. Feature Telemetry"
 {
     Access = Internal;
     InherentEntitlements = X;
