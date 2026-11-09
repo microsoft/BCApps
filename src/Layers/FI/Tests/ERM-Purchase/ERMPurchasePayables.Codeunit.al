@@ -2672,6 +2672,7 @@
 
         // [GIVEN] Create Alternative Vendor Posting Group.
         LibraryPurchase.CreateAltVendorPostingGroup(VendorPostingGroup[1].Code, VendorPostingGroup[2].Code);
+        LibraryPurchase.CreateAltVendorPostingGroup(CopyStr(VendorPostingGroup[2].Code, 1, 10), CopyStr(VendorPostingGroup[1].Code, 1, 10));
 
         // [GIVEN] Create Item.
         Item.Get(LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"));

@@ -44,6 +44,7 @@ codeunit 137262 "SCM Invt Item Tracking III"
         WrongInvoicedQtyErr: Label 'Quantity Invoiced is incorrect in %1.', Comment = '%1=Purch. Rcpt. Line table caption';
         WrongNoOfComponentEntriesErr: Label 'Wrong number of assembly component entries is shown in Item Tracing.';
         WrongQtyForItemErr: Label '%1 in the item tracking assigned to the document line for item %2 is currently %3. It must be %4.\\Check the assignment for serial number %5, lot number %6, package number %7.', Comment = '%1 - Qty. to Handle or Qty. to Invoice, %2 - Item No., %3 - actual value, %4 - expected value, %5 - Serial No., %6 - Lot No., %7 - Package No.';
+        AvailabilityWarningsQst: Label 'You do not have enough inventory to meet the demand for items in one or more lines.\This is indicated by No in the Availability fields.\Do you want to continue?';
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -3374,7 +3375,7 @@ codeunit 137262 "SCM Invt Item Tracking III"
     end;
 
     [Test]
-    [HandlerFunctions('ItemTrackingLinesPageHandlerTrackingOption')]
+    [HandlerFunctions('ItemTrackingLinesPageHandlerTrackingOption,AvailabilityConfirmHandler')]
     procedure RemainingQtyOnProdOrderCompAfterTwoPartialConsumptionsWithPlanningAndLotTracking()
     var
         CompItem: Record Item;
@@ -5354,6 +5355,14 @@ codeunit 137262 "SCM Invt Item Tracking III"
     [Scope('OnPrem')]
     procedure ConfirmHandlerTrue(Question: Text[1024]; var Reply: Boolean)
     begin
+        Reply := true;
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure AvailabilityConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.AreEqual(AvailabilityWarningsQst, Question, 'Unexpected inventory availability confirmation.');
         Reply := true;
     end;
 
