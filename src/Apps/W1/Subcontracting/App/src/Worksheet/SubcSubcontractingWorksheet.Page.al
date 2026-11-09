@@ -395,8 +395,8 @@ page 20504 "Subc. Subcontracting Worksheet"
 
     trigger OnOpenPage()
     var
-        JnlSelected: Boolean;
         SubcFeatureTelemetry: Codeunit "Subc. Feature Telemetry";
+        JnlSelected: Boolean;
     begin
         OpenedFromBatch := (Rec."Journal Batch Name" <> '') and (Rec."Worksheet Template Name" = '');
         if OpenedFromBatch then begin
