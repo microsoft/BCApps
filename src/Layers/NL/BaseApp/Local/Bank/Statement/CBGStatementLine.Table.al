@@ -1616,7 +1616,7 @@ table 11401 "CBG Statement Line"
                   FieldCaption("Account Type"));
     end;
 
-    procedure "New Applies-to ID"() ID: Code[20]
+    procedure "New Applies-to ID"() ID: Code[50]
     var
         CBGStatementln: Record "CBG Statement Line";
     begin

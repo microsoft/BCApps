@@ -47,8 +47,7 @@ codeunit 148054 "VAT Date CZL"
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"VAT Date CZL");
-        UserSetup.ModifyAll(UserSetup."Allow VAT Date From", 0D);
-        UserSetup.ModifyAll(UserSetup."Allow VAT Date To", 0D);
+        UserSetup.ModifyAll(UserSetup."Allow VAT Date From", 0D, UserSetup."Allow VAT Date To", 0D);
 
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Enabled;

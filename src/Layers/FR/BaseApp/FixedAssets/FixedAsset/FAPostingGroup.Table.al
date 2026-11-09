@@ -6,6 +6,9 @@ namespace Microsoft.FixedAssets.FixedAsset;
 
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.ReceivablesPayables;
+#if not CLEAN30
+using Microsoft.FixedAssets.Depreciation;
+#endif
 
 table 5606 "FA Posting Group"
 {
@@ -489,45 +492,139 @@ table 5606 "FA Posting Group"
                 CheckGLAcc("Book Val. Acc. on Disp. (Loss)", false);
             end;
         }
+        field(5865; "Derogatory Acc."; Code[20])
+        {
+            Caption = 'Derogatory Account';
+            TableRelation = "G/L Account";
+            ToolTip = 'Specifies the G/L account number to post derogatory transactions to, for fixed assets in this posting group.';
+
+            trigger OnValidate()
+            begin
+                CheckGLAcc("Derogatory Acc.", false);
+            end;
+        }
+        field(5866; "Derogatory Account (Decrease)"; Code[20])
+        {
+            Caption = 'Derogatory Acc. (Decrease)';
+            TableRelation = "G/L Account";
+            ToolTip = 'Specifies the G/L account number to post derogatory transactions to, when you dispose of fixed assets in this posting group.';
+
+            trigger OnValidate()
+            begin
+                CheckGLAcc("Derogatory Account (Decrease)", false);
+            end;
+        }
+        field(5867; "Derog. Bal. Account (Decrease)"; Code[20])
+        {
+            Caption = 'Derog. Bal. Acc. (Decrease)';
+            TableRelation = "G/L Account";
+            ToolTip = 'Specifies the number of the G/L balancing account to post derogatory transactions of fixed assets to, when you dispose of fixed assets.';
+
+            trigger OnValidate()
+            begin
+                CheckGLAcc("Derog. Bal. Account (Decrease)", true);
+            end;
+        }
+        field(5868; "Derogatory Expense Acc."; Code[20])
+        {
+            Caption = 'Derogatory Expense Account';
+            TableRelation = "G/L Account";
+            ToolTip = 'Specifies the G/L balancing account number to post derogatory transactions to, for fixed assets in this posting group.';
+
+            trigger OnValidate()
+            begin
+                CheckGLAcc("Derogatory Expense Acc.", true);
+            end;
+        }
+        field(5869; "Allocated Derogatory Pct."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
+                                                                   "Allocation Type" = const(Derogatory)));
+            Caption = 'Allocated Derogatory %';
+            DecimalPlaces = 1 : 1;
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the total percentage of derogatory depreciation allocated, when derogatory depreciation is posted for fixed assets.';
+
+        }
+#if not CLEANSCHEMA33
         field(10800; "Derogatory Account"; Code[20])
         {
             Caption = 'Derogatory Account';
             TableRelation = "G/L Account";
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
 
             trigger OnValidate()
             begin
                 CheckGLAcc("Derogatory Account", false);
             end;
+#endif
         }
         field(10801; "Derogatory Acc. (Decrease)"; Code[20])
         {
             Caption = 'Derogatory Acc. (Decrease)';
             TableRelation = "G/L Account";
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
 
             trigger OnValidate()
             begin
                 CheckGLAcc("Derogatory Acc. (Decrease)", false);
             end;
+#endif
         }
         field(10802; "Derog. Bal. Acc. (Decrease)"; Code[20])
         {
             Caption = 'Derog. Bal. Acc. (Decrease)';
             TableRelation = "G/L Account";
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
 
             trigger OnValidate()
             begin
                 CheckGLAcc("Derog. Bal. Acc. (Decrease)", true);
             end;
+#endif
         }
         field(10803; "Derogatory Expense Account"; Code[20])
         {
             Caption = 'Derogatory Expense Account';
             TableRelation = "G/L Account";
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
 
             trigger OnValidate()
             begin
                 CheckGLAcc("Derogatory Expense Account", true);
             end;
+#endif
         }
         field(10804; "Allocated Derogatory %"; Decimal)
         {
@@ -538,7 +635,17 @@ table 5606 "FA Posting Group"
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
+#endif
     }
 
     keys
@@ -566,6 +673,9 @@ table 5606 "FA Posting Group"
         FAAlloc: Record "FA Allocation";
         GLAcc: Record "G/L Account";
         PostingSetupMgt: Codeunit PostingSetupManagement;
+#if not CLEAN30
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
 
     procedure CheckGLAcc(AccNo: Code[20]; DirectPosting: Boolean)
     begin
@@ -842,26 +952,70 @@ table 5606 "FA Posting Group"
 
     procedure GetDerogatoryAccount(): Code[20]
     begin
-        TestField("Derogatory Account");
-        exit("Derogatory Account");
+#if not CLEAN30
+        if AcceleratedDeprFeature.IsEnabled() then begin
+            TestField("Derogatory Acc.");
+            exit("Derogatory Acc.");
+        end
+        else begin
+            TestField("Derogatory Account");
+            exit("Derogatory Account");
+        end;
+#else
+        TestField("Derogatory Acc.");
+        exit("Derogatory Acc.");
+#endif
     end;
 
     procedure GetDerogatoryAccountDecrease(): Code[20]
     begin
-        TestField("Derogatory Acc. (Decrease)");
-        exit("Derogatory Acc. (Decrease)");
+#if not CLEAN30
+        if AcceleratedDeprFeature.IsEnabled() then begin
+            TestField("Derogatory Account (Decrease)");
+            exit("Derogatory Account (Decrease)")
+        end
+        else begin
+            TestField("Derogatory Acc. (Decrease)");
+            exit("Derogatory Acc. (Decrease)");
+        end;
+#else
+        TestField("Derogatory Account (Decrease)");
+        exit("Derogatory Account (Decrease)");
+#endif
     end;
 
     procedure GetDerogatoryBalAccountDecrease(): Code[20]
     begin
-        TestField("Derog. Bal. Acc. (Decrease)");
-        exit("Derog. Bal. Acc. (Decrease)");
+#if not CLEAN30
+        if AcceleratedDeprFeature.IsEnabled() then begin
+            TestField("Derog. Bal. Account (Decrease)");
+            exit("Derog. Bal. Account (Decrease)");
+        end
+        else begin
+            TestField("Derog. Bal. Acc. (Decrease)");
+            exit("Derog. Bal. Acc. (Decrease)");
+        end;
+#else
+        TestField("Derog. Bal. Account (Decrease)");
+        exit("Derog. Bal. Account (Decrease)");
+#endif
     end;
 
     procedure GetDerogatoryExpenseAccount(): Code[20]
     begin
-        TestField("Derogatory Expense Account");
-        exit("Derogatory Expense Account");
+#if not CLEAN30
+        if AcceleratedDeprFeature.IsEnabled() then begin
+            TestField("Derogatory Expense Acc.");
+            exit("Derogatory Expense Acc.");
+        end
+        else begin
+            TestField("Derogatory Expense Account");
+            exit("Derogatory Expense Account");
+        end;
+#else
+        TestField("Derogatory Expense Acc.");
+        exit("Derogatory Expense Acc.");
+#endif
     end;
 
     [IntegrationEvent(false, false)]
@@ -879,4 +1033,3 @@ table 5606 "FA Posting Group"
     begin
     end;
 }
-

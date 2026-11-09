@@ -129,7 +129,7 @@ codeunit 6137 "E-Document Create Jnl. Line"
             GenJournalLine.Validate("Posting Date", EDocument."Document Date");
             GenJournalLine.Validate("Document Date", EDocument."Document Date");
             GenJournalLine.Validate("Due Date", EDocument."Due Date");
-            GenJournalLine.Validate("External Document No.", EDocument."Incoming E-Document No.");
+            GenJournalLine.Validate("External Document No.", CopyStr(EDocument."Incoming E-Document No.", 1, MaxStrLen(GenJournalLine."External Document No.")));
             GeneralLedgerSetup.Get();
             if EDocument."Currency Code" <> '' then
                 if EDocument."Currency Code" <> GeneralLedgerSetup."LCY Code" then

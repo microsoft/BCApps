@@ -266,6 +266,29 @@ codeunit 5856 "TransferOrder-Post Transfer"
         OnAfterPostItemJnlLine(TransLine3, DirectTransHeader2, DirectTransLine2, ItemJnlLine, ItemJnlPostLine);
     end;
 
+    local procedure DeleteInboundSurplusTracking(TransferLine: Record "Transfer Line")
+    var
+        ReservationEntry: Record "Reservation Entry";
+        SurplusReservationEntry: Record "Reservation Entry";
+        ReservationManagement: Codeunit "Reservation Management";
+    begin
+        ReservationEntry.SetSourceFilter(
+            Database::"Transfer Line", Enum::"Transfer Direction"::Inbound.AsInteger(),
+            TransferLine."Document No.", TransferLine."Line No.", true);
+        ReservationEntry.SetSourceFilter('', TransferLine."Derived From Line No.");
+        ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Surplus);
+        if ReservationEntry.FindSet() then begin
+            ReservationManagement.SetReservSource(TransferLine, Enum::"Transfer Direction"::Inbound);
+            ReservationManagement.SetItemTrackingHandling(1);
+            repeat
+                SurplusReservationEntry := ReservationEntry;
+                // Deletion resets the status filter, so restrict it to this surplus entry.
+                SurplusReservationEntry.SetRecFilter();
+                ReservationManagement.DeleteReservEntries(true, 0, SurplusReservationEntry);
+            until ReservationEntry.Next() = 0;
+        end;
+    end;
+
     local procedure CreateItemJnlLine(TransLine3: Record "Transfer Line"; DirectTransHeader2: Record "Direct Trans. Header"; DirectTransLine2: Record "Direct Trans. Line")
     begin
         ItemJnlLine.Init();
@@ -382,7 +405,8 @@ codeunit 5856 "TransferOrder-Post Transfer"
         OnInsertDirectTransLineOnBeforeDirectTransHeaderInsert(DirectTransHeader, TransLine, IsHandled);
         if not IsHandled then
             DirectTransLine.Insert();
-        OnAfterInsertDirectTransLine(DirectTransLine, DirectTransHeader, TransLine)
+        OnAfterInsertDirectTransLine(DirectTransLine, DirectTransHeader, TransLine);
+        DeleteInboundSurplusTracking(TransLine);
     end;
 
     local procedure CreatePostedShptLineFromWhseShptLine(var TransferLine: Record "Transfer Line")

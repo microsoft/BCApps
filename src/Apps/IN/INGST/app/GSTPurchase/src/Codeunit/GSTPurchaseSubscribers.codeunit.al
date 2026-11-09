@@ -1621,6 +1621,11 @@ codeunit 18080 "GST Purchase Subscribers"
         PayToVendor: Record vendor;
         GSTPostingManagement: Codeunit "GST Posting Management";
     begin
+        // Initialize per document so values are not retained from a prior posting in the same session.
+        GSTPostingManagement.SetPaytoVendorNo('');
+        GSTPostingManagement.SetBuyerSellerRegNo('');
+        GSTPostingManagement.SetBuyerSellerStateCode('');
+
         if (PurchaseHeader."Pay-to Vendor No." <> '') and (PurchaseHeader."Buy-from Vendor No." <> PurchaseHeader."Pay-to Vendor No.") then begin
             if PayToVendor.Get(PurchaseHeader."Pay-to Vendor No.") then begin
                 GSTPostingManagement.SetPaytoVendorNo(PurchaseHeader."Pay-to Vendor No.");

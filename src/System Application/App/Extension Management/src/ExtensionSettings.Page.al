@@ -15,10 +15,13 @@ page 2511 "Extension Settings"
     ApplicationArea = All;
     Extensible = false;
     DataCaptionExpression = AppNameValue;
+    DeleteAllowed = false;
+    InsertAllowed = false;
     PageType = Card;
+    RefreshOnActivate = true;
     SourceTable = "NAV App Setting";
     ContextSensitiveHelpPage = 'ui-extensions';
-    Permissions = tabledata "Nav App Setting" = rm,
+    Permissions = tabledata "Nav App Setting" = rim,
                   tabledata "Published Application" = r;
 
     layout
@@ -140,11 +143,121 @@ page 2511 "Extension Settings"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(Install)
+            {
+                Caption = 'Install';
+                Enabled = ActionsEnabled and CanManageExtensions and (not AppIsInstalled);
+                Image = NewRow;
+                ToolTip = 'Install the extension for the current tenant.';
+
+                trigger OnAction()
+                begin
+                    ExtensionInstallationImpl.CheckPermissions();
+                    if ExtensionInstallationImpl.RunExtensionInstallation(PublishedApplication) then
+                        CurrPage.Update(false);
+                end;
+            }
+            action(Uninstall)
+            {
+                Caption = 'Uninstall';
+                Enabled = ActionsEnabled and CanManageExtensions and AppIsInstalled;
+                Image = RemoveLine;
+                ToolTip = 'Remove the extension from the current tenant.';
+
+                trigger OnAction()
+                begin
+                    ExtensionInstallationImpl.CheckPermissions();
+                    if ExtensionInstallationImpl.RunExtensionInstallation(PublishedApplication) then
+                        CurrPage.Update(false);
+                end;
+            }
+            action(Unpublish)
+            {
+                Caption = 'Unpublish';
+                Enabled = ActionsEnabled and CanManageExtensions and IsTenantExtension and (not AppIsInstalled);
+                Image = RemoveLine;
+                ToolTip = 'Unpublish the extension from the tenant.';
+
+                trigger OnAction()
+                begin
+                    ExtensionInstallationImpl.CheckPermissions();
+                    if ExtensionInstallationImpl.IsInstalledByPackageId(PublishedApplication."Package ID") then begin
+                        Message(CannotUnpublishIfInstalledMsg, PublishedApplication.Name);
+                        exit;
+                    end;
+
+                    ExtensionOperationImpl.UnpublishUninstalledPerTenantExtension(PublishedApplication."Package ID");
+                    CurrPage.Close();
+                end;
+            }
+            action(SetupApp)
+            {
+                Caption = 'Set up';
+                Enabled = ActionsEnabled and CanManageExtensions and AppIsInstalled;
+                Image = SetupList;
+                ToolTip = 'Runs the setup page that has been marked as primary for the selected app.';
+
+                trigger OnAction()
+                begin
+                    ExtensionInstallationImpl.CheckPermissions();
+                    ExtensionInstallationImpl.RunExtensionSetup(PublishedApplication.ID);
+                end;
+            }
+            action("Download Source")
+            {
+                Caption = 'Download source';
+                Enabled = ActionsEnabled and CanManageExtensions and IsTenantExtension;
+                Image = ExportFile;
+                ToolTip = 'Download the source code for the extension.';
+
+                trigger OnAction()
+                begin
+                    ExtensionInstallationImpl.CheckPermissions();
+                    ExtensionOperationImpl.DownloadExtensionSource(PublishedApplication."Package ID");
+                end;
+            }
+            action("Learn More")
+            {
+                Caption = 'Learn more';
+                Enabled = ActionsEnabled;
+                Visible = HelpActionVisible;
+                Image = Info;
+                ToolTip = 'View information from the extension provider.';
+
+                trigger OnAction()
+                begin
+                    HyperLink(PublishedApplication.Help);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Home)
+            {
+                Caption = 'Home';
+                actionref(Install_Promoted; Install) { }
+                actionref(Uninstall_Promoted; Uninstall) { }
+                actionref(Unpublish_Promoted; Unpublish) { }
+                actionref(SetupApp_Promoted; SetupApp) { }
+                actionref("Download Source_Promoted"; "Download Source") { }
+                actionref("Learn More_Promoted"; "Learn More") { }
+            }
+        }
+    }
+
     trigger OnAfterGetCurrRecord()
     var
         NavAppInstalledApp: Record "NAV App Installed App";
-        PublishedApplication: Record "Published Application";
     begin
+        ActionsEnabled := false;
+        AppIsInstalled := false;
+        IsTenantExtension := false;
+        HelpActionVisible := false;
+        PublishedApplication.Reset();
         PublishedApplication.SetRange(ID, Rec."App ID");
         PublishedApplication.SetRange("Tenant Visible", true);
 
@@ -153,6 +266,8 @@ page 2511 "Extension Settings"
             PublishedApplication.SetRange("Package ID", NavAppInstalledApp."Package ID");
 
         if PublishedApplication.FindFirst() then begin
+            ActionsEnabled := true;
+            HelpActionVisible := PublishedApplication.Help <> '';
             AppNameValue := PublishedApplication.Name;
             AppPublisherValue := PublishedApplication.Publisher;
             AppIdValue := LowerCase(DelChr(Format(PublishedApplication.ID), '=', '{}'));
@@ -187,7 +302,12 @@ page 2511 "Extension Settings"
     end;
 
     var
+        PublishedApplication: Record "Published Application";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
+        ExtensionOperationImpl: Codeunit "Extension Operation Impl";
+        CannotUnpublishIfInstalledMsg: Label 'The extension %1 cannot be unpublished because it is installed.', Comment = '%1 = name of extension';
+        ActionsEnabled: Boolean;
+        HelpActionVisible: Boolean;
         AppNameValue: Text;
         AppPublisherValue: Text;
         AppIdValue: Text;

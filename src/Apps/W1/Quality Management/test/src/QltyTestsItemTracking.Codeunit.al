@@ -47,6 +47,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryPurchase: Codeunit "Library - Purchase";
         NegativeTrackingErr: Label 'Cannot create negative tracking entries on the item %1 in the purchase document %2', Comment = '%1=the item no., %2=the purchase document no';
         SNAlreadyEnteredErr: Label 'Serial Number: [%1] has already been entered.', Comment = '%1 = The serial number';
+        TrackedInventoryRowsErr: Label 'Tracked inventory lookup must read fewer than 50 SQL rows; actual rows read: %1.', Comment = '%1 = SQL rows read';
         IsInitialized: Boolean;
 
     [Test]
@@ -3071,12 +3072,386 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         QltyInspectionGenRule.Delete();
     end;
 
+    [Test]
+    procedure TrackedInventoryLookupReadsOnlyPositiveBins()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        MatchingBinContent: Record "Bin Content";
+        TempBinContent: Record "Bin Content" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        RowsBefore: BigInteger;
+        RowsRead: BigInteger;
+        Found: Boolean;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A sparse lot lookup returns one positive bin without reading hundreds of irrelevant bins.
+        Initialize();
+
+        // [GIVEN] Item I has one positive lot bin and 210 zero, negative or other-lot bins.
+        CreateInventoryLookupFixture(Item, Location, TempQltyInspectionHeader);
+        TempQltyInspectionHeader."Source Lot No." := 'LOT';
+        CreateLookupBin(MatchingBinContent, Location.Code, Item."No.", '', Item."Base Unit of Measure");
+        CreateLookupWarehouseEntry(MatchingBinContent, 'LOT', '', '', 10);
+        CreateLookupWarehouseEntry(MatchingBinContent, 'LOT', '', '', -3);
+        CreateIrrelevantLookupBins(Item, Location);
+
+        // [WHEN] Only the actual lookup is measured, excluding all fixture creation.
+        RowsBefore := SessionInformation.SqlRowsRead();
+        Found := QltyInspectionUtility.GetCurrentLocationOfTrackedInventory(TempQltyInspectionHeader, TempBinContent);
+        RowsRead := SessionInformation.SqlRowsRead() - RowsBefore;
+
+        // [THEN] The correct buffer is returned within a fixed SQL-row budget.
+        VerifySingleLookupBin(Found, TempBinContent, MatchingBinContent, 7);
+        LibraryAssert.IsTrue(RowsRead < 50, StrSubstNo(TrackedInventoryRowsErr, RowsRead));
+    end;
+
+    [Test]
+    procedure TrackedInventoryLookupFiltersLot()
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A lot-only lookup excludes stock belonging to other lots.
+        Initialize();
+
+        // [GIVEN] Matching stock and stock differing only in lot.
+        // [WHEN] Inventory is looked up by lot.
+        // [THEN] Only the matching bin is returned.
+        VerifyTrackingLookup('LOT', '', '');
+    end;
+
+    [Test]
+    procedure TrackedInventoryLookupFiltersSerial()
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A serial-only lookup excludes stock belonging to other serials.
+        Initialize();
+
+        // [GIVEN] Matching stock and stock differing only in serial.
+        // [WHEN] Inventory is looked up by serial.
+        // [THEN] Only the matching bin is returned.
+        VerifyTrackingLookup('', 'SERIAL', '');
+    end;
+
+    [Test]
+    procedure TrackedInventoryLookupFiltersPackage()
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A package-only lookup excludes stock belonging to other packages.
+        Initialize();
+
+        // [GIVEN] Matching stock and stock differing only in package.
+        // [WHEN] Inventory is looked up by package.
+        // [THEN] Only the matching bin is returned.
+        VerifyTrackingLookup('', '', 'PACKAGE');
+    end;
+
+    [Test]
+    procedure TrackedInventoryLookupCombinesTrackingFilters()
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Lot, serial and package filters must all match the same stock.
+        Initialize();
+
+        // [GIVEN] Matching stock and three bins each differing in one tracking value.
+        // [WHEN] Inventory is looked up using all tracking values.
+        // [THEN] Partial tracking matches are excluded.
+        VerifyTrackingLookup('LOT', 'SERIAL', 'PACKAGE');
+    end;
+
+    [Test]
+    procedure TrackedInventoryLookupPreservesVariantUOMAndFields()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        Location: Record Location;
+        BaseBinContent: Record "Bin Content";
+        AlternateBinContent: Record "Bin Content";
+        BlankVariantBinContent: Record "Bin Content";
+        TempBinContent: Record "Bin Content" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        Found: Boolean;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Variant selection is exact and separate UOM rows retain bin fields and base quantities.
+        Initialize();
+
+        // [GIVEN] Item I has two UOM rows for variant V and another row without a variant.
+        CreateInventoryLookupFixture(Item, Location, TempQltyInspectionHeader);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", 10);
+        TempQltyInspectionHeader."Source Lot No." := 'LOT';
+        TempQltyInspectionHeader."Source Variant Code" := ItemVariant.Code;
+        CreateLookupBin(BaseBinContent, Location.Code, Item."No.", ItemVariant.Code, Item."Base Unit of Measure");
+        LibraryWarehouse.CreateBinContent(AlternateBinContent, Location.Code, '', BaseBinContent."Bin Code", Item."No.", ItemVariant.Code, ItemUnitOfMeasure.Code);
+        CreateLookupBin(BlankVariantBinContent, Location.Code, Item."No.", '', Item."Base Unit of Measure");
+        CreateLookupWarehouseEntry(BaseBinContent, 'LOT', '', '', 7);
+        CreateLookupWarehouseEntry(AlternateBinContent, 'LOT', '', '', 20);
+        CreateLookupWarehouseEntry(BlankVariantBinContent, 'LOT', '', '', 3);
+
+        // [WHEN] Inventory is looked up for variant V.
+        Found := QltyInspectionUtility.GetCurrentLocationOfTrackedInventory(TempQltyInspectionHeader, TempBinContent);
+
+        // [THEN] Both UOM keys remain distinct with their original fields.
+        LibraryAssert.IsTrue(Found, 'Variant stock should be found.');
+        LibraryAssert.AreEqual(2, TempBinContent.Count(), 'Only the selected variant should be returned.');
+        VerifyLookupBin(TempBinContent, BaseBinContent, 7);
+        VerifyLookupBin(TempBinContent, AlternateBinContent, 20);
+
+        // [WHEN] The same buffer is reused for an exact blank variant lookup.
+        TempQltyInspectionHeader."Source Variant Code" := '';
+        Found := QltyInspectionUtility.GetCurrentLocationOfTrackedInventory(TempQltyInspectionHeader, TempBinContent);
+
+        // [THEN] Previous rows are cleared and only blank-variant stock remains.
+        VerifySingleLookupBin(Found, TempBinContent, BlankVariantBinContent, 3);
+    end;
+
+    [Test]
+    procedure TrackedInventoryLookupPreservesNonBinAggregation()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        BinLocation: Record Location;
+        PositiveLocation: Record Location;
+        ZeroLocation: Record Location;
+        NegativeLocation: Record Location;
+        TempBinContent: Record "Bin Content" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        Found: Boolean;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Non-bin aggregation includes negative totals, excludes zero totals and preserves optional variant filtering.
+        Initialize();
+
+        // [GIVEN] Non-bin locations P, Z and N hold offsetting tracked entries; bin location B must not be aggregated.
+        CreateInventoryLookupFixture(Item, BinLocation, TempQltyInspectionHeader);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        LibraryWarehouse.CreateLocation(PositiveLocation);
+        LibraryWarehouse.CreateLocation(ZeroLocation);
+        LibraryWarehouse.CreateLocation(NegativeLocation);
+        TempQltyInspectionHeader."Source Lot No." := 'LOT';
+        TempQltyInspectionHeader."Source Serial No." := 'SERIAL';
+        TempQltyInspectionHeader."Source Package No." := 'PACKAGE';
+        CreateLookupItemLedgerEntry(Item, PositiveLocation.Code, ItemVariant.Code, 'LOT', 'SERIAL', 'PACKAGE', 10);
+        CreateLookupItemLedgerEntry(Item, PositiveLocation.Code, ItemVariant.Code, 'LOT', 'SERIAL', 'PACKAGE', -3);
+        CreateLookupItemLedgerEntry(Item, PositiveLocation.Code, '', 'LOT', 'SERIAL', 'PACKAGE', 5);
+        CreateLookupItemLedgerEntry(Item, PositiveLocation.Code, '', 'OTHER', 'SERIAL', 'PACKAGE', 100);
+        CreateLookupItemLedgerEntry(Item, PositiveLocation.Code, '', 'LOT', 'OTHER', 'PACKAGE', 100);
+        CreateLookupItemLedgerEntry(Item, PositiveLocation.Code, '', 'LOT', 'SERIAL', 'OTHER', 100);
+        CreateLookupItemLedgerEntry(Item, ZeroLocation.Code, ItemVariant.Code, 'LOT', 'SERIAL', 'PACKAGE', 4);
+        CreateLookupItemLedgerEntry(Item, ZeroLocation.Code, ItemVariant.Code, 'LOT', 'SERIAL', 'PACKAGE', -4);
+        CreateLookupItemLedgerEntry(Item, NegativeLocation.Code, ItemVariant.Code, 'LOT', 'SERIAL', 'PACKAGE', -2);
+        CreateLookupItemLedgerEntry(Item, BinLocation.Code, ItemVariant.Code, 'LOT', 'SERIAL', 'PACKAGE', 50);
+
+        // [WHEN] A blank variant does not restrict the non-bin aggregate query.
+        Found := QltyInspectionUtility.GetCurrentLocationOfTrackedInventory(TempQltyInspectionHeader, TempBinContent);
+
+        // [THEN] The positive and negative totals use location-only keys; zero and bin locations are omitted.
+        VerifyNonBinLookup(Found, TempBinContent, PositiveLocation.Code, 12, NegativeLocation.Code);
+
+        // [WHEN] A specific variant is requested.
+        TempQltyInspectionHeader."Source Variant Code" := ItemVariant.Code;
+        Found := QltyInspectionUtility.GetCurrentLocationOfTrackedInventory(TempQltyInspectionHeader, TempBinContent);
+
+        // [THEN] Only that variant contributes to the unchanged aggregate semantics.
+        VerifyNonBinLookup(Found, TempBinContent, PositiveLocation.Code, 7, NegativeLocation.Code);
+    end;
+
+    [Test]
+    procedure TrackedInventoryLookupWithoutTrackingReturnsFalse()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        BinContent: Record "Bin Content";
+        TempBinContent: Record "Bin Content" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        Found: Boolean;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] An item without inspection tracking cannot select inventory.
+        Initialize();
+
+        // [GIVEN] Item I has positive stock but the inspection has no tracking values.
+        CreateInventoryLookupFixture(Item, Location, TempQltyInspectionHeader);
+        CreateLookupBin(BinContent, Location.Code, Item."No.", '', Item."Base Unit of Measure");
+        CreateLookupWarehouseEntry(BinContent, 'LOT', '', '', 1);
+
+        // [WHEN] The lookup is attempted.
+        Found := QltyInspectionUtility.GetCurrentLocationOfTrackedInventory(TempQltyInspectionHeader, TempBinContent);
+
+        // [THEN] No inventory is selected.
+        VerifyEmptyLookup(Found, TempBinContent);
+    end;
+
+    [Test]
+    procedure TrackedInventoryLookupWithoutItemReturnsFalse()
+    var
+        TempBinContent: Record "Bin Content" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        Found: Boolean;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Tracking without a source item cannot select inventory.
+        Initialize();
+
+        // [GIVEN] The inspection has a lot but no item.
+        TempQltyInspectionHeader."Source Lot No." := 'LOT';
+
+        // [WHEN] The lookup is attempted.
+        Found := QltyInspectionUtility.GetCurrentLocationOfTrackedInventory(TempQltyInspectionHeader, TempBinContent);
+
+        // [THEN] No inventory is selected.
+        VerifyEmptyLookup(Found, TempBinContent);
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
             exit;
         LibraryERMCountryData.CreateVATData();
         IsInitialized := true;
+    end;
+
+    local procedure CreateInventoryLookupFixture(var Item: Record Item; var Location: Record Location; var TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary)
+    begin
+        LibraryInventory.CreateItem(Item);
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+    end;
+
+    local procedure CreateLookupBin(var BinContent: Record "Bin Content"; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; UnitOfMeasureCode: Code[10])
+    var
+        Bin: Record Bin;
+    begin
+        LibraryWarehouse.CreateBin(Bin, LocationCode, '', '', '');
+        Clear(BinContent);
+        LibraryWarehouse.CreateBinContent(BinContent, LocationCode, '', Bin.Code, ItemNo, VariantCode, UnitOfMeasureCode);
+        BinContent."Bin Ranking" := 25;
+        BinContent.Fixed := true;
+        BinContent.Dedicated := true;
+        BinContent."Max. Qty." := 100;
+        BinContent.Modify();
+    end;
+
+    local procedure CreateLookupWarehouseEntry(BinContent: Record "Bin Content"; LotNo: Code[50]; SerialNo: Code[50]; PackageNo: Code[50]; QuantityBase: Decimal)
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+    begin
+        // Isolate the read-only lookup from posting; all related item, variant, UOM and bin records exist.
+        WarehouseEntry."Entry No." := WarehouseEntry.GetLastEntryNo() + 1;
+        WarehouseEntry."Location Code" := BinContent."Location Code";
+        WarehouseEntry."Bin Code" := BinContent."Bin Code";
+        WarehouseEntry."Item No." := BinContent."Item No.";
+        WarehouseEntry."Variant Code" := BinContent."Variant Code";
+        WarehouseEntry."Unit of Measure Code" := BinContent."Unit of Measure Code";
+        WarehouseEntry."Qty. per Unit of Measure" := BinContent."Qty. per Unit of Measure";
+        WarehouseEntry."Qty. (Base)" := QuantityBase;
+        WarehouseEntry.Quantity := QuantityBase / WarehouseEntry."Qty. per Unit of Measure";
+        WarehouseEntry."Lot No." := LotNo;
+        WarehouseEntry."Serial No." := SerialNo;
+        WarehouseEntry."Package No." := PackageNo;
+        WarehouseEntry.Insert();
+    end;
+
+    local procedure CreateIrrelevantLookupBins(Item: Record Item; Location: Record Location)
+    var
+        BinContent: Record "Bin Content";
+        BinIndex: Integer;
+    begin
+        for BinIndex := 1 to 70 do begin
+            CreateLookupBin(BinContent, Location.Code, Item."No.", '', Item."Base Unit of Measure");
+            CreateLookupWarehouseEntry(BinContent, 'LOT', '', '', 2);
+            CreateLookupWarehouseEntry(BinContent, 'LOT', '', '', -2);
+            CreateLookupBin(BinContent, Location.Code, Item."No.", '', Item."Base Unit of Measure");
+            CreateLookupWarehouseEntry(BinContent, 'LOT', '', '', -1);
+            CreateLookupBin(BinContent, Location.Code, Item."No.", '', Item."Base Unit of Measure");
+            CreateLookupWarehouseEntry(BinContent, 'OTHER', '', '', 5);
+        end;
+    end;
+
+    local procedure VerifyTrackingLookup(LotNo: Code[50]; SerialNo: Code[50]; PackageNo: Code[50])
+    var
+        Item: Record Item;
+        Location: Record Location;
+        MatchingBinContent: Record "Bin Content";
+        OtherBinContent: Record "Bin Content";
+        TempBinContent: Record "Bin Content" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        Found: Boolean;
+    begin
+        CreateInventoryLookupFixture(Item, Location, TempQltyInspectionHeader);
+        TempQltyInspectionHeader."Source Lot No." := LotNo;
+        TempQltyInspectionHeader."Source Serial No." := SerialNo;
+        TempQltyInspectionHeader."Source Package No." := PackageNo;
+        CreateLookupBin(MatchingBinContent, Location.Code, Item."No.", '', Item."Base Unit of Measure");
+        CreateLookupWarehouseEntry(MatchingBinContent, LotNo, SerialNo, PackageNo, 1);
+        if LotNo <> '' then begin
+            CreateLookupBin(OtherBinContent, Location.Code, Item."No.", '', Item."Base Unit of Measure");
+            CreateLookupWarehouseEntry(OtherBinContent, 'OTHER', SerialNo, PackageNo, 1);
+        end;
+        if SerialNo <> '' then begin
+            CreateLookupBin(OtherBinContent, Location.Code, Item."No.", '', Item."Base Unit of Measure");
+            CreateLookupWarehouseEntry(OtherBinContent, LotNo, 'OTHER', PackageNo, 1);
+        end;
+        if PackageNo <> '' then begin
+            CreateLookupBin(OtherBinContent, Location.Code, Item."No.", '', Item."Base Unit of Measure");
+            CreateLookupWarehouseEntry(OtherBinContent, LotNo, SerialNo, 'OTHER', 1);
+        end;
+
+        Found := QltyInspectionUtility.GetCurrentLocationOfTrackedInventory(TempQltyInspectionHeader, TempBinContent);
+
+        VerifySingleLookupBin(Found, TempBinContent, MatchingBinContent, 1);
+    end;
+
+    local procedure VerifySingleLookupBin(Found: Boolean; var TempBinContent: Record "Bin Content" temporary; ExpectedBinContent: Record "Bin Content"; ExpectedQuantityBase: Decimal)
+    begin
+        LibraryAssert.IsTrue(Found, 'Matching tracked inventory should be found.');
+        LibraryAssert.AreEqual(1, TempBinContent.Count(), 'Only the positive matching bin should be returned.');
+        VerifyLookupBin(TempBinContent, ExpectedBinContent, ExpectedQuantityBase);
+    end;
+
+    local procedure VerifyLookupBin(var TempBinContent: Record "Bin Content" temporary; ExpectedBinContent: Record "Bin Content"; ExpectedQuantityBase: Decimal)
+    begin
+        LibraryAssert.IsTrue(TempBinContent.Get(ExpectedBinContent."Location Code", ExpectedBinContent."Bin Code", ExpectedBinContent."Item No.", ExpectedBinContent."Variant Code", ExpectedBinContent."Unit of Measure Code"), 'The complete bin key must be retained.');
+        LibraryAssert.AreEqual(ExpectedQuantityBase, TempBinContent."Min. Qty.", 'The buffer must contain the net tracked base quantity.');
+        LibraryAssert.AreEqual(ExpectedBinContent."Qty. per Unit of Measure", TempBinContent."Qty. per Unit of Measure", 'UOM conversion must be retained.');
+        LibraryAssert.AreEqual(ExpectedBinContent."Bin Ranking", TempBinContent."Bin Ranking", 'Bin ranking must be retained.');
+        LibraryAssert.AreEqual(ExpectedBinContent.Fixed, TempBinContent.Fixed, 'Fixed must be retained.');
+        LibraryAssert.AreEqual(ExpectedBinContent.Dedicated, TempBinContent.Dedicated, 'Dedicated must be retained.');
+        LibraryAssert.AreEqual(ExpectedBinContent."Max. Qty.", TempBinContent."Max. Qty.", 'Maximum quantity must be retained.');
+    end;
+
+    local procedure CreateLookupItemLedgerEntry(Item: Record Item; LocationCode: Code[10]; VariantCode: Code[10]; LotNo: Code[50]; SerialNo: Code[50]; PackageNo: Code[50]; Quantity: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry."Entry No." := ItemLedgerEntry.GetLastEntryNo() + 1;
+        ItemLedgerEntry."Item No." := Item."No.";
+        ItemLedgerEntry."Location Code" := LocationCode;
+        ItemLedgerEntry."Variant Code" := VariantCode;
+        ItemLedgerEntry."Unit of Measure Code" := Item."Base Unit of Measure";
+        ItemLedgerEntry."Qty. per Unit of Measure" := 1;
+        ItemLedgerEntry."Lot No." := LotNo;
+        ItemLedgerEntry."Serial No." := SerialNo;
+        ItemLedgerEntry."Package No." := PackageNo;
+        ItemLedgerEntry.Quantity := Quantity;
+        ItemLedgerEntry.Insert();
+    end;
+
+    local procedure VerifyNonBinLookup(Found: Boolean; var TempBinContent: Record "Bin Content" temporary; PositiveLocationCode: Code[10]; PositiveQuantity: Decimal; NegativeLocationCode: Code[10])
+    begin
+        LibraryAssert.IsTrue(Found, 'Non-bin inventory should be found.');
+        LibraryAssert.AreEqual(2, TempBinContent.Count(), 'Only nonzero non-bin totals should be returned.');
+        LibraryAssert.IsTrue(TempBinContent.Get(PositiveLocationCode, '', '', '', ''), 'The positive total must have a location-only key.');
+        LibraryAssert.AreEqual(PositiveQuantity, TempBinContent."Min. Qty.", 'Positive location total must include offsetting quantities.');
+        LibraryAssert.IsTrue(TempBinContent.Get(NegativeLocationCode, '', '', '', ''), 'Existing negative non-bin totals must be retained.');
+        LibraryAssert.AreEqual(-2, TempBinContent."Min. Qty.", 'The negative location total must be unchanged.');
+    end;
+
+    local procedure VerifyEmptyLookup(Found: Boolean; var TempBinContent: Record "Bin Content" temporary)
+    begin
+        LibraryAssert.IsFalse(Found, 'Insufficient inspection details must not select inventory.');
+        LibraryAssert.IsTrue(TempBinContent.IsEmpty(), 'No buffer rows should be created.');
     end;
 
     local procedure FindQltyInspectionHeader(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ItemNo: Code[20])

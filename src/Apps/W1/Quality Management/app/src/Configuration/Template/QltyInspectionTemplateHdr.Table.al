@@ -54,6 +54,7 @@ table 20402 "Qlty. Inspection Template Hdr."
         {
             Caption = 'Sample Amount';
             ToolTip = 'Specifies the discrete fixed sample amount when Sample Source is set to a fixed quantity. Samples can only be discrete units. If the quantity here exceeds the Source Quantity then the Source Quantity will be used instead.';
+            MinValue = 0;
         }
         field(19; "Sample Percentage"; Decimal)
         {

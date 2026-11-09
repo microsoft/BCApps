@@ -5749,6 +5749,7 @@ codeunit 136201 "Marketing Contacts"
         ContactList.Close();
     end;
 
+#if not CLEAN30
     [Test]
     procedure CustomerHasSirenNoFromContact()
     var
@@ -5772,6 +5773,7 @@ codeunit 136201 "Marketing Contacts"
         Customer.FindFirst();
         Customer.TestField("SIREN No.", Contact."SIREN No.");
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue,CustomerTemplateHandler,MessageHandler')]
@@ -6376,6 +6378,7 @@ codeunit 136201 "Marketing Contacts"
         ContactCard.Close();
     end;
 
+#if not CLEAN30
     [Test]
     procedure CustomerSIRENNoIsNotChangedWhenLinkedContactPhoneNoIsModified()
     var
@@ -6410,6 +6413,7 @@ codeunit 136201 "Marketing Contacts"
         Customer.Get(Customer."No.");
         Assert.AreEqual(SIRENNo, Customer."SIREN No.", ValueMustMatch);
     end;
+#endif
 
     local procedure Initialize()
     var
@@ -7736,4 +7740,3 @@ codeunit 136201 "Marketing Contacts"
         Result := true;
     end;
 }
-
