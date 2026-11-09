@@ -346,6 +346,7 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         ProductionJournalMgt.InitSetupValues();
         ProductionJournalMgt.SetJnlTemplateAndBatchName(ProductionItemJournalTemplate.Name, ProductionItemJournalBatch.Name);
         QuantityToPost := OutputQuantity;
+        TotalPickedQuantity := 0;
         repeat
             // [WHEN] The production journal posts consumption and all or part of the subassembly output.
             ProductionJournalMgt.CreateJnlLines(ProductionOrder, ProdOrderLine."Line No.");
