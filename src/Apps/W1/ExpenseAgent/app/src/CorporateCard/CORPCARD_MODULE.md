@@ -323,7 +323,7 @@ Posted settlements are reversed through the standard Business Central transactio
 
 Reversal marks the original settlement-to-statement lines as inactive instead of deleting them. A closed statement moves to `ReconciliationRequired`; its prior closure count, amount, date-time, and user are preserved as audit history. The corrected statement can then be included in a replacement settlement and closed again after reconciliation.
 
-Canceling a posted expense report follows the same correction boundary: the related statement closure is invalidated, the corporate-card transaction returns from `Posted` to `Matched`, and its posted report reference is cleared after the standard accounting reversal.
+Canceling a posted expense report is separate from transferring its liability. Cancellation first reverses the original expense posting, then reverses any active liability transfer. The related statement closure is invalidated, the corporate-card transaction returns from `Posted` to `Matched`, and its posted report reference is cleared. Standard country-specific expense reversal restrictions apply to cancellation; they are not a prerequisite for transferring an otherwise valid, unreversed liability.
 
 ### Late Feeds and Manual Liability Transfers
 
@@ -343,9 +343,11 @@ For an already-posted manual expense:
 4. The transfer clears the original card-payable G/L liability and posts the corresponding provider Corporate Card Bank Account entry. It uses the original posting snapshots and dimensions, not the current employee posting-group account or a new exchange rate. It does not post expense or VAT again or move cash from the Payment Bank Account.
 5. Continue with statement settlement and reconciliation. Closure requires exactly one active, nonreversed provider-bank entry for the transaction with the correct account, currency, and signed amount.
 
+**Transfer Card Liability is a corrective reclassification, not a Posted Expense Report reversal.** A separate journal posting clears the original card-payable G/L account against the provider's Corporate Card Bank Account and creates the Bank Account Ledger Entry needed for reconciliation. The original report remains posted and uncanceled, its original transaction remains unreversed, and its expense and VAT entries are unchanged. The provider bank represents the card liability, not a cash payment.
+
 The transfer requires corporate-card administrator execution permission, a unique active posted report line, an unreversed original posting, complete liability snapshots, compatible currencies, and matching original/feed amounts. It rejects duplicate transfers and an existing active transaction-linked bank entry. An LCY provider bank can clear a foreign-currency original liability only when the feed's LCY amount equals the original liability LCY amount; a foreign-currency bank must match the original liability currency and amount.
 
-Use **Reverse Card Liability Transfer** on the transaction to reverse only the transfer through standard accounting reversal. The reversal preserves its references and invalidates statement reconciliation. Canceling the posted expense report also reverses an active liability transfer. A reversed transfer cannot be transferred again on the same transaction; audit history is retained. Historical posted lines without complete liability snapshots cannot use this automated transfer.
+Use **Reverse Card Liability Transfer** on the transaction to reverse only the transfer through standard accounting reversal. This restores the original card-payable liability without canceling or reversing the Posted Expense Report. The reversal preserves its references and invalidates statement reconciliation. Only report cancellation undoes both the original expense and an active liability transfer. A reversed transfer cannot be transferred again on the same transaction; audit history is retained. Historical posted lines without complete liability snapshots cannot use this automated transfer.
 
 ---
 
@@ -773,9 +775,9 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 - [ ] Verify a manual no-feed expense posts to the card-payable G/L account and preserves original liability snapshots
 - [ ] Import a late feed against Open, released, reported, and posted selected-card expenses in both creation modes; verify no duplicate draft or repeat expense/VAT posting
 - [ ] Verify multiple exact matches and near-amount selected-card matches require review rather than creating drafts
-- [ ] Transfer a posted manual liability and verify only the original payable G/L and provider bank change, using original amounts and dimensions
+- [ ] Transfer a posted manual liability and verify only the original payable G/L and provider bank change, using original amounts and dimensions; the report stays posted and uncanceled, with no original expense or VAT reversal
 - [ ] Verify duplicate transfers, missing snapshots, incompatible currencies, and amount mismatches are rejected
-- [ ] Reverse the liability transfer and verify reconciliation invalidation and retained audit references
+- [ ] Reverse the liability transfer and verify the original card-payable liability is restored without canceling the report, with reconciliation invalidation and retained audit references
 - [ ] Cancel a posted expense with an active liability transfer and verify both accounting effects are reversed
 - [ ] Import a provider CSV file with 10+ transactions
 - [ ] In ManualLink mode, verify exact and fuzzy matching against eligible open expenses

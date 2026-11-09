@@ -35,6 +35,7 @@ codeunit 148363 EACorpCardLiabilityTests
         ExpenseAccountNo: Code[20];
         IsInitialized: Boolean;
         InvoiceReversalRestrictedErr: Label 'because it''s an %1 Document.', Comment = '%1 = Document Type';
+        ReversalCheckSucceededErr: Label 'The transaction is eligible for reversal.';
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
@@ -559,22 +560,26 @@ codeunit 148363 EACorpCardLiabilityTests
 
     local procedure IsInvoiceReversalRestricted(TransactionNo: Integer): Boolean
     begin
-        // Probe eligibility without posting; unexpected validation errors must still fail the test.
+        // Preserve the fixture while rolling back the eligibility probe and its locks.
+        Commit();
         ClearLastError();
-        if CheckTransactionReversal(TransactionNo) then
+        asserterror CheckTransactionReversal(TransactionNo);
+        if GetLastErrorText() = ReversalCheckSucceededErr then begin
+            ClearLastError();
             exit(false);
+        end;
 
         Assert.ExpectedError(StrSubstNo(InvoiceReversalRestrictedErr, Format("Gen. Journal Document Type"::Invoice)));
         exit(true);
     end;
 
-    [TryFunction]
     local procedure CheckTransactionReversal(TransactionNo: Integer)
     var
         ReversalEntry: Record "Reversal Entry";
     begin
         ReversalEntry.SetReverseFilter(TransactionNo, ReversalEntry."Reversal Type"::Transaction);
         ReversalEntry.CheckEntries();
+        Error(ReversalCheckSucceededErr);
     end;
 
     local procedure Initialize()
