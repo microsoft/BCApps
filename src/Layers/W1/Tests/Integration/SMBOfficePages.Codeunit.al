@@ -1351,20 +1351,25 @@ codeunit 139048 "SMB Office Pages"
     [Scope('OnPrem')]
     procedure OfficeMgmtAttachAvailability()
     begin
-        VerifyAttachAvailable(OfficeHostType.OutlookItemRead, true);
-        VerifyAttachAvailable(OfficeHostType.OutlookItemEdit, true);
-        VerifyAttachAvailable(OfficeHostType.OutlookHyperlink, true);
-        VerifyAttachAvailable(OfficeHostType.OutlookTaskPane, true);
-        VerifyAttachAvailable(OfficeHostType.OutlookPopOut, false);
-        VerifyAttachAvailable(OfficeHostType.OutlookMobileApp, false);
-        VerifyAttachAvailable('N/A', false);
+        // Keep the expected host names independent of the .NET getters.
+        VerifyAttachAvailable(OfficeHostType.OutlookItemRead, 'Outlook-ItemRead', true);
+        VerifyAttachAvailable(OfficeHostType.OutlookItemEdit, 'Outlook-ItemEdit', true);
+        VerifyAttachAvailable(OfficeHostType.OutlookHyperlink, 'Outlook-Hyperlink', true);
+        VerifyAttachAvailable(OfficeHostType.OutlookTaskPane, 'Outlook-TaskPane', true);
+        VerifyAttachAvailable(OfficeHostType.OutlookPopOut, 'Outlook-PopOut', false);
+        VerifyAttachAvailable(OfficeHostType.OutlookMobileApp, 'Outlook-MobileApp', false);
+        VerifyAttachAvailable('N/A', 'N/A', false);
     end;
 
-    local procedure VerifyAttachAvailable(HostType: Text; Expected: Boolean)
+    local procedure VerifyAttachAvailable(HostType: Text; ExpectedHostType: Text; Expected: Boolean)
     var
         OfficeManagement: Codeunit "Office Management";
+        OfficeHostManagement: Codeunit "Office Host Management";
     begin
+        Assert.AreEqual(ExpectedHostType, HostType, 'The OfficeHostType .NET getter returned an unexpected host type.');
         InitializeWithHostType(HostType);
+        Assert.IsTrue(OfficeManagement.IsAvailable(), StrSubstNo('The Office host fixture is unavailable after initializing %1.', ExpectedHostType));
+        Assert.AreEqual(ExpectedHostType, OfficeHostManagement.GetHostType(), 'The Office host fixture did not preserve the requested host type.');
         Assert.AreEqual(Expected, OfficeManagement.AttachAvailable(), StrSubstNo(AttachAvailableErr, HostType));
     end;
 
@@ -2222,4 +2227,3 @@ codeunit 139048 "SMB Office Pages"
         ActiveDirectoryMockEvents.Enable();
     end;
 }
-
