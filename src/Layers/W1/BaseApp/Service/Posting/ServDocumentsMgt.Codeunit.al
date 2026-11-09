@@ -1239,6 +1239,7 @@ codeunit 5988 "Serv-Documents Mgt."
                     ServiceInvoiceLine2.Init();
                     ServiceInvoiceLine2.Copy(ServInvLine);
                     ServiceInvoiceLine2.Insert();
+                    OnFinalizeInvoiceDocumentOnAfterInsertServiceInvoiceLine(ServiceInvoiceLine2);
                 until ServInvLine.Next() = 0;
             ServInvLine.DeleteAll();
             PostUpdateOrderNo(ServiceInvoiceHeader2);
@@ -1301,6 +1302,7 @@ codeunit 5988 "Serv-Documents Mgt."
                     PServCrMemoLine.Init();
                     PServCrMemoLine.Copy(ServCrMemoLine);
                     PServCrMemoLine.Insert();
+                    OnFinalizeCrMemoDocumentOnAfterInsertServiceCrMemoLine(PServCrMemoLine);
                 until ServCrMemoLine.Next() = 0;
             ServCrMemoLine.DeleteAll();
         end;
@@ -2914,6 +2916,16 @@ codeunit 5988 "Serv-Documents Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnFinalizeShipmentDocumentOnAfterInserServiceShipmentLine(var ServiceShipmentLine2: Record "Service Shipment Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFinalizeInvoiceDocumentOnAfterInsertServiceInvoiceLine(var ServiceInvoiceLine: Record "Service Invoice Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFinalizeCrMemoDocumentOnAfterInsertServiceCrMemoLine(var ServiceCrMemoLine: Record "Service Cr.Memo Line")
     begin
     end;
 
