@@ -386,6 +386,8 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
 
         PurchaseLine."VAT Difference" := AllocationLine.Percentage * AllocationPurchaseLine."VAT Difference" / 100;
         PurchaseLine."Deferral Code" := AllocationPurchaseLine."Deferral Code";
+        if PurchaseLine.GetPurchHeader()."Prices Including VAT" then
+            PurchaseLine.UpdateVATAmounts();
         CopyDeferralSchedule(PurchaseLine, AllocationPurchaseLine);
         TransferDimensionSetID(PurchaseLine, AllocationLine, AllocationPurchaseLine."Alloc. Acc. Modified by User");
         PurchaseLine."Allocation Account No." := AllocationLine."Allocation Account No.";
