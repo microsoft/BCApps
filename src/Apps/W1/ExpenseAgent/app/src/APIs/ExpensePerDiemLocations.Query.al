@@ -16,7 +16,7 @@ query 7082 "Expense Per Diem Locations"
     Caption = 'Expense Per Diem Locations';
     DataAccessIntent = ReadOnly;
     AboutTitle = 'Expense Per Diem Locations';
-    AboutText = 'Returns the expense locations that are linked, through an expense rule, to an expense category whose Expense Detail Required is set to Per Diem.';
+    AboutText = 'Returns the expense locations that are linked, through an expense rule, to an active expense category whose Expense Detail Required is set to Per Diem.';
 
     elements
     {
@@ -27,7 +27,7 @@ query 7082 "Expense Per Diem Locations"
             dataitem(expenseCategory; "Expense Category")
             {
                 DataItemLink = "Code" = expenseRuleHeader."Expense Category Code";
-                DataItemTableFilter = "Expense Detail Required" = const("Per Diem");
+                DataItemTableFilter = "Expense Detail Required" = const("Per Diem"), Inactive = const(false);
                 SqlJoinType = InnerJoin;
 
                 dataitem(expenseLocation; "Expense Location")
