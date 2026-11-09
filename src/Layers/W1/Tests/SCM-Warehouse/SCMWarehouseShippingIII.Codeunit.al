@@ -4234,8 +4234,7 @@
     begin
         WarehouseActivityLine.SetRange("Action Type", ActionType);
         FindWarehouseActivityLine(WarehouseActivityLine, SourceDocument, SourceNo, ActivityType);
-        WarehouseActivityLine.ModifyAll("Zone Code", Bin."Zone Code", true);
-        WarehouseActivityLine.ModifyAll("Bin Code", Bin.Code, true);
+        WarehouseActivityLine.ModifyAll("Zone Code", Bin."Zone Code", "Bin Code", Bin.Code, true);
     end;
 
     local procedure UpdateAndTrackInventoryUsingWhseJournal(Bin: Record Bin; Item: Record Item; Quantity: Decimal; VariantCode: Code[10]; ExpirationDate: Date)

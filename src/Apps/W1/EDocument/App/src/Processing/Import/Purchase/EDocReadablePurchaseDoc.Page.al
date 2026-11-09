@@ -133,8 +133,8 @@ page 6182 "E-Doc. Readable Purchase Doc."
                 }
                 field("Vendor Invoice No."; Rec."Vendor Invoice No.")
                 {
-                    Caption = 'Applies-to Ext. Invoice No.';
-                    ToolTip = 'Specifies the external invoice number that the document applies to.';
+                    Caption = 'Applies-to Vendor Inv. No.';
+                    ToolTip = 'Specifies the vendor''s invoice number that the document applies to, as stated on the document.';
                 }
                 field("Invoice Date"; Rec."Invoice Date")
                 {

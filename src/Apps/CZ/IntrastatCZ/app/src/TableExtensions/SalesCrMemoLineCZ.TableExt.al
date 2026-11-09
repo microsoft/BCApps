@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Intrastat;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Sales.History;
 
 tableextension 31312 "Sales Cr. Memo Line CZ" extends "Sales Cr.Memo Line"
@@ -14,6 +15,12 @@ tableextension 31312 "Sales Cr. Memo Line CZ" extends "Sales Cr.Memo Line"
         {
             Caption = 'Statistic Indication';
             TableRelation = "Statistic Indication CZ".Code where("Tariff No." = field("Tariff No. CZL"));
+        }
+        field(31310; "Country/Reg. of Orig. Code CZ"; Code[10])
+        {
+            Caption = 'Country/Region of Origin Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Country/Region";
         }
     }
 }

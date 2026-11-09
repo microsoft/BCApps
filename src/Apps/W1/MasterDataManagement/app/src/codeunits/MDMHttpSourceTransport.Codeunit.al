@@ -263,7 +263,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         if Token.IsEmpty() then
             if not OAuth2.AcquireTokenWithClientCredentials(
                 MasterDataManagementSetup."Source OAuth Client Id",
-                MasterDataManagementSetup.GetSourceClientSecret(),
+                GetSourceClientSecret(MasterDataManagementSetup),
                 TokenEndpoint, '', Scopes, Token) or Token.IsEmpty()
             then begin
                 AuditLog.LogAuditMessage(StrSubstNo(TokenFailedAuditTxt, MasterDataManagementSetup."Source Environment Name"), SecurityOperationResult::Failure, AuditCategory::Authentication, 4, 0);
@@ -280,8 +280,18 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
     var
         OAuth2: Codeunit OAuth2;
     begin
-        if not OAuth2.AcquireAuthorizationCodeTokenFromCache(MasterDataManagementSetup."Source OAuth Client Id", MasterDataManagementSetup.GetSourceClientSecret(), '', TokenEndpoint, Scopes, Token) then
+        if not OAuth2.AcquireAuthorizationCodeTokenFromCache(MasterDataManagementSetup."Source OAuth Client Id", GetSourceClientSecret(MasterDataManagementSetup), '', TokenEndpoint, Scopes, Token) then
             Clear(Token);
+    end;
+
+    // The only reader of the stored secret. Kept local so no member callable from outside this object - including by
+    // internalsVisibleTo friends - returns it; it flows solely into the OAuth2 token request.
+    [NonDebuggable]
+    local procedure GetSourceClientSecret(MasterDataManagementSetup: Record "Master Data Management Setup") SecretValue: SecretText
+    begin
+        if IsNullGuid(MasterDataManagementSetup."Source Client Secret Key") then
+            exit;
+        if not IsolatedStorage.Get(MasterDataManagementSetup."Source Client Secret Key", DataScope::Company, SecretValue) then;
     end;
 
     // Production and the TIE/PPE ring use different Entra authorities and BC resource audiences. Cross-env is same

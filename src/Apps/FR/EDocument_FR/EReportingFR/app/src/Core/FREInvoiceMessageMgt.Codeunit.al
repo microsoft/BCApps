@@ -76,7 +76,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         OriginalOccurrence: Record "E-Doc. Payment Occurrence";
     begin
         EDocument.Get(EDocPaymentOccurrence."E-Document Entry No.");
-        if not ResolveEligibleFrenchService(EDocument) then
+        if not ResolveSubmittedFrenchService(EDocument) then
             exit;
 
         if EDocPaymentOccurrence.Type = EDocPaymentOccurrence.Type::Applied then begin
@@ -203,7 +203,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         VATCategoryByKey: Dictionary of [Text, Text];
         VATRateByKey: Dictionary of [Text, Decimal];
         VATKeys: List of [Text];
-        CurrencyCode: Code[10];
+        ResolvedCurrencyCode: Code[10];
         VATCategoryCode: Text;
         VATKey: Text;
         EligibleGrossAmount: Decimal;
@@ -211,7 +211,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         TotalGrossAmount: Decimal;
         VATRate: Decimal;
     begin
-        CurrencyCode := ResolveCurrencyCode(FREInvoiceMessage."Currency Code");
+        ResolvedCurrencyCode := ResolveCurrencyCode(FREInvoiceMessage."Currency Code");
         FindInvoiceVATEntries(VATEntry, EDocument, FREInvoiceMessage."Detailed Ledger Entry No.");
         VATEntry.SetLoadFields(
             "VAT Bus. Posting Group", "VAT Prod. Posting Group", "Source Currency Code",
@@ -220,7 +220,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         VATPostingSetup.SetLoadFields("VAT %", "Tax Category");
         if VATEntry.FindSet() then
             repeat
-                GrossAmount := GetVATEntryGrossAmount(VATEntry, CurrencyCode);
+                GrossAmount := GetVATEntryGrossAmount(VATEntry, ResolvedCurrencyCode);
                 TotalGrossAmount += GrossAmount;
                 if IsVATEntryReportable(VATEntry) then begin
                     VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
@@ -239,11 +239,11 @@ codeunit 10975 "FR E-Invoice Message Mgt."
 
         FREInvoiceMessage.Amount := Round(
             FREInvoiceMessage.Amount * EligibleGrossAmount / TotalGrossAmount,
-            GetAmountRoundingPrecision(CurrencyCode));
+            GetAmountRoundingPrecision(ResolvedCurrencyCode));
         FREInvoiceMessage.Modify();
         InsertAllocatedVATAmounts(
             FREInvoiceMessage, AmountByVATKey, VATRateByKey, VATCategoryByKey,
-            VATKeys, EligibleGrossAmount, CurrencyCode);
+            VATKeys, EligibleGrossAmount, ResolvedCurrencyCode, FREInvoiceMessage."Currency Code");
     end;
 
     local procedure FindInvoiceVATEntries(var VATEntry: Record "VAT Entry"; EDocument: Record "E-Document"; DetailedLedgerEntryNo: Integer)
@@ -323,7 +323,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         VATKeys.Add(VATKey);
     end;
 
-    local procedure InsertAllocatedVATAmounts(FREInvoiceMessage: Record "FR E-Invoice Message"; AmountByVATKey: Dictionary of [Text, Decimal]; VATRateByKey: Dictionary of [Text, Decimal]; VATCategoryByKey: Dictionary of [Text, Text]; VATKeys: List of [Text]; EligibleGrossAmount: Decimal; CurrencyCode: Code[10])
+    local procedure InsertAllocatedVATAmounts(FREInvoiceMessage: Record "FR E-Invoice Message"; AmountByVATKey: Dictionary of [Text, Decimal]; VATRateByKey: Dictionary of [Text, Decimal]; VATCategoryByKey: Dictionary of [Text, Text]; VATKeys: List of [Text]; EligibleGrossAmount: Decimal; ResolvedCurrencyCode: Code[10]; StoredCurrencyCode: Code[10])
     var
         FREInvoiceMessageVAT: Record "FR E-Invoice Message VAT";
         AllocatedAmount: Decimal;
@@ -332,7 +332,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         VATKey: Text;
         LineNo: Integer;
     begin
-        RoundingPrecision := GetAmountRoundingPrecision(CurrencyCode);
+        RoundingPrecision := GetAmountRoundingPrecision(ResolvedCurrencyCode);
         RemainingAmount := FREInvoiceMessage.Amount;
         foreach VATKey in VATKeys do begin
             LineNo += 10000;
@@ -346,7 +346,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
             end;
             InsertVATBreakdown(
                 FREInvoiceMessageVAT, FREInvoiceMessage."Entry No.", LineNo,
-                VATRateByKey.Get(VATKey), VATCategoryByKey.Get(VATKey), AllocatedAmount, CurrencyCode);
+                VATRateByKey.Get(VATKey), VATCategoryByKey.Get(VATKey), AllocatedAmount, StoredCurrencyCode);
         end;
     end;
 
@@ -425,13 +425,15 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         exit(GeneralLedgerSetup."LCY Code");
     end;
 
-    local procedure ResolveEligibleFrenchService(var EDocument: Record "E-Document"): Boolean
+    local procedure ResolveSubmittedFrenchService(var EDocument: Record "E-Document"): Boolean
     var
         EDocumentService: Record "E-Document Service";
         EDocumentServiceStatus: Record "E-Document Service Status";
     begin
         EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
-        EDocumentServiceStatus.SetFilter(Status, '%1|%2', EDocumentServiceStatus.Status::Approved, EDocumentServiceStatus.Status::Cleared);
+        EDocumentServiceStatus.SetFilter(
+            Status, '%1|%2|%3', EDocumentServiceStatus.Status::Sent,
+            EDocumentServiceStatus.Status::Approved, EDocumentServiceStatus.Status::Cleared);
         if EDocument.Service <> '' then begin
             EDocumentServiceStatus.SetRange("E-Document Service Code", EDocument.Service);
             if EDocumentServiceStatus.FindFirst() then

@@ -23,7 +23,7 @@ codeunit 20508 "Subc. Price Management"
 {
     var
         ManufacturingSetup: Record "Manufacturing Setup";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -34,7 +34,7 @@ codeunit 20508 "Subc. Price Management"
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -79,7 +79,7 @@ codeunit 20508 "Subc. Price Management"
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -132,7 +132,7 @@ codeunit 20508 "Subc. Price Management"
         RecRef: RecordRef;
         CalculationDate: Date;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -162,6 +162,8 @@ codeunit 20508 "Subc. Price Management"
         end;
 
         RecRef.SetTable(Item);
+        Item.SetLoadFields("Lot Size", "Base Unit of Measure");
+        Item.Get(Item."No.");
         CalculationDate := SubcSessionState.GetDate('OnAfterSetProperties');
         if CalculationDate = 0D then
             CalculationDate := WorkDate();
@@ -203,8 +205,12 @@ codeunit 20508 "Subc. Price Management"
     var
         SubContractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
+        LotSize: Decimal;
     begin
         WorkCenter.Get(No);
+        LotSize := Item."Lot Size";
+        if LotSize = 0 then
+            LotSize := 1;
 
         SetSubcontractorPriceForPriceCalculation(
             SubContractorPrice,
@@ -224,9 +230,9 @@ codeunit 20508 "Subc. Price Management"
             OvhdRate,
             UnitCost,
             UnitCostCalculationType,
+            LotSize,
             1,
-            1,
-            1);
+            LotSize);
     end;
 
     procedure GetSubcPriceList(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
@@ -236,7 +242,7 @@ codeunit 20508 "Subc. Price Management"
         WorkCenter: Record "Work Center";
         VendorNo: Code[20];
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -298,7 +304,7 @@ codeunit 20508 "Subc. Price Management"
         PriceListQty: Decimal;
         PriceListQtyPerUOM: Decimal;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -387,7 +393,7 @@ codeunit 20508 "Subc. Price Management"
 
     procedure ConvertPriceToUOM(ProdUOM: Code[10]; ProdQtyPerUoM: Decimal; PriceListUOM: Code[10]; PriceListQtyPerUOM: Decimal; PriceListCost: Decimal; var DirectCost: Decimal)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -460,7 +466,7 @@ codeunit 20508 "Subc. Price Management"
         PriceListQty: Decimal;
         PriceListQtyPerUOM: Decimal;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -549,6 +555,19 @@ codeunit 20508 "Subc. Price Management"
         exit(RequisitionLine."Direct Unit Cost");
     end;
 
+    // A requisition line cost is automatic when it equals either the price-aware calculated cost or the calculated fallback cost
+    // that the worksheet used before a subcontractor price became valid for the line's order date.
+    internal procedure IsAutomaticSubcCostForReqLine(RequisitionLine: Record "Requisition Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Boolean
+    var
+        AutomaticCost: Decimal;
+    begin
+        AutomaticCost := GetAutomaticSubcCostForReqLine(RequisitionLine, ProdOrderRoutingLine);
+        if RequisitionLine."Direct Unit Cost" = AutomaticCost then
+            exit(true);
+
+        exit(RequisitionLine."Direct Unit Cost" = GetNonPriceListDirectCost(ProdOrderRoutingLine));
+    end;
+
     procedure GetSubcPriceForPurchLine(var PurchaseLine: Record "Purchase Line")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
@@ -563,7 +582,7 @@ codeunit 20508 "Subc. Price Management"
         OrderDate: Date;
         DirectCost: Decimal;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -590,7 +609,7 @@ codeunit 20508 "Subc. Price Management"
         PriceListCost, PriceListQty, PriceListQtyPerUOM : Decimal;
     begin
         DirectCost := 0;
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

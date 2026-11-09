@@ -23,6 +23,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
@@ -681,6 +682,57 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         until WIPLedgerEntry.Next() = 0;
     end;
 
+    [Test]
+    procedure PostWhseShipment_WIPTransferLineBlankBin_BinMandatoryLocation_Posts()
+    var
+        FromLocation: Record Location;
+        InTransitLocation: Record Location;
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ToLocation: Record Location;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WarehouseEntry: Record "Warehouse Entry";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO] Warehouse shipment for a WIP transfer line with blank Bin Code posts at a bin-mandatory, non-directed location
+        Initialize();
+
+        // [GIVEN] Bin-mandatory, non-directed location "L" with Require Shipment and no shipment or default bin
+        LibraryWarehouse.CreateLocationWMS(FromLocation, true, false, false, false, true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, FromLocation.Code, false);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ToLocation);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        Quantity := LibraryRandom.RandIntInRange(10, 20);
+
+        // [GIVEN] Released WIP transfer order "TO" from "L" for item "I"
+        LibraryInventory.CreateItem(Item);
+        SubcWarehouseLibrary.CreateTransferOrderWithWIPItemFlagWithoutRoutingReference(
+            TransferHeader, TransferLine, FromLocation.Code, ToLocation.Code, InTransitLocation.Code, Item, Quantity);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+
+        // [GIVEN] Warehouse shipment "WS" created from "TO" with WIP line having blank Bin Code
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+        FindWarehouseShipmentLine(WarehouseShipmentLine, TransferLine);
+        Assert.IsTrue(WarehouseShipmentLine."Transfer WIP Item", 'Warehouse Shipment Line must be a WIP line.');
+        Assert.AreEqual('', WarehouseShipmentLine."Bin Code", 'Warehouse Shipment Line must have blank Bin Code.');
+
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+
+        // [WHEN] Post warehouse shipment "WS"
+        WarehouseShipmentHeader.Get(WarehouseShipmentLine."No.");
+        LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
+
+        // [THEN] Transfer shipment is posted, full quantity is in transit and no item ledger or warehouse entries are created
+        VerifyWIPTransferShipmentPosted(TransferLine, Quantity);
+        Assert.RecordIsEmpty(ItemLedgerEntry);
+        Assert.RecordIsEmpty(WarehouseEntry);
+    end;
+
     [ConfirmHandler]
     procedure DoNotConfirmShowCreatedPurchOrderForSubcontracting(Question: Text[1024]; var Reply: Boolean)
     begin
@@ -806,5 +858,37 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         LibraryWarehouse.CreateInTransitLocation(Location);
         LibraryWarehouse.CreateAndUpdateTransferRoute(
             TransferRoute, FromLocationCode, ToLocationCode, Location.Code, '', '');
+    end;
+
+    local procedure FindWarehouseShipmentLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; TransferLine: Record "Transfer Line")
+    begin
+        WarehouseShipmentLine.SetRange("Source Type", Database::"Transfer Line");
+        WarehouseShipmentLine.SetRange("Source No.", TransferLine."Document No.");
+        WarehouseShipmentLine.SetRange("Source Line No.", TransferLine."Line No.");
+        WarehouseShipmentLine.FindFirst();
+    end;
+
+    local procedure VerifyWIPTransferShipmentPosted(TransferLine: Record "Transfer Line"; ExpectedQuantity: Decimal)
+    var
+        PostedWhseShipmentLine: Record "Posted Whse. Shipment Line";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+    begin
+#pragma warning disable AA0210
+        TransferShipmentHeader.SetRange("Transfer Order No.", TransferLine."Document No.");
+#pragma warning restore AA0210
+        TransferShipmentHeader.FindFirst();
+        TransferShipmentLine.Get(TransferShipmentHeader."No.", TransferLine."Line No.");
+        Assert.AreEqual(ExpectedQuantity, TransferShipmentLine.Quantity, 'Transfer Shipment Line Quantity is incorrect.');
+        Assert.AreEqual(0, TransferShipmentLine."Quantity (Base)", 'Transfer Shipment Line Quantity (Base) must be 0 for WIP transfer.');
+
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        Assert.AreEqual(ExpectedQuantity, TransferLine."Qty. in Transit", 'Qty. in Transit is incorrect.');
+
+        PostedWhseShipmentLine.SetRange("Source No.", TransferLine."Document No.");
+        PostedWhseShipmentLine.SetRange("Source Line No.", TransferLine."Line No.");
+        PostedWhseShipmentLine.FindFirst();
+        Assert.AreEqual(ExpectedQuantity, PostedWhseShipmentLine.Quantity, 'Posted Whse. Shipment Line Quantity is incorrect.');
+        Assert.AreEqual('', PostedWhseShipmentLine."Bin Code", 'Posted Whse. Shipment Line Bin Code must remain blank.');
     end;
 }

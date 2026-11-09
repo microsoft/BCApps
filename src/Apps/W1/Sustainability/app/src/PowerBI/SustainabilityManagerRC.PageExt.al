@@ -6,12 +6,12 @@ pageextension 6252 "Sustainability Manager RC" extends "Sustainability Manager R
 {
     actions
     {
-        addlast(Reporting)
+        addlast(Sections)
         {
             group("PBI Reports")
             {
                 Caption = 'Power BI Reports';
-                Image = PowerBI;
+                Image = AnalysisView;
                 ToolTip = 'Power BI reports for sustainability';
                 action("Sustainability Report (Power BI)")
                 {
