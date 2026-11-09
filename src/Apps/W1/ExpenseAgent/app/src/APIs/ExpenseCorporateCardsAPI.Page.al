@@ -54,16 +54,30 @@ page 7451 "Expense Corporate Cards API"
         ExpenseUserNo: Code[20];
     begin
         if Rec.GetFilter("Expense User No.") = '' then
-            Error(ExpenseUserFilterRequiredErr);
+            Error(GetExpenseUserFilterRequiredError());
         ExpenseUserNo := Rec.GetRangeMin("Expense User No.");
         if (ExpenseUserNo = '') or (ExpenseUserNo <> Rec.GetRangeMax("Expense User No.")) then
-            Error(ExpenseUserFilterRequiredErr);
+            Error(GetExpenseUserFilterRequiredError());
         Rec.FilterGroup(2);
         Rec.SetRange("Expense User No.", ExpenseUserNo);
         Rec.SetRange(Blocked, false);
         Rec.FilterGroup(0);
     end;
 
+    local procedure GetExpenseUserFilterRequiredError(): ErrorInfo
     var
-        ExpenseUserFilterRequiredErr: Label 'Filter corporate cards by a single expenseUserNumber.';
+        ExpenseUserFilterError: ErrorInfo;
+    begin
+        ExpenseUserFilterError.Title := ExpenseUserFilterRequiredTitleErr;
+        ExpenseUserFilterError.Message := ExpenseUserFilterRequiredErr;
+        ExpenseUserFilterError.DetailedMessage := ExpenseUserFilterRequiredDetailsErr;
+        ExpenseUserFilterError.ErrorType := ErrorType::Client;
+        ExpenseUserFilterError.DataClassification := DataClassification::SystemMetadata;
+        exit(ExpenseUserFilterError);
+    end;
+
+    var
+        ExpenseUserFilterRequiredTitleErr: Label 'Expense user filter required';
+        ExpenseUserFilterRequiredErr: Label 'Filter corporate cards by a single expenseUserNumber. Retry the request with $filter=expenseUserNumber eq ''<expense-user-number>''.', Comment = '$filter and expenseUserNumber are OData API identifiers; <expense-user-number> is a placeholder for an expense user number.';
+        ExpenseUserFilterRequiredDetailsErr: Label 'Use one non-empty expense user number. Ranges and filters selecting multiple expense users are not supported.';
 }

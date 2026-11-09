@@ -30,6 +30,7 @@ codeunit 148363 EACorpCardLiabilityTests
         CorpCardTestLib: Codeunit EACorpCardTestLib;
         LibraryERM: Codeunit "Library - ERM";
         LibraryExpense: Codeunit "Library - Expense";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         BankAccountNo: Code[20];
         EmployeePostingGroupCode: Code[20];
         ExpenseAccountNo: Code[20];
@@ -188,7 +189,6 @@ codeunit 148363 EACorpCardLiabilityTests
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         VATEntry: Record "VAT Entry";
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
-        BankEntryCount: Integer;
         ExpenseEntryCount: Integer;
         OriginalBankEntryNo: Integer;
         OriginalTransactionNo: Integer;
@@ -239,6 +239,26 @@ codeunit 148363 EACorpCardLiabilityTests
         Assert.AreEqual(-2000, GLEntry.Amount, 'Reversal must restore the original payable liability.');
         Assert.AreEqual(ExpenseEntryCount, ExpenseLedgerEntry.Count(), 'Transfer reversal must not reverse the original expense.');
         Assert.AreEqual(VATEntryCount, VATEntry.Count(), 'Transfer reversal must not reverse original VAT.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure RepeatedLiabilityReversalDoesNotPost()
+    var
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
+        BankEntryCount: Integer;
+    begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] Repeating a liability reversal is a validated no-op.
+        Initialize();
+
+        // [GIVEN] A manual expense liability has been transferred and reversed.
+        PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', '');
+        LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
+        LiabilityMgt.ReverseLiability(CorpCardTrans);
         BankEntryCount := BankAccountLedgerEntry.Count();
 
         // [WHEN] Reversal is requested again.
@@ -246,6 +266,24 @@ codeunit 148363 EACorpCardLiabilityTests
 
         // [THEN] The repeated reversal posts nothing.
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'Repeating reversal must be a validated no-op.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TransferAfterLiabilityReversalIsRejected()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
+    begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
+        // [SCENARIO] A reversed liability transfer cannot be transferred again on the same transaction.
+        Initialize();
+
+        // [GIVEN] A manual expense liability has been transferred and reversed.
+        PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, '', '');
+        LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
+        LiabilityMgt.ReverseLiability(CorpCardTrans);
 
         // [WHEN] A new transfer is requested after reversal.
         asserterror LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
@@ -586,6 +624,8 @@ codeunit 148363 EACorpCardLiabilityTests
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::EACorpCardLiabilityTests);
+        Clear(CorpCardTestLib);
         CorpCardTestLib.InitializeCorpCardData();
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.InitializeExpenseSourceCode();
@@ -598,6 +638,7 @@ codeunit 148363 EACorpCardLiabilityTests
         LibraryERMCountryData.UpdateVATPostingSetup();
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
         IsInitialized := true;
+        Commit();
     end;
 
     local procedure PostManualExpenseAndLinkFeed(var CorpCardTrans: Record "EA Corp Card Trans"; var PostedExpenseReportLine: Record "Posted Expense Report Line"; LiabilityCurrencyCode: Code[10]; BankCurrencyCode: Code[10])

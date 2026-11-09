@@ -548,7 +548,7 @@ GET .../api/microsoft/expense/beta/companies({companyId})/expenses?$filter=sourc
 
 ### Upgrade Behavior
 
-Upgrade fills blank Corporate Card Id values on expenses, report lines, and posted report lines from their existing feed transaction links. It also initializes provider short names through the same defaults used by setup. Existing manually selected card identities and custom provider short names are retained.
+Upgrade fills blank Corporate Card Id values on expenses, report lines, and posted report lines from their existing feed transaction links. Expense source is preserved: legacy expenses remain Manual because a feed link does not distinguish an imported draft from a manually linked expense. New feed-created drafts are explicitly marked CorporateCard when created. It also initializes provider short names through the same defaults used by setup. Existing manually selected card identities and custom provider short names are retained.
 
 The identity backfill does not create liability accounting snapshots for old posted reports. Automated late-feed liability transfer requires the snapshots recorded when a manual no-feed expense posts.
 

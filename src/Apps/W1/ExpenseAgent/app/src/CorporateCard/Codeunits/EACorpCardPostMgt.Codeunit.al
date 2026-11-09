@@ -60,7 +60,8 @@ codeunit 7440 "EA Corp Card Post Mgt"
                 CorpCardTrans.TestField("Statement Entry No.", StatementEntryNos.Get(TempCorpCardTransEntry.Number));
             until TempCorpCardTransEntry.Next() = 0;
 
-        Expense.LockTable();
+        // Reserve expenses for cancellation writes without escalating other record instances.
+        Expense.ReadIsolation := IsolationLevel::UpdLock;
         Expense.SetRange("Posted Expense Report No.", PostedExpenseReportNo);
         if Expense.FindSet() then
             repeat

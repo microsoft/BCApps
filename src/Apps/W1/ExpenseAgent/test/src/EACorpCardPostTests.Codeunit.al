@@ -194,12 +194,16 @@ codeunit 148358 EACorpCardPostTests
         PostedReportCardTrans: Query "EA Posted Report Card Trans";
         ExpectedStatementNos: Dictionary of [Integer, Integer];
         ActualFeedNos: List of [Integer];
+        PostedReportNo: Code[20];
+        OtherPostedReportNo: Code[20];
         TransactionIndex: Integer;
     begin
         // [SCENARIO] Discovery batches active feed links, including duplicate links and transactions without a statement.
         Initialize();
 
         // [GIVEN] Three transactions on two statements, with the first transaction linked twice.
+        PostedReportNo := CopyStr(Format(CreateGuid()), 1, MaxStrLen(PostedReportNo));
+        OtherPostedReportNo := CopyStr(Format(CreateGuid()), 1, MaxStrLen(OtherPostedReportNo));
         for TransactionIndex := 1 to ArrayLen(CorpCardTrans) do begin
             if TransactionIndex <= 2 then
                 CorpCardTestLib.CreateStatement(
@@ -210,17 +214,17 @@ codeunit 148358 EACorpCardPostTests
                 CorpCardTrans[TransactionIndex].Modify();
             end;
             ExpectedStatementNos.Add(CorpCardTrans[TransactionIndex]."Entry No.", CorpCardTrans[TransactionIndex]."Statement Entry No.");
-            CreatePostedReportCardLink('PER-LOCK', TransactionIndex * 10000, CorpCardTrans[TransactionIndex]."Entry No.", false);
+            CreatePostedReportCardLink(PostedReportNo, TransactionIndex * 10000, CorpCardTrans[TransactionIndex]."Entry No.", false);
         end;
-        CreatePostedReportCardLink('PER-LOCK', 40000, CorpCardTrans[1]."Entry No.", false);
+        CreatePostedReportCardLink(PostedReportNo, 40000, CorpCardTrans[1]."Entry No.", false);
 
         // [GIVEN] Canceled and other-report links point to missing transactions, and a manual line has no feed link.
-        CreatePostedReportCardLink('PER-LOCK', 50000, -1, true);
-        CreatePostedReportCardLink('PER-OTHER', 10000, -1, false);
-        CreatePostedReportCardLink('PER-LOCK', 60000, 0, false);
+        CreatePostedReportCardLink(PostedReportNo, 50000, -1, true);
+        CreatePostedReportCardLink(OtherPostedReportNo, 10000, -1, false);
+        CreatePostedReportCardLink(PostedReportNo, 60000, 0, false);
 
         // [WHEN] The active report links are read in one query.
-        PostedReportCardTrans.SetRange(PostedReportNo, 'PER-LOCK');
+        PostedReportCardTrans.SetRange(PostedReportNo, PostedReportNo);
         PostedReportCardTrans.Open();
         while PostedReportCardTrans.Read() do begin
             Assert.AreEqual(PostedReportCardTrans.CreditCardFeedNo, PostedReportCardTrans.TransactionEntryNo, 'Each feed link must resolve to its transaction.');
@@ -239,22 +243,24 @@ codeunit 148358 EACorpCardPostTests
         Assert.AreEqual(CorpCardTrans[1]."Entry No.", ActualFeedNos.Get(1), 'The duplicate link must be preserved.');
 
         // [THEN] Lock preparation tolerates duplicate links and transactions without statements.
-        CorpCardPostMgt.LockPostedReportTransactions('PER-LOCK');
+        CorpCardPostMgt.LockPostedReportTransactions(PostedReportNo);
     end;
 
     [Test]
     procedure LockPostedReportTransactionsRejectsMissingFeedTransaction()
     var
         CorpCardPostMgt: Codeunit "EA Corp Card Post Mgt";
+        PostedReportNo: Code[20];
     begin
         // [SCENARIO] A left join must not silently discard a broken active feed link.
         Initialize();
 
         // [GIVEN] An active report line refers to a missing transaction.
-        CreatePostedReportCardLink('PER-MISSING', 10000, -1, false);
+        PostedReportNo := CopyStr(Format(CreateGuid()), 1, MaxStrLen(PostedReportNo));
+        CreatePostedReportCardLink(PostedReportNo, 10000, -1, false);
 
         // [WHEN] Cancellation prepares the report's transaction locks.
-        asserterror CorpCardPostMgt.LockPostedReportTransactions('PER-MISSING');
+        asserterror CorpCardPostMgt.LockPostedReportTransactions(PostedReportNo);
 
         // [THEN] Cancellation fails explicitly instead of proceeding without the transaction.
         Assert.ExpectedError('Corporate card links changed while preparing cancellation.');

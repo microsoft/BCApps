@@ -24,13 +24,13 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTestLib: Codeunit EACorpCardTestLib;
 
     [Test]
-    procedure DefaultProviderSetupUsesVisaAndAmexWithoutOverwritingCustomNames()
+    procedure DefaultProviderSetupUsesVisaAndAmex()
     var
         CsvProvider: Record "EA Corp Card Provider";
         XmlProvider: Record "EA Corp Card Provider";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
     begin
-        // [SCENARIO] Repeating default setup initializes provider abbreviations but preserves user customization.
+        // [SCENARIO] Default setup initializes provider abbreviations with provider names.
         Initialize();
 
         // [GIVEN] Default providers have a generated CSV abbreviation and no XML abbreviation.
@@ -50,8 +50,21 @@ codeunit 148364 EACorpCardSelectionTests
         XmlProvider.Get(XmlProvider.Code);
         Assert.AreEqual('VISA', CsvProvider."Short Name", 'Setup must replace the generated CSV provider abbreviation.');
         Assert.AreEqual('AMEX', XmlProvider."Short Name", 'Setup must initialize the XML provider abbreviation.');
+    end;
 
-        // [GIVEN] The CSV provider abbreviation is customized.
+    [Test]
+    procedure RepeatedDefaultProviderSetupPreservesCustomNames()
+    var
+        CsvProvider: Record "EA Corp Card Provider";
+        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+    begin
+        // [SCENARIO] Repeating default setup preserves a customized provider abbreviation.
+        Initialize();
+
+        // [GIVEN] Default setup has run and the CSV provider abbreviation is customized.
+        InitializeDefaultBankAccount();
+        CreateCorpCardSetup.CreateDefaults();
+        CsvProvider.Get('CORPCARDCSV');
         CsvProvider."Short Name" := 'BANK';
         CsvProvider.Modify();
 
@@ -428,7 +441,7 @@ codeunit 148364 EACorpCardSelectionTests
     end;
 
     [Test]
-    procedure UpgradeInitializesLegacyCorporateCardSource()
+    procedure UpgradePreservesLegacyManualSource()
     var
         CorpCard: Record "EA Corp Card";
         CorpCardTrans: Record "EA Corp Card Trans";
@@ -438,10 +451,10 @@ codeunit 148364 EACorpCardSelectionTests
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
     begin
-        // [SCENARIO] Legacy feed-created expenses receive corporate card protections while manual expenses remain unchanged.
+        // [SCENARIO] Legacy feed links backfill card identity without changing manual provenance.
         Initialize();
 
-        // [GIVEN] An unmigrated feed-created expense and a manual expense without a feed link.
+        // [GIVEN] A legacy manual expense is linked to a feed, and another manual expense has no feed link.
         if UpgradeTag.HasUpgradeTag(UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag()) then
             UpgradeTagLibrary.DeleteUpgradeTag(
                 UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag(), CopyStr(CompanyName(), 1, 30));
@@ -450,28 +463,25 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTestLib.InitializeExpense(LegacyExpense, CorpCard);
         LegacyExpense."Credit Card Feed No." := CorpCardTrans."Entry No.";
         LegacyExpense.Insert(false);
+        CorpCardTrans."Expense No." := LegacyExpense."No.";
+        CorpCardTrans.Status := CorpCardTrans.Status::Matched;
+        CorpCardTrans.Modify(false);
         CorpCardTestLib.InitializeExpense(ManualExpense, CorpCard);
         ManualExpense.Insert(false);
 
         // [WHEN] The corporate card identity upgrade runs.
         UpgradeExpenseAgentSetup.UpgradeCorporateCardIdentity();
 
-        // [THEN] Card identity and source are backfilled before the upgrade is marked complete, without changing manual expenses.
+        // [THEN] Card identity is backfilled and the upgrade is marked complete, while both expenses remain manual.
         LegacyExpense.Get(LegacyExpense."No.");
         LegacyExpense.TestField("Corporate Card Id", CorpCard."Card Id");
-        LegacyExpense.TestField(Source, LegacyExpense.Source::CorporateCard);
+        LegacyExpense.TestField(Source, LegacyExpense.Source::Manual);
         ManualExpense.Get(ManualExpense."No.");
         ManualExpense.TestField("Corporate Card Id", '');
         ManualExpense.TestField(Source, ManualExpense.Source::Manual);
         Assert.IsTrue(
             UpgradeTag.HasUpgradeTag(UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag()),
             'The corporate card identity upgrade must be marked complete.');
-
-        // [WHEN] The amount of the upgraded feed-created expense is changed.
-        asserterror LegacyExpense.Validate(Amount, LegacyExpense.Amount + 1);
-
-        // [THEN] The corporate card source protection rejects the change.
-        Assert.ExpectedError(LegacyExpense.FieldCaption(Amount) + ' cannot be changed');
     end;
 
     [Test]
@@ -535,14 +545,11 @@ codeunit 148364 EACorpCardSelectionTests
         // [WHEN] The corporate card identity upgrade runs.
         UpgradeExpenseAgentSetup.UpgradeCorporateCardIdentity();
 
-        // [THEN] Only matching legacy rows receive the feed card, and only the migrated expense changes source.
+        // [THEN] Only matching legacy rows receive the feed card, and all existing sources are preserved.
         for ScenarioNo := 1 to ArrayLen(Expenses) do begin
             Expenses[ScenarioNo].Get(Expenses[ScenarioNo]."No.");
             Expenses[ScenarioNo].TestField("Corporate Card Id", ExpectedCardIds[ScenarioNo]);
-            if ScenarioNo = 1 then
-                Expenses[ScenarioNo].TestField(Source, Expenses[ScenarioNo].Source::CorporateCard)
-            else
-                Expenses[ScenarioNo].TestField(Source, Expenses[ScenarioNo].Source::Manual);
+            Expenses[ScenarioNo].TestField(Source, Expenses[ScenarioNo].Source::Manual);
             ExpenseReportLines[ScenarioNo].Get(ExpenseReportLines[ScenarioNo]."Document No.", ExpenseReportLines[ScenarioNo]."Line No.");
             ExpenseReportLines[ScenarioNo].TestField("Corporate Card Id", ExpectedCardIds[ScenarioNo]);
             PostedExpenseReportLines[ScenarioNo].Get(PostedExpenseReportLines[ScenarioNo]."Document No.", PostedExpenseReportLines[ScenarioNo]."Line No.");

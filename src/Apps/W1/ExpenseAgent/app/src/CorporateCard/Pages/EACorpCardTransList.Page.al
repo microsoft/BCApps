@@ -207,17 +207,22 @@ page 7433 "EA Corp Card Trans List"
         }
         area(Promoted)
         {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(TransferCardLiability_Promoted; TransferCardLiability)
+                {
+                }
+                actionref(ReverseCardLiability_Promoted; ReverseCardLiability)
+                {
+                }
+            }
             group(Category_Transaction)
             {
                 Caption = 'Transaction';
 
                 actionref(OpenMatchedExpense_Promoted; OpenMatchedExpense)
-                {
-                }
-                actionref(TransferCardLiability_Promoted; TransferCardLiability)
-                {
-                }
-                actionref(ReverseCardLiability_Promoted; ReverseCardLiability)
                 {
                 }
                 actionref(OpenProviderStatement_Promoted; OpenProviderStatement)

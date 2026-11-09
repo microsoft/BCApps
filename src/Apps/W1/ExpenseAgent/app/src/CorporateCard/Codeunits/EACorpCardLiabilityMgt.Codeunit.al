@@ -164,7 +164,7 @@ codeunit 7449 "EA Corp Card Liability Mgt"
             if PostedExpenseReportLine."Card Liability Currency Factor" <= 0 then
                 Error(InvalidCurrencyFactorErr);
 
-        ExpenseLedgerEntry.LockTable();
+        ExpenseLedgerEntry.ReadIsolation := IsolationLevel::RepeatableRead;
         ExpenseLedgerEntry.SetRange("Document No.", PostedExpenseReportLine."Document No.");
         ExpenseLedgerEntry.SetRange("Document Line No.", PostedExpenseReportLine."Line No.");
         ExpenseLedgerEntry.SetRange("Posting Date", PostedExpenseReportHeader."Posting Date");
@@ -181,7 +181,7 @@ codeunit 7449 "EA Corp Card Liability Mgt"
             until ExpenseLedgerEntry.Next() = 0;
         if MatchingExpenseLedgerEntries <> 1 then
             Error(OriginalPostingMissingErr, PostedExpenseReportLine."Document No.");
-        GLEntry.LockTable();
+        GLEntry.ReadIsolation := IsolationLevel::RepeatableRead;
         GLEntry.SetRange("Transaction No.", TransactionNo);
         GLEntry.SetRange(Reversed, true);
         if not GLEntry.IsEmpty() then

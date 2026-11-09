@@ -20,7 +20,7 @@ page 7450 "EA Corp Card Lookup"
         {
             repeater(Cards)
             {
-                field(CorporateCard; CorpCardSelectionMgt.GetCardDisplay(Rec))
+                field(CorporateCard; CorpCardSelectionMgt.GetCardDisplay(Rec, Rec."Provider Short Name"))
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Corporate Card';
@@ -45,6 +45,11 @@ page 7450 "EA Corp Card Lookup"
 
         }
     }
+
+    trigger OnOpenPage()
+    begin
+        Rec.SetAutoCalcFields("Provider Short Name");
+    end;
 
     var
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";

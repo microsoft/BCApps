@@ -106,9 +106,13 @@ table 7421 "EA Corp Card"
         PostedExpenseReportLine: Record "Posted Expense Report Line";
     begin
         Expense.SetRange("Corporate Card Id", "Card Id");
+        if not Expense.IsEmpty() then
+            Error(CardHasExpensesErr, "Card Id");
         ExpenseReportLine.SetRange("Corporate Card Id", "Card Id");
+        if not ExpenseReportLine.IsEmpty() then
+            Error(CardHasExpensesErr, "Card Id");
         PostedExpenseReportLine.SetRange("Corporate Card Id", "Card Id");
-        if not Expense.IsEmpty() or not ExpenseReportLine.IsEmpty() or not PostedExpenseReportLine.IsEmpty() then
+        if not PostedExpenseReportLine.IsEmpty() then
             Error(CardHasExpensesErr, "Card Id");
         CorpCardTrans.SetRange("Card Id", "Card Id");
         if not CorpCardTrans.IsEmpty() then

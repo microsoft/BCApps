@@ -11,6 +11,7 @@ codeunit 7447 "EA Corp Card Selection Mgt"
     internal procedure ValidateExpenseCard(Expense: Record Expense; RequireCard: Boolean)
     var
         CorpCardTrans: Record "EA Corp Card Trans";
+        SourceRecord: RecordRef;
     begin
         if RequireCard and (Expense."Reimbursement Type" = Expense."Reimbursement Type"::"Credit Card") then begin
             Expense.TestField("Corporate Card Id");
@@ -20,10 +21,11 @@ codeunit 7447 "EA Corp Card Selection Mgt"
             CorpCardTrans.Get(Expense."Credit Card Feed No.");
             Expense.TestField("Corporate Card Id", CorpCardTrans."Card Id");
         end;
-        ValidateCard(Expense."Corporate Card Id", Expense."Expense User No.", Expense."Expense Date", Expense."Reimbursement Type");
+        SourceRecord.GetTable(Expense);
+        ValidateCard(Expense."Corporate Card Id", Expense."Expense User No.", Expense."Expense Date", Expense."Reimbursement Type", SourceRecord);
     end;
 
-    internal procedure ValidateCard(CardId: Code[50]; ExpenseUserNo: Code[20]; ExpenseDate: Date; ReimbursementType: Enum "Expense Reimbursement Type")
+    internal procedure ValidateCard(CardId: Code[50]; ExpenseUserNo: Code[20]; ExpenseDate: Date; ReimbursementType: Enum "Expense Reimbursement Type"; SourceRecord: RecordRef)
     var
         CorpCard: Record "EA Corp Card";
     begin
@@ -31,7 +33,7 @@ codeunit 7447 "EA Corp Card Selection Mgt"
             exit;
 
         if ReimbursementType <> ReimbursementType::"Credit Card" then
-            Error(CreditCardPaymentRequiredErr);
+            Error(GetCreditCardPaymentRequiredError(SourceRecord));
         CorpCard.Get(CardId);
         CorpCard.TestField("Expense User No.");
         CorpCard.TestField("Expense User No.", ExpenseUserNo);
@@ -71,6 +73,7 @@ codeunit 7447 "EA Corp Card Selection Mgt"
     var
         Expense: Record Expense;
         CorpCardTrans: Record "EA Corp Card Trans";
+        SourceRecord: RecordRef;
     begin
         if RequireCard and (ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Credit Card") then begin
             ExpenseReportLine.TestField("Corporate Card Id");
@@ -84,7 +87,8 @@ codeunit 7447 "EA Corp Card Selection Mgt"
             Expense.Get(ExpenseReportLine."Expense No.");
             ExpenseReportLine.TestField("Corporate Card Id", Expense."Corporate Card Id");
         end;
-        ValidateCard(ExpenseReportLine."Corporate Card Id", ExpenseReportLine."Expense User No.", ExpenseReportLine."Expense Date", ExpenseReportLine."Reimbursement Type");
+        SourceRecord.GetTable(ExpenseReportLine);
+        ValidateCard(ExpenseReportLine."Corporate Card Id", ExpenseReportLine."Expense User No.", ExpenseReportLine."Expense Date", ExpenseReportLine."Reimbursement Type", SourceRecord);
     end;
 
     internal procedure LookupReportLineCard(var ExpenseReportLine: Record "Expense Report Line"): Boolean
@@ -108,26 +112,64 @@ codeunit 7447 "EA Corp Card Selection Mgt"
     begin
         if CardId = '' then
             exit('');
+        CorpCard.SetAutoCalcFields("Provider Short Name");
         CorpCard.Get(CardId);
-        exit(GetCardDisplay(CorpCard));
+        exit(GetCardDisplay(CorpCard, CorpCard."Provider Short Name"));
     end;
 
-    internal procedure GetCardDisplay(CorpCard: Record "EA Corp Card"): Text[150]
-    var
-        CorpCardProvider: Record "EA Corp Card Provider";
-        ProviderShortName: Text[4];
+    internal procedure GetCardDisplay(CorpCard: Record "EA Corp Card"; ProviderShortName: Text[4]): Text[150]
     begin
         if CorpCard."Provider Code" = '' then
             exit(CorpCard.GetLastFourDigits());
-        CorpCardProvider.Get(CorpCard."Provider Code");
-        ProviderShortName := CorpCardProvider."Short Name";
         if ProviderShortName = '' then
             ProviderShortName := CopyStr(CorpCard."Provider Code", 1, MaxStrLen(ProviderShortName));
         exit(CopyStr(StrSubstNo(CardDisplayLbl, ProviderShortName, CorpCard.GetLastFourDigits()), 1, 150));
     end;
 
+    local procedure GetCreditCardPaymentRequiredError(SourceRecord: RecordRef): ErrorInfo
+    var
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        CreditCardPaymentError: ErrorInfo;
+    begin
+        CreditCardPaymentError.Title := CreditCardPaymentRequiredTitleErr;
+        CreditCardPaymentError.Message := CreditCardPaymentRequiredErr;
+        CreditCardPaymentError.DetailedMessage := CreditCardPaymentRequiredDetailsErr;
+        CreditCardPaymentError.ErrorType := ErrorType::Client;
+        CreditCardPaymentError.DataClassification := DataClassification::CustomerContent;
+        if SourceRecord.IsTemporary() then
+            exit(CreditCardPaymentError);
+        if not SourceRecord.Get(SourceRecord.RecordId) then
+            exit(CreditCardPaymentError);
+
+        case SourceRecord.Number of
+            Database::Expense:
+                begin
+                    CreditCardPaymentError.RecordId := SourceRecord.RecordId;
+                    CreditCardPaymentError.FieldNo := Expense.FieldNo("Corporate Card Id");
+                    CreditCardPaymentError.PageNo := Page::Expense;
+                    CreditCardPaymentError.AddNavigationAction(OpenExpenseLbl);
+                end;
+            Database::"Expense Report Line":
+                begin
+                    SourceRecord.SetTable(ExpenseReportLine);
+                    if ExpenseReportHeader.Get(ExpenseReportLine."Document No.") then begin
+                        CreditCardPaymentError.RecordId := ExpenseReportHeader.RecordId;
+                        CreditCardPaymentError.PageNo := Page::"Expense Report";
+                        CreditCardPaymentError.AddNavigationAction(OpenExpenseReportLbl);
+                    end;
+                end;
+        end;
+        exit(CreditCardPaymentError);
+    end;
+
     var
         CreditCardPaymentRequiredErr: Label 'A corporate card can only be selected for an expense paid by credit card. Clear the corporate card before changing the payment type.';
+        CreditCardPaymentRequiredTitleErr: Label 'Credit card payment required';
+        CreditCardPaymentRequiredDetailsErr: Label 'Clear the Corporate Card selection on the expense or expense report line, then retry changing the payment method.';
+        OpenExpenseLbl: Label 'Open expense';
+        OpenExpenseReportLbl: Label 'Open expense report';
         CardNotValidOnDateErr: Label 'Corporate card %1 is not valid on expense date %2.', Comment = '%1 = corporate card identifier, %2 = expense date';
         CardDisplayLbl: Label '%1 %2', Locked = true, Comment = '%1 = card provider short name, %2 = card last four digits';
 }

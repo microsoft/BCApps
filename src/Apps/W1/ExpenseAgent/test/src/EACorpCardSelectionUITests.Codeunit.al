@@ -132,8 +132,10 @@ codeunit 148365 EACorpCardSelectionUITests
         ExpenseUser: Record "Expense User";
         ExpenseUserCard: TestPage "Expense User";
         CorporateCards: TestPage "EA Corp Card Cards";
+        NewCardId: Code[50];
     begin
         Initialize();
+        NewCardId := CopyStr(Format(CreateGuid()), 1, MaxStrLen(NewCardId));
         CorpCard.Get('CORPCARD-0001');
         ExpenseUser.Get(CorpCard."Expense User No.");
         ExpenseUserCard.OpenView();
@@ -144,11 +146,11 @@ codeunit 148365 EACorpCardSelectionUITests
         CorporateCards.New();
 
         CorporateCards."Expense User No.".AssertEquals(ExpenseUser."No.");
-        CorporateCards."Card Id".SetValue('NEW-USER-CARD');
+        CorporateCards."Card Id".SetValue(NewCardId);
         CorporateCards."Provider Code".SetValue(CorpCard."Provider Code");
         CorporateCards.Close();
         ExpenseUserCard.Close();
-        CorpCard.Get('NEW-USER-CARD');
+        CorpCard.Get(NewCardId);
         CorpCard.TestField("Expense User No.", ExpenseUser."No.");
     end;
 
@@ -192,6 +194,36 @@ codeunit 148365 EACorpCardSelectionUITests
         CardLookup.CorporateCard.AssertEquals('AmEx 0001');
         CardLookup.Close();
         Assert.AreEqual('AmEx 0001', CorpCardSelectionMgt.GetCardDisplay(CorpCard."Card Id"), 'Expense and report displays must use the same compact label as the lookup.');
+    end;
+
+    [Test]
+    procedure CardListDisplayUpdatesWhenProviderChanges()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorporateCards: TestPage "EA Corp Card Cards";
+    begin
+        // [SCENARIO] Editing a card's provider refreshes its compact display.
+        Initialize();
+
+        // [GIVEN] A card is shown in the editable list and another provider has a different abbreviation.
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardProvider.Get(CorpCard."Provider Code");
+        CorpCardProvider."Short Name" := 'VISA';
+        CorpCardProvider.Modify();
+        CorpCardProvider.Get('CORPCARDXML');
+        CorpCardProvider."Short Name" := 'AmEx';
+        CorpCardProvider.Modify();
+        CorporateCards.OpenEdit();
+        CorporateCards.GoToRecord(CorpCard);
+        CorporateCards.CorporateCard.AssertEquals('VISA 0001');
+
+        // [WHEN] The card's provider is changed.
+        CorporateCards."Provider Code".SetValue(CorpCardProvider.Code);
+
+        // [THEN] The display uses the new provider abbreviation and the unchanged card suffix.
+        CorporateCards.CorporateCard.AssertEquals('AmEx 0001');
+        CorporateCards.Close();
     end;
 
     [ModalPageHandler]
