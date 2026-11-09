@@ -65,7 +65,7 @@ codeunit 6972 "Create Expense No. Series"
 
     procedure GetExpenseNoSeriesFilter(): Text
     var
-        FilterTok: Label '%1|%2|%3|%4|%5', Locked = true;
+        FilterTok: Label '%1|%2|%3|%4|%5', Locked = true, Comment = '%1 = Expense No. Series code, %2 = Expense User No. Series code, %3 = Expense Report No. Series code, %4 = Posted Expense Report No. Series code, %5 = Expense Vendor No. Series code';
     begin
         exit(StrSubstNo(FilterTok, ExpenseNoSeriesTok, ExpenseUserSeriesTok, ExpenseReportNoSeriesTok, PostedExpenseReportNoSeriesTok, ExpenseVendorNoSeriesTok));
     end;
@@ -107,14 +107,20 @@ codeunit 6972 "Create Expense No. Series"
 
     local procedure AddNoSeriesSeed(var TempNoSeries: Record "No. Series" temporary; var TempNoSeriesLine: Record "No. Series Line" temporary; SeriesCode: Code[20]; Description: Text[100]; StartingNo: Code[20]; EndingNo: Code[20]; Implementation: Enum "No. Series Implementation")
     begin
-        if TempNoSeries.Get(SeriesCode) then
-            exit;
+        if not TempNoSeries.Get(SeriesCode) then begin
+            TempNoSeries.Init();
+            TempNoSeries.Code := SeriesCode;
+            TempNoSeries.Description := Description;
+            TempNoSeries."Default Nos." := true;
+            TempNoSeries.Insert();
+        end;
 
-        TempNoSeries.Init();
-        TempNoSeries.Code := SeriesCode;
-        TempNoSeries.Description := Description;
-        TempNoSeries."Default Nos." := true;
-        TempNoSeries.Insert();
+        TempNoSeriesLine.SetRange("Series Code", SeriesCode);
+        if not TempNoSeriesLine.IsEmpty() then begin
+            TempNoSeriesLine.SetRange("Series Code");
+            exit;
+        end;
+        TempNoSeriesLine.SetRange("Series Code");
 
         TempNoSeriesLine.Init();
         TempNoSeriesLine."Series Code" := SeriesCode;
@@ -151,25 +157,21 @@ codeunit 6972 "Create Expense No. Series"
     var
         NoSeries: Record "No. Series";
         NoSeriesLine: Record "No. Series Line";
-        NoSeriesExists, NoSeriesLineExists : Boolean;
     begin
-        if NoSeries.Get(NoSeriesCode) then
-            exit;
-
-        NoSeries.Init();
-        NoSeries.Validate(Code, NoSeriesCode);
-        NoSeries.Validate(Description, Description);
-        NoSeries.Validate("Default Nos.", true);
-        NoSeries.Validate("Manual Nos.", AllowManualNo);
-
-        if NoSeriesExists then
-            NoSeries.Modify(true)
-        else
+        if not NoSeries.Get(NoSeriesCode) then begin
+            NoSeries.Init();
+            NoSeries.Validate(Code, NoSeriesCode);
+            NoSeries.Validate(Description, Description);
+            NoSeries.Validate("Default Nos.", true);
+            NoSeries.Validate("Manual Nos.", AllowManualNo);
             NoSeries.Insert(true);
+        end;
 
-        if NoSeriesLine.Get(NoSeriesCode, GetDefaultLineNo()) then
+        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
+        if not NoSeriesLine.IsEmpty() then
             exit;
 
+        NoSeriesLine.Init();
         NoSeriesLine.Validate("Series Code", NoSeries.Code);
         NoSeriesLine.Validate("Starting No.", StartingNo);
         NoSeriesLine.Validate("Ending No.", EndingNo);
@@ -179,10 +181,7 @@ codeunit 6972 "Create Expense No. Series"
         NoSeriesLine.Validate(Implementation, Implementation);
         NoSeriesLine.Validate("Line No.", GetDefaultLineNo());
 
-        if NoSeriesLineExists then
-            NoSeriesLine.Modify(true)
-        else
-            NoSeriesLine.Insert(true);
+        NoSeriesLine.Insert(true);
     end;
 
     local procedure GetDefaultLineNo(): Integer
