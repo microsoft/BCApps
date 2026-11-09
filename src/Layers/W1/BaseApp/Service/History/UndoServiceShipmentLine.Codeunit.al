@@ -349,6 +349,7 @@ codeunit 5818 "Undo Service Shipment Line"
         NewServShptLine."Dimension Set ID" := OldServShptLine."Dimension Set ID";
         OnBeforeNewServiceShptLineInsert(NewServShptLine, OldServShptLine);
         NewServShptLine.Insert();
+        OnAfterNewServiceShptLineInsert(NewServShptLine, OldServShptLine);
 
         InsertItemEntryRelation(TempGlobalItemEntryRelation, NewServShptLine);
     end;
@@ -489,6 +490,11 @@ codeunit 5818 "Undo Service Shipment Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeNewServiceShptLineInsert(var NewServiceShipmentLine: Record "Service Shipment Line"; OldServiceShipmentLine: Record "Service Shipment Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterNewServiceShptLineInsert(var NewServiceShipmentLine: Record "Service Shipment Line"; OldServiceShipmentLine: Record "Service Shipment Line")
     begin
     end;
 

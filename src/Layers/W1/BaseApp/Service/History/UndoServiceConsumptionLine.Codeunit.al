@@ -480,6 +480,7 @@ codeunit 5819 "Undo Service Consumption Line"
 
         OnInsertCorrectiveShipmentLineOnBeforeInsert(NewServiceShipmentLine, OldServiceShipmentLine);
         NewServiceShipmentLine.Insert();
+        OnInsertCorrectiveShipmentLineOnAfterInsert(NewServiceShipmentLine, OldServiceShipmentLine);
 
         UpdateItemJnlLine(NewServiceShipmentLine, ItemShptEntryNo);
         if OldServiceShipmentLine.Type = OldServiceShipmentLine.Type::Item then begin
@@ -607,6 +608,11 @@ codeunit 5819 "Undo Service Consumption Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertCorrectiveShipmentLineOnBeforeInsert(var NewServiceShipmentLine: Record "Service Shipment Line"; OldServiceShipmentLine: Record "Service Shipment Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertCorrectiveShipmentLineOnAfterInsert(var NewServiceShipmentLine: Record "Service Shipment Line"; OldServiceShipmentLine: Record "Service Shipment Line")
     begin
     end;
 }
