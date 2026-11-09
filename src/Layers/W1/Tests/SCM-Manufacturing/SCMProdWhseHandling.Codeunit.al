@@ -296,6 +296,7 @@ codeunit 137298 "SCM Prod. Whse. Handling"
             RawMaterialItem."No.", "Item Ledger Entry Type"::"Positive Adjmt.", DemandQuantity - StockQuantity, Location.Code, StorageBin.Code, '');
         LibraryWarehouse.CreateBinContent(
             BinContent, Location.Code, '', StorageBin.Code, SubassemblyItem."No.", '', SubassemblyItem."Base Unit of Measure");
+        BinContent.Validate(Fixed, true);
         BinContent.Validate(Default, true);
         BinContent.Modify(true);
         if StockQuantity > 0 then
