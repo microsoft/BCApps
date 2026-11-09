@@ -26,16 +26,15 @@ codeunit 4113 "Swiss QR Code Helper"
     [TryFunction]
     local procedure GenerateQRCodeImageImpl(SourceText: Text; TempBlob: Codeunit "Temp Blob")
     var
-//        IBarcodeProvider: DotNet "IBarcode Provider";
- //       QRCodeProvider: DotNet "QRCode Provider";
-  //      ErrorCorrectionLevel: DotNet "QRCode Error Correction Level";
+        IBarcodeProvider: DotNet "IBarcode Provider";
+        QRCodeProvider: DotNet "QRCode Provider";
+        ErrorCorrectionLevel: DotNet "QRCode Error Correction Level";
         OutStream: OutStream;
     begin
-        if SourceText <> '' then  // dummy to enable compiling
-            TempBlob.CreateOutStream(OutStream);
-        //IBarcodeProvider := QRCodeProvider.QRCodeProvider();
+        TempBlob.CreateOutStream(OutStream);
+        IBarcodeProvider := QRCodeProvider.QRCodeProvider();
         // encoding 65001 = UTF-8, ECI mode off.
-       // IBarcodeProvider.GetBarcodeStream(SourceText, OutStream, ErrorCorrectionLevel::Medium, 5, 0, 65001, false, false);
+        IBarcodeProvider.GetBarcodeStream(SourceText, OutStream, ErrorCorrectionLevel::Medium, 5, 0, 65001, false, false);
     end;
 
     local procedure OverlaySwissCross(QRImageTempBlob: Codeunit "Temp Blob"; SwissCrossTempBlob: Codeunit "Temp Blob"): Boolean

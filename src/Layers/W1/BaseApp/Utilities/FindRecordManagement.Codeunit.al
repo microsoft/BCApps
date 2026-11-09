@@ -94,13 +94,18 @@ codeunit 703 "Find Record Management"
         exit(IntFields.Get(1));
     end;
 
-    procedure GetLastEntryIntFieldValues(RecRef: RecordRef; var FieldNoValues: list of [Integer])
+    // This function is kept for compatibility. Not used in BaseApp. 
+    procedure GetLastEntryIntFieldValues(SourceRec: Variant; var FieldNoValues: list of [Integer])
     var
+        RecRef: RecordRef;
         BigIntFields: list of [BigInteger];
         bi: BigInteger;
         ni: Integer;
         i: Integer;
     begin
+        ConvertVariantToRecordRef(SourceRec, RecRef);
+        RecRef.Reset();
+        FindLastEntryIgnoringSecurityFilter(RecRef);
         for i := 1 to FieldNoValues.Count() do
             BigIntFields.Add(FieldNoValues.Get(i));
         GetIntFieldValues(RecRef, BigIntFields);
