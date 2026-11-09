@@ -330,6 +330,17 @@ codeunit 48521 "Fabric Config Package Mgt"
         RegisterPackage(PackageCode, Description, Version, TableIds);
     end;
 
+    internal procedure ImportPackageFromApi(PackageJson: Text; var ActionContext: WebServiceActionContext)
+    var
+        FabricConfigPackage: Record "Fabric Config Package";
+    begin
+        FabricConfigPackage.Get(ImportPackageFromJson(PackageJson));
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Fabric API Config Packages");
+        ActionContext.AddEntityKey(FabricConfigPackage.FieldNo(SystemId), FabricConfigPackage.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Created);
+    end;
+
     local procedure GetPackageText(JsonObj: JsonObject; PropertyName: Text): Text
     var
         FieldToken: JsonToken;
