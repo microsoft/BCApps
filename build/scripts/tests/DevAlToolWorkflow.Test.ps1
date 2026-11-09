@@ -64,9 +64,9 @@ Describe 'Temporary dev AlTool workflow preparation' {
             ConvertFrom-Json
         $script:cicdSettings = Get-Content -LiteralPath $script:cicdSettingsPath -Raw |
             ConvertFrom-Json
-        $script:expectedHash = '32409AB54FBD963224435BE486D2EBF6C43C76C6B7D7C01B75230587AA325E74'
-        $script:previousHash = '43DF5D186AF128BCA667A9B173E055CA8E8754148EBC570BE5BB177501ADD5B0'
-        $script:expectedSize = 19753847
+        $script:expectedHash = '3F49917021390BD064A87C402FF76785F7119FF5B5FE6C91A49D202091746C23'
+        $script:previousHash = '32409AB54FBD963224435BE486D2EBF6C43C76C6B7D7C01B75230587AA325E74'
+        $script:expectedSize = 19754936
         $script:expectedVersion = '30.0.0.0+14ef6c5c8aeb5bfd12b3ebf7b413750cb7ac8369'
         $script:requiredAnalyzerFiles = @(
             'Microsoft.Dynamics.Nav.Analyzers.Common.dll'
