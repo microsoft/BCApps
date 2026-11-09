@@ -10,6 +10,7 @@ using Microsoft.Purchases.Vendor;
 using System.Environment.Configuration;
 
 codeunit 149957 "IT Subc. Migration Guard Tests"
+// [FEATURE] [Legacy Subcontracting] [Migration]
 {
     Subtype = Test;
     TestPermissions = Disabled;

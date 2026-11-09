@@ -17,7 +17,7 @@ codeunit 99001048 "Legacy WIP Purchase Guard"
         UndoLegacyWIPPurchaseReceiptErr: Label 'You cannot undo receipt for a completed purchase line with a WIP Item after Legacy Subcontracting has been disabled.';
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeValidateQuantity', '', false, false)]
-    local procedure PreventQuantityIncrease(var PurchaseLine: Record "Purchase Line"; var xPurchaseLine: Record "Purchase Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
+    local procedure PreventQuantityIncrease(var PurchaseLine: Record "Purchase Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     var
         StoredPurchaseLine: Record "Purchase Line";
     begin

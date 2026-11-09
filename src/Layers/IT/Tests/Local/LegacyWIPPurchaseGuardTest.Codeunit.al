@@ -11,6 +11,7 @@ using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 
 codeunit 137506 "Legacy WIP Purchase Guard Test"
+// [FEATURE] [Legacy Subcontracting] [Purchase Line] [Receipt Undo]
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -70,6 +71,8 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
     begin
         // [SCENARIO 649448] The compatibility guard does not restrict WIP lines while Legacy Subcontracting is enabled
         Initialize();
+
+        // [GIVEN] A fully received WIP purchase line while Legacy Subcontracting is enabled
         SetLegacySubcontracting(true);
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
@@ -80,8 +83,10 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         PurchaseLine."Outstanding Quantity" := 0;
         PurchaseLine.Modify();
 
+        // [WHEN] Quantity is increased
         PurchaseLine.Validate(Quantity, PurchaseLine.Quantity + 1);
 
+        // [THEN] The purchase line remains editable
         Assert.AreEqual(2, PurchaseLine.Quantity, 'The legacy-enabled purchase line should remain editable.');
     end;
 
@@ -96,6 +101,8 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
     begin
         // [SCENARIO 649448] Negative completed WIP quantities cannot become outstanding after disabling Legacy Subcontracting
         Initialize();
+
+        // [GIVEN] A fully received negative WIP purchase line with Legacy Subcontracting disabled
         SetLegacySubcontracting(false);
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
@@ -106,8 +113,10 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         PurchaseLine."Outstanding Quantity" := 0;
         PurchaseLine.Modify();
 
+        // [WHEN] The absolute quantity is increased
         asserterror PurchaseLine.Validate(Quantity, -2);
 
+        // [THEN] The retained legacy WIP purchase line cannot be reopened
         Assert.ExpectedError(ReopenLegacyWIPPurchaseLineErr);
     end;
 
@@ -200,6 +209,8 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
     begin
         // [SCENARIO 649448] Receipt undo remains available for ordinary purchase lines after disabling Legacy Subcontracting
         Initialize();
+
+        // [GIVEN] A fully received ordinary purchase line with Legacy Subcontracting disabled
         SetLegacySubcontracting(false);
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
@@ -211,8 +222,10 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
         PurchRcptLine.FindFirst();
 
+        // [WHEN] The posted receipt is undone
         Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", PurchRcptLine);
 
+        // [THEN] The ordinary receipt line is reversed
         PurchRcptLine.FindFirst();
         Assert.IsTrue(PurchRcptLine.Correction, 'The ordinary purchase receipt line should be reversed.');
     end;
@@ -234,6 +247,8 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
     begin
         // [SCENARIO 649448] An unselected completed WIP line does not block undoing an ordinary line from the same receipt
         Initialize();
+
+        // [GIVEN] A receipt contains fully received WIP and ordinary lines and Legacy Subcontracting is disabled
         SetLegacySubcontracting(true);
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
@@ -245,11 +260,13 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
         SetLegacySubcontracting(false);
 
+        // [WHEN] Only the ordinary receipt line is selected for undo
         OrdinaryPurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
         OrdinaryPurchRcptLine.SetRange("Order Line No.", OrdinaryPurchaseLine."Line No.");
         OrdinaryPurchRcptLine.FindFirst();
         Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", OrdinaryPurchRcptLine);
 
+        // [THEN] The ordinary receipt line is reversed and the unselected WIP receipt line is unchanged
         OrdinaryPurchRcptLine.FindFirst();
         Assert.IsTrue(OrdinaryPurchRcptLine.Correction, 'The selected ordinary receipt line should be reversed.');
         WIPPurchRcptLine.Get(OrdinaryPurchRcptLine."Document No.", WIPPurchaseLine."Line No.");
@@ -272,6 +289,8 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
     begin
         // [SCENARIO 649448] A mixed receipt selection is not partially reversed when it contains retained WIP
         Initialize();
+
+        // [GIVEN] A receipt contains fully received WIP and ordinary lines and Legacy Subcontracting is disabled
         SetLegacySubcontracting(true);
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
@@ -283,10 +302,12 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
         SetLegacySubcontracting(false);
 
+        // [WHEN] Both receipt lines are selected for undo
         PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
         PurchRcptLine.FindFirst();
         asserterror Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", PurchRcptLine);
 
+        // [THEN] Undo is rejected before any receipt line is reversed
         Assert.ExpectedError(UndoLegacyWIPPurchaseReceiptErr);
         PurchRcptLine.SetRange(Correction, true);
         Assert.RecordIsEmpty(PurchRcptLine);
@@ -296,7 +317,7 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
     [HandlerFunctions('AcceptConfirmHandler')]
     [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
-    procedure MissingSourcePurchaseLineDoesNotReuseStaleWIPRecord()
+    procedure MissingSourcePurchaseLineDoesNotTriggerLegacyWIPGuard()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -304,8 +325,10 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         Vendor: Record Vendor;
         Item: Record Item;
     begin
-        // [SCENARIO 649448] A receipt whose source line was removed does not reuse a stale WIP Purchase Line record
+        // [SCENARIO 649448] A receipt with a missing source purchase line is not rejected by the legacy WIP guard
         Initialize();
+
+        // [GIVEN] A receipt whose WIP source purchase line was deleted and Legacy Subcontracting is disabled
         SetLegacySubcontracting(true);
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
@@ -321,12 +344,13 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         PurchaseLine.Delete();
         SetLegacySubcontracting(false);
 
-        // The downstream undo may reject the missing source, but the compatibility guard must not
-        // classify the failed Get by evaluating fields left on a stale Purchase Line buffer.
-        if not TryUndoPurchaseReceiptLine(PurchRcptLine) then
+        // [WHEN] Receipt undo is attempted
+        if not TryUndoPurchaseReceiptLine(PurchRcptLine) then begin
+            // [THEN] Any downstream rejection is not the legacy WIP guard error
             Assert.IsFalse(
                 GetLastErrorText().Contains(UndoLegacyWIPPurchaseReceiptErr),
-                'A missing source Purchase Line must not be classified using stale WIP values.');
+                'A missing source Purchase Line must not trigger the legacy WIP guard.');
+        end;
     end;
 
     [TryFunction]
