@@ -252,6 +252,7 @@ codeunit 144052 "UT REP Purchase & Sales"
         // [GIVEN] No report is set for Report Selections "Vendor Remittance".
         // [GIVEN] Payment for Vendor.
         ReportSelections.SetRange(Usage, ReportSelections.Usage::"V.Remittance");
+        ReportSelections.DeleteAll();
         Assert.RecordIsEmpty(ReportSelections);
         CreatePaymentGenJournalBatch(GenJournalBatch);
         CreateVendorPayment(
@@ -694,6 +695,8 @@ codeunit 144052 "UT REP Purchase & Sales"
 #if not CLEAN28
     local procedure CreateReportSelections(var ReportSelections: Record "Report Selections"; ReportUsage: Enum "Report Selection Usage"; SequenceCode: Code[10]; ReportID: Integer)
     begin
+        ReportSelections.SetRange(Usage, ReportUsage);
+        ReportSelections.DeleteAll();
         ReportSelections.Init();
         ReportSelections.Validate(Usage, ReportUsage);
         ReportSelections.Validate(Sequence, SequenceCode);
