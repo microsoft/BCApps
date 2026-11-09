@@ -218,13 +218,6 @@
         "ADOSliceIds": [636114]
     },
     {
-        "FeatureName": "Track country of origin on documents in Czechia",
-        "Description": "Record the country or region of origin on document and journal lines and retain it in posted entries. Use the configured origin source when preparing Intrastat reporting instead of relying only on the item's current origin.",
-        "Category": "Supply chain management",
-        "HelpURL": "",
-        "VideoURL": ""
-    },
-    {
         "FeatureName": "Set default number series for manufacturing versions",
         "Description": "Set version-number-series defaults once instead of repeating setup for each production BOM or routing. In Manufacturing Setup, enter Production BOM Version Nos. and Routing Version Nos. New BOM and routing headers inherit these defaults when Version Nos. is blank. Existing records and explicit choices stay unchanged.",
         "Category": "Supply chain management",
