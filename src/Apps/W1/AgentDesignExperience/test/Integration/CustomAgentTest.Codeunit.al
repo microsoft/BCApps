@@ -6,6 +6,7 @@
 namespace System.Test.Agents.Designer.CustomAgent;
 
 using System.Agents;
+using System.Agents.Designer;
 using System.Agents.Designer.CustomAgent;
 using System.Test.Agents.Designer;
 using System.TestLibraries.Utilities;
@@ -118,6 +119,57 @@ codeunit 133754 "Custom Agent Test"
         Assert.ExpectedError(ArchivedAgentCannotBeTestedErr);
 
         // Archiving is terminal, so the shared test agents must be recreated
+        Initialized := false;
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentInstructionEditorPageHandler')]
+    procedure TestCreateManualAgentTaskOpensInstructionEditor()
+    var
+        ManualTaskCreation: Interface IAgentManualTaskCreation;
+        Files: List of [FileUpload];
+    begin
+        Initialize();
+        ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
+
+        ManualTaskCreation.CreateManualAgentTask(TestAgentId1, Files);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure TestCreateManualAgentTaskForInactiveAgentShowsConfirmation()
+    var
+        Agent: Codeunit Agent;
+        ManualTaskCreation: Interface IAgentManualTaskCreation;
+        Files: List of [FileUpload];
+    begin
+        Initialize();
+        Agent.Deactivate(TestAgentId1);
+        ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
+        LibraryVariableStorage.Enqueue('inactive');
+        LibraryVariableStorage.Enqueue(false);
+
+        ManualTaskCreation.CreateManualAgentTask(TestAgentId1, Files);
+
+        LibraryVariableStorage.AssertEmpty();
+        Agent.Activate(TestAgentId1);
+    end;
+
+    [Test]
+    procedure TestCreateManualAgentTaskForArchivedAgentIsBlocked()
+    var
+        Agent: Codeunit Agent;
+        ManualTaskCreation: Interface IAgentManualTaskCreation;
+        Files: List of [FileUpload];
+    begin
+        Initialize();
+        Agent.Deactivate(TestAgentId2);
+        Agent.Archive(TestAgentId2);
+        ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
+
+        asserterror ManualTaskCreation.CreateManualAgentTask(TestAgentId2, Files);
+
+        Assert.ExpectedError(ArchivedAgentCannotBeTestedErr);
         Initialized := false;
     end;
 
@@ -331,6 +383,12 @@ codeunit 133754 "Custom Agent Test"
 
         // [THEN] Empty result is returned
         Assert.IsTrue(TempAgentInfo.IsEmpty(), 'Should return empty when no agents exist');
+    end;
+
+    [PageHandler]
+    procedure AgentInstructionEditorPageHandler(var AgentInstructionEditor: TestPage "Agent Instruction Editor")
+    begin
+        AgentInstructionEditor.Close();
     end;
 
     [ConfirmHandler]
