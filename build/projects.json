@@ -5508,9 +5508,9 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
     },
-    "Marketing Text Tests": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\MarketingText\\test",
-      "dvdFolder": "Applications\\MarketingText\\Test",
+    "Entity Text Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\EntityText\\test",
+      "dvdFolder": "Applications\\EntityText\\Test",
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "isTest": true,
