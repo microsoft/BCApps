@@ -9,6 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148344 "Policy Evaluations API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -119,9 +120,6 @@ codeunit 148344 "Policy Evaluations API Test"
         LibraryExpense.CleanUpBeforeTesting();
         if IsInitialized then
             exit;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Policy Evaluations API Test");
         LibraryERMCountryData.CreateVATData();

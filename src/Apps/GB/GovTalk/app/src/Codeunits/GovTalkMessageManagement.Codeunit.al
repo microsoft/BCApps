@@ -7,7 +7,6 @@ namespace Microsoft.Finance.VAT.GovTalk;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Company;
 using System;
-using System.Integration;
 using System.Threading;
 using System.Utilities;
 using System.Xml;
@@ -34,6 +33,7 @@ codeunit 10569 "GovTalk Message Management"
         MessageClassTxt: Label '%1-TIL', Comment = '%1 = message class';
         NotificationTxt: Label 'Line No. %1 Acknowledged', Comment = '%1 = response node';
         ErrorTxt: Label 'Line No. %1 failed with error: %2', Comment = '%1 = response node, %2 = status node';
+        ProcessingWindowMsg: Label 'Please wait while the server is processing your request.\This may take several minutes.';
 
 
     [Scope('OnPrem')]
@@ -159,35 +159,61 @@ codeunit 10569 "GovTalk Message Management"
     [Scope('OnPrem')]
     procedure SendHttpRequest(var GovTalkMessageXMLNode: DotNet XmlNode; SubmitURL: Text; var SubmitResponseXMLNode: DotNet XmlNode): Boolean
     var
-        WebRequestHelper: Codeunit "Web Request Helper";
+        Client: HttpClient;
+        RequestMessage: HttpRequestMessage;
+        ResponseMessage: HttpResponseMessage;
+        ProcessingWindow: Dialog;
+        ResponseInStream: InStream;
+        RequestSent: Boolean;
+    begin
+        CreateGovTalkHttpRequest(GovTalkMessageXMLNode, SubmitURL, RequestMessage);
+
+        if GuiAllowed() then
+            ProcessingWindow.Open(ProcessingWindowMsg);
+        RequestSent := Client.Send(RequestMessage, ResponseMessage);
+        if GuiAllowed() then
+            ProcessingWindow.Close();
+
+        if not RequestSent then
+            exit(false);
+        if ResponseMessage.HttpStatusCode() <> 200 then
+            exit(false);
+
+        if not ResponseMessage.Content().ReadAs(ResponseInStream) then
+            exit(false);
+        XMLDOMManagement.LoadXMLNodeFromInStream(ResponseInStream, SubmitResponseXMLNode);
+        exit(true);
+    end;
+
+    internal procedure CreateGovTalkHttpRequest(var GovTalkMessageXMLNode: DotNet XmlNode; SubmitURL: Text; var RequestMessage: HttpRequestMessage)
+    var
         TempBlob: Codeunit "Temp Blob";
         XmlDoc: DotNet XmlDocument;
-        HttpWebRequest: DotNet HttpWebRequest;
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
-        HttpWebResponse: DotNet HttpWebResponse;
-        ResponseInStream: InStream;
+        MemoryStream: DotNet MemoryStream;
+        RequestContent: HttpContent;
+        ContentHeaders: HttpHeaders;
+        RequestHeaders: HttpHeaders;
+        RequestOutStream: OutStream;
+        RequestInStream: InStream;
     begin
-        HttpWebRequest := HttpWebRequest.Create(SubmitURL);
-        HttpWebRequest.Method := 'POST';
-        HttpWebRequest.AllowAutoRedirect := true;
-        HttpWebRequest.ContentType := 'text/xml';
-        HttpWebRequest.Headers.Add('Accept-Encoding', 'utf-8');
-
         XmlDoc := GovTalkMessageXMLNode.ParentNode;
+        MemoryStream := MemoryStream.MemoryStream();
+        XmlDoc.Save(MemoryStream);
+        TempBlob.CreateOutStream(RequestOutStream);
+        MemoryStream.WriteTo(RequestOutStream);
+        TempBlob.CreateInStream(RequestInStream);
 
-        TempBlob.CreateInStream(ResponseInStream);
-        XmlDoc.Save(HttpWebRequest.GetRequestStream());
-        if WebRequestHelper.GetWebResponse(HttpWebRequest, HttpWebResponse, ResponseInStream,
-             HttpStatusCode, ResponseHeaders, true)
-        then begin
-            if HttpStatusCode.Equals(HttpStatusCode.OK) then begin
-                XMLDOMManagement.LoadXMLNodeFromInStream(ResponseInStream, SubmitResponseXMLNode);
-                exit(true);
-            end;
-            exit(false);
-        end;
-        exit(false);
+        RequestContent.WriteFrom(RequestInStream);
+        RequestContent.GetHeaders(ContentHeaders);
+        if ContentHeaders.Contains('Content-Type') then
+            ContentHeaders.Remove('Content-Type');
+        ContentHeaders.Add('Content-Type', 'text/xml');
+
+        RequestMessage.Method('POST');
+        RequestMessage.SetRequestUri(SubmitURL);
+        RequestMessage.Content(RequestContent);
+        RequestMessage.GetHeaders(RequestHeaders);
+        RequestHeaders.Add('Accept-Encoding', 'utf-8');
     end;
 
     [Scope('OnPrem')]

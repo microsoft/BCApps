@@ -123,6 +123,80 @@ codeunit 135952 "Reten. Pol. Upgrade Test"
         LibraryAssert.AreEqual(FinancialReportExportLog.FieldNo("Start Date/Time"), RetentionPolicySetup."Date Field No.", 'Date Field No. is incorrect initialized');
     end;
 
+    [Test]
+    procedure TestEnableRetentionPolicySetupSkipsExistingSetupWithBlankRetentionPeriod()
+    var
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        RetenPolInstallBaseApp: Codeunit "Reten. Pol. Install - BaseApp";
+        TableId: Integer;
+    begin
+        // [SCENARIO 653144] Install/upgrade must not fail when an existing retention policy applies to all records but has no retention period
+        Initialize();
+        RetenPolInstallBaseApp.AddAllowedTables(true);
+
+        foreach TableId in GetTablesEnabledOnInitialSetup() do begin
+            // [GIVEN] An existing, disabled retention policy setup that applies to all records with a blank retention period
+            CreateDisabledRetentionPolicySetup(TableId, true);
+
+            // [WHEN] The install code tries to enable the retention policy
+            RetenPolInstallBaseApp.EnableRetentionPolicySetup(TableId);
+
+            // [THEN] No error is thrown and the retention policy setup is left untouched
+            RetentionPolicySetup.Get(TableId);
+            LibraryAssert.IsFalse(RetentionPolicySetup.Enabled, 'Retention policy setup should not be enabled');
+            LibraryAssert.AreEqual('', RetentionPolicySetup."Retention Period", 'Retention period should not be changed');
+        end;
+    end;
+
+    [Test]
+    procedure TestEnableRetentionPolicySetupSkipsExistingSetupWithoutEnabledLines()
+    var
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        RetentionPolicySetupLine: Record "Retention Policy Setup Line";
+        RetenPolInstallBaseApp: Codeunit "Reten. Pol. Install - BaseApp";
+        TableId: Integer;
+    begin
+        // [SCENARIO 653144] Install/upgrade must not fail when an existing retention policy uses filters but has no enabled lines
+        Initialize();
+        RetenPolInstallBaseApp.AddAllowedTables(true);
+
+        foreach TableId in GetTablesEnabledOnInitialSetup() do begin
+            // [GIVEN] An existing, disabled retention policy setup that does not apply to all records and has no enabled lines
+            CreateDisabledRetentionPolicySetup(TableId, false);
+            RetentionPolicySetupLine.SetRange("Table ID", TableId);
+            RetentionPolicySetupLine.DeleteAll();
+
+            // [WHEN] The install code tries to enable the retention policy
+            RetenPolInstallBaseApp.EnableRetentionPolicySetup(TableId);
+
+            // [THEN] No error is thrown and the retention policy setup stays disabled
+            RetentionPolicySetup.Get(TableId);
+            LibraryAssert.IsFalse(RetentionPolicySetup.Enabled, 'Retention policy setup should not be enabled');
+        end;
+    end;
+
+    local procedure CreateDisabledRetentionPolicySetup(TableId: Integer; ApplyToAllRecords: Boolean)
+    var
+        RetentionPolicySetup: Record "Retention Policy Setup";
+    begin
+        RetentionPolicySetup.SetRange("Table Id", TableId);
+        RetentionPolicySetup.DeleteAll();
+
+        Clear(RetentionPolicySetup);
+        RetentionPolicySetup.Validate("Table Id", TableId);
+        RetentionPolicySetup.Validate("Apply to all records", ApplyToAllRecords);
+        RetentionPolicySetup."Retention Period" := '';
+        RetentionPolicySetup.Enabled := false;
+        RetentionPolicySetup.Insert(true);
+    end;
+
+    local procedure GetTablesEnabledOnInitialSetup() TableIds: List of [Integer]
+    begin
+        TableIds.Add(Database::"Dataverse Entity Change");
+        TableIds.Add(Database::"Integration Synch. Job");
+        TableIds.Add(Database::"Integration Synch. Job Errors");
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then

@@ -22,10 +22,14 @@ enum 6539 "E-Doc. Payment Occ. Status"
     }
     value(2; Error)
     {
-        Caption = 'Error';
+        Caption = 'Action Required';
     }
     value(3; Processing)
     {
         Caption = 'Processing';
+    }
+    value(4; "Retry Pending")
+    {
+        Caption = 'Retry Pending';
     }
 }

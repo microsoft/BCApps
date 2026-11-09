@@ -19,9 +19,12 @@ codeunit 6161 "E-Document Install"
     Subtype = Install;
 
     trigger OnInstallAppPerCompany()
+    var
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
         InsertDataExch();
         InsertDataExchV2();
+        EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
         HandleSupportedTypeDirectionUpgrade();
     end;
 
@@ -63,7 +66,6 @@ codeunit 6161 "E-Document Install"
 
         ImportServiceInvoiceXML();
         ImportServiceCreditMemoXML();
-
         if not UpgradeTag.HasUpgradeTag(GetEDOCDataExchUpdateTag()) then
             UpgradeTag.SetUpgradeTag(GetEDOCDataExchUpdateTag());
     end;

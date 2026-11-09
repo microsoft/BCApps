@@ -99,7 +99,6 @@ page 4410 "SOA Multi Items Availability"
                     begin
                         ContactNo := '';
                         LocationFilter := '';
-
                         if Customer.Get(CustomerNo) then begin
                             LocationFilter := Customer.GetDefaultLocation();
                             if LocationFilter = '' then
@@ -129,7 +128,6 @@ page 4410 "SOA Multi Items Availability"
                         Customer: Record Customer;
                     begin
                         CustomerNo := '';
-
                         if Contact.Get(ContactNo) then begin
                             if Contact.FindCustomer(Customer) then begin
                                 CustomerNo := Customer."No.";
@@ -713,7 +711,6 @@ page 4410 "SOA Multi Items Availability"
 
         OptionsVisible := true;
         IsAgentSession := SOAKPITrackAll.IsOrderTakerAgentSession(AgentTaskID);
-
         if IsAgentSession then
             if SOASetup.GetForCurrentAgentSession() then begin
                 ItemAvailabilityEnabled := SOASetup."Search Only Available Items";
@@ -776,7 +773,6 @@ page 4410 "SOA Multi Items Availability"
         FilterText: Text;
     begin
         FilterText := BuildAvailabilityFilterText();
-
         if StrLen(FilterText) > MaxStrLen(Rec."SOA Item Availability Filter") then
             exit;
 
@@ -813,10 +809,8 @@ page 4410 "SOA Multi Items Availability"
         SeparatorPos: Integer;
     begin
         RawFilter := Rec.GetFilter("SOA Item Availability Filter");
-
         if RawFilter.EndsWith('|*') then
             RawFilter := CopyStr(RawFilter, 1, StrLen(RawFilter) - 2);
-
         if RawFilter = '' then
             exit;
 
@@ -860,9 +854,13 @@ page 4410 "SOA Multi Items Availability"
 
     trigger OnFindRecord(Which: Text): Boolean
     var
+        SOAPriceCalcNotification: Codeunit "SOA Price Calc. Notification";
+        PriceCalcErrorNotification: Notification;
         Found: Boolean;
         IsHandled: Boolean;
     begin
+        PriceCalcErrorNotification.Id := SOAPriceCalcNotification.GetNotificationId();
+        PriceCalcErrorNotification.Recall();
         PriceCalcNotificationSent := false;
 
         IsHandled := false;
@@ -888,13 +886,11 @@ page 4410 "SOA Multi Items Availability"
         UnitPriceInclDiscount := 0;
         EarliestShipmentDate := 0D;
         ResolvedVariantCode := GetResolvedVariantCode();
-
         if IsAgentSession and not ItemAvailabilityEnabled then begin
             Available := true;
             AvailabilityLevel := AvailabilityLevel::Available;
         end else
             CalcAvailQuantities(GrossRequirement, PlannedOrderRcpt, ScheduledRcpt, PlannedOrderReleases, ProjAvailableBalance, ProjAvailableBalanceInUOM, ExpectedInventory, QtyAvailable, ResolvedVariantCode);
-
         if not CalcPrice(ResolvedVariantCode) then
             if not PriceCalcNotificationSent then
                 if SOAPriceCalcNotification.IsEnabled() then begin
@@ -906,20 +902,18 @@ page 4410 "SOA Multi Items Availability"
                     PriceCalcErrorNotification.Send();
                     PriceCalcNotificationSent := true;
                 end;
-
         if Location.Get(LocationFilter) then
             LocationCode := Location.Code;
-
         if not Available and CalculateEarliestShipmentDate then begin
             SOAShipmentDateMgt.SetParamenters(Rec."No.", ResolvedVariantCode, LocationCode, InUOMCode, WorkDate(), QuantityFilter);
             if SOAShipmentDateMgt.Run() then
                 EarliestShipmentDate := SOAShipmentDateMgt.GetEarliestShipmentDate();
-
-            if (EarliestShipmentDate <> 0D) and (EarliestShipmentDate <= Rec.GetRangeMax("Date Filter")) then begin
-                Available := true;
-                AvailabilityLevel := AvailabilityLevel::Available;
-                EarliestShipmentDate := 0D;
-            end;
+            if Rec.GetFilter("Date Filter") <> '' then
+                if (EarliestShipmentDate <> 0D) and (EarliestShipmentDate <= Rec.GetRangeMax("Date Filter")) then begin
+                    Available := true;
+                    AvailabilityLevel := AvailabilityLevel::Available;
+                    EarliestShipmentDate := 0D;
+                end;
         end;
 
         TranslatedDescription := Rec.Description;
@@ -1009,7 +1003,6 @@ page 4410 "SOA Multi Items Availability"
         LineUOM := InUOMCode;
         if LineUOM = '' then
             LineUOM := Rec."Sales Unit of Measure";
-
         if UnitOfMeasure.Get(LineUOM) then
             LineUOMDescription := UnitOfMeasure.Description;
 
@@ -1024,7 +1017,6 @@ page 4410 "SOA Multi Items Availability"
             GrossRequirement2, PlannedOrderRcpt2, ScheduledRcpt2,
             PlannedOrderReleases2, ProjAvailableBalance2, ExpectedInventory2,
             DummyQtyAvailable, AvailableInventory);
-
         if ProjAvailableBalance2 <= 0 then
             ProjAvailableBalanceInUOM2 := ProjAvailableBalance2
         else
@@ -1035,12 +1027,10 @@ page 4410 "SOA Multi Items Availability"
         AvailabilityLevel := AvailabilityLevel::"Out of stock";
         if ProjAvailableBalance2 > 0 then begin
             AvailabilityLevel := AvailabilityLevel::Limited;
-
             if SKU.Get(LocationFilter, Item."No.", VariantCode) then
                 SafetyStockQty := SKU."Safety Stock Quantity"
             else
                 SafetyStockQty := Rec."Safety Stock Quantity";
-
             if ProjAvailableBalance2 > SafetyStockQty then
                 AvailabilityLevel := AvailabilityLevel::Available;
         end;
@@ -1140,7 +1130,6 @@ page 4410 "SOA Multi Items Availability"
     begin
         if Contact.Get(ContNo) and (Contact."Language Code" <> '') then
             exit(Contact."Language Code");
-
         if Customer.Get(CustNo) and (Customer."Language Code" <> '') then
             exit(Customer."Language Code");
 
