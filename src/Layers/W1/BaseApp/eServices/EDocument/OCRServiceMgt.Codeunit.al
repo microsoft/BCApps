@@ -201,8 +201,7 @@ codeunit 1294 "OCR Service Mgt."
             '<AuthenticationType>SetCookie</AuthenticationType></AuthenticationCredentials>',
             OCRServiceSetup."User Name", OCRServiceSetup.GetPasswordAsSecretText(OCRServiceSetup."Password Key")));
 
-        // Called without using the return value so that the original error propagates.
-        TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent);
+        SendRsoRequestOrError(HttpRequestMessage, HttpResponseMessage, RequestSent);
 
         CopyResponseContent(HttpResponseMessage, true, InStr);
         InStr.ReadText(ResponseString);
@@ -292,8 +291,7 @@ codeunit 1294 "OCR Service Mgt."
         GetOcrServiceSetup(true);
 
         InitializeRsoRequest(StrSubstNo(ServicePathUrlTxt, OCRServiceSetup."Service URL", PathQuery), MethodGetTok, ApplicationXmlTok, true, HttpRequestMessage);
-        // Called without using the return value so that the original error propagates.
-        TrySendRsoRequest(HttpRequestMessage, HttpResponseMessage, RequestSent);
+        SendRsoRequestOrError(HttpRequestMessage, HttpResponseMessage, RequestSent);
         CopyResponseContent(HttpResponseMessage, true, ResponseStr);
         HttpResponseMessage.Content.GetHeaders(ContentHeaders);
         if ContentHeaders.GetValues(ContentTypeHeaderNameTok, ContentTypeValues) then
@@ -441,12 +439,17 @@ codeunit 1294 "OCR Service Mgt."
 
         CustomDimensions.Add('Category', TelemetryCategoryTok);
         CustomDimensions.Add('ErrorCode', GetLastErrorCode());
-        Session.LogMessage('0000VWB', SendRequestFailedTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        Session.LogMessage('0000VWB', SendRequestFailedTelemetryTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         exit(false);
     end;
 
     [TryFunction]
     local procedure TrySendRsoRequest(var HttpRequestMessage: HttpRequestMessage; var HttpResponseMessage: HttpResponseMessage; var RequestSent: Boolean)
+    begin
+        SendRsoRequestOrError(HttpRequestMessage, HttpResponseMessage, RequestSent);
+    end;
+
+    local procedure SendRsoRequestOrError(var HttpRequestMessage: HttpRequestMessage; var HttpResponseMessage: HttpResponseMessage; var RequestSent: Boolean)
     begin
         RequestSent := SendRsoRequest(HttpRequestMessage, HttpResponseMessage);
         if not RequestSent then
