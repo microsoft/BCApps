@@ -412,6 +412,42 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure Table_ValidateSourceQty_BelowSampleSize_SampleSizeRecapped()
+    var
+        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+    begin
+        // [SCENARIO 655845] Lowering the source quantity below a manually entered sample size re-caps the sample size
+
+        Initialize();
+
+        // [GIVEN] Quality management setup is configured
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template without a sample source and a prioritized rule for Purchase Line
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        // [GIVEN] An inspection created from purchase with source quantity of 100 and Sample Size = 50
+        LibraryWarehouse.CreateLocation(Location);
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        QltyInspectionHeader.Validate("Sample Size", 50);
+
+        // [WHEN] Source Quantity (Base) is lowered to 30
+        QltyInspectionHeader.Validate("Source Quantity (Base)", 30);
+
+        // [THEN] Sample size is re-capped to the new source quantity (30)
+        LibraryAssert.AreEqual(30, QltyInspectionHeader."Sample Size", 'Sample size should be re-capped to the new source quantity.');
+    end;
+
+    [Test]
     procedure Table_DefaultSampleSize_FromFixedQuantity()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
