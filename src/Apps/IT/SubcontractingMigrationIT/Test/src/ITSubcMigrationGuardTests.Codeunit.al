@@ -47,6 +47,8 @@ codeunit 149957 "IT Subc. Migration Guard Tests"
         // [GIVEN] A fully received legacy WIP purchase line passes the initial precheck
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Posting Date", WorkDate());
+        PurchaseHeader.Modify(true);
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
 #pragma warning disable AL0432

@@ -175,6 +175,8 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         SetLegacySubcontracting(true);
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Posting Date", WorkDate());
+        PurchaseHeader.Modify(true);
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
         SetWIPItem(PurchaseLine);
@@ -214,6 +216,8 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         SetLegacySubcontracting(false);
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Posting Date", WorkDate());
+        PurchaseHeader.Modify(true);
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
@@ -252,6 +256,8 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         SetLegacySubcontracting(true);
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Posting Date", WorkDate());
+        PurchaseHeader.Modify(true);
         LibraryInventory.CreateItem(WIPItem);
         LibraryInventory.CreateItem(OrdinaryItem);
         LibraryPurchase.CreatePurchaseLine(WIPPurchaseLine, PurchaseHeader, WIPPurchaseLine.Type::Item, WIPItem."No.", 1);
@@ -294,6 +300,8 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         SetLegacySubcontracting(true);
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Posting Date", WorkDate());
+        PurchaseHeader.Modify(true);
         LibraryInventory.CreateItem(WIPItem);
         LibraryInventory.CreateItem(OrdinaryItem);
         LibraryPurchase.CreatePurchaseLine(WIPPurchaseLine, PurchaseHeader, WIPPurchaseLine.Type::Item, WIPItem."No.", 1);
@@ -332,6 +340,8 @@ codeunit 137506 "Legacy WIP Purchase Guard Test"
         SetLegacySubcontracting(true);
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Posting Date", WorkDate());
+        PurchaseHeader.Modify(true);
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
         SetWIPItem(PurchaseLine);
