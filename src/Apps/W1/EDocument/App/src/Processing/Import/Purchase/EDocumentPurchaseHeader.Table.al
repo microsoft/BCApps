@@ -232,8 +232,14 @@ table 6100 "E-Document Purchase Header"
         }
         field(40; "Vendor Invoice No."; Text[100])
         {
-            Caption = 'Vendor Invoice No.';
+            Caption = 'Applies-to Vendor Inv. No.';
             DataClassification = CustomerContent;
+        }
+        field(41; "Several Invoices Referenced"; Boolean)
+        {
+            Caption = 'Several Invoices Referenced';
+            ToolTip = 'Specifies whether the credit note states more than one invoice. Only the first one is kept in Applies-to Vendor Inv. No.';
+            DataClassification = SystemMetadata;
         }
         #endregion Purchase fields
 

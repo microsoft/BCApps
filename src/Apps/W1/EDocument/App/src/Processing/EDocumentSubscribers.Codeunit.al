@@ -76,6 +76,14 @@ codeunit 6103 "E-Document Subscribers"
         LogAfterValidate(Rec."Entry No", NullGuid, 'Vendor No.');
     end;
 
+    [EventSubscriber(ObjectType::Page, Page::"E-Document Purchase Draft", OnAfterValidateEvent, "Applies-to Vendor Inv. No.", false, false)]
+    local procedure OnAfterValidateDraftPageAppliesToVendorInvNo(var Rec: Record "E-Document"; var xRec: Record "E-Document")
+    var
+        NullGuid: Guid;
+    begin
+        LogAfterValidate(Rec."Entry No", NullGuid, 'Applies-to Vendor Inv. No.');
+    end;
+
     [EventSubscriber(ObjectType::Page, Page::"E-Document Purchase Draft", OnAfterValidateEvent, "Invoice Discount", false, false)]
     local procedure OnAfterValidateDraftPageDiscount(var Rec: Record "E-Document"; var xRec: Record "E-Document")
     var
@@ -1014,10 +1022,8 @@ codeunit 6103 "E-Document Subscribers"
     var
         EDocument: Record "E-Document";
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
-        ResponseBlob: Codeunit "Temp Blob";
         SalesHeaderRef: RecordRef;
         IResponseProvider: Interface IEDocResponseProvider;
-        IMessageBuilder: Interface IEDocMessageBuilder;
         MessageType: Enum "E-Document Message Type";
     begin
         if PreviewMode then
@@ -1031,8 +1037,7 @@ codeunit 6103 "E-Document Subscribers"
         MessageType := IResponseProvider.GetResponseMessageType(EDocument);
         if MessageType = "E-Document Message Type"::Unknown then
             exit;
-        IMessageBuilder := MessageType;
-        IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Accepted, ResponseBlob);
-        EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Accepted, ResponseBlob);
+
+        EDocMessageMgt.CreateResponseMessage(EDocument, MessageType, "E-Doc. Response Type"::Accepted);
     end;
 }

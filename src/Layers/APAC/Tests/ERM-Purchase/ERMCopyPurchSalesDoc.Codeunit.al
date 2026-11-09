@@ -7036,6 +7036,98 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
     end;
 
     [Test]
+    procedure SalesOrderQuantitiesUnchangedAfterPostingAppliedManualReturnOrder()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReturnHeader: Record "Sales Header";
+        SalesReturnLine: Record "Sales Line";
+        PostedSalesInvoiceNo: Code[20];
+        Quantity: Decimal;
+        ReturnQuantity: Decimal;
+    begin
+        // [SCENARIO 656766] Posting a manually created return order applied to an invoice does not restore sales order quantities.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(5, 10);
+        ReturnQuantity := LibraryRandom.RandIntInRange(1, 4);
+
+        // [GIVEN] A partially shipped and invoiced sales order.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), Quantity);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        SalesLine.Validate("Qty. to Ship", ReturnQuantity);
+        SalesLine.Modify(true);
+        PostedSalesInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] A manual sales return order applied to the posted sales invoice.
+        LibrarySales.CreateSalesHeader(
+            SalesReturnHeader, SalesReturnHeader."Document Type"::"Return Order", SalesHeader."Sell-to Customer No.");
+        SalesReturnHeader.Validate("Applies-to Doc. Type", SalesReturnHeader."Applies-to Doc. Type"::Invoice);
+        SalesReturnHeader.Validate("Applies-to Doc. No.", PostedSalesInvoiceNo);
+        SalesReturnHeader.Modify(true);
+        LibrarySales.CreateSalesLine(
+            SalesReturnLine, SalesReturnHeader, SalesReturnLine.Type::Item, SalesLine."No.", ReturnQuantity);
+        SalesReturnLine.Validate("Unit Price", SalesLine."Unit Price");
+        SalesReturnLine.Modify(true);
+
+        // [WHEN] The sales return order is received and invoiced.
+        LibrarySales.PostSalesDocument(SalesReturnHeader, true, true);
+
+        // [THEN] The original sales order quantities remain unchanged.
+        SalesLine.Find();
+        SalesLine.TestField("Quantity Shipped", ReturnQuantity);
+        SalesLine.TestField("Quantity Invoiced", ReturnQuantity);
+        SalesLine.TestField("Qty. to Ship", Quantity - ReturnQuantity);
+        SalesLine.TestField("Qty. to Invoice", Quantity - ReturnQuantity);
+    end;
+
+    [Test]
+    procedure SalesOrderQuantitiesUnchangedAfterPostingCopiedReturnOrderWithAmounts()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReturnHeader: Record "Sales Header";
+        PostedSalesInvoiceNo: Code[20];
+        Quantity: Decimal;
+        ShippedQuantity: Decimal;
+    begin
+        // [SCENARIO 656766] Posting a return order copied from a posted invoice with nonzero amounts does not restore sales order quantities.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(5, 10);
+        ShippedQuantity := LibraryRandom.RandIntInRange(1, 4);
+
+        // [GIVEN] A partially shipped and invoiced sales order with a nonzero unit price.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), Quantity);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(10, 100, 2));
+        SalesLine.Validate("Qty. to Ship", ShippedQuantity);
+        SalesLine.Modify(true);
+        PostedSalesInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] A sales return order created by copying the posted sales invoice.
+        LibrarySales.CreateSalesHeader(
+            SalesReturnHeader, SalesReturnHeader."Document Type"::"Return Order", SalesHeader."Sell-to Customer No.");
+        SalesCopyDocument(SalesReturnHeader, PostedSalesInvoiceNo, "Sales Document Type From"::"Posted Invoice");
+        SalesReturnHeader.Find();
+
+        // [GIVEN] Copy Document applied the return order to the posted sales invoice.
+        SalesReturnHeader.TestField("Applies-to Doc. Type", SalesReturnHeader."Applies-to Doc. Type"::Invoice);
+        SalesReturnHeader.TestField("Applies-to Doc. No.", PostedSalesInvoiceNo);
+
+        // [WHEN] The sales return order is received and invoiced.
+        LibrarySales.PostSalesDocument(SalesReturnHeader, true, true);
+
+        // [THEN] The original sales order quantities remain unchanged.
+        SalesLine.Find();
+        SalesLine.TestField("Quantity Shipped", ShippedQuantity);
+        SalesLine.TestField("Quantity Invoiced", ShippedQuantity);
+        SalesLine.TestField("Qty. to Ship", Quantity - ShippedQuantity);
+        SalesLine.TestField("Qty. to Invoice", Quantity - ShippedQuantity);
+    end;
+
+    [Test]
     procedure CopyPostedSalesInvWithSpecialOrderToQuote()
     var
         DestinationSalesHeader: Record "Sales Header";

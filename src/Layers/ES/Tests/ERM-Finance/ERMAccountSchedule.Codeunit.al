@@ -75,7 +75,6 @@ codeunit 134902 "ERM Account Schedule"
         AlreadyExistsFinRepErr: Label 'Financial report %1 will be overwritten.', Comment = '%1 - name of the financial report.';
         ColDefinitionAlreadyExistsErr: Label 'Column definition %1 will be overwritten.', Comment = '%1 - name of the column definition.';
         NoTablesAndErrorsMsg: Label '%1 tables are processed.\%2 errors found.\%3 records inserted.\%4 records modified.', Comment = '%1 = number of tables processed, %2 = number of errors, %3 = number of records inserted, %4 = number of records modified';
-        RoundingFormatTxt: Label '<Precision,2:2><Standard Format,0>', Locked = true;
         GLAccountFilterErr: Label 'G/L Account Filter should not be empty';
 
     [Test]
@@ -5995,7 +5994,7 @@ codeunit 134902 "ERM Account Schedule"
         // [GIVEN] An account schedule line with negative value
         Amount := -LibraryRandom.RandDec(100, 2);
         SetupForAccountScheduleOverviewPage(
-          AccScheduleLine, Enum::"Column Layout Show"::Always, Amount, Enum::"Analysis Rounding Factor"::None, '');
+          AccScheduleLine, Enum::"Column Layout Show"::Always, Amount, Enum::"Analysis Rounding Factor"::"1", '');
         FinancialReport.Get(AccScheduleLine."Schedule Name");
         FinancialReport."Financial Report Column Group" := LibraryVariableStorage.DequeueText();
         FinancialReport.Modify();
@@ -6009,7 +6008,8 @@ codeunit 134902 "ERM Account Schedule"
 
         // [THEN] Negative amount is displayed with a minus sign
         AccScheduleOverview.GoToRecord(AccScheduleLine);
-        AccScheduleOverview.ColumnValues1.AssertEquals(Format(Amount, 0, RoundingFormatTxt));
+        AccScheduleOverview.ColumnValues1.AssertEquals(
+          Format(Round(Amount, 1), 0, LibraryAccSchedule.GetCustomFormatString('0')));
     end;
 
     [Test]
@@ -6028,7 +6028,7 @@ codeunit 134902 "ERM Account Schedule"
         // [GIVEN] An account schedule line with negative value
         Amount := -LibraryRandom.RandDec(100, 2);
         SetupForAccountScheduleOverviewPage(
-          AccScheduleLine, Enum::"Column Layout Show"::Always, Amount, Enum::"Analysis Rounding Factor"::None, '');
+          AccScheduleLine, Enum::"Column Layout Show"::Always, Amount, Enum::"Analysis Rounding Factor"::"1", '');
         FinancialReport.Get(AccScheduleLine."Schedule Name");
         FinancialReport."Financial Report Column Group" := LibraryVariableStorage.DequeueText();
         FinancialReport.Modify();
@@ -6042,7 +6042,8 @@ codeunit 134902 "ERM Account Schedule"
 
         // [THEN] Negative amount is displayed with parentheses
         AccScheduleOverview.GoToRecord(AccScheduleLine);
-        AccScheduleOverview.ColumnValues1.AssertEquals('(' + Format(Abs(Amount), 0, RoundingFormatTxt) + ')');
+        AccScheduleOverview.ColumnValues1.AssertEquals(
+          '(' + Format(Round(Abs(Amount), 1), 0, LibraryAccSchedule.GetCustomFormatString('0')) + ')');
     end;
 
     [Test]

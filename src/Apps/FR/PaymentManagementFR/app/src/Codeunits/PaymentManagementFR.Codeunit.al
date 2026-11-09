@@ -1033,7 +1033,7 @@ codeunit 10837 "Payment Management FR"
     begin
         PaymentHeaderFR.TestField("Account Type", PaymentHeaderFR."Account Type"::"Bank Account");
         DirectDebitCollection.CreateRecord(PaymentHeaderFR."No.", PaymentHeaderFR."Account No.", PaymentHeaderFR."Partner Type");
-        DirectDebitCollection."Source Table ID" := DATABASE::"Payment Header FR";
+        DirectDebitCollection."Source Table ID FR" := DATABASE::"Payment Header FR";
         DirectDebitCollection.Modify();
         DirectDebitCollectionEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
         Commit();
@@ -1069,10 +1069,10 @@ codeunit 10837 "Payment Management FR"
         GenJnlLine.Description := InvPostingBuffer[1].Description;
         GenJnlLine."Reason Code" := Step."Reason Code";
         PaymentClass.Get(PaymentHeader."Payment Class");
-        GenJnlLine."Delayed Unrealized VAT" :=
+        GenJnlLine."Delayed Unreal. VAT" :=
           (PaymentClass."Unrealized VAT Reversal" = PaymentClass."Unrealized VAT Reversal"::Delayed);
-        GenJnlLine."Realize VAT" := Step."Realize VAT";
-        GenJnlLine."Created from No." := InvPostingBuffer[1]."Created from No.";
+        GenJnlLine."Realize Delayed VAT" := Step."Realize VAT";
+        GenJnlLine."Created From Pmt. Slip No." := InvPostingBuffer[1]."Created from No.";
         GenJnlLine."Document Type" := InvPostingBuffer[1]."Document Type";
         GenJnlLine."Document No." := InvPostingBuffer[1]."Document No.";
         GenJnlLine."Account Type" := InvPostingBuffer[1]."Account Type";

@@ -358,11 +358,8 @@ table 6103 "E-Document Service"
         Rec."Verify Purch. Total Amounts" := true;
         Rec.Insert(true);
 
-        EDocServiceSupportedType.Init();
-        EDocServiceSupportedType."E-Document Service Code" := Rec.Code;
-        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Invoice";
-        EDocServiceSupportedType.Direction := EDocServiceSupportedType.Direction::Incoming;
-        EDocServiceSupportedType.Insert(false);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, "E-Document Type"::"Purchase Invoice", "E-Doc. Supp. Type Direction"::Incoming);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, "E-Document Type"::"Purchase Credit Memo", "E-Doc. Supp. Type Direction"::Incoming);
     end;
 
     internal procedure IsAutomaticProcessingEnabled(): Boolean

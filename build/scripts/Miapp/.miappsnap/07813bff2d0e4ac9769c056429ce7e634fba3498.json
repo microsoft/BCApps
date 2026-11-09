@@ -1,0 +1,16 @@
+[
+  "src/Layers/FR/BaseApp/FixedAssets/FixedAsset/FAJournalLineFAPostingType.Enum.al",
+  "src/Layers/FR/BaseApp/FixedAssets/FixedAsset/FALedgerEntryFAPostingType.Enum.al",
+  "src/Layers/FR/BaseApp/FixedAssets/FixedAsset/FAPostingGroupAccountType.Enum.al",
+  "src/Layers/FR/BaseApp/FixedAssets/Reports/FixedAssetBookValue02.rdlc",
+  "src/Layers/FR/BaseApp/FixedAssets/Reports/FixedAssetBookValue01.rdlc",
+  "src/Layers/FR/BaseApp/FixedAssets/FixedAsset/MakeFALedgerEntry.Codeunit.al",
+  "src/Layers/FR/BaseApp/FixedAssets/FixedAsset/GenJournalLineFAPostingType.Enum.al",
+  "src/Layers/FR/BaseApp/FixedAssets/FixedAsset/FAGetGLAccountNo.Codeunit.al",
+  "src/Layers/FR/BaseApp/FixedAssets/Depreciation/DepreciationCalculation.Codeunit.al",
+  "src/Layers/FR/BaseApp/FixedAssets/FixedAsset/FAAllocationType.Enum.al",
+  "src/Layers/FR/BaseApp/FixedAssets/FixedAsset/FAJournalLine.Table.al",
+  "src/Layers/FR/BaseApp/FixedAssets/FixedAsset/CopyFAEntriestoGLBudget.Report.al",
+  "src/Layers/ES/DemoTool/CreateFAPostingGroup.Codeunit.al",
+  "src/Layers/RU/DemoTool/CreateFAPostingGroup.Codeunit.al"
+]

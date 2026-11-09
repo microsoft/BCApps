@@ -3556,6 +3556,26 @@ codeunit 139235 "PEPPOL30 Management Tests"
     end;
 
     [Test]
+    procedure ElectronicAddressSchemeMustBeEASCode()
+    var
+        PEPPOLElectronicAddress: Codeunit "PEPPOL Electronic Address";
+    begin
+        // [SCENARIO] Only codes of the Peppol Electronic Address Scheme (EAS) code list are valid endpoint schemes.
+
+        // [THEN] EAS codes are valid
+        Assert.IsTrue(PEPPOLElectronicAddress.IsValidScheme('0088'), 'The GLN scheme must be valid.');
+        Assert.IsTrue(PEPPOLElectronicAddress.IsValidScheme('0002'), 'The first code of the list must be valid.');
+        Assert.IsTrue(PEPPOLElectronicAddress.IsValidScheme('9959'), 'The last code of the list must be valid.');
+
+        // [THEN] Values that are not exactly an EAS code are invalid, also when they only look like one
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme(''), 'A blank scheme must be invalid.');
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme('MY-SCHEME'), 'A custom scheme must be invalid.');
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme('88'), 'A code without leading zeros must be invalid.');
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme('0089'), 'A four digit value outside the list must be invalid.');
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme(' 0088'), 'A code with spaces must be invalid.');
+    end;
+
+    [Test]
     procedure PostedPaymentWithSameDocumentRefundBuildsRemittanceAdvice()
     var
         Vendor: Record Vendor;
