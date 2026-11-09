@@ -29,7 +29,7 @@ codeunit 133554 "MT Prompt Evaluator"
         PromptText := PromptBuilder.ToText();
         this.RenderPrompt(PromptText, Context, Response, SystemPrompt, UserPrompt);
 
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT56CeresLatest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Marketing Text Evaluation");
         AOAIChatCompletionParams.SetTemperature(0);
         AOAIChatCompletionParams.SetMaxTokens(800);
