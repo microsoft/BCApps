@@ -117,6 +117,8 @@ codeunit 148330 "Expense Posting VAT Test"
     begin
         // [SCENARIO] Missing VAT setup does not prevent receipt capture or submission for approval.
         Initialize();
+
+        // [GIVEN] An agent receipt has no VAT posting groups, and an approver is configured for its expense user.
         CreateUnmappedAgentVATReceipt(Expense, ExpenseVATSpecification);
         ExpenseUser.Get(Expense."Expense User No.");
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
@@ -135,9 +137,11 @@ codeunit 148330 "Expense Posting VAT Test"
         Approver.Modify(true);
         LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, ExpenseUser."No.", Approver."No.");
 
+        // [WHEN] The receipt is added to a report and submitted for approval.
         CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
         ReleaseExpenseReportDocument.PerformManualReleaseAndPendingApproval(ExpenseReportHeader, ExpenseUser."No.", '');
 
+        // [THEN] Submission succeeds with the captured VAT unchanged and the posting groups unresolved.
         Expense.Get(Expense."No.");
         Expense.TestField(Status, Expense.Status::Submitted);
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
@@ -162,6 +166,8 @@ codeunit 148330 "Expense Posting VAT Test"
     begin
         // [SCENARIO] Receipt VAT mappings need not match report defaults before accountant review.
         Initialize();
+
+        // [GIVEN] An agent receipt and an expense report have different VAT business posting groups.
         CreateUnmappedAgentVATReceipt(Expense, ExpenseVATSpecification);
         ExpenseVATSpecification.Insert(true);
         ExpenseUser.Get(Expense."Expense User No.");
@@ -169,9 +175,11 @@ codeunit 148330 "Expense Posting VAT Test"
         LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', VATBusinessPostingGroup.Code);
 
+        // [WHEN] The receipt is added to the report and the report is released.
         CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
         ExpenseReportHeader.PerformManualRelease();
 
+        // [THEN] The receipt is submitted with its original VAT business posting group and captured VAT.
         Expense.Get(Expense."No.");
         Expense.TestField(Status, Expense.Status::Submitted);
         ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportHeader."No.");
@@ -193,17 +201,23 @@ codeunit 148330 "Expense Posting VAT Test"
     begin
         // [SCENARIO] A 25% receipt is submitted unchanged despite 20% category defaults and an unresolved VAT product group.
         Initialize();
+
+        // [GIVEN] A submitted receipt retains its captured VAT and has no VAT product posting group.
         CreateUnmappedAgentVATReceipt(Expense, ExpenseVATSpecification);
         SubmitAgentVATReceipt(Expense, ExpenseVATSpecification, ExpenseReportHeader);
         ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportHeader."No.");
         ExpenseReportLineVATSpec.FindFirst();
         ExpenseReportLineVATSpec.TestField("VAT Prod. Posting Group", '');
         VerifyCapturedAgentVAT(ExpenseReportLineVATSpec);
+
+        // [GIVEN] The report is released with VAT reclaim still pending accountant review.
         UpdateExpenseReportLinesWithVendorKeepingPending(ExpenseReportHeader);
         ExpenseReportHeader.PerformManualRelease();
 
+        // [WHEN] Posting the expense report is attempted.
         asserterror PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
 
+        // [THEN] Pending reclaim blocks posting, and no posted expense report is created.
         Assert.ExpectedError(StrSubstNo(NotApprovedForVATReclaimCategoryErr, Expense."Expense Category"));
         LibraryVariableStorage.AssertEmpty();
         PostedExpenseReportHeader.SetRange("Expense User No.", Expense."Expense User No.");
@@ -222,13 +236,17 @@ codeunit 148330 "Expense Posting VAT Test"
     begin
         // [SCENARIO] Approving reclaim does not bypass the missing VAT product posting group check.
         Initialize();
+
+        // [GIVEN] A submitted receipt has approved VAT reclaim but no VAT product posting group.
         CreateUnmappedAgentVATReceipt(Expense, ExpenseVATSpecification);
         SubmitAgentVATReceipt(Expense, ExpenseVATSpecification, ExpenseReportHeader);
         UpdateExpenseReportLinesWithVendor(ExpenseReportHeader);
         ExpenseReportHeader.PerformManualRelease();
 
+        // [WHEN] Posting the expense report is attempted.
         asserterror PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
 
+        // [THEN] The missing VAT product posting group blocks posting.
         Assert.ExpectedTestFieldError(ExpenseReportLineVATSpec.FieldCaption("VAT Prod. Posting Group"), '');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -246,6 +264,8 @@ codeunit 148330 "Expense Posting VAT Test"
     begin
         // [SCENARIO] Approved VAT still requires a VAT business posting group at posting time.
         Initialize();
+
+        // [GIVEN] A submitted receipt has approved VAT reclaim and a product group but no VAT business posting group.
         CreateUnmappedAgentVATReceipt(Expense, ExpenseVATSpecification);
         SubmitAgentVATReceipt(Expense, ExpenseVATSpecification, ExpenseReportHeader);
         UpdateExpenseReportLinesWithVendor(ExpenseReportHeader);
@@ -257,8 +277,10 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseReportLineVATSpec.Modify(true);
         ExpenseReportHeader.PerformManualRelease();
 
+        // [WHEN] Posting the expense report is attempted.
         asserterror PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
 
+        // [THEN] The missing VAT business posting group blocks posting.
         Assert.ExpectedTestFieldError(ExpenseReportLineVATSpec.FieldCaption("VAT Bus. Posting Group"), '');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -277,6 +299,8 @@ codeunit 148330 "Expense Posting VAT Test"
     begin
         // [SCENARIO] Existing VAT groups without a posting setup can be submitted but cannot be posted for reclaim.
         Initialize();
+
+        // [GIVEN] An agent receipt has VAT posting groups without a corresponding VAT posting setup.
         CreateUnmappedAgentVATReceipt(Expense, ExpenseVATSpecification);
         ExpenseCategory.Get(Expense."Expense Category");
         Expense.Validate("VAT Prod. Posting Group", ExpenseCategory."VAT Prod. Posting Group");
@@ -285,6 +309,7 @@ codeunit 148330 "Expense Posting VAT Test"
         VATPostingSetup.Get(Expense."VAT Bus. Posting Group", Expense."VAT Prod. Posting Group");
         VATPostingSetup.Delete(true);
 
+        // [GIVEN] The receipt is submitted with its captured VAT unchanged, and reclaim is approved.
         SubmitAgentVATReceipt(Expense, ExpenseVATSpecification, ExpenseReportHeader);
 
         ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportHeader."No.");
@@ -292,7 +317,11 @@ codeunit 148330 "Expense Posting VAT Test"
         VerifyCapturedAgentVAT(ExpenseReportLineVATSpec);
         UpdateExpenseReportLinesWithVendor(ExpenseReportHeader);
         ExpenseReportHeader.PerformManualRelease();
+
+        // [WHEN] Posting the expense report is attempted.
         asserterror PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
+
+        // [THEN] The missing VAT posting setup blocks posting.
         Assert.ExpectedErrorCode('DB:RecordNotFound');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -310,6 +339,8 @@ codeunit 148330 "Expense Posting VAT Test"
     begin
         // [SCENARIO] Unsupported VAT calculation is an accounting error, not a receipt submission error.
         Initialize();
+
+        // [GIVEN] An agent receipt uses a VAT posting setup with an unsupported calculation type.
         CreateUnmappedAgentVATReceipt(Expense, ExpenseVATSpecification);
         ExpenseCategory.Get(Expense."Expense Category");
         Expense.Validate("VAT Prod. Posting Group", ExpenseCategory."VAT Prod. Posting Group");
@@ -319,12 +350,15 @@ codeunit 148330 "Expense Posting VAT Test"
         VATPostingSetup."VAT Calculation Type" := VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT";
         VATPostingSetup.Modify(true);
 
+        // [GIVEN] The receipt is submitted successfully, and reclaim is approved.
         SubmitAgentVATReceipt(Expense, ExpenseVATSpecification, ExpenseReportHeader);
         UpdateExpenseReportLinesWithVendor(ExpenseReportHeader);
         ExpenseReportHeader.PerformManualRelease();
 
+        // [WHEN] Posting the expense report is attempted.
         asserterror PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
 
+        // [THEN] The unsupported VAT calculation type blocks posting.
         Assert.ExpectedTestFieldError(VATPostingSetup.FieldCaption("VAT Calculation Type"), Format(VATPostingSetup."VAT Calculation Type"::"Normal VAT"));
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -344,6 +378,8 @@ codeunit 148330 "Expense Posting VAT Test"
     begin
         // [SCENARIO] An accountant resolves a submitted VAT mapping without changing the captured receipt.
         Initialize();
+
+        // [GIVEN] An accountant has corrected the submitted receipt's report VAT mapping and approved reclaim.
         CreateUnmappedAgentVATReceipt(Expense, ExpenseVATSpecification);
         SubmitAgentVATReceipt(Expense, ExpenseVATSpecification, ExpenseReportHeader);
         CreateSubcategoryWithVATRate(ExpenseSubcategory, Expense."Expense Category", 25, VATPostingSetup);
@@ -355,8 +391,10 @@ codeunit 148330 "Expense Posting VAT Test"
         UpdateExpenseReportLinesWithVendor(ExpenseReportHeader);
         ExpenseReportHeader.PerformManualRelease();
 
+        // [WHEN] The expense report is posted.
         PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
 
+        // [THEN] VAT is posted using the corrected mapping, while the original receipt VAT remains unchanged.
         FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
         VerifyVATEntryByPostingGroup(PostedExpenseReportHeader."No.", VATPostingSetup, 100, 25);
         ExpenseVATSpecification.Get(Expense."No.", ExpenseVATSpecification."Line No.");
@@ -381,6 +419,8 @@ codeunit 148330 "Expense Posting VAT Test"
     begin
         // [SCENARIO] An accountant can reject unresolved VAT and post the gross amount without reclaiming VAT.
         Initialize();
+
+        // [GIVEN] An accountant has rejected VAT reclaim for a submitted receipt with unresolved VAT mapping.
         CreateUnmappedAgentVATReceipt(Expense, ExpenseVATSpecification);
         SubmitAgentVATReceipt(Expense, ExpenseVATSpecification, ExpenseReportHeader);
         UpdateExpenseReportLinesWithVendorKeepingPending(ExpenseReportHeader);
@@ -390,8 +430,10 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseReportLineVATSpec.Modify(true);
         ExpenseReportHeader.PerformManualRelease();
 
+        // [WHEN] The expense report is posted.
         PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
 
+        // [THEN] The gross expense amount is posted without a VAT entry.
         FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
         VerifyGLEntry(PostedExpenseReportHeader."No.", GetRefundableDebitAccount(Expense."Expense Category"), 125);
         VATEntry.SetRange("Document No.", PostedExpenseReportHeader."No.");
@@ -414,6 +456,8 @@ codeunit 148330 "Expense Posting VAT Test"
     begin
         // [SCENARIO] Deferring line VAT validation does not let a legacy expense bypass missing posting setup.
         Initialize();
+
+        // [GIVEN] A legacy expense without VAT specifications has no corresponding VAT posting setup.
         CreateUnmappedAgentVATReceipt(Expense, ExpenseVATSpecification);
         ExpenseCategory.Get(Expense."Expense Category");
         Expense.Validate("VAT Prod. Posting Group", ExpenseCategory."VAT Prod. Posting Group");
@@ -424,11 +468,14 @@ codeunit 148330 "Expense Posting VAT Test"
         ReleaseExpenseAndUpdateAccounts(Expense, ExpenseUser);
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
 
+        // [GIVEN] The expense is successfully added to a report and released.
         CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
         ExpenseReportHeader.PerformManualRelease();
 
+        // [WHEN] Posting the expense report is attempted.
         asserterror PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
 
+        // [THEN] The missing legacy VAT posting setup blocks posting.
         Assert.ExpectedErrorCode('DB:RecordNotFound');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -1888,6 +1935,7 @@ codeunit 148330 "Expense Posting VAT Test"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseCategory: Record "Expense Category";
+        RecordRef: RecordRef;
     begin
         CreateAgentVATSpecificationFixture(ExpenseVATSpecification, Expense);
         ExpenseAgentSetup.Get();
@@ -1902,7 +1950,8 @@ codeunit 148330 "Expense Posting VAT Test"
         Expense.Validate("VAT Prod. Posting Group", '');
         Expense.Validate(Amount, 125);
         Expense.Modify(true);
-        ExpenseVATSpecification."Line No." := 1;
+        RecordRef.GetTable(ExpenseVATSpecification);
+        ExpenseVATSpecification.Validate("Line No.", LibraryUtility.GetNewLineNo(RecordRef, ExpenseVATSpecification.FieldNo("Line No.")));
         ExpenseVATSpecification."Expense Subcategory" := '';
         ExpenseVATSpecification."VAT Prod. Posting Group" := '';
         ExpenseVATSpecification."VAT %" := 25;
