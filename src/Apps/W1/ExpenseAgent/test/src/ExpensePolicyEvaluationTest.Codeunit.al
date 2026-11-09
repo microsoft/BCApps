@@ -1197,7 +1197,9 @@ codeunit 148340 "Expense Policy Evaluation Test"
         // [GIVEN] An evaluated per-diem line and another location with a different daily rate.
         CreateEvaluatedPerDiemPageLine(ExpenseReportLine, ExpenseLocation);
         EvaluatedExpenseReportLine := ExpenseReportLine;
-        LibraryExpense.CreateExpenseLocation(NewExpenseLocation, '', '');
+        LibraryExpense.CreateExpenseLocation(
+            NewExpenseLocation, '',
+            CopyStr(LibraryRandom.RandText(MaxStrLen(NewExpenseLocation.City)), 1, MaxStrLen(NewExpenseLocation.City)));
         CreatePerDiemDailyRateRule(ExpenseReportLine."Expense Category", NewExpenseLocation."No.", 150);
         OpenExpenseReportPage(ExpenseReportPage, ExpenseReportLine);
 
