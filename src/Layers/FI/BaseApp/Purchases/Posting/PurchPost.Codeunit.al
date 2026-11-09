@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Posting;
 
+#if not CLEAN30
+using Microsoft.Bank.Payment;
+#endif
 using Microsoft.CRM.Contact;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Analysis;
@@ -842,6 +845,9 @@ codeunit 90 "Purch.-Post"
     var
         CheckDimensions: Codeunit "Check Dimensions";
         ErrorContextElement: Codeunit "Error Context Element";
+#if not CLEAN30
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
+#endif
         CopyAndCheckItemChargeNeeded: Boolean;
         IsHandled: Boolean;
     begin
@@ -893,8 +899,9 @@ codeunit 90 "Purch.-Post"
             PurchHeader.TestField("Due Date", ErrorInfo.Create());
 
 #if not CLEAN30
-        if PurchHeader.Invoice and (PurchHeader."Document Type" in [PurchHeader."Document Type"::Invoice, PurchHeader."Document Type"::Order]) then
-            PurchHeader.TestField("Invoice Message");
+        if not FIBankingPaymentFeature.IsEnabled() then
+            if PurchHeader.Invoice and (PurchHeader."Document Type" in [PurchHeader."Document Type"::Invoice, PurchHeader."Document Type"::Order]) then
+                PurchHeader.TestField("Invoice Message");
 #endif
 
         if PurchHeader.Receive then begin

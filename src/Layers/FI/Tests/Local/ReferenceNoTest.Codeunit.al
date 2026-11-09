@@ -52,6 +52,112 @@ codeunit 144005 "Reference No Test"
         abcTxt: Label 'ABC';
 
     [Test]
+    [Scope('OnPrem')]
+    procedure SalesInvoiceDoesNotRequireLegacyReferenceSetupWhenFeatureEnabled()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PostedDocumentNo: Code[20];
+    begin
+        Initialize();
+        SetupRefNumOnSalesAndReceivablesSetup('', false);
+        SetBankingPaymentFeatureEnabled(true);
+
+        PostedDocumentNo := CreateSalesInvoiceAndPost(LibrarySales.CreateCustomerNo());
+
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+        SalesInvoiceHeader.TestField("Reference No.", '');
+        SetBankingPaymentFeatureEnabled(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesOrderDoesNotRequireLegacyReferenceSetupWhenFeatureEnabled()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PostedDocumentNo: Code[20];
+    begin
+        Initialize();
+        SetupRefNumOnSalesAndReceivablesSetup('', false);
+        SetBankingPaymentFeatureEnabled(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+        SalesInvoiceHeader.TestField("Reference No.", '');
+        SetBankingPaymentFeatureEnabled(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesPrepaymentDoesNotRequireLegacyReferenceSetupWhenFeatureEnabled()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        GeneralPostingSetup: Record "General Posting Setup";
+        PrepaymentGLAccount: Record "G/L Account";
+        PostedDocumentNo: Code[20];
+    begin
+        Initialize();
+        SetupRefNumOnSalesAndReceivablesSetup('', false);
+        SetBankingPaymentFeatureEnabled(true);
+        CreateSalesHeaderWithPrepaymentPercentage(SalesHeader, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Modify(true);
+        LibraryERM.CreateGLAccount(PrepaymentGLAccount);
+        PrepaymentGLAccount.Validate("Gen. Prod. Posting Group", SalesLine."Gen. Prod. Posting Group");
+        PrepaymentGLAccount.Validate("VAT Prod. Posting Group", SalesLine."VAT Prod. Posting Group");
+        PrepaymentGLAccount.Modify(true);
+        GeneralPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
+        GeneralPostingSetup."Sales Prepayments Account" := PrepaymentGLAccount."No.";
+        GeneralPostingSetup.Modify(true);
+
+        PostedDocumentNo := LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+        SalesInvoiceHeader.TestField("Reference No.", '');
+        SetBankingPaymentFeatureEnabled(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ServiceInvoiceDoesNotRequireLegacyReferenceSetupWhenFeatureEnabled()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        PostedDocumentNo: Code[20];
+    begin
+        Initialize();
+        SetupRefNumOnSalesAndReceivablesSetup('', false);
+        SetBankingPaymentFeatureEnabled(true);
+
+        PostedDocumentNo := CreateAndPostServiceInvoice();
+
+        ServiceInvoiceHeader.Get(PostedDocumentNo);
+        ServiceInvoiceHeader.TestField("Reference No.", '');
+        SetBankingPaymentFeatureEnabled(false);
+    end;
+
+    local procedure SetBankingPaymentFeatureEnabled(Enabled: Boolean)
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+    begin
+        FeatureKey.Get('BankingAndPaymentsFI');
+        FeatureManagementFacade.GetFeatureDataUpdateStatus(FeatureKey, FeatureDataUpdateStatus);
+        if Enabled then
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Enabled
+        else
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Disabled;
+        FeatureDataUpdateStatus.Modify();
+    end;
+
+    [Test]
     [HandlerFunctions('PostedServiceInvoiceReportHandler')]
     [Scope('OnPrem')]
     procedure VerifyRefNumOnServiceInvoice()

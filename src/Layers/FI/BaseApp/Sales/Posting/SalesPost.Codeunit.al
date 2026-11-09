@@ -9,6 +9,7 @@ using Microsoft.Assembly.History;
 using Microsoft.Assembly.Posting;
 #if not CLEAN30
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.Payment;
 #endif
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Opportunity;
@@ -7217,6 +7218,7 @@ codeunit 80 "Sales-Post"
         SegManagement: Codeunit SegManagement;
 #if not CLEAN30
         BankNosCheck: Codeunit "Bank Nos Check";
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
         ReferenceNo2: Code[20];
 #endif
         IsHandled: Boolean;
@@ -7244,8 +7246,9 @@ codeunit 80 "Sales-Post"
                 SalesInvHeader."Order No. Series" := SalesHeader."No. Series";
                 SalesInvHeader."Order No." := SalesHeader."No.";
 #if not CLEAN30
-                if not PreviewMode then
-                    ReferenceNo2 := BankNosCheck.CreateSalesInvReference(SalesInvHeader."No.", SalesHeader."Bill-to Customer No.");
+                if not FIBankingPaymentFeature.IsEnabled() then
+                    if not PreviewMode then
+                        ReferenceNo2 := BankNosCheck.CreateSalesInvReference(SalesInvHeader."No.", SalesHeader."Bill-to Customer No.");
 #endif
             end else begin
                 if SalesHeader."Posting No." = '' then
@@ -7253,9 +7256,11 @@ codeunit 80 "Sales-Post"
                 SalesInvHeader."Pre-Assigned No. Series" := SalesHeader."No. Series";
                 SalesInvHeader."Pre-Assigned No." := SalesHeader."No.";
 #if not CLEAN30
-                ReferenceNo2 := BankNosCheck.CreateSalesInvReference(SalesHeader."No.", SalesHeader."Bill-to Customer No.");
-                if not PreviewMode then
-                    ReferenceNo2 := BankNosCheck.CreateSalesInvReference(SalesInvHeader."No.", SalesHeader."Bill-to Customer No.");
+                if not FIBankingPaymentFeature.IsEnabled() then begin
+                    ReferenceNo2 := BankNosCheck.CreateSalesInvReference(SalesHeader."No.", SalesHeader."Bill-to Customer No.");
+                    if not PreviewMode then
+                        ReferenceNo2 := BankNosCheck.CreateSalesInvReference(SalesInvHeader."No.", SalesHeader."Bill-to Customer No.");
+                end;
 #endif
             end;
 
@@ -7263,7 +7268,8 @@ codeunit 80 "Sales-Post"
             Window.Update(1, StrSubstNo(InvoiceNoMsg, SalesHeader."Document Type", SalesHeader."No.", SalesInvHeader."No."));
         SalesInvHeader."Source Code" := SrcCode;
 #if not CLEAN30
-        SalesInvHeader."Reference No." := ReferenceNo2;
+        if not FIBankingPaymentFeature.IsEnabled() then
+            SalesInvHeader."Reference No." := ReferenceNo2;
 #endif
         SalesInvHeader."User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesInvHeader."User ID"));
         SalesInvHeader."No. Printed" := 0;

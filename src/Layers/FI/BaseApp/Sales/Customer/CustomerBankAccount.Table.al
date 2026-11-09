@@ -6,6 +6,7 @@ namespace Microsoft.Sales.Customer;
 
 #if not CLEAN30
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.Payment;
 #endif
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.Currency;
@@ -179,16 +180,14 @@ table 287 "Customer Bank Account"
 
             trigger OnValidate()
             begin
-                if ("Country/Region Code" = '') or ("Country/Region Code" = 'FI') then
 #if not CLEAN30
-                begin
-#endif
-                    if StrLen("Bank Account No.") > 15 then
-                        Error(Text1090000, FieldCaption("Bank Account No."));
-#if not CLEAN30
-                    if "Bank Account No." <> '' then
-                        BankNosCheck.CheckBankAccount("Bank Account No.", Code);
-                end;
+                if not FIBankingPaymentFeature.IsEnabled() then
+                    if ("Country/Region Code" = '') or ("Country/Region Code" = 'FI') then begin
+                        if StrLen("Bank Account No.") > 15 then
+                            Error(Text1090000, FieldCaption("Bank Account No."));
+                        if "Bank Account No." <> '' then
+                            BankNosCheck.CheckBankAccount("Bank Account No.", Code);
+                    end;
 #endif
 
                 OnValidateBankAccount(Rec, 'Bank Account No.');
@@ -395,8 +394,9 @@ table 287 "Customer Bank Account"
         PostCode: Record "Post Code";
 #if not CLEAN30
         BankNosCheck: Codeunit "Bank Nos Check";
-#endif
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
         Text1090000: Label 'Domestic %1 must not exceed 15 characters.';
+#endif
         BankAccIdentifierIsEmptyErr: Label 'You must specify either a Bank Account No. or an IBAN.';
         BankAccDeleteErr: Label 'You cannot delete this bank account because it is associated with one or more open ledger entries.';
 

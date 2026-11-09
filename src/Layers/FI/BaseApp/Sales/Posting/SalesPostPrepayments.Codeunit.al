@@ -6,6 +6,7 @@ namespace Microsoft.Sales.Posting;
 
 #if not CLEAN30
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.Payment;
 #endif
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -1766,6 +1767,7 @@ codeunit 442 "Sales-Post Prepayments"
 #if not CLEAN30
     var
         CreateReference: Codeunit "Bank Nos Check";
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
 #endif
     begin
         SalesInvHeader.Init();
@@ -1784,7 +1786,8 @@ codeunit 442 "Sales-Post Prepayments"
         SalesInvHeader."Prepayment Order No." := SalesHeader."No.";
         SalesInvHeader."No. Series" := PostingNoSeriesCode;
 #if not CLEAN30
-        SalesInvHeader."Reference No." := CreateReference.CreateSalesInvReference(SalesInvHeader."No.", SalesHeader."Bill-to Customer No.");
+        if not FIBankingPaymentFeature.IsEnabled() then
+            SalesInvHeader."Reference No." := CreateReference.CreateSalesInvReference(SalesInvHeader."No.", SalesHeader."Bill-to Customer No.");
 #endif
         OnBeforeSalesInvHeaderInsert(SalesInvHeader, SalesHeader, SuppressCommit, GenJnlLineDocNo);
         SalesInvHeader.Insert();

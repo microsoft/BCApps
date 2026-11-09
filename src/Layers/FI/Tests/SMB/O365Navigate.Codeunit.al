@@ -376,6 +376,10 @@ codeunit 138033 "O365 Navigate"
         PurchaseInvoice."Buy-from Vendor Name".SetValue(Vendor.Name);
         PurchaseInvoice."Vendor Invoice No.".SetValue(
           LibraryUtility.GenerateRandomCode(PurchaseHeader.FieldNo("Vendor Invoice No."), DATABASE::"Purchase Header"));
+#if not CLEAN30
+        PurchaseInvoice."Message Type".SetValue(PurchaseHeader."Message Type"::Message);
+        PurchaseInvoice."Invoice Message".SetValue(LibraryUtility.GenerateGUID());
+#endif
 
         PurchaseInvoice.PurchLines."No.".SetValue(Item."No.");
         PurchaseInvoice.PurchLines.Quantity.SetValue(LibraryRandom.RandIntInRange(1, 20));

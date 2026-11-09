@@ -1446,7 +1446,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnPostVendOnAfterInitVendLedgEntry(GenJournalLine, VendLedgEntry, Vend, TaxAmount, TaxAmountLCY);
 #if not CLEAN30
         if not FIBankingPaymentFeature.IsEnabled() then
+#pragma warning disable AL0432
             UpdateExportedRefPayment(GenJournalLine);
+#pragma warning restore AL0432
 #endif
 
         if not Vend."Block Payment Tolerance" then
@@ -7765,6 +7767,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
 #if not CLEAN30
+    [Obsolete('Moved to Banking and Payments FI app.', '30.0')]
     [Scope('OnPrem')]
     procedure UpdateImportedRefPayment(GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry: Record "Cust. Ledger Entry")
     var
@@ -7788,6 +7791,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             RefPaymentManagement.CheckIfPaidInFull(GenJnlLine);
     end;
 
+    [Obsolete('Moved to Banking and Payments FI app.', '30.0')]
     [Scope('OnPrem')]
     procedure UpdateExportedRefPayment(GenJnlLine: Record "Gen. Journal Line")
     var

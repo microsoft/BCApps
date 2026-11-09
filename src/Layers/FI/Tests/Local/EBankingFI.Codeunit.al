@@ -26,6 +26,90 @@ codeunit 144007 "E-Banking FI"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CustomerBankValidationFollowsFeatureState()
+    var
+        CustomerBankAccount: Record "Customer Bank Account";
+    begin
+        SetBankingPaymentFeatureEnabled(false);
+        CustomerBankAccount.Init();
+
+        asserterror CustomerBankAccount.Validate("Bank Account No.", '1234567890123456');
+        Assert.ExpectedError(DomesticBankAccTooLongErr);
+        asserterror CustomerBankAccount.Validate("Bank Account No.", '1234567890');
+        Assert.ExpectedError(WrongBankAccountFormatErr);
+
+        SetBankingPaymentFeatureEnabled(true);
+        CustomerBankAccount.Validate("Bank Account No.", '1234567890123456');
+        CustomerBankAccount.TestField("Bank Account No.", '1234567890123456');
+        CustomerBankAccount.Validate("Bank Account No.", '1234567890');
+        CustomerBankAccount.TestField("Bank Account No.", '1234567890');
+        CustomerBankAccount.Validate("Country/Region Code", 'FI');
+        CustomerBankAccount.TestField("Bank Account No.", '1234567890');
+        SetBankingPaymentFeatureEnabled(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PurchaseMessageValidationFollowsFeatureState()
+    var
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        SetBankingPaymentFeatureEnabled(false);
+        PurchaseHeader.Init();
+        asserterror PurchaseHeader.Validate("Invoice Message", '2687451');
+        Assert.ExpectedError('Incorrect reference number.');
+
+        SetBankingPaymentFeatureEnabled(true);
+        PurchaseHeader.Validate("Invoice Message", '2687451');
+        PurchaseHeader.Validate("Message Type", PurchaseHeader."Message Type"::"Reference No.");
+        PurchaseHeader.TestField("Invoice Message", '2687451');
+        PurchaseHeader.Validate("Message Type", PurchaseHeader."Message Type"::"Long Message");
+        PurchaseHeader.Validate("Invoice Message", PadStr('', MaxStrLen(PurchaseHeader."Invoice Message"), '1'));
+        PurchaseHeader.Validate("Invoice Message 2", PadStr('', MaxStrLen(PurchaseHeader."Invoice Message 2"), '2'));
+        Assert.AreEqual(250, StrLen(PurchaseHeader."Invoice Message"), 'The legacy invoice message must not be changed.');
+        Assert.AreEqual(250, StrLen(PurchaseHeader."Invoice Message 2"), 'The legacy second invoice message must not be changed.');
+        SetBankingPaymentFeatureEnabled(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostPurchaseInvoiceWithoutLegacyMessageWhenFeatureEnabled()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PostedDocumentNo: Code[20];
+    begin
+        SetBankingPaymentFeatureEnabled(true);
+        CreatePurchaseInvoice(PurchaseHeader, LibraryPurchase.CreateVendorNo());
+        CreatePurchaseInvoiceLineWithItem(PurchaseLine, PurchaseHeader);
+        PurchaseHeader."Invoice Message" := '';
+        PurchaseHeader.Modify(true);
+
+        PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        PurchInvHeader.Get(PostedDocumentNo);
+        PurchInvHeader.TestField("Invoice Message", '');
+        SetBankingPaymentFeatureEnabled(false);
+    end;
+
+    local procedure SetBankingPaymentFeatureEnabled(Enabled: Boolean)
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+    begin
+        FeatureKey.Get('BankingAndPaymentsFI');
+        FeatureManagementFacade.GetFeatureDataUpdateStatus(FeatureKey, FeatureDataUpdateStatus);
+        if Enabled then
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Enabled
+        else
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Disabled;
+        FeatureDataUpdateStatus.Modify();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TestVendorNameTruncatedWhenTooLong()
     var
         Vendor: Record Vendor;

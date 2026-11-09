@@ -603,6 +603,10 @@ codeunit 135402 "Location Trans. Plan-based E2E"
         PurchaseInvoice."Buy-from Vendor Name".SetValue(VendorName);
         PurchaseInvoice."Vendor Invoice No.".SetValue(
           LibraryUtility.GenerateRandomCode(PurchaseHeader.FieldNo("Vendor Invoice No."), DATABASE::"Purchase Header"));
+#if not CLEAN30
+        PurchaseInvoice."Message Type".SetValue(PurchaseHeader."Message Type"::Message);
+        PurchaseInvoice."Invoice Message".SetValue(LibraryUtility.GenerateGUID());
+#endif
         PurchaseInvoice.PurchLines.New();
         PurchaseInvoice.PurchLines."No.".SetValue(ItemNo);
         PurchaseInvoice.PurchLines."Location Code".SetValue(LocationCode);

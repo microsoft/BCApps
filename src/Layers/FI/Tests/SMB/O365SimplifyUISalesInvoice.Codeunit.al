@@ -4580,8 +4580,16 @@ codeunit 138000 "O365 Simplify UI Sales Invoice"
     end;
 
     local procedure PostPurchaseInvoice(var PurchaseInvoice: TestPage "Purchase Invoice")
+#if not CLEAN30
+    var
+        PurchaseHeader: Record "Purchase Header";
+#endif
     begin
         PurchaseInvoice."Vendor Invoice No.".SetValue(LibraryRandom.RandInt(1000));
+#if not CLEAN30
+        PurchaseInvoice."Message Type".SetValue(PurchaseHeader."Message Type"::Message);
+        PurchaseInvoice."Invoice Message".SetValue(LibraryUtility.GenerateGUID());
+#endif
         LibraryVariableStorage.Enqueue(true); // Enqueue for ConfirmHandler
         LibrarySales.DisableConfirmOnPostingDoc();
 

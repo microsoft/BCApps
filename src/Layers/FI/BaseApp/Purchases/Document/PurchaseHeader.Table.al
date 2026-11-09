@@ -2885,6 +2885,9 @@ table 38 "Purchase Header"
 
             trigger OnValidate()
             begin
+                if FIBankingPaymentFeature.IsEnabled() then
+                    exit;
+
                 RefNoCheck.PurchMessageCheck(Rec);
             end;
 #else
@@ -2902,6 +2905,9 @@ table 38 "Purchase Header"
 
             trigger OnValidate()
             begin
+                if FIBankingPaymentFeature.IsEnabled() then
+                    exit;
+
                 if ("Invoice Message" <> '') and ("Message Type" = "Message Type"::"Reference No.") then begin
                     if StrLen("Invoice Message") > 20 then
                         Error(Text1090000, FieldCaption("Invoice Message"), 20);
@@ -2933,6 +2939,9 @@ table 38 "Purchase Header"
 
             trigger OnValidate()
             begin
+                if FIBankingPaymentFeature.IsEnabled() then
+                    exit;
+
                 if "Message Type" = "Message Type"::"Long Message" then
                     if StrLen("Invoice Message" + "Invoice Message 2") > 420 then
                         Error(Text1090003, FieldCaption("Invoice Message"), FieldCaption("Invoice Message 2"), 420);
@@ -3165,6 +3174,7 @@ table 38 "Purchase Header"
         CurrencyDate: Date;
 #if not CLEAN30
         RefNoCheck: Codeunit "Bank Nos Check";
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
 #endif
         Confirmed: Boolean;
 #pragma warning disable AA0074

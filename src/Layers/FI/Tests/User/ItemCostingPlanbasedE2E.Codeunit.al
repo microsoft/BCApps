@@ -567,6 +567,9 @@ codeunit 135409 "Item Costing Plan-based E2E"
 
     local procedure CreatePurchaseInvoice(VendorNo: Code[20]; ItemNo: Code[20]; Quantity: Integer; DirectUnitCost: Decimal; Date: Date) PurchaseInvoiceNo: Code[20]
     var
+#if not CLEAN30
+        PurchaseHeader: Record "Purchase Header";
+#endif
         PurchaseLine: Record "Purchase Line";
         PurchaseInvoice: TestPage "Purchase Invoice";
     begin
@@ -574,6 +577,10 @@ codeunit 135409 "Item Costing Plan-based E2E"
         PurchaseInvoice."Buy-from Vendor Name".SetValue(VendorNo);
         PurchaseInvoice."Vendor Invoice No.".SetValue(LibraryUtility.GenerateGUID());
         PurchaseInvoice."Posting Date".SetValue(Date);
+#if not CLEAN30
+        PurchaseInvoice."Message Type".SetValue(PurchaseHeader."Message Type"::Message);
+        PurchaseInvoice."Invoice Message".SetValue(LibraryUtility.GenerateGUID());
+#endif
 
         CreatePurchaseInvoiceLine(PurchaseInvoice, Format(PurchaseLine.Type::Item), ItemNo, Quantity, DirectUnitCost);
 
