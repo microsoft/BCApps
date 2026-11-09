@@ -449,7 +449,7 @@ codeunit 148088 "Foreign Currencies CZL"
         InvoiceNo: Code[20];
         AdjustmentDate: Date;
     begin
-        LibraryERM.DisableMyNotifications(CopyStr(UserId(), 0, 50), InstructionMgt.GetPostingAfterWorkingDateNotificationId());
+        LibraryERM.DisableMyNotifications(CopyStr(UserId(), 1, 50), InstructionMgt.GetPostingAfterWorkingDateNotificationId());
         CurrencyCode := LibraryERM.CreateCurrencyWithGLAccountSetup();
         LibraryERM.CreateExchangeRate(CurrencyCode, WorkDate(), OriginalCurrencyFactor, OriginalCurrencyFactor);
         LibraryERM.SelectGenJnlBatch(GenJournalBatch);
