@@ -21,6 +21,7 @@ codeunit 134334 "ERM Vendor Statistics"
         IsInitialized: Boolean;
         OverDueBalanceErr: Label 'Vendor OverDue Balance is not correct';
         FieldIsNotHiddenErr: Label 'Field is hidden';
+        MatchedPurchasesTotalErr: Label 'The vendor total must include matched purchases only once and retain unmatched amounts.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1538,6 +1539,278 @@ codeunit 134334 "ERM Vendor Statistics"
 
         // [THEN] NumberOfDistinctItemsPurchased4 (Lifetime) should match total distinct item count
         VendorStatistics.NumberOfDistinctItemsPurchased4.AssertEquals(CurrentYearItemCount + LastYearItemCount);
+    end;
+
+    [Test]
+    [HandlerFunctions('MatchedPurchaseOrderLinesLookupHandler')]
+    [Scope('OnPrem')]
+    procedure VendorTotalAfterGetOrderLines()
+    begin
+        // [SCENARIO 658521] An unreceived order copied to an invoice is included once in vendor totals.
+        VerifyVendorTotalAfterGetOrderLines(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MatchedPurchaseOrderLinesLookupHandler')]
+    [Scope('OnPrem')]
+    procedure VendorTotalAfterGetReceivedOrderLines()
+    begin
+        // [SCENARIO 658521] Order and receipt matches do not duplicate received purchases in vendor totals.
+        VerifyVendorTotalAfterGetOrderLines(true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalForPartialMatchUsesInvoicePrice()
+    var
+        Vendor: Record Vendor;
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+    begin
+        // [SCENARIO 658521] A partial match uses the invoice price and retains the unmatched order quantity.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLineOrder, Vendor."No.", PurchaseLineOrder."Document Type"::Order, 10, 100);
+        MockVendorPurchaseLine(PurchaseLineInvoice, Vendor."No.", PurchaseLineInvoice."Document Type"::Invoice, 4, 60);
+        MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder, 4);
+
+        Assert.AreEqual(120, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+        VerifyVendorMatchedTotal(Vendor, 120);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalForMultipleMatchedOrdersAndInvoices()
+    var
+        Vendor: Record Vendor;
+        PurchaseLineOrder: array[2] of Record "Purchase Line";
+        PurchaseLineInvoice: array[3] of Record "Purchase Line";
+    begin
+        // [SCENARIO 658521] Multiple matches and a standalone invoice retain every unmatched commitment.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLineOrder[1], Vendor."No.", PurchaseLineOrder[1]."Document Type"::Order, 10, 100);
+        MockVendorPurchaseLine(PurchaseLineOrder[2], Vendor."No.", PurchaseLineOrder[2]."Document Type"::Order, 20, 400);
+        MockVendorPurchaseLine(PurchaseLineInvoice[1], Vendor."No.", PurchaseLineInvoice[1]."Document Type"::Invoice, 5, 75);
+        MockVendorPurchaseLine(PurchaseLineInvoice[2], Vendor."No.", PurchaseLineInvoice[2]."Document Type"::Invoice, 4, 60);
+        MockVendorPurchaseLine(PurchaseLineInvoice[3], Vendor."No.", PurchaseLineInvoice[3]."Document Type"::Invoice, 2, 30);
+        MockVendorOrderMatch(PurchaseLineInvoice[1], PurchaseLineOrder[1], 3);
+        MockVendorOrderMatch(PurchaseLineInvoice[1], PurchaseLineOrder[2], 2);
+        MockVendorOrderMatch(PurchaseLineInvoice[2], PurchaseLineOrder[1], 4);
+
+        Assert.AreEqual(555, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalUsesCurrentReceiptMatchQuantity()
+    var
+        Vendor: Record Vendor;
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO 658521] Receipt allocations override the order match quantity and are counted only once.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLineOrder, Vendor."No.", PurchaseLineOrder."Document Type"::Order, 10, 60);
+        PurchaseLineOrder."Outstanding Qty. (Base)" := 6;
+        PurchaseLineOrder."Qty. Rcd. Not Invoiced (Base)" := 4;
+        PurchaseLineOrder."Amt. Rcd. Not Invoiced (LCY)" := 40;
+        PurchaseLineOrder.Modify();
+        MockVendorPurchaseLine(PurchaseLineInvoice, Vendor."No.", PurchaseLineInvoice."Document Type"::Invoice, 2, 30);
+        MatchedOrderLine := MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder, 4);
+        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := CreateGuid();
+        MatchedOrderLine."Qty. to Invoice" := 1;
+        MatchedOrderLine."Qty. to Invoice (Base)" := 1;
+        MatchedOrderLine.Insert();
+        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := CreateGuid();
+        MatchedOrderLine.Insert();
+
+        Assert.AreEqual(110, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalMatchedAmountsRespectFlowFilters()
+    var
+        Vendor: Record Vendor;
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+    begin
+        // [SCENARIO 658521] Matched amounts are deducted only when both sides contribute to the filtered total.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLineOrder, Vendor."No.", PurchaseLineOrder."Document Type"::Order, 10, 100);
+        PurchaseLineOrder."Shortcut Dimension 1 Code" := 'ORDER';
+        PurchaseLineOrder."Shortcut Dimension 2 Code" := 'ORDER';
+        PurchaseLineOrder."Currency Code" := 'MATCHED';
+        PurchaseLineOrder.Modify();
+        MockVendorPurchaseLine(PurchaseLineInvoice, Vendor."No.", PurchaseLineInvoice."Document Type"::Invoice, 4, 60);
+        PurchaseLineInvoice."Shortcut Dimension 1 Code" := 'INVOICE';
+        PurchaseLineInvoice."Shortcut Dimension 2 Code" := 'INVOICE';
+        PurchaseLineInvoice."Currency Code" := 'MATCHED';
+        PurchaseLineInvoice.Modify();
+        MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder, 4);
+
+        Vendor.SetRange("Currency Filter", 'MATCHED');
+        Assert.AreEqual(120, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+        Vendor.SetRange("Global Dimension 1 Filter", 'ORDER');
+        Assert.AreEqual(100, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+        Vendor.SetRange("Global Dimension 1 Filter", 'INVOICE');
+        Assert.AreEqual(60, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+        Vendor.SetRange("Global Dimension 1 Filter");
+        Vendor.SetRange("Global Dimension 2 Filter", 'ORDER');
+        Assert.AreEqual(100, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+        Vendor.SetRange("Global Dimension 2 Filter", 'INVOICE');
+        Assert.AreEqual(60, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+        Vendor.SetRange("Global Dimension 2 Filter");
+        Vendor.SetRange("Currency Filter", 'OTHER');
+        Assert.AreEqual(0, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalMatchedAmountsRespectPayToVendor()
+    var
+        Vendor: array[2] of Record Vendor;
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+    begin
+        // [SCENARIO 658521] A match to an invoice for another pay-to vendor does not reduce either vendor's total.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor[1]);
+        LibraryPurchase.CreateVendor(Vendor[2]);
+        MockVendorPurchaseLine(PurchaseLineOrder, Vendor[1]."No.", PurchaseLineOrder."Document Type"::Order, 10, 100);
+        MockVendorPurchaseLine(PurchaseLineInvoice, Vendor[2]."No.", PurchaseLineInvoice."Document Type"::Invoice, 4, 60);
+        MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder, 4);
+
+        Assert.AreEqual(100, Vendor[1].GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+        Assert.AreEqual(60, Vendor[2].GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalAfterRemovingOrderMatch()
+    var
+        Vendor: Record Vendor;
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO 658521] Removing a match restores both independent document amounts.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLineOrder, Vendor."No.", PurchaseLineOrder."Document Type"::Order, 10, 100);
+        MockVendorPurchaseLine(PurchaseLineInvoice, Vendor."No.", PurchaseLineInvoice."Document Type"::Invoice, 4, 60);
+        MatchedOrderLine := MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder, 4);
+        Assert.AreEqual(120, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+
+        MatchedOrderLine.Delete();
+
+        Assert.AreEqual(160, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalMatchedAmountCannotExceedOrderAmount()
+    var
+        Vendor: Record Vendor;
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+    begin
+        // [SCENARIO 658521] The matched deduction cannot exceed the remaining order amount.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLineOrder, Vendor."No.", PurchaseLineOrder."Document Type"::Order, 10, 100);
+        MockVendorPurchaseLine(PurchaseLineInvoice, Vendor."No.", PurchaseLineInvoice."Document Type"::Invoice, 20, 300);
+        MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder, 20);
+
+        Assert.AreEqual(300, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+    end;
+
+    local procedure VerifyVendorTotalAfterGetOrderLines(ReceiveOrder: Boolean)
+    var
+        Vendor: Record Vendor;
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseInvoice: TestPage "Purchase Invoice";
+        ExpectedAmountLCY: Decimal;
+    begin
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        CreatePurchaseLine(PurchaseHeaderOrder, PurchaseLineOrder);
+        ExpectedAmountLCY := PurchaseLineOrder."Outstanding Amount (LCY)";
+        if ReceiveOrder then
+            LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+
+        LibraryVariableStorage.Enqueue(PurchaseHeaderOrder."No.");
+        PurchaseInvoice.OpenEdit();
+        PurchaseInvoice.GoToRecord(PurchaseHeaderInvoice);
+        PurchaseInvoice.PurchLines.GetOrderLines.Invoke();
+        PurchaseInvoice.Close();
+        LibraryVariableStorage.AssertEmpty();
+
+        VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
+        Vendor.CalcFields("Outstanding Orders (LCY)", "Amt. Rcd. Not Invoiced (LCY)", "Outstanding Invoices (LCY)");
+        Vendor.TestField("Outstanding Invoices (LCY)", ExpectedAmountLCY);
+        if ReceiveOrder then
+            Vendor.TestField("Amt. Rcd. Not Invoiced (LCY)", ExpectedAmountLCY)
+        else
+            Vendor.TestField("Outstanding Orders (LCY)", ExpectedAmountLCY);
+
+        PurchaseHeaderInvoice.Delete(true);
+        VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
+    end;
+
+    local procedure VerifyVendorMatchedTotal(Vendor: Record Vendor; ExpectedAmountLCY: Decimal)
+    var
+        VendorList: TestPage "Vendor List";
+        VendorStatistics: TestPage "Vendor Statistics";
+    begin
+        Assert.AreEqual(ExpectedAmountLCY, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+        VendorStatistics.OpenView();
+        VendorStatistics.GoToRecord(Vendor);
+        VendorStatistics.GetTotalAmountLCY.AssertEquals(ExpectedAmountLCY);
+        VendorStatistics.Close();
+        VendorList.OpenView();
+        VendorList.GoToRecord(Vendor);
+        VendorList.VendorStatisticsFactBox.TotalAmountLCY.AssertEquals(ExpectedAmountLCY);
+        VendorList.Close();
+    end;
+
+    local procedure MockVendorPurchaseLine(var PurchaseLine: Record "Purchase Line"; VendorNo: Code[20]; DocumentType: Enum "Purchase Document Type"; QuantityBase: Decimal; OutstandingAmountLCY: Decimal)
+    begin
+        PurchaseLine.Init();
+        PurchaseLine."Document Type" := DocumentType;
+        PurchaseLine."Document No." := LibraryUtility.GenerateRandomCode(PurchaseLine.FieldNo("Document No."), Database::"Purchase Line");
+        PurchaseLine."Pay-to Vendor No." := VendorNo;
+        PurchaseLine.Quantity := QuantityBase;
+        PurchaseLine."Quantity (Base)" := QuantityBase;
+        PurchaseLine."Outstanding Qty. (Base)" := QuantityBase;
+        PurchaseLine."Outstanding Amount (LCY)" := OutstandingAmountLCY;
+        PurchaseLine.Insert();
+    end;
+
+    local procedure MockVendorOrderMatch(PurchaseLineInvoice: Record "Purchase Line"; PurchaseLineOrder: Record "Purchase Line"; QuantityBase: Decimal) MatchedOrderLine: Record "Matched Order Line"
+    begin
+        MatchedOrderLine."Document Line SystemId" := PurchaseLineInvoice.SystemId;
+        MatchedOrderLine."Matched Order Line SystemId" := PurchaseLineOrder.SystemId;
+        MatchedOrderLine."Qty. to Invoice" := QuantityBase;
+        MatchedOrderLine."Qty. to Invoice (Base)" := QuantityBase;
+        MatchedOrderLine.Insert();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure MatchedPurchaseOrderLinesLookupHandler(var PurchaseLines: TestPage "Purchase Lines")
+    begin
+        PurchaseLines.Filter.SetFilter("Document No.", LibraryVariableStorage.DequeueText());
+        PurchaseLines.First();
+        PurchaseLines.OK().Invoke();
     end;
 
     local procedure Initialize()

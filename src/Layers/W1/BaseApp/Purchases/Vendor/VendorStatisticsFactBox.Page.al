@@ -191,7 +191,9 @@ page 9094 "Vendor Statistics FactBox"
         VendorNo: Code[20];
         VendorNoFilter: Text;
     begin
-        TotalAmountLCY := Rec."Balance (LCY)" + Rec."Outstanding Orders (LCY)" + Rec."Amt. Rcd. Not Invoiced (LCY)" + Rec."Outstanding Invoices (LCY)";
+        TotalAmountLCY :=
+            Rec."Balance (LCY)" + Rec."Outstanding Orders (LCY)" + Rec."Amt. Rcd. Not Invoiced (LCY)" +
+            Rec."Outstanding Invoices (LCY)" - Rec.GetMatchedOrderAmountLCY();
 
         // Get the vendor number and set the current vendor number
         Rec.FilterGroup(4);
