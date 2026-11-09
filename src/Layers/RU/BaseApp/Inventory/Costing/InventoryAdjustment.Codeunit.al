@@ -58,10 +58,10 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         CurrentCostAdjustmentParamsMgt: Codeunit "Cost Adjustment Params Mgt.";
         Window: Dialog;
         ItemLedgerEntryTypesUsed: Dictionary of [Enum "Item Ledger Entry Type", Boolean];
-        ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [Integer]];
+        ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [BigInteger]];
         ItemLedgEntryIsPositive: Dictionary of [Integer, Boolean];
-        OpenOutboundEntryNos: List of [Integer];
-        FixedAppliedItemEntryNos: List of [Integer];
+        OpenOutboundEntryNos: List of [BigInteger];
+        FixedAppliedItemEntryNos: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         JobsToAdjust: List of [Code[20]];
         ItemsBeingAdjusted: List of [Code[20]];
@@ -2237,7 +2237,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
 
     local procedure UpdateAppliedEntryToAdjustBuf(ItemLedgerEntry: Record "Item Ledger Entry"; AppliedEntryToAdjust: Boolean)
     var
-        ItemLedgEntryNos: List of [Integer];
+        ItemLedgEntryNos: List of [BigInteger];
     begin
         if AppliedEntryToAdjust then begin
             if not ItemLedgEntryToAdjust.Get(ItemLedgerEntry."Item No.", ItemLedgEntryNos) then
@@ -2251,7 +2251,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     local procedure SetAppliedEntryToAdjustFromBuf(ItemNo: Code[20])
     var
         ItemLedgEntry: Record "Item Ledger Entry";
-        ItemLedgEntryNos: List of [Integer];
+        ItemLedgEntryNos: List of [BigInteger];
         EntryNo: BigInteger;
     begin
         if ItemNo <> '' then begin
@@ -2679,7 +2679,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
                 end;
     end;
 
-    local procedure FetchOpenOutboundItemEntriesToExclude(AvgCostAdjmtEntryPoint: Record "Avg. Cost Adjmt. Entry Point"; var ExcludedValueEntry: Record "Value Entry"; var OpenOutbndEntries: List of [Integer]; CalendarPeriod: Record Date)
+    local procedure FetchOpenOutboundItemEntriesToExclude(AvgCostAdjmtEntryPoint: Record "Avg. Cost Adjmt. Entry Point"; var ExcludedValueEntry: Record "Value Entry"; var OpenOutbndEntries: List of [BigInteger]; CalendarPeriod: Record Date)
     var
         OpenItemLedgEntry: Record "Item Ledger Entry";
         ItemApplicationTraceAllPeriods: Record "Item Application Trace";
@@ -2787,7 +2787,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
             end;
     end;
 
-    local procedure CopyOpenItemLedgEntryToBuf(var OpenOutbndEntries: List of [Integer]; var ExcludedValueEntry: Record "Value Entry"; OpenItemLedgEntryNo: BigInteger; PeriodStart: Date)
+    local procedure CopyOpenItemLedgEntryToBuf(var OpenOutbndEntries: List of [BigInteger]; var ExcludedValueEntry: Record "Value Entry"; OpenItemLedgEntryNo: BigInteger; PeriodStart: Date)
     begin
         if CollectOpenValueEntries(ExcludedValueEntry, OpenItemLedgEntryNo, PeriodStart) then
             if not OpenOutbndEntries.Contains(OpenItemLedgEntryNo) then
@@ -3337,7 +3337,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateItemUnitCost2(var TempAvgCostAdjmtEntryPoint: Record "Avg. Cost Adjmt. Entry Point" temporary; var IsHandled: Boolean; var Item: Record Item; var ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [Integer]])
+    local procedure OnBeforeUpdateItemUnitCost2(var TempAvgCostAdjmtEntryPoint: Record "Avg. Cost Adjmt. Entry Point" temporary; var IsHandled: Boolean; var Item: Record Item; var ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [BigInteger]])
     begin
     end;
 
