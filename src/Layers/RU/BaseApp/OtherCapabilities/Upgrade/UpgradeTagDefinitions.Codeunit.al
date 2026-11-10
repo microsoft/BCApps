@@ -41,6 +41,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetMoveCurrencyISOCodeTag());
         PerCompanyUpgradeTags.Add(GetItemTrackingCodeUseExpirationDatesTag());
         PerCompanyUpgradeTags.Add(GetCountryApplicationAreasTag());
+        PerCompanyUpgradeTags.Add(GetSEPACountryRegionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetVATRepSetupPeriodRemCalcUpgradeTag());
         PerCompanyUpgradeTags.Add(GetGLBankAccountNoTag());
         PerCompanyUpgradeTags.Add(GetServicePasswordToIsolatedStorageTag());
@@ -391,6 +392,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetCountryApplicationAreasTag(): Code[250]
     begin
         exit('MS-GetCountryApplicationAreas-20190315');
+    end;
+
+    internal procedure GetSEPACountryRegionUpgradeTag(): Code[250]
+    begin
+        exit('MS-SEPACountryRegionW1-20261110');
     end;
 
     internal procedure GetGLBankAccountNoTag(): Code[250]

@@ -1,6 +1,81 @@
+using Microsoft.Foundation.Address;
+using System.Reflection;
+using System.Upgrade;
+
 codeunit 132802 "Upgrade Test Data Setup"
 {
     Subtype = Upgrade;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Test Data Setup Mgt.", 'OnSetupDataPerCompany', '', false, false)]
+    local procedure SetupSEPACountryRegions()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        CountryRegionRef: RecordRef;
+        AlreadyMigrated: Boolean;
+    begin
+        CountryRegionRef.Open(Database::"Country/Region");
+        if not CountryRegionRef.DataPerCompany() then
+            exit;
+        CountryRegionRef.Close();
+
+        AlreadyMigrated := UpgradeTag.HasUpgradeTag('MS-SEPACountryRegionW1-20261110');
+        SetupSEPACountryRegion('UPG-SEPA-Y', true, AlreadyMigrated);
+        SetupSEPACountryRegion('UPG-SEPA-N', false, AlreadyMigrated);
+    end;
+
+    local procedure SetupSEPACountryRegion(CountryCode: Code[10]; SEPAAllowed: Boolean; AlreadyMigrated: Boolean)
+    var
+        CountryRegion: Record "Country/Region";
+        LegacyField: Record Field;
+        SharedField: Record Field;
+        CountryRegionRef: RecordRef;
+        SEPAFieldRef: FieldRef;
+        HasLegacyField: Boolean;
+        CanWriteLegacyField: Boolean;
+        ExpectedSEPAAllowed: Boolean;
+    begin
+        HasLegacyField := FindLegacySEPAField(LegacyField);
+        CanWriteLegacyField := HasLegacyField and (LegacyField.ObsoleteState <> LegacyField.ObsoleteState::Removed);
+        ExpectedSEPAAllowed := SEPAAllowed;
+        if not AlreadyMigrated then
+            if HasLegacyField then begin
+                if not CanWriteLegacyField then
+                    ExpectedSEPAAllowed := false;
+            end else
+                if not SharedField.Get(Database::"Country/Region", 13) then
+                    ExpectedSEPAAllowed := false;
+
+        if CountryRegion.Get(CountryCode) then
+            CountryRegion.Delete();
+        CountryRegion.Init();
+        CountryRegion.Code := CountryCode;
+        // The expectation must survive an upgrade from a version without the shared field.
+        CountryRegion.Name := Format(ExpectedSEPAAllowed, 0, 9);
+        CountryRegion."Last Modified Date Time" := CreateDateTime(20260101D, 010203T);
+        CountryRegion.Insert();
+
+        CountryRegionRef.GetTable(CountryRegion);
+        if CanWriteLegacyField then begin
+            SEPAFieldRef := CountryRegionRef.Field(LegacyField."No.");
+            SEPAFieldRef.Value := SEPAAllowed;
+        end;
+        if CountryRegionRef.FieldExist(13) then begin
+            SEPAFieldRef := CountryRegionRef.Field(13);
+            SEPAFieldRef.Value := ExpectedSEPAAllowed;
+        end;
+        CountryRegionRef.Modify();
+    end;
+
+    local procedure FindLegacySEPAField(var LegacyField: Record Field): Boolean
+    begin
+        if LegacyField.Get(Database::"Country/Region", 10800) then
+            exit(true);
+        if LegacyField.Get(Database::"Country/Region", 11400) then
+            exit(true);
+        if LegacyField.Get(Database::"Country/Region", 13400) then
+            exit(true);
+        exit(LegacyField.Get(Database::"Country/Region", 2000005));
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Test Data Setup Mgt.", 'OnSetupDataPerCompany', '', false, false)]
     local procedure SetupCRMStatus()
