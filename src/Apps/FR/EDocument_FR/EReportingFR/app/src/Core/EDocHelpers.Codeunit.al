@@ -8,11 +8,183 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
 codeunit 10991 "EDoc. Helpers"
 {
     Access = Internal;
+
+    procedure IsSelfBillingDocument(SourceDocumentHeader: RecordRef): Boolean
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+    begin
+        case SourceDocumentHeader.Number() of
+            Database::"Purchase Header":
+                begin
+                    SourceDocumentHeader.SetTable(PurchaseHeader);
+                    if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::"Credit Memo" then begin
+                        if PurchaseHeader."Applies-to Doc. Type" <> PurchaseHeader."Applies-to Doc. Type"::Invoice then
+                            exit(false);
+                        if not PurchInvHeader.Get(PurchaseHeader."Applies-to Doc. No.") then
+                            exit(false);
+                        exit(PurchInvHeader."Self-Billing Invoice");
+                    end;
+                    exit(PurchaseHeader."Self-Billing Invoice");
+                end;
+            Database::"Purch. Inv. Header":
+                begin
+                    SourceDocumentHeader.SetTable(PurchInvHeader);
+                    exit(PurchInvHeader."Self-Billing Invoice");
+                end;
+            Database::"Purch. Cr. Memo Hdr.":
+                begin
+                    SourceDocumentHeader.SetTable(PurchCrMemoHeader);
+                    exit(EDocumentProcessing.IsSelfBilledCreditMemo(PurchCrMemoHeader));
+                end;
+        end;
+        exit(false);
+    end;
+
+    procedure GetSelfBillingVendor(SourceDocumentHeader: RecordRef; var Vendor: Record Vendor)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+    begin
+        case SourceDocumentHeader.Number() of
+            Database::"Purchase Header":
+                begin
+                    SourceDocumentHeader.SetTable(PurchaseHeader);
+                    if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::"Credit Memo" then
+                        GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader)
+                    else
+                        PurchaseHeader.TestField("Self-Billing Invoice", true);
+                    Vendor.Get(PurchaseHeader."Buy-from Vendor No.");
+                end;
+            Database::"Purch. Inv. Header":
+                begin
+                    SourceDocumentHeader.SetTable(PurchInvHeader);
+                    PurchInvHeader.TestField("Self-Billing Invoice", true);
+                    Vendor.Get(PurchInvHeader."Buy-from Vendor No.");
+                end;
+            Database::"Purch. Cr. Memo Hdr.":
+                begin
+                    SourceDocumentHeader.SetTable(PurchCrMemoHeader);
+                    GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
+                    Vendor.Get(PurchCrMemoHeader."Buy-from Vendor No.");
+                end;
+            else
+                Error(SelfBillingSourceRequiredErr);
+        end;
+    end;
+
+    procedure GetSelfBillingInvoiceReference(SourceDocumentHeader: RecordRef; var PurchInvHeader: Record "Purch. Inv. Header")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+    begin
+        case SourceDocumentHeader.Number() of
+            Database::"Purchase Header":
+                begin
+                    SourceDocumentHeader.SetTable(PurchaseHeader);
+                    PurchaseHeader.TestField("Document Type", PurchaseHeader."Document Type"::"Credit Memo");
+                    PurchaseHeader.TestField("Applies-to Doc. Type", PurchaseHeader."Applies-to Doc. Type"::Invoice);
+                    PurchaseHeader.TestField("Applies-to Doc. No.");
+                    PurchInvHeader.Get(PurchaseHeader."Applies-to Doc. No.");
+                end;
+            Database::"Purch. Cr. Memo Hdr.":
+                begin
+                    SourceDocumentHeader.SetTable(PurchCrMemoHeader);
+                    PurchCrMemoHeader.TestField("Applies-to Doc. Type", PurchCrMemoHeader."Applies-to Doc. Type"::Invoice);
+                    PurchCrMemoHeader.TestField("Applies-to Doc. No.");
+                    PurchInvHeader.Get(PurchCrMemoHeader."Applies-to Doc. No.");
+                end;
+            else
+                Error(SelfBillingSourceRequiredErr);
+        end;
+        PurchInvHeader.TestField("Self-Billing Invoice", true);
+        PurchInvHeader.TestField("Document Date");
+    end;
+
+    procedure CheckSelfBillingDocument(SourceDocumentHeader: RecordRef; EDocumentServiceCode: Code[20])
+    var
+        Vendor: Record Vendor;
+        CountryCodeFieldRef: FieldRef;
+        ElectronicAddress: Text[250];
+        ElectronicAddressScheme: Enum "Electronic Address Scheme";
+    begin
+        GetSelfBillingVendor(SourceDocumentHeader, Vendor);
+        CheckSellerCountryCode();
+        if FindFieldByName(SourceDocumentHeader, 'Buy-from Country/Region Code', CountryCodeFieldRef) then
+            CountryCodeFieldRef.TestField();
+        GetSelfBillingElectronicAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Vendor, Vendor."No.", ElectronicAddress, ElectronicAddressScheme);
+        GetSelfBillingElectronicAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Company, '', ElectronicAddress, ElectronicAddressScheme);
+    end;
+
+    procedure GetSelfBillingElectronicAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]; var ElectronicAddress: Text[250]; var ElectronicAddressScheme: Enum "Electronic Address Scheme")
+    var
+        CompanyInformation: Record "Company Information";
+        Vendor: Record Vendor;
+        ServiceParticipant: Record "Service Participant";
+        SetupErrorInfo: ErrorInfo;
+        HasParticipantAddress: Boolean;
+    begin
+        Clear(ElectronicAddress);
+        Clear(ElectronicAddressScheme);
+        HasParticipantAddress := HasServiceParticipantAddress(EDocumentServiceCode, ParticipantType, ParticipantNo, ServiceParticipant);
+        if HasParticipantAddress then begin
+            ElectronicAddress := CopyStr(ServiceParticipant."Participant Identifier", 1, MaxStrLen(ElectronicAddress));
+            ElectronicAddressScheme := ServiceParticipant."FR Identifier Scheme";
+        end;
+
+        if ParticipantType = ParticipantType::Company then begin
+            if HasParticipantAddress then
+                exit;
+            CheckSellerElectronicAddress(EDocumentServiceCode);
+            CompanyInformation.Get();
+            if CompanyInformation."SIRET No." <> '' then begin
+                ElectronicAddress := CompanyInformation."SIRET No.";
+                ElectronicAddressScheme := ElectronicAddressScheme::"0009";
+            end else
+                if CompanyInformation."Registration No." <> '' then begin
+                    ElectronicAddress := CompanyInformation."Registration No.";
+                    ElectronicAddressScheme := ElectronicAddressScheme::"0002";
+                end else begin
+                    ElectronicAddress := CopyStr(CompanyInformation.GetVATRegistrationNumber(), 1, MaxStrLen(ElectronicAddress));
+                    ElectronicAddressScheme := ElectronicAddressScheme::"9957";
+                end;
+            exit;
+        end;
+
+        Vendor.Get(ParticipantNo);
+        if not HasParticipantAddress then begin
+            ElectronicAddress := Vendor."FR Electronic Address";
+            ElectronicAddressScheme := Vendor."FR Elec. Address Scheme";
+            if ElectronicAddress = '' then begin
+                ElectronicAddress := CopyStr(Vendor."Registration Number", 1, 9);
+                if ElectronicAddress = '' then
+                    GetSIRENFromFrenchVATRegistrationNo(Vendor."VAT Registration No.", ElectronicAddress);
+                ElectronicAddressScheme := ElectronicAddressScheme::"0225";
+            end;
+        end;
+        if (ElectronicAddressScheme = ElectronicAddressScheme::"0225") and IsValidBuyerElectronicAddress(ElectronicAddress) then
+            exit;
+
+        if HasParticipantAddress then
+            RaiseServiceParticipantError(SelfBillingSellerAddressErr, ServiceParticipant);
+        SetupErrorInfo.Message(SelfBillingSellerAddressErr);
+        SetupErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        SetupErrorInfo.RecordId(Vendor.RecordId());
+        SetupErrorInfo.PageNo(Page::"Vendor Card");
+        SetupErrorInfo.AddNavigationAction(ShowSelfBillingVendorLbl);
+        Error(SetupErrorInfo);
+    end;
 
     procedure FindFieldByName(RecRef: RecordRef; FieldName: Text; var FieldRefResult: FieldRef): Boolean
     var
@@ -371,6 +543,9 @@ codeunit 10991 "EDoc. Helpers"
     end;
 
     var
+        SelfBillingSourceRequiredErr: Label 'A self-billing purchase invoice or a purchase credit memo applied to a self-billing invoice is required.';
+        SelfBillingSellerAddressErr: Label 'Specify the vendor electronic address with scheme 0225 and a nine-digit SIREN, optionally followed by an underscore and a suffix, in the selected service participants or on the vendor card.';
+        ShowSelfBillingVendorLbl: Label 'Show Vendor';
         SIRENRequiredErr: Label '%1 must be specified in %2 for French e-invoicing.', Comment = '%1 = Registration No. field caption, %2 = Company Information table caption';
         SIRETRequiredErr: Label '%1 must be specified in %2 for French e-invoicing.', Comment = '%1 = SIRET No. field caption, %2 = Company Information table caption';
         SellerElectronicAddressRequiredErr: Label '%1, %2, %3, or a %4 identifier must be specified for the %5 for French e-invoicing.', Comment = '%1 = SIRET No. field caption, %2 = Registration No. field caption, %3 = VAT Registration No. field caption, %4 = Service Participant table caption, %5 = Company Information table caption';

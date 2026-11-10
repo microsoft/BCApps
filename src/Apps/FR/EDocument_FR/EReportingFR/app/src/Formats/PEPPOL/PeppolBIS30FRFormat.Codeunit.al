@@ -10,6 +10,8 @@ using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
 using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -44,6 +46,12 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         SalesValidation: Interface "PEPPOL30 Validation";
         ServiceValidation: Interface "PEPPOL30 Validation";
     begin
+        if FREDocHelpers.IsSelfBillingDocument(SourceDocumentHeader) then begin
+            FREDocHelpers.CheckSelfBillingDocument(SourceDocumentHeader, EDocumentService.Code);
+            PeppolBIS30.Check(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
+            exit;
+        end;
+
         FREDocHelpers.CheckSellerElectronicAddress(EDocumentService.Code);
         FREDocHelpers.CheckSellerCountryCode();
         FREDocHelpers.CheckBuyerElectronicAddress(SourceDocumentHeader, EDocumentService.Code);
@@ -98,10 +106,24 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     /// <param name="TempBlob">The temporary blob in which to store the generated document.</param>
     procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         PeppolBIS30: Codeunit "EDoc PEPPOL BIS 3.0";
     begin
+        if EDocument."Document Type" = EDocument."Document Type"::"Self-Billed Purchase Invoice" then begin
+            SourceDocumentHeader.SetTable(PurchInvHeader);
+            PurchInvHeader.TestField("Self-Billing Invoice", true);
+        end;
+        if EDocument."Document Type" = EDocument."Document Type"::"Self-Billed Purch. Cr. Memo" then begin
+            SourceDocumentHeader.SetTable(PurchCrMemoHeader);
+            FREDocHelpers.GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
+        end;
+
         // Generate base PEPPOL BIS 3.0 XML
         PeppolBIS30.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
+        if not TempBlob.HasValue() then
+            exit;
 
         // Post-process XML to inject French-specific elements
         InjectFrenchElements(TempBlob, SourceDocumentHeader, SourceDocumentLines, EDocumentService);
@@ -150,6 +172,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     local procedure InjectFrenchElements(var TempBlob: Codeunit "Temp Blob"; SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; EDocumentService: Record "E-Document Service")
     var
         CompanyInformation: Record "Company Information";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         XmlDoc: XmlDocument;
         InStr: InStream;
         OutStr: OutStream;
@@ -173,15 +196,18 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         SetCustomizationId(XmlDoc, NamespaceMgr);
         SetFrenchBillingMode(XmlDoc, NamespaceMgr, SourceDocumentLines);
         RemoveZeroAllowanceTotal(XmlDoc, NamespaceMgr);
-        InjectSupplierIdentification(XmlDoc, NamespaceMgr, CompanyInformation);
-        InjectBuyerIdentification(XmlDoc, NamespaceMgr, SourceDocumentHeader);
-        InjectSupplierEndpoint(XmlDoc, NamespaceMgr, CompanyInformation, EDocumentService.Code);
+        if FREDocHelpers.IsSelfBillingDocument(SourceDocumentHeader) then
+            InjectSelfBillingParties(XmlDoc, NamespaceMgr, SourceDocumentHeader, CompanyInformation, EDocumentService.Code)
+        else begin
+            InjectCompanyIdentification(XmlDoc, NamespaceMgr, CompanyInformation, '//cac:AccountingSupplierParty/cac:Party');
+            InjectBuyerIdentification(XmlDoc, NamespaceMgr, SourceDocumentHeader);
+            InjectSupplierEndpoint(XmlDoc, NamespaceMgr, CompanyInformation, EDocumentService.Code);
+            HasElecAddress := GetCustomerElecAddress(SourceDocumentHeader, EDocumentService.Code, ElecAddress, ElecAddressScheme);
+            InjectBuyerEndpoint(XmlDoc, NamespaceMgr, HasElecAddress, ElecAddress, ElecAddressScheme);
+        end;
         InjectRegulatoryComments(XmlDoc, NamespaceMgr, SourceDocumentHeader);
         InjectBillingReference(XmlDoc, NamespaceMgr, SourceDocumentHeader);
         InjectExtendedCTCFranceElements(XmlDoc, NamespaceMgr, SourceDocumentHeader);
-
-        HasElecAddress := GetCustomerElecAddress(SourceDocumentHeader, EDocumentService.Code, ElecAddress, ElecAddressScheme);
-        InjectBuyerEndpoint(XmlDoc, NamespaceMgr, HasElecAddress, ElecAddress, ElecAddressScheme);
 
         Clear(TempBlob);
         TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
@@ -218,6 +244,8 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         ServiceInvoiceLine: Record "Service Invoice Line";
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
+        PurchInvLine: Record "Purch. Inv. Line";
+        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
         HasItemLines: Boolean;
         HasNonItemLines: Boolean;
         IsHandled: Boolean;
@@ -227,6 +255,30 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             exit(Result);
 
         case SourceDocumentLines.Number of
+            Database::"Purch. Inv. Line":
+                begin
+                    if SourceDocumentLines.FindSet() then
+                        repeat
+                            SourceDocumentLines.SetTable(PurchInvLine);
+                            if PurchInvLine.Type = PurchInvLine.Type::Item then
+                                HasItemLines := true
+                            else
+                                if PurchInvLine.Type <> PurchInvLine.Type::" " then
+                                    HasNonItemLines := true;
+                        until SourceDocumentLines.Next() = 0;
+                end;
+            Database::"Purch. Cr. Memo Line":
+                begin
+                    if SourceDocumentLines.FindSet() then
+                        repeat
+                            SourceDocumentLines.SetTable(PurchCrMemoLine);
+                            if PurchCrMemoLine.Type = PurchCrMemoLine.Type::Item then
+                                HasItemLines := true
+                            else
+                                if PurchCrMemoLine.Type <> PurchCrMemoLine.Type::" " then
+                                    HasNonItemLines := true;
+                        until SourceDocumentLines.Next() = 0;
+                end;
             Database::"Sales Invoice Line":
                 begin
                     SourceDocumentLines.SetTable(SalesInvoiceLine);
@@ -499,10 +551,12 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
     local procedure InjectBillingReference(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SourceDocumentHeader: RecordRef)
     var
+        PurchInvHeader: Record "Purch. Inv. Header";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         ServiceInvoiceHeader: Record "Service Invoice Header";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         AnchorNode: XmlNode;
         BillingReferenceElement: XmlElement;
         InvoiceDocumentReferenceElement: XmlElement;
@@ -510,6 +564,12 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ReferencedDocumentDate: Date;
     begin
         case SourceDocumentHeader.Number of
+            Database::"Purch. Cr. Memo Hdr.":
+                begin
+                    FREDocHelpers.GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
+                    ReferencedDocumentNo := PurchInvHeader."No.";
+                    ReferencedDocumentDate := PurchInvHeader."Document Date";
+                end;
             Database::"Sales Cr.Memo Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesCrMemoHeader);
@@ -539,11 +599,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         InvoiceDocumentReferenceElement.Add(XmlElement.Create('IssueDate', CbcNamespaceTok, Format(ReferencedDocumentDate, 0, '<Year4>-<Month,2>-<Day,2>')));
         BillingReferenceElement.Add(InvoiceDocumentReferenceElement);
 
-        if XmlDoc.SelectSingleNode('/*/cac:ContractDocumentReference[1]', NamespaceMgr, AnchorNode) then begin
-            AnchorNode.AddBeforeSelf(BillingReferenceElement);
-            exit;
-        end;
-        if XmlDoc.SelectSingleNode('/*/cac:AccountingSupplierParty[1]', NamespaceMgr, AnchorNode) then
+        if XmlDoc.SelectSingleNode('/*/cac:ContractDocumentReference | /*/cac:AdditionalDocumentReference | /*/cac:AccountingSupplierParty', NamespaceMgr, AnchorNode) then
             AnchorNode.AddBeforeSelf(BillingReferenceElement);
     end;
 
@@ -562,7 +618,37 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         NamespaceMgr.AddNamespace('cac', CacNamespaceTok);
     end;
 
-    local procedure InjectSupplierIdentification(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; CompanyInformation: Record "Company Information")
+    local procedure InjectSelfBillingParties(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SourceDocumentHeader: RecordRef; CompanyInformation: Record "Company Information"; EDocumentServiceCode: Code[20])
+    var
+        Vendor: Record Vendor;
+        FREDocHelpers: Codeunit "EDoc. Helpers";
+        SupplierPartyNode: XmlNode;
+        EndpointNode: XmlNode;
+        EndpointElement: XmlElement;
+        ElectronicAddress: Text[250];
+        ElectronicAddressScheme: Enum "Electronic Address Scheme";
+        SIRENNo: Text;
+    begin
+        FREDocHelpers.CheckSelfBillingDocument(SourceDocumentHeader, EDocumentServiceCode);
+        FREDocHelpers.GetSelfBillingVendor(SourceDocumentHeader, Vendor);
+        FREDocHelpers.GetSelfBillingElectronicAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Vendor, Vendor."No.", ElectronicAddress, ElectronicAddressScheme);
+        if XmlDoc.SelectSingleNode('//cac:AccountingSupplierParty/cac:Party', NamespaceMgr, SupplierPartyNode) then begin
+            if SupplierPartyNode.SelectSingleNode('cbc:EndpointID', NamespaceMgr, EndpointNode) then
+                EndpointNode.Remove();
+            EndpointElement := XmlElement.Create('EndpointID', CbcNamespaceTok, ElectronicAddress);
+            EndpointElement.SetAttribute('schemeID', GetElecAddressSchemeCode(ElectronicAddressScheme));
+            InsertAsFirstChild(SupplierPartyNode, EndpointElement);
+            SIRENNo := GetSIRENNo(Vendor."Registration Number", Vendor."Registration Number");
+            if SIRENNo = '' then
+                SIRENNo := CopyStr(ElectronicAddress, 1, 9);
+            InjectLegalEntitySIREN(SupplierPartyNode, NamespaceMgr, CopyStr(SIRENNo, 1, 20));
+        end;
+        InjectCompanyIdentification(XmlDoc, NamespaceMgr, CompanyInformation, '//cac:AccountingCustomerParty/cac:Party');
+        FREDocHelpers.GetSelfBillingElectronicAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Company, '', ElectronicAddress, ElectronicAddressScheme);
+        InjectBuyerEndpoint(XmlDoc, NamespaceMgr, true, ElectronicAddress, ElectronicAddressScheme);
+    end;
+
+    local procedure InjectCompanyIdentification(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; CompanyInformation: Record "Company Information"; PartyXPath: Text)
     var
         SupplierPartyNode: XmlNode;
         PartyNode: XmlNode;
@@ -570,7 +656,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         IdElement: XmlElement;
         SIRENNo: Text;
     begin
-        if not XmlDoc.SelectSingleNode('//cac:AccountingSupplierParty/cac:Party', NamespaceMgr, SupplierPartyNode) then
+        if not XmlDoc.SelectSingleNode(PartyXPath, NamespaceMgr, SupplierPartyNode) then
             exit;
 
         PartyNode := SupplierPartyNode;
@@ -855,6 +941,12 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         EDocServiceSupportedType.Insert();
 
         EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Issued Finance Charge Memo";
+        EDocServiceSupportedType.Insert();
+
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Self-Billed Purchase Invoice";
+        EDocServiceSupportedType.Direction := Enum::"E-Doc. Supp. Type Direction"::Outgoing;
+        EDocServiceSupportedType.Insert();
+        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Self-Billed Purch. Cr. Memo";
         EDocServiceSupportedType.Insert();
     end;
 

@@ -13,6 +13,9 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.UOM;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
@@ -27,15 +30,101 @@ codeunit 10978 "CII XML Builder"
 
     procedure CreateInvoiceXml(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     begin
-        BuildCIIDocument(EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob, '380');
+        CreateInvoiceXml(EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob, '');
+    end;
+
+    procedure CreateInvoiceXml(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob"; EDocumentServiceCode: Code[20])
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        TempPurchInvLine: Record "Purch. Inv. Line" temporary;
+        NetSourceDocumentLines: RecordRef;
+    begin
+        if EDocument."Document Type" = EDocument."Document Type"::"Self-Billed Purchase Invoice" then begin
+            SourceDocumentHeader.SetTable(PurchInvHeader);
+            PurchInvHeader.TestField("Self-Billing Invoice", true);
+            if PurchInvHeader."Prices Including VAT" then begin
+                InitializeAmountRoundingPrecision(EDocument."Currency Code");
+                PrepareNetPurchaseInvoiceLines(SourceDocumentLines, TempPurchInvLine);
+                NetSourceDocumentLines.GetTable(TempPurchInvLine);
+                BuildCIIDocument(EDocument, SourceDocumentHeader, NetSourceDocumentLines, TempBlob, '389', EDocumentServiceCode);
+                exit;
+            end;
+            BuildCIIDocument(EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob, '389', EDocumentServiceCode);
+            exit;
+        end;
+        BuildCIIDocument(EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob, '380', EDocumentServiceCode);
+    end;
+
+    local procedure PrepareNetPurchaseInvoiceLines(SourceDocumentLines: RecordRef; var TempPurchInvLine: Record "Purch. Inv. Line" temporary)
+    var
+        PurchInvLine: Record "Purch. Inv. Line";
+        VATFactor: Decimal;
+    begin
+        if SourceDocumentLines.FindSet() then
+            repeat
+                SourceDocumentLines.SetTable(PurchInvLine);
+                TempPurchInvLine := PurchInvLine;
+                VATFactor := 1 + PurchInvLine."VAT %" / 100;
+                if (VATFactor = 0) or (PurchInvLine."VAT Calculation Type" = PurchInvLine."VAT Calculation Type"::"Full VAT") then
+                    VATFactor := 1;
+                TempPurchInvLine."Inv. Discount Amount" := Round(PurchInvLine."Inv. Discount Amount" / VATFactor, GetAmountRoundingPrecision());
+                TempPurchInvLine."Line Amount" := PurchInvLine.Amount + TempPurchInvLine."Inv. Discount Amount";
+                TempPurchInvLine."Line Discount Amount" := Round(PurchInvLine."Line Discount Amount" / VATFactor, GetAmountRoundingPrecision());
+                TempPurchInvLine."Direct Unit Cost" := PurchInvLine."Direct Unit Cost" / VATFactor;
+                TempPurchInvLine.Insert();
+            until SourceDocumentLines.Next() = 0;
     end;
 
     procedure CreateCreditMemoXml(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     begin
-        BuildCIIDocument(EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob, '381');
+        CreateCreditMemoXml(EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob, '');
     end;
 
-    local procedure BuildCIIDocument(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob"; TypeCode: Text)
+    procedure CreateCreditMemoXml(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob"; EDocumentServiceCode: Code[20])
+    var
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        TempPurchCrMemoLine: Record "Purch. Cr. Memo Line" temporary;
+        FREDocHelpers: Codeunit "EDoc. Helpers";
+        NetSourceDocumentLines: RecordRef;
+    begin
+        if EDocument."Document Type" = EDocument."Document Type"::"Self-Billed Purch. Cr. Memo" then begin
+            SourceDocumentHeader.SetTable(PurchCrMemoHeader);
+            FREDocHelpers.GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
+            if PurchCrMemoHeader."Prices Including VAT" then begin
+                InitializeAmountRoundingPrecision(EDocument."Currency Code");
+                PrepareNetPurchaseCreditMemoLines(SourceDocumentLines, TempPurchCrMemoLine);
+                NetSourceDocumentLines.GetTable(TempPurchCrMemoLine);
+                BuildCIIDocument(EDocument, SourceDocumentHeader, NetSourceDocumentLines, TempBlob, '261', EDocumentServiceCode);
+                exit;
+            end;
+            BuildCIIDocument(EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob, '261', EDocumentServiceCode);
+            exit;
+        end;
+        BuildCIIDocument(EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob, '381', EDocumentServiceCode);
+    end;
+
+    local procedure PrepareNetPurchaseCreditMemoLines(SourceDocumentLines: RecordRef; var TempPurchCrMemoLine: Record "Purch. Cr. Memo Line" temporary)
+    var
+        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
+        VATFactor: Decimal;
+    begin
+        if SourceDocumentLines.FindSet() then
+            repeat
+                SourceDocumentLines.SetTable(PurchCrMemoLine);
+                TempPurchCrMemoLine := PurchCrMemoLine;
+                VATFactor := 1 + PurchCrMemoLine."VAT %" / 100;
+                if (VATFactor = 0) or (PurchCrMemoLine."VAT Calculation Type" = PurchCrMemoLine."VAT Calculation Type"::"Full VAT") then
+                    VATFactor := 1;
+                TempPurchCrMemoLine."Inv. Discount Amount" := Round(PurchCrMemoLine."Inv. Discount Amount" / VATFactor, GetAmountRoundingPrecision());
+                TempPurchCrMemoLine."Line Amount" := PurchCrMemoLine.Amount + TempPurchCrMemoLine."Inv. Discount Amount";
+                TempPurchCrMemoLine."Line Discount Amount" := Round(PurchCrMemoLine."Line Discount Amount" / VATFactor, GetAmountRoundingPrecision());
+                TempPurchCrMemoLine."Direct Unit Cost" := PurchCrMemoLine."Direct Unit Cost" / VATFactor;
+                TempPurchCrMemoLine.Insert();
+            until SourceDocumentLines.Next() = 0;
+    end;
+
+    local procedure BuildCIIDocument(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob"; TypeCode: Text; EDocumentServiceCode: Code[20])
     var
         CompanyInformation: Record "Company Information";
         FREDocHelpers: Codeunit "EDoc. Helpers";
@@ -43,7 +132,10 @@ codeunit 10978 "CII XML Builder"
         RootElement: XmlElement;
         OutStr: OutStream;
     begin
-        FREDocHelpers.CheckBuyerElectronicAddress(SourceDocumentHeader);
+        if EDocument."Document Type" in [EDocument."Document Type"::"Self-Billed Purchase Invoice", EDocument."Document Type"::"Self-Billed Purch. Cr. Memo"] then
+            FREDocHelpers.CheckSelfBillingDocument(SourceDocumentHeader, EDocumentServiceCode)
+        else
+            FREDocHelpers.CheckBuyerElectronicAddress(SourceDocumentHeader);
         CompanyInformation.Get();
         InitializeAmountRoundingPrecision(EDocument."Currency Code");
 
@@ -56,7 +148,7 @@ codeunit 10978 "CII XML Builder"
 
         AddExchangedDocumentContext(RootElement, SourceDocumentLines);
         AddExchangedDocument(RootElement, EDocument, TypeCode);
-        AddSupplyChainTradeTransaction(RootElement, EDocument, SourceDocumentHeader, SourceDocumentLines, CompanyInformation);
+        AddSupplyChainTradeTransaction(RootElement, EDocument, SourceDocumentHeader, SourceDocumentLines, CompanyInformation, EDocumentServiceCode);
 
         XmlDoc.Add(RootElement);
 
@@ -133,21 +225,21 @@ codeunit 10978 "CII XML Builder"
         DocElement.Add(NoteElement);
     end;
 
-    local procedure AddSupplyChainTradeTransaction(var RootElement: XmlElement; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; CompanyInformation: Record "Company Information")
+    local procedure AddSupplyChainTradeTransaction(var RootElement: XmlElement; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; CompanyInformation: Record "Company Information"; EDocumentServiceCode: Code[20])
     var
         TransactionElement: XmlElement;
     begin
         TransactionElement := XmlElement.Create('SupplyChainTradeTransaction', RsmNamespaceTok);
 
         AddLineItems(TransactionElement, SourceDocumentLines);
-        AddTradeAgreement(TransactionElement, SourceDocumentHeader, CompanyInformation);
+        AddTradeAgreement(TransactionElement, EDocument, SourceDocumentHeader, CompanyInformation, EDocumentServiceCode);
         AddTradeDelivery(TransactionElement, EDocument, SourceDocumentHeader);
         AddTradeSettlement(TransactionElement, EDocument, SourceDocumentHeader, SourceDocumentLines);
 
         RootElement.Add(TransactionElement);
     end;
 
-    local procedure AddTradeAgreement(var TransactionElement: XmlElement; var SourceDocumentHeader: RecordRef; CompanyInformation: Record "Company Information")
+    local procedure AddTradeAgreement(var TransactionElement: XmlElement; EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; CompanyInformation: Record "Company Information"; EDocumentServiceCode: Code[20])
     var
         FREDocHelpers: Codeunit "EDoc. Helpers";
         FieldRefVar: FieldRef;
@@ -158,8 +250,12 @@ codeunit 10978 "CII XML Builder"
     begin
         AgreementElement := XmlElement.Create('ApplicableHeaderTradeAgreement', RamNamespaceTok);
 
-        AddSellerTradeParty(AgreementElement, CompanyInformation);
-        AddBuyerTradeParty(AgreementElement, SourceDocumentHeader);
+        if EDocument."Document Type" in [EDocument."Document Type"::"Self-Billed Purchase Invoice", EDocument."Document Type"::"Self-Billed Purch. Cr. Memo"] then
+            AddSelfBillingTradeParties(AgreementElement, SourceDocumentHeader, CompanyInformation, EDocumentServiceCode)
+        else begin
+            AddSellerTradeParty(AgreementElement, CompanyInformation);
+            AddBuyerTradeParty(AgreementElement, SourceDocumentHeader);
+        end;
         AddInvoiceReferencedDocument(AgreementElement, SourceDocumentHeader);
 
         // BT-13 Purchase order reference
@@ -205,6 +301,65 @@ codeunit 10978 "CII XML Builder"
         FormattedIssueDateElement.Add(DateStringElement);
         InvoiceReferenceElement.Add(FormattedIssueDateElement);
         AgreementElement.Add(InvoiceReferenceElement);
+    end;
+
+    local procedure AddSelfBillingTradeParties(var AgreementElement: XmlElement; SourceDocumentHeader: RecordRef; CompanyInformation: Record "Company Information"; EDocumentServiceCode: Code[20])
+    var
+        Vendor: Record Vendor;
+        FREDocHelpers: Codeunit "EDoc. Helpers";
+        SellerElement: XmlElement;
+        BuyerElement: XmlElement;
+        ElectronicAddress: Text[250];
+        ElectronicAddressScheme: Enum "Electronic Address Scheme";
+        SellerSIREN: Text;
+        BuyerSIREN: Text;
+    begin
+        FREDocHelpers.GetSelfBillingVendor(SourceDocumentHeader, Vendor);
+        FREDocHelpers.GetSelfBillingElectronicAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Vendor, Vendor."No.", ElectronicAddress, ElectronicAddressScheme);
+        SellerElement := XmlElement.Create('SellerTradeParty', RamNamespaceTok);
+        if (StrLen(Vendor."Registration Number") = 14) and (DelChr(Vendor."Registration Number", '=', '0123456789') = '') then
+            SellerElement.Add(XmlElement.Create('ID', RamNamespaceTok, Vendor."Registration Number"));
+        SellerElement.Add(XmlElement.Create('Name', RamNamespaceTok, GetHeaderFieldText(SourceDocumentHeader, 'Buy-from Vendor Name', '')));
+        SellerSIREN := CopyStr(Vendor."Registration Number", 1, 9);
+        if (StrLen(SellerSIREN) <> 9) or (DelChr(SellerSIREN, '=', '0123456789') <> '') then
+            SellerSIREN := CopyStr(ElectronicAddress, 1, 9);
+        AddLegalOrganization(SellerElement, SellerSIREN);
+        AddPostalTradeAddress(SellerElement, GetHeaderFieldText(SourceDocumentHeader, 'Buy-from Post Code', ''),
+            GetHeaderFieldText(SourceDocumentHeader, 'Buy-from Address', ''), GetHeaderFieldText(SourceDocumentHeader, 'Buy-from Address 2', ''),
+            GetHeaderFieldText(SourceDocumentHeader, 'Buy-from City', ''), GetHeaderFieldText(SourceDocumentHeader, 'Buy-from Country/Region Code', ''));
+        AddElectronicAddress(SellerElement, ElectronicAddress, ElectronicAddressScheme.Names.Get(ElectronicAddressScheme.Ordinals.IndexOf(ElectronicAddressScheme.AsInteger())));
+        if GetHeaderFieldText(SourceDocumentHeader, 'VAT Registration No.', '') <> '' then
+            AddVATRegistration(SellerElement, GetVATRegistrationNoWithCountryPrefix(GetHeaderFieldText(SourceDocumentHeader, 'VAT Registration No.', ''),
+                GetHeaderFieldText(SourceDocumentHeader, 'Buy-from Country/Region Code', '')));
+        AgreementElement.Add(SellerElement);
+
+        BuyerElement := XmlElement.Create('BuyerTradeParty', RamNamespaceTok);
+        BuyerElement.Add(XmlElement.Create('Name', RamNamespaceTok, CompanyInformation.Name));
+        BuyerSIREN := CompanyInformation."Registration No.";
+        if (StrLen(CompanyInformation."SIRET No.") = 14) and (DelChr(CompanyInformation."SIRET No.", '=', '0123456789') = '') then
+            BuyerSIREN := CopyStr(CompanyInformation."SIRET No.", 1, 9);
+        AddLegalOrganization(BuyerElement, BuyerSIREN);
+        AddPostalTradeAddress(BuyerElement, CompanyInformation."Post Code", CompanyInformation.Address,
+            CompanyInformation."Address 2", CompanyInformation.City, CompanyInformation."Country/Region Code");
+        FREDocHelpers.GetSelfBillingElectronicAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Company, '', ElectronicAddress, ElectronicAddressScheme);
+        AddElectronicAddress(BuyerElement, ElectronicAddress, ElectronicAddressScheme.Names.Get(ElectronicAddressScheme.Ordinals.IndexOf(ElectronicAddressScheme.AsInteger())));
+        if CompanyInformation."VAT Registration No." <> '' then
+            AddVATRegistration(BuyerElement, CompanyInformation."VAT Registration No.");
+        AgreementElement.Add(BuyerElement);
+    end;
+
+    local procedure AddLegalOrganization(var PartyElement: XmlElement; SIREN: Text)
+    var
+        LegalOrganizationElement: XmlElement;
+        IdentifierElement: XmlElement;
+    begin
+        if SIREN = '' then
+            exit;
+        LegalOrganizationElement := XmlElement.Create('SpecifiedLegalOrganization', RamNamespaceTok);
+        IdentifierElement := XmlElement.Create('ID', RamNamespaceTok, SIREN);
+        IdentifierElement.SetAttribute('schemeID', '0002');
+        LegalOrganizationElement.Add(IdentifierElement);
+        PartyElement.Add(LegalOrganizationElement);
     end;
 
     local procedure AddSellerTradeParty(var AgreementElement: XmlElement; CompanyInformation: Record "Company Information")
@@ -478,9 +633,15 @@ codeunit 10978 "CII XML Builder"
             InvoiceDiscountAmount := Round(LineTotalAmount - TaxBasisTotalAmount, GetAmountRoundingPrecision());
 
         // BG-16 Payment means (BT-81 TypeCode + BT-84 IBAN + BT-86 BIC)
-        if FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Company Bank Account Code', FieldRefVar) then
-            CompanyBankAccountCode := FieldRefVar.Value();
-        InsertPaymentMeans(SettlementElement, CompanyBankAccountCode);
+        if EDocument."Document Type" = EDocument."Document Type"::"Self-Billed Purchase Invoice" then
+            InsertSelfBillingPaymentMeans(SettlementElement, SourceDocumentHeader)
+        else
+            // An applied purchase credit offsets the invoice; it does not instruct a cash refund.
+            if EDocument."Document Type" <> EDocument."Document Type"::"Self-Billed Purch. Cr. Memo" then begin
+                if FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Company Bank Account Code', FieldRefVar) then
+                    CompanyBankAccountCode := FieldRefVar.Value();
+                InsertPaymentMeans(SettlementElement, CompanyBankAccountCode);
+            end;
 
         BuildVATAggregationData(SourceDocumentLines, LineBaseAmounts, LineNetBaseAmounts, LineVATAmounts, VATRateByKey, VATCategoryByKey, VATEXCodeByKey);
         AddTaxBreakdown(SettlementElement, LineNetBaseAmounts, LineVATAmounts, VATRateByKey, VATCategoryByKey, VATEXCodeByKey);
@@ -525,10 +686,12 @@ codeunit 10978 "CII XML Builder"
 
     local procedure AddInvoiceReference(var SettlementElement: XmlElement; var SourceDocumentHeader: RecordRef)
     var
+        PurchInvHeader: Record "Purch. Inv. Header";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         ServiceInvoiceHeader: Record "Service Invoice Header";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         ReferenceElement: XmlElement;
         IssueDateElement: XmlElement;
         DateStringElement: XmlElement;
@@ -536,6 +699,12 @@ codeunit 10978 "CII XML Builder"
         ReferencedDocumentDate: Date;
     begin
         case SourceDocumentHeader.Number() of
+            Database::"Purch. Cr. Memo Hdr.":
+                begin
+                    FREDocHelpers.GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
+                    ReferencedDocumentNo := PurchInvHeader."No.";
+                    ReferencedDocumentDate := PurchInvHeader."Document Date";
+                end;
             Database::"Sales Cr.Memo Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesCrMemoHeader);
@@ -981,19 +1150,64 @@ codeunit 10978 "CII XML Builder"
 
     local procedure InsertPaymentMeans(var ParentElement: XmlElement; CompanyBankAccountCode: Code[20])
     var
-        PaymentMeansElement: XmlElement;
-        PayeeAccountElement: XmlElement;
-        PayeeInstitutionElement: XmlElement;
         IBAN: Text[50];
         SWIFTCode: Code[20];
     begin
         GetBankAccountPaymentDetails(CompanyBankAccountCode, IBAN, SWIFTCode);
-        PaymentMeansElement := XmlElement.Create('SpecifiedTradeSettlementPaymentMeans', RamNamespaceTok);
-        PaymentMeansElement.Add(XmlElement.Create('TypeCode', RamNamespaceTok, '58'));
+        InsertPaymentMeans(ParentElement, '58', IBAN, SWIFTCode, '');
+    end;
 
-        if IBAN <> '' then begin
+    local procedure InsertSelfBillingPaymentMeans(var ParentElement: XmlElement; SourceDocumentHeader: RecordRef)
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        Vendor: Record Vendor;
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        VendorBankAccount: Record "Vendor Bank Account";
+        PaymentMethod: Record "Payment Method";
+        BankAccountCode: Code[20];
+    begin
+        SourceDocumentHeader.SetTable(PurchInvHeader);
+        if PurchInvHeader."Payment Method Code" = '' then
+            exit;
+        PaymentMethod.Get(PurchInvHeader."Payment Method Code");
+        PaymentMethod.TestField("Payment Means Code");
+        if not (PaymentMethod."Payment Means Code" in ['30', '58']) then begin
+            InsertPaymentMeans(ParentElement, PaymentMethod."Payment Means Code", '', '', '');
+            exit;
+        end;
+
+        Vendor.Get(PurchInvHeader."Pay-to Vendor No.");
+        if VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.") then
+            BankAccountCode := VendorLedgerEntry."Recipient Bank Account";
+        if BankAccountCode = '' then begin
+            Vendor.TestField("Preferred Bank Account Code");
+            BankAccountCode := Vendor."Preferred Bank Account Code";
+        end;
+        VendorBankAccount.Get(Vendor."No.", BankAccountCode);
+        if PaymentMethod."Payment Means Code" = '58' then
+            VendorBankAccount.TestField(IBAN)
+        else
+            if VendorBankAccount.IBAN = '' then
+                VendorBankAccount.TestField("Bank Account No.");
+        InsertPaymentMeans(ParentElement, PaymentMethod."Payment Means Code", VendorBankAccount.IBAN,
+            VendorBankAccount."SWIFT Code", VendorBankAccount."Bank Account No.");
+    end;
+
+    local procedure InsertPaymentMeans(var ParentElement: XmlElement; PaymentMeansCode: Code[3]; IBAN: Text[50]; SWIFTCode: Code[20]; BankAccountNo: Text)
+    var
+        PaymentMeansElement: XmlElement;
+        PayeeAccountElement: XmlElement;
+        PayeeInstitutionElement: XmlElement;
+    begin
+        PaymentMeansElement := XmlElement.Create('SpecifiedTradeSettlementPaymentMeans', RamNamespaceTok);
+        PaymentMeansElement.Add(XmlElement.Create('TypeCode', RamNamespaceTok, PaymentMeansCode));
+
+        if (IBAN <> '') or (BankAccountNo <> '') then begin
             PayeeAccountElement := XmlElement.Create('PayeePartyCreditorFinancialAccount', RamNamespaceTok);
-            PayeeAccountElement.Add(XmlElement.Create('IBANID', RamNamespaceTok, FormatIBAN(IBAN)));
+            if IBAN <> '' then
+                PayeeAccountElement.Add(XmlElement.Create('IBANID', RamNamespaceTok, FormatIBAN(IBAN)))
+            else
+                PayeeAccountElement.Add(XmlElement.Create('ProprietaryID', RamNamespaceTok, BankAccountNo));
             PaymentMeansElement.Add(PayeeAccountElement);
         end;
 
@@ -1100,6 +1314,9 @@ codeunit 10978 "CII XML Builder"
         FieldRefVar: FieldRef;
         LineDiscountAmount: Decimal;
     begin
+        if SourceDocumentHeader.Number() in [Database::"Purch. Inv. Header", Database::"Purch. Cr. Memo Hdr."] then
+            exit(Round(LineTotalAmount - AmountExclVAT, GetAmountRoundingPrecision()));
+
         if FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Invoice Discount Amount', FieldRefVar) then begin
             InvoiceDiscountAmount := FieldRefVar.Value();
             if InvoiceDiscountAmount <> 0 then
