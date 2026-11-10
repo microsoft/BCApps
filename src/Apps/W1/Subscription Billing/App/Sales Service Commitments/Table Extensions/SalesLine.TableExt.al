@@ -149,7 +149,7 @@ tableextension 8054 "Sales Line" extends "Sales Line"
         }
         modify("Deferral Code")
         {
-            trigger OnAfterValidate()
+            trigger OnBeforeValidate()
             begin
                 if Rec."Deferral Code" <> '' then
                     if Rec.IsLineAttachedToBillingLine() then
