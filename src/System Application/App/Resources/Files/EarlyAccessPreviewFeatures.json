@@ -24,7 +24,7 @@
     },
     {
         "FeatureName": "Choose ready-made report themes and header/footer designs",
-        "Description": "Use new header/footer designs and report themes with composite Word layouts. Body-only layouts for Customer - Order Summary and the Salesperson reports let you combine their report content with a selected design without replacing the existing Excel or RDLC choices.",
+        "Description": "Available from Business Central 29.1. Use new header/footer designs and report themes with composite Word layouts. Body-only layouts for Customer - Order Summary and the Salesperson reports let you combine their report content with a selected design without replacing the existing Excel or RDLC choices.",
         "Category": "Administration",
         "HelpURL": "",
         "VideoURL": "",
