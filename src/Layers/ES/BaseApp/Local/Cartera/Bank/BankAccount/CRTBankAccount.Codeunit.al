@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.BankAccount;
 
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
@@ -25,9 +26,19 @@ codeunit 7000080 "CRT Bank Account"
     [EventSubscriber(ObjectType::Table, Database::"Bank Account", OnAfterValidateEvent, 'Currency Code', true, false)]
     local procedure CurrencyCodeOnAfterValidate(var Rec: Record "Bank Account"; var xRec: Record "Bank Account"; CurrFieldNo: Integer)
     var
+        GeneralLedgerSetup: Record "General Ledger Setup";
         PostedBillGr: Record "Posted Bill Group";
         PostedPmtOrd: Record "Posted Payment Order";
     begin
+        if Rec."Currency Code" = xRec."Currency Code" then
+            exit;
+
+        GeneralLedgerSetup.Get();
+        if (Rec."Currency Code" in ['', GeneralLedgerSetup."LCY Code"]) and
+           (xRec."Currency Code" in ['', GeneralLedgerSetup."LCY Code"])
+        then
+            exit;
+
         if CarteraSetup.ReadPermission then begin
             PostedBillGr.SetCurrentKey("Bank Account No.");
             PostedBillGr.SetRange("Bank Account No.", Rec."No.");

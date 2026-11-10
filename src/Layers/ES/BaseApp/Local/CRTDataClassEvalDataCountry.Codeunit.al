@@ -27,6 +27,7 @@ codeunit 7000021 "CRT DataClass EvalData Country"
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Posted Bill Group");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Closed Bill Group");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"BG/PO Comment Line");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Doc. Post. Buffer");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Operation Fee");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Cartera Report Selections");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Cartera Setup");

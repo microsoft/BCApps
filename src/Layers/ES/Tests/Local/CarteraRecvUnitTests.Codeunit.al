@@ -18,6 +18,8 @@ codeunit 147542 "Cartera Recv. Unit Tests"
         LibraryERM: Codeunit "Library - ERM";
         LocalTxt: Label 'LOCAL', Locked = true;
         BankAccountWithBillGroupsErr: Label 'You cannot delete a bank account with bill groups in preparation.';
+        CannotChangeDueToPostedBillGroupsErr: Label 'You cannot change %1 because there are one or more posted bill groups for this bank account.', Comment = '%1 = Field caption';
+        CannotChangeDueToPostedPmtOrdersErr: Label 'You cannot change %1 because there are one or more posted payment orders for this bank account.', Comment = '%1 = Field caption';
 
     [Test]
     [Scope('OnPrem')]
@@ -463,9 +465,75 @@ codeunit 147542 "Cartera Recv. Unit Tests"
         ReceivablesCarteraDocs.Close();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ValidateBankCurrencyWithPostedBillGroup()
+    begin
+        VerifyBankCurrencyValidationWithPostedCarteraDocuments(true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ValidateBankCurrencyWithPostedPaymentOrder()
+    begin
+        VerifyBankCurrencyValidationWithPostedCarteraDocuments(false);
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
+    end;
+
+    local procedure VerifyBankCurrencyValidationWithPostedCarteraDocuments(CreateBillGroup: Boolean)
+    var
+        BankAccount: Record "Bank Account";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        LocalCurrency: Record Currency;
+        ForeignCurrency: Record Currency;
+        PostedBillGroup: Record "Posted Bill Group";
+        PostedPaymentOrder: Record "Posted Payment Order";
+        ExpectedError: Text;
+    begin
+        Initialize();
+        LibraryERM.CreateCurrency(LocalCurrency);
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."LCY Code" := LocalCurrency.Code;
+        GeneralLedgerSetup.Modify();
+        LibraryERM.CreateBankAccount(BankAccount);
+
+        if CreateBillGroup then begin
+            MockPostedBillGroup(PostedBillGroup);
+            PostedBillGroup."Bank Account No." := BankAccount."No.";
+            PostedBillGroup.Modify();
+            ExpectedError := CannotChangeDueToPostedBillGroupsErr;
+        end else begin
+            PostedPaymentOrder.Init();
+            PostedPaymentOrder."No." :=
+              LibraryUtility.GenerateRandomCode(PostedPaymentOrder.FieldNo("No."), DATABASE::"Posted Payment Order");
+            PostedPaymentOrder."Bank Account No." := BankAccount."No.";
+            PostedPaymentOrder.Insert();
+            ExpectedError := CannotChangeDueToPostedPmtOrdersErr;
+        end;
+
+        BankAccount.Validate("Currency Code", BankAccount."Currency Code");
+        BankAccount.Validate("Currency Code", LocalCurrency.Code);
+        BankAccount.Modify(true);
+        BankAccount.Get(BankAccount."No.");
+        BankAccount.Validate("Currency Code", BankAccount."Currency Code");
+        BankAccount.Validate("Currency Code", '');
+        BankAccount.Modify(true);
+        BankAccount.Get(BankAccount."No.");
+
+        LibraryERM.CreateCurrency(ForeignCurrency);
+        asserterror BankAccount.Validate("Currency Code", ForeignCurrency.Code);
+        Assert.ExpectedError(StrSubstNo(ExpectedError, BankAccount.FieldCaption("Currency Code")));
+
+        // Mock an existing foreign-currency bank account with posted documents.
+        BankAccount.Get(BankAccount."No.");
+        BankAccount."Currency Code" := ForeignCurrency.Code;
+        BankAccount.Modify();
+        BankAccount.Get(BankAccount."No.");
+        BankAccount.Validate("Currency Code", ForeignCurrency.Code);
     end;
 
     local procedure CreateBillGroupWithBankAccount(var BillGroup: Record "Bill Group")
