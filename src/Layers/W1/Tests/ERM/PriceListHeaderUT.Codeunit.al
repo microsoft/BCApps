@@ -2452,6 +2452,28 @@ codeunit 134118 "Price List Header UT"
         Assert.RecordIsEmpty(ConfigPackageError);
     end;
 
+    [Test]
+    [HandlerFunctions('CancelDuplicatePriceLinesModalHandler')]
+    procedure ActivateInactiveSalesPriceListWithDuplicateLineOpensDuplicatePriceLines()
+    begin
+        // [SCENARIO 658104] Activating an inactive sales price list checks for duplicate lines.
+        Initialize();
+
+        VerifyInactivePriceListActivationWithDuplicateLine(
+            "Price Type"::Sale, "Price Source Type"::"All Customers");
+    end;
+
+    [Test]
+    [HandlerFunctions('CancelDuplicatePriceLinesModalHandler')]
+    procedure ActivateInactivePurchasePriceListWithDuplicateLineOpensDuplicatePriceLines()
+    begin
+        // [SCENARIO 658104] Activating an inactive purchase price list checks for duplicate lines.
+        Initialize();
+
+        VerifyInactivePriceListActivationWithDuplicateLine(
+            "Price Type"::Purchase, "Price Source Type"::"All Vendors");
+    end;
+
     local procedure Initialize()
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
@@ -2652,6 +2674,38 @@ codeunit 134118 "Price List Header UT"
             until PriceListHeader.Next() = 0;
     end;
 
+    local procedure VerifyInactivePriceListActivationWithDuplicateLine(PriceType: Enum "Price Type"; SourceType: Enum "Price Source Type")
+    var
+        PriceListHeader: array[2] of Record "Price List Header";
+        PriceListLine: array[2] of Record "Price List Line";
+        ItemNo: Code[20];
+    begin
+        ItemNo := LibraryInventory.CreateItemNo();
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader[1], PriceType, SourceType, '');
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine[1], PriceListHeader[1], "Price Amount Type"::Price, "Price Asset Type"::Item, ItemNo);
+        PriceListHeader[1].Status := "Price Status"::Active;
+        PriceListHeader[1].Modify();
+        PriceListLine[1].Status := "Price Status"::Active;
+        PriceListLine[1].Modify();
+
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader[2], PriceType, SourceType, '');
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine[2], PriceListHeader[2], "Price Amount Type"::Price, "Price Asset Type"::Item, ItemNo);
+        PriceListHeader[2].Status := "Price Status"::Inactive;
+        PriceListHeader[2].Modify();
+        PriceListLine[2].Status := "Price Status"::Inactive;
+        PriceListLine[2].Modify();
+
+        // [WHEN] The inactive price list is activated and duplicate resolution is canceled.
+        PriceListHeader[2].Validate(Status, "Price Status"::Active);
+
+        // [THEN] The price list and its line remain inactive.
+        PriceListHeader[2].TestField(Status, "Price Status"::Inactive);
+        PriceListLine[2].Find();
+        PriceListLine[2].TestField(Status, "Price Status"::Inactive);
+    end;
+
     [ModalPageHandler]
     procedure LookupCustomerModalHandler(var CustomerLookup: TestPage "Customer Lookup")
     begin
@@ -2683,5 +2737,11 @@ codeunit 134118 "Price List Header UT"
     procedure ConfirmYesSimpleHandler(Question: Text; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure CancelDuplicatePriceLinesModalHandler(var DuplicatePriceLines: TestPage "Duplicate Price Lines")
+    begin
+        DuplicatePriceLines.Cancel().Invoke();
     end;
 }
