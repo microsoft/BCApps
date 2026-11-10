@@ -467,6 +467,9 @@ codeunit 10250 "Bulk Vendor Remit Reporting"
         GenJournalLine: Record "Gen. Journal Line";
         TempErrorMessage: Record "Error Message" temporary;
         ErrorMessageManagement: Codeunit "Error Message Management";
+        PayeeHasErrors: Dictionary of [Text, Boolean];
+        PayeeKey: Text;
+        HasErrors: Boolean;
     begin
         if OutputType <> 3 then // for only check Output Type Emaill
             exit;
@@ -480,9 +483,16 @@ codeunit 10250 "Bulk Vendor Remit Reporting"
         GenJournalLine.SetFilter("Document No.", '<>%1', '');
         if GenJournalLine.FindSet() then
             repeat
-                if ProcessLine(GenJournalLine) then
-                    if LineHasErrors(GenJournalLine, TempErrorMessage) then
+                if ProcessLine(GenJournalLine) then begin
+                    // All lines of a payee share the same result, so evaluate it once per payee.
+                    PayeeKey := GetPayeeKey(GenJournalLine);
+                    if not PayeeHasErrors.Get(PayeeKey, HasErrors) then begin
+                        HasErrors := LineHasErrors(GenJournalLine, TempErrorMessage);
+                        PayeeHasErrors.Add(PayeeKey, HasErrors);
+                    end;
+                    if HasErrors then
                         RollbackDocumentNumberAssignment(GenJournalLine);
+                end;
             until GenJournalLine.Next() = 0;
 
         // Successful lines are marked after all rollbacks, because MarkLineAsExported commits and that commit must also
@@ -513,6 +523,22 @@ codeunit 10250 "Bulk Vendor Remit Reporting"
             until PayeeGenJournalLine.Next() = 0;
 
         exit(false);
+    end;
+
+    local procedure GetPayeeKey(GenJournalLine: Record "Gen. Journal Line"): Text
+    begin
+        exit(
+            AddKeyPart(GenJournalLine."Journal Template Name") +
+            AddKeyPart(GenJournalLine."Journal Batch Name") +
+            AddKeyPart(Format(GenJournalLine."Account Type".AsInteger())) +
+            AddKeyPart(GenJournalLine."Account No.") +
+            AddKeyPart(Format(GenJournalLine."Bal. Account Type".AsInteger())) +
+            AddKeyPart(GenJournalLine."Bal. Account No."));
+    end;
+
+    local procedure AddKeyPart(Value: Text): Text
+    begin
+        exit(Format(StrLen(Value)) + ':' + Value);
     end;
 
     local procedure ErrorReferencesLine(GenJournalLine: Record "Gen. Journal Line"; var TempErrorMessage: Record "Error Message" temporary): Boolean
