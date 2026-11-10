@@ -79,8 +79,8 @@ codeunit 140012 "Test FAB Platform"
     [Test]
     procedure NormalizeNamespaceConvertsUppercaseToLowercase()
     var
-        Namespace: Text[250];
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        Namespace: Text[250];
     begin
         //[SCENARIO] Normalize a namespace containing uppercase characters
         //[GIVEN] Initialized
@@ -100,8 +100,8 @@ codeunit 140012 "Test FAB Platform"
     [Test]
     procedure NormalizeNamespaceLeavesLowercaseUnchanged()
     var
-        Namespace: Text[250];
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        Namespace: Text[250];
     begin
         //[SCENARIO] Normalize a namespace that is already lowercase
         //[GIVEN] Initialized
