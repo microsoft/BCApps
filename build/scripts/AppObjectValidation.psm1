@@ -448,7 +448,7 @@ function Get-ALGoTestFolders {
 function Test-IsPathUnderAnyFolder {
     param(
         [Parameter(Mandatory = $true)] [string] $Path,
-        [Parameter(Mandatory = $true)] [string[]] $Folders
+        [Parameter(Mandatory = $true)] [AllowEmptyCollection()] [string[]] $Folders
     )
 
     $fullPath = [System.IO.Path]::GetFullPath($Path)
@@ -465,7 +465,7 @@ function Test-IsPathUnderAnyFolder {
 function Test-IsFileInTestApplication {
     param(
         [Parameter(Mandatory = $true)] [string] $FilePath,
-        [Parameter(Mandatory = $true)] [string[]] $TestFolderPaths
+        [Parameter(Mandatory = $true)] [AllowEmptyCollection()] [string[]] $TestFolderPaths
     )
 
     if (Test-IsPathUnderAnyFolder -Path $FilePath -Folders $TestFolderPaths) {
@@ -490,12 +490,12 @@ function Test-IsFileInTestApplication {
 
 <#
     .SYNOPSIS
-    Tests object IDs declared in newly added production AL files.
+    Tests object IDs declared in the supplied production AL files.
     .DESCRIPTION
     Validates only files supplied by the caller that are under an allowed source root and not under an AL-Go
-    test folder. This avoids scanning existing objects and correctly excludes non-codeunit objects in test apps.
+    test folder. Non-codeunit objects in test apps are excluded as well.
     .PARAMETER FilePaths
-    Absolute paths to files added by the current change.
+    Absolute paths to the files to validate.
     .PARAMETER SourceCodePaths
     Source roots in which production AL files are eligible for validation.
     .PARAMETER TestFolderPaths
@@ -505,11 +505,11 @@ function Test-IsFileInTestApplication {
     .PARAMETER ObjectTypePattern
     A regular expression alternation of the AL object types to recognize.
 #>
-function Test-ObjectIDsInAddedALFilesAreInAllowedRange {
+function Test-ObjectIDsInALFilesAreInAllowedRange {
     param(
         [Parameter(Mandatory = $true)] [string[]] $FilePaths,
         [Parameter(Mandatory = $true)] [string[]] $SourceCodePaths,
-        [Parameter(Mandatory = $true)] [string[]] $TestFolderPaths,
+        [Parameter(Mandatory = $true)] [AllowEmptyCollection()] [string[]] $TestFolderPaths,
         [Parameter(Mandatory = $true)] [object[]] $AllowedRanges,
         [string] $ObjectTypePattern = 'tableextension|pageextension|reportextension|enumextension|permissionsetextension|permissionset|codeunit|page|table|report|xmlport|query|enum'
     )
@@ -526,7 +526,7 @@ function Test-ObjectIDsInAddedALFilesAreInAllowedRange {
             continue
         }
         if (-not (Test-Path -LiteralPath $filePath -PathType Leaf)) {
-            throw "Added AL file '$filePath' does not exist."
+            throw "AL file '$filePath' does not exist."
         }
 
         $objectInfo = GetALObjectInformation -FilePath $filePath -ObjectTypePattern $ObjectTypePattern
@@ -543,9 +543,110 @@ function Test-ObjectIDsInAddedALFilesAreInAllowedRange {
     if ($offendingObjects.Count -gt 0) {
         $rangeText = (($AllowedRanges | ForEach-Object { "$($_.From)..$($_.To)" }) -join ', ')
         foreach ($offendingObject in ($offendingObjects | Sort-Object { [int64]$_.ObjectId })) {
-            Write-Host "##[error]Object '$($offendingObject.ObjectType) $($offendingObject.ObjectId) $($offendingObject.ObjectName)' in newly added file '$($offendingObject.Path)' has an ID outside the allowed range(s): $rangeText"
+            Write-Host "##[error]Object '$($offendingObject.ObjectType) $($offendingObject.ObjectId) $($offendingObject.ObjectName)' in file '$($offendingObject.Path)' has an ID outside the allowed range(s): $rangeText"
         }
-        throw "Object ID validation failed. $($offendingObjects.Count) object(s) in newly added AL file(s) have IDs outside the allowed range(s) ($rangeText)."
+        $objectIds = ($offendingObjects | ForEach-Object { "$($_.ObjectType) $($_.ObjectId)" }) -join ', '
+        throw "Object ID validation failed. $($offendingObjects.Count) object(s) in AL file(s) have IDs outside the allowed range(s) ($rangeText): $objectIds."
+    }
+}
+
+function Get-ObjectIdRangePolicy {
+    return Get-Content -LiteralPath (Join-Path $PSScriptRoot 'ObjectIdRangePolicy.json') -Raw | ConvertFrom-Json
+}
+
+function Test-IsIdRangeAllowed {
+    param(
+        [int64] $From,
+        [int64] $To,
+        [object[]] $AllowedRanges
+    )
+
+    $nextId = $From
+    foreach ($range in ($AllowedRanges | Sort-Object { [int64]$_.From })) {
+        if ([int64]$range.To -lt $nextId) {
+            continue
+        }
+        if ([int64]$range.From -gt $nextId) {
+            return $false
+        }
+        $nextId = [int64]$range.To + 1
+        if ($nextId -gt $To) {
+            return $true
+        }
+    }
+    return $false
+}
+
+<#
+    .SYNOPSIS
+    Validates production ID ranges in every app.json under the source folder.
+    .DESCRIPTION
+    Exact legacy manifest declarations are scoped by source-relative path. Apps without declared ranges
+    fall back to checking their own AL objects, excluding nested apps and using app-scoped legacy ID spans.
+#>
+function Test-ApplicationObjectIdRanges {
+    param(
+        [Parameter(Mandatory = $true)] [string] $SourceCodePath,
+        [Parameter(Mandatory = $true)] [object[]] $AllowedRanges,
+        [AllowEmptyCollection()] [string[]] $TestFolderPaths = @(),
+        [object[]] $ManifestRangeExceptions = @(),
+        [object[]] $LegacyObjectIdRanges = @()
+    )
+
+    $sourceRoot = (Resolve-Path -LiteralPath $SourceCodePath -ErrorAction Stop).Path.TrimEnd('\', '/')
+    $manifests = @(Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -Filter 'app.json' -ErrorAction Stop)
+    $errors = @()
+    foreach ($file in $manifests) {
+        $manifestPath = $file.FullName.Substring($sourceRoot.Length + 1).Replace('\', '/')
+        try {
+            $manifest = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+            if (Test-IsFileInTestApplication -FilePath $file.FullName -TestFolderPaths $TestFolderPaths) {
+                continue
+            }
+
+            $ranges = @(@($manifest.idRanges) + @($manifest.idRange) | Where-Object { $null -ne $_ })
+            if ($ranges.Count -eq 0) {
+                # The compiler's unrestricted default must not turn a missing idRanges into a bypass.
+                $nestedAppFolders = @($manifests |
+                    Where-Object { $_.DirectoryName.StartsWith($file.DirectoryName + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase) } |
+                    Select-Object -ExpandProperty DirectoryName)
+                $alFiles = @(Get-ChildItem -LiteralPath $file.DirectoryName -Recurse -File -Filter '*.al' -ErrorAction Stop |
+                    Where-Object { -not (Test-IsPathUnderAnyFolder -Path $_.FullName -Folders $nestedAppFolders) } |
+                    Select-Object -ExpandProperty FullName)
+                if ($alFiles.Count -gt 0) {
+                    $legacyRanges = @($LegacyObjectIdRanges | Where-Object { $_.Path -eq $manifestPath } | ForEach-Object { $_.Ranges })
+                    Test-ObjectIDsInALFilesAreInAllowedRange -FilePaths $alFiles -SourceCodePaths @($sourceRoot) -TestFolderPaths $TestFolderPaths -AllowedRanges @($AllowedRanges + $legacyRanges)
+                }
+                continue
+            }
+
+            $exceptions = @($ManifestRangeExceptions | Where-Object { $_.Path -eq $manifestPath } | ForEach-Object { $_.Ranges })
+            foreach ($range in $ranges) {
+                [int64] $from = 0
+                [int64] $to = 0
+                if (-not [int64]::TryParse([string]$range.from, [ref]$from) -or
+                    -not [int64]::TryParse([string]$range.to, [ref]$to) -or
+                    $from -lt 1 -or $to -gt [int]::MaxValue -or $from -gt $to) {
+                    $errors += "Invalid object ID range '$($range.from)..$($range.to)' in '$manifestPath'."
+                    continue
+                }
+                if (Test-IsIdRangeAllowed -From $from -To $to -AllowedRanges $AllowedRanges) {
+                    continue
+                }
+                if (@($exceptions | Where-Object { [int64]$_.From -eq $from -and [int64]$_.To -eq $to }).Count -gt 0) {
+                    continue
+                }
+                $errors += "Object ID range '$from..$to' in '$manifestPath' is outside the allowed first-party ranges."
+            }
+        }
+        catch {
+            $errors += "Object ID validation failed for '$manifestPath': $($_.Exception.Message)"
+        }
+    }
+
+    if ($errors.Count -gt 0) {
+        $errors | ForEach-Object { Write-Host "##[error]$_" }
+        throw "Application object ID range validation failed. $($errors.Count) violation(s):$([System.Environment]::NewLine)$($errors -join [System.Environment]::NewLine)"
     }
 }
 
@@ -556,4 +657,6 @@ Export-ModuleMember -Function Test-ApplicationManifests
 Export-ModuleMember -Function Get-FilesCollection
 Export-ModuleMember -Function Test-IsObjectIdInAllowedRange
 Export-ModuleMember -Function Get-ALGoTestFolders
-Export-ModuleMember -Function Test-ObjectIDsInAddedALFilesAreInAllowedRange
+Export-ModuleMember -Function Test-ObjectIDsInALFilesAreInAllowedRange
+Export-ModuleMember -Function Get-ObjectIdRangePolicy
+Export-ModuleMember -Function Test-ApplicationObjectIdRanges
