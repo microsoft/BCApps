@@ -19,7 +19,7 @@ using System.Utilities;
 
 permissionset 3346 "Payables Agent - Run"
 {
-    Caption = 'Payables Agent - Run (v2)', Comment = 'Payables Agent is a term, and should not be translated.';
+    Caption = 'Payables Agent - Run', Comment = 'Payables Agent is a term, and should not be translated.';
     Assignable = true;
     IncludedPermissionSets =
         // Basic permissions to access the system

@@ -7,8 +7,6 @@ namespace Microsoft.Agent.PayablesAgent;
 
 using System.Agents;
 
-// Coordinates acquisition/admission policy, runtime setup, trial/billing and framework task construction.
-// Work Item commands own only the validity of persisted receipt, association, text and outcome state.
 codeunit 3345 "PA Work Item Intake"
 {
     Access = Internal;

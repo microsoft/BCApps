@@ -17,7 +17,6 @@ codeunit 3349 "PA Agent Instructions"
     InherentPermissions = X;
 
     #region Agent instructions
-    // Resource selection is version-aware; the applied fingerprint describes the exact public prompt deployed.
 
     var
         PASetup: Codeunit "PA Setup";

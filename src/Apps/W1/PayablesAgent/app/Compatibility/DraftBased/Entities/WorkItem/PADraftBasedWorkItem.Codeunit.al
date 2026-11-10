@@ -56,17 +56,24 @@ codeunit 3332 "PA Draft Based Work Item"
         AgentTask: Record "Agent Task";
         AgentTaskMessage: Record "Agent Task Message";
         EDocument: Record "E-Document";
+        AgentAccess: Codeunit "PA Agent Access";
         EDocumentEntryNo: Integer;
+        IsOwned: Boolean;
     begin
         ClearLoaded();
         if not AgentTask.Get(AgentTaskId) then
             exit(false);
         if AgentTask."Company Name" <> CompanyName() then
             exit(false);
-        if not OwningAgent.Get(AgentTask."Agent User Security ID") then
-            exit(false);
-        if OwningAgent."Agent Metadata Provider" <> "Agent Metadata Provider"::"Payables Agent" then
-            exit(false);
+        if AgentAccess.TryGetRuntimeTaskOwnership(AgentTask, IsOwned) then begin
+            if not IsOwned then
+                exit(false);
+        end else begin
+            if not OwningAgent.Get(AgentTask."Agent User Security ID") then
+                exit(false);
+            if OwningAgent."Agent Metadata Provider" <> "Agent Metadata Provider"::"Payables Agent" then
+                exit(false);
+        end;
 
         AgentTaskMessage.SetRange("Task ID", AgentTaskId);
         AgentTaskMessage.SetFilter("External ID", '<>%1', '');

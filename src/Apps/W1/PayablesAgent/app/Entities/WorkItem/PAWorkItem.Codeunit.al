@@ -9,8 +9,6 @@ using System.Agents;
 using System.Email;
 using System.Utilities;
 
-// One received document across receipt, admission and outcome. Identity is the SystemId of its stored record: the E-Document (V1) or the Payables Agent Work Item (V2).
-// Runtime task IDs are associations, not a second entity identity. Policy and runtime orchestration stay in flows.
 codeunit 3341 "PA Work Item"
 {
     Access = Internal;
@@ -514,6 +512,8 @@ codeunit 3341 "PA Work Item"
     local procedure TryGetOwnedAgentTask(AgentTaskId: BigInteger; var AgentTask: Record "Agent Task"): Boolean
     var
         OwningAgent: Record Agent;
+        AgentAccess: Codeunit "PA Agent Access";
+        IsOwned: Boolean;
     begin
         if AgentTaskId = 0 then
             exit(false);
@@ -521,6 +521,8 @@ codeunit 3341 "PA Work Item"
             exit(false);
         if AgentTask."Company Name" <> CompanyName() then
             exit(false);
+        if AgentAccess.TryGetRuntimeTaskOwnership(AgentTask, IsOwned) then
+            exit(IsOwned);
         if not OwningAgent.Get(AgentTask."Agent User Security ID") then
             exit(false);
         exit(OwningAgent."Agent Metadata Provider" = "Agent Metadata Provider"::"Payables Agent");

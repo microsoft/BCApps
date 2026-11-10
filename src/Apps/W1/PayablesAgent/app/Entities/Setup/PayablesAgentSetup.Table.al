@@ -142,7 +142,7 @@ table 3303 "Payables Agent Setup"
             DataClassification = SystemMetadata;
         }
 #if not CLEANSCHEMA33
-        // Temporary production opt-in for the V2 preview; only effective in the designated preview tenant.
+        // Temporary production opt-in for the V2 preview
         field(19; "Preview Version"; Option)
         {
             Caption = 'Preview version';
@@ -153,6 +153,14 @@ table 3303 "Payables Agent Setup"
 #if not CLEAN30
             ObsoleteState = Pending;
             ObsoleteTag = '30.0';
+
+            trigger OnValidate()
+            var
+                PAV1V2Flag: Codeunit "PA V1V2 Flag";
+            begin
+                if Rec."Preview Version" = Rec."Preview Version"::"V2 Preview" then
+                    PAV1V2Flag.CheckV2PreviewSelectable();
+            end;
 #else
             ObsoleteState = Removed;
             ObsoleteTag = '33.0';

@@ -26,8 +26,13 @@ codeunit 133723 "PA Setup Tests"
         PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
         PADemoGuide: Codeunit "PA Demo Guide";
     begin
+        // [SCENARIO] Email is configured for the demo email when monitoring is on and a mailbox is selected.
+        // [GIVEN] A setup proposal with monitoring on and a registered mailbox.
         PATestFixtures.LoadConfiguration(PASetupUpdateParameters, false);
         PATestFixtures.SetEmailMonitoring(PASetupUpdateParameters, true, RegisterMailbox(), "PA Email Review Policy"::Always);
+
+        // [WHEN] The demo guide checks the email configuration.
+        // [THEN] Email is reported as configured.
         Assert.IsTrue(PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupUpdateParameters), 'Email should be configured when monitoring is on and a mailbox is set');
     end;
 
@@ -37,8 +42,13 @@ codeunit 133723 "PA Setup Tests"
         PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
         PADemoGuide: Codeunit "PA Demo Guide";
     begin
+        // [SCENARIO] Email is not configured for the demo email when monitoring is off.
+        // [GIVEN] A setup proposal with a registered mailbox but monitoring off.
         PATestFixtures.LoadConfiguration(PASetupUpdateParameters, false);
         PATestFixtures.SetEmailMonitoring(PASetupUpdateParameters, false, RegisterMailbox(), "PA Email Review Policy"::Always);
+
+        // [WHEN] The demo guide checks the email configuration.
+        // [THEN] Email is reported as not configured.
         Assert.IsFalse(PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupUpdateParameters), 'Email should not be configured when monitoring is disabled');
     end;
 
@@ -49,8 +59,13 @@ codeunit 133723 "PA Setup Tests"
         PADemoGuide: Codeunit "PA Demo Guide";
         NullGuid: Guid;
     begin
+        // [SCENARIO] Email is not configured for the demo email when no mailbox is selected.
+        // [GIVEN] A setup proposal with monitoring on but no mailbox.
         PATestFixtures.LoadConfiguration(PASetupUpdateParameters, false);
         PATestFixtures.SetEmailMonitoring(PASetupUpdateParameters, true, NullGuid, "PA Email Review Policy"::Always);
+
+        // [WHEN] The demo guide checks the email configuration.
+        // [THEN] Email is reported as not configured.
         Assert.IsFalse(PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupUpdateParameters), 'Email should not be configured when no mailbox is set');
     end;
 

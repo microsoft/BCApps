@@ -7,6 +7,7 @@ namespace Microsoft.Agent.PayablesAgent;
 
 #if not CLEAN30
 using System.Azure.Identity;
+using System.Environment;
 #endif
 
 codeunit 3339 "PA V1V2 Flag"
@@ -20,20 +21,32 @@ codeunit 3339 "PA V1V2 Flag"
         AmbiguousIdentityErr: Label 'Work item %1 is stored as both a version 1 and a version 2 work item.', Comment = '%1 = Work Item ID';
 #if not CLEAN30
         PreviewTenantIdTok: Label 'f0ac72d1-c1b3-4c2a-a196-8fb82cac5934', Locked = true;
+        V2PreviewNotAllowedErr: Label 'The Payables Agent version 2 preview can only be selected in the designated preview tenant.';
 #endif
 
-    // V2 is active only for the designated preview tenant when its setup selects the V2 preview.
+    // V2 is active when the setup selects the V2 preview; selecting it is only allowed in the designated preview tenant.
     internal procedure IsV2Active(): Boolean
     begin
 #if not CLEAN30
-        exit(IsV2PreviewSelectedInPreviewTenant());
+        exit(IsV2PreviewSelected());
 #else
         exit(false);
 #endif
     end;
 
-    // Returns the version a work item is stored in: 1 or 2; 0 means no matching work item.
-    // PA024 limits calls to this diagnostic query without restricting the separate active-selection API.
+#if not CLEAN30
+    internal procedure CheckV2PreviewSelectable()
+    var
+        AzureADTenant: Codeunit "Azure AD Tenant";
+        EnvironmentInformation: Codeunit "Environment Information";
+        TenantId: Text;
+    begin
+        TenantId := LowerCase(DelChr(AzureADTenant.GetAadTenantId(), '=', '{}'));
+        if (TenantId <> PreviewTenantIdTok) and (not EnvironmentInformation.IsOnPrem()) then
+            Error(V2PreviewNotAllowedErr);
+    end;
+#endif
+
     internal procedure GetVersion(WorkItemId: Guid): Integer
     var
         StoredWorkItem: Record "Payables Agent Work Item";
@@ -54,13 +67,10 @@ codeunit 3339 "PA V1V2 Flag"
 
 #if not CLEAN30
 #pragma warning disable AL0432
-    local procedure IsV2PreviewSelectedInPreviewTenant(): Boolean
+    local procedure IsV2PreviewSelected(): Boolean
     var
         Setup: Record "Payables Agent Setup";
-        AzureADTenant: Codeunit "Azure AD Tenant";
     begin
-        if LowerCase(DelChr(AzureADTenant.GetAadTenantId(), '=', '{}')) <> PreviewTenantIdTok then
-            exit(false);
         if not Setup.TryGetSetup() then
             exit(false);
         exit(Setup."Preview Version" = Setup."Preview Version"::"V2 Preview");

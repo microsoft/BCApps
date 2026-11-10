@@ -22,11 +22,16 @@ codeunit 133736 "PA Draft Based Contract Tests"
         Proposal: Codeunit "PA Setup";
         Stored: Codeunit "PA Setup";
     begin
+        // [SCENARIO] Deactivating the agent also turns off the V1 (draft-based) E-Document importer.
+        // [GIVEN] The V1 importer is enabled.
         Fixtures.SeedDraftBasedImporterEnabled();
+
+        // [WHEN] A setup proposal with mailbox monitoring on is applied with the agent deactivated.
         Proposal.LoadOrCreateSetup();
         Proposal.SetMonitorOutlook(true);
         Proposal.ApplySetup(false);
 
+        // [THEN] Monitoring is persisted as off and the V1 importer is disabled.
         Stored.LoadOrCreateSetup();
         Check(not Stored.GetMonitorOutlook(), 'Deactivation must persist monitoring off.');
         Check(not Fixtures.IsDraftBasedImporterEnabled(), 'Deactivation must also turn the V1 importer off.');

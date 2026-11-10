@@ -2,58 +2,50 @@
 
 **Goal**: The aim of this document is to provide a high-level overview of the organizational concepts behind the code in the Payables Agent app application. This should be used to plan contributions to this codebase, and to aid reviewers in assesing whether a contribution is cohesive with the current model.
 
-Edits to this document are encouraged to be done by maintainers consciously deciding its shape. This is to maintain the mental model in the maintainers as well. Coding agents are encoraged to explicitly surface the planned edits of this document to the user.
-
-WIP
-
 ## Context: Business Central's Payables Agent
 
 The Payables Agent is a per-company BC-agent-runtime agent. It deals with the creation of Purchase Invoices in Business Central from arbitrary input.
 
-A BC-agent-runtime agent, is an LLM-based agent that operates on a logical client of Business Central with its own profile and user assigned.
+A BC-agent-runtime agent, is an LLM-based agent that operates on a logical client of Business Central with its own profile and user assigned. The loop definition of this agent is outside the AL codebase.
 
 The Payables Agent supports the following user-level capabilities:
 - Find an appropriate vendor for the intended invoice
 - Suggest creating a vendor if it can't be found
-- Filling in all header and line-level properties that can be interpreted from the input, or from history of how the users usually fill in these values.
+- Filling in all header and line-level properties of the purchase document that can be interpreted from the input, or from history of how the users usually fill in these values.
+- Creates both purchase invoices and purchase credit memos.
 - Match to existing Purchase Orders in order to invoice them when the invoice created by the Payables Agent is posted.
 
 ### Payables Agent V1 and V2
 
-There are two versions of the Payables Agent, distinguished by the entity that they base their work on. In version 1, the agent operates by receiving an "E-Document" (which in practice is limited to only PDFs received via e-mail or uploaded manually) and creates a Purchase Invoice by processing the E-Document. In version 2, the received document is represented by a Payables Agent Work Item and the agent user directly creates the Purchase Invoice. The app-owned Work Item entity also gives V1 E-Documents a common PA-facing lifecycle.
+There are two versions of the Payables Agent, distinguished by the entity that they base their work on. In version 1, the agent operates by receiving an "E-Document" (which in practice is limited to only PDFs received via e-mail or uploaded manually) and creates a Purchase Invoice by processing the E-Document. In version 2, the received document is represented by a Payables Agent Work Item and the agent user directly creates the Purchase Invoice.
 
 #### Version 1: Draft-based Payables Agent
 
-An ad-hoc E-Document Service polls via the M365 connector, Outlook emails with PDF attachments, which are then interpreted as artificial E-Documents. When such an E-Document is created, an agent-framework task is created, which then goes and process the e-document into a purchase invoice.
+An ad-hoc E-Document Service polls via the M365 connector, Outlook emails with PDF attachments, which are then interpreted as artificial E-Documents. When such an E-Document is created, an agent-framework task is created, which then goes and process the e-document into a purchase invoice. For v1, the ingestion responsibilities are split across different AL apps.
 
 A lot of the functionality that the Payables Agent feature provides is really provided by the E-Document import processing pipeline. The agent invokes processing steps which structure the received PDF by sending it to a MLLM, then store it into intermediate tables and run different approaches to fill Business Central values (including LLM approaches).
 
 After the E-Document processing pipeline has done it's best, the BC-agent-framework user defined in this app starts complementing the proposed values in the intermediate tables (known as the draft page).
 
-Once the user is satisfied with the values in the draft page, the agent proceeds with E-Document finalization, which creates a Purchase Invoice or, for a recognized vendor credit note, a Purchase Credit Memo. The E-Document pipeline owns credit-note classification, amount normalization and application to the referenced posted invoice.
+Once the user is satisfied with the values in the draft page, the agent proceeds with E-Document finalization; which creates a Purchase Invoice or, for a recognized vendor credit note, a Purchase Credit Memo.
 
 > Note: Within this version, there is an ECS experiment that skips the E-Document-owned logic that fills in values and changes the agent prompt to do this logic itself instead.
 
 #### Version 2: Payables Agent
 
-In this version, the entity at the center is the Payables Agent Work Item, backed by an app-owned record. There is no involvement of the E-Document processing framework.
+In this version, the entity at the center is the Payables Agent Work Item, owned by the Payables Agent app. There is no involvement of the E-Document processing framework.
 
-The agent task is created with direct information about its source, the agent user directly consults it, and creates the appropriate Purchase Invoice directly, without any draft page. Credit memo creation is not supported in version 2.
-
-Base-block PDF text extraction uses only the bundled extraction instructions. A separate security prompt and Key Vault lookup are intentionally not introduced for extraction at this stage; agent runtime instruction assembly retains its existing security-prompt handling.
-
-Current gaps of version 2 with respect to version 1, and their plan:
-- Email sourcing: Version 1 uses the E-Document import codeunit to source emails, in version 2 ownership will be transferred directly to this AL app.
-- Demo invoices
-- Customer feedback
-- Billing: A larger scope is changing the billing strategy
-- Evaluation company Demo-data
+The agent task is created with direct information about its source, the agent user directly consults it, and creates the appropriate Purchase Invoice directly, without any draft page.
 
 ## Code in this AL app
 
+The code is organized via:
+- Flows: High-level user-facing processes that this app defines for the Payables Agent
+- Entities: Definitions of persisted 
+
 ### Flows
 
-TODO: what is a good definition of a flow?
+The AL app is organized in 
 These are the high-level flows that can be found in this AL app:
 
 - Registration of the agent: Platform-hooks for registering the BC-agent-runtime agent.

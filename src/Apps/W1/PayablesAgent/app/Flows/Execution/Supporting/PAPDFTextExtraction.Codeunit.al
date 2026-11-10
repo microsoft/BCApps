@@ -9,7 +9,6 @@ using System.AI;
 using System.Text;
 using System.Utilities;
 
-// Temporary bridge until the agent can consume the source PDF directly; see Supporting/README.md.
 codeunit 3336 "PA PDF Text Extraction"
 {
     Access = Internal;
@@ -50,10 +49,11 @@ codeunit 3336 "PA PDF Text Extraction"
             Error(ExtractionFailedErr);
         TempBlob.CreateInStream(PdfInStream);
 
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT56CeresPreview());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Payables Agent");
 
         AOAIChatCompletionParams.SetTemperature(0);
+        AOAIChatCompletionParams.SetMaxTokens(50000);
 
         AOAIChatMessages.SetPrimarySystemMessage(GetSystemPrompt());
         AOAIUserMessage.AddFilePart(StrSubstNo(PdfFileDataTok, Base64Convert.ToBase64(PdfInStream)));

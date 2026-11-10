@@ -10,7 +10,6 @@ using System.Agents;
 using System.IO;
 using System.Utilities;
 
-// Coordinates outcome registration with runtime presentation/attachment workarounds; the entity stores only valid state.
 codeunit 3313 "PA Work Item Outcome"
 {
     Access = Internal;
@@ -27,7 +26,6 @@ codeunit 3313 "PA Work Item Outcome"
     end;
 
     #region Agent runtime limitations
-    // Remove this bridge when the agent can attach the received PDF through the normal document-attachment UI.
     local procedure AttachSourcePdf(WorkItem: Codeunit "PA Work Item"; OutcomeId: RecordId)
     var
         StoredWorkItem: Record "Payables Agent Work Item";
@@ -44,7 +42,6 @@ codeunit 3313 "PA Work Item Outcome"
             exit;
         StoredWorkItem.GetBySystemId(WorkItem.GetId());
         OutcomeRef.Get(OutcomeId);
-        // Retain the existing file-name scheme and deduplication for already registered V2 documents.
         BaseName := FileManagement.GetFileNameWithoutExtension(FileName);
         FileName := CopyStr(StrSubstNo(AttachmentNameLbl, StoredWorkItem."Entry No.", BaseName), 1, 246) + '.pdf';
         DocumentAttachment.InitFieldsFromRecRef(OutcomeRef);

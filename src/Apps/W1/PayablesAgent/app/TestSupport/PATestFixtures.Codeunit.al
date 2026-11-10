@@ -41,10 +41,6 @@ codeunit 3326 "PA Test Fixtures"
         exit(WorkItemIntake.ReceivePdf(FileName, PdfInStream, WorkItem));
     end;
 
-    /// <summary>
-    /// Applies the scripted human choice of an existing vendor to the version-specific record the user reviews.
-    /// The caller resumes and waits for the Agent Framework task after this state change.
-    /// </summary>
     internal procedure SelectVendor(AgentTaskId: BigInteger; VendorName: Text; var ErrorText: Text): Boolean
     var
         PurchaseHeader: Record "Purchase Header";
@@ -72,10 +68,6 @@ codeunit 3326 "PA Test Fixtures"
         exit(true);
     end;
 
-    /// <summary>
-    /// Applies the scripted human G/L-account choice to every current line of the version-specific review record.
-    /// This intentionally preserves the existing assisted LineCorrection eval semantics pending dataset redesign.
-    /// </summary>
     internal procedure SelectAccount(AgentTaskId: BigInteger; AccountCode: Text; var ErrorText: Text): Boolean
     var
         GLAccount: Record "G/L Account";
@@ -129,10 +121,6 @@ codeunit 3326 "PA Test Fixtures"
         exit(true);
     end;
 
-    /// <summary>
-    /// Whether a review the agent requested is the review of what it prepared for the task: the draft of the task's
-    /// source (v1) or the purchase invoice registered as the task's outcome (v2).
-    /// </summary>
     internal procedure IsReviewOfTaskResult(AgentTaskId: BigInteger; ReviewRecordId: RecordId): Boolean
     var
         WorkItem: Codeunit "PA Work Item";
@@ -144,9 +132,6 @@ codeunit 3326 "PA Test Fixtures"
         exit(WorkItem.IsResultRecord(ReviewRecordId));
     end;
 
-    /// <summary>
-    /// The semantic suggestion code offered when the agent cannot resolve a vendor.
-    /// </summary>
     internal procedure GetCreateVendorSuggestionCode(): Code[20]
     var
         TempRequestDetails: Record "Agent User Int Request Details" temporary;
@@ -183,10 +168,6 @@ codeunit 3326 "PA Test Fixtures"
 
     #region Evaluation diagnostics and cleanup
 
-    /// <summary>
-    /// Selects the Payables Agent version for the evaluation run; the persisted choice is visible to the agent's runtime sessions.
-    /// It uses the V2 preview opt-in, which only takes effect in the designated preview tenant; requesting V2 elsewhere fails instead of silently evaluating V1.
-    /// </summary>
     internal procedure PrepareEvaluationVersion(Version: Integer)
     begin
         if not (Version in [1, 2]) then
@@ -201,9 +182,6 @@ codeunit 3326 "PA Test Fixtures"
 #endif
     end;
 
-    /// <summary>
-    /// Gets the version explicitly prepared by the evaluation harness, or 0 when none is prepared.
-    /// </summary>
     internal procedure GetPreparedEvaluationVersion(): Integer
     begin
 #if not CLEAN30
@@ -213,10 +191,6 @@ codeunit 3326 "PA Test Fixtures"
         exit(0);
     end;
 
-    /// <summary>
-    /// Clears evaluation state in the test company before configuring the next run.
-    /// This also deletes every E-Document and all E-Doc. Vendor Assign. History in that company.
-    /// </summary>
     internal procedure ResetEvaluationState()
     begin
         DeleteAllTaskAndEDocumentDataForEvaluation();
@@ -233,9 +207,9 @@ codeunit 3326 "PA Test Fixtures"
     begin
         Setup.GetOrCreateSetup();
         if Selected then
-            Setup."Preview Version" := Setup."Preview Version"::"V2 Preview"
+            Setup.Validate("Preview Version", Setup."Preview Version"::"V2 Preview")
         else
-            Setup."Preview Version" := Setup."Preview Version"::" ";
+            Setup.Validate("Preview Version", Setup."Preview Version"::" ");
         Setup.Modify();
     end;
 
@@ -250,10 +224,6 @@ codeunit 3326 "PA Test Fixtures"
 #pragma warning restore AL0432
 #endif
 
-    /// <summary>
-    /// Deletes V2 tasks, plus every E-Document and all E-Doc. Vendor Assign. History in the test company.
-    /// Use only where company-wide E-Document cleanup is intended; this is not limited to Payables Agent documents.
-    /// </summary>
     internal procedure DeleteAllTaskAndEDocumentDataForEvaluation()
     var
         StoredWorkItem: Record "Payables Agent Work Item";
@@ -263,10 +233,6 @@ codeunit 3326 "PA Test Fixtures"
         DraftBasedFixtures.DeleteAllEDocumentDataForEvaluation();
     end;
 
-    /// <summary>
-    /// Builds version-neutral failure diagnostics for one Payables Agent task.
-    /// Returns false only when the Agent Framework task cannot be resolved as a Payables Agent task.
-    /// </summary>
     internal procedure GetTaskDiagnosticEvidence(AgentTaskId: BigInteger; var Diagnostics: JsonObject): Boolean
     var
         WorkItem: Codeunit "PA Work Item";
@@ -471,10 +437,6 @@ codeunit 3326 "PA Test Fixtures"
 
     #region Deterministic unit-test fixtures
 
-    /// <summary>
-    /// Fabricates receipt of an email by the currently implemented mailbox integration, without admitting it to the agent.
-    /// The fixture owns the version-specific storage.
-    /// </summary>
     internal procedure ReceiveEmail(SenderEmail: Text; Subject: Text; var WorkItem: Codeunit "PA Work Item"): Boolean
     var
         DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
@@ -482,10 +444,6 @@ codeunit 3326 "PA Test Fixtures"
         exit(DraftBasedFixtures.ReceiveEmail(SenderEmail, Subject, WorkItem));
     end;
 
-    /// <summary>
-    /// Creates the semantic scenario used to verify the wrapper contract over a draft-based upload.
-    /// Stored records and framework correlation details remain inside the compatibility fixture.
-    /// </summary>
     internal procedure CreateDraftBasedUploadContractScenario(var WorkItem: Codeunit "PA Work Item"; var ExpectedResult: RecordId; var UnrelatedResult: RecordId): Boolean
     var
         DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
@@ -507,10 +465,6 @@ codeunit 3326 "PA Test Fixtures"
         exit(DraftBasedFixtures.IsImporterEnabled());
     end;
 
-    /// <summary>
-    /// Loads the stored setup as the configuration to apply, in test mode: the mailbox is never contacted.
-    /// </summary>
-    /// <param name="CreateAgentUser">Whether applying the configuration creates and configures the agent user in the agent framework. Tests that only exercise the app's own state can skip it.</param>
     internal procedure LoadConfiguration(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters"; CreateAgentUser: Boolean)
     begin
         Clear(PASetupUpdateParameters);
@@ -519,9 +473,6 @@ codeunit 3326 "PA Test Fixtures"
         PASetupUpdateParameters.InitializeFromStoredSetup();
     end;
 
-    /// <summary>
-    /// Sets the desired mailbox configuration. Retained for setup-flow unit tests that exercise individual proposals.
-    /// </summary>
     internal procedure SetEmailMonitoring(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters"; MonitorEmail: Boolean; EmailAccountId: Guid; ReviewPolicy: Enum "PA Email Review Policy")
     var
         DesiredSetup: Codeunit "PA Setup";
@@ -530,9 +481,6 @@ codeunit 3326 "PA Test Fixtures"
         PASetupUpdateParameters.SetEmailMonitoring(MonitorEmail, ReviewPolicy, EmailAccountId, DesiredSetup.GetEmailFolder(), DesiredSetup.GetEmailFolderId());
     end;
 
-    /// <summary>
-    /// Applies a unit-test configuration with the agent enabled through the same flow as the setup page.
-    /// </summary>
     internal procedure Activate(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
     var
         TempAgentSetupBuffer: Record "Agent Setup Buffer" temporary;
@@ -543,9 +491,6 @@ codeunit 3326 "PA Test Fixtures"
         PASetupUpdate.Update(PASetupUpdateParameters);
     end;
 
-    /// <summary>
-    /// Brings the agent back to never having been configured and clears the stored setup.
-    /// </summary>
     internal procedure Reset()
     var
         Agent: Record Agent;
@@ -554,7 +499,6 @@ codeunit 3326 "PA Test Fixtures"
         PASetupUpdateParameters: Codeunit "PA Setup Update Parameters";
     begin
         if PASetup.TryFindAgent(Agent) then begin
-            // Unit-test cleanup must not reconfigure a live framework agent when the service is unavailable.
             LoadConfiguration(PASetupUpdateParameters, false);
             PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
             TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Disabled;
@@ -570,9 +514,6 @@ codeunit 3326 "PA Test Fixtures"
         PASetup.DeleteSetup(CopyStr(CompanyName(), 1, 30));
     end;
 
-    /// <summary>
-    /// Hands a received source that does not yet have an Agent Framework task to the intake flow.
-    /// </summary>
     internal procedure AdmitWorkItem(var WorkItem: Codeunit "PA Work Item"): Boolean
     var
         Intake: Codeunit "PA Work Item Intake";

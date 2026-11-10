@@ -28,6 +28,7 @@ codeunit 133703 "PA Known Sender Tests"
         SenderEmailTok: Label 'first-sender@contoso.com', Locked = true;
 #pragma warning restore AA0240
     begin
+        // [SCENARIO] Recording a sender for the first time adds it as a known sender.
         // [GIVEN] A clean Known Sender table and an email work item received from a sender.
         PAKnownSender.DeleteAll();
         Assert.IsTrue(PATestFixtures.ReceiveEmail(SenderEmailTok, 'Invoice', WorkItem), 'The email should be received as a work item');
@@ -50,6 +51,7 @@ codeunit 133703 "PA Known Sender Tests"
         SenderEmailTok: Label 'pipeline-sender@contoso.com', Locked = true;
 #pragma warning restore AA0240
     begin
+        // [SCENARIO] Recording the same sender repeatedly adds it only once.
         // [GIVEN] A clean Known Sender table and an email work item received from a sender.
         PAKnownSender.DeleteAll();
         Assert.IsTrue(PATestFixtures.ReceiveEmail(SenderEmailTok, 'Invoice', WorkItem), 'The email should be received as a work item');

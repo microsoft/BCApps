@@ -74,8 +74,18 @@ page 3333 "Payables Agent Work Items"
                 }
                 field("Rejection Reason"; Rec."Rejection Reason")
                 {
+                    Visible = false;
                     ToolTip = 'Specifies why the received source was rejected during intake.';
                 }
+            }
+        }
+        area(FactBoxes)
+        {
+            part(PdfPreview; "PA Work Item Pdf Preview")
+            {
+                Caption = 'Preview';
+                Visible = IsPdfSourced;
+                ShowFilter = false;
             }
         }
     }
@@ -333,6 +343,10 @@ page 3333 "Payables Agent Work Items"
             EmailWebLink := Presentation.GetEmailWebLink(WorkItem);
         end;
         HasEmailWebLink := EmailWebLink <> '';
+        if IsPdfSourced then
+            CurrPage.PdfPreview.Page.SetWorkItem(Rec."Work Item ID")
+        else
+            CurrPage.PdfPreview.Page.SetWorkItem(EmptyWorkItemId);
     end;
 
     var
@@ -344,6 +358,7 @@ page 3333 "Payables Agent Work Items"
         ScopeState: Enum "PA Work Item State";
         WorkItemNotFoundErr: Label 'The work item does not exist.';
         EmailWebLink: Text;
+        EmptyWorkItemId: Guid;
         UseAgentExperience: Boolean;
         IsEmailSourced: Boolean;
         IsPdfSourced: Boolean;

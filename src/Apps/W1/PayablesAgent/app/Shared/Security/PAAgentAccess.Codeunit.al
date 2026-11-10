@@ -18,7 +18,6 @@ codeunit 3350 "PA Agent Access"
     InherentPermissions = X;
 
     #region Current agent session
-    // Real Payables Agent runtime only. Billing, KPI and document binding must never act on a simulation.
     internal procedure TryGetRuntimeAgentTaskId(var AgentTaskId: BigInteger): Boolean
     var
         AgentSession: Codeunit "Agent Session";
@@ -45,6 +44,20 @@ codeunit 3350 "PA Agent Access"
         AgentTaskId: BigInteger;
     begin
         exit(TryGetAgentViewTaskId(AgentTaskId));
+    end;
+
+    internal procedure TryGetRuntimeTaskOwnership(AgentTask: Record "Agent Task"; var IsOwned: Boolean): Boolean
+    var
+        AgentSession: Codeunit "Agent Session";
+        Provider: Enum "Agent Metadata Provider";
+    begin
+        IsOwned := false;
+        if not AgentSession.IsAgentSession(Provider) then
+            exit(false);
+        if Provider <> Provider::"Payables Agent" then
+            exit(false);
+        IsOwned := AgentTask."Agent User Security ID" = UserSecurityId();
+        exit(true);
     end;
     #endregion
 
