@@ -34,8 +34,6 @@ codeunit 3366 "MX Payment Response Mgt."
             ParentEntries.Remove(MessageEntryNo);
     end;
 
-    // Core saves the communication log after TrySendMessage returns. Persist here,
-    // not inside the connector's SendMessage TryFunction.
     [EventSubscriber(ObjectType::Table, Database::"E-Document Integration Log", 'OnAfterModifyEvent', '', false, false)]
     local procedure OnAfterIntegrationLogModify(var Rec: Record "E-Document Integration Log"; var xRec: Record "E-Document Integration Log"; RunTrigger: Boolean)
     var

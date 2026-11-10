@@ -46,7 +46,6 @@ codeunit 3357 "MX Payment Complement Mgt."
         PaymentRef: RecordRef;
         Payload: Codeunit "Temp Blob";
     begin
-        // Serialize per payment so concurrent occurrences of the same payment do not create duplicate complements
         Payment.LockTable();
         Payment.Get(Payment."Entry No.");
         Complement.SetRange("Payment Entry No.", Payment."Entry No.");
@@ -65,7 +64,6 @@ codeunit 3357 "MX Payment Complement Mgt."
         if Parent."Clearance Date" = 0DT then begin
             if HasClearedEDocument(Parent."Document Record ID") then
                 exit;
-            // Fail so Core retries the occurrence once the invoice is stamped, instead of marking it processed
             Error(InvoiceNotStampedErr, Parent."Document No.");
         end;
         PaymentRef.GetTable(Payment);

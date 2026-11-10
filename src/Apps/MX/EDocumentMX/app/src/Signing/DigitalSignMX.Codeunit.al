@@ -21,9 +21,6 @@ codeunit 3358 "Digital Sign MX"
         OriginalString: Text;
         Position: Integer;
     begin
-        // Build the pipe-delimited cadena original per SAT cadenaoriginal_Pagos20.xslt.
-        // Attributes are emitted in the SAT-mandated order for each element type,
-        // regardless of their serialization order in the XML.
         XMLDoc.WriteTo(XmlText);
         OriginalString := '||';
         Position := 1;
@@ -55,7 +52,6 @@ codeunit 3358 "Digital Sign MX"
         case LowerCase(PayCO_LocalName(ElementName)) of
             'comprobante':
                 begin
-                    // SAT cadenaoriginal_Pagos20.xslt Comprobante order; Sello/Certificado are excluded.
                     PayCO_AppendAttr(XmlText, TagAttrStart, OriginalString, 'Version');
                     PayCO_AppendAttr(XmlText, TagAttrStart, OriginalString, 'Serie');
                     PayCO_AppendAttr(XmlText, TagAttrStart, OriginalString, 'Folio');
@@ -178,8 +174,7 @@ codeunit 3358 "Digital Sign MX"
         PayCO_SkipToTagEnd(XmlText, Position);
     end;
 
-    // Searches the tag starting at TagAttrStart for AttributeName (case-insensitive)
-    // and appends its normalized value to OriginalString.
+
     local procedure PayCO_AppendAttr(XmlText: Text; TagAttrStart: Integer; var OriginalString: Text; AttributeName: Text)
     var
         SearchPosition: Integer;
@@ -223,7 +218,6 @@ codeunit 3358 "Digital Sign MX"
         PrevSpace: Boolean;
         Normalized: Text;
     begin
-        // Decode XML entities, strip pipes, collapse whitespace (mirrors NormalizeOriginalStringValue).
         Value := Value.Replace('&quot;', '"');
         Value := Value.Replace('&apos;', '''');
         Value := Value.Replace('&lt;', '<');
@@ -336,7 +330,6 @@ codeunit 3358 "Digital Sign MX"
         LineFeed: Char;
         CarriageReturn: Char;
     begin
-        // Format(9) would be the digit '9', not a tab; compare against the actual control characters
         Tab := 9;
         LineFeed := 10;
         CarriageReturn := 13;

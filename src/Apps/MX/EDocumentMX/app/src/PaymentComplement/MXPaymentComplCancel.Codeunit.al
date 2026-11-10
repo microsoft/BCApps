@@ -80,7 +80,6 @@ codeunit 3374 "MX Payment Compl. Cancel"
 
     procedure MarkAsCanceled(var Complement: Record "MX Payment Complement")
     begin
-        // Legacy parity: only a cancellation that was already requested can be closed manually
         if not (Complement."Cancellation Status" in [Complement."Cancellation Status"::"Cancel In Progress", Complement."Cancellation Status"::"Cancel Error"]) then
             Error(InvalidStatusForMarkErr);
         if not Confirm(MarkAsCanceledQst, false) then

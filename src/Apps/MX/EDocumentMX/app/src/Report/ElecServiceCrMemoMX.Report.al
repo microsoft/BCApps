@@ -997,8 +997,8 @@ report 3369 "EDoc CFDI Service Cr. Memo MX"
 
                 if CFDIWriteBackMX.GetStampData(RecordId(), StampUUID, DigitalSignatureTextUnbounded, DigitalSignaturePACTextUnbounded, StampCertificateNo, StampDateTime, OriginalStringTextUnbounded) then;
 
-                SATPaymentMethod := SATUtilities.GetSATPaymentTermDescription("Payment Terms Code"); // MetodoPago
-                SATPaymentTerm := SATUtilities.GetSATPaymentMethodDescription("Payment Method Code"); // FormaPago
+                SATPaymentMethod := SATUtilities.GetSATPaymentTermDescription("Payment Terms Code");
+                SATPaymentTerm := SATUtilities.GetSATPaymentMethodDescription("Payment Method Code");
             end;
         }
     }

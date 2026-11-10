@@ -430,7 +430,6 @@ report 3366 "EDoc CFDI Sales Credit Memo MX"
 
                             if TempSalesCrMemoLine.Quantity = 0 then
                                 UnitPriceToPrint := 0
-                            // so it won't print
                             else
                                 UnitPriceToPrint := Round(AmountExclInvDisc / TempSalesCrMemoLine.Quantity, 0.00001);
 
@@ -552,7 +551,7 @@ report 3366 "EDoc CFDI Sales Credit Memo MX"
                         CurrReport.Break();
                     end;
                     CopyNo := CopyNo + 1;
-                    if CopyNo = 1 then // Original
+                    if CopyNo = 1 then
                         Clear(CopyTxt)
                     else
                         CopyTxt := Text000;
@@ -611,8 +610,8 @@ report 3366 "EDoc CFDI Sales Credit Memo MX"
 
                 if CFDIWriteBackMX.GetStampData(RecordId(), StampUUID, DigitalSignatureTextUnbounded, DigitalSignaturePACTextUnbounded, StampCertificateNo, StampDateTime, OriginalStringTextUnbounded) then;
 
-                SATPaymentMethod := SATUtilities.GetSATPaymentTermDescription("Payment Terms Code"); // MetodoPago
-                SATPaymentTerm := SATUtilities.GetSATPaymentMethodDescription("Payment Method Code"); // FormaPago
+                SATPaymentMethod := SATUtilities.GetSATPaymentTermDescription("Payment Terms Code");
+                SATPaymentTerm := SATUtilities.GetSATPaymentMethodDescription("Payment Method Code");
             end;
         }
     }

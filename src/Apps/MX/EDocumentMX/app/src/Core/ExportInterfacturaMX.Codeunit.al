@@ -241,7 +241,6 @@ codeunit 3354 "Export Interfactura MX"
         if not IsolatedCertificate.Get(MXConnectionSetup."SAT Certificate") then
             exit;
 
-        // SAT expects the raw DER certificate, not the PKCS#12 container that holds the private key
         CertificateText :=
             X509Certificate2.GetRawCertDataAsBase64String(
                 CertificateManagement.GetCertAsBase64String(IsolatedCertificate),
@@ -2734,7 +2733,6 @@ codeunit 3354 "Export Interfactura MX"
     begin
         XMLDoc.WriteTo(XmlText);
 
-        // Legacy parity: build a CFDI-like original string using non-empty attribute values.
         OriginalString := '||';
         Position := 1;
         while Position <= StrLen(XmlText) do
@@ -2984,7 +2982,6 @@ codeunit 3354 "Export Interfactura MX"
         case LocalElementName of
             'comprobante':
                 begin
-                    // SAT cadenaoriginal_4_0.xslt Comprobante order (Sello/Certificado are auto-skipped)
                     AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Version', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
                     AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Serie', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
                     AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Folio', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
@@ -3148,9 +3145,6 @@ codeunit 3354 "Export Interfactura MX"
         CurrentAttributeName: Text;
         CurrentAttributeValue: Text;
     begin
-        // Always search from the beginning of the tag's attributes (TagStartPosition),
-        // not from where the previous attribute was found. This ensures we find attributes
-        // regardless of their order in the XML vs. the legacy canonical order.
         SearchPosition := TagStartPosition;
         while SearchPosition <= StrLen(XmlText) do begin
             SkipWhiteSpaces(XmlText, SearchPosition);
@@ -3265,7 +3259,6 @@ codeunit 3354 "Export Interfactura MX"
         LineFeed: Char;
         CarriageReturn: Char;
     begin
-        // Format(9) would be the digit '9', not a tab; compare against the actual control characters
         Tab := 9;
         LineFeed := 10;
         CarriageReturn := 13;
@@ -3454,7 +3447,6 @@ codeunit 3354 "Export Interfactura MX"
 
     local procedure SetDocumentTotals(var RootNode: XmlElement; ConceptsSubTotal: Decimal; ConceptsDiscount: Decimal; TaxTotal: Decimal; RetentionTotal: Decimal; CurrencyCode: Code[10])
     begin
-        // Totals come from the concepts (CFDI40_0008), so the CFDI Total can differ by a cent from the posted document
         ConceptsSubTotal := RoundToCurrency(ConceptsSubTotal, CurrencyCode);
         ConceptsDiscount := RoundToCurrency(ConceptsDiscount, CurrencyCode);
         RootNode.SetAttribute('SubTotal', FormatAmount(ConceptsSubTotal, CurrencyCode));
@@ -3465,7 +3457,6 @@ codeunit 3354 "Export Interfactura MX"
 
     local procedure FormatDateTime(InDateTime: DateTime): Text
     begin
-        // SAT requires yyyy-MM-ddThh:mm:ss in local time, without milliseconds or time zone designator
         exit(Format(InDateTime, 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>'));
     end;
 
@@ -3506,9 +3497,6 @@ codeunit 3354 "Export Interfactura MX"
     var
         TypeHelper: Codeunit "Type Helper";
     begin
-        // GetInputDateTimeInUserTimeZone subtracts the user timezone offset,
-        // compensating for Format(DateTime) which adds it back.
-        // Without this step, the formatted Fecha would be shifted by the user's offset.
         InputDateTime := TypeHelper.GetInputDateTimeInUserTimeZone(InputDateTime);
         exit(TypeHelper.ConvertDateTimeFromUTCToTimeZone(InputDateTime, TimeZone));
     end;
@@ -3629,8 +3617,6 @@ codeunit 3354 "Export Interfactura MX"
         TailPart: Text;
         FirstPosition: Integer;
     begin
-        // .NET redeclares xmlns:cfdi on every child element. Keep only the declaration
-        // on the root element and strip the redundant ones from the rest of the document.
         XMLDocInOut.WriteTo(XmlText);
 
         NamespaceDeclaration := ' xmlns:cfdi="' + CFDINamespaceTxt + '"';

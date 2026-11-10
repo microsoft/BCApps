@@ -7,10 +7,6 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument.Processing.Message;
 
-/// <summary>
-/// Queues MX payment complement messages in a separate background task session.
-/// This must not run as a Job Queue OnRun handler because QueueMessage performs a COMMIT.
-/// </summary>
 codeunit 3365 "MX Payment Compl. Dispatcher"
 {
     InherentEntitlements = X;

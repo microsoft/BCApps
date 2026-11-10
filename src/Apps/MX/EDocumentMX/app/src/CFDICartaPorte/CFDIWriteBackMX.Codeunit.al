@@ -35,7 +35,6 @@ codeunit 3360 "CFDI Write-Back MX"
         exit(UUID);
     end;
 
-    /// <summary>Reads the fiscal stamp (TimbreFiscalDigital) of a document from its stamped E-Document XML.</summary>
     procedure GetStampData(DocumentRecordId: RecordId; var UUID: Text; var IssuerSeal: Text; var SATSeal: Text; var SATCertificateNo: Text; var DateTimeStamped: Text; var StampOriginalString: Text): Boolean
     var
         EDocument: Record "E-Document";
@@ -62,7 +61,6 @@ codeunit 3360 "CFDI Write-Back MX"
         if not ExtractTimbreData(StampedXML, UUID, SATSeal, IssuerSeal, SATCertificateNo, DateTimeStamped, PACRFC, StampVersion, Legend) then
             exit(false);
 
-        // Original string of the SAT digital certification complement (TFD 1.1)
         StampOriginalString := '||' + StampVersion + '|' + UUID + '|' + DateTimeStamped + '|' + PACRFC + '|';
         if Legend <> '' then
             StampOriginalString += Legend + '|';
@@ -76,7 +74,6 @@ codeunit 3360 "CFDI Write-Back MX"
         PrepaymentUUID: Text;
         UUID: Text;
     begin
-        // The final invoice references its order in "Order No."; prepayment invoices keep it in "Prepayment Order No."
         if SalesInvoiceHeader."Order No." = '' then
             exit('');
 
@@ -93,7 +90,6 @@ codeunit 3360 "CFDI Write-Back MX"
         exit(CopyStr(PrepaymentUUID, 1, 50));
     end;
 
-    /// <summary>Returns true if the document has a cleared E-Document (i.e. it has been stamped).</summary>
     procedure IsDocumentStamped(DocumentRecordId: RecordId): Boolean
     var
         EDocument: Record "E-Document";

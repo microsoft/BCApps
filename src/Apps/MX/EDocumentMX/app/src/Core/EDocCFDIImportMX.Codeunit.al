@@ -179,7 +179,6 @@ codeunit 3368 "EDoc CFDI Import MX"
     var
         DateText: Text;
     begin
-        // CFDI Fecha format: YYYY-MM-DDTHH:MM:SS — extract date portion
         if DateTimeText = '' then
             exit(false);
         DateText := CopyStr(DateTimeText, 1, 10);

@@ -430,8 +430,6 @@ codeunit 3356 "MX Payment Complement Builder"
         LocalDT: DateTime;
         TimeZone: Text;
     begin
-        // Issue date (Fecha): current datetime in the customer's timezone, so the PAC never sees it in the future.
-        // Using the posting date at noon fails PAC validation when noon CST > current UTC.
         Customer.Get(Payment."Customer No.");
         if PostCode.Get(Customer."Post Code", Customer.City) then
             TimeZone := PostCode."Time Zone";

@@ -295,7 +295,6 @@ codeunit 3355 "Interfactura Processing"
         exit(UUID <> '');
     end;
 
-    // Legacy parity: with Cancel on Time Expiration, a document stamped less than 24 hours ago is canceled without contacting the PAC
     internal procedure CancelsOnTimeExpiration(StampedAt: DateTime): Boolean
     begin
         if StampedAt = 0DT then

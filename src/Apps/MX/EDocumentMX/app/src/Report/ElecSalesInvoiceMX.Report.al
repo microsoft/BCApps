@@ -592,7 +592,6 @@ report 3365 "EDoc CFDI Sales Invoice MX"
 
                             if TempSalesInvoiceLine.Quantity = 0 then
                                 UnitPriceToPrint := 0
-                            // so it won't print
                             else
                                 UnitPriceToPrint := Round(AmountExclInvDisc / TempSalesInvoiceLine.Quantity, 0.00001);
                             TotalAmountIncludingVAT += TempSalesInvoiceLine."Amount Including VAT";
@@ -716,7 +715,7 @@ report 3365 "EDoc CFDI Sales Invoice MX"
                         CurrReport.Break();
                     end;
                     CopyNo := CopyNo + 1;
-                    if CopyNo = 1 then // Original
+                    if CopyNo = 1 then
                         Clear(CopyTxt)
                     else
                         CopyTxt := Text000;
@@ -797,12 +796,12 @@ report 3365 "EDoc CFDI Sales Invoice MX"
                 SATPaymentTerms := "Payment Terms Code";
                 SATPaymentMethod := "Payment Method Code";
 
-                SATPaymentTermsDescription := SATUtilities.GetSATPaymentTermDescription("Payment Terms Code"); // MetodoPago
-                SATPaymentMethodDescription := SATUtilities.GetSATPaymentMethodDescription("Payment Method Code"); // FormaPago
+                SATPaymentTermsDescription := SATUtilities.GetSATPaymentTermDescription("Payment Terms Code");
+                SATPaymentMethodDescription := SATUtilities.GetSATPaymentMethodDescription("Payment Method Code");
 
-                CFDIPurpose := "CFDI Purpose"; // UsoCFDI
+                CFDIPurpose := "CFDI Purpose";
 
-                SATFolioFiscal := GetUUIDFromOriginalPrepayment("Sales Invoice Header", DummySalesInvoiceNumber);// Folio Fiscal
+                SATFolioFiscal := GetUUIDFromOriginalPrepayment("Sales Invoice Header", DummySalesInvoiceNumber);
                 if SATFolioFiscal <> '' then
                     SATTipoRelacion := TipoRelacionTxt;
             end;
