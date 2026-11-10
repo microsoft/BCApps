@@ -68,9 +68,14 @@ codeunit 6233 "Sust. Preview Post Instance"
         if SustValueEntry.IsTemporary() then
             exit;
 
+        if NextSustValuePreviewEntryNo = 0 then
+            NextSustValuePreviewEntryNo := -2000000000;
+
         TempSustValueEntry := SustValueEntry;
+        TempSustValueEntry."Entry No." := NextSustValuePreviewEntryNo;
         TempSustValueEntry."Document No." := '***';
         TempSustValueEntry.Insert();
+        NextSustValuePreviewEntryNo += 1;
         HasSustainabilityValueEntry := true;
     end;
 
@@ -94,12 +99,32 @@ codeunit 6233 "Sust. Preview Post Instance"
         TempSustValueEntry.DeleteAll();
 
         NextSustLedgerPreviewEntryNo := -2000000000;
+        NextSustValuePreviewEntryNo := -2000000000;
+    end;
+
+    internal procedure IsPreviewLedgerEntry(EntryNo: Integer): Boolean
+    var
+        TempPreviewSustLedgEntry: Record "Sustainability Ledger Entry" temporary;
+    begin
+        // Share the buffer so the lookup does not move the single instance record.
+        TempPreviewSustLedgEntry.Copy(TempSustLedgEntry, true);
+        exit(TempPreviewSustLedgEntry.Get(EntryNo));
+    end;
+
+    internal procedure IsPreviewValueEntry(EntryNo: Integer): Boolean
+    var
+        TempPreviewSustValueEntry: Record "Sustainability Value Entry" temporary;
+    begin
+        // Share the buffer so the lookup does not move the single instance record.
+        TempPreviewSustValueEntry.Copy(TempSustValueEntry, true);
+        exit(TempPreviewSustValueEntry.Get(EntryNo));
     end;
 
     var
         TempSustLedgEntry: Record "Sustainability Ledger Entry" temporary;
         TempSustValueEntry: Record "Sustainability Value Entry" temporary;
         NextSustLedgerPreviewEntryNo: Integer;
+        NextSustValuePreviewEntryNo: Integer;
         HasSustainabilityEntry: Boolean;
         HasSustainabilityValueEntry: Boolean;
 }

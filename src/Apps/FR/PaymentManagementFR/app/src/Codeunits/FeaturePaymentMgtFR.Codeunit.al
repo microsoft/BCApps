@@ -70,7 +70,9 @@ codeunit 10831 "Feature - PaymentMgt FR" implements "Feature Data Update"
         PaymentDataMigrationFR: Codeunit "Payment Data Migration FR";
     begin
         // The same migration is run by the forced upgrade to version 31 in codeunit
-        // "Upgrade Payment Management FR", so that both scenarios migrate the same data.
+        // "Upgrade Payment Management FR", including the separately tagged journal fields,
+        // VAT buffer and direct-debit fields.
+        // Each tag is set by the shared migration only after its data has been copied.
         PaymentDataMigrationFR.MigratePaymentData();
         PaymentDataMigrationFR.RemapPaymentStepObjectIDs();
     end;

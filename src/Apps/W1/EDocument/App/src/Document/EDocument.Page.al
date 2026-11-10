@@ -310,7 +310,7 @@ page 6121 "E-Document"
                         end
                     end;
                 }
-#if not CLEAN30
+#if not CLEAN29
                 action(RejectOrder)
                 {
                     Caption = 'Reject Order';
@@ -320,7 +320,7 @@ page 6121 "E-Document"
                     Visible = false;
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Replaced by the Reject order action in the Incoming group.';
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
 
                     trigger OnAction()
                     begin

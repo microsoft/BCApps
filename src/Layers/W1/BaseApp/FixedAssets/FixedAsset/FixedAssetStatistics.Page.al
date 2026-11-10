@@ -100,6 +100,11 @@ page 5602 "Fixed Asset Statistics"
                             ApplicationArea = FixedAssets;
                             Caption = 'Custom 1';
                         }
+                        field("Last Derogatory"; Rec."Last Derogatory")
+                        {
+                            ApplicationArea = FixedAssets;
+                            Caption = 'Derogatory';
+                        }
                         field("Last Salvage Value Date"; Rec."Last Salvage Value Date")
                         {
                             ApplicationArea = FixedAssets;
@@ -132,6 +137,12 @@ page 5602 "Fixed Asset Statistics"
                         }
                         field("Custom 1"; Rec."Custom 1")
                         {
+                            ApplicationArea = FixedAssets;
+                        }
+                        field("Derogatory Amount"; Rec."Derogatory Amount")
+                        {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
                             ApplicationArea = FixedAssets;
                         }
                         field("Salvage Value"; Rec."Salvage Value")

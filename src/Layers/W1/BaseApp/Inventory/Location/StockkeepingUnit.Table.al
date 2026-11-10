@@ -231,6 +231,7 @@ table 5700 "Stockkeeping Unit"
             Caption = 'Reorder Quantity';
             ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             DecimalPlaces = 0 : 5;
+            MinValue = 0;
         }
         field(53; Comment; Boolean)
         {

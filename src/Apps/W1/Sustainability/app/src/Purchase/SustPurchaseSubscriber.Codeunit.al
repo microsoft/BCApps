@@ -221,8 +221,7 @@ codeunit 6225 "Sust. Purchase Subscriber"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Charge Assgnt. (Purch.)", 'OnAssignItemChargesFromLineOnAfterItemChargeAssignmentModifyAll', '', false, false)]
     local procedure OnAssignItemChargesFromLineOnAfterItemChargeAssignmentModifyAll(var ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)")
     begin
-        ItemChargeAssignmentPurch.ModifyAll("CO2e to Assign", 0);
-        ItemChargeAssignmentPurch.ModifyAll("CO2e to Handle", 0);
+        ItemChargeAssignmentPurch.ModifyAll("CO2e to Assign", 0, "CO2e to Handle", 0);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Charge Assgnt. (Purch.)", 'OnSuggestAssgntFromLineOnBeforeItemChargeAssignmentPurchModify', '', false, false)]

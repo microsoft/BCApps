@@ -10,6 +10,7 @@ using System.Security.AccessControl;
 codeunit 135549 "Report Inbox API E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestPermissions = Disabled;
 
     trigger OnRun()

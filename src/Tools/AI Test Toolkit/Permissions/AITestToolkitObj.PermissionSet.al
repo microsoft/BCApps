@@ -27,6 +27,7 @@ permissionset 149031 "AI Test Toolkit - Obj"
         codeunit "AIT Test Run Iteration" = X,
         codeunit "AIT Test Context" = X,
         codeunit "AIT Test Context Impl." = X,
+        codeunit "AIT Run Data Export" = X,
         codeunit "AIT Run History" = X,
         xmlport "AIT Test Suite Import/Export" = X,
         page "AIT Eval Monthly Copilot Cred." = X,

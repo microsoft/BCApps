@@ -1,6 +1,7 @@
 codeunit 139882 "APIV2 - Salesperson/Purch E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     RequiredTestIsolation = Disabled;
 
     var
@@ -14,6 +15,8 @@ codeunit 139882 "APIV2 - Salesperson/Purch E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 
