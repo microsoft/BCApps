@@ -48,7 +48,7 @@
     },
     {
         "FeatureName": "Deploy Power BI reports for production companies",
-        "Description": "Deploy the included Power BI reports from a production company to a shared Power BI workspace. Select the workspace, follow deployment status, install updates and retry failed deployments from Business Central.",
+        "Description": "Available from Business Central 29.1. Deploy the included Power BI reports from a production company to a shared Power BI workspace. Select the workspace, follow deployment status, install updates and retry failed deployments from Business Central.",
         "Category": "Analytics",
         "HelpURL": "",
         "VideoURL": "",
