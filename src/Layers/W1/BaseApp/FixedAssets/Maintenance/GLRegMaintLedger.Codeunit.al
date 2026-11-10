@@ -14,7 +14,8 @@ codeunit 5649 "G/L Reg.-Maint.Ledger"
     begin
         MaintenanceLedgEntry.SetCurrentKey("G/L Entry No.");
         MaintenanceLedgEntry.SetRange("G/L Entry No.", Rec."From Entry No.", Rec."To Entry No.");
-        PAGE.Run(PAGE::"Maintenance Ledger Entries", MaintenanceLedgEntry);
+                MaintenanceLedgEntry.SetFilter("G/L Register No.", '0|%1', Rec."No.");
+                PAGE.Run(PAGE::"Maintenance Ledger Entries", MaintenanceLedgEntry);
     end;
 
     var

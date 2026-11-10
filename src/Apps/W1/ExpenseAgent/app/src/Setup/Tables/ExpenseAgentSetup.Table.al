@@ -1101,6 +1101,19 @@ table 6930 "Expense Agent Setup"
         Rec.Modify();
     end;
 
+    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense No. Series", 'X')]
+    internal procedure EnsureExpenseVendorNoSeries()
+    var
+        CreateExpenseNoSeries: Codeunit "Create Expense No. Series";
+    begin
+        if Rec."Expense Vendor Nos." <> '' then
+            exit;
+
+        CreateExpenseNoSeries.InsertExpenseVendorNoSeries();
+        Rec.Validate("Expense Vendor Nos.", CreateExpenseNoSeries.ExpenseVendorNoSeries());
+        Rec.Modify();
+    end;
+
     [InherentPermissions(PermissionObjectType::TableData, Database::"Expense User", 'I')]
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense Agent Setup", 'X')]
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense GL Account", 'X')]
@@ -1258,7 +1271,9 @@ table 6930 "Expense Agent Setup"
     internal procedure CreateAccountingDefaults()
     begin
         if not Rec."No. Series Applied" then
-            CreateNoSeriesDefaults();
+            CreateNoSeriesDefaults()
+        else
+            EnsureExpenseVendorNoSeries();
         if not Rec."Payment Methods Applied" then
             CreatePaymentMethodsDefaults();
         if not Rec."Posting Groups Applied" then
