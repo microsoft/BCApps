@@ -6,7 +6,9 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.Finance.Registration;
+using Microsoft.Finance.VAT.Registration;
 using Microsoft.Inventory.Intrastat;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Receivables;
 
 tableextension 11701 "Customer CZL" extends Customer
@@ -26,7 +28,6 @@ tableextension 11701 "Customer CZL" extends Customer
                 OnBeforeOnValidateRegistrationNoCZL(Rec, xRec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if not RegistrationNoMgtCZL.CheckRegistrationNo(GetRegistrationNoTrimmedCZL(), "No.", Database::Customer) then
                     exit;
 
@@ -38,10 +39,22 @@ tableextension 11701 "Customer CZL" extends Customer
                         if ResultRecordRef.Number <> 0 then
                             ResultRecordRef.SetTable(Rec);
                     end;
-
                 if LogNotVerified then
                     RegistrationLogMgtCZL.LogCustomer(Rec);
             end;
+        }
+        field(11767; "Last Unrel. Check Date CZL"; Date)
+        {
+            CalcFormula = max("Unreliable Payer Entry CZL"."Check Date" where("VAT Registration No." = field("VAT Registration No."),
+                                                                              "Type" = const(Payer)));
+            Caption = 'Last Unreliability Check Date';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(11769; "Disable Unreliab. Check CZL"; Boolean)
+        {
+            Caption = 'Disable Unreliability Check';
+            DataClassification = CustomerContent;
         }
 #if not CLEANSCHEMA26
         field(11770; "Registration No. CZL"; Text[20])
@@ -67,6 +80,15 @@ tableextension 11701 "Customer CZL" extends Customer
         {
             Caption = 'Validate Registration No.';
             DataClassification = CustomerContent;
+        }
+        field(11780; "Unreliable Payer Status CZL"; Enum "Unreliable Payer Status CZL")
+        {
+            CalcFormula = lookup("Unreliable Payer Entry CZL".Status where("VAT Registration No." = field("VAT Registration No."),
+                                                                           Type = const(Payer),
+                                                                           "Check Date" = field("Last Unrel. Check Date CZL")));
+            Caption = 'Unreliable Payer Status';
+            Editable = false;
+            FieldClass = FlowField;
         }
 #if not CLEANSCHEMA25
         field(31070; "Transaction Type CZL"; Code[10])
@@ -101,12 +123,14 @@ tableextension 11701 "Customer CZL" extends Customer
 
     trigger OnDelete()
     begin
+        UnreliablePayerMgtCZL.UpdateUnreliablePayerEntriesOnDelete(Rec);
         RegistrationLogMgtCZL.DeleteCustomerLog(Rec);
     end;
 
     var
         RegistrationLogMgtCZL: Codeunit "Registration Log Mgt. CZL";
         RegistrationNoMgtCZL: Codeunit "Registration No. Mgt. CZL";
+        UnreliablePayerMgtCZL: Codeunit "Unreliable Payer Mgt. CZL";
         RegistrationNo: Text[20];
 
     procedure CheckOpenCustomerLedgerEntriesCZL()
