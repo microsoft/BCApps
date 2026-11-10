@@ -37,7 +37,7 @@ page 10 "Countries/Regions"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("SEPA Allowed"; Rec."SEPA Allowed")
+                field("SEPA Allowed"; Rec."SEPA Payments Allowed")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if you can submit electronic payments in SEPA format to customers or vendors in this country/region.';

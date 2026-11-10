@@ -277,7 +277,7 @@ codeunit 144008 "EB - Payment Journal Export"
         CountryCode := FindCountryRegion();
         ExportProtocol := CreateSEPAExportProtocol(true);
         CountryRegion.Get('DK');
-        CountryRegion."SEPA Allowed" := true;
+        CountryRegion."SEPA Payments Allowed" := true;
         CountryRegion.Modify();
 
         // Create payments
@@ -318,7 +318,7 @@ codeunit 144008 "EB - Payment Journal Export"
         CountryCode := FindCountryRegion();
         ExportProtocol := CreateSEPAExportProtocol(false);
         CountryRegion.Get('DK');
-        CountryRegion."SEPA Allowed" := true;
+        CountryRegion."SEPA Payments Allowed" := true;
         CountryRegion.Modify();
 
         // Create payments
@@ -361,7 +361,7 @@ codeunit 144008 "EB - Payment Journal Export"
         // Preparation: create settings
         CountryCode := FindCountryRegion();
         CountryRegion.Get('DK');
-        CountryRegion."SEPA Allowed" := true;
+        CountryRegion."SEPA Payments Allowed" := true;
         CountryRegion.Modify();
         ExportProtocol := CreateSEPAExportProtocol(true);
 
@@ -778,7 +778,7 @@ codeunit 144008 "EB - Payment Journal Export"
         CountryCode := FindCountryRegion();
         ExportProtocol := CreateSEPAExportProtocol(true);
         CountryRegion.Get('DK');
-        CountryRegion."SEPA Allowed" := false;
+        CountryRegion."SEPA Payments Allowed" := false;
         CountryRegion.Modify();
 
         // Create payments
@@ -815,7 +815,7 @@ codeunit 144008 "EB - Payment Journal Export"
         CountryCode := FindCountryRegion();
         ExportProtocol := CreateSEPAExportProtocol(true);
         CountryRegion.Get('DK');
-        CountryRegion."SEPA Allowed" := false;
+        CountryRegion."SEPA Payments Allowed" := false;
         CountryRegion.Modify();
 
         // Create payments
@@ -2092,7 +2092,7 @@ codeunit 144008 "EB - Payment Journal Export"
         CountryRegion: Record "Country/Region";
     begin
         LibraryERM.FindCountryRegion(CountryRegion);
-        CountryRegion."SEPA Allowed" := true;
+        CountryRegion."SEPA Payments Allowed" := true;
         ISOCountryCode := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(2, 0), 1, 2);
         CountryRegion.Validate("ISO Code", ISOCountryCode);
         CountryRegion.Modify();

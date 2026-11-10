@@ -201,8 +201,8 @@ codeunit 144076 "SEPA.03 CT Functional Test"
         CountryRegion: Record "Country/Region";
     begin
         CountryRegion.Get(CountryRegionCode);
-        if not CountryRegion."SEPA Allowed" then begin
-            CountryRegion.Validate("SEPA Allowed", true);
+        if not CountryRegion."SEPA Payments Allowed" then begin
+            CountryRegion.Validate("SEPA Payments Allowed", true);
             CountryRegion.Modify(true);
         end;
     end;

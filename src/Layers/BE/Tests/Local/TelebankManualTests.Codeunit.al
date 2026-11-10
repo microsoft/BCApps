@@ -34,7 +34,7 @@ codeunit 144019 "Telebank - Manual Tests"
     begin
         // Init
         CountryRegion.SetRange(Code, 'BE');
-        CountryRegion.ModifyAll("SEPA Allowed", true);
+        CountryRegion.ModifyAll("SEPA Payments Allowed", true);
 
         CreateExportProtocol(ExportProtocol, ExportProtocol."Code Expenses"::SHA, 2000002, 2000001, '');
         CreateExportProtocol(ExportProtocol, ExportProtocol."Code Expenses"::SHA, 2000003, 2000002, '');

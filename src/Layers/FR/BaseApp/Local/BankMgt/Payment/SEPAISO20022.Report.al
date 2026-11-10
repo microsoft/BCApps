@@ -379,7 +379,7 @@ report 10883 "SEPA ISO20022"
     begin
         if SEPACountry.Code <> CountryCode then
             SEPACountry.Get(CountryCode);
-        exit(SEPACountry."SEPA Allowed");
+        exit(SEPACountry."SEPA Payments Allowed");
     end;
 
     local procedure CheckPaymentLines()

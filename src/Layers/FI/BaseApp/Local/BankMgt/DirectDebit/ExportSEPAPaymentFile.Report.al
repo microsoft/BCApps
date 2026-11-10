@@ -466,13 +466,13 @@ report 13403 "Export SEPA Payment File"
                 BankAcc.TestField("SWIFT Code");
                 if not Country.Get(BankAcc."Country/Region Code") then
                     BankAcc.FieldError("Country/Region Code");
-                if not Country."SEPA Allowed" then
+                if not Country."SEPA Payments Allowed" then
                     Error(Text13405, RefPaymentExported."Payment Account");
 
                 VendorBankAcc.Get(RefPaymentExported."Vendor No.", RefPaymentExported."Vendor Account");
                 if not Country.Get(VendorBankAcc."Country/Region Code") then
                     VendorBankAcc.FieldError("Country/Region Code");
-                if Country."SEPA Allowed" then
+                if Country."SEPA Payments Allowed" then
                     VendorBankAcc.TestField(IBAN)
                 else
                     if VendorBankAcc.IBAN = '' then

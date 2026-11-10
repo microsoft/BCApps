@@ -113,6 +113,11 @@ table 9 "Country/Region"
             Caption = 'County Name';
             ToolTip = 'Specifies the name of the county.';
         }
+        field(13; "SEPA Payments Allowed"; Boolean)
+        {
+            Caption = 'SEPA Allowed';
+            ToolTip = 'Specifies if the country/region allows SEPA payments.';
+        }
     }
 
     keys

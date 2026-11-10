@@ -578,7 +578,7 @@ codeunit 144058 "UT SEPA"
         CountryRegion: Record "Country/Region";
     begin
         CountryRegion.Code := LibraryUTUtility.GetNewCode10();
-        CountryRegion."SEPA Allowed" := SEPAAllowed;
+        CountryRegion."SEPA Payments Allowed" := SEPAAllowed;
         CountryRegion.Insert();
         exit(CountryRegion.Code);
     end;

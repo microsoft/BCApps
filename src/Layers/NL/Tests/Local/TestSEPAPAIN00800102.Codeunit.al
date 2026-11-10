@@ -1424,7 +1424,7 @@ codeunit 144102 "Test SEPA PAIN 008.001.02"
         CountryRegion.SetFilter(Code, '<>%1', CompanyInfo."Country/Region Code");
         CountryRegion.FindFirst();
 
-        CountryRegion.Validate("SEPA Allowed", true);
+        CountryRegion.Validate("SEPA Payments Allowed", true);
         CountryRegion.Modify(true);
         exit(CountryRegion.Code)
     end;

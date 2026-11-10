@@ -229,8 +229,8 @@ codeunit 2000001 CheckPaymJnlLine
             exit;
 
         GetCountry(CountryRegionCode);
-        if not Country."SEPA Allowed" and RequiredSEPAAllowed then
-            InsertErrorLog(StrSubstNo(Text012, Country."SEPA Allowed", CountryRegionCode, PmtJnlLineNo));
+        if not Country."SEPA Payments Allowed" and RequiredSEPAAllowed then
+            InsertErrorLog(StrSubstNo(Text012, Country."SEPA Payments Allowed", CountryRegionCode, PmtJnlLineNo));
     end;
 
     local procedure ErrorEmptyFieldInLine(PmtJnlLineNo: Integer; Value: Text[50]; Caption: Text[30]): Boolean

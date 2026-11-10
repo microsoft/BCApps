@@ -112,6 +112,20 @@ table 9 "Country/Region"
             Caption = 'County Name';
             ToolTip = 'Specifies the name of the county.';
         }
+        field(13; "SEPA Payments Allowed"; Boolean)
+        {
+            Caption = 'SEPA Allowed';
+            ToolTip = 'Specifies if the country/region allows SEPA payments.';
+#if not CLEAN30
+
+            trigger OnValidate()
+            begin
+#pragma warning disable AL0432
+                "SEPA Allowed" := "SEPA Payments Allowed";
+#pragma warning restore AL0432
+            end;
+#endif
+        }
 #if not CLEANSCHEMA25
         field(2000000; "ISO Country/Region Code"; Code[2])
         {
@@ -125,10 +139,29 @@ table 9 "Country/Region"
         {
             Caption = 'IBAN Country/Region';
         }
+#if not CLEANSCHEMA33
+#pragma warning disable AA0232
         field(2000005; "SEPA Allowed"; Boolean)
         {
             Caption = 'SEPA Allowed';
+            ObsoleteReason = 'Replaced by the SEPA Payments Allowed field in the W1 base application.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+
+            trigger OnValidate()
+            begin
+#pragma warning disable AL0432
+                "SEPA Payments Allowed" := "SEPA Allowed";
+#pragma warning restore AL0432
+            end;
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys

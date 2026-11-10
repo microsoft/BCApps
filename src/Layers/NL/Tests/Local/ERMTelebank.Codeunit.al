@@ -2163,7 +2163,7 @@ codeunit 144037 "ERM Telebank"
     begin
         CompanyInformation.Get();
         CountryRegion.Get(CompanyInformation."Country/Region Code");
-        CountryRegion.Validate("SEPA Allowed", SEPAAllowed);
+        CountryRegion.Validate("SEPA Payments Allowed", SEPAAllowed);
         CountryRegion.Modify(true);
     end;
 
@@ -2607,7 +2607,7 @@ codeunit 144037 "ERM Telebank"
         CountryRegion: Record "Country/Region";
     begin
         LibraryERM.CreateCountryRegion(CountryRegion);
-        CountryRegion."SEPA Allowed" := true;
+        CountryRegion."SEPA Payments Allowed" := true;
         CountryRegion.Modify();
         CreateFreelyTransMaximumWithAmount(CountryRegion.Code, MaximumAmount);
         exit(CountryRegion.Code);

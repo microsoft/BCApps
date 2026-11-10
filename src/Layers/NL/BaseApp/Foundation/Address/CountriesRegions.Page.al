@@ -37,7 +37,7 @@ page 10 "Countries/Regions"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("SEPA Allowed"; Rec."SEPA Allowed")
+                field("SEPA Allowed"; Rec."SEPA Payments Allowed")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if the Single Euro Payments Area (SEPA) function is active for the country/region.';

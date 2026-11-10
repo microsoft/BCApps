@@ -2288,7 +2288,7 @@ codeunit 144101 "Test SEPA CT v03"
         CountryRegion.SetFilter(Code, '<>%1', CompanyInfo."Country/Region Code");
         CountryRegion.FindFirst();
 
-        CountryRegion.Validate("SEPA Allowed", true);
+        CountryRegion.Validate("SEPA Payments Allowed", true);
         CountryRegion.Modify(true);
         exit(CountryRegion.Code)
     end;

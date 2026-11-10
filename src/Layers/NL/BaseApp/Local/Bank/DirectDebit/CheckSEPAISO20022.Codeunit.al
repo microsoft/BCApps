@@ -33,8 +33,8 @@ codeunit 11000010 "Check SEPA ISO20022"
 
         Country.Get(Rec."Bank Country/Region Code");
 
-        if not Country."SEPA Allowed" then begin
-            Rec."Error Message" := StrSubstNo(Text009, Country.FieldCaption("SEPA Allowed"), Country."SEPA Allowed",
+        if not Country."SEPA Payments Allowed" then begin
+            Rec."Error Message" := StrSubstNo(Text009, Country.FieldCaption("SEPA Payments Allowed"), Country."SEPA Payments Allowed",
                 Rec.FieldCaption("Bank Country/Region Code"), Rec."Bank Country/Region Code");
             exit;
         end;
@@ -61,8 +61,8 @@ codeunit 11000010 "Check SEPA ISO20022"
         if Country.Code <> BankAcc."Country/Region Code" then
             Country.Get(BankAcc."Country/Region Code");
 
-        if not Country."SEPA Allowed" then begin
-            Rec."Error Message" := StrSubstNo(Text003, Country.FieldCaption("SEPA Allowed"), Country."SEPA Allowed",
+        if not Country."SEPA Payments Allowed" then begin
+            Rec."Error Message" := StrSubstNo(Text003, Country.FieldCaption("SEPA Payments Allowed"), Country."SEPA Payments Allowed",
                 BankAcc.FieldCaption("Country/Region Code"), BankAcc."Country/Region Code",
                 Rec.FieldCaption("Our Bank No."), Rec."Our Bank No.");
             exit;

@@ -776,7 +776,7 @@ codeunit 144004 "Bank Payments - SEPA V2"
         CountryRegion: Record "Country/Region";
     begin
         CountryRegion.Get(CountryCode);
-        CountryRegion."SEPA Allowed" := SepaAllowed;
+        CountryRegion."SEPA Payments Allowed" := SepaAllowed;
         CountryRegion.Modify();
     end;
 

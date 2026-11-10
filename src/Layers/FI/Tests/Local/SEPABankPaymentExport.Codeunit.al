@@ -149,7 +149,7 @@ codeunit 144026 "SEPA Bank Payment Export"
         CountryRegion: Record "Country/Region";
     begin
         CountryRegion.Get(CountryCode);
-        CountryRegion."SEPA Allowed" := SepaAllowed;
+        CountryRegion."SEPA Payments Allowed" := SepaAllowed;
         CountryRegion.Modify();
     end;
 

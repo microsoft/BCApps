@@ -290,12 +290,106 @@ codeunit 144002 "Bank Payments"
         GeneralLedgerSetup.Modify();
     end;
 
+#pragma warning disable AL0432
+    [Test]
+    [Scope('OnPrem')]
+    procedure SEPAValidationSynchronizesLegacyAndSharedFields()
+    var
+        SEPACountryRegion: Record "Country/Region";
+    begin
+        LibraryERM.CreateCountryRegion(SEPACountryRegion);
+        SEPACountryRegion.Validate("SEPA Allowed", true);
+        SEPACountryRegion.TestField("SEPA Payments Allowed", true);
+        SEPACountryRegion.Validate("SEPA Payments Allowed", false);
+        SEPACountryRegion.TestField("SEPA Allowed", false);
+        SEPACountryRegion.Validate("SEPA Payments Allowed", true);
+        SEPACountryRegion.TestField("SEPA Allowed", true);
+        SEPACountryRegion.Validate("SEPA Allowed", false);
+        SEPACountryRegion.TestField("SEPA Payments Allowed", false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SEPAModifyWithoutTriggersSynchronizesLegacyAndSharedFields()
+    var
+        SEPACountryRegion: Record "Country/Region";
+    begin
+        LibraryERM.CreateCountryRegion(SEPACountryRegion);
+        SEPACountryRegion."SEPA Allowed" := true;
+        SEPACountryRegion.Modify(false);
+        SEPACountryRegion.Get(SEPACountryRegion.Code);
+        SEPACountryRegion.TestField("SEPA Payments Allowed", true);
+
+        SEPACountryRegion."SEPA Payments Allowed" := false;
+        SEPACountryRegion.Modify(false);
+        SEPACountryRegion.Get(SEPACountryRegion.Code);
+        SEPACountryRegion.TestField("SEPA Allowed", false);
+
+        SEPACountryRegion."SEPA Payments Allowed" := true;
+        SEPACountryRegion.Modify(false);
+        SEPACountryRegion.Get(SEPACountryRegion.Code);
+        SEPACountryRegion.TestField("SEPA Allowed", true);
+
+        SEPACountryRegion."SEPA Allowed" := false;
+        SEPACountryRegion.Modify(false);
+        SEPACountryRegion.Get(SEPACountryRegion.Code);
+        SEPACountryRegion.TestField("SEPA Payments Allowed", false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SEPAInsertWithoutTriggersSynchronizesLegacyAndSharedFields()
+    var
+        SEPACountryRegion: Record "Country/Region";
+    begin
+        LibraryERM.CreateCountryRegion(SEPACountryRegion);
+        SEPACountryRegion.Delete(false);
+        SEPACountryRegion.Init();
+        SEPACountryRegion."SEPA Allowed" := true;
+        SEPACountryRegion.Insert(false);
+        SEPACountryRegion.Get(SEPACountryRegion.Code);
+        SEPACountryRegion.TestField("SEPA Payments Allowed", true);
+
+        SEPACountryRegion.Delete(false);
+        SEPACountryRegion.Init();
+        SEPACountryRegion."SEPA Payments Allowed" := true;
+        SEPACountryRegion.Insert(false);
+        SEPACountryRegion.Get(SEPACountryRegion.Code);
+        SEPACountryRegion.TestField("SEPA Allowed", true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SEPAModifyAllSynchronizesLegacyAndSharedFields()
+    var
+        SEPACountryRegion: Record "Country/Region";
+    begin
+        LibraryERM.CreateCountryRegion(SEPACountryRegion);
+        SEPACountryRegion.SetRange(Code, SEPACountryRegion.Code);
+        SEPACountryRegion.ModifyAll("SEPA Allowed", true, false);
+        SEPACountryRegion.Get(SEPACountryRegion.Code);
+        SEPACountryRegion.TestField("SEPA Payments Allowed", true);
+
+        SEPACountryRegion.ModifyAll("SEPA Payments Allowed", false, false);
+        SEPACountryRegion.Get(SEPACountryRegion.Code);
+        SEPACountryRegion.TestField("SEPA Allowed", false);
+
+        SEPACountryRegion.ModifyAll("SEPA Payments Allowed", true, false);
+        SEPACountryRegion.Get(SEPACountryRegion.Code);
+        SEPACountryRegion.TestField("SEPA Allowed", true);
+
+        SEPACountryRegion.ModifyAll("SEPA Allowed", false, false);
+        SEPACountryRegion.Get(SEPACountryRegion.Code);
+        SEPACountryRegion.TestField("SEPA Payments Allowed", false);
+    end;
+#pragma warning restore AL0432
+
     local procedure InitCountryRegion(CountryCode: Code[10]; SepaAllowed: Boolean)
     var
         CountryRegion: Record "Country/Region";
     begin
         CountryRegion.Get(CountryCode);
-        CountryRegion."SEPA Allowed" := SepaAllowed;
+        CountryRegion."SEPA Payments Allowed" := SepaAllowed;
         CountryRegion.Modify();
     end;
 

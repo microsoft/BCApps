@@ -99,6 +99,31 @@ codeunit 134277 "Country/Region UT"
 
     [Test]
     [Scope('OnPrem')]
+    procedure SEPAAllowedIsEditableInCountryList()
+    var
+        CountryRegion: Record "Country/Region";
+        CountriesRegions: TestPage "Countries/Regions";
+    begin
+        LibraryApplicationArea.EnableFoundationSetup();
+        CreateCountryRegion(CountryRegion);
+
+        CountriesRegions.OpenEdit();
+        CountriesRegions.GoToRecord(CountryRegion);
+        CountriesRegions."SEPA Allowed".SetValue(true);
+        CountriesRegions.Close();
+        CountryRegion.Find();
+        CountryRegion.TestField("SEPA Payments Allowed", true);
+
+        CountriesRegions.OpenEdit();
+        CountriesRegions.GoToRecord(CountryRegion);
+        CountriesRegions."SEPA Allowed".SetValue(false);
+        CountriesRegions.Close();
+        CountryRegion.Find();
+        CountryRegion.TestField("SEPA Payments Allowed", false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure GetCountryNameTranslationTest()
     var
         CountryRegion: Record "Country/Region";

@@ -5031,7 +5031,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         LibraryHumanResource.CreateEmployeeWithBankAccount(Employee);
         LibraryERM.CreatePostCode(PostCode);
         LibraryERM.CreateCountryRegion(CountryRegion);
-        CountryRegion.Validate("SEPA Allowed", true);
+        CountryRegion.Validate("SEPA Payments Allowed", true);
         CountryRegion.Modify(true);
         LibraryNLLocalization.CreateFreelyTransferableMaximum(CountryRegion.Code, '');
         Employee.Validate("Transaction Mode Code", TransactionMode.Code);
@@ -5725,7 +5725,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
     begin
         CompanyInformation.Get();
         CountryRegion.Get(CompanyInformation."Country/Region Code");
-        CountryRegion.Validate("SEPA Allowed", SEPAAllowed);
+        CountryRegion.Validate("SEPA Payments Allowed", SEPAAllowed);
         CountryRegion.Modify(true);
     end;
 

@@ -37,6 +37,10 @@ page 10 "Countries/Regions"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field("SEPA Allowed"; Rec."SEPA Payments Allowed")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field("Address Format"; Rec."Address Format")
                 {
                     ApplicationArea = Basic, Suite;
