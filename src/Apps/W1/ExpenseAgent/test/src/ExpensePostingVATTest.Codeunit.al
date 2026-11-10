@@ -1084,12 +1084,36 @@ codeunit 148330 "Expense Posting VAT Test"
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
     procedure VATSpecPostingBalancesForeignReimbursementCurrency()
+    begin
+        // [SCENARIO] Component rounding in a foreign reimbursement currency does not leave the G/L transaction out of balance.
+        VerifyVATSpecCurrencyRounding(false, 0.01);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure CurrencyRoundingUsesSubcategoryCreditAccount()
+    begin
+        // [SCENARIO] A credit rounding difference uses the report line's subcategory posting group.
+        VerifyVATSpecCurrencyRounding(true, 0.01);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure CurrencyRoundingUsesSubcategoryDebitAccount()
+    begin
+        // [SCENARIO] A debit rounding difference uses the report line's subcategory posting group.
+        VerifyVATSpecCurrencyRounding(true, -0.01);
+    end;
+
+    local procedure VerifyVATSpecCurrencyRounding(UseSubcategoryPostingGroup: Boolean; RoundingAdjustment: Decimal)
     var
         Expense: Record Expense;
         ExpenseUser: Record "Expense User";
         ExpenseCategory: Record "Expense Category";
         ExpenseSubCategory: array[4] of Record "Expense Subcategory";
+        ExpensePostingGroup: Record "Expense Posting Group";
         ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         VATPostingSetup: array[3] of Record "VAT Posting Setup";
@@ -1097,8 +1121,8 @@ codeunit 148330 "Expense Posting VAT Test"
         CreateExpenseReport: Codeunit "Create Expense Report";
         ExpenseReportPost: Codeunit "Expense Report-Post";
         CurrencyCode: Code[10];
+        ExpectedRoundingAmountRCY: Decimal;
     begin
-        // [SCENARIO] Component rounding in a foreign reimbursement currency does not leave the G/L transaction out of balance.
         Initialize();
 
         // [GIVEN] A 200.02 LCY expense split into two VAT specs and an 8.56 reimbursement-currency exchange rate.
@@ -1109,16 +1133,30 @@ codeunit 148330 "Expense Posting VAT Test"
         CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 8.56);
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", CurrencyCode, Expense."VAT Bus. Posting Group");
         AddExpensesToReport(CreateExpenseReport, ExpenseReportHeader, Expense."No.");
+        if UseSubcategoryPostingGroup then begin
+            SetSubcategoryPostingGroup(ExpenseSubCategory[1], ExpensePostingGroup);
+            ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+            ExpenseReportLine.FindFirst();
+            ExpenseReportLine.Validate("Expense Subcategory Code", ExpenseSubCategory[1].Code);
+            ExpenseReportLine.Modify(true);
+        end else
+            ExpensePostingGroup.Get(ExpenseCategory."Posting Group");
         ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportHeader."No.");
         ExpenseReportLineVATSpec.FindFirst();
-        ExpenseReportLineVATSpec."VAT Base Amount (LCY)" += 0.01;
-        ExpenseReportLineVATSpec."VAT Base Amount (RCY)" += 0.08;
-        ExpenseReportLineVATSpec."Amount (RCY)" += 0.08;
+        ExpenseReportLineVATSpec."VAT Base Amount (LCY)" += RoundingAdjustment;
+        ExpenseReportLineVATSpec."VAT Base Amount (RCY)" += RoundingAdjustment * 8;
+        ExpenseReportLineVATSpec."Amount (RCY)" += RoundingAdjustment * 8;
         ExpenseReportLineVATSpec.Modify();
 
         // [WHEN] The report is approved and posted.
         UpdateExpenseReportLinesWithVendor(ExpenseReportHeader);
         ExpenseReportHeader.PerformManualRelease();
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        ExpenseReportLineVATSpec.CalcSums("VAT Base Amount (RCY)", "VAT Amount (RCY)");
+        ExpectedRoundingAmountRCY :=
+            ExpenseReportLine."Reimbursable Amount" -
+            ExpenseReportLineVATSpec."VAT Base Amount (RCY)" - ExpenseReportLineVATSpec."VAT Amount (RCY)";
         PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
 
         // [THEN] The document balances in LCY and reimbursement currency.
@@ -1127,6 +1165,16 @@ codeunit 148330 "Expense Posting VAT Test"
         GLEntry.CalcSums(Amount, "Source Currency Amount");
         Assert.AreEqual(0, GLEntry.Amount, 'The posted G/L entries must balance in LCY.');
         Assert.AreEqual(0, GLEntry."Source Currency Amount", 'The posted G/L entries must balance in reimbursement currency.');
+
+        // [THEN] The rounding entry uses the selected posting group's debit or credit account.
+        if RoundingAdjustment > 0 then
+            GLEntry.SetRange("G/L Account No.", ExpensePostingGroup."Credit Rounding Account")
+        else
+            GLEntry.SetRange("G/L Account No.", ExpensePostingGroup."Debit Rounding Account");
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        GLEntry.TestField(Amount, -RoundingAdjustment);
+        GLEntry.TestField("Source Currency Amount", ExpectedRoundingAmountRCY);
     end;
 
     [Test]

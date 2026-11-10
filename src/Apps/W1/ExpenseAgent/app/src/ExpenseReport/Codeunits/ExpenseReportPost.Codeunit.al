@@ -1299,7 +1299,7 @@ codeunit 6987 "Expense Report-Post"
             exit;
 
         ExpenseCategory.Get(ExpenseReportLine."Expense Category");
-        ExpensePostingGroup.Get(ExpenseCategory."Posting Group");
+        ExpensePostingGroup.Get(ExpenseCategory.GetPostingGroupCode(ExpenseReportLine."Expense Subcategory Code"));
         AmountForAccountSelection := AmountToPostLCY;
         AmountRoundingPrecision := LCYCurrency."Amount Rounding Precision";
         if AmountForAccountSelection = 0 then begin

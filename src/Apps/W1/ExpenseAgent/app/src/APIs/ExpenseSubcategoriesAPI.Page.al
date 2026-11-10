@@ -14,6 +14,7 @@ page 6925 "Expense Subcategories API"
     EntityName = 'expenseSubcategory';
     EntitySetName = 'expenseSubcategories';
     PageType = API;
+    DelayedInsert = true;
     ODataKeyFields = SystemId;
     Editable = false;
     InsertAllowed = false;
