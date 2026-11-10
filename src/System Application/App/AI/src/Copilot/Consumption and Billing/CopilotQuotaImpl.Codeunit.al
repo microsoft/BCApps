@@ -5,12 +5,14 @@
 namespace System.AI;
 
 using System;
+using System.Environment.Consumption;
 
 codeunit 7786 "Copilot Quota Impl."
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "AI Consumption Log Entry" = r;
 
     var
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
@@ -39,22 +41,36 @@ codeunit 7786 "Copilot Quota Impl."
     procedure CanConsume(): Boolean
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
+        AIConsumptionQuotaResult: DotNet ALAIConsumptionQuotaResult;
+#if not CLEAN30
         ALCopilotQuotaDetails: Dotnet ALCopilotQuotaDetails;
+#endif
+        CanConsumeQuota: Boolean;
         UnableToRetrieveQuotaDetailsLbl: Label 'Unable to retrieve quota details for tenant', locked = true;
         IsTenantAllowedToConsumeQuotaLbl: Label 'Is tenant allowed to consume quota: %1', locked = true, Comment = '%1 = true/false';
     begin
+#if not CLEAN30
         ALCopilotQuotaDetails := ALCopilotFunctions.GetCopilotQuotaDetails();
 
-        if IsNull(ALCopilotQuotaDetails) then begin
-            Session.LogMessage('0000P7N', UnableToRetrieveQuotaDetailsLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'category', CopilotCapabilityImpl.GetCopilotCategory());
-            exit(false);
-        end;
+        if IsNull(ALCopilotQuotaDetails) then
+            Session.LogMessage('0000P7N', UnableToRetrieveQuotaDetailsLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'category', CopilotCapabilityImpl.GetCopilotCategory())
+        else
+            CanConsumeQuota := ALCopilotQuotaDetails.CanConsume();
+#endif
 
-        Session.LogMessage('0000P7O', StrSubstNo(IsTenantAllowedToConsumeQuotaLbl, Format(ALCopilotQuotaDetails.CanConsume())), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'category', CopilotCapabilityImpl.GetCopilotCategory());
+        AIConsumptionQuotaResult := ALCopilotFunctions.GetAIConsumptionQuota();
+        if IsNull(AIConsumptionQuotaResult) then
+            Session.LogMessage('0000P7N', UnableToRetrieveQuotaDetailsLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'category', CopilotCapabilityImpl.GetCopilotCategory())
+        else
+            CanConsumeQuota := CanConsumeQuota or AIConsumptionQuotaResult.CanConsume();
 
-        exit(ALCopilotQuotaDetails.CanConsume());
+        Session.LogMessage('0000P7O', StrSubstNo(IsTenantAllowedToConsumeQuotaLbl, Format(CanConsumeQuota)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'category', CopilotCapabilityImpl.GetCopilotCategory());
+
+        exit(CanConsumeQuota);
     end;
 
+#if not CLEAN30
+    [Obsolete('Use LogAgentUserAIConsumption instead.', '30.0')]
     procedure LogQuotaUsage(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; CallerModuleInfo: ModuleInfo)
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
@@ -73,6 +89,7 @@ codeunit 7786 "Copilot Quota Impl."
 
         ALCopilotFunctions.LogCopilotQuotaUsage(AlCopilotCapability, Usage, AlCopilotUsageType);
     end;
+#endif
 
     procedure LogAgentUserAIConsumption(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; CallerModuleInfo: ModuleInfo; AgentTaskID: BigInteger; ActionsCharged: Text[1024]; Description: Text; UniqueID: Text[1024]; ExcludeFromBilling: Boolean)
     var
@@ -100,6 +117,43 @@ codeunit 7786 "Copilot Quota Impl."
             UniqueID,
             ExcludeFromBilling
         );
+    end;
+
+    procedure RecordAIConsumption(CopilotCapability: Enum "Copilot Capability"; ConsumptionId: Guid; ConsumptionSessionId: Guid; InteractionId: Guid; CorrelationId: Guid; ConsumptionUsagePayload: Text; ConsumptionEntraPrincipalId: Guid; ConsumptionEntraPrincipalDisplayName: Text; AgentTaskId: BigInteger; Metadata: Text; Description: Text; IsFeatureTrial: Boolean; CallerModuleInfo: ModuleInfo)
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+        AgentPublisherType: DotNet ALAgentPublisherType;
+    begin
+        if not CopilotCapabilityImpl.IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
+            Session.LogMessage('0000QIY', StrSubstNo(CapabilityNotRegisteredTelemetryMsg, CopilotCapability), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetCopilotCategory());
+
+        if CallerModuleInfo.Publisher() = 'Microsoft' then
+            AgentPublisherType := AgentPublisherType::FirstParty
+        else
+            AgentPublisherType := AgentPublisherType::ThirdParty;
+
+        ALCopilotFunctions.RecordAIConsumption(
+            ConsumptionId,
+            ConsumptionSessionId,
+            InteractionId,
+            CorrelationId,
+            CopilotCapabilityImpl.CapabilityToEnumName(CopilotCapability),
+            AgentPublisherType,
+            CallerModuleInfo.Id(),
+            ConsumptionUsagePayload,
+            ConsumptionEntraPrincipalId,
+            ConsumptionEntraPrincipalDisplayName,
+            AgentTaskId,
+            Metadata,
+            Description,
+            IsFeatureTrial);
+    end;
+
+    procedure IsAIConsumptionRecorded(ConsumptionId: Guid): Boolean
+    var
+        AIConsumptionLogEntry: Record "AI Consumption Log Entry";
+    begin
+        exit(AIConsumptionLogEntry.GetBySystemId(ConsumptionId));
     end;
 
     procedure IsAgentUserAIConsumptionLogged(UniqueID: Text[1024]): Boolean
