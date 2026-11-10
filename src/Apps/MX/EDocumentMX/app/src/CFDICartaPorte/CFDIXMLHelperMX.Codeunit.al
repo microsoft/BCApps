@@ -118,27 +118,6 @@ codeunit 3361 "CFDI XML Helper MX"
         exit(Format(DT, 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>'));
     end;
 
-    procedure GetSATDescription(Code: Code[10]; TableNo: Integer): Text
-    var
-        RecRef: RecordRef;
-        CodeField: FieldRef;
-        DescField: FieldRef;
-    begin
-        if (Code = '') or (TableNo = 0) then
-            exit('');
-
-        RecRef.Open(TableNo);
-
-        CodeField := RecRef.Field(1);
-        DescField := RecRef.Field(2);
-        CodeField.SetRange(Code);
-
-        if RecRef.FindFirst() then
-            exit(Format(DescField.Value));
-
-        exit('');
-    end;
-
     local procedure RemoveInvalidChars(PassedStr: Text): Text
     begin
         PassedStr := DelChr(PassedStr, '=', '|');

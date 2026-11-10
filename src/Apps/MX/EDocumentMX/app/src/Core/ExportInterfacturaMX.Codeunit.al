@@ -222,33 +222,6 @@ codeunit 3354 "Export Interfactura MX"
         XMLDocOut.WriteTo(FileOutStream);
     end;
 
-    local procedure BuildInvoiceNode(var ComprobanteXMLNode: XmlElement; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line")
-    var
-        XMLDocTmp: XmlDocument;
-        CertificateText: Text;
-        CertificateSerialNo: Text[250];
-        SubTotal: Decimal;
-        TaxTotal: Decimal;
-    begin
-        SalesInvoiceHeader.CalcFields(Amount, "Amount Including VAT");
-        SubTotal := SalesInvoiceHeader.Amount;
-        TaxTotal := SalesInvoiceHeader."Amount Including VAT" - SubTotal;
-
-        GetCertificateMetadata(CertificateText, CertificateSerialNo);
-        CreateXMLDocument33(
-            ComprobanteXMLNode,
-            SalesInvoiceHeader,
-            SalesInvoiceLine,
-            '',
-            CertificateText,
-            CertificateSerialNo,
-            XMLDocTmp,
-            SubTotal,
-            TaxTotal,
-            0,
-            0);
-    end;
-
     local procedure GetCertificateMetadata(var CertificateText: Text; var CertificateSerialNo: Text[250])
     var
         MXConnectionSetup: Record "MX Connection Setup";
@@ -2599,53 +2572,6 @@ codeunit 3354 "Export Interfactura MX"
         exit(2);
     end;
 
-    local procedure EnsureAdvanceReverseTracked(var CFDIDocuments: Record "CFDI Documents"; SalesInvoiceHeader: Record "Sales Invoice Header"; AdvanceUUID: Text[50]; Certificate: Text; CertificateSerialNo: Text[250])
-    var
-        ReverseXMLDoc: XmlDocument;
-        ReverseRootNode: XmlElement;
-        ReverseBlobOutStream: OutStream;
-        ReverseSignedString: Text;
-        ReverseOriginalString: Text;
-    begin
-        if AdvanceUUID = '' then
-            exit;
-
-        CFDIDocuments.SetRange("No.", SalesInvoiceHeader."No.");
-        CFDIDocuments.SetRange("Document Table ID", Database::"Sales Invoice Header");
-        CFDIDocuments.SetRange(Prepayment, true);
-        CFDIDocuments.SetRange(Reversal, true);
-        if not CFDIDocuments.IsEmpty() then
-            exit;
-
-        XmlDocument.ReadFrom(GetBasicXMLHeader(false, false), ReverseXMLDoc);
-        ReverseXMLDoc.GetRoot(ReverseRootNode);
-        CreateXMLDocument33AdvanceReverse(
-            ReverseRootNode, SalesInvoiceHeader, '', Certificate, CertificateSerialNo, AdvanceUUID, SalesInvoiceHeader.Amount);
-        RemoveRedeclaredNamespaces(ReverseXMLDoc);
-        ReverseOriginalString := CreateOriginalStr33Document(ReverseXMLDoc);
-        ReverseSignedString := CreateDigitalSignature(ReverseOriginalString, MXConnectionSetup.Id);
-        ReverseXMLDoc.GetRoot(ReverseRootNode);
-        ReverseRootNode.SetAttribute('Sello', ReverseSignedString);
-        ApplyLastUsedCertificateMetadata(ReverseRootNode, CertificateSerialNo);
-
-        CFDIDocuments.Init();
-        CFDIDocuments."No." := SalesInvoiceHeader."No.";
-        CFDIDocuments."Document Table ID" := Database::"Sales Invoice Header";
-        CFDIDocuments.Prepayment := true;
-        CFDIDocuments.Reversal := true;
-        CFDIDocuments."Certificate Serial No." := CertificateSerialNo;
-        CFDIDocuments."Date/Time First Req. Sent" := FormatDateTime(CurrentDateTime());
-        CFDIDocuments."Date/Time Sent" := CFDIDocuments."Date/Time First Req. Sent";
-        CFDIDocuments."Fiscal Invoice Number PAC" := AdvanceUUID;
-        CFDIDocuments."No. of E-Documents Sent" := 1;
-        CFDIDocuments."Electronic Document Sent" := false;
-        CFDIDocuments.Insert();
-
-        CFDIDocuments."Original Document XML".CreateOutStream(ReverseBlobOutStream, TextEncoding::UTF8);
-        ReverseXMLDoc.WriteTo(ReverseBlobOutStream);
-        CFDIDocuments.Modify();
-    end;
-
     internal procedure CreateAdvanceReverseSignedXML(SalesInvoiceHeader: Record "Sales Invoice Header"; AdvanceUUID: Text[50]; var ReverseSignedXmlTxt: Text): Boolean
     var
         ReverseXMLDoc: XmlDocument;
@@ -3053,8 +2979,6 @@ codeunit 3354 "Export Interfactura MX"
         TagAttrStart: Integer;
     begin
         LocalElementName := LowerCase(GetXmlLocalName(ElementName));
-        // Save position at start of attributes; each AppendLegacyOrderedAttributeValue
-        // will search from this position independently, so XML attribute order doesn't matter.
         TagAttrStart := Position;
 
         case LocalElementName of
@@ -3367,14 +3291,6 @@ codeunit 3354 "Export Interfactura MX"
         exit('02');
     end;
 
-    local procedure GetSubjectToTaxCode(SalesShipmentLine: Record "Sales Shipment Line"): Text
-    begin
-        if SalesShipmentLine.Quantity = 0 then
-            exit('01');
-
-        exit('02');
-    end;
-
     local procedure GetTaxCode(VATPct: Decimal; VATAmount: Decimal) TaxCode: Code[10]
     var
         TaxType: Option Translado,Retencion;
@@ -3412,29 +3328,6 @@ codeunit 3354 "Export Interfactura MX"
 
         if (TaxRate >= 0.0) and (TaxRate <= 43.77) then
             exit('003');
-    end;
-
-    local procedure AddNodeImpuestoPerLine(ParentNode: XmlElement; TaxBase: Decimal; VATPct: Decimal; VATAmount: Decimal; IsVATExempt: Boolean)
-    var
-        ParentXmlNode: XmlNode;
-        ImpuestosNode: XmlNode;
-        TrasladosNode: XmlNode;
-        TrasladoNode: XmlNode;
-    begin
-        ParentXmlNode := ParentNode.AsXmlNode();
-        CFDIXMLHelperMX.AddElementCFDI(ParentXmlNode, 'Impuestos', '', ImpuestosNode);
-        CFDIXMLHelperMX.AddElementCFDI(ImpuestosNode, 'Traslados', '', TrasladosNode);
-        CFDIXMLHelperMX.AddElementCFDI(TrasladosNode, 'Traslado', '', TrasladoNode);
-
-        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Base', FormatDecimal(TaxBase, 6));
-        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Impuesto', GetTaxCode(VATPct, VATAmount));
-
-        if not IsVATExempt then begin
-            CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TipoFactor', 'Tasa');
-            CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TasaOCuota', PadStr(FormatDecimal(VATPct / 100, 6), 8, '0'));
-            CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Importe', FormatDecimal(VATAmount, 6));
-        end else
-            CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TipoFactor', 'Exento');
     end;
 
     local procedure AddNodeImpuestoPerLine(ParentNode: XmlElement; SalesInvoiceLine: Record "Sales Invoice Line"; var SalesInvoiceRetentionLine: Record "Sales Invoice Line")
@@ -3533,39 +3426,14 @@ codeunit 3354 "Export Interfactura MX"
         FixedAsset: Record "Fixed Asset";
         CuentaPredialNode: XmlNode;
     begin
-        // Try to get Fixed Asset if the line item is a Fixed Asset
         if not FixedAsset.Get(ItemOrAssetNo) then
             exit;
 
-        // Check if Property tax account number is populated
         if FixedAsset."Property tax account No" = '' then
             exit;
 
-        // Add CuentaPredial node with Numero attribute
         CFDIXMLHelperMX.AddElementCFDI(ConceptoNode, 'CuentaPredial', '', CuentaPredialNode);
         CFDIXMLHelperMX.AddAttribute(CuentaPredialNode, 'Numero', CopyStr(FixedAsset."Property tax account No", 1, 150));
-    end;
-
-    local procedure GetConceptoTaxNode(SalesInvoiceLine: Record "Sales Invoice Line"; LineAmount: Decimal): XmlElement
-    var
-        ImpuestosNode: XmlNode;
-        TrasladosNode: XmlNode;
-        TrasladoNode: XmlNode;
-        TempNode: XmlNode;
-    begin
-        // Create a temporary element to hold the structure
-        TempNode := XmlElement.Create('Impuestos').AsXmlNode();
-
-        CFDIXMLHelperMX.AddElementCFDI(TempNode, 'Traslados', '', TrasladosNode);
-        CFDIXMLHelperMX.AddElementCFDI(TrasladosNode, 'Traslado', '', TrasladoNode);
-
-        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Base', FormatDecimal(SalesInvoiceLine.Amount, 6));
-        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Impuesto', GetTaxCode(SalesInvoiceLine."VAT %", SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount));
-        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TipoFactor', 'Tasa');
-        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TasaOCuota', PadStr(FormatDecimal(SalesInvoiceLine."VAT %" / 100, 6), 8, '0'));
-        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Importe', FormatDecimal(LineAmount * (SalesInvoiceLine."VAT %" / 100), 6));
-
-        exit(TempNode.AsXmlElement());
     end;
 
     local procedure FormatAmount(InAmount: Decimal; CurrencyCode: Code[10]): Text
@@ -3643,17 +3511,6 @@ codeunit 3354 "Export Interfactura MX"
         // Without this step, the formatted Fecha would be shifted by the user's offset.
         InputDateTime := TypeHelper.GetInputDateTimeInUserTimeZone(InputDateTime);
         exit(TypeHelper.ConvertDateTimeFromUTCToTimeZone(InputDateTime, TimeZone));
-    end;
-
-    local procedure ConvertCurrentDateTimeToTimeZone(TimeZone: Text): DateTime
-    var
-        TypeHelper: Codeunit "Type Helper";
-    begin
-        // GetInputDateTimeInUserTimeZone subtracts the user timezone offset,
-        // compensating for Format(DateTime) which adds it back.
-        // Net chain: UTC −UserOffset −TargetOffset +UserOffset = UTC −TargetOffset.
-        exit(TypeHelper.ConvertDateTimeFromUTCToTimeZone(
-            TypeHelper.GetInputDateTimeInUserTimeZone(CurrentDateTime()), TimeZone));
     end;
 
     local procedure GetTimeZoneFromDocument(DocumentHeaderVariant: Variant): Text

@@ -32,11 +32,6 @@ codeunit 3375 "MX E-Document Feature"
             Error(FeatureNotEnabledErr);
     end;
 
-    procedure GetFeatureKeyId(): Text[50]
-    begin
-        exit(FeatureKeyIdTok);
-    end;
-
     [InternalEvent(false)]
     local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
     begin

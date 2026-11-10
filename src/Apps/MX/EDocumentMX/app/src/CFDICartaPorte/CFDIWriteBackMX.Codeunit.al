@@ -62,7 +62,7 @@ codeunit 3360 "CFDI Write-Back MX"
         if not ExtractTimbreData(StampedXML, UUID, SATSeal, IssuerSeal, SATCertificateNo, DateTimeStamped, PACRFC, StampVersion, Legend) then
             exit(false);
 
-        // Cadena original del complemento de certificación digital del SAT (TFD 1.1)
+        // Original string of the SAT digital certification complement (TFD 1.1)
         StampOriginalString := '||' + StampVersion + '|' + UUID + '|' + DateTimeStamped + '|' + PACRFC + '|';
         if Legend <> '' then
             StampOriginalString += Legend + '|';

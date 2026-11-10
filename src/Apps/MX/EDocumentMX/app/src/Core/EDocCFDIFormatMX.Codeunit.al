@@ -82,14 +82,6 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
             EDocExport.IsDocumentTypeSupported(EDocumentService, Enum::"E-Document Type"::"Sales Shipment"));
     end;
 
-    /// <summary>
-    /// Use it to create a blob representing the posted document.
-    /// </summary>
-    /// <param name="EDocumentService">The document service used to send the document electronically.</param>
-    /// <param name="EDocument">Electronic document.</param>
-    /// <param name="SourceDocumentHeader">The source document header as a recored ref.</param>
-    /// <param name="SourceDocumentLines">The source document lines as a recored ref.</param>
-    /// <param name="TempBlob">Tempblob that should contatin the exported document in the correspondant format.</param>
     procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
         ExportInterfactura: Codeunit "Export Interfactura MX";
@@ -101,14 +93,6 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
         OnAfterExport(SourceDocumentHeader, SourceDocumentLines, TempBlob);
     end;
 
-    /// <summary>
-    /// Use it to create a blob representing a batch of posted documents.
-    /// </summary>
-    /// <param name="EDocumentService">The document service used to send the document electronically.</param>
-    /// <param name="EDocuments">Electronic document.</param>
-    /// <param name="SourceDocumentHeaders">The source document header as a recored ref.</param>
-    /// <param name="SourceDocumentsLines">The source document lines as a recored ref.</param>
-    /// <param name="TempBlob">Tempblob that should contatin the exported document in the correspondant format.</param>
     procedure CreateBatch(EDocumentService: Record "E-Document Service"; var EDocuments: Record "E-Document"; var SourceDocumentHeaders: RecordRef; var SourceDocumentsLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
         ExportInterfactura: Codeunit "Export Interfactura MX";
@@ -118,15 +102,6 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
         ExportInterfactura.Export(SourceDocumentHeaders, SourceDocumentsLines, EDocuments, TempBlob, true);
     end;
 
-    ///
-    /// The following methods are to receive a document from an endpoint and prepare it to be a BC
-    ///
-
-    /// <summary>
-    /// Use it to get the basic information of an E-Document from received blob.
-    /// </summary>
-    /// <param name="EDocument">Electronic document.</param>
-    /// <param name="TempBlob">Contians received blob from external service</param>
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     begin
     end;

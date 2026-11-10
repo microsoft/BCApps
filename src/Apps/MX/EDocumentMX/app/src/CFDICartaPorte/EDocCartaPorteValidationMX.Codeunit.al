@@ -498,7 +498,6 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
     local procedure CheckTransferOrderBeforePost(var TransferHeader: Record "Transfer Header")
     var
         EDocumentService: Record "E-Document Service";
-        EDocCartaPorteValidationMX: Codeunit "EDoc Carta Porte Validation MX";
         EDocCFDIValidationMX: Codeunit "EDoc CFDI Validation MX";
         MXEDocumentFeature: Codeunit "MX E-Document Feature";
         SourceDocumentHeader: RecordRef;

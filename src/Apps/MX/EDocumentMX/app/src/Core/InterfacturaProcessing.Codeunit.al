@@ -573,7 +573,6 @@ codeunit 3355 "Interfactura Processing"
     procedure GetDocumentApproval(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var HttpRequestMessage: HttpRequestMessage; var HttpResponseMessage: HttpResponseMessage; var Status: Enum "E-Document Service Status"): Boolean
     var
         EDocumentServiceStatus: Record "E-Document Service Status";
-        EDocErrorHelper: Codeunit "E-Document Error Helper";
     begin
         if not EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code) then begin
             Status := Enum::"E-Document Service Status"::"Pending Response";
