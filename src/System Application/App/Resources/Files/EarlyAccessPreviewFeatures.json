@@ -111,7 +111,7 @@
     },
     {
         "FeatureName": "Build and share financial reports more easily",
-        "Description": "Preview a row or column definition with a chosen counterpart before using it in a financial report. New lines reuse the preceding line's type settings, and scheduled report emails can use your own subject. Report packages also use their package code when saved as PDF.",
+        "Description": "Available from Business Central 29.1. Preview a row or column definition with a chosen counterpart before using it in a financial report. New lines reuse the preceding line's type settings, and scheduled report emails can use your own subject. Report packages also use their package code when saved as PDF.",
         "Category": "Finance",
         "HelpURL": "",
         "VideoURL": "",
