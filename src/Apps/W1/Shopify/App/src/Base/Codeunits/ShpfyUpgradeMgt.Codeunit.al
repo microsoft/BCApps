@@ -45,6 +45,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         OrderTransactionShopCodeUpgrade();
         HasAdvancedShopifyPlanUpgrade();
         ItalianSardinianProvinceRenameUpgrade();
+        ProcessReturnsAsUpgrade();
     end;
 
     internal procedure UpgradeTemplatesData()
@@ -535,6 +536,20 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         UpgradeTag.SetUpgradeTag(GetHasAdvancedShopifyPlanUpgradeTag());
     end;
 
+    internal procedure ProcessReturnsAsUpgrade()
+    var
+        Shop: Record "Shpfy Shop";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetProcessReturnsAsUpgradeTag()) then
+            exit;
+
+        Shop.SetRange("Process Returns As", Shop."Process Returns As"::Quote);
+        Shop.ModifyAll("Process Returns As", Shop."Process Returns As"::"Credit Memo");
+
+        UpgradeTag.SetUpgradeTag(GetProcessReturnsAsUpgradeTag());
+    end;
+
     internal procedure GetAllowOutgoingRequestseUpgradeTag(): Code[250]
     begin
         exit('MS-445989-AllowOutgoingRequestseUpgradeTag-20220816');
@@ -653,6 +668,11 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         exit('MS-638035-ItalianSardinianProvinceRenameUpgrade-20260609');
     end;
 
+    internal procedure GetProcessReturnsAsUpgradeTag(): Code[250]
+    begin
+        exit('MS-658645-ProcessReturnsAsUpgrade-20261110');
+    end;
+
     local procedure GetDateBeforeFeature(): DateTime
     begin
         exit(CreateDateTime(DMY2Date(1, 8, 2022), 0T));
@@ -674,5 +694,6 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         PerCompanyUpgradeTags.Add(GetOrderTransactionShopCodeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetHasAdvancedShopifyPlanUpgradeTag());
         PerCompanyUpgradeTags.Add(GetItalianSardinianProvinceRenameUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetProcessReturnsAsUpgradeTag());
     end;
 }
