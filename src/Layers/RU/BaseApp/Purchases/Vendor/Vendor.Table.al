@@ -2507,6 +2507,9 @@ table 23 Vendor
         PurchLine.SetCurrentKey("Document Type", "Pay-to Vendor No.");
         PurchLine.SetRange("Document Type", PurchLine."Document Type"::Order);
         PurchLine.SetRange("Pay-to Vendor No.", "No.");
+        CopyFilter("Global Dimension 1 Filter", PurchLine."Shortcut Dimension 1 Code");
+        CopyFilter("Global Dimension 2 Filter", PurchLine."Shortcut Dimension 2 Code");
+        CopyFilter("Currency Filter", PurchLine."Currency Code");
         PurchLine.CalcSums("Prepmt. Amount Inv. (LCY)", "Prepmt. VAT Amount Inv. (LCY)");
         exit(PurchLine."Prepmt. Amount Inv. (LCY)" + PurchLine."Prepmt. VAT Amount Inv. (LCY)");
     end;

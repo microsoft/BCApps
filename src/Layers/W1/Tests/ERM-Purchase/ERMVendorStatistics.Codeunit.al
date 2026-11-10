@@ -1823,6 +1823,51 @@ codeunit 134334 "ERM Vendor Statistics"
         VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalPrepaymentsRespectFlowFilters()
+    var
+        Vendor: Record Vendor;
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO 658521] Only prepayments contributing to the filtered total are deducted.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLine, Vendor."No.", PurchaseLine."Document Type"::Order, 1, 100);
+        PurchaseLine."Shortcut Dimension 1 Code" := 'B';
+        PurchaseLine."Shortcut Dimension 2 Code" := 'B';
+        PurchaseLine."Currency Code" := 'USD';
+        PurchaseLine."Prepmt. Amount Inv. (LCY)" := 16;
+        PurchaseLine."Prepmt. VAT Amount Inv. (LCY)" := 4;
+        PurchaseLine.Modify();
+
+        Assert.AreEqual(20, Vendor.GetInvoicedPrepmtAmountLCY(), MatchedPurchasesTotalErr);
+        VerifyVendorMatchedTotal(Vendor, 80);
+
+        Vendor.SetRange("Global Dimension 1 Filter", 'A');
+        Assert.AreEqual(0, Vendor.GetInvoicedPrepmtAmountLCY(), 'Prepayments excluded by global dimension 1.');
+        VerifyVendorMatchedTotal(Vendor, 0);
+        Vendor.SetRange("Global Dimension 1 Filter");
+        Vendor.SetRange("Global Dimension 2 Filter", 'A');
+        Assert.AreEqual(0, Vendor.GetInvoicedPrepmtAmountLCY(), 'Prepayments excluded by global dimension 2.');
+        VerifyVendorMatchedTotal(Vendor, 0);
+        Vendor.SetRange("Global Dimension 2 Filter");
+        Vendor.SetRange("Currency Filter", 'OTHER');
+        Assert.AreEqual(0, Vendor.GetInvoicedPrepmtAmountLCY(), 'Prepayments excluded by a different currency.');
+        VerifyVendorMatchedTotal(Vendor, 0);
+        Vendor.SetFilter("Currency Filter", '''''');
+        Assert.AreEqual(0, Vendor.GetInvoicedPrepmtAmountLCY(), 'Foreign-currency prepayments excluded by the LCY filter.');
+        VerifyVendorMatchedTotal(Vendor, 0);
+
+        Vendor.SetFilter("Global Dimension 1 Filter", 'A|B');
+        Vendor.SetRange("Global Dimension 2 Filter", 'B');
+        Vendor.SetRange("Currency Filter", 'USD');
+        Assert.AreEqual(20, Vendor.GetInvoicedPrepmtAmountLCY(), 'Prepayments included by all selected FlowFilters.');
+        VerifyVendorMatchedTotal(Vendor, 80);
+        Vendor.SetRange("Global Dimension 1 Filter", 'A');
+        VerifyVendorMatchedTotal(Vendor, 0);
+    end;
+
     local procedure VerifyVendorTotalAfterGetOrderLines(ReceiveOrder: Boolean)
     var
         Vendor: Record Vendor;
@@ -1869,20 +1914,25 @@ codeunit 134334 "ERM Vendor Statistics"
         VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
     end;
 
-    local procedure VerifyVendorMatchedTotal(Vendor: Record Vendor; ExpectedAmountLCY: Decimal)
+    local procedure VerifyVendorMatchedTotal(var SourceVendor: Record Vendor; ExpectedAmountLCY: Decimal)
     var
+        Vendor: Record Vendor;
         VendorList: TestPage "Vendor List";
         VendorStatistics: TestPage "Vendor Statistics";
     begin
-        Assert.AreEqual(ExpectedAmountLCY, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
-        VendorStatistics.OpenView();
-        VendorStatistics.GoToRecord(Vendor);
-        VendorStatistics.GetTotalAmountLCY.AssertEquals(ExpectedAmountLCY);
+        Vendor.Copy(SourceVendor);
+        Assert.AreEqual(ExpectedAmountLCY, Vendor.GetTotalAmountLCY(), 'Vendor table total with the selected FlowFilters.');
+        Vendor.SetRange("No.", Vendor."No.");
+        VendorStatistics.Trap();
+        Page.Run(Page::"Vendor Statistics", Vendor);
+        Assert.AreEqual(ExpectedAmountLCY, VendorStatistics.GetTotalAmountLCY.AsDecimal(), 'Vendor Statistics page total with the selected FlowFilters.');
         VendorStatistics.Close();
-        VendorList.OpenView();
-        VendorList.GoToRecord(Vendor);
+        Vendor.Copy(SourceVendor);
+        Vendor.SetRange("No.", Vendor."No.");
+        VendorList.Trap();
+        Page.Run(Page::"Vendor List", Vendor);
         Assert.IsTrue(VendorList.VendorStatisticsFactBox.MatchedOrderAmountLCY.Visible(), FieldIsNotHiddenErr);
-        VendorList.VendorStatisticsFactBox.TotalAmountLCY.AssertEquals(ExpectedAmountLCY);
+        Assert.AreEqual(ExpectedAmountLCY, VendorList.VendorStatisticsFactBox.TotalAmountLCY.AsDecimal(), 'Vendor Statistics FactBox total with the selected FlowFilters.');
         VendorList.VendorStatisticsFactBox.MatchedOrderAmountLCY.AssertEquals(Vendor.GetMatchedOrderAmountLCY());
         VendorList.Close();
     end;

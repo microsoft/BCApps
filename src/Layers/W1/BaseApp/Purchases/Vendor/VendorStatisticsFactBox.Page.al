@@ -200,11 +200,6 @@ page 9094 "Vendor Statistics FactBox"
         VendorNo: Code[20];
         VendorNoFilter: Text;
     begin
-        MatchedOrderAmountLCY := Rec.GetMatchedOrderAmountLCY();
-        TotalAmountLCY :=
-            Rec."Balance (LCY)" + Rec."Outstanding Orders (LCY)" + Rec."Amt. Rcd. Not Invoiced (LCY)" +
-            Rec."Outstanding Invoices (LCY)" - Rec.GetInvoicedPrepmtAmountLCY() - MatchedOrderAmountLCY;
-
         // Get the vendor number and set the current vendor number
         Rec.FilterGroup(4);
         VendorNoFilter := Rec.GetFilter("No.");
@@ -212,6 +207,11 @@ page 9094 "Vendor Statistics FactBox"
             Rec.FilterGroup(0);
             VendorNoFilter := Rec.GetFilter("No.");
         end;
+
+        MatchedOrderAmountLCY := Rec.GetMatchedOrderAmountLCY();
+        TotalAmountLCY :=
+            Rec."Balance (LCY)" + Rec."Outstanding Orders (LCY)" + Rec."Amt. Rcd. Not Invoiced (LCY)" +
+            Rec."Outstanding Invoices (LCY)" - Rec.GetInvoicedPrepmtAmountLCY() - MatchedOrderAmountLCY;
 
         VendorNo := CopyStr(VendorNoFilter, 1, MaxStrLen(VendorNo));
         if VendorNo <> CurrVendorNo then begin
