@@ -11,6 +11,7 @@ tableextension 5031 "Serv. Decl. Serv. Header" extends "Service Header"
         field(5010; "Applicable For Serv. Decl."; Boolean)
         {
             Caption = 'Applicable For Service Declaration';
+            DataClassification = CustomerContent;
             Editable = false;
         }
     }
