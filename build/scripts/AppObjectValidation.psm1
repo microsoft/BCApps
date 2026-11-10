@@ -550,6 +550,12 @@ function Test-ObjectIDsInALFilesAreInAllowedRange {
     }
 }
 
+<#
+    .SYNOPSIS
+    Loads the shared production object ID range policy.
+    .OUTPUTS
+    A policy object containing allowed ranges, exact legacy manifest exceptions, and app-scoped legacy object ID ranges.
+#>
 function Get-ObjectIdRangePolicy {
     return Get-Content -LiteralPath (Join-Path $PSScriptRoot 'ObjectIdRangePolicy.json') -Raw | ConvertFrom-Json
 }
