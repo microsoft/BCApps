@@ -3,6 +3,7 @@ codeunit 139802 "APIV2 - Customers E2E"
     // version Test,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -34,6 +35,8 @@ codeunit 139802 "APIV2 - Customers E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 

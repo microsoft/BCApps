@@ -29,6 +29,7 @@ codeunit 134658 "Edit Posted Documents"
         YourReferenceErr: Label 'Your reference must be editable';
         SalesInvoiceYourReferenceErr: Label 'Sales Invoice Your Reference not updated';
         CustLedgerEntryYourReferenceErr: Label 'Customer Ledger Entry Your Reference not updated';
+        MarkedAsOnHoldLbl: label 'X', Locked = true;
 
     [Test]
     [HandlerFunctions('PostedSalesShipmentUpdateGetEditablelModalPageHandler')]
@@ -150,6 +151,55 @@ codeunit 134658 "Edit Posted Documents"
     end;
 
     [Test]
+    [HandlerFunctions('PostedPurchInvoiceUpdateCancelModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure PostedPurchInvoiceUpdateSetValuesCancel()
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchInvHeaderNew: Record "Purch. Inv. Header";
+        PostedPurchaseInvoice: TestPage "Posted Purchase Invoice";
+    begin
+        // [FEATURE] [Purchase Invoice]
+        // [SCENARIO 308913] New values for editable fields are not set in case Stan presses Cancel on "Posted Purch. Invoice - Update" modal page.
+        Initialize();
+        LibraryLowerPermissions.SetO365Setup();
+        LibraryLowerPermissions.AddPurchDocsPost();
+
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+        PurchInvHeaderNew := PurchInvHeader;
+        PrepareEnqueueValuesForEditableFieldsPostedPurchaseInvoice(PurchInvHeaderNew);
+
+        // [GIVEN] Opened "Posted Purch. Invoice - Update" page.
+        // [GIVEN] New values are set for editable fields.
+        PostedPurchaseInvoice.OpenView();
+        PostedPurchaseInvoice.GoToRecord(PurchInvHeaderNew);
+        PostedPurchaseInvoice."Update Document".Invoke();
+
+        // [WHEN] Press Cancel on the page via PostedPurchInvoiceUpdateCancelModalPageHandler
+
+        // [THEN] Values of these fields in Purch. Inv. Header were not changed to new values.
+        PostedPurchaseInvoice.Close();
+        PurchInvHeader.Get(PurchInvHeader."No.");
+        Assert.AreNotEqual(PurchInvHeaderNew."Payment Reference", PurchInvHeader."Payment Reference", PurchInvHeader.FieldCaption("Payment Reference"));
+        Assert.AreNotEqual(PurchInvHeaderNew."Payment Method Code", PurchInvHeader."Payment Method Code", PurchInvHeader.FieldCaption("Payment Method Code"));
+        Assert.AreNotEqual(PurchInvHeaderNew."Creditor No.", PurchInvHeader."Creditor No.", PurchInvHeader.FieldCaption("Creditor No."));
+        Assert.AreNotEqual(PurchInvHeaderNew."Posting Description", PurchInvHeader."Posting Description", PurchInvHeader.FieldCaption("Posting Description"));
+        Assert.AreNotEqual(PurchInvHeaderNew."Dispute Status", PurchInvHeader."Dispute Status", PurchInvHeader.FieldCaption("Dispute Status"));
+
+        // [THEN] Values at the associated vendor ledger entry were not changed
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        Assert.AreEqual(PurchInvHeader."Payment Reference", VendorLedgerEntry."Payment Reference", PurchInvHeader.FieldCaption("Payment Reference"));
+        Assert.AreEqual(PurchInvHeader."Payment Method Code", VendorLedgerEntry."Payment Method Code", PurchInvHeader.FieldCaption("Payment Method Code"));
+        Assert.AreEqual(PurchInvHeader."Creditor No.", VendorLedgerEntry."Creditor No.", PurchInvHeader.FieldCaption("Creditor No."));
+        Assert.AreEqual(PurchInvHeader."Posting Description", VendorLedgerEntry.Description, PurchInvHeader.FieldCaption("Posting Description"));
+        Assert.AreEqual(PurchInvHeader."Dispute Status", VendorLedgerEntry."Dispute Status", PurchInvHeader.FieldCaption("Dispute Status"));
+
+        LibraryVariableStorage.AssertEmpty();
+        LibraryLowerPermissions.SetOutsideO365Scope();
+    end;
+
+    [Test]
     [HandlerFunctions('PostedPurchInvoiceUpdateOKModalPageHandler')]
     [Scope('OnPrem')]
     procedure PostedPurchInvoiceUpdateSetValuesOK()
@@ -189,6 +239,7 @@ codeunit 134658 "Edit Posted Documents"
         PurchInvHeader.TestField("Creditor No.", PurchInvHeaderNew."Creditor No.");
         PurchInvHeader.TestField("Ship-to Code", PurchInvHeaderNew."Ship-to Code");
         PurchInvHeader.TestField("Posting Description", PurchInvHeaderNew."Posting Description");
+        PurchInvHeader.TestField("Dispute Status", PurchInvHeaderNew."Dispute Status");
 
         // [THEN] Values at the associated vendor ledger entry were changed
         VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
@@ -196,6 +247,7 @@ codeunit 134658 "Edit Posted Documents"
         Assert.AreEqual(PurchInvHeaderNew."Payment Method Code", VendorLedgerEntry."Payment Method Code", PurchInvHeaderNew.FieldCaption("Payment Method Code"));
         Assert.AreEqual(PurchInvHeaderNew."Creditor No.", VendorLedgerEntry."Creditor No.", PurchInvHeaderNew.FieldCaption("Creditor No."));
         Assert.AreEqual(PurchInvHeaderNew."Posting Description", VendorLedgerEntry.Description, PurchInvHeaderNew.FieldCaption("Posting Description"));
+        Assert.AreEqual(PurchInvHeaderNew."Dispute Status", VendorLedgerEntry."Dispute Status", PurchInvHeaderNew.FieldCaption("Dispute Status"));
 
         LibraryVariableStorage.AssertEmpty();
         LibraryLowerPermissions.SetOutsideO365Scope();
@@ -852,8 +904,8 @@ codeunit 134658 "Edit Posted Documents"
         PurchaseInvoice: TestPage "Purchase Invoice";
         CashFlowWorksheet: TestPage "Cash Flow Worksheet";
     begin
-        // [SCENARIO 544391] When Stan runs Suggest Worksheet Lines action from Cash Flow Worksheet page 
-        // Then Cash Flow Worksheet Line is not created for a Purchase Order if Prepayment 
+        // [SCENARIO 544391] When Stan runs Suggest Worksheet Lines action from Cash Flow Worksheet page
+        // Then Cash Flow Worksheet Line is not created for a Purchase Order if Prepayment
         // And Purchase Invoice are completely posted.
         Initialize();
 
@@ -868,7 +920,7 @@ codeunit 134658 "Edit Posted Documents"
             VATPostingSetup,
             VATPostingSetup."VAT Calculation Type"::"Normal VAT",
             LibraryRandom.RandIntInRange(5, 5));
- 
+
         // [GIVEN] Validate Gen. and VAT Posting Groups in Purch. Prepayments Account.
         ValidateGenAndVATPostingGrpsInPurchPrepymtAcc(GeneralPostingSetup, VATPostingSetup);
 
@@ -989,6 +1041,253 @@ codeunit 134658 "Edit Posted Documents"
 
         LibraryVariableStorage.AssertEmpty();
         LibraryLowerPermissions.SetOutsideO365Scope();
+    end;
+
+    [Test]
+    procedure UpdateVendorLedgerEntrySyncWithPostedPurchaseInvoice()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        VendorLedgerEntries: TestPage "Vendor Ledger Entries";
+        DisputeStatus: Code[10];
+    begin
+        // [SCENARIO 651756] A dispute status on a vendor ledger entry updates the posted purchase invoice.
+        Initialize();
+        LibraryLowerPermissions.SetO365Setup();
+        LibraryLowerPermissions.AddPurchDocsPost();
+
+        // [GIVEN] Create and post a Purchase Invoice.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+
+        // [GIVEN] Opened the associated vendor ledger entry page for editing.
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        VendorLedgerEntries.OpenEdit();
+        VendorLedgerEntries.GoToRecord(VendorLedgerEntry);
+
+        // [WHEN] Set a new dispute status value on the vendor ledger entry and close the page.
+        DisputeStatus := CreateDisputeStatusCode();
+        VendorLedgerEntries."Dispute Status".SetValue(DisputeStatus);
+        VendorLedgerEntries.Close();
+        PurchInvHeader.Get(PurchInvHeader."No.");
+
+        // [THEN] Verify the dispute status on the posted purchase invoice is updated.
+        Assert.AreEqual(PurchInvHeader."Dispute Status", DisputeStatus, PurchInvHeader.FieldCaption("Dispute Status"));
+        LibraryLowerPermissions.SetOutsideO365Scope();
+    end;
+
+    [Test]
+    procedure UpdateUnrelatedVendorLedgerEntryWithSameDocumentNoDoesNotUpdatePostedPurchaseInvoice()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchInvHeaderNew: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DisputeStatus: Code[10];
+    begin
+        // [SCENARIO 651756] Editing a vendor ledger entry that is not linked to a posted purchase invoice with the same document number does not update that invoice.
+        Initialize();
+        LibraryLowerPermissions.SetO365Setup();
+        LibraryLowerPermissions.AddPurchDocsPost();
+
+        // [GIVEN] Create and post a Purchase Invoice.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+
+        // [GIVEN] An unrelated vendor ledger invoice entry with the same document number as the posted purchase invoice.
+        PostVendorInvoice(PurchInvHeader."Pay-to Vendor No.", PurchInvHeader."No.");
+        FindVendorLedgerEntry(VendorLedgerEntry, PurchInvHeader."Pay-to Vendor No.", PurchInvHeader."No.", PurchInvHeader."Vendor Ledger Entry No.");
+
+        // [WHEN] Set a new dispute status and description on the unrelated vendor ledger entry.
+        DisputeStatus := CreateDisputeStatusCode();
+        VendorLedgerEntry."Dispute Status" := DisputeStatus;
+        VendorLedgerEntry.Description := LibraryUtility.GenerateGUID();
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+
+        // [THEN] The unrelated vendor ledger entry is updated.
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("Dispute Status", DisputeStatus);
+
+        // [THEN] The posted purchase invoice is not changed.
+        PurchInvHeaderNew.Get(PurchInvHeader."No.");
+        PurchInvHeaderNew.TestField("Dispute Status", PurchInvHeader."Dispute Status");
+        PurchInvHeaderNew.TestField("Posting Description", PurchInvHeader."Posting Description");
+        LibraryLowerPermissions.SetOutsideO365Scope();
+    end;
+
+    [Test]
+    procedure SetDisputeStatusWithOverwriteOnHoldOnVendorLedgerEntrySetsOnHold()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DisputeStatus: Code[10];
+    begin
+        // [SCENARIO 651756] Setting a dispute status with "Overwrite on hold" on a vendor ledger entry puts the entry on hold and updates the posted purchase invoice.
+        Initialize();
+
+        // [GIVEN] Posted purchase invoice and a dispute status with "Overwrite on hold" = true.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+        DisputeStatus := CreateDisputeStatusCode(true);
+
+        // [WHEN] Set the dispute status on the vendor ledger entry.
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        VendorLedgerEntry."Dispute Status" := DisputeStatus;
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+
+        // [THEN] The vendor ledger entry is on hold.
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("Dispute Status", DisputeStatus);
+        VendorLedgerEntry.TestField("On Hold", MarkedAsOnHoldLbl);
+
+        // [THEN] The posted purchase invoice has the dispute status.
+        PurchInvHeader.Find();
+        PurchInvHeader.TestField("Dispute Status", DisputeStatus);
+    end;
+
+    [Test]
+    procedure RemoveDisputeStatusWithOverwriteOnHoldFromVendorLedgerEntryClearsOnHold()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        // [SCENARIO 651756] Removing a dispute status with "Overwrite on hold" from a vendor ledger entry clears On Hold and the posted purchase invoice dispute status.
+        Initialize();
+
+        // [GIVEN] Vendor ledger entry of a posted purchase invoice with a dispute status with "Overwrite on hold" = true.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        VendorLedgerEntry."Dispute Status" := CreateDisputeStatusCode(true);
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", MarkedAsOnHoldLbl);
+
+        // [WHEN] Remove the dispute status from the vendor ledger entry.
+        VendorLedgerEntry."Dispute Status" := '';
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+
+        // [THEN] On Hold is cleared on the vendor ledger entry.
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", '');
+
+        // [THEN] The posted purchase invoice dispute status is cleared.
+        PurchInvHeader.Find();
+        PurchInvHeader.TestField("Dispute Status", '');
+    end;
+
+    [Test]
+    procedure RemoveDisputeStatusWithOverwriteOnHoldFromCustLedgerEntryClearsOnHold()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        // [SCENARIO 651756] Removing a dispute status with "Overwrite on hold" from a customer ledger entry clears On Hold and the posted sales invoice dispute status.
+        Initialize();
+
+        // [GIVEN] Customer ledger entry of a posted sales invoice with a dispute status with "Overwrite on hold" = true.
+        SalesInvoiceHeader.Get(CreateAndPostSalesOrderGetInvoiceNo());
+        CustLedgerEntry.Get(SalesInvoiceHeader."Cust. Ledger Entry No.");
+        CustLedgerEntry."Dispute Status" := CreateDisputeStatusCode(true);
+        Codeunit.Run(Codeunit::"Cust. Entry-Edit", CustLedgerEntry);
+        CustLedgerEntry.Find();
+        CustLedgerEntry.TestField("On Hold", MarkedAsOnHoldLbl);
+
+        // [WHEN] Remove the dispute status from the customer ledger entry.
+        CustLedgerEntry."Dispute Status" := '';
+        Codeunit.Run(Codeunit::"Cust. Entry-Edit", CustLedgerEntry);
+
+        // [THEN] On Hold is cleared on the customer ledger entry.
+        CustLedgerEntry.Find();
+        CustLedgerEntry.TestField("On Hold", '');
+
+        // [THEN] The posted sales invoice dispute status is cleared.
+        SalesInvoiceHeader.Find();
+        SalesInvoiceHeader.TestField("Dispute Status", '');
+    end;
+
+    [Test]
+    procedure SwitchDisputeStatusFromOverwriteToNonOverwriteOnVendorLedgerEntryClearsOnHold()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DisputeStatus: Code[10];
+    begin
+        // [SCENARIO 651756] Replacing a dispute status with "Overwrite on hold" by one without it clears On Hold on the vendor ledger entry.
+        Initialize();
+
+        // [GIVEN] Vendor ledger entry of a posted purchase invoice with a dispute status with "Overwrite on hold" = true.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        VendorLedgerEntry."Dispute Status" := CreateDisputeStatusCode(true);
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", MarkedAsOnHoldLbl);
+
+        // [WHEN] Set a dispute status with "Overwrite on hold" = false.
+        DisputeStatus := CreateDisputeStatusCode(false);
+        VendorLedgerEntry."Dispute Status" := DisputeStatus;
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+
+        // [THEN] On Hold is cleared and the new dispute status is set on the entry and the posted purchase invoice.
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", '');
+        VendorLedgerEntry.TestField("Dispute Status", DisputeStatus);
+        PurchInvHeader.Find();
+        PurchInvHeader.TestField("Dispute Status", DisputeStatus);
+    end;
+
+    [Test]
+    procedure SwitchDisputeStatusFromNonOverwriteToOverwriteOnVendorLedgerEntrySetsOnHold()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DisputeStatus: Code[10];
+    begin
+        // [SCENARIO 651756] Replacing a dispute status without "Overwrite on hold" by one with it puts the vendor ledger entry on hold.
+        Initialize();
+
+        // [GIVEN] Vendor ledger entry of a posted purchase invoice with a dispute status with "Overwrite on hold" = false.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        VendorLedgerEntry."Dispute Status" := CreateDisputeStatusCode(false);
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", '');
+
+        // [WHEN] Set a dispute status with "Overwrite on hold" = true.
+        DisputeStatus := CreateDisputeStatusCode(true);
+        VendorLedgerEntry."Dispute Status" := DisputeStatus;
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+
+        // [THEN] The vendor ledger entry is on hold.
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", MarkedAsOnHoldLbl);
+        VendorLedgerEntry.TestField("Dispute Status", DisputeStatus);
+    end;
+
+    [Test]
+    procedure RemoveDisputeStatusWithOverwriteOnHoldKeepsManualOnHoldOnVendorLedgerEntry()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        ManualOnHold: Code[3];
+    begin
+        // [SCENARIO 651756] Removing a dispute status with "Overwrite on hold" keeps a manually entered On Hold code other than 'X'.
+        Initialize();
+
+        // [GIVEN] Vendor ledger entry of a posted purchase invoice with a dispute status with "Overwrite on hold" = true.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        VendorLedgerEntry."Dispute Status" := CreateDisputeStatusCode(true);
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+        VendorLedgerEntry.Find();
+
+        // [WHEN] Change On Hold to a manual code and remove the dispute status.
+        ManualOnHold := 'MAN';
+        VendorLedgerEntry."On Hold" := ManualOnHold;
+        VendorLedgerEntry."Dispute Status" := '';
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+
+        // [THEN] The manual On Hold code is kept.
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("On Hold", ManualOnHold);
+        VendorLedgerEntry.TestField("Dispute Status", '');
     end;
 
     local procedure Initialize()
@@ -1131,12 +1430,14 @@ codeunit 134658 "Edit Posted Documents"
         PurchInvHeader."Creditor No." := LibraryUtility.GenerateGUID();
         PurchInvHeader."Ship-to Code" := ShipToAddress.Code;
         PurchInvHeader."Posting Description" := LibraryRandom.RandText(25);
+        PurchInvHeader."Dispute Status" := CreateDisputeStatusCode();
 
         LibraryVariableStorage.Enqueue(PurchInvHeader."Payment Reference");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Payment Method Code");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Creditor No.");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Ship-to Code");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Posting Description");
+        LibraryVariableStorage.Enqueue(PurchInvHeader."Dispute Status");
     end;
 
     local procedure PrepareEnqueueValuesForEditableFieldsPostedPurchaseCreditMemo(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
@@ -1228,6 +1529,48 @@ codeunit 134658 "Edit Posted Documents"
         GLAccount.Modify(true);
     end;
 
+    local procedure CreateDisputeStatusCode(): Code[10]
+    begin
+        exit(CreateDisputeStatusCode(false));
+    end;
+
+    local procedure CreateDisputeStatusCode(OverwriteOnHold: Boolean): Code[10]
+    var
+        DisputeStatus: Record "Dispute Status";
+    begin
+        DisputeStatus.Init();
+        DisputeStatus.Validate(Code, LibraryUtility.GenerateRandomCode(DisputeStatus.FieldNo(Code), Database::"Dispute Status"));
+        DisputeStatus.Validate(Description, DisputeStatus.Code);
+        DisputeStatus.Validate("Overwrite on hold", OverwriteOnHold);
+        DisputeStatus.Insert(true);
+
+        exit(DisputeStatus.Code);
+    end;
+
+    local procedure PostVendorInvoice(VendorNo: Code[20]; DocumentNo: Code[20])
+    var
+        GenJnlBatch: Record "Gen. Journal Batch";
+        GenJnlLine: Record "Gen. Journal Line";
+    begin
+        LibraryERM.SelectGenJnlBatch(GenJnlBatch);
+        LibraryERM.ClearGenJournalLines(GenJnlBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJnlLine, GenJnlBatch."Journal Template Name", GenJnlBatch.Name, GenJnlLine."Document Type"::" ",
+            GenJnlLine."Account Type"::Vendor, VendorNo, -LibraryRandom.RandDec(1000, 2));
+        GenJnlLine.Validate("Posting Date", WorkDate());
+        GenJnlLine.Validate("Document No.", DocumentNo);
+        GenJnlLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJnlLine);
+    end;
+
+    local procedure FindVendorLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentNo: Code[20]; EntryNo: Integer)
+    begin
+        VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendorLedgerEntry.SetRange("Document No.", DocumentNo);
+        VendorLedgerEntry.SetFilter("Entry No.", '<>%1', EntryNo);
+        VendorLedgerEntry.FindFirst();
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure PostedSalesShipmentUpdateOKModalPageHandler(var PostedSalesShipmentUpdate: TestPage "Posted Sales Shipment - Update")
@@ -1314,7 +1657,21 @@ codeunit 134658 "Edit Posted Documents"
         PostedPurchInvoiceUpdate."Creditor No.".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate."Ship-to Code".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate."Posting Description".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Dispute Status".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure PostedPurchInvoiceUpdateCancelModalPageHandler(var PostedPurchInvoiceUpdate: TestPage "Posted Purch. Invoice - Update")
+    begin
+        PostedPurchInvoiceUpdate."Payment Reference".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Payment Method Code".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Creditor No.".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Ship-to Code".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Posting Description".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Dispute Status".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate.Cancel().Invoke();
     end;
 
     [ModalPageHandler]
@@ -1487,7 +1844,7 @@ codeunit 134658 "Edit Posted Documents"
         PostedServiceInvUpdate."Payment Method Code".SetValue(LibraryVariableStorage.DequeueText());
         PostedServiceInvUpdate.Cancel().Invoke();
     end;
-       
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure SuggestWorksheetLinesReqPageHandler(var SuggestWorksheetLines: TestRequestPage "Suggest Worksheet Lines")

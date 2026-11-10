@@ -5,6 +5,8 @@
 
 namespace System.MCP;
 
+using System.Agents;
+
 permissionset 8352 "MCP - Admin"
 {
     Access = Public;
@@ -13,7 +15,9 @@ permissionset 8352 "MCP - Admin"
 
     IncludedPermissionSets = "MCP - Read";
 
-    Permissions = tabledata "MCP Entra Application" = IMD,
+    Permissions = tabledata Agent = R,
+                  tabledata "MCP Entra Application" = IMD,
                   tabledata "MCP Configuration" = IMD,
+                  tabledata "MCP Configuration Agent" = IMD,
                   tabledata "MCP Configuration Tool" = IMD;
 }

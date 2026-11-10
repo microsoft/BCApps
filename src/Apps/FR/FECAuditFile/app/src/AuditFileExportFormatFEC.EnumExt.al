@@ -10,6 +10,7 @@ enumextension 10826 "Audit File Export Format FEC" extends "Audit File Export Fo
     {
         Caption = 'FEC';
         Implementation = "Audit File Export Data Handling" = "Data Handling FEC",
-                         "Audit File Export Data Check" = "Data Check FEC";
+                         "Audit File Export Data Check" = "Data Check FEC",
+                         "Audit File Export Page Visibility" = "Page Visibility FEC";
     }
 }

@@ -203,6 +203,9 @@ table 99000771 "Production BOM Header"
 
     begin
         MfgSetup.Get();
+        if "Version Nos." = '' then
+            "Version Nos." := MfgSetup."Production BOM Version Nos.";
+
         if "No." = '' then begin
             MfgSetup.TestField("Production BOM Nos.");
             if NoSeries.AreRelated(MfgSetup."Production BOM Nos.", xRec."No. Series") then

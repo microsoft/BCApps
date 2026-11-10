@@ -19,6 +19,7 @@ using Microsoft.Utilities;
 using System.Globalization;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Telemetry;
 using System.Utilities;
 
 table 6906 "Expense Report Header"
@@ -71,6 +72,9 @@ table 6906 "Expense Report Header"
                     Rec.Validate("Spend Request No.", '');
                     Rec."Final Approver No." := GetFinalApproverNo(Rec."Expense User No.");
                     Rec."Interim Approver No." := '';
+                    Rec."Alternate Approver No." := '';
+                    Rec."Primary Final Approver No." := '';
+                    Rec."Primary Interim Approver No." := '';
                 end;
 
                 Rec.CreateDimFromDefaultDim(Rec.FieldNo("Expense User No."));
@@ -544,6 +548,38 @@ table 6906 "Expense Report Header"
             FieldClass = FlowField;
             CalcFormula = lookup("Expense User".Name where("No." = field("Interim Approver No.")));
         }
+        field(72; "Alternate Approver No."; Code[20])
+        {
+            Caption = 'Alternate Approver No.';
+            ToolTip = 'Specifies the alternate approver assigned to the expense report.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+        }
+        field(73; "Alternate Approver Name"; Text[100])
+        {
+            Caption = 'Alternate Approver Name';
+            ToolTip = 'Specifies the name of the alternate approver assigned to the expense report.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Alternate Approver No.")));
+        }
+        field(74; "Primary Final Approver No."; Code[20])
+        {
+            Caption = 'Primary Final Approver No.';
+            ToolTip = 'Specifies the final approver that the report returns to when the alternate approver coverage ends.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+        }
+        field(75; "Primary Interim Approver No."; Code[20])
+        {
+            Caption = 'Primary Interim Approver No.';
+            ToolTip = 'Specifies the interim approver that the report returns to when the alternate approver coverage ends.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+        }
         field(100; "Spend Request No."; Code[20])
         {
             Caption = 'Travel Request No.';
@@ -553,11 +589,17 @@ table 6906 "Expense Report Header"
             trigger OnValidate()
             var
                 SpendRequest: Record "Spend Request";
+                Traveler: Record Traveler;
+                HasMultipleTravelers: Boolean;
                 DimensionSetIDArr: array[10] of Integer;
             begin
                 if Rec."Spend Request No." <> '' then begin
                     CheckTraveler();
-                    SpendRequest.SetSkipSpendRequestClose(GetHideValidationDialog());
+                    // Closing a shared travel request would block the expense reports of the other travelers, so do not offer it.
+                    HasMultipleTravelers := Traveler.HasMultipleTravelers(Rec."Spend Request No.");
+                    if HasMultipleTravelers then
+                        Rec."Spend Request Close" := false;
+                    SpendRequest.SetSkipSpendRequestClose(GetHideValidationDialog() or HasMultipleTravelers);
                     SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close");
 
                     if SpendRequest."Dimension Set ID" <> 0 then begin
@@ -669,8 +711,12 @@ table 6906 "Expense Report Header"
         ExpenseUserSetupNotExistErr: Label '%1 does not exist for %2.', Comment = '%1 = Table Caption, %2 = Field Value';
         CanModifyLinesQst: Label 'You have modified %1 which will also update the lines.\\Do you want to continue?', Comment = '%1 = Field Caption';
         CannotChangeExpenseUserErr: Label 'You cannot change %1 in Expense Report No. %2 as there are associated lines to it.', Comment = '%1 = Field Caption, %2 = Expense Report No.';
+        ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 - Expense User No.';
         ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
+        NoPerDiemRuleForTravelRequestErr: Label 'Travel request %3 includes per diem, but no per diem rule exists for expense location %1 that is effective on %2. Set up a per diem rule for an active per diem expense category and this location, and then approve the travel request again.', Comment = '%1 = Expense Location, %2 = Trip start date, %3 = Travel Request No.';
+        PerDiemLineDescriptionTxt: Label 'Per diem for travel request %1, created on approval', Comment = '%1 = Travel Request No.', MaxLength = 100;
+        PerDiemLineCreatedLbl: Label 'Per diem line created from approved travel request', Locked = true;
 
     procedure AssistEdit() Result: Boolean
     begin
@@ -1185,7 +1231,7 @@ table 6906 "Expense Report Header"
                 if (Rec."Reimbursement Currency Code" <> xRec."Reimbursement Currency Code") and (xRec."No." <> '') then
                     UpdateReportLines(Rec.FieldCaption("Reimbursement Currency Code"));
             end else
-                UpdateCurrencyExchangeRates.ShowMissingExchangeRatesNotification("Reimbursement Currency Code");
+                Error(ReceiptDatedBeforeExchRateErr, CurrencyDate, Rec."Reimbursement Currency Code");
         end else begin
             Rec."Reimbursement Currency Factor" := 0;
             if "Reimbursement Currency Code" <> xRec."Reimbursement Currency Code" then
@@ -1343,6 +1389,13 @@ table 6906 "Expense Report Header"
         ExpenseReportApprovalMgmt.AssignInterimApprover(Rec, NewApproverExpenseUserNo, ActorExpenseUserNo);
     end;
 
+    procedure AssignAlternateApprover(ActorExpenseUserNo: Code[20])
+    var
+        ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        ExpenseReportApprovalMgmt.AssignAlternateApprover(Rec, ActorExpenseUserNo);
+    end;
+
     local procedure GetFinalApproverNo(ExpenseUserNo: Code[20]): Code[20]
     var
         ExpenseApprovalSetup: Record "Expense Approval Setup";
@@ -1411,6 +1464,24 @@ table 6906 "Expense Report Header"
     [CommitBehavior(CommitBehavior::Ignore)]
     internal procedure CreateFromApprovedTravelRequestIfMissing(SpendRequest: Record "Spend Request"): Boolean
     begin
+        SpendRequest.TestField("Requested For");
+        exit(CreateFromApprovedTravelRequestIfMissing(SpendRequest, SpendRequest."Requested For"));
+    end;
+
+    /// <summary>
+    /// Creates an expense report for a traveler on an approved travel request, unless the traveler already has one.
+    /// When the travel request includes per diem, the new expense report gets one per diem line for the trip.
+    /// The line uses the first active per diem expense category that has a rule for the travel request's expense location
+    /// that is effective on the trip start date. If no such rule exists, an error is raised.
+    /// </summary>
+    /// <param name="SpendRequest">The approved travel request.</param>
+    /// <param name="TravelerExpenseUserNo">The expense user of the traveler who receives the expense report.</param>
+    /// <returns>True if an expense report was created; false if the traveler already has an unposted expense report for the travel request.</returns>
+    [CommitBehavior(CommitBehavior::Ignore)]
+    internal procedure CreateFromApprovedTravelRequestIfMissing(SpendRequest: Record "Spend Request"; TravelerExpenseUserNo: Code[20]): Boolean
+    var
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+    begin
         // Serialize creation for this request even when no expense report exists yet.
         SpendRequest.LockTable();
         SpendRequest.Get(SpendRequest."No.");
@@ -1421,69 +1492,125 @@ table 6906 "Expense Report Header"
         Rec.Reset();
         Rec.LockTable();
         Rec.SetRange("Spend Request No.", SpendRequest."No.");
-        Rec.SetRange("Expense User No.", SpendRequest."Requested For");
+        Rec.SetRange("Expense User No.", TravelerExpenseUserNo);
         if not Rec.IsEmpty() then
             exit(false);
 
-        CheckPostedTravelRequestReports(SpendRequest);
+        CheckPostedTravelRequestReports(SpendRequest, TravelerExpenseUserNo);
 
         Rec.Reset();
         Rec.Init();
         Rec.Validate(Description, CopyStr(SpendRequest.Purpose, 1, MaxStrLen(Rec.Description)));
-        Rec.ValidateExpenseUserFromApprovedTravelRequest(SpendRequest."Requested For");
+        Rec.ValidateExpenseUserFromApprovedTravelRequest(TravelerExpenseUserNo);
         Rec.Validate("Reimbursement Currency Code", SpendRequest."Currency Code");
         Rec.SetHideValidationDialog(true);
         Rec.Validate("Spend Request No.", SpendRequest."No.");
         OnBeforeCreateFromApprovedTravelRequest(SpendRequest, Rec);
         Rec.Insert(true);
+        if SpendRequest."Per Diem Included" then
+            CreatePerDiemLineFromTravelRequest(SpendRequest);
         OnAfterCreateFromApprovedTravelRequest(SpendRequest, Rec);
+        ExpenseActivityLogMgt.LogExpenseReportCreatedFromTravelRequest(Rec);
+        // Also log on the travel request, so its history shows each expense report created from it, whichever path created it.
+        ExpenseActivityLogMgt.LogTravelRequestExpenseReportCreated(SpendRequest, Rec);
         exit(true);
     end;
 
-    internal procedure HasPostedTravelRequestReport(SpendRequest: Record "Spend Request"): Boolean
+    local procedure CreatePerDiemLineFromTravelRequest(SpendRequest: Record "Spend Request")
     var
-        PostedReportError: ErrorInfo;
+        ExpenseReportLine: Record "Expense Report Line";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        PerDiemCategoryCode: Code[20];
     begin
-        exit(TryGetPostedTravelRequestReportError(SpendRequest, PostedReportError));
+        PerDiemCategoryCode := FindPerDiemCategoryForTravelRequest(SpendRequest);
+
+        ExpenseReportLine.Init();
+        ExpenseReportLine."Document No." := Rec."No.";
+        ExpenseReportLine."Line No." := ExpenseReportLine.GetNextExpenseReportLineNo(Rec."No.");
+        ExpenseReportLine.SetHideValidationDialog(true);
+        // Apply the per diem rule once, after all trip details are set.
+        ExpenseReportLine.SetSkipRuleApplication(true);
+        ExpenseReportLine.Insert(true);
+
+        // The category must be set first, because it resets the per diem fields and the travel request link.
+        ExpenseReportLine.Validate("Expense Category", PerDiemCategoryCode);
+        ExpenseReportLine.Validate("Expense Date", DT2Date(SpendRequest."Actual Start Date and Time"));
+        ExpenseReportLine.Validate("Expense Location", SpendRequest."Expense Location");
+        ExpenseReportLine.Validate("Starting Date and Time", SpendRequest."Actual Start Date and Time");
+        ExpenseReportLine.Validate("Ending Date and Time", SpendRequest."Actual End Date and Time");
+        if ExpenseReportLine.Refundable then begin
+            ExpenseReportLine."Spend Request No." := Rec."Spend Request No.";
+            ExpenseReportLine."Spend Request Close" := Rec."Spend Request Close";
+        end;
+
+        ExpenseReportLine.Validate(Description, CopyStr(StrSubstNo(PerDiemLineDescriptionTxt, SpendRequest."No."), 1, MaxStrLen(ExpenseReportLine.Description)));
+
+        ExpenseReportLine.SetSkipRuleApplication(false);
+        ExpenseReportLine.ApplyRule();
+        ExpenseReportLine.Modify(true);
+
+        FeatureTelemetry.LogUsage('0000WJ7', ExpenseAgentSetup.GetFeatureName(), PerDiemLineCreatedLbl);
     end;
 
-    local procedure CheckPostedTravelRequestReports(SpendRequest: Record "Spend Request")
+    local procedure FindPerDiemCategoryForTravelRequest(SpendRequest: Record "Spend Request"): Code[20]
+    var
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        PerDiemCategoryCode: Code[20];
+        TripStartDate: Date;
+    begin
+        // Release checks this too, but the rules can change between release and approval.
+        TripStartDate := DT2Date(SpendRequest."Actual Start Date and Time");
+        PerDiemCategoryCode := ExpenseRuleHeader.FindPerDiemCategory(SpendRequest."Expense Location", TripStartDate);
+        if PerDiemCategoryCode <> '' then
+            exit(PerDiemCategoryCode);
+
+        Error(NoPerDiemRuleForTravelRequestErr, SpendRequest."Expense Location", TripStartDate, SpendRequest."No.");
+    end;
+
+    internal procedure HasPostedTravelRequestReport(SpendRequest: Record "Spend Request"; TravelerExpenseUserNo: Code[20]): Boolean
     var
         PostedReportError: ErrorInfo;
     begin
-        if TryGetPostedTravelRequestReportError(SpendRequest, PostedReportError) then
+        exit(TryGetPostedTravelRequestReportError(SpendRequest, TravelerExpenseUserNo, PostedReportError));
+    end;
+
+    local procedure CheckPostedTravelRequestReports(SpendRequest: Record "Spend Request"; TravelerExpenseUserNo: Code[20])
+    var
+        PostedReportError: ErrorInfo;
+    begin
+        if TryGetPostedTravelRequestReportError(SpendRequest, TravelerExpenseUserNo, PostedReportError) then
             Error(PostedReportError);
     end;
 
-    local procedure TryGetPostedTravelRequestReportError(SpendRequest: Record "Spend Request"; var PostedReportError: ErrorInfo): Boolean
+    local procedure TryGetPostedTravelRequestReportError(SpendRequest: Record "Spend Request"; TravelerExpenseUserNo: Code[20]; var PostedReportError: ErrorInfo): Boolean
     var
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
     begin
         PostedExpenseReportHeader.ReadIsolation := IsolationLevel::ReadCommitted;
         PostedExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
-        PostedExpenseReportHeader.SetRange("Expense User No.", SpendRequest."Requested For");
+        PostedExpenseReportHeader.SetRange("Expense User No.", TravelerExpenseUserNo);
         PostedExpenseReportHeader.SetLoadFields("No.");
         if PostedExpenseReportHeader.FindFirst() then begin
             PostedReportError := GetPostedTravelRequestReportError(
-                SpendRequest, PostedExpenseReportHeader."No.", PostedExpenseReportHeader.RecordId, Page::"Posted Expense Report");
+                SpendRequest, TravelerExpenseUserNo, PostedExpenseReportHeader."No.", PostedExpenseReportHeader.RecordId, Page::"Posted Expense Report");
             exit(true);
         end;
 
         PostedExpenseReportLine.ReadIsolation := IsolationLevel::ReadCommitted;
         PostedExpenseReportLine.SetRange("Spend Request No.", SpendRequest."No.");
-        PostedExpenseReportLine.SetRange("Expense User No.", SpendRequest."Requested For");
+        PostedExpenseReportLine.SetRange("Expense User No.", TravelerExpenseUserNo);
         PostedExpenseReportLine.SetLoadFields("Document No.", "Line No.");
         if PostedExpenseReportLine.FindFirst() then begin
             PostedReportError := GetPostedTravelRequestReportError(
-                SpendRequest, PostedExpenseReportLine."Document No.", PostedExpenseReportLine.RecordId, Page::"Posted Expense Report Lines");
+                SpendRequest, TravelerExpenseUserNo, PostedExpenseReportLine."Document No.", PostedExpenseReportLine.RecordId, Page::"Posted Expense Report Lines");
             exit(true);
         end;
 
         exit(false);
     end;
 
-    local procedure GetPostedTravelRequestReportError(SpendRequest: Record "Spend Request"; ReportNo: Code[20]; ReportRecordId: RecordId; ReportPageNo: Integer): ErrorInfo
+    local procedure GetPostedTravelRequestReportError(SpendRequest: Record "Spend Request"; TravelerExpenseUserNo: Code[20]; ReportNo: Code[20]; ReportRecordId: RecordId; ReportPageNo: Integer): ErrorInfo
     var
         PostedReportError: ErrorInfo;
         PostedReportExistsErr: Label 'Expense user %1 already has posted expense report %2 linked to travel request %3.', Comment = '%1 = Expense User No., %2 = Posted Expense Report No., %3 = Travel Request No.';
@@ -1491,7 +1618,7 @@ table 6906 "Expense Report Header"
         PostedReportDetailsErr: Label 'Open the posted expense report to review the existing travel request expenses. A new report cannot be created for the same travel request and expense user after posting.';
         ShowItLbl: Label 'Show it';
     begin
-        PostedReportError.Message := StrSubstNo(PostedReportExistsErr, SpendRequest."Requested For", ReportNo, SpendRequest."No.");
+        PostedReportError.Message := StrSubstNo(PostedReportExistsErr, TravelerExpenseUserNo, ReportNo, SpendRequest."No.");
         PostedReportError.Title := PostedReportTitleErr;
         PostedReportError.DetailedMessage := PostedReportDetailsErr;
         PostedReportError.DataClassification := DataClassification::EndUserIdentifiableInformation;

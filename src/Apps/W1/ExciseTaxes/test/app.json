@@ -61,5 +61,5 @@
   "features": [
     "TranslationFile"
   ],
-  "target": "OnPrem"
+  "target": "Cloud"
 }

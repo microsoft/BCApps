@@ -33,6 +33,17 @@ codeunit 9999 "Upgrade Tag"
     end;
 
     /// <summary>
+    /// Gets the timestamp of an upgrade tag for the current company.
+    /// </summary>
+    /// <param name="Tag">Tag code to find.</param>
+    /// <param name="TagTimestamp">Timestamp when the tag was set.</param>
+    /// <returns>True if the tag exists.</returns>
+    procedure GetUpgradeTagTimestamp(Tag: Code[250]; var TagTimestamp: DateTime): Boolean
+    begin
+        exit(UpgradeTagImpl.GetUpgradeTagTimestamp(Tag, TagTimestamp));
+    end;
+
+    /// <summary>
     /// Verifies if the upgrade tag exists.
     /// </summary>
     /// <param name="Tag">Tag code to check</param>
@@ -85,7 +96,7 @@ codeunit 9999 "Upgrade Tag"
     /// Sets the upgrade tag to skipped.
     /// </summary>
     /// <param name="ExistingTag">Tag code to set the Skipped Upgrade field</param>
-    /// <param name="TagCompanyName">Name of the company to check existance of tag</param>
+    /// <param name="TagCompanyName">Name of the company</param>
     /// <param name="SkipUpgrade">Sets the Skipped Upgrade field</param>
     procedure SetSkippedUpgrade(ExistingTag: Code[250]; TagCompanyName: Code[30]; SkipUpgrade: Boolean)
     begin

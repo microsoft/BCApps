@@ -394,6 +394,7 @@ codeunit 99000830 "Create Reserv. Entry"
         IsHandled: Boolean;
         DoCreateNewButUnchangedVersion: Boolean;
         ShouldCreateWhseItemTrkgLines: Boolean;
+        NewTrackingTransferred: Boolean;
     begin
         if TransferQty = 0 then
             exit;
@@ -433,6 +434,7 @@ codeunit 99000830 "Create Reserv. Entry"
         if (NewType = Database::"Item Journal Line") and (NewSubtype in [3, 5, 6]) or OverruleItemTracking then
             if InsertReservEntry.NewTrackingExists() then begin
                 NewReservEntry.CopyTrackingFromReservEntryNewTracking(InsertReservEntry);
+                NewTrackingTransferred := true;
                 if NewReservEntry."Qty. to Handle (Base)" = 0 then
                     NewReservEntry."Qty. to Handle (Base)" := NewReservEntry."Quantity (Base)";
 
@@ -468,6 +470,8 @@ codeunit 99000830 "Create Reserv. Entry"
             OnTransferReservEntryOnBeforeCreateNewReservEntry(NewReservEntry, OldReservEntry, IsHandled, TransferQty);
             if not IsHandled then begin
                 SetQtyToHandleAndInvoice(QtyToHandleThisLine, QtyToInvoiceThisLine);
+                if NewTrackingTransferred then
+                    InsertReservEntry.ClearNewTracking(); // The remaining entry stays on the original source
                 CreateRemainingReservEntry(OldReservEntry,
                   OldReservEntry.Quantity * CurrSignFactor,
                   OldReservEntry."Quantity (Base)" * CurrSignFactor);
@@ -505,6 +509,8 @@ codeunit 99000830 "Create Reserv. Entry"
                     QtyInvoiced := QtyToInvoiceThisLine;
                 SetQtyToHandleAndInvoice(QtyToHandleThisLine - TransferQty, QtyToInvoiceThisLine - QtyInvoiced);
                 OnTransferReservEntryOnBeforeCreateRemainingReservEntry(OldReservEntry, NewReservEntry, TransferQty);
+                if NewTrackingTransferred then
+                    InsertReservEntry.ClearNewTracking(); // The remaining entry stays on the original source
                 CreateRemainingReservEntry(OldReservEntry,
                   0, (OldReservEntry."Quantity (Base)" - TransferQty) * CurrSignFactor);
                 NewReservEntry.Validate("Quantity (Base)", TransferQty);
