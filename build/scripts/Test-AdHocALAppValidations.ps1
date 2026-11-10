@@ -1,50 +1,94 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See License.txt in the project root for license information.
+<#
+.SYNOPSIS
+    Runs the ad hoc validations of the AL apps registered below.
+.DESCRIPTION
+    A registered app is scanned when its folder or the checker's files (scripts, tests and
+    action) changed. Older checkouts without the app's architecture-rules.json are skipped.
 
-#Requires -Version 7.0
+    The checker's own Pester tests are slower and only run in PR validation (including
+    merge queues), when the checker's files or any registered app changed.
 
+    Changed files come from the GitHub event (pull_request, merge_group, push). When they
+    are unknown (local or manual runs, detection failures), everything runs.
+    Pass -ChangedFiles to simulate a change set.
+.EXAMPLE
+    ./build/scripts/Test-AdHocALAppValidations.ps1
+.EXAMPLE
+    ./build/scripts/Test-AdHocALAppValidations.ps1 -ChangedFiles 'README.md'
+#>
 [CmdletBinding()]
 param(
     [string] $RepoRoot = (Join-Path $PSScriptRoot '../..'),
-    [string] $BaselineRef,
     [string] $EventName = $env:GITHUB_EVENT_NAME,
-    [string] $EventPath = $env:GITHUB_EVENT_PATH,
-    [string] $ExpectedHead = $env:GITHUB_SHA
+    [string[]] $ChangedFiles
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2.0
 $repoRoot = (Get-Item -LiteralPath $RepoRoot -ErrorAction Stop).FullName
 
-# The single app policy registration stays here, not in workflow conditions or a
-# plugin/discovery framework.
-$appRoot = Join-Path $repoRoot 'src/Apps/W1/PayablesAgent/app'
-$rulesPath = Join-Path $appRoot 'architecture-rules.json'
-if (-not (Test-Path -LiteralPath $rulesPath -PathType Leaf)) {
-    Write-Host "AL app architecture: SKIP; this checkout registers no policy at $rulesPath."
-    return
+# Apps opting into ad hoc validations.
+# Path: app folder that holds architecture-rules.json.
+$registeredApps = @(
+    @{ Name = 'Payables Agent'; Path = 'src/Apps/W1/PayablesAgent/app' }
+)
+
+# Changes to the checker's files rerun everything: the scan of every registered app and, the self-tests.
+$checkerInputs = @(
+    'build/scripts/ALArchitecture*',
+    'build/scripts/Test-AdHocALAppValidations.ps1',
+    'build/scripts/tests/ALArchitecture*.Test.ps1',
+    '.github/actions/TestAdHocALAppValidations/*'
+)
+
+if (-not $PSBoundParameters.ContainsKey('ChangedFiles')) {
+    Import-Module (Join-Path $PSScriptRoot 'BuildOptimization.psm1') -Force
+    Push-Location -LiteralPath $repoRoot
+    try { $ChangedFiles = Get-ChangedFilesForCI } finally { Pop-Location }
 }
 
-Import-Module (Join-Path $PSScriptRoot 'PayablesAgentArchitectureChanges.psm1') -Force
-$change = Get-PayablesAgentArchitectureChange -RepoRoot $repoRoot -EventName $EventName -EventPath $EventPath `
-    -ExpectedHead $ExpectedHead -BaselineRef $BaselineRef
-if (-not $change.Required) {
-    Write-Host "AL app architecture: SKIP; $($change.Reason)"
-    return
+# Returns why a check must run for the given path patterns, or $null to skip it.
+function Get-RunReason([string[]] $Patterns) {
+    if ($null -eq $ChangedFiles) { return 'changed files are unknown' }
+    foreach ($file in $ChangedFiles) {
+        foreach ($pattern in $Patterns) {
+            if ($file -like $pattern) { return "$file changed" }
+        }
+    }
+    return $null
 }
-Write-Host "AL app architecture: RUN; $($change.Reason)"
 
 if ($EventName -in @('pull_request', 'merge_group')) {
-    Write-Host 'AL app architecture: testing the checked-out checker and change selector.'
-    $testFiles = @(Get-ChildItem (Join-Path $repoRoot 'build/scripts/tests/ALArchitecture*.Test.ps1') -File)
-    if ($testFiles.Count -eq 0) { throw 'No AL app architecture tests found.' }
-    # The tests import the checkout's modules; unload the runner's copy so module-scoped
-    # mocks bind to exactly one module even when the runner comes from a separate copy.
-    Remove-Module PayablesAgentArchitectureChanges -ErrorAction SilentlyContinue
-    $result = Invoke-Pester -Script $testFiles.FullName -PassThru
-    if ($result.TotalCount -eq 0 -or $result.FailedCount -gt 0) {
-        throw "$($result.FailedCount) AL app architecture tests failed; $($result.TotalCount) tests discovered."
+    # The tests use the registered apps as fixtures, so app changes rerun them too.
+    $reason = Get-RunReason ($checkerInputs + @($registeredApps | ForEach-Object { "$($_.Path)/*" }))
+    if ($reason) {
+        Write-Host "AL app architecture self-tests: RUN; $reason."
+        $testFiles = @(Get-ChildItem (Join-Path $repoRoot 'build/scripts/tests/ALArchitecture*.Test.ps1') -File -ErrorAction SilentlyContinue)
+        if ($testFiles.Count -eq 0) { throw 'No AL app architecture tests found.' }
+        $result = Invoke-Pester -Script $testFiles.FullName -PassThru
+        if ($result.TotalCount -eq 0 -or $result.FailedCount -gt 0) {
+            throw "$($result.FailedCount) AL app architecture tests failed; $($result.TotalCount) tests discovered."
+        }
+    }
+    else {
+        Write-Host 'AL app architecture self-tests: SKIP; no checker files or registered apps changed.'
     }
 }
 
-& (Join-Path $PSScriptRoot 'Test-PayablesAgentArchitecture.ps1') -AppRoot $appRoot -RulesPath $rulesPath -RepoRoot $repoRoot
+# Imported after the self-tests, which import their own copy of the module with -Force.
+Import-Module (Join-Path $PSScriptRoot 'ALArchitectureRules.psm1') -Force
+foreach ($app in $registeredApps) {
+    $reason = Get-RunReason ($checkerInputs + "$($app.Path)/*")
+    if (-not $reason) {
+        Write-Host "$($app.Name) architecture: SKIP; neither the app nor the checker files changed."
+        continue
+    }
+    $appRoot = Join-Path $repoRoot $app.Path
+    $rulesPath = Join-Path $appRoot 'architecture-rules.json'
+    if (-not (Test-Path -LiteralPath $rulesPath -PathType Leaf)) {
+        Write-Host "$($app.Name) architecture: SKIP; this checkout registers no policy at $rulesPath."
+        continue
+    }
+    Write-Host "$($app.Name) architecture: RUN; $reason."
+    Invoke-ALAppArchitectureCheck -AppRoot $appRoot -RulesPath $rulesPath -RepoRoot $repoRoot -Name $app.Name
+}

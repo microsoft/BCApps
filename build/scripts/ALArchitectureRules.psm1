@@ -1,11 +1,8 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See License.txt in the project root for license information.
-
-#Requires -Version 7.0
+#Requires -Version 7.2
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
-# These are textual conventions, not an AL grammar or symbol resolver. Keep this list bounded.
+# Ad-hoc AL app validations
 $script:Identifier = '(?:"(?:[^"]|"")*"|[A-Za-z_][A-Za-z0-9_]*)'
 $script:QualifiedIdentifier = "$script:Identifier(?:\s*\.\s*$script:Identifier)*"
 $script:ObjectKinds = 'tableextension|pageextension|pagecustomization|enumextension|reportextension|permissionsetextension|table|page|codeunit|enum|interface|report|query|xmlport|permissionset|profile|controladdin|entitlement'
@@ -211,7 +208,7 @@ function Get-ArchitectureFindings($Rule, $File, [object[]] $Files, [object[]] $R
             }
         }
         'obsoleteGuard' {
-            # A whole-file negative CLEAN/CLEANSCHEMA guard is the project's pragmatic removal convention.
+            # A whole-file negative CLEAN/CLEANSCHEMA guard is the pragmatic removal convention.
             $opening = '^#if[ \t]+not[ \t]+CLEAN(?:SCHEMA)?[0-9]+[ \t]*\r?\n'
             if ((Test-ALWholeFileGuard $File.Text $opening) -and -not (Test-ArchitectureGlob $File.Path $Rule.allowedPaths)) {
                 New-ArchitectureFinding -Target 'path' -Index 0 -Detail "whole-file CLEAN removal guard belongs under $($Rule.allowedPaths -join ', ')"
@@ -310,4 +307,57 @@ function Invoke-ALArchitectureRules {
         RuleCount = $config.rules.Count; Diagnostics = @($diagnostics | Sort-Object RuleId, Path, Line, Message -Unique) }
 }
 
-Export-ModuleMember -Function Invoke-ALArchitectureRules
+<#
+.SYNOPSIS
+    Runs an app-owned set of architectural static checks and reports the findings.
+.DESCRIPTION
+    Scans the app with Invoke-ALArchitectureRules and writes each finding with a path relative
+    to RepoRoot: as a GitHub error annotation under GitHub Actions, otherwise as plain text.
+    Throws when there are findings.
+
+    This is not an AL parser or analyzer: references are recognized textually, all source and
+    preprocessor branches are scanned, and only * and ? globs are supported (* spans
+    directories). Exceptions need reasons and fail when stale.
+.PARAMETER AppRoot
+    Root directory of the AL app to scan.
+.PARAMETER RulesPath
+    App-owned policy; architecture-rules.json under AppRoot by default.
+.PARAMETER RepoRoot
+    Root that diagnostics and annotations are reported relative to.
+.PARAMETER Name
+    Display name used in the summary and failure messages.
+.PARAMETER PassThru
+    Return the scan result after a clean scan.
+.EXAMPLE
+    Invoke-ALAppArchitectureCheck -AppRoot ./src/Apps/W1/<App>/app -RepoRoot . -Name '<App>'
+#>
+function Invoke-ALAppArchitectureCheck {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] [string] $AppRoot,
+        [string] $RulesPath,
+        [string] $RepoRoot = (Join-Path $PSScriptRoot '../..'),
+        [string] $Name = 'AL app',
+        [switch] $PassThru
+    )
+
+    if ([string]::IsNullOrWhiteSpace($RulesPath)) { $RulesPath = Join-Path $AppRoot 'architecture-rules.json' }
+    $result = Invoke-ALArchitectureRules -AppRoot $AppRoot -RulesPath $RulesPath
+    $repositoryRoot = [IO.Path]::GetFullPath($RepoRoot).TrimEnd('/', '\') + [IO.Path]::DirectorySeparatorChar
+    foreach ($diagnostic in $result.Diagnostics) {
+        $path = $diagnostic.Path
+        if ($path.StartsWith($repositoryRoot, [StringComparison]::OrdinalIgnoreCase)) { $path = $path.Substring($repositoryRoot.Length) }
+        $path = $path.Replace('\', '/')
+        $message = "$($diagnostic.RuleId): $($diagnostic.Message)"
+        if ($env:GITHUB_ACTIONS -eq 'true') {
+            $escapedPath = $path.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A').Replace(':', '%3A').Replace(',', '%2C')
+            $escapedMessage = $message.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            Write-Host "::error file=$escapedPath,line=$($diagnostic.Line)::$escapedMessage"
+        } else { Write-Host "ERROR ${path}:$($diagnostic.Line): $message" }
+    }
+    Write-Host "$Name architecture: $($result.ObjectCount) objects, $($result.ReferenceCount) textual references, $($result.RuleCount) rules; $($result.Diagnostics.Count) findings."
+    if ($result.Diagnostics.Count -gt 0) { throw "$Name architecture checks failed. See the diagnostics above." }
+    if ($PassThru) { return $result }
+}
+
+Export-ModuleMember -Function Invoke-ALArchitectureRules, Invoke-ALAppArchitectureCheck

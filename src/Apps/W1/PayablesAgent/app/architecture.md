@@ -213,27 +213,7 @@ Declarative objects directly bound to draft-based surfaces, such as profiles and
 
 ### Architectural static validations
 
-`architecture-rules.json` configures the app's dependency boundaries and other architectural conventions. `architecture-rules.schema.json` validates that configuration in the editor and at runtime. There are no external source catalogs. Run the checked-out scanner with PowerShell 7 (required for `Test-Json` JSON Schema validation and `ConvertFrom-Json -AsHashtable`). The lightweight change selector supports Windows PowerShell 5.1 as well as `pwsh`, like the surrounding pipeline scripts:
-
-```powershell
-./build/scripts/Test-PayablesAgentArchitecture.ps1
-$architectureTests = Get-ChildItem ./build/scripts/tests/ALArchitecture*.Test.ps1
-Invoke-Pester -Script $architectureTests.FullName
-```
-
-Paths above are repository-relative. CI runs the same checks in PR validation (including merge queues) through the `TestAdHocALAppValidations` GitHub action, like the other PR gate actions; AL-Go project builds do not run them. Local editor/compiler builds do not run it automatically.
-
-#### Small checks, not another AL parser
-
-`PA V1V2 Flag` hosts both `IsV2Active()` and `GetVersion(Guid)`. Active selection is Boolean; version lookup returns 1/2 and 0 for not found. There is no shared `PA Version` enum or separate diagnostics codeunit. Work Item uses private loaded/V2 flags; the development override retains a local default/V1/V2 option with ordinal values 0/1/2.
-
-PA024 restricts calls to the reserved `GetVersion` member name (including quoted syntax) to telemetry/semantic fixtures, independently of access to the common version codeunit. It is a bounded method-name convention, not receiver/type binding. Work Item itself exposes no version getter. PA025 pins its exported API as explicit one-line procedure declarations, including parameter/return types, so a new text or Boolean version alias requires a conscious contract change. Local helpers remain implementation details. This is a conservative declaration-pattern policy, not AL symbol binding or a call-graph parser; unsupported/multiline exported declarations fail closed. Negative tests exercise these boundaries in `build/scripts/tests/ALArchitectureWorkItem.Test.ps1`.
-
-PA027 applies the whole-file obsoletion heuristic: a negative CLEAN/CLEANSCHEMA guard enclosing all non-comment content belongs under `_Obsolete/`. It does not evaluate conditions or classify object/member obsoletion; see `_Obsolete/README.md`.
-
-`Execution/Supporting` retains its previous locations and validations; the separate PA026 allowlist was reverted. Its README distinguishes current temporary bridges from normal integration. The agent should behave through the user UI, not acquire server-side business reasoning through this folder.
-
-The existing DEVELOPMENT manifest override is still a blocking PA017 finding in this working tree; these refactors do not relax production policy.
+Some of the conventions in this document are checked by lightweight static validations, configured in `architecture-rules.json`. They run in PR validation and can be run locally with `./build/scripts/Test-AdHocALAppValidations.ps1` (PowerShell 7).
 
 
 # Decision guides
