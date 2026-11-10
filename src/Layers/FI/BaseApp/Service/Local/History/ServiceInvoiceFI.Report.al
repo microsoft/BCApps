@@ -237,7 +237,13 @@ report 13411 "Service - Invoice (FI)"
                     column(RefNoText; RefNoText)
                     {
                     }
+#if not CLEAN30
+#pragma warning disable AL0432
                     column(RefernceNo_ServInvHeader; "Service Invoice Header"."Reference No.")
+#pragma warning restore AL0432
+#else
+                    column(RefernceNo_ServInvHeader; '')
+#endif
                     {
                     }
                     column(CompanyBankBranchNo; CompanyBankAccount."Bank Branch No.")
@@ -756,11 +762,13 @@ report 13411 "Service - Invoice (FI)"
                     Clear(Cust);
 
 #if not CLEAN30
+#pragma warning disable AL0432
                 if ("Reference No." = '') or (not SalesSetup."Print Reference No.") then begin
                     RefNoText := '';
                     "Reference No." := '';
                 end else
                     RefNoText := FieldCaption("Reference No.");
+#pragma warning restore AL0432
 #endif
 
                 GetLineFeeNoteOnReportHist("No.");
