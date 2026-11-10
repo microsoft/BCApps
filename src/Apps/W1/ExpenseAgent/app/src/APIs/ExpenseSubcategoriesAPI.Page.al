@@ -14,6 +14,7 @@ page 6925 "Expense Subcategories API"
     EntityName = 'expenseSubcategory';
     EntitySetName = 'expenseSubcategories';
     PageType = API;
+    DelayedInsert = true;
     ODataKeyFields = SystemId;
     Editable = false;
     InsertAllowed = false;
@@ -49,6 +50,10 @@ page 6925 "Expense Subcategories API"
                 field(postingDescription; Rec."Posting Description")
                 {
                     Caption = 'Posting Description';
+                }
+                field(postingGroup; Rec."Posting Group")
+                {
+                    Caption = 'Posting Group';
                 }
                 field(inactive; Rec.Inactive)
                 {
