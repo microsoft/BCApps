@@ -210,11 +210,6 @@ Declarative objects directly bound to draft-based surfaces, such as profiles and
 - AI tests use app-owned semantic fixture entry points. `TestSupport` hides version dispatch, while version-specific fixture implementations stay under the corresponding compatibility boundary; the AI test app does not reference E-Document records directly. Some BCApps non-AI wrapper contract tests still inspect V2 table data directly; treat those as explicit test-boundary review items, not examples for new AI tests.
 - var block location
 
-### Architectural static validations
-
-Some of the conventions in this document are checked by lightweight static validations, configured in `architecture-rules.json`. They run in PR validation and can be run locally with `./build/scripts/Test-AdHocALAppValidations.ps1` (PowerShell 7).
-
-
 # Decision guides
 
 ## When is a procedure internal, local, or public?

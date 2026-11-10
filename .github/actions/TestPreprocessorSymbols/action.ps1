@@ -23,9 +23,7 @@ $symbolConfigs = @(
     @{stem = "CLEANSCHEMA"; lowerBound = $schemaLowerBound; upperBound = $mainVersion + 3} # next lowerbound, after cleanup should be 25, then
 )
 
-$allowedSymbols = @('DEVELOPMENT')
-
-Write-Host "Checking preprocessor symbols with $symbolConfigs; allowed non-versioned symbols: $($allowedSymbols -join ', ')"
+Write-Host "Checking preprocessor symbols with $symbolConfigs"
 
 #initialize arrays to store any invalid preprocessor symbols with line numbers
 $invalidLowercaseSymbols = @()
@@ -35,7 +33,7 @@ $invalidStemSymbols = @()
 $alfiles = (Get-ChildItem -Filter '*.al' -Recurse) | Select-Object -ExpandProperty FullName
 foreach ($file in $alfiles) {
     # Call the Test-PreprocessorSymbols function with the file path and calculated version bounds
-    $result = Test-PreprocessorSymbols -filePath $file -symbolConfigs $symbolConfigs -allowedSymbols $allowedSymbols
+    $result = Test-PreprocessorSymbols -filePath $file -symbolConfigs $symbolConfigs
     if ($null -ne $result) {
         $invalidLowercaseSymbols += $result.invalidLowercaseSymbols
         $invalidPatternSymbols += $result.invalidPatternSymbols
