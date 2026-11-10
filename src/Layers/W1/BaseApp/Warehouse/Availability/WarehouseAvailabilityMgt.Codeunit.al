@@ -1024,6 +1024,8 @@ codeunit 7314 "Warehouse Availability Mgt."
     local procedure CalcQtyOnRegisteredPickDestinationBins(LocationCode: Code[10]; DefaultShipmentBinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer) QtyOnBins: Decimal
     var
         WarehouseEntry: Record "Warehouse Entry";
+        LastSourcePickEntry: Record "Warehouse Entry";
+        TypeHelper: Codeunit "Type Helper";
         CheckedBins: List of [Code[20]];
     begin
         // Registered pick place entries remain after the warehouse shipment is deleted, so use them to find destination bins.
@@ -1044,9 +1046,35 @@ codeunit 7314 "Warehouse Availability Mgt."
             repeat
                 if not CheckedBins.Contains(WarehouseEntry."Bin Code") then begin
                     CheckedBins.Add(WarehouseEntry."Bin Code");
-                    QtyOnBins += CalcQtyOnBin(LocationCode, WarehouseEntry."Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup);
+                    LastSourcePickEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
+                    LastSourcePickEntry.CopyFilters(WarehouseEntry);
+                    LastSourcePickEntry.SetRange("Bin Code", WarehouseEntry."Bin Code");
+                    LastSourcePickEntry.SetLoadFields("Entry No.");
+                    LastSourcePickEntry.FindLast();
+                    QtyOnBins +=
+                        TypeHelper.Maximum(
+                            0,
+                            CalcQtyOnBin(LocationCode, WarehouseEntry."Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup) -
+                            CalcQtyPlacedInBinAfterEntry(LastSourcePickEntry."Entry No.", WarehouseEntry."Bin Code", ItemNo, LocationCode, VariantCode, WhseItemTrackingSetup));
                 end;
-            until (QtyOnBins <> 0) or (WarehouseEntry.Next() = 0);
+            until (QtyOnBins > 0) or (WarehouseEntry.Next() = 0);
+    end;
+
+    local procedure CalcQtyPlacedInBinAfterEntry(LastSourcePickEntryNo: Integer; BinCode: Code[20]; ItemNo: Code[20]; LocationCode: Code[10]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"): Decimal
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+    begin
+        // Stock placed in the bin after the source's last pick into it (e.g. a later pick for another order) does not belong to this source.
+        WarehouseEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Bin Code", BinCode);
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Variant Code", VariantCode);
+        WarehouseEntry.SetFilter("Entry No.", '>%1', LastSourcePickEntryNo);
+        WarehouseEntry.SetFilter(Quantity, '>%1', 0);
+        WarehouseEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
+        WarehouseEntry.CalcSums("Qty. (Base)");
+        exit(WarehouseEntry."Qty. (Base)");
     end;
 
     [IntegrationEvent(false, false)]
