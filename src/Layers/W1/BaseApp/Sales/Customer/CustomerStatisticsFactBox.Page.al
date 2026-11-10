@@ -85,6 +85,35 @@ page 9082 "Customer Statistics FactBox"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field(InvoicedShipmentAmountLCY; InvoicedShipmentAmountLCY)
+                {
+                    AccessByPermission = TableData "Sales Line" = R;
+                    ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    Caption = 'Invoiced Shipment Amount (LCY)';
+                    Editable = false;
+                    ToolTip = 'Specifies the outstanding sales invoice amount already included in shipped but not invoiced sales orders. This amount is subtracted when calculating Total (LCY) to avoid counting the same sale twice.';
+                }
+                field(ReturnRcdNotInvAmountLCY; ReturnRcdNotInvAmountLCY)
+                {
+                    AccessByPermission = TableData "Sales Line" = R;
+                    ApplicationArea = Basic, Suite;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    Caption = 'Return Rcd. Not Invd. (LCY)';
+                    Editable = false;
+                    ToolTip = 'Specifies the amount for sales returns received but not yet invoiced. This amount is subtracted when calculating Total (LCY).';
+                }
+                field(GetInvoicedPrepmtAmountLCY; InvoicedPrepmtAmountLCY)
+                {
+                    AccessByPermission = TableData "Sales Line" = R;
+                    ApplicationArea = Prepayments;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    Caption = 'Invoiced Prepayment Amount (LCY)';
+                    ToolTip = 'Specifies invoiced prepayments from the customer. This amount is subtracted when calculating Total (LCY).';
+                }
             }
             group(Payments)
             {
@@ -200,15 +229,6 @@ page 9082 "Customer Statistics FactBox"
                     PAGE.RunModal(PAGE::"Customer Ledger Entries", CustLedgEntry);
                 end;
             }
-            field(GetInvoicedPrepmtAmountLCY; InvoicedPrepmtAmountLCY)
-            {
-                AccessByPermission = TableData "Sales Line" = R;
-                ApplicationArea = Prepayments;
-                AutoFormatType = 1;
-                AutoFormatExpression = '';
-                Caption = 'Invoiced Prepayment Amount (LCY)';
-                ToolTip = 'Specifies your sales income from the customer, based on invoiced prepayments.';
-            }
         }
     }
 
@@ -242,6 +262,8 @@ page 9082 "Customer Statistics FactBox"
 #pragma warning restore AA0074
         TaskIdCalculateCue: Integer;
         CurrCustomerNo: Code[20];
+        InvoicedShipmentAmountLCY: Decimal;
+        ReturnRcdNotInvAmountLCY: Decimal;
         LinkedVendorNo: Code[20];
         BalanceAsVendorEnabled: Boolean;
 
@@ -267,6 +289,8 @@ page 9082 "Customer Statistics FactBox"
 
         Clear(LastPaymentDate);
         Clear(TotalAmountLCY);
+        Clear(InvoicedShipmentAmountLCY);
+        Clear(ReturnRcdNotInvAmountLCY);
         Clear(OverdueBalance);
         Clear(SalesLCY);
         Clear(InvoicedPrepmtAmountLCY);
@@ -295,6 +319,12 @@ page 9082 "Customer Statistics FactBox"
 
             if TryGetDictionaryValueFromKey(Results, CalculateCustomerStats.GetTotalAmountLCYLabel(), DictionaryValue) then
                 Evaluate(TotalAmountLCY, DictionaryValue);
+
+            if TryGetDictionaryValueFromKey(Results, CalculateCustomerStats.GetInvoicedShipmentAmountLCYLabel(), DictionaryValue) then
+                Evaluate(InvoicedShipmentAmountLCY, DictionaryValue);
+
+            if TryGetDictionaryValueFromKey(Results, CalculateCustomerStats.GetReturnRcdNotInvAmountLCYLabel(), DictionaryValue) then
+                Evaluate(ReturnRcdNotInvAmountLCY, DictionaryValue);
 
             if TryGetDictionaryValueFromKey(Results, CalculateCustomerStats.GetOverdueBalanceLabel(), DictionaryValue) then
                 Evaluate(OverdueBalance, DictionaryValue);

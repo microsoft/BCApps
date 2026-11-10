@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+using Microsoft.Sales.Document;
+
 /// <summary>
 /// Calculates customer statistics as a background task for the Customer Statistics FactBox.
 /// </summary>
@@ -11,14 +13,21 @@ codeunit 9082 "Calculate Customer Stats."
 {
     trigger OnRun()
     var
-        Customer: record Customer;
-        Params: Dictionary of [Text, Text];
         Results: Dictionary of [Text, Text];
+    begin
+        CalculateFieldValues(Page.GetBackgroundParameters(), Results);
+        Page.SetBackgroundTaskResult(Results);
+    end;
+
+    internal procedure CalculateFieldValues(Params: Dictionary of [Text, Text]; var Results: Dictionary of [Text, Text])
+    var
+        Customer: record Customer;
+        SalesLine: Record "Sales Line";
         CustomerNo: Code[20];
         BalanceAsVendor: Decimal;
         LinkedVendorNo: Code[20];
     begin
-        Params := Page.GetBackgroundParameters();
+        Clear(Results);
         CustomerNo := CopyStr(Params.Get(GetCustomerNoLabel()), 1, MaxStrLen(CustomerNo));
         if not Customer.Get(CustomerNo) then
             exit;
@@ -29,13 +38,13 @@ codeunit 9082 "Calculate Customer Stats."
         Results.Add(GetBalanceAsVendorLabel(), Format(BalanceAsVendor));
         Results.Add(GetLinkedVendorNoLabel(), Format(LinkedVendorNo));
         Results.Add(GetTotalAmountLCYLabel(), Format(Customer.GetTotalAmountLCY()));
+        Results.Add(GetInvoicedShipmentAmountLCYLabel(), Format(SalesLine.OutstandingInvoiceAmountFromShipment(CustomerNo)));
+        Results.Add(GetReturnRcdNotInvAmountLCYLabel(), Format(Customer.GetReturnRcdNotInvAmountLCY()));
         Results.Add(GetOverdueBalanceLabel(), Format(Customer.CalcOverdueBalance()));
         Results.Add(GetSalesLCYLabel(), Format(Customer.GetSalesLCY()));
         Results.Add(GetInvoicedPrepmtAmountLCYLabel(), Format(Customer.GetInvoicedPrepmtAmountLCY()));
 
         OnCalculateCustomerStatistics(Params, Results);
-
-        Page.SetBackgroundTaskResult(Results);
     end;
 
     var
@@ -46,6 +55,8 @@ codeunit 9082 "Calculate Customer Stats."
         CustomerNoLbl: label 'Customer No.', Locked = true;
         BalanceAsVendorLbl: Label 'BalanceAsVendor', Locked = true;
         LinkedVendorNoLbl: Label 'LinkedVendorNo', Locked = true;
+        InvoicedShipmentAmountLCYLbl: Label 'Invoiced Shipment Amount LCY', Locked = true;
+        ReturnRcdNotInvAmountLCYLbl: Label 'Return Received Not Invoiced Amount LCY', Locked = true;
 
     local procedure CalcLastPaymentDate(CustomerNo: code[20]; var Results: Dictionary of [Text, Text])
     var
@@ -94,6 +105,16 @@ codeunit 9082 "Calculate Customer Stats."
     internal procedure GetLinkedVendorNoLabel(): Text
     begin
         exit(LinkedVendorNoLbl);
+    end;
+
+    internal procedure GetInvoicedShipmentAmountLCYLabel(): Text
+    begin
+        exit(InvoicedShipmentAmountLCYLbl);
+    end;
+
+    internal procedure GetReturnRcdNotInvAmountLCYLabel(): Text
+    begin
+        exit(ReturnRcdNotInvAmountLCYLbl);
     end;
 
     /// <summary>

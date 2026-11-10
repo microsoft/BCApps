@@ -1785,6 +1785,44 @@ codeunit 134334 "ERM Vendor Statistics"
         VerifyVendorMatchedTotal(Vendor, 40);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorFactBoxTotalDeductsInvoicedPrepayments()
+    var
+        Vendor: Record Vendor;
+        LineGLAccount: Record "G/L Account";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        ExpectedAmountLCY: Decimal;
+    begin
+        // [SCENARIO 658521] Vendor statistics and the FactBox use the same total including invoiced prepayments.
+        Initialize();
+
+        // [GIVEN] A purchase order with a posted twenty-percent prepayment.
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Posted Prepmt. Inv. Nos.", LibraryERM.CreateNoSeriesCode());
+        PurchasesPayablesSetup.Modify(true);
+        LibraryPurchase.CreatePrepaymentVATSetup(LineGLAccount, "Tax Calculation Type"::"Normal VAT");
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Gen. Bus. Posting Group", LineGLAccount."Gen. Bus. Posting Group");
+        Vendor.Validate("VAT Bus. Posting Group", LineGLAccount."VAT Bus. Posting Group");
+        Vendor.Modify(true);
+        PurchaseHeader."Buy-from Vendor No." := Vendor."No.";
+        CreatePurchaseHeader(PurchaseHeader);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", LineGLAccount."No.", 1);
+        PurchaseLine.Validate("Direct Unit Cost", 100);
+        PurchaseLine.Validate("Prepayment %", 20);
+        PurchaseLine.Modify(true);
+        ExpectedAmountLCY := PurchaseLine."Outstanding Amount (LCY)";
+        LibraryPurchase.PostPurchasePrepaymentInvoice(PurchaseHeader);
+
+        // [WHEN] Calculate vendor statistics.
+        // [THEN] The prepayment is displayed separately and is not counted twice in the total.
+        Assert.AreNotEqual(0, Vendor.GetInvoicedPrepmtAmountLCY(), MatchedPurchasesTotalErr);
+        VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
+    end;
+
     local procedure VerifyVendorTotalAfterGetOrderLines(ReceiveOrder: Boolean)
     var
         Vendor: Record Vendor;
@@ -1843,7 +1881,9 @@ codeunit 134334 "ERM Vendor Statistics"
         VendorStatistics.Close();
         VendorList.OpenView();
         VendorList.GoToRecord(Vendor);
+        Assert.IsTrue(VendorList.VendorStatisticsFactBox.MatchedOrderAmountLCY.Visible(), FieldIsNotHiddenErr);
         VendorList.VendorStatisticsFactBox.TotalAmountLCY.AssertEquals(ExpectedAmountLCY);
+        VendorList.VendorStatisticsFactBox.MatchedOrderAmountLCY.AssertEquals(Vendor.GetMatchedOrderAmountLCY());
         VendorList.Close();
     end;
 
