@@ -5339,7 +5339,6 @@ codeunit 80 "Sales-Post"
                         TempPrepmtSalesLine."Shortcut Dimension 1 Code" := TempSalesLine."Shortcut Dimension 1 Code";
                         TempPrepmtSalesLine."Shortcut Dimension 2 Code" := TempSalesLine."Shortcut Dimension 2 Code";
                         TempPrepmtSalesLine."Gen. Bus. Posting Group" := TempSalesLine."Gen. Bus. Posting Group";
-                        TempPrepmtSalesLine."Gen. Prod. Posting Group" := TempSalesLine."Gen. Prod. Posting Group";
                         TempPrepmtSalesLine."Dimension Set ID" := TempSalesLine."Dimension Set ID";
                         TempPrepmtSalesLine."Line No." := NextLineNo;
                         NextLineNo := NextLineNo + 10000;
