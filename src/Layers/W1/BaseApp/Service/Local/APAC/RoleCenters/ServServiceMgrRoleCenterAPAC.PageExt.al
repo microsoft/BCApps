@@ -1,0 +1,33 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+#if SERVICEMANAGEMENT_APAC
+namespace Microsoft.Service.RoleCenters;
+
+using System.Text;
+
+pageextension 28041 "Serv.ServiceMgrRoleCenter APAC" extends "Service Manager Role Center"
+{
+    actions
+    {
+        addafter("Service Item Line Labels")
+        {
+            action("BarCode Checking")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'BarCode Checking';
+                RunObject = Report "BarCode Checking";
+                ToolTip = 'Run a report that shows the addresses that are associated with bar codes from the postal department that need to be verified.';
+            }
+            action("BarCode Batch Job")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'BarCode Batch Job';
+                RunObject = Report "BarCode Batch Job";
+                ToolTip = 'Start the process of verifying addresses that are associated with bar codes from the postal department.';
+            }
+        }
+    }
+}
+#endif

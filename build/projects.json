@@ -253,6 +253,20 @@
     "Base Application": {
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp",
       "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\BaseApp\\app.json",
+      "countryPreprocessorSymbols": {
+        "AU": ["SERVICEMANAGEMENT_APAC"],
+        "BE": ["SERVICEMANAGEMENT_BE"],
+        "CA": ["SERVICEMANAGEMENT_NA"],
+        "CH": ["SERVICEMANAGEMENT_CH"],
+        "ES": ["SERVICEMANAGEMENT_ES"],
+        "FI": ["SERVICEMANAGEMENT_FI"],
+        "IT": ["SERVICEMANAGEMENT_IT"],
+        "MX": ["SERVICEMANAGEMENT_NA"],
+        "NL": ["SERVICEMANAGEMENT_NL"],
+        "NO": ["SERVICEMANAGEMENT_NO"],
+        "NZ": ["SERVICEMANAGEMENT_APAC"],
+        "US": ["SERVICEMANAGEMENT_NA"]
+      },
       "dvdFolder": "Applications\\BaseApp\\Source",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
