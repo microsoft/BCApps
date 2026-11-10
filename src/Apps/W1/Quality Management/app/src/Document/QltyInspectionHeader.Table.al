@@ -655,6 +655,7 @@ table 20405 "Qlty. Inspection Header"
         MoreRecentReinspectionErr: Label 'This inspection cannot be Reopened because there is a more recent Re-inspection. Please work with the most recent Re-inspection instead.';
         CreateReinspectionQst: Label 'Are you sure you want to create a Re-inspection?';
         FinishBeforeReinspectionErr: Label 'An inspection must be finished before a Re-inspection can be made. This is done automatically, but you do not have permission to finish an inspection.';
+        FinishAndCreateReinspectionQst: Label 'The inspection %1 is open. It will be finished before the Re-inspection is created. Do you want to continue?', Comment = '%1=the inspection';
         PictureNameTok: Label '%1_%2_%3', Locked = true;
         FileExtensionTok: Label 'jpeg', Locked = true;
         CameraNotAvailableErr: Label 'The camera is not available. Make sure to use this with a device that has a camera supported by Business Central.';
@@ -1039,28 +1040,30 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Finishes the current inspection when required and creates a confirmed reinspection.
+    /// Asks for confirmation, then finishes the current inspection when required and creates a reinspection.
     /// </summary>
     /// <param name="ReinspectionQltyInspectionHeader">The created reinspection header.</param>
     procedure CreateReinspection(var ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        Proceed: Boolean;
+        ConfirmManagement: Codeunit "Confirm Management";
+        ConfirmQuestion: Text;
     begin
         QltyPermissionMgmt.VerifyCanCreateReinspection();
 
         if Rec.Status = Rec.Status::Open then begin
             if not QltyPermissionMgmt.CanFinishInspection() then
                 Error(FinishBeforeReinspectionErr);
-            FinishInspectionAndPrompt(false);
-        end;
+            ConfirmQuestion := StrSubstNo(FinishAndCreateReinspectionQst, Rec.GetFriendlyIdentifier());
+        end else
+            ConfirmQuestion := CreateReinspectionQst;
+        if not ConfirmManagement.GetResponseOrDefault(ConfirmQuestion) then
+            exit;
 
-        if GuiAllowed() then
-            Proceed := Confirm(CreateReinspectionQst)
-        else
-            Proceed := true;
-        if Proceed then
-            QltyInspectionCreate.CreateReinspection(Rec, ReinspectionQltyInspectionHeader);
+        if Rec.Status = Rec.Status::Open then
+            FinishInspectionAndPrompt(false);
+
+        QltyInspectionCreate.CreateReinspection(Rec, ReinspectionQltyInspectionHeader);
     end;
 
     /// <summary>
