@@ -226,6 +226,113 @@ codeunit 148365 EACorpCardSelectionUITests
         CorporateCards.Close();
     end;
 
+    [Test]
+    [HandlerFunctions('SelectExpenseUsersCardHandler')]
+    procedure ReportLineCardErrorActionSelectsAndSavesCard()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CardLookupError: ErrorInfo;
+    begin
+        // [SCENARIO] The recommended action selects a card for the report line that raised the error.
+        Initialize();
+
+        // [GIVEN] A saved manual report line has no selected card.
+        CreateManualReportLine(ExpenseReportLine);
+        Commit();
+        CardLookupError := CorpCardSelectionMgt.GetReportLineCardLookupError(ExpenseReportLine);
+
+        // [WHEN] The error's recovery action selects the expense user's card.
+        CorpCardSelectionMgt.LookupReportLineCardFromError(CardLookupError);
+
+        // [THEN] The selected card is saved without creating feed provenance.
+        ExpenseReportLine.GetBySystemId(ExpenseReportLine.SystemId);
+        ExpenseReportLine.TestField("Corporate Card Id", 'CORPCARD-0001');
+        ExpenseReportLine.TestField("Credit Card Feed No.", 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('CancelCardLookupHandler')]
+    procedure ReportLineCardErrorActionCancellationPreservesCard()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CardLookupError: ErrorInfo;
+    begin
+        // [SCENARIO] Cancelling the error's lookup leaves the saved card unchanged.
+        Initialize();
+
+        // [GIVEN] A manual report line already has a card.
+        CreateManualReportLine(ExpenseReportLine);
+        ExpenseReportLine.Validate("Corporate Card Id", 'CORPCARD-0001');
+        ExpenseReportLine.Modify(true);
+        Commit();
+        CardLookupError := CorpCardSelectionMgt.GetReportLineCardLookupError(ExpenseReportLine);
+
+        // [WHEN] The recovery action is cancelled.
+        CorpCardSelectionMgt.LookupReportLineCardFromError(CardLookupError);
+
+        // [THEN] The previous card is retained.
+        ExpenseReportLine.GetBySystemId(ExpenseReportLine.SystemId);
+        ExpenseReportLine.TestField("Corporate Card Id", 'CORPCARD-0001');
+    end;
+
+    [Test]
+    procedure UnsavedReportLineCardErrorHasNoPersistedTarget()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        TempExpenseReportLine: Record "Expense Report Line" temporary;
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CardLookupError: ErrorInfo;
+    begin
+        // [SCENARIO] New and temporary lines do not offer recovery against a nonexistent or unrelated persisted row.
+        Initialize();
+
+        // [GIVEN] A new report line has not been inserted.
+        ExpenseReportLine."Document No." := 'NEW-REPORT';
+        ExpenseReportLine."Line No." := 10000;
+
+        // [WHEN] Its card lookup error is built.
+        CardLookupError := CorpCardSelectionMgt.GetReportLineCardLookupError(ExpenseReportLine);
+
+        // [THEN] The error has no persisted target.
+        Assert.IsTrue(IsNullGuid(CardLookupError.SystemId), 'An unsaved line must not have a persisted recovery target.');
+
+        // [GIVEN] A temporary copy has the system ID of a saved line.
+        CreateManualReportLine(ExpenseReportLine);
+        TempExpenseReportLine := ExpenseReportLine;
+
+        // [WHEN] Its card lookup error is built.
+        CardLookupError := CorpCardSelectionMgt.GetReportLineCardLookupError(TempExpenseReportLine);
+
+        // [THEN] The error must not target the saved source line.
+        Assert.IsTrue(IsNullGuid(CardLookupError.SystemId), 'A temporary line must not offer recovery against its saved source.');
+    end;
+
+    local procedure CreateManualReportLine(var ExpenseReportLine: Record "Expense Report Line")
+    var
+        CorpCard: Record "EA Corp Card";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        CorpCard.Get('CORPCARD-0001');
+        ExpenseReportHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseReportHeader."No."));
+        ExpenseReportHeader."Expense User No." := CorpCard."Expense User No.";
+        ExpenseReportHeader.Insert();
+        Clear(ExpenseReportLine);
+        ExpenseReportLine."Document No." := ExpenseReportHeader."No.";
+        ExpenseReportLine."Line No." := 10000;
+        ExpenseReportLine."Expense User No." := CorpCard."Expense User No.";
+        ExpenseReportLine."Reimbursement Type" := ExpenseReportLine."Reimbursement Type"::"Credit Card";
+        ExpenseReportLine."Expense Date" := WorkDate();
+        ExpenseReportLine.Insert();
+    end;
+
+    [ModalPageHandler]
+    procedure CancelCardLookupHandler(var CardLookup: TestPage "EA Corp Card Lookup")
+    begin
+        CardLookup.Cancel().Invoke();
+    end;
+
     [ModalPageHandler]
     procedure SelectExpenseUsersCardHandler(var CardLookup: TestPage "EA Corp Card Lookup")
     var

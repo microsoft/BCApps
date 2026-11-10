@@ -106,6 +106,36 @@ codeunit 7447 "EA Corp Card Selection Mgt"
         exit(true);
     end;
 
+    internal procedure GetReportLineCardLookupError(ExpenseReportLine: Record "Expense Report Line"): ErrorInfo
+    var
+        StoredExpenseReportLine: Record "Expense Report Line";
+        CardLookupError: ErrorInfo;
+    begin
+        CardLookupError.Message := UseCardLookupErr;
+        CardLookupError.ErrorType := ErrorType::Client;
+        CardLookupError.DataClassification := DataClassification::CustomerContent;
+        if ExpenseReportLine.IsTemporary() or IsNullGuid(ExpenseReportLine.SystemId) then
+            exit(CardLookupError);
+        if not StoredExpenseReportLine.GetBySystemId(ExpenseReportLine.SystemId) then
+            exit(CardLookupError);
+
+        CardLookupError.RecordId := StoredExpenseReportLine.RecordId;
+        CardLookupError.SystemId := StoredExpenseReportLine.SystemId;
+        CardLookupError.FieldNo := StoredExpenseReportLine.FieldNo("Corporate Card Id");
+        CardLookupError.AddAction(SelectCorporateCardLbl, Codeunit::"EA Corp Card Selection Mgt", 'LookupReportLineCardFromError');
+        exit(CardLookupError);
+    end;
+
+    procedure LookupReportLineCardFromError(CardLookupError: ErrorInfo)
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        ExpenseReportLine.GetBySystemId(CardLookupError.SystemId);
+        ExpenseReportLine.TestField("Expense No.", '');
+        if LookupReportLineCard(ExpenseReportLine) then
+            ExpenseReportLine.Modify(true);
+    end;
+
     internal procedure GetCardDisplay(CardId: Code[50]): Text[150]
     var
         CorpCard: Record "EA Corp Card";
@@ -165,6 +195,8 @@ codeunit 7447 "EA Corp Card Selection Mgt"
     end;
 
     var
+        UseCardLookupErr: Label 'Use the lookup to select a corporate card.';
+        SelectCorporateCardLbl: Label 'Select corporate card';
         CreditCardPaymentRequiredErr: Label 'A corporate card can only be selected for an expense paid by credit card. Clear the corporate card before changing the payment type.';
         CreditCardPaymentRequiredTitleErr: Label 'Credit card payment required';
         CreditCardPaymentRequiredDetailsErr: Label 'Clear the Corporate Card selection on the expense or expense report line, then retry changing the payment method.';

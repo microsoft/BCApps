@@ -140,7 +140,7 @@ page 6999 "Expense Report SubPage"
                             Rec.Validate("Corporate Card Id", '')
                         else
                             if CorporateCardDisplay <> CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id") then
-                                Error(UseCardLookupErr);
+                                Error(CorpCardSelectionMgt.GetReportLineCardLookupError(Rec));
                     end;
                 }
                 field("Expense Date"; Rec."Expense Date")
@@ -672,7 +672,6 @@ page 6999 "Expense Report SubPage"
         ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         CorporateCardDisplay: Text[150];
-        UseCardLookupErr: Label 'Use the lookup to select a corporate card.';
         TotalAmountLCY: Decimal;
         TotalVATAmountLCY: Decimal;
         TotalAmountWithoutVATLCY: Decimal;
