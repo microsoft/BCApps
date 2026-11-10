@@ -11,7 +11,6 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
@@ -610,6 +609,184 @@ codeunit 148152 "FR Self-Billing Tests"
         VerifyCIICreditMemo(XmlDoc, PurchCrMemoHeader, PurchInvHeader);
     end;
 
+    [Test]
+    procedure FacturXRetryRetainsMasterAddressFallback()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        EDocument: Record "E-Document";
+        ServiceParticipant: Record "Service Participant";
+        EDocExport: Codeunit "E-Doc. Export";
+        PDFBlob: Codeunit "Temp Blob";
+        SourceHeader: RecordRef;
+        XmlDoc: XmlDocument;
+        ReExported: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 637647] Existing Factur-X retries retain master-data fallback after initiation participants disappear.
+        Initialize();
+
+        // [GIVEN] PI was exported with participants that are subsequently deleted.
+        SetupScenario(Enum::"E-Document Format"::"Factur-X FR");
+        PostInvoice(PurchInvHeader);
+        GetExportedDocument(PurchInvHeader, EDocument, PDFBlob);
+        ServiceParticipant.SetRange(Service, EDocumentService.Code);
+        ServiceParticipant.DeleteAll();
+        SourceHeader.GetTable(PurchInvHeader);
+        EDocumentService.SetRecFilter();
+
+        // [WHEN] The existing public raw creation/re-export API is used.
+        ReExported := EDocExport.CreateAndExportEDocument(SourceHeader, EDocumentService,
+            EDocument."Workflow Code", EDocument."Document Sending Profile", EDocument."Document Type", true);
+
+        // [THEN] No new initiation gate is applied and the PDF XML uses the existing master-data fallback.
+        Assert.IsTrue(ReExported, 'Existing exports must remain retryable without initiation participants.');
+        GetExportedDocument(PurchInvHeader, EDocument, PDFBlob);
+        ReadPDFXml(PDFBlob, XmlDoc);
+        Assert.AreEqual('987654321_MASTER', NodeValue(XmlDoc, '//ram:SellerTradeParty/ram:URIUniversalCommunication/ram:URIID'), 'Keep the seller master-data fallback.');
+        Assert.AreEqual(CompanyInformation."SIRET No.", NodeValue(XmlDoc, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'), 'Keep the company master-data fallback.');
+    end;
+
+    [Test]
+    procedure FacturXKeepsSelectedServiceWithOtherServicePresent()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        EDocument: Record "E-Document";
+        ServiceParticipant: Record "Service Participant";
+        PDFBlob: Codeunit "Temp Blob";
+        XmlDoc: XmlDocument;
+        OtherServiceCode: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 637647] Shared source helpers must not lose the selected service during PDF XML rendering.
+        Initialize();
+
+        // [GIVEN] S1 and S2 have different addresses for the same seller V.
+        SetupScenario(Enum::"E-Document Format"::"Factur-X FR");
+        OtherServiceCode := LibraryEDocument.CreateService(Enum::"E-Document Format"::"Factur-X FR", Enum::"Service Integration"::Mock);
+        ServiceParticipant.Get(EDocumentService.Code, Enum::"E-Document Source Type"::Vendor, Vendor."No.");
+        ServiceParticipant.Service := OtherServiceCode;
+        ServiceParticipant."Participant Identifier" := '987654321_OTHER';
+        ServiceParticipant.Insert(true);
+
+        // [WHEN] PI is posted using S1.
+        PostInvoice(PurchInvHeader);
+
+        // [THEN] The actual PDF attachment retains S1's identifiers and all existing CII mappings.
+        GetExportedDocument(PurchInvHeader, EDocument, PDFBlob);
+        ReadPDFXml(PDFBlob, XmlDoc);
+        VerifyCIIInvoice(XmlDoc, PurchInvHeader);
+    end;
+
+    [Test]
+    procedure FacturXPreservesSellerSnapshotAndSeparatePayToBank()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchaseHeader: Record "Purchase Header";
+        PayToVendor: Record Vendor;
+        PayToBankAccount: Record "Vendor Bank Account";
+        EDocument: Record "E-Document";
+        EDocExport: Codeunit "E-Doc. Export";
+        PDFBlob: Codeunit "Temp Blob";
+        SourceHeader: RecordRef;
+        XmlDoc: XmlDocument;
+        ReExported: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 637647] CII retains the posted Buy-from seller and the distinct Pay-to beneficiary.
+        Initialize();
+
+        // [GIVEN] PI has seller V and pay-to V2 with its own bank account.
+        SetupScenario(Enum::"E-Document Format"::"Factur-X FR");
+        LibraryPurchase.CreateVendor(PayToVendor);
+        PayToVendor."Document Sending Profile" := Vendor."Document Sending Profile";
+        PayToVendor."Self-Billing Agreement" := true;
+        PayToVendor.Validate("Self-Billing Invoice Nos.", LibraryERM.CreateNoSeriesCode());
+        PayToVendor.Validate("VAT Bus. Posting Group", Vendor."VAT Bus. Posting Group");
+        PayToVendor.Validate("Country/Region Code", Vendor."Country/Region Code");
+        PayToVendor."VAT Registration No." := Vendor."VAT Registration No.";
+        PayToVendor."Payment Method Code" := Vendor."Payment Method Code";
+        LibraryPurchase.CreateVendorBankAccount(PayToBankAccount, PayToVendor."No.");
+        PayToBankAccount.Validate(IBAN, 'FR7630006000011234567890189');
+        PayToBankAccount.Modify(true);
+        PayToVendor.Validate("Preferred Bank Account Code", PayToBankAccount.Code);
+        PayToVendor.Modify(true);
+        CreateInvoice(PurchaseHeader);
+        PurchaseHeader.Validate("Pay-to Vendor No.", PayToVendor."No.");
+        PurchaseHeader.Modify(true);
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true));
+        Vendor.Name := 'Changed live seller';
+        Vendor.Modify(true);
+        GetExportedDocument(PurchInvHeader, EDocument, PDFBlob);
+        SourceHeader.GetTable(PurchInvHeader);
+        EDocumentService.SetRecFilter();
+
+        // [WHEN] PI is exported again after V's live name changes.
+        ReExported := EDocExport.CreateAndExportEDocument(SourceHeader, EDocumentService,
+            EDocument."Workflow Code", EDocument."Document Sending Profile", EDocument."Document Type", true);
+
+        // [THEN] The seller snapshot, selected seller endpoint and V2's bank policy remain distinct.
+        Assert.IsTrue(ReExported, 'The posted self-bill must be exported.');
+        GetExportedDocument(PurchInvHeader, EDocument, PDFBlob);
+        ReadPDFXml(PDFBlob, XmlDoc);
+        Assert.AreEqual(PurchInvHeader."Buy-from Vendor Name", NodeValue(XmlDoc, '//ram:SellerTradeParty/ram:Name'), 'CII retains the posted seller name.');
+        Assert.AreEqual('987654321_DEST', NodeValue(XmlDoc, '//ram:SellerTradeParty/ram:URIUniversalCommunication/ram:URIID'), 'The Buy-from vendor remains the seller.');
+        Assert.AreEqual(PayToBankAccount.IBAN, NodeValue(XmlDoc, '//ram:PayeePartyCreditorFinancialAccount/ram:IBANID'), 'The Pay-to vendor remains the beneficiary.');
+    end;
+
+    [Test]
+    procedure FacturXNetNormalizationRetainsFilteredTemporaryLines()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchInvLine: Record "Purch. Inv. Line";
+        TempPurchInvLine: Record "Purch. Inv. Line" temporary;
+        EDocument: Record "E-Document";
+        CIIXMLBuilder: Codeunit "CII XML Builder";
+        XMLBlob: Codeunit "Temp Blob";
+        SourceHeader: RecordRef;
+        SourceLines: RecordRef;
+        XmlDoc: XmlDocument;
+        Nodes: XmlNodeList;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 637647] Shared normalization keeps the supplied temporary/filtered CII line view.
+        Initialize();
+
+        // [GIVEN] VAT-inclusive PI has a temporary line view excluding an extra line.
+        SetupScenario(Enum::"E-Document Format"::"Factur-X FR");
+        CreateInvoice(PurchaseHeader);
+        PurchaseHeader.SetHideValidationDialog(true);
+        PurchaseHeader.Validate("Prices Including VAT", true);
+        PurchaseHeader.Modify(true);
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true));
+        PurchInvHeader.CalcFields(Amount, "Amount Including VAT");
+        PurchInvLine.SetRange("Document No.", PurchInvHeader."No.");
+        PurchInvLine.FindFirst();
+        TempPurchInvLine := PurchInvLine;
+        TempPurchInvLine.Insert();
+        TempPurchInvLine."Line No." += 10000;
+        TempPurchInvLine.Insert();
+        TempPurchInvLine.SetRange("Line No.", PurchInvLine."Line No.");
+        TempPurchInvLine.FindFirst();
+        SourceHeader.GetTable(PurchInvHeader);
+        SourceLines.GetTable(TempPurchInvLine);
+        EDocument."Document Type" := EDocument."Document Type"::"Self-Billed Purchase Invoice";
+        EDocument."Document No." := PurchInvHeader."No.";
+        EDocument."Document Date" := PurchInvHeader."Document Date";
+        EDocument."Currency Code" := PurchInvHeader."Currency Code";
+        EDocument."Amount Excl. VAT" := PurchInvHeader.Amount;
+        EDocument."Amount Incl. VAT" := PurchInvHeader."Amount Including VAT";
+
+        // [WHEN] CII is created from that filtered view.
+        CIIXMLBuilder.CreateInvoiceXml(EDocument, SourceHeader, SourceLines, XMLBlob, EDocumentService.Code);
+
+        // [THEN] Exactly the selected line is normalized, with the original net amount.
+        ReadXml(XMLBlob, XmlDoc);
+        XmlDoc.SelectNodes('//*[local-name()="IncludedSupplyChainTradeLineItem"]', Nodes);
+        Assert.AreEqual(1, Nodes.Count(), 'The excluded temporary line must not be serialized.');
+        VerifyVATInclusiveAmounts(XmlDoc, PurchInvHeader);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"FR Self-Billing Tests");
@@ -704,7 +881,7 @@ codeunit 148152 "FR Self-Billing Tests"
         ReportSelections.Insert(true);
     end;
 
-    local procedure InsertParticipant(ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]; Identifier: Text[250]; IdentifierScheme: Enum "Electronic Address Scheme")
+    local procedure InsertParticipant(ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]; Identifier: Text[200]; IdentifierScheme: Enum "Electronic Address Scheme")
     var
         ServiceParticipant: Record "Service Participant";
     begin

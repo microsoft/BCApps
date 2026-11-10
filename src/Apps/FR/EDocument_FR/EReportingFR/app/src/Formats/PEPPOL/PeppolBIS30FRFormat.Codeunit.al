@@ -107,18 +107,13 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
         PurchInvHeader: Record "Purch. Inv. Header";
-        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
         FREDocHelpers: Codeunit "EDoc. Helpers";
         PeppolBIS30: Codeunit "EDoc PEPPOL BIS 3.0";
+        EDocumentProcessing: Codeunit "E-Document Processing";
     begin
-        if EDocument."Document Type" = EDocument."Document Type"::"Self-Billed Purchase Invoice" then begin
-            SourceDocumentHeader.SetTable(PurchInvHeader);
-            PurchInvHeader.TestField("Self-Billing Invoice", true);
-        end;
-        if EDocument."Document Type" = EDocument."Document Type"::"Self-Billed Purch. Cr. Memo" then begin
-            SourceDocumentHeader.SetTable(PurchCrMemoHeader);
+        EDocumentProcessing.CheckSelfBillingSource(SourceDocumentHeader, EDocument."Document Type");
+        if EDocument."Document Type" = EDocument."Document Type"::"Self-Billed Purch. Cr. Memo" then
             FREDocHelpers.GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
-        end;
 
         // Generate base PEPPOL BIS 3.0 XML
         PeppolBIS30.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
@@ -256,29 +251,25 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
         case SourceDocumentLines.Number of
             Database::"Purch. Inv. Line":
-                begin
-                    if SourceDocumentLines.FindSet() then
-                        repeat
-                            SourceDocumentLines.SetTable(PurchInvLine);
-                            if PurchInvLine.Type = PurchInvLine.Type::Item then
-                                HasItemLines := true
-                            else
-                                if PurchInvLine.Type <> PurchInvLine.Type::" " then
-                                    HasNonItemLines := true;
-                        until SourceDocumentLines.Next() = 0;
-                end;
+                if SourceDocumentLines.FindSet() then
+                    repeat
+                        SourceDocumentLines.SetTable(PurchInvLine);
+                        if PurchInvLine.Type = PurchInvLine.Type::Item then
+                            HasItemLines := true
+                        else
+                            if PurchInvLine.Type <> PurchInvLine.Type::" " then
+                                HasNonItemLines := true;
+                    until SourceDocumentLines.Next() = 0;
             Database::"Purch. Cr. Memo Line":
-                begin
-                    if SourceDocumentLines.FindSet() then
-                        repeat
-                            SourceDocumentLines.SetTable(PurchCrMemoLine);
-                            if PurchCrMemoLine.Type = PurchCrMemoLine.Type::Item then
-                                HasItemLines := true
-                            else
-                                if PurchCrMemoLine.Type <> PurchCrMemoLine.Type::" " then
-                                    HasNonItemLines := true;
-                        until SourceDocumentLines.Next() = 0;
-                end;
+                if SourceDocumentLines.FindSet() then
+                    repeat
+                        SourceDocumentLines.SetTable(PurchCrMemoLine);
+                        if PurchCrMemoLine.Type = PurchCrMemoLine.Type::Item then
+                            HasItemLines := true
+                        else
+                            if PurchCrMemoLine.Type <> PurchCrMemoLine.Type::" " then
+                                HasNonItemLines := true;
+                    until SourceDocumentLines.Next() = 0;
             Database::"Sales Invoice Line":
                 begin
                     SourceDocumentLines.SetTable(SalesInvoiceLine);
@@ -911,6 +902,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)
     var
         EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
+        EDocumentProcessing: Codeunit "E-Document Processing";
     begin
         if Rec."Document Format" <> Rec."Document Format"::"Peppol BIS 3.0 FR" then
             exit;
@@ -943,11 +935,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Issued Finance Charge Memo";
         EDocServiceSupportedType.Insert();
 
-        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Self-Billed Purchase Invoice";
-        EDocServiceSupportedType.Direction := Enum::"E-Doc. Supp. Type Direction"::Outgoing;
-        EDocServiceSupportedType.Insert();
-        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Self-Billed Purch. Cr. Memo";
-        EDocServiceSupportedType.Insert();
+        EDocumentProcessing.RegisterDefaultSelfBillingTypes(Rec.Code);
     end;
 
     [IntegrationEvent(false, false)]

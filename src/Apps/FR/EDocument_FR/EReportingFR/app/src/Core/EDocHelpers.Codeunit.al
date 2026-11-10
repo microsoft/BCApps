@@ -8,7 +8,6 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -19,96 +18,26 @@ codeunit 10991 "EDoc. Helpers"
 
     procedure IsSelfBillingDocument(SourceDocumentHeader: RecordRef): Boolean
     var
-        PurchaseHeader: Record "Purchase Header";
-        PurchInvHeader: Record "Purch. Inv. Header";
-        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
         EDocumentProcessing: Codeunit "E-Document Processing";
     begin
-        case SourceDocumentHeader.Number() of
-            Database::"Purchase Header":
-                begin
-                    SourceDocumentHeader.SetTable(PurchaseHeader);
-                    if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::"Credit Memo" then begin
-                        if PurchaseHeader."Applies-to Doc. Type" <> PurchaseHeader."Applies-to Doc. Type"::Invoice then
-                            exit(false);
-                        if not PurchInvHeader.Get(PurchaseHeader."Applies-to Doc. No.") then
-                            exit(false);
-                        exit(PurchInvHeader."Self-Billing Invoice");
-                    end;
-                    exit(PurchaseHeader."Self-Billing Invoice");
-                end;
-            Database::"Purch. Inv. Header":
-                begin
-                    SourceDocumentHeader.SetTable(PurchInvHeader);
-                    exit(PurchInvHeader."Self-Billing Invoice");
-                end;
-            Database::"Purch. Cr. Memo Hdr.":
-                begin
-                    SourceDocumentHeader.SetTable(PurchCrMemoHeader);
-                    exit(EDocumentProcessing.IsSelfBilledCreditMemo(PurchCrMemoHeader));
-                end;
-        end;
-        exit(false);
+        exit(EDocumentProcessing.IsSelfBillingSource(SourceDocumentHeader));
     end;
 
     procedure GetSelfBillingVendor(SourceDocumentHeader: RecordRef; var Vendor: Record Vendor)
     var
-        PurchaseHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
-        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        EDocumentProcessing: Codeunit "E-Document Processing";
     begin
-        case SourceDocumentHeader.Number() of
-            Database::"Purchase Header":
-                begin
-                    SourceDocumentHeader.SetTable(PurchaseHeader);
-                    if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::"Credit Memo" then
-                        GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader)
-                    else
-                        PurchaseHeader.TestField("Self-Billing Invoice", true);
-                    Vendor.Get(PurchaseHeader."Buy-from Vendor No.");
-                end;
-            Database::"Purch. Inv. Header":
-                begin
-                    SourceDocumentHeader.SetTable(PurchInvHeader);
-                    PurchInvHeader.TestField("Self-Billing Invoice", true);
-                    Vendor.Get(PurchInvHeader."Buy-from Vendor No.");
-                end;
-            Database::"Purch. Cr. Memo Hdr.":
-                begin
-                    SourceDocumentHeader.SetTable(PurchCrMemoHeader);
-                    GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
-                    Vendor.Get(PurchCrMemoHeader."Buy-from Vendor No.");
-                end;
-            else
-                Error(SelfBillingSourceRequiredErr);
-        end;
+        if EDocumentProcessing.TryGetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader) then
+            PurchInvHeader.TestField("Document Date");
+        EDocumentProcessing.GetSelfBillingVendor(SourceDocumentHeader, Vendor);
     end;
 
     procedure GetSelfBillingInvoiceReference(SourceDocumentHeader: RecordRef; var PurchInvHeader: Record "Purch. Inv. Header")
     var
-        PurchaseHeader: Record "Purchase Header";
-        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        EDocumentProcessing: Codeunit "E-Document Processing";
     begin
-        case SourceDocumentHeader.Number() of
-            Database::"Purchase Header":
-                begin
-                    SourceDocumentHeader.SetTable(PurchaseHeader);
-                    PurchaseHeader.TestField("Document Type", PurchaseHeader."Document Type"::"Credit Memo");
-                    PurchaseHeader.TestField("Applies-to Doc. Type", PurchaseHeader."Applies-to Doc. Type"::Invoice);
-                    PurchaseHeader.TestField("Applies-to Doc. No.");
-                    PurchInvHeader.Get(PurchaseHeader."Applies-to Doc. No.");
-                end;
-            Database::"Purch. Cr. Memo Hdr.":
-                begin
-                    SourceDocumentHeader.SetTable(PurchCrMemoHeader);
-                    PurchCrMemoHeader.TestField("Applies-to Doc. Type", PurchCrMemoHeader."Applies-to Doc. Type"::Invoice);
-                    PurchCrMemoHeader.TestField("Applies-to Doc. No.");
-                    PurchInvHeader.Get(PurchCrMemoHeader."Applies-to Doc. No.");
-                end;
-            else
-                Error(SelfBillingSourceRequiredErr);
-        end;
-        PurchInvHeader.TestField("Self-Billing Invoice", true);
+        EDocumentProcessing.GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
         PurchInvHeader.TestField("Document Date");
     end;
 
@@ -543,7 +472,6 @@ codeunit 10991 "EDoc. Helpers"
     end;
 
     var
-        SelfBillingSourceRequiredErr: Label 'A self-billing purchase invoice or a purchase credit memo applied to a self-billing invoice is required.';
         SelfBillingSellerAddressErr: Label 'Specify the vendor electronic address with scheme 0225 and a nine-digit SIREN, optionally followed by an underscore and a suffix, in the selected service participants or on the vendor card.';
         ShowSelfBillingVendorLbl: Label 'Show Vendor';
         SIRENRequiredErr: Label '%1 must be specified in %2 for French e-invoicing.', Comment = '%1 = Registration No. field caption, %2 = Company Information table caption';

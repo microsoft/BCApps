@@ -9,11 +9,13 @@ using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 
-enum 6101 "E-Document Format" implements "E-Document", IEDocResponseProvider
+enum 6101 "E-Document Format" implements "E-Document", IEDocResponseProvider, ISelfBillingFormatPolicy
 {
     Extensible = true;
-    DefaultImplementation = IEDocResponseProvider = "E-Doc. Unspecified Impl.";
-    UnknownValueImplementation = IEDocResponseProvider = "E-Doc. Unspecified Impl.";
+    DefaultImplementation = IEDocResponseProvider = "E-Doc. Unspecified Impl.",
+                            ISelfBillingFormatPolicy = "Default Export Eligibility";
+    UnknownValueImplementation = IEDocResponseProvider = "E-Doc. Unspecified Impl.",
+                                 ISelfBillingFormatPolicy = "Default Export Eligibility";
 
     value(0; "Data Exchange")
     {

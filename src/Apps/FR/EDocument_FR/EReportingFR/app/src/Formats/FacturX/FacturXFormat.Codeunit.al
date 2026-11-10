@@ -35,27 +35,22 @@ codeunit 10979 "Factur-X Format" implements "E-Document"
     procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
         PurchInvHeader: Record "Purch. Inv. Header";
-        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
         FREDocHelpers: Codeunit "EDoc. Helpers";
         EDocErrorHelper: Codeunit "E-Document Error Helper";
+        EDocumentProcessing: Codeunit "E-Document Processing";
     begin
+        EDocumentProcessing.CheckSelfBillingSource(SourceDocumentHeader, EDocument."Document Type");
         case EDocument."Document Type" of
             EDocument."Document Type"::"Sales Invoice",
             EDocument."Document Type"::"Service Invoice",
             EDocument."Document Type"::"Sales Credit Memo",
             EDocument."Document Type"::"Service Credit Memo",
             EDocument."Document Type"::"Issued Reminder",
-            EDocument."Document Type"::"Issued Finance Charge Memo":
-                CreateSourceDocumentBlob(SourceDocumentHeader, TempBlob, EDocumentService.Code);
+            EDocument."Document Type"::"Issued Finance Charge Memo",
             EDocument."Document Type"::"Self-Billed Purchase Invoice":
-                begin
-                    SourceDocumentHeader.SetTable(PurchInvHeader);
-                    PurchInvHeader.TestField("Self-Billing Invoice", true);
-                    CreateSourceDocumentBlob(SourceDocumentHeader, TempBlob, EDocumentService.Code);
-                end;
+                CreateSourceDocumentBlob(SourceDocumentHeader, TempBlob, EDocumentService.Code);
             EDocument."Document Type"::"Self-Billed Purch. Cr. Memo":
                 begin
-                    SourceDocumentHeader.SetTable(PurchCrMemoHeader);
                     FREDocHelpers.GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
                     CreateSourceDocumentBlob(SourceDocumentHeader, TempBlob, EDocumentService.Code);
                 end;
@@ -137,6 +132,7 @@ codeunit 10979 "Factur-X Format" implements "E-Document"
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)
     var
         EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
+        EDocumentProcessing: Codeunit "E-Document Processing";
     begin
         if Rec."Document Format" <> Rec."Document Format"::"Factur-X FR" then
             exit;
@@ -175,11 +171,7 @@ codeunit 10979 "Factur-X Format" implements "E-Document"
         EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Credit Memo";
         EDocServiceSupportedType.Insert();
 
-        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Self-Billed Purchase Invoice";
-        EDocServiceSupportedType.Direction := Enum::"E-Doc. Supp. Type Direction"::Outgoing;
-        EDocServiceSupportedType.Insert();
-        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Self-Billed Purch. Cr. Memo";
-        EDocServiceSupportedType.Insert();
+        EDocumentProcessing.RegisterDefaultSelfBillingTypes(Rec.Code);
     end;
 
     var

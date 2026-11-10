@@ -37,11 +37,12 @@ codeunit 10978 "CII XML Builder"
     var
         PurchInvHeader: Record "Purch. Inv. Header";
         TempPurchInvLine: Record "Purch. Inv. Line" temporary;
+        EDocumentProcessing: Codeunit "E-Document Processing";
         NetSourceDocumentLines: RecordRef;
     begin
+        EDocumentProcessing.CheckSelfBillingSource(SourceDocumentHeader, EDocument."Document Type");
         if EDocument."Document Type" = EDocument."Document Type"::"Self-Billed Purchase Invoice" then begin
             SourceDocumentHeader.SetTable(PurchInvHeader);
-            PurchInvHeader.TestField("Self-Billing Invoice", true);
             if PurchInvHeader."Prices Including VAT" then begin
                 InitializeAmountRoundingPrecision(EDocument."Currency Code");
                 PrepareNetPurchaseInvoiceLines(SourceDocumentLines, TempPurchInvLine);
@@ -58,19 +59,15 @@ codeunit 10978 "CII XML Builder"
     local procedure PrepareNetPurchaseInvoiceLines(SourceDocumentLines: RecordRef; var TempPurchInvLine: Record "Purch. Inv. Line" temporary)
     var
         PurchInvLine: Record "Purch. Inv. Line";
-        VATFactor: Decimal;
     begin
         if SourceDocumentLines.FindSet() then
             repeat
                 SourceDocumentLines.SetTable(PurchInvLine);
                 TempPurchInvLine := PurchInvLine;
-                VATFactor := 1 + PurchInvLine."VAT %" / 100;
-                if (VATFactor = 0) or (PurchInvLine."VAT Calculation Type" = PurchInvLine."VAT Calculation Type"::"Full VAT") then
-                    VATFactor := 1;
-                TempPurchInvLine."Inv. Discount Amount" := Round(PurchInvLine."Inv. Discount Amount" / VATFactor, GetAmountRoundingPrecision());
-                TempPurchInvLine."Line Amount" := PurchInvLine.Amount + TempPurchInvLine."Inv. Discount Amount";
-                TempPurchInvLine."Line Discount Amount" := Round(PurchInvLine."Line Discount Amount" / VATFactor, GetAmountRoundingPrecision());
-                TempPurchInvLine."Direct Unit Cost" := PurchInvLine."Direct Unit Cost" / VATFactor;
+                NormalizeNetPurchaseAmounts(PurchInvLine.Amount, PurchInvLine."VAT %",
+                    PurchInvLine."VAT Calculation Type" = PurchInvLine."VAT Calculation Type"::"Full VAT",
+                    TempPurchInvLine."Inv. Discount Amount", TempPurchInvLine."Line Amount",
+                    TempPurchInvLine."Line Discount Amount", TempPurchInvLine."Direct Unit Cost");
                 TempPurchInvLine.Insert();
             until SourceDocumentLines.Next() = 0;
     end;
@@ -86,8 +83,10 @@ codeunit 10978 "CII XML Builder"
         PurchInvHeader: Record "Purch. Inv. Header";
         TempPurchCrMemoLine: Record "Purch. Cr. Memo Line" temporary;
         FREDocHelpers: Codeunit "EDoc. Helpers";
+        EDocumentProcessing: Codeunit "E-Document Processing";
         NetSourceDocumentLines: RecordRef;
     begin
+        EDocumentProcessing.CheckSelfBillingSource(SourceDocumentHeader, EDocument."Document Type");
         if EDocument."Document Type" = EDocument."Document Type"::"Self-Billed Purch. Cr. Memo" then begin
             SourceDocumentHeader.SetTable(PurchCrMemoHeader);
             FREDocHelpers.GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
@@ -107,21 +106,30 @@ codeunit 10978 "CII XML Builder"
     local procedure PrepareNetPurchaseCreditMemoLines(SourceDocumentLines: RecordRef; var TempPurchCrMemoLine: Record "Purch. Cr. Memo Line" temporary)
     var
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
-        VATFactor: Decimal;
     begin
         if SourceDocumentLines.FindSet() then
             repeat
                 SourceDocumentLines.SetTable(PurchCrMemoLine);
                 TempPurchCrMemoLine := PurchCrMemoLine;
-                VATFactor := 1 + PurchCrMemoLine."VAT %" / 100;
-                if (VATFactor = 0) or (PurchCrMemoLine."VAT Calculation Type" = PurchCrMemoLine."VAT Calculation Type"::"Full VAT") then
-                    VATFactor := 1;
-                TempPurchCrMemoLine."Inv. Discount Amount" := Round(PurchCrMemoLine."Inv. Discount Amount" / VATFactor, GetAmountRoundingPrecision());
-                TempPurchCrMemoLine."Line Amount" := PurchCrMemoLine.Amount + TempPurchCrMemoLine."Inv. Discount Amount";
-                TempPurchCrMemoLine."Line Discount Amount" := Round(PurchCrMemoLine."Line Discount Amount" / VATFactor, GetAmountRoundingPrecision());
-                TempPurchCrMemoLine."Direct Unit Cost" := PurchCrMemoLine."Direct Unit Cost" / VATFactor;
+                NormalizeNetPurchaseAmounts(PurchCrMemoLine.Amount, PurchCrMemoLine."VAT %",
+                    PurchCrMemoLine."VAT Calculation Type" = PurchCrMemoLine."VAT Calculation Type"::"Full VAT",
+                    TempPurchCrMemoLine."Inv. Discount Amount", TempPurchCrMemoLine."Line Amount",
+                    TempPurchCrMemoLine."Line Discount Amount", TempPurchCrMemoLine."Direct Unit Cost");
                 TempPurchCrMemoLine.Insert();
             until SourceDocumentLines.Next() = 0;
+    end;
+
+    local procedure NormalizeNetPurchaseAmounts(Amount: Decimal; VATPercent: Decimal; FullVAT: Boolean; var InvoiceDiscountAmount: Decimal; var LineAmount: Decimal; var LineDiscountAmount: Decimal; var DirectUnitCost: Decimal)
+    var
+        VATFactor: Decimal;
+    begin
+        VATFactor := 1 + VATPercent / 100;
+        if (VATFactor = 0) or FullVAT then
+            VATFactor := 1;
+        InvoiceDiscountAmount := Round(InvoiceDiscountAmount / VATFactor, GetAmountRoundingPrecision());
+        LineAmount := Amount + InvoiceDiscountAmount;
+        LineDiscountAmount := Round(LineDiscountAmount / VATFactor, GetAmountRoundingPrecision());
+        DirectUnitCost := DirectUnitCost / VATFactor;
     end;
 
     local procedure BuildCIIDocument(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob"; TypeCode: Text; EDocumentServiceCode: Code[20])

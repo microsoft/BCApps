@@ -84,19 +84,20 @@ codeunit 10983 "Export Factur-X Document"
         EDocument: Record "E-Document";
         PurchInvLine: Record "Purch. Inv. Line";
         CIIXMLBuilder: Codeunit "CII XML Builder";
+        EDocumentProcessing: Codeunit "E-Document Processing";
         TempBlob: Codeunit "Temp Blob";
         SourceDocumentHeader: RecordRef;
         SourceDocumentLines: RecordRef;
         EDocumentServiceCode: Code[20];
     begin
-        PurchInvHeader.TestField("Self-Billing Invoice", true);
+        SourceDocumentHeader.GetTable(PurchInvHeader);
+        EDocumentProcessing.CheckSelfBillingSource(SourceDocumentHeader, Enum::"E-Document Type"::"Self-Billed Purchase Invoice");
         PurchInvHeader.CalcFields(Amount, "Amount Including VAT");
         InitEDocument(EDocument, PurchInvHeader."No.", PurchInvHeader."Document Date",
             PurchInvHeader."Currency Code", PurchInvHeader.Amount, PurchInvHeader."Amount Including VAT");
         EDocument."Document Type" := EDocument."Document Type"::"Self-Billed Purchase Invoice";
         OnGetFacturXServiceCode(EDocumentServiceCode);
 
-        SourceDocumentHeader.GetTable(PurchInvHeader);
         PurchInvLine.SetRange("Document No.", PurchInvHeader."No.");
         SourceDocumentLines.GetTable(PurchInvLine);
         CIIXMLBuilder.CreateInvoiceXml(EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob, EDocumentServiceCode);
