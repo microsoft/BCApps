@@ -10,7 +10,7 @@ using Microsoft.Sales.Document;
 
 /// <summary>
 /// Manages VAT posting group handling during document posting operations for allocation accounts.
-/// Provides event-driven VAT posting group assignment and deferral schedule redistribution control.
+/// Provides event-driven VAT posting group assignment, VAT recalculation that ignores allocation source lines, and deferral schedule redistribution control.
 /// </summary>
 codeunit 2674 "Alloc. Acc. Handle Doc. Post"
 {
@@ -42,6 +42,14 @@ codeunit 2674 "Alloc. Acc. Handle Doc. Post"
     begin
         if VATProdPostingGroupCode <> '' then
             PurchaseLine."VAT Prod. Posting Group" := VATProdPostingGroupCode;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnUpdateVATAmountsOnAfterSetFilters', '', false, false)]
+    local procedure PurchaseExcludeAllocationSourceLinesOnUpdateVATAmounts(var PurchaseLine2: Record "Purchase Line")
+    begin
+        // Source lines are deleted after generation, so they must not affect VAT rounding of the generated lines.
+        PurchaseLine2.SetFilter(Type, '<>%1', PurchaseLine2.Type::"Allocation Account");
+        PurchaseLine2.SetRange("Selected Alloc. Account No.", '');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Deferral Utilities", 'OnBeforeCreateDeferralSchedule', '', false, false)]

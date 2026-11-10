@@ -116,6 +116,67 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
     end;
 
     [Test]
+    procedure GenerateLinesFromInheritFromParentAllocationKeepsVATRoundingWithPricesInclVAT()
+    var
+        AllocationAccount: Record "Allocation Account";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GeneralPostingSetup: Record "General Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GLAccountNo: Code[20];
+        CumulativeLineAmount: Decimal;
+        CumulativeAmount: Decimal;
+        ExpectedAmount: Decimal;
+    begin
+        // [SCENARIO 655888] Generate lines from allocation account line excludes the source line from VAT rounding when Prices Including VAT is enabled
+        Initialize();
+
+        // [GIVEN] G/L Account "G" with 19% Normal VAT
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 19);
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Purchase);
+        LibraryERM.FindGeneralPostingSetup(GeneralPostingSetup);
+
+        // [GIVEN] Fixed allocation account "AA" with Split Amount and three Inherit from Parent lines with shares 33.3, 33.3 and 33.4
+        CreateFixedAllocationAccountWithInheritFromParentShares(AllocationAccount, 33.3, 33.3, 33.4);
+
+        // [GIVEN] Purchase invoice with Prices Including VAT and line for "G" with amount 100.00 including VAT and Selected Alloc. Account No. = "AA"
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithBusPostingGroups(GeneralPostingSetup."Gen. Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group"));
+        PurchaseHeader.Validate("Prices Including VAT", true);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+        PurchaseLine.Validate("Direct Unit Cost", 100);
+        PurchaseLine.Validate("Selected Alloc. Account No.", AllocationAccount."No.");
+        PurchaseLine.Modify(true);
+
+        // [WHEN] Generate lines from allocation account line and delete the source line
+        CreateLinesFromAllocationAccountLine(PurchaseLine);
+        PurchaseLine.Delete();
+
+        // [THEN] Generated lines carry the VAT rounding of the generated lines only, not of the deleted source line
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::"G/L Account");
+        PurchaseLine.SetRange("No.", GLAccountNo);
+        Assert.RecordCount(PurchaseLine, 3);
+        PurchaseLine.FindSet();
+        repeat
+            CumulativeLineAmount += PurchaseLine."Line Amount";
+            ExpectedAmount := Round(CumulativeLineAmount / 1.19) - CumulativeAmount;
+            CumulativeAmount += ExpectedAmount;
+            Assert.AreEqual(ExpectedAmount, PurchaseLine.Amount, PurchaseLine.FieldCaption(Amount));
+            Assert.AreEqual(ExpectedAmount, PurchaseLine."VAT Base Amount", PurchaseLine.FieldCaption("VAT Base Amount"));
+            Assert.AreEqual(PurchaseLine."Line Amount", PurchaseLine."Amount Including VAT", PurchaseLine.FieldCaption("Amount Including VAT"));
+        until PurchaseLine.Next() = 0;
+
+        // [THEN] Document total excluding VAT is 84.03 and total including VAT is 100.00
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        Assert.AreEqual(84.03, PurchaseHeader.Amount, PurchaseHeader.FieldCaption(Amount));
+        Assert.AreEqual(100, PurchaseHeader."Amount Including VAT", PurchaseHeader.FieldCaption("Amount Including VAT"));
+    end;
+
+    [Test]
     procedure PostInvoiceAfterGenerateLinesFromInheritFromParentAllocationWithPricesInclVAT()
     var
         AllocationAccount: Record "Allocation Account";
