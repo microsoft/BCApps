@@ -1331,7 +1331,10 @@ page 6991 "Expense Agent Setup Wizard"
         if not ExpenseAgentSetup.Get() then
             exit;
         if ApplyNoSeries and not NoSeriesLocked then
-            ExpenseAgentSetup.CreateNoSeriesDefaults();
+            ExpenseAgentSetup.CreateNoSeriesDefaults()
+        else
+            if ExpenseAgentSetup."No. Series Applied" then
+                ExpenseAgentSetup.EnsureExpenseVendorNoSeries();
         if ApplyPaymentMethods and not PaymentMethodsLocked then
             ExpenseAgentSetup.CreatePaymentMethodsDefaults();
         if ApplyPostingGroups and not PostingGroupsLocked then

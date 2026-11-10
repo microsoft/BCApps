@@ -6,6 +6,9 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.DirectDebit;
+#if not CLEAN30
+using Microsoft.eServices.EDocument;
+#endif
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Setup;
 using System.Reflection;
@@ -22,6 +25,54 @@ codeunit 13925 "Library - E-Doc DE"
         CapturedPaymentMeansHeaderRecordId: RecordId;
         DefaultCoarseRoutingTxt: Label '99', Locked = true;
         SEPADirectDebitMeansCodeTok: Label '59', Locked = true;
+        CapturedEDocumentServiceCode: Code[20];
+        EDocumentServiceEventCount: Integer;
+
+    /// <summary>
+    /// Resets the OnAfterFindEDocumentService capture state. Bind this codeunit with
+    /// BindSubscription before the export and unbind afterwards.
+    /// </summary>
+    procedure ClearCapturedEDocumentService()
+    begin
+        Clear(CapturedEDocumentServiceCode);
+        Clear(EDocumentServiceEventCount);
+    end;
+
+    /// <summary>
+    /// Returns the Code of the E-Document Service carried by the last OnAfterFindEDocumentService event.
+    /// </summary>
+    /// <returns>The Code of the E-Document Service carried by the last captured event.</returns>
+    procedure GetCapturedEDocumentServiceCode(): Code[20]
+    begin
+        exit(CapturedEDocumentServiceCode);
+    end;
+
+    /// <summary>
+    /// Returns how many times OnAfterFindEDocumentService was raised while bound.
+    /// </summary>
+    /// <returns>The number of OnAfterFindEDocumentService events captured while the subscriber was bound.</returns>
+    procedure GetEDocumentServiceEventCount(): Integer
+    begin
+        exit(EDocumentServiceEventCount);
+    end;
+
+#if not CLEAN30
+#pragma warning disable AL0432, AS0105
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", 'OnAfterFindEDocumentService', '', false, false)]
+    local procedure CaptureXRechnungOnAfterFindEDocumentService(var EDocumentService: Record "E-Document Service"; EDocumentFormat: Code[20])
+    begin
+        CapturedEDocumentServiceCode := EDocumentService.Code;
+        EDocumentServiceEventCount += 1;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export ZUGFeRD Document", 'OnAfterFindEDocumentService', '', false, false)]
+    local procedure CaptureZUGFeRDOnAfterFindEDocumentService(var EDocumentService: Record "E-Document Service")
+    begin
+        CapturedEDocumentServiceCode := EDocumentService.Code;
+        EDocumentServiceEventCount += 1;
+    end;
+#pragma warning restore AL0432, AS0105
+#endif
 
     /// <summary>
     /// Returns the record ID of the header carried by the last payment means event of the XRechnung or

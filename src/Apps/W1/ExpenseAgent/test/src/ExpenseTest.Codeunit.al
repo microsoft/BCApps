@@ -19,7 +19,9 @@ using System.Automation;
 using System.Security.AccessControl;
 using System.Security.User;
 using System.TestLibraries.Environment;
+using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
+using System.Upgrade;
 using System.Utilities;
 
 codeunit 148305 "Expense Test"
@@ -83,6 +85,7 @@ codeunit 148305 "Expense Test"
         OnlyMyExpenseExpectedErr: Label 'Expense %1 should be visible after Show My Expenses is invoked.', Comment = '%1 = Expense No. that should be the only row';
         ExpenseVendorNosShouldBeSetErr: Label 'Expense Vendor Nos. should be set when no. series defaults are created.';
         ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
+        OnlyBCUserCanApproveErr: Label 'Expense user %2 cannot be an approver because no user in Business Central has %1 as their Microsoft 365 authentication email. Make sure a Business Central user exists whose Microsoft 365 authentication email matches the expense user''s email.', Comment = '%1 = Email, %2 = Expense User No.';
 
     [Test]
     procedure NoCannotBeUpdatedInExpenseManuallyIfManualNosIsFalse()
@@ -220,6 +223,72 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
+    procedure ExpenseVendorNoSeriesPreviewIncludesMissingDefaults()
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        TempNoSeries: Record "No. Series" temporary;
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+        CreateExpenseNoSeries: Codeunit "Create Expense No. Series";
+    begin
+        Initialize();
+
+        NoSeriesLine.SetRange("Series Code", CreateExpenseNoSeries.ExpenseVendorNoSeries());
+        NoSeriesLine.DeleteAll();
+        if NoSeries.Get(CreateExpenseNoSeries.ExpenseVendorNoSeries()) then
+            NoSeries.Delete();
+
+        CreateExpenseNoSeries.LoadNoSeriesPreview(TempNoSeries, TempNoSeriesLine);
+
+        TempNoSeries.Get(CreateExpenseNoSeries.ExpenseVendorNoSeries());
+        Assert.IsFalse(NoSeries.Get(TempNoSeries.Code), 'Preview must not create the vendor number series.');
+        Assert.RecordIsEmpty(NoSeriesLine);
+
+        CreateExpenseNoSeries.InsertExpenseVendorNoSeries();
+        NoSeries.Get(TempNoSeries.Code);
+        NoSeriesLine.FindFirst();
+        TempNoSeries.TestField(Description, NoSeries.Description);
+        TempNoSeriesLine.Get(NoSeriesLine."Series Code", NoSeriesLine."Line No.");
+        TempNoSeriesLine.TestField("Starting No.", NoSeriesLine."Starting No.");
+        TempNoSeriesLine.TestField("Ending No.", NoSeriesLine."Ending No.");
+        TempNoSeriesLine.TestField(Implementation, NoSeriesLine.Implementation);
+    end;
+
+    [Test]
+    procedure ExpenseVendorNoSeriesPreviewPreservesExistingSeries()
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        TempNoSeries: Record "No. Series" temporary;
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+        CreateExpenseNoSeries: Codeunit "Create Expense No. Series";
+    begin
+        Initialize();
+
+        CreateExpenseNoSeries.InsertExpenseVendorNoSeries();
+        NoSeries.Get(CreateExpenseNoSeries.ExpenseVendorNoSeries());
+        NoSeries.Description := 'Custom vendor numbering';
+        NoSeries.Modify();
+        NoSeriesLine.SetRange("Series Code", NoSeries.Code);
+        NoSeriesLine.FindFirst();
+        NoSeriesLine."Starting No." := 'CUSTOM001';
+        NoSeriesLine."Ending No." := 'CUSTOM999';
+        NoSeriesLine."Last No. Used" := 'CUSTOM010';
+        NoSeriesLine.Implementation := Enum::"No. Series Implementation"::Normal;
+        NoSeriesLine.Modify();
+
+        CreateExpenseNoSeries.LoadNoSeriesPreview(TempNoSeries, TempNoSeriesLine);
+
+        TempNoSeries.Get(NoSeries.Code);
+        TempNoSeries.TestField(Description, NoSeries.Description);
+        TempNoSeriesLine.Get(NoSeriesLine."Series Code", NoSeriesLine."Line No.");
+        TempNoSeriesLine.TestField("Starting No.", NoSeriesLine."Starting No.");
+        TempNoSeriesLine.TestField("Ending No.", NoSeriesLine."Ending No.");
+        TempNoSeriesLine.TestField("Last No. Used", NoSeriesLine."Last No. Used");
+        TempNoSeriesLine.TestField(Implementation, NoSeriesLine.Implementation);
+    end;
+
+    [Test]
     procedure ExpenseVendorNosIsNotOverwrittenByCreateNoSeriesDefaults()
     var
         NoSeries: Record "No. Series";
@@ -247,6 +316,88 @@ codeunit 148305 "Expense Test"
             ExistingExpenseVendorNos,
             ExpenseAgentSetup."Expense Vendor Nos.",
             StrSubstNo(ValueMustBeEqualErr, ExpenseAgentSetup.FieldCaption("Expense Vendor Nos."), ExistingExpenseVendorNos, ExpenseAgentSetup.TableCaption()));
+    end;
+
+    [Test]
+    procedure DefaultSettingsRepairMissingExpenseVendorNosAfterDefaultsApplied()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseVendor: Record "Expense Vendor";
+        ExistingExpenseNos: Code[20];
+    begin
+        // [FEATURE] [Expense Agent] [Setup]
+        // [SCENARIO 658051] Previously applied defaults do not prevent repairing missing expense vendor numbering.
+        Initialize();
+
+        // [GIVEN] All defaults were applied before expense vendor numbering was introduced.
+        ExpenseAgentSetup.Get();
+        ExistingExpenseNos := ExpenseAgentSetup."Expense Nos.";
+        ExpenseAgentSetup.Validate("Expense Vendor Nos.", '');
+        ExpenseAgentSetup.Validate("Expense User Nos.", '');
+        ExpenseAgentSetup."No. Series Applied" := true;
+        ExpenseAgentSetup."Payment Methods Applied" := true;
+        ExpenseAgentSetup."Posting Groups Applied" := true;
+        ExpenseAgentSetup."Exp. Categories Applied" := true;
+        ExpenseAgentSetup."Exp. Locations Applied" := true;
+        ExpenseAgentSetup."Management Rules Applied" := true;
+        ExpenseAgentSetup."VAT Rates Applied" := true;
+        ExpenseAgentSetup.Modify(true);
+
+        // [WHEN] Default settings are applied again.
+        ExpenseAgentSetup.CreateDefaultSettings();
+
+        // [THEN] Expense vendors can be numbered without changing the existing expense numbering.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.TestField("Expense Nos.", ExistingExpenseNos);
+        ExpenseAgentSetup.TestField("Expense User Nos.", '');
+        ExpenseAgentSetup.TestField("No. Series Applied", true);
+        ExpenseVendor.Insert(true);
+        ExpenseVendor.TestField("No.");
+        ExpenseVendor.TestField("No. Series", ExpenseAgentSetup."Expense Vendor Nos.");
+    end;
+
+    [Test]
+    procedure ExpenseVendorNosUpgradePreservesCustomNumbering()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesManagement: Codeunit "No. Series";
+        UpgradeExpenseAgentSetup: Codeunit "Upgrade Expense Agent Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+        ExpectedNextNo: Code[20];
+        ExistingExpenseNos: Code[20];
+    begin
+        // [FEATURE] [Expense Agent] [Upgrade]
+        // [SCENARIO 658051] Upgrading preserves custom vendor numbering, its next number, and unrelated setup.
+        Initialize();
+
+        // [GIVEN] A configured custom expense vendor series has already allocated a number.
+        LibraryUtility.CreateNoSeries(NoSeries, true, false, false);
+        LibraryUtility.CreateNoSeriesLine(NoSeriesLine, NoSeries.Code, '', '');
+        NoSeriesManagement.GetNextNo(NoSeries.Code, WorkDate());
+        ExpectedNextNo := NoSeriesManagement.PeekNextNo(NoSeries.Code, WorkDate());
+        ExpenseAgentSetup.Get();
+        ExistingExpenseNos := ExpenseAgentSetup."Expense Nos.";
+        ExpenseAgentSetup.Validate("Expense Vendor Nos.", NoSeries.Code);
+        ExpenseAgentSetup."No. Series Applied" := false;
+        ExpenseAgentSetup.Modify(true);
+        if UpgradeTag.HasUpgradeTag(UpgradeExpenseAgentSetup.GetExpenseVendorNoSeriesUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(
+                UpgradeExpenseAgentSetup.GetExpenseVendorNoSeriesUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+
+        // [WHEN] The expense vendor numbering upgrade runs.
+        UpgradeExpenseAgentSetup.UpgradeExpenseVendorNoSeries();
+
+        // [THEN] Existing numbering and the previous defaults selection are preserved.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.TestField("Expense Vendor Nos.", NoSeries.Code);
+        ExpenseAgentSetup.TestField("Expense Nos.", ExistingExpenseNos);
+        ExpenseAgentSetup.TestField("No. Series Applied", false);
+        Assert.AreEqual(
+            ExpectedNextNo, NoSeriesManagement.PeekNextNo(NoSeries.Code, WorkDate()),
+            'The upgrade must not reset or consume the custom vendor number series.');
     end;
 
     [Test]
@@ -2312,7 +2463,6 @@ codeunit 148305 "Expense Test"
             StrSubstNo(ValueMustBeEqualErr, ExpenseItemization.FieldCaption(Quantity), 1, ExpenseItemization.TableCaption()));
     end;
 
-    // This test is currently disabled via DisabledTests/Expense_Agent_Tests/Expense_Agent_Tests.DisabledTest.json because setting the Expense Itemization "Start Date" is validated against the license-allowed month window ('??11*|??12*|??01*|??02*'), and the CI WorkDate can fall outside that range.
     [Test]
     [HandlerFunctions('ExactMessageHandler,SetDateInExpenseItemizationsModalPageHandler')]
     procedure DescriptionMustBeFlowFromExpenseToExpenseItemization()
@@ -2339,7 +2489,7 @@ codeunit 148305 "Expense Test"
         LibraryERM.FindPostCode(PostCode);
 
         // [GIVEN] Create Currency with Exchange Rate.
-        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(DMY2Date(1, 1, 2020), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
 
         // [GIVEN] Get Currency.
         Currency.Get(CurrencyCode);
@@ -2349,7 +2499,7 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create Expense with Rule "Itemize".
         CreateExpenseWithRule(
-            Expense, ExpenseRuleHeader, ExpenseRuleCondition, PostCode."Country/Region Code", PostCode.City, CurrencyCode, Amount, WorkDate(),
+            Expense, ExpenseRuleHeader, ExpenseRuleCondition, PostCode."Country/Region Code", PostCode.City, CurrencyCode, Amount, DMY2Date(1, 1, 2025),
             "Expense Detail Needed"::Itemize, ExpenseRuleHeader."Justification Required"::" ", '', ExpenseRuleCondition."Condition Type"::"Max Amount", true, Amount);
 
         // [GIVEN] Get "Expense Category".
@@ -2369,10 +2519,10 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Enqueue Expense SubCategory and Work Date for ExpenseItemizationsModalPageHandler.
         LibraryVariableStorage.Enqueue(Expense."Expense Subcategory");
-        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(DMY2Date(1, 1, 2025));
 
         // [GIVEN] Enqueue expected Message text.
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, 0, Expense.Amount));
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, '0.00', Expense.Amount));
 
         // [WHEN] Open Expense Page and Navigate to Expense Itemizations.
         ExpensePage.OpenEdit();
@@ -3066,11 +3216,11 @@ codeunit 148305 "Expense Test"
 
         // [GIVEN] Create a BC user with email.
         UserEmail := LibraryUtility.GenerateRandomEmail();
-        CreateAndUpdateUserWithEmail(CurrentUserSetup."User ID", UserEmail);
+        CreateAndUpdateUserWithEmail(CurrentUserSetup."User ID", UpperCase(UserEmail));
 
         // [GIVEN] Create Expense User with Email.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
-        ExpenseUser.Validate("E-mail", UserEmail);
+        ExpenseUser.Validate("E-mail", LowerCase(UserEmail));
         ExpenseUser.Modify();
 
         // [GIVEN] Delete all Expenses.
@@ -3740,7 +3890,7 @@ codeunit 148305 "Expense Test"
         LibraryVariableStorage.Enqueue(1);
 
         // [GIVEN] Enqueue expected Message text.
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, 0, Expense.Amount));
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, '0.00', Expense.Amount));
 
         // [WHEN] Open Expense Itemization Page.
         ExpensePage.OpenEdit();
@@ -4883,6 +5033,7 @@ codeunit 148305 "Expense Test"
         Amount: Decimal;
         AmountReduction: Decimal;
         CurrencyCode: Code[10];
+        ExpectedAmount: Text;
     begin
         // [SCENARIO 616971] Verify that the Itemization Total Reduction Mismatch error is shown in Expense and Expense Itemization.
         // when Expense Itemization is created with Refundable and Non-Refundable Expense Sub Category
@@ -4901,9 +5052,12 @@ codeunit 148305 "Expense Test"
         // [GIVEN] Create Expense with Itemization.
         CreateExpenseWithRefundableAndNonRefundableItemization(Expense, ExpenseItemization, ExpenseRuleHeader, ExpenseRuleCondition, true, CurrencyCode, Amount, Amount - AmountReduction, AmountReduction - 1);
 
+        // [GIVEN] Expected itemization total as shown in the message, formatted with two decimals.
+        ExpectedAmount := Format(Amount - 1, 0, '<Precision,2:2><Standard Format,0>');
+
         // [GIVEN] Enqueue expected Message text.
         LibraryVariableStorage.Enqueue(1);
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, Amount - 1, Expense.Amount));
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, ExpectedAmount, Expense.Amount));
 
         // [GIVEN] Update Non-Refundable Amount in Expense which is mismatch with total reduction in Itemization.
         Expense."Non-Refundable Amount" := AmountReduction;
@@ -5797,6 +5951,60 @@ codeunit 148305 "Expense Test"
 
         // [THEN] Verify that the error contains WorkDate instead of a blank date.
         Assert.ExpectedError(StrSubstNo(ReceiptDatedBeforeExchRateErr, WorkDate(), CurrencyCode));
+    end;
+
+    [Test]
+    procedure ApproverMustMatchBusinessCentralAuthenticationEmail()
+    var
+        User: Record User;
+        ExpenseUser: Record "Expense User";
+        UserName: Code[50];
+        UserEmail: Text[80];
+    begin
+        // [SCENARIO 652243] A matching contact email alone does not allow a Business Central user to be an expense approver.
+        Initialize();
+
+        // [GIVEN] A Business Central user whose contact email matches but authentication email does not.
+        UserName := CopyStr(LibraryRandom.RandText(50), 1, 50);
+        UserEmail := UserName + '@example.com';
+        User.Init();
+        User."User Security ID" := CreateGuid();
+        User."User Name" := UserName;
+        User."Contact Email" := UserEmail;
+        User.Insert(true);
+
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser.Validate("E-mail", UserEmail);
+
+        // [WHEN] The expense user is enabled as an approver.
+        asserterror ExpenseUser.Validate("Can Approve", true);
+
+        // [THEN] The error explains that the Microsoft 365 authentication email must match.
+        Assert.ExpectedError(StrSubstNo(OnlyBCUserCanApproveErr, UserEmail, ExpenseUser."No."));
+    end;
+
+    [Test]
+    procedure ApproverEmailMatchingIsCaseInsensitive()
+    var
+        ExpenseUser: Record "Expense User";
+        UserName: Code[50];
+        UserEmail: Text[80];
+    begin
+        // [SCENARIO 652243] An expense user email matches a Business Central authentication email regardless of casing.
+        Initialize();
+
+        // [GIVEN] A Business Central user's authentication email is lowercase.
+        UserName := CopyStr(LibraryRandom.RandText(50), 1, 50);
+        UserEmail := UserName + '@example.com';
+        CreateUserWithEmail(UserName, LowerCase(UserEmail));
+
+        // [WHEN] An expense user with the same email in uppercase is enabled as an approver.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser.Validate("E-mail", UpperCase(UserEmail));
+        ExpenseUser.Validate("Can Approve", true);
+
+        // [THEN] The matching Business Central user is assigned for approvals.
+        Assert.AreEqual(UserName, ExpenseUser."User Id For Approvals", 'The approval user ID should match the Business Central user.');
     end;
 
     local procedure Initialize()
