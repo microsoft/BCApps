@@ -1381,11 +1381,16 @@ table 112 "Sales Invoice Header"
 
     var
         SalesCommentLine: Record "Sales Comment Line";
+#if not CLEAN30
         SalesSetup: Record "Sales & Receivables Setup";
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
+#endif
         DimMgt: Codeunit DimensionManagement;
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         UserSetupMgt: Codeunit "User Setup Management";
         DocTxt: Label 'Invoice';
+        PaymentReference: Text;
+        PaymentReferenceLbl: Text;
 
     /// <summary>
     /// Checks if the invoice is fully open (no payments applied).
@@ -1659,12 +1664,16 @@ table 112 "Sales Invoice Header"
     /// <returns>The payment reference text.</returns>
     procedure GetPaymentReference(): Text
     begin
-        SalesSetup.Get();
 #if not CLEAN30
-        if SalesSetup."Print Reference No." then
-            exit("Reference No.");
+        if not FIBankingPaymentFeature.IsEnabled() then begin
+            SalesSetup.Get();
+            if SalesSetup."Print Reference No." then
+                exit("Reference No.");
+            exit('');
+        end;
 #endif
-        exit('');
+        OnGetPaymentReference(PaymentReference);
+        exit(PaymentReference);
     end;
 
     /// <summary>
@@ -1674,8 +1683,11 @@ table 112 "Sales Invoice Header"
     procedure GetPaymentReferenceLbl(): Text
     begin
 #if not CLEAN30
-        exit(FieldCaption("Reference No."));
+        if not FIBankingPaymentFeature.IsEnabled() then
+            exit(FieldCaption("Reference No."));
 #endif
+        OnGetPaymentReferenceLbl(PaymentReferenceLbl);
+        exit(PaymentReferenceLbl);
     end;
 
     /// <summary>
@@ -2021,12 +2033,10 @@ table 112 "Sales Invoice Header"
     begin
     end;
 
-#if not CLEAN27
     /// <summary>
     /// Raised to retrieve the payment reference for the sales invoice.
     /// </summary>
     /// <param name="PaymentReference">Returns the payment reference text.</param>
-    [Obsolete('The event is never raised', '27.0')]
     [IntegrationEvent(true, false)]
     local procedure OnGetPaymentReference(var PaymentReference: Text)
     begin
@@ -2036,12 +2046,10 @@ table 112 "Sales Invoice Header"
     /// Raised to retrieve the payment reference label for display.
     /// </summary>
     /// <param name="PaymentReferenceLbl">Returns the payment reference label text.</param>
-    [Obsolete('The event is never raised', '27.0')]
     [IntegrationEvent(false, false)]
     local procedure OnGetPaymentReferenceLbl(var PaymentReferenceLbl: Text)
     begin
     end;
-#endif
 
     /// <summary>
     /// Raised after setting filters when looking up the applies-to document number.

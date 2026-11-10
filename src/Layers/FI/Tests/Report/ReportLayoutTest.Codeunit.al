@@ -16,6 +16,7 @@ codeunit 134600 "Report Layout Test"
         Assert: Codeunit Assert;
         WrongRegNoErr: Label 'Wrong Company Registration Number';
         WrongRegNoLblErr: Label 'Wrong "Business Identity Code" field caption';
+        SubscriberPaymentReferenceLbl: Label 'Extension payment reference', Locked = true;
         LibraryJob: Codeunit "Library - Job";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
@@ -651,6 +652,85 @@ codeunit 134600 "Report Layout Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure PaymentReferenceEventsWhenFeatureEnabled()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ReportLayoutTest: Codeunit "Report Layout Test";
+    begin
+        Initialize();
+#if not CLEAN30
+        SetBankingPaymentFeatureEnabled(true);
+#endif
+        SalesInvoiceHeader."No." := 'POSTED-INVOICE';
+        BindSubscription(ReportLayoutTest);
+
+        Assert.AreEqual(SalesInvoiceHeader."No.", SalesInvoiceHeader.GetPaymentReference(), 'The subscriber must supply the payment reference.');
+        Assert.AreEqual(SubscriberPaymentReferenceLbl, SalesInvoiceHeader.GetPaymentReferenceLbl(), 'The subscriber must supply the payment reference caption.');
+
+        UnbindSubscription(ReportLayoutTest);
+#if not CLEAN30
+        SetBankingPaymentFeatureEnabled(false);
+#endif
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PaymentReferenceEmptyWithoutSubscriberWhenFeatureEnabled()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+#if not CLEAN30
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+#endif
+    begin
+        Initialize();
+#if not CLEAN30
+        SetBankingPaymentFeatureEnabled(true);
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup."Print Reference No." := true;
+        SalesReceivablesSetup.Modify();
+        SalesInvoiceHeader."Reference No." := 'LEGACY-REFERENCE';
+#endif
+
+        Assert.AreEqual('', SalesInvoiceHeader.GetPaymentReference(), 'The enabled feature must not fall back to the legacy reference.');
+        Assert.AreEqual('', SalesInvoiceHeader.GetPaymentReferenceLbl(), 'The enabled feature must not fall back to the legacy caption.');
+
+#if not CLEAN30
+        SetBankingPaymentFeatureEnabled(false);
+#endif
+    end;
+
+#if not CLEAN30
+    [Test]
+    [Scope('OnPrem')]
+    procedure PaymentReferenceKeepsLegacyValuesWhenFeatureDisabled()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        ReportLayoutTest: Codeunit "Report Layout Test";
+    begin
+        Initialize();
+        SetBankingPaymentFeatureEnabled(false);
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup."Print Reference No." := true;
+        SalesReceivablesSetup.Modify();
+        SalesInvoiceHeader."No." := 'POSTED-INVOICE';
+        SalesInvoiceHeader."Reference No." := 'LEGACY-REFERENCE';
+        BindSubscription(ReportLayoutTest);
+
+        Assert.AreEqual(SalesInvoiceHeader."Reference No.", SalesInvoiceHeader.GetPaymentReference(), 'The disabled feature must preserve the legacy reference.');
+        Assert.AreEqual(SalesInvoiceHeader.FieldCaption("Reference No."), SalesInvoiceHeader.GetPaymentReferenceLbl(), 'The disabled feature must preserve the legacy caption.');
+
+        SalesReceivablesSetup."Print Reference No." := false;
+        SalesReceivablesSetup.Modify();
+        Assert.AreEqual('', SalesInvoiceHeader.GetPaymentReference(), 'The legacy print setting must still suppress the reference.');
+        Assert.AreEqual(SalesInvoiceHeader.FieldCaption("Reference No."), SalesInvoiceHeader.GetPaymentReferenceLbl(), 'The legacy caption must not depend on the print setting.');
+
+        UnbindSubscription(ReportLayoutTest);
+    end;
+#endif
+
+    [Test]
+    [Scope('OnPrem')]
     procedure GetCompanyRegistationNo()
     var
         CompanyInformation: Record "Company Information";
@@ -1193,6 +1273,35 @@ codeunit 134600 "Report Layout Test"
     local procedure DetailTrialBalanceReportID(): Integer
     begin
         exit(REPORT::"Detail Trial Balance");
+    end;
+
+#if not CLEAN30
+    local procedure SetBankingPaymentFeatureEnabled(Enabled: Boolean)
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+    begin
+        FeatureKey.Get('BankingAndPaymentsFI');
+        FeatureManagementFacade.GetFeatureDataUpdateStatus(FeatureKey, FeatureDataUpdateStatus);
+        if Enabled then
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Enabled
+        else
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Disabled;
+        FeatureDataUpdateStatus.Modify();
+    end;
+#endif
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Invoice Header", 'OnGetPaymentReference', '', false, false)]
+    local procedure OnGetPaymentReference(var Sender: Record "Sales Invoice Header"; var PaymentReference: Text)
+    begin
+        PaymentReference := Sender."No.";
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Invoice Header", 'OnGetPaymentReferenceLbl', '', false, false)]
+    local procedure OnGetPaymentReferenceLbl(var PaymentReferenceLbl: Text)
+    begin
+        PaymentReferenceLbl := SubscriberPaymentReferenceLbl;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document-Print", 'OnBeforePrintSalesOrder', '', false, false)]
