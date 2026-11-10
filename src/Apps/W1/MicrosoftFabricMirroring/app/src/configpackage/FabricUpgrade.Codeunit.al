@@ -1,5 +1,7 @@
 namespace Microsoft.FabricExport;
 
+using System.Upgrade;
+
 codeunit 48528 "Fabric Upgrade"
 {
     Subtype = Upgrade;
@@ -9,10 +11,40 @@ codeunit 48528 "Fabric Upgrade"
     var
         FabricInstall: Codeunit "Fabric Install";
     begin
-        // RegisterPackage skips work when a package is already at the current version,
-        // so it is safe and cheap to re-run this on every upgrade. This also migrates
-        // tenants from the legacy MS-STD package to the domain-specific packages.
-        // A capacity-deferred migration keeps MS-STD intact and is retried on the next upgrade.
-        FabricInstall.EnsureMicrosoftPackages();
+        FabricInstall.RegisterMicrosoftPackages();
+        UpgradeLegacyMicrosoftPackage();
+    end;
+
+    local procedure UpgradeLegacyMicrosoftPackage()
+    var
+        FabricInstall: Codeunit "Fabric Install";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetLegacyPackageMigrationTag()) then
+            exit;
+
+        // A capacity-deferred migration must remain eligible for the next upgrade.
+        if not FabricInstall.MigrateLegacyMicrosoftPackage() then
+            exit;
+
+        UpgradeTag.SetUpgradeTag(GetLegacyPackageMigrationTag());
+    end;
+
+    internal procedure GetLegacyPackageMigrationTag(): Code[250]
+    var
+        LegacyPackageMigrationTagLbl: Label 'MS-13720-MigrateLegacyFabricPackage-20261110', Locked = true;
+    begin
+        exit(LegacyPackageMigrationTagLbl);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
+    local procedure OnGetPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    begin
+        RegisterPerCompanyUpgradeTags(PerCompanyUpgradeTags);
+    end;
+
+    local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    begin
+        PerCompanyUpgradeTags.Add(GetLegacyPackageMigrationTag());
     end;
 }

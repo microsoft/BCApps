@@ -3,14 +3,20 @@ namespace Microsoft.FabricExport;
 using System.Environment.Configuration;
 using System.Fabric;
 using System.Media;
+using System.Upgrade;
 
 codeunit 48522 "Fabric Install"
 {
     Subtype = Install;
     Access = Internal;
     trigger OnInstallAppPerCompany()
+    var
+        FabricUpgrade: Codeunit "Fabric Upgrade";
+        UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        EnsureMicrosoftPackages();
+        if EnsureMicrosoftPackages() then
+            if not UpgradeTag.HasUpgradeTag(FabricUpgrade.GetLegacyPackageMigrationTag()) then
+                UpgradeTag.SetUpgradeTag(FabricUpgrade.GetLegacyPackageMigrationTag());
         RegisterGuidedSetup();
     end;
 
@@ -24,11 +30,15 @@ codeunit 48522 "Fabric Install"
             ObjectType::Page, Page::"Fabric Platform Setup Wizard", AssistedSetupGroup::Connect, '', VideoCategory::Connect, '');
     end;
 
-    internal procedure EnsureMicrosoftPackages()
+    internal procedure EnsureMicrosoftPackages(): Boolean
+    begin
+        RegisterMicrosoftPackages();
+        exit(MigrateLegacyMicrosoftPackage());
+    end;
+
+    internal procedure RegisterMicrosoftPackages()
     var
-        LegacyPackage: Record "Fabric Config Package";
         FabricConfigPackageMgt: Codeunit "Fabric Config Package Mgt";
-        PackageCodes: List of [Code[20]];
         FinanceTableIds: List of [Integer];
         InventoryTableIds: List of [Integer];
         InventoryValuationTableIds: List of [Integer];
@@ -242,9 +252,15 @@ codeunit 48522 "Fabric Install"
         FabricConfigPackageMgt.RegisterPackage('MS-SALES', 'Microsoft Sales', '1.0', SalesTableIds);
         FabricConfigPackageMgt.RegisterPackage('MS-SUB-BILL', 'Microsoft Subscription Billing', '1.0', SubscriptionBillingTableIds);
         FabricConfigPackageMgt.RegisterPackage('MS-SUST', 'Microsoft Sustainability', '1.0', SustainabilityTableIds);
+    end;
 
+    internal procedure MigrateLegacyMicrosoftPackage(): Boolean
+    var
+        LegacyPackage: Record "Fabric Config Package";
+        PackageCodes: List of [Code[20]];
+    begin
         if not LegacyPackage.Get('MS-STD') then
-            exit;
+            exit(true);
 
         PackageCodes.Add('MS-FIN');
         PackageCodes.Add('MS-INV');
@@ -255,10 +271,10 @@ codeunit 48522 "Fabric Install"
         PackageCodes.Add('MS-SALES');
         PackageCodes.Add('MS-SUB-BILL');
         PackageCodes.Add('MS-SUST');
-        MigrateLegacyPackage(LegacyPackage, PackageCodes);
+        exit(MigrateLegacyPackage(LegacyPackage, PackageCodes));
     end;
 
-    local procedure MigrateLegacyPackage(var LegacyPackage: Record "Fabric Config Package"; PackageCodes: List of [Code[20]])
+    local procedure MigrateLegacyPackage(var LegacyPackage: Record "Fabric Config Package"; PackageCodes: List of [Code[20]]): Boolean
     var
         PackageLine: Record "Fabric Config Package Line";
         TenantFabricTables: Record "Tenant Fabric Tables";
@@ -272,7 +288,7 @@ codeunit 48522 "Fabric Install"
     begin
         if not LegacyPackage.Active then begin
             LegacyPackage.Delete(true);
-            exit;
+            exit(true);
         end;
 
         TenantFabricTables.LockTable();
@@ -294,7 +310,7 @@ codeunit 48522 "Fabric Install"
             Dimensions.Add('MaxTableCount', Format(FabricPlatformMgt.MaxTableCount()));
             Session.LogMessage('0000WCC', 'Legacy config package migration deferred: the replacement packages would exceed the table export limit. The legacy package remains unchanged.',
                 Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
-            exit;
+            exit(false);
         end;
 
         // Retained rows must have replacement claims before their legacy claim is released.
@@ -312,6 +328,7 @@ codeunit 48522 "Fabric Install"
 
         foreach PackageCode in PackageCodes do
             ActivatePackageIfNeeded(PackageCode);
+        exit(true);
     end;
 
     local procedure GetMigrationTableCount(LegacyPackage: Record "Fabric Config Package"; TableIds: List of [Integer]) RequiredTableCount: Integer

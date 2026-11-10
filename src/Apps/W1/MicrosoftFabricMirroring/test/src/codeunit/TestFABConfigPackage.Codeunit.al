@@ -826,7 +826,7 @@ codeunit 140011 "Test FAB Config Package"
         PackageLine: Record "Fabric Config Package Line";
         AllObj: Record AllObjWithCaption;
         TableInstalled: Boolean;
-        ExpectedTableLbl: Label 'Expected table %1 presence in package %2 to match its installed state (%3).', Locked = true;
+        ExpectedTableLbl: Label 'Expected table %1 presence in package %2 to match its installed state (%3).', Comment = '%1 = table ID, %2 = package code, %3 = installed state', Locked = true;
     begin
         TableInstalled := AllObj.Get(AllObj."Object Type"::Table, TableId);
         Assert.AreEqual(TableInstalled, PackageLine.Get(PackageCode, TableId), StrSubstNo(ExpectedTableLbl, TableId, PackageCode, TableInstalled));
