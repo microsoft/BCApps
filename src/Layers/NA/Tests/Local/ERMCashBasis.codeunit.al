@@ -1011,6 +1011,100 @@
         VerifyPartialCrMemoWithEquivalentDifferentVATGroup(2);
     end;
 
+    [Test]
+    procedure PostedCrMemoApplicationWithMandatoryJournalTemplatePreservesVATGroups()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        CreditMemoVATPostingSetup: Record "VAT Posting Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        SalesLine: Record "Sales Line";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoCustLedgerEntry: Record "Cust. Ledger Entry";
+        VATEntry: Record "VAT Entry";
+        GLEntry: Record "G/L Entry";
+        GLRegister: Record "G/L Register";
+        CustomerNo: Code[20];
+        ItemNo: array[2] of Code[20];
+        InvoiceNo: Code[20];
+        CreditMemoNo: Code[20];
+        UnitPrice: array[2] of Decimal;
+        GroupIndex: Integer;
+    begin
+        // [SCENARIO 648925] Applying a posted sales credit memo preserves VAT groups when journal templates are mandatory.
+        Initialize();
+
+        // [GIVEN] A posted invoice with 1000 at 10% and 2000 at 21% Cash Basis VAT.
+        UnitPrice[1] := 1000;
+        UnitPrice[2] := 2000;
+        InvoiceNo := CreateMultiVATGroupSalesInvoice(VATPostingSetup, CustomerNo, ItemNo, UnitPrice);
+
+        // [GIVEN] A standalone posted credit memo for 500 in a different group equivalent only to the 10% group.
+        CreditMemoVATPostingSetup."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(CreditMemoVATPostingSetup, 10);
+        CreditMemoVATPostingSetup.Validate("Sales VAT Account", VATPostingSetup[1]."Sales VAT Account");
+        CreditMemoVATPostingSetup.Validate("Sales VAT Unreal. Account", VATPostingSetup[1]."Sales VAT Unreal. Account");
+        CreditMemoVATPostingSetup.Modify(true);
+        CreditMemoNo := CreateAndPostSalesDocument(
+          SalesLine, CustomerNo, SalesLine."Document Type"::"Credit Memo", SalesLine.Type::Item,
+          CreateItem(CreditMemoVATPostingSetup."VAT Prod. Posting Group"), 1, 500);
+
+        // [GIVEN] Mandatory journal templates and a configured application batch.
+        CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Type::General);
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Apply Jnl. Template Name", GenJournalBatch."Journal Template Name");
+        GeneralLedgerSetup.Validate("Apply Jnl. Batch Name", GenJournalBatch.Name);
+        GeneralLedgerSetup.Validate("Journal Templ. Name Mandatory", true);
+        GeneralLedgerSetup.Modify(true);
+
+        // [WHEN] The posted credit memo is applied to the invoice.
+        LibraryERM.FindCustomerLedgerEntry(CreditMemoCustLedgerEntry, CreditMemoCustLedgerEntry."Document Type"::"Credit Memo", CreditMemoNo);
+        CreditMemoCustLedgerEntry.CalcFields("Remaining Amount");
+        LibraryERM.SetApplyCustomerEntry(CreditMemoCustLedgerEntry, CreditMemoCustLedgerEntry."Remaining Amount");
+        LibraryERM.FindCustomerLedgerEntry(InvoiceCustLedgerEntry, InvoiceCustLedgerEntry."Document Type"::Invoice, InvoiceNo);
+        LibraryERM.SetAppliestoIdCustomer(InvoiceCustLedgerEntry);
+        LibraryERM.PostCustLedgerApplication(CreditMemoCustLedgerEntry);
+
+        // [THEN] Half of the 10% invoice group's VAT and base remain, and the 21% group is unchanged.
+        for GroupIndex := 1 to ArrayLen(VATPostingSetup) do begin
+            VATEntry.Reset();
+            FindVATEntryByDocumentAndPostingGroup(
+              VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+              InvoiceNo, VATPostingSetup[GroupIndex]."VAT Prod. Posting Group");
+            if GroupIndex = 1 then begin
+                Assert.AreEqual(-50, VATEntry."Remaining Unrealized Amount", 'Only half of the equivalent invoice VAT group must remain');
+                Assert.AreEqual(-500, VATEntry."Remaining Unrealized Base", 'Only half of the equivalent invoice base must remain');
+            end else begin
+                Assert.AreEqual(-420, VATEntry."Remaining Unrealized Amount", 'The unrelated invoice VAT group must remain unchanged');
+                Assert.AreEqual(-2000, VATEntry."Remaining Unrealized Base", 'The unrelated invoice base must remain unchanged');
+            end;
+        end;
+
+        // [THEN] The application creates two offsetting realizations of 50 VAT on a base of 500.
+        GLRegister.FindLast();
+        VATEntry.Reset();
+        VATEntry.SetRange("Entry No.", GLRegister."From VAT Entry No.", GLRegister."To VAT Entry No.");
+        Assert.RecordCount(VATEntry, 2);
+        VATEntry.FindSet();
+        repeat
+            Assert.AreEqual(50, Abs(VATEntry.Amount), 'Each VAT realization must use only the equivalent group amount');
+            Assert.AreEqual(500, Abs(VATEntry.Base), 'Each VAT realization must use only the equivalent group base');
+        until VATEntry.Next() = 0;
+        VATEntry.CalcSums(Amount, Base);
+        Assert.AreEqual(0, VATEntry.Amount, 'Application VAT amounts must offset');
+        Assert.AreEqual(0, VATEntry.Base, 'Application VAT bases must offset');
+
+        // [THEN] No VAT G/L transfers are created for either invoice group.
+        GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        for GroupIndex := 1 to ArrayLen(VATPostingSetup) do begin
+            GLEntry.SetRange("G/L Account No.", VATPostingSetup[GroupIndex]."Sales VAT Account");
+            Assert.IsTrue(GLEntry.IsEmpty(), 'Posted sales application must not transfer realized VAT to G/L');
+            GLEntry.SetRange("G/L Account No.", VATPostingSetup[GroupIndex]."Sales VAT Unreal. Account");
+            Assert.IsTrue(GLEntry.IsEmpty(), 'Posted sales application must not transfer unrealized VAT to G/L');
+        end;
+    end;
+
     local procedure VerifyPartialCrMemoWithEquivalentDifferentVATGroup(LineCount: Integer)
     var
         VATPostingSetup: array[2] of Record "VAT Posting Setup";

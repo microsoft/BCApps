@@ -3981,7 +3981,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
                           CurrExchRate.ExchangeAmount(
                             AppliedAmount, NewCVLedgEntryBuf."Currency Code",
                             TempOldCustLedgEntry."Currency Code", NewCVLedgEntryBuf."Posting Date"),
-                          VATRealizedGainLossLCY, NewCVLedgEntryBuf."Adjusted Currency Factor", NewCVLedgEntryBuf."Posting Date");
+                          VATRealizedGainLossLCY, NewCVLedgEntryBuf."Adjusted Currency Factor", NewCVLedgEntryBuf."Posting Date",
+                          NewCVLedgEntryBuf."Entry No.");
                     end;
 
             OnApplyCustLedgEntryOnBeforeTempOldCustLedgEntryDelete(TempOldCustLedgEntry, NewCVLedgEntryBuf, GenJnlLine, Cust, NextEntryNo, GLReg, AppliedAmount, OldCVLedgEntryBuf);
@@ -4457,8 +4458,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     internal procedure CustUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; CurrencyFactor: Decimal; PostingDate: Date)
+    begin
+        CustUnrealizedVAT(GenJnlLine, CustLedgEntry2, SettledAmount, GainLossLCY, CurrencyFactor, PostingDate, 0);
+    end;
+
+    local procedure CustUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; CurrencyFactor: Decimal; PostingDate: Date; ApplyingCustLedgerEntryNo: Integer)
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         IsHandled: Boolean;
         ShouldConsiderVATPostingGrouping: Boolean;
         IsLCYTransaction: Boolean;
@@ -4491,16 +4498,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if ShouldConsiderVATPostingGrouping and
            (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") and
            (CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice)
-        then begin
-            // Recurring journals can reuse a posted sales document number.
-            if GenJnlLine."Journal Batch Name" <> '' then
-                ShouldConsiderVATPostingGrouping := false
-            else begin
+        then
+            // Posted sales applications also use a journal batch; verify the applying entry's origin.
+            if GenJnlLine."Journal Batch Name" <> '' then begin
+                ShouldConsiderVATPostingGrouping := false;
+                if ApplyingCustLedgerEntryNo <> 0 then
+                    if SalesCrMemoHeader.Get(GenJnlLine."Document No.") then
+                        ShouldConsiderVATPostingGrouping :=
+                          SalesCrMemoHeader."Cust. Ledger Entry No." = ApplyingCustLedgerEntryNo;
+            end else begin
                 SalesCrMemoLine.SetRange("Document No.", GenJnlLine."Document No.");
                 SalesCrMemoLine.SetFilter(Type, '<>%1', SalesCrMemoLine.Type::" ");
                 ShouldConsiderVATPostingGrouping := not SalesCrMemoLine.IsEmpty();
             end;
-        end;
 
         if not ShouldConsiderVATPostingGrouping then
             CustUnrealizedVAT(false, TempVATPostingSetup, GenJnlLine, CustLedgEntry2, SettledAmount, GainLossLCY, CurrencyFactor, PostingDate)
