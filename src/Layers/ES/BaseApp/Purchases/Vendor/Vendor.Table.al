@@ -1301,16 +1301,6 @@ table 23 Vendor
             ToolTip = 'Specifies the vendor bank account that will be used by default on payment journal lines for export to a payment bank file.';
             TableRelation = "Vendor Bank Account".Code where("Vendor No." = field("No."));
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dataverse';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(721; "Coupled to Dataverse"; Boolean)
         {
             FieldClass = FlowField;
@@ -1705,15 +1695,6 @@ table 23 Vendor
             TableRelation = Vendor;
             ValidateTableRelation = false;
         }
-#if not CLEANSCHEMA25
-        field(10702; "Self Employed"; Boolean)
-        {
-            Caption = 'Self Employed';
-            ObsoleteReason = 'Feature redesign';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

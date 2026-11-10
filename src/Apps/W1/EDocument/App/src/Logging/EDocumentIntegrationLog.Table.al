@@ -39,15 +39,6 @@ table 6127 "E-Document Integration Log"
         {
             Caption = 'Response Status';
         }
-#if not CLEANSCHEMA28
-        field(7; URL; Text[250])
-        {
-            Caption = 'URL';
-            ObsoleteReason = 'Replaced with Request URL field';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(8; Method; Text[10])
         {
             Caption = 'Method';

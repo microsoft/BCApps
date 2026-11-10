@@ -148,16 +148,6 @@ table 4810 "Intrastat Report Setup"
             Caption = 'Shipments Based On';
             ToolTip = 'Specifies based on which country code Intrastat report lines are taken.';
         }
-#if not CLEANSCHEMA29        
-        field(24; "VAT No. Based On"; Enum "Intrastat Report VAT No. Base")
-        {
-            Caption = 'VAT Reg. No. Based On';
-            ToolTip = 'Specifies based on which customer/vendor code VAT number is taken for the Intrastat report.';
-            ObsoleteReason = 'Use "Sales VAT No. Based On" and "Purchase VAT No. Based On" fields instead.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
-        }
-#endif        
         field(25; "Def. Private Person VAT No."; Text[50])
         {
             Caption = 'Default Private Person VAT Reg. No.';

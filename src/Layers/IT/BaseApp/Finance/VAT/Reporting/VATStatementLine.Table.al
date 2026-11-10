@@ -263,30 +263,12 @@ table 256 "VAT Statement Line"
         {
             Caption = 'EU Service';
         }
-#if not CLEANSCHEMA25
-        field(12128; "Blacklisted Comm. Field"; Code[10])
-        {
-            Caption = 'Blacklisted Comm. Field';
-            ObsoleteReason = 'Obsolete feature';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(12129; "Refers To Period"; Option)
         {
             Caption = 'Refers To Period';
             OptionCaption = ' ,Current,Current Calendar Year,Previous Calendar Year';
             OptionMembers = " ",Current,"Current Calendar Year","Previous Calendar Year";
         }
-#if not CLEANSCHEMA25
-        field(12130; "Blacklist Country Transaction"; Boolean)
-        {
-            Caption = 'Blacklist Country/Region Transaction';
-            ObsoleteReason = 'Obsolete feature';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

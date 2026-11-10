@@ -585,20 +585,6 @@ table 18 Customer
                         Error(CanNotChangeBlockedDueToPrivacyBlockedErr);
             end;
         }
-#if not CLEANSCHEMA30
-        field(40; "Invoice Copies"; Integer)
-        {
-            Caption = 'Invoice Copies';
-            ObsoleteReason = 'This field is not used consequently and hence does not work as expected. It should be retired.';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#endif
-        }
-#endif
         /// <summary>
         /// Specifies the number of the last printed customer statement.
         /// </summary>
@@ -1792,19 +1778,6 @@ table 18 Customer
             TableRelation = "Customer Bank Account".Code where("Customer No." = field("No."));
             ToolTip = 'Specifies the customer''s bank account that will be used by default when you process refunds to the customer and direct debit collections.';
         }
-#if not CLEANSCHEMA26
-        /// <summary>
-        /// Indicates whether this customer is coupled to a Dataverse account. Obsolete field.
-        /// </summary>
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dataverse';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         /// <summary>
         /// Indicates whether this customer is coupled to a Dataverse account for data synchronization.
         /// </summary>

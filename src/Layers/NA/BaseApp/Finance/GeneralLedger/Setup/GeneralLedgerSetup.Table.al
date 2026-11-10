@@ -910,72 +910,6 @@ table 98 "General Ledger Setup"
             ToolTip = 'Specifies whether to prevent users from deleting G/L accounts with ledger entries that are after the date in the Check G/L Acc. Deletion After field. For example, blocking deletion helps you avoid losing financial data that your business should keep due to country regional requirements.';
             InitValue = true;
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// Obsolete: Account schedule name for balance sheet financial reporting.
-        /// </summary>
-        field(110; "Acc. Sched. for Balance Sheet"; Code[10])
-        {
-            Caption = 'Account Schedule for Balance Sheet';
-            TableRelation = "Acc. Schedule Name";
-            ObsoleteReason = 'Financial Reporting is replacing Account Schedules for financial statements';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-
-            trigger OnValidate()
-            begin
-                Error(AccSchedObsoleteErr);
-            end;
-        }
-        /// <summary>
-        /// Obsolete: Account schedule name for income statement financial reporting.
-        /// </summary>
-        field(111; "Acc. Sched. for Income Stmt."; Code[10])
-        {
-            Caption = 'Account Schedule for Income Stmt.';
-            TableRelation = "Acc. Schedule Name";
-            ObsoleteReason = 'Financial Reporting is replacing Account Schedules for financial statements';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-
-            trigger OnValidate()
-            begin
-                Error(AccSchedObsoleteErr);
-            end;
-        }
-        /// <summary>
-        /// Obsolete: Account schedule name for cash flow statement financial reporting.
-        /// </summary>
-        field(112; "Acc. Sched. for Cash Flow Stmt"; Code[10])
-        {
-            Caption = 'Account Schedule for Cash Flow Stmt';
-            TableRelation = "Acc. Schedule Name";
-            ObsoleteReason = 'Financial Reporting is replacing Account Schedules for financial statements';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-
-            trigger OnValidate()
-            begin
-                Error(AccSchedObsoleteErr);
-            end;
-        }
-        /// <summary>
-        /// Obsolete: Account schedule name for retained earnings financial reporting.
-        /// </summary>
-        field(113; "Acc. Sched. for Retained Earn."; Code[10])
-        {
-            Caption = 'Account Schedule for Retained Earn.';
-            TableRelation = "Acc. Schedule Name";
-            ObsoleteReason = 'Financial Reporting is replacing Account Schedules for financial statements';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-
-            trigger OnValidate()
-            begin
-                Error(AccSchedObsoleteErr);
-            end;
-        }
-#endif
         /// <summary>
         /// Default financial report used for generating balance sheet statements and analysis.
         /// </summary>
@@ -1454,15 +1388,6 @@ table 98 "General Ledger Setup"
             Caption = 'Deposit Nos.';
             TableRelation = "No. Series";
         }
-#if not CLEANSCHEMA25
-        field(10004; "SAT Certificate Thumbprint"; Text[250])
-        {
-            Caption = 'SAT Certificate Thumbprint';
-            ObsoleteReason = 'Using Local Certificate store is deprecated. Use SAT Certificate instead that are linked to certificate table.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(10005; "Send PDF Report"; Boolean)
         {
             Caption = 'Send PDF Report';
@@ -1525,16 +1450,6 @@ table 98 "General Ledger Setup"
         {
             Caption = 'Sim. Request Stamp';
         }
-#if not CLEANSCHEMA26
-        field(10120; "Bank Recon. with Auto. Match"; Boolean)
-        {
-            Caption = 'Bank Recon. with Auto. Match';
-            InitValue = true;
-            ObsoleteReason = 'Unused, Bank Reconciliation with automatch (W1) is the default for NA';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(10121; "SAT Certificate"; Code[20])
         {
             Caption = 'SAT Certificate';

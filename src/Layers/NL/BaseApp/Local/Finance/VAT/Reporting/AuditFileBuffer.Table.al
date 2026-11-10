@@ -58,36 +58,6 @@ table 11404 "Audit File Buffer"
             Caption = 'RecordID';
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA28
-        field(45; AccountID; Text[15])
-        {
-            Caption = 'AccountID';
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'Replaced with Account ID';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
-#if not CLEANSCHEMA28
-        field(50; CustSupID; Text[15])
-        {
-            Caption = 'CustSupID';
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'Replaced with Source ID';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
-#if not CLEANSCHEMA28
-        field(55; DocumentID; Text[15])
-        {
-            Caption = 'DocumentID';
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'Replaced with Document ID';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(60; EffectiveDate; Date)
         {
             Caption = 'EffectiveDate';

@@ -345,8 +345,6 @@ table 312 "Purchases & Payables Setup"
             ObsoleteReason = 'Discontinued function';
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-        }
-#endif        
         field(58; "Copy Vendor Name to Entries"; Boolean)
         {
             Caption = 'Copy Vendor Name to Entries';
@@ -555,35 +553,6 @@ table 312 "Purchases & Payables Setup"
             Caption = 'Check Doc. Total Amounts';
             ToolTip = 'Specifies if you want the Doc. Amount Incl. VAT field in Purchase Invoice and Purchase Credit Memo to be compared to the sum of the VAT amounts fields in the purchase lines. If the amounts are not the same, you will be notified when posting the document. The totals will always be checked for invoices received from e-documents.';
         }
-#if not CLEANSCHEMA25
-        field(5005230; "Arch. Orders and Ret. Orders"; Boolean)
-        {
-            Caption = 'Arch. Orders and Ret. Orders';
-            ObsoleteReason = 'Merged to W1';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
-#if not CLEANSCHEMA25
-        field(5005232; "Archiving Purchase Quote"; Option)
-        {
-            Caption = 'Archiving Purchase Quote';
-            ObsoleteReason = 'Merged to W1';
-            ObsoleteState = Removed;
-            OptionCaption = 'Never,Question,Always';
-            OptionMembers = Never,Question,Always;
-            ObsoleteTag = '25.0';
-        }
-#endif
-#if not CLEANSCHEMA25
-        field(5005233; "Archiving Blanket Purch. Order"; Boolean)
-        {
-            Caption = 'Archiving Blanket Purch. Order';
-            ObsoleteReason = 'Merged to W1';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

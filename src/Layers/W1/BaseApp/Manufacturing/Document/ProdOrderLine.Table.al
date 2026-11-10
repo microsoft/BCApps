@@ -269,17 +269,6 @@ table 5406 "Prod. Order Line"
                 end;
             end;
         }
-#if not CLEANSCHEMA30
-        field(35; "Standard Task Code"; Code[10])
-        {
-            Caption = 'Standard Task Code';
-            ToolTip = 'Specifies a standard task.';
-            TableRelation = "Standard Task";
-            ObsoleteReason = 'This field is not required anymore. The standard task code is now defined on the routing line.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-        }
-#endif
         field(40; Quantity; Decimal)
         {
             AutoFormatType = 0;

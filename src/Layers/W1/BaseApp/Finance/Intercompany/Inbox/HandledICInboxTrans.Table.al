@@ -37,26 +37,6 @@ table 420 "Handled IC Inbox Trans."
             Editable = false;
             TableRelation = "IC Partner";
         }
-#if not CLEANSCHEMA29
-        /// <summary>
-        /// Source type for the handled transaction indicating the originating document type.
-        /// </summary>
-        field(3; "Source Type"; Enum "IC Transaction Source Type")
-        {
-            Caption = 'Source Type';
-            Editable = false;
-            ObsoleteReason = 'Replaced by IC Source Type for Enum typing';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
-        }
-#endif
         /// <summary>
         /// IC source type for cross-reference with partner's transaction classification.
         /// </summary>
@@ -117,18 +97,6 @@ table 420 "Handled IC Inbox Trans."
             OptionCaption = 'Accepted,Posted,,Returned to IC Partner,Cancelled';
             OptionMembers = Accepted,Posted,,"Returned to IC Partner",Cancelled;
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// IC partner G/L account number for the handled transaction.
-        /// </summary>
-        field(12; "IC Partner G/L Acc. No."; Code[20])
-        {
-            Caption = 'IC Partner G/L Acc. No.';
-            ObsoleteReason = 'Replaced by IC Account No.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         /// <summary>
         /// Source line number for the handled transaction reference.
         /// </summary>

@@ -18,7 +18,6 @@ codeunit 5016 "Service Declaration Upgrade"
     local procedure UpgradeServDeclSetup()
     var
         ServDeclSetup: Record "Service Declaration Setup";
-        ServDeclLine: Record "Service Declaration Line";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if UpgradeTag.HasUpgradeTag(GetServDeclSetupUpgradeTag()) then
@@ -30,11 +29,6 @@ codeunit 5016 "Service Declaration Upgrade"
             ServDeclSetup.Modify(true);
         end;
 
-        if ServDeclLine.FindSet() then
-            repeat
-                ServDeclLine."VAT Reg. No." := ServDeclLine."VAT Registration No.";
-                ServDeclLine.Modify();
-            until ServDeclLine.Next() = 0;
         UpgradeTag.SetUpgradeTag(GetServDeclSetupUpgradeTag());
     end;
 

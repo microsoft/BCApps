@@ -573,8 +573,6 @@ table 311 "Sales & Receivables Setup"
             ObsoleteReason = 'Discontinued function';
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-        }
-#endif
         /// <summary>
         /// Indicates whether the customer name from the customer card is copied to customer ledger entries during posting.
         /// </summary>
@@ -1010,25 +1008,6 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Posting Date Check on Posting';
             ToolTip = 'Specifies if you want the program to warn you when you post a sales document with a posting date that is different from the Work Date.';
         }
-#if not CLEANSCHEMA25
-        field(10900; "Credit Memo Nos. Paym. Disc."; Code[10])
-        {
-            Caption = 'Credit Memo Nos. Paym. Disc.';
-            ObsoleteReason = 'This is an unused rogue field from legacy functionality that was removed.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
-#if not CLEANSCHEMA27
-        field(10901; "Electronic Invoicing"; Boolean)
-        {
-            Caption = 'Electronic Invoicing';
-            ObsoleteReason = 'The field has been moved to the IS Core App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-
-        }
-#endif
     }
 
     keys

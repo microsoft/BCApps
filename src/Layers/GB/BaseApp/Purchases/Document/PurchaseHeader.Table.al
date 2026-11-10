@@ -2870,14 +2870,6 @@ table 38 "Purchase Header"
                                 Rec));
             end;
         }
-#if not CLEANSCHEMA26
-        field(10502; "Invoice Receipt Date"; Date)
-        {
-            ObsoleteReason = 'Replaced by W1 field "Invoice Received Date".';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
     }
 
     keys

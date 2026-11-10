@@ -456,16 +456,6 @@ table 55 "Invoice Posting Buffer"
             Caption = 'Non-Deductible VAT Difference';
             Editable = false;
         }
-#if not CLEANSCHEMA25
-        field(11200; "Auto. Acc. Group"; Code[10])
-        {
-            Caption = 'Auto. Acc. Group';
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'Moved to Automatic Account Codes app.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(12102; "No. of Fixed Asset Cards"; Integer)
         {
             BlankZero = true;

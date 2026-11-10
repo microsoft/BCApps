@@ -2424,19 +2424,6 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'IC Direction';
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// Obsolete field replaced by IC Account No. for intercompany G/L account references.
-        /// </summary>
-        field(116; "IC Partner G/L Acc. No."; Code[20])
-        {
-            Caption = 'IC Partner G/L Acc. No.';
-            TableRelation = "IC G/L Account";
-            ObsoleteReason = 'Replaced by IC Account No.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         /// <summary>
         /// Intercompany transaction number for tracking and matching IC transactions across partner companies.
         /// </summary>
@@ -3937,25 +3924,6 @@ table 81 "Gen. Journal Line"
             Caption = 'STE Transaction ID';
             Editable = false;
         }
-#if not CLEANSCHEMA28
-        field(10020; "IRS 1099 Code"; Code[10])
-        {
-            Caption = 'IRS 1099 Code';
-            ObsoleteReason = 'Moved to IRS Forms App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-
-        }
-#endif
-#if not CLEANSCHEMA28
-        field(10021; "IRS 1099 Amount"; Decimal)
-        {
-            Caption = 'IRS 1099 Amount';
-            ObsoleteReason = 'Moved to IRS Forms App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(10030; "Foreign Exchange Indicator"; Option)
         {
             Caption = 'Foreign Exchange Indicator';

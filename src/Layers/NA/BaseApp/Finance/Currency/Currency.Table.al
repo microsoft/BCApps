@@ -747,16 +747,6 @@ table 4 Currency
             DataClassification = SystemMetadata;
             InitValue = Default;
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dataverse';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         /// <summary>
         /// Calculated field indicating whether this currency record is coupled to Microsoft Dataverse.
         /// Used for integration scenarios where currency data is synchronized between systems.

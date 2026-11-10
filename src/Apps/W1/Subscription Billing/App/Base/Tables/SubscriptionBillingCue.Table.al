@@ -113,7 +113,7 @@ table 8070 "Subscription Billing Cue"
             Editable = false;
             FieldClass = FlowFilter;
         }
-#if not CLEANSCHEMA30
+#if not CLEANSCHEMA31
         field(21; "Job No. Filter"; Code[20])
         {
             Caption = 'Date Filter';

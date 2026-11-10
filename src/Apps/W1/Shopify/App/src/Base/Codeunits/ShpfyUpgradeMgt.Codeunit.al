@@ -5,12 +5,7 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Finance.Dimension;
-using Microsoft.Inventory.Item;
-using Microsoft.Sales.Customer;
 using System.Integration;
-using System.IO;
-using System.Reflection;
 using System.Upgrade;
 
 /// <summary>
@@ -32,7 +27,6 @@ codeunit 30106 "Shpfy Upgrade Mgt."
     trigger OnUpgradePerCompany()
     begin
         SetAllowOutgoingRequests();
-        PriceCalculationUpgrade();
         LoggingModeUpgrade();
         LocationUpgrade();
         SyncPricesWithProductsUpgrade();
@@ -47,177 +41,11 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         ItalianSardinianProvinceRenameUpgrade();
     end;
 
-    internal procedure UpgradeTemplatesData()
-    var
-        Shop: Record "Shpfy Shop";
-        ShpfyCustomerTemplate: Record "Shpfy Customer Template";
-        CustomerTemplCreated: Dictionary of [Code[10], Code[20]];
-        Modified: Boolean;
-    begin
-        if Shop.FindSet() then
-            repeat
-                Modified := false;
-                if Shop."Customer Template Code" <> '' then
-                    if not CustomerTemplCreated.ContainsKey(Shop."Customer Template Code") then begin
-                        Shop."Customer Templ. Code" := CreateCustomerTemplate(Shop."Customer Template Code");
-                        CustomerTemplCreated.Add(Shop."Customer Template Code", Shop."Customer Templ. Code");
-                        Modified := true;
-                    end;
-                if Shop."Item Template Code" <> '' then begin
-                    Shop."Item Templ. Code" := CreateItemTemplate(Shop."Item Template Code");
-                    Modified := true;
-                end;
-                if Modified then
-                    Shop.Modify();
-            until Shop.Next() = 0;
-        ShpfyCustomerTemplate.SetFilter("Customer Template Code", '<> %1', '');
-        if ShpfyCustomerTemplate.FindSet() then
-            repeat
-                if not CustomerTemplCreated.ContainsKey(ShpfyCustomerTemplate."Customer Template Code") then begin
-                    ShpfyCustomerTemplate."Customer Templ. Code" := CreateCustomerTemplate(ShpfyCustomerTemplate."Customer Template Code");
-                    CustomerTemplCreated.Add(ShpfyCustomerTemplate."Customer Template Code", ShpfyCustomerTemplate."Customer Templ. Code");
-                end else
-                    ShpfyCustomerTemplate."Customer Templ. Code" := CustomerTemplCreated.Get(ShpfyCustomerTemplate."Customer Template Code");
-                ShpfyCustomerTemplate.Modify();
-            until ShpfyCustomerTemplate.Next() = 0;
-    end;
 
-    local procedure CopyConfigTemplateLinesToRecordRef(var ConfigTemplateLine: Record "Config. Template Line"; var RecordRef: RecordRef)
-    var
-        Field: Record Field;
-        TypeHelper: Codeunit "Type Helper";
-        FieldRef: FieldRef;
-        DateFormulaDefaultValue: DateFormula;
-        BoolDefaultValue: Boolean;
-        DateDefaultValue: Date;
-        DateTimeDefaultValue: DateTime;
-        TimeDefaultValue: Time;
-    begin
-        if not ConfigTemplateLine.FindSet() then
-            exit;
-        repeat
-            if (ConfigTemplateLine."Field ID" > 2) and RecordRef.FieldExist(ConfigTemplateLine."Field ID") then begin
-                FieldRef := RecordRef.Field(ConfigTemplateLine."Field ID");
-                Field.Get(ConfigTemplateLine."Table ID", ConfigTemplateLine."Field ID");
-                case Field.Type of
-                    Field.Type::Option:
-                        FieldRef.Value := TypeHelper.GetOptionNo(ConfigTemplateLine."Default Value", FieldRef.OptionMembers);
-                    Field.Type::Boolean:
-                        if Evaluate(BoolDefaultValue, ConfigTemplateLine."Default Value") then
-                            FieldRef.Value := BoolDefaultValue;
-                    Field.Type::Date:
-                        if Evaluate(DateDefaultValue, ConfigTemplateLine."Default Value") then
-                            FieldRef.Value := DateDefaultValue;
-                    Field.Type::DateTime:
-                        if Evaluate(DateTimeDefaultValue, ConfigTemplateLine."Default Value") then
-                            FieldRef.Value := DateTimeDefaultValue;
-                    Field.Type::DateFormula:
-                        if Evaluate(DateFormulaDefaultValue, ConfigTemplateLine."Default Value") then
-                            FieldRef.Value := DateFormulaDefaultValue;
-                    Field.Type::Time:
-                        if Evaluate(TimeDefaultValue, ConfigTemplateLine."Default Value") then
-                            FieldRef.Value := TimeDefaultValue;
-                    else
-                        FieldRef.Value := ConfigTemplateLine."Default Value";
-                end;
-            end;
-        until ConfigTemplateLine.Next() = 0;
-        RecordRef.Modify();
-    end;
 
-    local procedure CreateCustomerTemplate(TemplateCode: Code[10]): Code[20]
-    var
-        CustomerTempl: Record "Customer Templ.";
-        ConfigTemplateHeader: Record "Config. Template Header";
-        ConfigTemplateLine: Record "Config. Template Line";
-        CustomerTemplRecordRef: RecordRef;
-    begin
-        CustomerTempl.SetRange(Code, TemplateCode);
-        if not CustomerTempl.IsEmpty() then
-            exit(TemplateCode);
-        ConfigTemplateHeader.Get(TemplateCode);
-        CustomerTempl.Reset();
-        CustomerTempl.Code := TemplateCode;
-        CustomerTempl.Description := ConfigTemplateHeader.Description;
-        CustomerTempl.Insert();
-        CustomerTemplRecordRef.GetTable(CustomerTempl);
-        ConfigTemplateLine.SetRange("Data Template Code", TemplateCode);
-        ConfigTemplateLine.SetRange("Table ID", Database::Customer);
-        ConfigTemplateLine.SetRange(Type, ConfigTemplateLine.Type::Field);
-        CopyConfigTemplateLinesToRecordRef(ConfigTemplateLine, CustomerTemplRecordRef);
-        TransferDimensionsFromTemplate(TemplateCode, Database::Customer, Database::"Customer Templ.");
-        exit(TemplateCode);
-    end;
 
-    local procedure TransferDimensionsFromTemplate(TemplateCode: Code[10]; TableNo: Integer; TemplTableNo: Integer)
-    var
-        ConfigTemplateHeader: Record "Config. Template Header";
-        ConfigTemplateLine: Record "Config. Template Line";
-        DefaultDimension: Record "Default Dimension";
-        ConfigTemplateManagement: Codeunit "Config. Template Management";
-        RecordRef: RecordRef;
-        DimensionCode: Code[20];
-    begin
-        ConfigTemplateLine.SetRange("Data Template Code", TemplateCode);
-        ConfigTemplateLine.SetRange("Table ID", TableNo);
-        ConfigTemplateLine.SetRange(Type, ConfigTemplateLine.Type::"Related Template");
-        if not ConfigTemplateLine.FindSet() then
-            exit;
-        repeat
-            if ConfigTemplateHeader.Get(ConfigTemplateLine."Template Code") then
-                if ConfigTemplateHeader."Table ID" = Database::"Default Dimension" then begin
-                    DimensionCode := GetDimensionCodeFromTemplate(ConfigTemplateHeader.Code);
-                    if DimensionCode <> '' then begin
-                        DefaultDimension.Reset();
-                        DefaultDimension."Table ID" := TemplTableNo;
-                        DefaultDimension."No." := TemplateCode;
-                        DefaultDimension."Dimension Code" := DimensionCode;
-                        DefaultDimension.Insert();
-                        RecordRef.GetTable(DefaultDimension);
-                        ConfigTemplateManagement.UpdateRecord(ConfigTemplateHeader, RecordRef);
-                        RecordRef.SetTable(DefaultDimension);
-                        DefaultDimension.Modify();
-                    end;
-                end;
-        until ConfigTemplateLine.Next() = 0;
-    end;
 
-    local procedure GetDimensionCodeFromTemplate(TemplateCode: Code[10]): Code[20]
-    var
-        DefaultDimension: Record "Default Dimension";
-        ConfigTemplateLine: Record "Config. Template Line";
-    begin
-        ConfigTemplateLine.SetRange("Data Template Code", TemplateCode);
-        ConfigTemplateLine.SetRange(Type, ConfigTemplateLine.Type::Field);
-        ConfigTemplateLine.SetRange("Field ID", DefaultDimension.FieldNo("Dimension Code"));
-        if not ConfigTemplateLine.FindFirst() then
-            exit('');
-        exit(CopyStr(ConfigTemplateLine."Default Value", 1, 20));
-    end;
 
-    local procedure CreateItemTemplate(TemplateCode: Code[10]): Code[20]
-    var
-        ItemTempl: Record "Item Templ.";
-        ConfigTemplateHeader: Record "Config. Template Header";
-        ConfigTemplateLine: Record "Config. Template Line";
-        ItemTemplRecordRef: RecordRef;
-    begin
-        ItemTempl.SetRange(Code, TemplateCode);
-        if not ItemTempl.IsEmpty() then
-            exit(TemplateCode);
-        ConfigTemplateHeader.Get(TemplateCode);
-        ItemTempl.Reset();
-        ItemTempl.Code := TemplateCode;
-        ItemTempl.Description := ConfigTemplateHeader.Description;
-        ItemTempl.Insert();
-        ItemTemplRecordRef.GetTable(ItemTempl);
-        ConfigTemplateLine.SetRange("Data Template Code", TemplateCode);
-        ConfigTemplateLine.SetRange("Table ID", Database::Item);
-        ConfigTemplateLine.SetRange(Type, ConfigTemplateLine.Type::Field);
-        CopyConfigTemplateLinesToRecordRef(ConfigTemplateLine, ItemTemplRecordRef);
-        TransferDimensionsFromTemplate(TemplateCode, Database::Item, Database::"Item Templ.");
-        exit(TemplateCode);
-    end;
 
     local procedure SetAllowOutgoingRequests()
     var
@@ -239,42 +67,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         UpgradeTag.SetUpgradeTag(GetAllowOutgoingRequestseUpgradeTag());
     end;
 
-    local procedure PriceCalculationUpgrade()
-    var
-        Shop: Record "Shpfy Shop";
-        UpgradeTag: Codeunit "Upgrade Tag";
-    begin
-        if UpgradeTag.HasUpgradeTag(GetPriceCalculationUpgradeTag()) then
-            exit;
 
-        Shop.SetFilter("Customer Template Code", '<>%1', '');
-        Shop.SetRange("Customer Posting Group", '');
-        if Shop.FindSet(true) then
-            repeat
-                CopyPriceCalculationFieldsFromCustomerTempl(Shop, Shop."Customer Templ. Code");
-            until Shop.Next() = 0;
-
-        UpgradeTag.SetUpgradeTag(GetPriceCalculationUpgradeTag());
-    end;
-
-    local procedure CopyPriceCalculationFieldsFromCustomerTempl(var Shop: Record "Shpfy Shop"; TemplateCode: Code[20])
-    var
-        CustomerTempl: Record "Customer Templ.";
-    begin
-        if TemplateCode = '' then
-            exit;
-        if not CustomerTempl.Get(TemplateCode) then
-            exit;
-        Shop."Gen. Bus. Posting Group" := CustomerTempl."Gen. Bus. Posting Group";
-        Shop."VAT Bus. Posting Group" := CustomerTempl."VAT Bus. Posting Group";
-        Shop."Tax Area Code" := CustomerTempl."Tax Area Code";
-        Shop."Tax Liable" := CustomerTempl."Tax Liable";
-        Shop."VAT Country/Region Code" := CustomerTempl."Country/Region Code";
-        Shop."Customer Posting Group" := CustomerTempl."Customer Posting Group";
-        Shop."Prices Including VAT" := CustomerTempl."Prices Including VAT";
-        Shop."Allow Line Disc." := CustomerTempl."Allow Line Disc.";
-        Shop.Modify();
-    end;
 
     local procedure LoggingModeUpgrade()
     var
@@ -286,7 +79,6 @@ codeunit 30106 "Shpfy Upgrade Mgt."
             exit;
 
         ShopDataTransfer.SetTables(Database::"Shpfy Shop", Database::"Shpfy Shop");
-        ShopDataTransfer.AddSourceFilter(Shop.FieldNo("Log Enabled"), '=%1', true);
         ShopDataTransfer.AddConstantValue("Shpfy Logging Mode"::All, Shop.FieldNo("Logging Mode"));
         ShopDataTransfer.UpdateAuditFields := false;
         ShopDataTransfer.CopyFields();
@@ -360,16 +152,11 @@ codeunit 30106 "Shpfy Upgrade Mgt."
     var
         OrderAttribute: Record "Shpfy Order Attribute";
         UpgradeTag: Codeunit "Upgrade Tag";
-        OrderAttributeDataTransfer: DataTransfer;
     begin
         if UpgradeTag.HasUpgradeTag(GetOrderAttributeValueUpgradeTag()) then
             exit;
 
         if not OrderAttribute.IsEmpty() then begin
-            OrderAttributeDataTransfer.SetTables(Database::"Shpfy Order Attribute", Database::"Shpfy Order Attribute");
-            OrderAttributeDataTransfer.AddFieldValue(OrderAttribute.FieldNo(Value), OrderAttribute.FieldNo("Attribute Value"));
-            OrderAttributeDataTransfer.UpdateAuditFields := false;
-            OrderAttributeDataTransfer.CopyFields();
         end;
 
         UpgradeTag.SetUpgradeTag(GetOrderAttributeValueUpgradeTag());

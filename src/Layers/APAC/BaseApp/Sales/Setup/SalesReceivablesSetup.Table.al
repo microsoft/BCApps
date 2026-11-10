@@ -574,8 +574,6 @@ table 311 "Sales & Receivables Setup"
             ObsoleteReason = 'Discontinued function';
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-        }
-#endif
         /// <summary>
         /// Indicates whether the customer name from the customer card is copied to customer ledger entries during posting.
         /// </summary>

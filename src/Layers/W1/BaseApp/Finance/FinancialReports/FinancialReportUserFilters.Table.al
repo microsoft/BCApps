@@ -42,24 +42,6 @@ table 89 "Financial Report User Filters"
             Caption = 'Use Amounts in Additional Currency';
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA30
-        /// <summary>
-        /// Period type for date calculations and report period determination.
-        /// </summary>
-        field(4; PeriodType; Enum "Analysis Period Type")
-        {
-            Caption = 'Period Type';
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'This field has been replaced by the PeriodTypeDefault field.';
-#if not CLEAN28
-            ObsoleteState = Pending;
-            ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#endif
-        }
-#endif
         /// <summary>
         /// Controls whether report shows all lines or only lines with values.
         /// </summary>
@@ -157,24 +139,6 @@ table 89 "Financial Report User Filters"
             DataClassification = SystemMetadata;
             TableRelation = "Fin. Report Excel Template"."Code" where("Financial Report Name" = field("Financial Report Name"));
         }
-#if not CLEANSCHEMA30
-        /// <summary>
-        /// Format preference for displaying negative amounts in financial reports.
-        /// </summary>
-        field(17; NegativeAmountFormat; Enum "Analysis Negative Format")
-        {
-            Caption = 'Negative Amount Format';
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'This field has been replaced by the NegativeAmountFormatDefault field.';
-#if not CLEAN28
-            ObsoleteState = Pending;
-            ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#endif
-        }
-#endif
         field(18; PeriodTypeDefault; Enum "Financial Report Period Type")
         {
             Caption = 'Period Type';

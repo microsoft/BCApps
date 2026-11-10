@@ -1014,15 +1014,6 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Posting Date Check on Posting';
             ToolTip = 'Specifies if you want the program to warn you when you post a sales document with a posting date that is different from the Work Date.';
         }
-#if not CLEANSCHEMA25
-        field(10600; "Print Receipt on Giro"; Boolean)
-        {
-            Caption = 'Print Receipt on Giro';
-            ObsoleteReason = 'Not needed after refactoring';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(10603; "KID Setup"; Option)
         {
             Caption = 'KID Setup';

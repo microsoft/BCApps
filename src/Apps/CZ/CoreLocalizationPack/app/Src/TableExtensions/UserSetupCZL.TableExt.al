@@ -51,24 +51,6 @@ tableextension 11717 "User Setup CZL" extends "User Setup"
             Caption = 'Allow Posting to Closed Period';
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA27
-        field(11778; "Allow VAT Posting From CZL"; Date)
-        {
-            Caption = 'Allow VAT Posting From';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-            ObsoleteReason = 'Replaced by "Allow VAT Date From" field.';
-        }
-        field(11779; "Allow VAT Posting To CZL"; Date)
-        {
-            Caption = 'Allow VAT Posting To';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-            ObsoleteReason = 'Replaced by "Allow VAT Date To" field.';
-        }
-#endif
         field(11780; "Allow Complete Job CZL"; Boolean)
         {
             Caption = 'Allow Complete Job';

@@ -92,23 +92,6 @@ table 6372 "Connection Setup"
 #pragma warning restore AL0432
 #endif
         }
-#if not CLEANSCHEMA30
-#pragma warning disable AL0432, AS0105
-        field(13; "Send Mode"; Enum "E-Doc. Ext. Send Mode")
-#pragma warning restore AL0432, AS0105
-        {
-            Caption = 'Send Mode';
-            DataClassification = EndUserIdentifiableInformation;
-            ObsoleteReason = 'Use "Avalara Send Mode" instead.';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#endif
-        }
-#endif
     }
 
     keys

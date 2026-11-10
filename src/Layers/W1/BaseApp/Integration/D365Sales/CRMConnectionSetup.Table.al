@@ -118,23 +118,6 @@ table 5330 "CRM Connection Setup"
                 end;
             end;
         }
-#if not CLEANSCHEMA26
-        field(61; "Is User Mapping Required"; Boolean)
-        {
-            ObsoleteReason = 'This functionality is not in use and not supported';
-            ObsoleteTag = '26.0';
-            ObsoleteState = Removed;
-            Caption = 'Business Central Users Must Map to Dynamics 365 Sales Users';
-
-        }
-        field(62; "Is User Mapped To CRM User"; Boolean)
-        {
-            ObsoleteTag = '26.0';
-            ObsoleteState = Removed;
-            ObsoleteReason = 'This functionality is not in use and not supported';
-            Caption = 'Is User Mapped To CRM User';
-        }
-#endif
         field(63; "CRM Version"; Text[30])
         {
             Caption = 'CRM Version';
@@ -186,15 +169,6 @@ table 5330 "CRM Connection Setup"
             Caption = 'Is CRM Solution Installed';
             ToolTip = 'Specifies if the Integration Solution is installed and configured in Dynamics 365 Sales. You cannot change this setting.';
         }
-#if not CLEANSCHEMA26
-        field(68; "Is Enabled For User"; Boolean)
-        {
-            ObsoleteTag = '26.0';
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Use field "Is Enabled" instead.';
-            Caption = 'Is Enabled For User';
-        }
-#endif
         field(69; "Dynamics NAV URL"; Text[250])
         {
             Caption = 'Dynamics NAV URL';

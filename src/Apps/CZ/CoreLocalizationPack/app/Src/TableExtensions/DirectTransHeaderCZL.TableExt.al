@@ -8,19 +8,6 @@ using Microsoft.Inventory.Ledger;
 
 tableextension 31054 "Direct Trans. Header CZL" extends "Direct Trans. Header"
 {
-#if not CLEANSCHEMA25
-    fields
-    {
-        field(31000; "Intrastat Exclude CZL"; Boolean)
-        {
-            Caption = 'Intrastat Exclude';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions. This field is not used any more.';
-        }
-    }
-#endif
 
     procedure GetRegisterUserIDCZL(): Code[50]
     var

@@ -573,8 +573,6 @@ table 311 "Sales & Receivables Setup"
             ObsoleteReason = 'Discontinued function';
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-        }
-#endif
         /// <summary>
         /// Indicates whether the customer name from the customer card is copied to customer ledger entries during posting.
         /// </summary>
@@ -1013,46 +1011,6 @@ table 311 "Sales & Receivables Setup"
             InitValue = true;
 #endif
         }
-#if not CLEANSCHEMA30
-        field(10501; "Reverse Charge VAT Posting Gr."; Code[20])
-        {
-            Caption = 'Reverse Charge VAT Posting Gr.';
-            TableRelation = "VAT Business Posting Group";
-            ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
-        }
-        field(10502; "Domestic Customers"; Code[20])
-        {
-            Caption = 'Domestic Customers';
-            TableRelation = "VAT Business Posting Group";
-            ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
-        }
-        field(10503; "Invoice Wording"; Text[30])
-        {
-            Caption = 'Invoice Wording';
-            ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
-        }
-#endif
     }
 
     keys

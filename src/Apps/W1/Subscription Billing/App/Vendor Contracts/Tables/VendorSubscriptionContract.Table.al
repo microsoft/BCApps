@@ -694,15 +694,6 @@ table 8063 "Vendor Subscription Contract"
             Caption = 'Create Contract Deferrals';
             InitValue = true;
         }
-#if not CLEANSCHEMA30
-        field(8051; "Without Contract Deferrals"; Boolean)
-        {
-            Caption = 'Without Contract Deferrals';
-            ObsoleteReason = 'Removed in favor of Create Contract Deferrals.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-        }
-#endif
         field(8053; "Billing Rhythm Filter"; DateFormula)
         {
             Caption = 'Billing Rhythm Filter';

@@ -729,16 +729,6 @@ table 125 "Purch. Cr. Memo Line"
             Editable = false;
             FieldClass = FlowField;
         }
-#if not CLEANSCHEMA25
-        field(11200; "Auto. Acc. Group"; Code[10])
-        {
-            Caption = 'Auto. Acc. Group';
-            TableRelation = "Automatic Acc. Header";
-            ObsoleteReason = 'Moved to Automatic Account Codes app.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

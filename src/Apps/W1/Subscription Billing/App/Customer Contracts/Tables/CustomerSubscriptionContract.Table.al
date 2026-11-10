@@ -848,15 +848,6 @@ table 8052 "Customer Subscription Contract"
             Caption = 'Create Contract Deferrals';
             InitValue = true;
         }
-#if not CLEANSCHEMA30
-        field(8051; "Without Contract Deferrals"; Boolean)
-        {
-            ObsoleteReason = 'Removed in favor of Create Contract Deferrals.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-            Caption = 'Without Contract Deferrals';
-        }
-#endif
         field(8052; "Detail Overview"; Enum "Contract Detail Overview")
         {
             Caption = 'Detail Overview';

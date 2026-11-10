@@ -67,20 +67,6 @@ tableextension 4701 "VAT Report Setup Extension" extends "VAT Report Setup"
                         AuditCategory::ApplicationManagement);
             end;
         }
-#if not CLEANSCHEMA25
-#pragma warning disable AL0432
-#pragma warning disable AS0105
-        field(4704; "Authentication Type"; Enum "VAT Group Authentication Type OnPrem")
-#pragma warning restore
-#pragma warning restore AS0105
-        {
-            DataClassification = CustomerContent;
-            Caption = 'Authentication Type';
-            ObsoleteReason = 'Replaced by field "VAT Group Authentication Type" as the value Enum is being renamed.';
-            ObsoleteTag = '25.0';
-            ObsoleteState = Removed;
-        }
-#endif
         field(4719; "VAT Group Authentication Type"; Enum "VAT Group Auth Type OnPrem")
         {
             DataClassification = CustomerContent;

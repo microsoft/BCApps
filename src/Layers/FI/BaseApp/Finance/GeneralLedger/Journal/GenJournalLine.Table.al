@@ -2397,19 +2397,6 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'IC Direction';
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// Obsolete field replaced by IC Account No. for intercompany G/L account references.
-        /// </summary>
-        field(116; "IC Partner G/L Acc. No."; Code[20])
-        {
-            Caption = 'IC Partner G/L Acc. No.';
-            TableRelation = "IC G/L Account";
-            ObsoleteReason = 'Replaced by IC Account No.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         /// <summary>
         /// Intercompany transaction number for tracking and matching IC transactions across partner companies.
         /// </summary>
@@ -3884,16 +3871,6 @@ table 81 "Gen. Journal Line"
                 UpdateVendorNo();
             end;
         }
-#if not CLEANSCHEMA25
-        field(11201; "Auto. Acc. Group"; Code[10])
-        {
-            Caption = 'Auto. Acc. Group';
-            TableRelation = "Automatic Acc. Header";
-            ObsoleteReason = 'Moved to Automatic Account Codes app.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(32000000; "Reference No."; Code[20])
         {
             Caption = 'Reference No.';

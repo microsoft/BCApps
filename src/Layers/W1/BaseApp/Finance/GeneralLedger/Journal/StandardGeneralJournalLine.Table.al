@@ -1453,19 +1453,6 @@ table 751 "Standard General Journal Line"
             Editable = false;
             TableRelation = "IC Partner";
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// Obsolete field replaced by IC Account No. for intercompany G/L account references.
-        /// </summary>
-        field(116; "IC Partner G/L Acc. No."; Code[20])
-        {
-            Caption = 'IC Partner G/L Acc. No.';
-            TableRelation = "IC G/L Account";
-            ObsoleteReason = 'Replaced by IC Account No.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         /// <summary>
         /// Sell-to customer or buy-from vendor number for document reference in the standard journal line.
         /// </summary>

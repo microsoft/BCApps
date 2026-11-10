@@ -32,34 +32,6 @@ table 6103 "E-Document Service"
             Caption = 'Document Format';
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA29
-#pragma warning disable AL0432
-        field(4; "Service Integration"; Enum "E-Document Integration")
-#pragma warning restore AL0432
-        {
-            Caption = 'Service Integration';
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'Use Service Integration V2 integration enum instead';
-#if CLEAN26
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-
-            trigger OnValidate()
-            var
-                ConsentManagerDefaultImpl: Codeunit "Consent Manager Default Impl.";
-            begin
-                if (xRec."Service Integration" = xRec."Service Integration"::"No Integration") and (Rec."Service Integration" <> xRec."Service Integration") then
-                    if not ConsentManagerDefaultImpl.ObtainPrivacyConsent() then
-                        Rec."Service Integration" := xRec."Service Integration";
-            end;
-#endif
-        }
-#endif
         field(5; "Use Batch Processing"; Boolean)
         {
             Caption = 'Use Batch Processing';
@@ -256,17 +228,6 @@ table 6103 "E-Document Service"
                 end;
             end;
         }
-#if not CLEANSCHEMA26
-        field(29; "E-Document Structured Format"; Integer)
-        {
-            Caption = 'Structured Data Format';
-            ToolTip = 'Specifies the format of the structured data.';
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'Use the "Read into Draft Impl." field instead.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(31; "Import Process"; Enum "E-Document Import Process")
         {
             Caption = 'Import Process';

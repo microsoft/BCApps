@@ -1258,16 +1258,6 @@ table 114 "Sales Cr.Memo Header"
         {
             Caption = 'Foreign Trade';
         }
-#if not CLEANSCHEMA26
-        field(10055; "Transit-to Location"; Code[10])
-        {
-            Caption = 'Transit-to Location';
-            TableRelation = Location where("Use As In-Transit" = const(false));
-            ObsoleteReason = 'Replaced with SAT Address ID.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(10059; "SAT International Trade Term"; Code[10])
         {
             Caption = 'SAT International Trade Term';

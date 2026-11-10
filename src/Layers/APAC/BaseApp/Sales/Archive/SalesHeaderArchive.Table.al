@@ -1304,15 +1304,6 @@ table 5107 "Sales Header Archive"
             TableRelation = Contact;
             ToolTip = 'Specifies the number of the contact person at the customer''s billing address.';
         }
-#if not CLEANSCHEMA25
-        field(5054; "Bill-to Customer Template Code"; Code[10])
-        {
-            Caption = 'Bill-to Customer Template Code (obsoleted)';
-            ObsoleteReason = 'Will be removed with other functionality related to "old" templates. Replaced by "Bill-to Customer Templ. Code".';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         /// <summary>
         /// Specifies the sales opportunity linked to this document for CRM tracking.
         /// </summary>

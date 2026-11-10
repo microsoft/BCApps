@@ -14,15 +14,6 @@ table 6300 "Azure AD App Setup"
             Caption = 'App ID';
             NotBlank = true;
         }
-#if not CLEANSCHEMA28
-        field(2; "Secret Key"; BLOB)
-        {
-            Caption = 'Secret Key';
-            ObsoleteReason = 'The Secret Key has been moved to Isolated Storage. Use GetSecretKeyFromIsolatedStorage/SetSecretKeyToIsolatedStorage to retrieve or set the Secret Key.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(3; "Primary Key"; Integer)
         {
             AutoIncrement = true;

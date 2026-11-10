@@ -29,25 +29,6 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
             Editable = false;
             FieldClass = FlowField;
         }
-#if not CLEANSCHEMA28
-        field(5421; "Scheduled Need (Qty.)"; Decimal)
-        {
-            ObsoleteReason = 'Use the field ''Qty. on Component Lines'' instead';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-            CalcFormula = sum("Prod. Order Component"."Remaining Qty. (Base)" where(Status = filter(Planned .. Released),
-                                                                                     "Item No." = field("Item No."),
-                                                                                     "Location Code" = field("Location Code"),
-                                                                                     "Variant Code" = field("Variant Code"),
-                                                                                     "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
-                                                                                     "Shortcut Dimension 2 Code" = field("Global Dimension 2 Filter"),
-                                                                                     "Due Date" = field("Date Filter")));
-            Caption = 'Scheduled Need (Qty.)';
-            DecimalPlaces = 0 : 5;
-            Editable = false;
-            FieldClass = FlowField;
-        }
-#endif
         field(99000750; "Routing No."; Code[20])
         {
             Caption = 'Routing No.';
