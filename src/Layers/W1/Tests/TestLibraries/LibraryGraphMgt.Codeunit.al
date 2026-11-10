@@ -56,11 +56,12 @@ codeunit 130618 "Library - Graph Mgt"
     end;
 
     /// <summary>
-    /// Sets the work date to today in the current user's time zone, the work date that API sessions always start with.
-    /// Use it in tests that compare a document created through the API with one created in the test session, so that fields
-    /// the API doesn't expose get the same default dates. Today can be outside the test-license date limits, so don't post with it.
+    /// Sets the work date of the test session to the one API sessions always start with: today in the current user's time zone.
+    /// The API session's work date can't be changed from the test. Use it in tests that compare a document created through the API
+    /// with one created in the test session, so that fields the API doesn't expose get the same default dates.
+    /// Today can be outside the test-license date limits, so don't post with it; use SetLicenseSafeWorkDate() for that.
     /// </summary>
-    procedure SetApiSessionWorkDate()
+    procedure AlignWorkDateWithApiSession()
     var
         TypeHelper: Codeunit "Type Helper";
     begin

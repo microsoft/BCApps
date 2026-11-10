@@ -352,7 +352,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         Initialize();
 
         // [SCENARIO 184721] Create an order both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
-        LibraryGraphMgt.SetApiSessionWorkDate();
+        LibraryGraphMgt.AlignWorkDateWithApiSession();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         // [GIVEN] a customer
