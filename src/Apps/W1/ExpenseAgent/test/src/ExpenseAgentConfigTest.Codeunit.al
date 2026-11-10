@@ -25,6 +25,7 @@ codeunit 148361 "Expense Agent Config. Test"
         ExpenseAgentAppIdTok: Label '66efe10c-8033-403b-a86d-77c0887178ba', Locked = true;
         ExpenseAgentPermissionSetTok: Label 'Expense Agent', Locked = true;
         UnrelatedPermissionSetTok: Label 'D365 BASIC', Locked = true;
+        JsonPropertyMissingErr: Label 'The %1 property is missing.', Comment = '%1 = JSON property name';
 
     [Test]
     procedure ActivatingWithOtherCompanyPermissionAddsCurrentCompanyPermission()
@@ -228,6 +229,105 @@ codeunit 148361 "Expense Agent Config. Test"
         VerifyAadApplicationState(AadApplication.State::Disabled);
         VerifyPermissionExists(AadApplication, ExpenseAgentPermissionSetTok, '');
         VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
+    end;
+
+    [Test]
+    procedure ServiceIdentityIsExpenseAgentApplicationUser()
+    var
+        AadApplication: Record "AAD Application";
+        User: Record User;
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        IdentityManagement: Codeunit "Identity Management";
+        ServiceIdentity: JsonObject;
+    begin
+        // [SCENARIO] The E2E service identity is the Expense Agent Entra application user with only the current company permission
+        Initialize();
+
+        // [GIVEN] Disabled Entra app "EA" without permissions
+        PrepareAadApplication(AadApplication, AadApplication.State::Disabled);
+
+        // [WHEN] Enabling "EA" as activating the agent does, and getting the service identity for E2E tests
+        ExpenseTestHandlerAPI.EnableEntraApplication();
+        ExpenseTestHandlerAPI.GetServiceIdentity(ServiceIdentity);
+
+        // [THEN] "EA" is enabled with one current company Expense Agent permission
+        VerifyAadApplicationState(AadApplication.State::Enabled);
+        VerifyPermissionCount(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName(), 1);
+
+        // [THEN] The identity is the application user of "EA" with its current web service access key, which does not expire
+        AadApplication.Get(AadApplication."Client Id");
+        User.Get(AadApplication."User ID");
+        Assert.AreEqual(User."User Name", GetJsonText(ServiceIdentity, 'userName'), 'The service user name is incorrect.');
+        Assert.AreNotEqual('', GetJsonText(ServiceIdentity, 'webServicesKey'), 'The web service access key must be returned.');
+        Assert.AreEqual(
+            IdentityManagement.GetWebServicesKey(AadApplication."User ID"),
+            GetJsonText(ServiceIdentity, 'webServicesKey'),
+            'The returned key must be the key of the application user.');
+        Assert.AreEqual(0DT, IdentityManagement.GetWebServiceExpiryDate(AadApplication."User ID"), 'The web service access key must not expire.');
+    end;
+
+    [Test]
+    procedure ServiceIdentityReusesKeyWithoutExpiry()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        FirstServiceIdentity: JsonObject;
+        SecondServiceIdentity: JsonObject;
+    begin
+        // [SCENARIO] Getting the E2E service identity again keeps the key that running services already use
+        Initialize();
+
+        // [GIVEN] Enabled Entra app "EA" whose service identity was already requested
+        PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
+        ExpenseTestHandlerAPI.EnableEntraApplication();
+        ExpenseTestHandlerAPI.GetServiceIdentity(FirstServiceIdentity);
+
+        // [WHEN] Enabling "EA" and getting the service identity again, as a repeated Configure does
+        ExpenseTestHandlerAPI.EnableEntraApplication();
+        ExpenseTestHandlerAPI.GetServiceIdentity(SecondServiceIdentity);
+
+        // [THEN] The same key is returned and "EA" keeps one current company Expense Agent permission
+        Assert.AreEqual(
+            GetJsonText(FirstServiceIdentity, 'webServicesKey'),
+            GetJsonText(SecondServiceIdentity, 'webServicesKey'),
+            'A web service access key without expiry must be reused.');
+        VerifyPermissionCount(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName(), 1);
+    end;
+
+    [Test]
+    procedure ServiceIdentityRepairsEnabledApplicationWithoutUser()
+    var
+        AadApplication: Record "AAD Application";
+        User: Record User;
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        ServiceIdentity: JsonObject;
+    begin
+        // [SCENARIO] Enabling an Entra app whose user ID does not exist, as in a prepared container database, repairs its user
+        Initialize();
+
+        // [GIVEN] Enabled Entra app "EA" whose user ID does not refer to a user
+        PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
+        AadApplication."User ID" := CreateGuid();
+        AadApplication.Modify();
+
+        // [WHEN] Enabling "EA" and getting the service identity for E2E tests
+        ExpenseTestHandlerAPI.EnableEntraApplication();
+        ExpenseTestHandlerAPI.GetServiceIdentity(ServiceIdentity);
+
+        // [THEN] "EA" is enabled for an existing application user, which is the returned identity
+        VerifyAadApplicationState(AadApplication.State::Enabled);
+        AadApplication.Get(AadApplication."Client Id");
+        User.Get(AadApplication."User ID");
+        Assert.AreEqual(User."User Name", GetJsonText(ServiceIdentity, 'userName'), 'The service user name is incorrect.');
+        VerifyPermissionCount(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName(), 1);
+    end;
+
+    local procedure GetJsonText(JsonObject: JsonObject; PropertyName: Text): Text
+    var
+        JsonToken: JsonToken;
+    begin
+        Assert.IsTrue(JsonObject.Get(PropertyName, JsonToken), StrSubstNo(JsonPropertyMissingErr, PropertyName));
+        exit(JsonToken.AsValue().AsText());
     end;
 
     local procedure Initialize()

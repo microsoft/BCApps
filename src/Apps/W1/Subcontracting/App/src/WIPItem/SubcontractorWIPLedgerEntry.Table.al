@@ -186,7 +186,7 @@ table 20560 "Subcontractor WIP Ledger Entry"
         key(Key5; "Document No.", "Posting Date") { }
     }
 
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -198,7 +198,7 @@ table 20560 "Subcontractor WIP Ledger Entry"
     /// </summary>
     procedure SetProductionOrderFilter(ProductionOrder: Record "Production Order"; SetKey: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -216,7 +216,7 @@ table 20560 "Subcontractor WIP Ledger Entry"
     /// </summary>
     procedure SetProductionOrderRoutingFilter(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; SetKey: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -238,7 +238,7 @@ table 20560 "Subcontractor WIP Ledger Entry"
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

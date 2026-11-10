@@ -45,7 +45,6 @@ page 6943 "Posted Exp. Rep. Line Items"
                 }
                 field("Amount"; Rec."Amount")
                 {
-                    AutoFormatType = 0;
                     Caption = 'Itemized Amount';
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the total amount for all itemization lines.';

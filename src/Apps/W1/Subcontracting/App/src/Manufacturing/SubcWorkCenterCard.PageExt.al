@@ -72,7 +72,7 @@ pageextension 20506 "Subc. Work Center Card" extends "Work Center Card"
 
     trigger OnOpenPage()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
 #pragma warning restore AL0432
@@ -81,7 +81,7 @@ pageextension 20506 "Subc. Work Center Card" extends "Work Center Card"
 
     trigger OnAfterGetCurrRecord()
     begin
-#if not CLEAN29
+#if not CLEAN28
         if not SubcontractingEnabled then
             exit;
 
@@ -91,7 +91,7 @@ pageextension 20506 "Subc. Work Center Card" extends "Work Center Card"
 
     var
         SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
