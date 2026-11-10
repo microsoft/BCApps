@@ -1033,21 +1033,27 @@ report 790 "Calculate Inventory"
     end;
 
     local procedure CreateDimFromDefault() DimEntryNo: Integer
-    var
-        DefaultDimension: Record "Default Dimension";
     begin
-        DefaultDimension.SetFilter("No.", '%1|%2', TempQuantityOnHandBuffer."Item No.", TempQuantityOnHandBuffer."Location Code");
-        DefaultDimension.SetFilter("Table ID", '%1|%2', DATABASE::Item, DATABASE::Location);
-        DefaultDimension.SetFilter("Dimension Value Code", '<>%1', '');
-        if DefaultDimension.FindSet() then
-            repeat
-                InsertDim(DefaultDimension."Table ID", 0, DefaultDimension."Dimension Code", DefaultDimension."Dimension Value Code");
-            until DefaultDimension.Next() = 0;
+        InsertDefaultDimensions(DATABASE::Item, TempQuantityOnHandBuffer."Item No.");
+        InsertDefaultDimensions(DATABASE::Location, TempQuantityOnHandBuffer."Location Code");
 
         DimEntryNo := DimBufMgt.InsertDimensions(TempDimBufIn);
 
         TempDimBufIn.SetFilter("Table ID",'%1|%2',DATABASE::Item, Database::Location);
         TempDimBufIn.DeleteAll();
+    end;
+
+    local procedure InsertDefaultDimensions(TableID: Integer; No: Code[20])
+    var
+        DefaultDimension: Record "Default Dimension";
+    begin
+        DefaultDimension.SetRange("Table ID", TableID);
+        DefaultDimension.SetRange("No.", No);
+        DefaultDimension.SetFilter("Dimension Value Code", '<>%1', '');
+        if DefaultDimension.FindSet() then
+            repeat
+                InsertDim(DefaultDimension."Table ID", 0, DefaultDimension."Dimension Code", DefaultDimension."Dimension Value Code");
+            until DefaultDimension.Next() = 0;
     end;
 
     local procedure InsertDim(TableID: Integer; EntryNo: Integer; DimCode: Code[20]; DimValueCode: Code[20])

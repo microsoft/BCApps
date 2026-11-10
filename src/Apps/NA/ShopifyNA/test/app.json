@@ -14,7 +14,7 @@
     "screenshots": [],
     "application": "30.0.0.0",
     "platform": "30.0.0.0",
-    "target": "OnPrem",
+    "target": "Cloud",
     "dependencies": [
         {
             "id": "ec255f57-31d0-4ca2-b751-f2fa7c745abb",

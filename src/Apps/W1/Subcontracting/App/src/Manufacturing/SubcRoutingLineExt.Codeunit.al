@@ -9,7 +9,7 @@ using Microsoft.Manufacturing.Routing;
 codeunit 20568 "Subc. Routing Line Ext."
 {
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -21,7 +21,7 @@ codeunit 20568 "Subc. Routing Line Ext."
         FromRoutingComment: Record "Subc. Routing Comment Line";
         ToRoutingComment: Record "Subc. Routing Comment Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -45,7 +45,7 @@ codeunit 20568 "Subc. Routing Line Ext."
     var
         RoutingComment: Record "Subc. Routing Comment Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

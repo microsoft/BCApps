@@ -767,6 +767,7 @@ table 254 "VAT Entry"
         field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
@@ -933,6 +934,18 @@ table 254 "VAT Entry"
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
     /// <summary>
+    /// Retrieves the next entry number from the VAT Entry table.
+    /// </summary>
+    /// <returns>Next VAT entry number to be used in the system</returns>
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"VAT Entry"));
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
+    /// <summary>
     /// Retrieves the highest entry number from the VAT Entry table.
     /// </summary>
     /// <returns>Last VAT entry number used in the system</returns>
@@ -958,7 +971,7 @@ table 254 "VAT Entry"
     /// <param name="TotalUnrealVATAmountFirst">Total unrealized VAT amount for first payment method</param>
     /// <param name="TotalUnrealVATAmountLast">Total unrealized VAT amount for last payment method</param>
     /// <returns>Calculated unrealized VAT amount to be realized</returns>
-    procedure GetUnrealizedVATPart(SettledAmount: Decimal; Paid: Decimal; Full: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal; DelayedUnrealizedVAT: Boolean; RealizeVAT: Boolean): Decimal
+    procedure GetUnrealizedVATPart(SettledAmount: Decimal; Paid: Decimal; Full: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal): Decimal
     var
         UnrealizedVATType: Option " ",Percentage,First,Last,"First (Fully Paid)","Last (Fully Paid)";
     begin
@@ -972,9 +985,6 @@ table 254 "VAT Entry"
                 ("Remaining Unrealized Base" = 0))
             then
                 exit(0);
-
-            if DelayedUnrealizedVAT and RealizeVAT then
-                CheckDelayedUnrealVATType();
 
             if Abs(Paid) = Abs(Full) then
                 exit(1);
@@ -1019,6 +1029,23 @@ table 254 "VAT Entry"
             exit(0);
     end;
 
+#if not CLEAN30
+    [Obsolete('Use Payment Management FR for delayed VAT validation and the standard five-parameter calculation.', '30.0')]
+    procedure GetUnrealizedVATPart(SettledAmount: Decimal; Paid: Decimal; Full: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal; DelayedUnrealizedVAT: Boolean; RealizeVAT: Boolean): Decimal
+    begin
+        if DelayedUnrealizedVAT and RealizeVAT and
+           (Type <> Type::" ") and (Amount = 0) and (Base = 0) and
+           (("Remaining Unrealized Amount" <> 0) or ("Remaining Unrealized Base" <> 0))
+        then
+            if GetUnrealizedVATType() <> 0 then
+#pragma warning disable AL0432
+                CheckDelayedUnrealVATType();
+#pragma warning restore AL0432
+
+        exit(GetUnrealizedVATPart(SettledAmount, Paid, Full, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast));
+    end;
+#endif
+
     /// <summary>
     /// Retrieves the unrealized VAT type configuration for this VAT entry.
     /// </summary>
@@ -1037,6 +1064,8 @@ table 254 "VAT Entry"
         end;
     end;
 
+#if not CLEAN30
+    [Obsolete('Delayed VAT validation is handled by the Payment Management FR app.', '30.0')]
     [Scope('OnPrem')]
     procedure CheckDelayedUnrealVATType()
     var
@@ -1051,6 +1080,7 @@ table 254 "VAT Entry"
             VATPostingSetup.TestField("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::Percentage);
         end;
     end;
+#endif
 
     /// <summary>
     /// Copies VAT-related data from a General Journal Line to populate this VAT entry.

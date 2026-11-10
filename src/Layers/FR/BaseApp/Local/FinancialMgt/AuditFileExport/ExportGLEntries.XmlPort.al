@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN30
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -9,6 +10,9 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 xmlport 10800 "Export G/L Entries"
 {
     Caption = 'Export G/L Entries';
+    ObsoleteReason = 'Use Audit File Export Document with the XML format selected. The Audit File Export and XML Audit File FR extensions must be installed.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     schema
     {
@@ -194,4 +198,4 @@ xmlport 10800 "Export G/L Entries"
         EndingDate := Format(EndDate);
     end;
 }
-
+#endif

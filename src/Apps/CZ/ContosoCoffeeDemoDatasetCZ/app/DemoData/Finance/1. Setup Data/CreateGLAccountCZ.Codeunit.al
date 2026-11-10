@@ -874,6 +874,9 @@ codeunit 31182 "Create G/L Account CZ"
         ContosoGLAccount.AddAccountForLocalization(RegisteredCapitalAndCapitalFundsName(), '411100');
         ContosoGLAccount.AddAccountForLocalization(StatutoryreserveName(), '421100');
         ContosoGLAccount.AddAccountForLocalization(ProfitLossPreviousYearsName(), '428100');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogatoryAccountName(), '427100');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForDebitName(), '554900');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForCreditName(), '648900');
         ContosoGLAccount.AddAccountForLocalization(ResultofcurrentyearName(), '431100');
         ContosoGLAccount.AddAccountForLocalization(IncometaxprovisionsName(), '453100');
         ContosoGLAccount.AddAccountForLocalization(OtherprovisionsName(), '459100');

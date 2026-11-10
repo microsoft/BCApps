@@ -6149,7 +6149,7 @@ codeunit 80 "Sales-Post"
         PurchOrderLine.LockTable();
         PurchOrderHeader.LockTable();
         GetGLSetup();
-        if InventorySetup.UseLegacyPosting() and not InventorySetup.OptimGLEntLockForMultiuserEnv() then begin
+        if InventorySetup.UseLegacyPosting() and not InventorySetup.OptimGLEntLockForMultiuserEnv() and not GLSetup.UseConcurrentPosting() then begin
             GLEntry.LockTable();
             GLEntry.GetLastEntryNo();
         end;
@@ -7344,6 +7344,9 @@ codeunit 80 "Sales-Post"
         PurchRcptLine."Qty. Invoiced (Base)" := 0;
         PurchRcptLine."Order No." := PurchOrderLine."Document No.";
         PurchRcptLine."Order Line No." := PurchOrderLine."Line No.";
+        PurchRcptLine."Vendor Order No." := PurchRcptHeader."Vendor Order No.";
+        PurchRcptLine."Vendor Shipment No." := PurchRcptHeader."Vendor Shipment No.";
+        PurchRcptLine."Your Reference" := PurchRcptHeader."Your Reference";
         PurchRcptLine."Qty. Rcd. Not Invoiced" := PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced";
         if PurchRcptLine.Quantity <> 0 then begin
             PurchRcptLine."Item Rcpt. Entry No." := DropShptPostBuffer."Item Shpt. Entry No.";
@@ -12045,8 +12048,7 @@ codeunit 80 "Sales-Post"
         if IsHandled then
             exit;
 
-        ReservEntry.ModifyAll("Qty. to Handle (Base)", 0);
-        ReservEntry.ModifyAll("Qty. to Invoice (Base)", 0);
+        ReservEntry.ModifyAll("Qty. to Handle (Base)", 0, "Qty. to Invoice (Base)", 0);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforePostValueEntryToGL', '', false, false)]

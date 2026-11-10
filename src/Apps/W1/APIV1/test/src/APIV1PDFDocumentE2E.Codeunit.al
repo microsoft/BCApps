@@ -1,6 +1,8 @@
 codeunit 139744 "APIV1 - PDF Document E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -24,7 +26,7 @@ codeunit 139744 "APIV1 - PDF Document E2E"
     var
         CompanyInformation: Record "Company Information";
     begin
-        WorkDate := Today;
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
 
         CompanyInformation.Get();
         if CompanyInformation."Giro No." = '' then

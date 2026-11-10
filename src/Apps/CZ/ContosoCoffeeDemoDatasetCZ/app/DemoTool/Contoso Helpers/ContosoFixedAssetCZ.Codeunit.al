@@ -5,6 +5,7 @@
 
 namespace Microsoft.DemoTool.Helpers;
 
+using Microsoft.DemoData.Finance;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 
@@ -29,6 +30,7 @@ codeunit 31218 "Contoso Fixed Asset CZ"
                                    SalesAccOnDispGain: Code[20]; SalesAccOnDispLoss: Code[20]; MaintenanceExpenseAccount: Code[20]; DepreciationExpenseAcc: Code[20]; AcquisitionCostBalAcc: Code[20]; ApprecBalAccOnDisp: Code[20]; AppreciationAccOnDisposal: Code[20]; AppreciationAccount: Code[20]; AppreciationBalAccount: Code[20]; SalesBalAcc: Code[20])
     var
         FAPostingGroup: Record "FA Posting Group";
+        CreateGLAccount: Codeunit "Create G/L Account";
         Exists: Boolean;
     begin
         if FAPostingGroup.Get(GroupCode) then begin
@@ -61,6 +63,10 @@ codeunit 31218 "Contoso Fixed Asset CZ"
         FAPostingGroup.Validate("Appreciation Account", AppreciationAccount);
         FAPostingGroup.Validate("Appreciation Bal. Account", AppreciationBalAccount);
         FAPostingGroup.Validate("Sales Bal. Acc.", SalesBalAcc);
+        FAPostingGroup.Validate("Derogatory Acc.", CreateGLAccount.DerogatoryAccount());
+        FAPostingGroup.Validate("Derogatory Account (Decrease)", CreateGLAccount.DerogatoryAccount());
+        FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", CreateGLAccount.DerogExpenseAccForCredit());
+        FAPostingGroup.Validate("Derogatory Expense Acc.", CreateGLAccount.DerogExpenseAccForDebit());
 
         if Exists then
             FAPostingGroup.Modify(true)

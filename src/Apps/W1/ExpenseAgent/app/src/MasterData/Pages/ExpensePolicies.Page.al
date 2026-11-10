@@ -9,6 +9,7 @@ page 7127 "Expense Policies"
     PageType = List;
     SourceTable = "Expense Policy";
     Caption = 'Expense Policies';
+    AdditionalSearchTerms = 'Policy, Policy Evaluation';
     ApplicationArea = All;
     UsageCategory = Lists;
     DelayedInsert = true;
@@ -30,7 +31,8 @@ page 7127 "Expense Policies"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a short description of the policy.';
+                    Caption = 'Name';
+                    ToolTip = 'Specifies the name of the policy.';
                 }
                 field("Policy Text"; Rec."Policy Text")
                 {
