@@ -55,7 +55,7 @@ codeunit 20572 "Subc. Req Wksh Templ Upgrade"
         ReqWkshTemplateRecordRef.Close();
     end;
 
-    local procedure UpgradeReqWkshTemplatePage()
+    internal procedure UpgradeReqWkshTemplatePage()
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
         SubcUpgradeTagDefExt: Codeunit "Subc. Upgrade Tag Def. Ext.";

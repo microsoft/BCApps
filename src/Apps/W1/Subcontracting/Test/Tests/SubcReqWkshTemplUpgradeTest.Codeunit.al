@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
+using System.Upgrade;
 
 codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
 {
@@ -450,11 +451,36 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         PrepareUninitializedSetup(ManufacturingSetup);
         CreateConflictingWorksheet(ReqWkshTemplate, RequisitionWkshName);
 
-        // [WHEN] Company defaults are initialized twice.
-        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        // [WHEN] Company defaults are initialized.
         SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
 
         // [THEN] Defaults use the alternative template and the conflicting worksheet is unchanged.
+        VerifyDefaultSetup('SUBCONTR1', 'SUBCONTR');
+        VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
+        VerifyAlternativeWorksheet('SUBCONTR1');
+    end;
+
+    [Test]
+    procedure ReinitializeReusesAlternativeTemplateAfterNameCollision()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Reinitialization reuses an alternative template without changing the conflicting worksheet.
+        Initialize();
+
+        // [GIVEN] Planning worksheet "P" occupies SUBCONTR and initialization has created an alternative.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateConflictingWorksheet(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [WHEN] Company defaults are initialized again.
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [THEN] The same alternative is selected without duplicate templates or changes to "P".
         VerifyDefaultSetup('SUBCONTR1', 'SUBCONTR');
         VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
         VerifyAlternativeWorksheet('SUBCONTR1');
@@ -568,6 +594,7 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         PrepareUninitializedSetup(ManufacturingSetup);
         CreateSubcontractingTemplate(ExpectedReqWkshTemplate, 'CUSTOM');
         CreateSubcontractingBatch(RequisitionWkshName, ExpectedReqWkshTemplate.Name, 'CUSTOMBAT');
+        ExpectedReqWkshTemplate.Get(ExpectedReqWkshTemplate.Name);
 
         // [WHEN] Default template creation is requested.
         TemplateCreated := SubcontractingCompInit.CreateReqWkshTemplate(ReqWkshTemplate, false);
@@ -587,7 +614,6 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         RequisitionWkshName: Record "Requisition Wksh. Name";
         OccupiedReqWkshTemplate: Record "Req. Wksh. Template";
         SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
-        Suffix: Integer;
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 647022] Alternative naming skips occupied names and stays within the template name length.
@@ -596,18 +622,42 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         // [GIVEN] Planning templates occupy the default name and alternatives through suffix 99.
         PrepareUninitializedSetup(ManufacturingSetup);
         CreateConflictingWorksheet(ReqWkshTemplate, RequisitionWkshName);
-        for Suffix := 1 to 99 do begin
-            OccupiedReqWkshTemplate.Init();
-            OccupiedReqWkshTemplate.Name := CopyStr('SUBCONTR' + Format(Suffix, 0, 9), 1, MaxStrLen(OccupiedReqWkshTemplate.Name));
-            OccupiedReqWkshTemplate.Type := OccupiedReqWkshTemplate.Type::Planning;
-            OccupiedReqWkshTemplate.Insert(true);
-        end;
+        CreateOccupiedAlternativeTemplateNames();
 
-        // [WHEN] Company defaults are initialized twice.
-        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        // [WHEN] Company defaults are initialized.
         SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
 
         // [THEN] The first available length-safe name is used and occupied templates are not changed.
+        VerifyDefaultSetup('SUBCONT100', 'SUBCONTR');
+        VerifyAlternativeWorksheet('SUBCONT100');
+        VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
+        OccupiedReqWkshTemplate.Get('SUBCONTR99');
+        Assert.AreEqual(OccupiedReqWkshTemplate.Type::Planning, OccupiedReqWkshTemplate.Type, 'Occupied alternative names must retain their type.');
+    end;
+
+    [Test]
+    procedure ReinitializeReusesLengthSafeAlternativeTemplate()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        OccupiedReqWkshTemplate: Record "Req. Wksh. Template";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Reinitialization reuses the length-safe alternative when shorter names are occupied.
+        Initialize();
+
+        // [GIVEN] Planning templates occupy SUBCONTR through SUBCONTR99 and initialization has created an alternative.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateConflictingWorksheet(ReqWkshTemplate, RequisitionWkshName);
+        CreateOccupiedAlternativeTemplateNames();
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [WHEN] Company defaults are initialized again.
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [THEN] The same length-safe alternative is selected and occupied worksheets remain unchanged.
         VerifyDefaultSetup('SUBCONT100', 'SUBCONTR');
         VerifyAlternativeWorksheet('SUBCONT100');
         VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
@@ -675,12 +725,47 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         ManufacturingSetup.Validate("Subcontracting Batch Name", RequisitionWkshName.Name);
         ManufacturingSetup.Modify();
 
-        // [WHEN] Company defaults are initialized twice.
-        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        // [WHEN] Company defaults are initialized.
         SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
 
         // [THEN] Only the selected template page changes.
         SelectedReqWkshTemplate."Page ID" := Page::"Subc. Subcontracting Worksheet";
+        VerifyWorksheetUnchanged(SelectedReqWkshTemplate, RequisitionWkshName, 2, 1);
+        VerifyConfiguredSetup(ManufacturingSetup, SelectedReqWkshTemplate.Name, RequisitionWkshName.Name);
+    end;
+
+    [Test]
+    procedure ReinitializePreservesRepairedSelectedTemplate()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        FirstReqWkshTemplate: Record "Req. Wksh. Template";
+        SelectedReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Reinitialization preserves the repaired selected worksheet and customer settings.
+        Initialize();
+
+        // [GIVEN] Initialization has repaired non-first selected template "S" and preserved its custom batch.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateSubcontractingTemplate(FirstReqWkshTemplate, 'AFIRST');
+        CreateSubcontractingTemplate(SelectedReqWkshTemplate, 'ZSELECTED');
+        SelectedReqWkshTemplate."Page ID" := 99000886;
+        SelectedReqWkshTemplate.Recurring := true;
+        SelectedReqWkshTemplate."Increment Batch Name" := true;
+        SelectedReqWkshTemplate.Modify();
+        CreateSubcontractingBatch(RequisitionWkshName, SelectedReqWkshTemplate.Name, 'CUSTOMBAT');
+        ManufacturingSetup.Validate("Subcontracting Template Name", SelectedReqWkshTemplate.Name);
+        ManufacturingSetup.Validate("Subcontracting Batch Name", RequisitionWkshName.Name);
+        ManufacturingSetup.Modify();
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        SelectedReqWkshTemplate."Page ID" := Page::"Subc. Subcontracting Worksheet";
+
+        // [WHEN] Company defaults are initialized again.
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [THEN] The repaired worksheet is reused without switching templates or resetting settings.
         VerifyWorksheetUnchanged(SelectedReqWkshTemplate, RequisitionWkshName, 2, 1);
         VerifyConfiguredSetup(ManufacturingSetup, SelectedReqWkshTemplate.Name, RequisitionWkshName.Name);
     end;
@@ -705,6 +790,7 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         ExpectedReqWkshTemplate."Page ID" := Page::"Planning Worksheet";
         ExpectedReqWkshTemplate.Modify();
         CreateSubcontractingBatch(RequisitionWkshName, ExpectedReqWkshTemplate.Name, 'CUSTOMBAT');
+        ExpectedReqWkshTemplate.Get(ExpectedReqWkshTemplate.Name);
 
         // [WHEN] Default template creation is requested.
         TemplateCreated := SubcontractingCompInit.CreateReqWkshTemplate(ReqWkshTemplate, false);
@@ -737,13 +823,159 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         ManufacturingSetup.Validate("Subcontracting Batch Name", RequisitionWkshName.Name);
         ManufacturingSetup.Modify();
 
-        // [WHEN] Company defaults are initialized twice.
-        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+        // [WHEN] Company defaults are initialized.
         SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
 
         // [THEN] The selected worksheet and all configured settings remain unchanged.
         VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
         VerifyConfiguredSetup(ManufacturingSetup, ReqWkshTemplate.Name, RequisitionWkshName.Name);
+    end;
+
+    [Test]
+    procedure ReinitializePreservesSelectedTemplateUnrelatedPage()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractingCompInit: Codeunit "Subcontracting Comp. Init.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Reinitialization preserves a customer-selected page and configured settings.
+        Initialize();
+
+        // [GIVEN] Subcontracting worksheet "S" has a customer-selected Planning page and setup is already initialized.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        CreateSubcontractingTemplate(ReqWkshTemplate, 'CUSTOM');
+        ReqWkshTemplate."Page ID" := Page::"Planning Worksheet";
+        ReqWkshTemplate.Modify();
+        CreateSubcontractingBatch(RequisitionWkshName, ReqWkshTemplate.Name, 'CUSTOMBAT');
+        ManufacturingSetup.Validate("Subcontracting Template Name", ReqWkshTemplate.Name);
+        ManufacturingSetup.Validate("Subcontracting Batch Name", RequisitionWkshName.Name);
+        ManufacturingSetup.Modify();
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [WHEN] Company defaults are initialized again.
+        SubcontractingCompInit.CreateBasicSubcontractingMgtSetup();
+
+        // [THEN] The selected worksheet and configured settings remain unchanged.
+        VerifyWorksheetUnchanged(ReqWkshTemplate, RequisitionWkshName, 1, 1);
+        VerifyConfiguredSetup(ManufacturingSetup, ReqWkshTemplate.Name, RequisitionWkshName.Name);
+    end;
+
+    [Test]
+    procedure PageUpgradeMigratesAllLegacyTemplatesAfterTypeUpgrade()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        SelectedReqWkshTemplate: Record "Req. Wksh. Template";
+        UnselectedReqWkshTemplate: Record "Req. Wksh. Template";
+        SelectedRequisitionWkshName: Record "Requisition Wksh. Name";
+        UnselectedRequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcReqWkshTemplUpgrade: Codeunit "Subc. Req Wksh Templ Upgrade";
+        SubcUpgradeTagDefExt: Codeunit "Subc. Upgrade Tag Def. Ext.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Page migration repairs selected and unselected legacy worksheets after the type migration completed.
+        Initialize();
+
+        // [GIVEN] The type upgrade tag exists but the independent page upgrade tag does not.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        RemoveUpgradeTag(SubcUpgradeTagDefExt.GetReqWkshTemplateTypeUpgradeTag());
+        RemoveUpgradeTag(SubcUpgradeTagDefExt.GetReqWkshTemplatePageUpgradeTag());
+        UpgradeTag.SetUpgradeTag(SubcUpgradeTagDefExt.GetReqWkshTemplateTypeUpgradeTag());
+
+        // [GIVEN] Selected worksheet "S" and unselected worksheet "U" use the legacy page and have custom settings and batches.
+        CreateLegacySubcontractingWorksheet(SelectedReqWkshTemplate, SelectedRequisitionWkshName, 'SELECTED');
+        CreateLegacySubcontractingWorksheet(UnselectedReqWkshTemplate, UnselectedRequisitionWkshName, 'UNSELECTED');
+        ManufacturingSetup.Validate("Subcontracting Template Name", SelectedReqWkshTemplate.Name);
+        ManufacturingSetup.Validate("Subcontracting Batch Name", SelectedRequisitionWkshName.Name);
+        ManufacturingSetup.Modify();
+
+        // [WHEN] The per-company page upgrade step runs.
+        SubcReqWkshTemplUpgrade.UpgradeReqWkshTemplatePage();
+
+        // [THEN] Both pages are repaired without changing worksheet metadata, batches or setup.
+        SelectedReqWkshTemplate."Page ID" := Page::"Subc. Subcontracting Worksheet";
+        UnselectedReqWkshTemplate."Page ID" := Page::"Subc. Subcontracting Worksheet";
+        VerifyWorksheetUnchanged(SelectedReqWkshTemplate, SelectedRequisitionWkshName, 2, 1);
+        VerifyWorksheetUnchanged(UnselectedReqWkshTemplate, UnselectedRequisitionWkshName, 2, 1);
+        VerifyConfiguredSetup(ManufacturingSetup, SelectedReqWkshTemplate.Name, SelectedRequisitionWkshName.Name);
+        Assert.IsTrue(UpgradeTag.HasUpgradeTag(SubcUpgradeTagDefExt.GetReqWkshTemplatePageUpgradeTag()), 'The independent page upgrade tag must be set.');
+        Assert.IsTrue(UpgradeTag.HasUpgradeTag(SubcUpgradeTagDefExt.GetReqWkshTemplateTypeUpgradeTag()), 'The completed type upgrade tag must be preserved.');
+    end;
+
+    [Test]
+    procedure PageUpgradePreservesUnrelatedTypesAndPages()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        LegacyReqWkshTemplate: Record "Req. Wksh. Template";
+        CustomReqWkshTemplate: Record "Req. Wksh. Template";
+        PlanningReqWkshTemplate: Record "Req. Wksh. Template";
+        LegacyRequisitionWkshName: Record "Requisition Wksh. Name";
+        CustomRequisitionWkshName: Record "Requisition Wksh. Name";
+        PlanningRequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcReqWkshTemplUpgrade: Codeunit "Subc. Req Wksh Templ Upgrade";
+        SubcUpgradeTagDefExt: Codeunit "Subc. Upgrade Tag Def. Ext.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Page migration matches both the Subcontracting type and the exact legacy page.
+        Initialize();
+
+        // [GIVEN] Worksheet "L" needs migration and the page upgrade tag does not exist.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        RemoveUpgradeTag(SubcUpgradeTagDefExt.GetReqWkshTemplatePageUpgradeTag());
+        CreateLegacySubcontractingWorksheet(LegacyReqWkshTemplate, LegacyRequisitionWkshName, 'LEGACY');
+
+        // [GIVEN] Subcontracting worksheet "C" has a custom page and Planning worksheet "P" has the legacy page.
+        CreateSubcontractingTemplate(CustomReqWkshTemplate, 'CUSTOM');
+        CustomReqWkshTemplate."Page ID" := Page::"Planning Worksheet";
+        CustomReqWkshTemplate.Modify();
+        CreateSubcontractingBatch(CustomRequisitionWkshName, CustomReqWkshTemplate.Name, 'CUSTOMBAT');
+        CreateConflictingWorksheet(PlanningReqWkshTemplate, PlanningRequisitionWkshName);
+        PlanningReqWkshTemplate."Page ID" := 99000886;
+        PlanningReqWkshTemplate.Modify();
+
+        // [WHEN] The per-company page upgrade step runs.
+        SubcReqWkshTemplUpgrade.UpgradeReqWkshTemplatePage();
+
+        // [THEN] Only "L" is repaired; the unrelated type, custom page, batches and setup remain unchanged.
+        LegacyReqWkshTemplate."Page ID" := Page::"Subc. Subcontracting Worksheet";
+        VerifyWorksheetUnchanged(LegacyReqWkshTemplate, LegacyRequisitionWkshName, 2, 1);
+        VerifyWorksheetUnchanged(CustomReqWkshTemplate, CustomRequisitionWkshName, 2, 1);
+        VerifyWorksheetUnchanged(PlanningReqWkshTemplate, PlanningRequisitionWkshName, 2, 1);
+        VerifyConfiguredSetup(ManufacturingSetup, '', '');
+    end;
+
+    [Test]
+    procedure PageUpgradeDoesNotRunAgainAfterTagIsSet()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        MigratedReqWkshTemplate: Record "Req. Wksh. Template";
+        NewLegacyReqWkshTemplate: Record "Req. Wksh. Template";
+        MigratedRequisitionWkshName: Record "Requisition Wksh. Name";
+        NewLegacyRequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcReqWkshTemplUpgrade: Codeunit "Subc. Req Wksh Templ Upgrade";
+        SubcUpgradeTagDefExt: Codeunit "Subc. Upgrade Tag Def. Ext.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A completed page upgrade is a no-op, even when another legacy worksheet appears later.
+        Initialize();
+
+        // [GIVEN] Worksheet "M" has been migrated and another legacy worksheet "N" was created afterwards.
+        PrepareUninitializedSetup(ManufacturingSetup);
+        RemoveUpgradeTag(SubcUpgradeTagDefExt.GetReqWkshTemplatePageUpgradeTag());
+        CreateLegacySubcontractingWorksheet(MigratedReqWkshTemplate, MigratedRequisitionWkshName, 'MIGRATED');
+        SubcReqWkshTemplUpgrade.UpgradeReqWkshTemplatePage();
+        MigratedReqWkshTemplate."Page ID" := Page::"Subc. Subcontracting Worksheet";
+        CreateLegacySubcontractingWorksheet(NewLegacyReqWkshTemplate, NewLegacyRequisitionWkshName, 'NEWLEGACY');
+
+        // [WHEN] The per-company page upgrade step is called again.
+        SubcReqWkshTemplUpgrade.UpgradeReqWkshTemplatePage();
+
+        // [THEN] Both worksheets remain unchanged because the completed upgrade tag prevents another migration.
+        VerifyWorksheetUnchanged(MigratedReqWkshTemplate, MigratedRequisitionWkshName, 2, 1);
+        VerifyWorksheetUnchanged(NewLegacyReqWkshTemplate, NewLegacyRequisitionWkshName, 2, 1);
+        VerifyConfiguredSetup(ManufacturingSetup, '', '');
     end;
 
     local procedure Initialize()
@@ -799,6 +1031,29 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         ReqWkshTemplate.Modify();
         Assert.AreEqual(Page::"Planning Worksheet", ReqWkshTemplate."Page ID", 'The conflicting template must retain its Planning page.');
         CreateSubcontractingBatch(RequisitionWkshName, ReqWkshTemplate.Name, 'CUSTOMBAT');
+    end;
+
+    local procedure CreateLegacySubcontractingWorksheet(var ReqWkshTemplate: Record "Req. Wksh. Template"; var RequisitionWkshName: Record "Requisition Wksh. Name"; TemplateName: Code[10])
+    begin
+        CreateSubcontractingTemplate(ReqWkshTemplate, TemplateName);
+        ReqWkshTemplate."Page ID" := 99000886;
+        ReqWkshTemplate.Recurring := true;
+        ReqWkshTemplate."Increment Batch Name" := true;
+        ReqWkshTemplate.Modify();
+        CreateSubcontractingBatch(RequisitionWkshName, ReqWkshTemplate.Name, 'CUSTOMBAT');
+    end;
+
+    local procedure CreateOccupiedAlternativeTemplateNames()
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        Suffix: Integer;
+    begin
+        for Suffix := 1 to 99 do begin
+            ReqWkshTemplate.Init();
+            ReqWkshTemplate.Name := CopyStr('SUBCONTR' + Format(Suffix, 0, 9), 1, MaxStrLen(ReqWkshTemplate.Name));
+            ReqWkshTemplate.Type := ReqWkshTemplate.Type::Planning;
+            ReqWkshTemplate.Insert(true);
+        end;
     end;
 
     local procedure CreateSubcontractingTemplate(var ReqWkshTemplate: Record "Req. Wksh. Template"; TemplateName: Code[10])
@@ -933,5 +1188,20 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
     begin
         // Raw value the Subcontracting enum extension value used before the object renumbering (Bug 644283).
         exit(99001500);
+    end;
+
+    local procedure RemoveUpgradeTag(UpgradeTagCode: Code[250])
+    var
+        UpgradeTagsRecordRef: RecordRef;
+        UpgradeTagsFieldRef: FieldRef;
+    begin
+        // Upgrade Tags is internal to System Application; scope fixture cleanup to this tag and company.
+        UpgradeTagsRecordRef.Open(9999);
+        UpgradeTagsFieldRef := UpgradeTagsRecordRef.Field(1); // Tag
+        UpgradeTagsFieldRef.SetRange(UpgradeTagCode);
+        UpgradeTagsFieldRef := UpgradeTagsRecordRef.Field(3); // Company
+        UpgradeTagsFieldRef.SetRange(CompanyName());
+        UpgradeTagsRecordRef.DeleteAll();
+        UpgradeTagsRecordRef.Close();
     end;
 }
