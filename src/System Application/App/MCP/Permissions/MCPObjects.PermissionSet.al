@@ -12,8 +12,11 @@ permissionset 8350 "MCP - Objects"
     Caption = 'MCP - Objects';
 
     Permissions = page "MCP Billing Confirmation" = X,
+                  page "MCP Client Config. Mappings" = X,
+                  page "MCP Client Mapping Editor" = X,
                   table "MCP API Publisher Group" = X,
                   table "MCP API Version" = X,
+                  table "MCP Client Config. Mapping" = X,
                   table "MCP Configuration" = X,
                   table "MCP Configuration Agent" = X,
                   table "MCP Configuration Tool" = X,

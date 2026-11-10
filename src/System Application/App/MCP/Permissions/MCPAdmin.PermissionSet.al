@@ -16,6 +16,7 @@ permissionset 8352 "MCP - Admin"
     IncludedPermissionSets = "MCP - Read";
 
     Permissions = tabledata Agent = R,
+                  tabledata "MCP Client Config. Mapping" = IMD,
                   tabledata "MCP Entra Application" = IMD,
                   tabledata "MCP Configuration" = IMD,
                   tabledata "MCP Configuration Agent" = IMD,

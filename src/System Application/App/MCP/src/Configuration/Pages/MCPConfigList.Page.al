@@ -63,6 +63,12 @@ page 8350 "MCP Config List"
                     ToolTip = 'Specifies whether tools for Business Central agents are enabled for this configuration.';
                     Editable = false;
                 }
+                field(ChatTools; Rec.EnableChatTools)
+                {
+                    Caption = 'Chat Tools';
+                    ToolTip = 'Specifies whether the Chat Tools feature is enabled for this configuration.';
+                    Editable = false;
+                }
             }
         }
     }
@@ -137,6 +143,24 @@ page 8350 "MCP Config List"
                 Caption = 'Advanced';
                 Image = Setup;
 
+                action(ManageClientMappings)
+                {
+                    Caption = 'Client Mappings';
+                    ToolTip = 'Manage the clients that select this MCP configuration.';
+                    Image = Setup;
+                    AccessByPermission = tabledata "MCP Client Config. Mapping" = R;
+                    Scope = Repeater;
+                    Enabled = Rec.Name <> '';
+
+                    trigger OnAction()
+                    var
+                        MappingEditor: Page "MCP Client Mapping Editor";
+                    begin
+                        MappingEditor.SetConfiguration(Rec.SystemId);
+                        MappingEditor.RunModal();
+                        CurrPage.Update(false);
+                    end;
+                }
                 action(GenerateConnectionString)
                 {
                     Caption = 'Connection String';
@@ -195,6 +219,7 @@ page 8350 "MCP Config List"
             {
                 Caption = 'Advanced';
 
+                actionref(Promoted_ManageClientMappings; ManageClientMappings) { }
                 actionref(Promoted_GenerateConnectionString; GenerateConnectionString) { }
                 actionref(Promoted_MCPEntraApplications; MCPEntraApplications) { }
             }

@@ -13,14 +13,14 @@ codeunit 8377 "MCP Config Empty" implements "MCP Config Warning"
 
     var
         EmptyConfigurationWarningLbl: Label 'This configuration does not expose any usable tools.';
-        EmptyConfigurationFixLbl: Label 'Configure API tools, enable read-only discovery in Dynamic Tool Mode settings, enable Data Query Tools, or configure Agent Tools.';
+        EmptyConfigurationFixLbl: Label 'Configure API tools, enable read-only discovery in Dynamic Tool Mode settings, enable Data Query Tools or Chat Tools, or configure Agent Tools.';
 
     procedure CheckForWarnings(ConfigId: Guid; var MCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer)
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
         MCPConfiguration.GetBySystemId(ConfigId);
-        if MCPConfiguration.EnableAlQueryTools then
+        if MCPConfiguration.EnableAlQueryTools or MCPConfiguration.EnableChatTools then
             exit;
 
         if MCPConfiguration.EnableApiTools then begin

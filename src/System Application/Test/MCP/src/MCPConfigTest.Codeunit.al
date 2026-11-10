@@ -7,6 +7,8 @@ namespace System.Test.MCP;
 
 using System.AI;
 using System.MCP;
+using System.Privacy;
+using System.Reflection;
 using System.TestLibraries.AI;
 using System.TestLibraries.MCP;
 using System.TestLibraries.Utilities;
@@ -1183,6 +1185,81 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
+    procedure TestEmptyConfigurationWarningRespectsChatTools()
+    var
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, false, false);
+        MCPConfig.EnableAPITools(ConfigId, false);
+        AssertEmptyConfigurationWarning(ConfigId, 1);
+
+        MCPConfig.EnableChatTools(ConfigId, true);
+        AssertEmptyConfigurationWarning(ConfigId, 0);
+
+        MCPConfig.EnableChatTools(ConfigId, false);
+        AssertEmptyConfigurationWarning(ConfigId, 1);
+    end;
+
+    [Test]
+    procedure TestActivateChatOnlyConfigurationWithoutWarnings()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        SetChatCapabilityStatus(Enum::"Copilot Status"::Active);
+        ConfigId := CreateMCPConfig(false, false, false, false);
+        MCPConfig.EnableAPITools(ConfigId, false);
+        MCPConfig.EnableChatTools(ConfigId, true);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        MCPConfigCard.Active.SetValue(true);
+        MCPConfigCard.Close();
+
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.Active, 'A chat-only configuration should activate without warnings.');
+    end;
+
+    [Test]
+    procedure TestChatToolsRequireActiveChatCapability()
+    var
+        TempMCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+    begin
+        SetChatCapabilityStatus(Enum::"Copilot Status"::Inactive);
+        ConfigId := CreateMCPConfig(false, false, false, false);
+        MCPConfig.EnableChatTools(ConfigId, true);
+
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Prerequisite Not Met");
+        Assert.RecordCount(TempMCPConfigWarning, 1);
+        AssertEmptyConfigurationWarning(ConfigId, 0);
+
+        SetChatCapabilityStatus(Enum::"Copilot Status"::Active);
+        TempMCPConfigWarning.Reset();
+        TempMCPConfigWarning.DeleteAll();
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Prerequisite Not Met");
+        Assert.RecordCount(TempMCPConfigWarning, 0);
+    end;
+
+    [Test]
+    procedure TestDisabledChatToolsDoNotRequireChatCapability()
+    var
+        TempMCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+    begin
+        SetChatCapabilityStatus(Enum::"Copilot Status"::Inactive);
+        ConfigId := CreateMCPConfig(false, false, false, false);
+
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Prerequisite Not Met");
+        Assert.RecordCount(TempMCPConfigWarning, 0);
+    end;
+
+    [Test]
     procedure TestNoEmptyConfigurationWarningForSystemDefault()
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -1977,6 +2054,29 @@ codeunit 130130 "MCP Config Test"
     #region Server Features
 
     [Test]
+    procedure TestConfigurationListShowsChatTools()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigList: TestPage "MCP Config List";
+        ConfigId: Guid;
+        OtherConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, false, false);
+        OtherConfigId := CreateMCPConfig(false, false, false, false);
+        MCPConfig.EnableChatTools(ConfigId, true);
+        MCPConfigList.OpenView();
+
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigList.GoToRecord(MCPConfiguration);
+        MCPConfigList.ChatTools.AssertEquals(true);
+
+        MCPConfiguration.GetBySystemId(OtherConfigId);
+        MCPConfigList.GoToRecord(MCPConfiguration);
+        MCPConfigList.ChatTools.AssertEquals(false);
+        MCPConfigList.Close();
+    end;
+
+    [Test]
     procedure TestServerFeaturesListShowsAllFeatures()
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -2230,6 +2330,30 @@ codeunit 130130 "MCP Config Test"
 
     #region Helpers
 
+    local procedure SetChatCapabilityStatus(Status: Enum "Copilot Status")
+    var
+        AllObjWithCaption: Record AllObjWithCaption;
+        CopilotTestLibrary: Codeunit "Copilot Test Library";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
+    begin
+        AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Codeunit, Codeunit::"Copilot Capability");
+        CopilotTestLibrary.RegisterCopilotCapabilityWithAppId(Enum::"Copilot Capability"::Chat, AllObjWithCaption."App ID");
+        CopilotTestLibrary.SetCopilotStatus(Enum::"Copilot Capability"::Chat, AllObjWithCaption."App ID", Status);
+        PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetMicrosoftCopilotID(), Enum::"Privacy Notice Approval State"::Agreed);
+        PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetMicrosoftLearnID(), Enum::"Privacy Notice Approval State"::Agreed);
+    end;
+
+    local procedure CreateClientMapping(ConfigId: Guid; Pattern: Text[250]): Integer
+    var
+        Mapping: Record "MCP Client Config. Mapping";
+    begin
+        Mapping."Configuration ID" := ConfigId;
+        Mapping.Pattern := Pattern;
+        Mapping.Insert(true);
+        exit(Mapping."Entry No.");
+    end;
+
     local procedure AssertEmptyConfigurationWarning(ConfigId: Guid; ExpectedCount: Integer)
     var
         TempMCPConfigWarning: Record "MCP Config Warning";
@@ -2387,6 +2511,46 @@ codeunit 130130 "MCP Config Test"
 
     #region Handlers
 
+    [ModalPageHandler]
+    procedure CreateScopedClientMapping(var MappingEditor: TestPage "MCP Client Mapping Editor")
+    begin
+        MappingEditor.Name.AssertEquals(ExpectedConfigurationName);
+        Assert.IsFalse(MappingEditor.Mappings.First(), 'The editor must hide mappings for other configurations.');
+        MappingEditor.Mappings.New();
+        MappingEditor.Mappings.Pattern.SetValue('New scoped client');
+        MappingEditor.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure UpdateScopedClientMapping(var MappingEditor: TestPage "MCP Client Mapping Editor")
+    begin
+        MappingEditor.Name.AssertEquals(ExpectedConfigurationName);
+        Assert.IsTrue(MappingEditor.Mappings.First(), 'The editor must show the selected configuration mapping.');
+        MappingEditor.Mappings.Pattern.AssertEquals('Selected client');
+        Assert.IsFalse(MappingEditor.Mappings.Next(), 'The editor must hide mappings for other configurations.');
+        MappingEditor.Mappings.First();
+        MappingEditor.Mappings.Pattern.SetValue('Updated scoped client');
+        MappingEditor.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure DeleteScopedClientMapping(var MappingEditor: TestPage "MCP Client Mapping Editor")
+    begin
+        MappingEditor.Name.AssertEquals(ExpectedConfigurationName);
+        Assert.IsTrue(MappingEditor.Mappings.First(), 'The editor must show the selected configuration mapping.');
+        MappingEditor.Mappings.Pattern.AssertEquals('Selected client');
+        MappingEditor.Mappings.RemoveMapping.Invoke();
+        Assert.IsFalse(MappingEditor.Mappings.First(), 'The editor must not expose another configuration after deletion.');
+        MappingEditor.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmRemoveClientMapping(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.AreEqual('Remove the client mapping for Selected client?', Question, 'Only the selected client mapping may be removed.');
+        Reply := true;
+    end;
+
     [PageHandler]
     procedure EmptyConfigurationCardHandler(var MCPConfigCard: TestPage "MCP Config Card")
     begin
@@ -2446,6 +2610,109 @@ codeunit 130130 "MCP Config Test"
         MCPToolsByAPIGroup.APIPublisher.SetValue('mock');
         MCPToolsByAPIGroup.APIGroup.SetValue('mcp');
         MCPToolsByAPIGroup.OK().Invoke();
+    end;
+
+    #endregion
+
+    #region Client Mappings
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('CreateScopedClientMapping')]
+    procedure TestCardCreatesMappingForSelectedConfiguration()
+    var
+        Configuration: Record "MCP Configuration";
+        Mapping: Record "MCP Client Config. Mapping";
+        ConfigurationCard: TestPage "MCP Config Card";
+        OtherConfigId: Guid;
+        OtherMappingEntryNo: Integer;
+    begin
+        // [GIVEN] A configuration without mappings and another configuration with a mapping
+        Configuration.GetBySystemId(CreateMCPConfig(true, false, false, false));
+        OtherConfigId := CreateMCPConfig(true, false, false, false);
+        OtherMappingEntryNo := CreateClientMapping(OtherConfigId, 'Other client');
+        ExpectedConfigurationName := Configuration.Name;
+
+        // [WHEN] A mapping is created from the selected configuration card
+        ConfigurationCard.OpenEdit();
+        ConfigurationCard.GoToRecord(Configuration);
+        ConfigurationCard.ManageClientMappings.Invoke();
+        ConfigurationCard.Close();
+
+        // [THEN] The new mapping belongs to the selected configuration and the other mapping is unchanged
+        Mapping.SetRange("Configuration ID", Configuration.SystemId);
+        Assert.RecordCount(Mapping, 1);
+        Mapping.FindFirst();
+        Mapping.TestField(Pattern, 'New scoped client');
+        Mapping.Get(OtherMappingEntryNo);
+        Mapping.TestField("Configuration ID", OtherConfigId);
+        Mapping.TestField(Pattern, 'Other client');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('UpdateScopedClientMapping')]
+    procedure TestListEditsMappingForSelectedConfiguration()
+    var
+        Configuration: Record "MCP Configuration";
+        Mapping: Record "MCP Client Config. Mapping";
+        ConfigurationList: TestPage "MCP Config List";
+        OtherConfigId: Guid;
+        MappingEntryNo: Integer;
+        OtherMappingEntryNo: Integer;
+    begin
+        // [GIVEN] Two configurations with their own client mappings
+        Configuration.GetBySystemId(CreateMCPConfig(true, false, false, false));
+        OtherConfigId := CreateMCPConfig(true, false, false, false);
+        MappingEntryNo := CreateClientMapping(Configuration.SystemId, 'Selected client');
+        OtherMappingEntryNo := CreateClientMapping(OtherConfigId, 'Other client');
+        ExpectedConfigurationName := Configuration.Name;
+
+        // [WHEN] The selected configuration's mapping is edited from the configuration list
+        ConfigurationList.OpenView();
+        ConfigurationList.GoToRecord(Configuration);
+        ConfigurationList.ManageClientMappings.Invoke();
+        ConfigurationList.Close();
+
+        // [THEN] Only the selected configuration's mapping is updated
+        Mapping.Get(MappingEntryNo);
+        Mapping.TestField("Configuration ID", Configuration.SystemId);
+        Mapping.TestField(Pattern, 'Updated scoped client');
+        Mapping.Get(OtherMappingEntryNo);
+        Mapping.TestField("Configuration ID", OtherConfigId);
+        Mapping.TestField(Pattern, 'Other client');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('DeleteScopedClientMapping,ConfirmRemoveClientMapping')]
+    procedure TestListDeletesOnlySelectedConfigurationMapping()
+    var
+        Configuration: Record "MCP Configuration";
+        Mapping: Record "MCP Client Config. Mapping";
+        ConfigurationList: TestPage "MCP Config List";
+        OtherConfigId: Guid;
+        MappingEntryNo: Integer;
+        OtherMappingEntryNo: Integer;
+    begin
+        // [GIVEN] Two configurations with their own client mappings
+        Configuration.GetBySystemId(CreateMCPConfig(true, false, false, false));
+        OtherConfigId := CreateMCPConfig(true, false, false, false);
+        MappingEntryNo := CreateClientMapping(Configuration.SystemId, 'Selected client');
+        OtherMappingEntryNo := CreateClientMapping(OtherConfigId, 'Other client');
+        ExpectedConfigurationName := Configuration.Name;
+
+        // [WHEN] The selected configuration's mapping is removed from the configuration list
+        ConfigurationList.OpenView();
+        ConfigurationList.GoToRecord(Configuration);
+        ConfigurationList.ManageClientMappings.Invoke();
+        ConfigurationList.Close();
+
+        // [THEN] The selected mapping is removed and the other configuration's mapping is unchanged
+        Assert.IsFalse(Mapping.Get(MappingEntryNo), 'The selected client mapping must be deleted.');
+        Mapping.Get(OtherMappingEntryNo);
+        Mapping.TestField("Configuration ID", OtherConfigId);
+        Mapping.TestField(Pattern, 'Other client');
     end;
 
     #endregion

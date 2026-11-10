@@ -186,6 +186,24 @@ page 8351 "MCP Config Card"
                 Caption = 'Advanced';
                 Image = Setup;
 
+                action(ManageClientMappings)
+                {
+                    Caption = 'Client Mappings';
+                    ToolTip = 'Manage the clients that select this MCP configuration.';
+                    Image = Setup;
+                    AccessByPermission = tabledata "MCP Client Config. Mapping" = R;
+                    Enabled = not IsDefault;
+
+                    trigger OnAction()
+                    var
+                        MappingEditor: Page "MCP Client Mapping Editor";
+                    begin
+                        CurrPage.SaveRecord();
+                        MappingEditor.SetConfiguration(Rec.SystemId);
+                        MappingEditor.RunModal();
+                        CurrPage.Update(false);
+                    end;
+                }
                 action(ExportConfiguration)
                 {
                     Caption = 'Export';
@@ -221,6 +239,7 @@ page 8351 "MCP Config Card"
             {
                 Caption = 'Advanced';
 
+                actionref(Promoted_ManageClientMappings; ManageClientMappings) { }
                 actionref(Promoted_GenerateConnectionString; GenerateConnectionString) { }
                 actionref(Promoted_ExportConfiguration; ExportConfiguration) { }
             }

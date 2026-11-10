@@ -64,6 +64,12 @@
       "name": "BLOB Storage",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
+    },
+    {
+      "id": "daa5d70e-eaf5-4256-bf80-53545ef7629a",
+      "name": "Privacy Notice",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
     }
   ],
   "screenshots": [],

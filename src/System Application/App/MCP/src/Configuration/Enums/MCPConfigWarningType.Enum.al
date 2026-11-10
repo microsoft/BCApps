@@ -30,4 +30,9 @@ enum 8350 "MCP Config Warning Type" implements "MCP Config Warning"
         Caption = 'Empty Configuration';
         Implementation = "MCP Config Warning" = "MCP Config Empty";
     }
+    value(4; "Prerequisite Not Met")
+    {
+        Caption = 'Prerequisite Not Met';
+        Implementation = "MCP Config Warning" = "MCP Config Prereq Not Met";
+    }
 }

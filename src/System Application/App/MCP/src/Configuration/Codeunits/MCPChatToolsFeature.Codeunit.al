@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-codeunit 8377 "MCP Chat Tools Feature" implements "MCP Server Features"
+codeunit 8378 "MCP Chat Tools Feature" implements "MCP Server Features"
 {
     Access = Internal;
     InherentEntitlements = X;
