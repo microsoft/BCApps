@@ -7,11 +7,6 @@
   {
     "codeunitId": 132522,
     "codeunitName": "Sales-Calc. Discount Test",
-    "method": "SalesLineDiscountPctErrorWhenLineAmountIsNegative"
-  },
-  {
-    "codeunitId": 132522,
-    "codeunitName": "Sales-Calc. Discount Test",
     "method": "SalesLineDiscountPctErrorWhenLineAmountMoreThanAmount"
   },
   {
