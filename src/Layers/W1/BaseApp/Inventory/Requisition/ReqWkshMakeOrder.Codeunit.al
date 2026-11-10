@@ -130,7 +130,7 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnAfterCarryOutBatchAction(ReqLine2);
     end;
 
-   internal procedure CheckPurchaseOrderTargets(var RequisitionLine: Record "Requisition Line")
+    internal procedure CheckPurchaseOrderTargets(var RequisitionLine: Record "Requisition Line")
     var
         TargetRequisitionLine: Record "Requisition Line";
     begin
@@ -512,6 +512,7 @@ codeunit 333 "Req. Wksh.-Make Order"
                     ReqLine."Action Message"::New, ReqLine."Action Message"::" ":
                         begin
                             if (PurchOrderHeader."Buy-from Vendor No." <> '') and not UsingPurchaseOrderTarget and
+                               not ReqLine.HasPurchaseOrderTarget() and
                                CheckInsertFinalizePurchaseOrderHeader(ReqLine, PurchOrderHeader, false)
                             then begin
                                 FinalizeOrderHeader(PurchOrderHeader, ReqLine);
@@ -558,6 +559,7 @@ codeunit 333 "Req. Wksh.-Make Order"
 
         ReqWkshMakeOrders.Set(PurchOrderHeader, EndOrderDate, PrintPurchOrders, OrderDateReq, PostingDateReq, ReceiveDateReq, ReferenceReq);
         ReqWkshMakeOrders.SetProcessedReqLines(TempProcessedReqLine);
+        ReqWkshMakeOrders.SetPurchaseOrderTargetState(UsingPurchaseOrderTarget);
         ReqWkshMakeOrders.SetTryParam(
           ReqTemplate,
           LineCount,
@@ -582,8 +584,9 @@ codeunit 333 "Req. Wksh.-Make Order"
               PrevLocationCode,
               OrderCounter,
               OrderLineCounter);
+            UsingPurchaseOrderTarget := ReqWkshMakeOrders.GetPurchaseOrderTargetState();
             OnTryCarryOutReqLineActionOnAfterGetTryParam(ReqLine, PurchOrderHeader, LineCount, NextLineNo, PrevPurchCode, PrevShipToCode, PrevLocationCode, OrderCounter, OrderLineCounter);
-            if PrintPurchOrders and PlanningResiliency then
+            if PrintPurchOrders and PlanningResiliency and not UsingPurchaseOrderTarget then
                 if PurchOrderHeader."No." <> '' then
                     if not TempPurchaseOrderToPrint.Get(PurchOrderHeader."Document Type", PurchOrderHeader."No.") then begin
                         TempPurchaseOrderToPrint := PurchOrderHeader;
@@ -1231,6 +1234,16 @@ codeunit 333 "Req. Wksh.-Make Order"
     begin
         // Share processed keys with the per-line resiliency instance.
         TempProcessedReqLine.Copy(ProcessedReqLine, true);
+    end;
+
+    internal procedure SetPurchaseOrderTargetState(NewUsingPurchaseOrderTarget: Boolean)
+    begin
+        UsingPurchaseOrderTarget := NewUsingPurchaseOrderTarget;
+    end;
+
+    internal procedure GetPurchaseOrderTargetState(): Boolean
+    begin
+        exit(UsingPurchaseOrderTarget);
     end;
 
     procedure GetFailedCounter(): Integer

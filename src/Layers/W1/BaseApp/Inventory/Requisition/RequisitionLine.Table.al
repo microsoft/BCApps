@@ -1580,6 +1580,7 @@ table 246 "Requisition Line"
         PurchaseLine: Record "Purchase Line";
         Purchasing: Record Purchasing;
         SalesHeader: Record "Sales Header";
+        OtherRequisitionLine: Record "Requisition Line";
         Failure: Text;
         TargetErr: Label 'Worksheet line %1 in %2/%3 cannot use purchase order %4: %5.', Comment = '%1 = line number, %2 = template, %3 = batch, %4 = order number, %5 = failed condition';
         MissingErr: Label 'the order no longer exists';
@@ -1590,6 +1591,7 @@ table 246 "Requisition Line"
         AddressErr: Label 'the order address does not match';
         CurrencyErr: Label 'the currency does not match';
         PurchasingErr: Label 'the purchasing code does not match the existing lines';
+        PurchasingSuggestionErr: Label 'the purchasing code does not match worksheet line %1 assigned to the same order', Comment = '%1 = line number';
         SpecialOrderErr: Label 'the special-order location does not match';
         DropShipmentErr: Label 'the drop-shipment address does not match the sales order';
         RecurringTemplateErr: Label 'the worksheet template is recurring';
@@ -1639,6 +1641,23 @@ table 246 "Requisition Line"
             PurchaseLine.SetFilter(Type, '<>%1', PurchaseLine.Type::" ");
             if not PurchaseLine.IsEmpty() then
                 Failure := PurchasingErr;
+        end;
+        if Failure = '' then begin
+            // Accepted suggestions for the same order become lines of that order in one Carry Out, so they must agree with each other as well.
+            OtherRequisitionLine.SetRange("Worksheet Template Name", "Worksheet Template Name");
+            OtherRequisitionLine.SetRange("Journal Batch Name", "Journal Batch Name");
+            OtherRequisitionLine.SetFilter("Line No.", '<>%1', "Line No.");
+            OtherRequisitionLine.SetRange("Accept Action Message", true);
+            OtherRequisitionLine.SetRange("Action Message", OtherRequisitionLine."Action Message"::New);
+            OtherRequisitionLine.SetRange("Ref. Order Type", OtherRequisitionLine."Ref. Order Type"::Purchase);
+            OtherRequisitionLine.SetRange("Ref. Order No.", "Ref. Order No.");
+            OtherRequisitionLine.SetRange("Ref. Line No.", 0);
+            OtherRequisitionLine.SetFilter("Replenishment System", '%1|%2',
+                OtherRequisitionLine."Replenishment System"::Purchase, OtherRequisitionLine."Replenishment System"::"Prod. Order");
+            OtherRequisitionLine.SetFilter("Purchasing Code", '<>%1', "Purchasing Code");
+            OtherRequisitionLine.SetLoadFields("Line No.");
+            if OtherRequisitionLine.FindFirst() then
+                Failure := StrSubstNo(PurchasingSuggestionErr, OtherRequisitionLine."Line No.");
         end;
         if Failure <> '' then
             Error(TargetErr, "Line No.", "Worksheet Template Name", "Journal Batch Name", "Ref. Order No.", Failure);

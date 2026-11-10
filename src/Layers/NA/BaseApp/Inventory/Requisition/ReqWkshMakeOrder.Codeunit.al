@@ -131,7 +131,7 @@ codeunit 333 "Req. Wksh.-Make Order"
         OnAfterCarryOutBatchAction(ReqLine2);
     end;
 
-   internal procedure CheckPurchaseOrderTargets(var RequisitionLine: Record "Requisition Line")
+    internal procedure CheckPurchaseOrderTargets(var RequisitionLine: Record "Requisition Line")
     var
         TargetRequisitionLine: Record "Requisition Line";
     begin
@@ -522,7 +522,7 @@ codeunit 333 "Req. Wksh.-Make Order"
                         begin
                             if not PurchasingCode.Get(ReqLine."Purchasing Code") then
                                 PurchasingCode."Special Order" := false;
-                            if not UsingPurchaseOrderTarget and
+                            if not UsingPurchaseOrderTarget and not ReqLine.HasPurchaseOrderTarget() and
                                ((PurchasingCode."Special Order" and
                                  (PurchSetup."Combine Special Orders Default" =
                                   PurchSetup."Combine Special Orders Default"::"Always Combine") and
@@ -575,6 +575,7 @@ codeunit 333 "Req. Wksh.-Make Order"
 
         ReqWkshMakeOrders.Set(PurchOrderHeader, EndOrderDate, PrintPurchOrders, OrderDateReq, PostingDateReq, ReceiveDateReq, ReferenceReq);
         ReqWkshMakeOrders.SetProcessedReqLines(TempProcessedReqLine);
+        ReqWkshMakeOrders.SetPurchaseOrderTargetState(UsingPurchaseOrderTarget);
         ReqWkshMakeOrders.SetTryParam(
           ReqTemplate,
           LineCount,
@@ -599,8 +600,9 @@ codeunit 333 "Req. Wksh.-Make Order"
               PrevLocationCode,
               OrderCounter,
               OrderLineCounter);
+            UsingPurchaseOrderTarget := ReqWkshMakeOrders.GetPurchaseOrderTargetState();
             OnTryCarryOutReqLineActionOnAfterGetTryParam(ReqLine, PurchOrderHeader, LineCount, NextLineNo, PrevPurchCode, PrevShipToCode, PrevLocationCode, OrderCounter, OrderLineCounter);
-            if PrintPurchOrders and PlanningResiliency then
+            if PrintPurchOrders and PlanningResiliency and not UsingPurchaseOrderTarget then
                 if PurchOrderHeader."No." <> '' then
                     if not TempPurchaseOrderToPrint.Get(PurchOrderHeader."Document Type", PurchOrderHeader."No.") then begin
                         TempPurchaseOrderToPrint := PurchOrderHeader;
@@ -860,7 +862,7 @@ codeunit 333 "Req. Wksh.-Make Order"
             if PurchOrderLine2.FindLast() then
                 NextLineNo := PurchOrderLine2."Line No.";
         end;
-        if PurchasingCode."Special Order" and
+        if PurchasingCode."Special Order" and not UsingPurchaseOrderTarget and
            ((PurchSetup."Combine Special Orders Default" =
              PurchSetup."Combine Special Orders Default"::"Never Combine") and
              not PurchasingParametersMatch(PurchOrderHeader, ReqLine2))
@@ -1278,6 +1280,16 @@ codeunit 333 "Req. Wksh.-Make Order"
     begin
         // Share processed keys with the per-line resiliency instance.
         TempProcessedReqLine.Copy(ProcessedReqLine, true);
+    end;
+
+    internal procedure SetPurchaseOrderTargetState(NewUsingPurchaseOrderTarget: Boolean)
+    begin
+        UsingPurchaseOrderTarget := NewUsingPurchaseOrderTarget;
+    end;
+
+    internal procedure GetPurchaseOrderTargetState(): Boolean
+    begin
+        exit(UsingPurchaseOrderTarget);
     end;
 
     procedure GetFailedCounter(): Integer

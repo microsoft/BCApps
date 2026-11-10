@@ -69,6 +69,10 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
     begin
         // [SCENARIO] Switching from a new order to an assigned order during Carry Out keeps a pending quantity change on another order.
         Initialize();
+
+        // [GIVEN] The shared fixture creates suggestions of one vendor that sort as an untargeted New, a New assigned to an open order and a pending quantity change on another open order.
+        // [WHEN] Carry Out runs without planning resiliency and switches from the new order to the assigned order before it reaches the quantity change.
+        // [THEN] The quantity change is applied, the assigned order holds only its appended line, and all three suggestions are consumed.
         VerifyTargetSelectionPreservesPendingQuantityChange(false);
     end;
 
@@ -77,6 +81,10 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
     begin
         // [SCENARIO] With planning resiliency, switching from a new order to an assigned order during Carry Out keeps a pending quantity change on another order.
         Initialize();
+
+        // [GIVEN] The shared fixture creates suggestions of one vendor that sort as an untargeted New, a New assigned to an open order and a pending quantity change on another open order.
+        // [WHEN] Carry Out runs with planning resiliency and switches from the new order to the assigned order before it reaches the quantity change.
+        // [THEN] The quantity change is applied, the assigned order holds only its appended line, and all three suggestions are consumed without failures.
         VerifyTargetSelectionPreservesPendingQuantityChange(true);
     end;
 
@@ -308,6 +316,64 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
         // [WHEN] [THEN] Carry Out stops before any purchase order or line is written.
         VerifyBatchBlocked(
             ValidLine, ValidHeader, InvalidLine, InvalidHeader."No.", 'the purchasing code does not match the existing lines');
+    end;
+
+    [Test]
+    procedure SuggestionsWithOtherPurchasingCodesForSameEmptyTargetBlockBatch()
+    var
+        TargetHeader: Record "Purchase Header";
+        BatchHeader: Record "Purchase Header";
+        FirstLine: Record "Requisition Line";
+        SecondLine: Record "Requisition Line";
+    begin
+        // [SCENARIO] Two accepted suggestions for the same empty order with different purchasing codes stop Carry Out before any line is appended or any suggestion is consumed.
+        Initialize();
+
+        // [GIVEN] An empty open order and two accepted suggestions assigned to it, the first without and the second with an ordinary purchasing code.
+        CreateSuggestionsWithOtherPurchasingCodesForSameTarget(FirstLine, SecondLine, TargetHeader);
+        BatchHeader."Order Date" := WorkDate();
+        BatchHeader."Posting Date" := WorkDate();
+        // asserterror rolls back to the last commit; keep the setup so the THEN checks are meaningful.
+        Commit();
+
+        // [WHEN] Carry Out runs without planning resiliency.
+        asserterror RunCarryOutWithBatchParameters(FirstLine, BatchHeader, false);
+
+        // [THEN] The pre-run check names the first suggestion, the order and the suggestion with the other purchasing code.
+        Assert.ExpectedError(StrSubstNo(TargetErr, FirstLine."Line No.", FirstLine."Worksheet Template Name", FirstLine."Journal Batch Name",
+            TargetHeader."No.", StrSubstNo(PurchasingSuggestionErr, SecondLine."Line No.")));
+
+        // [THEN] The order has no lines, no other order is created, and both suggestions remain assigned to it.
+        VerifyEmptyTargetAndSuggestionsRemain(TargetHeader, FirstLine, SecondLine);
+    end;
+
+    [Test]
+    procedure SuggestionsWithOtherPurchasingCodesForSameEmptyTargetBlockBatchWithResiliency()
+    var
+        TargetHeader: Record "Purchase Header";
+        BatchHeader: Record "Purchase Header";
+        FirstLine: Record "Requisition Line";
+        SecondLine: Record "Requisition Line";
+    begin
+        // [SCENARIO] With planning resiliency, two accepted suggestions for the same empty order with different purchasing codes stop Carry Out before the first suggestion is appended and consumed.
+        Initialize();
+
+        // [GIVEN] An empty open order and two accepted suggestions assigned to it, the first without and the second with an ordinary purchasing code.
+        CreateSuggestionsWithOtherPurchasingCodesForSameTarget(FirstLine, SecondLine, TargetHeader);
+        BatchHeader."Order Date" := WorkDate();
+        BatchHeader."Posting Date" := WorkDate();
+        // asserterror rolls back to the last commit; keep the setup so the THEN checks are meaningful.
+        Commit();
+
+        // [WHEN] Carry Out runs with planning resiliency.
+        asserterror RunCarryOutWithBatchParameters(FirstLine, BatchHeader, true);
+
+        // [THEN] The pre-run check names the first suggestion, the order and the suggestion with the other purchasing code.
+        Assert.ExpectedError(StrSubstNo(TargetErr, FirstLine."Line No.", FirstLine."Worksheet Template Name", FirstLine."Journal Batch Name",
+            TargetHeader."No.", StrSubstNo(PurchasingSuggestionErr, SecondLine."Line No.")));
+
+        // [THEN] No append was committed: the order has no lines, no other order is created, and both suggestions remain assigned to it.
+        VerifyEmptyTargetAndSuggestionsRemain(TargetHeader, FirstLine, SecondLine);
     end;
 
     [Test]
@@ -1090,6 +1156,46 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
     end;
 
     [Test]
+    [HandlerFunctions('SelectPurchaseOrderHandler')]
+    procedure AssignOrderOfSuggestionWithOtherPurchasingCodeIsRejected()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        Purchasing: Record Purchasing;
+        RequisitionLine: Record "Requisition Line";
+        OtherLine: Record "Requisition Line";
+    begin
+        // [SCENARIO] An order can't be assigned to a suggestion when another accepted suggestion of the batch is assigned to the order with another purchasing code.
+        Initialize();
+
+        // [GIVEN] An assignable suggestion without purchasing code and a compatible open order without lines.
+        SubcontractingMgmtLibrary.CreateAssignablePurchaseSuggestion(RequisitionLine, PurchaseHeader);
+
+        // [GIVEN] Another accepted suggestion of the batch with an ordinary purchasing code is assigned to the order.
+        CreatePurchasingCode(Purchasing, false, false);
+        SubcontractingMgmtLibrary.CreatePurchaseSuggestion(OtherLine, RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name",
+            RequisitionLine."Vendor No.", RequisitionLine."No.");
+        OtherLine."Ref. Order No." := PurchaseHeader."No.";
+        OtherLine."Purchasing Code" := Purchasing.Code;
+        OtherLine.Modify(true);
+        // asserterror rolls back to the last commit; keep the setup so the THEN checks are meaningful.
+        Commit();
+
+        // [WHEN] The order is assigned; the handler selects it in the lookup.
+        LibraryVariableStorage.Enqueue(PurchaseHeader."No.");
+        asserterror RequisitionLine.AssignPurchaseOrderTarget();
+
+        // [THEN] The assignment is rejected with an error naming the worksheet line, the order and the suggestion with the other purchasing code.
+        Assert.ExpectedError(StrSubstNo(TargetErr, RequisitionLine."Line No.", RequisitionLine."Worksheet Template Name",
+            RequisitionLine."Journal Batch Name", PurchaseHeader."No.", StrSubstNo(PurchasingSuggestionErr, OtherLine."Line No.")));
+
+        // [THEN] The rejected order is not stored on the line.
+        RequisitionLine.SetLoadFields("Ref. Order No.");
+        RequisitionLine.Get(RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", RequisitionLine."Line No.");
+        Assert.AreEqual('', RequisitionLine."Ref. Order No.", 'The rejected order must not be stored on the line.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     procedure TargetOnRecurringTemplateBlocksCarryOutBeforeChangingOrders()
     var
         Item: Record Item;
@@ -1414,6 +1520,41 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
                 LibraryPurchase.CreatePurchasingCode(Purchasing);
     end;
 
+    local procedure CreateSuggestionsWithOtherPurchasingCodesForSameTarget(var FirstLine: Record "Requisition Line"; var SecondLine: Record "Requisition Line"; var TargetHeader: Record "Purchase Header")
+    var
+        Purchasing: Record Purchasing;
+    begin
+        SubcontractingMgmtLibrary.CreateTargetedPurchaseSuggestion(FirstLine, TargetHeader);
+        CreatePurchasingCode(Purchasing, false, false);
+        SubcontractingMgmtLibrary.CreatePurchaseSuggestion(SecondLine, FirstLine."Worksheet Template Name", FirstLine."Journal Batch Name",
+            FirstLine."Vendor No.", FirstLine."No.");
+        SecondLine."Ref. Order No." := TargetHeader."No.";
+        SecondLine."Purchasing Code" := Purchasing.Code;
+        SecondLine.Modify(true);
+    end;
+
+    local procedure VerifyEmptyTargetAndSuggestionsRemain(TargetHeader: Record "Purchase Header"; FirstLine: Record "Requisition Line"; SecondLine: Record "Requisition Line")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.SetRange("Document Type", TargetHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", TargetHeader."No.");
+        Assert.IsTrue(PurchaseLine.IsEmpty(), 'The target must not receive a line.');
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", TargetHeader."Buy-from Vendor No.");
+        Assert.AreEqual(1, PurchaseHeader.Count(), 'No further purchase order may be created.');
+        FirstLine.SetLoadFields("Ref. Order No.", "Purchasing Code");
+        Assert.IsTrue(FirstLine.Get(FirstLine."Worksheet Template Name", FirstLine."Journal Batch Name", FirstLine."Line No."),
+            'The first suggestion must remain.');
+        Assert.AreEqual(TargetHeader."No.", FirstLine."Ref. Order No.", 'The first suggestion must stay assigned to the order.');
+        SecondLine.SetLoadFields("Ref. Order No.", "Purchasing Code");
+        Assert.IsTrue(SecondLine.Get(SecondLine."Worksheet Template Name", SecondLine."Journal Batch Name", SecondLine."Line No."),
+            'The second suggestion must remain.');
+        Assert.AreEqual(TargetHeader."No.", SecondLine."Ref. Order No.", 'The second suggestion must stay assigned to the order.');
+        Assert.AreNotEqual(FirstLine."Purchasing Code", SecondLine."Purchasing Code", 'The suggestions must keep their different purchasing codes.');
+    end;
+
     local procedure VerifyTargetSelectionPreservesPendingQuantityChange(PlanningResiliency: Boolean)
     var
         TargetHeader: Record "Purchase Header";
@@ -1541,4 +1682,5 @@ codeunit 139980 "Subc. PurchOrderTargetTest"
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsProductionInitialized: Boolean;
         TargetErr: Label 'Worksheet line %1 in %2/%3 cannot use purchase order %4: %5.', Comment = '%1 = line number, %2 = template, %3 = batch, %4 = order number, %5 = failed condition';
+        PurchasingSuggestionErr: Label 'the purchasing code does not match worksheet line %1 assigned to the same order', Comment = '%1 = line number';
 }
