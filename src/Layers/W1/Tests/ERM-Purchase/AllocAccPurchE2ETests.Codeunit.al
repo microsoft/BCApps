@@ -160,6 +160,8 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         PurchaseLine.SetRange(Type, PurchaseLine.Type::"G/L Account");
         PurchaseLine.SetRange("No.", GLAccountNo);
         Assert.RecordCount(PurchaseLine, 3);
+        CumulativeLineAmount := 0;
+        CumulativeAmount := 0;
         PurchaseLine.FindSet();
         repeat
             CumulativeLineAmount += PurchaseLine."Line Amount";
