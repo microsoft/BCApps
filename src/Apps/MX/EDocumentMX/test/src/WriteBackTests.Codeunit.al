@@ -14,6 +14,7 @@ codeunit 148753 "CFDI Write Back Tests"
     var
         Assert: Codeunit Assert;
         CFDIWriteBack: Codeunit "CFDI Write-Back MX";
+        MXFeatureTestHelper: Codeunit "MX Feature Test Helper";
 
     [Test]
     procedure GetUUIDForUnstampedRecordReturnsEmptyValue()
@@ -51,5 +52,6 @@ codeunit 148753 "CFDI Write Back Tests"
 
     local procedure Initialize()
     begin
+        MXFeatureTestHelper.EnableFeature();
     end;
 }

@@ -5,7 +5,6 @@
 namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.EServices.EDocument;
-using Microsoft.Inventory.Location;
 using System.Xml;
 
 codeunit 3361 "CFDI XML Helper MX"
@@ -66,7 +65,7 @@ codeunit 3361 "CFDI XML Helper MX"
         SATSuburb.Get(SATAddress."SAT Suburb ID");
 
         if Address <> '' then
-            AddAttributeSimple(XMLNode, 'Calle', Address);
+            AddAttribute(XMLNode, 'Calle', Address);
         AddAttributeSimple(XMLNode, 'Colonia', SATSuburb."Suburb Code");
         if SATAddress."SAT Locality Code" <> '' then
             AddAttributeSimple(XMLNode, 'Localidad', SATAddress."SAT Locality Code");
@@ -87,30 +86,6 @@ codeunit 3361 "CFDI XML Helper MX"
             exit(AddElement(XMLNode, NodeName, NodeText, CartaPorte31NamespaceTxt, CreatedXmlNode));
 
         exit(XMLDOMManagement.AddElementWithPrefix(XMLNode, NodeName, NodeText, 'cartaporte31', NamespaceURI, CreatedXmlNode));
-    end;
-
-    procedure AddNodeCartaPorteUbicacion(TipoUbicacion: Text; Location: Record Location; LocationPrefix: Text[2]; RFCNo: Text; ForeignRegId: Text; ResidenciaFiscal: Text; FechaHoraSalidaLlegada: Text; DistanciaRecorrida: Text; var XMLCurrNode: XmlNode; var XMLNewChild: XmlNode)
-    var
-        UbicacionNode: XmlNode;
-        DomicilioNode: XmlNode;
-    begin
-        AddElementCartaPorte(XMLCurrNode, 'Ubicacion', '', '', UbicacionNode);
-        XMLCurrNode := UbicacionNode;
-        AddAttribute(XMLCurrNode, 'TipoUbicacion', TipoUbicacion);
-        if Location."ID Ubicacion" <> 0 then
-            AddAttribute(XMLCurrNode, 'IDUbicacion', LocationPrefix + Format(Location."ID Ubicacion"));
-        AddAttribute(XMLCurrNode, 'RFCRemitenteDestinatario', RFCNo);
-        if ForeignRegId <> '' then begin
-            AddAttribute(XMLCurrNode, 'NumRegIdTrib', ForeignRegId);
-            AddAttribute(XMLCurrNode, 'ResidenciaFiscal', ResidenciaFiscal);
-        end;
-        AddAttribute(XMLCurrNode, 'FechaHoraSalidaLlegada', FechaHoraSalidaLlegada);
-        if DistanciaRecorrida <> '' then
-            AddAttribute(XMLCurrNode, 'DistanciaRecorrida', DistanciaRecorrida);
-
-        AddElementCartaPorte(XMLCurrNode, 'Domicilio', '', '', DomicilioNode);
-        AddNodeDomicilio(Location."SAT Address ID", Location.Address, DomicilioNode);
-        XMLNewChild := UbicacionNode;
     end;
 
     procedure InitXMLNamespaces(var NSManager: XmlNamespaceManager)

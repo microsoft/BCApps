@@ -13,6 +13,7 @@ codeunit 148752 "Carta Porte XML Document Tests"
     var
         Assert: Codeunit Assert;
         CFDIXMLHelper: Codeunit "CFDI XML Helper MX";
+        MXFeatureTestHelper: Codeunit "MX Feature Test Helper";
 
     [Test]
     procedure AddElementCartaPorteCreatesCartaPorteNode()
@@ -80,6 +81,7 @@ codeunit 148752 "Carta Porte XML Document Tests"
 
     local procedure Initialize()
     begin
+        MXFeatureTestHelper.EnableFeature();
     end;
 
     local procedure AddCartaPorteNode(var RootNode: XmlElement; var CreatedNode: XmlNode): Boolean

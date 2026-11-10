@@ -19,6 +19,7 @@ codeunit 148751 "CFDI Cancellation Tests"
     var
         Assert: Codeunit Assert;
         CFDICancellation: Codeunit "CFDI Cancellation MX";
+        MXFeatureTestHelper: Codeunit "MX Feature Test Helper";
 
     [Test]
     procedure CreateCancellationXMLContainsUUIDRFCAndReason()
@@ -175,6 +176,7 @@ codeunit 148751 "CFDI Cancellation Tests"
 
     local procedure Initialize()
     begin
+        MXFeatureTestHelper.EnableFeature();
     end;
 
     local procedure ReadBlob(var TempBlob: Codeunit "Temp Blob") XMLText: Text

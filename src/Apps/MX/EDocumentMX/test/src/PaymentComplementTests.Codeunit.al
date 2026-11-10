@@ -19,6 +19,7 @@ codeunit 148757 "Payment Complement Tests"
         Assert: Codeunit Assert;
         PaymentComplementBuilder: Codeunit "MX Payment Complement Builder";
         MXPaymentComplCancel: Codeunit "MX Payment Compl. Cancel";
+        MXFeatureTestHelper: Codeunit "MX Feature Test Helper";
 
     [Test]
     procedure BuildPaymentComplementFailsWhenCustomerDoesNotExist()
@@ -263,6 +264,7 @@ codeunit 148757 "Payment Complement Tests"
     var
         PaymentComplement: Record "MX Payment Complement";
     begin
+        MXFeatureTestHelper.EnableFeature();
         PaymentComplement.DeleteAll();
     end;
 }

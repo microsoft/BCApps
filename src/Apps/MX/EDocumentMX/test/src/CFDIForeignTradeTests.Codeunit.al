@@ -35,6 +35,7 @@ codeunit 148758 "CFDI Foreign Trade Tests"
         Assert: Codeunit Assert;
         LibraryUtility: Codeunit "Library - Utility";
         ExportInterfactura: Codeunit "Export Interfactura MX";
+        MXFeatureTestHelper: Codeunit "MX Feature Test Helper";
         LoggedErrors: Text;
         CFDINamespaceTxt: Label 'http://www.sat.gob.mx/cfd/4', Locked = true;
         ComercioExteriorNamespaceTxt: Label 'http://www.sat.gob.mx/ComercioExterior20', Locked = true;
@@ -301,6 +302,7 @@ codeunit 148758 "CFDI Foreign Trade Tests"
     var
         CompanyInformation: Record "Company Information";
     begin
+        MXFeatureTestHelper.EnableFeature();
         if BindSubscription(this) then;
         LoggedErrors := '';
         CompanyInformation.Get();

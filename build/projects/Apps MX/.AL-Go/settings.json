@@ -4,6 +4,7 @@
     "country":  "MX",
     "appFolders":  [
                        "../../../src/Apps/MX/ContosoCoffeeDemoDatasetMX/app",
+                       "../../../src/Apps/MX/EDocumentMX/app",
                        "../../../src/Apps/MX/HybridBCLast_MX/app",
                        "../../../src/Apps/NA/ExtendedBankDepositNA/app",
                        "../../../src/Apps/NA/MX_DIOT/app",
@@ -124,6 +125,7 @@
                        "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates"
                    ],
     "testFolders":  [
+                        "../../../src/Apps/MX/EDocumentMX/test",
                         "../../../src/Apps/NA/MX_DIOT/test",
                         "../../../src/Apps/W1/AMCBanking365Fundamentals/test",
                         "../../../src/Apps/W1/APIV1/test",

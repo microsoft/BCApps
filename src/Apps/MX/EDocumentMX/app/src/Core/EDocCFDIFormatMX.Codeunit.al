@@ -35,7 +35,7 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
                     SourceDocumentHeader.SetTable(SalesHeader);
                     if ShouldValidateSalesHeaderAsCFDI(SalesHeader, EDocumentProcessingPhase) then
                         EDocCFDIValidationMX.CheckSalesDocument(SourceDocumentHeader);
-                    if ShouldValidateSalesHeaderAsCartaPorte(SalesHeader, EDocumentProcessingPhase) then
+                    if ShouldValidateSalesHeaderAsCartaPorte(SalesHeader, EDocumentService, EDocumentProcessingPhase) then
                         EDocCartaPorteValidationMX.CheckShipmentDocument(SourceDocumentHeader);
                 end;
             Database::"Sales Invoice Header":
@@ -71,12 +71,15 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
         exit(true);
     end;
 
-    local procedure ShouldValidateSalesHeaderAsCartaPorte(SalesHeader: Record "Sales Header"; EDocumentProcessingPhase: Enum "E-Document Processing Phase"): Boolean
+    local procedure ShouldValidateSalesHeaderAsCartaPorte(SalesHeader: Record "Sales Header"; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase"): Boolean
+    var
+        EDocExport: Codeunit "E-Doc. Export";
     begin
         exit(
             (EDocumentProcessingPhase = EDocumentProcessingPhase::Post) and
             (SalesHeader."Document Type" = SalesHeader."Document Type"::Order) and
-            SalesHeader.Ship);
+            SalesHeader.Ship and
+            EDocExport.IsDocumentTypeSupported(EDocumentService, Enum::"E-Document Type"::"Sales Shipment"));
     end;
 
     /// <summary>

@@ -45,6 +45,7 @@ codeunit 148754 "CFDI Export Integration Tests"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         ExportInterfactura: Codeunit "Export Interfactura MX";
+        MXFeatureTestHelper: Codeunit "MX Feature Test Helper";
         CFDIServiceCodeTok: Label 'MX-CFDI-TEST', Locked = true;
 
     [Test]
@@ -381,6 +382,7 @@ codeunit 148754 "CFDI Export Integration Tests"
         EDocumentService: Record "E-Document Service";
         DocumentSendingProfile: Record "Document Sending Profile";
     begin
+        MXFeatureTestHelper.EnableFeature();
         if BindSubscription(this) then;
         EDocumentService.DeleteAll();
         DocumentSendingProfile.DeleteAll();
@@ -564,7 +566,12 @@ codeunit 148754 "CFDI Export Integration Tests"
         CountryRegion: Record "Country/Region";
         RFCNo: Code[20];
     begin
-        CountryRegion.Get('MX');
+        if not CountryRegion.Get('MX') then begin
+            CountryRegion.Init();
+            CountryRegion.Code := 'MX';
+            CountryRegion."SAT Country Code" := 'MEX';
+            CountryRegion.Insert();
+        end;
         Customer.Validate("Tax Identification Type", Customer."Tax Identification Type"::"Legal Entity");
         Customer.Validate("Country/Region Code", CountryRegion.Code);
         RFCNo := LibraryUtility.GenerateGUID();

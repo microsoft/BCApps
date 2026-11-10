@@ -19,6 +19,13 @@
       "version": "30.0.0.0"
     }
   ],
+  "internalsVisibleTo": [
+    {
+      "id": "eeed71f3-4a1f-4fd4-ab42-ced7a7ad646f",
+      "name": "E-Document for Mexico Tests",
+      "publisher": "Microsoft"
+    }
+  ],
   "screenshots": [],
   "platform": "30.0.0.0",
   "idRanges": [

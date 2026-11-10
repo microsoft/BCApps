@@ -37,7 +37,7 @@ codeunit 3375 "MX E-Document Feature"
         exit(FeatureKeyIdTok);
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
     begin
     end;

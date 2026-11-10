@@ -14,6 +14,7 @@ codeunit 148755 "E-Document Service Setup Tests"
 
     var
         Assert: Codeunit Assert;
+        MXFeatureTestHelper: Codeunit "MX Feature Test Helper";
 
     [Test]
     procedure CFDIFormatCreatesSupportedSourceDocumentTypes()
@@ -93,6 +94,7 @@ codeunit 148755 "E-Document Service Setup Tests"
         EDocumentService: Record "E-Document Service";
         SupportedType: Record "E-Doc. Service Supported Type";
     begin
+        MXFeatureTestHelper.EnableFeature();
         SupportedType.SetRange("E-Document Service Code", 'MX-TEST');
         SupportedType.DeleteAll();
         EDocumentService.SetRange(Code, 'MX-TEST');

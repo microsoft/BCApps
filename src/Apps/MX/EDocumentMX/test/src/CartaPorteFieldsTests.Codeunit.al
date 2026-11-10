@@ -48,6 +48,7 @@ codeunit 148756 "Carta Porte Fields Tests"
         LibraryUtility: Codeunit "Library - Utility";
         CFDIXMLHelper: Codeunit "CFDI XML Helper MX";
         ExportInterfactura: Codeunit "Export Interfactura MX";
+        MXFeatureTestHelper: Codeunit "MX Feature Test Helper";
         CFDIServiceCodeTok: Label 'MX-CFDI', Locked = true;
         CartaPorteNamespaceTxt: Label 'http://www.sat.gob.mx/CartaPorte31', Locked = true;
         ComercioExteriorNamespaceTxt: Label 'http://www.sat.gob.mx/ComercioExterior20', Locked = true;
@@ -352,6 +353,7 @@ codeunit 148756 "Carta Porte Fields Tests"
         EDocumentService: Record "E-Document Service";
         DocumentSendingProfile: Record "Document Sending Profile";
     begin
+        MXFeatureTestHelper.EnableFeature();
         if BindSubscription(this) then;
         EDocumentService.DeleteAll();
         DocumentSendingProfile.DeleteAll();

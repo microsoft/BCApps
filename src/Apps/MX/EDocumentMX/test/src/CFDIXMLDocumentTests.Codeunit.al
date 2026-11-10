@@ -13,6 +13,7 @@ codeunit 148750 "CFDI XML Document Tests"
     var
         Assert: Codeunit Assert;
         CFDIXMLHelper: Codeunit "CFDI XML Helper MX";
+        MXFeatureTestHelper: Codeunit "MX Feature Test Helper";
 
     [Test]
     procedure FormatAmountUsesTwoDecimalsForCurrencyAmounts()
@@ -116,6 +117,7 @@ codeunit 148750 "CFDI XML Document Tests"
 
     local procedure Initialize()
     begin
+        MXFeatureTestHelper.EnableFeature();
     end;
 
     local procedure AddCFDINode(var RootNode: XmlElement; var CreatedNode: XmlNode): Boolean

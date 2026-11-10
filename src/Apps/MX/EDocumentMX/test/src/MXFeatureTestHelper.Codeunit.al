@@ -8,20 +8,28 @@ using Microsoft.EServices.EDocument.Interfactura;
 
 codeunit 148759 "MX Feature Test Helper"
 {
-    SingleInstance = true;
-    EventSubscriberInstance = StaticAutomatic;
+    EventSubscriberInstance = Manual;
 
     var
         FeatureDisabled: Boolean;
+        IsBound: Boolean;
 
     procedure DisableFeature()
     begin
         FeatureDisabled := true;
+        Bind();
     end;
 
     procedure EnableFeature()
     begin
         FeatureDisabled := false;
+        Bind();
+    end;
+
+    local procedure Bind()
+    begin
+        if not IsBound then
+            IsBound := BindSubscription(this);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"MX E-Document Feature", 'OnAfterCheckFeatureEnabled', '', false, false)]

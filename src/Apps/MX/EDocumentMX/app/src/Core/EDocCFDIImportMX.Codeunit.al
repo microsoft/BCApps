@@ -101,11 +101,11 @@ codeunit 3368 "EDoc CFDI Import MX"
 
         foreach EntryNo in ConceptoEntryNos do begin
             LineNo += 10000;
-            ParseConceptoLine(TempXMLBuffer, EntryNo, EDocument."Entry No", LineNo);
+            ParseConceptoLine(TempXMLBuffer, EntryNo, EDocument."Entry No", LineNo, EDocument."Currency Code");
         end;
     end;
 
-    local procedure ParseConceptoLine(var TempXMLBuffer: Record "XML Buffer" temporary; ConceptoEntryNo: Integer; EDocEntryNo: Integer; LineNo: Integer)
+    local procedure ParseConceptoLine(var TempXMLBuffer: Record "XML Buffer" temporary; ConceptoEntryNo: Integer; EDocEntryNo: Integer; LineNo: Integer; CurrencyCode: Code[10])
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         Cantidad, ValorUnitario, Importe, Descuento : Decimal;
@@ -128,6 +128,7 @@ codeunit 3368 "EDoc CFDI Import MX"
         EDocumentPurchaseLine."Unit Price" := ValorUnitario;
         EDocumentPurchaseLine."Sub Total" := Importe - Descuento;
         EDocumentPurchaseLine."Total Discount" := Descuento;
+        EDocumentPurchaseLine."Currency Code" := CurrencyCode;
         EDocumentPurchaseLine.Insert();
     end;
 
