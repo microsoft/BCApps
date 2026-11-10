@@ -1095,9 +1095,8 @@ report 20 "Calc. and Post VAT Settlement"
                 SettlementVATEntry.SetRange("Posting Date", GenJnlLine."Posting Date");
                 SettlementVATEntry.SetRange("G/L Register No.", GLRegister."No.");
                 SettlementVATEntry.SetRange(Type, SettlementVATEntry.Type::Settlement);
-                if SettlementVATEntry.FindLast() then
-                    exit(SettlementVATEntry."Entry No.");
-                exit(0);
+                SettlementVATEntry.FindLast();
+                exit(SettlementVATEntry."Entry No.");
             end;
 
             NextAvailableVATEntryNo := GenJnlPostLine.GetNextVATEntryNo();

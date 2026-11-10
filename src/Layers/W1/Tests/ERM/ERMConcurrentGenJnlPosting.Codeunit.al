@@ -12,6 +12,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Enums;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -414,6 +415,9 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     procedure VATSettlementPreviewDoesNotReserveVATEntryNo()
     begin
         // [SCENARIO] Concurrent VAT settlement preview displays simulated entry numbers without consuming the VAT sequence.
+        // [GIVEN] An open normal VAT entry with concurrent posting enabled and an intervening VAT sequence reservation.
+        // [WHEN] VAT settlement is calculated without posting.
+        // [THEN] The input remains open, no settlement entries or sequence allocations are created, and the report displays a simulated number.
         RunVATSettlementWithConcurrentPosting(Enum::"Tax Calculation Type"::"Normal VAT", false);
     end;
 
