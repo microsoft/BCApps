@@ -96,6 +96,12 @@ report 103 "Customer Register"
             column(G_L_Register__No__Caption; G_L_Register__No__CaptionLbl)
             {
             }
+            column(RemainingAmountCaption; RemainingAmountCaptionLbl)
+            {
+            }
+            column(CustVATRegistrationNoCaption; Cust.FieldCaption("VAT Registration No."))
+            {
+            }
             column(TotalCaption; TotalCaptionLbl)
             {
             }
@@ -116,15 +122,19 @@ report 103 "Customer Register"
                 }
                 column(Cust__Ledger_Entry__Document_Type_; "Document Type")
                 {
+                    IncludeCaption = true;
                 }
                 column(Cust__Ledger_Entry__Document_No__; "Document No.")
                 {
+                    IncludeCaption = true;
                 }
                 column(Cust__Ledger_Entry_Description; Description)
                 {
+                    IncludeCaption = true;
                 }
                 column(Cust__Ledger_Entry__Customer_No__; "Customer No.")
                 {
+                    IncludeCaption = true;
                 }
                 column(Cust_Name; Cust.Name)
                 {
@@ -139,12 +149,30 @@ report 103 "Customer Register"
                 }
                 column(Cust__Ledger_Entry__Applies_to_Doc__No__; "Applies-to Doc. No.")
                 {
+                    IncludeCaption = true;
                 }
                 column(Cust__Ledger_Entry__Due_Date_; Format("Due Date"))
                 {
                 }
                 column(Cust__Ledger_Entry__Entry_No__; "Entry No.")
                 {
+                    IncludeCaption = true;
+                }
+                column(ExternalDocumentNo; "External Document No.")
+                {
+                    IncludeCaption = true;
+                }
+                column(RemainingAmount; RemainingAmount)
+                {
+                    AutoFormatExpression = "Currency Code";
+                    AutoFormatType = 1;
+                }
+                column(CustVATRegistrationNo; Cust."VAT Registration No.")
+                {
+                }
+                column(ICPartnerCode; "IC Partner Code")
+                {
+                    IncludeCaption = true;
                 }
                 column(CustDebitAmountLCY_Control65; CustDebitAmountLCY)
                 {
@@ -182,6 +210,11 @@ report 103 "Customer Register"
                     end else
                         CustAmount := DtldCustLedgEntry.Amount;
 
+                    if PrintAmountsInLCY then
+                        RemainingAmount := "Remaining Amt. (LCY)"
+                    else
+                        RemainingAmount := "Remaining Amount";
+
                     CustAmountLCY := DtldCustLedgEntry."Amount (LCY)";
                     CustDebitAmountLCY := DtldCustLedgEntry."Debit Amount (LCY)";
                     CustCreditAmountLCY := DtldCustLedgEntry."Credit Amount (LCY)";
@@ -193,6 +226,7 @@ report 103 "Customer Register"
                 trigger OnPreDataItem()
                 begin
                     SetRange("Entry No.", "G/L Register"."From Entry No.", "G/L Register"."To Entry No.");
+                    SetAutoCalcFields("Remaining Amount", "Remaining Amt. (LCY)");
                     ClearAmounts();
                 end;
             }
@@ -238,6 +272,14 @@ report 103 "Customer Register"
             LayoutFile = './Sales/Reports/CustomerRegister.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales/Reports/CustomerRegisterBody.docx';
+            Caption = 'Body-only: Customer Register Word';
+            Summary = 'Landscape orientated. Lists customer ledger entries grouped by G/L register with posting date, document, customer, original and remaining amounts, and totals in LCY.';
+        }
     }
 
     labels
@@ -256,6 +298,7 @@ report 103 "Customer Register"
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         GLRegFilter: Text;
         CustAmount: Decimal;
+        RemainingAmount: Decimal;
         CustAmountLCY: Decimal;
         CustDebitAmountLCY: Decimal;
         CustCreditAmountLCY: Decimal;
@@ -270,6 +313,7 @@ report 103 "Customer Register"
         Cust__Ledger_Entry__Applies_to_Doc__No__CaptionLbl: Label 'Applies-to Doc. No.';
         Cust__Ledger_Entry__Due_Date_CaptionLbl: Label 'Due Date';
         G_L_Register__No__CaptionLbl: Label 'Register No.';
+        RemainingAmountCaptionLbl: Label 'Remaining Amount';
         TotalCaptionLbl: Label 'Total';
         CustDebitAmountLCYCaptionLbl: Label 'Debit (LCY)';
         CustCreditAmountLCYCaptionLbl: Label 'Credit (LCY)';
