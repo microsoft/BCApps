@@ -16,6 +16,7 @@ using System.Utilities;
 
 codeunit 3360 "CFDI Write-Back MX"
 {
+    Access = Internal;
     Permissions = tabledata "Sales Invoice Header" = rm,
                   tabledata "Sales Cr.Memo Header" = rm,
                   tabledata "Service Invoice Header" = rm,
@@ -428,6 +429,5 @@ codeunit 3360 "CFDI Write-Back MX"
             '&tt=' + ConvertStr(Format(Amount, 0, '<Integer,10><Filler Character,0><Decimals,7>'), ',', '.') +
             '&id=' + CopyStr(UUID, 1, 36));
     end;
-
 }
 

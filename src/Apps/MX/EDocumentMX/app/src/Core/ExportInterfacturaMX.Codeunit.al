@@ -25,28 +25,7 @@ using System.Utilities;
 
 codeunit 3354 "Export Interfactura MX"
 {
-    var
-        CompanyInformation: Record "Company Information";
-        MXConnectionSetup: Record "MX Connection Setup";
-        DigitalSignMX: Codeunit "Digital Sign MX";
-        CFDIXMLHelperMX: Codeunit "CFDI XML Helper MX";
-        XSINamespaceTxt: Label 'http://www.w3.org/2001/XMLSchema-instance', Locked = true;
-        CFDINamespaceTxt: Label 'http://www.sat.gob.mx/cfd/4', Locked = true;
-        CFDIXSDLocationTxt: Label 'http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd', Locked = true;
-        CFDIComercioExteriorNamespaceTxt: Label 'http://www.sat.gob.mx/ComercioExterior20', Locked = true;
-        CFDIComercioExteriorSchemaLocationTxt: Label 'http://www.sat.gob.mx/sitio_internet/cfd/ComercioExterior20/ComercioExterior20.xsd', Locked = true;
-        CartaPorteNamespaceTxt: Label 'http://www.sat.gob.mx/CartaPorte31', Locked = true;
-        CartaPorteSchemaLocationTxt: Label 'http://www.sat.gob.mx/sitio_internet/cfd/CartaPorte/CartaPorte31.xsd', Locked = true;
-        FeatureNameTok: Label 'EDocument Format Interfactura', Locked = true;
-        StartEventNameTok: Label 'Export initiated. IsBatch is: %1', Locked = true;
-        EndEventNameTok: Label 'Export completed', Locked = true;
-        NumeroPedimentoFormatTxt: Label '%1 %2 %3 %4', Locked = true;
-        AdvanceProdServCodeTok: Label '84111506', Locked = true;
-        AdvanceUnitCodeTok: Label 'ACT', Locked = true;
-        AdvanceDescriptionTok: Label 'Anticipo bien o servicio', Locked = true;
-        AdvanceReverseDescriptionTok: Label 'Aplicacion de anticipo', Locked = true;
-        DefaultTransportTypeTok: Label '01', Locked = true;
-        TransportOperatorsEDocumentNo: Code[20];
+    Access = Internal;
 
     procedure Export(var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
     var
@@ -68,7 +47,6 @@ codeunit 3354 "Export Interfactura MX"
         TransferShipmentLine: Record "Transfer Shipment Line";
         EDocCFDIDataMX: Codeunit "EDoc CFDI Data MX";
     begin
-        OnBeforeExport(SourceDocumentHeader, SourceDocumentLines, TempBlob, IsBatch);
         Session.LogMessage('0000WKX', StrSubstNo(StartEventNameTok, Format(IsBatch)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTok);
         CompanyInformation.Get();
         if not MXConnectionSetup.Get() then
@@ -148,7 +126,6 @@ codeunit 3354 "Export Interfactura MX"
                 end;
         end;
         Session.LogMessage('0000WKY', EndEventNameTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTok);
-        OnAfterExport(SourceDocumentHeader, SourceDocumentLines, TempBlob, IsBatch);
     end;
 
     #region Sales Order
@@ -3652,11 +3629,6 @@ codeunit 3354 "Export Interfactura MX"
 
     #endregion
 
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterExport(var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
-    begin
-    end;
-
     local procedure GetCartaPorteTransportType(TransportType: Code[10]): Code[10]
     begin
         if TransportType = '' then
@@ -3664,11 +3636,26 @@ codeunit 3354 "Export Interfactura MX"
         exit(TransportType);
     end;
 
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeExport(var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
-    begin
-    end;
+    var
+        CompanyInformation: Record "Company Information";
+        MXConnectionSetup: Record "MX Connection Setup";
+        DigitalSignMX: Codeunit "Digital Sign MX";
+        CFDIXMLHelperMX: Codeunit "CFDI XML Helper MX";
+        XSINamespaceTxt: Label 'http://www.w3.org/2001/XMLSchema-instance', Locked = true;
+        CFDINamespaceTxt: Label 'http://www.sat.gob.mx/cfd/4', Locked = true;
+        CFDIXSDLocationTxt: Label 'http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd', Locked = true;
+        CFDIComercioExteriorNamespaceTxt: Label 'http://www.sat.gob.mx/ComercioExterior20', Locked = true;
+        CFDIComercioExteriorSchemaLocationTxt: Label 'http://www.sat.gob.mx/sitio_internet/cfd/ComercioExterior20/ComercioExterior20.xsd', Locked = true;
+        CartaPorteNamespaceTxt: Label 'http://www.sat.gob.mx/CartaPorte31', Locked = true;
+        CartaPorteSchemaLocationTxt: Label 'http://www.sat.gob.mx/sitio_internet/cfd/CartaPorte/CartaPorte31.xsd', Locked = true;
+        FeatureNameTok: Label 'EDocument Format Interfactura', Locked = true;
+        StartEventNameTok: Label 'Export initiated. IsBatch is: %1', Locked = true;
+        EndEventNameTok: Label 'Export completed', Locked = true;
+        NumeroPedimentoFormatTxt: Label '%1 %2 %3 %4', Locked = true;
+        AdvanceProdServCodeTok: Label '84111506', Locked = true;
+        AdvanceUnitCodeTok: Label 'ACT', Locked = true;
+        AdvanceDescriptionTok: Label 'Anticipo bien o servicio', Locked = true;
+        AdvanceReverseDescriptionTok: Label 'Aplicacion de anticipo', Locked = true;
+        DefaultTransportTypeTok: Label '01', Locked = true;
+        TransportOperatorsEDocumentNo: Code[20];
 }
-
-
-

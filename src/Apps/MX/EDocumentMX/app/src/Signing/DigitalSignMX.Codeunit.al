@@ -10,10 +10,7 @@ using System.Security.Encryption;
 
 codeunit 3358 "Digital Sign MX"
 {
-    var
-        EInvoiceCommunication: Codeunit "EInvoice Communication";
-        LastUsedCertificateSN: Text;
-        LastUsedCert: Text;
+    Access = Internal;
 
     procedure CreatePaymentOriginalString(XMLDoc: XmlDocument): Text
     var
@@ -440,4 +437,9 @@ codeunit 3358 "Digital Sign MX"
     local procedure OnBeforeCreateDigitalSignature(OriginalString: Text; SetupId: Code[10]; var SignedString: Text; var IsHandled: Boolean)
     begin
     end;
+
+    var
+        EInvoiceCommunication: Codeunit "EInvoice Communication";
+        LastUsedCertificateSN: Text;
+        LastUsedCert: Text;
 }

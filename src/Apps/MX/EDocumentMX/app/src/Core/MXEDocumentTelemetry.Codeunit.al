@@ -10,22 +10,6 @@ codeunit 3376 "MX E-Document Telemetry"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    var
-        FeatureNameTok: Label 'E-Document Mexico CFDI', Locked = true;
-        CategoryTok: Label 'Category', Locked = true;
-        CFDIServiceNameTok: Label 'CFDI', Locked = true;
-        CFDIServiceSetUpMsg: Label 'E-Document service set up with the CFDI format.', Locked = true;
-        CFDIDataEditedMsg: Label 'CFDI data edited on E-Document %1.', Locked = true;
-        ComplementCancelRequestedMsg: Label 'Cancellation request submitted for payment complement %1.', Locked = true;
-        ComplementCancelStatusRequestedMsg: Label 'Checking cancellation status for payment complement %1.', Locked = true;
-        ComplementCancelResultMsg: Label 'Cancellation of payment complement %1 finished with status %2.', Locked = true;
-        ComplementCancelFailedMsg: Label 'Cancellation request for payment complement %1 failed: %2', Locked = true;
-        CanceledWithoutPACMsg: Label '%1 %2 was marked as canceled without contacting the PAC (%3).', Locked = true, Comment = '%1 = document kind, %2 = entry no, %3 = reason';
-        CancellationResetMsg: Label 'Cancellation request of payment complement %1 was reset.', Locked = true;
-        SecurityAuditComplementRejectedTxt: Label 'PAC rejected CFDI payment complement stamp request: %1', Locked = true, Comment = '%1 - PAC error';
-        SecurityAuditComplementCancelRequestedTxt: Label 'CFDI cancellation request submitted for payment complement %1.', Locked = true, Comment = '%1 - payment complement entry no';
-        SecurityAuditCanceledWithoutPACTxt: Label '%1 %2 was marked as canceled in Business Central without contacting the PAC (%3).', Locked = true, Comment = '%1 = document kind, %2 = entry no, %3 = reason';
-
     procedure LogServiceSetUp()
     begin
         Session.LogMessage('0000WKJ', CFDIServiceSetUpMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CategoryTok, FeatureNameTok);
@@ -71,4 +55,20 @@ codeunit 3376 "MX E-Document Telemetry"
     begin
         Session.LogMessage('0000WKQ', StrSubstNo(CancellationResetMsg, ComplementEntryNo), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CategoryTok, FeatureNameTok);
     end;
+
+    var
+        FeatureNameTok: Label 'E-Document Mexico CFDI', Locked = true;
+        CategoryTok: Label 'Category', Locked = true;
+        CFDIServiceNameTok: Label 'CFDI', Locked = true;
+        CFDIServiceSetUpMsg: Label 'E-Document service set up with the CFDI format.', Locked = true;
+        CFDIDataEditedMsg: Label 'CFDI data edited on E-Document %1.', Locked = true;
+        ComplementCancelRequestedMsg: Label 'Cancellation request submitted for payment complement %1.', Locked = true;
+        ComplementCancelStatusRequestedMsg: Label 'Checking cancellation status for payment complement %1.', Locked = true;
+        ComplementCancelResultMsg: Label 'Cancellation of payment complement %1 finished with status %2.', Locked = true;
+        ComplementCancelFailedMsg: Label 'Cancellation request for payment complement %1 failed: %2', Locked = true;
+        CanceledWithoutPACMsg: Label '%1 %2 was marked as canceled without contacting the PAC (%3).', Locked = true, Comment = '%1 = document kind, %2 = entry no, %3 = reason';
+        CancellationResetMsg: Label 'Cancellation request of payment complement %1 was reset.', Locked = true;
+        SecurityAuditComplementRejectedTxt: Label 'PAC rejected CFDI payment complement stamp request: %1', Locked = true, Comment = '%1 - PAC error';
+        SecurityAuditComplementCancelRequestedTxt: Label 'CFDI cancellation request submitted for payment complement %1.', Locked = true, Comment = '%1 - payment complement entry no';
+        SecurityAuditCanceledWithoutPACTxt: Label '%1 %2 was marked as canceled in Business Central without contacting the PAC (%3).', Locked = true, Comment = '%1 = document kind, %2 = entry no, %3 = reason';
 }

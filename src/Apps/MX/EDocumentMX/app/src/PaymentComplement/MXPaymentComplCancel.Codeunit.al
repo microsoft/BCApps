@@ -9,6 +9,7 @@ using System.Utilities;
 
 codeunit 3374 "MX Payment Compl. Cancel"
 {
+    Access = Internal;
     Permissions = tabledata "MX Payment Complement" = rm;
 
     procedure RunCancelAction(var Complement: Record "MX Payment Complement")

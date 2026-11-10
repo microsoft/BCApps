@@ -16,6 +16,8 @@ using System.Utilities;
 
 codeunit 3362 "EDoc Carta Porte Validation MX"
 {
+    Access = Internal;
+
     procedure CheckShipmentDocument(SourceDocumentHeader: RecordRef)
     var
         SalesHeader: Record "Sales Header";
@@ -541,5 +543,4 @@ codeunit 3362 "EDoc Carta Porte Validation MX"
         CartaPorteShipmentLineTypeErr: Label 'Shipment line %1 must be of type Item for Carta Porte. Current type: %2.', Comment = '%1 = line no., %2 = line type';
         CartaPorteShipmentLinesMissingErr: Label 'Shipment document %1 must contain at least one line.', Comment = '%1 = Document No.';
         CartaPorteTransferLinesMissingErr: Label 'Transfer shipment document %1 must contain at least one line.', Comment = '%1 = Document No.';
-
 }

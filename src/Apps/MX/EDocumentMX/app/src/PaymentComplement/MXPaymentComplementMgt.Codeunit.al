@@ -13,6 +13,7 @@ using System.Utilities;
 
 codeunit 3357 "MX Payment Complement Mgt."
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata "MX Payment Complement" = rimd;

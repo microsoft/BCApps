@@ -18,7 +18,12 @@ using System.Utilities;
 
 codeunit 3352 "EDoc CFDI MX" implements "E-Document"
 {
-
+    /// <summary>
+    /// Validates that the source document contains the information required for the CFDI and, when applicable, the Carta Porte complement.
+    /// </summary>
+    /// <param name="SourceDocumentHeader">The source document header to validate.</param>
+    /// <param name="EDocumentService">The E-Document service used to process the document.</param>
+    /// <param name="EDocumentProcessingPhase">The phase in which the E-Document is being processed.</param>
     procedure Check(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase")
     var
         EDocCartaPorteValidationMX: Codeunit "EDoc Carta Porte Validation MX";
@@ -82,6 +87,14 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
             EDocExport.IsDocumentTypeSupported(EDocumentService, Enum::"E-Document Type"::"Sales Shipment"));
     end;
 
+    /// <summary>
+    /// Creates a CFDI document from a source document.
+    /// </summary>
+    /// <param name="EDocumentService">The E-Document service used to process the document.</param>
+    /// <param name="EDocument">The E-Document record for the document being created.</param>
+    /// <param name="SourceDocumentHeader">The source document header.</param>
+    /// <param name="SourceDocumentLines">The source document lines.</param>
+    /// <param name="TempBlob">The temporary blob in which to store the generated document.</param>
     procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
         ExportInterfactura: Codeunit "Export Interfactura MX";
@@ -93,39 +106,43 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
         OnAfterExport(SourceDocumentHeader, SourceDocumentLines, TempBlob);
     end;
 
+    /// <summary>
+    /// Creates CFDI documents for a batch of source documents.
+    /// </summary>
+    /// <param name="EDocumentService">The E-Document service used to process the documents.</param>
+    /// <param name="EDocuments">The E-Document records for the documents being created.</param>
+    /// <param name="SourceDocumentHeaders">The source document headers.</param>
+    /// <param name="SourceDocumentsLines">The source document lines.</param>
+    /// <param name="TempBlob">The temporary blob in which to store the generated documents.</param>
     procedure CreateBatch(EDocumentService: Record "E-Document Service"; var EDocuments: Record "E-Document"; var SourceDocumentHeaders: RecordRef; var SourceDocumentsLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
         ExportInterfactura: Codeunit "Export Interfactura MX";
         MXEDocumentFeature: Codeunit "MX E-Document Feature";
     begin
         MXEDocumentFeature.CheckEnabled();
+        OnBeforeExport(SourceDocumentHeaders, SourceDocumentsLines, TempBlob);
         ExportInterfactura.Export(SourceDocumentHeaders, SourceDocumentsLines, EDocuments, TempBlob, true);
+        OnAfterExport(SourceDocumentHeaders, SourceDocumentsLines, TempBlob);
     end;
 
+    /// <summary>
+    /// Not used for CFDI. Received CFDI documents are read into a draft by codeunit "EDoc CFDI Read Draft MX".
+    /// </summary>
+    /// <param name="EDocument">The E-Document record associated with the received document.</param>
+    /// <param name="TempBlob">The temporary blob that contains the received document.</param>
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     begin
     end;
 
+    /// <summary>
+    /// Not used for CFDI. Received CFDI documents are read into a draft by codeunit "EDoc CFDI Read Draft MX".
+    /// </summary>
+    /// <param name="EDocument">The E-Document record associated with the received document.</param>
+    /// <param name="CreatedDocumentHeader">The document header populated from the received document.</param>
+    /// <param name="CreatedDocumentLines">The document lines populated from the received document.</param>
+    /// <param name="TempBlob">The temporary blob that contains the received document.</param>
     procedure GetCompleteInfoFromReceivedDocument(var EDocument: Record "E-Document"; var CreatedDocumentHeader: RecordRef; var CreatedDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     begin
-    end;
-
-    var
-        SourceDocumentNotSupportedErr: Label 'The source document %1 is not supported for CFDI MX.', Comment = '%1 = source document caption';
-
-    [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
-    local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)
-    var
-        MXEDocumentFeature: Codeunit "MX E-Document Feature";
-        MXEDocumentTelemetry: Codeunit "MX E-Document Telemetry";
-    begin
-        MXEDocumentFeature.CheckEnabled();
-
-        if Rec."Document Format" <> Rec."Document Format"::CFDI then
-            exit;
-
-        EnsureSupportedTypes(Rec.Code);
-        MXEDocumentTelemetry.LogServiceSetUp();
     end;
 
     local procedure EnsureSupportedTypes(EDocumentServiceCode: Code[20])
@@ -159,6 +176,21 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
         EDocServiceSupportedType."Source Document Type" := SourceDocumentType;
         EDocServiceSupportedType.Direction := Direction;
         EDocServiceSupportedType.Insert();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
+    local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)
+    var
+        MXEDocumentFeature: Codeunit "MX E-Document Feature";
+        MXEDocumentTelemetry: Codeunit "MX E-Document Telemetry";
+    begin
+        MXEDocumentFeature.CheckEnabled();
+
+        if Rec."Document Format" <> Rec."Document Format"::CFDI then
+            exit;
+
+        EnsureSupportedTypes(Rec.Code);
+        MXEDocumentTelemetry.LogServiceSetUp();
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnBeforeModifyEvent', '', false, false)]
@@ -214,4 +246,6 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
     begin
     end;
 
+    var
+        SourceDocumentNotSupportedErr: Label 'The source document %1 is not supported for CFDI MX.', Comment = '%1 = source document caption';
 }

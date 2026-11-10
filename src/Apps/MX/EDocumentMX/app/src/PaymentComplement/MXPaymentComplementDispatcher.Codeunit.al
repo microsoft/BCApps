@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Processing.Message;
 
 codeunit 3365 "MX Payment Compl. Dispatcher"
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata "MX Payment Complement" = r;

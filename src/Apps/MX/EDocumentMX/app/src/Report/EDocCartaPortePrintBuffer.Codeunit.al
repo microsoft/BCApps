@@ -14,12 +14,6 @@ codeunit 3371 "EDoc Carta Porte Print Buffer"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    var
-        SourceSalesShipmentHeader: Record "Sales Shipment Header";
-        SourceTransferShipmentHeader: Record "Transfer Shipment Header";
-        SourceDocumentTableId: Integer;
-        TransportOperatorsEDocumentNo: Code[20];
-
     procedure SetTransportOperatorsEDocumentNo(EDocumentNo: Code[20])
     begin
         TransportOperatorsEDocumentNo := EDocumentNo;
@@ -64,4 +58,10 @@ codeunit 3371 "EDoc Carta Porte Print Buffer"
         SourceDocumentTableId := 0;
         TransportOperatorsEDocumentNo := '';
     end;
+
+    var
+        SourceSalesShipmentHeader: Record "Sales Shipment Header";
+        SourceTransferShipmentHeader: Record "Transfer Shipment Header";
+        SourceDocumentTableId: Integer;
+        TransportOperatorsEDocumentNo: Code[20];
 }

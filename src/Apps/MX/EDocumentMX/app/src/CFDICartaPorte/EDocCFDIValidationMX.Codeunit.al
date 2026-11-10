@@ -24,6 +24,8 @@ using System.Utilities;
 
 codeunit 3363 "EDoc CFDI Validation MX"
 {
+    Access = Internal;
+
     procedure CheckSalesDocument(SourceDocumentHeader: RecordRef)
     var
         CFDIRelation: Code[10];

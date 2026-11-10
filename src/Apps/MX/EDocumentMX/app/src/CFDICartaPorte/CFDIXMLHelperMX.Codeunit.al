@@ -9,6 +9,8 @@ using System.Xml;
 
 codeunit 3361 "CFDI XML Helper MX"
 {
+    Access = Internal;
+
     procedure AddElement(var XMLNode: XmlNode; NodeName: Text; NodeText: Text; NamespaceURI: Text; var CreatedXmlNode: XmlNode): Boolean
     begin
         if not XMLNode.IsXmlElement() then

@@ -23,6 +23,7 @@ using System.Xml;
 
 codeunit 3356 "MX Payment Complement Builder"
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata "MX Payment Complement" = r;

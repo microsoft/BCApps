@@ -17,39 +17,6 @@ codeunit 3355 "Interfactura Processing"
     Access = Internal;
     Permissions = tabledata "MX Payment Complement" = r;
 
-    var
-        InterfacturaSetup: Record "MX Connection Setup";
-        ConnectionSetupErr: Label 'You must enable Interfactura Setup.';
-        BatchSoapRequestMsg: Label 'Sending batch soap request of type %1', Locked = true;
-        NoResponseErr: Label 'Remote service did not provide a response. Open Interfactura Setup page and make sure that the Document Registration Endpoint and the certificate are correctly specified and try again.';
-        NoResponseTelemetryErr: Label 'Could not get response.', Locked = true;
-        CommunicationErr: Label 'Remote service returned an unexpected response: %1.', Comment = '%1 is the error message.';
-        BatchSoapRequestSuccMsg: Label 'Batch soap request of type %1 successfully executed', Locked = true;
-        FeatureNameTxt: Label 'Interfactura Document Registration';
-        EmptyRequestLbl: Label 'The request is empty.';
-        PaymentComplementReversedErr: Label 'The payment complement was not sent because the payment has been unapplied.';
-        ParseErr: Label 'Failed to parse document from Interfactura API';
-        MissingPACWebServiceDetailErr: Label 'PAC Web Service Detail for %1 is missing or incomplete.';
-        MissingStampedDataErr: Label 'No stamped CFDI data was found for this document. Cancellation requires a stamped UUID.';
-        InvalidStatusForCancellationErr: Label 'The document cannot be cancelled because it has status %1.', Comment = '%1 = current service status';
-        MissingCancelRequestErr: Label 'The cancellation request could not be generated.';
-        CFDIServiceNameTxt: Label 'CFDI', Locked = true;
-        MXEDocumentTelemetry: Codeunit "MX E-Document Telemetry";
-        EDocumentKindTok: Label 'E-Document', Locked = true;
-        CancelOnTimeExpirationTok: Label 'Cancel on Time Expiration', Locked = true;
-        StampRequestedMsg: Label 'Sending stamp request for E-Document %1.', Locked = true;
-        StampSuccessMsg: Label 'Stamp request successful for E-Document %1.', Locked = true;
-        StampFailedMsg: Label 'Stamp request failed for E-Document %1: %2', Locked = true;
-        CancelRequestedMsg: Label 'Cancellation request submitted for E-Document %1.', Locked = true;
-        CancelSuccessMsg: Label 'Cancellation succeeded for E-Document %1.', Locked = true;
-        PaymentStampRequestedMsg: Label 'Sending payment complement stamp request.', Locked = true;
-        PaymentStampSuccessMsg: Label 'Payment complement stamp request successful.', Locked = true;
-        PaymentStampFailedMsg: Label 'Payment complement stamp request failed: %1', Locked = true;
-        SecurityAuditPACRejectedTxt: Label 'PAC rejected CFDI stamp request for E-Document %1: %2', Locked = true, Comment = '%1 - E-Document entry no, %2 - PAC error';
-        SecurityAuditCancelRequestedTxt: Label 'CFDI cancellation request submitted for E-Document %1.', Locked = true, Comment = '%1 - E-Document entry no';
-        CheckCancellationStatusMsg: Label 'Checking cancellation status for E-Document %1.', Locked = true;
-
-
     procedure SendEDocument(var TempBlob: Codeunit "Temp Blob"; var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var SendContext: Codeunit SendContext)
     var
         EDocCFDIEmailMX: Codeunit "EDoc CFDI Email MX";
@@ -710,4 +677,36 @@ codeunit 3355 "Interfactura Processing"
         SubstitutionUUID := CancelReasonDlg.GetSubstitutionUUID();
         exit(true);
     end;
+
+    var
+        InterfacturaSetup: Record "MX Connection Setup";
+        ConnectionSetupErr: Label 'You must enable Interfactura Setup.';
+        BatchSoapRequestMsg: Label 'Sending batch soap request of type %1', Locked = true;
+        NoResponseErr: Label 'Remote service did not provide a response. Open Interfactura Setup page and make sure that the Document Registration Endpoint and the certificate are correctly specified and try again.';
+        NoResponseTelemetryErr: Label 'Could not get response.', Locked = true;
+        CommunicationErr: Label 'Remote service returned an unexpected response: %1.', Comment = '%1 is the error message.';
+        BatchSoapRequestSuccMsg: Label 'Batch soap request of type %1 successfully executed', Locked = true;
+        FeatureNameTxt: Label 'Interfactura Document Registration';
+        EmptyRequestLbl: Label 'The request is empty.';
+        PaymentComplementReversedErr: Label 'The payment complement was not sent because the payment has been unapplied.';
+        ParseErr: Label 'Failed to parse document from Interfactura API';
+        MissingPACWebServiceDetailErr: Label 'PAC Web Service Detail for %1 is missing or incomplete.';
+        MissingStampedDataErr: Label 'No stamped CFDI data was found for this document. Cancellation requires a stamped UUID.';
+        InvalidStatusForCancellationErr: Label 'The document cannot be cancelled because it has status %1.', Comment = '%1 = current service status';
+        MissingCancelRequestErr: Label 'The cancellation request could not be generated.';
+        CFDIServiceNameTxt: Label 'CFDI', Locked = true;
+        MXEDocumentTelemetry: Codeunit "MX E-Document Telemetry";
+        EDocumentKindTok: Label 'E-Document', Locked = true;
+        CancelOnTimeExpirationTok: Label 'Cancel on Time Expiration', Locked = true;
+        StampRequestedMsg: Label 'Sending stamp request for E-Document %1.', Locked = true;
+        StampSuccessMsg: Label 'Stamp request successful for E-Document %1.', Locked = true;
+        StampFailedMsg: Label 'Stamp request failed for E-Document %1: %2', Locked = true;
+        CancelRequestedMsg: Label 'Cancellation request submitted for E-Document %1.', Locked = true;
+        CancelSuccessMsg: Label 'Cancellation succeeded for E-Document %1.', Locked = true;
+        PaymentStampRequestedMsg: Label 'Sending payment complement stamp request.', Locked = true;
+        PaymentStampSuccessMsg: Label 'Payment complement stamp request successful.', Locked = true;
+        PaymentStampFailedMsg: Label 'Payment complement stamp request failed: %1', Locked = true;
+        SecurityAuditPACRejectedTxt: Label 'PAC rejected CFDI stamp request for E-Document %1: %2', Locked = true, Comment = '%1 - E-Document entry no, %2 - PAC error';
+        SecurityAuditCancelRequestedTxt: Label 'CFDI cancellation request submitted for E-Document %1.', Locked = true, Comment = '%1 - E-Document entry no';
+        CheckCancellationStatusMsg: Label 'Checking cancellation status for E-Document %1.', Locked = true;
 }
