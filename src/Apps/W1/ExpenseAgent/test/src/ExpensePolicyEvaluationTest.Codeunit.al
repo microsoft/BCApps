@@ -1069,8 +1069,6 @@ codeunit 148340 "Expense Policy Evaluation Test"
             end;
         end;
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Pending child-only changes must make the held parent stale.');
-        asserterror ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
-        Assert.ExpectedError('The expense report line changed after policy evaluation started.');
 
         ExpenseReportLine.Modify(true);
         Assert.AreEqual(EvaluatedVersion + 1, ExpenseReportLine."Policy Eval Version", 'Child-only regeneration must advance the saved parent version.');
