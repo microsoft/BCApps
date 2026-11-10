@@ -35,6 +35,7 @@ codeunit 135024 "Data Migration Notifier Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ListEmptySendNotificationHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure ItemListNotificationNotShownWhenGLEntriesExist()
     var
@@ -54,11 +55,12 @@ codeunit 135024 "Data Migration Notifier Tests"
         ItemList.OpenView();
         ItemList.Close();
 
-        // [THEN] No notification is sent (an unexpected notification would fail the test as no handler is defined)
+        // [THEN] No notification is sent
         Assert.IsFalse(ListEmptyNotificationSent, 'The list empty notification should not be sent.');
     end;
 
     [Test]
+    [HandlerFunctions('ListEmptySendNotificationHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure ItemListNotificationNotShownWhenItemsExist()
     var
