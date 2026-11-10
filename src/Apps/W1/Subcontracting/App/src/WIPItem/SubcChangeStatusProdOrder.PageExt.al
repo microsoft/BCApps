@@ -24,7 +24,7 @@ pageextension 20544 "Subc.Change Status Prod. Order" extends "Change Status on P
 
     trigger OnOpenPage()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -35,7 +35,7 @@ pageextension 20544 "Subc.Change Status Prod. Order" extends "Change Status on P
 
     trigger OnAfterGetCurrRecord()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -49,7 +49,7 @@ pageextension 20544 "Subc.Change Status Prod. Order" extends "Change Status on P
 
     var
         ProductionOrder: Record "Production Order";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -58,7 +58,7 @@ pageextension 20544 "Subc.Change Status Prod. Order" extends "Change Status on P
 
     procedure ReturnSubWIPQuantityCleanUp(): Boolean
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -69,7 +69,7 @@ pageextension 20544 "Subc.Change Status Prod. Order" extends "Change Status on P
 
     procedure SubcSetOrder(var ProductionOrderForStatusChange: Record "Production Order")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -81,7 +81,7 @@ pageextension 20544 "Subc.Change Status Prod. Order" extends "Change Status on P
 
     procedure SubcGetOrder() ProductionOrderForStatusChange: Record "Production Order"
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

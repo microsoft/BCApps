@@ -13,7 +13,7 @@ using Microsoft.Purchases.Vendor;
 
 codeunit 20561 "Subc. Routing Factbox Mgmt."
 {
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -29,7 +29,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         WorkCenter: Record "Work Center";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -52,7 +52,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
         Vendor: Record Vendor;
         WorkCenter: Record "Work Center";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -74,7 +74,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         PurchaseLine: Record "Purchase Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -97,7 +97,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         PurchaseLine: Record "Purchase Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -120,7 +120,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -142,7 +142,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -164,7 +164,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         PurchInvLine: Record "Purch. Inv. Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -186,7 +186,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         PurchInvLine: Record "Purch. Inv. Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -209,7 +209,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         TransferLine: Record "Transfer Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -235,7 +235,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         TransferLine: Record "Transfer Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -259,7 +259,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         TransferLine: Record "Transfer Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -282,7 +282,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         TransferLine: Record "Transfer Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -305,7 +305,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         ProdOrderComponent: Record "Prod. Order Component";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -329,7 +329,7 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
     var
         ProdOrderComponent: Record "Prod. Order Component";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

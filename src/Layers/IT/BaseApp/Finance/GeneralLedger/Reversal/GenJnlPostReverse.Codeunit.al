@@ -62,6 +62,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     var
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+        ReversalGLRegisterNo: Integer;
         ReversalMismatchErr: Label 'Reversal found a %1 without a matching general ledger entry.', Comment = '%1 - table caption';
         CannotReverseErr: Label 'You cannot reverse the transaction, because it has already been reversed.';
         DimCombBlockedErr: Label 'The combination of dimensions used in general ledger entry %1 is blocked. %2.', Comment = '%1 - entry no, %2 - error text';
@@ -143,6 +144,8 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnReverseOnAfterStartPosting(GenJournalLine, GenJnlPostLine, GLRegister, GLRegister2);
 
         GenJnlPostLine.SetGLRegReverse(GLRegister);
+        ReversalGLRegisterNo := GLRegister."No.";
+        FAInsertLedgerEntry.SetGLRegisterNo(GLRegister."No.");
 
         CopyCustLedgEntry(CustLedgerEntry, TempCustLedgerEntry);
         CopyVendLedgEntry(VendorLedgerEntry, TempVendorLedgerEntry);
@@ -366,6 +369,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnReverseCustLedgEntryOnBeforeModifyCustLedgerEntry(NewCustLedgerEntry, CustLedgerEntry);
         CustLedgerEntry.Modify();
         OnReverseCustLedgEntryOnBeforeInsertCustLedgEntry(NewCustLedgerEntry, CustLedgerEntry, GenJnlPostLine);
+        NewCustLedgerEntry."G/L Register No." := ReversalGLRegisterNo;
         NewCustLedgerEntry.Insert();
         OnReverseCustLedgEntryOnAfterInsertCustLedgEntry(NewCustLedgerEntry, CustLedgerEntry, GenJnlPostLine);
 
@@ -447,6 +451,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         VendorLedgerEntry.Reversed := true;
         VendorLedgerEntry.Modify();
         OnReverseVendLedgEntryOnBeforeInsertVendLedgEntry(NewVendorLedgerEntry, VendorLedgerEntry, GenJnlPostLine);
+        NewVendorLedgerEntry."G/L Register No." := ReversalGLRegisterNo;
         NewVendorLedgerEntry.Insert();
         OnReverseVendLedgEntryOnAfterInsertVendLedgEntry(NewVendorLedgerEntry);
 
@@ -517,6 +522,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         EmployeeLedgerEntry.Reversed := true;
         EmployeeLedgerEntry.Modify();
         OnReverseEmplLedgEntryOnBeforeInsertEmplLedgEntry(NewEmployeeLedgerEntry, EmployeeLedgerEntry);
+        NewEmployeeLedgerEntry."G/L Register No." := ReversalGLRegisterNo;
         NewEmployeeLedgerEntry.Insert();
 
         if NextDtldEmplLedgEntryNo = 0 then begin
@@ -590,6 +596,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         BankAccountLedgerEntry.Reversed := true;
         BankAccountLedgerEntry.Modify();
         OnReverseBankAccLedgEntryOnBeforeInsert(NewBankAccountLedgerEntry, BankAccountLedgerEntry, GenJnlPostLine);
+        NewBankAccountLedgerEntry."G/L Register No." := ReversalGLRegisterNo;
         NewBankAccountLedgerEntry.Insert(true);
     end;
 
@@ -633,6 +640,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 NewVATEntry."Source Code" := SourceCode;
                 NewVATEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewVATEntry."User ID"));
                 NewVATEntry."Entry No." := GenJnlPostLine.GetNextVATEntryNo();
+                NewVATEntry."G/L Register No." := ReversalGLRegisterNo;
                 NewVATEntry."Reversed Entry No." := VATEntry."Entry No.";
                 NewVATEntry.Reversed := true;
                 // Reversal of Reversal
