@@ -111,10 +111,10 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
     var
         MXConnectionSetupCard: Page "Interfactura Connection Setup";
     begin
-        MXEDocumentFeature.CheckEnabled();
-
         if EDocumentService."Service Integration V2" <> EDocumentService."Service Integration V2"::"Interfactura Service" then
             exit;
+
+        MXEDocumentFeature.CheckEnabled();
 
         MXConnectionSetupCard.RunModal();
         IsServiceIntegrationSetupRun := true;

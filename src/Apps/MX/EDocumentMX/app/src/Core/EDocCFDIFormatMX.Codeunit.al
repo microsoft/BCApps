@@ -184,10 +184,10 @@ codeunit 3352 "EDoc CFDI MX" implements "E-Document"
         MXEDocumentFeature: Codeunit "MX E-Document Feature";
         MXEDocumentTelemetry: Codeunit "MX E-Document Telemetry";
     begin
-        MXEDocumentFeature.CheckEnabled();
-
         if Rec."Document Format" <> Rec."Document Format"::CFDI then
             exit;
+
+        MXEDocumentFeature.CheckEnabled();
 
         EnsureSupportedTypes(Rec.Code);
         MXEDocumentTelemetry.LogServiceSetUp();

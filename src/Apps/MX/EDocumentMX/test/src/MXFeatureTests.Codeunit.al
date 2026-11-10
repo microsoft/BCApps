@@ -52,11 +52,11 @@ codeunit 148760 "MX Feature Tests"
         MXFeatureTestHelper.DisableFeature();
 
         // [WHEN] The Interfactura integration is selected
-        EDocumentService.Validate("Service Integration V2", EDocumentService."Service Integration V2"::"Interfactura Service");
+        asserterror EDocumentService.Validate("Service Integration V2", EDocumentService."Service Integration V2"::"Interfactura Service");
         MXFeatureTestHelper.EnableFeature();
 
-        // [THEN] The selected integration is not applied while the feature is disabled
-        Assert.IsFalse(EDocumentService."Service Integration V2" = EDocumentService."Service Integration V2"::"Interfactura Service", 'The Interfactura integration should not be selected when the feature is disabled.');
+        // [THEN] The preview feature error is raised
+        Assert.ExpectedError('E-Document for Mexico is in preview. It can only be used in sandbox environments where the feature is enabled in Feature Management.');
     end;
 
     [Test]
@@ -114,6 +114,6 @@ codeunit 148760 "MX Feature Tests"
     [ModalPageHandler]
     procedure FeatureDisabledModalPageHandler(var FeatureDisabledPage: TestPage 1820)
     begin
-        // The page is automatically closed by the framework; this handler only consumes the UI.
+        FeatureDisabledPage.Accept.Invoke();
     end;
 }
