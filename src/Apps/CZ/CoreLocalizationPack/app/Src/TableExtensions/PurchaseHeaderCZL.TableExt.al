@@ -60,7 +60,6 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
                         ConfirmVATCurrencyFactorUpdateCZL();
                 end;
                 OnValidateVATDateOnAfterCheckNeedUpdateVATCurrencyFactorCZL(Rec, xRec, NeedUpdateVATCurrencyFactor);
-
                 if "VAT Reporting Date" <> xRec."VAT Reporting Date" then
                     UpdateNonDeductVATAmountsByFieldNo(FieldNo("VAT Reporting Date"), CurrFieldNo <> 0);
             end;
@@ -113,7 +112,8 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
         field(11720; "Bank Account Code CZL"; Code[20])
         {
             Caption = 'Bank Account Code';
-            TableRelation = if ("Document Type" = filter(Quote | Order | Invoice | "Blanket Order")) "Vendor Bank Account".Code where("Vendor No." = field("Pay-to Vendor No.")) else
+            TableRelation =
+            if ("Document Type" = filter(Quote | Order | Invoice | "Blanket Order")) "Vendor Bank Account".Code where("Vendor No." = field("Pay-to Vendor No.")) else
             if ("Document Type" = filter("Credit Memo" | "Return Order")) "Bank Account";
             DataClassification = CustomerContent;
 
@@ -196,6 +196,7 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
             Editable = false;
             TableRelation = "SWIFT Code";
             DataClassification = CustomerContent;
+            ValidateTableRelation = false;
         }
         field(11750; "Additional Currency Factor CZL"; Decimal)
         {
@@ -381,12 +382,10 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
         OnBeforeUpdateVATCurrencyFactorCZLByCurrencyFactorCZL(Rec, xRec, IsHandled);
         if IsHandled then
             exit;
-
         if "Currency Code" = '' then begin
             "VAT Currency Factor CZL" := 0;
             exit;
         end;
-
         if ("Currency Factor" <> xRec."Currency Factor") and
            ("Currency Factor" <> "VAT Currency Factor CZL") and
            ("VAT Reporting Date" = xRec."VAT Reporting Date") and
@@ -412,7 +411,6 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
         OnBeforeUpdateAddCurrencyFactorCZL(Rec, CurrencyExchangeRate, IsHandled);
         if IsHandled then
             exit;
-
         if GeneralLedgerSetup.IsAdditionalCurrencyEnabledCZL() then begin
             if "Posting Date" <> 0D then
                 CurrencyDate := "Posting Date"
@@ -436,13 +434,11 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
         OnBeforeUpdateVATCurrencyFactorCZL(Rec, IsUpdated, CurrencyExchangeRate);
         if IsUpdated then
             exit;
-
         if "Currency Code" <> '' then begin
             if "VAT Reporting Date" <> 0D then
                 CurrencyDate := "VAT Reporting Date"
             else
                 CurrencyDate := WorkDate();
-
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, "Currency Code") then
                 "VAT Currency Factor CZL" := CurrencyExchangeRate.ExchangeRate(CurrencyDate, "Currency Code")
             else
@@ -463,7 +459,6 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
         OnBeforeConfirmUpdateAddCurrencyFactorCZL(Rec, xRec, HideValidationDialog, IsHandled, ForceConfirm);
         if IsHandled then
             exit;
-
         if GetHideValidationDialog() or not GuiAllowed or ForceConfirm then
             IsConfirmedCZL := true
         else
@@ -539,7 +534,6 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
     begin
         if not NonDeductibleVATCZL.IsNonDeductibleVATEnabled() then
             exit;
-
         if not PurchLinesWithNonDeductVATExist() then
             exit;
 
