@@ -361,6 +361,7 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
         // [SCENARIO 184721] Create an order both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
         Initialize();
 
+        LibraryGraphMgt.SetApiSessionWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         // [GIVEN] a customer
@@ -406,8 +407,6 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
         PageSalesHeader.Get(PageSalesHeader."Document Type"::Order, SalesOrder."No.".VALUE());
         ApiRecordRef.GetTable(ApiSalesHeader);
         PageRecordRef.GetTable(PageSalesHeader);
-        LibraryGraphMgt.AddFieldToIgnoreIfExists(
-            TempIgnoredFieldsForComparison, DATABASE::"Sales Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API order do not match');

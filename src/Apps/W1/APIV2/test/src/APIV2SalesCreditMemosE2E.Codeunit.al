@@ -305,7 +305,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         // [SCENARIO] Create an credit memo both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted credit memo
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        LibraryGraphMgt.SetApiSessionWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         LibrarySales.CreateCustomer(SellToCustomer);
@@ -984,8 +984,6 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
 
         SalesHeader1RecordRef.GetTable(SalesHeader1);
         SalesHeader2RecordRef.GetTable(SalesHeader2);
-        LibraryGraphMgt.AddFieldToIgnoreIfExists(
-            TempIgnoredFieldsForComparison, Database::"Sales Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(
           SalesHeader1RecordRef, SalesHeader2RecordRef, TempIgnoredFieldsForComparison, 'Credit Memos do not match');

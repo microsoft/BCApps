@@ -349,6 +349,7 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         // [SCENARIO] Create a quote both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
         Initialize();
 
+        LibraryGraphMgt.SetApiSessionWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         // [GIVEN] a customer
@@ -390,11 +391,6 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         PageSalesHeader.Get(PageSalesHeader."Document Type"::Quote, SalesQuote."No.".VALUE());
         ApiRecordRef.GETTABLE(ApiSalesHeader);
         PageRecordRef.GETTABLE(PageSalesHeader);
-        LibraryGraphMgt.AddFieldToIgnoreIfExists(
-            TempIgnoredFieldsForComparison, DATABASE::"Sales Header", 'Operation Occurred Date');
-        LibraryGraphMgt.AddFieldToIgnoreIfExists(
-            TempIgnoredFieldsForComparison, DATABASE::"Sales Header", 'VAT Reporting Date');
-
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API quote do not match');
     end;
