@@ -5,10 +5,8 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-#if not DEVELOPMENT
 #if not CLEAN30
 using System.Azure.Identity;
-#endif
 #endif
 
 codeunit 3339 "PA V1V2 Flag"
@@ -19,35 +17,18 @@ codeunit 3339 "PA V1V2 Flag"
     Permissions = tabledata "Payables Agent Setup" = R;
 
     var
-#if DEVELOPMENT
-        DevelopmentSettings: Codeunit "PA Development Settings";
-#endif
         AmbiguousIdentityErr: Label 'Work item %1 is stored as both a version 1 and a version 2 work item.', Comment = '%1 = Work Item ID';
-#if not DEVELOPMENT
 #if not CLEAN30
         PreviewTenantIdTok: Label 'f0ac72d1-c1b3-4c2a-a196-8fb82cac5934', Locked = true;
 #endif
-#endif
 
-    // Development: an evaluation override wins, otherwise the development setting applies.
-    // Production: V2 is active only for the designated preview tenant when its setup selects the V2 preview.
+    // V2 is active only for the designated preview tenant when its setup selects the V2 preview.
     internal procedure IsV2Active(): Boolean
-#if DEVELOPMENT
-    var
-        EvaluationVersion: Integer;
-#endif
     begin
-#if DEVELOPMENT
-        EvaluationVersion := DevelopmentSettings.EnsureSettingsAndGetEvaluationVersionOverride();
-        if EvaluationVersion <> 0 then
-            exit(EvaluationVersion = 2);
-        exit(DevelopmentSettings.EnsureSettingsAndGetV2Enabled());
-#else
 #if not CLEAN30
         exit(IsV2PreviewSelectedInPreviewTenant());
 #else
         exit(false);
-#endif
 #endif
     end;
 
@@ -71,7 +52,6 @@ codeunit 3339 "PA V1V2 Flag"
         exit(0);
     end;
 
-#if not DEVELOPMENT
 #if not CLEAN30
 #pragma warning disable AL0432
     local procedure IsV2PreviewSelectedInPreviewTenant(): Boolean
@@ -86,6 +66,5 @@ codeunit 3339 "PA V1V2 Flag"
         exit(Setup."Preview Version" = Setup."Preview Version"::"V2 Preview");
     end;
 #pragma warning restore AL0432
-#endif
 #endif
 }

@@ -121,7 +121,7 @@ Work Item identity is the SystemId of its stored record: the existing E-Document
 The current agent session has one home, `PA Agent Access` (Shared/Security), with two deliberately separate questions:
 
 - `TryGetRuntimeAgentTaskId`: the real Payables Agent runtime only. Billing, KPI, V1 document binding and `PA Work Item.LoadCurrentSession` use it; they must never act on a simulation.
-- `TryGetAgentViewTaskId` / `IsAgentView`: what agent-facing UI behaves as. In DEVELOPMENT this falls back to the development settings' simulated agent task, so the work item list and counts, the V1 current E-Document scoping, agent-only actions and hidden supervisor actions match a real agent session. Simulation without a task sees no work items. Runtime association validates company, PA ownership and exactly one stored record. V1 retains its existing numeric external/message correlation; no E-Document copying or identity migration is introduced. V2 keeps its stored association and admission fields. Missing V1 tasks are not reinterpreted as historical policy rejection.
+- `TryGetAgentViewTaskId` / `IsAgentView`: what agent-facing UI behaves as. Runtime association validates company, PA ownership and exactly one stored record. V1 retains its existing numeric external/message correlation; no E-Document copying or identity migration is introduced. V2 keeps its stored association and admission fields. Missing V1 tasks are not reinterpreted as historical policy rejection.
 
 `PA Work Item Intake` coordinates source acquisition, admission policy, runtime instructions, trial/billing and framework task construction. `ReceivePdf` and `Admit` use the same Work Item handle before and after acceptance. V1 import orchestration stays in its compatibility flow; its subscriber invokes authoritative admission. The entity's association/rejection commands preserve stored-record invariants without importing documents, consuming trial, creating runtime tasks or committing.
 
@@ -195,7 +195,6 @@ Operations/
 
 TestSupport/                            App-owned semantic fixture API and version dispatch for test apps
 
-_Development/                           DEVELOPMENT-only objects (underscore retained)
 _Obsolete/                              Whole-object obsoletion only; active owners retain obsolete members
 .resources/
 ```

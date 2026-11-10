@@ -17,11 +17,6 @@ codeunit 3350 "PA Agent Access"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-#if DEVELOPMENT
-    var
-        DevelopmentSettings: Codeunit "PA Development Settings";
-
-#endif
     #region Current agent session
     // Real Payables Agent runtime only. Billing, KPI and document binding must never act on a simulation.
     internal procedure TryGetRuntimeAgentTaskId(var AgentTaskId: BigInteger): Boolean
@@ -42,11 +37,7 @@ codeunit 3350 "PA Agent Access"
     begin
         if TryGetRuntimeAgentTaskId(AgentTaskId) then
             exit(true);
-#if DEVELOPMENT
-        exit(DevelopmentSettings.TryGetSimulatedAgentTaskId(AgentTaskId));
-#else
         exit(false);
-#endif
     end;
 
     internal procedure IsAgentView(): Boolean

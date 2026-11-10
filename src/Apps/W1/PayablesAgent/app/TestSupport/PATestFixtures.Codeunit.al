@@ -23,9 +23,6 @@ codeunit 3326 "PA Test Fixtures"
     var
         PASetupUpdate: Codeunit "PA Setup Update";
         Versions: Codeunit "PA V1V2 Flag";
-#if DEVELOPMENT
-        DevelopmentSettings: Codeunit "PA Development Settings";
-#endif
         TaskNotFoundErr: Label 'Agent task %1 does not work on a Payables Agent work item.', Locked = true;
         VendorNotFoundErr: Label 'Vendor not found for the given name %1', Locked = true;
         AccountNotFoundErr: Label 'Account not found for the given code %1', Locked = true;
@@ -33,9 +30,7 @@ codeunit 3326 "PA Test Fixtures"
         PurchaseLinesNotFoundErr: Label 'No purchase invoice lines were found for purchase invoice %1.', Locked = true;
         UnexpectedOutcomeErr: Label 'The task outcome %1 is not an existing purchase invoice.', Locked = true;
         UnknownEvaluationVersionErr: Label 'An evaluation must select version 1 or version 2 of the Payables Agent.';
-#if not DEVELOPMENT
         EvaluationVersionUnavailableErr: Label 'Payables Agent version %1 is not available in this environment.', Comment = '%1 = Payables Agent version';
-#endif
 
     internal procedure EnsureActivatedAndReceivePdf(FileName: Text; PdfInStream: InStream; var WorkItem: Codeunit "PA Work Item"): Boolean
     var
@@ -190,16 +185,12 @@ codeunit 3326 "PA Test Fixtures"
 
     /// <summary>
     /// Selects the Payables Agent version for the evaluation run; the persisted choice is visible to the agent's runtime sessions.
-    /// DEVELOPMENT persists an override over the development setting. Production uses the V2 preview opt-in, which only
-    /// takes effect in the designated preview tenant; requesting V2 elsewhere fails instead of silently evaluating V1.
+    /// It uses the V2 preview opt-in, which only takes effect in the designated preview tenant; requesting V2 elsewhere fails instead of silently evaluating V1.
     /// </summary>
     internal procedure PrepareEvaluationVersion(Version: Integer)
     begin
         if not (Version in [1, 2]) then
             Error(UnknownEvaluationVersionErr);
-#if DEVELOPMENT
-        DevelopmentSettings.SetEvaluationVersionOverride(Version);
-#else
 #if not CLEAN30
         SetV2PreviewSelected(Version = 2);
         if Versions.IsV2Active() <> (Version = 2) then
@@ -208,7 +199,6 @@ codeunit 3326 "PA Test Fixtures"
         if Version <> 1 then
             Error(EvaluationVersionUnavailableErr, Version);
 #endif
-#endif
     end;
 
     /// <summary>
@@ -216,15 +206,11 @@ codeunit 3326 "PA Test Fixtures"
     /// </summary>
     internal procedure GetPreparedEvaluationVersion(): Integer
     begin
-#if DEVELOPMENT
-        exit(DevelopmentSettings.EnsureSettingsAndGetEvaluationVersionOverride());
-#else
 #if not CLEAN30
         if IsV2PreviewSelected() then
             exit(2);
 #endif
         exit(0);
-#endif
     end;
 
     /// <summary>
@@ -234,16 +220,11 @@ codeunit 3326 "PA Test Fixtures"
     internal procedure ResetEvaluationState()
     begin
         DeleteAllTaskAndEDocumentDataForEvaluation();
-#if DEVELOPMENT
-        DevelopmentSettings.ClearEvaluationVersionOverride();
-#else
 #if not CLEAN30
         SetV2PreviewSelected(false);
 #endif
-#endif
     end;
 
-#if not DEVELOPMENT
 #if not CLEAN30
 #pragma warning disable AL0432
     local procedure SetV2PreviewSelected(Selected: Boolean)
@@ -267,7 +248,6 @@ codeunit 3326 "PA Test Fixtures"
         exit(Setup."Preview Version" = Setup."Preview Version"::"V2 Preview");
     end;
 #pragma warning restore AL0432
-#endif
 #endif
 
     /// <summary>
