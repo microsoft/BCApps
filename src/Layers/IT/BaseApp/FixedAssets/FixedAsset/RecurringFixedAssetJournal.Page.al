@@ -538,3 +538,4 @@ page 5634 "Recurring Fixed Asset Journal"
     begin
     end;
 }
+
