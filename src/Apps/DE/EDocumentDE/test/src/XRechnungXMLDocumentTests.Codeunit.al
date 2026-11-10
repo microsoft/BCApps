@@ -2197,6 +2197,28 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyCustomerRegistrationNo()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        RegistrationNo: Text[50];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 652557] Customer Registration No. is exported as the legal entity identifier when GLN and VAT ID are unavailable
+        Initialize();
+
+        // [GIVEN] A customer with a Registration No. longer than 20 characters but no GLN or VAT ID
+        RegistrationNo := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(30, 0), 1, MaxStrLen(RegistrationNo));
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithRegistrationNo(RegistrationNo));
+
+        // [WHEN] Export XRechnung electronic document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Customer legal entity identifier contains the Registration No.
+        Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, CustomerLegalEntityIdTok), StrSubstNo(IncorrectValueErr, CustomerLegalEntityIdTok));
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceWithDirectDebitInXRechnungFormatVerifySupplierRegistrationNo()
     var
         SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
@@ -4674,6 +4696,23 @@ codeunit 13918 "XRechnung XML Document Tests"
         CreateSalesHeader(SalesHeader, DocumentType, Customer."No.");
         CreateSalesLine(SalesHeader, LineType, false);
         exit(SalesHeader."No.");
+    end;
+
+    local procedure CreateAndPostSalesInvoiceForCustomerWithRegistrationNo(RegistrationNo: Text[50]): Code[20]
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+    begin
+        Customer.Get(CreateCustomer());
+        Customer.GLN := '';
+        Customer."Use GLN in Electronic Document" := false;
+        Customer."VAT Registration No." := '';
+        Customer."Registration Number" := RegistrationNo;
+        Customer."Use Reg. No. in E-Document" := true;
+        Customer.Modify(true);
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, Customer."No.");
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
     local procedure ExportInvoice(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);

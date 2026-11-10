@@ -42,6 +42,7 @@ codeunit 10250 "Bulk Vendor Remit Reporting"
         JoinDatabaseFieldName: Text;
     begin
         GenJournalLine.SetFilter("Check Exported", '=FALSE');
+        GenJournalLine.SetCurrentKey("Journal Template Name", "Journal Batch Name", "Line No.");
 
         GenJournalLineRecRef.GetTable(GenJournalLine);
         GenJournalLineRecRef.SetView(GenJournalLine.GetView());

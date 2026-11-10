@@ -60,6 +60,14 @@ table 317 "Payable Vendor Ledger Entry"
         field(10800; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ObsoleteReason = 'Use Due Date FR in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
     }
 
@@ -69,13 +77,14 @@ table 317 "Payable Vendor Ledger Entry"
         {
             Clustered = true;
         }
+#if not CLEAN30
         key(Key2; "Vendor No.", "Due Date")
         {
         }
+#endif
     }
 
     fieldgroups
     {
     }
 }
-

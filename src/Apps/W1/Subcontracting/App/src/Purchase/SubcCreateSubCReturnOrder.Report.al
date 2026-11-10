@@ -60,7 +60,7 @@ report 20502 "Subc. Create SubCReturnOrder"
         }
     }
 
-#if not CLEAN29
+#if not CLEAN28
     trigger OnInitReport()
     var
 #pragma warning disable AL0432
