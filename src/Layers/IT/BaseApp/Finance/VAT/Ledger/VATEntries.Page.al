@@ -377,21 +377,31 @@ page 315 "VAT Entries"
                     Window: Dialog;
                     BucketIndex: Integer;
                     SizeOfBucket: Integer;
+                    FirstEntryNo: Integer;
                     LastEntryNo: Integer;
                     NoOfBuckets: Integer;
                 begin
                     SizeOfBucket := 1000;
 
-                    if not VATEntry.FindLast() then
+                    CurrPage.SetSelectionFilter(VATEntry);
+                    VATEntry.SetCurrentKey("Entry No.");
+                    VATEntry.SetLoadFields("Entry No.");
+                    if not VATEntry.FindFirst() then
                         exit;
+                    FirstEntryNo := VATEntry."Entry No.";
+                    VATEntry.FindLast();
+                    LastEntryNo := VATEntry."Entry No.";
+                    VATEntry.SetLoadFields();
 
                     Window.Open(AdjustTitleMsg + ProgressMsg);
 
-                    LastEntryNo := VATEntry."Entry No.";
-                    NoOfBuckets := LastEntryNo div SizeOfBucket + 1;
+                    NoOfBuckets := (LastEntryNo - FirstEntryNo) div SizeOfBucket + 1;
 
                     for BucketIndex := 1 to NoOfBuckets do begin
-                        VATEntry.SetRange("Entry No.", (BucketIndex - 1) * SizeOfBucket, BucketIndex * SizeOfBucket);
+                        // Bucket range goes into a separate filter group so it does not replace an "Entry No." filter coming from the selection.
+                        VATEntry.FilterGroup(10);
+                        VATEntry.SetRange("Entry No.", FirstEntryNo + (BucketIndex - 1) * SizeOfBucket, FirstEntryNo + BucketIndex * SizeOfBucket - 1);
+                        VATEntry.FilterGroup(0);
                         VATEntry.SetGLAccountNo(false);
                         Commit();
                         Window.Update(2, Round(BucketIndex / NoOfBuckets * 10000, 1));
