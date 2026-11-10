@@ -69,4 +69,31 @@ page 48502 "Fabric API Tables"
         ActionContext.AddEntityKey(TenantFabricTables.FieldNo(SystemId), TenantFabricTables.SystemId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Created);
     end;
+
+    [ServiceEnabled]
+    [Caption('Remove the table from Fabric mirroring')]
+    [Scope('Cloud')]
+    procedure RemoveTable(var ActionContext: WebServiceActionContext)
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        FabricPlatformMgt.RemoveTable(Rec."Table ID");
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Fabric API Tables");
+        ActionContext.SetResultCode(WebServiceActionResultCode::Deleted);
+    end;
+
+    [ServiceEnabled]
+    [Caption('Reset the table so the next run sends a full snapshot')]
+    [Scope('Cloud')]
+    procedure ResetTable(var ActionContext: WebServiceActionContext)
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        FabricPlatformMgt.ResetTable(Rec."Table ID");
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Fabric API Tables");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
 }
