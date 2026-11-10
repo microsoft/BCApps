@@ -85,7 +85,8 @@ table 6788 "Withholding Tax Entry"
         field(12; "Bill-to/Pay-to No."; Code[20])
         {
             Caption = 'Bill-to/Pay-to No.';
-            TableRelation = if ("Transaction Type" = const(Purchase)) Vendor
+            TableRelation =
+            if ("Transaction Type" = const(Purchase)) Vendor
             else
             if ("Transaction Type" = const(Sale)) Customer;
         }
@@ -257,7 +258,8 @@ table 6788 "Withholding Tax Entry"
         field(41; "Ship-to/Order Address Code"; Code[10])
         {
             Caption = 'Ship-to/Order Address Code';
-            TableRelation = if ("Transaction Type" = const(Purchase)) "Order Address".Code where("Vendor No." = field("Bill-to/Pay-to No."))
+            TableRelation =
+            if ("Transaction Type" = const(Purchase)) "Order Address".Code where("Vendor No." = field("Bill-to/Pay-to No."))
             else
             if ("Transaction Type" = const(Sale)) "Ship-to Address".Code where("Customer No." = field("Bill-to/Pay-to No."));
         }
@@ -373,7 +375,8 @@ table 6788 "Withholding Tax Entry"
         {
             Caption = 'Employee No.';
             Editable = false;
-            TableRelation = if ("Party Type" = const(Employee)) Employee;
+            TableRelation =
+            if ("Party Type" = const(Employee)) Employee;
         }
         field(102; "Empl. Ledger Entry No."; Integer)
         {
@@ -429,6 +432,13 @@ table 6788 "Withholding Tax Entry"
         field(112; "Taxable Base Amount"; Decimal)
         {
             Caption = 'Taxable Base Amount';
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
+            Editable = false;
+        }
+        field(113; "Threshold Accum. Base Amt."; Decimal)
+        {
+            Caption = 'Threshold Accumulation Base Amount';
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             Editable = false;

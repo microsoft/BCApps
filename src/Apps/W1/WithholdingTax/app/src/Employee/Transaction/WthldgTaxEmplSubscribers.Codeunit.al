@@ -62,7 +62,7 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
         PostEmployeeWithholdingTax(GenJnlLine, TaxAmount, TaxBaseAmount, NextTransactionNo, NextTaxEntryNo, sender);
 
         if (TaxAmount = 0) and (TaxBaseAmount <> 0) then
-            WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, TaxBaseAmount);
+            WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, Abs(GenJnlLine.Amount));
     end;
 
     local procedure PostEmployeeWithholdingTax(GenJnlLine: Record "Gen. Journal Line"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
