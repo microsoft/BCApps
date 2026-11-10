@@ -14,6 +14,8 @@ codeunit 137012 "SCM Costing Sales Returns I"
         LibraryRandom: Codeunit "Library - Random";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryCosting: Codeunit "Library - Costing";
+        LibraryPostInventoryToGL: Codeunit "Library - Post Inventory To GL";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibrarySales: Codeunit "Library - Sales";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -21,6 +23,376 @@ codeunit 137012 "SCM Costing Sales Returns I"
         SalesAmountMustBeSameErr: Label 'Sales Amount must be same.';
         MsgSalesLineTxt: Label 'Sales Line must not exist.';
         CorrectedInvoiceNoQst: Label 'have a Corrected Invoice No. Do you want to continue?';
+
+    [Test]
+    [HandlerFunctions('CostPostingMessageHandler')]
+    procedure SalesReturnUsesMultipleCurrentLotsAfterLotTrackingIsEnabled()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemApplicationEntry: Record "Item Application Entry";
+        ReservationEntry: Record "Reservation Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReturnHeader: Record "Sales Header";
+        SalesReturnLine: Record "Sales Line";
+        OriginalSalesEntryNo: Integer;
+        LotNos: array[3] of Code[50];
+        i: Integer;
+        PostingDate: Date;
+    begin
+        // [FEATURE] [AI test 1.0] [Item Tracking Code Change]
+        // [SCENARIO 435436] A sales return splits one historical untracked entry into multiple current lots.
+        Initialize();
+        PostingDate := WorkDate() - 1;
+        WorkDate(PostingDate);
+
+        // [GIVEN] An untracked item is purchased into inventory and completely sold.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Cost", 1);
+        Item.Modify(true);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", '', '', ArrayLen(LotNos));
+        ItemJournalLine.Validate("Posting Date", PostingDate);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        LibrarySales.CreateSalesOrder(SalesHeader, SalesLine, Item, '', '', ArrayLen(LotNos), PostingDate, 0);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, false);
+        ItemLedgerEntry.FindFirst();
+        OriginalSalesEntryNo := ItemLedgerEntry."Entry No.";
+        Item.CalcFields(Inventory);
+        Item.TestField(Inventory, 0);
+
+        // [GIVEN] Costs are finalized and lot tracking is enabled on the following day.
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+        LibraryPostInventoryToGL.PostInvtCostToGL(Item."No.", PostingDate);
+        WorkDate(PostingDate + 1);
+        Item.Get(Item."No.");
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+        for i := 1 to ArrayLen(LotNos) do
+            LotNos[i] := ItemTrackingCode.Code + Format(i);
+
+        // [WHEN] A return with three current lots is explicitly applied from the single historical sale.
+        LibrarySales.CreateSalesHeader(
+            SalesReturnHeader, SalesReturnHeader."Document Type"::"Return Order", SalesHeader."Sell-to Customer No.");
+        LibrarySales.CreateSalesLine(
+            SalesReturnLine, SalesReturnHeader, SalesReturnLine.Type::Item, Item."No.", ArrayLen(LotNos));
+        for i := 1 to ArrayLen(LotNos) do
+            LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesReturnLine, '', LotNos[i], 1);
+        SalesReturnLine.Validate("Appl.-from Item Entry", OriginalSalesEntryNo);
+        SalesReturnLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesReturnHeader, true, true);
+
+        // [THEN] Three current-lot entries are created and each applies to the historical sale.
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, true);
+        Assert.RecordCount(ItemLedgerEntry, ArrayLen(LotNos));
+        ItemLedgerEntry.FindSet();
+        repeat
+            ItemLedgerEntry.TestField("Serial No.", '');
+            Assert.AreEqual(
+                ItemLedgerEntry.Quantity, ItemLedgerEntry."Remaining Quantity",
+                'The returned quantity must remain available in inventory.');
+            ItemApplicationEntry.SetRange("Inbound Item Entry No.", ItemLedgerEntry."Entry No.");
+            ItemApplicationEntry.SetRange("Outbound Item Entry No.", OriginalSalesEntryNo);
+            ItemApplicationEntry.FindFirst();
+        until ItemLedgerEntry.Next() = 0;
+        for i := 1 to ArrayLen(LotNos) do begin
+            ItemLedgerEntry.SetRange("Lot No.", LotNos[i]);
+            ItemLedgerEntry.FindFirst();
+        end;
+    end;
+
+    [Test]
+    [HandlerFunctions('CostPostingMessageHandler')]
+    procedure SalesReturnUsesCurrentBlankTrackingAfterLotTrackingIsDisabled()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemApplicationEntry: Record "Item Application Entry";
+        ReservationEntry: Record "Reservation Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReturnHeader: Record "Sales Header";
+        SalesReturnLine: Record "Sales Line";
+        OriginalSalesEntryNo: Integer;
+        LotNo: Code[50];
+        PostingDate: Date;
+    begin
+        // [FEATURE] [AI test 1.0] [Item Tracking Code Change]
+        // [SCENARIO 435436] A sales return uses current blank tracking after lot tracking is disabled.
+        Initialize();
+        PostingDate := WorkDate() - 1;
+        WorkDate(PostingDate);
+
+        // [GIVEN] A lot-tracked item is purchased into inventory and completely sold.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Cost", 1);
+        Item.Modify(true);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+        LotNo := ItemTrackingCode.Code;
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", '', '', 1);
+        ItemJournalLine.Validate("Posting Date", PostingDate);
+        ItemJournalLine.Modify(true);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, 1);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        LibrarySales.CreateSalesOrder(SalesHeader, SalesLine, Item, '', '', 1, PostingDate, 0);
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', LotNo, 1);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, false);
+        ItemLedgerEntry.FindFirst();
+        OriginalSalesEntryNo := ItemLedgerEntry."Entry No.";
+        Item.CalcFields(Inventory);
+        Item.TestField(Inventory, 0);
+
+        // [GIVEN] Costs are finalized and lot tracking is disabled on the following day.
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+        LibraryPostInventoryToGL.PostInvtCostToGL(Item."No.", PostingDate);
+        WorkDate(PostingDate + 1);
+        Item.Get(Item."No.");
+        Item.Validate("Item Tracking Code", '');
+        Item.Modify(true);
+
+        // [WHEN] An untracked return order is explicitly applied from the historical lot-tracked sale.
+        LibrarySales.CreateSalesHeader(
+            SalesReturnHeader, SalesReturnHeader."Document Type"::"Return Order", SalesHeader."Sell-to Customer No.");
+        LibrarySales.CreateSalesLine(SalesReturnLine, SalesReturnHeader, SalesReturnLine.Type::Item, Item."No.", 1);
+        SalesReturnLine.Validate("Appl.-from Item Entry", OriginalSalesEntryNo);
+        SalesReturnLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesReturnHeader, true, true);
+
+        // [THEN] The return entry has no lot and applies to the historical lot-tracked sale.
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.FindLast();
+        ItemLedgerEntry.TestField("Lot No.", '');
+        ItemApplicationEntry.SetRange("Inbound Item Entry No.", ItemLedgerEntry."Entry No.");
+        ItemApplicationEntry.SetRange("Outbound Item Entry No.", OriginalSalesEntryNo);
+        Assert.RecordIsNotEmpty(ItemApplicationEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('CostPostingMessageHandler')]
+    procedure CopiedSalesReturnWithCurrentBlankTrackingPostsWithoutTrackingError()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemApplicationEntry: Record "Item Application Entry";
+        ReservationEntry: Record "Reservation Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesReturnHeader: Record "Sales Header";
+        SalesReturnLine: Record "Sales Line";
+        CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+        PostedInvoiceNo: Code[20];
+        OriginalSalesEntryNos: array[2] of Integer;
+        LotNos: array[2] of Code[50];
+        LinesNotCopied: Integer;
+        MissingExCostRevLink: Boolean;
+        i: Integer;
+        PostingDate: Date;
+    begin
+        // [FEATURE] [AI test 1.0] [Item Tracking Code Change]
+        // [SCENARIO 435436] A copied two-lot sales return posts without a tracking error after tracking is disabled.
+        Initialize();
+        PostingDate := WorkDate() - 1;
+        WorkDate(PostingDate);
+
+        // [GIVEN] Lot-tracked inventory is sold from two different lots.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Cost", 1);
+        Item.Modify(true);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+        for i := 1 to ArrayLen(LotNos) do
+            LotNos[i] := ItemTrackingCode.Code + Format(i);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(
+            ItemJournalLine, Item."No.", '', '', ArrayLen(LotNos));
+        ItemJournalLine.Validate("Posting Date", PostingDate);
+        ItemJournalLine.Modify(true);
+        for i := 1 to ArrayLen(LotNos) do
+            LibraryItemTracking.CreateItemJournalLineItemTracking(
+                ReservationEntry, ItemJournalLine, '', LotNos[i], 1);
+        LibraryInventory.PostItemJournalLine(
+            ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        LibrarySales.CreateSalesOrder(
+            SalesHeader, SalesLine, Item, '', '', ArrayLen(LotNos), PostingDate, 0);
+        for i := 1 to ArrayLen(LotNos) do
+            LibraryItemTracking.CreateSalesOrderItemTracking(
+                ReservationEntry, SalesLine, '', LotNos[i], 1);
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, false);
+        ItemLedgerEntry.FindSet();
+        for i := 1 to ArrayLen(OriginalSalesEntryNos) do begin
+            OriginalSalesEntryNos[i] := ItemLedgerEntry."Entry No.";
+            ItemLedgerEntry.Next();
+        end;
+        Item.CalcFields(Inventory);
+        Assert.AreEqual(0, Item.Inventory, 'The item inventory must be zero after the sale.');
+
+        // [GIVEN] Costs are finalized and item tracking is disabled on the following day.
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+        LibraryPostInventoryToGL.PostInvtCostToGL(Item."No.", PostingDate);
+        WorkDate(PostingDate + 1);
+        Item.Get(Item."No.");
+        Item.Validate("Item Tracking Code", '');
+        Item.Modify(true);
+
+        // [GIVEN] The posted invoice line is copied to a return order and split by historical lot entry.
+        LibrarySales.CreateSalesHeader(
+            SalesReturnHeader, SalesReturnHeader."Document Type"::"Return Order", SalesHeader."Sell-to Customer No.");
+        SalesInvoiceLine.SetRange("Document No.", PostedInvoiceNo);
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
+        SalesInvoiceLine.SetRange("No.", Item."No.");
+        SalesInvoiceLine.FindFirst();
+        CopyDocumentMgt.SetProperties(false, false, false, false, true, true, true);
+        CopyDocumentMgt.CopySalesInvLinesToDoc(
+            SalesReturnHeader, SalesInvoiceLine, LinesNotCopied, MissingExCostRevLink);
+        SalesReturnLine.SetRange("Document Type", SalesReturnHeader."Document Type");
+        SalesReturnLine.SetRange("Document No.", SalesReturnHeader."No.");
+        SalesReturnLine.SetRange(Type, SalesReturnLine.Type::Item);
+        SalesReturnLine.SetRange("No.", Item."No.");
+        Assert.RecordCount(SalesReturnLine, ArrayLen(OriginalSalesEntryNos));
+        for i := 1 to ArrayLen(OriginalSalesEntryNos) do begin
+            SalesReturnLine.SetRange("Appl.-from Item Entry", OriginalSalesEntryNos[i]);
+            Assert.RecordCount(SalesReturnLine, 1);
+        end;
+
+        // [WHEN] The untracked sales return is posted.
+        LibrarySales.PostSalesDocument(SalesReturnHeader, true, true);
+
+        // [THEN] Each return entry is open, untracked, and cost-applied to one of the historical lot entries.
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, true);
+        Assert.RecordCount(ItemLedgerEntry, ArrayLen(OriginalSalesEntryNos));
+        ItemLedgerEntry.FindSet();
+        repeat
+            Assert.AreEqual('', ItemLedgerEntry."Lot No.", 'The return entry must use current blank tracking.');
+            Assert.AreEqual(
+                ItemLedgerEntry.Quantity, ItemLedgerEntry."Remaining Quantity",
+                'The returned quantity must remain available in inventory.');
+            ItemApplicationEntry.SetRange("Inbound Item Entry No.", ItemLedgerEntry."Entry No.");
+            ItemApplicationEntry.SetFilter(
+                "Outbound Item Entry No.", '%1|%2', OriginalSalesEntryNos[1], OriginalSalesEntryNos[2]);
+            ItemApplicationEntry.SetRange("Cost Application", true);
+            Assert.RecordCount(ItemApplicationEntry, 1);
+        until ItemLedgerEntry.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('CostPostingMessageHandler')]
+    procedure SalesReturnSplitsHistoricalLotIntoCurrentSerialNumbers()
+    var
+        HistoricalTrackingCode: Record "Item Tracking Code";
+        CurrentTrackingCode: Record "Item Tracking Code";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemApplicationEntry: Record "Item Application Entry";
+        ReservationEntry: Record "Reservation Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReturnHeader: Record "Sales Header";
+        SalesReturnLine: Record "Sales Line";
+        OriginalSalesEntryNo: Integer;
+        LotNo: Code[50];
+        SerialNos: array[2] of Code[50];
+        i: Integer;
+        PostingDate: Date;
+    begin
+        // [FEATURE] [AI test 1.0] [Item Tracking Code Change]
+        // [SCENARIO 435436] A sales return splits one historical lot entry into current serial-number entries.
+        Initialize();
+        PostingDate := WorkDate() - 1;
+        WorkDate(PostingDate);
+
+        // [GIVEN] A lot-tracked item is added to inventory and completely sold as one lot.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Cost", 1);
+        Item.Modify(true);
+        LibraryItemTracking.CreateItemTrackingCode(HistoricalTrackingCode, false, true);
+        Item.Validate("Item Tracking Code", HistoricalTrackingCode.Code);
+        Item.Modify(true);
+        LotNo := HistoricalTrackingCode.Code;
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", '', '', ArrayLen(SerialNos));
+        ItemJournalLine.Validate("Posting Date", PostingDate);
+        ItemJournalLine.Modify(true);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(
+            ReservationEntry, ItemJournalLine, '', LotNo, ArrayLen(SerialNos));
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        LibrarySales.CreateSalesOrder(
+            SalesHeader, SalesLine, Item, '', '', ArrayLen(SerialNos), PostingDate, 0);
+        LibraryItemTracking.CreateSalesOrderItemTracking(
+            ReservationEntry, SalesLine, '', LotNo, ArrayLen(SerialNos));
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, false);
+        ItemLedgerEntry.FindFirst();
+        OriginalSalesEntryNo := ItemLedgerEntry."Entry No.";
+        Item.CalcFields(Inventory);
+        Item.TestField(Inventory, 0);
+
+        // [GIVEN] Costs are finalized and serial-number tracking is enabled on the following day.
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+        LibraryPostInventoryToGL.PostInvtCostToGL(Item."No.", PostingDate);
+        WorkDate(PostingDate + 1);
+        Item.Get(Item."No.");
+        LibraryItemTracking.CreateItemTrackingCode(CurrentTrackingCode, true, false);
+        Item.Validate("Item Tracking Code", CurrentTrackingCode.Code);
+        Item.Modify(true);
+        for i := 1 to ArrayLen(SerialNos) do
+            SerialNos[i] := CurrentTrackingCode.Code + Format(i);
+
+        // [WHEN] A return with current serial numbers is applied from the historical lot sale.
+        LibrarySales.CreateSalesHeader(
+            SalesReturnHeader, SalesReturnHeader."Document Type"::"Return Order", SalesHeader."Sell-to Customer No.");
+        LibrarySales.CreateSalesLine(
+            SalesReturnLine, SalesReturnHeader, SalesReturnLine.Type::Item, Item."No.", ArrayLen(SerialNos));
+        for i := 1 to ArrayLen(SerialNos) do
+            LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesReturnLine, SerialNos[i], '', 1);
+        SalesReturnLine.Validate("Appl.-from Item Entry", OriginalSalesEntryNo);
+        SalesReturnLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesReturnHeader, true, true);
+
+        // [THEN] Each current serial entry has no lot and applies to the historical lot sale.
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetRange(Positive, true);
+        Assert.RecordCount(ItemLedgerEntry, ArrayLen(SerialNos));
+        ItemLedgerEntry.FindSet();
+        repeat
+            ItemLedgerEntry.TestField("Lot No.", '');
+            ItemApplicationEntry.SetRange("Inbound Item Entry No.", ItemLedgerEntry."Entry No.");
+            ItemApplicationEntry.SetRange("Outbound Item Entry No.", OriginalSalesEntryNo);
+            ItemApplicationEntry.FindFirst();
+        until ItemLedgerEntry.Next() = 0;
+        for i := 1 to ArrayLen(SerialNos) do begin
+            ItemLedgerEntry.SetRange("Serial No.", SerialNos[i]);
+            ItemLedgerEntry.FindFirst();
+        end;
+    end;
 
     [Test]
     [HandlerFunctions('CorrectedInvoiceNoConfirmHandler')]
@@ -691,6 +1063,11 @@ codeunit 137012 "SCM Costing Sales Returns I"
           ExpectedSalesInvoiceAmount - ExpectedSalesCrMemoAmount, ActualCustLedgerAmount, 0.1, SalesAmountMustBeSameErr);
     end;
 
+    [MessageHandler]
+    procedure CostPostingMessageHandler(Message: Text[1024])
+    begin
+    end;
+
     [ConfirmHandler]
     [Scope('OnPrem')]
     procedure CorrectedInvoiceNoConfirmHandler(Question: Text[1024]; var Reply: Boolean)
@@ -704,4 +1081,3 @@ codeunit 137012 "SCM Costing Sales Returns I"
         if Confirm(CorrectedInvoiceNoQst) then;
     end;
 }
-

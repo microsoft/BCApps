@@ -1859,13 +1859,22 @@ codeunit 137285 "SCM Inventory Batch Jobs"
     local procedure VerifyCostOnPostedServiceInvoiceStatisticsNM(OrderNo: Code[20]; PreAssignedNo: Code[20]; CostLCY: Decimal; TotalAdjCostLCY: Decimal)
     var
         ServiceInvHeader: Record "Service Invoice Header";
+        ServiceInvLine: Record "Service Invoice Line";
         PostedServiceInvoice: TestPage "Posted Service Invoice";
     begin
         LibraryVariableStorage.Enqueue(CostLCY);
         LibraryVariableStorage.Enqueue(TotalAdjCostLCY);
-        ServiceInvHeader.SetRange("Order No.", OrderNo);
+        if PreAssignedNo = '' then
+            ServiceInvHeader.SetRange("Order No.", OrderNo);
         ServiceInvHeader.SetRange("Pre-Assigned No.", PreAssignedNo);
         ServiceInvHeader.FindFirst();
+        if PreAssignedNo <> '' then begin
+            // Get Shipment Lines links the original order through the invoice lines.
+            ServiceInvLine.SetRange("Document No.", ServiceInvHeader."No.");
+            ServiceInvLine.SetRange("Order No.", OrderNo);
+            ServiceInvLine.SetFilter(Quantity, '<>%1', 0);
+            Assert.RecordIsNotEmpty(ServiceInvLine);
+        end;
         PostedServiceInvoice.OpenView();
         PostedServiceInvoice.GotoRecord(ServiceInvHeader);
         PostedServiceInvoice.ServiceStatistics.Invoke();
