@@ -7,6 +7,7 @@ using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Projects.TimeSheet;
+using Microsoft.Utilities;
 
 permissionset 4450 "Time Sheets - Edit"
 {
@@ -33,5 +34,6 @@ permissionset 4450 "Time Sheets - Edit"
                   tabledata "Time Sheet Header Archive" = R,
                   tabledata "Time Sheet Line" = RIMD,
                   tabledata "Time Sheet Line Archive" = R,
-                  tabledata "Time Sheet Posting Entry" = R;
+                  tabledata "Time Sheet Posting Entry" = R,
+                  tabledata "Work Type" = R;
 }
