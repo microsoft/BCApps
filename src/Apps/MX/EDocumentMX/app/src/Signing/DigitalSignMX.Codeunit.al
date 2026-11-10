@@ -343,6 +343,7 @@ codeunit 3358 "Digital Sign MX"
         exit(CopyStr(ElementName, ColonPos + 1));
     end;
 
+    [NonDebuggable]
     procedure CreateDigitalSignature(OriginalString: Text; SetupId: Code[10]): Text
     var
         MXConnectionSetup: Record "MX Connection Setup";
@@ -385,6 +386,7 @@ codeunit 3358 "Digital Sign MX"
         exit(SignedString);
     end;
 
+    [NonDebuggable]
     [TryFunction]
     local procedure SignDataWithCert(var SignedString: Text; OriginalString: Text; Certificate: Text; Password: SecretText; var SerialNoOfCertificateUsed: Text)
     begin
@@ -404,6 +406,7 @@ codeunit 3358 "Digital Sign MX"
         exit(LastUsedCertificateSN);
     end;
 
+    [NonDebuggable]
     procedure GetCertificateSerialNo(SetupId: Code[10]): Text[250]
     var
         MXConnectionSetup: Record "MX Connection Setup";

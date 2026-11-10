@@ -304,6 +304,7 @@ codeunit 3355 "Interfactura Processing"
         exit(true);
     end;
 
+    [NonDebuggable]
     local procedure InvokeSoapRequestCore(RequestText: Text; RequestType: Option "Request Stamp",Cancel,CancelRequest; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage; var ResponseTxt: Text; var ErrorText: Text; CommitBeforeRequest: Boolean): Boolean
     var
         EInvoiceCommunication: Codeunit "EInvoice Communication";
