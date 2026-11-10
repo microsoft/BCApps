@@ -1046,11 +1046,16 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
     local procedure CreateOccupiedAlternativeTemplateNames()
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
+        TemplateName: Code[10];
         Suffix: Integer;
     begin
         for Suffix := 1 to 99 do begin
+            TemplateName := CopyStr('SUBCONTR' + Format(Suffix, 0, 9), 1, MaxStrLen(ReqWkshTemplate.Name));
+            ReqWkshTemplate.SetRange(Name, TemplateName);
+            ReqWkshTemplate.DeleteAll(true);
+            ReqWkshTemplate.Reset();
             ReqWkshTemplate.Init();
-            ReqWkshTemplate.Name := CopyStr('SUBCONTR' + Format(Suffix, 0, 9), 1, MaxStrLen(ReqWkshTemplate.Name));
+            ReqWkshTemplate.Name := TemplateName;
             ReqWkshTemplate.Type := ReqWkshTemplate.Type::Planning;
             ReqWkshTemplate.Insert(true);
         end;
