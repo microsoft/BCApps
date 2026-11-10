@@ -12,7 +12,7 @@ using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.eServices.EDocument.Processing.Message;
 using System.Utilities;
 
-codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentReceiver, IDocumentResponseHandler, IDocumentAction, ISentDocumentActions, IMessageSender, IMessageResponseHandler
+codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentReceiver, IDocumentResponseHandler, IDocumentAction, ISentDocumentActions, IMessageSender, IMessageResponseHandler, IConsentManager
 {
     Access = Internal;
 
@@ -106,6 +106,17 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
         exit(true);
     end;
 
+    procedure ObtainPrivacyConsent(): Boolean
+    var
+        ConsentManagerDefaultImpl: Codeunit "Consent Manager Default Impl.";
+    begin
+        if not ConsentManagerDefaultImpl.ObtainPrivacyConsent() then
+            exit(false);
+
+        Session.LogAuditMessage(StrSubstNo(CFDIConsentProvidedLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+        exit(true);
+    end;
+
     [EventSubscriber(ObjectType::Page, Page::"E-Document Service", OnBeforeOpenServiceIntegrationSetupPage, '', false, false)]
     local procedure OnBeforeOpenServiceIntegrationSetupPage(EDocumentService: Record "E-Document Service"; var IsServiceIntegrationSetupRun: Boolean)
     var
@@ -133,5 +144,6 @@ codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
         MissingSetupErr: Label 'Interfactura Connection Setup must be configured before sending.';
         DisabledSetupErr: Label 'Interfactura Connection Setup must be enabled before sending.';
         UnsupportedMessageErr: Label 'Interfactura does not support E-Document message type %1.', Comment = '%1 = message type';
+        CFDIConsentProvidedLbl: Label 'CFDI - consent provided by UserSecurityId %1.', Locked = true;
 
 }

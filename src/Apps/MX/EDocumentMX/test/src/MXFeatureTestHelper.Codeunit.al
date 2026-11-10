@@ -11,18 +11,18 @@ codeunit 148759 "MX Feature Test Helper"
     EventSubscriberInstance = Manual;
 
     var
-        FeatureDisabled: Boolean;
+        FeatureEnabled: Boolean;
         IsBound: Boolean;
 
     procedure DisableFeature()
     begin
-        FeatureDisabled := true;
+        FeatureEnabled := false;
         Bind();
     end;
 
     procedure EnableFeature()
     begin
-        FeatureDisabled := false;
+        FeatureEnabled := true;
         Bind();
     end;
 
@@ -35,6 +35,6 @@ codeunit 148759 "MX Feature Test Helper"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"MX E-Document Feature", 'OnAfterCheckFeatureEnabled', '', false, false)]
     local procedure EnableFeatureForTests(var IsEnabled: Boolean)
     begin
-        IsEnabled := not FeatureDisabled;
+        IsEnabled := FeatureEnabled;
     end;
 }

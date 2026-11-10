@@ -17,7 +17,8 @@ enumextension 3352 "Service Integration MX" extends "Service Integration"
                 IDocumentSender = "MX Interfactura Impl.",
                 IDocumentReceiver = "MX Interfactura Impl.",
                 IMessageSender = "MX Interfactura Impl.",
-                IMessageResponseHandler = "MX Interfactura Impl.";
+                IMessageResponseHandler = "MX Interfactura Impl.",
+                IConsentManager = "MX Interfactura Impl.";
 
         Caption = 'Interfactura';
     }
