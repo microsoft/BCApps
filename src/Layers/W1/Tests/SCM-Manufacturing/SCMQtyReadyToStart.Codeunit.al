@@ -17,6 +17,11 @@ codeunit 137437 "SCM Qty. Ready to Start"
     Subtype = Test;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Manufacturing] [Routing] [Quantity Ready to Start] [SCM]
+    end;
+
     var
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -40,16 +45,20 @@ codeunit 137437 "SCM Qty. Ready to Start"
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        SendAheadQty: Decimal;
+        Quantity: Decimal;
     begin
         // [SCENARIO] The first operation is ready to start with its own input quantity as soon as the production order is created and refreshed.
         Initialize();
 
-        // [GIVEN] An item with a serial routing of two operations
-        CreateItemWithSerialRouting(Item, LibraryRandom.RandIntInRange(2, 5));
+        // [GIVEN] An item with a serial routing of two operations; the first operation has Send-Ahead Quantity 3
+        SendAheadQty := 3;
+        Quantity := 20;
+        CreateItemWithSerialRouting(Item, SendAheadQty);
 
-        // [WHEN] A released production order is created and refreshed
+        // [WHEN] A released production order with quantity "Q" = 20 is created and refreshed
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [THEN] Quantity Ready to Start of the first operation equals its Input Quantity
         FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, FirstOperationNoTok);
@@ -68,26 +77,30 @@ codeunit 137437 "SCM Qty. Ready to Start"
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        SendAheadQty: Decimal;
         Quantity: Decimal;
+        NewQuantity: Decimal;
     begin
         // [SCENARIO] Refreshing a production order after a quantity change updates Quantity Ready to Start of the first operation.
         Initialize();
 
-        // [GIVEN] A refreshed released production order with quantity "Q" for an item with a serial routing
-        CreateItemWithSerialRouting(Item, LibraryRandom.RandIntInRange(2, 5));
-        Quantity := LibraryRandom.RandIntInRange(20, 50);
+        // [GIVEN] A refreshed released production order with quantity "Q" = 20 for an item with a serial routing; the first operation has Send-Ahead Quantity 3
+        SendAheadQty := 3;
+        Quantity := 20;
+        NewQuantity := 27;
+        CreateItemWithSerialRouting(Item, SendAheadQty);
         LibraryManufacturing.CreateAndRefreshProductionOrder(
           ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
-        // [WHEN] The quantity is changed to "Q" + "X" and the production order is refreshed
+        // [WHEN] The quantity is changed to "N" = 27 and the production order is refreshed
         ProductionOrder.Find();
-        ProductionOrder.Validate(Quantity, Quantity + LibraryRandom.RandIntInRange(5, 10));
+        ProductionOrder.Validate(Quantity, NewQuantity);
         ProductionOrder.Modify(true);
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
 
-        // [THEN] Quantity Ready to Start of the first operation equals its new Input Quantity
+        // [THEN] Quantity Ready to Start of the first operation equals its new Input Quantity "N"
         FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, FirstOperationNoTok);
-        Assert.AreEqual(ProductionOrder.Quantity, ProdOrderRoutingLine."Input Quantity", 'Input Quantity of the first operation is incorrect.');
+        Assert.AreEqual(NewQuantity, ProdOrderRoutingLine."Input Quantity", 'Input Quantity of the first operation is incorrect.');
         Assert.AreEqual(
           ProdOrderRoutingLine."Input Quantity", ProdOrderRoutingLine."Quantity Ready to Start", StrSubstNo(QtyReadyToStartErr, FirstOperationNoTok));
     end;
@@ -99,15 +112,17 @@ codeunit 137437 "SCM Qty. Ready to Start"
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         SendAheadQty: Decimal;
+        Quantity: Decimal;
     begin
         // [SCENARIO] An operation stays not ready to start while its predecessor's posted output is below the predecessor's Send-Ahead Quantity.
         Initialize();
 
         // [GIVEN] A refreshed released production order for an item with a serial routing; the first operation has Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(2, 5);
+        SendAheadQty := 3;
         CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [WHEN] Output "S" - 1 is posted on the first operation
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, SendAheadQty - 1);
@@ -125,15 +140,17 @@ codeunit 137437 "SCM Qty. Ready to Start"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SendAheadQty: Decimal;
         InputQty: Decimal;
+        Quantity: Decimal;
     begin
         // [SCENARIO] An operation becomes ready to start when its predecessor's posted output reaches the predecessor's Send-Ahead Quantity.
         Initialize();
 
         // [GIVEN] A refreshed released production order for an item with a serial routing; the first operation has Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(2, 5);
+        SendAheadQty := 3;
         CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] The second operation has Input Quantity "I"
         FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, SecondOperationNoTok);
@@ -157,22 +174,24 @@ codeunit 137437 "SCM Qty. Ready to Start"
         SendAheadQty: Decimal;
         FirstOutputQty: Decimal;
         SecondOutputQty: Decimal;
+        Quantity: Decimal;
     begin
         // [SCENARIO] Above the predecessor's Send-Ahead Quantity, Quantity Ready to Start equals the predecessor's total posted output.
         Initialize();
 
         // [GIVEN] A refreshed released production order for an item with a serial routing; the first operation has Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(2, 5);
+        SendAheadQty := 3;
         CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] Output "O1" below "S" is posted on the first operation
         FirstOutputQty := SendAheadQty - 1;
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, FirstOutputQty);
 
         // [WHEN] Output "O2" is posted on the first operation, so that "O1" + "O2" is above "S"
-        SecondOutputQty := LibraryRandom.RandIntInRange(2, 5);
+        SecondOutputQty := 4;
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, SecondOutputQty);
 
         // [THEN] Quantity Ready to Start of the second operation is "O1" + "O2"
@@ -186,14 +205,16 @@ codeunit 137437 "SCM Qty. Ready to Start"
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        Quantity: Decimal;
     begin
         // [SCENARIO] Without a send-ahead quantity, an operation stays not ready to start while its predecessor's posted output is below the full lot.
         Initialize();
 
         // [GIVEN] A refreshed released production order for an item with a serial routing; the first operation has Send-Ahead Quantity 0
         CreateItemWithSerialRouting(Item, 0);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] The second operation has Input Quantity "I"
         FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, SecondOperationNoTok);
@@ -214,21 +235,23 @@ codeunit 137437 "SCM Qty. Ready to Start"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         InputQty: Decimal;
         FirstOutputQty: Decimal;
+        Quantity: Decimal;
     begin
         // [SCENARIO] Without a send-ahead quantity, an operation becomes ready to start once its predecessor's posted output reaches the full lot, and then shows the posted output.
         Initialize();
 
         // [GIVEN] A refreshed released production order for an item with a serial routing; the first operation has Send-Ahead Quantity 0
         CreateItemWithSerialRouting(Item, 0);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] The second operation has Input Quantity "I"
         FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, SecondOperationNoTok);
         InputQty := ProdOrderRoutingLine."Input Quantity";
 
         // [GIVEN] Output "O1" below "I" is posted on the first operation
-        FirstOutputQty := LibraryRandom.RandIntInRange(1, 5);
+        FirstOutputQty := 5;
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, FirstOutputQty);
 
         // [WHEN] Output "I" - "O1" is posted on the first operation
@@ -246,13 +269,15 @@ codeunit 137437 "SCM Qty. Ready to Start"
         ProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Quantity: Decimal;
+        SendAheadQty: Decimal;
     begin
         // [SCENARIO] A Send-Ahead Quantity at or above the successor's Input Quantity is treated as the full lot.
         Initialize();
 
         // [GIVEN] A refreshed released production order with quantity "Q" for an item with a serial routing; the first operation has a Send-Ahead Quantity above "Q"
-        Quantity := LibraryRandom.RandIntInRange(20, 50);
-        CreateItemWithSerialRouting(Item, Quantity + LibraryRandom.RandIntInRange(1, 10));
+        Quantity := 20;
+        SendAheadQty := 25;
+        CreateItemWithSerialRouting(Item, SendAheadQty);
         LibraryManufacturing.CreateAndRefreshProductionOrder(
           ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
         FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, SecondOperationNoTok);
@@ -282,7 +307,7 @@ codeunit 137437 "SCM Qty. Ready to Start"
         SetBaseUnitRoundingPrecision(Item, 1);
 
         // [GIVEN] A refreshed released production order with quantity "Q", so that the second operation has Input Quantity "Q" plus a fractional remainder
-        Quantity := LibraryRandom.RandIntInRange(100, 200);
+        Quantity := 150;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
           ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
         FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, SecondOperationNoTok);
@@ -305,15 +330,17 @@ codeunit 137437 "SCM Qty. Ready to Start"
         PredecessorProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Quantity: Decimal;
+        ScrapFactorPct: Decimal;
     begin
         // [SCENARIO] With scrap on the predecessor, posting the predecessor's expected output makes the successor ready to start.
         Initialize();
 
-        // [GIVEN] An item with a serial routing; the first operation has Send-Ahead Quantity 0 and a scrap factor
-        CreateItemWithSerialRoutingAndScrap(Item, 0, LibraryRandom.RandIntInRange(5, 20), 0);
+        // [GIVEN] An item with a serial routing; the first operation has Send-Ahead Quantity 0 and a scrap factor of 10 %
+        ScrapFactorPct := 10;
+        CreateItemWithSerialRoutingAndScrap(Item, 0, ScrapFactorPct, 0);
 
         // [GIVEN] A refreshed released production order with quantity "Q"; the first operation's Input Quantity includes its scrap and is above "Q"
-        Quantity := LibraryRandom.RandIntInRange(20, 50);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
           ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
         FindProdOrderRoutingLine(PredecessorProdOrderRoutingLine, ProductionOrder, FirstOperationNoTok);
@@ -346,7 +373,7 @@ codeunit 137437 "SCM Qty. Ready to Start"
         CreateFamilyWithSerialRouting(Family, 0);
 
         // [GIVEN] A refreshed released production order with quantity "Q" for the family; the shared second operation has Input Quantity 2 * "Q"
-        Quantity := LibraryRandom.RandIntInRange(20, 50);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
           ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Family, Family."No.", Quantity);
         FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, SecondOperationNoTok);
@@ -365,6 +392,7 @@ codeunit 137437 "SCM Qty. Ready to Start"
     var
         Family: Record Family;
         ProductionOrder: Record "Production Order";
+        Quantity: Decimal;
     begin
         // [SCENARIO] For a production family, the output of a single family item does not reach the full lot of the shared routing line.
         Initialize();
@@ -373,14 +401,46 @@ codeunit 137437 "SCM Qty. Ready to Start"
         CreateFamilyWithSerialRouting(Family, 0);
 
         // [GIVEN] A refreshed released production order with quantity "Q" for the family; the shared second operation has Input Quantity 2 * "Q"
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Family, Family."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Family, Family."No.", Quantity);
 
         // [WHEN] Output "Q" is posted on the first operation for the first family item only
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, ProductionOrder.Quantity);
 
         // [THEN] Quantity Ready to Start of the shared second operation is 0
         VerifyQtyReadyToStart(ProductionOrder, SecondOperationNoTok, 0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure FamilyFullLotRoundedWithPrecisionOfAllFamilyItems()
+    var
+        Family: Record Family;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        Quantity: Decimal;
+        FullLotQty: Decimal;
+    begin
+        // [SCENARIO] For a production family whose items have different rounding precisions, the combined posted output of all family items reaches the full lot of the shared routing line.
+        Initialize();
+
+        // [GIVEN] A family of a first item with base-unit rounding precision 1 and quantity 1 and a second item with base-unit rounding precision 0.1 and quantity 0.5; the first operation has Send-Ahead Quantity 0
+        CreateFamilyWithMixedRoundingPrecision(Family, 1, 1, 0.1, 0.5);
+
+        // [GIVEN] A refreshed released production order with quantity 1 for the family; the shared second operation has Input Quantity "F" = 1.5
+        Quantity := 1;
+        FullLotQty := 1.5;
+        LibraryManufacturing.CreateAndRefreshProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Family, Family."No.", Quantity);
+        FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, SecondOperationNoTok);
+        Assert.AreEqual(FullLotQty, ProdOrderRoutingLine."Input Quantity", 'Input Quantity of the shared second operation is incorrect.');
+
+        // [WHEN] Output 1 for the first item and output 0.5 for the second item are posted on the first operation
+        PostOutputForEachProdOrderLine(ProductionOrder, FirstOperationNoTok);
+
+        // [THEN] Quantity Ready to Start of the shared second operation is "F"
+        VerifyQtyReadyToStart(ProductionOrder, SecondOperationNoTok, FullLotQty);
     end;
 
     [Test]
@@ -392,19 +452,21 @@ codeunit 137437 "SCM Qty. Ready to Start"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         FirstBranchSendAheadQty: Decimal;
         SecondBranchSendAheadQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Parallel Routing]
         // [SCENARIO] A joining operation stays not ready to start while one of its predecessor operations is below its own start threshold.
         Initialize();
 
         // [GIVEN] An item with a parallel routing 10 -> (20 | 30) -> 40; operation 20 has Send-Ahead Quantity "S1", operation 30 has Send-Ahead Quantity "S2"
-        FirstBranchSendAheadQty := LibraryRandom.RandIntInRange(2, 5);
-        SecondBranchSendAheadQty := LibraryRandom.RandIntInRange(2, 5);
+        FirstBranchSendAheadQty := 3;
+        SecondBranchSendAheadQty := 5;
         CreateItemWithParallelRouting(Item, FirstBranchSendAheadQty, SecondBranchSendAheadQty);
 
         // [GIVEN] A refreshed released production order; the joining operation 40 has predecessor operations 20 and 30
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
         FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, JoiningOperationNoTok);
         Assert.AreEqual(
           StrSubstNo('%1|%2', SecondOperationNoTok, ThirdOperationNoTok), ProdOrderRoutingLine."Previous Operation No.",
@@ -429,26 +491,28 @@ codeunit 137437 "SCM Qty. Ready to Start"
         SendAheadQty: Decimal;
         FirstBranchOutputQty: Decimal;
         SecondBranchOutputQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Parallel Routing]
         // [SCENARIO] Once all predecessor operations of a joining operation have reached their start thresholds, its Quantity Ready to Start is the smallest posted output among them.
         Initialize();
 
         // [GIVEN] An item with a parallel routing 10 -> (20 | 30) -> 40; operations 20 and 30 have Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(2, 5);
+        SendAheadQty := 3;
         CreateItemWithParallelRouting(Item, SendAheadQty, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] Output "O1" above "S" is posted on operation 20
-        FirstBranchOutputQty := SendAheadQty + LibraryRandom.RandIntInRange(1, 5);
+        FirstBranchOutputQty := 5;
         PostOutputForOperation(ProductionOrder, SecondOperationNoTok, FirstBranchOutputQty);
 
         // [GIVEN] The joining operation 40 is not ready to start while operation 30 has no output
         VerifyQtyReadyToStart(ProductionOrder, JoiningOperationNoTok, 0);
 
         // [WHEN] Output "O2" greater than "O1" is posted on operation 30
-        SecondBranchOutputQty := FirstBranchOutputQty + LibraryRandom.RandIntInRange(1, 5);
+        SecondBranchOutputQty := 8;
         PostOutputForOperation(ProductionOrder, ThirdOperationNoTok, SecondBranchOutputQty);
 
         // [THEN] Quantity Ready to Start of the joining operation 40 is "O1", the smallest posted output of its predecessor operations
@@ -464,20 +528,22 @@ codeunit 137437 "SCM Qty. Ready to Start"
         SendAheadQty: Decimal;
         FirstBranchOutputQty: Decimal;
         SecondBranchOutputQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Parallel Routing]
         // [SCENARIO] Posting output on the slowest branch recalculates the joining operation, so that the next slowest branch decides.
         Initialize();
 
         // [GIVEN] An item with a parallel routing 10 -> (20 | 30) -> 40; operations 20 and 30 have Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(2, 5);
+        SendAheadQty := 3;
         CreateItemWithParallelRouting(Item, SendAheadQty, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] Output "O1" = "S" is posted on operation 20 and output "O2" above "O1" on operation 30, so that the joining operation 40 shows "O1"
         FirstBranchOutputQty := SendAheadQty;
-        SecondBranchOutputQty := FirstBranchOutputQty + LibraryRandom.RandIntInRange(1, 5);
+        SecondBranchOutputQty := 6;
         PostOutputForOperation(ProductionOrder, SecondOperationNoTok, FirstBranchOutputQty);
         PostOutputForOperation(ProductionOrder, ThirdOperationNoTok, SecondBranchOutputQty);
         VerifyQtyReadyToStart(ProductionOrder, JoiningOperationNoTok, FirstBranchOutputQty);
@@ -496,16 +562,18 @@ codeunit 137437 "SCM Qty. Ready to Start"
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         SendAheadQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Finished Predecessor]
         // [SCENARIO] Posting output with Finished below the predecessor's start threshold makes the successor ready to start with the posted output.
         Initialize();
 
         // [GIVEN] A refreshed released production order for an item with a serial routing; the first operation has Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(3, 6);
+        SendAheadQty := 4;
         CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [WHEN] Output "S" - 1 is posted on the first operation with Finished
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, SendAheadQty - 1, true);
@@ -522,16 +590,18 @@ codeunit 137437 "SCM Qty. Ready to Start"
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         SendAheadQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Finished Predecessor]
         // [SCENARIO] Setting Routing Status to Finished by hand below the predecessor's start threshold makes the successor ready to start with the posted output.
         Initialize();
 
         // [GIVEN] A refreshed released production order for an item with a serial routing; the first operation has Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(3, 6);
+        SendAheadQty := 4;
         CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] Output "S" - 1 is posted on the first operation, so that the second operation is not ready to start
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, SendAheadQty - 1);
@@ -550,15 +620,19 @@ codeunit 137437 "SCM Qty. Ready to Start"
     var
         Item: Record Item;
         ProductionOrder: Record "Production Order";
+        SendAheadQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Finished Predecessor]
         // [SCENARIO] A predecessor finished by posting without any output leaves its successor not ready to start.
         Initialize();
 
         // [GIVEN] A refreshed released production order for an item with a serial routing; the first operation has a Send-Ahead Quantity
-        CreateItemWithSerialRouting(Item, LibraryRandom.RandIntInRange(2, 5));
+        SendAheadQty := 3;
+        CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [WHEN] Output 0 with a run time is posted on the first operation with Finished
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, 0, true, LibraryRandom.RandInt(5));
@@ -575,15 +649,19 @@ codeunit 137437 "SCM Qty. Ready to Start"
     var
         Item: Record Item;
         ProductionOrder: Record "Production Order";
+        SendAheadQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Finished Predecessor]
         // [SCENARIO] A predecessor set to Finished by hand without any posted output leaves its successor not ready to start.
         Initialize();
 
         // [GIVEN] A refreshed released production order for an item with a serial routing; no output is posted
-        CreateItemWithSerialRouting(Item, LibraryRandom.RandIntInRange(2, 5));
+        SendAheadQty := 3;
+        CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [WHEN] Routing Status of the first operation is set to Finished on the production order routing line; ConfirmHandlerYes confirms that the allocated capacity of the operation is deleted
         SetRoutingStatusFinished(ProductionOrder, FirstOperationNoTok);
@@ -600,19 +678,21 @@ codeunit 137437 "SCM Qty. Ready to Start"
         ProductionOrder: Record "Production Order";
         SendAheadQty: Decimal;
         ReversedQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Output Reversal]
         // [SCENARIO] Posting negative output on a predecessor that stays at or above its start threshold lowers the successor's Quantity Ready to Start to the new posted output.
         Initialize();
 
         // [GIVEN] A refreshed released production order for an item with a serial routing; the first operation has Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(2, 5);
+        SendAheadQty := 3;
         CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] Output "S" + "R" is posted on the first operation, so that the second operation shows "S" + "R"
-        ReversedQty := LibraryRandom.RandIntInRange(1, 5);
+        ReversedQty := 2;
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, SendAheadQty + ReversedQty);
         VerifyQtyReadyToStart(ProductionOrder, SecondOperationNoTok, SendAheadQty + ReversedQty);
 
@@ -630,16 +710,18 @@ codeunit 137437 "SCM Qty. Ready to Start"
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         SendAheadQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Output Reversal]
         // [SCENARIO] Posting negative output that takes an unfinished predecessor below its start threshold returns the successor's Quantity Ready to Start to 0.
         Initialize();
 
         // [GIVEN] A refreshed released production order for an item with a serial routing; the first operation has Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(2, 5);
+        SendAheadQty := 3;
         CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] Output "S" is posted on the first operation, so that the second operation is ready to start
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, SendAheadQty);
@@ -660,16 +742,18 @@ codeunit 137437 "SCM Qty. Ready to Start"
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         SendAheadQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Finished Predecessor] [Output Reversal]
         // [SCENARIO] A correction posted with negative output and Finished on a finished predecessor keeps the successor ready to start and lowers its Quantity Ready to Start to the new posted output.
         Initialize();
 
         // [GIVEN] A refreshed released production order for an item with a serial routing; the first operation has Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(3, 6);
+        SendAheadQty := 4;
         CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] Output "S" is posted on the first operation with Finished
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, SendAheadQty, true);
@@ -688,8 +772,8 @@ codeunit 137437 "SCM Qty. Ready to Start"
     var
         Item: Record Item;
         ProductionOrder: Record "Production Order";
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Quantity: Decimal;
+        NewQuantity: Decimal;
         Direction: Option Forward,Backward;
         CalcMethod: Option "No Levels","One level","All levels";
     begin
@@ -698,7 +782,8 @@ codeunit 137437 "SCM Qty. Ready to Start"
         Initialize();
 
         // [GIVEN] A refreshed released production order with quantity "Q" for an item with a serial routing; the first operation has Send-Ahead Quantity 0
-        Quantity := LibraryRandom.RandIntInRange(20, 50);
+        Quantity := 20;
+        NewQuantity := 27;
         CreateItemWithSerialRouting(Item, 0);
         LibraryManufacturing.CreateAndRefreshProductionOrder(
           ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
@@ -707,20 +792,61 @@ codeunit 137437 "SCM Qty. Ready to Start"
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, Quantity);
         VerifyQtyReadyToStart(ProductionOrder, SecondOperationNoTok, Quantity);
 
-        // [GIVEN] The quantity of the production order line is raised to "Q" + "X" without recalculating the routing
-        UpdateProdOrderLineQuantityWithoutRecalculation(ProductionOrder, Quantity + LibraryRandom.RandIntInRange(5, 10));
+        // [GIVEN] The quantity of the production order line is raised to "N" without recalculating the routing
+        UpdateProdOrderLineQuantityWithoutRecalculation(ProductionOrder, NewQuantity);
         VerifyQtyReadyToStart(ProductionOrder, SecondOperationNoTok, Quantity);
 
         // [WHEN] The production order is replanned
         LibraryManufacturing.RunReplanProductionOrder(ProductionOrder, Direction::Backward, CalcMethod::"No Levels");
 
-        // [THEN] Quantity Ready to Start of the first operation equals its new Input Quantity
-        FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, FirstOperationNoTok);
-        Assert.AreNotEqual(0, ProdOrderRoutingLine."Input Quantity", 'Input Quantity of the first operation must not be zero.');
-        Assert.AreEqual(
-          ProdOrderRoutingLine."Input Quantity", ProdOrderRoutingLine."Quantity Ready to Start", StrSubstNo(QtyReadyToStartErr, FirstOperationNoTok));
+        // [THEN] Quantity Ready to Start of the first operation equals the new total quantity "N", although replanning writes only the remaining quantity to its Input Quantity
+        VerifyQtyReadyToStart(ProductionOrder, FirstOperationNoTok, NewQuantity);
 
-        // [THEN] The second operation's full lot is now "Q" + "X", so it is no longer ready to start
+        // [THEN] The second operation's full lot is now "N", so it is no longer ready to start
+        VerifyQtyReadyToStart(ProductionOrder, SecondOperationNoTok, 0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure FullLotThresholdKeptAfterReplanWithPartialSuccessorOutput()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        Quantity: Decimal;
+        SuccessorOutputQty: Decimal;
+        Direction: Option Forward,Backward;
+        CalcMethod: Option "No Levels","One level","All levels";
+    begin
+        // [FEATURE] [Replan] [Output Reversal]
+        // [SCENARIO] Replanning after partial output on an operation keeps its full-lot threshold at the total quantity, so that reversing predecessor output below the full lot makes it not ready to start.
+        Initialize();
+
+        // [GIVEN] A refreshed released production order with quantity "Q" = 20 for an item with a serial routing; the first operation has Send-Ahead Quantity 0
+        Quantity := 20;
+        SuccessorOutputQty := 10;
+        CreateItemWithSerialRouting(Item, 0);
+        LibraryManufacturing.CreateAndRefreshProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
+
+        // [GIVEN] Output "Q" is posted on the first operation and output "O" = 10 on the second operation
+        PostOutputForOperation(ProductionOrder, FirstOperationNoTok, Quantity);
+        PostOutputForOperation(ProductionOrder, SecondOperationNoTok, SuccessorOutputQty);
+
+        // [GIVEN] The production order is replanned, so that Input Quantity of the second operation is lowered to the remaining quantity "Q" - "O"
+        LibraryManufacturing.RunReplanProductionOrder(ProductionOrder, Direction::Backward, CalcMethod::"No Levels");
+        FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, SecondOperationNoTok);
+        Assert.AreEqual(
+          Quantity - SuccessorOutputQty, ProdOrderRoutingLine."Input Quantity", 'Replanning must lower Input Quantity of the second operation to the remaining quantity.');
+
+        // [GIVEN] The first and the second operation are ready to start with "Q"
+        VerifyQtyReadyToStart(ProductionOrder, FirstOperationNoTok, Quantity);
+        VerifyQtyReadyToStart(ProductionOrder, SecondOperationNoTok, Quantity);
+
+        // [WHEN] Output -"O" is posted on the first operation, so that its posted output "Q" - "O" is below the full lot "Q"
+        PostOutputForOperation(ProductionOrder, FirstOperationNoTok, -SuccessorOutputQty);
+
+        // [THEN] Quantity Ready to Start of the second operation is 0
         VerifyQtyReadyToStart(ProductionOrder, SecondOperationNoTok, 0);
     end;
 
@@ -731,14 +857,20 @@ codeunit 137437 "SCM Qty. Ready to Start"
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        SendAheadQty: Decimal;
+        ReorderPoint: Decimal;
+        ReorderQuantity: Decimal;
     begin
         // [FEATURE] [Planning Worksheet]
         // [SCENARIO] A production order created from the planning worksheet has correct Quantity Ready to Start values right away.
         Initialize();
 
         // [GIVEN] An item with a serial routing and a fixed reorder quantity
-        CreateItemWithSerialRouting(Item, LibraryRandom.RandIntInRange(2, 5));
-        SetFixedReorderQtyPolicy(Item, LibraryRandom.RandIntInRange(5, 10), LibraryRandom.RandIntInRange(20, 50));
+        SendAheadQty := 3;
+        ReorderPoint := 5;
+        ReorderQuantity := 20;
+        CreateItemWithSerialRouting(Item, SendAheadQty);
+        SetFixedReorderQtyPolicy(Item, ReorderPoint, ReorderQuantity);
 
         // [GIVEN] A regenerative plan proposes a new production order for the item
         LibraryPlanning.CalcRegenPlanForPlanWksh(Item, WorkDate(), WorkDate());
@@ -777,7 +909,7 @@ codeunit 137437 "SCM Qty. Ready to Start"
         LibraryApplicationArea.EnablePremiumSetup();
 
         // [GIVEN] A refreshed released production order with quantity "Q" for an item with a serial routing; the first operation has Send-Ahead Quantity 0
-        Quantity := LibraryRandom.RandIntInRange(20, 50);
+        Quantity := 20;
         CreateItemWithSerialRouting(Item, 0);
         LibraryManufacturing.CreateAndRefreshProductionOrder(
           ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
@@ -786,21 +918,21 @@ codeunit 137437 "SCM Qty. Ready to Start"
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, Quantity);
         VerifyQtyReadyToStart(ProductionOrder, SecondOperationNoTok, Quantity);
 
-        // [WHEN] The quantity of the production order line is changed to "Q" + "X" on the released production order
-        NewQuantity := Quantity + LibraryRandom.RandIntInRange(5, 10);
+        // [WHEN] The quantity of the production order line is changed to "N" = 27 on the released production order
+        NewQuantity := 27;
         ReleasedProductionOrder.OpenEdit();
         ReleasedProductionOrder.Filter.SetFilter("No.", ProductionOrder."No.");
         ReleasedProductionOrder.ProdOrderLines.First();
         ReleasedProductionOrder.ProdOrderLines.Quantity.SetValue(NewQuantity);
         ReleasedProductionOrder.Close();
 
-        // [THEN] Quantity Ready to Start of the first operation equals its new Input Quantity "Q" + "X"
+        // [THEN] Quantity Ready to Start of the first operation equals its new Input Quantity "N"
         FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, FirstOperationNoTok);
         Assert.AreEqual(NewQuantity, ProdOrderRoutingLine."Input Quantity", 'Input Quantity of the first operation is incorrect.');
         Assert.AreEqual(
           ProdOrderRoutingLine."Input Quantity", ProdOrderRoutingLine."Quantity Ready to Start", StrSubstNo(QtyReadyToStartErr, FirstOperationNoTok));
 
-        // [THEN] The second operation's full lot is now "Q" + "X", so it is no longer ready to start
+        // [THEN] The second operation's full lot is now "N", so it is no longer ready to start
         VerifyQtyReadyToStart(ProductionOrder, SecondOperationNoTok, 0);
     end;
 
@@ -813,15 +945,19 @@ codeunit 137437 "SCM Qty. Ready to Start"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         FirstOperationQtyReadyToStart: Decimal;
         ProdOrderNo: Code[20];
+        SendAheadQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Status Change]
         // [SCENARIO] Changing the status of a production order from Planned to Firm Planned to Released keeps Quantity Ready to Start of its routing lines.
         Initialize();
 
         // [GIVEN] A refreshed planned production order for an item with a serial routing; the first operation has Quantity Ready to Start "R"
-        CreateItemWithSerialRouting(Item, LibraryRandom.RandIntInRange(2, 5));
+        SendAheadQty := 3;
+        CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Planned, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Planned, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
         FindProdOrderRoutingLine(ProdOrderRoutingLine, ProductionOrder, FirstOperationNoTok);
         FirstOperationQtyReadyToStart := ProdOrderRoutingLine."Quantity Ready to Start";
         Assert.AreNotEqual(0, FirstOperationQtyReadyToStart, StrSubstNo(QtyReadyToStartErr, FirstOperationNoTok));
@@ -857,16 +993,18 @@ codeunit 137437 "SCM Qty. Ready to Start"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SendAheadQty: Decimal;
         OutputQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Reopen]
         // [SCENARIO] Reopening a finished production order recalculates Quantity Ready to Start of every reopened routing line.
         Initialize();
 
         // [GIVEN] A released production order for an item with a serial routing; the first operation has Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(5, 10);
+        SendAheadQty := 6;
         CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] Output "X" below "S" posted as Finished on the first operation, so the second operation is ready to start with "X"
         OutputQty := SendAheadQty - 1;
@@ -901,19 +1039,21 @@ codeunit 137437 "SCM Qty. Ready to Start"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SendAheadQty: Decimal;
         OutputQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Reopen]
         // [SCENARIO] A production order finished before Quantity Ready to Start existed gets correct values when it is reopened.
         Initialize();
 
         // [GIVEN] A released production order for an item with a serial routing; the first operation has Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(2, 5);
+        SendAheadQty := 3;
         CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] Output "X" at or above "S" posted on the first operation and output posted on the second operation
-        OutputQty := SendAheadQty + LibraryRandom.RandInt(5);
+        OutputQty := 5;
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, OutputQty);
         PostOutputForOperation(ProductionOrder, SecondOperationNoTok, LibraryRandom.RandInt(OutputQty));
 
@@ -949,29 +1089,30 @@ codeunit 137437 "SCM Qty. Ready to Start"
         QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
         SendAheadQty: Decimal;
         OutputQty: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Upgrade]
         // [SCENARIO] The upgrade recalculation fills in Quantity Ready to Start of every routing line of non-finished production orders and leaves finished production orders untouched.
         Initialize();
 
         // [GIVEN] An item with a serial routing; the first operation has Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(2, 5);
+        SendAheadQty := 3;
         CreateItemWithSerialRouting(Item, SendAheadQty);
-        OutputQty := SendAheadQty + LibraryRandom.RandInt(5);
+        OutputQty := 5;
 
         // [GIVEN] A refreshed planned production order
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          PlannedProductionOrder, PlannedProductionOrder.Status::Planned, PlannedProductionOrder."Source Type"::Item, Item."No.",
-          LibraryRandom.RandIntInRange(20, 50));
+          PlannedProductionOrder, PlannedProductionOrder.Status::Planned, PlannedProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] A released production order with output "X" at or above "S" posted on the first operation
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ReleasedProductionOrder, ReleasedProductionOrder.Status::Released, ReleasedProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ReleasedProductionOrder, ReleasedProductionOrder.Status::Released, ReleasedProductionOrder."Source Type"::Item, Item."No.", Quantity);
         PostOutputForOperation(ReleasedProductionOrder, FirstOperationNoTok, OutputQty);
 
         // [GIVEN] A finished production order with output "X" posted on the first and the second operation
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          FinishedProductionOrder, FinishedProductionOrder.Status::Released, FinishedProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          FinishedProductionOrder, FinishedProductionOrder.Status::Released, FinishedProductionOrder."Source Type"::Item, Item."No.", Quantity);
         PostOutputForOperation(FinishedProductionOrder, FirstOperationNoTok, OutputQty);
         PostOutputForOperation(FinishedProductionOrder, SecondOperationNoTok, OutputQty);
         LibraryManufacturing.ChangeStatusReleasedToFinished(FinishedProductionOrder."No.");
@@ -1015,19 +1156,21 @@ codeunit 137437 "SCM Qty. Ready to Start"
         SendAheadQty: Decimal;
         OutputQty: Decimal;
         FirstOperationQtyReadyToStart: Decimal;
+        Quantity: Decimal;
     begin
         // [FEATURE] [Upgrade]
         // [SCENARIO] Running the upgrade recalculation twice gives the same Quantity Ready to Start as running it once.
         Initialize();
 
         // [GIVEN] A released production order for an item with a serial routing; the first operation has Send-Ahead Quantity "S"
-        SendAheadQty := LibraryRandom.RandIntInRange(2, 5);
+        SendAheadQty := 3;
         CreateItemWithSerialRouting(Item, SendAheadQty);
+        Quantity := 20;
         LibraryManufacturing.CreateAndRefreshProductionOrder(
-          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(20, 50));
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", Quantity);
 
         // [GIVEN] Output "X" at or above "S" posted on the first operation
-        OutputQty := SendAheadQty + LibraryRandom.RandInt(5);
+        OutputQty := 5;
         PostOutputForOperation(ProductionOrder, FirstOperationNoTok, OutputQty);
 
         // [GIVEN] Quantity Ready to Start is 0 on all routing lines, as before the upgrade
@@ -1151,6 +1294,23 @@ codeunit 137437 "SCM Qty. Ready to Start"
         LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", FirstItem."No.", 1);
         LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", SecondItem."No.", 1);
         Family.Validate("Routing No.", CreateSerialRouting(SendAheadQty, 0, 0));
+        Family.Modify(true);
+    end;
+
+    local procedure CreateFamilyWithMixedRoundingPrecision(var Family: Record Family; FirstItemQtyRoundingPrecision: Decimal; FirstItemQty: Decimal; SecondItemQtyRoundingPrecision: Decimal; SecondItemQty: Decimal)
+    var
+        FirstItem: Record Item;
+        SecondItem: Record Item;
+        FamilyLine: Record "Family Line";
+    begin
+        LibraryInventory.CreateItem(FirstItem);
+        SetBaseUnitRoundingPrecision(FirstItem, FirstItemQtyRoundingPrecision);
+        LibraryInventory.CreateItem(SecondItem);
+        SetBaseUnitRoundingPrecision(SecondItem, SecondItemQtyRoundingPrecision);
+        LibraryManufacturing.CreateFamily(Family);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", FirstItem."No.", FirstItemQty);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", SecondItem."No.", SecondItemQty);
+        Family.Validate("Routing No.", CreateSerialRouting(0, 0, 0));
         Family.Modify(true);
     end;
 

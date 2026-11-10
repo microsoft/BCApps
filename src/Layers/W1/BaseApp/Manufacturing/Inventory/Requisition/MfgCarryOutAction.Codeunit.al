@@ -499,7 +499,7 @@ codeunit 99000818 "Mfg. Carry Out Action"
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderRoutingLine.SetRange("Routing Reference No.", RoutingRefNo);
         ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
-        ProdOrderRoutingLine.SetLoadFields("Previous Operation No.", "Input Quantity", "Quantity Ready to Start");
+        ProdOrderRoutingLine.SetLoadFields("Previous Operation No.", "Input Quantity", "Scrap Factor % (Accumulated)", "Fixed Scrap Qty. (Accum.)", "Quantity Ready to Start");
         if ProdOrderRoutingLine.FindSet(true) then
             repeat
                 QtyReadyToStartMgt.UpdateQtyReadyToStart(ProdOrderRoutingLine);

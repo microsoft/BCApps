@@ -34,13 +34,16 @@ report 20505 "Subc. Calculate Subcontracts"
                 RequestFilterFields = "Prod. Order No.", "Starting Date";
 
                 trigger OnPreDataItem()
+                var
+                    CurrentFilterGroup: Integer;
                 begin
                     if not IsReadinessGateOn then
                         exit;
 
+                    CurrentFilterGroup := FilterGroup();
                     FilterGroup(8);
                     SetFilter("Quantity Ready to Start", '<>0');
-                    FilterGroup(0);
+                    FilterGroup(CurrentFilterGroup);
                 end;
 
                 trigger OnAfterGetRecord()

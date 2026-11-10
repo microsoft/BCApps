@@ -681,6 +681,7 @@ table 5409 "Prod. Order Routing Line"
             trigger OnValidate()
             var
                 ProdOrderCapacityNeed: Record "Prod. Order Capacity Need";
+                QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
                 IsHandled: Boolean;
             begin
                 if (xRec."Routing Status" = xRec."Routing Status"::Finished) and (xRec."Routing Status" <> "Routing Status") then
@@ -705,6 +706,9 @@ table 5409 "Prod. Order Routing Line"
                     ProdOrderCapacityNeed.SetRange("Routing Reference No.", "Routing Reference No.");
                     ProdOrderCapacityNeed.SetRange("Operation No.", "Operation No.");
                     ProdOrderCapacityNeed.ModifyAll("Allocated Time", 0);
+
+                    if not IsTemporary() then
+                        QtyReadyToStartMgt.UpdateSuccessorsQtyReadyToStart(Rec);
                 end;
             end;
         }
@@ -771,6 +775,15 @@ table 5409 "Prod. Order Routing Line"
             AccessByPermission = TableData Location = R;
             Caption = 'Location Code';
             ToolTip = 'Specifies the location where the machine or work center on the production order routing line operates.';
+            Editable = false;
+        }
+        field(102; "Quantity Ready to Start"; Decimal)
+        {
+            AllowInCustomizations = AsReadOnly;
+            AutoFormatType = 0;
+            Caption = 'Quantity Ready to Start';
+            ToolTip = 'Specifies the quantity that the previous operations have made available for this operation to start. The value is zero until all previous operations have posted at least their send-ahead quantity or their full expected output, or are finished.';
+            DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(7301; "Open Shop Floor Bin Code"; Code[20])

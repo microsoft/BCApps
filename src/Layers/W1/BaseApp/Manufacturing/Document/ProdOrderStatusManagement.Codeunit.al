@@ -340,7 +340,7 @@ codeunit 5407 "Prod. Order Status Management"
         // Runs after all routing lines are reopened, so that every predecessor operation exists in the released order.
         ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrderRoutingLine.SetLoadFields("Previous Operation No.", "Input Quantity", "Quantity Ready to Start");
+        ProdOrderRoutingLine.SetLoadFields("Previous Operation No.", "Input Quantity", "Scrap Factor % (Accumulated)", "Fixed Scrap Qty. (Accum.)", "Quantity Ready to Start");
         if ProdOrderRoutingLine.FindSet(true) then
             repeat
                 QtyReadyToStartMgt.UpdateQtyReadyToStart(ProdOrderRoutingLine);

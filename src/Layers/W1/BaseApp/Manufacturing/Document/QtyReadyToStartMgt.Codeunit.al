@@ -33,7 +33,7 @@ codeunit 99000894 "Qty. Ready to Start Mgt."
 
         SetRoutingFilters(SuccessorProdOrderRoutingLine, ProdOrderRoutingLine);
         SuccessorProdOrderRoutingLine.SetFilter("Operation No.", ProdOrderRoutingLine."Next Operation No.");
-        SuccessorProdOrderRoutingLine.SetLoadFields("Previous Operation No.", "Input Quantity", "Quantity Ready to Start");
+        SuccessorProdOrderRoutingLine.SetLoadFields("Previous Operation No.", "Input Quantity", "Scrap Factor % (Accumulated)", "Fixed Scrap Qty. (Accum.)", "Quantity Ready to Start");
         if SuccessorProdOrderRoutingLine.FindSet(true) then
             repeat
                 StoreQtyReadyToStart(
@@ -49,7 +49,7 @@ codeunit 99000894 "Qty. Ready to Start Mgt."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
         ProdOrderRoutingLine.SetFilter(Status, '<>%1', ProdOrderRoutingLine.Status::Finished);
-        ProdOrderRoutingLine.SetLoadFields("Previous Operation No.", "Input Quantity", "Quantity Ready to Start");
+        ProdOrderRoutingLine.SetLoadFields("Previous Operation No.", "Input Quantity", "Scrap Factor % (Accumulated)", "Fixed Scrap Qty. (Accum.)", "Quantity Ready to Start");
         if ProdOrderRoutingLine.FindSet(true) then
             repeat
                 UpdateQtyReadyToStart(ProdOrderRoutingLine);
@@ -60,7 +60,7 @@ codeunit 99000894 "Qty. Ready to Start Mgt."
     /// Calculates the quantity that the previous operations have made available for a production order routing line to start.
     /// </summary>
     /// <param name="ProdOrderRoutingLine">The routing line to calculate the quantity for.</param>
-    /// <returns>The input quantity for a first operation; otherwise the smallest posted output of the previous operations once all of them have reached their start threshold, or zero.</returns>
+    /// <returns>The total input quantity for a first operation; otherwise the smallest posted output of the previous operations once all of them have reached their start threshold, or zero.</returns>
     internal procedure CalcQtyReadyToStart(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Decimal
     var
         NoChangedPredecessorProdOrderRoutingLine: Record "Prod. Order Routing Line";
@@ -73,12 +73,11 @@ codeunit 99000894 "Qty. Ready to Start Mgt."
         IsHandled: Boolean;
     begin
         OnBeforeCalcQtyReadyToStart(ProdOrderRoutingLine, QtyReadyToStart, IsHandled);
-        if IsHandled then
-            exit(QtyReadyToStart);
-        if IsFirstOperation(ProdOrderRoutingLine) then
-            QtyReadyToStart := ProdOrderRoutingLine."Input Quantity"
-        else
-            QtyReadyToStart := CalcQtyReleasedByPredecessors(ProdOrderRoutingLine, ChangedPredecessorProdOrderRoutingLine);
+        if not IsHandled then
+            if IsFirstOperation(ProdOrderRoutingLine) then
+                QtyReadyToStart := CalcTotalInputQty(ProdOrderRoutingLine)
+            else
+                QtyReadyToStart := CalcQtyReleasedByPredecessors(ProdOrderRoutingLine, ChangedPredecessorProdOrderRoutingLine);
 
         OnAfterCalcQtyReadyToStart(ProdOrderRoutingLine, QtyReadyToStart);
     end;
@@ -106,10 +105,14 @@ codeunit 99000894 "Qty. Ready to Start Mgt."
     local procedure CalcQtyReleasedByPredecessors(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ChangedPredecessorProdOrderRoutingLine: Record "Prod. Order Routing Line") QtyReleased: Decimal
     var
         PredecessorProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        UOMMgt: Codeunit "Unit of Measure Management";
+        TotalInputQty: Decimal;
+        QtyRoundingPrecision: Decimal;
         FullLotQty: Decimal;
         IsFirstPredecessor: Boolean;
     begin
-        FullLotQty := CalcFullLotQty(ProdOrderRoutingLine);
+        TotalInputQty := CalcTotalInputQty(ProdOrderRoutingLine, QtyRoundingPrecision);
+        FullLotQty := UOMMgt.RoundQty(TotalInputQty, QtyRoundingPrecision);
         IsFirstPredecessor := true;
 
         SetPredecessorFilters(PredecessorProdOrderRoutingLine, ProdOrderRoutingLine);
@@ -120,7 +123,7 @@ codeunit 99000894 "Qty. Ready to Start Mgt."
         repeat
             if IsSameRoutingLine(PredecessorProdOrderRoutingLine, ChangedPredecessorProdOrderRoutingLine) then
                 PredecessorProdOrderRoutingLine."Routing Status" := ChangedPredecessorProdOrderRoutingLine."Routing Status";
-            if not HasReachedStartThreshold(PredecessorProdOrderRoutingLine, ProdOrderRoutingLine."Input Quantity", FullLotQty) then
+            if not HasReachedStartThreshold(PredecessorProdOrderRoutingLine, TotalInputQty, FullLotQty) then
                 exit(0);
             if IsFirstPredecessor or (PredecessorProdOrderRoutingLine."Posted Output Quantity" < QtyReleased) then
                 QtyReleased := PredecessorProdOrderRoutingLine."Posted Output Quantity";
@@ -138,37 +141,74 @@ codeunit 99000894 "Qty. Ready to Start Mgt."
           (ProdOrderRoutingLine."Operation No." = OtherProdOrderRoutingLine."Operation No."));
     end;
 
-    local procedure HasReachedStartThreshold(PredecessorProdOrderRoutingLine: Record "Prod. Order Routing Line"; InputQty: Decimal; FullLotQty: Decimal): Boolean
+    local procedure HasReachedStartThreshold(PredecessorProdOrderRoutingLine: Record "Prod. Order Routing Line"; TotalInputQty: Decimal; FullLotQty: Decimal): Boolean
     begin
         if PredecessorProdOrderRoutingLine."Routing Status" = PredecessorProdOrderRoutingLine."Routing Status"::Finished then
             exit(true);
 
-        exit(PredecessorProdOrderRoutingLine."Posted Output Quantity" >= GetStartThreshold(PredecessorProdOrderRoutingLine."Send-Ahead Quantity", InputQty, FullLotQty));
+        exit(PredecessorProdOrderRoutingLine."Posted Output Quantity" >= GetStartThreshold(PredecessorProdOrderRoutingLine."Send-Ahead Quantity", TotalInputQty, FullLotQty));
     end;
 
-    local procedure GetStartThreshold(SendAheadQty: Decimal; InputQty: Decimal; FullLotQty: Decimal): Decimal
+    local procedure GetStartThreshold(SendAheadQty: Decimal; TotalInputQty: Decimal; FullLotQty: Decimal): Decimal
     begin
-        if (SendAheadQty > 0) and (SendAheadQty < InputQty) then
+        if (SendAheadQty > 0) and (SendAheadQty < TotalInputQty) then
             exit(SendAheadQty);
 
         exit(FullLotQty);
     end;
 
-    local procedure CalcFullLotQty(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Decimal
+    local procedure CalcTotalInputQty(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Decimal
+    var
+        QtyRoundingPrecision: Decimal;
+    begin
+        exit(CalcTotalInputQty(ProdOrderRoutingLine, QtyRoundingPrecision));
+    end;
+
+    local procedure CalcTotalInputQty(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var QtyRoundingPrecision: Decimal): Decimal
     var
         ProdOrderLine: Record "Prod. Order Line";
-        UOMMgt: Codeunit "Unit of Measure Management";
+        TotalQtyBase: Decimal;
+        TotalScrapPct: Decimal;
     begin
+        // Replanning writes only the remaining quantity to Input Quantity, so the total is calculated from the production order lines like Calculate Routing Line does.
+        QtyRoundingPrecision := 0;
         ProdOrderLine.SetCurrentKey(Status, "Prod. Order No.", "Routing No.", "Routing Reference No.");
         ProdOrderLine.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderLine.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         ProdOrderLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
         ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
-        ProdOrderLine.SetLoadFields("Qty. Rounding Precision (Base)");
-        if not ProdOrderLine.FindFirst() then
-            exit(UOMMgt.RoundQty(ProdOrderRoutingLine."Input Quantity"));
+        ProdOrderLine.SetLoadFields("Quantity (Base)", "Scrap %", "Qty. Rounding Precision (Base)");
+        if not ProdOrderLine.FindSet() then
+            exit(ProdOrderRoutingLine."Input Quantity");
 
-        exit(UOMMgt.RoundQty(ProdOrderRoutingLine."Input Quantity", ProdOrderLine."Qty. Rounding Precision (Base)"));
+        QtyRoundingPrecision := ProdOrderLine."Qty. Rounding Precision (Base)";
+        repeat
+            TotalQtyBase += ProdOrderLine."Quantity (Base)";
+            TotalScrapPct += ProdOrderLine."Scrap %";
+            QtyRoundingPrecision := CalcCommonRoundingPrecision(QtyRoundingPrecision, ProdOrderLine."Qty. Rounding Precision (Base)");
+        until ProdOrderLine.Next() = 0;
+
+        exit(
+          TotalQtyBase *
+          (1 + ProdOrderRoutingLine."Scrap Factor % (Accumulated)") *
+          (1 + TotalScrapPct / 100) +
+          ProdOrderRoutingLine."Fixed Scrap Qty. (Accum.)");
+    end;
+
+    local procedure CalcCommonRoundingPrecision(RoundingPrecision: Decimal; OtherRoundingPrecision: Decimal): Decimal
+    var
+        Remainder: Decimal;
+    begin
+        // Largest precision that both precisions are a multiple of, so that output posted for all items of a family is a multiple of it. Zero stands for the default precision.
+        if (RoundingPrecision = 0) or (OtherRoundingPrecision = 0) then
+            exit(0);
+
+        while OtherRoundingPrecision <> 0 do begin
+            Remainder := RoundingPrecision - Round(RoundingPrecision / OtherRoundingPrecision, 1, '<') * OtherRoundingPrecision;
+            RoundingPrecision := OtherRoundingPrecision;
+            OtherRoundingPrecision := Remainder;
+        end;
+        exit(RoundingPrecision);
     end;
 
     local procedure SetPredecessorFilters(var PredecessorProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
