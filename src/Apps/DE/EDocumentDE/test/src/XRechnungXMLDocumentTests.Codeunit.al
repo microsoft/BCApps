@@ -40,6 +40,7 @@ codeunit 13918 "XRechnung XML Document Tests"
 {
     Subtype = Test;
     TestType = Uncategorized;
+    Permissions = tabledata "Sales Invoice Header" = m;
 
     trigger OnRun();
     begin
