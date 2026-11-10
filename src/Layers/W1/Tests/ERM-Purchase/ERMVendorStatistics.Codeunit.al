@@ -1729,12 +1729,69 @@ codeunit 134334 "ERM Vendor Statistics"
         Assert.AreEqual(300, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalUsesReducedInvoiceQuantity()
+    var
+        Vendor: Record Vendor;
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+    begin
+        // [SCENARIO 658521] A stale match cannot deduct more than the current invoice quantity.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLineOrder, Vendor."No.", PurchaseLineOrder."Document Type"::Order, 10, 100);
+        MockVendorPurchaseLine(PurchaseLineInvoice, Vendor."No.", PurchaseLineInvoice."Document Type"::Invoice, 4, 60);
+        MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder, 10);
+
+        VerifyVendorMatchedTotal(Vendor, 120);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalSharesCurrentInvoiceQuantityAcrossOrders()
+    var
+        Vendor: Record Vendor;
+        PurchaseLineOrder: array[2] of Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+    begin
+        // [SCENARIO 658521] Multiple stale matches share the same current invoice quantity.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLineOrder[1], Vendor."No.", PurchaseLineOrder[1]."Document Type"::Order, 10, 100);
+        MockVendorPurchaseLine(PurchaseLineOrder[2], Vendor."No.", PurchaseLineOrder[2]."Document Type"::Order, 10, 100);
+        MockVendorPurchaseLine(PurchaseLineInvoice, Vendor."No.", PurchaseLineInvoice."Document Type"::Invoice, 4, 60);
+        MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder[1], 4);
+        MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder[2], 4);
+
+        VerifyVendorMatchedTotal(Vendor, 220);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalIgnoresMatchWithOppositeInvoiceQuantity()
+    var
+        Vendor: Record Vendor;
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+    begin
+        // [SCENARIO 658521] A match with the opposite sign is not represented by the current invoice.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLineOrder, Vendor."No.", PurchaseLineOrder."Document Type"::Order, 10, 100);
+        MockVendorPurchaseLine(PurchaseLineInvoice, Vendor."No.", PurchaseLineInvoice."Document Type"::Invoice, -4, -60);
+        MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder, 4);
+
+        VerifyVendorMatchedTotal(Vendor, 40);
+    end;
+
     local procedure VerifyVendorTotalAfterGetOrderLines(ReceiveOrder: Boolean)
     var
         Vendor: Record Vendor;
         PurchaseHeaderOrder: Record "Purchase Header";
         PurchaseHeaderInvoice: Record "Purchase Header";
         PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
         PurchaseInvoice: TestPage "Purchase Invoice";
         ExpectedAmountLCY: Decimal;
     begin
@@ -1761,6 +1818,14 @@ codeunit 134334 "ERM Vendor Statistics"
             Vendor.TestField("Amt. Rcd. Not Invoiced (LCY)", ExpectedAmountLCY)
         else
             Vendor.TestField("Outstanding Orders (LCY)", ExpectedAmountLCY);
+
+        PurchaseLineInvoice.SetRange("Document Type", PurchaseHeaderInvoice."Document Type");
+        PurchaseLineInvoice.SetRange("Document No.", PurchaseHeaderInvoice."No.");
+        PurchaseLineInvoice.SetFilter(Type, '<>%1', PurchaseLineInvoice.Type::" ");
+        PurchaseLineInvoice.FindFirst();
+        PurchaseLineInvoice.Validate(Quantity, 0);
+        PurchaseLineInvoice.Modify(true);
+        VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
 
         PurchaseHeaderInvoice.Delete(true);
         VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);

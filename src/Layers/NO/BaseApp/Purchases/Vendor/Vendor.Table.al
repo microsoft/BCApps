@@ -2463,7 +2463,10 @@ table 23 Vendor
         PurchaseLineInvoice: Record "Purchase Line";
         MatchedOrderLine: Record "Matched Order Line";
         MatchedReceiptLine: Record "Matched Order Line";
+        InvoiceRemainingQuantities: Dictionary of [Guid, Decimal];
         EmptyGuid: Guid;
+        InvoiceRemainingQuantityBase: Decimal;
+        OrderRemainingQuantityBase: Decimal;
         RemainingQuantityBase: Decimal;
         MatchedQuantityBase: Decimal;
         QuantityBase: Decimal;
@@ -2489,7 +2492,7 @@ table 23 Vendor
                     if MatchedOrderLine.FindSet() then
                         repeat
                             PurchaseLineInvoice.SetRange(SystemId, MatchedOrderLine."Document Line SystemId");
-                            if not PurchaseLineInvoice.IsEmpty() then begin
+                            if PurchaseLineInvoice.FindFirst() then begin
                                 QuantityBase := MatchedOrderLine."Qty. to Invoice (Base)";
                                 if not MatchedOrderLine."Receipt on Invoice" then begin
                                     // Receipt matches carry the current allocation; the order-level match also exists.
@@ -2501,7 +2504,20 @@ table 23 Vendor
                                         QuantityBase := MatchedReceiptLine."Qty. to Invoice (Base)";
                                     end;
                                 end;
-                                MatchedQuantityBase += QuantityBase;
+                                if not InvoiceRemainingQuantities.Get(PurchaseLineInvoice.SystemId, InvoiceRemainingQuantityBase) then
+                                    InvoiceRemainingQuantityBase := PurchaseLineInvoice."Outstanding Qty. (Base)";
+                                OrderRemainingQuantityBase := RemainingQuantityBase - MatchedQuantityBase;
+                                if (QuantityBase <> 0) and
+                                   ((QuantityBase > 0) = (InvoiceRemainingQuantityBase > 0)) and
+                                   ((QuantityBase > 0) = (OrderRemainingQuantityBase > 0))
+                                then begin
+                                    if Abs(QuantityBase) > Abs(InvoiceRemainingQuantityBase) then
+                                        QuantityBase := InvoiceRemainingQuantityBase;
+                                    if Abs(QuantityBase) > Abs(OrderRemainingQuantityBase) then
+                                        QuantityBase := OrderRemainingQuantityBase;
+                                    MatchedQuantityBase += QuantityBase;
+                                    InvoiceRemainingQuantities.Set(PurchaseLineInvoice.SystemId, InvoiceRemainingQuantityBase - QuantityBase);
+                                end;
                             end;
                         until MatchedOrderLine.Next() = 0;
 
