@@ -343,6 +343,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.NewLayout.Invoke();
         ReportLayoutsPage.Close();
 
+        UnbindSubscription(ReportLayoutsTest);
         TenantReportLayout.SetRange("Report ID", Report::TestReportLayoutsReport);
         Assert.IsTrue(TenantReportLayout.IsEmpty(), 'Cancelling the dialog must not create a layout.');
         Assert.AreEqual(0, ReportLayoutsTest.GetUploadCount(), 'Cancelling the dialog must not upload a file.');
@@ -1282,9 +1283,9 @@ codeunit 139595 "Report Layouts Test"
         ExportCount := 0;
         UseLayoutUpload := false;
         CaptureExport := false;
-        clear(GlobalTempBlob);
-        clear(UploadedLayoutBlob);
-        clear(ExportedLayoutBlob);
+        Clear(GlobalTempBlob);
+        Clear(UploadedLayoutBlob);
+        Clear(ExportedLayoutBlob);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Layouts Impl.", 'OnBeforeUpload', '', false, false)]

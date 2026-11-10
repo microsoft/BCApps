@@ -295,34 +295,97 @@ codeunit 134619 "Composite Layout Tests"
     [Test]
     [Scope('OnPrem')]
     procedure ExportHeaderFooterArtifactUsesDocxExtension()
+    var
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        OriginalBlob: Codeunit "Temp Blob";
+        ReportThemePage: TestPage "Report Theme and Header/Footer";
+        OriginalMediaID: Guid;
     begin
-        ExportArtifactTestCore('ExportHeaderFooter', Enum::"Report Layout Subtype"::HeaderFooter, 'ExportHeaderFooter.docx');
-        ExportArtifactTestCore('ExportHeaderFooter.docx', Enum::"Report Layout Subtype"::HeaderFooter, 'ExportHeaderFooter.docx');
+        // [SCENARIO] Exporting a header/footer part appends the .docx extension.
+        // [GIVEN] A header/footer part whose name has no extension.
+        PrepareArtifactExport('ExportHeaderFooter', Enum::"Report Layout Subtype"::HeaderFooter, ReportLayoutsTest, OriginalBlob, OriginalMediaID, ReportThemePage);
+
+        // [WHEN] Exporting the part from the page.
+        ReportThemePage.ExportArtifact.Invoke();
+        ReportThemePage.Close();
+        UnbindSubscription(ReportLayoutsTest);
+
+        // [THEN] The export appends .docx and preserves the stored layout.
+        AssertArtifactExport('ExportHeaderFooter', 'ExportHeaderFooter.docx', ReportLayoutsTest, OriginalBlob, OriginalMediaID);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportHeaderFooterArtifactPreservesDocxExtension()
+    var
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        OriginalBlob: Codeunit "Temp Blob";
+        ReportThemePage: TestPage "Report Theme and Header/Footer";
+        OriginalMediaID: Guid;
+    begin
+        // [SCENARIO] Exporting a header/footer part named with .docx does not duplicate its extension.
+        // [GIVEN] A header/footer part whose name already ends in .docx.
+        PrepareArtifactExport('ExportHeaderFooter.docx', Enum::"Report Layout Subtype"::HeaderFooter, ReportLayoutsTest, OriginalBlob, OriginalMediaID, ReportThemePage);
+
+        // [WHEN] Exporting the part from the page.
+        ReportThemePage.ExportArtifact.Invoke();
+        ReportThemePage.Close();
+        UnbindSubscription(ReportLayoutsTest);
+
+        // [THEN] The export preserves the existing extension and stored layout.
+        AssertArtifactExport('ExportHeaderFooter.docx', 'ExportHeaderFooter.docx', ReportLayoutsTest, OriginalBlob, OriginalMediaID);
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure ExportThemeArtifactUsesDotxExtension()
+    var
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        OriginalBlob: Codeunit "Temp Blob";
+        ReportThemePage: TestPage "Report Theme and Header/Footer";
+        OriginalMediaID: Guid;
     begin
-        ExportArtifactTestCore('ExportTheme', Enum::"Report Layout Subtype"::Theme, 'ExportTheme.dotx');
-        ExportArtifactTestCore('ExportTheme.dotx', Enum::"Report Layout Subtype"::Theme, 'ExportTheme.dotx');
+        // [SCENARIO] Exporting a theme part appends the .dotx extension.
+        // [GIVEN] A theme part whose name has no extension.
+        PrepareArtifactExport('ExportTheme', Enum::"Report Layout Subtype"::Theme, ReportLayoutsTest, OriginalBlob, OriginalMediaID, ReportThemePage);
+
+        // [WHEN] Exporting the part from the page.
+        ReportThemePage.ExportArtifact.Invoke();
+        ReportThemePage.Close();
+        UnbindSubscription(ReportLayoutsTest);
+
+        // [THEN] The export appends .dotx and preserves the stored layout.
+        AssertArtifactExport('ExportTheme', 'ExportTheme.dotx', ReportLayoutsTest, OriginalBlob, OriginalMediaID);
     end;
 
-    local procedure ExportArtifactTestCore(PartName: Text; Subtype: Enum "Report Layout Subtype"; ExpectedFileName: Text)
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportThemeArtifactPreservesDotxExtension()
+    var
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        OriginalBlob: Codeunit "Temp Blob";
+        ReportThemePage: TestPage "Report Theme and Header/Footer";
+        OriginalMediaID: Guid;
+    begin
+        // [SCENARIO] Exporting a theme part named with .dotx does not duplicate its extension.
+        // [GIVEN] A theme part whose name already ends in .dotx.
+        PrepareArtifactExport('ExportTheme.dotx', Enum::"Report Layout Subtype"::Theme, ReportLayoutsTest, OriginalBlob, OriginalMediaID, ReportThemePage);
+
+        // [WHEN] Exporting the part from the page.
+        ReportThemePage.ExportArtifact.Invoke();
+        ReportThemePage.Close();
+        UnbindSubscription(ReportLayoutsTest);
+
+        // [THEN] The export preserves the existing extension and stored layout.
+        AssertArtifactExport('ExportTheme.dotx', 'ExportTheme.dotx', ReportLayoutsTest, OriginalBlob, OriginalMediaID);
+    end;
+
+    local procedure PrepareArtifactExport(PartName: Text; Subtype: Enum "Report Layout Subtype"; var ReportLayoutsTest: Codeunit "Report Layouts Test"; var OriginalBlob: Codeunit "Temp Blob"; var OriginalMediaID: Guid; var ReportThemePage: TestPage "Report Theme and Header/Footer")
     var
         TenantReportLayout: Record "Tenant Report Layout";
         ReportLayoutList: Record "Report Layout List";
-        ReportLayoutsTest: Codeunit "Report Layouts Test";
-        OriginalBlob: Codeunit "Temp Blob";
-        ExportedBlob: Codeunit "Temp Blob";
-        Base64Convert: Codeunit "Base64 Convert";
-        ReportThemePage: TestPage "Report Theme and Header/Footer";
-        ExportedFileName: Text;
-        WithEncoding: Boolean;
-        OriginalMediaID: Guid;
         EmptyGuid: Guid;
     begin
-        // [SCENARIO] Export uses the Word part subtype, including when the name already has the correct extension.
         Initialize();
         EnableDocumentReportExperience();
         CreatePart(PartName, Subtype);
@@ -338,11 +401,18 @@ codeunit 134619 "Composite Layout Tests"
 
         ReportThemePage.OpenView();
         ReportThemePage.GoToRecord(ReportLayoutList);
-        ReportThemePage.ExportArtifact.Invoke();
-        ReportThemePage.Close();
+    end;
 
+    local procedure AssertArtifactExport(PartName: Text; ExpectedFileName: Text; ReportLayoutsTest: Codeunit "Report Layouts Test"; OriginalBlob: Codeunit "Temp Blob"; OriginalMediaID: Guid)
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ExportedBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        ExportedFileName: Text;
+        WithEncoding: Boolean;
+        EmptyGuid: Guid;
+    begin
         ReportLayoutsTest.GetExportedLayout(ExportedBlob, ExportedFileName, WithEncoding);
-        UnbindSubscription(ReportLayoutsTest);
         RestoreDocumentReportExperience();
 
         Assert.AreEqual(ExpectedFileName, ExportedFileName, 'The exported Word part must use the extension for its subtype without duplicating it.');
