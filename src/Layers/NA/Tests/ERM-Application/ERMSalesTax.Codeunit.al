@@ -255,6 +255,88 @@ codeunit 134388 "ERM Sales Tax"
         Assert.RecordIsNotEmpty(TaxDetail);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesTaxJournalSkipsReservedConcurrentNumbers()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GLTransaction: Record "G/L Transaction";
+        VATEntry: Record "VAT Entry";
+        ReservedVATEntryNo: Integer;
+        ReservedTransactionNo: Integer;
+    begin
+        // [SCENARIO] Sales tax journal posting skips VAT entry and transaction numbers reserved by another allocation.
+        Initialize();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Use Concurrent Posting", true);
+        GeneralLedgerSetup.Modify(true);
+
+        // [GIVEN] VAT entry and transaction numbers have been reserved without inserting entries.
+        ReservedVATEntryNo := VATEntry.GetNextEntryNo();
+        ReservedTransactionNo := GLTransaction.GetNextTransactionNo();
+
+        // [WHEN] The sales tax journal creates its VAT entry.
+        PostSalesTaxJournalVATEntry(VATEntry);
+
+        // [THEN] Neither reserved number is reused, and the journal amount is retained.
+        Assert.IsTrue(VATEntry."Entry No." > ReservedVATEntryNo, 'The reserved VAT entry number must not be reused.');
+        Assert.IsTrue(VATEntry."Transaction No." > ReservedTransactionNo, 'The reserved transaction number must not be reused.');
+        VATEntry.TestField(Amount, 100);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesTaxJournalUsesLegacyNumbers()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GLEntry: Record "G/L Entry";
+        VATEntry: Record "VAT Entry";
+        ExpectedVATEntryNo: Integer;
+        ExpectedTransactionNo: Integer;
+    begin
+        // [SCENARIO] Sales tax journal posting retains tail-based numbering when concurrent posting is disabled.
+        Initialize();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Use Concurrent Posting", false);
+        GeneralLedgerSetup.Modify(true);
+
+        // [GIVEN] The last persisted VAT entry and G/L transaction numbers.
+        ExpectedVATEntryNo := 1;
+        if VATEntry.FindLast() then
+            ExpectedVATEntryNo := VATEntry."Entry No." + 1;
+        ExpectedTransactionNo := 1;
+        if GLEntry.FindLast() then
+            ExpectedTransactionNo := GLEntry."Transaction No." + 1;
+
+        // [WHEN] The sales tax journal creates its VAT entry.
+        VATEntry.Reset();
+        PostSalesTaxJournalVATEntry(VATEntry);
+
+        // [THEN] The entry uses the next numbers after the persisted tails.
+        VATEntry.TestField("Entry No.", ExpectedVATEntryNo);
+        VATEntry.TestField("Transaction No.", ExpectedTransactionNo);
+        VATEntry.TestField(Amount, 100);
+    end;
+
+    local procedure PostSalesTaxJournalVATEntry(var VATEntry: Record "VAT Entry")
+    var
+        TempGenJournalLine: Record "Gen. Journal Line" temporary;
+        ManageSalesTaxJournal: Codeunit "Manage Sales Tax Journal";
+    begin
+        TempGenJournalLine."Line No." := 10000;
+        TempGenJournalLine."Document No." :=
+          CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(TempGenJournalLine."Document No."));
+        TempGenJournalLine."Posting Date" := WorkDate();
+        TempGenJournalLine.Amount := 100;
+        TempGenJournalLine.Insert();
+
+        ManageSalesTaxJournal.PostToVAT(TempGenJournalLine);
+
+        VATEntry.SetRange("Document No.", TempGenJournalLine."Document No.");
+        VATEntry.FindFirst();
+        VATEntry.TestField("Posting Date", TempGenJournalLine."Posting Date");
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
