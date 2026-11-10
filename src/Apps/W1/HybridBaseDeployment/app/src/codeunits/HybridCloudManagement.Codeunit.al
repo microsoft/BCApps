@@ -1672,36 +1672,36 @@ codeunit 4001 "Hybrid Cloud Management"
     [EventSubscriber(ObjectType::Table, Database::"Company", 'OnAfterDeleteEvent', '', false, false)]
     local procedure HandleCompanyDelete(var Rec: Record Company; RunTrigger: Boolean)
     var
-        Company: Record Company;
         WebhookSubscription: Record "Webhook Subscription";
         HybridCompany: Record "Hybrid Company";
-        FilterStr: Text;
-        ReplacementCompanyName: Text[30];
     begin
         if Rec.IsTemporary() then
             exit;
 
-        FilterStr := StrSubstNo(SubscriptionFormatTxt, '*') + '|' + StrSubstNo(ServiceSubscriptionFormatTxt, '*');
-        WebhookSubscription.SetRange("Company Name", Rec.Name);
-        WebhookSubscription.SetFilter("Subscription ID", FilterStr);
+        if IsCompanyWebhookCompany(Rec.Name, WebhookSubscription) then
+            MoveWebhookSubscription(Rec.Name, WebhookSubscription);
 
-        if not WebhookSubscription.IsEmpty() and Company.FindSet() then begin
-            ReplacementCompanyName := Company.Name;
-
-            repeat
-                if not HybridCompany.Get(Company.Name) then begin
-                    ReplacementCompanyName := Company.Name;
-                    break;
-                end;
-            until Company.Next() = 0;
-
-            WebhookSubscription.ModifyAll("Company Name", ReplacementCompanyName);
-        end;
-
-        if HybridCompany.Get(Company.Name) then
+        if HybridCompany.Get(Rec.Name) then
             HybridCompany.Delete();
-        RemoveIntelligentCloudStatusRecords(Company.Name);
+        RemoveIntelligentCloudStatusRecords(Rec.Name);
         CleanupSetupTables(Rec);
+    end;
+
+    local procedure IsCompanyWebhookCompany(CompanyName: Text[30]; var WebhookSubscription: Record "Webhook Subscription"): Boolean
+    begin
+        WebhookSubscription.SetRange("Company Name", CompanyName);
+        WebhookSubscription.SetFilter("Subscription ID", StrSubstNo(SubscriptionFormatTxt, '*') + '|' + StrSubstNo(ServiceSubscriptionFormatTxt, '*'));
+        exit(not WebhookSubscription.IsEmpty());
+    end;
+
+    local procedure MoveWebhookSubscription(DeletedCompanyName: Text[30]; WebhookSubscription: Record "Webhook Subscription")
+    var
+        Company: Record Company;
+    begin
+        // Keep cloud migration webhooks working after their company is deleted.
+        Company.SetFilter(Name, '<>%1', DeletedCompanyName);
+        if Company.FindFirst() then
+            WebhookSubscription.ModifyAll("Company Name", Company.Name);
     end;
 
     local procedure RemoveIntelligentCloudStatusRecords(CompanyName: Text[50])
