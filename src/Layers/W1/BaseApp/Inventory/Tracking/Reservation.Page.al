@@ -295,6 +295,7 @@ page 498 Reservation
                         QtyReservedBefore: Decimal;
                         RemainingQtyToReserve: Decimal;
                     begin
+                        ValidateReservationApplicable();
                         RemainingQtyToReserveBase := QtyToReserveBase - QtyReservedBase;
                         if RemainingQtyToReserveBase = 0 then
                             Error(Text000);
@@ -425,6 +426,7 @@ page 498 Reservation
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         ReservConfirmQst: Label 'Do you want to reserve specific tracking numbers?';
+        InboundQtyErr: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
 
     procedure SetReservSource(CurrentRecordVar: Variant)
     begin
@@ -687,6 +689,13 @@ page 498 Reservation
         Rec.SetRange("Non-specific Reserved Qty.");
     end;
 
+    local procedure ValidateReservationApplicable()
+    begin
+        if ReservEntry."Source Type" = Database::"Transfer Line" then
+            if ReservEntry.GetTransferDirection() = Enum::"Transfer Direction"::Inbound then
+                Error(InboundQtyErr);
+    end;
+
     procedure AutoReserve()
     var
         IsHandled: Boolean;
@@ -694,6 +703,7 @@ page 498 Reservation
         OnBeforeAutoReserve(
             ReservEntry, FullAutoReservation, QtyToReserve, QtyReserved, QtyToReserveBase, QtyReservedBase, IsHandled);
         if not IsHandled then begin
+            ValidateReservationApplicable();
             if Abs(QtyToReserveBase) - Abs(QtyReservedBase) = 0 then
                 Error(Text000);
             ReservMgt.AutoReserve(
