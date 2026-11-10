@@ -393,7 +393,7 @@ codeunit 900 "Assembly-Post"
     begin
         AssemblyLine.LockTable();
         AssemblyHeader.LockTable();
-        if InvSetup.UseLegacyPosting() and not InvSetup.OptimGLEntLockForMultiuserEnv() then begin
+        if InvSetup.UseLegacyPosting() and not InvSetup.OptimGLEntLockForMultiuserEnv() and not GLSetup.UseConcurrentPosting() then begin
             GLEntry.LockTable();
             GLEntry.GetLastEntryNo();
         end;

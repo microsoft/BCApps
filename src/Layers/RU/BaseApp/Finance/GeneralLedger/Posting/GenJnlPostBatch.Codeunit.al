@@ -335,7 +335,8 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         ProcessBalanceOfLines(GenJnlLine, GenJnlLineVATInfoSource, VATInfoSourceLineIsInserted, LastLineNo, CurrentICPartner);
 
         // Find next register no.
-        GLEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            GLEntry.LockTable();
         FindNextGLRegisterNo();
         if GenJnlTemplate.Archive then begin
             GenJnlLineArchive.LockTable();
@@ -388,8 +389,15 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         IsHandled := false;
         OnProcessLinesOnBeforeSetGLRegNoToZero(GenJnlLine, GLRegNo, IsHandled, GenJnlPostLine);
         if not IsHandled then
-            if not GLReg.FindLast() or (GLReg."No." <> GLRegNo) then
-                GLRegNo := 0;
+            if GLSetup.UseConcurrentPosting() then begin
+                GenJnlPostLine.GetGLReg(GLReg);
+                if (GLReg."No." = 0) or not GLReg.Get(GLReg."No.") then
+                    GLRegNo := 0
+                else
+                    GLRegNo := GLReg."No.";
+            end else
+                if not GLReg.FindLast() or (GLReg."No." <> GLRegNo) then
+                    GLRegNo := 0;
 
         GenJnlLine.Init();
         if GLRegNo <= 2147483647 then
@@ -1365,6 +1373,12 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         if IsHandled then
             exit;
 
+        // With concurrent posting the register no. is taken from a sequence by Gen. Jnl.-Post Line
+        if GLSetup.UseConcurrentPosting() then begin
+            GLRegNo := 0;
+            exit;
+        end;
+
         GLReg.LockTable();
         GLRegNo := GLReg.GetLastEntryNo() + 1;
     end;
@@ -2058,6 +2072,11 @@ codeunit 13 "Gen. Jnl.-Post Batch"
 
         if GenJournalLine.EmptyLine() then
             exit;
+
+        if GLSetup.UseConcurrentPosting() then begin
+            GenJnlPostLine.GetGLReg(GLReg);
+            GLRegNo := GLReg."No.";
+        end;
 
         if not PostedGenJournalBatch.Get(GenJnlBatch."Journal Template Name", GenJnlBatch.Name) then
             PostedGenJournalBatch.InsertFromGenJournalBatch(GenJnlBatch);

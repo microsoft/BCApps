@@ -12,6 +12,8 @@ codeunit 144007 "Alt. Cust. VAT Doc. BE Tests"
         LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
@@ -641,6 +643,99 @@ codeunit 144007 "Alt. Cust. VAT Doc. BE Tests"
         LibraryLowerPermissions.SetOutsideO365Scope();
     end;
 
+    [Test]
+    [HandlerFunctions('NoNotificationOtherThanShipToAddressSendNotificationHandler')]
+    procedure PostSalesInvoiceWithAltCustVATRegForDomesticCustomerUsesVATCountryInVATEntry()
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        PostedDocNo: Code[20];
+    begin
+        // [SCENARIO 654027] VAT Entry gets the VAT country of the sales invoice when an Alternative Customer VAT Registration is applied to a domestic customer
+        Initialize();
+
+        // [GIVEN] Belgian customer
+        LibraryBEHelper.CreateDomesticCustomer(Customer);
+        // [GIVEN] Alternative Customer VAT Reg. with VAT country "X" and VAT Registration No. "V"
+        CreateAlternativeCustVATRegWithVATRegNo(AltCustVATReg, Customer."No.", LibraryERM.CreateCountryRegion());
+        // [GIVEN] Sales invoice for the customer with VAT country changed to "X"
+        CreateSalesInvoiceWithItem(SalesHeader, Customer."No.");
+        SalesHeader.Validate("VAT Country/Region Code", AltCustVATReg."VAT Country/Region Code");
+        SalesHeader.Modify(true);
+        SalesHeader.TestField("VAT Registration No.", AltCustVATReg."VAT Registration No.");
+        LibraryLowerPermissions.SetO365Setup();
+        LibraryLowerPermissions.AddSalesDocsPost();
+
+        // [WHEN] Post the sales invoice
+        PostedDocNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] VAT Entry has "Country/Region Code" = "X" and "VAT Registration No." = "V"
+        VerifyVATEntryCountryAndVATRegNo(PostedDocNo, AltCustVATReg."VAT Country/Region Code", AltCustVATReg."VAT Registration No.");
+
+        LibraryLowerPermissions.SetOutsideO365Scope();
+    end;
+
+    [Test]
+    [HandlerFunctions('NoNotificationOtherThanShipToAddressSendNotificationHandler')]
+    procedure PostSalesInvoiceWithAltCustVATRegForForeignCustomerUsesVATCountryInVATEntry()
+    var
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        PostedDocNo: Code[20];
+    begin
+        // [SCENARIO 654027] VAT Entry gets the VAT country of the sales invoice when an Alternative Customer VAT Registration is applied to a foreign customer
+        Initialize();
+
+        // [GIVEN] Customer with foreign country "A"
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        // [GIVEN] Alternative Customer VAT Reg. with VAT country "X" and VAT Registration No. "V"
+        CreateAlternativeCustVATRegWithVATRegNo(AltCustVATReg, Customer."No.", LibraryERM.CreateCountryRegion());
+        // [GIVEN] Sales invoice for the customer with VAT country changed to "X"
+        CreateSalesInvoiceWithItem(SalesHeader, Customer."No.");
+        SalesHeader.Validate("VAT Country/Region Code", AltCustVATReg."VAT Country/Region Code");
+        SalesHeader.Modify(true);
+        SalesHeader.TestField("VAT Registration No.", AltCustVATReg."VAT Registration No.");
+        LibraryLowerPermissions.SetO365Setup();
+        LibraryLowerPermissions.AddSalesDocsPost();
+
+        // [WHEN] Post the sales invoice
+        PostedDocNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] VAT Entry has "Country/Region Code" = "X", not the customer's country "A"
+        VerifyVATEntryCountryAndVATRegNo(PostedDocNo, AltCustVATReg."VAT Country/Region Code", AltCustVATReg."VAT Registration No.");
+
+        LibraryLowerPermissions.SetOutsideO365Scope();
+    end;
+
+    [Test]
+    procedure PostSalesInvoiceWithoutAltCustVATRegUsesCustomerCountryInVATEntry()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        PostedDocNo: Code[20];
+    begin
+        // [SCENARIO 654027] VAT Entry keeps the customer's country when no Alternative Customer VAT Registration is applied
+        Initialize();
+
+        // [GIVEN] Customer with foreign country "A" and VAT Registration No. "V"
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        // [GIVEN] Sales invoice for the customer
+        CreateSalesInvoiceWithItem(SalesHeader, Customer."No.");
+        SalesHeader.TestField("VAT Country/Region Code", Customer."Country/Region Code");
+        LibraryLowerPermissions.SetO365Setup();
+        LibraryLowerPermissions.AddSalesDocsPost();
+
+        // [WHEN] Post the sales invoice
+        PostedDocNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] VAT Entry has "Country/Region Code" = "A" and "VAT Registration No." = "V"
+        VerifyVATEntryCountryAndVATRegNo(PostedDocNo, Customer."Country/Region Code", Customer."VAT Registration No.");
+
+        LibraryLowerPermissions.SetOutsideO365Scope();
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -708,6 +803,33 @@ codeunit 144007 "Alt. Cust. VAT Doc. BE Tests"
         Customer.Validate("Country/Region Code", GetDomesticCountryCode());
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code");
         Customer.Modify(true);
+    end;
+
+    local procedure CreateSalesInvoiceWithItem(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20])
+    var
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+    begin
+        LibraryInventory.CreateItem(Item);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 1000, 2));
+        SalesLine.Modify(true);
+    end;
+
+    local procedure VerifyVATEntryCountryAndVATRegNo(DocumentNo: Code[20]; CountryCode: Code[10]; VATRegNo: Text[20])
+    var
+        VATEntry: Record "VAT Entry";
+    begin
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
+        VATEntry.SetRange("Document No.", DocumentNo);
+        Assert.RecordIsNotEmpty(VATEntry);
+        VATEntry.FindSet();
+        repeat
+            VATEntry.TestField("Country/Region Code", CountryCode);
+            VATEntry.TestField("VAT Registration No.", VATRegNo);
+        until VATEntry.Next() = 0;
     end;
 
     local procedure GetDomesticCountryCode(): Code[10]

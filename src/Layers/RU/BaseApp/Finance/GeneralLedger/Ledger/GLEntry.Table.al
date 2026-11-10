@@ -176,6 +176,13 @@ table 17 "G/L Entry"
             TableRelation = Currency;
             DataClassification = SystemMetadata;
         }
+        field(21; "SIFT Bucket No."; Integer)
+        {
+            Caption = 'SIFT Bucket No.';
+            ToolTip = 'Specifies an automatically generated number that is used by the system to enable better concurrency.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
         /// <summary>
         /// Primary global dimension code for analytical reporting and filtering.
         /// </summary>
@@ -552,6 +559,7 @@ table 17 "G/L Entry"
         field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
@@ -804,7 +812,7 @@ table 17 "G/L Entry"
         {
             Clustered = true;
         }
-        key(Key2; "G/L Account No.", "Posting Date")
+        key(Key2; "G/L Account No.", "Posting Date", "SIFT Bucket No.")
         {
             SumIndexFields = Amount, "Debit Amount", "Credit Amount", "Additional-Currency Amount", "Add.-Currency Debit Amount", "Add.-Currency Credit Amount", "VAT Amount", Quantity, "Source Currency Amount", "Source Currency VAT Amount";
             IncludedFields = Amount, "Additional-Currency Amount";
@@ -858,6 +866,9 @@ table 17 "G/L Entry"
         key(Key15; "Dimension Set ID")
         {
         }
+        key(Key16; "External Document No.", "Posting Date")
+        {
+        }
     }
 
     fieldgroups
@@ -869,6 +880,7 @@ table 17 "G/L Entry"
 
     trigger OnInsert()
     begin
+        Rec."SIFT Bucket No." := Rec."Entry No." mod 5;
         "Last Modified DateTime" := CurrentDateTime;
     end;
 
