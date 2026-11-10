@@ -1129,6 +1129,9 @@ table 6907 "Expense Report Line"
         ValidateDate();
         SetExpenseUserOnCreate();
         ApplyRule();
+        if PolicyInvalidationPending then
+            "Policy Eval Version" += 1;
+        PolicyInvalidationPending := false;
     end;
 
     trigger OnModify()
@@ -1143,8 +1146,9 @@ table 6907 "Expense Report Line"
             "Evaluated Policy Version" := StoredExpenseReportLine."Evaluated Policy Version";
             "Policies Evaluated At" := StoredExpenseReportLine."Policies Evaluated At";
         end;
-        if RelevantFieldChanged then
+        if RelevantFieldChanged or PolicyInvalidationPending then
             "Policy Eval Version" += 1;
+        PolicyInvalidationPending := false;
     end;
 
     trigger OnDelete()
@@ -1184,6 +1188,7 @@ table 6907 "Expense Report Line"
         SkipRuleApplication: Boolean;
         HideValidationDialog: Boolean;
         SkipSpendRequestClose: Boolean;
+        PolicyInvalidationPending: Boolean;
         EmptyGuid: Guid;
         InvalidEndingDateErr: Label 'Ending Date and Time cannot be earlier than Starting Date and Time.';
         CannotModifyWithParticipantsErr: Label 'You cannot modify %1 field of expense report %2, Line No. %3 because it has associated participants.', Comment = '%1 = Field Name, %2 = Expense No., %3 = Line No.';
@@ -1260,8 +1265,9 @@ table 6907 "Expense Report Line"
         // A change made after the line was evaluated always needs a recheck - even a change that
         // removed the last applicable policy. Evaluate subject staleness before policy-set currency
         // so that a changed line still requires evaluation against whatever policies apply now.
-        if (Rec."Policies Evaluated At" <> 0DT) and (Rec."Evaluated Policy Version" < Rec."Policy Eval Version") then
-            exit("Expense Policy Status"::Stale);
+        if Rec."Policies Evaluated At" <> 0DT then
+            if PolicyInvalidationPending or (Rec."Evaluated Policy Version" < Rec."Policy Eval Version") then
+                exit("Expense Policy Status"::Stale);
 
         // Policy changes do not rewrite every affected line. Currency is derived lazily by comparing
         // the currently applicable policy versions with the evaluations recorded for this subject version.
@@ -1304,6 +1310,8 @@ table 6907 "Expense Report Line"
             if Rec."Evaluated Policy Version" <> Rec."Policy Eval Version" then
                 exit(false);
         end;
+        if PolicyInvalidationPending then
+            exit(false);
 
         PoliciesToEvalBuilder.GetEvaluationState(Rec, HasApplicablePolicies, HasOutstandingPolicies, TempMatchedEvaluations, Rec.ReadIsolation);
         if HasOutstandingPolicies then
@@ -1369,6 +1377,9 @@ table 6907 "Expense Report Line"
         DocumentNo: Code[20];
         LineNo: Integer;
     begin
+        if PolicyInvalidationPending then
+            Error(EvaluationSubjectVersionChangedErr);
+
         DocumentNo := Rec."Document No.";
         LineNo := Rec."Line No.";
         // Serialize report snapshots before locking a line, matching the submission lock order.
@@ -1396,6 +1407,13 @@ table 6907 "Expense Report Line"
         Rec."Policy Eval Version" += 1;
         // Bypass OnModify because it restores policy fields from the stored row for normal, potentially stale callers.
         Rec.Modify(false);
+        PolicyInvalidationPending := false;
+    end;
+
+    internal procedure InvalidatePolicyEvaluationOnSave()
+    begin
+        // Defer the policy version bump to the parent line's OnInsert/OnModify to avoid a separate parent write while regenerating per-diem lines.
+        PolicyInvalidationPending := true;
     end;
 
     local procedure PolicyRelevantFieldChanged(var StoredExpenseReportLine: Record "Expense Report Line"): Boolean
