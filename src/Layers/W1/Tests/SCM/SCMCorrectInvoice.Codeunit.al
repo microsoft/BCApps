@@ -34,6 +34,8 @@ codeunit 137019 "SCM Correct Invoice"
         CommentCountErr: Label 'Wrong Sales Line Count';
         ConfirmDialogErr: Label 'Expected confirm dialog was not shown';
         SalesOrderLineReducedErr: Label 'Sales Order Line "%1" should be reduced by credit memo quantity.';
+        InvoiceLinesNotCopiedErr: Label 'All posted invoice lines must be copied.';
+        MissingExactCostReversingLinkErr: Label 'The credit memo must retain the exact cost reversing link.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1433,6 +1435,119 @@ codeunit 137019 "SCM Correct Invoice"
         Assert.AreEqual(
             0, SalesLineOrder[2]."Quantity Invoiced",
             StrSubstNo(SalesOrderLineReducedErr, SalesLineOrder[2].FieldCaption("Quantity Invoiced")));
+    end;
+
+    [Test]
+    procedure PostCrMemoWithDifferentUOMUpdatesOrderQuantities()
+    begin
+        // [SCENARIO 658769] A credit of 8 base units reduces shipped and invoiced order quantities by 2 units of 4.
+        VerifyCreditMemoUOMUpdatesOrderQuantities(true, 8, 18, 72);
+    end;
+
+    [Test]
+    procedure PostCrMemoWithDifferentUOMUpdatesFractionalOrderQuantities()
+    begin
+        // [SCENARIO 658769] A credit of 1 base unit reduces shipped and invoiced order quantities by 0.25 units of 4.
+        VerifyCreditMemoUOMUpdatesOrderQuantities(true, 1, 19.75, 79);
+    end;
+
+    [Test]
+    procedure PostCrMemoWithSameUOMPreservesOrderQuantityConversion()
+    begin
+        // [SCENARIO 658769] A credit in the original unit of measure continues to update order quantities correctly.
+        VerifyCreditMemoUOMUpdatesOrderQuantities(false, 2, 18, 72);
+    end;
+
+    local procedure VerifyCreditMemoUOMUpdatesOrderQuantities(ChangeUOM: Boolean; CreditQuantity: Decimal; ExpectedQuantity: Decimal; ExpectedQtyBase: Decimal)
+    var
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        BlanketSalesHeader: Record "Sales Header";
+        BlanketSalesLine: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        CreditMemoHeader: Record "Sales Header";
+        CreditMemoLine: Record "Sales Line";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        CopyDocMgt: Codeunit "Copy Document Mgt.";
+        PostedInvoiceNo: Code[20];
+        PostedCreditMemoNo: Code[20];
+        LinesNotCopied: Integer;
+        MissingExCostRevLink: Boolean;
+    begin
+        Initialize();
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Restore Order Qty. on Return", true);
+        SalesReceivablesSetup.Modify(true);
+
+        // [GIVEN] An item with stock and an alternate unit containing 4 base units.
+        CreateItemWithPrice(Item, 10);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", 4);
+        PostItemJournalPositiveAdj(Item."No.", '', 400);
+
+        // [GIVEN] A blanket order for 100 alternate units and a linked order for 40, with 20 shipped and invoiced.
+        LibrarySales.CreateSalesHeader(BlanketSalesHeader, BlanketSalesHeader."Document Type"::"Blanket Order", LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(BlanketSalesLine, BlanketSalesHeader, BlanketSalesLine.Type::Item, Item."No.", 100);
+        BlanketSalesLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        BlanketSalesLine.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, BlanketSalesHeader."Sell-to Customer No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 40);
+        SalesLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        SalesLine.Validate("Blanket Order No.", BlanketSalesHeader."No.");
+        SalesLine.Validate("Blanket Order Line No.", BlanketSalesLine."Line No.");
+        SalesLine.Validate("Qty. to Ship", 20);
+        SalesLine.Validate("Qty. to Invoice", 20);
+        SalesLine.Modify(true);
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] A credit memo populated through Get Posted Document Lines to Reverse.
+        LibrarySales.CreateSalesHeader(CreditMemoHeader, CreditMemoHeader."Document Type"::"Credit Memo", BlanketSalesHeader."Sell-to Customer No.");
+        SalesInvoiceLine.SetRange("Document No.", PostedInvoiceNo);
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
+        CopyDocMgt.SetProperties(false, false, false, false, true, true, false);
+        CopyDocMgt.CopySalesInvLinesToDoc(CreditMemoHeader, SalesInvoiceLine, LinesNotCopied, MissingExCostRevLink);
+        Assert.AreEqual(0, LinesNotCopied, InvoiceLinesNotCopiedErr);
+        Assert.IsFalse(MissingExCostRevLink, MissingExactCostReversingLinkErr);
+        CreditMemoLine.SetRange("Document Type", CreditMemoHeader."Document Type");
+        CreditMemoLine.SetRange("Document No.", CreditMemoHeader."No.");
+        CreditMemoLine.SetRange(Type, CreditMemoLine.Type::Item);
+        CreditMemoLine.FindFirst();
+        if ChangeUOM then
+            CreditMemoLine.Validate("Unit of Measure Code", Item."Base Unit of Measure");
+        CreditMemoLine.Validate(Quantity, CreditQuantity);
+        CreditMemoLine.Modify(true);
+
+        // [WHEN] Post the credit memo and perform the order update invoked by the Sales Credit Memo page.
+        PostedCreditMemoNo := LibrarySales.PostSalesDocument(CreditMemoHeader, true, true);
+        CreditMemoHeader.UpdateSalesOrderLineIfExist();
+
+        // [THEN] Both linked orders have matching quantities in their own unit and in base units.
+        SalesLine.Find();
+        SalesLine.TestField("Quantity Shipped", ExpectedQuantity);
+        SalesLine.TestField("Quantity Invoiced", ExpectedQuantity);
+        SalesLine.TestField("Qty. Shipped (Base)", ExpectedQtyBase);
+        SalesLine.TestField("Qty. Invoiced (Base)", ExpectedQtyBase);
+        SalesLine.TestField("Outstanding Quantity", 40 - ExpectedQuantity);
+        SalesLine.TestField("Outstanding Qty. (Base)", 160 - ExpectedQtyBase);
+        BlanketSalesLine.Find();
+        BlanketSalesLine.TestField("Quantity Shipped", ExpectedQuantity);
+        BlanketSalesLine.TestField("Quantity Invoiced", ExpectedQuantity);
+        BlanketSalesLine.TestField("Qty. Shipped (Base)", ExpectedQtyBase);
+        BlanketSalesLine.TestField("Qty. Invoiced (Base)", ExpectedQtyBase);
+
+        // [THEN] The posted credit memo and inventory entry retain the credited base quantity.
+        SalesCrMemoLine.SetRange("Document No.", PostedCreditMemoNo);
+        SalesCrMemoLine.SetRange(Type, SalesCrMemoLine.Type::Item);
+        SalesCrMemoLine.FindFirst();
+        SalesCrMemoLine.TestField("Quantity (Base)", 80 - ExpectedQtyBase);
+        ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Sales Credit Memo");
+        ItemLedgerEntry.SetRange("Document No.", PostedCreditMemoNo);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField(Quantity, 80 - ExpectedQtyBase);
     end;
 
     local procedure CreateAndShipSalesOrderWithItem(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CustomerNo: Code[20]; ItemNo: Code[20]; Qty: Decimal)
