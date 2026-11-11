@@ -1,4 +1,4 @@
-#pragma warning disable AA0247
+﻿#pragma warning disable AA0247
 codeunit 12413 GenJnlArchManagement
 {
 
@@ -26,7 +26,6 @@ codeunit 12413 GenJnlArchManagement
         Vend: Record Vendor;
         BankAcc: Record "Bank Account";
         FA: Record "Fixed Asset";
-        IC: Record "IC Partner";
     begin
         AccName := '';
         if GenJnlLineArch."Account No." <> '' then
@@ -46,9 +45,6 @@ codeunit 12413 GenJnlArchManagement
                 GenJnlLineArch."Account Type"::"Fixed Asset":
                     if FA.Get(GenJnlLineArch."Account No.") then
                         AccName := FA.Description;
-                GenJnlLineArch."Account Type"::"IC Partner":
-                    if IC.Get(GenJnlLineArch."Account No.") then
-                        AccName := IC.Name;
             end;
 
         BalAccName := '';
@@ -69,9 +65,6 @@ codeunit 12413 GenJnlArchManagement
                 GenJnlLineArch."Bal. Account Type"::"Fixed Asset":
                     if FA.Get(GenJnlLineArch."Bal. Account No.") then
                         BalAccName := FA.Description;
-                GenJnlLineArch."Bal. Account Type"::"IC Partner":
-                    if IC.Get(GenJnlLineArch."Bal. Account No.") then
-                        BalAccName := IC.Name;
             end;
     end;
 

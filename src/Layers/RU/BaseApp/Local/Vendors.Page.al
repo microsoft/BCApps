@@ -1,4 +1,4 @@
-#pragma warning disable AA0247
+﻿#pragma warning disable AA0247
 page 35603 Vendors
 {
     ApplicationArea = Basic, Suite;
@@ -56,11 +56,6 @@ page 35603 Vendors
                 field("Fax No."; Rec."Fax No.")
                 {
                     ToolTip = 'Specifies the fax number.';
-                    Visible = false;
-                }
-                field("IC Partner Code"; Rec."IC Partner Code")
-                {
-                    ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
                     Visible = false;
                 }
                 field(Contact; Rec.Contact)

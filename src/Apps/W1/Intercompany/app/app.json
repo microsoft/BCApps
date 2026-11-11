@@ -1,0 +1,97 @@
+{
+  "id": "74676280-1b87-43cc-8ca2-3b2b17a5b81d",
+  "name": "Intercompany",
+  "publisher": "Microsoft",
+  "version": "30.0.0.0",
+  "brief": "Intercompany app",
+  "description": "The app enables transactions between companies.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/en-us/dynamics365/business-central/intercompany-manage",
+  "dependencies": [
+    {
+      "id": "437dbf0e-84ff-417a-965d-ed2bb9650972",
+      "name": "Base Application",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "internalsVisibleTo": [
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "d852d5d2-a39d-4179-baeb-f99a19e32510",
+      "name": "Application Test Library",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "7fe10be7-575f-4cce-957b-bcd0df8f9bd7",
+      "name": "Tests-Rapid Start",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "4564dd2f-e8b2-41ff-9905-9d7a950475a5",
+      "name": "Tests-Misc",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "fa3e2564-a39e-417f-9be6-c0dbe3d94069",
+      "name": "Tests-ERM",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "973f745d-a630-4a01-874e-1c454470bffd",
+      "name": "Tests-ERM-Sales",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "589810f5-1ed0-4fca-b4b4-6f049cb8dbfa",
+      "name": "Tests-ERM-Purchase",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "6ed824d3-8f8f-47c7-b85e-8e9d81c33741",
+      "name": "Tests-ERM-Finance",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "d94a0cee-f211-4941-b609-7c984f85ad03",
+      "name": "Tests-Permissions",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "6f0b528b-a4de-4ccd-a948-d1350e228e4a",
+      "name": "Tests-SCM",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "c31ee575-3fc7-4388-98ee-d75aa2fc5f87",
+      "name": "Withholding Tax",
+      "publisher": "Microsoft"
+    }
+  ],
+  "screenshots": [],
+  "logo": "ExtensionLogo.png",
+  "platform": "30.0.0.0",
+  "idRanges": [
+    {
+      "from": 1,
+      "to": 49999
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ]
+}

@@ -28,8 +28,6 @@ using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Intrastat;
@@ -2115,63 +2113,6 @@ table 37 "Sales Line"
             Editable = false;
         }
         /// <summary>
-        /// Specifies the type of intercompany partner reference for the line item.
-        /// </summary>
-        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
-        {
-            AccessByPermission = TableData "IC G/L Account" = R;
-            Caption = 'IC Partner Ref. Type';
-            ToolTip = 'Specifies the item or account in your IC partner''s company that corresponds to the item or account on the line.';
-
-            trigger OnValidate()
-            var
-                Item: Record Item;
-            begin
-                if "IC Partner Code" <> '' then
-                    "IC Partner Ref. Type" := "IC Partner Ref. Type"::"G/L Account";
-                if "IC Partner Ref. Type" <> xRec."IC Partner Ref. Type" then
-                    "IC Partner Reference" := '';
-                if "IC Partner Ref. Type" = "IC Partner Ref. Type"::"Common Item No." then begin
-                    GetItem(Item);
-                    Item.TestField("Common Item No.");
-                    "IC Partner Reference" := Item."Common Item No.";
-                end;
-            end;
-        }
-        /// <summary>
-        /// Specifies the intercompany partner reference number for the item or G/L account.
-        /// </summary>
-        field(108; "IC Partner Reference"; Code[20])
-        {
-            AccessByPermission = TableData "IC G/L Account" = R;
-            Caption = 'IC Partner Reference';
-            ToolTip = 'Specifies the IC partner. If the line is being sent to one of your intercompany partners, this field is used together with the IC Partner Ref. Type field to indicate the item or account in your partner''s company that corresponds to the line.';
-
-            trigger OnLookup()
-            var
-                ICGLAccount: Record "IC G/L Account";
-                Item: Record Item;
-            begin
-                if "No." <> '' then
-                    case "IC Partner Ref. Type" of
-                        "IC Partner Ref. Type"::"G/L Account":
-                            begin
-                                if ICGLAccount.Get("IC Partner Reference") then;
-                                if PAGE.RunModal(PAGE::"IC G/L Account List", ICGLAccount) = ACTION::LookupOK then
-                                    Validate("IC Partner Reference", ICGLAccount."No.");
-                            end;
-                        "IC Partner Ref. Type"::Item:
-                            begin
-                                if Item.Get("IC Partner Reference") then;
-                                if PAGE.RunModal(PAGE::"Item List", Item) = ACTION::LookupOK then
-                                    Validate("IC Partner Reference", Item."No.");
-                            end;
-                        else
-                            OnLookUpICPartnerReferenceTypeCaseElse();
-                    end;
-            end;
-        }
-        /// <summary>
         /// Specifies the prepayment percentage required for this line before shipping.
         /// </summary>
         field(109; "Prepayment %"; Decimal)
@@ -2424,26 +2365,6 @@ table 37 "Sales Line"
             Editable = false;
         }
         /// <summary>
-        /// Specifies the intercompany partner code for transactions with related companies.
-        /// </summary>
-        field(130; "IC Partner Code"; Code[20])
-        {
-            Caption = 'IC Partner Code';
-            ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
-            TableRelation = "IC Partner";
-
-            trigger OnValidate()
-            begin
-                if "IC Partner Code" <> '' then begin
-                    TestField(Type, Type::"G/L Account");
-                    GetSalesHeader();
-                    SalesHeader.TestField("Sell-to IC Partner Code", '');
-                    SalesHeader.TestField("Bill-to IC Partner Code", '');
-                    Validate("IC Partner Ref. Type", "IC Partner Ref. Type"::"G/L Account");
-                end;
-            end;
-        }
-        /// <summary>
         /// Specifies the invoiced prepayment VAT amount in local currency.
         /// </summary>
         field(132; "Prepmt. VAT Amount Inv. (LCY)"; Decimal)
@@ -2482,33 +2403,6 @@ table 37 "Sales Line"
             AutoFormatType = 1;
             Caption = 'Prepmt VAT Diff. Deducted';
             Editable = false;
-        }
-        /// <summary>
-        /// Specifies the item reference number for intercompany transactions.
-        /// </summary>
-        field(138; "IC Item Reference No."; Code[50])
-        {
-            AccessByPermission = TableData "Item Reference" = R;
-            Caption = 'IC Item Reference No.';
-            ToolTip = 'Specifies the IC item reference. If the line is being sent to one of your intercompany partners, this field is used together with the IC Partner Ref. Type field to indicate the item or account in your partner''s company that corresponds to the line.';
-
-            trigger OnLookup()
-            var
-                ItemReference: Record "Item Reference";
-            begin
-                if "No." <> '' then
-                    case "IC Partner Ref. Type" of
-                        "IC Partner Ref. Type"::"Cross Reference":
-                            begin
-                                ItemReference.Reset();
-                                ItemReference.SetCurrentKey("Reference Type", "Reference Type No.");
-                                ItemReference.SetFilter("Reference Type", '%1|%2', "Item Reference Type"::Customer, "Item Reference Type"::" ");
-                                ItemReference.SetFilter("Reference Type No.", '%1|%2', "Sell-to Customer No.", '');
-                                if PAGE.RunModal(PAGE::"Item Reference List", ItemReference) = ACTION::LookupOK then
-                                    Validate("IC Item Reference No.", ItemReference."Reference No.");
-                            end;
-                    end;
-            end;
         }
         /// <summary>
         /// Specifies the payment discount amount that applies to this line.
@@ -4482,7 +4376,6 @@ table 37 "Sales Line"
     begin
     end;
 #endif
-
     var
         ItemUOMForCaption: Record "Item Unit of Measure";
         CurrExchRate: Record "Currency Exchange Rate";
@@ -4921,7 +4814,7 @@ table 37 "Sales Line"
 
     local procedure CopyFromGLAccount(var TempSalesLine: Record "Sales Line" temporary)
     begin
-        GLAcc.Get("No.");
+        GetGLAccount();
         GLAcc.CheckGLAcc();
         TestDirectPosting();
         Description := GLAcc.Name;
@@ -5327,6 +5220,19 @@ table 37 "Sales Line"
         if "No." <> Resource."No." then
             Resource.Get("No.");
         exit(Resource);
+    end;
+
+    /// <summary>
+    /// Gets the resource record from the resource number on the sales line.
+    /// The global Resource variable is updated with the retrieved resource.
+    /// </summary>
+    /// <returns>The G/L account record.</returns>
+    procedure GetGLAccount(): Record "G/L Account"
+    begin
+        TestField("No.");
+        if "No." <> GLAcc."No." then
+            GLAcc.Get("No.");
+        exit(GLAcc);
     end;
 
     /// <summary>
@@ -8326,7 +8232,6 @@ table 37 "Sales Line"
             exit;
 
         ItemReferenceMgt.EnterSalesItemReference(Rec);
-        UpdateICPartner();
 
         OnAfterUpdateItemReference(Rec);
     end;
@@ -8763,6 +8668,7 @@ table 37 "Sales Line"
         GetSalesHeader();
         if not SalesHeader."Prices Including VAT" then
             exit("Line Amount");
+
         exit("Line Amount" - GetVATForLineAmount());
     end;
 
@@ -9399,105 +9305,6 @@ table 37 "Sales Line"
     end;
 
     /// <summary>
-    /// Updates the intercompany partner information on the sales line for outgoing intercompany documents.
-    /// </summary>
-    procedure UpdateICPartner()
-    var
-        ICPartner: Record "IC Partner";
-        ShouldUpdateICPartner: Boolean;
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeDoUpdateICPartner(Rec, SalesHeader, IsHandled);
-        if not IsHandled then begin
-            ShouldUpdateICPartner :=
-                SalesHeader."Send IC Document" and (SalesHeader."IC Direction" = SalesHeader."IC Direction"::Outgoing) and
-                (SalesHeader."Bill-to IC Partner Code" <> '');
-            OnBeforeUpdateICPartner(SalesHeader, Rec, ShouldUpdateICPartner);
-            if ShouldUpdateICPartner then
-                case Type of
-                    Type::" ", Type::"Charge (Item)":
-                        begin
-                            "IC Partner Ref. Type" := Type;
-                            "IC Partner Reference" := "No.";
-                        end;
-                    Type::"G/L Account":
-                        begin
-                            "IC Partner Ref. Type" := Type;
-                            "IC Partner Reference" := GLAcc."Default IC Partner G/L Acc. No";
-                        end;
-                    Type::Item:
-                        begin
-                            if SalesHeader."Sell-to IC Partner Code" <> '' then
-                                ICPartner.Get(SalesHeader."Sell-to IC Partner Code")
-                            else
-                                ICPartner.Get(SalesHeader."Bill-to IC Partner Code");
-                            case ICPartner."Outbound Sales Item No. Type" of
-                                ICPartner."Outbound Sales Item No. Type"::"Common Item No.":
-                                    SetICPartnerRefType(Rec."IC Partner Ref. Type"::"Common Item No.");
-                                ICPartner."Outbound Sales Item No. Type"::"Internal No.":
-                                    begin
-                                        SetICPartnerRefType(Rec."IC Partner Ref. Type"::Item);
-                                        "IC Partner Reference" := "No.";
-                                    end;
-                                ICPartner."Outbound Sales Item No. Type"::"Cross Reference":
-                                    begin
-                                        SetICPartnerRefType(Rec."IC Partner Ref. Type"::"Cross Reference");
-                                        UpdateICPartnerItemReference();
-                                    end;
-                            end;
-                        end;
-                    Type::"Fixed Asset":
-                        begin
-                            "IC Partner Ref. Type" := "IC Partner Ref. Type"::" ";
-                            "IC Partner Reference" := '';
-                        end;
-                    Type::Resource:
-                        begin
-                            Resource.Get("No.");
-                            "IC Partner Ref. Type" := "IC Partner Ref. Type"::"G/L Account";
-                            "IC Partner Reference" := Resource."IC Partner Purch. G/L Acc. No.";
-                        end;
-                end;
-        end;
-
-        OnAfterUpdateICPartner(Rec, SalesHeader);
-    end;
-
-    local procedure SetICPartnerRefType(NewType: Enum "IC Partner Reference Type")
-    var
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeSetICPartnerRefType(Rec, NewType, CurrFieldNo, IsHandled);
-        if IsHandled then
-            exit;
-
-        Rec.Validate("IC Partner Ref. Type", NewType);
-    end;
-
-    local procedure UpdateICPartnerItemReference()
-    var
-        ItemReference: Record "Item Reference";
-        ToDate: Date;
-    begin
-        ItemReference.SetRange("Reference Type", ItemReference."Reference Type"::Customer);
-        ItemReference.SetRange("Reference Type No.", "Sell-to Customer No.");
-        ItemReference.SetRange("Item No.", "No.");
-        ItemReference.SetRange("Variant Code", "Variant Code");
-        ItemReference.SetRange("Unit of Measure", "Unit of Measure Code");
-        ToDate := Rec.GetDateForCalculations();
-        if ToDate <> 0D then begin
-            ItemReference.SetFilter("Starting Date", '<=%1', ToDate);
-            ItemReference.SetFilter("Ending Date", '>=%1|%2', ToDate, 0D);
-        end;
-        if ItemReference.FindFirst() then
-            "IC Item Reference No." := ItemReference."Reference No."
-        else
-            "IC Partner Reference" := "No.";
-    end;
-
-    /// <summary>
     /// Calculates the outstanding invoice amount from shipments for a specified customer.
     /// </summary>
     /// <param name="SellToCustomerNo">The sell-to customer number to calculate the outstanding invoice amount for.</param>
@@ -9935,23 +9742,20 @@ table 37 "Sales Line"
     /// </summary>
     /// <returns>The journal template name for the document if it is mandatory, otherwise blank.</returns>
     procedure GetJnlTemplateName(): Code[10]
+    var
+        JnlTemplateName: Code[10];
+        IsHandled: Boolean;
     begin
         GLSetup.Get();
         if not GLSetup."Journal Templ. Name Mandatory" then
             exit('');
 
-        if "IC Partner Code" = '' then begin
-            GetSalesHeader();
-            exit(SalesHeader."Journal Templ. Name");
-        end;
+        OnBeforeGetJnlTemplateName(Rec, JnlTemplateName, IsHandled);
+        if IsHandled then
+            exit(JnlTemplateName);
 
-        GetSalesSetup();
-        if IsCreditDocType() then begin
-            SalesSetup.TestField("IC Sales Cr. Memo Templ. Name");
-            exit(SalesSetup."IC Sales Cr. Memo Templ. Name");
-        end;
-        SalesSetup.TestField("IC Sales Invoice Template Name");
-        exit(SalesSetup."IC Sales Invoice Template Name");
+        GetSalesHeader();
+        exit(SalesHeader."Journal Templ. Name");
     end;
 
     /// <summary>
@@ -10322,7 +10126,7 @@ table 37 "Sales Line"
         case Type of
             Type::"G/L Account":
                 begin
-                    GLAcc.Get("No.");
+                    GetGLAccount();
                     InitDeferralCode();
                 end;
             Type::Item:
@@ -11143,10 +10947,10 @@ table 37 "Sales Line"
     /// <param name="SelectedRecordRef">The reference to the selected record from the lookup.</param>
     procedure SaveLookupSelection(SelectedRecordRef: RecordRef)
     var
-        GLAccount: Record "G/L Account";
-        Item: Record Item;
+        GLAccount2: Record "G/L Account";
+        Item2: Record Item;
         Resource2: Record Resource;
-        FixedAsset: Record "Fixed Asset";
+        FixedAsset2: Record "Fixed Asset";
         ItemCharge2: Record "Item Charge";
         AllocationAccount: Record "Allocation Account";
         LookupStateManager: Codeunit "Lookup State Manager";
@@ -11156,16 +10960,16 @@ table 37 "Sales Line"
         case Rec.Type of
             Rec.Type::Item:
                 begin
-                    SelectedRecordRef.SetTable(Item);
-                    RecVariant := Item;
-                    NewNo := Item."No.";
+                    SelectedRecordRef.SetTable(Item2);
+                    RecVariant := Item2;
+                    NewNo := Item2."No.";
                     LookupStateManager.SaveRecord(RecVariant);
                 end;
             Rec.Type::"G/L Account":
                 begin
-                    SelectedRecordRef.SetTable(GLAccount);
-                    RecVariant := GLAccount;
-                    NewNo := GLAccount."No.";
+                    SelectedRecordRef.SetTable(GLAccount2);
+                    RecVariant := GLAccount2;
+                    NewNo := GLAccount2."No.";
                     LookupStateManager.SaveRecord(RecVariant);
                 end;
             Rec.Type::Resource:
@@ -11177,9 +10981,9 @@ table 37 "Sales Line"
                 end;
             Rec.Type::"Fixed Asset":
                 begin
-                    SelectedRecordRef.SetTable(FixedAsset);
-                    RecVariant := FixedAsset;
-                    NewNo := FixedAsset."No.";
+                    SelectedRecordRef.SetTable(FixedAsset2);
+                    RecVariant := FixedAsset2;
+                    NewNo := FixedAsset2."No.";
                     LookupStateManager.SaveRecord(RecVariant);
                 end;
             Rec.Type::"Charge (Item)":
@@ -12678,18 +12482,6 @@ table 37 "Sales Line"
     end;
 
     /// <summary>
-    /// Raised before setting the IC partner reference type.
-    /// </summary>
-    /// <param name="SalesLine">The sales line being processed.</param>
-    /// <param name="NewType">The new IC partner reference type.</param>
-    /// <param name="FieldNo">The field number.</param>
-    /// <param name="IsHandled">Set to true to skip the default processing.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetICPartnerRefType(var SalesLine: Record "Sales Line"; NewType: Enum "IC Partner Reference Type"; FieldNo: Integer; var IsHandled: Boolean)
-    begin
-    end;
-
-    /// <summary>
     /// Raised before setting the sales header.
     /// </summary>
     /// <param name="SalesHeader">The sales header to set.</param>
@@ -13515,12 +13307,13 @@ table 37 "Sales Line"
     end;
 
     /// <summary>
-    /// Raised after updating the IC partner on the sales line.
+    /// Raised before getting the journal template name for the sales line.
     /// </summary>
     /// <param name="SalesLine">The sales line being processed.</param>
-    /// <param name="SalesHeader">The parent sales header.</param>
+    /// <param name="JnlTemplateName">The journal template name to use.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateICPartner(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
+    local procedure OnBeforeGetJnlTemplateName(var SalesLine: Record "Sales Line"; var JnlTemplateName: Code[10]; var IsHandled: Boolean)
     begin
     end;
 
@@ -14482,14 +14275,6 @@ table 37 "Sales Line"
     end;
 
     /// <summary>
-    /// Raised for the else case when looking up IC partner reference type.
-    /// </summary>
-    [IntegrationEvent(true, false)]
-    local procedure OnLookUpICPartnerReferenceTypeCaseElse()
-    begin
-    end;
-
-    /// <summary>
     /// Raised after setting filters during modify.
     /// </summary>
     /// <param name="SalesLine">The sales line being modified.</param>
@@ -15094,17 +14879,6 @@ table 37 "Sales Line"
     /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateUnitCostLCY(var SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; CurrentFieldNo: Integer; var IsHandled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Raised before updating the IC partner.
-    /// </summary>
-    /// <param name="SalesHeader">The parent sales header.</param>
-    /// <param name="SalesLine">The sales line being processed.</param>
-    /// <param name="ShouldUpdateICPartner">Specifies whether to update the IC partner.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateICPartner(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var ShouldUpdateICPartner: Boolean)
     begin
     end;
 
@@ -15809,17 +15583,6 @@ table 37 "Sales Line"
     end;
 
     /// <summary>
-    /// Raised before updating the IC partner on the sales line.
-    /// </summary>
-    /// <param name="SalesLine">The sales line being processed.</param>
-    /// <param name="SalesHeader">The parent sales header.</param>
-    /// <param name="IsHandled">Set to true to skip the default processing.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeDoUpdateICPartner(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
-    begin
-    end;
-
-    /// <summary>
     /// Raised before validating the shipping agent service code on the sales line.
     /// </summary>
     /// <param name="SalesLine">The sales line being processed.</param>
@@ -16138,4 +15901,3 @@ table 37 "Sales Line"
     begin
     end;
 }
-

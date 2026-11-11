@@ -17,13 +17,11 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.IO;
-using System.Utilities;
 
 /// <summary>
 /// Detailed bank statement lines for bank account reconciliation and payment application processes.
@@ -246,13 +244,13 @@ table 274 "Bank Acc. Reconciliation Line"
             ToolTip = 'Specifies the type of account that the payment application will be posted to when you post the payment reconciliation journal.';
 
             trigger OnValidate()
+            var
+                IsHandled: Boolean;
             begin
                 TestField("Applied Amount", 0);
-                if "Account Type" = "Account Type"::"IC Partner" then
-                    if not ConfirmManagement.GetResponse(ICPartnerAccountTypeQst, false) then begin
-                        "Account Type" := xRec."Account Type";
-                        exit;
-                    end;
+                OnValidateAccountTypeOnCheckICPArtner(Rec, xRec, IsHandled);
+                if IsHandled then
+                    exit;
                 if "Account Type" <> xRec."Account Type" then
                     Validate("Account No.", '');
             end;
@@ -274,8 +272,6 @@ table 274 "Bank Acc. Reconciliation Line"
             if ("Account Type" = const("Bank Account")) "Bank Account"
             else
             if ("Account Type" = const("Fixed Asset")) "Fixed Asset"
-            else
-            if ("Account Type" = const("IC Partner")) "IC Partner"
             else
             if ("Account Type" = const(Employee)) Employee;
 
@@ -957,7 +953,6 @@ table 274 "Bank Acc. Reconciliation Line"
     var
         BankAccSetStmtNo: Codeunit "Bank Acc. Entry Set Recon.-No.";
         DimMgt: Codeunit DimensionManagement;
-        ConfirmManagement: Codeunit "Confirm Management";
 
         YouCannotRenameErr: Label 'You cannot rename a %1.', Comment = '%1 - Table name';
         AmountWithinToleranceRangeTok: Label '>=%1&<=%2', Locked = true;
@@ -966,7 +961,6 @@ table 274 "Bank Acc. Reconciliation Line"
         CreditTheAccountQst: Label 'The remaining amount to apply is %2.\\Do you want to create a new payment application line that will debit or credit %1 with the remaining amount when you post the payment?', Comment = '%1 is the account name, %2 is the amount that is not applied (there is filed on the page named Remaining Amount To Apply)';
         ExcessiveAmountErr: Label 'The remaining amount to apply is %1.', Comment = '%1 is the amount that is not applied (there is filed on the page named Remaining Amount To Apply)';
         ImportPostedTransactionsQst: Label 'The bank statement contains payments that are already applied, but the related bank account ledger entries are not closed.\\Do you want to include these payments in the import?';
-        ICPartnerAccountTypeQst: Label 'The resulting entry will be of type IC Transaction, but no Intercompany Outbox transaction will be created. \\Do you want to use the IC Partner account type anyway?';
         AppliedEntriesFilterLbl: Label '|%1', Locked = true;
         MatchedAutomaticallyFilterLbl: Label '=%1|%2|%3|%4', Locked = true;
         NotAppliedTxt: Label 'Not applied';
@@ -1424,7 +1418,6 @@ table 274 "Bank Acc. Reconciliation Line"
                 BankAccRecMatchBuffer.Delete();
             end;
         end;
-
 
         BankAccRecMatchBuffer.Reset();
         BankAccRecMatchBuffer.SetRange("Ledger Entry No.", BankAccLedgEntry."Entry No.");
@@ -2376,6 +2369,11 @@ table 274 "Bank Acc. Reconciliation Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferFromPostedPaymentReconLine(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; PostedPaymentReconLine: Record "Posted Payment Recon. Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateAccountTypeOnCheckICPArtner(var Rec: Record "Bank Acc. Reconciliation Line"; var xRec: Record "Bank Acc. Reconciliation Line"; var IsHandled: Boolean)
     begin
     end;
 }
