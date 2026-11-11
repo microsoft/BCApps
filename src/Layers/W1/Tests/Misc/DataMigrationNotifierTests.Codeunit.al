@@ -1,3 +1,8 @@
+namespace System.Integration;
+
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Inventory.Item;
+
 codeunit 135024 "Data Migration Notifier Tests"
 {
     Subtype = Test;
