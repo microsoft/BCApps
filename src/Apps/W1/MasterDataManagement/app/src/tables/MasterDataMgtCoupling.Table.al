@@ -221,6 +221,7 @@ table 7231 "Master Data Mgt. Coupling"
 
     internal procedure InsertRecord(IntegrationSysID: Guid; SysId: Guid; TableId: Integer)
     var
+        ExistingCoupling: Record "Master Data Mgt. Coupling";
         LocalRecordRef: RecordRef;
         EmptyGuid: Guid;
     begin
@@ -233,6 +234,11 @@ table 7231 "Master Data Mgt. Coupling"
             if not LocalRecordRef.GetBySystemId(SysId) then
                 exit;
         end;
+
+        // Another sync job (e.g. the customer/vendor run that auto-created and coupled the company contact) can create
+        // this exact coupling first; treat that as done instead of failing the whole record on the duplicate key.
+        if ExistingCoupling.Get(IntegrationSysID, SysId) then
+            exit;
 
         Reset();
         Init();

@@ -11,9 +11,7 @@ using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.Task;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
-#if not CLEAN28
 using Microsoft.Manufacturing.Document;
-#endif
 using Microsoft.Purchases.Vendor;
 using Microsoft.RoleCenters;
 using Microsoft.Sales.Customer;
@@ -120,27 +118,17 @@ page 9009 "Whse. Worker WMS Role Center"
                 Image = "Report";
                 RunObject = Report "Customer - Labels";
             }
-#if not CLEAN28
             separator(Action1130001)
             {
-                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '28.0';
             }
             action("Subcontract. Transfer Shipment")
             {
-                ApplicationArea = LegacySubcontracting;
-                Caption = 'Subcontract. Transfer Shipment';
+                ApplicationArea = Warehouse;
+                Caption = 'Transfer Shipment';
                 Image = "Report";
                 RunObject = Report "Subcontract. Transfer Shipment";
-                ToolTip = 'Create a subcontracting transfer shipment.';
-                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                ObsoleteState = Pending;
-#pragma warning disable AS0072
-                ObsoleteTag = '27.0';
-#pragma warning restore AS0072
+                ToolTip = 'Print an Italian transfer shipment document.';
             }
-#endif
         }
         area(embedding)
         {
@@ -228,7 +216,7 @@ page 9009 "Whse. Worker WMS Role Center"
                 RunObject = Page "Transfer Orders";
                 ToolTip = 'Move inventory items between company locations. With transfer orders, you ship the outbound transfer from one location and receive the inbound transfer at the other location. This allows you to manage the involved warehouse activities and provides more certainty that inventory quantities are updated correctly.';
             }
-#if not CLEAN27
+#if not CLEAN28
             action("Subcontracting Transfers")
             {
                 ApplicationArea = LegacySubcontracting;
@@ -452,4 +440,3 @@ page 9009 "Whse. Worker WMS Role Center"
         }
     }
 }
-

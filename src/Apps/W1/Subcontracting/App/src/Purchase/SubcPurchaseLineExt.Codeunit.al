@@ -14,7 +14,7 @@ using Microsoft.Warehouse.Document;
 codeunit 20534 "Subc. Purchase Line Ext"
 {
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -33,7 +33,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteEvent(var Rec: Record "Purchase Line"; RunTrigger: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -53,7 +53,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -72,7 +72,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Expected Receipt Date", false, false)]
     local procedure OnAfterValidateExpectedReceiptDate(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -88,7 +88,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Planned Receipt Date", false, false)]
     local procedure OnAfterValidatePlannedReceiptDate(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -100,16 +100,20 @@ codeunit 20534 "Subc. Purchase Line Ext"
         if GetExecutionContext() = ExecutionContext::Upgrade then
             exit;
 
-        if Rec."Planned Receipt Date" = xRec."Planned Receipt Date" then
+        // Gate on the resulting Order Date rather than Planned Receipt Date so lead-time-only
+        // reschedules (for example changing Lead Time Calculation on an open line with nonblank
+        // Requested and Planned Receipt Dates) still trigger date-effective repricing when the
+        // planned-date validation reassigns Order Date without changing Planned Receipt Date.
+        if Rec."Order Date" = xRec."Order Date" then
             exit;
 
-        GetSubcontractingPrice(Rec);
+        RepriceSubcPurchLineOnScheduleChange(Rec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Order Date", false, false)]
     local procedure OnAfterValidateOrderDate(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -124,13 +128,13 @@ codeunit 20534 "Subc. Purchase Line Ext"
         if Rec."Order Date" = xRec."Order Date" then
             exit;
 
-        GetSubcontractingPrice(Rec);
+        RepriceSubcPurchLineOnScheduleChange(Rec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, Quantity, false, false)]
     local procedure OnAfterValidateQuantity(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -146,7 +150,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Unit of Measure Code", false, false)]
     local procedure OnAfterValidateUnitOfMeasureCode(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -164,7 +168,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -190,7 +194,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -216,7 +220,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -242,7 +246,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -268,7 +272,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -294,7 +298,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -318,7 +322,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeUpdateDirectUnitCost, '', false, false)]
     local procedure OnBeforeUpdateDirectUnitCost(var PurchLine: Record "Purchase Line"; xPurchLine: Record "Purchase Line"; CalledByFieldNo: Integer; CurrFieldNo: Integer; var Handled: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -336,7 +340,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnValidateVariantCodeOnBeforeDropShipmentError, '', false, false)]
     local procedure OnValidateVariantCodeOnBeforeDropShipmentError(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -354,10 +358,36 @@ codeunit 20534 "Subc. Purchase Line Ext"
             SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
     end;
 
+    local procedure RepriceSubcPurchLineOnScheduleChange(var PurchaseLine: Record "Purchase Line")
+    var
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        if (PurchaseLine.Type <> PurchaseLine.Type::Item) or (PurchaseLine."No." = '') or
+           (PurchaseLine."Prod. Order No." = '') or (PurchaseLine."Operation No." = '')
+        then
+            exit;
+
+        // Preserve released-order scheduling: repricing a subcontracting line after release
+        // would call Validate("Line Discount %") through GetSubcPriceForPurchLine, which in
+        // turn calls TestStatusOpen on the released header and fails the date edit. The base
+        // test suite explicitly permits Planned Receipt Date and Order Date edits on released
+        // purchase order lines (see ERMSalesPurchStatusError CanChangeOrderDateOnReleasedPurchOrderLine
+        // and CanChangePlannedReceiptDateOnReleasedPurchOrderLine). Bypass repricing entirely
+        // once the header is no longer Open so scheduling still works without silently
+        // changing released financial terms.
+        PurchaseHeader.SetLoadFields(Status);
+        if not PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
+            exit;
+        if PurchaseHeader.Status <> PurchaseHeader.Status::Open then
+            exit;
+
+        GetSubcontractingPrice(PurchaseLine);
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeOpenItemTrackingLines, '', false, false)]
     local procedure OpenProdOrderLineItemTrackingOnBeforeOpenItemTrackingLines(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -446,7 +476,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
         PurchaseLine: Record "Purchase Line";
         PageManagement: Codeunit "Page Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -464,7 +494,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
         PurchaseLine: Record "Purchase Line";
         ProdOrderLine: Record "Prod. Order Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -486,7 +516,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
         PurchaseLine: Record "Purchase Line";
         ProdOrderLine: Record "Prod. Order Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

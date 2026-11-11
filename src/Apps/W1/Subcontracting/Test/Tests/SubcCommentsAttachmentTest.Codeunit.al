@@ -36,6 +36,127 @@ codeunit 139995 "Subc. Comments Attachment Test"
     end;
 
     [Test]
+    procedure CopyRoutingCopiesSubcontractingComments()
+    var
+        SourceRoutingHeader: Record "Routing Header";
+        DestinationRoutingHeader: Record "Routing Header";
+        UnrelatedRoutingLine: array[3] of Record "Routing Line";
+        RoutingLineCopyLines: Codeunit "Routing Line-Copy Lines";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting] [Routing]
+        // [SCENARIO] Copying base routing replaces destination comments and preserves source and unrelated comments.
+        Initialize();
+
+        // [GIVEN] Routings "S" and "D" with multiple operations, dedicated and standard comments, and unrelated versions.
+        LibraryManufacturing.CreateRoutingHeader(SourceRoutingHeader, SourceRoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingHeader(DestinationRoutingHeader, DestinationRoutingHeader.Type::Serial);
+        CreateRoutingCopyComments(SourceRoutingHeader, '', DestinationRoutingHeader, '', UnrelatedRoutingLine);
+
+        // [WHEN] Routing "S" is copied to routing "D".
+        RoutingLineCopyLines.CopyRouting(SourceRoutingHeader."No.", '', DestinationRoutingHeader, '');
+
+        // [THEN] Only the selected comments are copied, with complete descriptions and original line numbers.
+        VerifyRoutingCopyResult(SourceRoutingHeader."No.", '', DestinationRoutingHeader."No.", '', UnrelatedRoutingLine);
+    end;
+
+    [Test]
+    procedure CopyRoutingVersionCopiesSubcontractingComments()
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingVersion: Record "Routing Version";
+        UnrelatedRoutingLine: array[3] of Record "Routing Line";
+        RoutingLineCopyLines: Codeunit "Routing Line-Copy Lines";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting] [Routing]
+        // [SCENARIO] Copying between versions of the same routing preserves the source and isolates destination replacement.
+        Initialize();
+
+        // [GIVEN] Routing "R" has source and destination versions with overlapping operation and comment keys.
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingVersion(RoutingVersion, RoutingHeader."No.", 'SOURCE');
+        LibraryManufacturing.CreateRoutingVersion(RoutingVersion, RoutingHeader."No.", 'DESTINATION');
+        CreateRoutingCopyComments(RoutingHeader, 'SOURCE', RoutingHeader, 'DESTINATION', UnrelatedRoutingLine);
+
+        // [WHEN] Version "S" is copied to version "D" of the same routing.
+        RoutingLineCopyLines.CopyRouting(RoutingHeader."No.", 'SOURCE', RoutingHeader, 'DESTINATION');
+
+        // [THEN] Destination comments match only version "S"; the source and unrelated versions remain unchanged.
+        VerifyRoutingCopyResult(RoutingHeader."No.", 'SOURCE', RoutingHeader."No.", 'DESTINATION', UnrelatedRoutingLine);
+    end;
+
+    [Test]
+    procedure CopyRoutingWithoutSubcontractingCommentsRemovesStaleComments()
+    var
+        SourceRoutingHeader: Record "Routing Header";
+        DestinationRoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
+        RoutingLineCopyLines: Codeunit "Routing Line-Copy Lines";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting] [Routing]
+        // [SCENARIO] Copying an operation without dedicated comments leaves no stale destination comments.
+        Initialize();
+
+        // [GIVEN] Routing "S" has only a standard comment and routing "D" has an old dedicated comment.
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        LibraryManufacturing.CreateRoutingHeader(SourceRoutingHeader, SourceRoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingHeader(DestinationRoutingHeader, DestinationRoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, SourceRoutingHeader, WorkCenter."No.", '010', 1, 1);
+        CreateStandardRoutingCopyComment(RoutingLine);
+        LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, DestinationRoutingHeader, WorkCenter."No.", '010', 1, 1);
+        LibraryMfgManagement.CreateRoutingSubcComment(RoutingLine, 10000, 'Stale comment', 'Stale detail');
+
+        // [WHEN] Routing "S" is copied to routing "D".
+        RoutingLineCopyLines.CopyRouting(SourceRoutingHeader."No.", '', DestinationRoutingHeader, '');
+
+        // [THEN] No dedicated comment is invented and the standard comment is copied normally.
+        VerifyRoutingCopyCommentCount(SourceRoutingHeader."No.", '', 0);
+        VerifyRoutingCopyCommentCount(DestinationRoutingHeader."No.", '', 0);
+        VerifyStandardRoutingCopyComment(SourceRoutingHeader."No.", '');
+        VerifyStandardRoutingCopyComment(DestinationRoutingHeader."No.", '');
+    end;
+
+#if not CLEAN29
+    [Test]
+    procedure CopyRoutingDoesNotCopySubcontractingCommentsWhenDisabled()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        SourceRoutingHeader: Record "Routing Header";
+        DestinationRoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
+        RoutingLineCopyLines: Codeunit "Routing Line-Copy Lines";
+    begin
+        // [FEATURE] [AI test 0.3] [Subcontracting] [Routing]
+        // [SCENARIO] Legacy subcontracting keeps dedicated comments out of copied routing operations.
+        Initialize();
+
+        // [GIVEN] Routing "S" has dedicated and standard comments, and legacy subcontracting is enabled.
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        LibraryManufacturing.CreateRoutingHeader(SourceRoutingHeader, SourceRoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingHeader(DestinationRoutingHeader, DestinationRoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, SourceRoutingHeader, WorkCenter."No.", '010', 1, 1);
+        LibraryMfgManagement.CreateRoutingSubcComment(RoutingLine, 10000, 'Source comment', 'Source detail');
+        CreateStandardRoutingCopyComment(RoutingLine);
+        LibrarySetupStorage.Save(Database::"Manufacturing Setup");
+        ManufacturingSetup.Get();
+#pragma warning disable AL0432
+        ManufacturingSetup."Legacy Subcontracting" := true;
+#pragma warning restore AL0432
+        ManufacturingSetup.Modify();
+
+        // [WHEN] Routing "S" is copied to routing "D".
+        RoutingLineCopyLines.CopyRouting(SourceRoutingHeader."No.", '', DestinationRoutingHeader, '');
+
+        // [THEN] Only standard comments are copied and the source dedicated comment remains unchanged.
+        VerifyRoutingCopyCommentCount(DestinationRoutingHeader."No.", '', 0);
+        VerifyRoutingCopyCommentCount(SourceRoutingHeader."No.", '', 1);
+        VerifyRoutingCopyComment(SourceRoutingHeader."No.", '', '010', 10000, 'Source comment', 'Source detail');
+        VerifyStandardRoutingCopyComment(DestinationRoutingHeader."No.", '');
+    end;
+#endif
+
+    [Test]
     procedure StandardTaskSubcontractingCommentsCanBeMaintained()
     var
         StandardTask: Record "Standard Task";
@@ -2686,6 +2807,131 @@ codeunit 139995 "Subc. Comments Attachment Test"
         Assert.AreEqual('TP-021-removable', DocumentAttachmentDetails.Name.Value(), 'The Purchase Line details page should show the copied attachment.');
         DocumentAttachmentDetails.DeleteAttachmentForTest.Invoke();
         DocumentAttachmentDetails.OK().Invoke();
+    end;
+
+    local procedure CreateRoutingCopyComments(SourceRoutingHeader: Record "Routing Header"; SourceVersionCode: Code[20]; DestinationRoutingHeader: Record "Routing Header"; DestinationVersionCode: Code[20]; var UnrelatedRoutingLine: array[3] of Record "Routing Line")
+    var
+        OtherRoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingVersion: Record "Routing Version";
+        WorkCenter: Record "Work Center";
+        DescriptionText: Text[100];
+        Description2Text: Text[50];
+        Index: Integer;
+    begin
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        LibraryManufacturing.CreateRoutingLine(
+            SourceRoutingHeader, RoutingLine, SourceVersionCode, '010', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        DescriptionText := PadStr('D', MaxStrLen(DescriptionText), 'D');
+        Description2Text := PadStr('E', MaxStrLen(Description2Text), 'E');
+        LibraryMfgManagement.CreateRoutingSubcComment(RoutingLine, 10000, DescriptionText, Description2Text);
+        LibraryMfgManagement.CreateRoutingSubcComment(RoutingLine, 30000, 'Second comment', 'Second detail');
+        CreateStandardRoutingCopyComment(RoutingLine);
+        LibraryManufacturing.CreateRoutingLine(
+            SourceRoutingHeader, RoutingLine, SourceVersionCode, '020', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        LibraryMfgManagement.CreateRoutingSubcComment(RoutingLine, 10000, 'Other operation comment', 'Other operation detail');
+        LibraryManufacturing.CreateRoutingLine(
+            SourceRoutingHeader, RoutingLine, SourceVersionCode, '030', RoutingLine.Type::"Work Center", WorkCenter."No.");
+
+        LibraryManufacturing.CreateRoutingLine(
+            DestinationRoutingHeader, RoutingLine, DestinationVersionCode, '010', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        LibraryMfgManagement.CreateRoutingSubcComment(RoutingLine, 10000, 'Stale overlapping comment', 'Stale overlapping detail');
+        LibraryMfgManagement.CreateRoutingSubcComment(RoutingLine, 20000, 'Stale extra comment', 'Stale extra detail');
+        CreateStandardRoutingCopyComment(RoutingLine);
+        LibraryManufacturing.CreateRoutingLine(
+            DestinationRoutingHeader, RoutingLine, DestinationVersionCode, '090', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        LibraryMfgManagement.CreateRoutingSubcComment(RoutingLine, 10000, 'Removed operation comment', 'Removed operation detail');
+
+        LibraryManufacturing.CreateRoutingVersion(RoutingVersion, SourceRoutingHeader."No.", 'OTHER-SOURCE');
+        LibraryManufacturing.CreateRoutingLine(
+            SourceRoutingHeader, UnrelatedRoutingLine[1], RoutingVersion."Version Code", '010',
+            RoutingLine.Type::"Work Center", WorkCenter."No.");
+        LibraryManufacturing.CreateRoutingVersion(RoutingVersion, DestinationRoutingHeader."No.", 'OTHER-DEST');
+        LibraryManufacturing.CreateRoutingLine(
+            DestinationRoutingHeader, UnrelatedRoutingLine[2], RoutingVersion."Version Code", '010',
+            RoutingLine.Type::"Work Center", WorkCenter."No.");
+        LibraryManufacturing.CreateRoutingHeader(OtherRoutingHeader, OtherRoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLineSetup(UnrelatedRoutingLine[3], OtherRoutingHeader, WorkCenter."No.", '010', 1, 1);
+        for Index := 1 to ArrayLen(UnrelatedRoutingLine) do
+            LibraryMfgManagement.CreateRoutingSubcComment(UnrelatedRoutingLine[Index], 10000, 'Unrelated comment', 'Unrelated detail');
+    end;
+
+    local procedure CreateStandardRoutingCopyComment(RoutingLine: Record "Routing Line")
+    var
+        RoutingCommentLine: Record "Routing Comment Line";
+    begin
+        RoutingCommentLine."Routing No." := RoutingLine."Routing No.";
+        RoutingCommentLine."Version Code" := RoutingLine."Version Code";
+        RoutingCommentLine."Operation No." := RoutingLine."Operation No.";
+        RoutingCommentLine."Line No." := 10000;
+        RoutingCommentLine.Validate(Comment, 'Standard routing comment');
+        RoutingCommentLine.Insert();
+    end;
+
+    local procedure VerifyRoutingCopyResult(SourceRoutingNo: Code[20]; SourceVersionCode: Code[20]; DestinationRoutingNo: Code[20]; DestinationVersionCode: Code[20]; UnrelatedRoutingLine: array[3] of Record "Routing Line")
+    var
+        RoutingLine: Record "Routing Line";
+        Index: Integer;
+    begin
+        VerifyStandardRoutingCopyComment(SourceRoutingNo, SourceVersionCode);
+        VerifyStandardRoutingCopyComment(DestinationRoutingNo, DestinationVersionCode);
+        VerifyRoutingCopyCommentSet(SourceRoutingNo, SourceVersionCode);
+        for Index := 1 to ArrayLen(UnrelatedRoutingLine) do begin
+            VerifyRoutingCopyCommentCount(UnrelatedRoutingLine[Index]."Routing No.", UnrelatedRoutingLine[Index]."Version Code", 1);
+            VerifyRoutingCopyComment(
+                UnrelatedRoutingLine[Index]."Routing No.", UnrelatedRoutingLine[Index]."Version Code",
+                UnrelatedRoutingLine[Index]."Operation No.", 10000, 'Unrelated comment', 'Unrelated detail');
+        end;
+        RoutingLine.SetRange("Routing No.", DestinationRoutingNo);
+        RoutingLine.SetRange("Version Code", DestinationVersionCode);
+        Assert.AreEqual(3, RoutingLine.Count(), 'The destination must contain only the three source operations.');
+        Assert.IsTrue(RoutingLine.Get(DestinationRoutingNo, DestinationVersionCode, '030'), 'The operation without dedicated comments must also be copied.');
+        Assert.IsFalse(RoutingLine.Get(DestinationRoutingNo, DestinationVersionCode, '090'), 'The stale destination operation must be removed.');
+        VerifyRoutingCopyCommentSet(DestinationRoutingNo, DestinationVersionCode);
+    end;
+
+    local procedure VerifyRoutingCopyCommentSet(RoutingNo: Code[20]; VersionCode: Code[20])
+    var
+        DescriptionText: Text[100];
+        Description2Text: Text[50];
+    begin
+        VerifyRoutingCopyCommentCount(RoutingNo, VersionCode, 3);
+        DescriptionText := PadStr('D', MaxStrLen(DescriptionText), 'D');
+        Description2Text := PadStr('E', MaxStrLen(Description2Text), 'E');
+        VerifyRoutingCopyComment(RoutingNo, VersionCode, '010', 10000, DescriptionText, Description2Text);
+        VerifyRoutingCopyComment(RoutingNo, VersionCode, '010', 30000, 'Second comment', 'Second detail');
+        VerifyRoutingCopyComment(RoutingNo, VersionCode, '020', 10000, 'Other operation comment', 'Other operation detail');
+    end;
+
+    local procedure VerifyRoutingCopyCommentCount(RoutingNo: Code[20]; VersionCode: Code[20]; ExpectedCount: Integer)
+    var
+        SubcRoutingCommentLine: Record "Subc. Routing Comment Line";
+    begin
+        SubcRoutingCommentLine.SetRange("Routing No.", RoutingNo);
+        SubcRoutingCommentLine.SetRange("Version Code", VersionCode);
+        Assert.AreEqual(ExpectedCount, SubcRoutingCommentLine.Count(), 'The routing version must contain exactly the expected subcontracting comments.');
+    end;
+
+    local procedure VerifyRoutingCopyComment(RoutingNo: Code[20]; VersionCode: Code[20]; OperationNo: Code[10]; LineNo: Integer; ExpectedDescription: Text[100]; ExpectedDescription2: Text[50])
+    var
+        SubcRoutingCommentLine: Record "Subc. Routing Comment Line";
+    begin
+        Assert.IsTrue(
+            SubcRoutingCommentLine.Get(RoutingNo, VersionCode, OperationNo, LineNo),
+            'The subcontracting comment must retain its routing, version, operation and line number.');
+        Assert.AreEqual(ExpectedDescription, SubcRoutingCommentLine.Description, 'The full subcontracting comment description must be preserved.');
+        Assert.AreEqual(ExpectedDescription2, SubcRoutingCommentLine."Description 2", 'The full subcontracting comment detail must be preserved.');
+    end;
+
+    local procedure VerifyStandardRoutingCopyComment(RoutingNo: Code[20]; VersionCode: Code[20])
+    var
+        RoutingCommentLine: Record "Routing Comment Line";
+    begin
+        RoutingCommentLine.SetRange("Routing No.", RoutingNo);
+        RoutingCommentLine.SetRange("Version Code", VersionCode);
+        Assert.AreEqual(1, RoutingCommentLine.Count(), 'Standard routing comments must remain separate from subcontracting comments.');
+        Assert.IsTrue(RoutingCommentLine.Get(RoutingNo, VersionCode, '010', 10000), 'The standard routing comment must retain its key.');
+        Assert.AreEqual('Standard routing comment', RoutingCommentLine.Comment, 'The standard routing comment must be preserved.');
     end;
 
     local procedure CreateRoutingHeaderAttachment(RoutingHeaderRecRef: RecordRef; FileName: Text[250]; FlowProduction: Boolean; FlowPurchase: Boolean)

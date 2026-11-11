@@ -16,9 +16,6 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Utilities;
-#if not CLEAN27
-using System.Environment.Configuration;
-#endif
 using System.Utilities;
 
 /// <summary>
@@ -638,7 +635,7 @@ report 20 "Calc. and Post VAT Settlement"
                     GenJnlLine.Description := Text004;
                     GenJnlLine.Validate(Amount, VATAmount);
                     GenJnlLine."Source Currency Code" := GLSetup."Additional Reporting Currency";
-                    GenJnlLine."Source Currency Amount" := VATAmountAddCurr;
+                    GenJnlLine."Source Currency Amount" := SourceCurrencyAmount(VATAmount, VATAmountAddCurr);
                     GenJnlLine."Source Code" := SourceCodeSetup."VAT Settlement";
                     GenJnlLine."VAT Posting" := GenJnlLine."VAT Posting"::"Manual VAT Entry";
                     GenJnlLine."Operation Occurred Date" := PostingDate;
@@ -689,26 +686,12 @@ report 20 "Calc. and Post VAT Settlement"
                             GenJnlLine."Operation Occurred Date" := PostingDate;
                             GenJnlPostLine.Run(GenJnlLine);
                         end;
-#if not CLEAN27
-                        if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then
-                            UpdatePeriodicSettlementVATEntryActivityCode()
-                        else
-                            UpdatePeriodicSettlementVATEntry();
-#else
                         UpdatePeriodicSettlementVATEntryActivityCode();
-#endif
                     end;
                 end else begin
                     OnVATPostingSetupOnPostDataItemOnBeforePostSettlement(GenJnlLine);
                     if PostSettlement then
-#if not CLEAN27
-                        if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then
-                            UpdatePeriodicSettlementVATEntryActivityCode()
-                        else
-                            UpdatePeriodicSettlementVATEntry();
-#else
                         UpdatePeriodicSettlementVATEntryActivityCode();
-#endif
                 end;
                 OnVATPostingSetupOnAfterOnPostDataItem(GenJnlLine, PostSettlement);
             end;
@@ -1039,33 +1022,6 @@ report 20 "Calc. and Post VAT Settlement"
         VATPeriod := Format(Date2DMY(EndDateReq, 3)) + '/' +
                      ConvertStr(Format(Date2DMY(EndDateReq, 2), 2), ' ', '0');
 
-#if not CLEAN27
-        if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then begin
-            if VATSetup.Get() then;
-            if VATSetup."Per Activity Code Settl. Entry" then begin
-                GLSetup.TestField("Use Activity Code");
-                ValidatePreviousEntrySplit();
-            end;
-
-            InitializeTotals();
-        end else begin
-            PriorPeriodVATEntry.SetRange("VAT Period", Format(Date2DMY(EntrdStartDate, 3)) + '/' +
-            ConvertStr(Format(Date2DMY(EntrdStartDate, 2), 2), ' ', '0'),
-            Format(Date2DMY(EndDateReq, 3)) + '/' + ConvertStr(Format(Date2DMY(EndDateReq, 2), 2), ' ', '0'));
-            if PriorPeriodVATEntry.FindSet() then begin
-                repeat
-                    PeriodInputVATYearInputVAT +=
-                    PriorPeriodVATEntry."Prior Period Input VAT" + PriorPeriodVATEntry."Prior Year Input VAT" +
-                    PriorPeriodVATEntry."Advanced Amount";
-
-                    PeriodOutputVATYearOutputVATAdvAmt +=
-                    PriorPeriodVATEntry."Prior Period Output VAT" + PriorPeriodVATEntry."Prior Year Output VAT";
-                until PriorPeriodVATEntry.Next() = 0;
-                TotalSaleRounded := FiscalRoundAmount(PeriodOutputVATYearOutputVATAdvAmt + TotalSaleAmount);
-                TotalPurchRounded := FiscalRoundAmount(PeriodInputVATYearInputVAT - TotalPurchaseAmount);
-            end;
-        end;
-#else
         if VATSetup.Get() then;
         if VATSetup."Per Activity Code Settl. Entry" then begin
             GLSetup.TestField("Use Activity Code");
@@ -1073,7 +1029,6 @@ report 20 "Calc. and Post VAT Settlement"
         end;
 
         InitializeTotals();
-#endif
         if PostSettlement then
             GenJnlPostLine.SetIgnoreJournalTemplNameMandatoryCheck();
         OnAfterPreReport("VAT Entry");
@@ -1090,9 +1045,6 @@ report 20 "Calc. and Post VAT Settlement"
         ActivityCode: Record "Activity Code";
         VATSetup: Record "VAT Setup";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
-#if not CLEAN27
-        FeatureManagementIT: Codeunit "Feature Management IT";
-#endif
         PrintVATEntries: Boolean;
         NextVATEntryNo: Integer;
         LastVATEntryNo: Integer;
@@ -1108,10 +1060,6 @@ report 20 "Calc. and Post VAT Settlement"
         UseAmtsInAddCurr: Boolean;
         HeaderText: Text[30];
         CountryRegionFilter: Text;
-#if not CLEAN27
-        PriorPeriodVATEntry: Record "Periodic Settlement VAT Entry";
-        PriorPeriodVATEntry2: Record "Periodic Settlement VAT Entry";
-#endif
         Data: Record Date;
         GLAccPosRounding: Record "G/L Account";
         GLAccNegRounding: Record "G/L Account";
@@ -1315,9 +1263,15 @@ report 20 "Calc. and Post VAT Settlement"
         GenJournalLine."VAT Amount" := -VATEntry.Amount;
         GenJournalLine."VAT Base Amount" := -VATEntry.Base;
         GenJournalLine."Source Currency Code" := GLSetup."Additional Reporting Currency";
-        GenJournalLine."Source Currency Amount" := -VATEntry."Additional-Currency Amount";
-        GenJournalLine."Source Curr. VAT Amount" := -VATEntry."Additional-Currency Amount";
-        GenJournalLine."Source Curr. VAT Base Amount" := -VATEntry."Additional-Currency Base";
+        if GLSetup."Additional Reporting Currency" = '' then begin
+            GenJournalLine."Source Currency Amount" := -VATEntry.Amount;
+            GenJournalLine."Source Curr. VAT Amount" := -VATEntry.Amount;
+            GenJournalLine."Source Curr. VAT Base Amount" := -VATEntry.Base;
+        end else begin
+            GenJournalLine."Source Currency Amount" := -VATEntry."Additional-Currency Amount";
+            GenJournalLine."Source Curr. VAT Amount" := -VATEntry."Additional-Currency Amount";
+            GenJournalLine."Source Curr. VAT Base Amount" := -VATEntry."Additional-Currency Base";
+        end;
         OnAfterCopyAmounts(GenJournalLine, VATEntry);
     end;
 
@@ -1335,7 +1289,7 @@ report 20 "Calc. and Post VAT Settlement"
         GenJnlLine2."Account No." := AccountNo;
         GenJnlLine2.Amount := VATEntry.Amount;
         GenJnlLine2."Source Currency Code" := GLSetup."Additional Reporting Currency";
-        GenJnlLine2."Source Currency Amount" := VATEntry."Additional-Currency Amount";
+        GenJnlLine2."Source Currency Amount" := SourceCurrencyAmount(VATEntry.Amount, VATEntry."Additional-Currency Amount");
     end;
 
     [Scope('OnPrem')]
@@ -1373,71 +1327,6 @@ report 20 "Calc. and Post VAT Settlement"
         end;
     end;
 
-#if not CLEAN27
-    local procedure UpdatePeriodicSettlementVATEntry()
-    var
-        DateFormula: DateFormula;
-        IsNewYear: Boolean;
-    begin
-        if PriorPeriodVATEntry.Get(Format(Date2DMY(EndDateReq, 3)) + '/' +
-          ConvertStr(Format(Date2DMY(EndDateReq, 2), 2), ' ', '0'))
-        then begin
-            if (NewVATAmount = 0) and (VATAmount = 0) then begin
-                if CreditNextPeriod <> 0 then
-                    PriorPeriodVATEntry."VAT Settlement" := CreditNextPeriod
-                else
-                    PriorPeriodVATEntry."VAT Settlement" := DebitNextPeriod;
-            end else
-                PriorPeriodVATEntry."VAT Settlement" := NewVATAmount;
-
-            PriorPeriodVATEntry."VAT Period Closed" := true;
-            PriorPeriodVATEntry.Modify();
-        end else begin
-            PriorPeriodVATEntry."VAT Period" := Format(Date2DMY(EndDateReq, 3)) + '/' +
-              ConvertStr(Format(Date2DMY(EndDateReq, 2), 2), ' ', '0');
-            PriorPeriodVATEntry."VAT Settlement" := NewVATAmount;
-            PriorPeriodVATEntry."VAT Period Closed" := true;
-            PriorPeriodVATEntry.Insert(true);
-        end;
-
-        // Post Rounding Amount to G/L Gains or Losses Account
-        case GLSetup."VAT Settlement Period" of
-            GLSetup."VAT Settlement Period"::Month:
-                Evaluate(DateFormula, '<1D>');
-            GLSetup."VAT Settlement Period"::Quarter:
-                Evaluate(DateFormula, '<CQ+1Q>');
-        end;
-
-        PriorPeriodVATEntry2.Init();
-        PriorPeriodVATEntry2."VAT Period" :=
-          Format(Date2DMY(CalcDate(DateFormula, EndDateReq), 3)) + '/' +
-          ConvertStr(Format(Date2DMY(CalcDate(DateFormula, EndDateReq), 2), 2), ' ', '0');
-        PriorPeriodVATEntry2.Insert();
-
-        IsNewYear := Date2DMY(CalcDate(DateFormula, EndDateReq), 3) <> Date2DMY(EndDateReq, 3);
-        if (TotalSaleAmount = 0) and (TotalPurchaseAmount = 0) then
-            if (PriorPeriodVATEntry."Prior Period Input VAT" <> 0) or (PriorPeriodVATEntry."Prior Year Input VAT" <> 0) then
-                CreditNextPeriod := PriorPeriodVATEntry."Prior Period Input VAT" + PriorPeriodVATEntry."Prior Year Input VAT"
-            else
-                DebitNextPeriod := PriorPeriodVATEntry."Prior Period Output VAT" + PriorPeriodVATEntry."Prior Year Output VAT";
-
-        if CreditNextPeriod <> 0 then
-            if IsNewYear then
-                PriorPeriodVATEntry2."Prior Year Input VAT" := CreditNextPeriod
-            else
-                PriorPeriodVATEntry2."Prior Period Input VAT" := CreditNextPeriod
-        else
-            if DebitNextPeriod <> 0 then
-                if IsNewYear then
-                    PriorPeriodVATEntry2."Prior Year Output VAT" := Abs(DebitNextPeriod)
-                else
-                    PriorPeriodVATEntry2."Prior Period Output VAT" := Abs(DebitNextPeriod);
-
-        PriorPeriodVATEntry2.Modify(true);
-        GLSetup."Last Settlement Date" := EndDateReq;
-        GLSetup.Modify();
-    end;
-#endif
 
     local procedure UpdatePeriodicSettlementVATEntryActivityCode()
     var
@@ -1613,8 +1502,7 @@ report 20 "Calc. and Post VAT Settlement"
         if IsHandled then
             exit;
 
-        VATEntry.ModifyAll("Closed by Entry No.", NextVATEntryNo);
-        VATEntry.ModifyAll(Closed, true);
+        VATEntry.ModifyAll("Closed by Entry No.", NextVATEntryNo, Closed, true);
 
         VATEntry.SetRange(Closed, true);
         VATEntry.ModifyAll("VAT Period", VATPeriod);
@@ -1678,6 +1566,13 @@ report 20 "Calc. and Post VAT Settlement"
                 Error(SplitValidationErr);
     end;
 
+    local procedure SourceCurrencyAmount(AmountLCY: Decimal; AmountACY: Decimal): Decimal
+    begin
+        if GLSetup."Additional Reporting Currency" = '' then
+            exit(AmountLCY);
+        exit(AmountACY);
+    end;
+
     /// <summary>
     /// Integration event raised after VAT settlement report processing is complete.
     /// Enables custom cleanup operations and finalization logic after settlement posting.
@@ -1735,13 +1630,6 @@ report 20 "Calc. and Post VAT Settlement"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterIncrementGenPostingType(OldGenPostingType: Enum "General Posting Type"; var NewGenPostingType: Enum "General Posting Type")
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Integration event raised after setting VAT entry filters during settlement processing.
@@ -1781,18 +1669,6 @@ report 20 "Calc. and Post VAT Settlement"
     begin
     end;
 
-#if not CLEAN27
-    /// <summary>
-    /// Integration event raised before running general journal posting line during VAT settlement.
-    /// Enables custom validation and modification of journal lines before posting to General Ledger.
-    /// </summary>
-    /// <param name="GenJnlLine">General journal line being prepared for posting</param>
-    [Obsolete('The event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostGenJnlLineOnBeforeGenJnlPostLineRun(var GenJnlLine: Record "Gen. Journal Line")
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Integration event raised after copying amounts from VAT entry to general journal line.

@@ -60,7 +60,8 @@ table 11738 "Posted Cash Document Line CZP"
         field(6; "Account No."; Code[20])
         {
             Caption = 'Account No.';
-            TableRelation = if ("Account Type" = const("G/L Account")) "G/L Account"."No." else
+            TableRelation =
+            if ("Account Type" = const("G/L Account")) "G/L Account"."No." else
             if ("Account Type" = const(Customer)) Customer."No." else
             if ("Account Type" = const(Vendor)) Vendor."No." else
             if ("Account Type" = const("Bank Account")) "Bank Account"."No." where("Account Type CZP" = const("Bank Account")) else
@@ -124,7 +125,8 @@ table 11738 "Posted Cash Document Line CZP"
         field(8; "Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
-            TableRelation = if ("Account Type" = const("Fixed Asset")) "FA Posting Group" else
+            TableRelation =
+            if ("Account Type" = const("Fixed Asset")) "FA Posting Group" else
             if ("Account Type" = const("Bank Account")) "Bank Account Posting Group" else
             if ("Account Type" = const(Customer)) "Customer Posting Group" else
             if ("Account Type" = const(Vendor)) "Vendor Posting Group";
@@ -364,6 +366,13 @@ table 11738 "Posted Cash Document Line CZP"
             Editable = false;
             DataClassification = CustomerContent;
         }
+        field(105; "Amount Type"; Enum "Cash Document Amount Type CZP")
+        {
+            Caption = 'Amount Type';
+            Editable = false;
+            DataClassification = CustomerContent;
+            Tooltip = 'Specifies how the amount including VAT on the line is used in the EET entry for the recorded sale. If you select Settlement, the amount including VAT is used as the amount for subsequent drawing or settlement. If you select Drawing, the amount including VAT is used as the amount subsequently drawn or settled.';
+        }
         field(110; "Non-Deductible VAT %"; Decimal)
         {
             AutoFormatType = 0;
@@ -519,20 +528,4 @@ table 11738 "Posted Cash Document Line CZP"
         exit(GeneralLedgerSetup."Additional Reporting Currency");
     end;
 
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the CashDocumentStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure ExtStatistics()
-    var
-        PostedCashDocumentLineCZP: Record "Posted Cash Document Line CZP";
-    begin
-        TestField("Cash Desk No.");
-        TestField("Cash Document No.");
-        TestField("Line No.");
-
-        PostedCashDocumentLineCZP.SetRange("Cash Desk No.", "Cash Desk No.");
-        PostedCashDocumentLineCZP.SetRange("Cash Document No.", "Cash Document No.");
-        PostedCashDocumentLineCZP.SetRange("Line No.", "Line No.");
-        Page.RunModal(Page::"Posted Cash Document Stat. CZP", PostedCashDocumentLineCZP);
-    end;
-#endif
 }

@@ -311,6 +311,12 @@ codeunit 5826 "Matched Order Line Mgmt."
         exit(not MatchedOrderLine.IsEmpty());
     end;
 
+    internal procedure CheckLineCanBeMatched(PurchaseLine: Record "Purchase Line")
+    begin
+        if PurchaseLine."Receipt No." <> '' then
+            Error(LineCreatedFromReceiptErr, PurchaseLine."Line No.");
+    end;
+
     internal procedure IsLineMatched(PurchaseLine: Record "Purchase Line"; ShowError: Boolean): Boolean
     begin
         case PurchaseLine."Document Type" of
@@ -699,6 +705,7 @@ codeunit 5826 "Matched Order Line Mgmt."
         PurchaseLines: Page "Purchase Lines";
     begin
         PurchaseLineInvoice.GetBySystemId(DetailedMatchedOrderLine."Document Line SystemId");
+        CheckLineCanBeMatched(PurchaseLineInvoice);
         PurchaseLineOrder.FilterGroup(-1);
         PurchaseLineOrder.SetFilter("Outstanding Quantity", '<>0');
         PurchaseLineOrder.SetFilter("Qty. Rcd. Not Invoiced", '<>0');
@@ -769,6 +776,7 @@ codeunit 5826 "Matched Order Line Mgmt."
         GetReceiptLines: Page "Get Receipt Lines";
     begin
         PurchaseLineInvoice.GetBySystemId(DetailedMatchedOrderLine."Document Line SystemId");
+        CheckLineCanBeMatched(PurchaseLineInvoice);
         PurchRcptLine.FilterGroup(2);
         if IsNullGuid(DetailedMatchedOrderLine."Matched Order Line SystemId") then begin
             PurchRcptLine.SetRange("Buy-from Vendor No.", PurchaseLineInvoice."Buy-from Vendor No.");
@@ -1246,6 +1254,7 @@ codeunit 5826 "Matched Order Line Mgmt."
         PrepaymentNotSupportedErr: Label 'Matched order lines are not supported for prepayment lines. Order No.: %1, Line No.: %2', Comment = '%1 = Order No., %2 = Line No.';
         PurchaseInvoiceLineMatchedErr: Label 'The line is matched to an order line and cannot be modified.';
         PurchaseOrderLineMatchedErr: Label 'The line is matched to an invoice line and cannot be modified.';
+        LineCreatedFromReceiptErr: Label 'Matched order lines are not supported for lines created with the Get Receipt Lines function. Line No.: %1', Comment = '%1 = Line No.';
         InvoiceLineLbl: Label 'Invoice %1 Line %2', Comment = '%1 = Document No., %2 = Line No.';
         OrderLineLbl: Label 'Order %1 Line %2', Comment = '%1 = Document No., %2 = Line No.';
         RcptLineLbl: Label 'Receipt %1 Line %2', Comment = '%1 = Document No., %2 = Line No.';

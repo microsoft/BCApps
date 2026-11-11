@@ -135,6 +135,33 @@ FormBoxNo: Code[20];
         IRS1099FormDocHeader.Delete(true);
 end;
 
+    [Test]
+    procedure UT_IRS1099Statement_FilterWithParentheses()
+    var
+        IRS1099FormStatementLine: Record "IRS 1099 Form Statement Line";
+        IRSFormsData: Codeunit "IRS Forms Data";
+        PeriodNo: Code[20];
+        FormNo: Code[20];
+        FormBoxNo: Code[10];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A statement filter treats parentheses in a form box number as literal characters.
+        Initialize();
+
+        // [GIVEN] Form box "B" contains parentheses and belongs to form "F" in period "P".
+        FormBoxNo := 'NEC-01 (A)';
+        PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
+        FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate());
+        LibraryIRS1099FormBox.CreateSpecificFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo, FormBoxNo);
+
+        // [WHEN] A statement line is created for form box "B".
+        IRSFormsData.AddFormStatementLine(PeriodNo, FormNo, FormBoxNo, 10000, 'Form box with parentheses');
+
+        // [THEN] The stored view filters exclusively on form box "B" and agrees with the display expression.
+        IRS1099FormStatementLine.Get(PeriodNo, FormNo, 10000);
+        VerifyStatementLineFormBoxFilter(IRS1099FormStatementLine, FormBoxNo);
+    end;
+
     local procedure Initialize()
     var
         IRSReportingPeriod: Record "IRS Reporting Period";
@@ -217,6 +244,16 @@ end;
         Vendor.Get(VendorNo);
         Vendor."Preferred Bank Account Code" := BankAccountNo;
         Vendor.Modify();
+    end;
+
+    local procedure VerifyStatementLineFormBoxFilter(IRS1099FormStatementLine: Record "IRS 1099 Form Statement Line"; FormBoxNo: Code[10])
+    var
+        TempIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line" temporary;
+    begin
+        TempIRS1099FormDocLine.SetView(IRS1099FormStatementLine."Record View String");
+        Assert.AreEqual(FormBoxNo, TempIRS1099FormDocLine.GetRangeMin("Form Box No."), 'The filter lower bound must equal the literal form box number.');
+        Assert.AreEqual(FormBoxNo, TempIRS1099FormDocLine.GetRangeMax("Form Box No."), 'The filter upper bound must equal the literal form box number.');
+        Assert.AreEqual(TempIRS1099FormDocLine.GetFilters(), IRS1099FormStatementLine."Filter Expression", 'The display expression must match the stored view.');
     end;
 
     local procedure VerifyFileContentExists(IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; ReportType: Enum "IRS 1099 Form Report Type")

@@ -156,10 +156,10 @@ page 2516 "AppSource Product Details"
         {
             action(OpenInAppSource)
             {
-                Caption = 'View on AppSource';
+                Caption = 'View on Marketplace';
                 Scope = Page;
                 Image = Info;
-                ToolTip = 'Opens the app on AppSource.';
+                ToolTip = 'Opens the app on Marketplace.';
 
                 trigger OnAction()
                 begin
@@ -190,10 +190,10 @@ page 2516 "AppSource Product Details"
 
             action(InstallFromAppSource)
             {
-                Caption = 'Install from AppSource';
+                Caption = 'Install from Marketplace';
                 Scope = Page;
                 Image = Download;
-                ToolTip = 'Installs the app from Microsoft AppSource.';
+                ToolTip = 'Installs the app from Microsoft Marketplace.';
                 Enabled = (not CurrentRecordCanBeUninstalled) and (not CurrentRecordCanBeInstalled);
                 Visible = (not CurrentRecordCanBeUninstalled) and (not CurrentRecordCanBeInstalled);
 
@@ -231,7 +231,7 @@ page 2516 "AppSource Product Details"
         CurrentRecordCanBeInstalled: Boolean;
         PlansOverview: Text;
         PlansAreVisible: Boolean;
-        PurchaseLicensesElsewhereLbl: Label 'Installing this app might lead to undesired behavior if licenses are not purchased before use. You must purchase licenses through Microsoft AppSource.\Do you want to continue with the installation?';
+        PurchaseLicensesElsewhereLbl: Label 'Installing this app might lead to undesired behavior if licenses are not purchased before use. You must purchase licenses through Microsoft Marketplace.\Do you want to continue with the installation?';
         PlanLinePrUserPrMonthLbl: Label '%1 %2 user/month', Comment = 'Price added a plan line, %1 is the currency code, such as USD or IDR, %2 is the price';
         PlanLinePrUserPrYearLbl: Label '%1 %2 user/year', Comment = 'Price added a plan line, %1 is the currency code, such as USD or IDR, %2 is the price';
         PlanLineFirstMonthIsFreeLbl: Label 'First month free, then %1.', Comment = 'Added to the plan line when the first month is free, %1 is the plan after the trial period.';

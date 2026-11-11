@@ -179,7 +179,6 @@ codeunit 10826 "Generate File FEC"
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
         GLRegister: Record "G/L Register";
         Customer: Record Customer;
-        Vendor: Record Vendor;
         PartyNo: Code[20];
         PartyName: Text[100];
         FCYAmount: Text[250];
@@ -219,28 +218,8 @@ codeunit 10826 "Generate File FEC"
             DateApplied := CustVendDateApplied;
         end;
 
-        if CustVendLedgEntryPartyNo = '*' then
-            case GLEntry."Source Type" of
-                GLEntry."Source Type"::Customer:
-                    begin
-                        Customer.SetLoadFields("Customer Posting Group", Name);
-                        Customer.Get(GLEntry."Source No.");
-                        if GetReceivablesAccount(Customer."Customer Posting Group") = GLEntry."G/L Account No." then begin
-                            PartyNo := Customer."No.";
-                            PartyName := Customer.Name;
-                        end;
-                    end;
-                GLEntry."Source Type"::Vendor:
-                    begin
-                        Vendor.SetLoadFields("Vendor Posting Group", Name);
-                        Vendor.Get(GLEntry."Source No.");
-                        if GetPayablesAccount(Vendor."Vendor Posting Group") = GLEntry."G/L Account No." then begin
-                            PartyNo := Vendor."No.";
-                            PartyName := Vendor.Name;
-                        end;
-                    end;
-
-            end;
+        if PartyNo = '' then
+            SetPartyForPayablesReceivablesAccount(GLEntry, PartyNo, PartyName);
         if PartyNo = '' then
             SetPartyForPaymentDiscount(GLEntry, PartyNo, PartyName);
 
@@ -680,6 +659,27 @@ codeunit 10826 "Generate File FEC"
         if CustomerPostingGroup.Get(CustomerPostingGroupCode) then begin
             ReceivablesAccounts.Add(CustomerPostingGroup.Code, CustomerPostingGroup."Receivables Account");
             ReceivablesAcc := CustomerPostingGroup."Receivables Account";
+        end;
+    end;
+
+    local procedure SetPartyForPayablesReceivablesAccount(GLEntry: Record "G/L Entry"; var PartyNo: Code[20]; var PartyName: Text[100])
+    var
+        PartyNameValue: Text[100];
+        PartyPostingGroupCode: Code[20];
+    begin
+        case GLEntry."Source Type" of
+            GLEntry."Source Type"::Customer:
+                if GetCustomerInfo(GLEntry."Source No.", PartyNameValue, PartyPostingGroupCode) then
+                    if GetReceivablesAccount(PartyPostingGroupCode) = GLEntry."G/L Account No." then begin
+                        PartyNo := GLEntry."Source No.";
+                        PartyName := PartyNameValue;
+                    end;
+            GLEntry."Source Type"::Vendor:
+                if GetVendorInfo(GLEntry."Source No.", PartyNameValue, PartyPostingGroupCode) then
+                    if GetPayablesAccount(PartyPostingGroupCode) = GLEntry."G/L Account No." then begin
+                        PartyNo := GLEntry."Source No.";
+                        PartyName := PartyNameValue;
+                    end;
         end;
     end;
 

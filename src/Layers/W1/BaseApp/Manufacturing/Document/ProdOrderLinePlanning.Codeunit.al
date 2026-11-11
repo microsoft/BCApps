@@ -18,9 +18,6 @@ codeunit 99000857 "Prod. Order Line-Planning"
 
     var
         ProductionOrder: Record "Production Order";
-#if not CLEAN27
-        GetUnplannedDemand: Codeunit "Get Unplanned Demand";
-#endif
         ProductionTxt: Label 'Production';
 
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnSetDemandTypeFromUnplannedDemand', '', true, false)]
@@ -149,9 +146,6 @@ codeunit 99000857 "Prod. Order Line-Planning"
         DemandQtyBase: Decimal;
     begin
         OnBeforeGetUnplannedProdOrderComp(UnplannedDemand, ProdOrderComp);
-#if not CLEAN27
-        GetUnplannedDemand.RunOnBeforeGetUnplannedProdOrderComp(UnplannedDemand, ProdOrderComp);
-#endif
 
         ProdOrderComp.SetFilter(
             Status, '%1|%2|%3', ProdOrderComp.Status::Planned, ProdOrderComp.Status::"Firm Planned", ProdOrderComp.Status::Released);
@@ -165,23 +159,14 @@ codeunit 99000857 "Prod. Order Line-Planning"
                         not ((ProdOrderComp.Status.AsInteger() = UnplannedDemand."Demand SubType") and
                         (ProdOrderComp."Prod. Order No." = UnplannedDemand."Demand Order No."));
                     OnGetUnplannedProdOrderCompOnAfterCalcNeedInsertUnplannedDemand(UnplannedDemand, ProdOrderComp, NeedInsertUnplannedDemand);
-#if not CLEAN27
-                    GetUnplannedDemand.RunOnGetUnplannedProdOrderCompOnAfterCalcNeedInsertUnplannedDemand(UnplannedDemand, ProdOrderComp, NeedInsertUnplannedDemand);
-#endif
                     if NeedInsertUnplannedDemand then begin
                         sender.InsertUnplannedDemand(
                             UnplannedDemand, UnplannedDemand."Demand Type"::Production,
                             ProdOrderComp.Status.AsInteger(), ProdOrderComp."Prod. Order No.", ProdOrderComp.Status.AsInteger());
                         OnGetUnplannedProdOrderCompOnAfterInsertUnplannedDemand(UnplannedDemand, ProdOrderComp);
-#if not CLEAN27
-                        GetUnplannedDemand.RunOnGetUnplannedProdOrderCompOnAfterInsertUnplannedDemand(UnplannedDemand, ProdOrderComp);
-#endif
                     end;
                     InsertProdOrderCompLine(UnplannedDemand, ProdOrderComp, DemandQtyBase);
                     OnGetUnplannedProdOrderCompOnAfterInsertProdOrderCompLine(UnplannedDemand, ProdOrderComp);
-#if not CLEAN27
-                    GetUnplannedDemand.RunOnGetUnplannedProdOrderCompOnAfterInsertProdOrderCompLine(UnplannedDemand, ProdOrderComp);
-#endif
                 end;
             until ProdOrderComp.Next() = 0;
     end;
@@ -219,9 +204,6 @@ codeunit 99000857 "Prod. Order Line-Planning"
           not ((UnplannedDemand."Demand Type" = UnplannedDemand."Demand Type"::Production) and
                (UnplannedDemand."Demand SubType" = ProdOrderComp.Status::Planned.AsInteger()));
         OnInsertProdOrderCompLineOnBeforeInsert(UnplannedDemand, ProdOrderComp);
-#if not CLEAN27
-        GetUnplannedDemand.RunOnInsertProdOrderCompLineOnBeforeInsert(UnplannedDemand, ProdOrderComp);
-#endif
         UnplannedDemand.Insert();
         UnplannedDemand.Copy(UnplannedDemand2);
     end;

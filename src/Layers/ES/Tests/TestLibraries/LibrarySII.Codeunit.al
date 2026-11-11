@@ -1067,8 +1067,26 @@ codeunit 143006 "Library - SII"
         XMLDoc.Save(XmlStream);
         XmlFile.Close();
 
-        XsdPath := GetInetRoot() + '\GDL\ES\App\Test\SIIxmlschema\SuministroLR.xsd';
+        XsdPath := ResolveTestAssetPath('\GDL\ES\App\Test\SiiXmlSchema\SuministroLR.xsd');
         Assert.IsTrue(LibraryVerifyXMLSchema.VerifyXMLAgainstSchema(XmlPath, XsdPath, Message), Message);
+    end;
+
+    local procedure ResolveTestAssetPath(RelativePath: Text): Text
+    var
+        DotNetFile: DotNet File;
+        NavRootPosition: Integer;
+        BCAppsAssetPath: Text;
+        NavRootPath: Text;
+    begin
+        NavRootPosition := StrPos(ApplicationPath(), '\Run\NST\');
+        if NavRootPosition > 0 then begin
+            NavRootPath := DelStr(ApplicationPath(), NavRootPosition);
+            BCAppsAssetPath := NavRootPath + '\App\BCApps\src' + RelativePath;
+            // AL file methods are restricted by EnforceUserPathForAlFileOperations; .NET is not, and the XSD is loaded via .NET.
+            if DotNetFile.Exists(BCAppsAssetPath) then
+                exit(BCAppsAssetPath);
+        end;
+        exit(GetInetRoot() + RelativePath);
     end;
 
     [Scope('OnPrem')]

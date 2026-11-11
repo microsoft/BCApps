@@ -481,8 +481,7 @@ codeunit 132549 "Import XML Gen Jnl Line"
         LibraryERM.FindGLAccount(GLAccount);
         GenJnlLine.SetRange("Journal Template Name", GenJnlLine."Journal Template Name");
         GenJnlLine.SetRange("Journal Batch Name", GenJnlLine."Journal Batch Name");
-        GenJnlLine.ModifyAll("Account No.", GLAccount."No.");
-        GenJnlLine.ModifyAll(Description, LibraryUtility.GenerateGUID());
+        GenJnlLine.ModifyAll("Account No.", GLAccount."No.", Description, LibraryUtility.GenerateGUID());
         LibraryERM.PostGeneralJnlLine(GenJnlLine);
 
         // Verify.
@@ -509,8 +508,7 @@ codeunit 132549 "Import XML Gen Jnl Line"
         LibraryERM.FindGLAccount(GLAccount);
         GenJnlLine.SetRange("Journal Template Name", GenJnlLine."Journal Template Name");
         GenJnlLine.SetRange("Journal Batch Name", GenJnlLine."Journal Batch Name");
-        GenJnlLine.ModifyAll("Account No.", GLAccount."No.");
-        GenJnlLine.ModifyAll(Description, LibraryUtility.GenerateGUID());
+        GenJnlLine.ModifyAll("Account No.", GLAccount."No.", Description, LibraryUtility.GenerateGUID());
         LibraryERM.PostGeneralJnlLine(GenJnlLine);
 
         // Verify.

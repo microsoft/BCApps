@@ -804,7 +804,9 @@ table 8059 "Subscription Line"
             PreviousTermUntil := CalcDate('<-1D>', PreviousTermUntil);
         end;
         "Term Until" := CalcDate("Extension Term", PreviousTermUntil);
-        if DateTimeManagement.IsLastDayOfMonth(PreviousTermUntil) then
+        // Aligning to the end of the month compensates for months of different length. It must not be applied to a Subsequent Term
+        // expressed in days or weeks, where the exact number of days is what was agreed.
+        if DateTimeManagement.IsLastDayOfMonth(PreviousTermUntil) and DateFormulaManagement.IsMonthBasedDateFormula("Extension Term") then
             DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
         exit(true);
     end;
@@ -817,7 +819,9 @@ table 8059 "Subscription Line"
             exit;
         "Term Until" := CalcDate("Notice Period", "Cancellation Possible Until");
 
-        if DateTimeManagement.IsLastDayOfMonth("Cancellation possible until") then
+        // Aligning to the end of the month compensates for months of different length. It must not be applied to a Notice Period
+        // expressed in days or weeks, where the exact number of days is what was agreed.
+        if DateTimeManagement.IsLastDayOfMonth("Cancellation possible until") and DateFormulaManagement.IsMonthBasedDateFormula("Notice Period") then
             DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
     end;
 
@@ -827,7 +831,9 @@ table 8059 "Subscription Line"
             exit(false);
         CalendarManagement.ReverseDateFormula(NegativeDateFormula, "Notice Period");
         "Cancellation Possible Until" := CalcDate(NegativeDateFormula, "Term Until");
-        if DateTimeManagement.IsLastDayOfMonth("Term until") then
+        // Aligning to the end of the month compensates for months of different length. It must not be applied to a Notice Period
+        // expressed in days or weeks, where the exact number of days is what was agreed.
+        if DateTimeManagement.IsLastDayOfMonth("Term until") and DateFormulaManagement.IsMonthBasedDateFormula("Notice Period") then
             DateTimeManagement.MoveDateToLastDayOfMonth("Cancellation possible until");
 
         exit(true);
@@ -1666,6 +1672,13 @@ table 8059 "Subscription Line"
         exit(Rec."Subscription Line End Date" = CalcDate('<-1D>', Rec."Next Billing Date"));
     end;
 
+    internal procedure IsBilledUntilEndOfTerm(): Boolean
+    begin
+        if Rec."Subscription Line End Date" = 0D then
+            exit(false);
+        exit(Rec."Next Billing Date" > Rec."Subscription Line End Date");
+    end;
+
     internal procedure SetSkipArchiving(NewSkipArchiving: Boolean)
     begin
         SkipArchiving := NewSkipArchiving;
@@ -1864,10 +1877,11 @@ table 8059 "Subscription Line"
     internal procedure SetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; BillingFromDate: Date; BillingToDate: Date)
     begin
         UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");
-        UsageDataBilling.SetRange("Usage Base Pricing", Enum::"Usage Based Pricing"::"Usage Quantity", Enum::"Usage Based Pricing"::"Unit Cost Surcharge");
+        UsageDataBilling.SetFilter("Usage Base Pricing", '>=%1', Enum::"Usage Based Pricing"::"Usage Quantity");
         UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
         UsageDataBilling.SetFilter("Charge Start Date", '>=%1', BillingFromDate);
         UsageDataBilling.SetFilter("Charge End Date", '<=%1', CalcDate('<1D>', BillingToDate));
+        OnAfterSetUsageDataBillingFilters(UsageDataBilling, Rec, BillingFromDate, BillingToDate);
     end;
 
     internal procedure IsUsageBasedBillingValid(): Boolean
@@ -2069,6 +2083,8 @@ table 8059 "Subscription Line"
                     end;
                 end;
         end;
+        if (Rec."Period Calculation" = Rec."Period Calculation"::"Align to End of Month") and not (Letter in ['D', 'W']) and (Rec."Subscription Line End Date" <> 0D) and (NextToDate < Rec."Subscription Line End Date") and (Rec."Subscription Line End Date" <= CalcDate(PeriodFormula, FromDate) - 1) then
+            NextToDate := Rec."Subscription Line End Date";
     end;
 
     local procedure GetBillingReferenceDate() BillingReferenceDate: Date
@@ -2172,6 +2188,11 @@ table 8059 "Subscription Line"
     /// <param name="SubscriptionLine">The Subscription Line carrying the new Subscription Line Start Date.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckSubscriptionLineStartDateChangeAllowed(SubscriptionLine: Record "Subscription Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; SubscriptionLine: Record "Subscription Line"; BillingFromDate: Date; BillingToDate: Date)
     begin
     end;
 

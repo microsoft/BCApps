@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/6958720b2e1ccfda94fab92c83143ee5e093afec/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/a946346885b3c762fcbadb265823e70150c3e2f1/Actions/.Modules/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
@@ -9,12 +9,13 @@
   "usePsSessionForBc28": true,
   "gitHubRunner": "windows-latest",
   "githubRunnerShell": "pwsh",
-  "artifact": "bcinsider/Sandbox/30.0.54539.0//latest",
+  "artifact": "bcinsider/Sandbox/30.0.57533.0//latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "30.0",
   "memoryLimit": "16G",
   "numberOfTenantsForTesting": 4,
+  "enableCleanTestCodeunitExecution": true,
   "maxTestAppReruns": 2,
   "failOn": "newWarning",
   "workspaceCompilation": {
@@ -35,6 +36,14 @@
           "CLEAN29",
           "CLEAN30"
         ]
+      }
+    },
+    {
+      "buildModes": [
+        "UncategorizedTests"
+      ],
+      "settings": {
+        "enableTaskScheduler": true
       }
     },
     {
@@ -135,6 +144,22 @@
   "enablePerTenantExtensionCop": true,
   "enableUICop": true,
   "enableCodeAnalyzersOnTestApps": true,
+  "BCQuality": {
+    "version": "1.9",
+    "enabledLayers": [
+      "microsoft"
+    ]
+  },
+  "CodeReviewAgent": {
+    "enabled": true,
+    "branches": [
+      "main"
+    ],
+    "excludedAuthors": [
+      "business-central-bot[bot]",
+      "dependabot[bot]"
+    ]
+  },
   "rulesetFile": "../../../src/rulesets/base.ruleset.json",
   "skipUpgrade": true,
   "fullBuildPatterns": [
@@ -158,9 +183,9 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "35d89f97b4a2065f65322dbc3bd7e78cf22f45b9",
+  "templateSha": "fb1274920d226ed93c592d08218b77c64a01b195",
   "commitOptions": {
-    "messageSuffix": "Related to AB#539394",
+    "messageSuffix": "Related to AB#640900",
     "pullRequestAutoMerge": true,
     "pullRequestLabels": [
       "Automation"

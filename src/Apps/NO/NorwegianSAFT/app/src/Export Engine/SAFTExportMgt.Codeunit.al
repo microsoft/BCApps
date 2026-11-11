@@ -83,20 +83,27 @@ codeunit 10675 "SAF-T Export Mgt."
     local procedure CalculateGLEntryTotals(var SAFTExportHeader: Record "SAF-T Export Header")
     var
         GLEntry: Record "G/L Entry";
+        GenerateSAFT13File: Codeunit "Generate SAF-T 1.3 File";
         SAFTGLEntryByTrans: Query "SAF-T G/L Entry By Trans.";
     begin
-        GLEntry.SetCurrentKey("Transaction No.");
-        GLEntry.SetRange("Posting Date", SAFTExportHeader."Starting Date", SAFTExportHeader."Ending Date");
-        GLEntry.CalcSums("Debit Amount", "Credit Amount");
-        SAFTExportHeader."Total G/L Entry Debit" := GLEntry."Debit Amount";
-        SAFTExportHeader."Total G/L Entry Credit" := GLEntry."Credit Amount";
         SAFTExportHeader."Number of G/L Entries" := 0;
 
-        SAFTGLEntryByTrans.SetRange(Posting_Date, SAFTExportHeader."Starting Date", SAFTExportHeader."Ending Date");
-        if SAFTGLEntryByTrans.Open() then begin
-            while SAFTGLEntryByTrans.Read() do
-                SAFTExportHeader."Number of G/L Entries" += 1;
-            SAFTGLEntryByTrans.Close();
+        if SAFTExportHeader.Version = SAFTExportHeader.Version::"1.30" then begin
+            GenerateSAFT13File.CalculateDebitCreditTotals(SAFTExportHeader);
+            SAFTExportHeader."Number of G/L Entries" := GenerateSAFT13File.CountTransactions(SAFTExportHeader);
+        end
+        else begin
+            GLEntry.SetCurrentKey("Transaction No.");
+            GLEntry.SetRange("Posting Date", SAFTExportHeader."Starting Date", SAFTExportHeader."Ending Date");
+            GLEntry.CalcSums("Debit Amount", "Credit Amount");
+            SAFTExportHeader."Total G/L Entry Debit" := GLEntry."Debit Amount";
+            SAFTExportHeader."Total G/L Entry Credit" := GLEntry."Credit Amount";
+            SAFTGLEntryByTrans.SetRange(Posting_Date, SAFTExportHeader."Starting Date", SAFTExportHeader."Ending Date");
+            if SAFTGLEntryByTrans.Open() then begin
+                while SAFTGLEntryByTrans.Read() do
+                    SAFTExportHeader."Number of G/L Entries" += 1;
+                SAFTGLEntryByTrans.Close();
+            end;
         end;
     end;
 

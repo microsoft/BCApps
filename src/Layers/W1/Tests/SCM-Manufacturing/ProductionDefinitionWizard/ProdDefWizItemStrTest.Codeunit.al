@@ -6,6 +6,8 @@ namespace Microsoft.Manufacturing.Test;
 
 using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Wizard;
 
 codeunit 137432 "Prod. Def. Wiz. Item Str. Test"
@@ -22,6 +24,7 @@ codeunit 137432 "Prod. Def. Wiz. Item Str. Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -162,12 +165,16 @@ codeunit 137432 "Prod. Def. Wiz. Item Str. Test"
     procedure TestK3_DefineItemStructure_SaveTrue_ItemBOMAndRoutingAssigned()
     var
         Item: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
         PreWizardLastBOMNo: Code[20];
         PostWizardLastBOMNo: Code[20];
         PreWizardLastRoutingNo: Code[20];
         PostWizardLastRoutingNo: Code[20];
+        ProductionBOMVersionNos: Code[20];
+        RoutingVersionNos: Code[20];
         WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
         WizardShouldHaveCreatedNewBOMLbl: Label 'Wizard should have created a new Production BOM';
         WizardShouldHaveCreatedNewRoutingLbl: Label 'Wizard should have created a new Routing';
@@ -181,6 +188,9 @@ codeunit 137432 "Prod. Def. Wiz. Item Str. Test"
         Item.Get(ItemNo);
         ProdDefWizSetupLib.ConfigureForNothingAvailable(
             "Prod. Definition Display"::Edit, "Prod. Definition Display"::Edit);
+        ProductionBOMVersionNos := LibraryERM.CreateNoSeriesCode();
+        RoutingVersionNos := LibraryERM.CreateNoSeriesCode();
+        SetManufacturingVersionNoSeries(ProductionBOMVersionNos, RoutingVersionNos);
 
         // [WHEN] User enables Save = Item and finishes the wizard
         PreWizardLastBOMNo := ProdDefWizCheckLib.GetLastProductionBOMNo();
@@ -196,6 +206,22 @@ codeunit 137432 "Prod. Def. Wiz. Item Str. Test"
         Assert.AreNotEqual(PreWizardLastRoutingNo, PostWizardLastRoutingNo, WizardShouldHaveCreatedNewRoutingLbl);
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, PostWizardLastBOMNo);
         ProdDefWizCheckLib.VerifyItemHasRouting(ItemNo, PostWizardLastRoutingNo);
+
+        // [THEN] The wizard-created headers inherited the Manufacturing Setup version number series
+        ProductionBOMHeader.Get(PostWizardLastBOMNo);
+        RoutingHeader.Get(PostWizardLastRoutingNo);
+        Assert.AreEqual(ProductionBOMVersionNos, ProductionBOMHeader."Version Nos.", ProductionBOMHeader.FieldCaption("Version Nos."));
+        Assert.AreEqual(RoutingVersionNos, RoutingHeader."Version Nos.", RoutingHeader.FieldCaption("Version Nos."));
+    end;
+
+    local procedure SetManufacturingVersionNoSeries(ProductionBOMVersionNos: Code[20]; RoutingVersionNos: Code[20])
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Production BOM Version Nos.", ProductionBOMVersionNos);
+        ManufacturingSetup.Validate("Routing Version Nos.", RoutingVersionNos);
+        ManufacturingSetup.Modify(true);
     end;
 
     [ModalPageHandler]

@@ -2300,6 +2300,108 @@ codeunit 134103 "ERM Prepayment IV"
 
     [Test]
     [Scope('OnPrem')]
+    procedure SalesPrepmtInvoiceWorkDescriptionWithInvDiscount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        WorkDescription: Text;
+    begin
+        // [FEATURE] [Sales] [Invoice Discount] [Work Description]
+        // [SCENARIO] Prepayment invoices retain the order's work description when automatic invoice discount calculation is enabled.
+        Initialize();
+        SetCalcInvDiscount(true);
+
+        // [GIVEN] An open sales order with an item, prepayment, invoice discount and work description.
+        WorkDescription := LibraryRandom.RandText(300);
+        CreatePrepmtSalesOrderWithWorkDescription(SalesHeader, WorkDescription);
+
+        // [WHEN] Post the prepayment invoice.
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesPrepaymentInvoice(SalesHeader));
+
+        // [THEN] The persisted prepayment invoice contains the complete work description.
+        Assert.AreEqual(WorkDescription, SalesInvoiceHeader.GetWorkDescription(), SalesInvoiceHeader.FieldCaption("Work Description"));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesPrepmtInvoiceWorkDescriptionWithoutInvDiscount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        WorkDescription: Text;
+    begin
+        // [FEATURE] [Sales] [Work Description]
+        // [SCENARIO] Prepayment invoices retain the order's work description when automatic invoice discount calculation is disabled.
+        Initialize();
+        SetCalcInvDiscount(false);
+
+        // [GIVEN] An open sales order with an item, prepayment and work description.
+        WorkDescription := LibraryRandom.RandText(300);
+        CreatePrepmtSalesOrderWithWorkDescription(SalesHeader, WorkDescription);
+
+        // [WHEN] Post the prepayment invoice.
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesPrepaymentInvoice(SalesHeader));
+
+        // [THEN] The persisted prepayment invoice contains the complete work description.
+        Assert.AreEqual(WorkDescription, SalesInvoiceHeader.GetWorkDescription(), SalesInvoiceHeader.FieldCaption("Work Description"));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesPrepmtCrMemoWorkDescriptionWithInvDiscount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        WorkDescription: Text;
+    begin
+        // [FEATURE] [Sales] [Credit Memo] [Invoice Discount] [Work Description]
+        // [SCENARIO] Prepayment credit memos retain the order's work description when automatic invoice discount calculation is enabled.
+        Initialize();
+        SetCalcInvDiscount(true);
+
+        // [GIVEN] A sales order with an invoiced prepayment, reopened with an updated work description.
+        CreatePrepmtSalesOrderWithWorkDescription(SalesHeader, LibraryRandom.RandText(300));
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+        LibrarySales.ReopenSalesDocument(SalesHeader);
+        WorkDescription := LibraryRandom.RandText(300);
+        SalesHeader.SetWorkDescription(WorkDescription);
+
+        // [WHEN] Post the prepayment credit memo.
+        SalesCrMemoHeader.Get(PostSalesPrepaymentCreditMemo(SalesHeader, WorkDate()));
+
+        // [THEN] The persisted prepayment credit memo contains the updated work description.
+        Assert.AreEqual(WorkDescription, SalesCrMemoHeader.GetWorkDescription(), SalesCrMemoHeader.FieldCaption("Work Description"));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesPrepmtCrMemoWorkDescriptionWithoutInvDiscount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        WorkDescription: Text;
+    begin
+        // [FEATURE] [Sales] [Credit Memo] [Work Description]
+        // [SCENARIO] Prepayment credit memos retain the order's work description when automatic invoice discount calculation is disabled.
+        Initialize();
+        SetCalcInvDiscount(false);
+
+        // [GIVEN] A sales order with an invoiced prepayment, reopened with an updated work description.
+        CreatePrepmtSalesOrderWithWorkDescription(SalesHeader, LibraryRandom.RandText(300));
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+        LibrarySales.ReopenSalesDocument(SalesHeader);
+        WorkDescription := LibraryRandom.RandText(300);
+        SalesHeader.SetWorkDescription(WorkDescription);
+
+        // [WHEN] Post the prepayment credit memo.
+        SalesCrMemoHeader.Get(PostSalesPrepaymentCreditMemo(SalesHeader, WorkDate()));
+
+        // [THEN] The persisted prepayment credit memo contains the updated work description.
+        Assert.AreEqual(WorkDescription, SalesCrMemoHeader.GetWorkDescription(), SalesCrMemoHeader.FieldCaption("Work Description"));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure SalesPrepmt100PctWithSevLinesAndPartialInv()
     var
         SalesHeader: Record "Sales Header";
@@ -3083,6 +3185,21 @@ codeunit 134103 "ERM Prepayment IV"
         SalesLine.Modify(true);
     end;
 
+    local procedure CreatePrepmtSalesOrderWithWorkDescription(var SalesHeader: Record "Sales Header"; WorkDescription: Text)
+    var
+        Customer: Record Customer;
+        LineGLAccount: Record "G/L Account";
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreatePrepaymentVATSetup(LineGLAccount, Enum::"Tax Calculation Type"::"Normal VAT");
+        UpdateGeneralPostingSetupForSalesInvDiscount(LineGLAccount."Gen. Bus. Posting Group", LineGLAccount."Gen. Prod. Posting Group");
+        CreateCustomerWithInvDiscount(LineGLAccount, Customer);
+        Item.Get(CreateItemWithPostingSetup(LineGLAccount));
+        CreatePrepmtSalesOrderFoprItemWith100Percent(Customer, true, Item, SalesHeader, SalesLine);
+        SalesHeader.SetWorkDescription(WorkDescription);
+    end;
+
     local procedure CreateCustomSalesLinesScenario363330(SalesHeader: Record "Sales Header"; LineGLAccountNo: Code[20])
     begin
         CreateSalesLineWithCustomDiscountAmount(SalesHeader, LineGLAccountNo, 1, 1, 8.9, 3);
@@ -3828,8 +3945,8 @@ codeunit 134103 "ERM Prepayment IV"
         Currency.Validate("Appln. Rounding Precision", LibraryRandom.RandDec(0, 2));
         Currency.Validate("Invoice Rounding Precision", LibraryRandom.RandDec(0, 2));
         Currency.Modify(true);
-        exit(Currency.Code);
         LibraryERM.SetAddReportingCurrency(Currency.Code);
+        exit(Currency.Code);
     end;
 
     local procedure CreateSalesDocumentWithCurrency(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CurrencyCode: Code[10]; CustomerNo: Code[20]; DocumentType: Enum "Sales Document Type"): Decimal

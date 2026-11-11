@@ -96,6 +96,9 @@ codeunit 30199 "Shpfy Authentication Mgt."
         NotMatchingStateErr: Label 'The state parameter value does not match.';
         StoreMismatchLbl: Label 'The store URL returned from Shopify differs from the URL you entered. You can find your store''s internal URL in Shopify Admin under Domains settings. Do you want to update the store URL to match?';
     begin
+        if not IsValidHostName(InstallToStore) then
+            Error(InvalidShopUrlErr);
+
         OAuth2.GetDefaultRedirectURL(RedirectUrl);
         State := Random(999);
         Url := StrSubstNo(InstallURLTxt, InstallToStore, GetScope(), RedirectUrl, State, GrandOptionsTxt);
@@ -104,6 +107,8 @@ codeunit 30199 "Shpfy Authentication Mgt."
         Commit();
         ShopifyAuthentication.RunModal();
         Store := ShopifyAuthentication.Store();
+        if not IsValidHostName(Store) then
+            Error(InvalidShopUrlErr);
 
         if Store <> InstallToStore then
             if Confirm(StoreMismatchLbl) then
@@ -158,6 +163,9 @@ codeunit 30199 "Shpfy Authentication Mgt."
         AccessTokenURLTxt: Label 'https://%1/admin/oauth/access_token', Comment = '%1 = Store', Locked = true;
         HttpRequestBlockedErrorInfo: ErrorInfo;
     begin
+        if not IsValidHostName(Store) then
+            Error(InvalidShopUrlErr);
+
         RequestBody.WriteWithSecretsTo(Credentials, SecretBody);
 
         Url := StrSubstNo(AccessTokenURLTxt, Store);

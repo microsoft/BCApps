@@ -75,7 +75,7 @@ codeunit 30269 "Shpfy Webhooks Mgt."
         end;
         if WebhooksAPI.GetWebhookSubscription(Shop, WebhookTopic.Names.Get(WebhookTopic.Ordinals.IndexOf(WebhookTopic.AsInteger())), SubscriptionId) then
             WebhooksAPI.DeleteWebhookSubscription(Shop, SubscriptionId);
-        SubscriptionId := WebhooksAPI.RegisterWebhookSubscription(Shop, WebhookTopic.Names.Get(WebhookTopic.Ordinals.IndexOf(WebhookTopic.AsInteger())));
+        SubscriptionId := WebhooksAPI.RegisterWebhookSubscription(Shop, WebhookTopic);
         if SubscriptionId <> '' then begin
             CreateWebhookSubscription(Shop, Format(WebhookTopic), UserId);
             if PrevUserId <> UserId then

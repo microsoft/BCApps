@@ -157,6 +157,12 @@ tableextension 6235 "Sustainability Sales Line" extends "Sales Line"
             Editable = false;
             DataClassification = CustomerContent;
         }
+        field(6242; "EUDR Relevant"; Boolean)
+        {
+            Caption = 'EUDR Relevant';
+            Editable = false;
+            DataClassification = CustomerContent;
+        }
     }
 
     procedure UpdateSustainabilityEmission(var SalesLine: Record "Sales Line")
