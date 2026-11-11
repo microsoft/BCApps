@@ -100,6 +100,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis");
 
         AOAIChatCompletionParams.SetTemperature(0);
+        AOAIChatCompletionParams.SetMaxTokens(GetMaxTokens());
         AOAIChatCompletionParams.SetJsonMode(true);
 
         AOAIChatMessages.SetPrimarySystemMessage(NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8));
@@ -344,6 +345,11 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
     begin
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document MLLM Analysis") then
             CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis", '');
+    end;
+
+    local procedure GetMaxTokens(): Integer
+    begin
+        exit(50000);
     end;
 
 }
