@@ -428,8 +428,8 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         VATPostingSetup: Record "VAT Posting Setup";
         VATEntry: Record "VAT Entry";
         SettlementVATEntry: Record "VAT Entry";
-        ERMConcurrentGenJnlPosting: Codeunit "ERM Concurrent Gen.Jnl.Posting";
         CalcandPostVATSettlement: Report "Calc. and Post VAT Settlement";
+        ERMConcurrentGenJnlPosting: Codeunit "ERM Concurrent Gen.Jnl.Posting";
         GenPostingType: Enum "General Posting Type";
         SettlementDocNo: Code[20];
         LastVATEntryNo: Integer;
