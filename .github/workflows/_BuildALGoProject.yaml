@@ -188,7 +188,7 @@ jobs:
         shell: pwsh
         run: |
           $zipPath = Join-Path $env:GITHUB_WORKSPACE 'build\tools\altool-dev-net10.zip'
-          $expectedHash = '7C960402DA33DC071DB1C814F1A7301B525B7FADB7B3250E89E87C6E9016DC0D'
+          $expectedHash = '29D0700C1A225EC5655E8FB2913CE795FC5D19EDE56BC14EACFDB05D9F90EE78'
           $expectedVersion = '30.0.0.0+14ef6c5c8aeb5bfd12b3ebf7b413750cb7ac8369'
           $requiredFiles = @(
             'Microsoft.Dynamics.Nav.Analyzers.Common.dll'
@@ -289,7 +289,7 @@ jobs:
         shell: pwsh
         run: |
           $zipPath = Join-Path $env:GITHUB_WORKSPACE 'build\tools\altool-dev-net10.zip'
-          $expectedHash = '7C960402DA33DC071DB1C814F1A7301B525B7FADB7B3250E89E87C6E9016DC0D'
+          $expectedHash = '29D0700C1A225EC5655E8FB2913CE795FC5D19EDE56BC14EACFDB05D9F90EE78'
           $expectedVersion = '30.0.0.0+14ef6c5c8aeb5bfd12b3ebf7b413750cb7ac8369'
           $requiredFiles = @(
             'Microsoft.Dynamics.Nav.Analyzers.Common.dll'
