@@ -86,6 +86,7 @@ codeunit 148305 "Expense Test"
         ExpenseVendorNosShouldBeSetErr: Label 'Expense Vendor Nos. should be set when no. series defaults are created.';
         ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
         OnlyBCUserCanApproveErr: Label 'Expense user %2 cannot be an approver because no user in Business Central has %1 as their Microsoft 365 authentication email. Make sure a Business Central user exists whose Microsoft 365 authentication email matches the expense user''s email.', Comment = '%1 = Email, %2 = Expense User No.';
+        ExistingApproverTxt: Label 'User "%1" already has user "%2" as an approver.', Comment = '%1, %2 = Expense User names';
 
     [Test]
     procedure NoCannotBeUpdatedInExpenseManuallyIfManualNosIsFalse()
@@ -6007,6 +6008,92 @@ codeunit 148305 "Expense Test"
         Assert.AreEqual(UserName, ExpenseUser."User Id For Approvals", 'The approval user ID should match the Business Central user.');
     end;
 
+    [Test]
+    procedure AddingExpenseUserWithUnassignedApprovalSetupFromApproverCardAssignsApprover()
+    var
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseUser: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseUserPage: TestPage "Expense User";
+    begin
+        // [SCENARIO] Adding an expense user whose approval setup has no approver from the approver's Expense User card assigns the approver to the existing setup.
+        Initialize();
+
+        // [GIVEN] Approver expense user "A" and expense user "U" with an approval setup without approver.
+        CreateApproverExpenseUserWithoutBCUser(ApproverExpenseUser);
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        SetExpenseApprovalSetup(ExpenseUser."No.", '');
+
+        // [WHEN] "U" is added to the list of expense users "A" can approve for on the Expense User card of "A".
+        ExpenseUserPage.OpenEdit();
+        ExpenseUserPage.GoToRecord(ApproverExpenseUser);
+        AddExpenseUserToApproverList(ExpenseUserPage, ExpenseUser."No.");
+
+        // [THEN] The existing approval setup of "U" has "A" as approver.
+        ExpenseApprovalSetup.Get(ExpenseUser."No.");
+        Assert.AreEqual(
+            ApproverExpenseUser."No.",
+            ExpenseApprovalSetup."Approver No.",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseApprovalSetup.FieldCaption("Approver No."), ApproverExpenseUser."No.", ExpenseApprovalSetup.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpectedConfirmHandler')]
+    procedure AddingExpenseUserWithAnotherApproverFromApproverCardReplacesApproverWhenConfirmed()
+    var
+        ApproverExpenseUser: array[2] of Record "Expense User";
+        ExpenseUser: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseUserPage: TestPage "Expense User";
+    begin
+        // [SCENARIO] Adding an expense user who already has another approver from the approver's Expense User card replaces the approver when confirmed.
+        Initialize();
+
+        // [GIVEN] Approver expense users "A1" and "A2" and expense user "U" approved by "A1".
+        CreateApproverExpenseUserWithoutBCUser(ApproverExpenseUser[1]);
+        CreateApproverExpenseUserWithoutBCUser(ApproverExpenseUser[2]);
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        SetExpenseApprovalSetup(ExpenseUser."No.", ApproverExpenseUser[1]."No.");
+
+        // [WHEN] "U" is added to the list of expense users "A2" can approve for on the Expense User card of "A2" and the replacement is confirmed.
+        LibraryVariableStorage.Enqueue(StrSubstNo(ExistingApproverTxt, ExpenseUser.Name, ApproverExpenseUser[1].Name));
+        ExpenseUserPage.OpenEdit();
+        ExpenseUserPage.GoToRecord(ApproverExpenseUser[2]);
+        AddExpenseUserToApproverList(ExpenseUserPage, ExpenseUser."No.");
+
+        // [THEN] The approval setup of "U" has "A2" as approver.
+        ExpenseApprovalSetup.Get(ExpenseUser."No.");
+        Assert.AreEqual(
+            ApproverExpenseUser[2]."No.",
+            ExpenseApprovalSetup."Approver No.",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseApprovalSetup.FieldCaption("Approver No."), ApproverExpenseUser[2]."No.", ExpenseApprovalSetup.TableCaption()));
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure AddingExpenseUserAlreadyInListFromApproverCardRaisesError()
+    var
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseUser: Record "Expense User";
+        ExpenseUserPage: TestPage "Expense User";
+    begin
+        // [SCENARIO] Adding an expense user who is already in the approver's list on the Expense User card raises an error instead of creating a duplicate row.
+        Initialize();
+
+        // [GIVEN] Approver expense user "A" and expense user "U" approved by "A".
+        CreateApproverExpenseUserWithoutBCUser(ApproverExpenseUser);
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        SetExpenseApprovalSetup(ExpenseUser."No.", ApproverExpenseUser."No.");
+
+        // [WHEN] "U" is added again to the list of expense users "A" can approve for.
+        ExpenseUserPage.OpenEdit();
+        ExpenseUserPage.GoToRecord(ApproverExpenseUser);
+        asserterror AddExpenseUserToApproverList(ExpenseUserPage, ExpenseUser."No.");
+
+        // [THEN] An error states that "U" already has "A" as an approver.
+        Assert.ExpectedError(StrSubstNo(ExistingApproverTxt, ExpenseUser.Name, ApproverExpenseUser.Name));
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
@@ -6624,5 +6711,32 @@ codeunit 148305 "Expense Test"
     begin
         LibraryVariableStorage.Clear();
         LibraryVariableStorage.Enqueue(Notification.Message);
+    end;
+
+    local procedure CreateApproverExpenseUserWithoutBCUser(var ApproverExpenseUser: Record "Expense User")
+    begin
+        LibraryExpense.CreateExpenseUser(ApproverExpenseUser);
+        ApproverExpenseUser."Can Approve" := true;
+        ApproverExpenseUser.Modify();
+    end;
+
+    local procedure AddExpenseUserToApproverList(var ExpenseUserPage: TestPage "Expense User"; ExpenseUserNo: Code[20])
+    begin
+        ExpenseUserPage.ExpenseApprovalSetup.New();
+        ExpenseUserPage.ExpenseApprovalSetup."Expense User No.".SetValue(ExpenseUserNo);
+        ExpenseUserPage.Close();
+    end;
+
+    local procedure SetExpenseApprovalSetup(ExpenseUserNo: Code[20]; ApproverNo: Code[20])
+    var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        if not ExpenseApprovalSetup.Get(ExpenseUserNo) then begin
+            ExpenseApprovalSetup.Init();
+            ExpenseApprovalSetup."Expense User No." := ExpenseUserNo;
+            ExpenseApprovalSetup.Insert();
+        end;
+        ExpenseApprovalSetup."Approver No." := ApproverNo;
+        ExpenseApprovalSetup.Modify();
     end;
 }
