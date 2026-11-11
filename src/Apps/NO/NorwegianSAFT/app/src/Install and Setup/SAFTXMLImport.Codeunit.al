@@ -148,7 +148,7 @@ codeunit 10671 "SAF-T XML Import"
             if not TempXMLBuffer.HasChildNodes() then
                 Error(NotPossibleToParseMappingXMLFileErr, SAFTStandardAccountsTxt);
             TempXMLBuffer.FindChildElements(TempChildXMLBuffer);
-            if (strlen(TempChildXMLBuffer.Value) > 4) then
+            if (StrLen(TempChildXMLBuffer.Value) > 4) then
                 Error('Standard account id must not has length more than 4 chars');
             StdAccNo := CopyStr(TempChildXMLBuffer.Value, 1, MaxStrLen(SAFTMapping."No."));
             SAFTMapping.Init();
@@ -156,7 +156,7 @@ codeunit 10671 "SAF-T XML Import"
             SAFTMapping."Category No." := TryInsertCategoryForStandardAccount(SAFTMapping."Mapping Type", StdAccNo);
             SAFTMapping."No." := StdAccNo;
             TempChildXMLBuffer.Next();
-            SAFTMapping.Description := copystr(TempChildXMLBuffer.Value, 1, MaxStrLen(SAFTMapping.Description));
+            SAFTMapping.Description := CopyStr(TempChildXMLBuffer.Value, 1, MaxStrLen(SAFTMapping.Description));
             if SAFTMapping.insert() then;
         until TempXMLBuffer.Next() = 0;
         InsertNotApplicationMappingCode(MappingType);
@@ -397,7 +397,7 @@ codeunit 10671 "SAF-T XML Import"
     var
         CategoryNo: COde[20];
     begin
-        CategoryNo := copystr(StdAccNo, 1, 1);
+        CategoryNo := CopyStr(StdAccNo, 1, 1);
         case CategoryNo of
             '1':
                 exit(TryInsertSAFTMappingCategory(MappingType, CategoryNo, AssetsLbl));

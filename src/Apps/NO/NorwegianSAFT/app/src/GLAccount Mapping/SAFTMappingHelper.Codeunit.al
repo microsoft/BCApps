@@ -85,7 +85,7 @@ codeunit 10672 "SAF-T Mapping Helper"
         repeat
             GLAccount.Init();
             GLAccount.Validate("No.", SAFTMapping."No.");
-            GLAccount.Validate(Name, copystr(SAFTMapping.Description, 1, MaxStrLen(GLAccount.Name)));
+            GLAccount.Validate(Name, CopyStr(SAFTMapping.Description, 1, MaxStrLen(GLAccount.Name)));
             GLAccount.Validate("Account Type", GLAccount."Account Type"::Posting);
             GLAccount.Insert(true);
         until SAFTMapping.Next() = 0;

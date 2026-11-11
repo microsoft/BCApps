@@ -230,7 +230,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         repeat
             if GuiAllowed() then begin
                 CountOfAccounts += 1;
-                Window.Update(2, ROUND(100 * (CountOfAccounts / TotalNumberOfAccounts * 100), 1));
+                Window.Update(2, Round(100 * (CountOfAccounts / TotalNumberOfAccounts * 100), 1));
             end;
             ExportGLAccount(
                 SAFTGLAccountMapping."G/L Account No.",
@@ -322,7 +322,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         repeat
             if GuiAllowed() then begin
                 CountOfCustomers += 1;
-                Window.Update(2, ROUND(100 * (CountOfCustomers / TotalNumberOfCustomers * 100), 1));
+                Window.Update(2, Round(100 * (CountOfCustomers / TotalNumberOfCustomers * 100), 1));
             end;
             ExportCustomer(Customer, SAFTExportHeader);
         until Customer.Next() = 0;
@@ -401,7 +401,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         repeat
             if GuiAllowed() then begin
                 CountOfVendors += 1;
-                Window.Update(2, ROUND(100 * (CountOfVendors / TotalNumberOfVendors * 100), 1));
+                Window.Update(2, Round(100 * (CountOfVendors / TotalNumberOfVendors * 100), 1));
             end;
             ExportVendor(Vendor, SAFTExportHeader);
         until Vendor.Next() = 0;
@@ -863,7 +863,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         else
             SAFTXMLHelper.AppendXMLNode('TaxCode', Format(VATPostingSetup."Purchase SAF-T Tax Code"));
         SAFTXMLHelper.AppendXMLNode('TaxPercentage', FormatAmount(VATPostingSetup."VAT %"));
-        SAFTXMLHelper.AppendXMLNode('TaxBase', FormatAmount(abs(VATEntry.Base)));
+        SAFTXMLHelper.AppendXMLNode('TaxBase', FormatAmount(Abs(VATEntry.Base)));
         IsHandled := false;
         OnBeforeExportVATEntryAmountInfo(SAFTXMLHelper, VATEntry, IsHandled);
         if not IsHandled then begin
@@ -873,7 +873,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
                 IsDebitVATAmount := GLEntry."Debit Amount" <> 0;
             end;
             TaxAmountNode := IsDebitVATAmount ? 'DebitTaxAmount' : 'CreditTaxAmount';
-            ExportAmountInfo(TaxAmountNode, abs(VATEntry.Amount));
+            ExportAmountInfo(TaxAmountNode, Abs(VATEntry.Amount));
         end;
         SAFTXMLHelper.FinalizeXMLNode();
     end;
@@ -1067,8 +1067,8 @@ codeunit 10692 "Generate SAF-T 1.3 File"
             FirstName := ContactName;
             LastName := '-';
         end else begin
-            FirstName := copystr(ContactName, 1, SpacePos - 1);
-            LastName := copystr(ContactName, SpacePos + 1, StrLen(ContactName) - SpacePos);
+            FirstName := CopyStr(ContactName, 1, SpacePos - 1);
+            LastName := CopyStr(ContactName, SpacePos + 1, StrLen(ContactName) - SpacePos);
         end;
     end;
 
